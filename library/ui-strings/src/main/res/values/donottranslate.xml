@@ -674,6 +674,38 @@
     <string name="room_personalization_redaction_clear_media_now" translatable="false">Clear preserved media in this room</string>
     <string name="attachment_viewer_show_in_chat" translatable="false">Show in chat</string>
     <string name="attachment_viewer_more_options" translatable="false">More options</string>
+    <string name="attachment_viewer_info" translatable="false">Info</string>
+
+    <string name="media_info_title" translatable="false">Media info</string>
+    <string name="media_info_name" translatable="false">Name</string>
+    <string name="media_info_type" translatable="false">Type</string>
+    <string name="media_info_size" translatable="false">Size</string>
+    <string name="media_info_resolution" translatable="false">Resolution</string>
+    <string name="media_info_resolution_value" translatable="false">%1$d × %2$d</string>
+    <string name="media_info_duration" translatable="false">Duration</string>
+    <string name="media_info_frame_rate" translatable="false">Frame rate</string>
+    <string name="media_info_frame_rate_value" translatable="false">%1$s fps</string>
+    <string name="media_info_bitrate" translatable="false">Bitrate</string>
+    <string name="media_info_bitrate_value" translatable="false">%1$d kbps</string>
+    <string name="media_info_rotation" translatable="false">Rotation</string>
+    <string name="media_info_rotation_value" translatable="false">%1$d°</string>
+    <string name="media_info_video_codec" translatable="false">Video codec</string>
+    <string name="media_info_audio_codec" translatable="false">Audio codec</string>
+    <string name="media_info_sample_rate" translatable="false">Sample rate</string>
+    <string name="media_info_sample_rate_value" translatable="false">%1$d Hz</string>
+    <string name="media_info_channels" translatable="false">Channels</string>
+    <string name="media_info_date_taken" translatable="false">Date taken</string>
+    <string name="media_info_camera" translatable="false">Camera</string>
+    <string name="media_info_lens" translatable="false">Lens</string>
+    <string name="media_info_aperture" translatable="false">Aperture</string>
+    <string name="media_info_aperture_value" translatable="false">f/%1$s</string>
+    <string name="media_info_exposure" translatable="false">Exposure</string>
+    <string name="media_info_exposure_fraction_value" translatable="false">1/%1$d s</string>
+    <string name="media_info_exposure_value" translatable="false">%1$s s</string>
+    <string name="media_info_iso" translatable="false">ISO</string>
+    <string name="media_info_focal_length" translatable="false">Focal length</string>
+    <string name="media_info_focal_length_value" translatable="false">%1$s mm</string>
+    <string name="media_info_location" translatable="false">Location</string>
 
     <string name="room_personalization_redaction_clear_now_confirmation" translatable="false">Delete the media kept for redacted messages in this room? Anything the server no longer holds can\'t be downloaded again.</string>
 

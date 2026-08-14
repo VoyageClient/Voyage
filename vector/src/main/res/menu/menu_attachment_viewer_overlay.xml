@@ -17,6 +17,11 @@
         android:title="@string/attachment_viewer_show_in_chat" />
 
     <item
+        android:id="@+id/attachmentViewerInfo"
+        android:icon="@drawable/ic_info_24"
+        android:title="@string/attachment_viewer_info" />
+
+    <item
         android:id="@+id/attachmentViewerPlaybackSpeed"
         android:icon="@drawable/ic_timer"
         android:title="@string/video_editor_speed_title" />
