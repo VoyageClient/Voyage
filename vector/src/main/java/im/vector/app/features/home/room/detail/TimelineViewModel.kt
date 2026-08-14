@@ -219,6 +219,10 @@ class TimelineViewModel @AssistedInject constructor(
             // Nominal case, we have retrieved the room.
             timeline = timelineFactory.createTimeline(room, eventId, initialState.rootThreadEventId)
             initSafe(room, timeline)
+            // Sliding sync only delivers the state types it asked for, so an opened room fetches the rest
+            // once. Deliberately not awaited: the timeline must not wait on a request for state it does
+            // not need to render.
+            viewModelScope.launch { tryOrNull { room.membershipService().loadFullRoomStateIfNeeded() } }
         }
     }
 

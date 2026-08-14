@@ -370,7 +370,13 @@ internal class DefaultCryptoService @Inject constructor(
                     deviceListManager.invalidateAllDeviceLists()
                     // always track my devices?
                     deviceListManager.startTrackingDeviceList(listOf(userId))
-                    deviceListManager.refreshOutdatedDeviceLists()
+                    // Not awaited: this downloads and cross-signs the device list of every user we track —
+                    // hundreds of them, several seconds of requests — and the first sync response cannot be
+                    // shown to the user until this method returns. The lists are already marked outdated,
+                    // so anything that needs them fetches them on demand in the meantime.
+                    cryptoCoroutineScope.launch(coroutineDispatchers.crypto) {
+                        tryOrNull { deviceListManager.refreshOutdatedDeviceLists() }
+                    }
                 } catch (failure: Throwable) {
                     Timber.tag(loggerTag.value).e(failure, "onSyncWillProcess ")
                 }

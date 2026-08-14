@@ -110,6 +110,17 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         save(RuleSetKey.UNDERRIDE, global.underride)
     }
 
+    /**
+     * Re-applies the stored `m.direct` against whatever rooms exist now. Sliding sync hands account data
+     * over in the first response and rooms over gradually after it, so a DM that arrived in a later batch
+     * was not there to be marked when `m.direct` was processed.
+     */
+    fun refreshDirectChatRooms() {
+        val stored = stores.accountData.getUserAccountData(UserAccountDataTypes.TYPE_DIRECT_MESSAGES) ?: return
+        val content = ContentMapper.map(stored.contentStr) ?: return
+        handleDirectChatRooms(UserAccountDataEvent(type = UserAccountDataTypes.TYPE_DIRECT_MESSAGES, content = content))
+    }
+
     private fun handleDirectChatRooms(event: UserAccountDataEvent) {
         val content = event.content.toModel<DirectMessagesContent>() ?: return
         val directRoomIds = content.values.flatten().toSet()

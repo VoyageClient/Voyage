@@ -119,6 +119,15 @@ data class HomeServerCapabilities(
          * "block all invites" switch would actually do something.
          */
         val canBlockInvites: Boolean = false,
+        /**
+         * MSC4186. True when the server serves simplified sliding sync.
+         */
+        val canUseSimplifiedSlidingSync: Boolean = false,
+        /**
+         * MSC4525. True when the server serves paginated sync, the successor to MSC4186 that
+         * replaces lists and ranges with server-driven paging.
+         */
+        val canUsePaginatedSync: Boolean = false,
 ) {
 
     enum class RoomCapabilitySupport {

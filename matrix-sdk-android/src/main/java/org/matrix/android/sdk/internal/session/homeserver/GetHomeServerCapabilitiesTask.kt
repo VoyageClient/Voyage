@@ -27,9 +27,11 @@ import org.matrix.android.sdk.internal.auth.version.Versions
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportAuthenticatedMedia
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportInviteBlocking
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportLogoutDevices
+import org.matrix.android.sdk.internal.auth.version.doesServerSupportPaginatedSync
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportQrCodeLogin
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportRedactionOfRelatedEvents
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportRemoteToggleOfPushNotifications
+import org.matrix.android.sdk.internal.auth.version.doesServerSupportSimplifiedSlidingSync
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreadUnreadNotifications
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreads
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportViewingUnredactedContent
@@ -43,6 +45,7 @@ import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManagerConfigExtractor
 import org.matrix.android.sdk.internal.session.media.AuthenticatedMediaAPI
+import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
 import org.matrix.android.sdk.internal.session.media.GetMediaConfigResult
 import org.matrix.android.sdk.internal.session.media.UnauthenticatedMediaAPI
 import org.matrix.android.sdk.internal.task.Task
@@ -71,6 +74,7 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
         @UserId
         private val userId: String,
         private val authMetadataAPI: AuthMetadataAPI,
+        private val isAuthenticatedMediaSupported: DefaultIsAuthenticatedMediaSupported,
 ) : GetHomeServerCapabilitiesTask {
 
     override suspend fun execute(params: GetHomeServerCapabilitiesTask.Params) {
@@ -181,6 +185,10 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                         getVersionResult.doesServerSupportAuthenticatedMedia()
                 homeServerCapabilitiesEntity.canBlockInvites =
                         getVersionResult.doesServerSupportInviteBlocking()
+                homeServerCapabilitiesEntity.canUseSimplifiedSlidingSync =
+                        getVersionResult.doesServerSupportSimplifiedSlidingSync()
+                homeServerCapabilitiesEntity.canUsePaginatedSync =
+                        getVersionResult.doesServerSupportPaginatedSync()
             }
 
             if (getWellknownResult != null && getWellknownResult is WellknownResult.Prompt) {
@@ -208,6 +216,7 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
 
             homeServerCapabilitiesEntity.lastUpdatedTimestamp = Date().time
             stores.homeServerCapabilities.upsert(homeServerCapabilitiesEntity)
+            isAuthenticatedMediaSupported.refresh()
         }
     }
 

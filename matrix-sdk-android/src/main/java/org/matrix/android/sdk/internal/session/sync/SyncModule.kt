@@ -21,6 +21,7 @@ import dagger.Module
 import dagger.Provides
 import org.matrix.android.sdk.api.session.sync.SyncService
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncAPI
 import retrofit2.Retrofit
 
 @Module
@@ -33,6 +34,13 @@ internal abstract class SyncModule {
         @SessionScope
         fun providesSyncAPI(retrofit: Retrofit): SyncAPI {
             return retrofit.create(SyncAPI::class.java)
+        }
+
+        @Provides
+        @JvmStatic
+        @SessionScope
+        fun providesSlidingSyncAPI(retrofit: Retrofit): SlidingSyncAPI {
+            return retrofit.create(SlidingSyncAPI::class.java)
         }
     }
 

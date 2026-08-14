@@ -32,8 +32,6 @@ class UploadsFileController @Inject constructor(
 
     var listener: Listener? = null
 
-    private var idx = 0
-
     override fun buildModels(data: RoomUploadsViewState?) {
         data ?: return
         val host = this
@@ -42,8 +40,11 @@ class UploadsFileController @Inject constructor(
 
         if (data.hasMore) {
             loadingItem {
-                // Always use a different id, because we can be notified several times of visibility state changed
-                id("loadMore${host.idx++}")
+                // Keyed on how much has loaded rather than on a counter: a fresh id every rebuild makes
+                // Epoxy recreate the view, restarting the spinner's animation, and the list rebuilds often
+                // while a sync is running. Loading more still changes the id, so the visibility callback
+                // fires again for the next page.
+                id("loadMore${data.fileEvents.size}")
                 onVisibilityStateChanged { _, _, visibilityState ->
                     if (visibilityState == VisibilityState.VISIBLE) {
                         host.listener?.loadMore()

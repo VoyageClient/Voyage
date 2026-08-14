@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.sync.initialSyncStrategy
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
@@ -39,7 +40,10 @@ import org.matrix.android.sdk.internal.session.SessionListeners
 import org.matrix.android.sdk.internal.session.dispatchTo
 import org.matrix.android.sdk.internal.session.filter.GetCurrentFilterTask
 import org.matrix.android.sdk.internal.session.homeserver.GetHomeServerCapabilitiesTask
+import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
 import org.matrix.android.sdk.internal.session.sync.parsing.InitialSyncResponseParser
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncMode
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncTask
 import org.matrix.android.sdk.internal.session.user.UserStore
 import org.matrix.android.sdk.internal.task.Task
 import org.matrix.android.sdk.internal.util.logDuration
@@ -79,7 +83,10 @@ internal class DefaultSyncTask @Inject constructor(
         private val roomSyncEphemeralTemporaryStore: RoomSyncEphemeralTemporaryStore,
         private val clock: Clock,
         private val getHomeServerCapabilitiesTask: GetHomeServerCapabilitiesTask,
-        private val getCurrentFilterTask: GetCurrentFilterTask
+        private val getCurrentFilterTask: GetCurrentFilterTask,
+        private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
+        private val slidingSyncTask: SlidingSyncTask,
 ) : SyncTask {
 
     private val workingDir = File(fileDirectory, "is")
@@ -104,7 +111,15 @@ internal class DefaultSyncTask @Inject constructor(
 
         // Maybe refresh the homeserver capabilities data we know
         getHomeServerCapabilitiesTask.execute(GetHomeServerCapabilitiesTask.Params(forceRefresh = false))
+
+        // Runs even when syncing over MSC4186/MSC4525, which have no use for a sync filter: this is also
+        // what publishes the room filter that back-pagination reuses, and /messages 400s without it.
         val filter = getCurrentFilterTask.execute(Unit)
+
+        slidingSyncMode()?.let { mode ->
+            Timber.tag(loggerTag.value).d("Syncing over $mode")
+            return slidingSyncTask.sync(mode, params)
+        }
 
         requestParams["timeout"] = timeout.toString()
         requestParams["filter"] = filter
@@ -206,6 +221,24 @@ internal class DefaultSyncTask @Inject constructor(
         Timber.tag(loggerTag.value).d("Sync task finished on Thread: ${Thread.currentThread().name}")
         // Should throw if null as it's a mandatory value.
         return syncResponseToReturn!!
+    }
+
+    /**
+     * MSC4525 is MSC4186 with the lists, the connection expiry and the client error path taken out,
+     * so it wins wherever the server offers both. Null means staying on sync v2.
+     */
+    private fun slidingSyncMode(): SlidingSyncMode? {
+        if (!lightweightSettingsStorage.isSlidingSyncEnabled()) return null
+        val capabilities = homeServerCapabilitiesDataSource.getHomeServerCapabilities()
+        return when {
+            capabilities?.canUsePaginatedSync == true -> SlidingSyncMode.PAGINATED
+            capabilities?.canUseSimplifiedSlidingSync == true -> SlidingSyncMode.SIMPLIFIED
+            // An account already on a sliding connection stays on it even if the capability momentarily
+            // reads false — a failed capability refresh would otherwise drop it onto sync v2 with no
+            // since-token, i.e. re-download the whole account behind a progress screen.
+            syncTokenStore.getSlidingSyncPos() != null -> SlidingSyncMode.SIMPLIFIED
+            else -> null
+        }
     }
 
     private suspend fun downloadInitSyncResponse(requestParams: Map<String, String>, syncStatisticsData: SyncStatisticsData): File {

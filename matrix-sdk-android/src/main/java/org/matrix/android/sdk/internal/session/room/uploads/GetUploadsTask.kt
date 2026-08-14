@@ -77,7 +77,9 @@ internal class DefaultGetUploadsTask @Inject constructor(
                     .executeAsList()
                     .map { it.toEntity().asDomain() }
         } else {
-            val since = params.since ?: tokenStore.getLastToken() ?: throw IllegalStateException("No token available")
+            // Sliding sync issues no v2 since-token, and there is none at all before the first sync. `from`
+            // is optional, and omitting it starts from the most recent event, which is what this wants.
+            val since = params.since ?: tokenStore.getLastToken()
 
             val filter = FilterFactory.createUploadsFilter(params.numberOfEvents).toJSONString()
             val chunk = executeRequest(globalErrorReceiver) {

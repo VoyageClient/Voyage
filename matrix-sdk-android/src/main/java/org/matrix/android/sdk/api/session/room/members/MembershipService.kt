@@ -31,6 +31,12 @@ interface MembershipService {
     suspend fun loadRoomMembersIfNeeded()
 
     /**
+     * Fetch the room's whole state, not just its members. Needed because sliding sync only delivers the
+     * state types it was asked for; call it when a room is opened, never per room in a list.
+     */
+    suspend fun loadFullRoomStateIfNeeded()
+
+    /**
      * All the room members can be not loaded, for instance after an initial sync.
      * All the members will be loaded when calling [loadRoomMembersIfNeeded], or when sending an encrypted
      * event to the room.

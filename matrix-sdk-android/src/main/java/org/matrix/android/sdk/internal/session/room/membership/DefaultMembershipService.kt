@@ -70,6 +70,11 @@ internal class DefaultMembershipService @AssistedInject constructor(
         loadRoomMembersTask.execute(params)
     }
 
+    override suspend fun loadFullRoomStateIfNeeded() {
+        val params = LoadRoomMembersTask.Params(roomId, excludeMembership = Membership.LEAVE, fullState = true)
+        loadRoomMembersTask.execute(params)
+    }
+
     override suspend fun areAllMembersLoaded(): Boolean {
         val status = roomDataSource.getRoomMembersLoadStatus(roomId)
         return status == RoomMembersLoadStatusType.LOADED

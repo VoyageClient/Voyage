@@ -24,6 +24,7 @@ import org.matrix.android.sdk.internal.database.model.HomeServerCapabilitiesEnti
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManagerConfigExtractor
 import org.matrix.android.sdk.internal.session.media.AuthenticatedMediaAPI
+import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
 import org.matrix.android.sdk.internal.session.media.UnauthenticatedMediaAPI
 import org.matrix.android.sdk.internal.wellknown.GetWellknownTask
 import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
@@ -41,6 +42,7 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
     private val configExtractor: IntegrationManagerConfigExtractor = mockk()
     private val homeServerConnectionConfig: HomeServerConnectionConfig = mockk()
     private val authMetadataAPI: AuthMetadataAPI = mockk()
+    private val isAuthenticatedMediaSupported: DefaultIsAuthenticatedMediaSupported = mockk(relaxed = true)
 
     private val task = DefaultGetHomeServerCapabilitiesTask(
             capabilitiesAPI,
@@ -54,7 +56,8 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
             configExtractor,
             homeServerConnectionConfig,
             "userId",
-            authMetadataAPI
+            authMetadataAPI,
+            isAuthenticatedMediaSupported
     )
 
     private fun persisted(): HomeServerCapabilitiesEntity = db.stores.homeServerCapabilities.get()!!

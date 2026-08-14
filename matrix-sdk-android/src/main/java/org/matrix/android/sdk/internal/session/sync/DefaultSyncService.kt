@@ -22,6 +22,7 @@ import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.session.SessionState
 import org.matrix.android.sdk.internal.session.sync.job.SyncThread
 import org.matrix.android.sdk.internal.session.sync.job.SyncWorker
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRequiredState
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -99,7 +100,12 @@ internal class DefaultSyncService @Inject constructor(
     override fun getSyncRequestStateFlow() = syncRequestStateTracker.syncRequestState
 
     override fun hasAlreadySynced(): Boolean {
-        return syncTokenStore.getLastToken() != null
+        // A pos from a connection opened with a different required_state is about to be thrown away and the
+        // account re-fetched, so claiming to have synced would send the app to an empty room list instead
+        // of the progress screen.
+        val slidingSynced = syncTokenStore.getSlidingSyncPos() != null &&
+                syncTokenStore.getSlidingSyncStateVersion() == SlidingSyncRequiredState.VERSION
+        return syncTokenStore.getLastToken() != null || slidingSynced
     }
 
     @Synchronized

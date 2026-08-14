@@ -22,4 +22,7 @@ interface LightweightSettingsStorage {
 
     /** Whether EXIF/location metadata should be stripped from images and videos before upload. */
     fun shouldStripMediaMetadata(): Boolean
+
+    /** Whether to sync over MSC4525 / MSC4186 when the homeserver offers them, instead of sync v2. */
+    fun isSlidingSyncEnabled(): Boolean
 }

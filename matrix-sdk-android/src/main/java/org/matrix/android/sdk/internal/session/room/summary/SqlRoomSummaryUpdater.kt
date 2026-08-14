@@ -103,8 +103,12 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
             roomSummary.invitedMembersCount?.let { entity.invitedMembersCount = it }
             roomSummary.joinedMembersCount?.let { entity.joinedMembersCount = it }
         }
-        entity.highlightCount = unreadNotifications?.highlightCount ?: 0
-        entity.notificationCount = unreadNotifications?.notificationCount ?: 0
+        // Sync v2 restates the counts on every room update, but sliding sync only sends them when they
+        // change, so an absent block means "unchanged" rather than zero.
+        if (unreadNotifications != null) {
+            entity.highlightCount = unreadNotifications.highlightCount ?: 0
+            entity.notificationCount = unreadNotifications.notificationCount ?: 0
+        }
         entity.threadHighlightCount = unreadThreadNotifications?.count { (it.value.highlightCount ?: 0) > 0 } ?: 0
         entity.threadNotificationCount = unreadThreadNotifications?.count { (it.value.notificationCount ?: 0) > 0 } ?: 0
         if (membership != null) entity.membership = membership
