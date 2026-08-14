@@ -15,6 +15,8 @@ object VectorAutoLinkPatterns {
     private const val LAT_OR_LONG_OR_ALT_NUMBER = "-?\\d+(?:\\.\\d+)?"
     private const val COORDINATE_SYSTEM = ";crs=[\\w-]+"
 
+    val MSC: Regex = Regex("\\bMSC(\\d{1,6})\\b", RegexOption.IGNORE_CASE)
+
     val GEO_URI: Regex = Regex(
             "(?:geo:)?" +
                     "(" + LAT_OR_LONG_OR_ALT_NUMBER + ")" +
