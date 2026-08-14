@@ -34,8 +34,9 @@ import kotlin.math.abs
  * source, because that is the only clock the sound itself follows. A re-timed track is nudged back
  * towards [timeMap] as it goes — the time stretch lands within a sample or two of the requested
  * speed each time it adjusts, and left alone those roundings would add up to visible lip-sync drift
- * over a long clip. Sound that keeps its timing needs none of that, and correcting it anyway would
- * put a click in every buffer.
+ * over a long clip. The nudge goes onto the speed asked of the next buffer rather than into the
+ * samples: taking the difference out of the PCM put a splice, and so a click, in every buffer.
+ * Sound that keeps its timing needs none of this.
  */
 @RequiresApi(18)
 @Suppress("DEPRECATION")
@@ -70,8 +71,12 @@ internal class AudioTrackTranscoder private constructor(
 
     /** How far the clock had to be pulled forward to keep it out of negative time. */
     private var clockOffsetFrames = 0L
-    private var driftCorrections = 0
-    private var driftedFrames = 0L
+
+    /** How far ahead (+) or behind (−) the map the clock was left by the last buffer. */
+    private var driftFrames = 0L
+    private var lastOutputFrames = 0
+    private var peakDriftFrames = 0L
+    private var splices = 0
     private var inputDone = false
     private var decoderDone = false
     private var encoderDone = false
@@ -215,8 +220,8 @@ internal class AudioTrackTranscoder private constructor(
                 clockOffsetFrames = emittedFrames - mapped
             }
             pending = if (retimed) {
-                processor.speed = timeMap.rate
-                correctDrift(processor.process(scratch, 0, frames), sourceUs + frameToUs(frames.toLong()))
+                processor.speed = trimmedRate()
+                settleDrift(processor.process(scratch, 0, frames), sourceUs + frameToUs(frames.toLong()))
             } else {
                 // Nothing to re-time, so the samples go out as they came in: bit-exact, and with no
                 // per-buffer correction to click.
@@ -241,30 +246,38 @@ internal class AudioTrackTranscoder private constructor(
     }
 
     /**
-     * The stretch lands a sample or two off the requested speed each time it adjusts, which would
-     * accumulate into lip-sync drift, so it is smoothed back a hundredth of a buffer at a time.
+     * The speed to ask of the next buffer: the requested one, leaned on just enough to work off
+     * however far the last buffer left the clock from the map. Emitting [driftFrames] fewer samples
+     * over a buffer of [lastOutputFrames] is that much more speed, and the lean is capped well below
+     * where a listener would hear the tempo move.
      */
-    private fun correctDrift(processed: ShortArray, sourceEndUs: Long): ShortArray {
+    private fun trimmedRate(): Float {
+        if (driftFrames == 0L || lastOutputFrames <= 0) return timeMap.rate
+        val cap = if (changePitch) MAX_RATE_TRIM_RESAMPLED else MAX_RATE_TRIM_STRETCHED
+        val trim = (driftFrames.toDouble() / lastOutputFrames).coerceIn(-cap, cap)
+        return (timeMap.rate * (1.0 + trim)).toFloat()
+    }
+
+    /**
+     * Measures how far this buffer left the clock from the map, for the next one to lean against.
+     * Only a gap too large for that to ever catch — a hole in the source, not a rounding — is taken
+     * out of the samples, where there is a discontinuity to hide behind anyway.
+     */
+    private fun settleDrift(processed: ShortArray, sourceEndUs: Long): ShortArray {
         if (processed.isEmpty()) return processed
         val frames = processed.size / channelCount
         val expected = timeMap.outputUsFor(sourceEndUs) * sampleRate / 1_000_000 + clockOffsetFrames
         val drift = emittedFrames + frames - expected
-        if (drift != 0L) {
-            driftCorrections++
-            driftedFrames += drift
-        }
-        val abrupt = abs(drift) > frames / 2
-        val limit = if (abrupt) abs(drift) else frames / 100 + 1L
-        return when {
-            drift > 0 -> processed.copyOf((frames - minOf(drift, limit).toInt()).coerceAtLeast(0) * channelCount)
-            drift < 0 -> {
-                // Silence rather than the last frame repeated: a big gap held on one sample is a
-                // buzz, where nothing at all is what a cut sounds like.
-                val extra = minOf(-drift, limit).toInt()
-                processed.copyOf((frames + extra) * channelCount)
-            }
-            else -> processed
-        }
+        driftFrames = drift
+        lastOutputFrames = frames
+        if (abs(drift) > abs(peakDriftFrames)) peakDriftFrames = drift
+        val spliceAt = sampleRate / SPLICE_THRESHOLD_DIVISOR
+        if (abs(drift) <= spliceAt) return processed
+        splices++
+        driftFrames = 0
+        // Growing the array pads with silence rather than repeating the last frame: a gap held on
+        // one sample is a buzz, where nothing at all is what a hole in the sound is supposed to be.
+        return processed.copyOf((frames - drift.toInt()).coerceAtLeast(0) * channelCount)
     }
 
     private fun drainEncoder(muxer: MuxerSession?): Boolean {
@@ -336,8 +349,8 @@ internal class AudioTrackTranscoder private constructor(
     private fun frameToUs(frames: Long) = if (sampleRate == 0) 0L else frames * 1_000_000L / sampleRate
 
     override fun release() {
-        if (driftCorrections > 0) {
-            Timber.d("VideoEdit: audio clock corrected $driftCorrections times, $driftedFrames frames in total")
+        if (peakDriftFrames != 0L) {
+            Timber.d("VideoEdit: audio clock drifted at most $peakDriftFrames frames, spliced $splices times")
         }
         runCatching { decoder.stop() }
         runCatching { decoder.release() }
@@ -357,6 +370,19 @@ internal class AudioTrackTranscoder private constructor(
 
         /** MediaFormat.KEY_PCM_ENCODING, spelled out so it can be read on every level. */
         private const val KEY_PCM_ENCODING = "pcm-encoding"
+
+        /**
+         * Resampling carries the pitch with it, where a lean of even a percent is a wobble on a
+         * held note — and it hardly needs one, its fractional read position being exact to begin
+         * with. The time stretch emits whole pitch periods and so lands further out, but a lean
+         * there moves the tempo alone, which at this size nobody hears.
+         */
+        private const val MAX_RATE_TRIM_RESAMPLED = 0.005
+        private const val MAX_RATE_TRIM_STRETCHED = 0.02
+
+        /** 50ms — past this the clock is not off by roundings, and no lean would ever catch it. */
+        private const val SPLICE_THRESHOLD_DIVISOR = 20
+
         private const val STEREO_BIT_RATE = 128_000
         private const val MONO_BIT_RATE = 64_000
 

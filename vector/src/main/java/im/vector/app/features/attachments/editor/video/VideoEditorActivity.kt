@@ -28,6 +28,7 @@ import android.view.TextureView
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
@@ -90,6 +91,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var muted = false
     private var playbackSpeed = PlaybackSpeed()
     private var warnedAboutSpeedPreview = false
+    private var speedAwaitingPlayback = false
     private var exporting = false
 
     /** Where playback was when the surface went away, so coming back does not start over. */
@@ -259,14 +261,24 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             return
         }
+        // Setting the parameters on a paused player starts it, and the sound it gets out before it
+        // can be paused again is a click — one per step of the speed dialog, which is a crackle.
+        // The speed only means anything while playing anyway, so it waits for that.
+        if (!player.isPlaying) {
+            speedAwaitingPlayback = true
+            return
+        }
+        pushPlaybackSpeed(player)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun pushPlaybackSpeed(player: MediaPlayer) {
+        speedAwaitingPlayback = false
         runCatching {
-            val playing = player.isPlaying
             player.playbackParams = player.playbackParams
                     .setSpeed(playbackSpeed.speed)
                     // Tape behaviour is pitch riding along with the speed; the alternative holds it.
                     .setPitch(if (playbackSpeed.changePitch) playbackSpeed.speed else 1f)
-            // Setting the parameters starts a paused player, which would run off the frame being set.
-            if (!playing) player.pause()
         }.onFailure { Timber.w(it, "VideoEditor: cannot preview speed ${playbackSpeed.speed}") }
     }
 
@@ -567,6 +579,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         val player = player ?: return
         if (endUs > 0 && player.currentPosition * 1000L >= endUs) seekTo(startUs)
         player.start()
+        if (speedAwaitingPlayback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) pushPlaybackSpeed(player)
         handler.post(playbackTicker)
     }
 

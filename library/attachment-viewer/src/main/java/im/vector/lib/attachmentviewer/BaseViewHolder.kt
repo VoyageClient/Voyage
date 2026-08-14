@@ -23,6 +23,9 @@ abstract class BaseViewHolder constructor(itemView: View) :
     open fun entersForeground() {}
     open fun onSelected(selected: Boolean) {}
 
+    /** Tell the freshly installed overlay where this page stands, rather than leave it at zero. */
+    open fun publishState() {}
+
     open fun handleCommand(commands: AttachmentCommands) {}
 
     /** @param xFraction horizontal tap position as a fraction of the viewer width. */

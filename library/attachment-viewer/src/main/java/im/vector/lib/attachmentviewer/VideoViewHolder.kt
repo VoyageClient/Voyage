@@ -51,6 +51,9 @@ class VideoViewHolder constructor(itemView: View) :
 
     private var lastReportedPositionMs = 0
 
+    /** Last duration a player reported, so the controls can be restored without one to ask. */
+    private var lastKnownDurationMs = 0
+
     /** Timestamp of the final frame, probed in the background once the player is prepared. */
     @Volatile private var endFrameMs = -1
 
@@ -322,6 +325,9 @@ class VideoViewHolder constructor(itemView: View) :
 
     override fun onRecycled() {
         super.onRecycled()
+        // Whatever page comes next is not selected until it is told so; carrying the flag over would
+        // have an off-screen page start itself and report over the one on screen.
+        isSelected = false
         springBackAnimator?.cancel()
         springBackAnimator = null
         stopTimer()
@@ -372,7 +378,19 @@ class VideoViewHolder constructor(itemView: View) :
         } else if (mVideoPath != null) {
             startPlaying()
         }
-        isSelected = true
+        isSelected = selected
+    }
+
+    /**
+     * The overlay is one view shared by every page and is blanked as each is selected, so a page
+     * coming back would read 0:00 until its first tick rather than the position it kept.
+     */
+    override fun publishState() {
+        val active = player?.takeIf { isPrepared }
+        val duration = active?.durationMs?.takeIf { it > 0 } ?: lastKnownDurationMs
+        if (duration <= 0) return
+        val position = active?.positionMs ?: progress
+        eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(active?.isPlaying == true, position, duration))
     }
 
     private fun startPlaying() {
@@ -488,6 +506,7 @@ class VideoViewHolder constructor(itemView: View) :
             it.tickListener = CountUpTimer.TickListener {
                 val active = player ?: return@TickListener
                 val duration = active.durationMs
+                if (duration > 0) lastKnownDurationMs = duration
                 val raw = active.positionMs
                 val isPlaying = active.isPlaying
                 // An audio sink spinning up (Bluetooth especially) briefly walks the reported
@@ -616,6 +635,7 @@ class VideoViewHolder constructor(itemView: View) :
         wasPaused = false
         endedNaturally = false
         endFrameMs = -1
+        lastKnownDurationMs = 0
         playbackSpeed = 1f
         pitchFollowsSpeed = true
         rebuiltForSpeed = false
