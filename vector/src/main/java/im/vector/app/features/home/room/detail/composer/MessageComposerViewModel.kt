@@ -24,8 +24,8 @@ import im.vector.app.features.command.Command
 import im.vector.app.features.command.CommandParser
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
-import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
+import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.media.domain.usecase.DownloadMediaUseCase
 import im.vector.app.features.pgp.PgpDecryptor
@@ -54,8 +54,6 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
-import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
@@ -64,6 +62,7 @@ import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -74,6 +73,7 @@ import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultCon
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThread
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
+import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent

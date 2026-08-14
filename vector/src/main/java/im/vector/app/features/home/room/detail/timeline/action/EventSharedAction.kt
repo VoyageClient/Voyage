@@ -15,7 +15,6 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 sealed class EventSharedAction(
         @StringRes val titleRes: Int,

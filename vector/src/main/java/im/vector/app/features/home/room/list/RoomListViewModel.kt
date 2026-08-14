@@ -23,8 +23,8 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.displayname.getBestName
-import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.home.room.list.watched.WatchedRooms
+import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.app.features.settings.VectorPreferences

@@ -11,6 +11,7 @@ package org.matrix.android.sdk.api.session.profile
 object ProfileKeys {
     const val DISPLAY_NAME = "displayname"
     const val AVATAR_URL = "avatar_url"
+
     // MSC4427 profile banner. Write both keys, read the stable one first.
     const val BANNER_URL = "m.banner_url"
     const val BANNER_URL_UNSTABLE = "chat.commet.profile_banner"
