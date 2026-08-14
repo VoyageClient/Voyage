@@ -115,6 +115,12 @@ object VectorLinkify {
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
         }
 
+        LinkifyCompat.addLinks(spannable, VectorAutoLinkPatterns.MSC.toPattern(), MSC_PULL_URL, null, mscTransformFilter)
+        spannable.forEachUrlSpanIndexed { _, urlSpan, start, end ->
+            spannable.removeSpan(urlSpan)
+            createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
+        }
+
         pruneOverlaps(createdSpans)
         for (spec in createdSpans) {
             spannable.setSpan(spec.span, spec.start, spec.end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -182,6 +188,10 @@ object VectorLinkify {
             -1
         } else 0
     }
+
+    private const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
+
+    private val mscTransformFilter = Linkify.TransformFilter { match, _ -> match.group(1) }
 
     // Exclude short match that don't have geo: prefix, e.g do not highlight things like 1,2
     private val geoMatchFilter = Linkify.MatchFilter { s, start, end ->
