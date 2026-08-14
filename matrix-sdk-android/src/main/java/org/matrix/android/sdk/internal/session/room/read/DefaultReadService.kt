@@ -60,11 +60,11 @@ internal class DefaultReadService @AssistedInject constructor(
         fun create(roomId: String): DefaultReadService
     }
 
-    // A room we're no longer in (kicked/banned, kept browsable) refuses receipts/markers.
-    private fun isJoined() = stores.room.get(roomId)?.membership == Membership.JOIN
+    // A room we're not joined to (kicked/banned but kept browsable, or merely watched) refuses
+    // receipts/markers, so its read state is tracked locally and never sent.
+    private fun isLocalOnly() = stores.room.get(roomId)?.membership != Membership.JOIN
 
     override suspend fun markAsRead(params: ReadService.MarkAsReadParams, mainTimeLineOnly: Boolean, public: Boolean) {
-        if (!isJoined()) return
         val readReceiptThreadId = if (homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true) {
             if (mainTimeLineOnly) ReadService.THREAD_ID_MAIN else null
         } else {
@@ -76,6 +76,7 @@ internal class DefaultReadService @AssistedInject constructor(
                 forceReadReceipt = params.forceReadReceipt(),
                 readReceiptThreadId = readReceiptThreadId,
                 publicReadReceipt = public,
+                localOnly = isLocalOnly(),
         )
         setReadMarkersTask.execute(taskParams)
         if (stores.roomSummary.get(roomId)?.markedUnread == true) {
@@ -84,7 +85,6 @@ internal class DefaultReadService @AssistedInject constructor(
     }
 
     override suspend fun setReadReceipt(eventId: String, threadId: String, public: Boolean) = withContext(matrixCoroutineDispatchers.io) {
-        if (!isJoined()) return@withContext
         val readReceiptThreadId = if (homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true) {
             threadId
         } else {
@@ -96,13 +96,15 @@ internal class DefaultReadService @AssistedInject constructor(
                 readReceiptEventId = eventId,
                 readReceiptThreadId = readReceiptThreadId,
                 publicReadReceipt = public,
+                localOnly = isLocalOnly(),
         )
         setReadMarkersTask.execute(params)
     }
 
     override suspend fun setReadMarker(fullyReadEventId: String) {
-        if (!isJoined()) return
-        val params = SetReadMarkersTask.Params(roomId, fullyReadEventId = fullyReadEventId, readReceiptEventId = null)
+        val params = SetReadMarkersTask.Params(
+                roomId, fullyReadEventId = fullyReadEventId, readReceiptEventId = null, localOnly = isLocalOnly(),
+        )
         setReadMarkersTask.execute(params)
     }
 
@@ -110,6 +112,7 @@ internal class DefaultReadService @AssistedInject constructor(
         database.awaitDbTransaction(dispatcher) {
             stores.roomSummary.updateMarkedUnread(roomId, markedUnread)
         }
+        if (isLocalOnly()) return
         updateRoomAccountDataTask.execute(
                 UpdateRoomAccountDataTask.Params(
                         roomId = roomId,

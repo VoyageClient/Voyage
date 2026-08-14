@@ -56,6 +56,8 @@ internal class DefaultSyncRemovedRoomsTask @Inject constructor(
     private val inFlight = AtomicBoolean(false)
 
     override suspend fun execute(params: SyncRemovedRoomsTask.Params) {
+        // Removed rooms count as read in full, including any left unread by the sync that removed them.
+        database.awaitDbTransaction(sessionDbDispatcher) { stores.roomSummary.clearUnreadForRemovedRooms() }
         // The persisted marker lives in the session store, so recovery re-runs exactly when the
         // store is rebuilt (fresh login, schema bump) — the only times its data can be missing.
         if (!params.force && stores.syncToken.isRemovedRoomsRecovered()) return

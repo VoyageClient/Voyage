@@ -16,6 +16,7 @@ import im.vector.app.features.share.SharedData
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
@@ -105,4 +106,7 @@ data class RoomDetailViewState(
     fun isThreadTimeline() = rootThreadEventId != null
 
     fun isLocalRoom() = RoomLocalEcho.isLocalEchoId(roomId)
+
+    /** Same gate the composer uses: a preview, watched, invited or removed-from room can't be posted to. */
+    fun isReadOnlyTimeline() = asyncRoomSummary()?.membership != Membership.JOIN
 }

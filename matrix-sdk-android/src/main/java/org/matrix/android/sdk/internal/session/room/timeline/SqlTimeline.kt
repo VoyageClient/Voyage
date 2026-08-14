@@ -235,7 +235,11 @@ internal class SqlTimeline(
                     // A boundary marked by an earlier 403 isn't authoritative — the server's
                     // departed-access policy varies per room — so a removed room re-probes once per
                     // open; a genuine room start just re-marks.
-                    database.awaitDbTransaction(sessionDispatcher) { stores.chunk.clearLastBackward(roomId) }
+                    database.awaitDbTransaction(sessionDispatcher) {
+                        stores.chunk.clearLastBackward(roomId)
+                        // A frozen room's stored order can predate the batch it belongs after (see handleLeftRoom).
+                        stores.chunk.lastForward(roomId)?.id?.let { stores.timelineEvent.resequenceChunkByTimestamp(it) }
+                    }
                 }
             }
             // A thread timeline gets a fresh (empty) thread chunk that the fetch task + sync then populate.

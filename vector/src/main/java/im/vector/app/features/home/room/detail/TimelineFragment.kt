@@ -1409,6 +1409,9 @@ class TimelineFragment :
                 }
 
                 override fun canSwipeModel(model: EpoxyModel<*>): Boolean {
+                    if (withState(timelineViewModel) { it.isReadOnlyTimeline() }) {
+                        return false
+                    }
                     val canSendMessage = withState(messageComposerViewModel) {
                         it.canSendMessage
                     }

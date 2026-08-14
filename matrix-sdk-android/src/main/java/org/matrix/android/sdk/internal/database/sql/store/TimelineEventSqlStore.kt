@@ -93,6 +93,18 @@ internal class TimelineEventSqlStore(
     fun moveToChunkAtIndex(id: Long, chunkId: Long, displayIndex: Long) =
             queries.moveToChunkAtIndex(chunkId, displayIndex, id)
 
+    /**
+     * Permute the chunk's rows into timestamp order, reusing the display indices already in the chunk so
+     * its index range — and the negative convention of a backward-paginated chunk — is preserved.
+     */
+    fun resequenceChunkByTimestamp(chunkId: Long): Boolean {
+        val rows = queries.selectChunkRowsByTimestamp(chunkId).executeAsList()
+        val indices = rows.map { it.display_index }.sorted()
+        if (rows.map { it.display_index } == indices) return false
+        rows.forEachIndexed { position, row -> queries.updateDisplayIndex(indices[position], row.id) }
+        return true
+    }
+
     data class LoneEventRow(val id: Long, val eventId: String, val chunkId: Long)
 
     fun maxDisplayIndex(chunkId: Long): Long? = queries.maxDisplayIndexForChunk(chunkId).executeAsOne().max
