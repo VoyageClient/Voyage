@@ -163,6 +163,14 @@ SELECT MAX(te.display_index) AS idx FROM timeline_event te
 JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
 WHERE te.chunk_id = ? AND e.origin_server_ts <= ?;
 
+selectChunkRowsByTimestamp:
+SELECT te.id AS id, te.display_index AS display_index FROM timeline_event te
+JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
+WHERE te.chunk_id = ? ORDER BY e.origin_server_ts ASC, te.id ASC;
+
+updateDisplayIndex:
+UPDATE timeline_event SET display_index = ? WHERE id = ?;
+
 shiftDisplayIndicesUpAfter:
 UPDATE timeline_event SET display_index = display_index + 1 WHERE chunk_id = ? AND display_index > ?;
 

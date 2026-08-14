@@ -1636,6 +1636,8 @@ private fun handleSelectStickerAttachment() {
     private fun computeUnreadState(events: List<TimelineEvent>, roomSummary: RoomSummary): UnreadState {
         if (timeline == null) return UnreadState.Unknown
         if (events.isEmpty()) return UnreadState.Unknown
+        // Nothing can arrive in a room we were removed from, and the server refuses receipts for it.
+        if (roomSummary.isRemovedFromRoom) return UnreadState.HasNoUnread
         val readMarkerIdSnapshot = roomSummary.readMarkerId ?: return UnreadState.Unknown
         val firstDisplayableEventIndex = timeline.getIndexOfEvent(readMarkerIdSnapshot)
                 ?: return if (timeline.isLive) {

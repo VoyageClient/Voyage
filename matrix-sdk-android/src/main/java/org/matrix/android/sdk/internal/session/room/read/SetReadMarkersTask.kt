@@ -48,6 +48,11 @@ internal interface SetReadMarkersTask : Task<SetReadMarkersTask.Params, Unit> {
              * read state so unread counts and cross-device sync work, but peers don't see it.
              */
             val publicReadReceipt: Boolean = false,
+            /**
+             * Keep the marker and receipt purely local. For a room we are not joined to (kicked, banned,
+             * or merely watched) the server rejects them outright, so read state can only ever be ours.
+             */
+            val localOnly: Boolean = false,
     )
 }
 
@@ -104,7 +109,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
         if (markers.isNotEmpty() || shouldUpdateRoomSummary) {
             updateDatabase(params.roomId, readReceiptThreadId, markers, shouldUpdateRoomSummary, readReceiptType)
         }
-        if (markers.isNotEmpty()) {
+        if (markers.isNotEmpty() && !params.localOnly) {
             // Hand off to the persistent queue: it retries with backoff and survives restarts, so the
             // server eventually learns the room was read even if the network is currently down.
             readReceiptQueue.enqueue(

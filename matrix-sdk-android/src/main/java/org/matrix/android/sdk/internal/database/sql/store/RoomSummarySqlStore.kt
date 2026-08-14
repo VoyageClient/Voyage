@@ -98,8 +98,7 @@ internal class RoomSummarySqlStore(
     /** No-op write that makes room_summary listeners re-emit for [roomId]. */
     fun touch(roomId: String) = queries.touchByRoomId(roomId)
 
-    fun updateRemovedFromRoom(roomId: String, removed: Boolean) =
-            queries.updateRemovedFromRoom(if (removed) 1L else 0L, roomId)
+    fun clearUnreadForRemovedRooms() = queries.clearUnreadForRemovedRooms()
 
     fun getWatchedRoomIds(): List<String> = queries.selectWatchedRoomIds().executeAsList()
 

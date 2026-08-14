@@ -93,6 +93,7 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
             updateMembers: Boolean = false,
             inviterId: String? = null,
             aggregator: SyncResponsePostTreatmentAggregator? = null,
+            removedFromRoom: Boolean? = null,
     ) {
         val entity = stores.roomSummary.get(roomId) ?: RoomSummaryEntity(roomId = roomId)
         if (roomSummary != null) {
@@ -108,6 +109,7 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         entity.threadNotificationCount = unreadThreadNotifications?.count { (it.value.notificationCount ?: 0) > 0 } ?: 0
         if (membership != null) entity.membership = membership
         if (membership == Membership.JOIN) entity.isRemovedFromRoom = false
+        if (removedFromRoom != null) entity.isRemovedFromRoom = removedFromRoom
 
         entity.isHiddenFromUser = entity.versioningState == VersioningState.UPGRADED_ROOM_JOINED ||
                 roomAccountDataDataSource.getAccountDataEvent(roomId, RoomAccountDataTypes.EVENT_TYPE_VIRTUAL_ROOM) != null
@@ -135,6 +137,17 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
 
         entity.hasUnreadMessages = entity.notificationCount > 0 ||
                 latestPreviewableEvent?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
+
+        if (entity.isRemovedFromRoom) {
+            // A kicked/banned room is frozen and the server refuses our read receipts for it, so there is
+            // nothing left to read and no way to record having read it.
+            entity.highlightCount = 0
+            entity.notificationCount = 0
+            entity.threadHighlightCount = 0
+            entity.threadNotificationCount = 0
+            entity.hasUnreadMessages = false
+            entity.markedUnread = false
+        }
 
         entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
         entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)

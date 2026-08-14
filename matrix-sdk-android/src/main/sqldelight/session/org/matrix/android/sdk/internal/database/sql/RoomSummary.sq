@@ -108,8 +108,9 @@ SELECT room_id FROM room_summary WHERE membership_str = ? AND inviter_id IN ?;
 updateHiddenFromUser:
 UPDATE room_summary SET is_hidden_from_user = ? WHERE room_id = ?;
 
-updateRemovedFromRoom:
-UPDATE room_summary SET is_removed_from_room = ? WHERE room_id = ?;
+clearUnreadForRemovedRooms:
+UPDATE room_summary SET notification_count = 0, highlight_count = 0, thread_notification_count = 0,
+thread_highlight_count = 0, has_unread_messages = 0, marked_unread = 0 WHERE is_removed_from_room = 1;
 
 selectWatchedRoomIds:
 SELECT room_id FROM room_summary WHERE is_watched = 1;

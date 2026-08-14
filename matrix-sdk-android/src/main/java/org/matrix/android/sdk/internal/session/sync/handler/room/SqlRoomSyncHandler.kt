@@ -329,6 +329,9 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 // destroy cached history for good. Append instead; the gap's middle is lost either way.
                 val limited = timeline.limited && removalMembership != Membership.BAN
                 handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, limited, insertType, syncTs)
+                // A ban's leave sync is stripped down to the ban itself, so a fuller batch delivered later
+                // is *older* than the chunk already holds and appending it strands the ban at the top.
+                stores.chunk.lastForward(roomId)?.id?.let { stores.timelineEvent.resequenceChunkByTimestamp(it) }
             }
         } else {
             clearRoomTimeline(stores, roomId)
@@ -351,9 +354,8 @@ internal class SqlRoomSyncHandler @Inject constructor(
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.LEAVE)
         roomSummaryUpdater.update(
                 stores, roomId, membership, roomSync.summary, roomSync.unreadNotifications,
-                roomSync.unreadThreadNotifications, aggregator = aggregator,
+                roomSync.unreadThreadNotifications, aggregator = aggregator, removedFromRoom = removedFromRoom,
         )
-        stores.roomSummary.updateRemovedFromRoom(roomId, removedFromRoom)
     }
 
     /**
