@@ -15,6 +15,7 @@ import android.os.Parcelable
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.view.ViewTreeObserver
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -31,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.singletonEntryPoint
+import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.utils.PERMISSIONS_FOR_WRITING_FILES
@@ -48,6 +50,7 @@ import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentCommands
+import im.vector.lib.attachmentviewer.AttachmentInfo
 import im.vector.lib.attachmentviewer.AttachmentViewerActivity
 import im.vector.lib.core.utils.compat.getParcelableArrayListExtraCompat
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
@@ -89,7 +92,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     override val loopVideos: Boolean
         get() = vectorPreferences.loopVideos()
 
-    override fun isOverlayInteractionInProgress(): Boolean = currentSourceProvider?.isOverlayInteracting() == true
+    override fun isOverlayInteractionInProgress(): Boolean =
+            infoDialog?.isShowing == true || currentSourceProvider?.isOverlayInteracting() == true
 
     private val viewModel: VectorAttachmentViewerViewModel by viewModel()
     private val errorFormatter by lazy(LazyThreadSafetyMode.NONE) { singletonEntryPoint().errorFormatter() }
@@ -99,6 +103,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private var restoredPosition = -1
     private var isAnimatingOut = false
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
+    private var infoDialog: MediaInfoDialog? = null
     private var providerInstalled = false
     private var handoffPending = false
 
@@ -250,6 +255,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     override fun onPause() {
         super.onPause()
         Timber.i("onPause Activity ${javaClass.simpleName}")
+    }
+
+    override fun onDestroy() {
+        infoDialog?.dismiss()
+        infoDialog = null
+        super.onDestroy()
     }
 
     @Suppress("OVERRIDE_DEPRECATION")
@@ -467,6 +478,44 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             navigator.openRoom(this, roomId, eventId)
         }
         finish()
+    }
+
+    override fun onShowInfo() {
+        val provider = currentSourceProvider ?: return
+        val position = currentPosition
+        val data = when (val attachment = provider.getAttachmentInfoAt(position)) {
+            is AttachmentInfo.Image -> attachment.data
+            is AttachmentInfo.AnimatedImage -> attachment.data
+            is AttachmentInfo.Video -> attachment.data
+        } as? AttachmentData ?: return
+
+        val dialog = MediaInfoDialog(
+                // The viewer's own theme is a bare fullscreen one, so the sheet takes the app's.
+                context = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+                onDismiss = {
+                    infoDialog = null
+                    restartAutoHideCountdown()
+                }
+        )
+        infoDialog = dialog
+        dialog.show(MediaInfoCollector.fromEvent(this, data, provider.getTimelineEventAtPosition(position)))
+
+        lifecycleScope.launch {
+            val probed = withContext(Dispatchers.IO) {
+                mediaSourceFor(provider, position, data)?.let {
+                    MediaInfoCollector.probe(this@VectorAttachmentViewerActivity, it, isVideo = data is VideoContentRenderer.Data)
+                }
+            }
+            if (probed != null && dialog.isShowing) dialog.update(probed)
+        }
+    }
+
+    private suspend fun mediaSourceFor(provider: BaseAttachmentProvider<*>, position: Int, data: AttachmentData): MediaSource? {
+        val preserved = (data as? ImageContentRenderer.Data)?.preservedFile ?: (data as? VideoContentRenderer.Data)?.preservedFile
+        if (preserved != null) return MediaSource.LocalFile(preserved)
+        // A still-sending attachment has no mxc url to download from, only the picked local one.
+        data.url?.takeIf { data.allowNonMxcUrls && it.isLocalMediaUri() }?.let { return MediaSource.ContentUri(it.toUri()) }
+        return provider.getFileForSharing(position)?.let { MediaSource.LocalFile(it) }
     }
 
     // Whole-number numeric fields decode from JSON as Double; re-serializing emits e.g. "w":1080.0

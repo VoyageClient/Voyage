@@ -343,6 +343,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
                 R.id.attachmentViewerShare -> interactionListener?.onShare()
                 R.id.attachmentViewerForward -> interactionListener?.onForward()
                 R.id.attachmentViewerShowInChat -> interactionListener?.onShowInChat()
+                R.id.attachmentViewerInfo -> interactionListener?.onShowInfo()
                 R.id.attachmentViewerPlaybackSpeed -> showSpeedDialog()
             }
             true
