@@ -1169,6 +1169,7 @@ internal class SqlTimeline(
     companion object {
         private const val DECRYPT_REBUILD_DEBOUNCE_MS = 150L
         private const val LOAD_MEMBERS_RETRY_DELAY_MS = 10_000L
+
         // Bounds the immediate follow-ups after token-progress-only pages; the UI's loading item
         // re-triggers for anything longer.
         private const val MAX_PAGINATION_ROUNDS = 10

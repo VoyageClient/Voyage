@@ -40,6 +40,7 @@ import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
+import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.BannerRenderer
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
@@ -62,7 +63,6 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
-import im.vector.app.features.displayname.getBestName
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import timber.log.Timber
 import javax.inject.Inject

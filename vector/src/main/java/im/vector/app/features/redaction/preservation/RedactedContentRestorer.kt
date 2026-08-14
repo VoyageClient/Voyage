@@ -10,13 +10,13 @@ package im.vector.app.features.redaction.preservation
 import dagger.Lazy
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
+import im.vector.app.features.home.room.detail.timeline.helper.TimelineDisplayableEvents
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.model.EditAggregatedSummary
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.ReactionAggregatedSummary
-import im.vector.app.features.home.room.detail.timeline.helper.TimelineDisplayableEvents
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
 import javax.inject.Singleton

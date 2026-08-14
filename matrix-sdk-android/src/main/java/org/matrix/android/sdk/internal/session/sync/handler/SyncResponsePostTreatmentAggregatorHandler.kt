@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.session.sync.handler
 
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoomTask
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
 import org.matrix.android.sdk.internal.di.SessionId
@@ -26,6 +25,7 @@ import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
+import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoomTask
 import org.matrix.android.sdk.internal.session.sync.FetchUnignoredContentTask
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator

@@ -7,9 +7,9 @@
 
 package im.vector.app.features.attachments.preview
 
+import android.animation.ObjectAnimator
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
-import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PorterDuff
@@ -18,11 +18,11 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.text.format.DateUtils
 import android.view.LayoutInflater
-import android.view.animation.LinearInterpolator
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.view.ContextThemeWrapper

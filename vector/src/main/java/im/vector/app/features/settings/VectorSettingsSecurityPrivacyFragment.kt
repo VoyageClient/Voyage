@@ -62,7 +62,6 @@ import im.vector.app.features.pin.PinCodeStore
 import im.vector.app.features.pin.PinMode
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
-import im.vector.app.features.settings.vpn.VectorSettingsVpnExclusionsFragment
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTIONS_CATEGORY_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_CLEAR_WITH_APP_CACHE_KEY
@@ -71,6 +70,7 @@ import im.vector.app.features.redaction.preservation.RedactionPreservationSettin
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_MEDIA_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_WIFI_ONLY_KEY
 import im.vector.app.features.session.coroutineScope
+import im.vector.app.features.settings.vpn.VectorSettingsVpnExclusionsFragment
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
