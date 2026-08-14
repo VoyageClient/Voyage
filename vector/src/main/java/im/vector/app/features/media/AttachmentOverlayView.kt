@@ -285,6 +285,9 @@ class AttachmentOverlayView @JvmOverloads constructor(
         views.overlayVideoControlsGroup.isVisible = show
         isVideo = show
         playbackSpeed = PlaybackSpeed()
+        // Belongs to the page being left, and a stale one has the next page's first report read as
+        // a pause and reveal the centre button.
+        isPlaying = false
         centerButtonUnlocked = false
         refreshCenterButton()
         // The declared duration, so the label doesn't sit empty while the player spins up.

@@ -214,21 +214,24 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     open fun onSelectedPositionChanged(position: Int) {
-        attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition)?.let {
-            (it as? BaseViewHolder)?.onSelected(false)
+        val previous = attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? BaseViewHolder
+        previous?.onSelected(false)
+        // The overlay belongs to whichever page is showing: a page left holding the listener keeps
+        // writing its own position and duration into the controls of the one that is.
+        (previous as? VideoViewHolder)?.eventListener = null
+        val selected = attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(position) as? BaseViewHolder
+        // Properties first: onSelected may start playback, which reads them.
+        if (selected is VideoViewHolder) {
+            selected.eventListener = WeakReference(this)
+            selected.loopEnabled = loopVideos
         }
-        attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(position)?.let {
-            // Properties first: onSelected may start playback, which reads them.
-            if (it is VideoViewHolder) {
-                it.eventListener = WeakReference(this)
-                it.loopEnabled = loopVideos
-            }
-            (it as? BaseViewHolder)?.onSelected(true)
-        }
+        selected?.onSelected(true)
         currentPosition = position
         videoIsPlaying = false
         cancelAutoHide()
         overlayView = attachmentsAdapter.attachmentSourceProvider?.overlayViewAtPosition(this@AttachmentViewerActivity, position)
+        // The overlay comes back blank for the new page, and its first report is a tick away.
+        selected?.publishState()
     }
 
     override fun onPause() {

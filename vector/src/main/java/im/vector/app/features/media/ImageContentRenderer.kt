@@ -28,6 +28,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.bumptech.glide.signature.ObjectKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.R
@@ -284,7 +285,7 @@ class ImageContentRenderer @Inject constructor(
                 // The very object already on screen, so Glide's own placeholder step cannot cut the
                 // fade short by swapping in an equivalent-looking one.
                 .placeholder(placeholderFor(data, showFailureGlyph).also { it.setFailed(retryingFailed) })
-                .let { if (crossFade) it.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS)) else it }
+                .let { if (crossFade) it.transition(DrawableTransitionOptions.with(REVEAL_FADE_FACTORY)) else it }
                 .withDisplayOptions(data, mode, animate, cornerTransformation, size)
                 .intoView(imageView, animate)
     }
@@ -488,6 +489,12 @@ class ImageContentRenderer @Inject constructor(
         private const val BLURHASH_CROSSFADE_MS = 200L
         private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS)
         private const val REVEAL_CROSSFADE_MS = 220
+
+        // Glide's withCrossFade() leaves the placeholder as an opaque layer under the image for good,
+        // which a transparent picture then shows the waiting fill through. Fading it out instead.
+        private val REVEAL_FADE_FACTORY = DrawableCrossFadeFactory.Builder(REVEAL_CROSSFADE_MS)
+                .setCrossFadeEnabled(true)
+                .build()
         private const val MIN_RETRY_FEEDBACK_MS = 550L
         private const val STILL_FRAME_SIGNATURE = "still-frame"
 
@@ -718,7 +725,7 @@ class ImageContentRenderer @Inject constructor(
         // occupied for the wait and only the glyph changes if it ends badly.
         // No blurhash — video thumbnails rarely carry one — still means going from the waiting state
         // to a picture, so it gets an ordinary crossfade rather than appearing in a single frame.
-        val blurHash = data.blurHash ?: return request.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS))
+        val blurHash = data.blurHash ?: return request.transition(DrawableTransitionOptions.with(REVEAL_FADE_FACTORY))
         val key = "${data.stableId}:$blurHash:${data.width}x${data.height}"
         val placeholder = synchronized(blurHashPlaceholders) {
             // The fade-out transition marks the instance finished when the image lands, after which it

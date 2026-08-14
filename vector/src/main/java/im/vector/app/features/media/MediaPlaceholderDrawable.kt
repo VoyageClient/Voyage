@@ -119,7 +119,7 @@ class MediaPlaceholderDrawable(
         val amplitude = (maxAlpha - minAlpha) * (1f - failProgress)
         val fillAlpha = minAlpha + (maxAlpha - minAlpha) * failProgress + amplitude * breathe
 
-        val alpha = (255 * fillAlpha).toInt().coerceIn(0, 255)
+        val alpha = (255 * fillAlpha * externalAlpha / 255).toInt().coerceIn(0, 255)
         if (blurHash != null) {
             blurHash.setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom)
             blurHash.alpha = alpha
@@ -130,7 +130,7 @@ class MediaPlaceholderDrawable(
         }
 
         if (showGlyph && failProgress > 0f) {
-            scrimPaint.alpha = (SCRIM_ALPHA * failProgress).toInt()
+            scrimPaint.alpha = (SCRIM_ALPHA * failProgress * externalAlpha / 255).toInt()
             canvas.drawRect(rect, scrimPaint)
 
             icon?.let {
@@ -140,7 +140,7 @@ class MediaPlaceholderDrawable(
                 val left = bounds.left + ((bounds.width() - size) / 2)
                 val top = bounds.top + ((bounds.height() - size) / 2)
                 it.setBounds(left, top, left + size, top + size)
-                it.alpha = (255 * failProgress).toInt()
+                it.alpha = (255 * failProgress * externalAlpha / 255).toInt()
                 it.draw(canvas)
             }
         }
@@ -185,9 +185,12 @@ class MediaPlaceholderDrawable(
         if (isVisible) start()
     }
 
+    // The cross-fade out of this placeholder drives us through setAlpha, so the pulse has to be
+    // scaled by it rather than painting at its own strength until it is dropped.
+    private var externalAlpha = 255
+
     override fun setAlpha(alpha: Int) {
-        fillPaint.alpha = alpha
-        blurHash?.alpha = alpha
+        externalAlpha = alpha
     }
 
     override fun setColorFilter(colorFilter: ColorFilter?) {

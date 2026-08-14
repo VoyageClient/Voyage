@@ -109,8 +109,11 @@ class BlurFadeOutDrawable(
 class BlurFadeOutTransitionFactory(private val durationMs: Long) : TransitionFactory<Drawable> {
 
     // The hash decodes off-thread and a fast local load can beat it; without something to fade from,
-    // the image would appear in a single frame.
-    private val fallback = DrawableCrossFadeFactory.Builder(durationMs.toInt()).build()
+    // the image would appear in a single frame. Cross-fading, or the placeholder stays as an opaque
+    // layer under the image and a transparent picture shows the waiting fill through it.
+    private val fallback = DrawableCrossFadeFactory.Builder(durationMs.toInt())
+            .setCrossFadeEnabled(true)
+            .build()
 
     override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> =
             Transition<Drawable> { current, adapter ->

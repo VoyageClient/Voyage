@@ -37,6 +37,7 @@ import im.vector.app.features.home.room.detail.timeline.style.mediaCornerRadiusP
 import im.vector.app.features.home.room.detail.timeline.style.mediaCornerTransformation
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
+import im.vector.app.features.media.ImageAlphaProbe
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -132,6 +133,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 holder.imageView.setCornerRadii(r, r, r, r)
             }
         }
+        holder.alphaProbeKey = mediaData.stableId
+        holder.alphaProbeCornerPx = cornerPx
         holder.thumbnailBackdrop.background = GradientDrawable().apply {
             setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
             cornerRadius = if (isBubble) {
@@ -282,6 +285,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
 
+        var alphaProbeKey: String = ""
+        var alphaProbeCornerPx: Int = 0
         private var durationAligner: ViewTreeObserver.OnPreDrawListener? = null
         private var backdropWatcher: ViewTreeObserver.OnPreDrawListener? = null
         private val drawnThumbnail = RectF()
@@ -324,12 +329,22 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             showThumbnailBackdrop()
         }
 
+        /** The rounded corners as a share of a side, over the shorter one so both axes clear. */
+        private fun cornerFraction(): Float {
+            if (alphaProbeCornerPx <= 0) return 0f
+            val shortest = minOf(imageView.width, imageView.height)
+            return if (shortest > 0) alphaProbeCornerPx.toFloat() / shortest else 0f
+        }
+
         /**
          * The platform hides the shared element until the viewer gives it back, so watch for the
          * window regaining focus and drop the stand-in then. Images have no duration badge and so no
          * per-draw listener of their own, hence one installed just for this.
          */
         private fun showThumbnailBackdrop() {
+            // A see-through picture would show the stand-in through itself, and the hole it leaves
+            // while the viewer holds it reads as timeline anyway.
+            if (ImageAlphaProbe.usesAlpha(alphaProbeKey, imageView.drawable, cornerFraction())) return
             thumbnailBackdrop.isVisible = true
             if (backdropWatcher != null) return
             val observer = thumbnailBackdrop.viewTreeObserver
