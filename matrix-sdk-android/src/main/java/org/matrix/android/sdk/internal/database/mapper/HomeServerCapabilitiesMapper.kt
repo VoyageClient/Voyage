@@ -56,6 +56,8 @@ internal object HomeServerCapabilitiesMapper {
                 canUseAuthenticatedMedia = entity.canUseAuthenticatedMedia,
                 forgetForcedUponLeave = entity.forgetForcedUponLeave,
                 canBlockInvites = entity.canBlockInvites,
+                canUseSimplifiedSlidingSync = entity.canUseSimplifiedSlidingSync,
+                canUsePaginatedSync = entity.canUsePaginatedSync,
         )
     }
 

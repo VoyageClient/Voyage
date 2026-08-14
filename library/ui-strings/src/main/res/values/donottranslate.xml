@@ -790,4 +790,7 @@
     <string name="sed_error_reply_no_match" translatable="false">The message you\'re replying to doesn\'t match that pattern.</string>
     <string name="sed_error_timeout" translatable="false">That pattern took too long to match.</string>
     <string name="sed_error_target_gone" translatable="false">That message is no longer available.</string>
+
+    <string name="labs_enable_sliding_sync_title" translatable="false">Use next-generation sync</string>
+    <string name="labs_enable_sliding_sync_summary" translatable="false">Sync over paginated sync or simplified sliding sync when your homeserver supports them, falling back to the standard sync otherwise</string>
 </resources>

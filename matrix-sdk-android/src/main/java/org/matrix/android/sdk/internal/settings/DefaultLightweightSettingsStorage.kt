@@ -48,6 +48,11 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         return sdkDefaultPrefs.getBoolean(SETTINGS_STRIP_MEDIA_METADATA, true)
     }
 
+    // Backed by the app's labs toggle (shared default prefs); defaults to on.
+    override fun isSlidingSyncEnabled(): Boolean {
+        return sdkDefaultPrefs.getBoolean(SETTINGS_LABS_SLIDING_SYNC, true)
+    }
+
     /**
      * Set the presence status sent on syncs when the application is in foreground.
      *
@@ -73,5 +78,6 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
 
         // Must match the app-side preference key (im.vector.app VectorPreferences).
         private const val SETTINGS_STRIP_MEDIA_METADATA = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
+        private const val SETTINGS_LABS_SLIDING_SYNC = "SETTINGS_LABS_SLIDING_SYNC_KEY"
     }
 }

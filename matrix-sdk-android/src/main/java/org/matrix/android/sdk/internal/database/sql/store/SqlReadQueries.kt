@@ -29,9 +29,15 @@ internal fun SessionStores.isEventRead(userId: String, roomId: String, eventId: 
         eventToCheck == null -> true
         eventToCheck.root?.sender == userId -> true
         else -> {
-            val rrEventId = readReceipt.getReceipt(roomId, userId, ReadService.THREAD_ID_MAIN)?.eventId ?: return false
-            val rrIndex = timelineEvent.getInChunkByEventId(liveChunkId, rrEventId)?.displayIndex ?: Int.MIN_VALUE
-            eventToCheck.displayIndex <= rrIndex
+            val receipt = readReceipt.getReceipt(roomId, userId, ReadService.THREAD_ID_MAIN) ?: return false
+            val rrIndex = timelineEvent.getInChunkByEventId(liveChunkId, receipt.eventId)?.displayIndex
+            when {
+                rrIndex != null -> eventToCheck.displayIndex <= rrIndex
+                // The receipt points at an event we were never sent — sliding sync delivers only the newest
+                // few per room — so there is no index to compare against. Falling through to "unread" there
+                // marks rooms the user has plainly read as unread, so compare when each happened instead.
+                else -> (eventToCheck.root?.originServerTs ?: 0L) <= receipt.originServerTs.toLong()
+            }
         }
     }
 }

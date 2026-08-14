@@ -21,9 +21,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
-import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
+import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
@@ -54,7 +54,13 @@ internal interface LoadRoomMembersTask : Task<LoadRoomMembersTask.Params, Unit> 
 
     data class Params(
             val roomId: String,
-            val excludeMembership: Membership? = null
+            val excludeMembership: Membership? = null,
+            /**
+             * Fetch the room's whole state rather than only its members. Sliding sync delivers only the
+             * state types it was asked for, so this is how a room the user actually opened gets the rest —
+             * but it is a large request, so nothing that runs per room in a list should ask for it.
+             */
+            val fullState: Boolean = false,
     )
 }
 
@@ -79,10 +85,16 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
     // with nothing running, which would otherwise wedge the member list until a 1-minute timeout on each reopen.
     private val inFlightRoomIds = Collections.synchronizedSet(HashSet<String>())
 
+    // Rooms whose whole state has been fetched. The LOADED marker only means members are in, and it is
+    // persisted — so without this a room that ever took the members-only path would never fetch the rest of
+    // its state, which under sliding sync is the only chance it gets.
+    private val fullStateLoadedRoomIds = Collections.synchronizedSet(HashSet<String>())
+
     override suspend fun execute(params: LoadRoomMembersTask.Params) {
+        val owesFullState = params.fullState && params.roomId !in fullStateLoadedRoomIds
         when {
-            roomDataSource.getRoomMembersLoadStatus(params.roomId) == RoomMembersLoadStatusType.LOADED -> Unit
-            params.roomId in inFlightRoomIds -> waitPreviousRequestToFinish(params)
+            !owesFullState && roomDataSource.getRoomMembersLoadStatus(params.roomId) == RoomMembersLoadStatusType.LOADED -> Unit
+            !owesFullState && params.roomId in inFlightRoomIds -> waitPreviousRequestToFinish(params)
             // NONE, or a stale LOADING left by a dead/cancelled request — fetch either way.
             else -> doRequest(params)
         }
@@ -109,9 +121,15 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
             // refuses it; without `at` it serves the membership as of when we left.
             val lastToken = syncTokenStore.getLastToken()
                     .takeIf { stores.room.get(params.roomId)?.membership == Membership.JOIN }
+            // /state answers with every state event, members included, in the one request this already made.
+            val loadFullState = params.fullState && syncTokenStore.getSlidingSyncPos() != null
             val response = try {
                 executeRequest(globalErrorReceiver) {
-                    roomAPI.getMembers(params.roomId, lastToken, null, params.excludeMembership)
+                    if (loadFullState) {
+                        RoomMembersResponse(roomAPI.getRoomState(params.roomId))
+                    } else {
+                        roomAPI.getMembers(params.roomId, lastToken, null, params.excludeMembership)
+                    }
                 }
             } catch (throwable: Throwable) {
                 // A removed room the server refuses members for will refuse forever; mark it LOADED
@@ -133,6 +151,7 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
             try {
                 // This will also set the status to LOADED
                 insertInDb(response, params.roomId)
+                if (loadFullState) fullStateLoadedRoomIds.add(params.roomId)
             } catch (throwable: Throwable) {
                 withContext(NonCancellable) {
                     setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE)

@@ -30,6 +30,8 @@ internal class CurrentStateEventSqlStore(
     fun upsert(roomId: String, type: String, stateKey: String, eventId: String, rootEventId: String?) =
             queries.upsert(roomId, type, stateKey, eventId, rootEventId)
 
+    fun deleteOne(roomId: String, type: String, stateKey: String) = queries.deleteOne(roomId, type, stateKey)
+
     fun deleteByRoom(roomId: String) = queries.deleteByRoom(roomId)
 
     private fun CurrentStateEventRow.toEntity(): CurrentStateEventEntity = CurrentStateEventEntity(

@@ -184,6 +184,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Performance internals** — SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, and a memoized event mapper underpin the user-facing speedups above.
 
+- **Next-generation sync (MSC4525 paginated sync, MSC4186 simplified sliding sync)** — when the homeserver offers either, syncing moves onto it, preferring paginated sync. Responses arrive bounded and room by room instead of in one huge batch, so the app becomes usable sooner on accounts with many rooms. Falls back to the standard sync when the server has neither, and can be turned off under Labs.
+
 - **Modern sync and spec endpoints** — sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap; a thread's edits and reactions arrive in one request (MSC3981); and reporting (MSC4277), room forgetting (MSC4267), relations and the room directory moved onto their stable endpoints.
 
 - **Dependency & build slimming** — dropped the WYSIWYG composer, Sentry, and the unused JNA dependency; vendored markwon-html; bumped conscrypt; and enabled optimization for libopus.

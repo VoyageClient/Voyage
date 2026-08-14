@@ -42,6 +42,8 @@ internal open class HomeServerCapabilitiesEntity(
         var canUseAuthenticatedMedia: Boolean = false,
         var forgetForcedUponLeave: Boolean = false,
         var canBlockInvites: Boolean = false,
+        var canUseSimplifiedSlidingSync: Boolean = false,
+        var canUsePaginatedSync: Boolean = false,
 ) {
 
     companion object

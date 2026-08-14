@@ -200,6 +200,10 @@ internal class PeekedRoom(
             }
         }
 
+        // A peeked room is one we are not in, so /state is refused; the peek already carries the state this
+        // room can show, and its members are what there is left to fetch.
+        override suspend fun loadFullRoomStateIfNeeded() = loadRoomMembersIfNeeded()
+
         override suspend fun areAllMembersLoaded(): Boolean = true
 
         override fun areAllMembersLoadedFlow(): Flow<Boolean> = flowOf(true)

@@ -25,6 +25,9 @@ upsert:
 INSERT OR REPLACE INTO current_state_event(room_id, type, state_key, event_id, root_event_id)
 VALUES (?, ?, ?, ?, ?);
 
+deleteOne:
+DELETE FROM current_state_event WHERE room_id = ? AND type = ? AND state_key = ?;
+
 deleteByRoom:
 DELETE FROM current_state_event WHERE room_id = ?;
 

@@ -45,7 +45,8 @@ internal class DefaultPaginationTask @Inject constructor(
 ) : PaginationTask {
 
     override suspend fun execute(params: PaginationTask.Params): TokenChunkEventPersistor.Result {
-        val filter = filterRepository.getRoomFilterBody()
+        // An empty filter is not valid JSON, and the server rejects the whole request for it.
+        val filter = filterRepository.getRoomFilterBody().takeIf { it.isNotBlank() }
         val chunk = executeRequest(
                 globalErrorReceiver,
                 canRetry = true

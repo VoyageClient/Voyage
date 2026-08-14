@@ -75,9 +75,11 @@ internal class SyncResponseHandler @Inject constructor(
             reporter: ProgressReporter?,
             persistToken: Boolean = true,
             suppressPush: Boolean = false,
-    ) {
+            deferSpaceValidation: Boolean = false,
+    ): Boolean {
         val isInitialSync = fromToken == null
 
+        var spaceValidationDeferred = false
         val aggregator = SyncResponsePostTreatmentAggregator()
 
         relevantPlugins.filter { it.shouldReport(isInitialSync, afterPause) }.measureSpannableMetric {
@@ -85,7 +87,7 @@ internal class SyncResponseHandler @Inject constructor(
 
             // Handle the to device events before the room ones
             // to ensure to decrypt them properly
-            handleToDevice(syncResponse)
+            handleToDevice(syncResponse, isInitialSync)
 
             val syncLocalTimestampMillis = clock.epochMillis()
 
@@ -137,9 +139,24 @@ internal class SyncResponseHandler @Inject constructor(
             markCryptoSyncCompleted(syncResponse, aggregator.cryptoStoreAggregator)
 
             val directChanged = syncResponse.accountData?.list?.any { it.type == UserAccountDataTypes.TYPE_DIRECT_MESSAGES } == true
-            handlePostSync(shouldValidateSpaceHierarchy = isInitialSync || aggregator.spaceHierarchyChanged || directChanged)
+            val shouldValidate = isInitialSync || aggregator.spaceHierarchyChanged || directChanged
+            spaceValidationDeferred = deferSpaceValidation && shouldValidate
+            handlePostSync(shouldValidateSpaceHierarchy = shouldValidate && !deferSpaceValidation)
 
             Timber.v("On sync completed")
+        }
+        return spaceValidationDeferred
+    }
+
+    /** Runs the space-hierarchy pass that [handleResponse] was told to defer. */
+    suspend fun validateSpaceHierarchy() {
+        handlePostSync(shouldValidateSpaceHierarchy = true)
+    }
+
+    /** See [SqlUserAccountDataSyncHandler.refreshDirectChatRooms]; only the sliding-sync path needs this. */
+    suspend fun refreshDirectChatRooms() {
+        database.awaitDbTransaction(sessionDbDispatcher) {
+            userAccountDataSyncHandler.refreshDirectChatRooms()
         }
     }
 
@@ -183,13 +200,16 @@ internal class SyncResponseHandler @Inject constructor(
         }
     }
 
-    private suspend fun List<SpannableMetricPlugin>.handleToDevice(syncResponse: SyncResponse) {
+    private suspend fun List<SpannableMetricPlugin>.handleToDevice(syncResponse: SyncResponse, isInitialSync: Boolean) {
         measureSpan("task", "handle_to_device") {
             measureTimeMillis {
                 Timber.v("Handle toDevice")
                 cryptoService.receiveSyncChanges(
                         syncResponse.toDevice,
-                        syncResponse.deviceLists,
+                        // Starting a sync from scratch has already invalidated every device list, so walking
+                        // the server's per-user change list would redo that one user at a time — and sliding
+                        // sync sends hundreds of them on a first response, at a database query each.
+                        syncResponse.deviceLists.takeUnless { isInitialSync },
                         syncResponse.deviceOneTimeKeysCount,
                         syncResponse.deviceUnusedFallbackKeyTypes
                 )
@@ -295,7 +315,10 @@ internal class SyncResponseHandler @Inject constructor(
         } // nothing on initial sync
 
         val rules = pushRuleService.getPushRules(RuleScope.GLOBAL).getAllRules()
-        processEventForPushTask.execute(ProcessEventForPushTask.Params(roomsSyncResponse, rules))
+        // A sliding-sync connection hands rooms over gradually, and a room's first delivery brings back
+        // history with it; notifying for that would fire a burst of alerts for messages already read.
+        val notifiable = roomsSyncResponse.copy(join = roomsSyncResponse.join.filterValues { !it.isInitialDelivery })
+        processEventForPushTask.execute(ProcessEventForPushTask.Params(notifiable, rules))
         Timber.v("[PushRules] <-- Push task scheduled")
     }
 }

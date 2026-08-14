@@ -42,6 +42,8 @@ internal class HomeServerCapabilitiesSqlStore(private val database: SessionSqlDa
             can_use_authenticated_media = entity.canUseAuthenticatedMedia.toLong(),
             forget_forced_upon_leave = entity.forgetForcedUponLeave.toLong(),
             can_block_invites = entity.canBlockInvites.toLong(),
+            can_use_simplified_sliding_sync = entity.canUseSimplifiedSlidingSync.toLong(),
+            can_use_paginated_sync = entity.canUsePaginatedSync.toLong(),
     )
 
     private fun Boolean.toLong(): Long = if (this) 1L else 0L
@@ -71,4 +73,6 @@ internal fun HomeServerCapabilitiesRow.toHomeServerCapabilitiesEntity(): HomeSer
             canUseAuthenticatedMedia = can_use_authenticated_media != 0L,
             forgetForcedUponLeave = forget_forced_upon_leave != 0L,
             canBlockInvites = can_block_invites != 0L,
+            canUseSimplifiedSlidingSync = can_use_simplified_sliding_sync != 0L,
+            canUsePaginatedSync = can_use_paginated_sync != 0L,
     )

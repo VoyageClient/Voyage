@@ -21,11 +21,13 @@ import org.matrix.android.sdk.api.session.room.model.tag.RoomTagContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummaryUpdateType
+import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.model.InvitedRoomSync
 import org.matrix.android.sdk.api.session.sync.model.KnockedRoomSync
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
 import org.matrix.android.sdk.api.session.sync.model.RoomSync
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncAccountData
+import org.matrix.android.sdk.api.session.sync.model.RoomSyncHeroProfile
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.MatrixPerf
@@ -41,6 +43,7 @@ import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.StreamEventsManager
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
+import org.matrix.android.sdk.internal.session.room.membership.RoomMemberEntityFactory
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberEventHandler
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.read.FullyReadContent
@@ -50,6 +53,7 @@ import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
 import org.matrix.android.sdk.internal.session.sync.ProgressReporter
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
+import org.matrix.android.sdk.internal.session.sync.mapWithProgress
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
@@ -76,7 +80,6 @@ internal class SqlRoomSyncHandler @Inject constructor(
         private val unRequestedForwardManager: UnRequestedForwardManager,
 ) {
 
-    @Suppress("UNUSED_PARAMETER")
     fun handle(
             stores: SessionStores,
             roomsSyncResponse: RoomsSyncResponse,
@@ -86,10 +89,18 @@ internal class SqlRoomSyncHandler @Inject constructor(
     ) {
         val insertType = if (isInitialSync) EventInsertType.INITIAL_SYNC else EventInsertType.INCREMENTAL_SYNC
         val ts = clock.epochMillis()
-        roomsSyncResponse.join.forEach { handleJoinedRoom(stores, it.key, it.value, insertType, ts, aggregator) }
-        roomsSyncResponse.invite.forEach { handleInvitedRoom(stores, it.key, it.value, insertType, ts, aggregator) }
+        // Reported per room rather than per batch: importing is the long pole of a first sync, and a bar
+        // that only moves once it is over reads as a hang.
+        roomsSyncResponse.join.mapWithProgress(reporter, InitialSyncStep.ImportingAccountJoinedRooms, 0.7f) {
+            handleJoinedRoom(stores, it.key, it.value, insertType, ts, aggregator)
+        }
+        roomsSyncResponse.invite.mapWithProgress(reporter, InitialSyncStep.ImportingAccountInvitedRooms, 0.1f) {
+            handleInvitedRoom(stores, it.key, it.value, insertType, ts, aggregator)
+        }
         roomsSyncResponse.knock.forEach { handleKnockedRoom(stores, it.key, it.value, insertType, ts, aggregator) }
-        roomsSyncResponse.leave.forEach { handleLeftRoom(stores, it.key, it.value, insertType, ts, aggregator) }
+        roomsSyncResponse.leave.mapWithProgress(reporter, InitialSyncStep.ImportingAccountLeftRooms, 0.2f) {
+            handleLeftRoom(stores, it.key, it.value, insertType, ts, aggregator)
+        }
         if (!isInitialSync) readReceiptHandler.drainStoredInitSyncReceipts(stores, aggregator)
     }
 
@@ -182,7 +193,10 @@ internal class SqlRoomSyncHandler @Inject constructor(
                         // gap, and /context islands for gap events would then interleave against the
                         // wrong chunk. A fresh live chunk keeps spans honest; back-pagination fills
                         // the gap (where visibility allows) and links the two.
-                        forceNewChunk = rejoinAfterRemoval,
+                        // Same reasoning for a room delivered for the first time on a sliding-sync
+                        // connection: it brings only its newest few events, which need not join up with what
+                        // is already stored, and a restarted connection re-delivers every room that way.
+                        forceNewChunk = rejoinAfterRemoval || roomSync.isInitialDelivery,
                 )
             }
         }
@@ -192,6 +206,8 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val hasRoomMember = (stateAfter?.events ?: roomSync.state?.events).orEmpty()
                 .plus(roomSync.timeline?.events.orEmpty())
                 .any { it.type == EventType.STATE_ROOM_MEMBER }
+
+        applyHeroProfiles(stores, roomId, roomSync.heroProfiles)
 
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.JOIN)
         MatrixPerf.time("sync.room.summaryUpdate members=$hasRoomMember") {
@@ -203,6 +219,27 @@ internal class SqlRoomSyncHandler @Inject constructor(
         handleRoomAccountData(stores, roomId, roomSync.accountData)
     }
 
+    /**
+     * Gives a hero a member row when lazy loading did not send one, so a DM can be named and pictured after
+     * the other person without waiting for the room to be opened. A real member event always wins: this only
+     * fills in what is missing.
+     */
+    private fun applyHeroProfiles(stores: SessionStores, roomId: String, heroes: List<RoomSyncHeroProfile>) {
+        heroes.forEach { hero ->
+            if (hero.displayName == null && hero.avatarUrl == null) return@forEach
+            val existing = stores.roomMember.getByRoomAndUser(roomId, hero.userId)
+            if (existing != null && !existing.displayName.isNullOrBlank()) return@forEach
+            val content = RoomMemberContent(
+                    membership = Membership.JOIN,
+                    displayName = hero.displayName,
+                    avatarUrl = hero.avatarUrl,
+            )
+            stores.roomMember.upsert(
+                    RoomMemberEntityFactory.create(roomId, hero.userId, content, stores.user.getPresence(hero.userId))
+            )
+        }
+    }
+
     private fun applyStateEvents(
             stores: SessionStores, roomId: String, events: List<Event>?,
             insertType: EventInsertType, syncTs: Long, isInitialSync: Boolean,
@@ -212,7 +249,13 @@ internal class SqlRoomSyncHandler @Inject constructor(
             val eventId = event.eventId
             val stateKey = event.stateKey
             val type = event.type
-            if (eventId == null || stateKey == null || type == null) return@forEach
+            if (stateKey == null || type == null) return@forEach
+            if (eventId == null) {
+                // MSC4186 reports state that no longer applies as a bare {type, state_key} stub. Sync v2
+                // never sends an event without an id, so this cannot fire on that path.
+                stores.currentStateEvent.deleteOne(roomId, type, stateKey)
+                return@forEach
+            }
             val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
             insertEventOrIgnore(stores, event.toEntity(roomId, SendState.SYNCED, ageLocalTs), insertType)
             stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)

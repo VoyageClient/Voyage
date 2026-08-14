@@ -64,6 +64,10 @@ private const val FEATURE_REDACTION_OF_RELATED_EVENT = "org.matrix.msc3912"
 private const val FEATURE_VIEW_UNREDACTED_CONTENT_MSC2815 = "fi.mau.msc2815"
 private const val FEATURE_INVITE_BLOCKING_MSC4380 = "org.matrix.msc4380.stable"
 
+// MSC4186 kept MSC3575's flag name for its "simplified" successor.
+private const val FEATURE_SIMPLIFIED_SLIDING_SYNC_MSC4186 = "org.matrix.simplified_msc3575"
+private const val FEATURE_PAGINATED_SYNC_MSC4525 = "org.matrix.msc4525"
+
 /**
  * Return true if the SDK supports this homeserver version.
  */
@@ -186,6 +190,20 @@ internal fun Versions.doesServerSupportRedactionOfRelatedEvents(): Boolean {
  */
 internal fun Versions.doesServerSupportViewingUnredactedContent(): Boolean {
     return unstableFeatures?.get(FEATURE_VIEW_UNREDACTED_CONTENT_MSC2815).orFalse()
+}
+
+/**
+ * Indicate if the server supports MSC4186: https://github.com/matrix-org/matrix-spec-proposals/pull/4186.
+ */
+internal fun Versions.doesServerSupportSimplifiedSlidingSync(): Boolean {
+    return unstableFeatures?.get(FEATURE_SIMPLIFIED_SLIDING_SYNC_MSC4186).orFalse()
+}
+
+/**
+ * Indicate if the server supports MSC4525: https://github.com/matrix-org/matrix-spec-proposals/pull/4525.
+ */
+internal fun Versions.doesServerSupportPaginatedSync(): Boolean {
+    return unstableFeatures?.get(FEATURE_PAGINATED_SYNC_MSC4525).orFalse()
 }
 
 /**

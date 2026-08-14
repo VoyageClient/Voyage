@@ -59,6 +59,12 @@
         android:title="@string/labs_enable_new_app_layout_title" />
 
     <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_LABS_SLIDING_SYNC_KEY"
+        android:summary="@string/labs_enable_sliding_sync_summary"
+        android:title="@string/labs_enable_sliding_sync_title" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="@bool/settings_labs_deferred_dm_default"
         android:key="SETTINGS_LABS_DEFERRED_DM_KEY"
         android:summary="@string/labs_enable_deferred_dm_summary"

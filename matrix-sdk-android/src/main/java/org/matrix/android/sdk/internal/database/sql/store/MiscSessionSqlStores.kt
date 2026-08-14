@@ -32,6 +32,15 @@ internal class SyncTokenSqlStore(private val database: SessionSqlDatabase) {
     fun setNextBatch(token: String?) = queries.upsert(token)
     fun isRemovedRoomsRecovered(): Boolean = queries.selectRemovedRoomsRecovered().executeAsOneOrNull() != null
     fun markRemovedRoomsRecovered() = queries.markRemovedRoomsRecovered()
+
+    fun getSlidingSyncPos(): String? = queries.selectSlidingSyncPos().executeAsOneOrNull()?.next_batch
+    fun setSlidingSyncPos(pos: String?) = queries.upsertSlidingSyncPos(pos)
+    fun getSlidingSyncToDeviceSince(): String? = queries.selectSlidingSyncToDeviceSince().executeAsOneOrNull()?.next_batch
+    fun setSlidingSyncToDeviceSince(since: String?) = queries.upsertSlidingSyncToDeviceSince(since)
+    fun getSlidingSyncCoverage(): Int? = queries.selectSlidingSyncCoverage().executeAsOneOrNull()?.next_batch?.toIntOrNull()
+    fun setSlidingSyncCoverage(rangeEnd: Int) = queries.upsertSlidingSyncCoverage(rangeEnd.toString())
+    fun getSlidingSyncStateVersion(): String? = queries.selectSlidingSyncStateVersion().executeAsOneOrNull()?.next_batch
+    fun setSlidingSyncStateVersion(version: String?) = queries.upsertSlidingSyncStateVersion(version)
 }
 
 /** Single-row `breadcrumbs` ordered recent-room-id list. */

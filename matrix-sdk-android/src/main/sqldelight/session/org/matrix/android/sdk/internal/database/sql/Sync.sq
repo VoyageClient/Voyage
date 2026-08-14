@@ -1,5 +1,8 @@
 -- SyncEntity: the next_batch token lives in row 0. Row 1 is a marker recording that the one-shot
 -- removed-rooms recovery sync ran, sharing this table so it is wiped exactly when the store is.
+-- Rows 2-5 belong to sliding sync: the `pos`, its to-device extension `since`, a fingerprint of the
+-- required_state the connection was opened with, and how far its room list currently reaches. The `pos` is
+-- kept apart from row 0 because it is not interchangeable with a sync v2 `since`.
 CREATE TABLE sync (
     id INTEGER NOT NULL PRIMARY KEY,
     next_batch TEXT
@@ -16,6 +19,30 @@ SELECT id FROM sync WHERE id = 1;
 
 markRemovedRoomsRecovered:
 INSERT OR REPLACE INTO sync(id, next_batch) VALUES (1, NULL);
+
+selectSlidingSyncPos:
+SELECT next_batch FROM sync WHERE id = 2;
+
+upsertSlidingSyncPos:
+INSERT OR REPLACE INTO sync(id, next_batch) VALUES (2, ?);
+
+selectSlidingSyncToDeviceSince:
+SELECT next_batch FROM sync WHERE id = 3;
+
+upsertSlidingSyncToDeviceSince:
+INSERT OR REPLACE INTO sync(id, next_batch) VALUES (3, ?);
+
+selectSlidingSyncCoverage:
+SELECT next_batch FROM sync WHERE id = 5;
+
+upsertSlidingSyncCoverage:
+INSERT OR REPLACE INTO sync(id, next_batch) VALUES (5, ?);
+
+selectSlidingSyncStateVersion:
+SELECT next_batch FROM sync WHERE id = 4;
+
+upsertSlidingSyncStateVersion:
+INSERT OR REPLACE INTO sync(id, next_batch) VALUES (4, ?);
 
 deleteAll:
 DELETE FROM sync;

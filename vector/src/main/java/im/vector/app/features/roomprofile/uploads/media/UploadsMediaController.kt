@@ -16,8 +16,8 @@ import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.media.ImageContentRenderer
-import im.vector.app.features.redaction.preservation.PreservedMediaStore
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.redaction.preservation.PreservedMediaStore
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
@@ -26,7 +26,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
-import timber.log.Timber
 import javax.inject.Inject
 
 class UploadsMediaController @Inject constructor(
@@ -45,8 +44,6 @@ class UploadsMediaController @Inject constructor(
 
     var listener: Listener? = null
 
-    private var idx = 0
-
     private val itemSize = dimensionConverter.dpToPx(IMAGE_SIZE_DP)
 
     override fun buildModels(data: RoomUploadsViewState?) {
@@ -57,8 +54,11 @@ class UploadsMediaController @Inject constructor(
 
         if (data.hasMore) {
             squareLoadingItem {
-                // Always use a different id, because we can be notified several times of visibility state changed
-                id("loadMore${host.idx++}")
+                // Keyed on how much has loaded rather than on a counter: a fresh id every rebuild makes
+                // Epoxy recreate the view, restarting the spinner's animation, and the list rebuilds often
+                // while a sync is running. Loading more still changes the id, so the visibility callback
+                // fires again for the next page.
+                id("loadMore${data.mediaEvents.size}")
                 onVisibilityStateChanged { _, _, visibilityState ->
                     if (visibilityState == VisibilityState.VISIBLE) {
                         host.listener?.loadMore()

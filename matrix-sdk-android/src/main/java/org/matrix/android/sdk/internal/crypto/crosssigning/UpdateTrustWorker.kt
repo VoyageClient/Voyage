@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
+import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
@@ -172,6 +173,13 @@ internal class UpdateTrustWorker(context: Context, params: WorkerParameters, ses
                     return@forEachRoom
                 }
                 Timber.v("## CrossSigning [$sId]- Check shield state for room $roomId")
+                // Sliding sync only sends the members who spoke recently, so until the full list has been
+                // fetched the members present are a subset — and judging the room by them would show a
+                // reassuring shield for a room whose unverified member simply has not spoken lately.
+                if (stores.room.get(roomId)?.membersLoadStatus != RoomMembersLoadStatusType.LOADED) {
+                    Timber.v("## CrossSigning [$sId]- Members not fully loaded for $roomId, leaving shield as is")
+                    return@forEachRoom
+                }
                 val allActiveRoomMembers = SqlRoomMemberHelper(stores, roomId).getActiveRoomMemberIds()
                 try {
                     val updatedTrust = computeRoomShield(myCrossSigningInfo, allActiveRoomMembers, roomSummary)

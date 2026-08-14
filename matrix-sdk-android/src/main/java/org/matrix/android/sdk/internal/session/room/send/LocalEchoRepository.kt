@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -213,9 +214,19 @@ internal class LocalEchoRepository @Inject constructor(
     }
 
     suspend fun getUpToDateEcho(eventId: String): Event? {
-        return database.awaitDbTransaction(dispatcher) {
-            stores.event.getByEventId(eventId)?.asDomain(castJsonNumbers = true)
+        // Queued rather than read directly: the echo's insert and its post-upload content update are both
+        // deferred onto [deferredDbTasks], and reading around that queue can land before them — the sender
+        // then finds no echo and drops the message, which is likeliest exactly when the database is busy
+        // with a sync. Going through the queue orders this read after whatever is still owed.
+        val upToDate = CompletableDeferred<Event?>()
+        enqueueDbTask {
+            upToDate.complete(
+                    database.awaitDbTransaction(dispatcher) {
+                        stores.event.getByEventId(eventId)?.asDomain(castJsonNumbers = true)
+                    }
+            )
         }
+        return upToDate.await()
     }
 
     suspend fun deleteFailedEcho(roomId: String, localEcho: TimelineEvent) {

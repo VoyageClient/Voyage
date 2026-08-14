@@ -64,6 +64,18 @@ data class RoomSync(
         @Json(name = "state_after") val stateAfterStable: RoomSyncState? = null,
 
         @Json(name = "org.matrix.msc4222.state_after") val stateAfterUnstable: RoomSyncState? = null,
+
+        /**
+         * Sliding sync only: this room is being handed over for the first time on this connection, so
+         * its timeline is back-history rather than news, however far into the session it arrives.
+         */
+        @Transient val isInitialDelivery: Boolean = false,
+
+        /**
+         * Sliding sync only: the profiles the server computed for this room's heroes. Lazily-loaded members
+         * often leave a DM with no member event for the other person, and this is what it has instead.
+         */
+        @Transient val heroProfiles: List<RoomSyncHeroProfile> = emptyList(),
 ) {
     /**
      * Null when the server did not answer in `state_after` form, in which case [state] plus the

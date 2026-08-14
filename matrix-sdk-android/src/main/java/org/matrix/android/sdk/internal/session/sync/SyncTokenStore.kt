@@ -22,4 +22,16 @@ import javax.inject.Inject
 internal class SyncTokenStore @Inject constructor(private val stores: SessionStores) {
 
     fun getLastToken(): String? = stores.syncToken.getNextBatch()
+
+    fun getSlidingSyncPos(): String? = stores.syncToken.getSlidingSyncPos()
+    fun setSlidingSyncPos(pos: String?) = stores.syncToken.setSlidingSyncPos(pos)
+
+    fun getSlidingSyncToDeviceSince(): String? = stores.syncToken.getSlidingSyncToDeviceSince()
+    fun setSlidingSyncToDeviceSince(since: String?) = stores.syncToken.setSlidingSyncToDeviceSince(since)
+
+    fun getSlidingSyncCoverage(): Int? = stores.syncToken.getSlidingSyncCoverage()
+    fun setSlidingSyncCoverage(rangeEnd: Int) = stores.syncToken.setSlidingSyncCoverage(rangeEnd)
+
+    fun getSlidingSyncStateVersion(): String? = stores.syncToken.getSlidingSyncStateVersion()
+    fun setSlidingSyncStateVersion(version: String?) = stores.syncToken.setSlidingSyncStateVersion(version)
 }

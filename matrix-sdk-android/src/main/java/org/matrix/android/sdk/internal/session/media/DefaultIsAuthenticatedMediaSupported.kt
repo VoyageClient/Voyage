@@ -38,7 +38,14 @@ internal class DefaultIsAuthenticatedMediaSupported @Inject constructor(
 
     override fun invoke(): Boolean = canUseAuthenticatedMedia
 
-    override suspend fun onChange() {
+    override suspend fun onChange() = refresh()
+
+    /**
+     * Re-reads the capability. Called directly when it is written, because the observer above does not
+     * reliably fire for the first write of the row — and until this catches up every media request goes to
+     * the unauthenticated endpoint, which servers that require authenticated media answer with 404.
+     */
+    fun refresh() {
         canUseAuthenticatedMedia = stores.homeServerCapabilities.get()?.canUseAuthenticatedMedia ?: false
         Timber.d("canUseAuthenticatedMedia: $canUseAuthenticatedMedia")
     }
