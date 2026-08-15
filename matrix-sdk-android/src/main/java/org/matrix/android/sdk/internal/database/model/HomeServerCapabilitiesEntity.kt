@@ -44,6 +44,8 @@ internal open class HomeServerCapabilitiesEntity(
         var canBlockInvites: Boolean = false,
         var canUseSimplifiedSlidingSync: Boolean = false,
         var canUsePaginatedSync: Boolean = false,
+        var syncProfileFieldsSupport: HomeServerCapabilities.SyncProfileFieldsSupport = HomeServerCapabilities.SyncProfileFieldsSupport.UNSUPPORTED,
+        var canUseSlidingSyncProfiles: Boolean = false,
 ) {
 
     companion object

@@ -15,8 +15,13 @@ import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
+import org.matrix.android.sdk.api.session.room.model.create.RoomPredecessors.toPredecessor
+import org.matrix.android.sdk.api.session.room.model.create.findPredecessor
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
 
 class RoomCreateItemFactory @Inject constructor(
@@ -28,8 +33,7 @@ class RoomCreateItemFactory @Inject constructor(
 
     fun create(params: TimelineItemFactoryParams): VectorEpoxyModel<*>? {
         val event = params.event
-        val createRoomContent = event.root.content.toModel<RoomCreateContent>() ?: return null
-        val predecessorId = createRoomContent.predecessor?.roomId ?: return defaultRendering(params)
+        val predecessorId = event.predecessorRoomId() ?: return defaultRendering(params)
         val roomLink = session.permalinkService().createRoomPermalink(predecessorId) ?: return null
         val text = span {
             +stringProvider.getString(CommonStrings.room_tombstone_continuation_description)
@@ -41,6 +45,18 @@ class RoomCreateItemFactory @Inject constructor(
         }
         return RoomCreateItem_()
                 .text(text.toEpoxyCharSequence())
+    }
+
+    /**
+     * The predecessor of a MSC3946 event is its own content; for the create event it is either the
+     * `predecessor` field or a predecessor event added to the room later.
+     */
+    private fun TimelineEvent.predecessorRoomId(): String? {
+        if (root.getClearType() in EventType.STATE_ROOM_PREDECESSOR.values) {
+            return root.toPredecessor()?.roomId
+        }
+        val fromCreate = root.content.toModel<RoomCreateContent>()?.predecessor?.roomId
+        return fromCreate ?: session.getRoom(roomId)?.stateService()?.findPredecessor()?.roomId
     }
 
     private fun defaultRendering(params: TimelineItemFactoryParams): VectorEpoxyModel<*>? {

@@ -25,7 +25,11 @@ CREATE TABLE home_server_capabilities (
     forget_forced_upon_leave INTEGER NOT NULL DEFAULT 0,
     can_block_invites INTEGER NOT NULL DEFAULT 0,
     can_use_simplified_sliding_sync INTEGER NOT NULL DEFAULT 0,
-    can_use_paginated_sync INTEGER NOT NULL DEFAULT 0
+    can_use_paginated_sync INTEGER NOT NULL DEFAULT 0,
+    -- MSC4429 sync profile fields: 0 unsupported, 1 unstable prefixes, 2 stable.
+    sync_profile_fields_support INTEGER NOT NULL DEFAULT 0,
+    -- MSC4262, the sliding-sync counterpart of MSC4429.
+    can_use_sliding_sync_profiles INTEGER NOT NULL DEFAULT 0
 );
 
 selectFirst:
@@ -42,8 +46,9 @@ INSERT OR REPLACE INTO home_server_capabilities(
     external_account_management_url, external_account_management_supported_actions,
     authentication_issuer, disable_network_constraint, can_use_authenticated_media,
     forget_forced_upon_leave, can_block_invites,
-    can_use_simplified_sliding_sync, can_use_paginated_sync
-) VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    can_use_simplified_sliding_sync, can_use_paginated_sync, sync_profile_fields_support,
+    can_use_sliding_sync_profiles
+) VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAll:
 DELETE FROM home_server_capabilities;

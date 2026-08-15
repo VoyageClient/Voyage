@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.session.sync.model.ToDeviceSyncResponse
 import org.matrix.android.sdk.api.session.sync.model.UserAccountDataSync
+import org.matrix.android.sdk.api.session.sync.model.UserProfileSyncUpdate
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import javax.inject.Inject
@@ -74,7 +75,17 @@ internal class SlidingSyncTranslator @Inject constructor(
                 stableDeviceUnusedFallbackKeyTypes = e2ee?.deviceUnusedFallbackKeyTypes,
                 devDeviceUnusedFallbackKeyTypes = e2ee?.devDeviceUnusedFallbackKeyTypes,
                 rooms = RoomsSyncResponse(join = join, invite = invite, leave = leave, knock = knock),
+                users = extensions?.profileUpdates?.toProfileUpdates(),
         )
+    }
+
+    /** MSC4262 splits removals into their own list; MSC4429 expresses them as null field values. */
+    private fun Map<String, SlidingSyncProfileUpdate?>.toProfileUpdates(): Map<String, UserProfileSyncUpdate> {
+        return mapValues { (_, update) ->
+            UserProfileSyncUpdate(
+                    profileUpdates = update?.let { it.updated.orEmpty() + it.removed.orEmpty().associateWith { null } }
+            )
+        }
     }
 
     private fun SlidingSyncRoom.membership(): Membership? {

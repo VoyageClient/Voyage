@@ -32,10 +32,12 @@ import org.matrix.android.sdk.internal.auth.version.doesServerSupportQrCodeLogin
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportRedactionOfRelatedEvents
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportRemoteToggleOfPushNotifications
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportSimplifiedSlidingSync
+import org.matrix.android.sdk.internal.auth.version.doesServerSupportSlidingSyncProfiles
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreadUnreadNotifications
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreads
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportViewingUnredactedContent
 import org.matrix.android.sdk.internal.auth.version.isLoginAndRegistrationSupportedBySdk
+import org.matrix.android.sdk.internal.auth.version.syncProfileFieldsSupport
 import org.matrix.android.sdk.internal.database.model.HomeServerCapabilitiesEntity
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.MoshiProvider
@@ -189,6 +191,10 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                         getVersionResult.doesServerSupportSimplifiedSlidingSync()
                 homeServerCapabilitiesEntity.canUsePaginatedSync =
                         getVersionResult.doesServerSupportPaginatedSync()
+                homeServerCapabilitiesEntity.syncProfileFieldsSupport =
+                        getVersionResult.syncProfileFieldsSupport()
+                homeServerCapabilitiesEntity.canUseSlidingSyncProfiles =
+                        getVersionResult.doesServerSupportSlidingSyncProfiles()
             }
 
             if (getWellknownResult != null && getWellknownResult is WellknownResult.Prompt) {

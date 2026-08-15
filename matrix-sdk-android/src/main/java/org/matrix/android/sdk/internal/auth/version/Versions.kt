@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.auth.version
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 
 /**
  * Model for https://matrix.org/docs/spec/client_server/latest#get-matrix-client-versions.
@@ -67,6 +68,9 @@ private const val FEATURE_INVITE_BLOCKING_MSC4380 = "org.matrix.msc4380.stable"
 // MSC4186 kept MSC3575's flag name for its "simplified" successor.
 private const val FEATURE_SIMPLIFIED_SLIDING_SYNC_MSC4186 = "org.matrix.simplified_msc3575"
 private const val FEATURE_PAGINATED_SYNC_MSC4525 = "org.matrix.msc4525"
+private const val FEATURE_SYNC_PROFILE_FIELDS_MSC4429 = "org.matrix.msc4429"
+private const val FEATURE_SYNC_PROFILE_FIELDS_MSC4429_STABLE = "org.matrix.msc4429.stable"
+private const val FEATURE_SLIDING_SYNC_PROFILES_MSC4262 = "org.matrix.msc4262"
 
 /**
  * Return true if the SDK supports this homeserver version.
@@ -204,6 +208,26 @@ internal fun Versions.doesServerSupportSimplifiedSlidingSync(): Boolean {
  */
 internal fun Versions.doesServerSupportPaginatedSync(): Boolean {
     return unstableFeatures?.get(FEATURE_PAGINATED_SYNC_MSC4525).orFalse()
+}
+
+/**
+ * Which MSC4429 prefixes the server accepts for pushing profile fields down legacy sync:
+ * https://github.com/matrix-org/matrix-spec-proposals/pull/4429.
+ */
+internal fun Versions.syncProfileFieldsSupport(): HomeServerCapabilities.SyncProfileFieldsSupport {
+    return when {
+        unstableFeatures?.get(FEATURE_SYNC_PROFILE_FIELDS_MSC4429_STABLE).orFalse() -> HomeServerCapabilities.SyncProfileFieldsSupport.STABLE
+        unstableFeatures?.get(FEATURE_SYNC_PROFILE_FIELDS_MSC4429).orFalse() -> HomeServerCapabilities.SyncProfileFieldsSupport.UNSTABLE
+        else -> HomeServerCapabilities.SyncProfileFieldsSupport.UNSUPPORTED
+    }
+}
+
+/**
+ * Indicate if the server supports MSC4262, the sliding-sync counterpart of MSC4429:
+ * https://github.com/matrix-org/matrix-spec-proposals/pull/4262.
+ */
+internal fun Versions.doesServerSupportSlidingSyncProfiles(): Boolean {
+    return unstableFeatures?.get(FEATURE_SLIDING_SYNC_PROFILES_MSC4262).orFalse()
 }
 
 /**

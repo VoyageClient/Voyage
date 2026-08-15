@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.VersioningState
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
+import org.matrix.android.sdk.api.session.room.model.create.RoomPredecessors.toPredecessor
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -30,17 +31,20 @@ import javax.inject.Inject
 internal class RoomCreateEventProcessor @Inject constructor() : EventInsertLiveProcessor {
 
     override fun process(stores: SessionStores, event: Event) {
-        val createRoomContent = event.getClearContent().toModel<RoomCreateContent>()
-        val predecessorRoomId = createRoomContent?.predecessor?.roomId ?: return
+        val predecessorRoomId = if (event.type == EventType.STATE_ROOM_CREATE) {
+            event.getClearContent().toModel<RoomCreateContent>()?.predecessor?.roomId
+        } else {
+            event.toPredecessor()?.roomId
+        } ?: return
 
         val predecessorRoomSummary = stores.roomSummary.get(predecessorRoomId)
                 ?: RoomSummaryEntity(predecessorRoomId)
+        // Flagged as upgraded but deliberately left listed: the old room still holds the history.
         predecessorRoomSummary.versioningState = VersioningState.UPGRADED_ROOM_JOINED
-        predecessorRoomSummary.isHiddenFromUser = true
         stores.roomSummary.upsert(predecessorRoomSummary)
     }
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {
-        return eventType == EventType.STATE_ROOM_CREATE
+        return eventType == EventType.STATE_ROOM_CREATE || eventType in EventType.STATE_ROOM_PREDECESSOR.values
     }
 }

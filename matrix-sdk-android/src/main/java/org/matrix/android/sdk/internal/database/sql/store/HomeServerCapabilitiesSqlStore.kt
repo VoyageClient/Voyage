@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.database.sql.store
 
+import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.internal.database.model.HomeServerCapabilitiesEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.Home_server_capabilities as HomeServerCapabilitiesRow
@@ -44,6 +45,8 @@ internal class HomeServerCapabilitiesSqlStore(private val database: SessionSqlDa
             can_block_invites = entity.canBlockInvites.toLong(),
             can_use_simplified_sliding_sync = entity.canUseSimplifiedSlidingSync.toLong(),
             can_use_paginated_sync = entity.canUsePaginatedSync.toLong(),
+            sync_profile_fields_support = entity.syncProfileFieldsSupport.ordinal.toLong(),
+            can_use_sliding_sync_profiles = entity.canUseSlidingSyncProfiles.toLong(),
     )
 
     private fun Boolean.toLong(): Long = if (this) 1L else 0L
@@ -75,4 +78,7 @@ internal fun HomeServerCapabilitiesRow.toHomeServerCapabilitiesEntity(): HomeSer
             canBlockInvites = can_block_invites != 0L,
             canUseSimplifiedSlidingSync = can_use_simplified_sliding_sync != 0L,
             canUsePaginatedSync = can_use_paginated_sync != 0L,
+            syncProfileFieldsSupport = HomeServerCapabilities.SyncProfileFieldsSupport.entries
+                    .getOrElse(sync_profile_fields_support.toInt()) { HomeServerCapabilities.SyncProfileFieldsSupport.UNSUPPORTED },
+            canUseSlidingSyncProfiles = can_use_sliding_sync_profiles != 0L,
     )

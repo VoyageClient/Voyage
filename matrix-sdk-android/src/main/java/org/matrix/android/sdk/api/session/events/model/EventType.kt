@@ -52,6 +52,10 @@ object EventType {
     const val STATE_ROOM_MEMBER = "m.room.member"
     const val STATE_ROOM_THIRD_PARTY_INVITE = "m.room.third_party_invite"
     const val STATE_ROOM_CREATE = "m.room.create"
+
+    // MSC3946 dynamic room predecessor. Read only — predecessors are declared by the upgrading client/server.
+    val STATE_ROOM_PREDECESSOR = StableUnstableId(stable = "m.room.predecessor", unstable = "org.matrix.msc3946.room_predecessor")
+
     const val STATE_ROOM_JOIN_RULES = "m.room.join_rules"
     const val STATE_ROOM_GUEST_ACCESS = "m.room.guest_access"
     const val STATE_ROOM_POWER_LEVELS = "m.room.power_levels"
@@ -176,6 +180,7 @@ object EventType {
                     )
             )
             addAll(STATE_ROOM_BANNER.values)
+            addAll(STATE_ROOM_PREDECESSOR.values)
             addAll(STATE_ROOM_BEACON_INFO.values)
             addAll(BEACON_LOCATION_DATA.values)
             addAll(CALL_ASSERTED_IDENTITY.values)

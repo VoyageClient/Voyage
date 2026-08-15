@@ -12,6 +12,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
@@ -21,6 +22,7 @@ import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.TimeOutInterceptor
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
 import org.matrix.android.sdk.internal.session.sync.SyncPresence
 import org.matrix.android.sdk.internal.session.sync.SyncRequestStateTracker
 import org.matrix.android.sdk.internal.session.sync.SyncResponseHandler
@@ -56,6 +58,7 @@ internal class SlidingSyncTask @Inject constructor(
         private val userStore: UserStore,
         private val session: Session,
         private val clock: Clock,
+        private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
         @UserId private val userId: String,
 ) {
 
@@ -225,12 +228,15 @@ internal class SlidingSyncTask @Inject constructor(
     }
 
     private fun buildRequest(mode: SlidingSyncMode, presence: SyncPresence?): SlidingSyncRequest {
+        val profiles = ProfilesExtensionRequest(fields = ProfileKeys.SYNCED_EXTENDED_FIELDS)
+                .takeIf { homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseSlidingSyncProfiles == true }
         val extensions = SlidingSyncExtensionsRequest(
                 toDevice = ToDeviceExtensionRequest(since = syncTokenStore.getSlidingSyncToDeviceSince()),
                 e2ee = EnabledExtensionRequest(),
                 accountData = EnabledExtensionRequest(),
                 receipts = EnabledExtensionRequest(),
                 typing = EnabledExtensionRequest(),
+                unstableProfiles = profiles,
         )
         return when (mode) {
             // MSC4186 has only the one limit, and it governs first delivery for every room the range

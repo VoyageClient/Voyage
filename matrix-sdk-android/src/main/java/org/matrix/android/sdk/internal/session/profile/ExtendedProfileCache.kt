@@ -135,6 +135,9 @@ internal class ExtendedProfileCache @Inject constructor(
         private val getProfileInfoTask: GetProfileInfoTask,
 ) {
 
+    // The last full field dict seen per user, so MSC4429/MSC4262 field-level deltas can be merged
+    // into it and the parsed values re-derived.
+    private val rawProfiles = ConcurrentHashMap<String, Map<String, Any>>()
     private val pronounsCache = ConcurrentHashMap<String, List<Pronoun>>()
     private val timezoneCache = ConcurrentHashMap<String, Optional<String>>()
     private val bannerUrlCache = ConcurrentHashMap<String, Optional<String>>()
@@ -182,11 +185,35 @@ internal class ExtendedProfileCache @Inject constructor(
     }
 
     fun cacheFromProfile(userId: String, dict: JsonDict) {
+        rawProfiles[userId] = dict
         cachePronouns(userId, dict.profilePronouns())
         cacheTimezone(userId, dict.profileTimezone())
         cacheBannerUrl(userId, dict.profileBannerUrl())
         cacheStatus(userId, dict.profileStatus())
         cacheBio(userId, dict.profileBio())
+    }
+
+    /**
+     * Applies a MSC4429/MSC4262 delta: each entry replaces that field outright, and a null value
+     * removes it. Fields not mentioned keep their previous value.
+     */
+    fun applyProfileUpdates(userId: String, updates: Map<String, Any?>) {
+        if (updates.isEmpty()) return
+        val merged = rawProfiles[userId].orEmpty().toMutableMap()
+        updates.forEach { (field, value) ->
+            if (value == null) merged.remove(field) else merged[field] = value
+        }
+        cacheFromProfile(userId, merged)
+    }
+
+    /** The server told us we no longer share a room with this user, so drop what we cached. */
+    fun forget(userId: String) {
+        rawProfiles.remove(userId)
+        pronounsCache.remove(userId)
+        timezoneCache.remove(userId)
+        bannerUrlCache.remove(userId)
+        statusCache.remove(userId)
+        bioCache.remove(userId)
     }
 
     fun prefetch(userId: String) {

@@ -49,10 +49,21 @@ internal data class Filter(
         /**
          * Filters to be applied to room data.
          */
-        @Json(name = "room") val room: RoomFilter? = null
+        @Json(name = "room") val room: RoomFilter? = null,
+        /**
+         * MSC4429 profile fields to receive updates for. Only one of these is ever set, depending on
+         * which prefix the server advertised.
+         */
+        @Json(name = "profile_fields") val profileFields: ProfileFieldsFilter? = null,
+        @Json(name = "org.matrix.msc4429.profile_fields") val unstableProfileFields: ProfileFieldsFilter? = null,
 ) {
 
     fun toJSONString(): String {
         return MoshiProvider.providesMoshi().adapter(Filter::class.java).toJson(this)
     }
 }
+
+@JsonClass(generateAdapter = true)
+internal data class ProfileFieldsFilter(
+        @Json(name = "ids") val ids: List<String>
+)
