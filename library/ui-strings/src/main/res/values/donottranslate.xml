@@ -612,7 +612,12 @@
     <string name="video_editor_title" translatable="false">Edit video</string>
     <string name="video_editor_reset" translatable="false">Reset</string>
     <string name="video_editor_rotate" translatable="false">Rotate</string>
-    <string name="video_editor_mute" translatable="false">Mute audio</string>
+    <string name="video_editor_volume" translatable="false">Volume</string>
+    <string name="video_editor_volume_value" translatable="false">%1$d%%</string>
+    <string name="video_editor_volume_step_down" translatable="false">−%1$d%%</string>
+    <string name="video_editor_volume_step_up" translatable="false">+%1$d%%</string>
+    <string name="video_editor_volume_mute" translatable="false">Mute</string>
+    <string name="video_editor_volume_preview_capped" translatable="false">The preview can\'t play louder than 100%, but the saved video will</string>
     <string name="video_editor_range" translatable="false">%1$s – %2$s</string>
     <string name="video_editor_range_output" translatable="false">%1$s – %2$s → %3$s</string>
     <string name="video_editor_speed" translatable="false">Speed</string>

@@ -17,9 +17,9 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/videoEditorMuteAction"
-        android:icon="@drawable/ic_mic_on"
-        android:title="@string/video_editor_mute"
+        android:id="@+id/videoEditorVolumeAction"
+        android:icon="@drawable/ic_volume_up"
+        android:title="@string/video_editor_volume"
         app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 

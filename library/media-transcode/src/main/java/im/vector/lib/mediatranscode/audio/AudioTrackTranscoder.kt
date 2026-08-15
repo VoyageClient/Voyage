@@ -24,6 +24,7 @@ import timber.log.Timber
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * Decodes the audio and encodes it back to AAC, re-timing it on the way when [retimed]. A speed
@@ -48,6 +49,7 @@ internal class AudioTrackTranscoder private constructor(
         private val timeMap: SpeedTimeMap,
         private val changePitch: Boolean,
         private val retimed: Boolean,
+        private val volume: Float,
 ) : AudioTrackWriter {
 
     private lateinit var encoder: MediaCodec
@@ -205,6 +207,7 @@ internal class AudioTrackTranscoder private constructor(
                 // otherwise — every sample would come out byte-swapped.
                 order(ByteOrder.nativeOrder())
             }.asShortBuffer().get(scratch, 0, shorts)
+            applyGain(shorts)
             val frames = shorts / channelCount
             // The first sample kept rarely falls exactly on the cut, and starting the clock at zero
             // regardless would shift the whole track against the picture by that difference.
@@ -243,6 +246,14 @@ internal class AudioTrackTranscoder private constructor(
             }
         }
         return true
+    }
+
+    /** Clamped, not wrapped: a sample amplified past full scale has to flatten, not flip sign. */
+    private fun applyGain(count: Int) {
+        if (volume == 1f) return
+        for (index in 0 until count) {
+            scratch[index] = (scratch[index] * volume).roundToInt().coerceIn(MIN_SAMPLE, MAX_SAMPLE).toShort()
+        }
     }
 
     /**
@@ -383,6 +394,9 @@ internal class AudioTrackTranscoder private constructor(
         /** 50ms — past this the clock is not off by roundings, and no lean would ever catch it. */
         private const val SPLICE_THRESHOLD_DIVISOR = 20
 
+        private const val MIN_SAMPLE = Short.MIN_VALUE.toInt()
+        private const val MAX_SAMPLE = Short.MAX_VALUE.toInt()
+
         private const val STEREO_BIT_RATE = 128_000
         private const val MONO_BIT_RATE = 64_000
 
@@ -399,6 +413,7 @@ internal class AudioTrackTranscoder private constructor(
                 timeMap: SpeedTimeMap,
                 changePitch: Boolean,
                 retimed: Boolean,
+                volume: Float,
         ): AudioTrackTranscoder? {
             val extractor = MediaExtractor()
             var decoder: MediaCodec? = null
@@ -421,7 +436,7 @@ internal class AudioTrackTranscoder private constructor(
                     configure(format, null, null, 0)
                     start()
                 }
-                AudioTrackTranscoder(extractor, decoder, startUs, endUs, timeMap, changePitch, retimed)
+                AudioTrackTranscoder(extractor, decoder, startUs, endUs, timeMap, changePitch, retimed, volume)
             } catch (e: Exception) {
                 Timber.w(e, "VideoEdit: cannot decode the audio track, dropping it")
                 runCatching { decoder?.stop() }

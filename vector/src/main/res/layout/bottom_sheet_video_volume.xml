@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="20dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/video_editor_volume"
+        android:textColor="?vctr_content_primary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/volumeStepDown"
+            android:layout_width="56dp"
+            android:layout_height="48dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:textColor="?vctr_content_primary"
+            android:textStyle="bold"
+            tools:text="−10%" />
+
+        <TextView
+            android:id="@+id/volumeValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="?vctr_content_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="100%" />
+
+        <TextView
+            android:id="@+id/volumeStepUp"
+            android:layout_width="56dp"
+            android:layout_height="48dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:textColor="?vctr_content_primary"
+            android:textStyle="bold"
+            tools:text="+10%" />
+
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/volumeSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/volumeMinimum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?vctr_content_secondary"
+            android:textSize="12sp"
+            tools:text="0%" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/volumeMaximum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?vctr_content_secondary"
+            android:textSize="12sp"
+            tools:text="500%" />
+
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/volumeMute"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/video_editor_volume_mute"
+        android:textColor="?vctr_content_primary" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/volumeCancel"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/action_cancel"
+            android:textColor="?vctr_content_secondary" />
+
+        <Button
+            android:id="@+id/volumeReset"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/video_editor_reset"
+            android:textColor="?vctr_content_secondary" />
+
+        <Button
+            android:id="@+id/volumeDone"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ok"
+            android:textColor="?vctr_content_primary" />
+
+    </LinearLayout>
+
+</LinearLayout>
