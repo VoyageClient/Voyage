@@ -27,13 +27,20 @@ object RuleIds {
     const val RULE_ID_SUPPRESS_BOTS_NOTIFICATIONS = ".m.rule.suppress_notices"
     const val RULE_ID_INVITE_ME = ".m.rule.invite_for_me"
     const val RULE_ID_PEOPLE_JOIN_LEAVE = ".m.rule.member_event"
-    const val RULE_ID_CONTAIN_DISPLAY_NAME = ".m.rule.contains_display_name"
+    const val RULE_ID_IS_USER_MENTION = ".m.rule.is_user_mention"
+    const val RULE_ID_IS_ROOM_MENTION = ".m.rule.is_room_mention"
 
     const val RULE_ID_TOMBSTONE = ".m.rule.tombstone"
-    const val RULE_ID_ROOM_NOTIF = ".m.rule.roomnotif"
 
-    // Default Content Rules
-    const val RULE_ID_CONTAIN_USER_NAME = ".m.rule.contains_user_name"
+    /**
+     * Superseded by the two mention rules above, which read `m.mentions` rather than guessing from the
+     * message body. Dropped as the rules arrive, so nothing evaluates them or offers them as a setting.
+     */
+    val LEGACY_MENTION_RULE_IDS = setOf(
+            ".m.rule.contains_display_name",
+            ".m.rule.contains_user_name",
+            ".m.rule.roomnotif",
+    )
 
     // The keywords rule id is not a "real" id in that it does not exist server-side.
     // It is used client-side as a placeholder for rendering the keyword push rule setting

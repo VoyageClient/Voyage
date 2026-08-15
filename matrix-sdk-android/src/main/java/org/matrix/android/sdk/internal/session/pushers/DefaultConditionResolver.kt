@@ -17,8 +17,9 @@ package org.matrix.android.sdk.internal.session.pushers
 
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.pushrules.ConditionResolver
-import org.matrix.android.sdk.api.session.pushrules.ContainsDisplayNameCondition
 import org.matrix.android.sdk.api.session.pushrules.EventMatchCondition
+import org.matrix.android.sdk.api.session.pushrules.EventPropertyContainsCondition
+import org.matrix.android.sdk.api.session.pushrules.EventPropertyIsCondition
 import org.matrix.android.sdk.api.session.pushrules.RoomMemberCountCondition
 import org.matrix.android.sdk.api.session.pushrules.SenderNotificationPermissionCondition
 import org.matrix.android.sdk.api.session.room.getRoomPowerLevels
@@ -55,13 +56,17 @@ internal class DefaultConditionResolver @Inject constructor(
         return condition.isSatisfied(event, roomPowerLevels)
     }
 
-    override fun resolveContainsDisplayNameCondition(
+    override fun resolveEventPropertyIsCondition(
             event: Event,
-            condition: ContainsDisplayNameCondition
+            condition: EventPropertyIsCondition
     ): Boolean {
-        val roomId = event.roomId ?: return false
-        val room = roomGetter.getRoom(roomId) ?: return false
-        val myDisplayName = room.membershipService().getRoomMember(userId)?.displayName ?: return false
-        return condition.isSatisfied(event, myDisplayName)
+        return condition.isSatisfied(event)
+    }
+
+    override fun resolveEventPropertyContainsCondition(
+            event: Event,
+            condition: EventPropertyContainsCondition
+    ): Boolean {
+        return condition.isSatisfied(event)
     }
 }

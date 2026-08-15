@@ -11,19 +11,13 @@ import org.matrix.android.sdk.api.session.pushrules.RuleIds
 
 fun getStandardAction(ruleId: String, index: NotificationIndex): StandardActions? {
     return when (ruleId) {
-        RuleIds.RULE_ID_CONTAIN_DISPLAY_NAME ->
+        RuleIds.RULE_ID_IS_USER_MENTION ->
             when (index) {
                 NotificationIndex.OFF -> StandardActions.Disabled
                 NotificationIndex.SILENT -> StandardActions.Notify
                 NotificationIndex.NOISY -> StandardActions.HighlightDefaultSound
             }
-        RuleIds.RULE_ID_CONTAIN_USER_NAME ->
-            when (index) {
-                NotificationIndex.OFF -> StandardActions.Disabled
-                NotificationIndex.SILENT -> StandardActions.Notify
-                NotificationIndex.NOISY -> StandardActions.HighlightDefaultSound
-            }
-        RuleIds.RULE_ID_ROOM_NOTIF ->
+        RuleIds.RULE_ID_IS_ROOM_MENTION ->
             when (index) {
                 NotificationIndex.OFF -> StandardActions.Disabled
                 NotificationIndex.SILENT -> StandardActions.Notify

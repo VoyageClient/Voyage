@@ -37,8 +37,13 @@ interface ConditionResolver {
             condition: SenderNotificationPermissionCondition
     ): Boolean
 
-    fun resolveContainsDisplayNameCondition(
+    fun resolveEventPropertyIsCondition(
             event: Event,
-            condition: ContainsDisplayNameCondition
+            condition: EventPropertyIsCondition
+    ): Boolean
+
+    fun resolveEventPropertyContainsCondition(
+            event: Event,
+            condition: EventPropertyContainsCondition
     ): Boolean
 }

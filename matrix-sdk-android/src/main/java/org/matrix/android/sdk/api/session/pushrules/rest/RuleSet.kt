@@ -48,13 +48,9 @@ data class RuleSet(
      * @return the matched bing rule or null it doesn't exist.
      */
     fun findDefaultRule(ruleId: String): PushRuleAndKind? {
-        return if (RuleIds.RULE_ID_CONTAIN_USER_NAME == ruleId) {
-            findRule(content, ruleId)?.let { PushRuleAndKind(it, RuleSetKey.CONTENT) }
-        } else {
-            // assume that the ruleId is unique.
-            findRule(override, ruleId)?.let { PushRuleAndKind(it, RuleSetKey.OVERRIDE) }
-                    ?: findRule(underride, ruleId)?.let { PushRuleAndKind(it, RuleSetKey.UNDERRIDE) }
-        }
+        // assume that the ruleId is unique.
+        return findRule(override, ruleId)?.let { PushRuleAndKind(it, RuleSetKey.OVERRIDE) }
+                ?: findRule(underride, ruleId)?.let { PushRuleAndKind(it, RuleSetKey.UNDERRIDE) }
     }
 
     /**

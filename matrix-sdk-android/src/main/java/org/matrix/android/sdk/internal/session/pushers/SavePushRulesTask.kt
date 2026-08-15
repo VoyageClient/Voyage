@@ -16,6 +16,7 @@
 package org.matrix.android.sdk.internal.session.pushers
 
 import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
 import org.matrix.android.sdk.api.session.pushrules.RuleSetKey
 import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
@@ -43,7 +44,8 @@ internal class DefaultSavePushRulesTask @Inject constructor(
         database.awaitDbTransaction(dispatcher) {
             fun save(kind: RuleSetKey, rules: List<PushRule>?) {
                 val entity = PushRulesEntity(RuleScope.GLOBAL).apply { this.kind = kind }
-                rules?.forEach { entity.pushRules.add(PushRulesMapper.map(it)) }
+                rules?.filterNot { it.ruleId in RuleIds.LEGACY_MENTION_RULE_IDS }
+                        ?.forEach { entity.pushRules.add(PushRulesMapper.map(it)) }
                 stores.pushRules.upsert(entity)
             }
             save(RuleSetKey.CONTENT, globalRules.content)

@@ -180,6 +180,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Removed voice broadcast** — the upstream voice-broadcast feature was dropped.
 
+- **Removed legacy mention matching** — only an explicit mention notifies you. Your display name, your username or the word "@room" appearing in someone's message no longer counts as one, and the mention settings are now a single "Messages that mention me" toggle alongside @room and your keywords.
+
 ### Branding
 
 - **Rebrand to Voyage** — new app ID, icons, and a configurable logo and app-icon background colour, a Voyage colour scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages.

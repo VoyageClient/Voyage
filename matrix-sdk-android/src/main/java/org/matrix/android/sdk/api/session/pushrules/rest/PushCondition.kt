@@ -18,8 +18,9 @@ package org.matrix.android.sdk.api.session.pushrules.rest
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.pushrules.Condition
-import org.matrix.android.sdk.api.session.pushrules.ContainsDisplayNameCondition
 import org.matrix.android.sdk.api.session.pushrules.EventMatchCondition
+import org.matrix.android.sdk.api.session.pushrules.EventPropertyContainsCondition
+import org.matrix.android.sdk.api.session.pushrules.EventPropertyIsCondition
 import org.matrix.android.sdk.api.session.pushrules.Kind
 import org.matrix.android.sdk.api.session.pushrules.RoomMemberCountCondition
 import org.matrix.android.sdk.api.session.pushrules.SenderNotificationPermissionCondition
@@ -55,7 +56,14 @@ data class PushCondition(
          * If no prefix is present, this parameter defaults to ==.
          */
         @Json(name = "is")
-        val iz: String? = null
+        val iz: String? = null,
+
+        /**
+         * Required for event_property_is / event_property_contains conditions: the JSON value the
+         * property must equal, or that the property's array must hold.
+         */
+        @Json(name = "value")
+        val value: Any? = null
 ) {
 
     fun asExecutableCondition(): Condition? {
@@ -68,8 +76,21 @@ data class PushCondition(
                     null
                 }
             }
-            Kind.ContainsDisplayName -> {
-                ContainsDisplayNameCondition()
+            Kind.EventPropertyIs -> {
+                if (key != null) {
+                    EventPropertyIsCondition(key, value)
+                } else {
+                    Timber.e("Malformed event_property_is condition")
+                    null
+                }
+            }
+            Kind.EventPropertyContains -> {
+                if (key != null) {
+                    EventPropertyContainsCondition(key, value)
+                } else {
+                    Timber.e("Malformed event_property_contains condition")
+                    null
+                }
             }
             Kind.RoomMemberCount -> {
                 if (iz.isNullOrEmpty()) {

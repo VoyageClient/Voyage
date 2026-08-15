@@ -22,8 +22,7 @@ class TestPushRulesSettings @Inject constructor(
 
     private val testedRules =
             listOf(
-                    RuleIds.RULE_ID_CONTAIN_DISPLAY_NAME,
-                    RuleIds.RULE_ID_CONTAIN_USER_NAME,
+                    RuleIds.RULE_ID_IS_USER_MENTION,
                     RuleIds.RULE_ID_ONE_TO_ONE_ROOM,
                     RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS
             )
