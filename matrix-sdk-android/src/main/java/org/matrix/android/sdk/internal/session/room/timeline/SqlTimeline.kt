@@ -257,7 +257,9 @@ internal class SqlTimeline(
         val params = LoadRoomMembersTask.Params(roomId, excludeMembership = Membership.LEAVE)
         while (true) {
             try {
+                Timber.i("RRDBG loadRoomMembers start $roomId rows=${memberRowCount()}")
                 loadRoomMembersTask.execute(params)
+                Timber.i("RRDBG loadRoomMembers done $roomId rows=${memberRowCount()}")
                 // Receipts already mapped against the members we had render as bare user ids.
                 chunkSnapshotCache.clear()
                 rebuildSnapshot()
@@ -271,6 +273,8 @@ internal class SqlTimeline(
             }
         }
     }
+
+    private suspend fun memberRowCount(): Int = withContext(sessionDispatcher) { stores.roomMember.getByRoom(roomId).size }
 
     /**
      * Heal a corrupt chunk graph left by the earlier link-and-stop pagination bug. That bug could

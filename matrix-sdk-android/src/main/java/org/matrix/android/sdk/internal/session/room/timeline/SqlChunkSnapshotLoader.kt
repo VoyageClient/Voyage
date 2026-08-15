@@ -112,8 +112,10 @@ internal class SqlChunkSnapshotLoader(
                     }
 
     /**
-     * Emits when anyone's read receipt moves in this room. A sync carrying only an m.receipt writes
-     * neither timeline_event nor the annotation summaries, so nothing else notices.
+     * Emits when anyone's read receipt moves in this room, or when a reader's rendered profile changes.
+     * A sync carrying only an m.receipt writes neither timeline_event nor the annotation summaries, so
+     * nothing else notices; likewise a member event that finally names a reader whose receipt was
+     * already mapped against a missing member row.
      *
      * Unlike the signal-only flows above, this one runs its query so the consumer can tell a change in
      * THIS room from the table-level notifications SQLDelight fires for every joined room.
@@ -122,5 +124,10 @@ internal class SqlChunkSnapshotLoader(
             database.readReceiptQueries.selectReceiptStateInRoom(roomId)
                     .asFlow()
                     .mapToList(dispatcher)
-                    .map { rows -> rows.map { "${it.event_id}|${it.user_id}|${it.origin_server_ts}" } }
+                    .map { rows ->
+                        rows.map {
+                            "${it.event_id}|${it.user_id}|${it.origin_server_ts}|${it.display_name}|${it.avatar_url}|" +
+                                    "${it.user_display_name}|${it.user_avatar_url}"
+                        }
+                    }
 }

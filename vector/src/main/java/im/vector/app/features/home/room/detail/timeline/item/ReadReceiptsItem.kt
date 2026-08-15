@@ -17,6 +17,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.ui.views.ReadReceiptsView
 import im.vector.app.features.home.AvatarRenderer
+import timber.log.Timber
 
 @EpoxyModelClass
 abstract class ReadReceiptsItem : VectorEpoxyModel<ReadReceiptsItem.Holder>(R.layout.item_timeline_event_read_receipts), ItemWithEvents {
@@ -33,6 +34,9 @@ abstract class ReadReceiptsItem : VectorEpoxyModel<ReadReceiptsItem.Holder>(R.la
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        readReceipts.filter { it.displayName.isNullOrBlank() }
+                .takeIf { it.isNotEmpty() }
+                ?.let { Timber.i("RRDBG bind $eventId unnamed=${it.map { receipt -> receipt.userId }}") }
         holder.readReceiptsView.onClick(clickListener)
         holder.readReceiptsView.render(readReceipts, avatarRenderer)
         holder.readReceiptsView.isVisible = !shouldHideReadReceipts
