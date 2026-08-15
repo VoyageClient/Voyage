@@ -42,6 +42,11 @@ internal class ReadReceiptSqlStore(private val database: SessionSqlDatabase) {
     fun getReceipt(roomId: String, userId: String, threadId: String?): ReadReceiptEntity? =
             queries.selectReceiptForUserInRoom(roomId, userId, threadId).executeAsOneOrNull()?.toEntity()
 
+    /** Every receipt in the room, keyed by (userId, threadId) — see [selectReceiptsInRoom]. */
+    fun getReceiptsInRoom(roomId: String): Map<Pair<String, String?>, ReadReceiptEntity> =
+            queries.selectReceiptsInRoom(roomId).executeAsList()
+                    .associateBy({ it.user_id to it.thread_id }) { it.toEntity() }
+
     fun upsertReceipt(entity: ReadReceiptEntity) = queries.upsertReceipt(
             primary_key = entity.primaryKey,
             event_id = entity.eventId,

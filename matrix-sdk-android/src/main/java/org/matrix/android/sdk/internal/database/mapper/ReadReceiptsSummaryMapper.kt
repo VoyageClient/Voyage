@@ -73,6 +73,7 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
                 membership = member?.membership ?: Membership.JOIN,
                 userId = userId,
                 displayName = profile.displayName,
+                originalDisplayName = profile.displayName,
                 avatarUrl = profile.avatarUrl,
         )
     }

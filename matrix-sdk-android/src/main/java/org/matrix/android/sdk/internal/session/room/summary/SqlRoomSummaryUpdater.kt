@@ -34,6 +34,7 @@ import org.matrix.android.sdk.internal.database.model.SpaceParentSummaryEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.isEventRead
+import org.matrix.android.sdk.internal.database.sql.store.localUnreadCounts
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.room.SqlRoomAvatarResolver
 import org.matrix.android.sdk.internal.session.room.accountdata.RoomAccountDataDataSource
@@ -107,6 +108,13 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         if (unreadNotifications != null) {
             entity.highlightCount = unreadNotifications.highlightCount ?: 0
             entity.notificationCount = unreadNotifications.notificationCount ?: 0
+        }
+        // Synapse hardcodes both counts to 0 on a sliding-sync connection, calling them dummy values that
+        // only a client can get right, so count what is unread ourselves.
+        if (stores.syncToken.getSlidingSyncPos() != null) {
+            val local = stores.localUnreadCounts(userId, roomId)
+            entity.notificationCount = local.notificationCount
+            entity.highlightCount = local.highlightCount
         }
         entity.threadHighlightCount = unreadThreadNotifications?.count { (it.value.highlightCount ?: 0) > 0 } ?: 0
         entity.threadNotificationCount = unreadThreadNotifications?.count { (it.value.notificationCount ?: 0) > 0 } ?: 0

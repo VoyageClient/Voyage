@@ -289,8 +289,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 val end = spannable.getSpanEnd(span)
                 if (start < index) return@forEach
                 append(spannable, index, start)
-                // The backing text is a placeholder char, so take the label from the matrix item.
-                append("[").append(span.matrixItem.getBestName()).append("]")
+                // The backing text is a placeholder char, so take the label from the span's body text —
+                // never the item's name, which may carry a local display-name override.
+                append("[").append((span as? PillImageSpan)?.bodyText ?: span.matrixItem.getBestName()).append("]")
                 append("(https://matrix.to/#/").append(span.matrixItem.id).append(")")
                 index = end
             }
@@ -317,7 +318,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             if (matrixItem != null) {
                 val start = out.length
                 out.append(label)
-                val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem).also { it.bind(editText) }
+                val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem, bodyText = label)
+                        .also { it.bind(editText) }
                 out.setPillSpan(span, start, start + label.length)
             } else {
                 out.append(source, match.range.first, match.range.last + 1)

@@ -19,6 +19,7 @@ import com.otaliastudios.autocomplete.CharPolicy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import im.vector.app.core.extensions.bodyName
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.features.autocomplete.command.AutocompleteCommandPresenter
@@ -184,8 +185,9 @@ class AutoCompleter @AssistedInject constructor(
                                     .also { mentionFrequencyDataSource.record(roomId, item.roomMemberSummary.userId) }
                             is AutocompleteMemberItem.Everyone -> item.roomSummary.toEveryoneInRoomMatrixItem()
                         } ?: return false
+                        val bodyName = (item as? AutocompleteMemberItem.RoomMember)?.roomMemberSummary?.bodyName()
 
-                        insertMatrixItem(editText, editable, TRIGGER_AUTO_COMPLETE_MEMBERS, matrixItem)
+                        insertMatrixItem(editText, editable, TRIGGER_AUTO_COMPLETE_MEMBERS, matrixItem, bodyName)
 
                         return true
                     }
@@ -280,10 +282,7 @@ class AutoCompleter @AssistedInject constructor(
         }
     }
 
-    private fun insertMatrixItem(editText: EditText, editable: Editable, firstChar: Char, matrixItem: MatrixItem) =
-            insertMatrixItemIntoEditable(editText, editable, firstChar, matrixItem)
-
-    private fun insertMatrixItemIntoEditable(editText: EditText, editable: Editable, firstChar: Char, matrixItem: MatrixItem) {
+    private fun insertMatrixItem(editText: EditText, editable: Editable, firstChar: Char, matrixItem: MatrixItem, bodyName: String? = null) {
         // Detect last firstChar and remove it
         var startIndex = editable.lastIndexOf(firstChar)
         if (startIndex == -1) {
@@ -296,8 +295,8 @@ class AutoCompleter @AssistedInject constructor(
             endIndex = editable.length
         }
 
-        // Replace the word by its completion
-        val displayName = matrixItem.getBestName()
+        // The pill draws over this text, so it is only what the plain-text body will carry.
+        val displayName = bodyName ?: matrixItem.getBestName()
 
         editable.replace(startIndex, endIndex, "$displayName ")
 
@@ -306,7 +305,8 @@ class AutoCompleter @AssistedInject constructor(
                 glideRequests,
                 avatarRenderer,
                 editText.context,
-                matrixItem
+                matrixItem,
+                bodyText = displayName
         )
         span.bind(editText)
 

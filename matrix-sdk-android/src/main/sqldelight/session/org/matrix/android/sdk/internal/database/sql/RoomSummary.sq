@@ -170,6 +170,9 @@ UPDATE room_summary SET marked_unread = ? WHERE room_id = ?;
 clearUnreadCounters:
 UPDATE room_summary SET notification_count = 0, highlight_count = 0, has_unread_messages = 0 WHERE room_id = ?;
 
+updateUnreadCounters:
+UPDATE room_summary SET notification_count = ?, highlight_count = ? WHERE room_id = ?;
+
 resetBreadcrumbsIndex:
 UPDATE room_summary SET breadcrumbs_index = -1 WHERE breadcrumbs_index > -1;
 

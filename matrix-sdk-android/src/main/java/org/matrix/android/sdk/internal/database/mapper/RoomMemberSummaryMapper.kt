@@ -29,6 +29,7 @@ internal object RoomMemberSummaryMapper {
                 userPresence = roomMemberSummaryEntity.userPresenceEntity?.toUserPresence(),
                 avatarUrl = ProfileOverrides.avatarUrlFor(roomMemberSummaryEntity.userId) ?: roomMemberSummaryEntity.avatarUrl,
                 displayName = ProfileOverrides.displayNameFor(roomMemberSummaryEntity.userId) ?: roomMemberSummaryEntity.displayName,
+                originalDisplayName = roomMemberSummaryEntity.displayName,
                 membership = roomMemberSummaryEntity.membership
         )
     }

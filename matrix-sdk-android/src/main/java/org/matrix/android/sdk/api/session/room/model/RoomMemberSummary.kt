@@ -26,5 +26,8 @@ data class RoomMemberSummary constructor(
         val userId: String,
         val userPresence: UserPresence? = null,
         val displayName: String? = null,
-        val avatarUrl: String? = null
+        val avatarUrl: String? = null,
+        // The name the user actually publishes, before any local ProfileOverrides substitution. Text we
+        // send to the room (mention bodies) must use this, since an override is meaningful only to us.
+        val originalDisplayName: String? = null
 )

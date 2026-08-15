@@ -77,9 +77,10 @@ internal class DefaultGetUploadsTask @Inject constructor(
                     .executeAsList()
                     .map { it.toEntity().asDomain() }
         } else {
-            // Sliding sync issues no v2 since-token, and there is none at all before the first sync. `from`
-            // is optional, and omitting it starts from the most recent event, which is what this wants.
-            val since = params.since ?: tokenStore.getLastToken()
+            // Sliding sync stops advancing the v2 next_batch, so a token left over from before the switch
+            // would freeze this list at that point in time. `from` is optional, and omitting it starts from
+            // the most recent event, which is what this wants.
+            val since = params.since ?: tokenStore.getLastToken().takeIf { tokenStore.getSlidingSyncPos() == null }
 
             val filter = FilterFactory.createUploadsFilter(params.numberOfEvents).toJSONString()
             val chunk = executeRequest(globalErrorReceiver) {

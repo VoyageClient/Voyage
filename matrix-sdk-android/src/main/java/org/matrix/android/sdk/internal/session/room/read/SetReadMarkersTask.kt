@@ -23,6 +23,7 @@ import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesServi
 import org.matrix.android.sdk.internal.database.sql.store.isEventRead
 import org.matrix.android.sdk.internal.database.sql.store.isReadMarkerMoreRecent
 import org.matrix.android.sdk.internal.database.sql.store.latestSyncedEventId
+import org.matrix.android.sdk.internal.database.sql.store.localUnreadCounts
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
@@ -143,6 +144,11 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
             }
             if (shouldUpdateRoomSummary) {
                 stores.roomSummary.clearUnreadCounters(roomId)
+            } else if (readReceiptId != null && stores.syncToken.getSlidingSyncPos() != null) {
+                // Our own counts are what stand in for the server's under sliding sync, so reading part of a
+                // room has to bring them down now — the next sync for the room could be a long way off.
+                val local = stores.localUnreadCounts(userId, roomId)
+                stores.roomSummary.setUnreadCounters(roomId, local.notificationCount, local.highlightCount)
             }
         }
     }
