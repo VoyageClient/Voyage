@@ -68,6 +68,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private lateinit var sourceUri: Uri
     private var displayName: String? = null
+    private var initialEdits: VideoEditorEdits? = null
 
     private var player: MediaPlayer? = null
     private var audioPlayer: MediaPlayer? = null
@@ -88,7 +89,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var pendingEditedUs: Long? = null
     private var audioBurstActive = false
     private var pendingAudioUs: Long? = null
-    private var muted = false
+    private var volume = PlaybackVolume()
+    private var playerBoost: LoudnessBoost? = null
+    private var audioBoost: LoudnessBoost? = null
     private var playbackSpeed = PlaybackSpeed()
     private var warnedAboutSpeedPreview = false
     private var speedAwaitingPlayback = false
@@ -118,6 +121,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         makeSystemBarsTransparent()
         sourceUri = intent.getStringExtra(EXTRA_SOURCE_URI)?.toUri() ?: run { finish(); return }
         displayName = intent.getStringExtra(EXTRA_DISPLAY_NAME)
+        initialEdits = intent.getParcelableExtraCompat(EXTRA_EDITS)
         animatedFormat = intent.getStringExtra(EXTRA_ANIMATED_FORMAT)?.let { name ->
             runCatching { AnimatedImageFormat.valueOf(name) }.getOrNull()
         }
@@ -196,10 +200,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        menu.findItem(R.id.videoEditorMuteAction)?.apply {
-            // There is no sound in an animated image to mute.
+        menu.findItem(R.id.videoEditorVolumeAction)?.apply {
+            // An animated image has no sound to set.
             isVisible = !isAnimated
-            setIcon(if (muted) R.drawable.ic_mic_off else R.drawable.ic_mic_on)
+            setIcon(volumeIcon())
         }
         // Changing an edit while it is being written would export something nobody asked for.
         for (index in 0 until menu.size()) {
@@ -218,8 +222,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 rotateClockwise()
                 true
             }
-            R.id.videoEditorMuteAction -> {
-                toggleMute()
+            R.id.videoEditorVolumeAction -> {
+                showVolumeDialog()
                 true
             }
             R.id.videoEditorSpeedAction -> {
@@ -286,7 +290,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         if (durationUs <= 0) return
         startUs = 0
         endUs = durationUs
-        if (muted) toggleMute()
+        setVolume(PlaybackVolume())
         playbackSpeed = PlaybackSpeed()
         applyPlaybackSpeed()
         views.videoEditorCropOverlay.resetEdits()
@@ -320,10 +324,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             frameRate = info.frameRate
             views.videoEditorTimeline.durationUs = durationUs
             views.videoEditorTimeline.frameRate = info.frameRate
-            val edits = intent.getParcelableExtraCompat<VideoEditorEdits>(EXTRA_EDITS)
+            val edits = initialEdits
             startUs = edits?.startUs ?: 0L
             endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
-            if (edits?.muted == true) toggleMute()
+            edits?.volume?.let { setVolume(it) }
             edits?.speed?.let { playbackSpeed = it }
             // The probe's dimensions, not the player's: MediaPlayer reports the coded frame rather
             // than the displayed one on some devices, which shows a portrait clip stretched.
@@ -360,7 +364,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             frameRate = source.frameRate
             views.videoEditorTimeline.durationUs = durationUs
             views.videoEditorTimeline.frameRate = frameRate
-            val edits = intent.getParcelableExtraCompat<VideoEditorEdits>(EXTRA_EDITS)
+            val edits = initialEdits
             startUs = edits?.startUs ?: 0L
             endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
             edits?.speed?.let { playbackSpeed = it }
@@ -552,17 +556,49 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private fun rotateClockwise() = views.videoEditorCropOverlay.rotateClockwise()
 
-    /** Mutes the preview as well: the export is what the editor is showing. */
-    private fun toggleMute() {
-        muted = !muted
+    private fun showVolumeDialog() {
+        PlaybackVolumeDialog(
+                context = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+                initial = volume,
+                canPreviewBoost = { playerBoost != null },
+                onChanged = ::setVolume
+        ).show()
+    }
+
+    private fun setVolume(next: PlaybackVolume) {
+        volume = next
         invalidateOptionsMenu()
         applyVolume()
     }
 
+    private fun volumeIcon() = when {
+        volume.effectiveGain <= 0f -> R.drawable.ic_volume_off
+        volume.effectiveGain > PlaybackVolume.NORMAL -> R.drawable.ic_volume_boost
+        volume.effectiveGain < QUIET_GAIN -> R.drawable.ic_volume_down
+        else -> R.drawable.ic_volume_up
+    }
+
+    /** Sets the preview too: the export is what the editor is showing. */
     private fun applyVolume() {
-        val volume = if (muted) 0f else 1f
-        runCatching { player?.setVolume(volume, volume) }
-        runCatching { audioPlayer?.setVolume(volume, volume) }
+        // MediaPlayer's own scalar tops out at 1; anything above it comes from the boost.
+        val scalar = volume.effectiveGain.coerceIn(0f, 1f)
+        runCatching { player?.setVolume(scalar, scalar) }
+        runCatching { audioPlayer?.setVolume(scalar, scalar) }
+        applyBoost()
+    }
+
+    /** Anything above 100% is out of MediaPlayer's reach, and only KitKat has the effect for it. */
+    private fun applyBoost() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return
+        playerBoost = tuneBoost(playerBoost, player)
+        audioBoost = tuneBoost(audioBoost, audioPlayer)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    private fun tuneBoost(existing: LoudnessBoost?, target: MediaPlayer?): LoudnessBoost? {
+        val boost = existing ?: target?.let { LoudnessBoost.attachTo(it) } ?: return null
+        boost.setGain(volume.effectiveGain)
+        return boost
     }
 
     private fun togglePlayback() {
@@ -737,10 +773,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 endUs = endUs,
                 durationUs = durationUs,
                 rotationDegrees = views.videoEditorCropOverlay.rotationDegrees,
-                muted = muted,
+                volume = volume,
                 crop = views.videoEditorCropOverlay.currentCrop(),
                 speed = playbackSpeed
         )
+        // Left exactly as it was opened: the attachment already is this export.
+        if (edits == initialEdits) {
+            finish()
+            return
+        }
         if (!edits.hasChanges) {
             setResult(RESULT_OK, restoreOriginalResult())
             finish()
@@ -856,6 +897,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     /** Never releases the surface: it belongs to the SurfaceTexture callbacks, not the player. */
     private fun releasePlayer() {
         handler.removeCallbacks(stopBlipRunnable)
+        playerBoost?.release()
+        audioBoost?.release()
+        playerBoost = null
+        audioBoost = null
         player?.let {
             runCatching { it.stop() }
             it.release()
@@ -880,6 +925,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     )
 
     companion object {
+        /** Below this the icon shows a quieter speaker. */
+        private const val QUIET_GAIN = 0.5f
+
         private const val THUMBNAIL_COUNT = 10
         private const val PLAYHEAD_INTERVAL_MS = 60L
         private const val SEEK_THROTTLE_MS = 40L

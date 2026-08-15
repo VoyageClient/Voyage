@@ -39,6 +39,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     private lateinit var sourceUri: Uri
     private var displayName: String? = null
     private var sourceMimeType: String? = null
+    private var initialEdits: ImageEditorEdits? = null
     private var activeToolFill: Int = Color.WHITE
     private var activeToolContent: Int = Color.WHITE
 
@@ -70,9 +71,8 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
 
         views.imageEditorView.onToolChanged = { applyTool(it) }
         applyTool(ImageEditorView.Tool.CROP)
-        intent.getParcelableExtraCompat<ImageEditorEdits>(EXTRA_EDITS)?.let {
-            views.imageEditorView.restoreEdits(it)
-        }
+        initialEdits = intent.getParcelableExtraCompat(EXTRA_EDITS)
+        initialEdits?.let { views.imageEditorView.restoreEdits(it) }
         loadBitmap()
     }
 
@@ -130,6 +130,11 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
 
     private fun save() {
         val edits = views.imageEditorView.currentEdits()
+        // Left exactly as it was opened: the attachment already is this export.
+        if (edits == initialEdits) {
+            finish()
+            return
+        }
         if (!edits.hasChanges) {
             setResult(RESULT_OK, restoreOriginalResult())
             finish()

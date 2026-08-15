@@ -34,7 +34,7 @@ internal object AudioWriters {
     ): AudioTrackWriter? {
         if (spec.muted) return null
         val mime = source.audioMime ?: return null
-        if (!spec.isRetimed) {
+        if (!spec.isRetimed && !spec.isAmplified) {
             if (MuxableFormats.isMuxableAudio(mime)) {
                 AudioTrackCopier.create(context, spec.sourceUri, spec.endUs)?.let { return it }
                 Timber.w("VideoEdit: cannot copy the $mime track through, re-encoding it instead")
@@ -55,7 +55,7 @@ internal object AudioWriters {
             mime: String,
     ): AudioTrackWriter? {
         val transcoder = AudioTrackTranscoder.create(
-                context, spec.sourceUri, startUs, spec.endUs, timeMap, spec.changePitch, spec.isRetimed
+                context, spec.sourceUri, startUs, spec.endUs, timeMap, spec.changePitch, spec.isRetimed, spec.volume
         )
         if (transcoder == null) {
             Timber.w("VideoEdit: nothing on this device decodes $mime, dropping the audio")

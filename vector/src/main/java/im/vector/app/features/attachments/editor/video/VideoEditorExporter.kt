@@ -52,7 +52,8 @@ object VideoEditorExporter {
                             endUs = edits.endUs,
                             crop = edits.crop,
                             rotationDegrees = edits.rotationDegrees,
-                            muted = edits.muted,
+                            muted = edits.volume.muted,
+                            volume = edits.volume.gain,
                             outputFile = destination,
                             speed = edits.speed.speed,
                             changePitch = edits.speed.changePitch

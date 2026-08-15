@@ -10,12 +10,15 @@ package im.vector.lib.mediatranscode
 import android.graphics.RectF
 import android.net.Uri
 import java.io.File
+import kotlin.math.abs
 
 /**
  * @property crop normalised rectangle (0..1) of the frame to keep, or null for the whole frame. It
  * is read in *display* space, i.e. after both the source orientation and [rotationDegrees].
  * @property rotationDegrees extra clockwise rotation applied on top of the source orientation.
  * @property muted drops the audio track entirely.
+ * @property volume how much the audio is scaled by; 1 leaves it alone. Anything else rules out the
+ * lossless audio copy, since the samples have to be decoded to be touched.
  * @property targetWidth,targetHeight output size, or null to keep the cropped size. Resizing needs
  * the GL stage, so asking for one rules out the lossless remux exactly as a crop does.
  * @property targetBitrate output bitrate, or null to keep the source's (scaled down by how much of
@@ -36,12 +39,19 @@ data class VideoEditSpec(
         val targetBitrate: Int? = null,
         val speed: Float = 1f,
         val changePitch: Boolean = true,
+        val volume: Float = 1f,
 ) {
+    val isAmplified get() = abs(volume - 1f) > VOLUME_TOLERANCE
+
     /** Re-timing needs the GL stage too: frame timestamps can only be set from there. */
     val isRetimed get() = SpeedTimeMap.retimes(speed)
 
     /** Only the GL stage can change geometry, and only re-encoding can change the bitrate. */
     val needsTranscode get() = crop != null || targetWidth != null || targetBitrate != null || isRetimed
+
+    companion object {
+        private const val VOLUME_TOLERANCE = 0.001f
+    }
 }
 
 data class VideoEditOutput(
