@@ -267,7 +267,7 @@
             app:badgeTextColor="?vctr_jump_to_bottom_badge_text_tint"
             app:badgeTextPadding="2dp"
             app:badgeTextSize="10sp"
-            app:layout_constraintBottom_toTopOf="@id/roomPreviewJoinBar"
+            app:layout_constraintBottom_toTopOf="@id/failedMessagesWarningStub"
             app:layout_constraintEnd_toEndOf="parent"
             app:tint="?vctr_jump_to_bottom_icon_tint" />
 
