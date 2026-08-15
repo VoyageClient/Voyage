@@ -28,7 +28,6 @@ data class RoomSettingsViewState(
         val roomSummary: Async<RoomSummary> = Uninitialized,
         val isLoading: Boolean = false,
         val currentRoomAvatarUrl: String? = null,
-        val directUserAvatarUrl: String? = null,
         val avatarAction: AvatarAction = AvatarAction.None,
         val currentRoomBannerUrl: String? = null,
         val bannerAction: BannerAction = BannerAction.None,

@@ -89,6 +89,7 @@ import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationMan
 import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
 import org.matrix.android.sdk.internal.session.openid.DefaultOpenIdService
 import org.matrix.android.sdk.internal.session.permalinks.DefaultPermalinkService
+import org.matrix.android.sdk.internal.session.profile.ProfileOverridesLoader
 import org.matrix.android.sdk.internal.session.room.EventRelationsAggregationProcessor
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.DefaultPollAggregationProcessor
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollAggregationProcessor
@@ -413,6 +414,10 @@ internal abstract class SessionModule {
     @Binds
     @IntoSet
     abstract fun bindEventIndexerAsSessionLifecycleObserver(indexer: EventIndexer): SessionLifecycleObserver
+
+    @Binds
+    @IntoSet
+    abstract fun bindProfileOverridesLoader(loader: ProfileOverridesLoader): SessionLifecycleObserver
 
     @Binds
     @IntoSet

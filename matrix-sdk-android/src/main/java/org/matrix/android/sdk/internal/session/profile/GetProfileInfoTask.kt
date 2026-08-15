@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.profile
 
 import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -45,7 +46,7 @@ internal class DefaultGetProfileInfoTask @Inject constructor(
 ) : GetProfileInfoTask() {
 
     override suspend fun execute(params: Params): JsonDict {
-        return executeRequest(globalErrorReceiver) {
+        val profile = executeRequest(globalErrorReceiver) {
             profileAPI.getProfile(params.userId)
         }.also { user ->
             if (params.storeInDatabase) {
@@ -54,5 +55,13 @@ internal class DefaultGetProfileInfoTask @Inject constructor(
                 }
             }
         }
+        // Merge client-side overrides over the profile: any overridden field replaces (or adds to)
+        // the server value; a null override removes the field.
+        val overrides = ProfileOverrides.fieldsFor(params.userId) ?: return profile
+        val merged = profile.toMutableMap()
+        overrides.forEach { (key, value) ->
+            if (value == null) merged.remove(key) else merged[key] = value
+        }
+        return merged
     }
 }

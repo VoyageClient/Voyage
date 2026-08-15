@@ -16,11 +16,18 @@
 
 package org.matrix.android.sdk.internal.session.room.accountdata
 
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.internal.database.mapper.ContentMapper
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
+import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.RoomAPI
+import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
 
@@ -36,12 +43,23 @@ internal interface UpdateRoomAccountDataTask : Task<UpdateRoomAccountDataTask.Pa
 internal class DefaultUpdateRoomAccountDataTask @Inject constructor(
         private val roomApi: RoomAPI,
         @UserId private val userId: String,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
+        private val roomSummaryUpdater: SqlRoomSummaryUpdater,
 ) : UpdateRoomAccountDataTask {
 
     override suspend fun execute(params: UpdateRoomAccountDataTask.Params) {
-        return executeRequest(globalErrorReceiver) {
+        executeRequest(globalErrorReceiver) {
             roomApi.setRoomAccountData(userId, params.roomId, params.type, params.content)
+        }
+        // Local echo: persist immediately rather than waiting for the resulting sync.
+        database.awaitDbTransaction(dispatcher) {
+            stores.accountData.upsertRoomAccountData(params.roomId, params.type, ContentMapper.map(params.content))
+            if (params.type in RoomStateOverrides.ALL_TYPES) {
+                roomSummaryUpdater.refreshDisplay(stores, params.roomId)
+            }
         }
     }
 }

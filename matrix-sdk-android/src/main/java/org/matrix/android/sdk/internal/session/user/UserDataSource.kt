@@ -21,6 +21,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
@@ -36,11 +37,17 @@ internal class UserDataSource @Inject constructor(
         private val stores: SessionStores,
 ) {
 
-    internal fun rowToUser(row: UserRow): User = User(row.user_id, row.display_name, row.avatar_url)
+    internal fun rowToUser(row: UserRow): User = overriddenUser(row.user_id, row.display_name, row.avatar_url)
 
-    fun getUser(userId: String): User? = stores.user.getUser(userId)?.let { User(it.userId, it.displayName, it.avatarUrl) }
+    fun getUser(userId: String): User? = stores.user.getUser(userId)?.let { overriddenUser(it.userId, it.displayName, it.avatarUrl) }
 
-    fun getUserOrDefault(userId: String): User = getUser(userId) ?: User(userId)
+    fun getUserOrDefault(userId: String): User = getUser(userId) ?: overriddenUser(userId, null, null)
+
+    private fun overriddenUser(userId: String, displayName: String?, avatarUrl: String?) = User(
+            userId,
+            ProfileOverrides.displayNameFor(userId) ?: displayName,
+            ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+    )
 
     fun getUserFlow(userId: String): Flow<Optional<User>> {
         return database.userQueries.selectByUserId(userId)
@@ -64,5 +71,5 @@ internal class UserDataSource @Inject constructor(
 
     fun getIgnoredUserIds(): List<String> = database.ignoredUserQueries.selectAll().executeAsList()
 
-    private fun UserRow.toUser() = User(user_id, display_name, avatar_url)
+    private fun UserRow.toUser() = rowToUser(this)
 }

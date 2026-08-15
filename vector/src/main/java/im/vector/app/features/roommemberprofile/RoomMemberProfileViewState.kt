@@ -36,6 +36,10 @@ data class RoomMemberProfileViewState(
         val asyncMembership: Async<Membership> = Uninitialized,
         val hasReadReceipt: Boolean = false,
         val userColorOverride: String? = null,
+        // im.voyage.setting.profile_overrides fields for this user
+        val profileOverrideDisplayName: String? = null,
+        val profileOverrideAvatarUrl: String? = null,
+        val hasProfileOverrides: Boolean = false,
         // "she/her • PST" line from MSC4247 pronouns + MSC4175 time zone, or null when neither is set
         val profileFieldsLine: String? = null,
         // MSC4427 profile banner field

@@ -24,7 +24,6 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.room.send.SendState
-import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
 import org.matrix.android.sdk.internal.database.model.EventEntity
@@ -109,7 +108,7 @@ internal object EventMapper {
                     isThread = if (it.threadDetails?.isThread == true) true else eventEntity.isThread(),
                     numberOfThreads = eventEntity.numberOfThreads,
                     threadSummarySenderInfo = eventEntity.threadSummaryLatestMessage?.let { timelineEventEntity ->
-                        SenderInfo(
+                        overriddenSenderInfo(
                                 userId = timelineEventEntity.root?.sender ?: "",
                                 displayName = timelineEventEntity.senderName,
                                 isUniqueDisplayName = timelineEventEntity.isUniqueDisplayName,

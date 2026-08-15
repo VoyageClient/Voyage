@@ -10,6 +10,7 @@ package org.matrix.android.sdk.internal.session.room.membership
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
 import org.matrix.android.sdk.api.session.room.model.RoomNameContent
@@ -19,6 +20,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.splitToList
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.displayname.DisplayNameResolver
+import org.matrix.android.sdk.internal.session.room.accountdata.RoomStateOverrides
 import org.matrix.android.sdk.internal.util.Normalizer
 import javax.inject.Inject
 
@@ -33,6 +35,7 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
 
     fun resolve(stores: SessionStores, roomId: String): RoomName {
         var name: String?
+        RoomStateOverrides.roomName(stores, roomId)?.let { return it.toRoomName() }
         val roomMembership = stores.room.get(roomId)?.membership
         val summary = stores.database.roomSummaryQueries.selectByRoomId(roomId).executeAsOneOrNull()
 
@@ -51,7 +54,8 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
                 val directMember = roomMembers.getLastRoomMember(directUserId)
                 // Only force the DM target's name while they are still in the room; once they leave we
                 // fall through to the normal multi-member naming instead of clinging to a stale name.
-                if (directMember?.membership?.isActive() == true && !directMember.displayName.isNullOrBlank()) {
+                val directName = ProfileOverrides.displayNameFor(directUserId) ?: directMember?.displayName
+                if (directMember?.membership?.isActive() == true && !directName.isNullOrBlank()) {
                     return resolveRoomMemberName(directMember, roomMembers).toRoomName()
                 }
             }
@@ -125,6 +129,8 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
     }
 
     private fun resolveRoomMemberName(roomMemberSummary: RoomMemberSummaryEntity, roomMemberHelper: SqlRoomMemberHelper): String {
+        // A user-chosen override needs no disambiguation.
+        ProfileOverrides.displayNameFor(roomMemberSummary.userId)?.let { return it }
         val isUnique = roomMemberHelper.isUniqueDisplayName(roomMemberSummary.displayName)
         return if (isUnique) {
             displayNameResolver.getBestName(roomMemberSummary.toMatrixItem())

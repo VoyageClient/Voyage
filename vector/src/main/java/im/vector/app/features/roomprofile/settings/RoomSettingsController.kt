@@ -65,15 +65,14 @@ class RoomSettingsController @Inject constructor(
             bannerRenderer(host.bannerRenderer)
             when (val avatarAction = data.avatarAction) {
                 RoomSettingsViewState.AvatarAction.None -> {
-                    // Use the current value
+                    // Only the room's own m.room.avatar: editing must not present a DM's derived peer avatar as the room's.
                     avatarRenderer(host.avatarRenderer)
-                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(roomAvatarUrl ?: data.directUserAvatarUrl))
+                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(roomAvatarUrl))
                     hasRoomAvatar(roomAvatarUrl != null)
                 }
-                // Render right away how the room will look once saved: the DM fallback if there is one, else the letter placeholder
                 RoomSettingsViewState.AvatarAction.DeleteAvatar -> {
                     avatarRenderer(host.avatarRenderer)
-                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(data.directUserAvatarUrl))
+                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(null))
                 }
                 is RoomSettingsViewState.AvatarAction.UpdateAvatar -> avatarImageUri(avatarAction.newAvatarUri)
             }

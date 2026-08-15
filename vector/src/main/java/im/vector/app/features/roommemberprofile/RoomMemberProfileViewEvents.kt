@@ -15,6 +15,7 @@ import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
  */
 sealed class RoomMemberProfileViewEvents : VectorViewEvents {
     data class Loading(val message: CharSequence? = null) : RoomMemberProfileViewEvents()
+    object StopLoading : RoomMemberProfileViewEvents()
     data class Failure(val throwable: Throwable) : RoomMemberProfileViewEvents()
 
     object OnIgnoreActionSuccess : RoomMemberProfileViewEvents()

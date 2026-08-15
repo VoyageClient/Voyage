@@ -23,4 +23,10 @@ object RoomAccountDataTypes {
     const val EVENT_TYPE_SPACE_ORDER = "org.matrix.msc3230.space_order" // m.space_order
     const val EVENT_TYPE_TAGGED_EVENTS = "m.tagged_events"
     const val MARKED_UNREAD = "com.famedly.marked_unread" // MSC2867 (unstable)
+
+    // MSC3015 personal room state overrides: read the stable key first, write both.
+    const val EVENT_TYPE_ROOM_NAME_OVERRIDE = "override.m.room.name"
+    const val EVENT_TYPE_ROOM_NAME_OVERRIDE_UNSTABLE = "org.matrix.msc3015.m.room.name.override"
+    const val EVENT_TYPE_ROOM_AVATAR_OVERRIDE = "override.m.room.avatar"
+    const val EVENT_TYPE_ROOM_AVATAR_OVERRIDE_UNSTABLE = "org.matrix.msc3015.m.room.avatar.override"
 }

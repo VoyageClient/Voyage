@@ -10,11 +10,14 @@ package org.matrix.android.sdk.internal.session.room
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.UserId
+import org.matrix.android.sdk.internal.session.room.accountdata.RoomStateOverrides
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import javax.inject.Inject
 
@@ -27,6 +30,7 @@ internal class SqlRoomAvatarResolver @Inject constructor(
     private val roomDisplayNameFallbackProvider = matrixConfiguration.roomDisplayNameFallbackProvider
 
     fun resolve(stores: SessionStores, roomId: String): String? {
+        RoomStateOverrides.roomAvatar(stores, roomId)?.let { return it }
         val roomAvatarUrl = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_AVATAR, "")
                 ?.root
                 ?.asDomain()
@@ -43,8 +47,9 @@ internal class SqlRoomAvatarResolver @Inject constructor(
             if (!directUserId.isNullOrBlank()) {
                 val directMember = SqlRoomMemberHelper(stores, roomId).getLastRoomMember(directUserId)
                 // Only force the DM target's avatar while they are still in the room (see display-name resolver).
-                if (directMember?.membership?.isActive() == true && !directMember.avatarUrl.isNullOrBlank()) {
-                    return directMember.avatarUrl
+                val directAvatar = ProfileOverrides.avatarUrlFor(directUserId) ?: directMember?.avatarUrl
+                if (directMember?.membership?.isActive() == true && !directAvatar.isNullOrBlank()) {
+                    return directAvatar
                 }
             }
         }
@@ -57,14 +62,17 @@ internal class SqlRoomAvatarResolver @Inject constructor(
 
             if (members.size == 1) {
                 val firstLeftAvatarUrl = stores.roomMember.getByRoomAndMemberships(roomId, listOf(Membership.LEAVE))
-                        .firstOrNull { !it.avatarUrl.isNullOrEmpty() }
-                        ?.avatarUrl
-                return firstLeftAvatarUrl ?: members.firstOrNull()?.avatarUrl
+                        .firstOrNull { !memberAvatar(it).isNullOrEmpty() }
+                        ?.let { memberAvatar(it) }
+                return firstLeftAvatarUrl ?: members.firstOrNull()?.let { memberAvatar(it) }
             } else if (members.size == 2) {
-                return members.firstOrNull { it.userId != userId }?.avatarUrl
+                return members.firstOrNull { it.userId != userId }?.let { memberAvatar(it) }
             }
         }
 
         return null
     }
+
+    private fun memberAvatar(member: RoomMemberSummaryEntity): String? =
+            ProfileOverrides.avatarUrlFor(member.userId) ?: member.avatarUrl
 }

@@ -26,7 +26,7 @@ class UserAvatarPreference : Preference {
 
     private var avatarRenderer: AvatarRenderer = context.singletonEntryPoint().avatarRenderer()
 
-    private var userItem: MatrixItem.UserItem? = null
+    private var userItem: MatrixItem? = null
 
     constructor(context: Context) : super(context)
 
@@ -48,7 +48,11 @@ class UserAvatarPreference : Preference {
     }
 
     fun refreshAvatar(user: User) {
-        userItem = user.toMatrixItem()
+        refreshAvatar(user.toMatrixItem())
+    }
+
+    fun refreshAvatar(item: MatrixItem) {
+        userItem = item
         refreshUi()
     }
 

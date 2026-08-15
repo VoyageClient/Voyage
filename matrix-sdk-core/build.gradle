@@ -251,6 +251,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/presence/model/**',
         'org/matrix/android/sdk/internal/session/SessionScope.kt',
         'org/matrix/android/sdk/api/session/profile/ProfileKeys.kt',
+        'org/matrix/android/sdk/api/session/profile/ProfileOverrides.kt',
         'org/matrix/android/sdk/api/session/profile/Pronoun.kt',
         'org/matrix/android/sdk/api/session/profile/UserStatus.kt',
         'org/matrix/android/sdk/internal/auth/SessionParamsStore.kt',
@@ -832,6 +833,8 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/profile/DeleteThreePidTask.kt',
         'org/matrix/android/sdk/internal/session/profile/FinalizeAddingThreePidTask.kt',
         'org/matrix/android/sdk/internal/session/profile/GetProfileInfoTask.kt',
+        'org/matrix/android/sdk/internal/session/profile/ProfileOverridesLoader.kt',
+        'org/matrix/android/sdk/internal/session/profile/ProfileOverridesUpdater.kt',
         'org/matrix/android/sdk/internal/session/profile/ProfileAPI.kt',
         'org/matrix/android/sdk/internal/session/profile/RefreshUserThreePidsTask.kt',
         'org/matrix/android/sdk/internal/session/profile/SetAvatarUrlTask.kt',
@@ -891,6 +894,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/membership/RoomChangeMembershipStateDataSource.kt',
         // Reactive-surface: Flow-based data source; its LiveData bridges moved to an android extension.
         'org/matrix/android/sdk/internal/session/room/accountdata/RoomAccountDataDataSource.kt',
+        'org/matrix/android/sdk/internal/session/room/accountdata/RoomStateOverrides.kt',
         // CryptoService interface: its LiveData<PagedList> devtools methods + Context-taking version
         // helper moved to the android-only CryptoDevtoolsService, leaving the interface plain-JVM.
         'org/matrix/android/sdk/api/session/crypto/keysbackup/KeysBackupService.kt',
@@ -958,6 +962,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/terms/TermsService.kt',
         'org/matrix/android/sdk/internal/settings/SettingsModule.kt',
         'org/matrix/android/sdk/internal/database/mapper/TimelineEventMapper.kt',
+        'org/matrix/android/sdk/internal/database/mapper/SenderInfoOverrides.kt',
         'org/matrix/android/sdk/internal/database/mapper/ReadReceiptsSummaryMapper.kt',
         'org/matrix/android/sdk/internal/database/mapper/RoomSummaryMapper.kt',
         'org/matrix/android/sdk/internal/database/mapper/LocalRoomSummaryMapper.kt',

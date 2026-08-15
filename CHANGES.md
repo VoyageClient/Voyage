@@ -16,6 +16,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Per-room media visibility** — the media-visibility settings can now be overridden per room from Personalization, so a single room can show or hide media regardless of the account-wide choice.
 
+- **Personal room and user overrides (MSC3015)** — rename any room or change its avatar just for yourself, from the room's Personalization screen. A Personalization section on every user's profile likewise lets you override their display name and avatar, replacing them everywhere they appear.
+
 - **Live room previews** — a public world-readable room now opens as a real, live-updating timeline before you join it, from the room directory or a link, the way Element Web previews rooms. You can scroll back through history, search it, and browse the room's profile, members and media gallery, all read-only, with a join bar at the bottom; nothing is stored locally until you actually join.
 
 - **Historical rooms** — being kicked or banned no longer wipes the conversation. The room stays open read-only if you're in it, with a banner saying who removed you and why (and a Rejoin button after a kick), and it moves to a new "Historical" entry in the sidebar drawer instead of vanishing from All Chats. You can still scroll and search the history up to the moment you were removed, browse the room's profile and members, and load older messages from the server. Historical rooms survive re-login, and a long-press lets you forget one for good. Leaving a room voluntarily still removes it immediately. Rejoining stitches the timeline back together, recovering whatever the room's history-visibility rules let you see of what happened while you were out — always including your own invite.

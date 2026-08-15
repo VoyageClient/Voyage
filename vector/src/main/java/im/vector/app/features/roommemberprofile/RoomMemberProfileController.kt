@@ -12,8 +12,11 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.expandableTextItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.epoxy.profiles.buildProfileSection
+import im.vector.app.core.epoxy.profiles.profileSectionActionItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.settings.VectorPreferences
@@ -28,7 +31,8 @@ import javax.inject.Inject
 class RoomMemberProfileController @Inject constructor(
         private val stringProvider: StringProvider,
         private val session: Session,
-        private val vectorPreferences: VectorPreferences
+        private val vectorPreferences: VectorPreferences,
+        private val avatarRenderer: AvatarRenderer
 ) : TypedEpoxyController<RoomMemberProfileViewState>() {
 
     var callback: Callback? = null
@@ -40,6 +44,9 @@ class RoomMemberProfileController @Inject constructor(
 
     interface Callback {
         fun onMutualRoomsClicked()
+        fun onOverrideDisplayNameClicked()
+        fun onOverrideAvatarClicked()
+        fun onResetProfileOverridesClicked()
         fun onIgnoreClicked()
         fun onTapVerify()
         fun onShowDeviceList()
@@ -133,6 +140,7 @@ class RoomMemberProfileController @Inject constructor(
                     action = { callback?.onIgnoreClicked() }
             )
         }
+        buildPersonalizationSection(state)
     }
 
     private fun buildRoomMemberActions(state: RoomMemberProfileViewState) {
@@ -140,7 +148,36 @@ class RoomMemberProfileController @Inject constructor(
             buildSecuritySection(state)
         }
         buildMoreSection(state)
+        buildPersonalizationSection(state)
         buildAdminSection(state)
+    }
+
+    private fun buildPersonalizationSection(state: RoomMemberProfileViewState) {
+        if (state.isMine) return
+        val host = this
+        profileSectionActionItem {
+            id("section_personalization")
+            title(host.stringProvider.getString(CommonStrings.user_personalization_section))
+            actionEnabled(state.hasProfileOverrides)
+            actionClickListener { host.callback?.onResetProfileOverridesClicked() }
+        }
+        buildProfileAction(
+                id = "override_avatar",
+                editable = false,
+                title = stringProvider.getString(CommonStrings.avatar),
+                divider = true,
+                accessoryMatrixItem = state.userMatrixItem(),
+                avatarRenderer = avatarRenderer,
+                action = { callback?.onOverrideAvatarClicked() }
+        )
+        buildProfileAction(
+                id = "override_display_name",
+                editable = false,
+                title = stringProvider.getString(CommonStrings.settings_display_name),
+                subtitle = state.profileOverrideDisplayName ?: state.userMatrixItem()?.getBestName(),
+                divider = false,
+                action = { callback?.onOverrideDisplayNameClicked() }
+        )
     }
 
     private fun buildMutualRoomsAction(state: RoomMemberProfileViewState) {

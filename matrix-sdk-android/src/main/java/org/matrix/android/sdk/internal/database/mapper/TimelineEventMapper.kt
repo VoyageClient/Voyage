@@ -17,7 +17,7 @@
 package org.matrix.android.sdk.internal.database.mapper
 
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.api.session.room.sender.SenderInfo
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.session.SessionScope
@@ -74,7 +74,7 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
                 annotations = timelineEventEntity.annotations?.asDomain(),
                 localId = timelineEventEntity.localId,
                 displayIndex = timelineEventEntity.displayIndex,
-                senderInfo = SenderInfo(
+                senderInfo = overriddenSenderInfo(
                         userId = timelineEventEntity.root?.sender ?: "",
                         displayName = timelineEventEntity.senderName,
                         isUniqueDisplayName = timelineEventEntity.isUniqueDisplayName,
@@ -91,6 +91,7 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
             // to mean known-empty vs unknown.
             h = 31 * h + (v?.hashCode() ?: -1)
         }
+        add(ProfileOverrides.generation)
         add(e.eventId)
         add(e.localId)
         add(e.displayIndex)
