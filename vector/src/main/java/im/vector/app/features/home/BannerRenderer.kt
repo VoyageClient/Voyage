@@ -10,9 +10,13 @@ package im.vector.app.features.home
 import android.graphics.drawable.GradientDrawable
 import android.widget.ImageView
 import androidx.annotation.UiThread
+import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.features.media.MediaPlaceholderDrawable
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
@@ -21,6 +25,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomBannerContent
 import org.matrix.android.sdk.api.util.MatrixItem
+import java.util.WeakHashMap
 import javax.inject.Inject
 
 /**
@@ -42,6 +47,10 @@ class BannerRenderer @Inject constructor(
         private val vectorPreferences: VectorPreferences,
 ) {
 
+    // Glide compares placeholders by reference when deciding whether a request is equivalent, so the
+    // same view must keep the same instance or every render restarts the load.
+    private val placeholders = WeakHashMap<ImageView, MediaPlaceholderDrawable>()
+
     @UiThread
     fun render(mxcUrl: String?, imageView: ImageView) {
         val resolved = mxcUrl
@@ -58,6 +67,8 @@ class BannerRenderer @Inject constructor(
                         // optionalTransform, NOT centerCrop: a required transform fails animated
                         // (GIF/WebP) loads outright; the view's own centerCrop scales those instead.
                         .optionalTransform(CenterCrop())
+                        .placeholder(placeholderFor(imageView))
+                        .transition(DrawableTransitionOptions.with(FADE_FACTORY))
                         .into(imageView)
             }
             else -> {
@@ -66,9 +77,17 @@ class BannerRenderer @Inject constructor(
                         .asBitmap()
                         .load(resolved)
                         .centerCrop()
+                        .placeholder(placeholderFor(imageView))
+                        .transition(BitmapTransitionOptions.withCrossFade(FADE_FACTORY))
                         .into(imageView)
             }
         }
+    }
+
+    private fun placeholderFor(imageView: ImageView): MediaPlaceholderDrawable {
+        return placeholders.getOrPut(imageView) { MediaPlaceholderDrawable(imageView.context, showGlyph = false) }
+                // A reused placeholder that timed out has stopped animating; re-arm it for this load.
+                .also { it.setFailed(false) }
     }
 
     /**
@@ -95,5 +114,15 @@ class BannerRenderer @Inject constructor(
             imageView.background = null
             imageView.setPadding(0, 0, 0, 0)
         }
+    }
+
+    companion object {
+        private const val CROSSFADE_MS = 220
+
+        // Cross-fading, not Glide's default: it otherwise keeps the pulsing placeholder as an opaque
+        // layer under the banner, which a transparent image then shows through.
+        private val FADE_FACTORY = DrawableCrossFadeFactory.Builder(CROSSFADE_MS)
+                .setCrossFadeEnabled(true)
+                .build()
     }
 }

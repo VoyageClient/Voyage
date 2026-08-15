@@ -63,6 +63,18 @@ class TimelineItemFactory @Inject constructor(
                 )
             }
 
+            // Only the stable twin of a banner change renders; the unstable one must vanish entirely
+            // rather than reaching the hidden-event debug fallback below.
+            if (params.isDuplicateBannerEvent() && !params.isHighlighted) {
+                return buildEmptyItem(
+                        event,
+                        params.prevEvent,
+                        params.highlightedEventId,
+                        params.rootThreadEventId,
+                        params.isFromThreadTimeline()
+                )
+            }
+
             // The per-type factories below assume content that redaction has already stripped.
             if (event.root.isRedacted()) {
                 if (event.root.isStateEvent()) {
@@ -93,9 +105,7 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_POWER_LEVELS -> {
                         noticeItemFactory.create(params)
                     }
-                    in EventType.STATE_ROOM_BANNER.values -> {
-                        if (params.isDuplicateBannerEvent()) null else noticeItemFactory.create(params)
-                    }
+                    in EventType.STATE_ROOM_BANNER.values -> noticeItemFactory.create(params)
                     EventType.STATE_ROOM_WIDGET_LEGACY,
                     EventType.STATE_ROOM_WIDGET -> widgetItemFactory.create(params)
                     EventType.STATE_ROOM_ENCRYPTION -> encryptionItemFactory.create(params)
