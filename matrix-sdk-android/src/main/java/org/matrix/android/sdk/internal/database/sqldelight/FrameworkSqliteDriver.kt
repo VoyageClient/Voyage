@@ -12,6 +12,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteCursor
 import android.database.sqlite.SQLiteCursorDriver
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteDatabaseLockedException
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.sqlite.SQLiteProgram
 import android.database.sqlite.SQLiteQuery
@@ -61,6 +62,8 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     private val transactions = ThreadLocal<Transaction?>()
+    // Serialises every top-level transaction so the several session DB threads never open two at once.
+    private val transactionLock = java.util.concurrent.locks.ReentrantLock()
     private val listeners = linkedMapOf<String, MutableSet<Query.Listener>>()
 
     // SQLDelight hands each prepared statement a stable [identifier]; caching the compiled
@@ -123,17 +126,46 @@ internal class FrameworkSqliteDriver private constructor(
 
     override fun newTransaction(): QueryResult<Transacter.Transaction> {
         val enclosing = transactions.get()
-        val transaction = Transaction(enclosing)
-        transactions.set(transaction)
         if (enclosing == null) {
-            // beginTransaction blocks while another thread holds the write lock — that wait IS the
-            // cross-thread contention we're hunting, so time it separately from the hold.
-            val waitStart = MatrixPerf.now()
-            database.beginTransaction()
-            MatrixPerf.end(waitStart) { "db.txn.wait${mainThreadFlag()}" }
-            transaction.perfHoldStart = MatrixPerf.now()
+            // Android's beginTransaction always takes SQLite's single writer lock — even for a
+            // read-only SQLDelight transaction. This database is touched from several session
+            // threads (write, read, timeline), so without serialising here a transaction on one
+            // races the writer on another and one side gets SQLITE_BUSY. Hold a process-wide lock
+            // for the whole transaction so only one is ever open on this database at a time.
+            transactionLock.lock()
+            try {
+                val waitStart = MatrixPerf.now()
+                beginTransactionWithRetry()
+                MatrixPerf.end(waitStart) { "db.txn.wait${mainThreadFlag()}" }
+            } catch (throwable: Throwable) {
+                transactionLock.unlock()
+                throw throwable
+            }
         }
+        // Publish the transaction only once BEGIN has actually succeeded, so a failed begin doesn't
+        // leave a dangling entry in the ThreadLocal.
+        val transaction = Transaction(enclosing).also {
+            if (enclosing == null) it.perfHoldStart = MatrixPerf.now()
+        }
+        transactions.set(transaction)
         return QueryResult.Value(transaction)
+    }
+
+    // Backstop for a SQLITE_BUSY that slips past [transactionLock] (e.g. an internal WAL checkpoint on
+    // a pool connection). No statements have run yet, so retrying until it clears is safe.
+    private fun beginTransactionWithRetry() {
+        val deadline = System.currentTimeMillis() + BEGIN_BUSY_TIMEOUT_MS
+        var backoff = 2L
+        while (true) {
+            try {
+                database.beginTransaction()
+                return
+            } catch (locked: SQLiteDatabaseLockedException) {
+                if (System.currentTimeMillis() >= deadline) throw locked
+                Thread.sleep(backoff)
+                backoff = (backoff * 2).coerceAtMost(BEGIN_BUSY_MAX_BACKOFF_MS)
+            }
+        }
     }
 
     override fun currentTransaction(): Transacter.Transaction? = transactions.get()
@@ -146,13 +178,19 @@ internal class FrameworkSqliteDriver private constructor(
 
         override fun endTransaction(successful: Boolean): QueryResult<Unit> {
             if (enclosingTransaction == null) {
-                if (successful) {
-                    database.setTransactionSuccessful()
+                try {
+                    if (successful) {
+                        database.setTransactionSuccessful()
+                    }
+                    database.endTransaction()
+                    if (perfHoldStart != 0L) MatrixPerf.end(perfHoldStart) { "db.txn.hold${mainThreadFlag()}" }
+                } finally {
+                    transactions.set(enclosingTransaction as Transaction?)
+                    transactionLock.unlock()
                 }
-                database.endTransaction()
-                if (perfHoldStart != 0L) MatrixPerf.end(perfHoldStart) { "db.txn.hold${mainThreadFlag()}" }
+            } else {
+                transactions.set(enclosingTransaction as Transaction?)
             }
-            transactions.set(enclosingTransaction as Transaction?)
             return QueryResult.Value(Unit)
         }
     }
@@ -191,6 +229,9 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     companion object {
+
+        private const val BEGIN_BUSY_TIMEOUT_MS = 5_000L
+        private const val BEGIN_BUSY_MAX_BACKOFF_MS = 25L
 
         /**
          * Open a database at an explicit file path (e.g. inside a per-session directory, so it is
