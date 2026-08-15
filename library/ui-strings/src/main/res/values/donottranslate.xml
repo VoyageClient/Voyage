@@ -818,4 +818,7 @@
 
     <string name="labs_enable_sliding_sync_title" translatable="false">Use next-generation sync</string>
     <string name="labs_enable_sliding_sync_summary" translatable="false">Sync over paginated sync or simplified sliding sync when your homeserver supports them, falling back to the standard sync otherwise</string>
+
+    <string name="settings_security_stealth_mode_title" translatable="false">Stealth mode</string>
+    <string name="settings_security_stealth_mode_summary" translatable="false">Keep client-specific settings local, so server administrators cannot identify which client you use. These settings will not follow you to other devices.</string>
 </resources>

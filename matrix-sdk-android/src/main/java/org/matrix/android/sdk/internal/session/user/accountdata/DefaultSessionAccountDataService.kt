@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.user.accountdata
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
+import org.matrix.android.sdk.api.session.accountdata.StealthAccountData
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
@@ -67,15 +68,18 @@ internal class DefaultSessionAccountDataService @Inject constructor(
             roomAccountDataDataSource.getAccountDataEventsFlow(null, types)
 
     override suspend fun updateUserAccountData(type: String, content: Content) {
-        val params = UpdateUserAccountDataTask.AnyParams(type = type, any = content)
-        awaitCallback { callback ->
-            updateUserAccountDataTask.configureWith(params) {
-                this.retryCount = 5
-                this.callback = callback
+        if (!StealthAccountData.isLocalOnly(type)) {
+            val params = UpdateUserAccountDataTask.AnyParams(type = type, any = content)
+            awaitCallback { callback ->
+                updateUserAccountDataTask.configureWith(params) {
+                    this.retryCount = 5
+                    this.callback = callback
+                }
+                        .executeBy(taskExecutor)
             }
-                    .executeBy(taskExecutor)
         }
-        // Local echo: persist immediately rather than waiting for the resulting sync.
+        // Local echo: persist immediately rather than waiting for the resulting sync
+        // (and, under stealth mode, this local write is the only place it is ever stored).
         database.awaitDbTransaction(dispatcher) {
             if (content.isNullOrEmpty()) {
                 stores.accountData.deleteUserAccountData(type)
@@ -95,6 +99,12 @@ internal class DefaultSessionAccountDataService @Inject constructor(
             userAccountDataDataSource.getAccountDataEventsStartWith(type)
 
     override suspend fun deleteUserAccountData(type: String) {
+        if (StealthAccountData.isLocalOnly(type)) {
+            database.awaitDbTransaction(dispatcher) {
+                stores.accountData.deleteUserAccountData(type)
+            }
+            return
+        }
         deleteUserAccountDataTask.execute(DeleteUserAccountDataTask.Params(type))
     }
 }

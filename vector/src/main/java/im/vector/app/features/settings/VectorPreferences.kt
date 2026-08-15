@@ -104,6 +104,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_SECURE_MESSAGE_RECOVERY_PREFERENCE_KEY = "SETTINGS_SECURE_MESSAGE_RECOVERY_PREFERENCE_KEY"
         const val SETTINGS_PERSISTED_SPACE_BACKSTACK = "SETTINGS_PERSISTED_SPACE_BACKSTACK"
         const val SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY = "SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY"
+        const val SETTINGS_SECURITY_STEALTH_MODE_PREFERENCE_KEY = "SETTINGS_SECURITY_STEALTH_MODE_PREFERENCE_KEY"
         const val SETTINGS_SEARCH_ENCRYPTED_ROOMS_PREFERENCE_KEY = "SETTINGS_SEARCH_ENCRYPTED_ROOMS_PREFERENCE_KEY"
         const val SETTINGS_SEARCH_UNENCRYPTED_ON_SERVER_PREFERENCE_KEY = "SETTINGS_SEARCH_UNENCRYPTED_ON_SERVER_PREFERENCE_KEY"
 
@@ -1657,9 +1658,15 @@ class VectorPreferences @Inject constructor(
         }
     }
 
-    fun allowUrlPreviewsInEncryptedRooms(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY, false)
+    fun allowUrlPreviewsInEncryptedRooms(userId: String): Boolean {
+        return defaultPrefs.getBoolean(perAccountUrlPreviewKey(userId), false)
     }
+
+    fun setAllowUrlPreviewsInEncryptedRooms(userId: String, allow: Boolean) {
+        defaultPrefs.edit { putBoolean(perAccountUrlPreviewKey(userId), allow) }
+    }
+
+    private fun perAccountUrlPreviewKey(userId: String) = "${SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY}_$userId"
 
     fun loadRoomAtFirstUnread(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD, false)
