@@ -22,6 +22,7 @@ data class RoomMemberProfileViewState(
         val userId: String,
         val roomId: String?,
         val isSpace: Boolean = false,
+        val isHistoricalOrWatchedRoom: Boolean = false,
         val showAsMember: Boolean = false,
         val isMine: Boolean = false,
         val isIgnored: Async<Boolean> = Uninitialized,

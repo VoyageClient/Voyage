@@ -120,6 +120,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     userMatrixItem = Success(bestKnownMatrixItem()),
                     hasReadReceipt = room?.readService()?.getUserReadReceipt(initialState.userId) != null,
                     isSpace = initialRoomSummary?.roomType == RoomType.SPACE,
+                    isHistoricalOrWatchedRoom = initialRoomSummary?.let { it.isRemovedFromRoom || it.isWatched } == true,
                     roomPowerLevels = initialRoomPowerLevels,
                     actionPermissions = initialPermissions,
                     userPowerLevelString = initialUserPowerLevelString?.let { Success(it) } ?: Uninitialized,
@@ -548,13 +549,14 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
 
         roomSummaryLive.execute {
             val summary = it.invoke() ?: return@execute this
+            val withRoomState = copy(isHistoricalOrWatchedRoom = summary.isRemovedFromRoom || summary.isWatched)
             if (summary.isEncrypted) {
-                copy(
+                withRoomState.copy(
                         isRoomEncrypted = true,
                         isAlgorithmSupported = summary.roomEncryptionAlgorithm is RoomEncryptionAlgorithm.SupportedAlgorithm
                 )
             } else {
-                copy(isRoomEncrypted = false)
+                withRoomState.copy(isRoomEncrypted = false)
             }
         }
         roomSummaryLive.combine(powerLevelsFlow) { roomSummary, roomPowerLevels ->

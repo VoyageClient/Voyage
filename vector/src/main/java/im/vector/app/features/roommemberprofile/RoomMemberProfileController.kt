@@ -153,7 +153,7 @@ class RoomMemberProfileController @Inject constructor(
     }
 
     private fun buildPersonalizationSection(state: RoomMemberProfileViewState) {
-        if (state.isMine) return
+        if (state.isMine || state.isHistoricalOrWatchedRoom) return
         val host = this
         profileSectionActionItem {
             id("section_personalization")
@@ -315,7 +315,7 @@ class RoomMemberProfileController @Inject constructor(
             }
 
             val ignoreActionTitle = state.buildIgnoreActionTitle()
-            if (!state.isSpace) {
+            if (!state.isSpace && !state.isHistoricalOrWatchedRoom) {
                 buildProfileAction(
                         id = "mention",
                         title = stringProvider.getString(CommonStrings.room_participants_action_mention),
