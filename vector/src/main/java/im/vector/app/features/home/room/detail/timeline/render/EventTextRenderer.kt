@@ -39,6 +39,7 @@ class EventTextRenderer @AssistedInject constructor(
         private val context: Context,
         private val avatarRenderer: AvatarRenderer,
         private val sessionHolder: ActiveSessionHolder,
+        private val permalinkEventResolver: PermalinkEventResolver,
 ) {
 
     @AssistedFactory
@@ -189,43 +190,42 @@ class EventTextRenderer @AssistedInject constructor(
             roomId?.let { sessionHolder.getSafeActiveSession()?.roomService()?.getRoomMember(userId, it)?.toMatrixItem() }
                     ?: sessionHolder.getSafeActiveSession()?.getUserOrDefault(userId)?.toMatrixItem()
 
-    private fun PermalinkData.RoomLink.toMatrixItem(): MatrixItem =
-            if (eventId.isNullOrEmpty()) {
-                val room: RoomSummary? = sessionHolder.getSafeActiveSession()?.getRoomSummary(roomIdOrAlias)
-                when {
-                    isRoomAlias -> MatrixItem.RoomAliasItem(roomIdOrAlias, room?.displayName, room?.avatarUrl)
-                    room == null -> MatrixItem.RoomItem(roomIdOrAlias, context.getString(CommonStrings.pill_message_unknown_room_or_space))
-                    room.roomType == RoomType.SPACE -> MatrixItem.SpaceItem(roomIdOrAlias, room.displayName, room.avatarUrl)
-                    else -> MatrixItem.RoomItem(roomIdOrAlias, room.displayName, room.avatarUrl)
-                }
-            } else {
-                if (roomIdOrAlias == roomId) {
-                    val session = sessionHolder.getSafeActiveSession()
-                    val event = session?.eventService()?.getEventFromCache(roomId, eventId!!)
-                    val user = event?.senderId?.let { session.roomService().getRoomMember(it, roomId) }
-                    val text = user?.let {
-                        context.getString(CommonStrings.pill_message_from_user, user.displayName)
-                    } ?: context.getString(CommonStrings.pill_message_from_unknown_user)
-                    MatrixItem.RoomItem(roomIdOrAlias, text, user?.avatarUrl, user?.displayName)
-                } else {
-                    val room: RoomSummary? = sessionHolder.getSafeActiveSession()?.getRoomSummary(roomIdOrAlias)
-                    when {
-                        isRoomAlias -> MatrixItem.RoomAliasItem(
-                                roomIdOrAlias,
-                                context.getString(CommonStrings.pill_message_in_room, room?.displayName ?: roomIdOrAlias),
-                                room?.avatarUrl,
-                                room?.displayName
-                        )
-                        room != null -> MatrixItem.RoomItem(
-                                roomIdOrAlias,
-                                context.getString(CommonStrings.pill_message_in_room, room.displayName),
-                                room.avatarUrl,
-                                room.displayName
-                        )
-                        else -> MatrixItem.RoomItem(roomIdOrAlias, context.getString(CommonStrings.pill_message_in_unknown_room))
-                    }
-                }
+    private fun PermalinkData.RoomLink.toMatrixItem(): MatrixItem {
+        val room: RoomSummary? = sessionHolder.getSafeActiveSession()?.getRoomSummary(roomIdOrAlias)
+        if (eventId.isNullOrEmpty()) {
+            return when {
+                isRoomAlias -> MatrixItem.RoomAliasItem(roomIdOrAlias, room?.displayName, room?.avatarUrl)
+                room == null -> MatrixItem.RoomItem(roomIdOrAlias, context.getString(CommonStrings.pill_message_unknown_room_or_space))
+                room.roomType == RoomType.SPACE -> MatrixItem.SpaceItem(roomIdOrAlias, room.displayName, room.avatarUrl)
+                else -> MatrixItem.RoomItem(roomIdOrAlias, room.displayName, room.avatarUrl)
             }
+        }
+        // Links from other clients often address the room by alias, so compare the resolved room id.
+        val targetRoomId = room?.roomId ?: roomIdOrAlias.takeUnless { isRoomAlias }
+        return if (targetRoomId != null && targetRoomId == roomId) {
+            val sender = permalinkEventResolver.getSender(targetRoomId, eventId!!)
+            val text = sender?.displayName?.takeIf { it.isNotEmpty() }?.let {
+                context.getString(CommonStrings.pill_message_from_user, it)
+            } ?: context.getString(CommonStrings.pill_message_from_unknown_user)
+            MatrixItem.RoomItem(targetRoomId, text, sender?.avatarUrl, sender?.displayName)
+        } else {
+            when {
+                isRoomAlias -> MatrixItem.RoomAliasItem(
+                        roomIdOrAlias,
+                        context.getString(CommonStrings.pill_message_in_room, room?.displayName ?: roomIdOrAlias),
+                        room?.avatarUrl,
+                        room?.displayName
+                )
+                room != null -> MatrixItem.RoomItem(
+                        roomIdOrAlias,
+                        context.getString(CommonStrings.pill_message_in_room, room.displayName),
+                        room.avatarUrl,
+                        room.displayName
+                )
+                else -> MatrixItem.RoomItem(roomIdOrAlias, context.getString(CommonStrings.pill_message_in_unknown_room))
+            }
+        }
+    }
 
     companion object {
         private const val TRAILING_URL_PUNCTUATION = ".,;:!?)]}>\"'"

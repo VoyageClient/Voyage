@@ -41,6 +41,7 @@ import im.vector.app.features.emoji.TwemojiSpan
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.epoxy.charsequence.ContentHashedSpan
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orTrue
@@ -59,7 +60,9 @@ class PillImageSpan(
         private val avatarRenderer: AvatarRenderer,
         private val context: Context,
         override val matrixItem: MatrixItem
-) : ReplacementSpan(), MatrixItemSpan {
+) : ReplacementSpan(), MatrixItemSpan, ContentHashedSpan {
+
+    override fun contentHash() = matrixItem.hashCode()
 
     // ChipDrawable draws its label straight to the canvas, so Twemoji sprite spans can't render
     // through it. When the name spanifies to sprites, the chip gets empty text (bounds widened by
@@ -72,6 +75,10 @@ class PillImageSpan(
     // Display-only; the outgoing body built by [expandPillSpans] keeps the real name from matrixItem.
     private val displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
 
+    // Set by createChipDrawable when it picks a generic icon over an avatar; the async avatar render is
+    // then skipped, so an unresolved permalink keeps the link icon instead of a letter placeholder.
+    private var useGenericIcon = false
+
     private val pillDrawable = createChipDrawable()
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
@@ -80,6 +87,7 @@ class PillImageSpan(
     @UiThread
     fun bind(textView: TextView) {
         tv = WeakReference(textView)
+        if (useGenericIcon) return
         avatarRenderer.render(glideRequests, matrixItem, target)
     }
 
@@ -218,6 +226,7 @@ class PillImageSpan(
         val icon = when {
             matrixItem is MatrixItem.RoomAliasItem && matrixItem.avatarUrl.isNullOrEmpty() &&
                     matrixItem.displayName == context.getString(CommonStrings.pill_message_in_room, matrixItem.id) -> {
+                useGenericIcon = true
                 AppCompatResources.getDrawable(context, R.drawable.ic_permalink_round)
             }
             matrixItem is MatrixItem.RoomItem && matrixItem.avatarUrl.isNullOrEmpty() && (
@@ -225,9 +234,11 @@ class PillImageSpan(
                             matrixItem.displayName == context.getString(CommonStrings.pill_message_unknown_room_or_space) ||
                             matrixItem.displayName == context.getString(CommonStrings.pill_message_from_unknown_user)
                     ) -> {
+                useGenericIcon = true
                 AppCompatResources.getDrawable(context, R.drawable.ic_permalink_round)
             }
             matrixItem is MatrixItem.UserItem && matrixItem.avatarUrl.isNullOrEmpty() && matrixItem.displayName?.isMatrixId().orTrue() -> {
+                useGenericIcon = true
                 AppCompatResources.getDrawable(context, R.drawable.ic_user_round)
             }
             else -> {

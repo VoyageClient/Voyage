@@ -56,6 +56,7 @@ import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
 import im.vector.app.features.home.room.detail.timeline.item.TypingItem_
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.readreceipts.ReadReceiptsCache
+import im.vector.app.features.home.room.detail.timeline.render.PermalinkEventResolver
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.media.AttachmentData
@@ -64,6 +65,7 @@ import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
+import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
@@ -75,10 +77,12 @@ import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -99,6 +103,7 @@ class TimelineEventController @Inject constructor(
         private val sendingMediaGate: SendingMediaGate,
         private val clock: Clock,
         private val avatarRenderer: AvatarRenderer,
+        private val permalinkEventResolver: PermalinkEventResolver,
 ) : EpoxyController(backgroundHandler, backgroundHandler), Timeline.Listener, EpoxyController.Interceptor {
 
     private companion object {
@@ -284,6 +289,8 @@ class TimelineEventController @Inject constructor(
     var callback: Callback? = null
     var timeline: Timeline? = null
 
+    private val permalinkSenderListener = PermalinkEventResolver.Listener { invalidateEventCachesLinkingTo(it) }
+
     private val listUpdateCallback = object : ListUpdateCallback {
 
         override fun onChanged(position: Int, count: Int, payload: Any?) {
@@ -464,6 +471,33 @@ class TimelineEventController @Inject constructor(
         if (dirty) requestModelBuild()
     }
 
+    /**
+     * Drop the cached models of messages whose text links to [targetEventId], then rebuild, so a
+     * message-link pill re-renders once [PermalinkEventResolver] has resolved its sender.
+     */
+    private fun invalidateEventCachesLinkingTo(targetEventId: String) = backgroundHandler.post {
+        // Both the bare id and its percent-encoded form start after the sigil.
+        val needle = targetEventId.removePrefix("$")
+        var dirty = false
+        synchronized(modelCache) {
+            currentSnapshot.forEachIndexed { index, event ->
+                if (index >= modelCache.size) return@forEachIndexed
+                if (modelCache[index] == null) return@forEachIndexed
+                if (event.linksTo(needle)) {
+                    modelCache[index] = null
+                    dirty = true
+                }
+            }
+        }
+        if (dirty) requestModelBuild()
+    }
+
+    private fun TimelineEvent.linksTo(needle: String): Boolean {
+        val content = getLastMessageContent() ?: return false
+        return content.body.contains(needle) ||
+                (content as? MessageContentWithFormattedBody)?.formattedBody?.contains(needle).orFalse()
+    }
+
     /** Drop every cached model and rebuild. Used after a PGP OpenKeychain interaction so all
      * visible PGP items re-request decryption. Heavy, so reserved for rare one-shot events. */
     fun invalidateAllCache() = backgroundHandler.post {
@@ -491,6 +525,7 @@ class TimelineEventController @Inject constructor(
         timelineMediaSizeProvider.recyclerView = recyclerView
         reactionListFactory.onRequestBuild = { requestModelBuild() }
         sendingMediaGate.onRequestBuild = { requestModelBuild() }
+        permalinkEventResolver.addListener(permalinkSenderListener)
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
@@ -500,6 +535,7 @@ class TimelineEventController @Inject constructor(
         timeline?.removeListener(this)
         reactionListFactory.onRequestBuild = null
         sendingMediaGate.onRequestBuild = null
+        permalinkEventResolver.removeListener(permalinkSenderListener)
         super.onDetachedFromRecyclerView(recyclerView)
     }
 
