@@ -37,8 +37,15 @@ SELECT * FROM read_receipt WHERE event_id = ?;
 
 -- Only the fields that decide whether the timeline has to re-render, so the change signal can be
 -- compared cheaply: SQLDelight notifies per table, so this fires for receipts in every room.
+-- The profile columns are joined in because a receipt renders the reader's name and avatar: they can
+-- land after the receipt row (a member event in a later sync), and nothing else would signal that.
 selectReceiptStateInRoom:
-SELECT event_id, user_id, origin_server_ts FROM read_receipt WHERE room_id = ? ORDER BY event_id, user_id;
+SELECT rr.event_id, rr.user_id, rr.origin_server_ts, m.display_name, m.avatar_url, u.display_name AS user_display_name, u.avatar_url AS user_avatar_url
+FROM read_receipt rr
+LEFT JOIN room_member_summary m ON m.room_id = rr.room_id AND m.user_id = rr.user_id
+LEFT JOIN user u ON u.user_id = rr.user_id
+WHERE rr.room_id = ?
+ORDER BY rr.event_id, rr.user_id;
 
 selectReceiptsForEvents:
 SELECT * FROM read_receipt WHERE event_id IN ?;

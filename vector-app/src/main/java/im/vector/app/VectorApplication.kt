@@ -47,6 +47,7 @@ import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.pin.PinLocker
 import im.vector.app.features.popup.PopupAlertManager
+import im.vector.app.features.rageshake.ReadReceiptDebugLogger
 import im.vector.app.features.rageshake.VectorFileLogger
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.settings.VectorLocale
@@ -90,6 +91,7 @@ class VectorApplication :
     @Inject lateinit var homeserverMirrorRefresher: HomeserverMirrorRefresher
     @Inject lateinit var invitesAcceptor: InvitesAcceptor
     @Inject lateinit var vectorFileLogger: VectorFileLogger
+    @Inject lateinit var readReceiptDebugLogger: ReadReceiptDebugLogger
     @Inject lateinit var matrix: Matrix
     @Inject lateinit var fcmHelper: FcmHelper
     @Inject lateinit var buildMeta: BuildMeta
@@ -136,6 +138,7 @@ class VectorApplication :
             Timber.plant(Timber.DebugTree())
         }
         Timber.plant(vectorFileLogger)
+        Timber.plant(readReceiptDebugLogger)
 
         logInfo()
         LazyThreeTen.init(this)

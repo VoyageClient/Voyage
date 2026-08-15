@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.internal.database.model.ReadReceiptsSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class ReadReceiptsSummaryMapper @Inject constructor(
@@ -38,8 +39,27 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
                     ?: globalProfileOf(receipt.userId, member)
                     ?: member
                     ?: RoomMemberSummary(membership = Membership.JOIN, userId = receipt.userId)
+            if (user.displayName.isNullOrBlank() && shouldLog(receipt.roomId, receipt.userId)) {
+                Timber.i(
+                        "RRDBG map ${receipt.roomId} ${receipt.userId} unresolved " +
+                                "memberRow=${member != null} membership=${member?.membership} " +
+                                "globalUser=${stores.user.getUser(receipt.userId) != null}"
+                )
+            }
             ReadReceipt(user, receipt.originServerTs.toLong(), receipt.threadId)
         }
+    }
+
+    // The mapper runs per event per rebuild, so an unresolved reader would otherwise log thousands of
+    // times a minute. Once a minute per reader keeps a live trace in the log ring across a long watch.
+    private val lastLoggedAt = HashMap<String, Long>()
+
+    private fun shouldLog(roomId: String, userId: String): Boolean = synchronized(lastLoggedAt) {
+        val now = System.currentTimeMillis()
+        val key = "$roomId|$userId"
+        if (now - (lastLoggedAt[key] ?: 0L) < LOG_THROTTLE_MS) return false
+        lastLoggedAt[key] = now
+        true
     }
 
     private fun globalProfileOf(userId: String, member: RoomMemberSummary?): RoomMemberSummary? {
@@ -50,5 +70,9 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
                 displayName = profile.displayName,
                 avatarUrl = profile.avatarUrl,
         )
+    }
+
+    private companion object {
+        private const val LOG_THROTTLE_MS = 60_000L
     }
 }
