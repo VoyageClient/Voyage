@@ -64,6 +64,19 @@ internal class SlidingSyncTranslator @Inject constructor(
             }
         }
 
+        // Tags, receipts and typing arrive only in the extensions block; a room with no timeline/state
+        // update is absent from `rooms`, so without a synthetic entry its echo would be dropped.
+        (roomAccountData.keys + receipts.keys + typing.keys)
+                .filterNot { it in join || it in invite || it in leave || it in knock }
+                .forEach { roomId ->
+                    val ephemeral = listOfNotNull(receipts[roomId], typing[roomId])
+                    join[roomId] = RoomSync(
+                            accountData = roomAccountData[roomId]?.let { RoomSyncAccountData(events = it) },
+                            ephemeral = ephemeral.takeIf { it.isNotEmpty() }
+                                    ?.let { LazyRoomSyncEphemeral.Parsed(RoomSyncEphemeral(events = it)) },
+                    )
+                }
+
         val e2ee = extensions?.e2ee
         return SyncResponse(
                 // Informational only: the pos is persisted separately, since it is not a v2 since-token.

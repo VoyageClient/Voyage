@@ -25,7 +25,9 @@ interface MutableDataSource<T> : DataSource<T> {
  */
 open class BehaviorDataSource<T>(private val defaultValue: T? = null) : MutableDataSource<T> {
 
-    private val mutableFlow = MutableSharedFlow<T>(replay = 1)
+    // DROP_OLDEST: with the default SUSPEND strategy tryEmit fails (silently dropping the new value)
+    // whenever any collector hasn't consumed the previous one yet — latest-wins is the behavior contract.
+    private val mutableFlow = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     val currentValue: T?
         get() = mutableFlow.replayCache.firstOrNull()
