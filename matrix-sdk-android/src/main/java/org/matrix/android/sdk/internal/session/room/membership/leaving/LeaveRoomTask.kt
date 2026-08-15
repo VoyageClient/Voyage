@@ -18,10 +18,9 @@ package org.matrix.android.sdk.internal.session.room.membership.leaving
 
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
-import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
+import org.matrix.android.sdk.api.session.room.model.create.RoomPredecessors
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.RoomAPI
@@ -59,13 +58,19 @@ internal class DefaultLeaveRoomTask @Inject constructor(
             return
         }
         roomChangeMembershipStateDataSource.updateState(roomId, ChangeMembershipState.Leaving)
-        val roomCreateStateEvent = stateEventDataSource.getStateEvent(
-                roomId = roomId,
-                eventType = EventType.STATE_ROOM_CREATE,
-                stateKey = QueryStringValue.IsEmpty,
-        )
         // Server is not cleaning predecessor rooms, so we also try to left them
-        val predecessorRoomId = roomCreateStateEvent?.getClearContent()?.toModel<RoomCreateContent>()?.predecessor?.roomId
+        val predecessorRoomId = RoomPredecessors.resolve(
+                predecessorStateEvents = stateEventDataSource.getStateEvents(
+                        roomId = roomId,
+                        eventTypes = EventType.STATE_ROOM_PREDECESSOR.values.toSet(),
+                        stateKey = QueryStringValue.IsEmpty,
+                ),
+                createEvent = stateEventDataSource.getStateEvent(
+                        roomId = roomId,
+                        eventType = EventType.STATE_ROOM_CREATE,
+                        stateKey = QueryStringValue.IsEmpty,
+                ),
+        )?.roomId
         if (predecessorRoomId != null) {
             leaveRoom(predecessorRoomId, reason)
         }

@@ -58,6 +58,8 @@ internal object HomeServerCapabilitiesMapper {
                 canBlockInvites = entity.canBlockInvites,
                 canUseSimplifiedSlidingSync = entity.canUseSimplifiedSlidingSync,
                 canUsePaginatedSync = entity.canUsePaginatedSync,
+                syncProfileFieldsSupport = entity.syncProfileFieldsSupport,
+                canUseSlidingSyncProfiles = entity.canUseSlidingSyncProfiles,
         )
     }
 

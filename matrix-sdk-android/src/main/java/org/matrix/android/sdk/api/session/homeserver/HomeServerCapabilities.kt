@@ -128,7 +128,25 @@ data class HomeServerCapabilities(
          * replaces lists and ranges with server-driven paging.
          */
         val canUsePaginatedSync: Boolean = false,
+        /**
+         * MSC4429. Which prefixes the server accepts for pushing other users' profile fields down
+         * sync, sparing the client a profile fetch per user.
+         */
+        val syncProfileFieldsSupport: SyncProfileFieldsSupport = SyncProfileFieldsSupport.UNSUPPORTED,
+        /**
+         * MSC4262. The sliding sync counterpart of [syncProfileFieldsSupport]; only the unstable
+         * extension name is defined so far.
+         */
+        val canUseSlidingSyncProfiles: Boolean = false,
 ) {
+
+    enum class SyncProfileFieldsSupport {
+        UNSUPPORTED,
+        UNSTABLE,
+        STABLE;
+
+        val isSupported: Boolean get() = this != UNSUPPORTED
+    }
 
     enum class RoomCapabilitySupport {
         SUPPORTED,

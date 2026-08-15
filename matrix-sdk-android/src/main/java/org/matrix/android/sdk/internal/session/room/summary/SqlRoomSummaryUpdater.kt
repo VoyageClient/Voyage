@@ -19,7 +19,6 @@ import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
 import org.matrix.android.sdk.api.session.room.model.RoomNameContent
 import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
 import org.matrix.android.sdk.api.session.room.model.RoomType
-import org.matrix.android.sdk.api.session.room.model.VersioningState
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContentWithSender
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
@@ -115,7 +114,9 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         if (membership == Membership.JOIN) entity.isRemovedFromRoom = false
         if (removedFromRoom != null) entity.isRemovedFromRoom = removedFromRoom
 
-        entity.isHiddenFromUser = entity.versioningState == VersioningState.UPGRADED_ROOM_JOINED ||
+        // Only virtual (VoIP-backing) rooms are hidden; an upgraded room stays listed, since hiding
+        // it would strand the history that never moved to the successor.
+        entity.isHiddenFromUser =
                 roomAccountDataDataSource.getAccountDataEvent(roomId, RoomAccountDataTypes.EVENT_TYPE_VIRTUAL_ROOM) != null
 
         val lastNameEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_NAME, "")?.root

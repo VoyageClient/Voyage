@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.flow.flow
@@ -30,9 +31,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Reads and updates the user's frequently used emojis, persisted in the `io.element.recent_emoji`
- * account data as a list of `[emoji, count]` pairs (Element web compatible). Recorded uses are
- * buffered and written in a single debounced request so rapid taps don't spam the server.
+ * Reads and updates the user's frequently used emojis, persisted as a list of `[emoji, count]`
+ * pairs. The stable `m.recent_emoji` type wins when present, falling back to the unstable type
+ * older clients wrote; writes go to both. Recorded uses are buffered and written in a single
+ * debounced request so rapid taps don't spam the server.
  */
 @Singleton
 class RecentEmojiDataSource @Inject constructor(
@@ -49,8 +51,12 @@ class RecentEmojiDataSource @Inject constructor(
         return activeSessionDataSource.stream()
                 .flatMapLatest { optionalSession ->
                     val session = optionalSession.orNull() ?: return@flatMapLatest flowOf(emptyList())
-                    session.flow().liveUserAccountData(UserAccountDataTypes.TYPE_RECENT_EMOJI)
-                            .map { parse(it.getOrNull()?.content) }
+                    session.flow().liveUserAccountData(setOf(UserAccountDataTypes.TYPE_RECENT_EMOJI, UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE))
+                            .map { events ->
+                                val stable = events.firstOrNull { it.type == UserAccountDataTypes.TYPE_RECENT_EMOJI }
+                                val unstable = events.firstOrNull { it.type == UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE }
+                                parse((stable ?: unstable)?.content)
+                            }
                 }
     }
 
@@ -81,12 +87,7 @@ class RecentEmojiDataSource @Inject constructor(
         }
         coroutineScope.launch {
             val session = activeSessionHolder.getSafeActiveSession() ?: return@launch
-            writeMutex.withLock {
-                session.accountDataService().updateUserAccountData(
-                        UserAccountDataTypes.TYPE_RECENT_EMOJI,
-                        mapOf(CONTENT_KEY to emptyList<List<Any>>())
-                )
-            }
+            writeMutex.withLock { session.writeRecentEmojis(emptyList()) }
         }
     }
 
@@ -95,19 +96,27 @@ class RecentEmojiDataSource @Inject constructor(
         writeMutex.withLock {
             val toApply = synchronized(pending) { pending.toList().also { pending.clear() } }
             if (toApply.isEmpty()) return@withLock
-            val current = parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI)?.content)
-                    .toMutableList()
+            val current = session.readRecentEmojis().toMutableList()
             toApply.forEach { applyUse(current, it) }
-            session.accountDataService().updateUserAccountData(
-                    UserAccountDataTypes.TYPE_RECENT_EMOJI,
-                    mapOf(CONTENT_KEY to current.take(STORAGE_LIMIT).map { listOf(it.first, it.second) })
-            )
+            session.writeRecentEmojis(current.take(STORAGE_LIMIT))
         }
+    }
+
+    private suspend fun Session.writeRecentEmojis(emojis: List<Pair<String, Int>>) {
+        val content = mapOf(CONTENT_KEY to emojis.map { listOf(it.first, it.second) })
+        accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_RECENT_EMOJI, content)
+        accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE, content)
+    }
+
+    private fun Session.readRecentEmojis(): List<Pair<String, Int>> {
+        val stable = accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI)
+        val unstable = accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE)
+        return parse((stable ?: unstable)?.content)
     }
 
     private fun readFromAccountData(): List<Pair<String, Int>> {
         val session = activeSessionHolder.getSafeActiveSession() ?: return emptyList()
-        return parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI)?.content)
+        return session.readRecentEmojis()
     }
 
     private fun applyUse(current: MutableList<Pair<String, Int>>, emoji: String) {

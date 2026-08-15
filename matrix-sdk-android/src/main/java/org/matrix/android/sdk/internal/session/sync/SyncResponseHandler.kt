@@ -57,6 +57,7 @@ internal class SyncResponseHandler @Inject constructor(
         private val roomSyncHandler: org.matrix.android.sdk.internal.session.sync.handler.room.SqlRoomSyncHandler,
         private val userAccountDataSyncHandler: org.matrix.android.sdk.internal.session.sync.handler.SqlUserAccountDataSyncHandler,
         private val presenceSyncHandler: org.matrix.android.sdk.internal.session.sync.handler.SqlPresenceSyncHandler,
+        private val profileSyncHandler: org.matrix.android.sdk.internal.session.sync.handler.ProfileSyncHandler,
         private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater,
         private val aggregatorHandler: SyncResponsePostTreatmentAggregatorHandler,
         private val cryptoService: CryptoService,
@@ -131,6 +132,9 @@ internal class SyncResponseHandler @Inject constructor(
             //        }
 
             startMonarchyTransaction(syncResponse, isInitialSync, reporter, aggregator, persistToken)
+
+            // Purely in-memory, so it stays outside the DB transaction above.
+            profileSyncHandler.handle(syncResponse.profileUpdates)
 
             aggregateSyncResponse(aggregator)
 

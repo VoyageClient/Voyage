@@ -29,7 +29,10 @@ object UserAccountDataTypes {
     const val TYPE_ACCEPTED_TERMS = "m.accepted_terms"
     const val TYPE_OVERRIDE_COLORS = "im.vector.setting.override_colors"
     const val TYPE_LOCAL_NOTIFICATION_SETTINGS = "org.matrix.msc3890.local_notification_settings."
-    const val TYPE_RECENT_EMOJI = "io.element.recent_emoji"
+
+    // Frequently-used unicode emojis. Element Web migrated to the stable type but still writes both.
+    const val TYPE_RECENT_EMOJI = "m.recent_emoji"
+    const val TYPE_RECENT_EMOJI_UNSTABLE = "io.element.recent_emoji"
 
     // MSC4287 key backup preference. The unstable form Element shipped stores the reversed sense
     // ({"disabled": true}) rather than {"enabled": true}, so the two are not interchangeable.
@@ -48,10 +51,10 @@ object UserAccountDataTypes {
     const val TYPE_IMAGE_PACK_ROOMS = "m.image_pack.rooms"
     const val TYPE_IMAGE_PACK_ROOMS_UNSTABLE = "im.ponies.emote_rooms"
 
-    // Frequently-used stickers, mirroring io.element.recent_emoji.
+    // Frequently-used stickers, mirroring the recent-emoji shape. No stable id exists for these.
     const val TYPE_RECENT_STICKERS = "io.element.recent_stickers"
 
-    // Frequently-used custom emoticons (separate from the unicode io.element.recent_emoji).
+    // Frequently-used custom emoticons (separate from the unicode recent emojis).
     const val TYPE_RECENT_EMOTICONS = "io.element.recent_emoticons"
 
     // The message long-press quick-reaction row, as an ordered list of emojis / emote mxc urls.

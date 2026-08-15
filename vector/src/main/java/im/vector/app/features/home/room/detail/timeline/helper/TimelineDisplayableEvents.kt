@@ -49,6 +49,7 @@ object TimelineDisplayableEvents {
             STATE_ROOM_VOICE_BROADCAST_INFO,
     ) +
             EventType.STATE_ROOM_BANNER.values +
+            EventType.STATE_ROOM_PREDECESSOR.values +
             EventType.POLL_START.values +
             EventType.POLL_END.values +
             EventType.ELEMENT_CALL_NOTIFY.values +

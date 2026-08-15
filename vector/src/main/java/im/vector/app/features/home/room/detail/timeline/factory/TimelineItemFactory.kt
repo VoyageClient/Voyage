@@ -101,6 +101,7 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_ENCRYPTION -> encryptionItemFactory.create(params)
                     // State room create
                     EventType.STATE_ROOM_CREATE -> roomCreateItemFactory.create(params)
+                    in EventType.STATE_ROOM_PREDECESSOR.values -> roomCreateItemFactory.create(params)
                     in EventType.STATE_ROOM_BEACON_INFO.values -> locationItemFactory(params)
                     // Voice broadcast playback is removed; surface the state event as a plain notice.
                     STATE_ROOM_VOICE_BROADCAST_INFO -> noticeItemFactory.create(params)

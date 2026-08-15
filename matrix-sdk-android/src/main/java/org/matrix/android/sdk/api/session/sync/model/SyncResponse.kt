@@ -68,8 +68,26 @@ data class SyncResponse(
         @Json(name = "device_unused_fallback_key_types")
         val stableDeviceUnusedFallbackKeyTypes: List<String>? = null,
 
+        /**
+         * MSC4429 profile field updates for users we share a room with.
+         */
+        @Json(name = "users") val users: Map<String, UserProfileSyncUpdate>? = null,
+        @Json(name = "org.matrix.msc4429.users") val unstableUsers: Map<String, UserProfileSyncUpdate>? = null,
+
         ) {
 
     @Transient
     val deviceUnusedFallbackKeyTypes: List<String>? = stableDeviceUnusedFallbackKeyTypes ?: devDeviceUnusedFallbackKeyTypes
+
+    @Transient
+    val profileUpdates: Map<String, UserProfileSyncUpdate>? = users ?: unstableUsers
 }
+
+@JsonClass(generateAdapter = true)
+data class UserProfileSyncUpdate(
+        /**
+         * Field id to new value. A null value means the field was removed; the whole map being null
+         * means the server is telling us to stop tracking this user.
+         */
+        @Json(name = "profile_updates") val profileUpdates: Map<String, Any?>? = null
+)

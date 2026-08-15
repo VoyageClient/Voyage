@@ -59,6 +59,14 @@ internal data class SlidingSyncExtensionsRequest(
         @Json(name = "account_data") val accountData: EnabledExtensionRequest? = null,
         @Json(name = "receipts") val receipts: EnabledExtensionRequest? = null,
         @Json(name = "typing") val typing: EnabledExtensionRequest? = null,
+        // MSC4262 has no stable extension name yet, so only the unstable one is ever requested.
+        @Json(name = "org.matrix.msc4262.profiles") val unstableProfiles: ProfilesExtensionRequest? = null,
+)
+
+@JsonClass(generateAdapter = true)
+internal data class ProfilesExtensionRequest(
+        @Json(name = "enabled") val enabled: Boolean = true,
+        @Json(name = "fields") val fields: List<String>? = null,
 )
 
 @JsonClass(generateAdapter = true)
@@ -136,6 +144,22 @@ internal data class SlidingSyncExtensionsResponse(
         @Json(name = "account_data") val accountData: AccountDataExtensionResponse? = null,
         @Json(name = "receipts") val receipts: RoomEduExtensionResponse? = null,
         @Json(name = "typing") val typing: RoomEduExtensionResponse? = null,
+        @Json(name = "profiles") val profiles: ProfilesExtensionResponse? = null,
+        @Json(name = "org.matrix.msc4262.profiles") val unstableProfiles: ProfilesExtensionResponse? = null,
+) {
+    val profileUpdates: Map<String, SlidingSyncProfileUpdate?>? get() = (profiles ?: unstableProfiles)?.users
+}
+
+@JsonClass(generateAdapter = true)
+internal data class ProfilesExtensionResponse(
+        /** A null entry means the user left every shared room, so we can stop tracking them. */
+        @Json(name = "users") val users: Map<String, SlidingSyncProfileUpdate?>? = null,
+)
+
+@JsonClass(generateAdapter = true)
+internal data class SlidingSyncProfileUpdate(
+        @Json(name = "updated") val updated: Map<String, Any?>? = null,
+        @Json(name = "removed") val removed: List<String>? = null,
 )
 
 @JsonClass(generateAdapter = true)

@@ -17,8 +17,10 @@
 package org.matrix.android.sdk.internal.sync.filter
 
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
+import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.sync.filter.SyncFilterParams
 import org.matrix.android.sdk.internal.session.filter.Filter
+import org.matrix.android.sdk.internal.session.filter.ProfileFieldsFilter
 import org.matrix.android.sdk.internal.session.filter.RoomEventFilter
 import org.matrix.android.sdk.internal.session.filter.RoomFilter
 
@@ -55,8 +57,12 @@ internal class SyncFilterBuilder {
             }
 
     internal fun build(homeServerCapabilities: HomeServerCapabilities): Filter {
+        val support = homeServerCapabilities.syncProfileFieldsSupport
+        val profileFields = ProfileFieldsFilter(ids = ProfileKeys.SYNCED_EXTENDED_FIELDS).takeIf { support.isSupported }
         return Filter(
-                room = buildRoomFilter(homeServerCapabilities)
+                room = buildRoomFilter(homeServerCapabilities),
+                profileFields = profileFields.takeIf { support == HomeServerCapabilities.SyncProfileFieldsSupport.STABLE },
+                unstableProfileFields = profileFields.takeIf { support == HomeServerCapabilities.SyncProfileFieldsSupport.UNSTABLE },
         )
     }
 

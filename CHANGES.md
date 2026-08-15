@@ -22,6 +22,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Historical rooms** — being kicked or banned no longer wipes the conversation. The room stays open read-only if you're in it, with a banner saying who removed you and why (and a Rejoin button after a kick), and it moves to a new "Historical" entry in the sidebar drawer instead of vanishing from All Chats. You can still scroll and search the history up to the moment you were removed, browse the room's profile and members, and load older messages from the server. Historical rooms survive re-login, and a long-press lets you forget one for good. Leaving a room voluntarily still removes it immediately. Rejoining stitches the timeline back together, recovering whatever the room's history-visibility rules let you see of what happened while you were out — always including your own invite.
 
+- **Upgraded rooms stay in your list** — when a room is upgraded to a new version, the old room is no longer hidden from you. It keeps the history that never moved across, and stays reachable from the room list.
+
 - **Watch rooms without joining** — a new `/watch` command follows any previewable (world-readable) room from a "Watching" entry in the sidebar drawer: it opens as a live read-only preview without your account ever entering the room. The watch list is stored in account data, so it follows you across devices. `/unwatch` or a long-press stops watching.
 
 - **Invite previews** — an invite to a world-readable room now shows the actual conversation with Accept/Decline underneath instead of a blank invite screen, and an invite back to a room you were kicked or banned from previews your retained copy of the history the same way.
@@ -196,7 +198,9 @@ New features, improvements, and notable removals in this fork.
 
 - **Next-generation sync (MSC4525 paginated sync, MSC4186 simplified sliding sync)** — when the homeserver offers either, syncing moves onto it, preferring paginated sync. Responses arrive bounded and room by room instead of in one huge batch, so the app becomes usable sooner on accounts with many rooms. Falls back to the standard sync when the server has neither, and can be turned off under Labs.
 
-- **Modern sync and spec endpoints** — sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap; a thread's edits and reactions arrive in one request (MSC3981); and reporting (MSC4277), room forgetting (MSC4267), relations and the room directory moved onto their stable endpoints.
+- **Profile updates over sync (MSC4429, MSC4262)** — when the homeserver supports it, other people's status, pronouns, time zone and bio arrive with your sync instead of being fetched one user at a time, so they stay current without the extra requests.
+
+- **Modern sync and spec endpoints** — sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap; a thread's edits and reactions arrive in one request (MSC3981); and reporting (MSC4277), room forgetting (MSC4267), recent emoji, relations and the room directory moved onto their stable identifiers and endpoints. A room upgraded after the fact can also declare what it continues from (MSC3946).
 
 - **Dependency & build slimming** — dropped the WYSIWYG composer, Sentry, and the unused JNA dependency; vendored markwon-html; bumped conscrypt; and enabled optimization for libopus.
 

@@ -319,4 +319,53 @@ class SlidingSyncTranslatorTest {
         val ephemeral = room.ephemeral as LazyRoomSyncEphemeral.Parsed
         ephemeral.roomSyncEphemeral.events?.map { it.type } shouldBeEqualTo listOf("m.receipt", "m.typing")
     }
+
+    @Test
+    fun `MSC4262 profile updates become MSC4429 profile updates`() {
+        val response = translate(
+                """
+                {
+                  "pos": "1",
+                  "extensions": {
+                    "org.matrix.msc4262.profiles": {
+                      "users": {
+                        "@alice:example.org": {
+                          "updated": { "m.status": { "text": "swimming" } },
+                          "removed": ["m.tz"]
+                        },
+                        "@bob:example.org": null
+                      }
+                    }
+                  }
+                }
+                """
+        )
+
+        val alice = response.profileUpdates?.get("@alice:example.org")?.profileUpdates!!
+        alice["m.status"] shouldBeEqualTo mapOf("text" to "swimming")
+        // A removal has to arrive as an explicit null, which is how MSC4429 spells "field cleared".
+        alice.containsKey("m.tz") shouldBe true
+        alice["m.tz"].shouldBeNull()
+
+        // A null user means stop tracking them, which survives as a null profileUpdates map.
+        val bob = response.profileUpdates?.get("@bob:example.org")!!
+        bob.profileUpdates.shouldBeNull()
+    }
+
+    @Test
+    fun `the stable profiles extension wins over the unstable one`() {
+        val response = translate(
+                """
+                {
+                  "pos": "1",
+                  "extensions": {
+                    "org.matrix.msc4262.profiles": { "users": { "@unstable:example.org": { "updated": {} } } },
+                    "profiles": { "users": { "@stable:example.org": { "updated": {} } } }
+                  }
+                }
+                """
+        )
+
+        response.profileUpdates?.keys shouldBeEqualTo setOf("@stable:example.org")
+    }
 }

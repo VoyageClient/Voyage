@@ -33,4 +33,16 @@ object ProfileKeys {
     const val BIOGRAPHY = "m.biography"
     const val BIOGRAPHY_UNSTABLE = "gay.fomx.biography"
     const val BIOGRAPHY_COMMET = "chat.commet.profile_bio"
+
+    /**
+     * The extended fields worth streaming over sync (MSC4429 / MSC4262). Display name and avatar are
+     * left out: those already arrive with room member events.
+     */
+    val SYNCED_EXTENDED_FIELDS = listOf(
+            BANNER_URL, BANNER_URL_UNSTABLE,
+            PRONOUNS, PRONOUNS_UNSTABLE,
+            TIMEZONE, TIMEZONE_UNSTABLE,
+            STATUS, STATUS_UNSTABLE, STATUS_COMMET,
+            BIOGRAPHY, BIOGRAPHY_UNSTABLE, BIOGRAPHY_COMMET,
+    )
 }
