@@ -26,13 +26,18 @@ import android.view.MenuItem
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
+import androidx.core.view.marginBottom
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,6 +48,7 @@ import im.vector.app.features.attachments.editor.restoreOriginalResult
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.animatedimage.AnimatedImageFormat
+import im.vector.lib.core.utils.audio.LoudnessBoost
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.mediatranscode.MediaSourceInfo
 import im.vector.lib.mediatranscode.VideoEditException
@@ -90,6 +96,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var audioBurstActive = false
     private var pendingAudioUs: Long? = null
     private var volume = PlaybackVolume()
+    private var reversed = false
     private var playerBoost: LoudnessBoost? = null
     private var audioBoost: LoudnessBoost? = null
     private var playbackSpeed = PlaybackSpeed()
@@ -110,6 +117,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private val isAnimated get() = animatedFormat != null
 
+    override val drawUnderSystemBars = true
+
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
 
     override fun getBinding() = ActivityVideoEditorBinding.inflate(layoutInflater)
@@ -126,6 +135,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             runCatching { AnimatedImageFormat.valueOf(name) }.getOrNull()
         }
 
+        applyInsets()
         setupToolbar(views.videoEditorToolbar).allowBack()
         views.videoEditorToolbar.setTitle(
                 if (isAnimated) CommonStrings.animated_image_editor_title else CommonStrings.video_editor_title
@@ -194,6 +204,32 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         loadMetadata()
     }
 
+    /** The backdrop runs to the edges of the screen; the controls stay clear of the system bars. */
+    private fun applyInsets() {
+        val saveMargin = views.videoEditorSaveButton.marginBottom
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // On the views themselves rather than the root, whose listener belongs to the activity.
+            ViewCompat.setOnApplyWindowInsetsListener(views.videoEditorAppBar) { v, insets ->
+                v.updatePadding(top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top)
+                insets
+            }
+            ViewCompat.setOnApplyWindowInsetsListener(views.videoEditorSaveButton) { v, insets ->
+                v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    bottomMargin = saveMargin + insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+                }
+                insets
+            }
+        } else {
+            // Pre-21 has no window-insets dispatch, and the navigation bar is not overlapped there.
+            views.videoEditorAppBar.updatePadding(top = statusBarHeightPx())
+        }
+    }
+
+    private fun statusBarHeightPx(): Int {
+        val id = resources.getIdentifier("status_bar_height", "dimen", "android")
+        return if (id > 0) resources.getDimensionPixelSize(id) else 0
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_video_editor, menu)
         return true
@@ -205,6 +241,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             isVisible = !isAnimated
             setIcon(volumeIcon())
         }
+        menu.findItem(R.id.videoEditorReverseAction)?.isChecked = reversed
         // Changing an edit while it is being written would export something nobody asked for.
         for (index in 0 until menu.size()) {
             menu.getItem(index).isEnabled = !exporting
@@ -224,6 +261,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             R.id.videoEditorVolumeAction -> {
                 showVolumeDialog()
+                true
+            }
+            R.id.videoEditorReverseAction -> {
+                setReversed(!reversed)
                 true
             }
             R.id.videoEditorSpeedAction -> {
@@ -291,6 +332,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         startUs = 0
         endUs = durationUs
         setVolume(PlaybackVolume())
+        setReversed(false, announce = false)
         playbackSpeed = PlaybackSpeed()
         applyPlaybackSpeed()
         views.videoEditorCropOverlay.resetEdits()
@@ -328,6 +370,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             startUs = edits?.startUs ?: 0L
             endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
             edits?.volume?.let { setVolume(it) }
+            if (edits?.reversed == true) setReversed(true, announce = false)
             edits?.speed?.let { playbackSpeed = it }
             // The probe's dimensions, not the player's: MediaPlayer reports the coded frame rather
             // than the displayed one on some devices, which shows a portrait clip stretched.
@@ -368,6 +411,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             startUs = edits?.startUs ?: 0L
             endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
             edits?.speed?.let { playbackSpeed = it }
+            if (edits?.reversed == true) setReversed(true, announce = false)
             views.videoEditorCropOverlay.setVideoSize(source.width, source.height)
             applyTargetSizeOverride()
             views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop)
@@ -378,6 +422,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 views.videoEditorTimeline.playheadUs = positionUs
             }
             applyPlaybackSpeed()
+            animatedPlayer?.reversed = reversed
             applyTrimToAnimatedPlayer()
             startPlayback()
         }
@@ -534,12 +579,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 pauseOnFirstFrame = activityPaused || (resumePositionUs > 0 && !resumePlaying)
                 startPlayback()
             }
-            // Reaching the end of the file bypasses the ticker's loop check, and playback stops
-            // without anything else noticing.
-            setOnCompletionListener {
-                seekTo(startUs)
-                startPlayback()
-            }
+            // Reaching the end of the file bypasses the ticker's own check, and nothing else
+            // would notice playback had stopped.
+            setOnCompletionListener { stopAtEnd() }
             setOnErrorListener { _, what, extra ->
                 Timber.w("VideoEditor: player error $what/$extra")
                 Toast.makeText(
@@ -556,11 +598,22 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private fun rotateClockwise() = views.videoEditorCropOverlay.rotateClockwise()
 
+    /** Only the animated player can run backwards; a video is reversed in the export alone. */
+    private fun setReversed(next: Boolean, announce: Boolean = true) {
+        reversed = next
+        invalidateOptionsMenu()
+        animatedPlayer?.reversed = reversed
+        if (announce && reversed && !isAnimated) {
+            Toast.makeText(this, getString(CommonStrings.video_editor_reverse_preview_unsupported), Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun showVolumeDialog() {
         PlaybackVolumeDialog(
                 context = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
                 initial = volume,
                 canPreviewBoost = { playerBoost != null },
+                cappedMessage = CommonStrings.video_editor_volume_preview_capped,
                 onChanged = ::setVolume
         ).show()
     }
@@ -596,7 +649,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     private fun tuneBoost(existing: LoudnessBoost?, target: MediaPlayer?): LoudnessBoost? {
-        val boost = existing ?: target?.let { LoudnessBoost.attachTo(it) } ?: return null
+        val boost = existing ?: target?.let { LoudnessBoost.attachTo(it.audioSessionId) } ?: return null
         boost.setGain(volume.effectiveGain)
         return boost
     }
@@ -628,17 +681,26 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         player?.takeIf { it.isPlaying }?.pause()
     }
 
-    /** Playback loops the trimmed window so what plays is what will be exported. */
+    /** Playback runs the trimmed window and stops at its end, where the export would. */
     private val playbackTicker = object : Runnable {
         override fun run() {
             val player = player ?: return
             val positionUs = player.currentPosition * 1000L
             views.videoEditorTimeline.playheadUs = positionUs
-            // endUs is zero until the metadata probe lands, and looping against it then would drag
-            // playback back to the start every tick.
-            if (endUs > 0 && positionUs >= endUs) seekTo(startUs)
+            // endUs is zero until the metadata probe lands, and stopping against it then would
+            // park playback at the start every tick.
+            if (endUs > 0 && positionUs >= endUs) {
+                stopAtEnd()
+                return
+            }
             handler.postDelayed(this, PLAYHEAD_INTERVAL_MS)
         }
+    }
+
+    /** The cut is where this clip ends; playing again starts it over from the other cut. */
+    private fun stopAtEnd() {
+        pausePlayback()
+        views.videoEditorTimeline.playheadUs = endUs
     }
 
     /**
@@ -774,6 +836,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 durationUs = durationUs,
                 rotationDegrees = views.videoEditorCropOverlay.rotationDegrees,
                 volume = volume,
+                reversed = reversed,
                 crop = views.videoEditorCropOverlay.currentCrop(),
                 speed = playbackSpeed
         )

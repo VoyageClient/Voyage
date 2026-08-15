@@ -32,6 +32,7 @@ class AnimatedFramePlayer(
     private val destination = Rect()
 
     var speed: Float = 1f
+    var reversed: Boolean = false
     var loopStartUs: Long = 0
     var loopEndUs: Long = source.durationUs
 
@@ -45,7 +46,8 @@ class AnimatedFramePlayer(
 
     fun start() {
         if (isPlaying || source.frames.isEmpty()) return
-        if (positionUs >= loopEndUs) positionUs = loopStartUs
+        if (reversed && positionUs <= loopStartUs) positionUs = loopEndUs
+        if (!reversed && positionUs >= loopEndUs) positionUs = loopStartUs
         isPlaying = true
         lastTickAt = SystemClock.uptimeMillis()
         handler.post(ticker)
@@ -71,9 +73,14 @@ class AnimatedFramePlayer(
         override fun run() {
             if (!isPlaying) return
             val now = SystemClock.uptimeMillis()
-            positionUs += ((now - lastTickAt) * 1000 * speed).toLong()
+            val elapsedUs = ((now - lastTickAt) * 1000 * speed).toLong()
+            positionUs += if (reversed) -elapsedUs else elapsedUs
             lastTickAt = now
-            if (positionUs >= loopEndUs) positionUs = loopStartUs
+            if (reversed) {
+                if (positionUs <= loopStartUs) positionUs = loopEndUs
+            } else {
+                if (positionUs >= loopEndUs) positionUs = loopStartUs
+            }
             draw()
             onPositionChanged(positionUs)
             handler.postDelayed(this, FRAME_INTERVAL_MS)

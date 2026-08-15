@@ -24,6 +24,14 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/videoEditorReverseAction"
+        android:icon="@drawable/ic_playback_reverse"
+        android:title="@string/video_editor_reverse"
+        android:checkable="true"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/videoEditorResetAction"
         android:icon="@drawable/ic_refresh_cw"
         android:title="@string/video_editor_reset"

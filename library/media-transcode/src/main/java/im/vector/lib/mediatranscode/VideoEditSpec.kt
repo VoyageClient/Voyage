@@ -19,6 +19,8 @@ import kotlin.math.abs
  * @property muted drops the audio track entirely.
  * @property volume how much the audio is scaled by; 1 leaves it alone. Anything else rules out the
  * lossless audio copy, since the samples have to be decoded to be touched.
+ * @property reversed plays the range backwards, which needs its own exporter: frames have to be
+ * held decoded to be handed over in the other order.
  * @property targetWidth,targetHeight output size, or null to keep the cropped size. Resizing needs
  * the GL stage, so asking for one rules out the lossless remux exactly as a crop does.
  * @property targetBitrate output bitrate, or null to keep the source's (scaled down by how much of
@@ -40,6 +42,7 @@ data class VideoEditSpec(
         val speed: Float = 1f,
         val changePitch: Boolean = true,
         val volume: Float = 1f,
+        val reversed: Boolean = false,
 ) {
     val isAmplified get() = abs(volume - 1f) > VOLUME_TOLERANCE
 

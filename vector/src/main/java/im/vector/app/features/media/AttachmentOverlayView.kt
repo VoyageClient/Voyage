@@ -34,6 +34,8 @@ import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.databinding.MergeImageAttachmentOverlayBinding
 import im.vector.app.features.attachments.editor.video.PlaybackSpeed
 import im.vector.app.features.attachments.editor.video.PlaybackSpeedDialog
+import im.vector.app.features.attachments.editor.video.PlaybackVolume
+import im.vector.app.features.attachments.editor.video.PlaybackVolumeDialog
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentEventListener
 import im.vector.lib.attachmentviewer.AttachmentEvents
@@ -50,6 +52,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
     private var isPlaying = false
     private var suspendSeekBarUpdate = false
     private var playbackSpeed = PlaybackSpeed()
+    private var volume = PlaybackVolume()
     private var isVideo = false
 
     /**
@@ -75,9 +78,10 @@ class AttachmentOverlayView @JvmOverloads constructor(
     private var scrubbing = false
     private var moreMenuOpen = false
     private var speedDialogOpen = false
+    private var volumeDialogOpen = false
 
     /** The auto-hide countdown must not fire out from under an active scrub or an open menu. */
-    fun isUserInteracting(): Boolean = scrubbing || moreMenuOpen || speedDialogOpen
+    fun isUserInteracting(): Boolean = scrubbing || moreMenuOpen || speedDialogOpen || volumeDialogOpen
 
     init {
         inflate(context, R.layout.merge_image_attachment_overlay, this)
@@ -280,11 +284,12 @@ class AttachmentOverlayView @JvmOverloads constructor(
         }
     }
 
-    /** Called on every change of attachment, where the speed goes back to normal with the holder's. */
+    /** Called on every change of attachment, where speed and volume go back to the holder's own. */
     fun showVideoControls(show: Boolean, durationMs: Long? = null) {
         views.overlayVideoControlsGroup.isVisible = show
         isVideo = show
         playbackSpeed = PlaybackSpeed()
+        volume = PlaybackVolume()
         // Belongs to the page being left, and a stale one has the next page's first report read as
         // a pause and reveal the centre button.
         isPlaying = false
@@ -325,6 +330,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
         val themed = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context))
         val popup = PopupMenu(themed, views.overlayMoreButton)
         popup.inflate(R.menu.menu_attachment_viewer_overlay)
+        popup.menu.findItem(R.id.attachmentViewerVolume).isVisible = isVideo
         val speedItem = popup.menu.findItem(R.id.attachmentViewerPlaybackSpeed)
         // MediaPlayer only takes a speed from API 23, and nothing below it can stand in.
         speedItem.isVisible = isVideo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
@@ -345,6 +351,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
                 R.id.attachmentViewerShowInChat -> interactionListener?.onShowInChat()
                 R.id.attachmentViewerInfo -> interactionListener?.onShowInfo()
                 R.id.attachmentViewerPlaybackSpeed -> showSpeedDialog()
+                R.id.attachmentViewerVolume -> showVolumeDialog()
             }
             true
         }
@@ -374,6 +381,25 @@ class AttachmentOverlayView @JvmOverloads constructor(
                 },
                 onDismiss = {
                     speedDialogOpen = false
+                    interactionListener?.onControlsInteractionEnded()
+                }
+        ).show()
+    }
+
+    private fun showVolumeDialog() {
+        volumeDialogOpen = true
+        PlaybackVolumeDialog(
+                // The viewer's own theme is a bare fullscreen one, so the sheet takes the app's.
+                context = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context)),
+                initial = volume,
+                canPreviewBoost = { Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT },
+                cappedMessage = CommonStrings.video_player_volume_boost_unsupported,
+                onChanged = { next ->
+                    volume = next
+                    interactionListener?.onVolumeChanged(next.gain, next.muted)
+                },
+                onDismiss = {
+                    volumeDialogOpen = false
                     interactionListener?.onControlsInteractionEnded()
                 }
         ).show()

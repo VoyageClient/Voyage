@@ -20,6 +20,7 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             AttachmentsPreviewAction.RemoveCurrentAttachment -> handleRemoveCurrentAttachment()
             AttachmentsPreviewAction.RestoreOriginalAttachment -> handleRestoreOriginalAttachment()
             is AttachmentsPreviewAction.SetCompression -> handleSetCompression(action)
+            is AttachmentsPreviewAction.SetKeepOriginalSize -> handleSetKeepOriginalSize(action)
         }
     }
 
@@ -34,6 +35,12 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
                     editRecords = editRecords - currentAttachment.queryUri
             )
         }
+    }
+
+    private fun handleSetKeepOriginalSize(action: AttachmentsPreviewAction.SetKeepOriginalSize) = withState {
+        val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
+        val key = it.stableIdOf(current)
+        setState { copy(keepOriginalSize = if (action.keep) keepOriginalSize + key else keepOriginalSize - key) }
     }
 
     private fun handleSetCompression(action: AttachmentsPreviewAction.SetCompression) = withState {

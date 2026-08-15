@@ -14,6 +14,7 @@ sealed class AttachmentsPreviewAction : VectorViewModelAction {
     object RemoveCurrentAttachment : AttachmentsPreviewAction()
     object RestoreOriginalAttachment : AttachmentsPreviewAction()
     data class SetCompression(val settings: CompressionSettings) : AttachmentsPreviewAction()
+    data class SetKeepOriginalSize(val keep: Boolean) : AttachmentsPreviewAction()
     data class SetCurrentAttachment(val index: Int) : AttachmentsPreviewAction()
     data class UpdateCurrentAttachment(
             val newUri: Uri,

@@ -27,8 +27,7 @@
             android:id="@+id/audioPlaybackControlButton"
             android:layout_width="@dimen/item_event_message_media_button_size"
             android:layout_height="@dimen/item_event_message_media_button_size"
-            android:background="@drawable/bg_voice_play_pause_button"
-            android:backgroundTint="?android:colorBackground"
+            android:background="@null"
             android:contentDescription="@string/a11y_play_voice_message"
             app:srcCompat="@drawable/ic_play_pause_play"
             android:layout_marginTop="10dp"
@@ -55,6 +54,21 @@
             tools:text="Filename.mp3" />
 
         <TextView
+            android:id="@+id/messageAudioArtistView"
+            style="@style/Widget.Vector.TextView.Caption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?vctr_content_secondary"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/messageFilenameView"
+            app:layout_constraintStart_toStartOf="@id/messageFilenameView"
+            app:layout_constraintTop_toBottomOf="@id/messageFilenameView"
+            tools:text="Some Artist"
+            tools:visibility="visible" />
+
+        <TextView
             android:id="@+id/audioPlaybackDuration"
             style="@style/Widget.Vector.TextView.Caption"
             android:layout_width="wrap_content"
@@ -62,7 +76,7 @@
             android:layout_marginTop="2dp"
             android:textColor="?vctr_content_tertiary"
             app:layout_constraintStart_toStartOf="@id/messageFilenameView"
-            app:layout_constraintTop_toBottomOf="@id/messageFilenameView"
+            app:layout_constraintTop_toBottomOf="@id/messageAudioArtistView"
             tools:text="0:23" />
 
         <TextView
@@ -77,18 +91,31 @@
             app:layout_constraintBottom_toBottomOf="@id/audioPlaybackDuration"
             tools:text="(2MB)" />
 
+        <!-- The header is a cover, a button and two or three lines of text; whichever reaches
+             lowest is what the scrubber has to clear. -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/audioHeaderBarrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="audioPlaybackControlButton,audioPlaybackDuration" />
+
+        <!-- Taller than the line it draws: a 2dp track is nothing to catch with a finger. -->
         <SeekBar
             android:id="@+id/audioSeekBar"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="10dp"
-            android:progressDrawable="@drawable/bg_seek_bar"
-            android:thumbTint="?vctr_content_secondary"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/audioPlaybackTime"
-            app:layout_constraintTop_toBottomOf="@id/audioPlaybackControlButton"
+            android:layout_height="40dp"
+            android:background="@null"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:progressDrawable="@drawable/bg_seek_bar_accent"
+            android:thumbTint="@android:color/white"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/audioPlaybackTime"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/audioHeaderBarrier"
             tools:progress="40" />
 
         <TextView

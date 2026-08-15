@@ -145,6 +145,9 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
         private const val SETTINGS_CLASSIC_COMPOSER = "SETTINGS_CLASSIC_COMPOSER"
         private const val SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY = "SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY"
+        private const val SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_MODE_KEY = "SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_MODE_KEY"
+        private const val SETTINGS_STRIP_MEDIA_METADATA_KEY = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
+        private const val SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY = "SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
         const val SETTINGS_PERFORMANCE_MODE_KEY = "SETTINGS_PERFORMANCE_MODE_KEY"
@@ -1162,11 +1165,67 @@ class VectorPreferences @Inject constructor(
     }
 
     /**
-     * Tells if uploaded file names should be replaced with a random id (keeping the extension).
+     * When uploaded file names are replaced with a random id (keeping the extension). The old
+     * on/off setting seeds it, so a device that had it on keeps it on.
      */
-    fun randomizeUploadFilenames(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY, false)
+    fun uploadFilenameMode(): PrivacyMode {
+        defaultPrefs.getString(SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_MODE_KEY, null)?.let {
+            return PrivacyMode.fromValue(it)
+        }
+        val legacy = tryOrNull { defaultPrefs.getBoolean(SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY, false) } ?: false
+        return if (legacy) PrivacyMode.ALWAYS else PrivacyMode.NEVER
     }
+
+    /** Always or never for this room whatever the account says, or null to follow it. */
+    fun getRoomRandomizeFilenamesOverride(roomId: String): Boolean? =
+            defaultPrefs.getString(roomRandomizeFilenamesKey(roomId), null)?.let { it == PrivacyMode.ALWAYS.value }
+
+    fun setRoomRandomizeFilenamesOverride(roomId: String, randomize: Boolean?) {
+        defaultPrefs.edit {
+            val key = roomRandomizeFilenamesKey(roomId)
+            if (randomize == null) {
+                remove(key)
+            } else {
+                putString(key, if (randomize) PrivacyMode.ALWAYS.value else PrivacyMode.NEVER.value)
+            }
+        }
+    }
+
+    private fun roomRandomizeFilenamesKey(roomId: String) = "${SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_MODE_KEY}_$roomId"
+
+    /**
+     * When identifying metadata is taken off an upload. The SDK reads the old on/off setting for
+     * its own uploads (avatars and the like), so that is kept in step with this one.
+     */
+    fun stripMediaMetadataMode(): PrivacyMode {
+        defaultPrefs.getString(SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY, null)?.let { return PrivacyMode.fromValue(it) }
+        val legacy = tryOrNull { defaultPrefs.getBoolean(SETTINGS_STRIP_MEDIA_METADATA_KEY, true) } ?: true
+        return if (legacy) PrivacyMode.ALWAYS else PrivacyMode.NEVER
+    }
+
+    fun setStripMediaMetadataMode(mode: PrivacyMode) {
+        defaultPrefs.edit {
+            putString(SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY, mode.value)
+            putBoolean(SETTINGS_STRIP_MEDIA_METADATA_KEY, mode == PrivacyMode.ALWAYS)
+        }
+    }
+
+    /** Always or never for this room whatever the account says, or null to follow it. */
+    fun getRoomStripMetadataOverride(roomId: String): Boolean? =
+            defaultPrefs.getString(roomStripMetadataKey(roomId), null)?.let { it == PrivacyMode.ALWAYS.value }
+
+    fun setRoomStripMetadataOverride(roomId: String, strip: Boolean?) {
+        defaultPrefs.edit {
+            val key = roomStripMetadataKey(roomId)
+            if (strip == null) {
+                remove(key)
+            } else {
+                putString(key, if (strip) PrivacyMode.ALWAYS.value else PrivacyMode.NEVER.value)
+            }
+        }
+    }
+
+    private fun roomStripMetadataKey(roomId: String) = "${SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY}_$roomId"
 
     /**
      * Tells if the timeline messages should be shown in a bubble or not.

@@ -25,7 +25,6 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
     companion object {
         private const val EXTRA_FRAGMENT_ARGS = "EXTRA_FRAGMENT_ARGS"
         private const val ATTACHMENTS_PREVIEW_RESULT = "ATTACHMENTS_PREVIEW_RESULT"
-        private const val KEEP_ORIGINAL_IMAGES_SIZE = "KEEP_ORIGINAL_IMAGES_SIZE"
 
         fun newIntent(context: Context, args: AttachmentsPreviewArgs): Intent {
             return Intent(context, AttachmentsPreviewActivity::class.java).apply {
@@ -36,11 +35,9 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         fun getOutput(intent: Intent): List<ContentAttachmentData> {
             return intent.getSerializableExtraCompat<ArrayList<ContentAttachmentData>>(ATTACHMENTS_PREVIEW_RESULT).orEmpty()
         }
-
-        fun getKeepOriginalSize(intent: Intent): Boolean {
-            return intent.getBooleanExtra(KEEP_ORIGINAL_IMAGES_SIZE, false)
-        }
     }
+
+    override val drawUnderSystemBars = true
 
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
 
@@ -59,10 +56,9 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         }
     }
 
-    fun setResultAndFinish(data: List<ContentAttachmentData>, keepOriginalImageSize: Boolean) {
+    fun setResultAndFinish(data: List<ContentAttachmentData>) {
         val resultIntent = Intent().apply {
             putExtra(ATTACHMENTS_PREVIEW_RESULT, ArrayList(data))
-            putExtra(KEEP_ORIGINAL_IMAGES_SIZE, keepOriginalImageSize)
         }
         setResult(RESULT_OK, resultIntent)
         finish()

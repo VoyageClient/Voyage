@@ -58,6 +58,50 @@
         <item>always_hide</item>
     </string-array>
 
+    <string-array name="randomize_upload_filename_modes">
+        <item>@string/settings_randomize_upload_filenames_always</item>
+        <item>@string/settings_randomize_upload_filenames_never</item>
+        <item>@string/settings_randomize_upload_filenames_public</item>
+    </string-array>
+    <string-array name="randomize_upload_filename_mode_values">
+        <item>always</item>
+        <item>never</item>
+        <item>public</item>
+    </string-array>
+
+    <string-array name="room_randomize_upload_filename_modes">
+        <item>@string/room_personalization_randomize_filenames_inherit</item>
+        <item>@string/settings_randomize_upload_filenames_always</item>
+        <item>@string/settings_randomize_upload_filenames_never</item>
+    </string-array>
+    <string-array name="room_randomize_upload_filename_mode_values">
+        <item>inherit</item>
+        <item>always</item>
+        <item>never</item>
+    </string-array>
+
+    <string-array name="strip_media_metadata_modes">
+        <item>@string/settings_randomize_upload_filenames_always</item>
+        <item>@string/settings_randomize_upload_filenames_never</item>
+        <item>@string/settings_randomize_upload_filenames_public</item>
+    </string-array>
+    <string-array name="strip_media_metadata_mode_values">
+        <item>always</item>
+        <item>never</item>
+        <item>public</item>
+    </string-array>
+
+    <string-array name="room_strip_media_metadata_modes">
+        <item>@string/room_personalization_randomize_filenames_inherit</item>
+        <item>@string/settings_randomize_upload_filenames_always</item>
+        <item>@string/settings_randomize_upload_filenames_never</item>
+    </string-array>
+    <string-array name="room_strip_media_metadata_mode_values">
+        <item>inherit</item>
+        <item>always</item>
+        <item>never</item>
+    </string-array>
+
     <!-- Per-room booleans that can defer to the account value. -->
     <string-array name="redaction_inherit_bools">
         <item>@string/redaction_override_inherit</item>

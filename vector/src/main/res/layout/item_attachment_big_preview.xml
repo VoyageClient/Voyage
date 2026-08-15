@@ -27,6 +27,64 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="no" />
 
+    <!-- Name above waveform, spaced as the editor spaces them, so the two screens read alike. -->
+    <LinearLayout
+        android:id="@+id/attachmentBigAudioPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/attachmentBigAudioArt"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="12dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/attachmentBigAudioName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
+            android:layout_marginBottom="4dp"
+            android:ellipsize="middle"
+            android:gravity="center_horizontal"
+            android:singleLine="true"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            tools:text="recording.m4a" />
+
+        <TextView
+            android:id="@+id/attachmentBigAudioArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
+            android:layout_marginBottom="4dp"
+            android:ellipsize="middle"
+            android:gravity="center_horizontal"
+            android:singleLine="true"
+            android:textColor="?vctr_content_secondary"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="Some Artist"
+            tools:visibility="visible" />
+
+        <im.vector.app.features.attachments.preview.WaveformScrubView
+            android:id="@+id/attachmentBigWaveform"
+            android:layout_width="match_parent"
+            android:layout_height="136dp" />
+
+    </LinearLayout>
+
     <ImageView
         android:id="@+id/attachmentBigPlayPause"
         android:layout_width="72dp"

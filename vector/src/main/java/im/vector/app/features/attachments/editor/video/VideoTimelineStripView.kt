@@ -25,6 +25,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
+import im.vector.lib.mediatranscode.AudioWaveform
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -87,6 +88,13 @@ class VideoTimelineStripView @JvmOverloads constructor(
     private val thumbnails = mutableListOf<Bitmap>()
     private var thumbnailCount = 0
 
+    /** Set instead of thumbnails: sound has a shape where a video has frames. */
+    var waveform: FloatArray? = null
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     private val outerInset = dp(12f)
     private val handleWidth = dp(10f)
     private val cornerRadius = dp(6f)
@@ -98,6 +106,16 @@ class VideoTimelineStripView @JvmOverloads constructor(
     private val dragSlop = ViewConfiguration.get(context).scaledTouchSlop
 
     private val framePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val wavePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0x80FFFFFF.toInt()
+        strokeWidth = dp(2f)
+        strokeCap = Paint.Cap.ROUND
+    }
+    private val wavePlayedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        strokeWidth = dp(2f)
+        strokeCap = Paint.Cap.ROUND
+    }
     private val selectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
     private val playheadPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
     private val dimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x99000000.toInt() }
@@ -211,7 +229,9 @@ class VideoTimelineStripView @JvmOverloads constructor(
         canvas.save()
         scratch.set(contentLeft, top, contentRight, bottom)
         canvas.clipRect(scratch)
-        if (fineProgress < 1f) drawFilmstrip(canvas, top, bottom)
+        if (fineProgress < 1f) {
+            if (waveform != null) drawWaveform(canvas, contentLeft, contentRight, top, bottom) else drawFilmstrip(canvas, top, bottom)
+        }
         if (fineProgress > 0f) drawRuler(canvas, contentLeft, contentRight, top, bottom)
         canvas.drawRect(contentLeft, top, startX, bottom, dimPaint)
         canvas.drawRect(endX, top, contentRight, bottom, dimPaint)
@@ -239,6 +259,28 @@ class VideoTimelineStripView @JvmOverloads constructor(
                     bottom.toInt()
             )
             canvas.drawBitmap(bitmap, srcRect, dstRect, framePaint)
+        }
+    }
+
+    /** One bar per few pixels, each the loudest the sound gets while it is under that bar. */
+    private fun drawWaveform(canvas: Canvas, contentLeft: Float, contentRight: Float, top: Float, bottom: Float) {
+        val levels = waveform?.takeIf { it.isNotEmpty() } ?: return
+        val alpha = (255 * (1f - fineProgress)).toInt()
+        wavePaint.alpha = alpha / 2
+        wavePlayedPaint.alpha = alpha
+        val centreY = (top + bottom) / 2f
+        // Kept clear of the strip's edges, so the trim handles read as framing the sound.
+        val maximumHeight = (bottom - top) / 2f - dp(10f)
+        val step = dp(4f)
+        var x = contentLeft
+        while (x < contentRight) {
+            val us = xToTimeUnclamped(x)
+            // Beyond what has been decoded the sound is not silent, it is unknown: a flat bar says
+            // so, where repeating the last level read would draw sound that may not be there.
+            val level = levels.getOrElse((us / (AudioWaveform.SLICE_MS * 1000)).toInt()) { 0f }
+            val half = max(level * maximumHeight, dp(1f))
+            canvas.drawLine(x, centreY - half, x, centreY + half, if (us <= playheadUs) wavePlayedPaint else wavePaint)
+            x += step
         }
     }
 

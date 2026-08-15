@@ -22,6 +22,11 @@
         android:title="@string/attachment_viewer_info" />
 
     <item
+        android:id="@+id/attachmentViewerVolume"
+        android:icon="@drawable/ic_volume_up"
+        android:title="@string/video_editor_volume" />
+
+    <item
         android:id="@+id/attachmentViewerPlaybackSpeed"
         android:icon="@drawable/ic_timer"
         android:title="@string/video_editor_speed_title" />

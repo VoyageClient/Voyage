@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinatorLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <ImageView
+        android:id="@+id/audioEditorBackdrop"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/audioEditorScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#A6000000"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/audioEditorAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#40000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/audioEditorToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            app:title="@string/audio_editor_title"
+            app:titleTextColor="@android:color/white" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <TextView
+        android:id="@+id/audioEditorName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginEnd="24dp"
+        android:ellipsize="middle"
+        android:gravity="center_horizontal"
+        android:singleLine="true"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/audioEditorArtist"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioEditorArt"
+        tools:text="recording.m4a" />
+
+    <TextView
+        android:id="@+id/audioEditorArtist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginEnd="24dp"
+        android:ellipsize="middle"
+        android:gravity="center_horizontal"
+        android:singleLine="true"
+        android:textColor="?vctr_content_secondary"
+        android:textSize="13sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/audioEditorWaveform"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioEditorName"
+        tools:text="Some Artist"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/audioEditorArt"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/audioEditorName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioEditorAppBar"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <im.vector.app.features.attachments.preview.WaveformScrubView
+        android:id="@+id/audioEditorWaveform"
+        android:layout_width="match_parent"
+        android:layout_height="136dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintBottom_toTopOf="@id/audioEditorTimeline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioEditorArtist" />
+
+    <im.vector.app.features.attachments.editor.video.VideoTimelineStripView
+        android:id="@+id/audioEditorTimeline"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintBottom_toTopOf="@id/audioEditorSaveButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/audioEditorDurationLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/audioEditorSaveButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/audioEditorSaveButton"
+        tools:text="0:00 – 0:12" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/audioEditorSaveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/action_save"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_check_white_24dp"
+        tools:ignore="MissingPrefix" />
+
+    <LinearLayout
+        android:id="@+id/audioEditorExportOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ProgressBar
+            android:id="@+id/audioEditorExportProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/audio_editor_exporting"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/audioEditorExportCancel"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/action_cancel"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

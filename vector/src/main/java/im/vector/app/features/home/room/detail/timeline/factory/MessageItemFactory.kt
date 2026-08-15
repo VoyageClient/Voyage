@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.factory
 
+import android.net.Uri
 import android.os.Build
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -128,6 +129,7 @@ import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MimeTypes
+import java.io.File
 import javax.inject.Inject
 
 class MessageItemFactory @Inject constructor(
@@ -397,6 +399,8 @@ class MessageItemFactory @Inject constructor(
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
+                .localSource(localAudioSource(messageContent, fileUrl))
+                .localSourceProvider { localAudioSource(messageContent, fileUrl) }
                 .fileSize(messageContent.audioInfo?.size ?: 0L)
                 .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.stableId, duration, it) }
                 .mxcUrl(fileUrl)
@@ -409,6 +413,22 @@ class MessageItemFactory @Inject constructor(
                 .captionUseBigFont(renderedCaption?.useBigFont == true)
                 .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(params.callback))
+    }
+
+    /**
+     * Where the bytes are on this device: the picked file while the send is still going out —
+     * which is a content uri as often as a path — or a downloaded copy once there is one.
+     */
+    private fun localAudioSource(messageContent: MessageAudioContent, fileUrl: String): Uri? {
+        if (localFilesHelper.isLocalFile(fileUrl)) {
+            return fileUrl.takeIf { it.isNotEmpty() }?.let { Uri.parse(it) }
+        }
+        return session.fileService().getLocalFileFor(
+                mxcUrl = messageContent.getFileUrl(),
+                fileName = messageContent.getFileName(),
+                mimeType = messageContent.mimeType,
+                isEncrypted = messageContent.encryptedFileInfo != null
+        )?.let { Uri.fromFile(it) }
     }
 
     private fun getAudioFileUrl(

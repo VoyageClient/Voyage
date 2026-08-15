@@ -27,9 +27,11 @@ import java.nio.ByteBuffer
 import javax.inject.Inject
 
 /**
- * Re-muxes a video into a fresh MP4 container, copying the audio/video sample data verbatim (no
- * re-encode, so quality is untouched) while dropping the source's metadata atoms — GPS location,
- * capturing device, author, etc. Display orientation is carried over via the muxer's rotation hint.
+ * Takes the identifying metadata off a video: where it was shot and what shot it. An mp4 has those
+ * boxes blanked in place by [Mp4MetadataScrubber], which leaves the title, artist and artwork it may
+ * also carry exactly where they are. Anything else is re-muxed into a fresh MP4 container, copying
+ * the sample data verbatim (no re-encode, so quality is untouched) but losing every box with it;
+ * display orientation is carried over via the muxer's rotation hint.
  *
  * [MediaMuxer] requires API 18; below that the video is left unchanged, since stripping would
  * otherwise require a full re-encode. Videos on such old devices essentially never carry a location
@@ -42,9 +44,16 @@ internal class VideoMetadataStripper @Inject constructor(
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
 ) {
 
-    /** @return the re-muxed file, or `null` if stripping is unsupported or failed (keep the original). */
+    /** @return the scrubbed file, or `null` if stripping is unsupported or failed (keep the original). */
     suspend fun strip(videoFile: File, progressListener: ProgressListener? = null): File? =
             withContext(coroutineDispatchers.io) {
+                // An mp4 gives up its location and camera without giving up anything else; only a
+                // container this cannot read is worth rebuilding wholesale.
+                when (Mp4MetadataScrubber.scrub(videoFile)) {
+                    Mp4MetadataScrubber.Outcome.SCRUBBED -> return@withContext videoFile
+                    Mp4MetadataScrubber.Outcome.NOTHING_TO_STRIP -> return@withContext videoFile
+                    Mp4MetadataScrubber.Outcome.UNSUPPORTED -> Unit
+                }
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return@withContext null
                 Api18VideoRemuxer.remux(VideoSource.OfFile(videoFile), temporaryFileCreator.create(), progressListener)
             }
@@ -58,6 +67,14 @@ internal class VideoMetadataStripper @Inject constructor(
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return@withContext null
                 Api18VideoRemuxer.remux(VideoSource.OfUri(context, sourceUri), temporaryFileCreator.create(), progressListener)
             }
+
+    /**
+     * The working copy the caller is about to upload, scrubbed where the container allows it.
+     * @return true when the file was understood, whether or not it had anything to hide.
+     */
+    suspend fun stripInPlace(file: File): Boolean = withContext(coroutineDispatchers.io) {
+        Mp4MetadataScrubber.scrub(file) != Mp4MetadataScrubber.Outcome.UNSUPPORTED
+    }
 }
 
 /** Where the samples are read from; the muxing itself is identical either way. */

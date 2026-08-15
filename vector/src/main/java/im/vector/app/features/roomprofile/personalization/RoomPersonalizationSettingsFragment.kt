@@ -32,6 +32,7 @@ import im.vector.app.features.redaction.preservation.RedactedContentRevealManage
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.settings.MediaPreviewMode
+import im.vector.app.features.settings.PrivacyMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsBaseFragment
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
@@ -136,6 +137,32 @@ class RoomPersonalizationSettingsFragment :
             )
             true
         }
+
+        val randomizePref = findPreference<VectorListPreference>(SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY)
+        randomizePref?.value = vectorPreferences.getRoomRandomizeFilenamesOverride(roomId).toValue()
+        randomizePref?.setOnPreferenceChangeListener { _, newValue ->
+            vectorPreferences.setRoomRandomizeFilenamesOverride(roomId, (newValue as? String).toOverride())
+            true
+        }
+
+        val stripPref = findPreference<VectorListPreference>(SETTINGS_ROOM_STRIP_METADATA_KEY)
+        stripPref?.value = vectorPreferences.getRoomStripMetadataOverride(roomId).toValue()
+        stripPref?.setOnPreferenceChangeListener { _, newValue ->
+            vectorPreferences.setRoomStripMetadataOverride(roomId, (newValue as? String).toOverride())
+            true
+        }
+    }
+
+    private fun Boolean?.toValue() = when (this) {
+        true -> PrivacyMode.ALWAYS.value
+        false -> PrivacyMode.NEVER.value
+        null -> INHERIT
+    }
+
+    private fun String?.toOverride() = when (this) {
+        PrivacyMode.ALWAYS.value -> true
+        PrivacyMode.NEVER.value -> false
+        else -> null
     }
 
     private fun setUpRedactionOverrides() {
@@ -390,6 +417,8 @@ class RoomPersonalizationSettingsFragment :
         private const val INHERIT = "inherit"
 
         private const val SETTINGS_ROOM_MEDIA_PREVIEW_KEY = "SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
+        private const val SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY = "SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"
+        private const val SETTINGS_ROOM_STRIP_METADATA_KEY = "SETTINGS_ROOM_STRIP_METADATA_KEY"
         private const val SETTINGS_ROOM_REDACTION_CATEGORY_KEY = "SETTINGS_ROOM_REDACTION_CATEGORY_KEY"
         private const val SETTINGS_ROOM_REDACTION_PRESERVE_KEY = "SETTINGS_ROOM_REDACTION_PRESERVE_KEY"
         private const val SETTINGS_ROOM_REDACTION_CLEAR_KEY = "SETTINGS_ROOM_REDACTION_CLEAR_KEY"

@@ -305,6 +305,7 @@ class VectorSettingsSecurityPrivacyFragment :
 
         // Media visibility / avatar hiding
         setUpMediaVisibility()
+        setUpMetadataStripping()
         setUpBlockInvites()
         setUpRedactions()
 
@@ -491,6 +492,16 @@ class VectorSettingsSecurityPrivacyFragment :
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
+    }
+
+    /** The SDK strips its own uploads off a plain on/off setting, so it is kept in step with this. */
+    private fun setUpMetadataStripping() {
+        val pref = findPreference<VectorListPreference>("SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY") ?: return
+        pref.value = vectorPreferences.stripMediaMetadataMode().value
+        pref.setOnPreferenceChangeListener { _, newValue ->
+            vectorPreferences.setStripMediaMetadataMode(PrivacyMode.fromValue(newValue as? String))
+            true
+        }
     }
 
     private fun setUpMediaVisibility() {

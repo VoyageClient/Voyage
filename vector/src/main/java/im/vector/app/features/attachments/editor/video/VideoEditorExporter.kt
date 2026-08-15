@@ -54,6 +54,7 @@ object VideoEditorExporter {
                             rotationDegrees = edits.rotationDegrees,
                             muted = edits.volume.muted,
                             volume = edits.volume.gain,
+                            reversed = edits.reversed,
                             outputFile = destination,
                             speed = edits.speed.speed,
                             changePitch = edits.speed.changePitch

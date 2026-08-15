@@ -5,6 +5,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- The cover of whatever audio is on show, filling the screen behind everything else. -->
+    <ImageView
+        android:id="@+id/attachmentPreviewerBackdrop"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/attachmentPreviewerBackdropScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#A6000000"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <im.vector.app.features.attachments.preview.PinchFriendlyRecyclerView
         android:id="@+id/attachmentPreviewerBigList"
         android:layout_width="match_parent"

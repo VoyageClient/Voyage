@@ -24,6 +24,11 @@ import android.media.MediaMetadataRetriever
 import android.os.Build
 import androidx.work.WorkerParameters
 import com.vanniktech.blurhash.BlurHash
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -183,19 +188,22 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             try {
                 val fileToUpload: File
                 var transcodedVideoFile: File? = null
-                var audioWaveform: List<Int>? = null
+                var waveformDeferred: Deferred<List<Int>?>? = null
                 var newAttachmentAttributes = NewAttachmentAttributes(
                         params.attachment.width?.toInt(),
                         params.attachment.height?.toInt(),
                         params.attachment.size
                 )
 
-                val stripMetadata = lightweightSettingsStorage.shouldStripMediaMetadata()
+                // The room this is going to may have its own answer; the account's is the default.
+                val stripMetadata = attachment.stripMetadata ?: lightweightSettingsStorage.shouldStripMediaMetadata()
 
                 // Anything the sender chose is honoured even at "original size", which only means
                 // "don't apply the automatic downscale".
-                if (attachment.type == ContentAttachmentData.Type.IMAGE &&
-                        (params.compressBeforeSending || attachment.hasCustomCompression)) {
+                // "Original size" is chosen per attachment, so it overrides the send's own answer.
+                val compressThisOne = (params.compressBeforeSending || attachment.hasCustomCompression) &&
+                        !(attachment.keepOriginalSize && !attachment.hasCustomCompression)
+                if (attachment.type == ContentAttachmentData.Type.IMAGE && compressThisOne) {
                     notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
 
                     val compressed = imageCompressor.compress(
@@ -207,8 +215,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     )
                     fileToUpload = compressed.file.also { filesToDelete.add(it) }
                     newAttachmentAttributes = measureImageAttributes(fileToUpload, compressed.mimeType)
-                } else if (attachment.type == ContentAttachmentData.Type.VIDEO &&
-                        (params.compressBeforeSending || attachment.hasCustomCompression)) {
+                } else if (attachment.type == ContentAttachmentData.Type.VIDEO && compressThisOne) {
                     val outcome = compressVideo(params, newAttachmentAttributes, filesToDelete, ::workingFile, stripMetadata)
                     fileToUpload = outcome.fileToUpload
                     newAttachmentAttributes = outcome.attributes
@@ -263,6 +270,13 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                             newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = it.length())
                         }
                         !stripMetadata -> working
+                        attachment.type == ContentAttachmentData.Type.AUDIO ||
+                                attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE -> {
+                            // Sound carries a title, an artist and its cover art as well as where it
+                            // was recorded; only the last of those is worth taking off it.
+                            videoMetadataStripper.stripInPlace(working)
+                            working
+                        }
                         attachment.type == ContentAttachmentData.Type.FILE ->
                             (imageExitTagRemover.stripImageMetadata(working) ?: working).also { scrubbed ->
                                 if (scrubbed !== working) {
@@ -290,7 +304,15 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                             (storedWaveform.isNullOrEmpty() || storedWaveform.all { it == 0 })
                     if (needsWaveform) {
                         notifyTracker(params) { contentUploadStateTracker.setProcessingAudio(it) }
-                        audioWaveform = AudioWaveformExtractor.extract(fileToUpload).takeIf { it.isNotEmpty() }
+                        // Reading the peaks decodes the whole file, which the upload has no need to
+                        // wait behind: the two run together and the answer is collected when the
+                        // event is written. A child of this job, so cancelling the send stops it.
+                        val waveformSource = fileToUpload
+                        waveformDeferred = CoroutineScope(currentCoroutineContext()).async(Dispatchers.IO) {
+                            tryOrNull("## Failed to read the voice message waveform") {
+                                AudioWaveformExtractor.extract(waveformSource).takeIf { it.isNotEmpty() }
+                            }
+                        }
                     }
                     // Fix: OpenableColumns.SIZE may return -1 or 0
                     if (params.attachment.size <= 0) {
@@ -415,7 +437,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         uploadedFileEncryptedFileInfo,
                         uploadThumbnailResult,
                         imageBlurHash,
-                        audioWaveform,
+                        waveformDeferred?.await(),
                         newAttachmentAttributes,
                         deferredUpload = reserved?.let {
                             DeferredUpload(

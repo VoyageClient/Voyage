@@ -433,6 +433,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         handle(AttachmentCommands.SeekTo(percent))
     }
 
+    override fun onVolumeChanged(gain: Float, muted: Boolean) {
+        handle(AttachmentCommands.SetVolume(gain, muted))
+    }
+
     override fun onPlaybackSpeedChanged(speed: Float, changePitch: Boolean) {
         handle(AttachmentCommands.SetPlaybackSpeed(speed, changePitch))
     }

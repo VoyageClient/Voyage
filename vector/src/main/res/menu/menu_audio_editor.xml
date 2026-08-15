@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/audioEditorSpeedAction"
+        android:icon="@drawable/ic_timer"
+        android:title="@string/video_editor_speed"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/audioEditorVolumeAction"
+        android:icon="@drawable/ic_volume_up"
+        android:title="@string/video_editor_volume"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/audioEditorReverseAction"
+        android:title="@string/video_editor_reverse"
+        android:checkable="true"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/audioEditorResetAction"
+        android:icon="@drawable/ic_refresh_cw"
+        android:title="@string/video_editor_reset"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="always" />
+
+</menu>

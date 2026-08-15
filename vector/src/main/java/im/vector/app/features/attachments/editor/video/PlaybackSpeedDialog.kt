@@ -8,15 +8,11 @@
 package im.vector.app.features.attachments.editor.video
 
 import android.content.Context
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.SeekBar
-import android.widget.TextView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import im.vector.app.databinding.BottomSheetVideoSpeedBinding
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.math.QuadraticSlider
 import im.vector.lib.strings.CommonStrings
 import java.util.Locale
@@ -37,11 +33,9 @@ class PlaybackSpeedDialog(
             centre = PlaybackSpeed.NORMAL,
             maximumProgress = SLIDER_RANGE,
     )
-    private val stepButtons = mutableListOf<TextView>()
-    private val verticalPadding = (STEP_PADDING_DP * context.resources.displayMetrics.density).toInt()
+    private lateinit var steps: StepSelector
 
     private var current = initial
-    private var stepPercentage = DEFAULT_STEP_PERCENTAGE
 
     fun show() {
         views.speedSeekBar.max = SLIDER_RANGE
@@ -58,8 +52,8 @@ class PlaybackSpeedDialog(
             override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
             override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
         })
-        views.speedStepDown.setOnClickListener { step(-stepPercentage) }
-        views.speedStepUp.setOnClickListener { step(stepPercentage) }
+        views.speedStepDown.setOnClickListener { step(-steps.percentage) }
+        views.speedStepUp.setOnClickListener { step(steps.percentage) }
         views.speedChangePitch.setOnCheckedChangeListener { _, checked ->
             update(current.copy(changePitch = checked))
         }
@@ -80,37 +74,15 @@ class PlaybackSpeedDialog(
     }
 
     private fun addStepButtons() {
-        val accent = ThemeUtils.getColorFromContextTheme(context, com.google.android.material.R.attr.colorAccent)
-        val normal = ThemeUtils.getColorFromContextTheme(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        PlaybackSpeed.STEP_PERCENTAGES.forEach { percentage ->
-            val button = TextView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                gravity = Gravity.CENTER
-                setPadding(0, verticalPadding, 0, verticalPadding)
-                text = context.getString(CommonStrings.video_editor_speed_step_value, percentage)
-                // AppCompat's, not the framework's: the borderless variant is API 21 in android:.
-                setBackgroundResource(
-                        ThemeUtils.getAttribute(context, androidx.appcompat.R.attr.selectableItemBackgroundBorderless)?.resourceId ?: 0
-                )
-                setOnClickListener {
-                    stepPercentage = percentage
-                    renderStepButtons(accent, normal)
-                }
-            }
-            stepButtons.add(button)
-            views.speedStepSelector.addView(button)
-        }
-        renderStepButtons(accent, normal)
+        steps = StepSelector(
+                views.speedStepSelector, PlaybackSpeed.STEP_PERCENTAGES, DEFAULT_STEP_PERCENTAGE
+        ) { renderStepLabels() }
+        renderStepLabels()
     }
 
-    private fun renderStepButtons(accent: Int, normal: Int) {
-        stepButtons.forEachIndexed { index, button ->
-            val selected = PlaybackSpeed.STEP_PERCENTAGES[index] == stepPercentage
-            button.setTextColor(if (selected) accent else normal)
-            button.setTypeface(null, if (selected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
-        }
-        views.speedStepDown.text = context.getString(CommonStrings.video_editor_speed_step_down, stepPercentage)
-        views.speedStepUp.text = context.getString(CommonStrings.video_editor_speed_step_up, stepPercentage)
+    private fun renderStepLabels() {
+        views.speedStepDown.text = context.getString(CommonStrings.video_editor_step_down, steps.percentage)
+        views.speedStepUp.text = context.getString(CommonStrings.video_editor_step_up, steps.percentage)
     }
 
     /** Steps by a percentage of normal speed, so the buttons move by the same amount everywhere. */
@@ -143,6 +115,5 @@ class PlaybackSpeedDialog(
 
         /** NewPipe's own default. */
         private const val DEFAULT_STEP_PERCENTAGE = 25
-        private const val STEP_PADDING_DP = 12
     }
 }
