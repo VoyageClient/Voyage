@@ -879,9 +879,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private val contentAttachmentActivityResultLauncher = registerStartForActivityResult { activityResult ->
         val data = activityResult.data ?: return@registerStartForActivityResult
         if (activityResult.resultCode == Activity.RESULT_OK) {
-            val sendData = AttachmentsPreviewActivity.getOutput(data)
-            val keepOriginalSize = AttachmentsPreviewActivity.getKeepOriginalSize(data)
-            dispatchSendMedia(sendData, !keepOriginalSize)
+            // Whichever attachments the sender wanted untouched say so themselves.
+            dispatchSendMedia(AttachmentsPreviewActivity.getOutput(data), true)
         }
     }
 

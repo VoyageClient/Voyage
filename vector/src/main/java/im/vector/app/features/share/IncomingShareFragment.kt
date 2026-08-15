@@ -176,9 +176,9 @@ class IncomingShareFragment :
         val data = it.data ?: return@registerStartForActivityResult
         if (it.resultCode == Activity.RESULT_OK) {
             val sendData = AttachmentsPreviewActivity.getOutput(data)
-            val keepOriginalSize = AttachmentsPreviewActivity.getKeepOriginalSize(data)
             viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Attachments(sendData)))
-            viewModel.handle(IncomingShareAction.ShareMedia(keepOriginalSize))
+            // Whichever attachments the sender wanted untouched say so themselves.
+            viewModel.handle(IncomingShareAction.ShareMedia(keepOriginalSize = false))
         }
     }
 

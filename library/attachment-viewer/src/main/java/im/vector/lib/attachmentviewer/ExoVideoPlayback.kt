@@ -45,6 +45,8 @@ internal class ExoVideoPlayback : VideoPlayback {
     override val durationMs: Int
         get() = player?.duration?.takeIf { it != C.TIME_UNSET }?.toInt() ?: 0
 
+    override val audioSessionId: Int get() = player?.audioSessionId ?: 0
+
     override fun open(context: Context, source: String, surface: Surface, looping: Boolean, listener: VideoPlayback.Listener) {
         reportedReady = false
         val exo = ExoPlayer.Builder(context).build()
@@ -103,6 +105,10 @@ internal class ExoVideoPlayback : VideoPlayback {
     override fun setSpeed(speed: Float, pitchFollowsSpeed: Boolean): Boolean {
         player?.playbackParameters = PlaybackParameters(speed, if (pitchFollowsSpeed) speed else 1f)
         return true
+    }
+
+    override fun setVolume(volume: Float) {
+        player?.volume = volume
     }
 
     override fun release() {

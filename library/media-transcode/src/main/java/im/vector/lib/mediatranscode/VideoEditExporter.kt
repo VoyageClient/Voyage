@@ -41,9 +41,11 @@ object VideoEditExporter {
                 ensureFreeSpace(spec, source)
                 Timber.d(
                         "VideoEdit: source ${source.videoMime} + ${source.audioMime ?: "no audio"}, " +
-                                "${source.width}x${source.height} @${source.rotationDegrees}°, speed ${spec.speed}, volume ${spec.volume}, muted ${spec.muted}"
+                                "${source.width}x${source.height} @${source.rotationDegrees}°, speed ${spec.speed}, volume ${spec.volume}, muted ${spec.muted}, reversed ${spec.reversed}"
                 )
-                if (canRemuxLosslessly(context, spec, source)) {
+                if (spec.reversed) {
+                    ReverseTranscodeExporter(context).export(spec, source, progressListener) { isActive }
+                } else if (canRemuxLosslessly(context, spec, source)) {
                     LosslessTrimExporter(context).export(spec, source, progressListener) { isActive }
                 } else {
                     TranscodeExporter(context).export(spec, source, progressListener) { isActive }

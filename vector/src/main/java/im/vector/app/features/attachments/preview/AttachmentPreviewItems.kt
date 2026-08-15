@@ -7,16 +7,20 @@
 
 package im.vector.app.features.attachments.preview
 
+import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.SurfaceTexture
 import android.graphics.drawable.Animatable
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -32,9 +36,12 @@ import im.vector.app.core.platform.CheckableImageView
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.VideoForwardDrawable
 import im.vector.lib.attachmentviewer.VideoLastFrame
+import im.vector.lib.mediatranscode.AudioEditExporter
+import im.vector.lib.mediatranscode.AudioWaveform
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import timber.log.Timber
+import java.util.concurrent.Executors
 
 abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRes layoutId: Int) : VectorEpoxyModel<H>(layoutId) {
 
@@ -76,10 +83,44 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                         .load(attachment.queryUriAndroid)
                         .into(holder.imageView)
             }
+            ContentAttachmentData.Type.AUDIO, ContentAttachmentData.Type.VOICE_MESSAGE -> {
+                bindAudioThumbnail(holder)
+            }
             else -> {
                 holder.imageView.setImageResource(R.drawable.filetype_attachment)
                 holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
             }
+        }
+    }
+
+    /** The file's own artwork where there is one, and a note where there is not. */
+    private fun bindAudioThumbnail(holder: H) {
+        val uri = attachment.queryUriAndroid
+        val target = holder.imageView
+        target.tag = uri
+        val cached = AudioDetails.cached(uri)
+        if (cached != null) {
+            showAudioThumbnail(target, cached.art)
+            return
+        }
+        showAudioThumbnail(target, null)
+        val context = holder.view.context.applicationContext
+        detailsLoader.execute {
+            val details = AudioDetails.load(context, uri)
+            target.post {
+                // The card may have been recycled onto another attachment by now.
+                if (target.tag == uri) showAudioThumbnail(target, details.art)
+            }
+        }
+    }
+
+    private fun showAudioThumbnail(target: ImageView, art: Bitmap?) {
+        if (art == null) {
+            target.scaleType = ImageView.ScaleType.FIT_CENTER
+            target.setImageResource(R.drawable.ic_music_note)
+        } else {
+            target.scaleType = ImageView.ScaleType.CENTER_CROP
+            target.setImageBitmap(art)
         }
     }
 
@@ -165,17 +206,21 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
     private fun applyPlaybackState(holder: Holder) {
         val isVideo = attachment.type == ContentAttachmentData.Type.VIDEO
+        val isAudio = attachment.type == ContentAttachmentData.Type.AUDIO
+        val playable = isVideo || isAudio
         // Before setVideo: a recycled holder still holding the controls would otherwise report the
         // position it is being reset to into a bar that another page owns by now.
-        if (!isVideo) holder.setPlaybackListener(null)
+        if (!playable) holder.setPlaybackListener(null)
         holder.setTargetSize(targetSize)
         holder.setLooping(loopVideos)
-        holder.setVideo(attachment.queryUriAndroid.takeIf { isVideo }, (attachment.duration ?: 0L).toInt())
+        val durationMs = (attachment.duration ?: 0L).toInt()
+        holder.setVideo(attachment.queryUriAndroid.takeIf { isVideo }, durationMs)
+        holder.setAudio(attachment.queryUriAndroid.takeIf { isAudio }, durationMs, attachment.name)
         // Each surface owns its own zoom, so the still and the video never fight over the gesture.
         holder.setZoomEnabled(!isVideo)
         // Swiping away drops any zoom, so coming back lands at 1x.
         if (!activePage) holder.resetZoom()
-        if (!isVideo) {
+        if (!playable) {
             if (activePage) playbackListener?.onVideoControlsAvailable(null)
             // Swiping to another attachment must not leave this one burning cycles off-screen.
             holder.setAnimatedImagePlaying(activePage && playbackAllowed)
@@ -201,8 +246,19 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private val seekRipple by bind<View>(R.id.attachmentBigSeekRipple)
         private val seekRippleDrawable by lazy { VideoForwardDrawable(view.context).also { seekRipple.background = it } }
         private val playPauseButton by bind<ImageView>(R.id.attachmentBigPlayPause)
+        private val waveformView by bind<WaveformScrubView>(R.id.attachmentBigWaveform)
+        private val audioNameView by bind<TextView>(R.id.attachmentBigAudioName)
+        private val audioPanel by bind<View>(R.id.attachmentBigAudioPanel)
+        private val audioArtistView by bind<TextView>(R.id.attachmentBigAudioArtist)
+        private val audioArtView by bind<ImageView>(R.id.attachmentBigAudioArt)
 
         private var videoUri: Uri? = null
+        private var audioUri: Uri? = null
+        private var waveformUri: Uri? = null
+        private var coverUri: Uri? = null
+        private var fileName: String? = null
+        private var scrubbing = false
+        private var scrubResumePlaying = false
         private var mediaPlayer: MediaPlayer? = null
         private var surface: Surface? = null
         private var isPrepared = false
@@ -286,6 +342,138 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             }
         }
 
+        /** The sound has no picture, so its page is the waveform and the same centre button. */
+        fun setAudio(uri: Uri?, durationMs: Int, name: String?) {
+            if (audioUri != uri) {
+                releasePlayer()
+                audioUri = uri
+                wantsPlayback = false
+                resumePositionMs = 0
+                resumeWasPlaying = false
+                lastReportedPositionMs = 0
+            }
+            audioPanel.isVisible = uri != null
+            // The screen behind holds the blurred cover; a black page would hide all of it.
+            view.setBackgroundColor(if (uri == null) Color.BLACK else Color.TRANSPARENT)
+            // Nothing to show behind a waveform: the icon the file branch puts up is not the page.
+            bigImageView.isVisible = uri == null
+            if (uri == null) {
+                view.setOnTouchListener(null)
+                showDetails(null)
+                return
+            }
+            declaredDurationMs = durationMs
+            waveformView.durationMs = durationMs
+            waveformView.onTap = { togglePlayback() }
+            waveformView.onSeek = { positionMs, phase -> scrubTo(positionMs, phase) }
+            // Sound has no centre button, and no band to hunt for either: the whole page is the
+            // waveform's control surface, so a tap or a swipe anywhere reaches it.
+            playPauseButton.isVisible = false
+            view.setOnTouchListener { _, event -> forwardToWaveform(event) }
+            fileName = name
+            audioNameView.text = name
+            loadWaveform(uri)
+            loadDetails(uri)
+        }
+
+        /** Decoding the file for its peaks costs a pass over it, so each one is read once. */
+        @SuppressLint("NewApi")
+        private fun loadWaveform(uri: Uri) {
+            if (waveformUri == uri) return
+            waveformUri = uri
+            waveformView.clear()
+            WaveformCache.get(uri)?.let {
+                waveformView.levels = it
+                return
+            }
+            if (!AudioEditExporter.isSupported()) return
+            val context = view.context.applicationContext
+            waveformLoader.execute {
+                WaveformCache.get(context, uri)?.let { kept ->
+                    publishWaveform(uri, kept)
+                    return@execute
+                }
+                // Partial reads land as they come, so a long file draws from its first seconds.
+                val levels = AudioWaveform.extract(context, uri) { partial -> publishWaveform(uri, partial) }
+                if (levels.isEmpty()) return@execute
+                WaveformCache.put(context, uri, levels)
+                publishWaveform(uri, levels)
+            }
+        }
+
+        private fun publishWaveform(uri: Uri, levels: FloatArray) = waveformView.post {
+            // The page may have been recycled onto another attachment by now.
+            if (waveformUri != uri) return@post
+            waveformView.levels = levels
+            reportProgress()
+        }
+
+        /** Anything the page did not otherwise use is handed to the waveform, in its own terms. */
+        private fun forwardToWaveform(event: MotionEvent): Boolean {
+            val copy = MotionEvent.obtain(event)
+            copy.offsetLocation(-waveformView.left.toFloat(), -waveformView.top.toFloat())
+            val handled = waveformView.onTouchEvent(copy)
+            copy.recycle()
+            return handled
+        }
+
+        /** What the file says it is, with a blown-up copy of its art behind the page as VLC does. */
+        private fun loadDetails(uri: Uri) {
+            coverUri = uri
+            val cached = AudioDetails.cached(uri)
+            showDetails(cached)
+            if (cached != null) return
+            val context = view.context.applicationContext
+            detailsLoader.execute {
+                val details = AudioDetails.load(context, uri)
+                audioArtView.post { if (coverUri == uri) showDetails(details) }
+            }
+        }
+
+        private fun showDetails(details: AudioDetails.Details?) {
+            audioNameView.text = details?.title ?: fileName
+            audioArtistView.text = details?.credits
+            audioArtistView.isVisible = details?.credits != null
+            audioArtView.setImageDrawable(details?.art?.let { AudioDetails.roundedArt(view.context, it) })
+            audioArtView.isVisible = details?.art != null
+        }
+
+        /**
+         * Dragging the waveform. Playback is parked for the gesture and the file is only seeked on
+         * release: seeking a running player at every touch move plays a burst of sound per seek,
+         * which is both awful to listen to and enough work to stall the drag.
+         */
+        private fun scrubTo(positionMs: Int, phase: WaveformScrubView.SeekPhase) {
+            if (phase == WaveformScrubView.SeekPhase.MOVING) {
+                if (!scrubbing) {
+                    scrubbing = true
+                    scrubResumePlaying = mediaPlayer?.isPlayingSafe() == true
+                    if (scrubResumePlaying) runCatching { mediaPlayer?.pause() }
+                }
+                resumePositionMs = positionMs
+                lastReportedPositionMs = positionMs
+                listener?.onVideoProgress(positionMs, durationMs(), false)
+                return
+            }
+            scrubbing = false
+            seekTo(positionMs)
+            // A throw stopped by a touch leaves playback where it was: the tap that follows is
+            // what says whether to play, and resuming here would turn it into a pause.
+            if (scrubResumePlaying && phase == WaveformScrubView.SeekPhase.SETTLED) {
+                scrubResumePlaying = false
+                mediaPlayer?.takeIf { isPrepared }?.let {
+                    runCatching { it.start() }
+                    startTicking()
+                }
+            }
+            val playing = mediaPlayer?.isPlayingSafe() == true
+            waveformView.syncTo(positionMs, playing)
+            // Reported straight from the scrub: the player is still on its way there, and asking
+            // it would put the bar back where the drag started.
+            lastReportedPositionMs = positionMs
+            listener?.onVideoProgress(positionMs, durationMs(), playing)
+        }
+
         private fun onDoubleTapSeek(xFraction: Float): Boolean {
             val forward = xFraction >= 2f / 3
             if (!forward && xFraction >= 1f / 3) return false
@@ -364,7 +552,12 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                 raw
             }
             lastReportedPositionMs = position
-            playPauseButton.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play_arrow)
+            if (audioUri == null) {
+                playPauseButton.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play_arrow)
+            } else {
+                waveformView.durationMs = durationMs()
+                waveformView.setPosition(position, playing)
+            }
             listener?.onVideoProgress(position, durationMs(), playing)
         }
 
@@ -390,6 +583,10 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                 return
             }
             wantsPlayback = true
+            if (audioUri != null) {
+                startPlayer()
+                return
+            }
             waitingForFirstFrame = true
             // A gone TextureView never gets a SurfaceTexture, so reveal it (still transparent)
             // before waiting for the surface.
@@ -416,7 +613,8 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         fun resumePlaybackIfNeeded() {
-            if (mediaPlayer == null && wantsPlayback && surface != null) startPlayer()
+            if (mediaPlayer != null || !wantsPlayback) return
+            if (audioUri != null || surface != null) startPlayer()
         }
 
         private fun attachSurfaceListener() {
@@ -466,12 +664,13 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         private fun startPlayer() {
-            val uri = videoUri ?: return
-            val activeSurface = surface ?: return
+            val uri = videoUri ?: audioUri ?: return
+            val activeSurface = surface
+            if (videoUri != null && activeSurface == null) return
             releasePlayer()
             try {
                 mediaPlayer = MediaPlayer().apply {
-                    setSurface(activeSurface)
+                    activeSurface?.let { setSurface(it) }
                     setDataSource(view.context, uri)
                     isLooping = looping
                     setOnVideoSizeChangedListener { _, width, height ->
@@ -549,7 +748,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             videoView.resetZoom()
             videoView.isVisible = false
             videoView.alpha = 0f
-            bigImageView.isVisible = true
+            bigImageView.isVisible = audioUri == null
             reportProgress()
         }
 
@@ -564,6 +763,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                 seekTo(positionMs.toLong(), MediaPlayer.SEEK_CLOSEST)
             } else {
                 seekTo(positionMs)
+                waveformView.syncTo(positionMs, mediaPlayer?.isPlayingSafe() == true)
             }
         }
 
@@ -579,6 +779,14 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
     }
 }
+
+/**
+ * One attachment at a time is read, rather than a thread each when a pager flings — and tags and
+ * artwork on their own queue, since reading a whole file for its peaks takes seconds and the cover
+ * is a moment's work that should not wait behind it.
+ */
+internal val detailsLoader = Executors.newSingleThreadExecutor()
+private val waveformLoader = Executors.newSingleThreadExecutor()
 
 /** What the fragment's playback controls can ask of whichever attachment is on show. */
 interface VideoPlaybackControls {

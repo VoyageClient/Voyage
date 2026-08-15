@@ -28,6 +28,9 @@ internal interface VideoPlayback {
     val positionMs: Int
     val durationMs: Int
 
+    /** Zero until there is a player to ask; a boost can only attach to a real session. */
+    val audioSessionId: Int
+
     fun open(context: Context, source: String, surface: Surface, looping: Boolean, listener: Listener)
     fun setSurface(surface: Surface?)
     fun setLooping(looping: Boolean)
@@ -37,6 +40,9 @@ internal interface VideoPlayback {
 
     /** False when the player refused the speed outright and only a fresh one can carry it. */
     fun setSpeed(speed: Float, pitchFollowsSpeed: Boolean): Boolean
+
+    /** 0 to 1; anything louder is the caller's business, since no player scales past its samples. */
+    fun setVolume(volume: Float)
 
     fun release()
 

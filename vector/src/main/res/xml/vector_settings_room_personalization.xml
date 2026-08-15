@@ -28,6 +28,20 @@
             android:persistent="false"
             android:title="@string/room_personalization_media_preview" />
 
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/room_randomize_upload_filename_modes"
+            android:entryValues="@array/room_randomize_upload_filename_mode_values"
+            android:key="SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"
+            android:persistent="false"
+            android:title="@string/room_personalization_randomize_filenames" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/room_strip_media_metadata_modes"
+            android:entryValues="@array/room_strip_media_metadata_mode_values"
+            android:key="SETTINGS_ROOM_STRIP_METADATA_KEY"
+            android:persistent="false"
+            android:title="@string/room_personalization_strip_metadata" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory

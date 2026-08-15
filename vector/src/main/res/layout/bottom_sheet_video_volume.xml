@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -9,13 +10,33 @@
     android:paddingRight="24dp"
     android:paddingBottom="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/video_editor_volume"
-        android:textColor="?vctr_content_primary"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/video_editor_volume"
+            android:textColor="?vctr_content_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/volumeReset"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:contentDescription="@string/video_editor_reset"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_refresh_cw"
+            app:tint="?vctr_content_primary" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -90,6 +111,25 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/volumeStepSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/video_editor_step"
+            android:textColor="?vctr_content_secondary"
+            android:textSize="13sp" />
+
+        <!-- One button per step size, added in code by StepSelector. -->
+
+    </LinearLayout>
+
     <CheckBox
         android:id="@+id/volumeMute"
         android:layout_width="match_parent"
@@ -111,14 +151,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/action_cancel"
-            android:textColor="?vctr_content_secondary" />
-
-        <Button
-            android:id="@+id/volumeReset"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/video_editor_reset"
             android:textColor="?vctr_content_secondary" />
 
         <Button

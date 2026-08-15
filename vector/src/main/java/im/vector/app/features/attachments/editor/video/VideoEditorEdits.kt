@@ -22,12 +22,13 @@ data class VideoEditorEdits(
         val durationUs: Long = 0,
         val rotationDegrees: Int = 0,
         val volume: PlaybackVolume = PlaybackVolume(),
+        val reversed: Boolean = false,
         /** Normalised region of the displayed frame to keep, or null for all of it. */
         val crop: RectF? = null,
         val speed: PlaybackSpeed = PlaybackSpeed(),
 ) : AttachmentEdits {
 
     override val hasChanges: Boolean
-        get() = rotationDegrees != 0 || !volume.isDefault || crop != null || !speed.isDefault ||
+        get() = rotationDegrees != 0 || !volume.isDefault || reversed || crop != null || !speed.isDefault ||
                 (durationUs > 0 && (startUs > 0 || endUs < durationUs))
 }

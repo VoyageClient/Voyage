@@ -29,6 +29,9 @@ internal class LegacyVideoPlayback : VideoPlayback {
     override val durationMs: Int
         get() = runCatching { player?.duration ?: 0 }.getOrDefault(0)
 
+    override val audioSessionId: Int
+        get() = runCatching { player?.audioSessionId ?: 0 }.getOrDefault(0)
+
     override fun open(context: Context, source: String, surface: Surface, looping: Boolean, listener: VideoPlayback.Listener) {
         prepared = false
         try {
@@ -105,6 +108,10 @@ internal class LegacyVideoPlayback : VideoPlayback {
         // Setting the parameters starts a paused player, which would run off the frame on show.
         if (applied && !playing) runCatching { active.pause() }
         return applied
+    }
+
+    override fun setVolume(volume: Float) {
+        runCatching { player?.setVolume(volume, volume) }
     }
 
     override fun release() {

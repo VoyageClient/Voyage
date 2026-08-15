@@ -15,6 +15,7 @@ import androidx.core.content.FileProvider
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.MediaPlayerCompat
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voice.VoiceRecorder
 import im.vector.app.features.voice.VoiceRecorderProvider
@@ -41,6 +42,7 @@ class AudioMessageHelper @Inject constructor(
         private val context: Context,
         private val playbackTracker: AudioMessagePlaybackTracker,
         private val buildMeta: BuildMeta,
+        private val vectorPreferences: VectorPreferences,
         voiceRecorderProvider: VoiceRecorderProvider
 ) {
     private var mediaPlayer: MediaPlayer? = null
@@ -163,8 +165,19 @@ class AudioMessageHelper @Inject constructor(
                     MediaPlayerCompat.setMediaAudioAttributes(this)
                     setDataSource(fis.fd)
                     prepare()
+                    // Sought before it is started, and precisely: starting first plays the opening
+                    // of the file, and the plain seek lands on the previous sync frame — which on
+                    // a sparsely framed one is the beginning, so resuming restarts the whole clip.
+                    seekToPrecise(currentPlaybackTime)
                     start()
-                    seekTo(currentPlaybackTime)
+                    // Recorded before the first tick can answer with where the player was: the
+                    // seek it was just given may not have landed yet.
+                    val duration = tryOrNull { duration } ?: 0
+                    if (duration > 0) {
+                        playbackTracker.updatePlayingAtPlaybackTime(
+                                id, currentPlaybackTime, currentPlaybackTime.toFloat() / duration
+                        )
+                    }
                 }
             }
             currentPlayingId = id
@@ -195,6 +208,15 @@ class AudioMessageHelper @Inject constructor(
         }
     }
 
+    /** SEEK_CLOSEST is exact; the int overload snaps to the previous sync frame, seconds earlier. */
+    private fun MediaPlayer.seekToPrecise(positionMs: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            seekTo(positionMs.toLong(), MediaPlayer.SEEK_CLOSEST)
+        } else {
+            seekTo(positionMs)
+        }
+    }
+
     private fun isOggOpus(file: File): Boolean {
         // The Opus identification header ("OpusHead") sits at the start of the first Ogg page payload.
         return tryOrNull {
@@ -218,12 +240,7 @@ class AudioMessageHelper @Inject constructor(
         playbackTracker.pauseAllPlaybacks()
 
         if (currentPlayingId == id) {
-            // SEEK_CLOSEST is frame-accurate; default int overload snaps to the previous keyframe.
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                mediaPlayer?.seekTo(toMillisecond.toLong(), android.media.MediaPlayer.SEEK_CLOSEST)
-            } else {
-                mediaPlayer?.seekTo(toMillisecond)
-            }
+            mediaPlayer?.seekToPrecise(toMillisecond)
             playbackTracker.updatePlayingAtPlaybackTime(id, toMillisecond, percentage)
         } else {
             mediaPlayer?.pause()
@@ -261,7 +278,9 @@ class AudioMessageHelper @Inject constructor(
 
     private fun startPlaybackTicker(id: String) {
         playbackTicker?.stop()
-        playbackTicker = CountUpTimer().apply {
+        // Ten a second, as the media viewer's own scrubber ticks: a bar told where playback is once
+        // a second can only jump there, however it is animated in between.
+        playbackTicker = CountUpTimer(intervalInMs = PLAYBACK_TICK_INTERVAL_MS).apply {
             tickListener = CountUpTimer.TickListener { onPlaybackTick(id) }
             start()
         }
@@ -269,15 +288,38 @@ class AudioMessageHelper @Inject constructor(
     }
 
     private fun onPlaybackTick(id: String) {
-        if (mediaPlayer?.isPlaying.orFalse()) {
-            val currentPosition = mediaPlayer?.currentPosition ?: 0
-            val totalDuration = mediaPlayer?.duration ?: 0
-            val percentage = currentPosition.toFloat() / totalDuration
-            playbackTracker.updatePlayingAtPlaybackTime(id, currentPosition, percentage)
-        } else {
-            playbackTracker.stopPlaybackOrRecorder(id)
+        val player = mediaPlayer
+        if (player == null) {
             stopPlaybackTicker()
+            return
         }
+        val playing = tryOrNull { player.isPlaying }.orFalse()
+        val duration = tryOrNull { player.duration } ?: 0
+        val position = tryOrNull { player.currentPosition } ?: 0
+        if (!playing) {
+            // A player that has run out is finished and starts again from the top; one that is
+            // merely between states — mid-seek, or a sink spinning up — keeps where it had got to,
+            // and going idle there is what makes the next play restart the whole file.
+            val finished = duration > 0 && position >= duration - PLAYBACK_END_WINDOW_MS
+            if (finished && vectorPreferences.loopVideos()) {
+                // The same setting media loops under, applied to sound: play it again from the top.
+                runCatching {
+                    player.seekToPrecise(0)
+                    player.start()
+                }
+                playbackTracker.updatePlayingAtPlaybackTime(id, 0, 0f)
+                return
+            }
+            if (finished) playbackTracker.stopPlaybackOrRecorder(id) else playbackTracker.pausePlayback(id)
+            stopPlaybackTicker()
+            return
+        }
+        if (duration <= 0) return
+        // A player asked the moment after a seek answers with where it was, which would drag the
+        // recorded position back to the start of the file.
+        val recorded = playbackTracker.getPlaybackTime(id) ?: 0
+        if (recorded - position in 1..STALE_REPORT_MS) return
+        playbackTracker.updatePlayingAtPlaybackTime(id, position, position.toFloat() / duration)
     }
 
     private fun stopPlaybackTicker() {
@@ -320,3 +362,12 @@ private fun List<Int>.normalizeWaveform(): List<Int> {
     val peak = maxOrNull()?.takeIf { it > 0 } ?: return this
     return map { (sqrt(it.coerceAtLeast(0) / peak.toDouble()) * 1024).toInt() }
 }
+
+/** How often playback reports where it is. */
+private const val PLAYBACK_TICK_INTERVAL_MS = 100L
+
+/** Past this a player has run out rather than been interrupted. */
+private const val PLAYBACK_END_WINDOW_MS = 250
+
+/** How far behind the recorded position a report can be and still be a stale one. */
+private const val STALE_REPORT_MS = 1_500

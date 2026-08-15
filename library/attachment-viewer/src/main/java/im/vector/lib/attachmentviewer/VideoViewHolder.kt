@@ -22,6 +22,7 @@ import android.view.animation.DecelerateInterpolator
 import androidx.core.animation.doOnEnd
 import androidx.core.view.isVisible
 import im.vector.lib.attachmentviewer.databinding.ItemVideoAttachmentBinding
+import im.vector.lib.core.utils.audio.LoudnessBoost
 import im.vector.lib.core.utils.timer.CountUpTimer
 import java.io.File
 import java.lang.ref.WeakReference
@@ -66,6 +67,9 @@ class VideoViewHolder constructor(itemView: View) :
     private var playbackSpeed = 1f
     private var pitchFollowsSpeed = true
     private var rebuiltForSpeed = false
+    private var volumeGain = 1f
+    private var volumeMuted = false
+    private var boost: LoudnessBoost? = null
 
     var eventListener: WeakReference<AttachmentEventListener>? = null
 
@@ -372,9 +376,12 @@ class VideoViewHolder constructor(itemView: View) :
             progress = player?.takeIf { it.isPlaying }?.positionMs ?: 0
             releasePlayer()
             resetZoom()
-            // A speed belongs to the video it was chosen for, so swiping away puts it back.
+            // A speed and a volume belong to the video they were chosen for, so swiping away
+            // puts them back.
             playbackSpeed = 1f
             pitchFollowsSpeed = true
+            volumeGain = 1f
+            volumeMuted = false
         } else if (mVideoPath != null) {
             startPlaying()
         }
@@ -430,8 +437,9 @@ class VideoViewHolder constructor(itemView: View) :
                 if (endFrameMs < 0) {
                     Thread({ endFrameMs = VideoLastFrame.probeMs(itemView.context, path) }, "video-end-probe").start()
                 }
-                // The player is new — a chosen speed only lives in the holder.
+                // The player is new — a chosen speed and volume only live in the holder.
                 if (playbackSpeed != 1f || !pitchFollowsSpeed) applyPlaybackSpeed()
+                if (volumeGain != 1f || volumeMuted) applyVolume()
                 if (progress > 0) {
                     seekTo(engine, progress)
                 }
@@ -467,6 +475,17 @@ class VideoViewHolder constructor(itemView: View) :
         })
     }
 
+    /** Above its own samples a player has no volume left to give, so the boost takes over there. */
+    private fun applyVolume() {
+        val active = player ?: return
+        val gain = if (volumeMuted) 0f else volumeGain
+        active.setVolume(gain.coerceIn(0f, 1f))
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return
+        val sessionId = active.audioSessionId
+        if (boost == null && sessionId != 0) boost = LoudnessBoost.attachTo(sessionId)
+        boost?.setGain(gain)
+    }
+
     private fun applyPlaybackSpeed() {
         val active = player?.takeIf { isPrepared } ?: return
         if (!active.setSpeed(playbackSpeed, pitchFollowsSpeed)) rebuildForSpeed(active)
@@ -489,6 +508,8 @@ class VideoViewHolder constructor(itemView: View) :
     private fun releasePlayer() {
         // Stop the tick timer FIRST so its captured player reference isn't used after release.
         stopTimer()
+        boost?.release()
+        boost = null
         isPrepared = false
         lastReportedPositionMs = 0
         player?.release()
@@ -581,6 +602,12 @@ class VideoViewHolder constructor(itemView: View) :
     override fun handleCommand(commands: AttachmentCommands) {
         if (!isSelected) return
         when (commands) {
+            is AttachmentCommands.SetVolume -> {
+                // Kept even with no player yet: whichever one comes next picks it up when prepared.
+                volumeGain = commands.gain
+                volumeMuted = commands.muted
+                applyVolume()
+            }
             is AttachmentCommands.SetPlaybackSpeed -> {
                 // Kept even with no player yet: whichever one comes next picks it up when prepared.
                 playbackSpeed = commands.speed
@@ -639,6 +666,8 @@ class VideoViewHolder constructor(itemView: View) :
         playbackSpeed = 1f
         pitchFollowsSpeed = true
         rebuiltForSpeed = false
+        volumeGain = 1f
+        volumeMuted = false
         resetZoom()
     }
 }

@@ -57,6 +57,7 @@ import im.vector.app.features.redaction.preservation.RedactedContentRepository
 import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorDataStore
+import im.vector.app.features.settings.PrivacyMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.flow.chunk
 import im.vector.lib.strings.CommonStrings
@@ -110,6 +111,7 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -1106,12 +1108,29 @@ private fun handleSelectStickerAttachment() {
         }
     }
 
+    /** The room's own answer where it has one, and the account's otherwise. */
+    private fun shouldRandomizeFilenames(room: Room): Boolean =
+            vectorPreferences.getRoomRandomizeFilenamesOverride(room.roomId)
+                    ?: vectorPreferences.uploadFilenameMode().appliesTo(room)
+
+    private fun shouldStripMetadata(room: Room): Boolean =
+            vectorPreferences.getRoomStripMetadataOverride(room.roomId)
+                    ?: vectorPreferences.stripMediaMetadataMode().appliesTo(room)
+
+    private fun PrivacyMode.appliesTo(room: Room): Boolean = when (this) {
+        PrivacyMode.ALWAYS -> true
+        PrivacyMode.NEVER -> false
+        // Only worth doing where strangers can read the room back.
+        PrivacyMode.PUBLIC_ROOMS -> room.roomSummary()?.joinRules == RoomJoinRules.PUBLIC
+    }
+
     private suspend fun sendMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia, captionText: CharSequence?, captionFormattedText: String?) {
-        val attachments = if (vectorPreferences.randomizeUploadFilenames()) {
-            action.attachments.map { it.withRandomizedFilename() }
-        } else {
-            action.attachments
-        }.let { sendMediaMaterializer.materialize(it) }
+        val randomize = shouldRandomizeFilenames(room)
+        val stripMetadata = shouldStripMetadata(room)
+        val attachments = action.attachments
+                .map { if (randomize) it.withRandomizedFilename() else it }
+                .map { it.copy(stripMetadata = stripMetadata) }
+                .let { sendMediaMaterializer.materialize(it) }
         room.sendService().sendMedias(
                 attachments = attachments,
                 compressBeforeSending = action.compressBeforeSending,

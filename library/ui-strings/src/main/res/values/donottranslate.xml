@@ -545,6 +545,12 @@
     <string name="encryption_export_notice_optional" translatable="false">Optionally create a passphrase to encrypt the exported keys. If you set one, you will need to enter the same passphrase to import the keys; leave it blank to export without encryption.</string>
     <string name="settings_randomize_upload_filenames_title" translatable="false">Randomize uploaded file names</string>
     <string name="settings_randomize_upload_filenames_summary" translatable="false">Replace the name of uploaded files with a random ID</string>
+    <string name="settings_randomize_upload_filenames_always" translatable="false">Yes</string>
+    <string name="settings_randomize_upload_filenames_never" translatable="false">No</string>
+    <string name="settings_randomize_upload_filenames_public" translatable="false">In public rooms</string>
+    <string name="room_personalization_randomize_filenames" translatable="false">Randomize uploaded file names</string>
+    <string name="room_personalization_randomize_filenames_inherit" translatable="false">Use the account setting</string>
+    <string name="room_personalization_strip_metadata" translatable="false">Strip media metadata</string>
     <string name="login_server_matrix_id_text" translatable="false">Use your existing @user:domain.com account</string>
 
     <string name="settings_app_icon_color_title" translatable="false">App icon color</string>
@@ -612,21 +618,22 @@
     <string name="video_editor_title" translatable="false">Edit video</string>
     <string name="video_editor_reset" translatable="false">Reset</string>
     <string name="video_editor_rotate" translatable="false">Rotate</string>
+    <string name="video_editor_reverse" translatable="false">Reverse</string>
+    <string name="video_editor_reverse_preview_unsupported" translatable="false">The preview plays forwards, but the saved video will be reversed</string>
     <string name="video_editor_volume" translatable="false">Volume</string>
     <string name="video_editor_volume_value" translatable="false">%1$d%%</string>
-    <string name="video_editor_volume_step_down" translatable="false">−%1$d%%</string>
-    <string name="video_editor_volume_step_up" translatable="false">+%1$d%%</string>
     <string name="video_editor_volume_mute" translatable="false">Mute</string>
+    <string name="video_player_volume_boost_unsupported" translatable="false">This device can\'t play louder than 100%</string>
     <string name="video_editor_volume_preview_capped" translatable="false">The preview can\'t play louder than 100%, but the saved video will</string>
     <string name="video_editor_range" translatable="false">%1$s – %2$s</string>
     <string name="video_editor_range_output" translatable="false">%1$s – %2$s → %3$s</string>
     <string name="video_editor_speed" translatable="false">Speed</string>
     <string name="video_editor_speed_title" translatable="false">Playback speed</string>
     <string name="video_editor_speed_value" translatable="false">%1$sx</string>
-    <string name="video_editor_speed_step" translatable="false">Step</string>
-    <string name="video_editor_speed_step_value" translatable="false">%1$d%%</string>
-    <string name="video_editor_speed_step_down" translatable="false">−%1$d%%</string>
-    <string name="video_editor_speed_step_up" translatable="false">+%1$d%%</string>
+    <string name="video_editor_step" translatable="false">Step</string>
+    <string name="video_editor_step_value" translatable="false">%1$d%%</string>
+    <string name="video_editor_step_down" translatable="false">−%1$d%%</string>
+    <string name="video_editor_step_up" translatable="false">+%1$d%%</string>
     <string name="video_editor_speed_change_pitch" translatable="false">Change pitch</string>
     <string name="video_editor_speed_preview_unsupported" translatable="false">This device can\'t preview the new speed, but the saved video will use it</string>
     <string name="video_editor_exporting" translatable="false">Saving video…</string>
@@ -635,6 +642,15 @@
     <string name="video_editor_no_space" translatable="false">Not enough free space to save this video</string>
     <string name="video_editor_unsupported" translatable="false">This video format can\'t be edited</string>
     <string name="video_editor_audio_dropped" translatable="false">The audio track couldn\'t be kept and was dropped</string>
+
+    <string name="audio_editor_title" translatable="false">Edit audio</string>
+    <string name="audio_editor_exporting" translatable="false">Saving audio…</string>
+    <string name="audio_editor_load_failed" translatable="false">Couldn\'t open this audio file</string>
+    <string name="audio_editor_export_failed" translatable="false">Couldn\'t save the edited audio</string>
+    <string name="audio_editor_too_long_to_reverse" translatable="false">This file is too long to reverse</string>
+    <string name="audio_editor_speed_preview_unsupported" translatable="false">This device can\'t preview the new speed, but the saved file will use it</string>
+    <string name="audio_editor_reverse_preview_unsupported" translatable="false">The preview plays forwards, but the saved file will be reversed</string>
+    <string name="audio_editor_volume_preview_capped" translatable="false">The preview can\'t play louder than 100%, but the saved file will</string>
 
     <string name="animated_image_editor_title" translatable="false">Edit animated image</string>
     <string name="animated_image_editor_exporting" translatable="false">Saving animated image…</string>
@@ -725,7 +741,7 @@
     <string name="redaction_override_off" translatable="false">No</string>
     <string name="redaction_room_mode_inherit" translatable="false">Use the account setting</string>
 
-    <string name="room_personalization_media_category" translatable="false">Media visibility</string>
+    <string name="room_personalization_media_category" translatable="false">Security &amp; Privacy</string>
     <string name="room_personalization_redaction_category" translatable="false">Redactions</string>
     <string name="room_personalization_media_preview" translatable="false">Show media in this room</string>
     <string name="room_personalization_media_preview_inherit" translatable="false">Use the account setting</string>

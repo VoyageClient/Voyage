@@ -154,11 +154,21 @@
         android:key="SETTINGS_MEDIA_AND_AVATARS_CATEGORY"
         android:title="@string/settings_visual">
 
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="true"
-            android:key="SETTINGS_STRIP_MEDIA_METADATA_KEY"
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="always"
+            android:entries="@array/strip_media_metadata_modes"
+            android:entryValues="@array/strip_media_metadata_mode_values"
+            android:key="SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY"
             android:summary="@string/settings_strip_media_metadata_summary"
             android:title="@string/settings_strip_media_metadata_title" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="never"
+            android:entries="@array/randomize_upload_filename_modes"
+            android:entryValues="@array/randomize_upload_filename_mode_values"
+            android:key="SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_MODE_KEY"
+            android:summary="@string/settings_randomize_upload_filenames_summary"
+            android:title="@string/settings_randomize_upload_filenames_title" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:defaultValue="always_show"

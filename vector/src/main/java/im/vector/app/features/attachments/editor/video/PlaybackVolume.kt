@@ -34,5 +34,8 @@ data class PlaybackVolume(
         const val MINIMUM = 0f
         const val MAXIMUM = 5f
         private const val TOLERANCE = 0.001f
+
+        /** The steps the plus/minus buttons take, as percentages. */
+        val STEP_PERCENTAGES = listOf(1, 5, 10, 25, 100)
     }
 }

@@ -54,7 +54,7 @@ object AnimatedImageExporter {
         val decoded = AnimatedImageReader.readFrames(source, format) ?: throw AnimatedImageException()
         val destination = createOutputFile(context, displayName)
         try {
-            val kept = trim(decoded, edits)
+            val kept = trim(decoded, edits).let { if (edits.reversed) it.reversed() else it }
             if (kept.isEmpty()) throw AnimatedImageException()
             // Bitmap.compress(WEBP) gained alpha in 4.2.1; below that every transparent pixel comes
             // back black, so an export that would look wrong is refused rather than written.

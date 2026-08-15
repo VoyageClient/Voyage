@@ -17,6 +17,7 @@ interface AttachmentInteractionListener {
     fun onPlayPause(play: Boolean)
     fun videoSeekTo(percent: Int)
     fun onPlaybackSpeedChanged(speed: Float, changePitch: Boolean)
+    fun onVolumeChanged(gain: Float, muted: Boolean)
 
     /** A menu or dialog that was holding the controls open has closed. */
     fun onControlsInteractionEnded()

@@ -11,8 +11,10 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import im.vector.app.databinding.BottomSheetVideoVolumeBinding
+import im.vector.lib.core.utils.math.QuadraticSlider
 import im.vector.lib.strings.CommonStrings
 import kotlin.math.roundToInt
 
@@ -21,37 +23,51 @@ class PlaybackVolumeDialog(
         private val context: Context,
         private val initial: PlaybackVolume,
         private val canPreviewBoost: () -> Boolean,
+        @StringRes private val cappedMessage: Int,
         private val onChanged: (PlaybackVolume) -> Unit,
+        private val onDismiss: (() -> Unit)? = null,
 ) {
 
     private val views = BottomSheetVideoVolumeBinding.inflate(LayoutInflater.from(context))
+    private val slider = QuadraticSlider(
+            minimum = PlaybackVolume.MINIMUM,
+            maximum = PlaybackVolume.MAXIMUM,
+            centre = PlaybackVolume.NORMAL,
+            maximumProgress = SLIDER_RANGE,
+    )
+    private lateinit var steps: StepSelector
 
     private var current = initial
 
     fun show() {
-        views.volumeSeekBar.max = percentOf(PlaybackVolume.MAXIMUM)
+        views.volumeSeekBar.max = SLIDER_RANGE
         views.volumeMinimum.text = format(PlaybackVolume.MINIMUM)
         views.volumeMaximum.text = format(PlaybackVolume.MAXIMUM)
-        views.volumeStepDown.text = context.getString(CommonStrings.video_editor_volume_step_down, STEP_PERCENTAGE)
-        views.volumeStepUp.text = context.getString(CommonStrings.video_editor_volume_step_up, STEP_PERCENTAGE)
+        steps = StepSelector(
+                views.volumeStepSelector, PlaybackVolume.STEP_PERCENTAGES, DEFAULT_STEP_PERCENTAGE
+        ) { renderStepLabels() }
+        renderStepLabels()
 
         views.volumeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (fromUser) update(current.copy(gain = progress / 100f), moveSlider = false)
+                if (fromUser) update(current.copy(gain = slider.valueOf(progress)), moveSlider = false)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
             override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
         })
-        views.volumeStepDown.setOnClickListener { step(-STEP_PERCENTAGE) }
-        views.volumeStepUp.setOnClickListener { step(STEP_PERCENTAGE) }
+        views.volumeStepDown.setOnClickListener { step(-steps.percentage) }
+        views.volumeStepUp.setOnClickListener { step(steps.percentage) }
         views.volumeMute.setOnCheckedChangeListener { _, checked -> update(current.copy(muted = checked)) }
         views.volumeReset.setOnClickListener { update(PlaybackVolume()) }
 
-        val dialog = BottomSheetDialog(context).apply { setContentView(views.root) }
+        val dialog = BottomSheetDialog(context).apply {
+            setContentView(views.root)
+            setOnDismissListener { onDismiss?.invoke() }
+        }
         views.volumeDone.setOnClickListener {
             if (current.effectiveGain > PlaybackVolume.NORMAL && !canPreviewBoost()) {
-                Toast.makeText(context, context.getString(CommonStrings.video_editor_volume_preview_capped), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(cappedMessage), Toast.LENGTH_LONG).show()
             }
             dialog.dismiss()
         }
@@ -62,6 +78,11 @@ class PlaybackVolumeDialog(
         }
         render()
         dialog.show()
+    }
+
+    private fun renderStepLabels() {
+        views.volumeStepDown.text = context.getString(CommonStrings.video_editor_step_down, steps.percentage)
+        views.volumeStepUp.text = context.getString(CommonStrings.video_editor_step_up, steps.percentage)
     }
 
     private fun step(percentage: Int) {
@@ -78,12 +99,13 @@ class PlaybackVolumeDialog(
     private fun render(moveSlider: Boolean = true) {
         views.volumeValue.text = format(current.gain)
         // Writing the progress back while the finger is on the bar fights the drag.
-        if (moveSlider) views.volumeSeekBar.progress = percentOf(current.gain)
+        if (moveSlider) views.volumeSeekBar.progress = slider.progressOf(current.gain)
         if (views.volumeMute.isChecked != current.muted) views.volumeMute.isChecked = current.muted
         val enabled = !current.muted
         views.volumeSeekBar.isEnabled = enabled
         views.volumeStepDown.isEnabled = enabled
         views.volumeStepUp.isEnabled = enabled
+        steps.isEnabled = enabled
         val alpha = if (enabled) 1f else DISABLED_ALPHA
         views.volumeSeekBar.alpha = alpha
         views.volumeValue.alpha = alpha
@@ -91,6 +113,7 @@ class PlaybackVolumeDialog(
         views.volumeStepUp.alpha = alpha
         views.volumeMinimum.alpha = alpha
         views.volumeMaximum.alpha = alpha
+        views.volumeStepSelector.alpha = alpha
     }
 
     private fun percentOf(gain: Float) = (gain * 100).roundToInt()
@@ -98,7 +121,10 @@ class PlaybackVolumeDialog(
     private fun format(gain: Float) = context.getString(CommonStrings.video_editor_volume_value, percentOf(gain))
 
     companion object {
-        private const val STEP_PERCENTAGE = 10
+        /** Wide enough that a step of the bar is finer than the whole percent on show. */
+        private const val SLIDER_RANGE = 10_000
+
+        private const val DEFAULT_STEP_PERCENTAGE = 10
         private const val DISABLED_ALPHA = 0.4f
     }
 }

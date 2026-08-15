@@ -462,6 +462,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             Timber.w("MDM data has been updated")
         }
 
+        applyDrawUnderSystemBars()
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
             val systemBars = insets.getInsets(
                     WindowInsetsCompat.Type.systemBars() or
@@ -470,13 +471,20 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             )
             systemBarsTopInset = systemBars.top
             navigationBarBottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-            v.updatePadding(
-                    systemBars.left,
-                    if (drawUnderStatusBar) 0 else systemBars.top,
-                    systemBars.right,
-                    systemBars.bottom,
-            )
-            WindowInsetsCompat.CONSUMED
+            if (drawUnderSystemBars) {
+                // The screen paints itself to the very edges; only what must stay clear of the bars
+                // insets itself, so the insets are passed on rather than swallowed here.
+                v.updatePadding(0, 0, 0, 0)
+                insets
+            } else {
+                v.updatePadding(
+                        systemBars.left,
+                        if (drawUnderStatusBar) 0 else systemBars.top,
+                        systemBars.right,
+                        systemBars.bottom,
+                )
+                WindowInsetsCompat.CONSUMED
+            }
         }
     }
 
@@ -703,6 +711,25 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.TRANSPARENT
             window.navigationBarColor = Color.TRANSPARENT
+        }
+    }
+
+    /**
+     * Screens that paint their own background to the very edges of the screen — the media editors
+     * and previews, which run artwork behind the system bars. The root is left unpadded and the
+     * insets are handed on to whichever views have to stay clear of the bars themselves.
+     */
+    protected open val drawUnderSystemBars: Boolean = false
+
+    private fun applyDrawUnderSystemBars() {
+        if (!drawUnderSystemBars) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            @Suppress("DEPRECATION")
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility =
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
         }
     }
 

@@ -34,6 +34,7 @@ internal object AudioWriters {
     ): AudioTrackWriter? {
         if (spec.muted) return null
         val mime = source.audioMime ?: return null
+        if (spec.reversed) return reversed(context, spec, mime)
         if (!spec.isRetimed && !spec.isAmplified) {
             if (MuxableFormats.isMuxableAudio(mime)) {
                 AudioTrackCopier.create(context, spec.sourceUri, spec.endUs)?.let { return it }
@@ -45,6 +46,23 @@ internal object AudioWriters {
         // A speed change has its own map; anything else is only re-encoded to change container, so
         // its timing must not move.
         return transcode(context, spec, startUs, if (spec.isRetimed) timeMap else SpeedTimeMap(startUs, 1f), mime)
+    }
+
+    private fun reversed(context: Context, spec: VideoEditSpec, mime: String): AudioTrackWriter? {
+        val writer = ReversedAudioWriter.create(
+                context, spec.sourceUri, spec.startUs, spec.endUs, spec.volume, spec.speed, spec.changePitch
+        )
+        if (writer == null) {
+            Timber.w("VideoEdit: cannot reverse the $mime track, dropping the audio")
+            return null
+        }
+        val primed = runCatching { writer.prime() }
+                .onFailure { Timber.w(it, "VideoEdit: cannot re-encode the reversed $mime track, dropping it") }
+                .getOrDefault(false)
+        if (primed) return writer
+        Timber.w("VideoEdit: the AAC encoder took nothing from the reversed $mime track, dropping the audio")
+        writer.release()
+        return null
     }
 
     private fun transcode(

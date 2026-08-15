@@ -39,6 +39,10 @@ data class ContentAttachmentData(
          * How hard the sender asked for this to be squeezed, chosen in the attachment preview.
          * Null leaves the automatic behaviour alone. [compressionQuality] is 0..100.
          */
+        /** The sender asked for this one untouched, whatever the send was told to do with the rest. */
+        val keepOriginalSize: Boolean = false,
+        /** Whether to take the identifying metadata off it, or null to follow the account setting. */
+        val stripMetadata: Boolean? = null,
         val compressionQuality: Int? = null,
         val compressionWidth: Int? = null,
         val compressionHeight: Int? = null,

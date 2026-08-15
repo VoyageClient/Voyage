@@ -22,4 +22,7 @@ sealed class AttachmentCommands {
 
     /** @param changePitch whether the audio pitch rides along with the speed, as tape does. */
     data class SetPlaybackSpeed(val speed: Float, val changePitch: Boolean) : AttachmentCommands()
+
+    /** @param gain 1 is the clip's own loudness; above it the sound is boosted rather than scaled. */
+    data class SetVolume(val gain: Float, val muted: Boolean) : AttachmentCommands()
 }

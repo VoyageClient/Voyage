@@ -11,8 +11,10 @@ import android.animation.ObjectAnimator
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
@@ -52,6 +54,8 @@ import im.vector.app.core.utils.SnapOnScrollListener
 import im.vector.app.core.utils.attachSnapHelperWithListener
 import im.vector.app.databinding.BottomSheetAttachmentCompressionBinding
 import im.vector.app.databinding.FragmentAttachmentsPreviewBinding
+import im.vector.app.features.attachments.editor.audio.AudioEditorActivity
+import im.vector.app.features.attachments.editor.audio.AudioEditorEdits
 import im.vector.app.features.attachments.editor.image.ImageEditorActivity
 import im.vector.app.features.attachments.editor.image.ImageEditorEdits
 import im.vector.app.features.attachments.editor.isRestoreOriginal
@@ -90,6 +94,10 @@ class AttachmentsPreviewFragment :
     private val viewModel: AttachmentsPreviewViewModel by fragmentViewModel()
 
     private var lastScrolledIndex = -1
+    private var backdropUri: Uri? = null
+
+    /** True while the checkbox is being set from state, so its listener knows it was not a tap. */
+    private var bindingKeepOriginalSize = false
 
     /** Attachment the editor was opened against, needed to record the edit when it returns. */
     private var pendingEditOriginal: ContentAttachmentData? = null
@@ -120,6 +128,9 @@ class AttachmentsPreviewFragment :
                 views.attachmentPreviewerSendImageOriginalSize,
                 ColorStateList.valueOf(accent)
         )
+        views.attachmentPreviewerSendImageOriginalSize.setOnCheckedChangeListener { _, checked ->
+            if (!bindingKeepOriginalSize) viewModel.handle(AttachmentsPreviewAction.SetKeepOriginalSize(checked))
+        }
         setupVideoControls(accent)
     }
 
@@ -241,6 +252,30 @@ class AttachmentsPreviewFragment :
         }
     }
 
+    private val audioEditorActivityResultLauncher = registerStartForActivityResult { activityResult ->
+        if (activityResult.resultCode == RESULT_OK) {
+            if (activityResult.data?.isRestoreOriginal() == true) {
+                restoreOriginal()
+                return@registerStartForActivityResult
+            }
+            val output = activityResult.data?.let { AudioEditorActivity.getOutput(it) }
+            if (output != null) {
+                discardSupersededExport()
+                viewModel.handle(
+                        AttachmentsPreviewAction.UpdateCurrentAttachment(
+                                newUri = output.uri,
+                                size = output.size,
+                                mimeType = activityResult.data?.let { AudioEditorActivity.mimeTypeOf(it) },
+                                duration = output.durationMs,
+                                editRecord = pendingEditOriginal?.let { EditRecord(it, output.edits) }
+                        )
+                )
+            } else {
+                Toast.makeText(requireContext(), getString(CommonStrings.audio_editor_export_failed), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private val imageEditorActivityResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == RESULT_OK) {
             if (activityResult.data?.isRestoreOriginal() == true) {
@@ -330,7 +365,7 @@ class AttachmentsPreviewFragment :
         var settings = state.compressionSettings[state.stableIdOf(current)]
                 ?: CompressionSettings(width = sourceWidth.takeIf { it > 0 }, height = sourceHeight.takeIf { it > 0 })
         // "Original size" is a quality decision of its own, so the slider has nothing left to say.
-        val originalSize = views.attachmentPreviewerSendImageOriginalSize.isChecked
+        val originalSize = state.keepOriginalSize.contains(state.stableIdOf(current))
 
         // Writing the linked dimension back into its field would otherwise re-enter this watcher.
         var updating = false
@@ -458,18 +493,61 @@ class AttachmentsPreviewFragment :
                 bigListSnapListener?.onScrolledProgrammatically(state.currentAttachmentIndex)
                 views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
             }
-            views.attachmentPreviewerSendImageOriginalSize.text = getCheckboxText(state)
+            renderKeepOriginalSize(state)
+            renderAudioBackdrop(state)
         }
     }
 
-    private fun getCheckboxText(state: AttachmentsPreviewViewState): CharSequence {
-        val nbImages = state.attachments.count { it.type == ContentAttachmentData.Type.IMAGE }
-        val nbVideos = state.attachments.count { it.type == ContentAttachmentData.Type.VIDEO }
-        return when {
-            nbVideos == 0 -> resources.getQuantityString(CommonPlurals.send_images_with_original_size, nbImages)
-            nbImages == 0 -> resources.getQuantityString(CommonPlurals.send_videos_with_original_size, nbVideos)
-            else -> getString(CommonStrings.send_images_and_video_with_original_size)
+    /**
+     * The cover of the audio on show, blurred behind the whole screen as a music player does —
+     * behind the strip and the bars as well, which is why it lives here rather than on the page.
+     */
+    private fun renderAudioBackdrop(state: AttachmentsPreviewViewState) {
+        val current = state.attachments.getOrNull(state.currentAttachmentIndex)
+        val uri = current?.queryUriAndroid?.takeIf { current.type == ContentAttachmentData.Type.AUDIO }
+        backdropUri = uri
+        if (uri == null) {
+            showAudioBackdrop(null)
+            return
         }
+        AudioDetails.cached(uri)?.let {
+            showAudioBackdrop(it.backdrop)
+            return
+        }
+        val context = requireContext().applicationContext
+        detailsLoader.execute {
+            val details = AudioDetails.load(context, uri)
+            views.attachmentPreviewerBackdrop.post {
+                // The pager may have moved on to another attachment by now.
+                if (isAdded && backdropUri == uri) showAudioBackdrop(details.backdrop)
+            }
+        }
+    }
+
+    private fun showAudioBackdrop(backdrop: Bitmap?) {
+        views.attachmentPreviewerBackdrop.setImageBitmap(backdrop)
+        views.attachmentPreviewerBackdrop.isVisible = backdrop != null
+        views.attachmentPreviewerBackdropScrim.isVisible = backdrop != null
+    }
+
+    /** Only what the compressors touch can be sent untouched, and only the one on show is asked about. */
+    private fun renderKeepOriginalSize(state: AttachmentsPreviewViewState) {
+        val current = state.attachments.getOrNull(state.currentAttachmentIndex)
+        val checkbox = views.attachmentPreviewerSendImageOriginalSize
+        checkbox.isVisible = current?.isCompressible() == true
+        if (current == null || !checkbox.isVisible) return
+        checkbox.text = resources.getQuantityString(
+                if (current.type == ContentAttachmentData.Type.VIDEO) {
+                    CommonPlurals.send_videos_with_original_size
+                } else {
+                    CommonPlurals.send_images_with_original_size
+                },
+                1
+        )
+        // Writing the state back must not read as the user having ticked it.
+        bindingKeepOriginalSize = true
+        checkbox.isChecked = state.keepOriginalSize.contains(state.stableIdOf(current))
+        bindingKeepOriginalSize = false
     }
 
     override fun onAttachmentClicked(position: Int, contentAttachmentData: ContentAttachmentData) {
@@ -477,8 +555,8 @@ class AttachmentsPreviewFragment :
     }
 
     private fun setResultAndFinish() = withState(viewModel) { state ->
-        val originalSize = views.attachmentPreviewerSendImageOriginalSize.isChecked
-        val attachments = state.attachments.map { attachment ->
+        val attachments = state.attachments.map { it.withPreviewedWaveform() }.map { attachment ->
+            val originalSize = state.keepOriginalSize.contains(state.stableIdOf(attachment))
             // Boxes left at the source size are not a resize request, so they must not make the
             // attachment look custom-compressed.
             val sourceWidth = attachment.width?.toInt()
@@ -489,7 +567,7 @@ class AttachmentsPreviewFragment :
                 // Original size means the file is uploaded untouched: anything non-null here sets
                 // hasCustomCompression, which is what re-encodes (and, for video, transcodes) it.
                 // Only an explicitly typed size overrides that, and then at full quality.
-                if (settings?.width == null) return@map attachment
+                if (settings?.width == null) return@map attachment.copy(keepOriginalSize = true)
                 return@map attachment.copy(
                         compressionQuality = CompressionSettings.MAX_QUALITY,
                         compressionWidth = settings.width,
@@ -503,17 +581,19 @@ class AttachmentsPreviewFragment :
                     compressionHeight = settings.height,
             )
         }
-        (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(attachments, originalSize)
+        (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(attachments)
     }
 
+    /** The preview already read the file's peaks, so a voice message can be sent carrying them. */
+    private fun ContentAttachmentData.withPreviewedWaveform(): ContentAttachmentData {
+        if (waveform != null) return this
+        if (type != ContentAttachmentData.Type.AUDIO && type != ContentAttachmentData.Type.VOICE_MESSAGE) return this
+        val levels = WaveformCache.get(queryUriAndroid) ?: return this
+        return copy(waveform = WaveformCache.asMessageWaveform(levels))
+    }
+
+    /** The activity lays this screen out under the system bars; only the controls inset themselves. */
     private fun applyInsets() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            @Suppress("DEPRECATION")
-            activity?.window?.setDecorFitsSystemWindows(false)
-        } else {
-            @Suppress("DEPRECATION")
-            view?.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerBottomContainer) { v, insets ->
                 val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -576,7 +656,16 @@ class AttachmentsPreviewFragment :
         videoControls?.suspendPlayback()
         val source = original.queryUriAndroid
         val animatedFormat = animatedFormatOf(currentAttachment)
-        if (currentAttachment.isVideoEditable() || animatedFormat != null) {
+        if (currentAttachment.isAudioEditable()) {
+            audioEditorActivityResultLauncher.launch(
+                    AudioEditorActivity.newIntent(
+                            requireContext(),
+                            source,
+                            currentAttachment.name,
+                            record?.edits as? AudioEditorEdits
+                    )
+            )
+        } else if (currentAttachment.isVideoEditable() || animatedFormat != null) {
             // The editor shows the shape it will be sent at, not the source's.
             val compression = state.compressionSettings[state.stableIdOf(currentAttachment)]
             videoEditorActivityResultLauncher.launch(
