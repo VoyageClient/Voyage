@@ -511,11 +511,14 @@ class RoomListFragment :
 
     override fun invalidate() = withState(roomListViewModel) { state ->
         footerController.setData(state)
+        checkEmptyState()
     }
 
     private fun checkEmptyState() {
+        val isInitialSyncInProgress = withState(roomListViewModel) { it.isInitialSyncInProgress }
         val shouldShowEmpty = adapterInfosList.all { it.sectionHeaderAdapter.roomsSectionData.isHidden } &&
-                !adapterInfosList.any { it.sectionHeaderAdapter.roomsSectionData.isLoading }
+                !adapterInfosList.any { it.sectionHeaderAdapter.roomsSectionData.isLoading } &&
+                !isInitialSyncInProgress
         if (shouldShowEmpty) {
             val emptyState = when (roomListParams.displayMode) {
                 RoomListDisplayMode.NOTIFICATIONS -> {

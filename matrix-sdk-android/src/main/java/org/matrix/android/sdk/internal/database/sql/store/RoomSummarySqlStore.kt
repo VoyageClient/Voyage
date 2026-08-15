@@ -127,6 +127,9 @@ internal class RoomSummarySqlStore(
 
     fun clearUnreadCounters(roomId: String) = queries.clearUnreadCounters(roomId)
 
+    fun setUnreadCounters(roomId: String, notificationCount: Int, highlightCount: Int) =
+            queries.updateUnreadCounters(notificationCount.toLong(), highlightCount.toLong(), roomId)
+
     fun resetBreadcrumbsIndex() = queries.resetBreadcrumbsIndex()
 
     fun updateBreadcrumbsIndex(roomId: String, index: Int) = queries.updateBreadcrumbsIndex(index.toLong(), roomId)

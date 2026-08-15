@@ -59,7 +59,10 @@ class PillImageSpan(
         private val glideRequests: GlideRequests,
         private val avatarRenderer: AvatarRenderer,
         private val context: Context,
-        override val matrixItem: MatrixItem
+        override val matrixItem: MatrixItem,
+        // What [expandPillSpans] writes into the outgoing body: the composer passes the un-overridden
+        // name, since a local display-name override means nothing to the rest of the room.
+        val bodyText: String? = null,
 ) : ReplacementSpan(), MatrixItemSpan, ContentHashedSpan {
 
     override fun contentHash() = matrixItem.hashCode()
@@ -72,7 +75,7 @@ class PillImageSpan(
     private var emojiLabelLayout: StaticLayout? = null
     private var emojiLabelLayoutWidth = -1
 
-    // Display-only; the outgoing body built by [expandPillSpans] keeps the real name from matrixItem.
+    // Display-only; the outgoing body built by [expandPillSpans] uses [bodyText].
     private val displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
 
     // Set by createChipDrawable when it picks a generic icon over an avatar; the async avatar render is
@@ -328,7 +331,7 @@ fun CharSequence.expandPillSpans(): CharSequence {
         val start = builder.getSpanStart(span)
         val end = builder.getSpanEnd(span)
         if (start in 0 until end) {
-            val name = span.matrixItem.getBestName()
+            val name = span.bodyText ?: span.matrixItem.getBestName()
             builder.replace(start, end, name)
             builder.setSpan(span, start, start + name.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }

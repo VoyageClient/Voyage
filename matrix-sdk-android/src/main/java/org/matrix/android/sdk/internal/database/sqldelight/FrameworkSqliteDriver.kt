@@ -61,6 +61,15 @@ internal class FrameworkSqliteDriver private constructor(
         }
     }
 
+    @Volatile
+    private var closed = false
+
+    // A released session's flows can still be mid-collection when its database is closed on account
+    // switch, and the framework throws on a closed handle. Cancellation unwinds those collectors quietly.
+    private fun checkOpen() {
+        if (closed) throw SessionDatabaseClosedException()
+    }
+
     private val transactions = ThreadLocal<Transaction?>()
     // Serialises every top-level transaction so the several session DB threads never open two at once.
     private val transactionLock = java.util.concurrent.locks.ReentrantLock()
@@ -81,6 +90,7 @@ internal class FrameworkSqliteDriver private constructor(
             parameters: Int,
             binders: (SqlPreparedStatement.() -> Unit)?,
     ): QueryResult<Long> {
+        checkOpen()
         val perfStart = MatrixPerf.now()
         try {
             // No identifier (e.g. schema DDL) → not reusable, compile once and discard.
@@ -109,6 +119,7 @@ internal class FrameworkSqliteDriver private constructor(
             parameters: Int,
             binders: (SqlPreparedStatement.() -> Unit)?,
     ): QueryResult<R> {
+        checkOpen()
         val perfStart = MatrixPerf.now()
         try {
             val cursor: Cursor = if (binders == null) {
@@ -125,6 +136,7 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     override fun newTransaction(): QueryResult<Transacter.Transaction> {
+        checkOpen()
         val enclosing = transactions.get()
         if (enclosing == null) {
             // Android's beginTransaction always takes SQLite's single writer lock — even for a
@@ -222,6 +234,7 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     override fun close() {
+        closed = true
         statementCache.get()!!.values.forEach { runCatching { it.close() } }
         statementCache.remove()
         openHelper?.close()
@@ -365,3 +378,6 @@ private class FrameworkCursor(private val cursor: Cursor) : SqlCursor {
 
     override fun getBoolean(index: Int): Boolean? = if (cursor.isNull(index)) null else cursor.getLong(index) == 1L
 }
+
+/** Cancellation, not a failure: the session this database belonged to has been released. */
+internal class SessionDatabaseClosedException : java.util.concurrent.CancellationException("session database is closed")

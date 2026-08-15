@@ -31,6 +31,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,6 +47,7 @@ import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
+import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import timber.log.Timber
@@ -100,6 +102,7 @@ class RoomListViewModel @AssistedInject constructor(
 
     init {
         observeMembershipChanges()
+        observeInitialSync()
         vectorPreferences.subscribeToChanges(overrideDisplayPrefListener)
 
         spaceStateHandler.getSelectedSpaceFlow()
@@ -125,6 +128,18 @@ class RoomListViewModel @AssistedInject constructor(
                 .liveRoomChangeMembershipState()
                 .setOnEach {
                     copy(roomMembershipChanges = it)
+                }
+    }
+
+    // A section that has emitted an empty list is indistinguishable from one whose rooms have not
+    // arrived yet, so without this a tab whose sections all resolve early (People, typically) drops to
+    // the empty state mid-initial-sync while the others still show the spinner.
+    private fun observeInitialSync() {
+        setState { copy(isInitialSyncInProgress = !session.syncService().hasAlreadySynced()) }
+        session.syncService().getSyncRequestStateFlow()
+                .filterIsInstance<SyncRequestState.InitialSyncRequestState>()
+                .setOnEach {
+                    copy(isInitialSyncInProgress = it is SyncRequestState.InitialSyncProgressing)
                 }
     }
 

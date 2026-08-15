@@ -53,6 +53,11 @@ SELECT * FROM read_receipt WHERE event_id IN ?;
 selectReceiptForUserInRoom:
 SELECT * FROM read_receipt WHERE room_id = ? AND user_id = ? AND thread_id IS ?;
 
+-- Every receipt of a room in one go: applying a synced batch compares against all of them, and a
+-- per-receipt lookup there costs a query per user per room.
+selectReceiptsInRoom:
+SELECT * FROM read_receipt WHERE room_id = ?;
+
 selectMainTimelineReceiptForUser:
 SELECT * FROM read_receipt WHERE room_id = ? AND user_id = ? AND (thread_id = 'main' OR thread_id IS NULL) LIMIT 1;
 

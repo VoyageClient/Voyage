@@ -101,6 +101,7 @@ internal class SqlReadReceiptHandler @Inject constructor(
     }
 
     private fun initialSyncStrategy(stores: SessionStores, roomId: String, content: ReadReceiptContent, ignoredUserIds: Set<String>) {
+        val known = stores.readReceipt.getReceiptsInRoom(roomId).toMutableMap()
         for ((eventId, receiptDict) in content) {
             val handledUserIds = HashSet<String>()
             val receipts = ArrayList<ReadReceiptEntity>()
@@ -115,16 +116,18 @@ internal class SqlReadReceiptHandler @Inject constructor(
                     receipts.add(receiptEntity(roomId, eventId, userId, threadId, ts))
                 }
             }
-            if (receipts.isNotEmpty()) {
-                stores.readReceipt.upsertSummary(eventId, roomId)
-                receipts.forEach { receipt ->
-                    // Shares a key with the receipt synthesized when a user sends an event, so an
-                    // unguarded write could move that user's receipt backwards in time.
-                    val existing = stores.readReceipt.getReceipt(receipt.roomId, receipt.userId, receipt.threadId)
-                    if (existing == null || receipt.originServerTs > existing.originServerTs) {
-                        stores.readReceipt.upsertReceipt(receipt)
-                    }
+            var summaryWritten = false
+            receipts.forEach { receipt ->
+                // Shares a key with the receipt synthesized when a user sends an event, so an
+                // unguarded write could move that user's receipt backwards in time.
+                val existing = known[receipt.userId to receipt.threadId]
+                if (existing != null && receipt.originServerTs <= existing.originServerTs) return@forEach
+                if (!summaryWritten) {
+                    stores.readReceipt.upsertSummary(eventId, roomId)
+                    summaryWritten = true
                 }
+                stores.readReceipt.upsertReceipt(receipt)
+                known[receipt.userId to receipt.threadId] = receipt
             }
         }
     }
@@ -144,21 +147,30 @@ internal class SqlReadReceiptHandler @Inject constructor(
         doIncrementalSyncStrategy(stores, roomId, content, ignoredUserIds)
     }
 
+    // A room's whole receipt set is read once and compared in memory: an init-sync batch carries a
+    // receipt per member, and a lookup per receipt made draining a busy account a multi-second write
+    // transaction that every other database user queued behind.
     private fun doIncrementalSyncStrategy(stores: SessionStores, roomId: String, content: ReadReceiptContent, ignoredUserIds: Set<String>) {
+        val known = stores.readReceipt.getReceiptsInRoom(roomId).toMutableMap()
         for ((eventId, receiptDict) in content) {
             if (RECEIPT_KEYS.none { receiptDict.containsKey(it) }) continue
-            stores.readReceipt.upsertSummary(eventId, roomId)
+            var summaryWritten = false
             for (receiptKey in RECEIPT_KEYS) {
                 val userIdsDict = receiptDict[receiptKey] ?: continue
                 for ((userId, paramsDict) in userIdsDict) {
                     if (userId in ignoredUserIds) continue
                     val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
                     val threadId = paramsDict[THREAD_ID_KEY] as? String ?: ReadService.THREAD_ID_MAIN
-                    val existing = stores.readReceipt.getReceipt(roomId, userId, threadId)
-                    if (existing == null || ts > existing.originServerTs) {
-                        // upsertReceipt replaces the row at the same primary key, moving it to the new event/ts.
-                        stores.readReceipt.upsertReceipt(receiptEntity(roomId, eventId, userId, threadId, ts))
+                    val existing = known[userId to threadId]
+                    if (existing != null && ts <= existing.originServerTs) continue
+                    if (!summaryWritten) {
+                        stores.readReceipt.upsertSummary(eventId, roomId)
+                        summaryWritten = true
                     }
+                    // upsertReceipt replaces the row at the same primary key, moving it to the new event/ts.
+                    val receipt = receiptEntity(roomId, eventId, userId, threadId, ts)
+                    stores.readReceipt.upsertReceipt(receipt)
+                    known[userId to threadId] = receipt
                 }
             }
         }

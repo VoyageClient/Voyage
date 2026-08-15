@@ -40,6 +40,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.error.fatalError
+import im.vector.app.core.extensions.bodyName
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.extensions.registerStartForActivityResult
@@ -1102,19 +1103,22 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             composer.editText.setSelection(Command.EMOTE.command.length + 1)
         } else {
             val roomMember = timelineViewModel.getMember(userId)
-            val displayName = sanitizeDisplayName(roomMember?.displayName ?: userId)
+            val pillName = sanitizeDisplayName(roomMember?.displayName ?: userId)
+            // The pill draws over this text, so it is only what the plain-text body will carry.
+            val bodyName = sanitizeDisplayName(roomMember?.bodyName() ?: userId)
             val span = PillImageSpan(
                     glideRequests,
                     avatarRenderer,
                     requireContext(),
-                    MatrixItem.UserItem(userId, displayName, roomMember?.avatarUrl),
+                    MatrixItem.UserItem(userId, pillName, roomMember?.avatarUrl),
+                    bodyText = bodyName,
             ).also { it.bind(composer.editText) }
             val pill = buildSpannedString {
-                append(displayName)
-                setPillSpan(span, 0, displayName.length)
+                append(bodyName)
+                setPillSpan(span, 0, bodyName.length)
                 append(" ")
             }
-            if (startToCompose && displayName.startsWith("/")) {
+            if (startToCompose && bodyName.startsWith("/")) {
                 // Ensure displayName will not be interpreted as a Slash command
                 composer.editText.append("\\")
             }

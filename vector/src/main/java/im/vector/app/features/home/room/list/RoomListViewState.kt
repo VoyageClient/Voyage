@@ -22,6 +22,7 @@ data class RoomListViewState(
         val asyncSuggestedRooms: Async<List<SpaceChildInfo>> = Uninitialized,
         val currentUserName: String? = null,
         val asyncSelectedSpace: Async<RoomSummary?> = Uninitialized,
+        val isInitialSyncInProgress: Boolean = false,
 ) : MavericksState {
 
     constructor(args: RoomListParams) : this(displayMode = args.displayMode)
