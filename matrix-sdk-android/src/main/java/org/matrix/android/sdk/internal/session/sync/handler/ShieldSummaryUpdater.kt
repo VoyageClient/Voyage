@@ -42,7 +42,7 @@ internal class ShieldSummaryUpdater @Inject constructor(
                 filename = updateTrustWorkerDataRepository.createParam(emptyList(), roomIds = roomIds.toList())
         )
         backgroundTaskScheduler.enqueueUnique(
-                "TRUST_UPDATE_QUEUE",
+                "TRUST_UPDATE_QUEUE_$sessionId",
                 BackgroundQueuePolicy.APPEND_OR_REPLACE,
                 backgroundTask(BackgroundTaskType.UPDATE_TRUST, workerParams)
         )

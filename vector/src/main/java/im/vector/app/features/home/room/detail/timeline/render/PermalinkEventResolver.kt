@@ -57,9 +57,11 @@ class PermalinkEventResolver @Inject constructor(
      * and listeners are notified when it resolves.
      */
     fun getSender(roomId: String, eventId: String): Sender? {
-        val key = "$roomId/$eventId"
-        synchronized(senders) { senders[key] }?.let { return it }
         val session = sessionHolder.getSafeActiveSession() ?: return null
+        // Session-keyed: sender/membership resolution differs per account, and one account's
+        // failures must not suppress the other's lookups after a switch.
+        val key = "${session.sessionId}/$roomId/$eventId"
+        synchronized(senders) { senders[key] }?.let { return it }
         val cachedSenderId = session.eventService().getEventFromCache(roomId, eventId)?.senderId
         if (cachedSenderId != null) {
             return session.toSender(roomId, cachedSenderId).also { synchronized(senders) { senders[key] = it } }

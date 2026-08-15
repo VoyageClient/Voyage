@@ -25,8 +25,6 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.flow.flow
-import org.matrix.android.sdk.flow.unwrap
-import timber.log.Timber
 
 class UserColorAccountDataViewModel @AssistedInject constructor(
         @Assisted initialState: VectorDummyViewState,
@@ -48,14 +46,10 @@ class UserColorAccountDataViewModel @AssistedInject constructor(
     private fun observeAccountData() {
         session.flow()
                 .liveUserAccountData(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
-                .unwrap()
-                .map { it.content.toModel<Map<String, String>>() }
-                .onEach { userColorAccountDataContent ->
-                    if (userColorAccountDataContent == null) {
-                        Timber.w("Invalid account data im.vector.setting.override_colors")
-                    }
-                    matrixItemColorProvider.setOverrideColors(userColorAccountDataContent)
-                }
+                // No unwrap(): an account without the event must still clear any overrides a
+                // previously active account installed.
+                .map { it.getOrNull()?.content?.toModel<Map<String, String>>() }
+                .onEach { matrixItemColorProvider.setOverrideColors(it) }
                 .launchIn(viewModelScope)
     }
 

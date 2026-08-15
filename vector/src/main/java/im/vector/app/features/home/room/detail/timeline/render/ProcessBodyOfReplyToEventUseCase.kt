@@ -117,12 +117,13 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         // preview. Falls back to the bare Event from the cross-room event cache, then to any
         // on-demand fetch result.
         val timelineEvent = getTimelineEvent(eventId, roomId)
+        val session = activeSessionHolder.getSafeActiveSession()
         val repliedToEvent = timelineEvent?.root
-                ?: activeSessionHolder.getSafeActiveSession()?.eventService()?.getEventFromCache(roomId, eventId)
-                ?: fetchedEvents[eventId]
+                ?: session?.eventService()?.getEventFromCache(roomId, eventId)
+                ?: fetchedEvents[cacheKey(session?.sessionId, eventId)]
         val latestContent = timelineEvent?.getLastMessageContent()
 
-        if (repliedToEvent == null && !failedFetches.contains(eventId)) {
+        if (repliedToEvent == null && !failedFetches.contains(cacheKey(session?.sessionId, eventId))) {
             triggerFetch(roomId, eventId)
         } else if (repliedToEvent?.getClearType() == EventType.ENCRYPTED) {
             // Resolved from the local DB but not decrypted yet (the live timeline may already
@@ -260,6 +261,10 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         }
     }
 
+    // The caches are shared across account switches; keying by session too keeps one account's
+    // fetch results (or permanent failures) from being served to another in a shared room.
+    private fun cacheKey(sessionId: String?, eventId: String) = "$sessionId|$eventId"
+
     private fun watchForDecryption(roomId: String, eventId: String) {
         if (!decryptionWatches.add(eventId)) return
         fetchScope.launch {
@@ -355,13 +360,11 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             .replace("'", "&#39;")
 
     private fun triggerFetch(roomId: String, eventId: String) {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return
+        val key = cacheKey(session.sessionId, eventId)
         // Don't retry a fetch we already know has failed for this process lifetime.
-        if (failedFetches.contains(eventId)) return
-        if (!inflightFetches.add(eventId)) return
-        val session = activeSessionHolder.getSafeActiveSession() ?: run {
-            inflightFetches.remove(eventId)
-            return
-        }
+        if (failedFetches.contains(key)) return
+        if (!inflightFetches.add(key)) return
         fetchScope.launch {
             var succeeded = false
             try {
@@ -369,16 +372,16 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
                 // start doesn't need to re-fetch.
                 val event = session.eventService().ensureEventCached(roomId, eventId)
                 if (event != null) {
-                    fetchedEvents[eventId] = event
+                    fetchedEvents[key] = event
                     succeeded = true
                 }
             } catch (_: Throwable) {
                 // Treated as a fetch failure below.
             } finally {
                 if (!succeeded) {
-                    failedFetches.add(eventId)
+                    failedFetches.add(key)
                 }
-                inflightFetches.remove(eventId)
+                inflightFetches.remove(key)
                 // Notify regardless of outcome — the UI needs to refresh either way: on
                 // success to swap in the real preview, on failure to settle the unresolved
                 // message text.

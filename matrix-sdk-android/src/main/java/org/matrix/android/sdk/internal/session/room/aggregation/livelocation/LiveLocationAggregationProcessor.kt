@@ -101,7 +101,7 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
         endOfLiveTimestampMillis ?: return
 
         val workParams = DeactivateLiveLocationShareWorker.Params(sessionId = sessionId, eventId = eventId, roomId = roomId)
-        val workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = eventId, roomId = roomId)
+        val workName = DeactivateLiveLocationShareWorker.getWorkName(sessionId = sessionId, eventId = eventId, roomId = roomId)
         val workDelayMillis = (endOfLiveTimestampMillis - clock.epochMillis()).coerceAtLeast(0)
         Timber.d("scheduling deactivation of $eventId after $workDelayMillis millis")
         backgroundTaskScheduler.enqueueUnique(
@@ -117,7 +117,7 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
     }
 
     private fun cancelDeactivationAfterTimeout(eventId: String, roomId: String) {
-        val workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = eventId, roomId = roomId)
+        val workName = DeactivateLiveLocationShareWorker.getWorkName(sessionId = sessionId, eventId = eventId, roomId = roomId)
         backgroundTaskScheduler.cancelUniqueQueue(workName)
     }
 

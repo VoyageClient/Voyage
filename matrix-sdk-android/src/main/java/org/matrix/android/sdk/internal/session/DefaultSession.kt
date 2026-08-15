@@ -157,7 +157,9 @@ internal class DefaultSession @Inject constructor(
     }
 
     override fun close() {
-        assert(sessionState.isOpen)
+        // Idempotent: release paths can reach an already-closed (or never-opened) session,
+        // and a second close would re-dispatch onSessionStopped to every observer.
+        if (!sessionState.isOpen) return
         syncService.get().stopSync()
         // timelineEventDecryptor.destroy()
         uiHandler.post {

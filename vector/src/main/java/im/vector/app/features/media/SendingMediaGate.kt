@@ -68,6 +68,16 @@ class SendingMediaGate @Inject constructor(
         return synchronized(lock) { inFlight.contains(eventId) }
     }
 
+    /** Account switch: a decode still in flight would otherwise hold its row blank forever. */
+    fun clearAll() {
+        handler.removeCallbacksAndMessages(null)
+        synchronized(lock) {
+            settled.clear()
+            inFlight.clear()
+        }
+        onRequestBuild = null
+    }
+
     private fun settle(key: String) {
         synchronized(lock) {
             if (settled.put(key, true) != null) return

@@ -32,7 +32,8 @@ internal class SessionManager @Inject constructor(
         private val sessionParamsStore: SessionParamsStore
 ) {
 
-    // SessionId -> SessionComponent
+    // SessionId -> SessionComponent. Accessed from workers, push handling and the release
+    // path concurrently, so every access goes through the lock.
     private val sessionComponents = HashMap<String, SessionComponent>()
 
     fun getSessionComponent(sessionId: String): SessionComponent? {
@@ -52,24 +53,24 @@ internal class SessionManager @Inject constructor(
     }
 
     fun releaseSession(sessionId: String) {
-        if (sessionComponents.containsKey(sessionId).not()) {
-            throw RuntimeException("You don't have a session for id $sessionId")
-        }
-        sessionComponents.remove(sessionId)?.also {
-            it.session().close()
-        }
+        val component = synchronized(sessionComponents) { sessionComponents.remove(sessionId) } ?: return
+        runCatching { component.session().close() }
+        component.sessionReleasables().forEach { runCatching { it.onSessionReleased() } }
     }
 
     fun stopSession(sessionId: String) {
-        val sessionComponent = sessionComponents[sessionId] ?: throw RuntimeException("You don't have a session for id $sessionId")
+        val sessionComponent = synchronized(sessionComponents) { sessionComponents[sessionId] }
+                ?: throw RuntimeException("You don't have a session for id $sessionId")
         sessionComponent.session().syncService().stopSync()
     }
 
     fun getOrCreateSessionComponent(sessionParams: SessionParams): SessionComponent {
-        return sessionComponents.getOrPut(sessionParams.credentials.sessionId()) {
-            DaggerSessionComponent
-                    .factory()
-                    .create(matrixComponent, sessionParams)
+        return synchronized(sessionComponents) {
+            sessionComponents.getOrPut(sessionParams.credentials.sessionId()) {
+                DaggerSessionComponent
+                        .factory()
+                        .create(matrixComponent, sessionParams)
+            }
         }
     }
 }

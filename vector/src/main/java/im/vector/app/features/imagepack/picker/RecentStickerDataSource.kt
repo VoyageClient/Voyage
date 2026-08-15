@@ -7,7 +7,7 @@
 
 package im.vector.app.features.imagepack.picker
 
-import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.ActiveSessionDataSource
 import im.vector.app.features.imagepack.ResolvedImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -35,7 +36,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class RecentStickerDataSource @Inject constructor(
-        private val activeSessionHolder: ActiveSessionHolder,
+        private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -51,18 +52,24 @@ class RecentStickerDataSource @Inject constructor(
     }
 
     fun recordStickerUse(image: ResolvedImage) {
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return
         synchronized(pending) {
             pending.add(image)
             flushJob?.cancel()
             flushJob = coroutineScope.launch {
                 delay(FLUSH_DEBOUNCE_MS)
-                withContext(NonCancellable) { flushPending() }
+                withContext(NonCancellable) { flushPending(session) }
             }
         }
     }
 
-    private suspend fun flushPending() {
-        val session = activeSessionHolder.getSafeActiveSession() ?: return
+    private suspend fun flushPending(session: Session) {
+        // The account may have switched during the debounce; the buffered uses belong to the
+        // previous account and must not be written into the new one's data.
+        if (activeSessionDataSource.currentValue?.orNull()?.sessionId != session.sessionId) {
+            synchronized(pending) { pending.clear() }
+            return
+        }
         writeMutex.withLock {
             val toApply = synchronized(pending) { pending.toList().also { pending.clear() } }
             if (toApply.isEmpty()) return@withLock
@@ -84,8 +91,8 @@ class RecentStickerDataSource @Inject constructor(
     // No-op on empty [validMxcs] (packs not loaded yet) so a transient doesn't wipe the list.
     fun pruneToValidMxcs(validMxcs: Set<String>) {
         if (validMxcs.isEmpty()) return
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return
         coroutineScope.launch {
-            val session = activeSessionHolder.getSafeActiveSession() ?: return@launch
             writeMutex.withLock {
                 val current = parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_STICKERS)?.content)
                 val kept = current.filter { it.first.mxcUrl in validMxcs }
@@ -103,7 +110,7 @@ class RecentStickerDataSource @Inject constructor(
     }
 
     private fun read(): List<Pair<ResolvedImage, Int>> {
-        val session = activeSessionHolder.getSafeActiveSession() ?: return emptyList()
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return emptyList()
         return parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_STICKERS)?.content)
     }
 

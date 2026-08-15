@@ -832,7 +832,7 @@ internal class DefaultCrossSigningService @Inject constructor(
                 filename = updateTrustWorkerDataRepository.createParam(userIds)
         )
         backgroundTaskScheduler.enqueueUnique(
-                "TRUST_UPDATE_QUEUE",
+                "TRUST_UPDATE_QUEUE_$sessionId",
                 BackgroundQueuePolicy.APPEND_OR_REPLACE,
                 backgroundTask(BackgroundTaskType.UPDATE_TRUST, workerParams)
         )

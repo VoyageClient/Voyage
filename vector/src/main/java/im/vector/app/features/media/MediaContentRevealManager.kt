@@ -36,4 +36,9 @@ class MediaContentRevealManager @Inject constructor() {
             _revealedEvents.tryEmit(eventId)
         }
     }
+
+    /** Reveal decisions are per-account; called when the active account switches. */
+    fun clearAll() {
+        revealedEventIds.clear()
+    }
 }

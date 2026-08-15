@@ -7,6 +7,8 @@
 
 package org.matrix.android.sdk.internal.session.search.index
 
+import org.matrix.android.sdk.internal.session.SessionReleasable
+import app.cash.sqldelight.db.SqlDriver
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
@@ -44,18 +46,28 @@ internal data class IndexCheckpoint(
 internal class EventIndexStore @Inject constructor(
         @SessionFilesDirectory private val directory: File,
         private val driverFactory: SqlDriverFactory,
-) {
+) : SessionReleasable {
 
     // Like the session database, the driver and its thread live as long as the session component:
-    // a stopped session may be reopened, so there is no teardown hook to close them on.
-    private val dispatcher = Executors.newSingleThreadExecutor { runnable ->
+    // a stopped session may be reopened, so teardown happens on component release only.
+    private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "event_index_db")
-    }.asCoroutineDispatcher()
+    }
+    private val dispatcher = executor.asCoroutineDispatcher()
+
+    @Volatile
+    private var driver: SqlDriver? = null
 
     private val database by lazy {
         EventIndexSqlDatabase(
-                driverFactory.create(EventIndexSqlDatabase.Schema, File(directory, "event_index.db"))
+                driverFactory.create(EventIndexSqlDatabase.Schema, File(directory, "event_index.db")).also { driver = it }
         )
+    }
+
+    override fun onSessionReleased() {
+        // Serialized behind any in-flight queries; the dedicated thread then exits.
+        executor.execute { runCatching { driver?.close() } }
+        executor.shutdown()
     }
 
     private val queries get() = database.eventIndexQueries

@@ -26,11 +26,16 @@ internal class ProfileOverridesLoader @Inject constructor(
 ) : SessionLifecycleObserver {
 
     override fun onSessionStarted(session: Session) {
+        ProfileOverrides.claim(session.sessionId)
         taskExecutor.executorScope.launch {
             val content = stores.accountData.getUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
                     ?.contentStr
                     ?.let(ContentMapper::map)
-            ProfileOverrides.set(ProfileOverrides.parse(content))
+            ProfileOverrides.set(session.sessionId, ProfileOverrides.parse(content))
         }
+    }
+
+    override fun onSessionStopped(session: Session) {
+        ProfileOverrides.release(session.sessionId)
     }
 }

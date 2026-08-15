@@ -136,5 +136,8 @@ class InvitesAcceptor @Inject constructor(
     override fun onSessionStopped(session: Session) {
         session.removeListener(this)
         activeSessionIds.remove(session.sessionId)
+        // roomIds are meaningless across accounts; a leftover would auto-reject another
+        // account's invite to the same room.
+        shouldRejectRoomIds.clear()
     }
 }

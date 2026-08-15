@@ -250,6 +250,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/crypto/verification/VerificationInfo*.kt',
         'org/matrix/android/sdk/internal/session/presence/model/**',
         'org/matrix/android/sdk/internal/session/SessionScope.kt',
+        'org/matrix/android/sdk/internal/session/SessionReleasable.kt',
         'org/matrix/android/sdk/api/session/profile/ProfileKeys.kt',
         'org/matrix/android/sdk/api/session/profile/ProfileOverrides.kt',
         'org/matrix/android/sdk/api/session/profile/Pronoun.kt',

@@ -58,7 +58,7 @@ internal class DefaultSyncService @Inject constructor(
     }
 
     override fun stopAnyBackgroundSync() {
-        SyncWorker.stopAnyBackgroundSync(backgroundTaskScheduler)
+        SyncWorker.stopAnyBackgroundSync(backgroundTaskScheduler, sessionId)
     }
 
     @Synchronized

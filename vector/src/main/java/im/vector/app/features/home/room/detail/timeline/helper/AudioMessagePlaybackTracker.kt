@@ -56,6 +56,12 @@ class AudioMessagePlaybackTracker @Inject constructor() {
         states.keys.toList().forEach { setState(it, Listener.State.Idle) }
     }
 
+    /** Account switch: eventId-keyed state must not carry over to a same-id row in another account. */
+    fun clearAllStates() {
+        resetAllPlaybackStates()
+        states.clear()
+    }
+
     /**
      * Set state and notify the listeners.
      */

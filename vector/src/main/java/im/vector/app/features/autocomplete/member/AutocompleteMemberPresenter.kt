@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,7 +68,7 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
     fun clear() {
         controller.listener = null
         queryJob?.cancel()
-        queryScope.coroutineContext[Job]?.cancel()
+        queryScope.coroutineContext.cancelChildren()
     }
 
     @AssistedFactory

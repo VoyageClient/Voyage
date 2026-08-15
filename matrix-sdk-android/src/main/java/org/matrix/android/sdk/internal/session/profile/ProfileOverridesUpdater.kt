@@ -10,11 +10,13 @@ package org.matrix.android.sdk.internal.session.profile
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import javax.inject.Inject
 
 /** Applies a changed `im.voyage.setting.profile_overrides` content and refreshes affected room summaries. */
 internal class ProfileOverridesUpdater @Inject constructor(
+        @SessionId private val sessionId: String,
         private val stores: SessionStores,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
 ) {
@@ -23,7 +25,7 @@ internal class ProfileOverridesUpdater @Inject constructor(
         val old = ProfileOverrides.overrides
         val new = ProfileOverrides.parse(content)
         if (new == old) return
-        ProfileOverrides.set(new)
+        if (!ProfileOverrides.set(sessionId, new)) return
         val changedUsers = (old.keys + new.keys).filter { old[it] != new[it] }
         stores.roomSummary.roomIdsWithActiveMembers(changedUsers).forEach {
             roomSummaryUpdater.refreshDisplay(stores, it)

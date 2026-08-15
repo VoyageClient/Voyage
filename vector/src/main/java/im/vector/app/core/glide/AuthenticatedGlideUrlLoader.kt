@@ -14,6 +14,7 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
+import com.bumptech.glide.signature.ObjectKey
 import im.vector.app.core.extensions.singletonEntryPoint
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -53,6 +54,9 @@ class AuthenticatedGlideUrlLoader(
 
     override fun buildLoadData(model: GlideUrl, width: Int, height: Int, options: Options): ModelLoader.LoadData<InputStream> {
         val fetcher = OkHttpStreamFetcher(callFactory, model)
-        return ModelLoader.LoadData(model, fetcher)
+        // Authenticated media is only readable per-account; a url-only key would let another
+        // account on this device replay this one's cached media from the shared Glide cache.
+        val sessionId = activeSessionHolder.getSafeActiveSession()?.sessionId.orEmpty()
+        return ModelLoader.LoadData(ObjectKey("$sessionId:${model.toStringUrl()}"), fetcher)
     }
 }
