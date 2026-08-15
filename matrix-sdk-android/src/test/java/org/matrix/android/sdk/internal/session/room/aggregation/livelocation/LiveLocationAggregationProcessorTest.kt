@@ -183,7 +183,7 @@ internal class LiveLocationAggregationProcessorTest {
         aggregatedEntity.lastLocationContent shouldBeEqualTo null
         db.stores.liveLocation.get(previousEventId)!!.isActive shouldBeEqualTo false
         fakeBackgroundTaskScheduler.verifyEnqueueUnique(
-                queueName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID),
+                queueName = DeactivateLiveLocationShareWorker.getWorkName(sessionId = A_SESSION_ID, eventId = AN_EVENT_ID, roomId = A_ROOM_ID),
                 policy = BackgroundQueuePolicy.REPLACE
         )
     }
@@ -229,7 +229,7 @@ internal class LiveLocationAggregationProcessorTest {
         aggregatedEntity.lastLocationContent shouldBeEqualTo null
         db.stores.liveLocation.get(previousEventId)!!.isActive shouldBeEqualTo false
         fakeBackgroundTaskScheduler.verifyCancelUniqueQueue(
-                queueName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
+                queueName = DeactivateLiveLocationShareWorker.getWorkName(sessionId = A_SESSION_ID, eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
         )
     }
 

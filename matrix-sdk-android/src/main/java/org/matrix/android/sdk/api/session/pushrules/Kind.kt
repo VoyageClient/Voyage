@@ -18,7 +18,8 @@ package org.matrix.android.sdk.api.session.pushrules
 
 enum class Kind(val value: String) {
     EventMatch("event_match"),
-    ContainsDisplayName("contains_display_name"),
+    EventPropertyIs("event_property_is"),
+    EventPropertyContains("event_property_contains"),
     RoomMemberCount("room_member_count"),
     SenderNotificationPermission("sender_notification_permission"),
     Unrecognised("");
@@ -28,7 +29,8 @@ enum class Kind(val value: String) {
         fun fromString(value: String): Kind {
             return when (value) {
                 "event_match" -> EventMatch
-                "contains_display_name" -> ContainsDisplayName
+                "event_property_is" -> EventPropertyIs
+                "event_property_contains" -> EventPropertyContains
                 "room_member_count" -> RoomMemberCount
                 "sender_notification_permission" -> SenderNotificationPermission
                 else -> Unrecognised

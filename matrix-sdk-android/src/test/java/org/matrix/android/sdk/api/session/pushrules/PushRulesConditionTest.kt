@@ -306,30 +306,39 @@ class PushRulesConditionTest : MatrixTest {
     }
 
     /* ==========================================================================================
-     * Test ContainsDisplayNameCondition
+     * Test the intentional mention conditions
      * ========================================================================================== */
 
+    private fun mentionEvent(mentions: Map<String, Any>) = Event(
+            type = "m.room.message",
+            eventId = "mx0",
+            content = MessageTextContent("m.text", "How was the cake benoit?").toContent()
+                    .plus("m.mentions" to mentions),
+            originServerTs = 0,
+            roomId = "2joined"
+    )
+
     @Test
-    fun test_displayName_condition() {
-        val condition = ContainsDisplayNameCondition()
+    fun test_user_mention_condition() {
+        val condition = EventPropertyContainsCondition("content.m\\.mentions.user_ids", "@benoit:matrix.org")
 
-        val event = Event(
-                type = "m.room.message",
-                eventId = "mx0",
-                content = MessageTextContent("m.text", "How was the cake benoit?").toContent(),
-                originServerTs = 0,
-                roomId = "2joined"
-        )
+        condition.isSatisfied(mentionEvent(mapOf("user_ids" to listOf("@benoit:matrix.org")))) shouldBe true
+        condition.isSatisfied(mentionEvent(mapOf("user_ids" to listOf("@alice:matrix.org", "@benoit:matrix.org")))) shouldBe true
 
-        condition.isSatisfied(event, "how") shouldBe true
-        condition.isSatisfied(event, "How") shouldBe true
-        condition.isSatisfied(event, "benoit") shouldBe true
-        condition.isSatisfied(event, "Benoit") shouldBe true
-        condition.isSatisfied(event, "cake") shouldBe true
+        condition.isSatisfied(mentionEvent(mapOf("user_ids" to listOf("@alice:matrix.org")))) shouldBe false
+        condition.isSatisfied(mentionEvent(mapOf("room" to true))) shouldBe false
+        // The body naming someone is not a mention any more.
+        condition.isSatisfied(mentionEvent(emptyMap())) shouldBe false
+    }
 
-        condition.isSatisfied(event, "ben") shouldBe false
-        condition.isSatisfied(event, "oit") shouldBe false
-        condition.isSatisfied(event, "enoi") shouldBe false
-        condition.isSatisfied(event, "H") shouldBe false
+    @Test
+    fun test_room_mention_condition() {
+        val condition = EventPropertyIsCondition("content.m\\.mentions.room", true)
+
+        condition.isSatisfied(mentionEvent(mapOf("room" to true))) shouldBe true
+
+        condition.isSatisfied(mentionEvent(mapOf("room" to false))) shouldBe false
+        condition.isSatisfied(mentionEvent(mapOf("user_ids" to listOf("@benoit:matrix.org")))) shouldBe false
+        condition.isSatisfied(mentionEvent(emptyMap())) shouldBe false
     }
 }

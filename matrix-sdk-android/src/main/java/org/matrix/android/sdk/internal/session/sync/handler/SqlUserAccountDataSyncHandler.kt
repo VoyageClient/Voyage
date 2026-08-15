@@ -103,7 +103,8 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         val global = pushRules.global
         fun save(kind: RuleSetKey, rules: List<org.matrix.android.sdk.api.session.pushrules.rest.PushRule>?) {
             val entity = PushRulesEntity(RuleScope.GLOBAL).apply { this.kind = kind }
-            rules?.forEach { entity.pushRules.add(PushRulesMapper.map(it)) }
+            rules?.filterNot { it.ruleId in org.matrix.android.sdk.api.session.pushrules.RuleIds.LEGACY_MENTION_RULE_IDS }
+                    ?.forEach { entity.pushRules.add(PushRulesMapper.map(it)) }
             stores.pushRules.upsert(entity)
         }
         save(RuleSetKey.CONTENT, global.content)
