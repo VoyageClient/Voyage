@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.util.Optional
@@ -29,6 +30,7 @@ import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.session.profile.ProfileOverridesUpdater
 import org.matrix.android.sdk.internal.session.room.accountdata.RoomAccountDataDataSource
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.task.configureWith
@@ -43,6 +45,7 @@ internal class DefaultSessionAccountDataService @Inject constructor(
         private val userAccountDataDataSource: UserAccountDataDataSource,
         private val roomAccountDataDataSource: RoomAccountDataDataSource,
         private val taskExecutor: TaskExecutor,
+        private val profileOverridesUpdater: ProfileOverridesUpdater,
 ) : SessionAccountDataService {
 
     override fun getUserAccountDataEvent(type: String): UserAccountDataEvent? =
@@ -78,6 +81,12 @@ internal class DefaultSessionAccountDataService @Inject constructor(
                 stores.accountData.deleteUserAccountData(type)
             } else {
                 stores.accountData.upsertUserAccountData(type, ContentMapper.map(content))
+            }
+        }
+        if (type == UserAccountDataTypes.TYPE_PROFILE_OVERRIDES) {
+            // Off the caller's (usually main) thread: applying rewrites affected room summaries.
+            database.awaitDbTransaction(dispatcher) {
+                profileOverridesUpdater.apply(content)
             }
         }
     }

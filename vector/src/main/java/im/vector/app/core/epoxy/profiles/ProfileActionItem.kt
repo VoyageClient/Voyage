@@ -8,9 +8,11 @@
 package im.vector.app.core.epoxy.profiles
 
 import android.content.res.ColorStateList
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.widget.ImageViewCompat
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -95,13 +97,19 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
         }
 
         if (accessoryRes != 0) {
+            holder.secondaryAccessory.updateLayoutParams {
+                width = ViewGroup.LayoutParams.WRAP_CONTENT
+                height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
             holder.secondaryAccessory.setImageResource(accessoryRes)
             holder.secondaryAccessory.isVisible = true
-        } else {
-            holder.secondaryAccessory.isVisible = false
-        }
-
-        if (accessoryMatrixItem != null) {
+        } else if (accessoryMatrixItem != null) {
+            // Same size as the settings avatar widget; wrap_content can't size an async avatar load.
+            val size = (40 * holder.view.resources.displayMetrics.density).toInt()
+            holder.secondaryAccessory.updateLayoutParams {
+                width = size
+                height = size
+            }
             avatarRenderer?.render(accessoryMatrixItem!!, holder.secondaryAccessory)
             holder.secondaryAccessory.isVisible = true
         } else {

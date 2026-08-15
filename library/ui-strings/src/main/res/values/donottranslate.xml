@@ -434,6 +434,10 @@
     <string name="room_personalization_title" translatable="false">Your appearance in this room</string>
     <string name="room_personalization_reset" translatable="false">Reset</string>
     <string name="room_personalization_reset_confirmation" translatable="false">Reset your display name and avatar in this room to your account-wide ones?</string>
+    <string name="room_personalization_room_override_title" translatable="false">Room name &amp; avatar</string>
+    <string name="room_personalization_room_override_reset_confirmation" translatable="false">Remove your personal name and avatar for this room?</string>
+    <string name="user_personalization_section" translatable="false">Personalization</string>
+    <string name="user_personalization_reset_confirmation" translatable="false">Remove your personal overrides for this user?</string>
     <string name="notice_avatar_removed" translatable="false">%1$s removed their avatar</string>
     <string name="notice_avatar_removed_by_you" translatable="false">You removed your avatar</string>
     <string name="notice_avatar_removed_too" translatable="false">(avatar was removed too)</string>

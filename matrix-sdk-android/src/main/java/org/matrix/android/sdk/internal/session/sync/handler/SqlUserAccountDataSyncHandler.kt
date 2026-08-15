@@ -23,6 +23,7 @@ import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.PushRulesEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.UserId
+import org.matrix.android.sdk.internal.session.profile.ProfileOverridesUpdater
 import org.matrix.android.sdk.internal.session.pushers.GetPushRulesResponse
 import org.matrix.android.sdk.internal.session.room.SqlRoomAvatarResolver
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomDisplayNameResolver
@@ -48,6 +49,7 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val ignoredUsersUpdater: IgnoredUsersUpdater,
+        private val profileOverridesUpdater: ProfileOverridesUpdater,
 ) {
 
     // If we get some direct chat invites, synchronize the user account data including those.
@@ -83,6 +85,7 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
                 UserAccountDataTypes.TYPE_PUSH_RULES -> handlePushRules(event)
                 UserAccountDataTypes.TYPE_IGNORED_USER_LIST -> handleIgnoredUsers(event, aggregator)
                 UserAccountDataTypes.TYPE_BREADCRUMBS -> handleBreadcrumbs(event)
+                UserAccountDataTypes.TYPE_PROFILE_OVERRIDES -> profileOverridesUpdater.apply(event.content)
             }
         }
     }

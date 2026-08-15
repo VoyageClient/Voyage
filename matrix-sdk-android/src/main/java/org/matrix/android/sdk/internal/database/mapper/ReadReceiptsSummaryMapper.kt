@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.database.mapper
 
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
@@ -46,7 +47,11 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
                                 "globalUser=${stores.user.getUser(receipt.userId) != null}"
                 )
             }
-            ReadReceipt(user, receipt.originServerTs.toLong(), receipt.threadId)
+            val effectiveUser = user.copy(
+                    displayName = ProfileOverrides.displayNameFor(receipt.userId) ?: user.displayName,
+                    avatarUrl = ProfileOverrides.avatarUrlFor(receipt.userId) ?: user.avatarUrl,
+            )
+            ReadReceipt(effectiveUser, receipt.originServerTs.toLong(), receipt.threadId)
         }
     }
 

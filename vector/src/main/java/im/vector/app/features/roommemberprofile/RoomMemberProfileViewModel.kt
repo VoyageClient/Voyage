@@ -41,6 +41,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
@@ -53,6 +54,7 @@ import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
@@ -182,6 +184,31 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     }
                 }
                 .launchIn(viewModelScope)
+
+        session.flow()
+                .liveUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
+                .unwrap()
+                .onEach { event ->
+                    val fields = ProfileOverrides.parse(event.content)[initialState.userId]
+                    val overrideName = (fields?.get(ProfileOverrides.FIELD_DISPLAY_NAME) as? String)?.takeIf { it.isNotBlank() }
+                    val overrideAvatar = (fields?.get(ProfileOverrides.FIELD_AVATAR_URL) as? String)?.takeIf { it.isNotBlank() }
+                    val base = bestKnownMatrixItem()
+                    setState {
+                        copy(
+                                profileOverrideDisplayName = overrideName,
+                                profileOverrideAvatarUrl = overrideAvatar,
+                                hasProfileOverrides = !fields.isNullOrEmpty(),
+                                userMatrixItem = Success(
+                                        MatrixItem.UserItem(
+                                                initialState.userId,
+                                                overrideName ?: base.displayName,
+                                                overrideAvatar ?: base.avatarUrl,
+                                        )
+                                ),
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
     }
 
     private fun observeIgnoredState() {
@@ -207,7 +234,67 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             RoomMemberProfileAction.RedactAllMessages -> handleRedactAllMessages()
             RoomMemberProfileAction.InviteUser -> handleInviteAction()
             is RoomMemberProfileAction.SetUserColorOverride -> handleSetUserColorOverride(action)
+            is RoomMemberProfileAction.SetProfileOverrideDisplayName -> handleSetProfileOverrideDisplayName(action)
+            is RoomMemberProfileAction.SetProfileOverrideAvatar -> handleSetProfileOverrideAvatar(action)
+            RoomMemberProfileAction.ResetProfileOverrides -> handleResetProfileOverrides()
             is RoomMemberProfileAction.OpenOrCreateDm -> handleOpenOrCreateDm(action)
+        }
+    }
+
+    private fun handleSetProfileOverrideDisplayName(action: RoomMemberProfileAction.SetProfileOverrideDisplayName) {
+        updateProfileOverrideFields { fields ->
+            val name = action.displayName?.trim()?.takeIf { it.isNotBlank() }
+            if (name != null) fields[ProfileOverrides.FIELD_DISPLAY_NAME] = name else fields.remove(ProfileOverrides.FIELD_DISPLAY_NAME)
+        }
+    }
+
+    private fun handleSetProfileOverrideAvatar(action: RoomMemberProfileAction.SetProfileOverrideAvatar) {
+        viewModelScope.launch {
+            val url = if (action.avatarUri == null) {
+                null
+            } else {
+                _viewEvents.post(RoomMemberProfileViewEvents.Loading())
+                try {
+                    session.fileService().uploadFile(action.avatarUri.toString(), action.avatarUri.lastPathSegment, MimeTypes.Jpeg)
+                } catch (failure: Throwable) {
+                    _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                    _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                    return@launch
+                }
+            }
+            updateProfileOverrideFields { fields ->
+                if (url != null) fields[ProfileOverrides.FIELD_AVATAR_URL] = url else fields.remove(ProfileOverrides.FIELD_AVATAR_URL)
+            }
+        }
+    }
+
+    private fun handleResetProfileOverrides() {
+        updateProfileOverrideFields { it.clear() }
+    }
+
+    /** Rewrites this user's entry of the profile-overrides account data; an emptied entry is removed. */
+    private fun updateProfileOverrideFields(mutate: (MutableMap<String, Any?>) -> Unit) {
+        val content = session.accountDataService()
+                .getUserAccountDataEvent(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
+                ?.content
+                .orEmpty()
+                .toMutableMap()
+        val fields = (content[initialState.userId] as? Map<*, *>)
+                .orEmpty()
+                .entries
+                .mapNotNull { (key, value) -> (key as? String)?.let { it to value } }
+                .toMap()
+                .toMutableMap()
+        mutate(fields)
+        if (fields.isEmpty()) content.remove(initialState.userId) else content[initialState.userId] = fields
+        viewModelScope.launch {
+            try {
+                session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES, content)
+                _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+            } catch (failure: Throwable) {
+                _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+            }
         }
     }
 

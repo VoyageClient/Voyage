@@ -17,6 +17,21 @@
 
     </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
 
+    <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
+        android:key="SETTINGS_ROOM_OVERRIDE_CATEGORY_KEY"
+        android:title="@string/room_personalization_room_override_title">
+
+        <im.vector.app.core.preference.UserAvatarPreference
+            android:key="SETTINGS_ROOM_OVERRIDE_AVATAR_KEY"
+            android:title="@string/avatar" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_ROOM_OVERRIDE_NAME_KEY"
+            android:persistent="false"
+            android:title="@string/room_settings_name_hint" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
+
     <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
         android:title="@string/room_personalization_media_category">

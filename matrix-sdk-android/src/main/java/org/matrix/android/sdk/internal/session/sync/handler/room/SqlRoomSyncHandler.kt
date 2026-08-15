@@ -42,6 +42,7 @@ import org.matrix.android.sdk.internal.database.sql.store.ThreadSummarySqlHelper
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.StreamEventsManager
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
+import org.matrix.android.sdk.internal.session.room.accountdata.RoomStateOverrides
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.membership.RoomMemberEntityFactory
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberEventHandler
@@ -295,6 +296,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 RoomAccountDataTypes.EVENT_TYPE_TAG -> roomTagHandler.handle(stores, roomId, event.content.toModel<RoomTagContent>())
                 RoomAccountDataTypes.EVENT_TYPE_FULLY_READ -> roomFullyReadHandler.handle(stores, roomId, event.content.toModel<FullyReadContent>())
                 RoomAccountDataTypes.MARKED_UNREAD -> roomMarkedUnreadHandler.handle(stores, roomId, event.content.toModel<MarkedUnreadContent>())
+                in RoomStateOverrides.ALL_TYPES -> roomSummaryUpdater.refreshDisplay(stores, roomId)
             }
         }
     }

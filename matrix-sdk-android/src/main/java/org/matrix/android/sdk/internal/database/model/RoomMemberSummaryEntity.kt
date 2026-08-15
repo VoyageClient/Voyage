@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.database.model
 
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.internal.database.model.presence.UserPresenceEntity
@@ -44,7 +45,11 @@ internal open class RoomMemberSummaryEntity(
             if (value != field) field = value
         }
 
-    fun toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl)
+    fun toMatrixItem() = MatrixItem.UserItem(
+            userId,
+            ProfileOverrides.displayNameFor(userId) ?: displayName,
+            ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+    )
 
     companion object
 }

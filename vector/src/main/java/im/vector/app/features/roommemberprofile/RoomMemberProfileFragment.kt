@@ -7,11 +7,14 @@
 
 package im.vector.app.features.roommemberprofile
 
+import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
@@ -27,6 +30,8 @@ import im.vector.app.R
 import im.vector.app.core.animations.AppBarStateChangeListener
 import im.vector.app.core.animations.MatrixItemAppBarStateChangeListener
 import im.vector.app.core.dialogs.ConfirmationDialogBuilder
+import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
+import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
@@ -53,6 +58,7 @@ import im.vector.app.features.roommemberprofile.devices.DeviceListBottomSheet
 import im.vector.app.features.roommemberprofile.mutualrooms.MutualRoomsActivity
 import im.vector.app.features.roommemberprofile.powerlevel.EditPowerLevelDialogs
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
@@ -77,7 +83,8 @@ data class RoomMemberProfileArgs(
 @AndroidEntryPoint
 class RoomMemberProfileFragment :
         VectorBaseFragment<FragmentMatrixProfileBinding>(),
-        RoomMemberProfileController.Callback {
+        RoomMemberProfileController.Callback,
+        GalleryOrCameraDialogHelper.Listener {
 
     @Inject lateinit var roomMemberProfileController: RoomMemberProfileController
     @Inject lateinit var avatarRenderer: AvatarRenderer
@@ -87,6 +94,7 @@ class RoomMemberProfileFragment :
     @Inject lateinit var session: Session
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var colorProvider: ColorProvider
+    @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
 
     private lateinit var headerViews: ViewStubRoomMemberProfileHeaderBinding
 
@@ -97,6 +105,7 @@ class RoomMemberProfileFragment :
     private var bannerAppBarStateChangeListener: AppBarStateChangeListener? = null
     private var bannerUiHelper: ProfileBannerUiHelper? = null
     private var currentBannerUrl: String? = null
+    private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
@@ -104,6 +113,7 @@ class RoomMemberProfileFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        galleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(this)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -148,6 +158,7 @@ class RoomMemberProfileFragment :
         viewModel.observeViewEvents {
             when (it) {
                 is RoomMemberProfileViewEvents.Loading -> showLoading(it.message)
+                RoomMemberProfileViewEvents.StopLoading -> dismissLoadingDialog()
                 is RoomMemberProfileViewEvents.Failure -> showFailure(it.throwable)
                 is RoomMemberProfileViewEvents.StartVerification -> handleStartVerification(it)
                 is RoomMemberProfileViewEvents.ShowPowerLevelValidation -> handleShowPowerLevelAdminWarning(it)
@@ -505,6 +516,65 @@ class RoomMemberProfileFragment :
 
     override fun onMutualRoomsClicked() {
         startActivity(MutualRoomsActivity.newIntent(requireContext(), fragmentArgs.userId))
+    }
+
+    override fun onOverrideDisplayNameClicked(): Unit = withState(viewModel) { state ->
+        val inflater = requireActivity().layoutInflater
+        val layout = inflater.inflate(R.layout.dialog_base_edit_text, null)
+        val dialogViews = DialogBaseEditTextBinding.bind(layout)
+        val effectiveName = state.profileOverrideDisplayName ?: state.userMatrixItem()?.getBestName()
+        dialogViews.editText.setText(effectiveName)
+        dialogViews.editText.hint = state.userId
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.settings_display_name)
+                .setView(layout)
+                .setPositiveButton(CommonStrings.ok) { _, _ ->
+                    val newName = dialogViews.editText.text.toString().trim().takeIf { it.isNotBlank() }
+                    // Pre-filled with the effective name, so an unchanged value must not create an override.
+                    if (newName != state.profileOverrideDisplayName && !(newName != null && newName == effectiveName)) {
+                        viewModel.handle(RoomMemberProfileAction.SetProfileOverrideDisplayName(newName))
+                    }
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .apply {
+                    if (state.profileOverrideDisplayName != null) {
+                        setNeutralButton(CommonStrings.room_personalization_reset) { _, _ ->
+                            viewModel.handle(RoomMemberProfileAction.SetProfileOverrideDisplayName(null))
+                        }
+                    }
+                }
+                .show()
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(
+                ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorError)
+        )
+    }
+
+    override fun onOverrideAvatarClicked(): Unit = withState(viewModel) { state ->
+        galleryOrCameraDialogHelper.show(withDeleteOption = state.profileOverrideAvatarUrl != null)
+    }
+
+    override fun onResetProfileOverridesClicked() {
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.action_reset)
+                .setMessage(CommonStrings.user_personalization_reset_confirmation)
+                .setPositiveButton(CommonStrings.action_reset) { _, _ ->
+                    viewModel.handle(RoomMemberProfileAction.ResetProfileOverrides)
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    override fun onImageReady(uri: Uri?) {
+        if (uri == null) {
+            Toast.makeText(requireContext(), CommonStrings.error_handling_incoming_share, Toast.LENGTH_SHORT).show()
+            return
+        }
+        viewModel.handle(RoomMemberProfileAction.SetProfileOverrideAvatar(uri))
+    }
+
+    override fun onImageDeleted() {
+        viewModel.handle(RoomMemberProfileAction.SetProfileOverrideAvatar(null))
     }
 
     override fun onViewProfileSourceClicked() = withState(viewModel) { state ->
