@@ -571,7 +571,7 @@ class TimelineViewModel @AssistedInject constructor(
                         .map { it.isEncrypted }
                         .distinctUntilChanged()
         ) { snapshot, isRoomEncrypted ->
-            if (isRoomEncrypted && !vectorPreferences.allowUrlPreviewsInEncryptedRooms()) {
+            if (isRoomEncrypted && !vectorPreferences.allowUrlPreviewsInEncryptedRooms(session.myUserId)) {
                 return@combine
             }
             withContext(Dispatchers.Default) {

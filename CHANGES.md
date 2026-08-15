@@ -34,6 +34,8 @@ New features, improvements, and notable removals in this fork.
 
 - **PGP encryption** — opt-in PGP encrypt/decrypt over otherwise-unencrypted rooms via OpenKeychain, with an `/encrypt` command.
 
+- **Stealth mode** — keep this fork's own client-specific settings on your device instead of in account data, so a homeserver administrator can't tell which client you use. Opt-in per account.
+
 - **Multi-account switcher** — switch between multiple logged-in accounts.
 
 - **VPN protection** — opt-in warnings when your VPN is off: a full-screen warning that blocks all network activity until you confirm, and a confirmation before switching accounts, with a per-account list of which accounts to protect.

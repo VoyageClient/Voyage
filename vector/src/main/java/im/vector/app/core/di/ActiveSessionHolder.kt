@@ -17,6 +17,7 @@ import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.crypto.keysrequest.KeyRequestHandler
 import im.vector.app.features.crypto.verification.IncomingVerificationRequestHandler
 import im.vector.app.features.home.ShortcutsHandler
+import im.vector.app.features.settings.StealthModeStore
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.SendingMediaGate
@@ -67,6 +68,7 @@ class ActiveSessionHolder @Inject constructor(
         private val coroutineDispatchers: CoroutineDispatchers,
         private val lastActiveSessionStore: LastActiveSessionStore,
         private val vpnGateState: VpnGateState,
+        private val stealthModeStore: StealthModeStore,
 ) {
 
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
@@ -92,6 +94,7 @@ class ActiveSessionHolder @Inject constructor(
         pushRuleTriggerListener.startWithSession(session)
         imageManager.onSessionStarted(session)
         guardServiceStarter.start()
+        stealthModeStore.apply(session.myUserId)
     }
 
     suspend fun clearActiveSession() {
@@ -106,6 +109,7 @@ class ActiveSessionHolder @Inject constructor(
         activeSessionDataSource.post(Optional.empty())
         lastActiveSessionStore.set(null)
 
+        stealthModeStore.apply(null)
         keyRequestHandler.stop()
         incomingVerificationRequestHandler.stop()
         pushRuleTriggerListener.stop()

@@ -405,6 +405,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/integrationmanager/IntegrationManagerConfig.kt',
         'org/matrix/android/sdk/api/session/call/TurnServerResponse.kt',
         'org/matrix/android/sdk/api/session/accountdata/UserAccountDataTypes.kt',
+        'org/matrix/android/sdk/api/session/accountdata/StealthAccountData.kt',
         // Internal room REST request/response + data value types.
         'org/matrix/android/sdk/internal/session/room/alias/AddRoomAliasBody.kt',
         'org/matrix/android/sdk/internal/session/room/alias/GetAliasesResponse.kt',

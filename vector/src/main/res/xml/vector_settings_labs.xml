@@ -88,6 +88,7 @@
     <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="false"
         android:key="SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY"
+        android:persistent="false"
         android:summary="@string/url_previews_in_encrypted_rooms_summary"
         android:title="@string/url_previews_in_encrypted_rooms" />
 

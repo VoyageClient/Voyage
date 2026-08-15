@@ -106,6 +106,7 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var pgpServiceManager: PgpServiceManager
     @Inject lateinit var redactionSettings: RedactionPreservationSettings
     @Inject lateinit var pgpKeyStore: PgpKeyStore
+    @Inject lateinit var stealthModeStore: StealthModeStore
 
     override var titleRes = CommonStrings.settings_security_and_privacy
     override val preferenceXmlRes = R.xml.vector_settings_security_privacy
@@ -303,6 +304,9 @@ class VectorSettingsSecurityPrivacyFragment :
         // Local index for searching encrypted rooms
         setUpSearchEncryptedRooms()
 
+        // Stealth mode: keep the fork's own account data local-only
+        setUpStealthMode()
+
         // Media visibility / avatar hiding
         setUpMediaVisibility()
         setUpMetadataStripping()
@@ -364,6 +368,18 @@ class VectorSettingsSecurityPrivacyFragment :
                     session.eventIndexService().setUnencryptedRoomsEnabled(!(newValue as Boolean))
                     true
                 }
+    }
+
+    private fun setUpStealthMode() {
+        // Non-persistent switch: backed by StealthModeStore (per-account), not global prefs.
+        val userId = session.myUserId
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SECURITY_STEALTH_MODE_PREFERENCE_KEY)!!.apply {
+            isChecked = stealthModeStore.isEnabled(userId)
+            setOnPreferenceChangeListener { _, newValue ->
+                stealthModeStore.setEnabled(userId, newValue as Boolean)
+                true
+            }
+        }
     }
 
     private fun setUpPgp() {
