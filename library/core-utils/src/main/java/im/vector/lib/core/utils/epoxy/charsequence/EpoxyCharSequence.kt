@@ -12,6 +12,14 @@ import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 
 /**
+ * A span whose rendered content can change while its range doesn't (e.g. a pill whose subject was
+ * resolved later), so it must take part in [EpoxyCharSequence] equality.
+ */
+interface ContentHashedSpan {
+    fun contentHash(): Int
+}
+
+/**
  * Wrapper for a CharSequence, which support mutation of the CharSequence, which can happen during rendering.
  */
 class EpoxyCharSequence(val charSequence: CharSequence) {
@@ -44,6 +52,7 @@ class EpoxyCharSequence(val charSequence: CharSequence) {
             result = 31 * result + when (span) {
                 is ForegroundColorSpan -> span.foregroundColor
                 is BackgroundColorSpan -> span.backgroundColor
+                is ContentHashedSpan -> span.contentHash()
                 else -> 0
             }
             return result
