@@ -69,6 +69,11 @@ class MediaPreviewConfigDataSource @Inject constructor(
                                 // An unhandled throw here would kill the collector for the whole session.
                                 Timber.w(failure, "Unable to publish the initial media preview config")
                             }
+                        } else {
+                            // Past the one-time migration, an absent event means this account has no
+                            // config — reset the device mirror so a switched-to account doesn't
+                            // silently inherit the previous account's preview policy.
+                            resetLocalToDefaults()
                         }
                         vectorPreferences.setMediaPreviewConfigSynced()
                     }
@@ -96,6 +101,12 @@ class MediaPreviewConfigDataSource @Inject constructor(
     private fun hasLocalOverride(): Boolean {
         return vectorPreferences.getMediaPreviewMode() != MediaPreviewMode.ALWAYS_SHOW ||
                 vectorPreferences.hideInviteAvatars()
+    }
+
+    private fun resetLocalToDefaults() {
+        if (!hasLocalOverride()) return
+        vectorPreferences.setMediaPreviewMode(MediaPreviewMode.ALWAYS_SHOW)
+        vectorPreferences.setHideInviteAvatars(false)
     }
 
     private fun apply(content: Content) {

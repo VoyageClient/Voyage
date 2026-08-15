@@ -712,7 +712,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     private fun enqueueByteUpload(params: Params, deferred: DeferredUpload): Boolean {
         if (params.localEchoIds.isEmpty()) return false
         backgroundTaskScheduler.enqueueUnique(
-                UploadMediaBytesWorker.workName(deferred.contentUri),
+                UploadMediaBytesWorker.workName(params.sessionId, deferred.contentUri),
                 BackgroundQueuePolicy.REPLACE,
                 backgroundTask(
                         type = BackgroundTaskType.UPLOAD_MEDIA_BYTES,

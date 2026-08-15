@@ -148,6 +148,23 @@ class NotificationDrawerManager @Inject constructor(
         }
     }
 
+    /**
+     * The drawer is single-account: queued events from the previous account would be re-rendered
+     * (and their Reply/MarkRead actions executed) with whichever session is active, so wipe
+     * queued, rendered and persisted state when the account switches.
+     */
+    fun resetForAccountSwitch() {
+        backgroundHandler.removeCallbacksAndMessages(null)
+        backgroundHandler.post {
+            notificationState.updateQueuedEvents(this) { queuedEvents, _ -> queuedEvents.clear() }
+            notificationState.clearAndAddRenderedEvents(emptyList())
+            currentRoomId = null
+            currentThreadId = null
+            persistEvents()
+            notificationDisplayer.cancelAllNotifications()
+        }
+    }
+
     fun notificationStyleChanged() {
         updateEvents {
             val newSettings = vectorPreferences.useCompleteNotificationFormat()

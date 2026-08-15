@@ -88,22 +88,27 @@ class SpaceStateHandlerImpl @Inject constructor(
     }
 
     private fun addToBackstack(spaceToLeave: RoomSummary?, spaceToSet: RoomSummary?) {
+        val sessionId = activeSessionHolder.getSafeActiveSession()?.sessionId
         // Only add to the backstack if the space to set is not All Chats, else clear the backstack
         if (spaceToSet != null) {
-            val currentPersistedBackstack = vectorPreferences.getSpaceBackstack().toMutableList()
+            val currentPersistedBackstack = vectorPreferences.getSpaceBackstack(sessionId).toMutableList()
             currentPersistedBackstack.add(spaceToLeave?.roomId)
-            vectorPreferences.setSpaceBackstack(currentPersistedBackstack)
+            vectorPreferences.setSpaceBackstack(currentPersistedBackstack, sessionId)
         } else {
-            vectorPreferences.setSpaceBackstack(emptyList())
+            vectorPreferences.setSpaceBackstack(emptyList(), sessionId)
         }
     }
 
     private fun observeActiveSession() {
         sessionDataSource.stream()
                 .distinctUntilChanged()
-                .onEach {
-                    // sessionDataSource could already return a session while activeSession holder still returns null
-                    it.orNull()?.let { session ->
+                .onEach { optionalSession ->
+                    val session = optionalSession.orNull()
+                    if (session == null) {
+                        // The session was detached (account switch): keeping the old selection would
+                        // filter the next account's room list by a space it may not be in.
+                        selectedSpaceDataSource.post(Optional.empty())
+                    } else {
                         setCurrentSpace(uiStateRepository.getSelectedSpace(session.sessionId), session)
                     }
                 }
@@ -111,14 +116,15 @@ class SpaceStateHandlerImpl @Inject constructor(
     }
 
     override fun popSpaceBackstack(): String? {
-        vectorPreferences.getSpaceBackstack().toMutableList().apply {
+        val sessionId = activeSessionHolder.getSafeActiveSession()?.sessionId
+        vectorPreferences.getSpaceBackstack(sessionId).toMutableList().apply {
             val poppedSpaceId = removeAt(lastIndex)
-            vectorPreferences.setSpaceBackstack(this)
+            vectorPreferences.setSpaceBackstack(this, sessionId)
             return poppedSpaceId
         }
     }
 
-    override fun getSpaceBackstack() = vectorPreferences.getSpaceBackstack()
+    override fun getSpaceBackstack() = vectorPreferences.getSpaceBackstack(activeSessionHolder.getSafeActiveSession()?.sessionId)
 
     override fun getSelectedSpaceFlow() = selectedSpaceFlow
 

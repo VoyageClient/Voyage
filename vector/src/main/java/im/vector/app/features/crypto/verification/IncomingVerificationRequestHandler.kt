@@ -21,6 +21,7 @@ import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.cancellable
@@ -59,7 +60,10 @@ class IncomingVerificationRequestHandler @Inject constructor(
 
     fun start(session: Session) {
         this.session = session
-        this.scope = CoroutineScope(SupervisorJob() + session.coroutineScope.coroutineContext)
+        // Parent the supervisor under the session job: context "+" would otherwise let the session's
+        // own Job win, and stop() would cancel the shared session scope for good.
+        val sessionContext = session.coroutineScope.coroutineContext
+        this.scope = CoroutineScope(sessionContext + SupervisorJob(sessionContext[Job]))
         session.cryptoService().verificationService().requestEventFlow()
                 .cancellable()
                 .onEach {
@@ -75,6 +79,7 @@ class IncomingVerificationRequestHandler @Inject constructor(
     fun stop() {
 //        session?.cryptoService()?.verificationService()?.removeListener(this)
         scope?.cancel()
+        scope = null
         this.session = null
     }
 

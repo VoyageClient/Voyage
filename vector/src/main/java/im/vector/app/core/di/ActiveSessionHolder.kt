@@ -16,7 +16,14 @@ import im.vector.app.core.session.LastActiveSessionStore
 import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.crypto.keysrequest.KeyRequestHandler
 import im.vector.app.features.crypto.verification.IncomingVerificationRequestHandler
+import im.vector.app.features.home.ShortcutsHandler
+import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
+import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.SendingMediaGate
+import im.vector.app.features.notifications.NotificationDrawerManager
+import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.notifications.PushRuleTriggerListener
+import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
 import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.SessionListener
@@ -42,6 +49,13 @@ class ActiveSessionHolder @Inject constructor(
         // Provider: these reach ActiveSessionHolder themselves, so a direct injection would cycle.
         private val redactionPreservationService: Provider<RedactionPreservationService>,
         private val redactedContentRepository: Provider<RedactedContentRepository>,
+        private val notificationDrawerManager: Provider<NotificationDrawerManager>,
+        private val shortcutsHandler: Provider<ShortcutsHandler>,
+        private val popupAlertManager: PopupAlertManager,
+        private val audioMessagePlaybackTracker: Provider<AudioMessagePlaybackTracker>,
+        private val mediaContentRevealManager: Provider<MediaContentRevealManager>,
+        private val sendingMediaGate: Provider<SendingMediaGate>,
+        private val pgpServiceManager: Provider<PgpServiceManager>,
         private val sessionListener: SessionListener,
         private val imageManager: ImageManager,
         private val guardServiceStarter: GuardServiceStarter,
@@ -158,6 +172,15 @@ class ActiveSessionHolder @Inject constructor(
         keyRequestHandler.stop()
         incomingVerificationRequestHandler.stop()
         pushRuleTriggerListener.stop()
+        // The drawer, launcher shortcuts and popup alerts are single-account: anything left over
+        // would display the previous account's content and act on it with the next session.
+        notificationDrawerManager.get().resetForAccountSwitch()
+        shortcutsHandler.get().clearShortcuts()
+        popupAlertManager.cancelAll()
+        audioMessagePlaybackTracker.get().clearAllStates()
+        mediaContentRevealManager.get().clearAll()
+        sendingMediaGate.get().clearAll()
+        pgpServiceManager.get().clearDecryptionCache()
         // Without this the app-scoped singletons keep the released Session (and its whole component
         // graph) alive, and go on serving the previous account's preserved content.
         redactionPreservationService.get().stop()
@@ -173,11 +196,9 @@ class ActiveSessionHolder @Inject constructor(
         if (ids.isEmpty()) return
         ids.forEach { id ->
             Timber.w("applyPendingRelease: releasing $id")
-            runCatching {
-                authenticationService.getSessionParams(id)
-                        ?.let { authenticationService.getOrCreateSession(it).close() }
-            }
-            authenticationService.releaseSession(id)
+            // releaseSession closes the session itself (and is a no-op when no component exists);
+            // closing here first would double-dispatch onSessionStopped.
+            runCatching { authenticationService.releaseSession(id) }
         }
     }
 }

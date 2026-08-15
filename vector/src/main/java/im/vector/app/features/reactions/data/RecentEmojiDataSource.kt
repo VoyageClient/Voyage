@@ -8,7 +8,6 @@
 package im.vector.app.features.reactions.data
 
 import im.vector.app.ActiveSessionDataSource
-import im.vector.app.core.di.ActiveSessionHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,7 +38,6 @@ import javax.inject.Singleton
 @Singleton
 class RecentEmojiDataSource @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
-        private val activeSessionHolder: ActiveSessionHolder,
 ) {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -69,30 +67,36 @@ class RecentEmojiDataSource @Inject constructor(
 
     fun recordEmojiUse(emojis: List<String>) {
         if (emojis.isEmpty()) return
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return
         synchronized(pending) {
             pending.addAll(emojis)
             flushJob?.cancel()
             flushJob = coroutineScope.launch {
                 delay(FLUSH_DEBOUNCE_MS)
                 // Once the debounce elapsed, complete the write even if another use is recorded meanwhile.
-                withContext(NonCancellable) { flushPending() }
+                withContext(NonCancellable) { flushPending(session) }
             }
         }
     }
 
     fun clear() {
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return
         synchronized(pending) {
             flushJob?.cancel()
             pending.clear()
         }
         coroutineScope.launch {
-            val session = activeSessionHolder.getSafeActiveSession() ?: return@launch
             writeMutex.withLock { session.writeRecentEmojis(emptyList()) }
         }
     }
 
-    private suspend fun flushPending() {
-        val session = activeSessionHolder.getSafeActiveSession() ?: return
+    private suspend fun flushPending(session: Session) {
+        // The account may have switched during the debounce; the buffered uses belong to the
+        // previous account and must not be written into the new one's data.
+        if (activeSessionDataSource.currentValue?.orNull()?.sessionId != session.sessionId) {
+            synchronized(pending) { pending.clear() }
+            return
+        }
         writeMutex.withLock {
             val toApply = synchronized(pending) { pending.toList().also { pending.clear() } }
             if (toApply.isEmpty()) return@withLock
@@ -115,7 +119,7 @@ class RecentEmojiDataSource @Inject constructor(
     }
 
     private fun readFromAccountData(): List<Pair<String, Int>> {
-        val session = activeSessionHolder.getSafeActiveSession() ?: return emptyList()
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return emptyList()
         return session.readRecentEmojis()
     }
 

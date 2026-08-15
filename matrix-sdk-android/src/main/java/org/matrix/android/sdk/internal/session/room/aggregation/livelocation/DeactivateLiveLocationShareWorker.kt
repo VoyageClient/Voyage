@@ -92,8 +92,8 @@ internal class DeactivateLiveLocationShareWorker(context: Context, params: Worke
     }
 
     companion object {
-        fun getWorkName(eventId: String, roomId: String): String {
-            val hash = "$eventId$roomId".md5()
+        fun getWorkName(sessionId: String, eventId: String, roomId: String): String {
+            val hash = "$sessionId$eventId$roomId".md5()
             return "DeactivateLiveLocationWork-$hash"
         }
     }

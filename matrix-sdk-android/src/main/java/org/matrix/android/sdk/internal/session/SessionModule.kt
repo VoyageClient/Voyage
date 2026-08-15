@@ -37,6 +37,7 @@ import org.matrix.android.sdk.api.session.ToDeviceService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
+import app.cash.sqldelight.db.SqlDriver
 import org.matrix.android.sdk.api.session.openid.OpenIdService
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.securestorage.SharedSecretStorageService
@@ -46,6 +47,8 @@ import org.matrix.android.sdk.internal.crypto.secrets.DefaultSharedSecretStorage
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultRedactEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask
 import org.matrix.android.sdk.internal.database.EventInsertLiveObserver
+import org.matrix.android.sdk.internal.session.room.redaction.RedactedContentStore
+import org.matrix.android.sdk.internal.session.search.index.EventIndexStore
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
@@ -211,15 +214,23 @@ internal abstract class SessionModule {
         @Provides
         @SessionDatabase
         @SessionScope
-        fun providesSessionSqlDatabase(
+        fun providesSessionSqlDriver(
                 @SessionFilesDirectory directory: File,
                 driverFactory: SqlDriverFactory,
-        ): SessionSqlDatabase {
+        ): SqlDriver {
             val driver = driverFactory.create(SessionSqlDatabase.Schema, File(directory, "session_store.db"))
             // Indexes added after the schema shipped: a version bump would drop-and-recreate the DB
             // (full re-sync), so additive indexes are applied idempotently here instead.
             driver.execute(null, "CREATE INDEX IF NOT EXISTS event_room_event ON event(room_id, event_id)", 0)
             driver.execute(null, "CREATE INDEX IF NOT EXISTS timeline_event_room_event ON timeline_event(room_id, event_id)", 0)
+            return driver
+        }
+
+        @JvmStatic
+        @Provides
+        @SessionDatabase
+        @SessionScope
+        fun providesSessionSqlDatabase(@SessionDatabase driver: SqlDriver): SessionSqlDatabase {
             return SessionSqlDatabase(driver)
         }
 
@@ -353,6 +364,18 @@ internal abstract class SessionModule {
 
     @Binds
     abstract fun bindSession(session: DefaultSession): Session
+
+    @Binds
+    @IntoSet
+    abstract fun bindSessionDatabaseReleaser(releaser: SessionDatabaseReleaser): SessionReleasable
+
+    @Binds
+    @IntoSet
+    abstract fun bindEventIndexStoreReleasable(store: EventIndexStore): SessionReleasable
+
+    @Binds
+    @IntoSet
+    abstract fun bindRedactedContentStoreReleasable(store: RedactedContentStore): SessionReleasable
 
     @Binds
     abstract fun bindGlobalErrorReceiver(handler: GlobalErrorHandler): GlobalErrorReceiver

@@ -112,6 +112,8 @@ internal interface SessionComponent {
 
     fun session(): Session
 
+    fun sessionReleasables(): Set<@JvmSuppressWildcards SessionReleasable>
+
     fun syncTask(): SyncTask
 
     fun syncTokenStore(): SyncTokenStore

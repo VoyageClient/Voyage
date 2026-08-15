@@ -10,6 +10,7 @@ package im.vector.app.features.session
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.isActive
 import org.matrix.android.sdk.api.session.Session
 
 private val sessionCoroutineScopes = HashMap<String, CoroutineScope>(1)
@@ -17,8 +18,8 @@ private val sessionCoroutineScopes = HashMap<String, CoroutineScope>(1)
 val Session.coroutineScope: CoroutineScope
     get() {
         return synchronized(sessionCoroutineScopes) {
-            sessionCoroutineScopes.getOrPut(sessionId) {
-                CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-            }
+            sessionCoroutineScopes[sessionId]?.takeIf { it.isActive }
+                    ?: CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+                            .also { sessionCoroutineScopes[sessionId] = it }
         }
     }

@@ -66,6 +66,11 @@ class PgpServiceManager @Inject constructor(
     /** Synchronous cache lookup; null if this block hasn't been decrypted yet. */
     fun peekDecrypted(armored: String): String? = decryptionCache[armored]
 
+    /** Account switch: don't keep (or display) the previous account's plaintexts. */
+    fun clearDecryptionCache() {
+        decryptionCache.clear()
+    }
+
     suspend fun decrypt(armored: String): PgpResult {
         decryptionCache[armored]?.let { return PgpResult.Success(it) }
         // Repair non-RFC-compliant armor (missing header/data blank line) before OpenKeychain sees

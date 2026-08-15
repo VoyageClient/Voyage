@@ -119,6 +119,10 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
     companion object {
         private const val BG_SYNC_WORK_NAME = "BG_SYNCP"
 
+        // WorkManager unique names are process-global while the scheduler is per-session:
+        // without the sessionId, one account's background sync replaces/cancels the other's.
+        private fun workName(sessionId: String) = "${BG_SYNC_WORK_NAME}_$sessionId"
+
         fun requireBackgroundSync(
                 backgroundTaskScheduler: BackgroundTaskScheduler,
                 sessionId: String,
@@ -131,7 +135,7 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
                     periodic = false
             )
             backgroundTaskScheduler.enqueueUnique(
-                    BG_SYNC_WORK_NAME,
+                    workName(sessionId),
                     BackgroundQueuePolicy.APPEND_OR_REPLACE,
                     backgroundTask(BackgroundTaskType.SYNC, params, matrixConstraints = true, isolateInput = true)
             )
@@ -153,7 +157,7 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
             )
             // Avoid risking multiple chains of syncs by replacing the existing chain
             backgroundTaskScheduler.enqueueUnique(
-                    BG_SYNC_WORK_NAME,
+                    workName(sessionId),
                     BackgroundQueuePolicy.REPLACE,
                     backgroundTask(
                             BackgroundTaskType.SYNC,
@@ -164,7 +168,9 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
             )
         }
 
-        fun stopAnyBackgroundSync(backgroundTaskScheduler: BackgroundTaskScheduler) {
+        fun stopAnyBackgroundSync(backgroundTaskScheduler: BackgroundTaskScheduler, sessionId: String) {
+            backgroundTaskScheduler.cancelUniqueQueue(workName(sessionId))
+            // Chains enqueued before the names became session-suffixed.
             backgroundTaskScheduler.cancelUniqueQueue(BG_SYNC_WORK_NAME)
         }
     }

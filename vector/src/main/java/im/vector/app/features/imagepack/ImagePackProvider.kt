@@ -274,8 +274,13 @@ class ImagePackProvider @Inject constructor(
 
     private val emoticonCache = ConcurrentHashMap<String, List<ResolvedImage>>()
 
+    // Session-keyed: the cache includes the account's personal user_emotes pack, which must not
+    // surface in another account's autocomplete after a switch.
+    private fun emoticonCacheKey(roomId: String?) =
+            "${activeSessionHolder.getSafeActiveSession()?.sessionId}|${roomId.orEmpty()}"
+
     /** Last computed emoticons for [roomId], so the autocomplete popup can prime instantly on room open. */
-    fun cachedEmoticons(roomId: String?): List<ResolvedImage> = emoticonCache[roomId.orEmpty()].orEmpty()
+    fun cachedEmoticons(roomId: String?): List<ResolvedImage> = emoticonCache[emoticonCacheKey(roomId)].orEmpty()
 
     /** Emoticon images for the current room, re-emitted whenever any pack source changes. */
     fun getEmoticonsLive(roomId: String?): Flow<List<ResolvedImage>> = getImagePacksLive(roomId)
@@ -283,7 +288,7 @@ class ImagePackProvider @Inject constructor(
             // The aggregation walks account data + room state + the space hierarchy; keep it off the main thread.
             // Safe off-main: each SDK read opens its own Realm.
             .flowOn(Dispatchers.Default)
-            .onEach { emoticonCache[roomId.orEmpty()] = it }
+            .onEach { emoticonCache[emoticonCacheKey(roomId)] = it }
 
     private fun collectImages(packs: List<ResolvedImagePack>, usage: String): List<ResolvedImage> {
         val seen = HashSet<String>()

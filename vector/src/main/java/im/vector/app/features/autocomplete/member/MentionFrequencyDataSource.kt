@@ -8,7 +8,6 @@
 package im.vector.app.features.autocomplete.member
 
 import im.vector.app.ActiveSessionDataSource
-import im.vector.app.core.di.ActiveSessionHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.flow.flow
@@ -34,7 +34,6 @@ import javax.inject.Singleton
 @Singleton
 class MentionFrequencyDataSource @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
-        private val activeSessionHolder: ActiveSessionHolder,
 ) {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -47,12 +46,23 @@ class MentionFrequencyDataSource @Inject constructor(
     // Increments not yet flushed to the server.
     private val pending = mutableMapOf<String, MutableMap<String, Int>>()
     private var flushJob: Job? = null
+    private var ownerSessionId: String? = null
 
     init {
         // Keeps the ranking in sync when another device updates the count.
         coroutineScope.launch {
             activeSessionDataSource.stream().collectLatest { optionalSession ->
                 val session = optionalSession.orNull() ?: return@collectLatest
+                synchronized(lock) {
+                    // Unflushed increments belong to the previous account; merging them into the
+                    // new account's counts (or flushing them later) would cross accounts.
+                    if (ownerSessionId != session.sessionId) {
+                        ownerSessionId = session.sessionId
+                        flushJob?.cancel()
+                        pending.clear()
+                        counts.clear()
+                    }
+                }
                 session.flow().liveUserAccountData(UserAccountDataTypes.TYPE_MENTION_FREQUENCY)
                         .collectLatest { optionalEvent ->
                             val server = parse(optionalEvent.getOrNull()?.content)
@@ -75,6 +85,7 @@ class MentionFrequencyDataSource @Inject constructor(
     }
 
     fun record(roomId: String, userId: String) {
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return
         synchronized(lock) {
             counts.getOrPut(roomId) { mutableMapOf() }.merge(userId, 1, Int::plus)
             pending.getOrPut(roomId) { mutableMapOf() }.merge(userId, 1, Int::plus)
@@ -82,13 +93,15 @@ class MentionFrequencyDataSource @Inject constructor(
             flushJob = coroutineScope.launch {
                 delay(FLUSH_DEBOUNCE_MS)
                 // Once the debounce elapsed, complete the write even if another mention is recorded meanwhile.
-                withContext(NonCancellable) { flushPending() }
+                withContext(NonCancellable) { flushPending(session) }
             }
         }
     }
 
-    private suspend fun flushPending() {
-        val session = activeSessionHolder.getSafeActiveSession() ?: return
+    private suspend fun flushPending(session: Session) {
+        // The account may have switched during the debounce; writing then would put the previous
+        // account's usage into the new account's server-side data.
+        if (activeSessionDataSource.currentValue?.orNull()?.sessionId != session.sessionId) return
         writeMutex.withLock {
             val toApply = synchronized(lock) {
                 pending.mapValues { it.value.toMap() }.also { pending.clear() }

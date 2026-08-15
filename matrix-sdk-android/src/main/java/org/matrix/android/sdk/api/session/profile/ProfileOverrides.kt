@@ -28,7 +28,34 @@ object ProfileOverrides {
     var generation: Long = 0L
         private set
 
-    fun set(newOverrides: Map<String, Map<String, Any?>>) {
+    // The static is shared by every session in the process; ownership gating keeps a
+    // backgrounded (not-yet-released) session's sync from clobbering the active account's map.
+    @Volatile
+    private var ownerSessionId: String? = null
+
+    @Synchronized
+    fun claim(sessionId: String) {
+        if (ownerSessionId == sessionId) return
+        ownerSessionId = sessionId
+        applyLocked(emptyMap())
+    }
+
+    @Synchronized
+    fun release(sessionId: String) {
+        if (ownerSessionId != sessionId) return
+        ownerSessionId = null
+        applyLocked(emptyMap())
+    }
+
+    /** Applies only when [sessionId] is the owning (active) session. Returns whether it applied. */
+    @Synchronized
+    fun set(sessionId: String, newOverrides: Map<String, Map<String, Any?>>): Boolean {
+        if (sessionId != ownerSessionId) return false
+        applyLocked(newOverrides)
+        return true
+    }
+
+    private fun applyLocked(newOverrides: Map<String, Map<String, Any?>>) {
         if (newOverrides == overrides) return
         overrides = newOverrides
         generation++

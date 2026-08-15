@@ -16,6 +16,7 @@
 package org.matrix.android.sdk.internal.session.room.timeline
 
 import org.matrix.android.sdk.api.util.Cancelable
+import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
 import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
@@ -28,6 +29,7 @@ import javax.inject.Inject
  * or the chain would be doomed in failed state.
  */
 internal class TimelineSendEventWorkCommon @Inject constructor(
+        @SessionId private val sessionId: String,
         private val backgroundTaskScheduler: BackgroundTaskScheduler,
 ) {
 
@@ -36,7 +38,8 @@ internal class TimelineSendEventWorkCommon @Inject constructor(
     }
 
     private fun buildWorkName(roomId: String): String {
-        return "${roomId}_$SEND_WORK"
+        // Two accounts in the same room must not share (and cross-cancel) one send chain.
+        return "${sessionId}_${roomId}_$SEND_WORK"
     }
 
     companion object {

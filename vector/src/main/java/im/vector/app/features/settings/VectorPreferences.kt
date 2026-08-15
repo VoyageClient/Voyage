@@ -1529,18 +1529,23 @@ class VectorPreferences @Inject constructor(
      *
      * Only the IDs of the spaces are stored.
      */
-    fun setSpaceBackstack(spaceBackstack: List<String?>) {
+    fun setSpaceBackstack(spaceBackstack: List<String?>, sessionId: String?) {
         val spaceIdsJoined = spaceBackstack.takeIf { it.isNotEmpty() }?.joinToString(",")
-        defaultPrefs.edit().putString(SETTINGS_PERSISTED_SPACE_BACKSTACK, spaceIdsJoined).apply()
+        defaultPrefs.edit().putString(spaceBackstackKey(sessionId), spaceIdsJoined).apply()
     }
 
     /**
      * Gets the space backstack used for up navigation.
      */
-    fun getSpaceBackstack(): List<String?> {
-        val spaceIdsJoined = defaultPrefs.getString(SETTINGS_PERSISTED_SPACE_BACKSTACK, null)
+    fun getSpaceBackstack(sessionId: String?): List<String?> {
+        val spaceIdsJoined = defaultPrefs.getString(spaceBackstackKey(sessionId), null)
         return spaceIdsJoined?.takeIf { it.isNotEmpty() }?.split(",").orEmpty()
     }
+
+    // Per-account: popping another account's space ids after a switch navigates into spaces
+    // the current account may not even be in.
+    private fun spaceBackstackKey(sessionId: String?) =
+            if (sessionId == null) SETTINGS_PERSISTED_SPACE_BACKSTACK else "${SETTINGS_PERSISTED_SPACE_BACKSTACK}_$sessionId"
 
     /**
      * Indicates whether or not new app layout is enabled.

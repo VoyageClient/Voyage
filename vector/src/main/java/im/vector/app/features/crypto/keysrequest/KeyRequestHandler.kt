@@ -17,6 +17,7 @@ import im.vector.app.features.session.coroutineScope
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.cancellable
@@ -69,7 +70,10 @@ class KeyRequestHandler @Inject constructor(
     //    lateinit var listenerJob: Job
     fun start(session: Session) {
         this.session = session
-        val scope = CoroutineScope(SupervisorJob() + session.coroutineScope.coroutineContext)
+        // Parent the supervisor under the session job: context "+" would otherwise let the session's
+        // own Job win, and stop() would cancel the shared session scope for good.
+        val sessionContext = session.coroutineScope.coroutineContext
+        val scope = CoroutineScope(sessionContext + SupervisorJob(sessionContext[Job]))
         this.scope = scope
         session.cryptoService().verificationService().requestEventFlow()
                 .cancellable()
@@ -88,6 +92,10 @@ class KeyRequestHandler @Inject constructor(
     fun stop() {
         scope?.cancel()
         scope = null
+        // Pending requests must not survive into another session: their alerts would accept/deny
+        // with the new session's crypto, and stale map entries swallow the new account's requests.
+        alertsToRequests.keys.toList().forEach { popupAlertManager.cancelAlert(alertManagerId(it)) }
+        alertsToRequests.clear()
         // session?.cryptoService()?.verificationService()?.removeListener(this)
         session?.cryptoService()?.removeRoomKeysRequestListener(this)
         session = null
@@ -284,5 +292,7 @@ class KeyRequestHandler @Inject constructor(
 
     private fun keyForMap(userId: String, deviceId: String) = "$deviceId$userId"
 
-    private fun alertManagerId(userId: String, deviceId: String) = "ikr_$deviceId$userId"
+    private fun alertManagerId(userId: String, deviceId: String) = alertManagerId(keyForMap(userId, deviceId))
+
+    private fun alertManagerId(mappingKey: String) = "ikr_$mappingKey"
 }

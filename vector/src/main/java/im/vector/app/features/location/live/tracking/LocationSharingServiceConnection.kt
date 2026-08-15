@@ -15,6 +15,7 @@ import android.os.IBinder
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.session.coroutineScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -35,6 +36,7 @@ class LocationSharingServiceConnection @Inject constructor(
     private val callbacks = mutableSetOf<Callback>()
     private var isBound = false
     private var locationSharingAndroidService: LocationSharingAndroidService? = null
+    private var roomIdsObservationJob: Job? = null
 
     fun bind(callback: Callback) {
         addCallback(callback)
@@ -59,7 +61,8 @@ class LocationSharingServiceConnection @Inject constructor(
     override fun onServiceConnected(className: ComponentName, binder: IBinder) {
         locationSharingAndroidService = (binder as LocationSharingAndroidServiceBinder).getService()?.also { service ->
             service.callback = this
-            getActiveSessionCoroutineScope()?.let { scope ->
+            roomIdsObservationJob?.cancel()
+            roomIdsObservationJob = getActiveSessionCoroutineScope()?.let { scope ->
                 service.roomIdsOfActiveLives
                         .onEach(::onRoomIdsUpdate)
                         .launchIn(scope)
@@ -74,6 +77,8 @@ class LocationSharingServiceConnection @Inject constructor(
 
     override fun onServiceDisconnected(className: ComponentName) {
         isBound = false
+        roomIdsObservationJob?.cancel()
+        roomIdsObservationJob = null
         locationSharingAndroidService?.callback = null
         locationSharingAndroidService = null
         onCallbackActionNoArg(Callback::onLocationServiceStopped)

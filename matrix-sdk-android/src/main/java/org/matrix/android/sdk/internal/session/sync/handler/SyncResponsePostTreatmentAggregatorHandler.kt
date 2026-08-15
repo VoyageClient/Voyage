@@ -117,7 +117,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
                 filename = updateTrustWorkerDataRepository.createParam(userIdsToFetch.toList())
         )
         backgroundTaskScheduler.enqueueUnique(
-                "USER_UPDATE_QUEUE",
+                "USER_UPDATE_QUEUE_$sessionId",
                 BackgroundQueuePolicy.APPEND_OR_REPLACE,
                 backgroundTask(BackgroundTaskType.UPDATE_USER, workerParams)
         )
