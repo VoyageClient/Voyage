@@ -447,6 +447,9 @@ class RoomListFragment :
     }
 
     private suspend fun handleQuickActions(quickAction: RoomListQuickActionsSharedAction) {
+        // Hidden tab fragments keep their observers live (see HomeDetailFragment.updateSelectedFragment),
+        // so each previously visited tab would repeat the action.
+        if (isHidden) return
         when (quickAction) {
             is RoomListQuickActionsSharedAction.NotificationsAllNoisy -> {
                 roomListViewModel.handle(RoomListAction.ChangeRoomNotificationState(quickAction.roomId, RoomNotificationState.ALL_MESSAGES_NOISY))
