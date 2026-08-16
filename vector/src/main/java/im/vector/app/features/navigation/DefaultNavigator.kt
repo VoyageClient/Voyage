@@ -40,6 +40,7 @@ import im.vector.app.features.crypto.verification.self.SelfVerificationBottomShe
 import im.vector.app.features.devtools.RoomDevToolActivity
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.RoomDetailActivity
+import im.vector.app.features.home.room.detail.arguments.PendingEventAction
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.home.room.detail.search.SearchActivity
 import im.vector.app.features.home.room.detail.search.SearchArgs
@@ -147,13 +148,19 @@ class DefaultNavigator @Inject constructor(
             eventId: String?,
             buildTask: Boolean,
             isInviteAlreadyAccepted: Boolean,
+            pendingEventAction: PendingEventAction?,
     ) {
         if (sessionHolder.getSafeActiveSession()?.getRoom(roomId) == null) {
             fatalError("Trying to open an unknown room $roomId", vectorPreferences.failFast())
             return
         }
 
-        val args = TimelineArgs(roomId = roomId, eventId = eventId, isInviteAlreadyAccepted = isInviteAlreadyAccepted)
+        val args = TimelineArgs(
+                roomId = roomId,
+                eventId = eventId,
+                isInviteAlreadyAccepted = isInviteAlreadyAccepted,
+                pendingEventAction = pendingEventAction,
+        )
         val intent = RoomDetailActivity.newIntent(context, args, false)
         startActivity(context, intent, buildTask)
     }

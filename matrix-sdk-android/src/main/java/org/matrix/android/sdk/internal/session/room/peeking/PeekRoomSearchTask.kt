@@ -16,9 +16,10 @@ import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.search.EventAndSender
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.util.ContentUtils
-import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.internal.database.mapper.overriddenUserItem
 import org.matrix.android.sdk.internal.session.search.ParsedSearchQuery
 import org.matrix.android.sdk.internal.session.search.extractMentionedUserIds
+import org.matrix.android.sdk.internal.session.search.searchMsgTypes
 import org.matrix.android.sdk.internal.session.search.unwrapReplaceForSearch
 import javax.inject.Inject
 
@@ -69,7 +70,7 @@ internal class PeekRoomSearchTask @Inject constructor(
         val results = matches.map { event ->
             val senderItem = event.senderId?.let { senderId ->
                 val member = memberContents[senderId]
-                MatrixItem.UserItem(senderId, member?.displayName, member?.avatarUrl)
+                overriddenUserItem(senderId, member?.displayName, member?.avatarUrl)
             }
             EventAndSender(event.unwrapReplaceForSearch(), senderItem)
         }
@@ -85,25 +86,15 @@ internal class PeekRoomSearchTask @Inject constructor(
         if (event.isRedacted()) return false
         val clearType = event.getClearType()
         val clearContent = event.getClearContent()
-        val msgtype: String
-        val text = when (clearType) {
-            EventType.MESSAGE -> {
-                msgtype = clearContent?.get("msgtype") as? String ?: return false
-                if (msgtype.startsWith("m.key.verification")) return false
-                clearContent["body"] as? String
-            }
-            EventType.STICKER -> {
-                msgtype = EventType.STICKER
-                clearContent?.get("body") as? String
-            }
-            else -> return false
-        }
+        val msgtypes = searchMsgTypes(clearType, clearContent)
+        if (msgtypes.isEmpty() || msgtypes.any { it.startsWith("m.key.verification") }) return false
+        val text = clearContent?.get("body") as? String
         val mentions = if (clearType == EventType.MESSAGE) extractMentionedUserIds(clearContent) else emptyList()
         return query.matches(
                 text = ContentUtils.extractUsefulTextFromReply(text.orEmpty()).lowercase(),
                 sender = event.senderId,
                 originServerTs = event.originServerTs ?: 0L,
-                msgtype = msgtype,
+                msgtypes = msgtypes,
                 eventMentions = mentions.map { it.lowercase() },
         )
     }

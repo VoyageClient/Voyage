@@ -28,7 +28,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Invite previews** — an invite to a world-readable room now shows the actual conversation with Accept/Decline underneath instead of a blank invite screen, and an invite back to a room you were kicked or banned from previews your retained copy of the history the same way.
 
-- **Local message search, including encrypted rooms** — a local event index with its own database, plus advanced filters: `from:`, `mentions:`, `has:(image|video|audio|file|sticker)`, `before:`/`after:` dates, and quoted exact-substring matching.
+- **Local message search, including encrypted rooms** — a local event index with its own database, plus advanced filters: `from:`, `mentions:`, `has:(image|video|audio|file|sticker|poll|link)`, `before:`/`after:` dates, and quoted exact-substring matching. The search bar suggests the filters as you type, completing `from:`/`mentions:` from the room's members as mention pills, and results support the same long-press actions as the timeline.
 
 - **Share encrypted history on invite (MSC4268)** — when you invite someone to an encrypted room whose history is visible to members, they can now read the messages sent before they joined. The keys go over as a single encrypted bundle rather than one message per session, so it works on rooms with a long history, and they are only sent to devices the invitee has cross-signed. Messages decrypted this way say who shared the keys, since only that person vouches for who really sent them.
 
@@ -86,7 +86,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Message forwarding** — forward messages (using their most recent edit), with a custom Forward icon. Pick as many rooms as you like from the room picker, each with its own checkbox, and send to all of them at once from the button in the toolbar. The same picker handles content shared into the app from other apps.
 
-- **Mass redactions** — bulk redaction via a `/massredact` command (with cooldown); redacting a message also redacts its edits and reactions and is applied live to open timelines, "remove" is renamed to "redact", and there's a toggle to skip the confirmation dialog.
+- **Mass redactions** — bulk redaction via a `/massredact` command (with cooldown, and an optional `from:`/`until:` time range); redacting a message also redacts its edits and reactions and is applied live to open timelines, "remove" is renamed to "redact", and there's a toggle to skip the confirmation dialog.
 
 - **Homeserver mirrors** — the homeserver entry in settings is now an editable, reorderable list. Add mirrors of your homeserver (alternate domains, a reverse proxy, an onion address) and the app falls back to the next one whenever the current one can't be reached or answers with a gateway error. Your ordering is never rewritten: the mirrors above the one in use are rechecked every few minutes while the app is open (or on demand from the recheck button), and the app moves back up as soon as one is reachable again.
 

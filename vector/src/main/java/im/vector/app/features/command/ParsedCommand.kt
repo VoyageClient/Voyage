@@ -8,6 +8,7 @@
 package im.vector.app.features.command
 
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 
 /**
  * Represent a parsed command.
@@ -53,7 +54,7 @@ sealed interface ParsedCommand {
     data class PartRoom(val roomAlias: String?) : ParsedCommand
     data class ChangeTopic(val topic: String) : ParsedCommand
     data class KickUser(val userId: String, val reason: String?) : ParsedCommand
-    data class MassRedact(val userId: String, val delayMs: Long?) : ParsedCommand
+    data class MassRedact(val userId: String, val delayMs: Long?, val range: MassRedactionRange) : ParsedCommand
     data class ChangeDisplayName(val displayName: String) : ParsedCommand
     data class ChangeDisplayNameForRoom(val displayName: String) : ParsedCommand
     data class ChangeRoomAvatar(val url: String) : ParsedCommand

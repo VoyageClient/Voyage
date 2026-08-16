@@ -114,12 +114,15 @@ import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.util.MatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
 import reactivecircus.flowbinding.android.widget.textChanges
 import timber.log.Timber
+import java.text.DateFormat
+import java.util.Date
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -222,16 +225,17 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         dismissSelectorOnTouchOutside()
 
         messageComposerViewModel.observeViewEvents {
+            // Every view event but the send-button animation is a terminal outcome of the in-flight
+            // send or command, including the ones that end in a dialog or a navigation instead of a
+            // SendMessageResult. Releasing here keeps the composer from staying locked forever.
+            if (it !is MessageComposerViewEvents.AnimateSendButtonVisibility) {
+                lockSendButton = false
+            }
             when (it) {
                 is MessageComposerViewEvents.JoinRoomCommandSuccess -> handleJoinedToAnotherRoom(it)
                 is MessageComposerViewEvents.SlashCommandConfirmationRequest -> handleSlashCommandConfirmationRequest(it)
                 is MessageComposerViewEvents.SendMessageResult -> renderSendMessageResult(it)
-                is MessageComposerViewEvents.ShowMessage -> {
-                    // ShowMessage is terminal feedback for a send/command that went through
-                    // sendTextMessage (which locked the button); release it (e.g. PGP toggle/errors).
-                    lockSendButton = false
-                    showSnackWithMessage(it.message)
-                }
+                is MessageComposerViewEvents.ShowMessage -> showSnackWithMessage(it.message)
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
                 is MessageComposerViewEvents.AnimateSendButtonVisibility -> handleSendButtonVisibilityChanged(it)
                 is MessageComposerViewEvents.OpenRoomMemberProfile -> openRoomMemberProfile(it.userId)
@@ -246,10 +250,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.InsertUserDisplayName -> insertUserDisplayNameInTextEditor(it.userId)
                 is MessageComposerViewEvents.JumpToEvent -> handleJumpToEvent(it)
                 is MessageComposerViewEvents.JumpToPermalink -> handleJumpToPermalink(it)
-                is MessageComposerViewEvents.LaunchPgpInteraction -> {
-                    lockSendButton = false
-                    launchPgpInteraction(it.pendingIntent)
-                }
+                is MessageComposerViewEvents.LaunchPgpInteraction -> launchPgpInteraction(it.pendingIntent)
             }
         }
 
@@ -739,7 +740,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun handleJoinedToAnotherRoom(action: MessageComposerViewEvents.JoinRoomCommandSuccess) {
         composer.setTextIfDifferent("")
-        lockSendButton = false
         navigator.openRoom(vectorBaseActivity, action.roomId)
     }
 
@@ -748,7 +748,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             is ParsedCommand.UnignoreUser -> promptUnignoreUser(action.parsedCommand)
             else -> TODO("Add case for ${action.parsedCommand.javaClass.simpleName}")
         }
-        lockSendButton = false
     }
 
     private fun promptUnignoreUser(command: ParsedCommand.UnignoreUser) {
@@ -787,8 +786,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 displayCommandError(getString(CommonStrings.command_not_supported_in_threads, sendMessageResult.command.command))
             }
         }
-
-        lockSendButton = false
     }
 
     private fun handleSlashCommandResultOk(parsedCommand: ParsedCommand) {
@@ -829,9 +826,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val target = if (event.displayName != event.userId) "${event.displayName} (${event.userId})" else event.userId
         MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(CommonStrings.mass_redaction_confirmation_title)
-                .setMessage(getString(CommonStrings.mass_redaction_confirmation_message, target))
+                .setMessage(massRedactionConfirmationMessage(target, event.range))
                 .setPositiveButton(android.R.string.ok) { _, _ ->
-                    val result = massRedactionManager.start(roomId, event.userId, event.displayName, event.delayMs)
+                    val result = massRedactionManager.start(roomId, event.userId, event.displayName, event.delayMs, event.range)
                     if (result == MassRedactionManager.StartResult.AlreadyRunning) {
                         MaterialAlertDialogBuilder(requireActivity())
                                 .setTitle(CommonStrings.dialog_title_error)
@@ -844,15 +841,23 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 .show()
     }
 
+    private fun massRedactionConfirmationMessage(target: String, range: MassRedactionRange): String {
+        val format = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+        val from = range.fromTs?.let { format.format(Date(it)) }
+        val to = range.toTs?.let { format.format(Date(it)) }
+        return when {
+            from != null && to != null -> getString(CommonStrings.mass_redaction_confirmation_message_between, target, from, to)
+            from != null -> getString(CommonStrings.mass_redaction_confirmation_message_after, target, from)
+            to != null -> getString(CommonStrings.mass_redaction_confirmation_message_before, target, to)
+            else -> getString(CommonStrings.mass_redaction_confirmation_message, target)
+        }
+    }
+
     private fun openRoomMemberProfile(userId: String) {
         navigator.openRoomMemberProfile(userId = userId, roomId = roomId, context = requireActivity())
     }
 
     private fun handleJumpToEvent(event: MessageComposerViewEvents.JumpToEvent) {
-        // JumpToEvent isn't a SendMessageResult, so renderSendMessageResult's unlock never
-        // runs for /jumpto* commands. Without this, a failed jump leaves the send button
-        // permanently locked.
-        lockSendButton = false
         val eventId = event.eventId
         if (eventId == null && !event.toRoomStart) {
             event.notFoundMessage?.let { showSnackWithMessage(it) }
@@ -862,7 +867,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun handleJumpToPermalink(event: MessageComposerViewEvents.JumpToPermalink) {
-        lockSendButton = false
         viewLifecycleOwner.lifecycleScope.launch {
             val isHandled = permalinkHandler.launch(requireActivity(), event.link, object : NavigationInterceptor {
                 override fun navToRoom(roomId: String?, eventId: String?, deepLink: Uri?, rootThreadEventId: String?): Boolean {

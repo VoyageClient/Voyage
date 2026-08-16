@@ -18,8 +18,8 @@ package org.matrix.android.sdk.internal.session.search
 
 import org.matrix.android.sdk.api.session.search.EventAndSender
 import org.matrix.android.sdk.api.session.search.SearchResult
-import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.mapper.overriddenUserItem
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -97,7 +97,7 @@ internal class DefaultSearchTask @Inject constructor(
                             searchResponseItem.event.senderId?.let { senderId ->
                                 searchResponseItem.context?.profileInfo?.get(senderId)
                                         ?.let {
-                                            MatrixItem.UserItem(
+                                            overriddenUserItem(
                                                     senderId,
                                                     it["displayname"] as? String,
                                                     it["avatar_url"] as? String

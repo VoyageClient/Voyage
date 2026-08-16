@@ -20,5 +20,7 @@ data class TimelineArgs(
         val openShareSpaceForId: String? = null,
         val threadTimelineArgs: ThreadTimelineArgs? = null,
         val switchToParentSpace: Boolean = false,
-        val isInviteAlreadyAccepted: Boolean = false
+        val isInviteAlreadyAccepted: Boolean = false,
+        /** Runs against [eventId] once the room is open. */
+        val pendingEventAction: PendingEventAction? = null,
 ) : Parcelable

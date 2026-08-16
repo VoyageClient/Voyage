@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.session.search
 
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.session.search.SearchService
@@ -99,12 +98,11 @@ internal class DefaultSearchService @Inject constructor(
         // Edited content first, like the UI displays it.
         @Suppress("UNCHECKED_CAST")
         val content = (event.content?.get("m.new_content") as? Content) ?: event.content
-        val msgtype = if (event.type == EventType.STICKER) EventType.STICKER else content?.get("msgtype") as? String
         return matches(
                 text = content?.get("body") as? String ?: "",
                 sender = event.senderId,
                 originServerTs = event.originServerTs ?: 0L,
-                msgtype = msgtype,
+                msgtypes = searchMsgTypes(event.getClearType(), content),
                 eventMentions = extractMentionedUserIds(event.content),
         )
     }

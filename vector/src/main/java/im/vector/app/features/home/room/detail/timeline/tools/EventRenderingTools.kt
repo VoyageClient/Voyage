@@ -234,6 +234,7 @@ fun createLinkMovementMethod(urlClickCallback: TimelineEventController.UrlClickC
                     // Always return false if the url is not valid, so the EvenBetterLinkMovementMethod can fallback to default click listener.
                     if (url.isValidUrl() && urlClickCallback?.onUrlLongClicked(url) == true) {
                         tv.dispatchTouchEvent(MotionEvent.obtain(0, 0, MotionEvent.ACTION_CANCEL, 0f, 0f, 0))
+                        this@apply.clearUrlHighlight(tv)
                         true
                     } else {
                         false

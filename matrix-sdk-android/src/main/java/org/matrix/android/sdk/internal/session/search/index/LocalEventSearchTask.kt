@@ -10,8 +10,8 @@ package org.matrix.android.sdk.internal.session.search.index
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.search.EventAndSender
 import org.matrix.android.sdk.api.session.search.SearchResult
-import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.mapper.overriddenUserItem
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.SessionScope
@@ -67,7 +67,8 @@ internal class LocalEventSearchTask @Inject constructor(
                         text = candidate.content_text,
                         sender = candidate.sender,
                         originServerTs = candidate.origin_server_ts,
-                        msgtype = candidate.msgtype,
+                        // Stored space-joined: a gallery carries its items' types alongside its own.
+                        msgtypes = candidate.msgtype?.split(' ').orEmpty(),
                         eventMentions = candidate.mentions?.split(' ').orEmpty(),
                 )
                 if (matched) {
@@ -79,15 +80,22 @@ internal class LocalEventSearchTask @Inject constructor(
 
         val results = rows.mapNotNull { row ->
             val event = tryParse(row.event_json)?.unwrapReplaceForSearch() ?: return@mapNotNull null
-            event.threadDetails = stores.timelineEvent.getByRoomAndEventId(row.room_id, event.eventId ?: row.event_id)
+            val localTimelineEvent = stores.timelineEvent.getByRoomAndEventId(row.room_id, event.eventId ?: row.event_id)
+            event.threadDetails = localTimelineEvent
                     ?.root
                     ?.takeIf { it.isRootThread || it.isThread() }
                     ?.asDomain()
                     ?.threadDetails
             val sender = row.sender
             val senderItem = sender?.let {
-                val member = stores.roomMember.getByRoomAndUser(row.room_id, it)
-                MatrixItem.UserItem(it, member?.displayName, member?.avatarUrl)
+                // The name and avatar the sender had when the event was sent, as the timeline shows
+                // them; the current member state is only a fallback for uncached events.
+                if (localTimelineEvent?.senderName != null || localTimelineEvent?.senderAvatar != null) {
+                    overriddenUserItem(it, localTimelineEvent.senderName, localTimelineEvent.senderAvatar)
+                } else {
+                    val member = stores.roomMember.getByRoomAndUser(row.room_id, it)
+                    overriddenUserItem(it, member?.displayName, member?.avatarUrl)
+                }
             }
             EventAndSender(event, senderItem)
         }

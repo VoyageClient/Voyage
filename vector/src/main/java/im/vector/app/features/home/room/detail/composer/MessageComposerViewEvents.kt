@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.composer
 import im.vector.app.core.platform.VectorViewEvents
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 
 sealed class MessageComposerViewEvents : VectorViewEvents {
 
@@ -32,7 +33,12 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
 
     data class OpenRoomMemberProfile(val userId: String) : MessageComposerViewEvents()
 
-    data class ShowMassRedactConfirmation(val userId: String, val displayName: String, val delayMs: Long) : MessageComposerViewEvents()
+    data class ShowMassRedactConfirmation(
+            val userId: String,
+            val displayName: String,
+            val delayMs: Long,
+            val range: MassRedactionRange,
+    ) : MessageComposerViewEvents()
 
     /**
      * A /join that couldn't join directly: open the room's matrix.to sheet (Join / Ask to join).

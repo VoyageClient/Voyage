@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.room.relation
 
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -29,6 +30,7 @@ internal interface FetchUserEventsTask : Task<FetchUserEventsTask.Params, FetchU
             val floorTs: Long?,
             /** Pagination token at the user's earliest event; when set, the walk pages forwards from it. */
             val anchorToken: String?,
+            val range: MassRedactionRange = MassRedactionRange.ALL,
     )
 
     data class Result(
@@ -66,6 +68,7 @@ internal class DefaultFetchUserEventsTask @Inject constructor(
                 // no content (already pruned server-side — nothing left to redact even if unsigned doesn't
                 // say why). Mirrors the local enumeration in EventSqlStore.getRedactableEventIdsBySender.
                 .filter { it.type != EventType.REDACTION && !it.isRedacted() && !it.content.isNullOrEmpty() }
+                .filter { params.range.contains(it.originServerTs) }
                 .mapNotNull { it.eventId }
         // Redaction events in this page and what they target: server state can disagree with itself (a
         // redaction can exist in history while its target is still served unpruned), so surface targets to
@@ -83,7 +86,11 @@ internal class DefaultFetchUserEventsTask @Inject constructor(
         val floor = params.floorTs
         val reachedFloor = !forwards && floor != null &&
                 chunk.any { event -> event.originServerTs?.let { it <= floor } == true }
-        val nextToken = if (reachedFloor) null else response.end?.takeIf { it != fromToken }
+        // Symmetrically, a forward walk that has passed the range's upper bound has nothing left to find.
+        val passedCeiling = forwards && params.range.toTs?.let { ceiling ->
+            chunk.any { event -> event.originServerTs?.let { it > ceiling } == true }
+        } == true
+        val nextToken = if (reachedFloor || passedCeiling) null else response.end?.takeIf { it != fromToken }
         return FetchUserEventsTask.Result(eventIds, nextToken, redactionTargets, alreadyRedactedIds)
     }
 

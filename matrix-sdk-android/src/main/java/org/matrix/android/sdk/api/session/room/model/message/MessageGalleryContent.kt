@@ -29,7 +29,7 @@ data class MessageGalleryContent(
          */
         @Json(name = "body") override val body: String,
 
-        @Json(name = "itemtypes") val itemtypes: List<JsonDict> = emptyList(),
+        @Json(name = ITEMS_JSON_KEY) val itemtypes: List<JsonDict> = emptyList(),
 
         @Json(name = "format") override val format: String? = null,
         @Json(name = "formatted_body") override val formattedBody: String? = null,
@@ -47,6 +47,7 @@ data class MessageGalleryContent(
     fun galleryItems(): List<MessageWithAttachmentContent> = itemtypes.toAttachmentContents()
 
     companion object {
+        const val ITEMS_JSON_KEY = "itemtypes"
         const val ITEM_TYPE_JSON_KEY = "itemtype"
     }
 }

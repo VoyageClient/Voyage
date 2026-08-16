@@ -67,6 +67,11 @@ class SearchResultController @Inject constructor(
     var listener: Listener? = null
 
     private var idx = 0
+    // Some cells hand the long press to a child view and let the press-release reach the item's own
+    // click listener, which here would navigate away from the actions sheet just opened. The release
+    // can land well after the long press fired, so swallow the next click outright rather than
+    // guessing at a time window.
+    private var swallowNextClick = false
     private var roomSummary: RoomSummary? = null
     private val eventsById = HashMap<String, Event>()
 
@@ -84,6 +89,8 @@ class SearchResultController @Inject constructor(
         fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent)
         fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float)
         fun onAvatarClicked(userId: String)
+        fun onEventLongClicked(informationData: MessageInformationData): Boolean
+        fun onUrlLongClicked(url: String): Boolean
     }
 
     /** Must be called once before the first [setData]. */
@@ -202,13 +209,21 @@ class SearchResultController @Inject constructor(
     // Interactions supported by the search screen; everything else no-ops in StubTimelineEventCallback.
 
     override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View, isRootThreadEvent: Boolean) {
-        eventsById[informationData.eventId]?.let { listener?.onItemClicked(it) }
+        navigateTo(informationData)
     }
 
     override fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean {
-        // No action bottom sheet in search results; long press navigates like a tap.
+        val handled = listener?.onEventLongClicked(informationData) == true
+        swallowNextClick = handled
+        return handled
+    }
+
+    private fun navigateTo(informationData: MessageInformationData) {
+        if (swallowNextClick) {
+            swallowNextClick = false
+            return
+        }
         eventsById[informationData.eventId]?.let { listener?.onItemClicked(it) }
-        return true
     }
 
     override fun onImageMessageClicked(
@@ -240,13 +255,17 @@ class SearchResultController @Inject constructor(
         listener?.onAudioSeekBarMovedTo(eventId, duration, percentage)
     }
 
+    override fun onUrlLongClicked(url: String): Boolean {
+        return listener?.onUrlLongClicked(url) == true
+    }
+
     override fun onAvatarClicked(informationData: MessageInformationData) {
         listener?.onAvatarClicked(informationData.senderId)
     }
 
     override fun onMemberNameClicked(informationData: MessageInformationData) {
         // The sender header isn't part of the message cell; treat taps there as navigation too.
-        eventsById[informationData.eventId]?.let { listener?.onItemClicked(it) }
+        navigateTo(informationData)
     }
 
     override fun onThreadSummaryClicked(eventId: String, isRootThreadEvent: Boolean): Boolean {

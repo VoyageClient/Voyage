@@ -16,6 +16,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.util.Pair
 import androidx.fragment.app.FragmentActivity
 import im.vector.app.features.crypto.recover.SetupMode
+import im.vector.app.features.home.room.detail.arguments.PendingEventAction
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
 import im.vector.app.features.location.LocationData
 import im.vector.app.features.location.LocationSharingMode
@@ -48,6 +49,7 @@ interface Navigator {
             eventId: String? = null,
             buildTask: Boolean = false,
             isInviteAlreadyAccepted: Boolean = false,
+            pendingEventAction: PendingEventAction? = null,
     )
 
     sealed class PostSwitchSpaceAction {

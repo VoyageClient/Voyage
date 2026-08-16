@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.database.mapper
 
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
+import org.matrix.android.sdk.api.util.MatrixItem
 
 internal fun overriddenSenderInfo(
         userId: String,
@@ -25,3 +26,9 @@ internal fun overriddenSenderInfo(
             avatarUrl = ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
     )
 }
+
+internal fun overriddenUserItem(userId: String, displayName: String?, avatarUrl: String?) = MatrixItem.UserItem(
+        userId,
+        ProfileOverrides.displayNameFor(userId) ?: displayName,
+        ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+)

@@ -32,7 +32,9 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
+import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
@@ -51,6 +53,7 @@ import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.redaction.PreservedContent
 import org.matrix.android.sdk.internal.session.room.redaction.RedactedContentStore
 import org.matrix.android.sdk.internal.session.search.extractMentionedUserIds
+import org.matrix.android.sdk.internal.session.search.searchMsgTypes
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
@@ -143,6 +146,7 @@ internal class EventIndexer @Inject constructor(
         isForeground.value = !backgroundDetectionObserver.isInBackground
         crawlJob = newScope.launch {
             try {
+                rebuildIfFormatChanged()
                 indexStore.deleteLocalEchoes()
                 sweepEventTable()
                 crawl()
@@ -152,6 +156,15 @@ internal class EventIndexer @Inject constructor(
                 Timber.e(failure, "EventIndexer failed")
             }
         }
+    }
+
+    // What a row records grew over time (gallery item types, polls): a row written by an older
+    // version simply can't answer the newer has: filters, so start the index over when it changes.
+    private suspend fun rebuildIfFormatChanged() {
+        if (indexStore.getFormatVersion() == INDEX_FORMAT_VERSION) return
+        Timber.i("EventIndexer: index format changed, rebuilding")
+        indexStore.clear()
+        indexStore.setFormatVersion(INDEX_FORMAT_VERSION)
     }
 
     private fun stop() {
@@ -281,23 +294,20 @@ internal class EventIndexer @Inject constructor(
         // otherwise index sent messages twice — once per id).
         if (LocalEcho.isLocalEchoId(eventId)) return null
         if (event.isRedacted()) return null
-        var msgtype: String? = null
-        val text = when (clearType) {
-            EventType.MESSAGE -> {
-                msgtype = clearContent?.get("msgtype") as? String ?: return null
-                if (msgtype.startsWith("m.key.verification")) return null
-                clearContent["body"] as? String
-            }
-            EventType.STICKER -> {
-                msgtype = EventType.STICKER
+        val msgtypes = searchMsgTypes(clearType, clearContent)
+        val text = when {
+            clearType == EventType.MESSAGE -> {
+                if (msgtypes.isEmpty() || msgtypes.any { it.startsWith("m.key.verification") }) return null
                 clearContent?.get("body") as? String
             }
-            EventType.STATE_ROOM_NAME -> clearContent?.get("name") as? String
-            EventType.STATE_ROOM_TOPIC -> clearContent?.get("topic") as? String
+            clearType == EventType.STICKER -> clearContent?.get("body") as? String
+            clearType in EventType.POLL_START.values -> pollText(clearContent)
+            clearType == EventType.STATE_ROOM_NAME -> clearContent?.get("name") as? String
+            clearType == EventType.STATE_ROOM_TOPIC -> clearContent?.get("topic") as? String
             else -> return null
         }
         // Media events stay findable through has: even without a text body (usually the filename).
-        if (text.isNullOrBlank() && msgtype !in MEDIA_MSGTYPES) return null
+        if (text.isNullOrBlank() && msgtypes.none { it in MEDIA_MSGTYPES }) return null
         val mentions = if (clearType == EventType.MESSAGE) extractMentionedUserIds(clearContent) else emptyList()
         val clearEvent = Event(
                 type = clearType,
@@ -317,9 +327,16 @@ internal class EventIndexer @Inject constructor(
                 // Rich-reply fallback is stripped from display, so it must not be searchable text.
                 contentText = ContentUtils.extractUsefulTextFromReply(text.orEmpty()).lowercase(),
                 eventJson = eventAdapter.toJson(clearEvent),
-                msgtype = msgtype,
+                msgtype = msgtypes.joinToString(" ").takeIf { it.isNotEmpty() },
                 mentions = mentions.takeIf { it.isNotEmpty() }?.joinToString(" ") { it.lowercase() },
         )
+    }
+
+    // A poll has no body: its question and answers are what the user would search for.
+    private fun pollText(clearContent: Content?): String? {
+        val poll = clearContent.toModel<MessagePollContent>()?.getBestPollCreationInfo() ?: return null
+        val answers = poll.answers.orEmpty().mapNotNull { it.getBestAnswer() }
+        return (listOfNotNull(poll.question?.getBestQuestion()) + answers).joinToString(" ").takeIf { it.isNotBlank() }
     }
 
     private fun toIndexable(event: Event): IndexableEvent? =
@@ -544,6 +561,9 @@ internal class EventIndexer @Inject constructor(
                 MessageType.MSGTYPE_FILE,
                 EventType.STICKER,
         )
+
+        // Bump whenever toIndexable stores something new that a filter relies on.
+        private const val INDEX_FORMAT_VERSION = 2
 
         private const val EVENTS_PER_CRAWL = 100
         private const val CRAWL_DELAY_MS = 3000L

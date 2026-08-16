@@ -44,6 +44,7 @@ import org.matrix.android.sdk.api.session.room.model.create.getRoomCreateContent
 import org.matrix.android.sdk.api.session.room.model.livelocation.LiveLocationShareAggregatedSummary
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionFloor
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.model.relation.PagedEventIds
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.model.relation.RelationService
@@ -431,16 +432,20 @@ internal class PeekedRoom(
 
         override suspend fun clearSendingRedactions() = Unit
 
-        override fun getLocalEventIdsFromUser(userId: String): List<String> = emptyList()
+        override fun getLocalEventIdsFromUser(userId: String, range: MassRedactionRange): List<String> = emptyList()
 
-        override suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floor: MassRedactionFloor?): PagedEventIds =
-                PagedEventIds(eventIds = emptyList(), nextToken = null)
+        override suspend fun fetchMoreEventIdsFromUser(
+                userId: String,
+                fromToken: String?,
+                floor: MassRedactionFloor?,
+                range: MassRedactionRange,
+        ): PagedEventIds = PagedEventIds(eventIds = emptyList(), nextToken = null)
 
         override fun getKnownRedactionTargets(): Set<String> = emptySet()
 
         override suspend fun markRedactedLocally(eventIds: List<String>) = Unit
 
-        override suspend fun getMassRedactionFloor(userId: String): MassRedactionFloor? = null
+        override suspend fun getMassRedactionFloor(userId: String, notBeforeTs: Long?): MassRedactionFloor? = null
 
         override fun replyToMessage(
                 eventReplied: TimelineEvent,

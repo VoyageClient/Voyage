@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionFloor
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.model.relation.PagedEventIds
 import org.matrix.android.sdk.api.session.room.model.relation.RelationService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -191,12 +192,17 @@ internal class DefaultRelationService @AssistedInject constructor(
         }
     }
 
-    override fun getLocalEventIdsFromUser(userId: String): List<String> {
-        return stores.event.getRedactableEventIdsBySender(roomId, userId)
+    override fun getLocalEventIdsFromUser(userId: String, range: MassRedactionRange): List<String> {
+        return stores.event.getRedactableEventIdsBySender(roomId, userId, range)
     }
 
-    override suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floor: MassRedactionFloor?): PagedEventIds {
-        val result = fetchUserEventsTask.execute(FetchUserEventsTask.Params(roomId, userId, fromToken, floor?.ts, floor?.anchorToken))
+    override suspend fun fetchMoreEventIdsFromUser(
+            userId: String,
+            fromToken: String?,
+            floor: MassRedactionFloor?,
+            range: MassRedactionRange,
+    ): PagedEventIds {
+        val result = fetchUserEventsTask.execute(FetchUserEventsTask.Params(roomId, userId, fromToken, floor?.ts, floor?.anchorToken, range))
         return PagedEventIds(result.eventIds, result.nextToken, result.redactionTargets, result.alreadyRedactedIds)
     }
 
@@ -225,7 +231,7 @@ internal class DefaultRelationService @AssistedInject constructor(
     // A user can't have sent anything before their earliest self-sent membership event (join/knock).
     // Walk the m.room.member replaces_state chain to the start; only return a floor when the walk
     // resolves fully — otherwise null (page in full) so we never stop early and miss events.
-    override suspend fun getMassRedactionFloor(userId: String): MassRedactionFloor? {
+    override suspend fun getMassRedactionFloor(userId: String, notBeforeTs: Long?): MassRedactionFloor? {
         var eventId = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.eventId ?: return null
         var earliestSelfTs: Long? = null
         var reachedChainStart = false
@@ -245,7 +251,7 @@ internal class DefaultRelationService @AssistedInject constructor(
             eventId = prev
         }
         if (!reachedChainStart) return null
-        val ts = earliestSelfTs ?: return null
+        val ts = maxOf(earliestSelfTs ?: return null, notBeforeTs ?: Long.MIN_VALUE)
         // A pagination token at the floor lets the walk run FORWARDS from the user's join to the live
         // edge — a forward walk can never touch (or backfill over federation) pre-join history, which is
         // what made backwards pages hang on sparsely-cached rooms. Note the token's topological part may
