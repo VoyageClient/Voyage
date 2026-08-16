@@ -17,7 +17,6 @@ package org.matrix.android.sdk.api.session.pushrules.rest
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleSetKey
 
 /**

@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session
 
 import android.content.Context
+import app.cash.sqldelight.db.SqlDriver
 import dagger.Binds
 import dagger.Lazy
 import dagger.Module
@@ -37,7 +38,6 @@ import org.matrix.android.sdk.api.session.ToDeviceService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
-import app.cash.sqldelight.db.SqlDriver
 import org.matrix.android.sdk.api.session.openid.OpenIdService
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.securestorage.SharedSecretStorageService
@@ -47,8 +47,6 @@ import org.matrix.android.sdk.internal.crypto.secrets.DefaultSharedSecretStorage
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultRedactEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask
 import org.matrix.android.sdk.internal.database.EventInsertLiveObserver
-import org.matrix.android.sdk.internal.session.room.redaction.RedactedContentStore
-import org.matrix.android.sdk.internal.session.search.index.EventIndexStore
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
@@ -100,9 +98,11 @@ import org.matrix.android.sdk.internal.session.room.create.RoomCreateEventProces
 import org.matrix.android.sdk.internal.session.room.location.LiveLocationShareRedactionEventProcessor
 import org.matrix.android.sdk.internal.session.room.prune.RedactionEventProcessor
 import org.matrix.android.sdk.internal.session.room.read.ReadReceiptQueue
+import org.matrix.android.sdk.internal.session.room.redaction.RedactedContentStore
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessorCoroutine
 import org.matrix.android.sdk.internal.session.room.tombstone.RoomTombstoneEventProcessor
+import org.matrix.android.sdk.internal.session.search.index.EventIndexStore
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import org.matrix.android.sdk.internal.session.typing.DefaultTypingUsersTracker
 import org.matrix.android.sdk.internal.session.user.accountdata.DefaultSessionAccountDataService

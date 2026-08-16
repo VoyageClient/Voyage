@@ -7,14 +7,14 @@
 
 package org.matrix.android.sdk.internal.session.sync.sliding
 
+import io.mockk.every
+import io.mockk.mockk
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldContain
 import org.junit.Test
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
-import io.mockk.every
-import io.mockk.mockk
 import org.matrix.android.sdk.internal.di.MoshiProvider
 
 /**
