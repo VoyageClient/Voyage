@@ -16,7 +16,6 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.files.LocalFilesHelper
-import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.core.ui.views.GalleryGridLayout
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.mediaCornerRadiusPx
@@ -106,6 +105,9 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
             holder.progressLayout.isVisible = false
         }
 
+        // A caption longer than the grid would widen the bubble past it, leaving a gap beside the tiles.
+        holder.captionView.maxWidth = maxWidth.takeIf { it > 0 } ?: Int.MAX_VALUE
+
         MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
@@ -126,21 +128,12 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
 
     override fun getViewStubId() = STUB_ID
 
-    override fun allowFooterOverlay(holder: Holder, bubbleWrapView: ScMessageBubbleWrapView): Boolean = true
+    // Media sits in a real bubble, so the timestamp goes under it like a text message's does.
+    override fun allowFooterOverlay(holder: Holder, bubbleWrapView: ScMessageBubbleWrapView): Boolean = false
 
-    override fun allowFooterBelow(holder: Holder): Boolean = false
+    override fun allowFooterBelow(holder: Holder): Boolean = true
 
-    override fun needsFooterReservation(): Boolean = caption != null
-
-    override fun footerOverlayAnchorView(holder: Holder): View? = if (caption == null) holder.grid else null
-
-    override fun reserveFooterSpace(holder: Holder, width: Int, height: Int) {
-        (holder.captionView as? AbstractFooteredTextView)?.apply {
-            footerWidth = width
-            footerHeight = height
-            getAppCompatTextView().requestLayout()
-        }
-    }
+    override fun needsFooterReservation(): Boolean = false
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
         val grid by bind<GalleryGridLayout>(R.id.messageGalleryGrid)

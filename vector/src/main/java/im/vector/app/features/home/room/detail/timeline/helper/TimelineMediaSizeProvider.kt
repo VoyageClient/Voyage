@@ -86,10 +86,30 @@ class TimelineMediaSizeProvider @Inject constructor(
             maxImageHeight = (height * 0.7f).roundToInt()
         }
         return if (vectorPreferences.useMessageBubblesLayout()) {
-            val bubbleMaxImageWidth = maxImageWidth.coerceAtMost(resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_fixed_size))
-            Pair(bubbleMaxImageWidth, maxImageHeight)
+            Pair(maxImageWidth.coerceAtMost(bubbleContentMaxWidth(resources, width)), maxImageHeight)
         } else {
             Pair(maxImageWidth, maxImageHeight)
         }
     }
 }
+
+/**
+ * The widest a bubble can show its content on this screen: everything between the screen edges and
+ * the bubble's content — the avatar column, the send-state column, the bubble's own margins and its
+ * inner padding — taken off the screen width. Content wider than this is clipped by the bubble.
+ */
+fun bubbleContentMaxWidth(resources: Resources, availableWidth: Int = resources.displayMetrics.widthPixels): Int {
+    val density = resources.displayMetrics.density
+    val chrome = ((AVATAR_COLUMN_DP + SEND_STATE_MARGINS_DP) * density).roundToInt() +
+            resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.item_event_message_state_size) +
+            2 * resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_wrap_margin_horizontal) +
+            resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_one_side_without_avatar_margin) +
+            resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_inner_padding_long_side) +
+            resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_inner_padding_short_side)
+    return (availableWidth - chrome)
+            .coerceAtMost(resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_fixed_size))
+}
+
+/** Avatar plus its start margin, as laid out in item_timeline_event_base. */
+private const val AVATAR_COLUMN_DP = 44f + 8f
+private const val SEND_STATE_MARGINS_DP = 8f + 8f

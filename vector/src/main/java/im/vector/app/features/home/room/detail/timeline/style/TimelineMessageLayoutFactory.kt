@@ -23,6 +23,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.isEdition
@@ -55,12 +56,10 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 MessageType.MSGTYPE_VERIFICATION_REQUEST
         )
 
-        // Use the bubble layout but without borders
+        // Use the bubble layout but without borders. Photos, videos and galleries are deliberately not
+        // here: they get a real bubble like text, so their timestamp sits in the bubble footer rather
+        // than overlaid on the media.
         private val MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT = setOf(
-                MessageType.MSGTYPE_IMAGE,
-                MessageType.MSGTYPE_VIDEO,
-                MessageType.MSGTYPE_GALLERY,
-                MessageType.MSGTYPE_GALLERY_STABLE,
                 MessageType.MSGTYPE_STICKER_LOCAL,
                 MessageType.MSGTYPE_EMOTE,
                 MessageType.MSGTYPE_BEACON_INFO,
@@ -68,10 +67,6 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 MessageType.MSGTYPE_BEACON_LOCATION_DATA,
         )
         private val MSG_TYPES_WITH_TIMESTAMP_INSIDE_MESSAGE = setOf(
-                MessageType.MSGTYPE_IMAGE,
-                MessageType.MSGTYPE_VIDEO,
-                MessageType.MSGTYPE_GALLERY,
-                MessageType.MSGTYPE_GALLERY_STABLE,
                 MessageType.MSGTYPE_STICKER_LOCAL,
                 MessageType.MSGTYPE_BEACON_INFO,
                 MessageType.MSGTYPE_LOCATION,
@@ -215,6 +210,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
         val isReply = event.isReply()
         if (!ignoreReply && isReply) return false
         if (this is MessageWithAttachmentContent && !getCaption().isNullOrBlank()) return false
+        // The forwarded-from line needs a bubble behind it, like a caption does.
+        if (event.root.getClearContent().getForwardedInfo() != null) return false
         return this.msgType in MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT
     }
 

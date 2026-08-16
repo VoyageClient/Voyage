@@ -33,6 +33,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.reply.InReplyToView
 import im.vector.app.features.home.room.detail.timeline.reply.PreviewReplyUiState
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
+import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.LinkClickSourceHolder
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
@@ -211,11 +212,17 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                 ?.let { context.getString(CommonStrings.forwarded_message_with_date, label, it) }
                 ?: label
         val permalink = forwardedInfo.permalink
+        // Inside a bubble the accent reads as a stray highlight, so links keep the message text colour there.
+        val linkColor = if (attributes.informationData.messageLayout is TimelineMessageLayout.ScBubble) {
+            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_accent
+        }
         if (permalink == null) {
             noticeView.isClickable = false
             noticeView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
         } else {
-            noticeView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_accent))
+            noticeView.setTextColor(ThemeUtils.getColor(context, linkColor))
             noticeView.setOnClickListener {
                 // Same-room jumps offer a way back to this message, as body permalinks do.
                 LinkClickSourceHolder.record(attributes.informationData.eventId)

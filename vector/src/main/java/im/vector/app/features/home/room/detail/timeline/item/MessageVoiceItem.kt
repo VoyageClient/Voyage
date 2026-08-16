@@ -26,7 +26,8 @@ import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
-import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.helper.bubbleContentMaxWidth
+import im.vector.app.features.home.room.detail.timeline.style.drawsBubbleBackground
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -100,7 +101,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
             onWaveformViewReady(holder)
         }
 
-        val backgroundTint = if (attributes.informationData.messageLayout is TimelineMessageLayout.Bubble) {
+        val backgroundTint = if (attributes.informationData.messageLayout.drawsBubbleBackground) {
             Color.TRANSPARENT
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
@@ -190,6 +191,10 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     }
 
     override fun getViewStubId() = STUB_ID
+
+    // wrap_content inside a bubble squeezes the player down to its controls; give it the same width
+    // media gets in a bubble, so the waveform/seek bar has room.
+    override fun getViewStubMinimumWidth(holder: Holder): Int = bubbleContentMaxWidth(holder.view.resources)
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
         val voicePlaybackLayout by bind<View>(R.id.voicePlaybackLayout)
