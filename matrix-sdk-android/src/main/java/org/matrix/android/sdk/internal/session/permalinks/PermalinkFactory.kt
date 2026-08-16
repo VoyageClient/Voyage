@@ -80,7 +80,7 @@ internal class PermalinkFactory @Inject constructor(
         }
     }
 
-    fun createPermalink(roomId: String, eventId: String, forceMatrixTo: Boolean): String {
+    fun createPermalink(roomId: String, eventId: String, forceMatrixTo: Boolean, viaServers: List<String> = emptyList()): String {
         return buildString {
             append(baseUrl(forceMatrixTo))
             if (useClientFormat(forceMatrixTo)) {
@@ -89,7 +89,8 @@ internal class PermalinkFactory @Inject constructor(
             append(escape(roomId))
             append("/")
             append(escape(eventId))
-            append(viaParameterFinder.computeViaParams(userId, roomId))
+            val via = (viaServers + viaParameterFinder.computeViaParams(userId, roomId, VIA_PARAMS_MAX)).distinct().take(VIA_PARAMS_MAX)
+            append(viaParameterFinder.asUrlViaParameters(via))
         }
     }
 
@@ -165,6 +166,7 @@ internal class PermalinkFactory @Inject constructor(
     }
 
     companion object {
+        private const val VIA_PARAMS_MAX = 3
         private const val ROOM_PATH = "room/"
         private const val USER_PATH = "user/"
         private const val GROUP_PATH = "group/"

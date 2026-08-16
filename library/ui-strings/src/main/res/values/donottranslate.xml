@@ -840,5 +840,10 @@
     <string name="event_status_failed_message_warning" translatable="false">Message failed to send</string>
     <string name="event_status_failed_messages_warning_with_reason" translatable="false">%1$s: %2$s</string>
 
+    <string name="forwarded_message" translatable="false">Forwarded message</string>
+    <string name="forwarded_message_from_this_room" translatable="false">Forwarded from earlier in this room</string>
+    <string name="forwarded_message_from_user" translatable="false">Forwarded from %1$s</string>
+    <string name="forwarded_message_with_date" translatable="false">%1$s - %2$s</string>
+
     <string name="error_rejected_by_policy_server" translatable="false">Rejected by this room\'s policy server, which automatically screens messages for spam.</string>
 </resources>

@@ -11,17 +11,21 @@ import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
+import im.vector.app.core.resources.StringArrayProvider
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
+import im.vector.app.features.home.room.detail.timeline.item.ForwardedInfoData
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.ReferencesInfoData
 import im.vector.app.features.home.room.detail.timeline.item.SendStateDecoration
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayoutFactory
 import im.vector.app.features.media.isMediaHiddenInRoom
+import im.vector.app.features.permalink.PermalinkFactory
 import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.BubbleThemeUtils
+import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.MessageVerificationState
@@ -42,6 +46,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
@@ -58,6 +63,8 @@ class MessageInformationDataFactory @Inject constructor(
         private val pollResponseDataFactory: PollResponseDataFactory,
         private val vectorPreferences: VectorPreferences,
         private val pgpKeyStore: PgpKeyStore,
+        private val permalinkFactory: PermalinkFactory,
+        private val stringArrayProvider: StringArrayProvider,
 ) {
 
     fun create(params: TimelineItemFactoryParams): MessageInformationData {
@@ -133,6 +140,21 @@ class MessageInformationDataFactory @Inject constructor(
             SendStateDecoration.NONE
         }
 
+        val forwardedInfo = event.root.getClearContent().getForwardedInfo()?.let { info ->
+            val originalRoomId = info.roomId
+            val originalEventId = info.eventId
+            ForwardedInfoData(
+                    senderId = info.sender,
+                    formattedDate = info.originServerTs?.let { dateFormatter.format(it, DateFormatKind.DEFAULT_DATE_AND_TIME) },
+                    fromThisRoom = originalRoomId != null && originalRoomId == event.root.roomId,
+                    permalink = if (originalRoomId != null && originalEventId != null) {
+                        permalinkFactory.createPermalink(originalRoomId, originalEventId, forwardViaServers(event))
+                    } else {
+                        null
+                    }
+            )
+        }
+
         val messageLayout = messageLayoutFactory.create(params)
 
         val mediaHiddenInRoom = isMediaHiddenInRoom(roomSummary, vectorPreferences)
@@ -175,8 +197,20 @@ class MessageInformationDataFactory @Inject constructor(
                 } else {
                     event.root.getMsgType()
                 },
-                sharedByUserId = event.root.mxDecryptionResult?.sharedByUserId
+                sharedByUserId = event.root.mxDecryptionResult?.sharedByUserId,
+                forwardedInfo = forwardedInfo
         )
+    }
+
+    // MSC2723 carries no via servers, and our own server may know nothing about a room we were never in.
+    // Whoever sent us this copy could see the room it came from, so route through their server.
+    private fun forwardViaServers(event: TimelineEvent): List<String> {
+        return listOfNotNull(event.root.senderId?.getServerName()?.takeIf { it.isNotEmpty() })
+                .ifEmpty { fallbackViaServers }
+    }
+
+    private val fallbackViaServers: List<String> by lazy {
+        stringArrayProvider.getStringArray(im.vector.app.config.R.array.room_directory_servers).toList()
     }
 
     // Memoize per room: resolving the DM partner hits Realm, and it's identical for every event in the room.

@@ -151,12 +151,26 @@
                 android:textSize="12sp"
                 tools:text="@tools:sample/date/hhmm" />
 
+            <TextView
+                android:id="@+id/messageForwardedNoticeView"
+                style="@style/Widget.Vector.TextView.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/bubbleMessageTimeView"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAlignment="viewStart"
+                android:textColor="?vctr_content_secondary"
+                android:visibility="gone"
+                tools:text="Forwarded message"
+                tools:visibility="visible" />
+
             <include
                 android:id="@+id/viewStubContainer"
                 layout="@layout/item_timeline_event_view_stubs_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/bubbleMessageTimeView"
+                android:layout_below="@id/messageForwardedNoticeView"
                 android:layout_marginStart="0dp"
                 android:layout_marginLeft="0dp"
                 android:layout_marginTop="0dp"
