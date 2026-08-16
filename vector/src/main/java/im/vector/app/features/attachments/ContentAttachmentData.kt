@@ -20,12 +20,15 @@ private val listOfPreviewableMimeTypes = listOf(
 )
 
 fun ContentAttachmentData.isPreviewable(): Boolean {
-    // Preview supports image, video and audio. A recorded voice message never comes through here —
-    // the recorder hands it straight to the send service — so previewing audio cannot delay one.
+    // Preview supports image, video, audio and generic files (shown as a filetype card). A recorded
+    // voice message never comes through here — the recorder hands it straight to the send service —
+    // so previewing audio cannot delay one. Keeping files in the same batch matters for MSC4274:
+    // sent separately they could never join the others in one gallery event.
     return (type == ContentAttachmentData.Type.IMAGE &&
             listOfPreviewableMimeTypes.contains(getSafeMimeType() ?: "")) ||
             type == ContentAttachmentData.Type.VIDEO ||
-            type == ContentAttachmentData.Type.AUDIO
+            type == ContentAttachmentData.Type.AUDIO ||
+            type == ContentAttachmentData.Type.FILE
 }
 
 data class GroupedContentAttachmentData(

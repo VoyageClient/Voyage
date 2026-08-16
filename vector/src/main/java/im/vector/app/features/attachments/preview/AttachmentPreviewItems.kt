@@ -8,6 +8,7 @@
 package im.vector.app.features.attachments.preview
 
 import android.annotation.SuppressLint
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.SurfaceTexture
@@ -23,6 +24,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.widget.ImageViewCompat
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyModelClass
@@ -56,6 +59,8 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
     override fun bind(holder: H) {
         super.bind(holder)
         defaultScaleType?.let { holder.imageView.scaleType = it }
+        // The generic-file branch tints its glyph; a recycled holder must not tint real media.
+        ImageViewCompat.setImageTintList(holder.imageView, null)
         when (attachment.type) {
             ContentAttachmentData.Type.VIDEO -> {
                 // .frame(0) only does anything for video sources; .asBitmap() is required to
@@ -87,7 +92,8 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                 bindAudioThumbnail(holder)
             }
             else -> {
-                holder.imageView.setImageResource(R.drawable.filetype_attachment)
+                holder.imageView.setImageResource(R.drawable.ic_paperclip_card)
+                ImageViewCompat.setImageTintList(holder.imageView, ColorStateList.valueOf(Color.WHITE))
                 holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
             }
         }
@@ -175,6 +181,11 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
     @EpoxyAttribute var loopVideos: Boolean = false
 
+    /** Landscape has no room for the inline cover art; the blurred backdrop still shows it. */
+    @EpoxyAttribute var showInlineArt: Boolean = true
+
+    @EpoxyAttribute var waveformHeightPx: Int = 0
+
     /** The size the attachment will be sent at, when the sender has chosen one. */
     @EpoxyAttribute var targetSize: Pair<Int, Int>? = null
 
@@ -182,6 +193,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        applyOrientationSizing(holder)
         applyPlaybackState(holder)
     }
 
@@ -189,10 +201,16 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         if ((previouslyBoundModel as? AttachmentBigPreviewItem)?.attachment?.queryUri == attachment.queryUri) {
             // Re-running super.bind() would restart the Glide load, flashing the thumbnail back
             // over video that is already playing.
+            applyOrientationSizing(holder)
             applyPlaybackState(holder)
         } else {
             bind(holder)
         }
+    }
+
+    private fun applyOrientationSizing(holder: Holder) {
+        holder.setInlineArtAllowed(showInlineArt)
+        if (waveformHeightPx > 0) holder.setWaveformHeight(waveformHeightPx)
     }
 
     override fun unbind(holder: Holder) {
@@ -216,6 +234,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         val durationMs = (attachment.duration ?: 0L).toInt()
         holder.setVideo(attachment.queryUriAndroid.takeIf { isVideo }, durationMs)
         holder.setAudio(attachment.queryUriAndroid.takeIf { isAudio }, durationMs, attachment.name)
+        // A generic file's page is just its name; the paperclip stays down in the miniature strip.
+        // Runs after setAudio, whose no-audio path decides the image's visibility for every other type.
+        holder.setGenericFile((attachment.name ?: "").takeIf { attachment.type == ContentAttachmentData.Type.FILE })
         // Each surface owns its own zoom, so the still and the video never fight over the gesture.
         holder.setZoomEnabled(!isVideo)
         // Swiping away drops any zoom, so coming back lands at 1x.
@@ -251,6 +272,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private val audioPanel by bind<View>(R.id.attachmentBigAudioPanel)
         private val audioArtistView by bind<TextView>(R.id.attachmentBigAudioArtist)
         private val audioArtView by bind<ImageView>(R.id.attachmentBigAudioArt)
+        private val fileNameView by bind<TextView>(R.id.attachmentBigFileName)
 
         private var videoUri: Uri? = null
         private var audioUri: Uri? = null
@@ -267,6 +289,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private var videoWidth = 0
         private var videoHeight = 0
         private var listenerAttached = false
+        private var inlineArtAllowed = true
 
         /** Leaving the app tears the surface down and with it the player; this is where it was. */
         private var resumePositionMs = 0
@@ -282,6 +305,14 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
         private var listener: VideoPlaybackListener? = null
         private val ticker = Runnable { onTick() }
+
+        fun setGenericFile(name: String?) {
+            fileNameView.isVisible = name != null
+            if (name != null) {
+                bigImageView.isVisible = false
+                fileNameView.text = name
+            }
+        }
 
         fun resetZoom() {
             bigImageView.resetZoom()
@@ -408,6 +439,17 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             reportProgress()
         }
 
+        override fun forwardScreenTouch(event: MotionEvent): Boolean {
+            if (audioUri == null) return false
+            val location = IntArray(2)
+            waveformView.getLocationOnScreen(location)
+            val copy = MotionEvent.obtain(event)
+            copy.setLocation(event.rawX - location[0], event.rawY - location[1])
+            val handled = waveformView.onTouchEvent(copy)
+            copy.recycle()
+            return handled
+        }
+
         /** Anything the page did not otherwise use is handed to the waveform, in its own terms. */
         private fun forwardToWaveform(event: MotionEvent): Boolean {
             val copy = MotionEvent.obtain(event)
@@ -435,7 +477,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             audioArtistView.text = details?.credits
             audioArtistView.isVisible = details?.credits != null
             audioArtView.setImageDrawable(details?.art?.let { AudioDetails.roundedArt(view.context, it) })
-            audioArtView.isVisible = details?.art != null
+            audioArtView.isVisible = details?.art != null && inlineArtAllowed
         }
 
         /**
@@ -604,6 +646,16 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         /** Backgrounded: drop the player but keep the place — [release] would revert to the poster. */
+        fun setInlineArtAllowed(allowed: Boolean) {
+            inlineArtAllowed = allowed
+            audioArtView.isVisible = audioArtView.drawable != null && allowed
+        }
+
+        fun setWaveformHeight(heightPx: Int) {
+            if (waveformView.layoutParams.height == heightPx) return
+            waveformView.updateLayoutParams { height = heightPx }
+        }
+
         override fun suspendPlayback() {
             mediaPlayer?.let {
                 resumePositionMs = runCatching { it.currentPosition }.getOrDefault(0)
@@ -795,6 +847,12 @@ interface VideoPlaybackControls {
 
     /** Drops the decoder but keeps the position, for handing the clip to another screen. */
     fun suspendPlayback()
+
+    /**
+     * A touch the screen had no other use for, in raw screen coordinates. Audio pages spend it on
+     * the waveform, so tapping or scrubbing works anywhere on the screen, not just over the page.
+     */
+    fun forwardScreenTouch(event: MotionEvent): Boolean = false
 }
 
 interface VideoPlaybackListener {

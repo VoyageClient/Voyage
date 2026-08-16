@@ -8,6 +8,8 @@
 package im.vector.app.core.extensions
 
 import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -100,5 +102,18 @@ fun Context.inferNoConnectivity(sdkIntProvider: BuildVersionSdkIntProvider): Boo
             ConnectivityManager.TYPE_VPN -> false
             else -> true
         }
+    }
+}
+
+/**
+ * Resources answering for [configuration] rather than the one this context was created with — a
+ * screen that handles its own rotation is otherwise served values for the orientation it is leaving.
+ * createConfigurationContext is API 17+; below it the context's own resources are all there is.
+ */
+fun Context.resourcesFor(configuration: Configuration): Resources {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        createConfigurationContext(configuration).resources
+    } else {
+        resources
     }
 }

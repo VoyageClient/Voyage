@@ -36,7 +36,6 @@
         android:id="@+id/audioEditorAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#40000000"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -93,8 +92,8 @@
 
     <ImageView
         android:id="@+id/audioEditorArt"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
+        android:layout_width="@dimen/audio_preview_art_size"
+        android:layout_height="@dimen/audio_preview_art_size"
         android:layout_marginTop="16dp"
         android:contentDescription="@null"
         android:scaleType="fitCenter"
@@ -108,8 +107,10 @@
     <im.vector.app.features.attachments.preview.WaveformScrubView
         android:id="@+id/audioEditorWaveform"
         android:layout_width="match_parent"
-        android:layout_height="136dp"
+        android:layout_height="0dp"
         android:layout_marginTop="4dp"
+        app:layout_constraintHeight_max="@dimen/audio_preview_waveform_height"
+        app:layout_constraintHeight_min="48dp"
         app:layout_constraintBottom_toTopOf="@id/audioEditorTimeline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -118,7 +119,7 @@
     <im.vector.app.features.attachments.editor.video.VideoTimelineStripView
         android:id="@+id/audioEditorTimeline"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="@dimen/audio_editor_timeline_height"
         android:layout_marginBottom="24dp"
         app:layout_constraintBottom_toTopOf="@id/audioEditorSaveButton"
         app:layout_constraintEnd_toEndOf="parent"
