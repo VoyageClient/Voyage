@@ -76,14 +76,20 @@ class MessageActionsBottomSheet :
     }
 
     companion object {
-        fun newInstance(roomId: String, informationData: MessageInformationData, isFromThreadTimeline: Boolean): MessageActionsBottomSheet {
+        fun newInstance(
+                roomId: String,
+                informationData: MessageInformationData,
+                isFromThreadTimeline: Boolean,
+                galleryItemIndex: Int? = null,
+        ): MessageActionsBottomSheet {
             return MessageActionsBottomSheet().apply {
                 setArguments(
                         TimelineEventFragmentArgs(
                                 informationData.eventId,
                                 roomId,
                                 informationData,
-                                isFromThreadTimeline
+                                isFromThreadTimeline,
+                                galleryItemIndex,
                         )
                 )
             }

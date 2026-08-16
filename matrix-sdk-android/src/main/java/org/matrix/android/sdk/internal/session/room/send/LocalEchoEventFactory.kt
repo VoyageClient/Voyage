@@ -41,6 +41,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
@@ -57,7 +58,9 @@ import org.matrix.android.sdk.api.session.room.model.message.PollResponse
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.message.ThumbnailInfo
 import org.matrix.android.sdk.api.session.room.model.message.VideoInfo
+import org.matrix.android.sdk.api.session.room.model.message.galleryFallbackBody
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
+import org.matrix.android.sdk.api.session.room.model.message.toGalleryItem
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionInfo
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
@@ -528,6 +531,19 @@ internal class LocalEchoEventFactory @Inject constructor(
             autoMarkdown: Boolean = false,
             mentions: Mentions? = null,
     ): Event {
+        val content = buildImageContent(attachment, rootThreadEventId, relatesTo, captionText, captionFormattedText, autoMarkdown, mentions)
+        return createMessageEvent(roomId, content, additionalContent)
+    }
+
+    private fun buildImageContent(
+            attachment: ContentAttachmentData,
+            rootThreadEventId: String? = null,
+            relatesTo: RelationDefaultContent? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
+    ): MessageImageContent {
         var width = attachment.outputWidth
         var height = attachment.outputHeight
 
@@ -540,7 +556,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         }
 
         val body = buildMediaBody(attachment, "image", captionText, captionFormattedText, autoMarkdown)
-        val content = MessageImageContent(
+        return MessageImageContent(
                 msgType = MessageType.MSGTYPE_IMAGE,
                 body = body.body,
                 filename = body.filename,
@@ -556,7 +572,6 @@ internal class LocalEchoEventFactory @Inject constructor(
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
                 mentions = mentions,
         )
-        return createMessageEvent(roomId, content, additionalContent)
     }
 
     private fun createVideoEvent(
@@ -570,6 +585,19 @@ internal class LocalEchoEventFactory @Inject constructor(
             autoMarkdown: Boolean = false,
             mentions: Mentions? = null,
     ): Event {
+        val content = buildVideoContent(attachment, rootThreadEventId, relatesTo, captionText, captionFormattedText, autoMarkdown, mentions)
+        return createMessageEvent(roomId, content, additionalContent)
+    }
+
+    private fun buildVideoContent(
+            attachment: ContentAttachmentData,
+            rootThreadEventId: String? = null,
+            relatesTo: RelationDefaultContent? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
+    ): MessageVideoContent {
         val (width, height) = videoMetadataExtractor.getVideoSize(attachment)
 
         var thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment, withBlurHash = false)?.let {
@@ -604,7 +632,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             }
         }
         val body = buildMediaBody(attachment, "video", captionText, captionFormattedText, autoMarkdown)
-        val content = MessageVideoContent(
+        return MessageVideoContent(
                 msgType = MessageType.MSGTYPE_VIDEO,
                 body = body.body,
                 filename = body.filename,
@@ -624,7 +652,6 @@ internal class LocalEchoEventFactory @Inject constructor(
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
                 mentions = mentions,
         )
-        return createMessageEvent(roomId, content, additionalContent)
     }
 
     private fun createAudioEvent(
@@ -639,8 +666,22 @@ internal class LocalEchoEventFactory @Inject constructor(
             autoMarkdown: Boolean = false,
             mentions: Mentions? = null,
     ): Event {
+        val content = buildAudioContent(attachment, isVoiceMessage, rootThreadEventId, relatesTo, captionText, captionFormattedText, autoMarkdown, mentions)
+        return createMessageEvent(roomId, content, additionalContent)
+    }
+
+    private fun buildAudioContent(
+            attachment: ContentAttachmentData,
+            isVoiceMessage: Boolean,
+            rootThreadEventId: String? = null,
+            relatesTo: RelationDefaultContent? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
+    ): MessageAudioContent {
         val body = buildMediaBody(attachment, "audio", captionText, captionFormattedText, autoMarkdown)
-        val content = MessageAudioContent(
+        return MessageAudioContent(
                 msgType = MessageType.MSGTYPE_AUDIO,
                 body = body.body,
                 filename = body.filename,
@@ -660,7 +701,6 @@ internal class LocalEchoEventFactory @Inject constructor(
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
                 mentions = mentions,
         )
-        return createMessageEvent(roomId, content, additionalContent)
     }
 
     private fun createFileEvent(
@@ -674,8 +714,21 @@ internal class LocalEchoEventFactory @Inject constructor(
             autoMarkdown: Boolean = false,
             mentions: Mentions? = null,
     ): Event {
+        val content = buildFileContent(attachment, rootThreadEventId, relatesTo, captionText, captionFormattedText, autoMarkdown, mentions)
+        return createMessageEvent(roomId, content, additionalContent)
+    }
+
+    private fun buildFileContent(
+            attachment: ContentAttachmentData,
+            rootThreadEventId: String? = null,
+            relatesTo: RelationDefaultContent? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
+    ): MessageFileContent {
         val body = buildMediaBody(attachment, "file", captionText, captionFormattedText, autoMarkdown)
-        val content = MessageFileContent(
+        return MessageFileContent(
                 msgType = MessageType.MSGTYPE_FILE,
                 body = body.body,
                 filename = body.filename,
@@ -686,6 +739,45 @@ internal class LocalEchoEventFactory @Inject constructor(
                         size = attachment.size
                 ),
                 url = attachment.queryUri,
+                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
+                mentions = mentions,
+        )
+    }
+
+    fun createGalleryEvent(
+            roomId: String,
+            attachments: List<ContentAttachmentData>,
+            rootThreadEventId: String?,
+            relatesTo: RelationDefaultContent?,
+            additionalContent: Content? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
+    ): Event {
+        val itemContents: List<MessageWithAttachmentContent> = attachments.map { attachment ->
+            when (attachment.type) {
+                ContentAttachmentData.Type.IMAGE -> buildImageContent(attachment)
+                ContentAttachmentData.Type.VIDEO -> buildVideoContent(attachment)
+                ContentAttachmentData.Type.AUDIO -> buildAudioContent(attachment, isVoiceMessage = false)
+                ContentAttachmentData.Type.VOICE_MESSAGE -> buildAudioContent(attachment, isVoiceMessage = true)
+                ContentAttachmentData.Type.FILE -> buildFileContent(attachment)
+            }
+        }
+        val caption = captionText?.toString()?.takeIf { it.isNotEmpty() }
+        val html = when {
+            caption == null -> null
+            captionFormattedText != null -> captionFormattedText
+            isPgpArmoredBody(caption) -> null
+            else -> markdownParser.parse(captionText, force = true, advanced = autoMarkdown).takeFormatted()
+        }
+        val isFormatted = html != null && html != caption
+        val content = MessageGalleryContent(
+                msgType = MessageType.MSGTYPE_GALLERY,
+                body = caption ?: galleryFallbackBody(itemContents),
+                format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
+                formattedBody = if (isFormatted) html else null,
+                itemtypes = itemContents.mapNotNull { it.toGalleryItem() },
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
                 mentions = mentions,
         )
@@ -901,6 +993,8 @@ internal class LocalEchoEventFactory @Inject constructor(
             MessageType.MSGTYPE_AUDIO -> return TextContent("sent an audio file.")
             MessageType.MSGTYPE_IMAGE -> return TextContent("sent an image.")
             MessageType.MSGTYPE_VIDEO -> return TextContent("sent a video.")
+            MessageType.MSGTYPE_GALLERY,
+            MessageType.MSGTYPE_GALLERY_STABLE -> return TextContent("sent a media gallery.")
             MessageType.MSGTYPE_BEACON_INFO -> return TextContent(content.body.ensureNotEmpty() ?: "Live location")
             MessageType.MSGTYPE_POLL_START -> {
                 return TextContent((content as? MessagePollContent)?.getBestPollCreationInfo()?.question?.getBestQuestion() ?: "")

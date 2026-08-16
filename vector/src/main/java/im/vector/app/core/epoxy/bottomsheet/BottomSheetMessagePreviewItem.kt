@@ -32,12 +32,15 @@ import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setRedactedTint
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.ui.views.GalleryGridLayout
 import im.vector.app.core.ui.views.RoundedCornerImageView
 import im.vector.app.core.utils.nonScrolling
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.action.LocationUiData
 import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
+import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
+import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -82,6 +85,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
 
     @EpoxyAttribute
     var data: ImageContentRenderer.Data? = null
+
+    @EpoxyAttribute
+    var galleryTiles: List<MessageGalleryItem.TileData>? = null
+
+    @EpoxyAttribute
+    var galleryMaxWidth: Int = 0
 
     @EpoxyAttribute
     var hideMedia: Boolean = false
@@ -141,6 +150,21 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             }
         }
         holder.imagePreview.isVisible = data != null
+        val tiles = galleryTiles.orEmpty()
+        holder.galleryPreview.isVisible = tiles.isNotEmpty()
+        val galleryRenderer = imageContentRenderer
+        if (tiles.isNotEmpty() && galleryRenderer != null) {
+            val cornerPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, holder.galleryPreview.resources.displayMetrics).toInt()
+            GalleryGridBinder.bind(
+                    grid = holder.galleryPreview,
+                    tiles = tiles,
+                    maxWidth = galleryMaxWidth,
+                    cornerRadiusPx = cornerPx,
+                    imageContentRenderer = galleryRenderer,
+                    hideMedia = hideMedia,
+                    hideMediaSolidColor = hideMediaSolidColor,
+            )
+        }
         holder.body.movementMethod = movementMethod?.nonScrolling()
         // The bottom-sheet theme tree doesn't inherit the app theme's textColorHighlight, so give a pressed
         // link a translucent tint matching the link colour here instead of Material's stray teal default.
@@ -204,6 +228,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
 
     override fun unbind(holder: Holder) {
         imageContentRenderer?.clear(holder.imagePreview)
+        imageContentRenderer?.let { GalleryGridBinder.unbind(holder.galleryPreview, it) }
         super.unbind(holder)
     }
 
@@ -215,6 +240,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         val bodyDetails by bind<TextView>(R.id.bottom_sheet_message_preview_body_details)
         val timestamp by bind<TextView>(R.id.bottom_sheet_message_preview_timestamp)
         val imagePreview by bind<RoundedCornerImageView>(R.id.bottom_sheet_message_preview_image)
+        val galleryPreview by bind<GalleryGridLayout>(R.id.bottom_sheet_message_preview_gallery)
         val mapViewContainer by bind<FrameLayout>(R.id.mapViewContainer)
         val staticMapImageView by bind<ImageView>(R.id.staticMapImageView)
         val staticMapPinImageView by bind<ImageView>(R.id.staticMapPinImageView)

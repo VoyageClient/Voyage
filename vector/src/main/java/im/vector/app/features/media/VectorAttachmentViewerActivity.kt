@@ -60,6 +60,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import timber.log.Timber
 import javax.inject.Inject
@@ -177,8 +179,30 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
         val inMemoryData = intent.getParcelableArrayListExtraCompat<AttachmentData>(EXTRA_IN_MEMORY_DATA)
         if (inMemoryData != null) {
-            initialIndex = inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
+            // Identity first: a gallery's items all share one eventId, so the eventId match alone
+            // would always land on the first tile.
+            val tapped = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
+            initialIndex = inMemoryData.indexOfFirst { it == tapped }.takeIf { it >= 0 }
+                    ?: inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
             installSourceProvider(dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope))
+            // A gallery tile opens on its own items instantly, but from the timeline the viewer should
+            // page over the whole room's media — swap the full list in underneath, like the
+            // provisional flow below, keeping the page the user is on.
+            if (args.openedFromTimeline && !args.standalonePreview && room != null) {
+                val tappedOffset = initialIndex
+                lifecycleScope.launch {
+                    val events = withContext(Dispatchers.IO) { loadRoomAttachmentEvents(room) }
+                    val provider = dataSourceFactory.createProvider(events, lifecycleScope)
+                    val base = provider.indexForEvent(args.eventId)
+                    if (base != -1) {
+                        // Gallery pages fan out in the same order as the in-memory list, so the
+                        // in-gallery position carries over as an offset — floored at the tapped one,
+                        // since currentPosition is only posted.
+                        initialIndex = base + maxOf(currentPosition, tappedOffset)
+                        installSourceProvider(provider)
+                    }
+                }
+            }
         } else {
             // The room query below is slow on a cold cache, and until a provider is installed
             // there is no overlay at all. The tapped attachment carries everything the first
@@ -189,22 +213,13 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope))
             }
             lifecycleScope.launch {
-                val events = withContext(Dispatchers.IO) {
-                    val live = room?.timelineService()?.getAttachmentMessages().orEmpty()
-                    // Redacted media is gone from the SDK's tables, so a revealed one would otherwise
-                    // open alone instead of taking its place in the room's media.
-                    val preserved = args.roomId?.let { preservedAttachmentResolver.attachments(it) }.orEmpty()
-                    if (preserved.isEmpty()) live else (live + preserved).sortedBy { it.root.originServerTs ?: 0L }
-                }
-                // Also match by transaction id: a just-sent event can get its local-echo id swapped for
-                // the server id between the tap and this query, which would wrongly fall through to the
-                // show-it-alone branch below.
-                val index = events.indexOfFirst {
-                    it.eventId == args.eventId || (it.root.unsignedData?.transactionId?.takeIf { tid -> tid.isNotEmpty() } == args.eventId)
-                }
+                val events = withContext(Dispatchers.IO) { loadRoomAttachmentEvents(room) }
+                // Asked of the provider: a gallery event fans out to several pages there.
+                val provider = dataSourceFactory.createProvider(events, lifecycleScope)
+                val index = provider.indexForEvent(args.eventId)
                 if (index != -1) {
                     initialIndex = index
-                    installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope))
+                    installSourceProvider(provider)
                 } else if (provisionalItem != null && !providerInstalled) {
                     // Tapped event missing from the room's media list (e.g. a still-sending echo):
                     // show it alone rather than landing on an unrelated first entry.
@@ -222,6 +237,14 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         }
 
         observeViewEvents()
+    }
+
+    private suspend fun loadRoomAttachmentEvents(room: Room?): List<TimelineEvent> {
+        val live = room?.timelineService()?.getAttachmentMessages().orEmpty()
+        // Redacted media is gone from the SDK's tables, so a revealed one would otherwise
+        // open alone instead of taking its place in the room's media.
+        val preserved = args()?.roomId?.let { preservedAttachmentResolver.attachments(it) }.orEmpty()
+        return if (preserved.isEmpty()) live else (live + preserved).sortedBy { it.root.originServerTs ?: 0L }
     }
 
     private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>) {

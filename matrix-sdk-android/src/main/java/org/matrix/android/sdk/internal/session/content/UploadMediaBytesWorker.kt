@@ -16,12 +16,15 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.failure.shouldBeRetried
+import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.network.ProgressRequestBody
 import org.matrix.android.sdk.internal.session.DefaultFileService
 import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
+import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
+import org.matrix.android.sdk.internal.util.toMatrixErrorStr
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
 import timber.log.Timber
 import java.io.File
@@ -44,6 +47,7 @@ internal class UploadMediaBytesWorker(context: Context, params: WorkerParameters
     @Inject lateinit var contentUploadStateTracker: DefaultContentUploadStateTracker
     @Inject lateinit var cancelSendTracker: CancelSendTracker
     @Inject lateinit var pendingMediaUploadRegistry: PendingMediaUploadRegistry
+    @Inject lateinit var localEchoRepository: LocalEchoRepository
     @Inject lateinit var coroutineDispatchers: MatrixCoroutineDispatchers
 
     override fun injectWith(injector: SessionComponent) {
@@ -88,14 +92,12 @@ internal class UploadMediaBytesWorker(context: Context, params: WorkerParameters
                     mimeType = if (params.isEncrypted) MimeTypes.OctetStream else params.mimeType,
                     progressListener = object : ProgressRequestBody.Listener {
                         override fun onProgress(current: Long, total: Long) {
-                            params.localEchoIds.forEach {
-                                contentUploadStateTracker.setProgress(it.eventId, current, total)
-                            }
+                            params.localEchoIds.forEach { notifyProgress(params, it.eventId, current, total) }
                         }
                     },
             )
             onUploadSettled(params, clearFile, encryptedFile)
-            params.localEchoIds.forEach { contentUploadStateTracker.setSuccess(it.eventId) }
+            notifySettledSuccess(params)
             Result.success()
         } catch (failure: CancellationException) {
             // Never treat a stop mid-PUT as an upload error; the files stay put for the next run.
@@ -104,7 +106,7 @@ internal class UploadMediaBytesWorker(context: Context, params: WorkerParameters
             // The server already has these bytes; nothing more to do.
             if (failure is Failure.ServerError && failure.error.code == MatrixError.M_CANNOT_OVERWRITE_MEDIA) {
                 onUploadSettled(params, clearFile, encryptedFile)
-                params.localEchoIds.forEach { contentUploadStateTracker.setSuccess(it.eventId) }
+                notifySettledSuccess(params)
                 return Result.success()
             }
             if (failure.shouldBeRetried() && runAttemptCount < MAX_ATTEMPTS) {
@@ -118,6 +120,27 @@ internal class UploadMediaBytesWorker(context: Context, params: WorkerParameters
                 notifyFailure(params, failure)
                 Result.success()
             }
+        }
+    }
+
+    private fun notifyProgress(params: UploadMediaBytesWorkerParams, eventId: String, current: Long, total: Long) {
+        val index = params.galleryItemIndex
+        val sizes = params.galleryItemSizes
+        if (index != null && !sizes.isNullOrEmpty() && index in sizes.indices) {
+            contentUploadStateTracker.setGalleryProgress(eventId, index, sizes, current, total)
+        } else {
+            contentUploadStateTracker.setProgress(eventId, current, total)
+        }
+    }
+
+    /** A gallery's overlay only comes down once every item has landed, in whatever order they do. */
+    private fun notifySettledSuccess(params: UploadMediaBytesWorkerParams) {
+        val index = params.galleryItemIndex
+        val sizes = params.galleryItemSizes
+        if (index == null || sizes == null) {
+            params.localEchoIds.forEach { contentUploadStateTracker.setSuccess(it.eventId) }
+        } else {
+            params.localEchoIds.forEach { contentUploadStateTracker.setGalleryItemSettled(it.eventId, index, sizes) }
         }
     }
 
@@ -154,6 +177,12 @@ internal class UploadMediaBytesWorker(context: Context, params: WorkerParameters
     private fun notifyFailure(params: UploadMediaBytesWorkerParams, failure: Throwable) {
         pendingMediaUploadRegistry.clear(params.contentUri)
         params.localEchoIds.forEach { contentUploadStateTracker.setFailure(it.eventId, failure) }
+        if (params.galleryItemIndex == null) return
+        // One item's media is gone, so the gallery event is not deliverable; this is also what the
+        // remaining items' upload workers check before doing any more work.
+        params.localEchoIds.forEach {
+            localEchoRepository.updateSendState(it.eventId, it.roomId, SendState.UNDELIVERED, failure.toMatrixErrorStr())
+        }
     }
 
     companion object {

@@ -16,5 +16,7 @@ data class TimelineEventFragmentArgs(
         val eventId: String,
         val roomId: String,
         val informationData: MessageInformationData,
-        val isFromThreadTimeline: Boolean = false
+        val isFromThreadTimeline: Boolean = false,
+        /** When set, the sheet is scoped to that item of an MSC4274 gallery. */
+        val galleryItemIndex: Int? = null,
 ) : Parcelable

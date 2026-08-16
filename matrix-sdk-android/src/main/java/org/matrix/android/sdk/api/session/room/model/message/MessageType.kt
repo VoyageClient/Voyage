@@ -28,6 +28,12 @@ object MessageType {
     const val MSGTYPE_LOCATION = "m.location"
     const val MSGTYPE_FILE = "m.file"
 
+    // MSC4274 media galleries
+    const val MSGTYPE_GALLERY_STABLE = "m.gallery"
+    const val MSGTYPE_GALLERY = "dm.filament.gallery"
+
+    fun isGalleryMsgType(msgType: String?) = msgType == MSGTYPE_GALLERY_STABLE || msgType == MSGTYPE_GALLERY
+
     const val MSGTYPE_VERIFICATION_REQUEST = EventType.KEY_VERIFICATION_REQUEST
 
     // Add, in local, a fake message type in order to StickerMessage can inherit Message class

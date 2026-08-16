@@ -51,6 +51,8 @@ class VideoContentRenderer @Inject constructor(
             override val timestampMs: Long? = null,
             /** Declared length, so the viewer can show a duration before the player has one. */
             val durationMs: Long? = null,
+            /** Which item of an MSC4274 gallery event this is, when it is one. */
+            val galleryIndex: Int? = null,
     ) : AttachmentData
 
     fun render(

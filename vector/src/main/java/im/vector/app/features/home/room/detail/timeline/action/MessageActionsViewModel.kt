@@ -62,6 +62,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
+import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -76,14 +77,17 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
+import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
@@ -289,7 +293,12 @@ class MessageActionsViewModel @AssistedInject constructor(
                 computePgpDecryptedBody(timelineEvent) ?: when (timelineEvent.root.getClearType()) {
                     EventType.MESSAGE,
                     EventType.STICKER -> {
-                        val messageContent: MessageContent? = timelineEvent.getVectorLastMessageContent()
+                        // An item-scoped gallery sheet previews exactly like that item sent alone,
+                        // so substitute it and let the regular per-type branches below do the work.
+                        val rawContent: MessageContent? = timelineEvent.getVectorLastMessageContent()
+                        val messageContent: MessageContent? = (rawContent as? MessageGalleryContent)
+                                ?.let { gallery -> initialState.galleryItemIndex?.let { gallery.galleryItems().getOrNull(it) } }
+                                ?: rawContent
                         val isReply = messageContent?.relatesTo?.inReplyTo?.eventId != null
                         val isEmote = messageContent?.msgType == MessageType.MSGTYPE_EMOTE
                         val formattedContent = (messageContent as? MessageContentWithFormattedBody)
@@ -313,8 +322,11 @@ class MessageActionsViewModel @AssistedInject constructor(
                             if (messageContent.voiceMessageIndicator != null) {
                                 attachmentPreviewText(context, R.drawable.ic_microphone, stringProvider.getString(CommonStrings.voice_message_reply_content, formattedDuration))
                             } else {
-                                attachmentPreviewText(context, R.drawable.ic_attachment_voice_file, messageContent.getFileName().orEmpty())
+                                attachmentPreviewText(context, R.drawable.ic_music_note, messageContent.getFileName().orEmpty())
                             }
+                        } else if (messageContent is MessageGalleryContent) {
+                            // The sheet shows the real grid; the text slot only carries the caption.
+                            messageContent.galleryCaption().orEmpty()
                         } else if (messageContent is MessageWithAttachmentContent) {
                             // Image/video: the thumbnail is shown separately, so just the filename here.
                             messageContent.getFileName()
@@ -462,11 +474,16 @@ class MessageActionsViewModel @AssistedInject constructor(
             restoredEvent: TimelineEvent? = null,
     ) {
         val eventId = timelineEvent.eventId
+        val galleryItemIndex = initialState.galleryItemIndex
+        if (messageContent is MessageGalleryContent && galleryItemIndex != null) {
+            addActionsForGalleryItem(timelineEvent, messageContent, galleryItemIndex)
+            return
+        }
         // Reply / react / view-reactions are allowed even on redacted events.
         if (canReply(timelineEvent, messageContent, actionPermissions)) {
             add(EventSharedAction.Reply(eventId))
         }
-        if (actionPermissions.canReact) {
+        if (actionPermissions.canReact && !timelineEvent.root.sendState.hasFailed()) {
             add(EventSharedAction.AddReaction(eventId))
         }
         if (canViewReactions(timelineEvent)) {
@@ -508,6 +525,13 @@ class MessageActionsViewModel @AssistedInject constructor(
 
             if (canSave(msgType) && messageContent is MessageWithAttachmentContent && !isFailedMedia(messageContent)) {
                 add(EventSharedAction.Save(timelineEvent.eventId, messageContent))
+            }
+
+            if (messageContent is MessageGalleryContent && !timelineEvent.root.sendState.hasFailed()) {
+                val items = messageContent.galleryItems()
+                if (items.isNotEmpty()) {
+                    add(EventSharedAction.SaveAll(timelineEvent.eventId, items))
+                }
             }
 
             if (canForward(timelineEvent, msgType)) {
@@ -584,6 +608,20 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun ArrayList<EventSharedAction>.addActionsForGalleryItem(
+            timelineEvent: TimelineEvent,
+            messageContent: MessageGalleryContent,
+            index: Int,
+    ) {
+        val item = messageContent.galleryItems().getOrNull(index) ?: return
+        if (timelineEvent.root.isRedacted() || isFailedMedia(item)) return
+        add(EventSharedAction.Save(timelineEvent.eventId, item))
+        add(EventSharedAction.Share(timelineEvent.eventId, item))
+        val itemContent = item.toAttachmentContentDict() ?: return
+        add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, coerceWholeDoublesToLongs(itemContent) as Map<String, Any?>))
+    }
+
     // Redactions and reactions only surface in the timeline with hidden events shown, itself a developer-mode
     // setting, so the jump to the event they act on lives with the other developer actions.
     private fun relatedEventId(timelineEvent: TimelineEvent): String? {
@@ -627,6 +665,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_VIDEO,
             MessageType.MSGTYPE_AUDIO,
             MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_GALLERY,
+            MessageType.MSGTYPE_GALLERY_STABLE,
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false
@@ -655,6 +695,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_VIDEO,
             MessageType.MSGTYPE_AUDIO,
             MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_GALLERY,
+            MessageType.MSGTYPE_GALLERY_STABLE,
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_POLL_END,
             MessageType.MSGTYPE_STICKER_LOCAL -> event.root.threadDetails?.isRootThread ?: false
@@ -699,7 +741,7 @@ class MessageActionsViewModel @AssistedInject constructor(
     private fun canRetry(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {
         return event.root.sendState.hasFailed() &&
                 actionPermissions.canSendMessage &&
-                (event.root.isAttachmentMessage() || event.root.isTextMessage())
+                (event.root.isAttachmentMessage() || event.root.isGalleryMessage() || event.root.isTextMessage())
     }
 
     private fun canViewReactions(event: TimelineEvent): Boolean {
@@ -765,6 +807,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_AUDIO,
             MessageType.MSGTYPE_VIDEO,
             MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_GALLERY,
+            MessageType.MSGTYPE_GALLERY_STABLE,
             MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false
         }

@@ -82,6 +82,7 @@ private class ContentMediaProgressUpdater(
             is ContentUploadStateTracker.State.UploadingThumbnail -> handleProgressThumbnail(state)
             is ContentUploadStateTracker.State.Encrypting -> handleEncrypting(state)
             is ContentUploadStateTracker.State.Uploading -> handleProgress(state)
+            is ContentUploadStateTracker.State.UploadingGalleryItem -> handleGalleryProgress(state)
             is ContentUploadStateTracker.State.Failure -> handleFailure(/*state*/)
             is ContentUploadStateTracker.State.Success -> handleSuccess()
             is ContentUploadStateTracker.State.CompressingImage -> handleCompressingImage()
@@ -148,6 +149,22 @@ private class ContentMediaProgressUpdater(
 
     private fun handleProgress(state: ContentUploadStateTracker.State.Uploading) {
         doHandleProgress(CommonStrings.send_file_step_sending_file, state.current, state.total)
+    }
+
+    private fun handleGalleryProgress(state: ContentUploadStateTracker.State.UploadingGalleryItem) {
+        progressLayout.visibility = View.VISIBLE
+        val percent = if (state.overallTotal > 0) (100L * state.overallCurrent / state.overallTotal).toInt().coerceIn(0, 100) else 0
+        progressBar.isVisible = true
+        progressBar.isIndeterminate = false
+        progressBar.progress = percent
+        progressTextView.isVisible = true
+        val sendingFile = progressLayout.context.getString(
+                CommonStrings.send_file_step_sending_file,
+                TextUtils.formatFileSize(progressLayout.context, state.current, true),
+                TextUtils.formatFileSize(progressLayout.context, state.total, true)
+        )
+        progressTextView.text = "$sendingFile (${state.itemIndex + 1}/${state.itemCount})"
+        progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
 
     private fun handleCompressingImage() {

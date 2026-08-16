@@ -22,6 +22,7 @@ import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
@@ -103,17 +104,12 @@ internal class DefaultGetUploadsTask @Inject constructor(
         run {
             val roomMemberHelper = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, params.roomId)
 
-            uploadEvents = events.mapNotNull { event ->
-                val eventId = event.eventId ?: return@mapNotNull null
+            uploadEvents = events.flatMap { event ->
+                val eventId = event.eventId ?: return@flatMap emptyList()
                 // A synced media send leaves its local echo row in the event table; both carry the same
                 // attachment, so without this the gallery shows every self-sent upload twice.
-                if (LocalEcho.isLocalEchoId(eventId)) return@mapNotNull null
-                val messageWithAttachmentContent = if (event.isSticker()) {
-                    event.getClearContent()?.toModel<MessageStickerContent>()
-                } else {
-                    event.getClearContent()?.toModel<MessageContent>() as? MessageWithAttachmentContent
-                } ?: return@mapNotNull null
-                val senderId = event.senderId ?: return@mapNotNull null
+                if (LocalEcho.isLocalEchoId(eventId)) return@flatMap emptyList()
+                val senderId = event.senderId ?: return@flatMap emptyList()
 
                 val senderInfo = cacheOfSenderInfos.getOrPut(senderId) {
                     val roomMemberSummaryEntity = roomMemberHelper.getLastRoomMember(senderId)
@@ -125,12 +121,33 @@ internal class DefaultGetUploadsTask @Inject constructor(
                     )
                 }
 
-                UploadEvent(
-                        root = event,
-                        eventId = eventId,
-                        contentWithAttachmentContent = messageWithAttachmentContent,
-                        senderInfo = senderInfo
-                )
+                val clearContent = event.getClearContent()
+                val gallery = clearContent?.toModel<MessageContent>() as? MessageGalleryContent
+                if (gallery != null) {
+                    gallery.galleryItems().mapIndexed { index, item ->
+                        UploadEvent(
+                                root = event,
+                                eventId = eventId,
+                                contentWithAttachmentContent = item,
+                                senderInfo = senderInfo,
+                                galleryItemIndex = index,
+                        )
+                    }
+                } else {
+                    val messageWithAttachmentContent = if (event.isSticker()) {
+                        clearContent?.toModel<MessageStickerContent>()
+                    } else {
+                        clearContent?.toModel<MessageContent>() as? MessageWithAttachmentContent
+                    } ?: return@flatMap emptyList()
+                    listOf(
+                            UploadEvent(
+                                    root = event,
+                                    eventId = eventId,
+                                    contentWithAttachmentContent = messageWithAttachmentContent,
+                                    senderInfo = senderInfo
+                            )
+                    )
+                }
             }
         }
 

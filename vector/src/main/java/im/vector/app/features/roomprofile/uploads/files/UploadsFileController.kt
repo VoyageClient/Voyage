@@ -13,8 +13,10 @@ import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.loadingItem
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.media.galleryPageId
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 import javax.inject.Inject
 
@@ -58,8 +60,8 @@ class UploadsFileController @Inject constructor(
         val host = this
         fileEvents.forEach { uploadEvent ->
             uploadsFileItem {
-                id(uploadEvent.eventId)
-                title(uploadEvent.contentWithAttachmentContent.body)
+                id(galleryPageId(uploadEvent.eventId, uploadEvent.galleryItemIndex))
+                title(uploadEvent.contentWithAttachmentContent.getFileName())
                 subtitle(
                         host.stringProvider.getString(
                                 CommonStrings.uploads_files_subtitle,

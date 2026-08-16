@@ -139,6 +139,7 @@ import im.vector.app.features.home.room.detail.timeline.item.DefaultItem
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
 import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
+import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem
@@ -1423,6 +1424,7 @@ class TimelineFragment :
                         is MessageAudioItem,
                         is MessageVoiceItem,
                         is MessageImageVideoItem,
+                        is MessageGalleryItem,
                         is MessageTextItem,
                         // Deleted messages can still be replied to.
                         is RedactedMessageItem -> {
@@ -1919,12 +1921,13 @@ class TimelineFragment :
         }
     }
 
-    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View) {
+    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View, inMemory: List<AttachmentData>) {
         navigator.openMediaViewer(
                 activity = requireActivity(),
                 roomId = timelineArgs.roomId,
                 mediaData = mediaData,
-                view = view
+                view = view,
+                inMemory = inMemory
         ) { pairs ->
             pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))
             pairs.add(Pair(views.composerContainer, ViewCompat.getTransitionName(views.composerContainer) ?: ""))
@@ -1975,6 +1978,15 @@ class TimelineFragment :
                 .newInstance(roomId, informationData, isThreadTimeLine())
                 .show(requireActivity().supportFragmentManager, "MESSAGE_CONTEXTUAL_ACTIONS")
 
+        return true
+    }
+
+    override fun onGalleryItemLongClicked(informationData: MessageInformationData, itemIndex: Int): Boolean {
+        view?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        this.view?.hideKeyboard()
+        MessageActionsBottomSheet
+                .newInstance(timelineArgs.roomId, informationData, isThreadTimeLine(), galleryItemIndex = itemIndex)
+                .show(requireActivity().supportFragmentManager, "MESSAGE_CONTEXTUAL_ACTIONS")
         return true
     }
 
@@ -2165,6 +2177,34 @@ class TimelineFragment :
         }
     }
 
+    private fun onSaveAllActionClicked(action: EventSharedAction.SaveAll) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                !checkPermissions(PERMISSIONS_FOR_WRITING_FILES, requireActivity(), saveActionActivityResultLauncher)) {
+            sharedActionViewModel.pendingAction = action
+            return
+        }
+        session.coroutineScope.launch {
+            action.items.forEach { item ->
+                val result = runCatching { session.fileService().downloadFile(messageContent = item) }
+                if (!isAdded) return@launch
+                result.mapCatching {
+                    saveMedia(
+                            context = requireContext(),
+                            file = it,
+                            title = item.getFileName(),
+                            mediaMimeType = item.mimeType ?: getMimeTypeFromUri(requireContext(), it.toUri()),
+                            notificationUtils = notificationUtils,
+                            currentTimeMillis = clock.epochMillis()
+                    )
+                }
+                        .onFailure {
+                            if (!isAdded) return@onFailure
+                            showErrorInSnackbar(it)
+                        }
+            }
+        }
+    }
+
     private fun handleActions(action: EventSharedAction) {
         when (action) {
             is EventSharedAction.OpenUserProfile -> {
@@ -2212,6 +2252,9 @@ class TimelineFragment :
             }
             is EventSharedAction.Save -> {
                 onSaveActionClicked(action)
+            }
+            is EventSharedAction.SaveAll -> {
+                onSaveAllActionClicked(action)
             }
             is EventSharedAction.ViewEditHistory -> {
                 onEditedDecorationClicked(action.messageInformationData)

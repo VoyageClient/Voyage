@@ -46,7 +46,10 @@ import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
+import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
+import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
@@ -82,9 +85,11 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
@@ -247,6 +252,26 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         return views.composerEditText.setTextIfDifferent(text)
     }
 
+    private fun renderRelatedMessageGallery(event: TimelineEvent): Boolean {
+        val gallery = event.getVectorLastMessageContent() as? MessageGalleryContent ?: run {
+            GalleryGridBinder.unbind(views.composerRelatedMessageGallery, imageContentRenderer)
+            return false
+        }
+        val session = activeSessionHolder.getSafeActiveSession()
+        val maxWidth = dimensionConverter.dpToPx(160)
+        val items = gallery.galleryItems()
+        GalleryGridBinder.bind(
+                grid = views.composerRelatedMessageGallery,
+                tiles = gallery.toGalleryTiles(event.eventId, event.timelineStableId(), maxWidth, maxWidth, items = items),
+                maxWidth = maxWidth,
+                cornerRadiusPx = dimensionConverter.dpToPx(8),
+                imageContentRenderer = imageContentRenderer,
+                hideMedia = session != null && shouldHideMediaPreview(event, session, vectorPreferences, mediaContentRevealManager),
+                hideMediaSolidColor = vectorPreferences.useSolidColorForHiddenMedia(),
+        )
+        return true
+    }
+
     private fun renderRelatedMessageImage(event: TimelineEvent, crossFade: Boolean = false): Boolean {
         val data = event.buildImageContentRendererData(dimensionConverter.dpToPx(66))
         return if (data != null) {
@@ -269,6 +294,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     override fun refreshRelatedMessageMedia() {
         val event = relatedMessageEvent ?: return
         if (!views.relatedMessageGroup.isVisible) return
+        if (views.composerRelatedMessageGallery.isVisible) {
+            renderRelatedMessageGallery(event)
+            return
+        }
         // Cross-fade from the blurhash/solid placeholder to the revealed image.
         views.composerRelatedMessageImage.isVisible = renderRelatedMessageImage(event, crossFade = true)
     }
@@ -398,9 +427,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
             messageContent is MessageFileContent -> attachmentPreviewText(context, R.drawable.ic_paperclip, messageContent.getFileName().orEmpty())
             messageContent is MessageAudioContent -> {
-                val icon = if (messageContent.voiceMessageIndicator != null) R.drawable.ic_microphone else R.drawable.ic_attachment_voice_file
+                val icon = if (messageContent.voiceMessageIndicator != null) R.drawable.ic_microphone else R.drawable.ic_music_note
                 attachmentPreviewText(context, icon, getAudioContentBodyText(messageContent))
             }
+            // The grid preview carries the content, so the text slot is caption-only.
+            messageContent is MessageGalleryContent -> messageContent.galleryCaption().orEmpty()
             messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
             messageContent is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
             messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
@@ -487,7 +518,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         // Image Event
         relatedMessageEvent = event
-        val isImageVisible = renderRelatedMessageImage(event)
+        val isGalleryVisible = renderRelatedMessageGallery(event)
+        views.composerRelatedMessageGallery.isVisible = isGalleryVisible
+        val isImageVisible = !isGalleryVisible && renderRelatedMessageImage(event)
         views.composerRelatedMessageImage.isVisible = isImageVisible
 
         views.composerRelatedMessageActionIcon.setImageDrawable(ContextCompat.getDrawable(context, iconRes))

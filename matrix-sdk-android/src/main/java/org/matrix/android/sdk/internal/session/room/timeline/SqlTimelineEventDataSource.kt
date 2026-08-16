@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
+import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.isVideoMessage
@@ -63,7 +64,11 @@ internal class SqlTimelineEventDataSource @Inject constructor(
     fun getAttachmentMessages(roomId: String): List<TimelineEvent> =
             stores.timelineEvent.getAttachmentsByRoom(roomId)
                     .distinctBy { it.eventId }
-                    .mapNotNull { timelineEventMapper.map(it).takeIf { te -> te.root.isImageMessage() || te.root.isVideoMessage() || te.root.isSticker() } }
+                    .mapNotNull {
+                        timelineEventMapper.map(it).takeIf { te ->
+                            te.root.isImageMessage() || te.root.isVideoMessage() || te.root.isSticker() || te.root.isGalleryMessage()
+                        }
+                    }
                     .filterNot { isAcceptedEdition(it) }
 
     // A caption edit is a full media event carrying m.new_content, so it would otherwise appear as a

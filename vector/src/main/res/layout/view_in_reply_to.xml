@@ -47,6 +47,14 @@
             tools:layout_width="200dp"
             tools:src="@tools:sample/backgrounds/scenic" />
 
+        <im.vector.app.core.ui.views.GalleryGridLayout
+            android:id="@+id/replyGalleryView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="start"
+            android:visibility="gone" />
+
         <com.ruesga.rview.widget.ExpandableViewLayout
             android:id="@+id/expandableReplyView"
             android:layout_width="wrap_content"

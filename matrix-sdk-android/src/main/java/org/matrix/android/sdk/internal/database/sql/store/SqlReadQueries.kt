@@ -17,8 +17,8 @@ import org.matrix.android.sdk.api.session.pushrules.EventPropertyContainsConditi
 import org.matrix.android.sdk.api.session.pushrules.EventPropertyIsCondition
 import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
-import org.matrix.android.sdk.api.session.pushrules.getActions
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
+import org.matrix.android.sdk.api.session.pushrules.getActions
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.create.getRoomCreateContentWithSender
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
@@ -27,9 +27,9 @@ import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.PushRulesMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.sql.TimelineEventQueries
 import org.matrix.android.sdk.internal.session.room.notification.toRoomNotificationState
 import org.matrix.android.sdk.internal.session.room.notification.toRoomPushRule
-import org.matrix.android.sdk.internal.database.sql.TimelineEventQueries
 
 /** SQL replacements for the Realm-based ReadQueries (isEventRead / isReadMarkerMoreRecent) + latest synced event. */
 

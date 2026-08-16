@@ -32,6 +32,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.containsOnlyEmojisAndEmotes
+import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -48,6 +49,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem_
+import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
@@ -63,6 +65,8 @@ import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem_
 import im.vector.app.features.home.room.detail.timeline.item.VerificationRequestItem
 import im.vector.app.features.home.room.detail.timeline.item.VerificationRequestItem_
+import im.vector.app.features.home.room.detail.timeline.item.galleryTileThumbnailData
+import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
@@ -81,10 +85,12 @@ import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.location.INITIAL_MAP_ZOOM_IN_TIMELINE
 import im.vector.app.features.location.UrlMapProvider
 import im.vector.app.features.location.toLocationData
+import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.isGalleryViewerPage
 import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.redaction.preservation.PreservedMediaStore
@@ -111,6 +117,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
@@ -120,6 +127,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
@@ -231,6 +239,7 @@ class MessageItemFactory @Inject constructor(
         val messageItem = im.vector.app.core.utils.PerfTrace.time("create.build.${messageContent.msgType}") { when (messageContent) {
             is MessageEmoteContent -> buildEmoteMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageTextContent -> buildItemForTextContent(messageContent, informationData, highlight, callback, attributes)
+            is MessageGalleryContent -> buildGalleryMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageImageInfoContent -> buildImageMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageNoticeContent -> buildNoticeMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageVideoContent -> buildVideoMessageItem(messageContent, informationData, highlight, callback, attributes)
@@ -804,7 +813,134 @@ class MessageItemFactory @Inject constructor(
                 .captionMovementMethod(createLinkMovementMethod(callback))
                 .apply {
                     if (!informationData.sendState.isSending()) {
-                        clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
+                        clickListener { view ->
+                            callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView), emptyList())
+                        }
+                    }
+                }
+    }
+
+    private fun buildGalleryMessageItem(
+            messageContent: MessageGalleryContent,
+            informationData: MessageInformationData,
+            highlight: Boolean,
+            callback: TimelineEventController.Callback?,
+            attributes: AbsMessageItem.Attributes,
+    ): VectorEpoxyModel<*>? {
+        val items = messageContent.galleryItems()
+        if (items.isEmpty()) {
+            return buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
+        }
+        val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
+
+        fun thumbnailDataFor(item: MessageWithAttachmentContent, index: Int): ImageContentRenderer.Data {
+            return galleryTileThumbnailData(
+                    item = item,
+                    index = index,
+                    eventId = informationData.eventId,
+                    stableId = informationData.stableId,
+                    maxWidth = maxWidth,
+                    maxHeight = maxHeight,
+                    allowNonMxcUrls = informationData.sendState.isSending(),
+            )
+        }
+
+        fun videoDataFor(item: MessageVideoContent, index: Int): VideoContentRenderer.Data {
+            return VideoContentRenderer.Data(
+                    eventId = informationData.eventId,
+                    galleryIndex = index,
+                    filename = item.getFileName(),
+                    mimeType = item.mimeType,
+                    url = item.getFileUrl(),
+                    elementToDecrypt = item.encryptedFileInfo?.toElementToDecrypt(),
+                    thumbnailMediaData = thumbnailDataFor(item, index),
+                    durationMs = item.videoInfo?.duration?.toLong(),
+            )
+        }
+
+        val tiles = messageContent.toGalleryTiles(
+                eventId = informationData.eventId,
+                stableId = informationData.stableId,
+                maxWidth = maxWidth,
+                maxHeight = maxHeight,
+                allowNonMxcUrls = informationData.sendState.isSending(),
+                items = items,
+        )
+        val hideMedia = shouldHideMedia(informationData)
+        // Same gate as a single image: a local echo waits until there is a thumbnail to draw.
+        if (tiles.any { tile ->
+                    tile.mediaData?.let {
+                        // The mode a tile is actually rendered in, or the gate warms a cache entry
+                        // the bind never asks for and holds the row back for nothing.
+                        !readyToShowMedia(it, ImageContentRenderer.previewMode(isSticker = false, mimeType = it.mimeType), informationData, hideMedia)
+                    } == true
+                }) {
+            return null
+        }
+
+        val caption = messageContent.galleryCaption(items)
+        val renderedCaption = caption?.let {
+            renderCaption(
+                    body = it,
+                    formattedBody = messageContent.matrixFormattedBody,
+                    informationData = informationData,
+                    callback = callback,
+            )
+        }
+
+        // The same predicate the media viewer's own fan-out uses, so page indexes line up.
+        val inMemory: List<AttachmentData> = items.mapIndexedNotNull { index, item ->
+            if (!isGalleryViewerPage(item)) return@mapIndexedNotNull null
+            when (item) {
+                is MessageVideoContent -> videoDataFor(item, index)
+                else -> thumbnailDataFor(item, index)
+            }
+        }
+
+        return MessageGalleryItem_()
+                .attributes(attributes)
+                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .imageContentRenderer(imageContentRenderer)
+                .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
+                .highlighted(highlight)
+                .tiles(tiles)
+                .maxWidth(maxWidth)
+                .hideMedia(hideMedia)
+                .hideMediaSolidColor(vectorPreferences.useSolidColorForHiddenMedia())
+                .caption(renderedCaption?.epoxy)
+                .captionBindingOptions(renderedCaption?.bindingOptions)
+                .captionUseBigFont(renderedCaption?.useBigFont == true)
+                .captionMarkwonPlugins(htmlRenderer.get().plugins)
+                .captionMovementMethod(createLinkMovementMethod(callback))
+                .apply {
+                    if (!informationData.sendState.isSending()) {
+                        tileClickListener { index, view ->
+                            val imageView = view as? ImageView
+                            when (val item = items.getOrNull(index)) {
+                                is MessageVideoContent -> {
+                                    val thumb = tiles.getOrNull(index)?.mediaData ?: thumbnailDataFor(item, index)
+                                    when {
+                                        imageView != null && imageContentRenderer.isRetrying(imageView) -> Unit
+                                        imageContentRenderer.isFailed(thumb) -> imageView?.let { imageContentRenderer.retry(it) }
+                                        else -> callback?.onVideoMessageClicked(item, videoDataFor(item, index), view, inMemory)
+                                    }
+                                }
+                                is MessageImageInfoContent -> {
+                                    val data = tiles.getOrNull(index)?.mediaData ?: thumbnailDataFor(item, index)
+                                    when {
+                                        imageView != null && imageContentRenderer.isRetrying(imageView) -> Unit
+                                        imageContentRenderer.isFailed(data) -> imageView?.let { imageContentRenderer.retry(it) }
+                                        else -> callback?.onImageMessageClicked(item, data, view, inMemory)
+                                    }
+                                }
+                                is MessageWithAttachmentContent ->
+                                    callback?.onTimelineItemAction(RoomDetailAction.DownloadOrOpen(informationData.eventId, informationData.senderId, item))
+                                else -> Unit
+                            }
+                        }
+                    }
+                    tileLongClickListener { index ->
+                        callback?.onGalleryItemLongClicked(informationData, index) ?: false
                     }
                 }
     }

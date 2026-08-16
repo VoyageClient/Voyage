@@ -75,7 +75,12 @@ class SearchResultController @Inject constructor(
         fun onThreadSummaryClicked(event: Event)
         fun loadMore()
         fun onImageMessageClicked(messageImageContent: MessageImageInfoContent, mediaData: ImageContentRenderer.Data, view: View, inMemory: List<AttachmentData>)
-        fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View)
+        fun onVideoMessageClicked(
+                messageVideoContent: MessageVideoContent,
+                mediaData: VideoContentRenderer.Data,
+                view: View,
+                inMemory: List<AttachmentData>
+        )
         fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent)
         fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float)
         fun onAvatarClicked(userId: String)
@@ -215,8 +220,8 @@ class SearchResultController @Inject constructor(
         listener?.onImageMessageClicked(messageImageContent, mediaData, view, inMemory)
     }
 
-    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View) {
-        listener?.onVideoMessageClicked(messageVideoContent, mediaData, view)
+    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View, inMemory: List<AttachmentData>) {
+        listener?.onVideoMessageClicked(messageVideoContent, mediaData, view, inMemory)
     }
 
     override fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent) {

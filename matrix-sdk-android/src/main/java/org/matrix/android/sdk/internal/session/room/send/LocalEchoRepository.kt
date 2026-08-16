@@ -306,7 +306,8 @@ internal class LocalEchoRepository @Inject constructor(
                             when (content?.msgType) {
                                 MessageType.MSGTYPE_EMOTE, MessageType.MSGTYPE_NOTICE, MessageType.MSGTYPE_LOCATION,
                                 MessageType.MSGTYPE_TEXT, MessageType.MSGTYPE_FILE, MessageType.MSGTYPE_VIDEO,
-                                MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_AUDIO -> true
+                                MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_AUDIO,
+                                MessageType.MSGTYPE_GALLERY, MessageType.MSGTYPE_GALLERY_STABLE -> true
                                 else -> false
                             }
                         }
