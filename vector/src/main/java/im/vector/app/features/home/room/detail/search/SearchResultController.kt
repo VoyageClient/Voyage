@@ -67,6 +67,7 @@ class SearchResultController @Inject constructor(
     var listener: Listener? = null
 
     private var idx = 0
+
     // Some cells hand the long press to a child view and let the press-release reach the item's own
     // click listener, which here would navigate away from the actions sheet just opened. The release
     // can land well after the long press fired, so swallow the next click outright rather than

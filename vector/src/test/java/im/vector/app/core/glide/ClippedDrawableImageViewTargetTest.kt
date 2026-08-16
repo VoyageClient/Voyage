@@ -12,7 +12,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.widget.ImageView
 import im.vector.app.test.fakes.FakeAnimatedDrawable
 import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldBeInstanceOf
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner

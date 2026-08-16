@@ -90,6 +90,7 @@ class SearchFragment :
     private val searchViewModel: SearchViewModel by fragmentViewModel()
     private val playedEventIds = mutableSetOf<String>()
     private lateinit var sharedActionViewModel: MessageSharedActionViewModel
+
     // The message the action sheet was opened on, for the actions that don't carry an event id.
     private var actionsTargetEventId: String? = null
 
