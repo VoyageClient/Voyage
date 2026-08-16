@@ -40,7 +40,7 @@ class RoomDevToolSendFormController @Inject constructor(
             }
         }
 
-        if (sendEventForm.isState) {
+        if (sendEventForm.target == RoomDevToolViewState.SendTarget.STATE) {
             formEditTextItem {
                 id("state_key")
                 enabled(true)

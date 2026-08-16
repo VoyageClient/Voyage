@@ -52,14 +52,21 @@ class RoomDevToolRootController @Inject constructor(
                 id("send")
                 text(host.stringProvider.getString(CommonStrings.dev_tools_send_custom_event))
                 buttonClickAction {
-                    host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(false))
+                    host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(RoomDevToolViewState.SendTarget.MESSAGE))
                 }
             }
             genericButtonItem {
                 id("send_state")
                 text(host.stringProvider.getString(CommonStrings.dev_tools_send_state_event))
                 buttonClickAction {
-                    host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(true))
+                    host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(RoomDevToolViewState.SendTarget.STATE))
+                }
+            }
+            genericButtonItem {
+                id("send_account_data")
+                text(host.stringProvider.getString(CommonStrings.dev_tools_send_room_account_data))
+                buttonClickAction {
+                    host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(RoomDevToolViewState.SendTarget.ACCOUNT_DATA))
                 }
             }
         }

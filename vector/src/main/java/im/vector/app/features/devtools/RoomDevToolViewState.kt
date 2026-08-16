@@ -40,8 +40,10 @@ data class RoomDevToolViewState(
         object AccountDataList : Mode()
         object AccountDataDetail : Mode()
         object EditEventContent : Mode()
-        data class SendEventForm(val isState: Boolean) : Mode()
+        data class SendEventForm(val target: SendTarget) : Mode()
     }
+
+    enum class SendTarget { MESSAGE, STATE, ACCOUNT_DATA }
 
     data class SendEventDraft(
             val type: String?,

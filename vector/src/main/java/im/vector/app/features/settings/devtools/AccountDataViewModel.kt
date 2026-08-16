@@ -32,8 +32,15 @@ import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.flow.flow
 
 data class AccountDataViewState(
-        val accountData: Async<List<UserAccountDataEvent>> = Uninitialized
-) : MavericksState
+        val accountData: Async<List<UserAccountDataEvent>> = Uninitialized,
+        val draft: Draft = Draft()
+) : MavericksState {
+
+    data class Draft(
+            val type: String? = null,
+            val content: String? = "{\n}"
+    )
+}
 
 sealed class AccountDataViewEvents : VectorViewEvents {
     data class Failure(val throwable: Throwable) : AccountDataViewEvents()
@@ -61,6 +68,8 @@ class AccountDataViewModel @AssistedInject constructor(
         when (action) {
             is AccountDataAction.DeleteAccountData -> handleDeleteAccountData(action)
             is AccountDataAction.UpdateAccountData -> handleUpdateAccountData(action)
+            is AccountDataAction.DraftTypeChange -> setState { copy(draft = draft.copy(type = action.type)) }
+            is AccountDataAction.DraftContentChange -> setState { copy(draft = draft.copy(content = action.content)) }
         }
     }
 

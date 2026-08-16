@@ -9,9 +9,11 @@ package im.vector.app.features.settings.devtools
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,6 +21,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentGenericRecyclerBinding
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
@@ -27,6 +30,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class AccountDataFragment :
         VectorBaseFragment<FragmentGenericRecyclerBinding>(),
+        VectorMenuProvider,
         AccountDataEpoxyController.InteractionListener {
 
     @Inject lateinit var epoxyController: AccountDataEpoxyController
@@ -36,6 +40,8 @@ class AccountDataFragment :
     }
 
     private val viewModel: AccountDataViewModel by fragmentViewModel(AccountDataViewModel::class)
+
+    override fun getMenuRes() = R.menu.menu_account_data_list
 
     override fun onResume() {
         super.onResume()
@@ -58,10 +64,24 @@ class AccountDataFragment :
         super.onDestroyView()
     }
 
+    override fun handleMenuItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menuItemAdd -> {
+                navigateTo(AccountDataCreateFragment())
+                true
+            }
+            else -> false
+        }
+    }
+
     override fun didTap(data: UserAccountDataEvent) {
+        navigateTo(AccountDataDetailFragment.newInstance(data.type))
+    }
+
+    private fun navigateTo(fragment: Fragment) {
         parentFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.right_in, R.anim.fade_out, R.anim.fade_in, R.anim.right_out)
-                .replace(R.id.vector_settings_page, AccountDataDetailFragment.newInstance(data.type))
+                .replace(R.id.vector_settings_page, fragment)
                 .addToBackStack(null)
                 .commit()
     }

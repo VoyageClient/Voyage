@@ -183,8 +183,11 @@ class RoomDevToolActivity :
             }
             is RoomDevToolViewState.Mode.SendEventForm -> {
                 getString(
-                        if (state.displayMode.isState) CommonStrings.dev_tools_send_custom_state_event
-                        else CommonStrings.dev_tools_send_custom_event
+                        when (state.displayMode.target) {
+                            RoomDevToolViewState.SendTarget.STATE -> CommonStrings.dev_tools_send_custom_state_event
+                            RoomDevToolViewState.SendTarget.MESSAGE -> CommonStrings.dev_tools_send_custom_event
+                            RoomDevToolViewState.SendTarget.ACCOUNT_DATA -> CommonStrings.dev_tools_send_room_account_data
+                        }
                 )
             }
         }
