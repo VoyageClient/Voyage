@@ -151,12 +151,19 @@
                 android:textSize="12sp"
                 tools:text="@tools:sample/date/hhmm" />
 
+            <!-- Clamped to the content column: a long "Forwarded from @user - date" would otherwise
+                 widen the bubble past the message it belongs to. It ellipsizes instead. -->
             <TextView
                 android:id="@+id/messageForwardedNoticeView"
                 style="@style/Widget.Vector.TextView.Caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/bubbleMessageTimeView"
+                android:layout_alignStart="@id/viewStubContainer"
+                android:layout_alignLeft="@id/viewStubContainer"
+                android:layout_alignEnd="@id/viewStubContainer"
+                android:layout_alignRight="@id/viewStubContainer"
+                android:layout_marginBottom="6dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textAlignment="viewStart"

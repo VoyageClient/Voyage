@@ -19,6 +19,7 @@ import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -29,7 +30,6 @@ import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
-import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.core.ui.views.RoundedCornerImageView
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
@@ -43,6 +43,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.noties.markwon.MarkwonPlugin
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import kotlin.math.roundToInt
 
 @EpoxyModelClass
 abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Holder>() {
@@ -95,6 +96,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        holder.fitToRow()
         val messageLayout = baseAttributes.informationData.messageLayout
         val isBubble = messageLayout is TimelineMessageLayout.Bubble
         val cornerPx = messageLayout.mediaCornerRadiusPx(holder.view.context)
@@ -198,6 +200,10 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
         bindPlayButton(holder, isImageMessage, hidden)
 
+        // A caption longer than the picture would widen the bubble past it, leaving a gap beside the
+        // media; wrap the text within the media's width instead.
+        holder.captionView.maxWidth = holder.imageView.layoutParams?.width?.takeIf { it > 0 } ?: Int.MAX_VALUE
+
         MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
@@ -251,28 +257,16 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     override fun getViewStubId() = STUB_ID
 
-    // No caption: overlay the timestamp chip on the media. With a caption: overlay it inline on the caption
-    // text (reserving space) so it sits next to short captions and drops below long ones.
-    override fun allowFooterOverlay(holder: Holder, bubbleWrapView: ScMessageBubbleWrapView): Boolean = true
+    // Media sits in a real bubble, so the timestamp goes under it like a text message's does.
+    override fun allowFooterOverlay(holder: Holder, bubbleWrapView: ScMessageBubbleWrapView): Boolean = false
 
-    override fun allowFooterBelow(holder: Holder): Boolean = false
+    override fun allowFooterBelow(holder: Holder): Boolean = true
 
-    override fun needsFooterReservation(): Boolean = caption != null
-
-    // No caption: the timestamp overlays the image, so anchor it to the image's right edge (the bubble
-    // can be wider when a reply header is). With a caption the footer overlays the caption instead.
-    override fun footerOverlayAnchorView(holder: Holder): android.view.View? = if (caption == null) holder.imageView else null
-
-    override fun reserveFooterSpace(holder: Holder, width: Int, height: Int) {
-        (holder.captionView as? AbstractFooteredTextView)?.apply {
-            footerWidth = width
-            footerHeight = height
-            getAppCompatTextView().requestLayout()
-        }
-    }
+    override fun needsFooterReservation(): Boolean = false
 
     override fun applyScBubbleStyle(messageLayout: TimelineMessageLayout.ScBubble, holder: Holder) {
-        if ((messageLayout.isRealBubble || messageLayout.isPseudoBubble) && mode == ImageContentRenderer.Mode.THUMBNAIL) {
+        // Only a bare image needs the border: inside a real bubble it draws a second outline around the content.
+        if (messageLayout.isPseudoBubble && mode == ImageContentRenderer.Mode.THUMBNAIL) {
             if (attributes.informationData.sentByMe) {
                 holder.mediaContentView.setBackgroundResource(messageLayout.bubbleAppearance.imageBorderOutgoing)
             } else {
@@ -291,6 +285,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         private var backdropWatcher: ViewTreeObserver.OnPreDrawListener? = null
         private val drawnThumbnail = RectF()
         private var wantsDuration = false
+        private var fitted = false
         private var viewerHandover = ViewerHandover.NONE
 
         fun showDuration(enabled: Boolean) {
@@ -394,6 +389,28 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 -(imageView.width - drawnThumbnail.right).coerceAtLeast(0f)
             }
             durationView.translationY = -(imageView.height - drawnThumbnail.bottom).coerceAtLeast(0f)
+        }
+
+        /**
+         * The picture can end up wider than the row it sits in: its size lands after the ancestors were
+         * measured (Glide resolves the real bounds long after layout, and a recycled row starts from the
+         * previous media's size), and the bubble then clips it. Shrink it into the row, keeping its
+         * shape. Never the other way round — the computed size is the cap, not a target.
+         */
+        fun fitToRow() {
+            fitted = false
+            imageView.doOnLayout {
+                if (fitted || imageView.adjustViewBounds) return@doOnLayout
+                val parent = imageView.parent as? View ?: return@doOnLayout
+                val available = parent.width - parent.paddingLeft - parent.paddingRight
+                val params = imageView.layoutParams ?: return@doOnLayout
+                if (available <= 0 || params.width <= 0 || params.height <= 0 || available >= params.width) return@doOnLayout
+                fitted = true
+                val aspect = params.height.toFloat() / params.width
+                params.height = (available * aspect).roundToInt().coerceAtLeast(1)
+                params.width = available
+                imageView.post { imageView.layoutParams = params }
+            }
         }
 
         private enum class ViewerHandover { NONE, OPENING, OPEN }

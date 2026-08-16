@@ -21,6 +21,7 @@ import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TableRow
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.onLongClickIgnoringLinksSelectingCode
@@ -370,10 +371,12 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.setTextColor(themeColor(ctx, defaultColorAttr))
         if (isHeader) {
             tv.setTypeface(tv.typeface, Typeface.BOLD)
-            // Built in code: theme attrs in drawable XML don't resolve pre-21
+            // Built in code: theme attrs in drawable XML don't resolve pre-21. The fill is a wash of the
+            // text colour rather than a solid surface colour, so the header reads the same on the
+            // timeline background and inside a bubble.
             ViewCompat.setBackground(tv, GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                setColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_quinary))
+                setColor(ColorUtils.setAlphaComponent(themeColor(ctx, defaultColorAttr), HEADER_WASH_ALPHA))
                 setStroke(dim.dpToPx(1), themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary))
             })
         } else {
@@ -414,6 +417,8 @@ class RichMessageBodyRenderer @Inject constructor(
     }
 
     companion object {
+        /** Light enough to sit on any bubble colour, dark enough to separate the header row. */
+        private const val HEADER_WASH_ALPHA = 22
         private const val CODE_TEXT_SIZE_SP = 14f
     }
 }

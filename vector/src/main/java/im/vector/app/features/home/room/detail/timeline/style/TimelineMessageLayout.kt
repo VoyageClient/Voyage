@@ -98,3 +98,7 @@ sealed interface TimelineMessageLayout : Parcelable {
         override fun showsE2eDecorationInFooter(): Boolean = infoInBubbles(this)
     }
 }
+
+/** True when the row already draws a bubble behind its content, so a media pill would double up. */
+val TimelineMessageLayout.drawsBubbleBackground: Boolean
+    get() = this is TimelineMessageLayout.Bubble || (this is TimelineMessageLayout.ScBubble && isRealBubble)

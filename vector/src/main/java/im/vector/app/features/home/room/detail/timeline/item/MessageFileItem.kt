@@ -24,7 +24,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
-import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.style.drawsBubbleBackground
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -95,7 +95,7 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
             }
         }
 
-        val backgroundTint = if (attributes.informationData.messageLayout is TimelineMessageLayout.Bubble) {
+        val backgroundTint = if (attributes.informationData.messageLayout.drawsBubbleBackground) {
             Color.TRANSPARENT
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
