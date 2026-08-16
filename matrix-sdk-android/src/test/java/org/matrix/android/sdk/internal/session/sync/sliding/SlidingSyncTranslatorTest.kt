@@ -13,6 +13,8 @@ import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldContain
 import org.junit.Test
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
+import io.mockk.every
+import io.mockk.mockk
 import org.matrix.android.sdk.internal.di.MoshiProvider
 
 /**
@@ -22,7 +24,12 @@ import org.matrix.android.sdk.internal.di.MoshiProvider
 class SlidingSyncTranslatorTest {
 
     private val adapter = MoshiProvider.providesMoshi().adapter(SlidingSyncResponse::class.java)
-    private val translator = SlidingSyncTranslator(userId = "@me:example.org")
+    private val translator = SlidingSyncTranslator(
+            userId = "@me:example.org",
+            stores = mockk {
+                every { roomMember.getByRoomAndUser(any(), any()) } returns null
+            },
+    )
 
     private fun translate(json: String) = translator.toSyncResponse(adapter.fromJson(json.trimIndent())!!)
 
