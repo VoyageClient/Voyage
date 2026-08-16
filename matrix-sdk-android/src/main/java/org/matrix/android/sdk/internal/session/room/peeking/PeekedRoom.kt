@@ -363,6 +363,18 @@ internal class PeekedRoom(
                 autoMarkdown: Boolean,
         ): Cancelable = readOnly()
 
+        override fun sendGallery(
+                attachments: List<ContentAttachmentData>,
+                compressBeforeSending: Boolean,
+                roomIds: Set<String>,
+                rootThreadEventId: String?,
+                additionalContent: Content?,
+                replyToEvent: TimelineEvent?,
+                captionText: CharSequence?,
+                captionFormattedText: String?,
+                autoMarkdown: Boolean,
+        ): Cancelable = readOnly()
+
         override fun sendPoll(pollType: PollType, question: String, options: List<String>, additionalContent: Content?): Cancelable = readOnly()
 
         override fun voteToPoll(pollEventId: String, answerId: String, additionalContent: Content?): Cancelable = readOnly()

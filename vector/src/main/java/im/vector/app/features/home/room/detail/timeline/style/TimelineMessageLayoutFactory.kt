@@ -59,6 +59,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
         private val MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT = setOf(
                 MessageType.MSGTYPE_IMAGE,
                 MessageType.MSGTYPE_VIDEO,
+                MessageType.MSGTYPE_GALLERY,
+                MessageType.MSGTYPE_GALLERY_STABLE,
                 MessageType.MSGTYPE_STICKER_LOCAL,
                 MessageType.MSGTYPE_EMOTE,
                 MessageType.MSGTYPE_BEACON_INFO,
@@ -68,6 +70,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
         private val MSG_TYPES_WITH_TIMESTAMP_INSIDE_MESSAGE = setOf(
                 MessageType.MSGTYPE_IMAGE,
                 MessageType.MSGTYPE_VIDEO,
+                MessageType.MSGTYPE_GALLERY,
+                MessageType.MSGTYPE_GALLERY_STABLE,
                 MessageType.MSGTYPE_STICKER_LOCAL,
                 MessageType.MSGTYPE_BEACON_INFO,
                 MessageType.MSGTYPE_LOCATION,

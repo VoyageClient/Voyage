@@ -43,6 +43,19 @@ interface ContentUploadStateTracker {
         data class UploadingThumbnail(val current: Long, val total: Long) : State()
         data class Encrypting(val current: Long, val total: Long) : State()
         data class Uploading(val current: Long, val total: Long) : State()
+
+        /**
+         * One MSC4274 gallery upload: [current]/[total] are the item being sent, while
+         * [overallCurrent]/[overallTotal] aggregate every item's declared bytes.
+         */
+        data class UploadingGalleryItem(
+                val itemIndex: Int,
+                val itemCount: Int,
+                val current: Long,
+                val total: Long,
+                val overallCurrent: Long,
+                val overallTotal: Long,
+        ) : State()
         object Success : State()
         data class Failure(val throwable: Throwable) : State()
     }

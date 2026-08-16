@@ -56,8 +56,8 @@ import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
 import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import im.vector.app.features.session.coroutineScope
-import im.vector.app.features.settings.VectorDataStore
 import im.vector.app.features.settings.PrivacyMode
+import im.vector.app.features.settings.VectorDataStore
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.flow.chunk
 import im.vector.lib.strings.CommonStrings
@@ -95,6 +95,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
+import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -108,10 +109,10 @@ import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.LocalRoomCreationState
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
-import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -1131,6 +1132,18 @@ private fun handleSelectStickerAttachment() {
                 .map { if (randomize) it.withRandomizedFilename() else it }
                 .map { it.copy(stripMetadata = stripMetadata) }
                 .let { sendMediaMaterializer.materialize(it) }
+        if (vectorPreferences.sendMediaGalleries() && attachments.size >= 2) {
+            room.sendService().sendGallery(
+                    attachments = attachments,
+                    compressBeforeSending = action.compressBeforeSending,
+                    rootThreadEventId = initialState.rootThreadEventId,
+                    replyToEvent = action.replyToEvent,
+                    captionText = captionText,
+                    captionFormattedText = captionFormattedText,
+                    autoMarkdown = if (captionText === action.captionText) action.autoMarkdown else false,
+            )
+            return
+        }
         room.sendService().sendMedias(
                 attachments = attachments,
                 compressBeforeSending = action.compressBeforeSending,
@@ -1297,7 +1310,7 @@ private fun handleSelectStickerAttachment() {
             }
             when {
                 it.root.isTextMessage() -> room.sendService().resendTextMessage(it)
-                it.root.isAttachmentMessage() -> room.sendService().resendMediaMessage(it)
+                it.root.isAttachmentMessage() || it.root.isGalleryMessage() -> room.sendService().resendMediaMessage(it)
                 else -> {
                     // TODO
                 }

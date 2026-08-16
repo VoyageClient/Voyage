@@ -431,6 +431,10 @@ fun Event.isFileMessage(): Boolean {
     }
 }
 
+fun Event.isGalleryMessage(): Boolean {
+    return MessageType.isGalleryMsgType(getMsgType())
+}
+
 fun Event.isAttachmentMessage(): Boolean {
     return when (getMsgType()) {
         MessageType.MSGTYPE_IMAGE,

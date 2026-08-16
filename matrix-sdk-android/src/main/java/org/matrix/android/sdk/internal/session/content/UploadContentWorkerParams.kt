@@ -19,5 +19,9 @@ internal data class UploadContentWorkerParams(
         val attachment: ContentAttachmentData,
         val isEncrypted: Boolean,
         val compressBeforeSending: Boolean,
+        /** When set, this upload fills item N of an MSC4274 gallery echo instead of the whole content. */
+        val galleryItemIndex: Int? = null,
+        /** Declared byte sizes of every gallery item, for one size-weighted progress bar. */
+        val galleryItemSizes: List<Long>? = null,
         override val lastFailureMessage: String? = null
 ) : SessionWorkerParams

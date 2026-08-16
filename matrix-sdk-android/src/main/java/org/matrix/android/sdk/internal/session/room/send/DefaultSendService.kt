@@ -32,6 +32,7 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
@@ -184,6 +185,16 @@ internal class DefaultSendService @AssistedInject constructor(
     override fun resendMediaMessage(localEcho: TimelineEvent): Cancelable {
         if (localEcho.root.sendState.hasFailed()) {
             val clearContent = localEcho.root.getClearContent()
+            (clearContent?.toModel<MessageContent>() as? MessageGalleryContent)?.let { gallery ->
+                // Re-running the upload chain against an existing gallery echo is not supported; only
+                // a gallery whose uploads all landed (the event send itself failed) can be resent.
+                return if (gallery.galleryItems().let { items -> items.isNotEmpty() && items.all { it.getFileUrl()?.isMxcUrl() == true } }) {
+                    localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
+                    sendEvent(localEcho.root)
+                } else {
+                    NoOpCancellable
+                }
+            }
             val messageContent = clearContent?.toModel<MessageContent>() as? MessageWithAttachmentContent ?: return NoOpCancellable
 
             val url = messageContent.getFileUrl() ?: return NoOpCancellable
@@ -323,6 +334,95 @@ internal class DefaultSendService @AssistedInject constructor(
                     autoMarkdown = autoMarkdown,
             )
         }
+    }
+
+    override fun sendGallery(
+            attachments: List<ContentAttachmentData>,
+            compressBeforeSending: Boolean,
+            roomIds: Set<String>,
+            rootThreadEventId: String?,
+            additionalContent: Content?,
+            replyToEvent: TimelineEvent?,
+            captionText: CharSequence?,
+            captionFormattedText: String?,
+            autoMarkdown: Boolean,
+    ): Cancelable {
+        if (attachments.isEmpty()) return NoOpCancellable
+        val rootThreadId = if (roomIds.isNotEmpty()) null else rootThreadEventId
+        val allRoomIds = (roomIds + roomId).toList()
+        val replyToEventId = replyToEvent?.root?.eventId
+        val effectiveRelatesTo = when {
+            replyToEventId != null -> if (rootThreadId != null) {
+                RelationDefaultContent(
+                        type = RelationType.THREAD,
+                        eventId = rootThreadId,
+                        isFallingBack = false,
+                        inReplyTo = ReplyToContent(eventId = replyToEventId),
+                )
+            } else {
+                RelationDefaultContent(null, null, ReplyToContent(eventId = replyToEventId))
+            }
+            else -> null
+        }
+        val rootThreadForFactory = if (effectiveRelatesTo != null) null else rootThreadId
+        val mentions = IntentionalMentions.build(
+                body = captionText?.toString(),
+                formattedBody = captionFormattedText,
+                extraUserIds = listOfNotNull(replyToEvent?.root?.senderId),
+                selfUserId = userId,
+        )
+        val allLocalEchoes = allRoomIds.map {
+            localEchoEventFactory.createGalleryEvent(
+                    roomId = it,
+                    attachments = attachments,
+                    rootThreadEventId = rootThreadForFactory,
+                    relatesTo = effectiveRelatesTo,
+                    additionalContent = additionalContent,
+                    captionText = captionText,
+                    captionFormattedText = captionFormattedText,
+                    autoMarkdown = autoMarkdown,
+                    mentions = mentions,
+            ).also { event ->
+                createLocalEcho(event)
+            }
+        }
+        val cancelableBag = CancelableBag()
+        allLocalEchoes.groupBy { cryptoStore.roomWasOnceEncrypted(it.roomId!!) }.forEach { (isRoomEncrypted, localEchoes) ->
+            val localEchoIds = localEchoes.map { LocalEchoIdentifiers(it.roomId!!, it.eventId!!) }
+            val itemSizes = attachments.map { it.size }
+            // One upload work per item, all on the same FIFO queue, each patching its slot of the
+            // shared echo; only the last one is chained to the dispatcher that sends the event.
+            attachments.forEachIndexed { index, attachment ->
+                val params = UploadContentWorkerParams(
+                        sessionId = sessionId,
+                        localEchoIds = localEchoIds,
+                        attachment = attachment,
+                        isEncrypted = isRoomEncrypted,
+                        compressBeforeSending = compressBeforeSending,
+                        galleryItemIndex = index,
+                        galleryItemSizes = itemSizes,
+                )
+                val work = backgroundTask(
+                        type = BackgroundTaskType.UPLOAD_CONTENT,
+                        params = params,
+                        matrixConstraints = true,
+                        isolateInput = true,
+                        extraTags = localEchoIds.map { uploadWorkTag(it.eventId) },
+                )
+                val handle = if (index == attachments.lastIndex) {
+                    backgroundTaskScheduler.enqueueUniqueChain(
+                            buildWorkName(UPLOAD_WORK),
+                            BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                            work,
+                            createMultipleEventDispatcherWork(isRoomEncrypted),
+                    )
+                } else {
+                    backgroundTaskScheduler.enqueueUnique(buildWorkName(UPLOAD_WORK), BackgroundQueuePolicy.APPEND_OR_REPLACE, work)
+                }
+                cancelableBag.add(handle)
+            }
+        }
+        return cancelableBag
     }
 
     override fun sendMedia(

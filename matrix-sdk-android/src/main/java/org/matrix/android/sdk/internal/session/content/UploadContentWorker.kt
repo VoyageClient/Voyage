@@ -41,9 +41,17 @@ import org.matrix.android.sdk.api.session.room.model.message.AudioWaveformInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.coerceGalleryJsonNumbers
+import org.matrix.android.sdk.api.session.room.model.message.galleryFallbackBody
+import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContents
+import org.matrix.android.sdk.api.session.room.model.message.toGalleryItem
+import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
+import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.JxlSupport
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.SessionManager
@@ -154,6 +162,11 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             return Result.failure()
         }
 
+        if (params.galleryItemIndex != null && isGalleryAlreadyFailed(params)) {
+            // An earlier item of the same gallery failed; don't waste the upload, fail the event.
+            return handleFailure(params, Throwable("An earlier item of this gallery failed to upload"))
+        }
+
         val attachment = params.attachment
         val filesToDelete = hashSetOf<File>()
         // Candidates to hand to UploadMediaBytesWorker, which deletes them once uploaded and cached.
@@ -179,7 +192,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             val progressListener = object : ProgressRequestBody.Listener {
                 override fun onProgress(current: Long, total: Long) {
                     if (isStopped) return
-                    notifyTracker(params) { contentUploadStateTracker.setProgress(it, current, total) }
+                    notifyItemPhase(params, current, total) { contentUploadStateTracker.setProgress(it, current, total) }
                 }
             }
 
@@ -204,7 +217,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 val compressThisOne = (params.compressBeforeSending || attachment.hasCustomCompression) &&
                         !(attachment.keepOriginalSize && !attachment.hasCustomCompression)
                 if (attachment.type == ContentAttachmentData.Type.IMAGE && compressThisOne) {
-                    notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
+                    notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setCompressingImage(it) }
 
                     val compressed = imageCompressor.compress(
                             workingFile(),
@@ -229,7 +242,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
                     } else {
                         // Format can't be scrubbed in place (e.g. HEIC) — re-encode so nothing leaks.
-                        notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
+                        notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setCompressingImage(it) }
                         val reEncoded = imageCompressor.reEncodeStrippingMetadata(working)
                         fileToUpload = reEncoded.file.also { if (it !== working) filesToDelete.add(it) }
                         newAttachmentAttributes = if (reEncoded.mimeType != null) {
@@ -245,7 +258,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     val strippedVideo = if (stripMetadata && attachment.type == ContentAttachmentData.Type.VIDEO) {
                         // Re-mux from the source URI so the video is read once, not copied to a working
                         // file and then read again — two full passes over a large file before it can send.
-                        notifyTracker(params) { contentUploadStateTracker.setProcessingVideo(it, 0f) }
+                        notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setProcessingVideo(it, 0f) }
                         val stripProgress = object : ProgressListener {
                             // Only notify on whole-percent changes: the muxer reports every packet,
                             // and each report posts a main-thread runnable.
@@ -254,7 +267,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                                 val percent = if (total > 0) progress * 100 / total else 0
                                 if (percent == lastPercent) return
                                 lastPercent = percent
-                                notifyTracker(params) {
+                                notifyItemPhase(params, 0L, 0L) {
                                     contentUploadStateTracker.setProcessingVideo(it, percent / 100f)
                                 }
                             }
@@ -303,7 +316,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     val needsWaveform = attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE &&
                             (storedWaveform.isNullOrEmpty() || storedWaveform.all { it == 0 })
                     if (needsWaveform) {
-                        notifyTracker(params) { contentUploadStateTracker.setProcessingAudio(it) }
+                        notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setProcessingAudio(it) }
                         // Reading the peaks decodes the whole file, which the upload has no need to
                         // wait behind: the two run together and the answer is collected when the
                         // event is written. A child of this job, so cancelling the send stops it.
@@ -346,7 +359,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
                     uploadedFileEncryptedFileInfo =
                             MXEncryptedAttachments.encrypt(fileToUpload.inputStream(), encryptedFile, clock) { read, total ->
-                                notifyTracker(params) {
+                                notifyItemPhase(params, 0L, 0L) {
                                     contentUploadStateTracker.setEncrypting(it, read.toLong(), total.toLong())
                                 }
                             }
@@ -481,7 +494,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     ): VideoCompressOutcome {
         val progressListener = object : ProgressListener {
             override fun onProgress(progress: Int, total: Int) {
-                notifyTracker(params) { contentUploadStateTracker.setCompressingVideo(it, progress.toFloat()) }
+                notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setCompressingVideo(it, progress.toFloat()) }
             }
         }
         val attachment = params.attachment
@@ -605,7 +618,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         // Frame decode + JPEG encode take seconds on a large video; without a state of their own the
         // progress UI sits on the last processing percent looking hung.
         if (params.attachment.type == ContentAttachmentData.Type.VIDEO) {
-            notifyTracker(params) { contentUploadStateTracker.setPreparingThumbnail(it) }
+            notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setPreparingThumbnail(it) }
         }
         // Prefer the post-transcode file so the thumbnail aspect ratio matches what the player
         // will actually show; otherwise the bubble placeholder ends up the wrong shape.
@@ -614,13 +627,13 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 ?: return null
         val thumbnailProgressListener = object : ProgressRequestBody.Listener {
             override fun onProgress(current: Long, total: Long) {
-                notifyTracker(params) { contentUploadStateTracker.setProgressThumbnail(it, current, total) }
+                notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setProgressThumbnail(it, current, total) }
             }
         }
         return try {
             if (params.isEncrypted) {
                 Timber.v("Encrypt thumbnail")
-                notifyTracker(params) { contentUploadStateTracker.setEncryptingThumbnail(it) }
+                notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setEncryptingThumbnail(it) }
                 val encryptionResult = MXEncryptedAttachments.encryptAttachment(thumbnailData.bytes.inputStream(), clock)
                 val contentUploadResponse = fileUploader.uploadByteArray(
                         byteArray = encryptionResult.encryptedByteArray,
@@ -658,8 +671,20 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         }
     }
 
+    private suspend fun isGalleryAlreadyFailed(params: Params): Boolean {
+        return params.localEchoIds.any {
+            localEchoRepository.getUpToDateEcho(it.eventId)?.sendState == SendState.UNDELIVERED
+        }
+    }
+
     private fun handleFailure(params: Params, failure: Throwable): Result {
         notifyTracker(params) { contentUploadStateTracker.setFailure(it, failure) }
+        if (params.galleryItemIndex != null) {
+            // Later items of the gallery and the dispatcher check this state to short-circuit.
+            params.localEchoIds.forEach {
+                localEchoRepository.updateSendState(it.eventId, it.roomId, SendState.UNDELIVERED, failure.toMatrixErrorStr())
+            }
+        }
 
         return Result.success(
                 WorkerParamsFactory.toData(
@@ -681,13 +706,15 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             deferredUpload: DeferredUpload?,
             onHandedOver: (Boolean) -> Unit,
     ): Result {
-        // With a deferred upload the bytes are still to come, so the progress UI stays up until
-        // UploadMediaBytesWorker finishes; only the synchronous path is done at this point.
-        if (deferredUpload == null) {
-            notifyTracker(params) { contentUploadStateTracker.setSuccess(it) }
-        }
         params.localEchoIds.forEach {
-            updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
+            updateEvent(
+                    it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes,
+                    params.galleryItemIndex,
+            )
+        }
+        // A deferred upload's bytes are still to come; UploadMediaBytesWorker settles that item.
+        if (deferredUpload == null) {
+            notifyItemSettled(params)
         }
 
         deferredUpload?.let { onHandedOver(enqueueByteUpload(params, it)) }
@@ -725,6 +752,8 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                                 isEncrypted = deferred.isEncrypted,
                                 clearFilePath = deferred.clearFilePath,
                                 encryptedFilePath = deferred.encryptedFilePath,
+                                galleryItemIndex = params.galleryItemIndex,
+                                galleryItemSizes = params.galleryItemSizes,
                         ),
                         matrixConstraints = true,
                         isolateInput = true,
@@ -741,7 +770,8 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             thumbnail: UploadThumbnailResult?,
             imageBlurHash: String?,
             audioWaveform: List<Int>?,
-            newAttachmentAttributes: NewAttachmentAttributes
+            newAttachmentAttributes: NewAttachmentAttributes,
+            galleryItemIndex: Int? = null,
     ) {
         localEchoRepository.updateEcho(eventId) { event ->
             val content: Content? = event.asDomain(castJsonNumbers = true).content
@@ -753,14 +783,66 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnail, newAttachmentAttributes)
                 is MessageFileContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
                 is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize, audioWaveform)
+                is MessageGalleryContent -> messageContent
+                        .updateItem(galleryItemIndex, url, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
                 else -> messageContent
             }
             event.content = ContentMapper.map(updatedContent.toContent().plus(additionalContent))
         }
     }
 
+    private fun MessageGalleryContent.updateItem(
+            index: Int?,
+            url: String,
+            encryptedFileInfo: EncryptedFileInfo?,
+            thumbnail: UploadThumbnailResult?,
+            imageBlurHash: String?,
+            audioWaveform: List<Int>?,
+            newAttachmentAttributes: NewAttachmentAttributes,
+    ): MessageGalleryContent {
+        if (index == null || index !in itemtypes.indices) return this
+        val item = itemtypes[index].toAttachmentContent() ?: return this
+        val updatedItem = when (item) {
+            is MessageImageContent -> item.update(url, encryptedFileInfo, imageBlurHash, newAttachmentAttributes)
+            is MessageVideoContent -> item.update(url, encryptedFileInfo, thumbnail, newAttachmentAttributes)
+            is MessageFileContent -> item.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
+            is MessageAudioContent -> item.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize, audioWaveform)
+            else -> item
+        }
+        val newItemDict = updatedItem.toGalleryItem() ?: return this
+        // Sibling items are Doubles after the same Any-adapter round trip.
+        @Suppress("UNCHECKED_CAST")
+        val newItems = itemtypes.toMutableList().apply { set(index, newItemDict) }
+                .map { coerceGalleryJsonNumbers(it) as JsonDict }
+        // The fallback body mirrors the items, so it follows their urls; a caption never changes.
+        val newBody = if (body == galleryFallbackBody(galleryItems())) galleryFallbackBody(newItems.toAttachmentContents()) else body
+        return copy(body = newBody, itemtypes = newItems)
+    }
+
     private fun notifyTracker(params: Params, function: (String) -> Unit) {
         params.localEchoIds.forEach { function.invoke(it.eventId) }
+    }
+
+    /** A gallery item folds every phase into the one whole-gallery state; anything else uses [fallback]. */
+    private fun notifyItemPhase(params: Params, itemCurrent: Long, itemTotal: Long, fallback: (String) -> Unit) {
+        val index = params.galleryItemIndex
+        val sizes = params.galleryItemSizes
+        if (index == null || sizes.isNullOrEmpty() || index !in sizes.indices) {
+            notifyTracker(params, fallback)
+            return
+        }
+        notifyTracker(params) { contentUploadStateTracker.setGalleryProgress(it, index, sizes, itemCurrent, itemTotal) }
+    }
+
+    /** The whole send is done, unless this is one item of a gallery whose siblings are still going. */
+    private fun notifyItemSettled(params: Params) {
+        val index = params.galleryItemIndex
+        val sizes = params.galleryItemSizes
+        if (index == null || sizes == null) {
+            notifyTracker(params) { contentUploadStateTracker.setSuccess(it) }
+        } else {
+            notifyTracker(params) { contentUploadStateTracker.setGalleryItemSettled(it, index, sizes) }
+        }
     }
 
     private fun MessageImageContent.update(

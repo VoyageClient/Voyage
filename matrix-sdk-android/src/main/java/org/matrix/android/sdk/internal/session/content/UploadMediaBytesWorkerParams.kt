@@ -23,5 +23,8 @@ internal data class UploadMediaBytesWorkerParams(
         val clearFilePath: String,
         /** The ciphertext actually uploaded, for an encrypted room. */
         val encryptedFilePath: String?,
+        /** Which MSC4274 gallery item these bytes belong to, with every item's declared size. */
+        val galleryItemIndex: Int? = null,
+        val galleryItemSizes: List<Long>? = null,
         override val lastFailureMessage: String? = null
 ) : SessionWorkerParams

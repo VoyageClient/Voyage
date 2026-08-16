@@ -239,6 +239,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM = "SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM"
         const val SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB = "SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB"
         const val SETTINGS_LABS_ENABLE_LATEX_MATHS = "SETTINGS_LABS_ENABLE_LATEX_MATHS"
+        const val SETTINGS_LABS_SEND_MEDIA_GALLERIES = "SETTINGS_LABS_SEND_MEDIA_GALLERIES"
 
         // Security
         const val SETTINGS_SECURITY_USE_FLAG_SECURE = "SETTINGS_SECURITY_USE_FLAG_SECURE"
@@ -437,6 +438,10 @@ class VectorPreferences @Inject constructor(
 
     fun latexMathsIsEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_LABS_ENABLE_LATEX_MATHS, true)
+    }
+
+    fun sendMediaGalleries(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_LABS_SEND_MEDIA_GALLERIES, false)
     }
 
     fun renderBlockquotesAsGreentext(): Boolean {

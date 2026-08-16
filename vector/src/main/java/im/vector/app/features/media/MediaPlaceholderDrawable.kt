@@ -59,7 +59,18 @@ class MediaPlaceholderDrawable(
             ?.also { DrawableCompat.setTint(it, ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)) }
 
     private val density = context.resources.displayMetrics.density
-    private val cornerRadius = CORNER_RADIUS_DP * density
+
+    private val defaultCornerRadius = CORNER_RADIUS_DP * density
+    private var cornerRadius = defaultCornerRadius
+
+    /** Square where something else already rounds the media, as a gallery's grid rounds its outer edge. */
+    fun setSquareCorners(square: Boolean) {
+        val radius = if (square) 0f else defaultCornerRadius
+        if (radius == cornerRadius) return
+        cornerRadius = radius
+        // A settled failure has stopped animating, so nothing else would redraw it.
+        invalidateSelf()
+    }
     private val handler = Handler(Looper.getMainLooper())
 
     private var running = false

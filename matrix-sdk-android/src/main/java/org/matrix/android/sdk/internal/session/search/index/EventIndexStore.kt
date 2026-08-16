@@ -7,12 +7,12 @@
 
 package org.matrix.android.sdk.internal.session.search.index
 
-import org.matrix.android.sdk.internal.session.SessionReleasable
 import app.cash.sqldelight.db.SqlDriver
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
+import org.matrix.android.sdk.internal.session.SessionReleasable
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.search.index.db.EventIndexSqlDatabase
 import org.matrix.android.sdk.internal.session.search.index.db.Indexed_event

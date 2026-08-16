@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageDefaultContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
@@ -58,6 +59,9 @@ internal object MoshiProvider {
                             .registerSubtype(MessageVideoContent::class.java, MessageType.MSGTYPE_VIDEO)
                             .registerSubtype(MessageLocationContent::class.java, MessageType.MSGTYPE_LOCATION)
                             .registerSubtype(MessageFileContent::class.java, MessageType.MSGTYPE_FILE)
+                            // MSC4274: register unstable first so polymorphic serialization emits it
+                            .registerSubtype(MessageGalleryContent::class.java, MessageType.MSGTYPE_GALLERY)
+                            .registerSubtype(MessageGalleryContent::class.java, MessageType.MSGTYPE_GALLERY_STABLE)
                             .registerSubtype(MessageVerificationRequestContent::class.java, MessageType.MSGTYPE_VERIFICATION_REQUEST)
                             .registerSubtype(MessagePollResponseContent::class.java, MessageType.MSGTYPE_POLL_RESPONSE)
             )

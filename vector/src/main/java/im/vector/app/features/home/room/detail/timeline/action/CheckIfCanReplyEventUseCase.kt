@@ -32,6 +32,8 @@ class CheckIfCanReplyEventUseCase @Inject constructor() {
             MessageType.MSGTYPE_VIDEO,
             MessageType.MSGTYPE_AUDIO,
             MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_GALLERY,
+            MessageType.MSGTYPE_GALLERY_STABLE,
             MessageType.MSGTYPE_POLL_START,
             MessageType.MSGTYPE_POLL_END,
             MessageType.MSGTYPE_BEACON_INFO,

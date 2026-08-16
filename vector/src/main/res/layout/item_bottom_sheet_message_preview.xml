@@ -70,6 +70,16 @@
         tools:src="@tools:sample/backgrounds/scenic"
         tools:visibility="visible" />
 
+    <im.vector.app.core.ui.views.GalleryGridLayout
+        android:id="@+id/bottom_sheet_message_preview_gallery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_sender"
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_image"
+        tools:visibility="gone" />
+
     <!-- Caps the preview height and fades long content (text or tables) out instead of clipping it
          with a trailing ellipsis, matching the reply header / composer previews. -->
     <com.ruesga.rview.widget.ExpandableViewLayout
@@ -88,7 +98,7 @@
         app:layout_constraintBottom_toTopOf="@id/bottom_sheet_message_preview_body_details"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/bottom_sheet_message_preview_avatar"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_image"
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_gallery"
         app:layout_goneMarginBottom="4dp">
 
         <LinearLayout

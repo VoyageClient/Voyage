@@ -824,4 +824,9 @@
 
     <string name="settings_messages_mentioning_me" translatable="false">Messages that mention me</string>
     <string name="settings_mentions_at_room_advanced" translatable="false">Messages that mention @room</string>
+
+    <string name="labs_enable_media_galleries_title" translatable="false">Send media galleries</string>
+    <string name="labs_enable_media_galleries_summary" translatable="false">Send multiple attachments as a single gallery message (MSC4274). Clients without gallery support will not display these properly.</string>
+    <string name="sent_a_gallery" translatable="false">Image Gallery.</string>
+    <string name="action_save_all" translatable="false">Save all</string>
 </resources>

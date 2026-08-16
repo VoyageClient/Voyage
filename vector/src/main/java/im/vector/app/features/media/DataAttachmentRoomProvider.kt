@@ -38,29 +38,33 @@ class DataAttachmentRoomProvider(
 
     override fun getAttachmentInfoAt(position: Int): AttachmentInfo {
         return getItem(position).let {
+            // Same ids as RoomEventsAttachmentProvider: a provider swap keeps in-flight loads
+            // routable to the page they were started for.
             when (it) {
                 is ImageContentRenderer.Data -> {
+                    val uid = galleryPageId(it.eventId, it.galleryIndex)
                     if (it.mimeType == MimeTypes.Gif || it.mimeType == MimeTypes.Webp || it.mimeType == MimeTypes.Jxl) {
                         AttachmentInfo.AnimatedImage(
-                                uid = it.eventId,
+                                uid = uid,
                                 url = it.url ?: "",
                                 data = it
                         )
                     } else {
                         AttachmentInfo.Image(
-                                uid = it.eventId,
+                                uid = uid,
                                 url = it.url ?: "",
                                 data = it
                         )
                     }
                 }
                 is VideoContentRenderer.Data -> {
+                    val uid = galleryPageId(it.eventId, it.galleryIndex)
                     AttachmentInfo.Video(
-                            uid = it.eventId,
+                            uid = uid,
                             url = it.url ?: "",
                             data = it,
                             thumbnail = AttachmentInfo.Image(
-                                    uid = it.eventId,
+                                    uid = uid,
                                     url = it.thumbnailMediaData.url ?: "",
                                     data = it.thumbnailMediaData
                             )

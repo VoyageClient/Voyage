@@ -35,7 +35,10 @@ import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.databinding.ViewInReplyToBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
+import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
+import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
@@ -50,10 +53,12 @@ import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
@@ -96,6 +101,9 @@ class InReplyToView @JvmOverloads constructor(
     }
 
     private var state: PreviewReplyUiState = PreviewReplyUiState.NoReply
+
+    /** The renderer the gallery tiles were bound with, so a recycled header can let them go. */
+    private var boundGalleryRenderer: ImageContentRenderer? = null
 
     private val maxThumbnailWidth = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.reply_thumbnail_max_width)
     private val maxThumbnailHeight = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.reply_thumbnail_height)
@@ -188,6 +196,10 @@ class InReplyToView @JvmOverloads constructor(
         // A recycled reply must not keep a previous message's full-width-code stretch.
         views.replyTextView.fullWidthBlockCode = false
         views.replyThumbnailView.isVisible = false
+        // Recycled reply headers would otherwise keep the tiles' Glide targets and listeners.
+        boundGalleryRenderer?.let { GalleryGridBinder.unbind(views.replyGalleryView, it) }
+        boundGalleryRenderer = null
+        views.replyGalleryView.isVisible = false
         views.expandableReplyView.isVisible = true
         views.replyTextView.isVisible = true
         views.replyRichContainer.isVisible = false
@@ -253,6 +265,7 @@ class InReplyToView @JvmOverloads constructor(
                 // Files / voice / audio render as a non-interactive pill mirroring the timeline.
                 is MessageFileContent -> renderAttachmentPill(R.drawable.ic_paperclip, content.getFileName())
                 is MessageAudioContent -> renderAudioContent(content)
+                is MessageGalleryContent -> renderGalleryContent(content, state.event, retriever)
                 is MessageContentWithFormattedBody -> {
                     // Outside bubbles, stretch a block-code reply to the full timeline width like the
                     // timeline does; inside a bubble it should hug its content instead.
@@ -456,6 +469,35 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.movementMethod = null
     }
 
+    private fun renderGalleryContent(content: MessageGalleryContent, event: TimelineEvent, retriever: ReplyPreviewRetriever) {
+        views.replyGalleryView.isVisible = true
+        boundGalleryRenderer = retriever.imageContentRenderer
+        val items = content.galleryItems()
+        GalleryGridBinder.bind(
+                grid = views.replyGalleryView,
+                tiles = content.toGalleryTiles(
+                        eventId = event.eventId,
+                        stableId = event.timelineStableId(),
+                        maxWidth = maxThumbnailWidth,
+                        maxHeight = maxThumbnailHeight,
+                        items = items,
+                ),
+                maxWidth = maxThumbnailWidth,
+                cornerRadiusPx = (8 * resources.displayMetrics.density).toInt(),
+                imageContentRenderer = retriever.imageContentRenderer,
+                hideMedia = retriever.shouldHideMediaPreview(event),
+                hideMediaSolidColor = retriever.useSolidColorForHiddenMedia,
+        )
+        val caption = content.galleryCaption(items)
+        if (caption == null) {
+            views.replyTextView.isVisible = false
+        } else {
+            views.replyTextView.isVisible = true
+            views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+            views.replyTextView.text = caption.prepareForDisplay()
+        }
+    }
+
     private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) {
         views.replyTextView.isVisible = true
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
@@ -467,7 +509,7 @@ class InReplyToView @JvmOverloads constructor(
         if (content.voiceMessageIndicator != null) {
             renderAttachmentPill(R.drawable.ic_microphone, context.getString(CommonStrings.voice_message_reply_content, formattedDuration))
         } else {
-            renderAttachmentPill(R.drawable.ic_attachment_voice_file, context.getString(CommonStrings.audio_message_reply_content, content.body, formattedDuration))
+            renderAttachmentPill(R.drawable.ic_music_note, context.getString(CommonStrings.audio_message_reply_content, content.body, formattedDuration))
         }
     }
 

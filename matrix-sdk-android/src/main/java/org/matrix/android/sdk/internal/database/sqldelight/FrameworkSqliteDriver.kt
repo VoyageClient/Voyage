@@ -71,6 +71,7 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     private val transactions = ThreadLocal<Transaction?>()
+
     // Serialises every top-level transaction so the several session DB threads never open two at once.
     private val transactionLock = java.util.concurrent.locks.ReentrantLock()
     private val listeners = linkedMapOf<String, MutableSet<Query.Listener>>()

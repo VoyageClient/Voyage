@@ -17,6 +17,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.galleryPageId
 import im.vector.app.features.redaction.preservation.PreservedMediaStore
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
@@ -79,7 +80,7 @@ class UploadsMediaController @Inject constructor(
                         return@forEach
                     }
                     uploadsImageItem {
-                        id(uploadEvent.eventId)
+                        id(with(host) { uploadEvent.uid() })
                         imageContentRenderer(host.imageContentRenderer)
                         data(data)
                         listener { clicked: View ->
@@ -96,7 +97,7 @@ class UploadsMediaController @Inject constructor(
                 MessageType.MSGTYPE_VIDEO -> {
                     val data = uploadEvent.toVideoContentRendererData() ?: return@forEach
                     uploadsVideoItem {
-                        id(uploadEvent.eventId)
+                        id(with(host) { uploadEvent.uid() })
                         imageContentRenderer(host.imageContentRenderer)
                         data(data)
                         listener {
@@ -108,12 +109,16 @@ class UploadsMediaController @Inject constructor(
         }
     }
 
+    private fun UploadEvent.uid(): String = galleryPageId(eventId, galleryItemIndex)
+
     /** A redaction the app preserved locally still has its bytes, even once the server copy is gone. */
     private fun UploadEvent.toImageContentRendererData(roomId: String): ImageContentRenderer.Data? {
         val messageContent = (contentWithAttachmentContent as? MessageImageInfoContent) ?: return null
 
         return ImageContentRenderer.Data(
                 eventId = eventId,
+                stableId = uid(),
+                galleryIndex = galleryItemIndex,
                 filename = messageContent.body,
                 url = messageContent.getFileUrl(),
                 mimeType = messageContent.mimeType,
@@ -132,6 +137,8 @@ class UploadsMediaController @Inject constructor(
 
         val thumbnailData = ImageContentRenderer.Data(
                 eventId = eventId,
+                stableId = uid(),
+                galleryIndex = galleryItemIndex,
                 filename = messageContent.body,
                 mimeType = messageContent.mimeType,
                 url = messageContent.videoInfo?.getThumbnailUrl(),
@@ -145,6 +152,7 @@ class UploadsMediaController @Inject constructor(
 
         return VideoContentRenderer.Data(
                 eventId = eventId,
+                galleryIndex = galleryItemIndex,
                 filename = messageContent.body,
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),

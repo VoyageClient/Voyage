@@ -219,14 +219,20 @@ class SearchFragment :
         ) { }
     }
 
-    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View) {
+    override fun onVideoMessageClicked(
+            messageVideoContent: MessageVideoContent,
+            mediaData: VideoContentRenderer.Data,
+            view: View,
+            inMemory: List<AttachmentData>
+    ) {
         navigator.openMediaViewer(
                 activity = requireActivity(),
                 roomId = fragmentArgs.roomId,
                 mediaData = mediaData,
                 view = view,
-                inMemory = listOf(mediaData),
-                standalonePreview = true,
+                // A hit stands on its own; a gallery's tile pages over that gallery's items.
+                inMemory = inMemory.ifEmpty { listOf(mediaData) },
+                standalonePreview = inMemory.isEmpty(),
         ) { }
     }
 

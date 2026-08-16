@@ -30,6 +30,7 @@ import im.vector.app.features.home.room.detail.timeline.format.EventDetailsForma
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
+import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
@@ -59,6 +60,7 @@ import org.matrix.android.sdk.api.session.events.model.isLocationMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import javax.inject.Inject
@@ -120,7 +122,9 @@ class MessageActionsEpoxyController @Inject constructor(
                 (previewType != null && !EventType.isKnownType(previewType)) ||
                 (previewType in listOf(EventType.MESSAGE, EventType.STICKER) && previewContent == null)
         // An attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
-        val isFilenamePreview = previewContent is MessageWithAttachmentContent
+        val isFilenamePreview = previewContent is MessageWithAttachmentContent || state.galleryItemIndex != null
+        // A whole-gallery sheet previews as the real grid; an item-scoped one as that item's thumbnail.
+        val galleryContent = (previewContent as? MessageGalleryContent)?.takeIf { state.galleryItemIndex == null }
         val body = if (isPlaceholderPreview || isFilenamePreview) {
             state.messageBody
         } else {
@@ -139,10 +143,20 @@ class MessageActionsEpoxyController @Inject constructor(
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             data(
-                    state.previewEvent?.buildImageContentRendererData(host.dimensionConverter.dpToPx(66))
+                    state.previewEvent?.takeIf { galleryContent == null }
+                            ?.buildImageContentRendererData(host.dimensionConverter.dpToPx(66), state.galleryItemIndex)
                             // A redaction purged the server copy; the local one is all that can render.
                             ?.copy(preservedFile = host.preservedAttachmentResolver.fileFor(state.roomId, state.eventId))
             )
+            galleryTiles(
+                    galleryContent?.toGalleryTiles(
+                            eventId = state.eventId,
+                            stableId = state.informationData.stableId,
+                            maxWidth = host.dimensionConverter.dpToPx(220),
+                            maxHeight = host.dimensionConverter.dpToPx(220),
+                    )
+            )
+            galleryMaxWidth(host.dimensionConverter.dpToPx(220))
             hideMedia(
                     host.activeSessionHolder.getSafeActiveSession()?.let { session ->
                         state.previewEvent?.let { shouldHideMediaPreview(it, session, host.vectorPreferences, host.mediaContentRevealManager) }
@@ -154,7 +168,7 @@ class MessageActionsEpoxyController @Inject constructor(
             body(body.prepareForDisplay().toEpoxyCharSequence())
             redacted(state.timelineEvent()?.let { it.root.isRedacted() && !host.redactedContentRestorer.isShowingRestoredContent(it) } == true)
             redactedTint(showsRestoredContent)
-            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent?.root)?.toEpoxyCharSequence())
+            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent?.root, state.galleryItemIndex)?.toEpoxyCharSequence())
             time(formattedDate)
             locationUiData(locationUiData)
             tableHtml(host.computeTableHtml(state.previewEvent))

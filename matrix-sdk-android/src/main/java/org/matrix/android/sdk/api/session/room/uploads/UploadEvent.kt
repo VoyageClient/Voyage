@@ -28,5 +28,7 @@ data class UploadEvent(
         val root: Event,
         val eventId: String,
         val contentWithAttachmentContent: MessageWithAttachmentContent,
-        val senderInfo: SenderInfo
+        val senderInfo: SenderInfo,
+        /** Set when this entry is one item of an MSC4274 gallery event. */
+        val galleryItemIndex: Int? = null,
 )

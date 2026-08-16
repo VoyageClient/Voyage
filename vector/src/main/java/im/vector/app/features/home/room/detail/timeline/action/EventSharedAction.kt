@@ -60,6 +60,9 @@ sealed class EventSharedAction(
     data class Save(val eventId: String, val messageContent: MessageWithAttachmentContent) :
             EventSharedAction(CommonStrings.action_save, R.drawable.ic_material_save)
 
+    data class SaveAll(val eventId: String, val items: List<MessageWithAttachmentContent>) :
+            EventSharedAction(CommonStrings.action_save_all, R.drawable.ic_material_save)
+
     data class Resend(val eventId: String) :
             EventSharedAction(CommonStrings.global_retry, R.drawable.ic_refresh_cw)
 

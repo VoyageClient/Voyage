@@ -44,7 +44,7 @@ internal class RuntimeJsonAdapterFactory<T>(
     fun registerSubtype(subtype: Class<out T>?, label: String?): RuntimeJsonAdapterFactory<T> {
         if (subtype == null) throw NullPointerException("subtype == null")
         if (label == null) throw NullPointerException("label == null")
-        require(!(labelToType.containsKey(label) || labelToType.containsValue(subtype))) { "Subtypes and labels must be unique." }
+        require(!labelToType.containsKey(label)) { "Labels must be unique." }
         labelToType[label] = subtype
         return this
     }
@@ -57,7 +57,10 @@ internal class RuntimeJsonAdapterFactory<T>(
         val labelToAdapter: MutableMap<String, JsonAdapter<Any>> = LinkedHashMap(size)
         val typeToLabel: MutableMap<Type, String> = LinkedHashMap(size)
         for ((label, typeValue) in labelToType) {
-            typeToLabel[typeValue] = label
+            // A subtype may be registered under several labels; serialize with the first one
+            if (typeValue !in typeToLabel) {
+                typeToLabel[typeValue] = label
+            }
             labelToAdapter[label] = moshi.adapter(typeValue)
         }
         val fallbackAdapter = moshi.adapter<Any>(fallbackType)

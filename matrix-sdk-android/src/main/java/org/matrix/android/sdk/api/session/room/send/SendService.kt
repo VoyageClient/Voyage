@@ -144,6 +144,27 @@ interface SendService {
     ): Cancelable
 
     /**
+     * Send several media as a single MSC4274 gallery event.
+     * @param attachments the media items, in gallery order
+     * @param compressBeforeSending set to true to compress images before sending them
+     * @param roomIds set of roomIds to where the gallery will be sent. The current roomId will be added to this set if not present
+     * @param rootThreadEventId when this param is not null, the gallery will be sent in this specific thread
+     * @param captionText the gallery caption; when null a textual fallback listing the items is sent
+     * @return a [Cancelable]
+     */
+    fun sendGallery(
+            attachments: List<ContentAttachmentData>,
+            compressBeforeSending: Boolean,
+            roomIds: Set<String> = emptySet(),
+            rootThreadEventId: String? = null,
+            additionalContent: Content? = null,
+            replyToEvent: TimelineEvent? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+    ): Cancelable
+
+    /**
      * Send a poll to the room.
      * @param pollType indicates open or closed polls
      * @param question the question

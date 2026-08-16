@@ -172,7 +172,10 @@ class TimelineEventController @Inject constructor(
                 inMemory: List<AttachmentData>
         )
 
-        fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View)
+        fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View, inMemory: List<AttachmentData>)
+
+        /** Long-press on one tile of an MSC4274 gallery: open item-scoped actions. */
+        fun onGalleryItemLongClicked(informationData: MessageInformationData, itemIndex: Int): Boolean
 
         //        fun onFileMessageClicked(eventId: String, messageFileContent: MessageFileContent)
 //        fun onAudioMessageClicked(messageAudioContent: MessageAudioContent)

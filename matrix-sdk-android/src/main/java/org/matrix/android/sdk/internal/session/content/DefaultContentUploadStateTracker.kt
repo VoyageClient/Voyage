@@ -28,6 +28,9 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val states = mutableMapOf<String, ContentUploadStateTracker.State>()
+
+    /** Which items of a gallery have finished, so the last one to land ends the whole send. */
+    private val settledGalleryItems = mutableMapOf<String, MutableSet<Int>>()
     private val listeners = mutableMapOf<String, MutableList<ContentUploadStateTracker.UpdateListener>>()
 
     override fun track(key: String, updateListener: ContentUploadStateTracker.UpdateListener) {
@@ -51,14 +54,33 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
 
     override fun clear() {
         listeners.clear()
+        states.clear()
+        settledGalleryItems.clear()
+    }
+
+    /**
+     * One item of a gallery is done. Ends the send once every item has landed — a count rather than
+     * a position, because the items upload independently and can finish in any order.
+     */
+    internal fun setGalleryItemSettled(key: String, itemIndex: Int, sizes: List<Long>) {
+        val settled = settledGalleryItems.getOrPut(key) { mutableSetOf() }
+        settled.add(itemIndex)
+        if (settled.size >= sizes.size) {
+            setSuccess(key)
+        } else {
+            val declared = sizes.getOrElse(itemIndex) { 0L }
+            setGalleryProgress(key, itemIndex, sizes, declared, declared)
+        }
     }
 
     internal fun setFailure(key: String, throwable: Throwable) {
+        settledGalleryItems.remove(key)
         val failure = ContentUploadStateTracker.State.Failure(throwable)
         updateState(key, failure)
     }
 
     internal fun setSuccess(key: String) {
+        settledGalleryItems.remove(key)
         val success = ContentUploadStateTracker.State.Success
         updateState(key, success)
     }
@@ -98,6 +120,29 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
 
     internal fun setProcessingAudio(key: String) {
         updateState(key, ContentUploadStateTracker.State.ProcessingAudio)
+    }
+
+    /**
+     * A gallery's items report from independent workers that interleave, so the aggregate is clamped
+     * monotonic here. A non-positive [itemTotal] means the item is not uploading yet, and holds it
+     * at the boundary of the items before it.
+     */
+    internal fun setGalleryProgress(key: String, itemIndex: Int, sizes: List<Long>, itemCurrent: Long, itemTotal: Long) {
+        val previous = states[key]
+        // A straggler must not paint over the verdict.
+        if (previous is ContentUploadStateTracker.State.Success || previous is ContentUploadStateTracker.State.Failure) return
+        val declared = sizes.getOrElse(itemIndex) { 0L }.coerceAtLeast(0L)
+        val total = if (itemTotal > 0) itemTotal else declared.coerceAtLeast(1L)
+        val current = itemCurrent.coerceIn(0L, total)
+        val overallTotal = sizes.sumOf { it.coerceAtLeast(0L) }.coerceAtLeast(1L)
+        // Double, not Long: the product of two byte counts overflows, and Double is exact well past
+        // any size a homeserver will take.
+        val done = sizes.take(itemIndex).sumOf { it.coerceAtLeast(0L) } + (declared.toDouble() * current / total).toLong()
+        val overallCurrent = maxOf(done, (previous as? ContentUploadStateTracker.State.UploadingGalleryItem)?.overallCurrent ?: 0L)
+        updateState(
+                key,
+                ContentUploadStateTracker.State.UploadingGalleryItem(itemIndex, sizes.size, current, total, overallCurrent, overallTotal)
+        )
     }
 
     internal fun setProgress(key: String, current: Long, total: Long) {

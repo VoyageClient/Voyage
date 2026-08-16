@@ -51,7 +51,8 @@ class StubTimelineEventCallback @Inject constructor() : TimelineEventController.
             inMemory: List<AttachmentData>
     ) {}
 
-    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View) {}
+    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View, inMemory: List<AttachmentData>) {}
+    override fun onGalleryItemLongClicked(informationData: MessageInformationData, itemIndex: Int): Boolean = false
     override fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent) {}
     override fun onVoiceWaveformTouchedUp(eventId: String, duration: Int, percentage: Float) {}
     override fun onVoiceWaveformMovedTo(eventId: String, duration: Int, percentage: Float) {}

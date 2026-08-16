@@ -67,6 +67,11 @@ internal class MultipleEventSendingDispatcherWorker(context: Context, params: Wo
         params.localEchoIds.forEach { localEchoIds ->
             val roomId = localEchoIds.roomId
             val eventId = localEchoIds.eventId
+            if (localEchoRepository.getUpToDateEcho(eventId)?.sendState == SendState.UNDELIVERED) {
+                // A gallery item upload failed after this chain was enqueued — don't send a half-filled event.
+                Timber.v("## SendEvent: Skip undelivered echo $eventId")
+                return@forEach
+            }
             localEchoRepository.updateSendState(eventId, roomId, SendState.SENDING)
             Timber.v("## SendEvent: Schedule send event $eventId")
             val sendWork = createSendEventWork(params.sessionId, eventId, true)

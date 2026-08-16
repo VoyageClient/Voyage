@@ -46,7 +46,9 @@ data class MessageActionState(
         val actionPermissions: ActionPermissions = ActionPermissions(),
         val isFromThreadTimeline: Boolean = false,
         // MSC4268: display name of whoever shared the key to this message, if it came from a key bundle.
-        val sharedByDisplayName: String? = null
+        val sharedByDisplayName: String? = null,
+        // When set, the sheet is scoped to that item of an MSC4274 gallery.
+        val galleryItemIndex: Int? = null,
 ) : MavericksState {
 
     /**
@@ -61,12 +63,17 @@ data class MessageActionState(
             roomId = args.roomId,
             eventId = args.eventId,
             informationData = args.informationData,
-            isFromThreadTimeline = args.isFromThreadTimeline
+            isFromThreadTimeline = args.isFromThreadTimeline,
+            galleryItemIndex = args.galleryItemIndex
     )
 
     fun senderName(): String = informationData.memberName?.toString() ?: ""
 
-    fun canReact() = timelineEvent() != null && actionPermissions.canReact
+    // A reaction targets the event id, which a failed echo will never have server-side. A sheet
+    // scoped to one gallery item offers no reactions either — those belong to the whole event.
+    fun canReact() = timelineEvent() != null && actionPermissions.canReact &&
+            timelineEvent()?.root?.sendState?.hasFailed() != true &&
+            galleryItemIndex == null
 
     fun sendState(): SendState? = timelineEvent()?.root?.sendState
 }

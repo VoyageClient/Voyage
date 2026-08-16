@@ -125,6 +125,10 @@ class DisplayableEventFormatter @Inject constructor(
                         MessageType.MSGTYPE_FILE -> {
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_a_file), appendAuthor)
                         }
+                        MessageType.MSGTYPE_GALLERY,
+                        MessageType.MSGTYPE_GALLERY_STABLE -> {
+                            simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_a_gallery), appendAuthor)
+                        }
                         MessageType.MSGTYPE_LOCATION -> {
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.location_room_list_preview), appendAuthor)
                         }
@@ -237,6 +241,10 @@ class DisplayableEventFormatter @Inject constructor(
                         }
                         MessageType.MSGTYPE_FILE -> {
                             stringProvider.getString(CommonStrings.sent_a_file)
+                        }
+                        MessageType.MSGTYPE_GALLERY,
+                        MessageType.MSGTYPE_GALLERY_STABLE -> {
+                            stringProvider.getString(CommonStrings.sent_a_gallery)
                         }
                         MessageType.MSGTYPE_LOCATION -> {
                             stringProvider.getString(CommonStrings.location_room_list_preview)
