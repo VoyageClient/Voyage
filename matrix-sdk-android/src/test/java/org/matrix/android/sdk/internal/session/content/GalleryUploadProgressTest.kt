@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.session.content
 
+import android.os.Looper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -14,7 +15,6 @@ import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import android.os.Looper
 
 /**
  * A gallery's items report from independent workers, so the aggregate has to hold up under
