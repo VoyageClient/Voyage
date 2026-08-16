@@ -39,6 +39,8 @@ import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.flattenAsScrim
+import im.vector.app.core.extensions.resourcesFor
 import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityAudioEditorBinding
@@ -101,6 +103,9 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
     private var speedAwaitingPlayback = false
     private var exporting = false
 
+    /** Whether this orientation has room for the inline cover art; see [applyOrientationSizing]. */
+    private var showInlineArt = true
+
     override val drawUnderSystemBars = true
 
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
@@ -117,6 +122,7 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
         initialEdits = intent.getParcelableExtraCompat(EXTRA_EDITS)
 
         applyInsets()
+        applyOrientationSizing()
         setupToolbar(views.audioEditorToolbar).allowBack()
         views.audioEditorName.text = displayName
 
@@ -193,13 +199,44 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
         loadSource()
     }
 
+    /**
+     * This screen keeps its views across a rotation (configChanges, so an export in flight is not
+     * killed), which also means the layout is never re-inflated — so the orientation-dependent
+     * resources have to be re-read here by hand.
+     */
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyOrientationSizing(newConfig)
+    }
+
+    /**
+     * Resolved against the given configuration rather than [getResources]: this activity handles the
+     * rotation itself, and its own Resources can still answer for the configuration it is leaving.
+     */
+    private fun applyOrientationSizing(config: android.content.res.Configuration = resources.configuration) {
+        val res = resourcesFor(config)
+        // Height is 0dp/match-constraints so the waveform can only take the room that is left;
+        // this caps it at the design height for the orientation.
+        views.audioEditorWaveform.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
+            matchConstraintMaxHeight = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.audio_preview_waveform_height)
+        }
+        views.audioEditorTimeline.updateLayoutParams {
+            height = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.audio_editor_timeline_height)
+        }
+        // Landscape has no room for the inline art beside the waveform; the backdrop still shows it.
+        showInlineArt = res.getBoolean(im.vector.lib.ui.styles.R.bool.audio_preview_show_inline_art)
+        views.audioEditorArt.isVisible = views.audioEditorArt.drawable != null && showInlineArt
+    }
+
     /** The backdrop runs to the edges of the screen; the controls stay clear of the system bars. */
     private fun applyInsets() {
+        views.audioEditorAppBar.flattenAsScrim(TOP_BAR_DIM)
         val saveMargin = views.audioEditorSaveButton.marginBottom
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // On the views themselves rather than the root, whose listener belongs to the activity.
             ViewCompat.setOnApplyWindowInsetsListener(views.audioEditorAppBar) { v, insets ->
-                v.updatePadding(top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top)
+                val barsAndCutout = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+                v.updatePadding(left = barsAndCutout.left, top = barsAndCutout.top, right = barsAndCutout.right)
                 insets
             }
             ViewCompat.setOnApplyWindowInsetsListener(views.audioEditorSaveButton) { v, insets ->
@@ -342,7 +379,7 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
         views.audioEditorArtist.text = details.credits
         views.audioEditorArtist.isVisible = details.credits != null
         views.audioEditorArt.setImageDrawable(details.art?.let { AudioDetails.roundedArt(this, it) })
-        views.audioEditorArt.isVisible = details.art != null
+        views.audioEditorArt.isVisible = details.art != null && showInlineArt
         views.audioEditorBackdrop.setImageBitmap(details.backdrop)
         views.audioEditorBackdrop.isVisible = details.art != null
         views.audioEditorScrim.isVisible = details.art != null
@@ -729,6 +766,7 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
     )
 
     companion object {
+        private const val TOP_BAR_DIM = 0x40000000
         private const val PLAYHEAD_INTERVAL_MS = 60L
         private const val SEEK_THROTTLE_MS = 40L
         private const val FINE_STEPS_PER_SECOND = 100f

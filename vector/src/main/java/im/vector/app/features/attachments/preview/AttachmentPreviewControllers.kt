@@ -16,6 +16,21 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
     var playbackListener: VideoPlaybackListener? = null
     var loopVideos: Boolean = false
 
+    /** Orientation-dependent sizing; the screen keeps its views across a rotation, so it is pushed. */
+    var showInlineArt: Boolean = true
+        private set
+    var waveformHeightPx: Int = 0
+        private set
+
+    fun setOrientationSizing(showInlineArt: Boolean, waveformHeightPx: Int) {
+        if (this.showInlineArt == showInlineArt && this.waveformHeightPx == waveformHeightPx) return
+        this.showInlineArt = showInlineArt
+        this.waveformHeightPx = waveformHeightPx
+        // TypedEpoxyController forbids requestModelBuild(); re-submitting the retained data
+        // is the supported way to rebuild.
+        currentData?.let { setData(it) }
+    }
+
     var playbackAllowed: Boolean = true
         set(value) {
             if (field == value) return
@@ -36,6 +51,8 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
                 playbackAllowed(host.playbackAllowed)
                 loopVideos(host.loopVideos)
                 playbackListener(host.playbackListener)
+                showInlineArt(host.showInlineArt)
+                waveformHeightPx(host.waveformHeightPx)
                 // So the preview is shaped like what will actually be sent.
                 targetSize(settings?.width?.let { width -> settings.height?.let { width to it } })
             }

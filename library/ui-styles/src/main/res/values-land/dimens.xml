@@ -3,4 +3,8 @@
 
     <item name="dialog_width_ratio" format="float" type="dimen">0.50</item>
 
+    <dimen name="audio_preview_art_size">72dp</dimen>
+    <dimen name="audio_preview_waveform_height">96dp</dimen>
+    <dimen name="audio_editor_timeline_height">56dp</dimen>
+
 </resources>

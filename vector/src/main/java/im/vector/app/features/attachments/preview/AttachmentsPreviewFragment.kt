@@ -11,6 +11,7 @@ import android.animation.ObjectAnimator
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.PorterDuff
@@ -32,7 +33,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.core.widget.CompoundButtonCompat
 import androidx.core.widget.ImageViewCompat
@@ -46,7 +46,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
+import im.vector.app.core.extensions.flattenAsScrim
 import im.vector.app.core.extensions.registerStartForActivityResult
+import im.vector.app.core.extensions.resourcesFor
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.OnSnapPositionChangeListener
@@ -104,6 +106,7 @@ class AttachmentsPreviewFragment :
     private val animatedFormats = mutableMapOf<String, AnimatedImageFormat?>()
 
     private var videoControls: VideoPlaybackControls? = null
+
     private var scrubbingVideo = false
     private var seekBarAnimator: ObjectAnimator? = null
     private var bigListSnapListener: SnapOnScrollListener? = null
@@ -115,8 +118,14 @@ class AttachmentsPreviewFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         applyInsets()
+        applyOrientationSizing()
+        views.appBarLayout.flattenAsScrim(TOP_BAR_DIM)
         setupRecyclerViews()
         setupToolbar(views.attachmentPreviewerToolbar)
+        // Touches nothing else claimed (toolbar gaps, dead space above/below the page) still drive
+        // an audio page's waveform, so play/pause and scrubbing work from anywhere on the screen.
+        @Suppress("ClickableViewAccessibility")
+        view.setOnTouchListener { _, event -> videoControls?.forwardScreenTouch(event) ?: false }
         views.attachmentPreviewerSendButton.debouncedClicks {
             setResultAndFinish()
         }
@@ -600,20 +609,18 @@ class AttachmentsPreviewFragment :
                 v.updatePadding(bottom = systemBarsInsets.bottom)
                 insets
             }
-            ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerToolbar) { v, insets ->
-                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    topMargin = systemBarsInsets.top
-                }
+            // Padding on the bar that carries the dim, like the bottom container: the dim then runs
+            // to the physical screen edges and the toolbar content stays clear of bars and cutouts.
+            ViewCompat.setOnApplyWindowInsetsListener(views.appBarLayout) { v, insets ->
+                val barsAndCutout = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+                v.updatePadding(left = barsAndCutout.left, top = barsAndCutout.top, right = barsAndCutout.right)
                 insets
             }
         } else {
             // Pre-21 has no window-insets dispatch, so derive the status bar height from platform
             // resources; otherwise the toolbar renders under the status bar. The nav bar isn't
             // overlapped pre-21 (and many KitKat devices have hardware keys), so no bottom padding.
-            views.attachmentPreviewerToolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = getSystemBarHeightPx("status_bar_height")
-            }
+            views.appBarLayout.updatePadding(top = getSystemBarHeightPx("status_bar_height"))
         }
     }
 
@@ -715,5 +722,32 @@ class AttachmentsPreviewFragment :
             attachmentBigPreviewController.playbackListener = this
             attachmentBigPreviewController.loopVideos = vectorPreferences.loopVideos()
         }
+    }
+
+    /**
+     * The screen keeps its views — and the player with them — across a rotation, so the layout is
+     * never re-inflated: the orientation-dependent sizing has to be re-read and pushed by hand.
+     * Resolved against the incoming configuration, which the fragment's own resources may lag.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyOrientationSizing(newConfig)
+        withState(viewModel) { state ->
+            views.attachmentPreviewerBigList.post {
+                views.attachmentPreviewerBigList.scrollToPosition(state.currentAttachmentIndex)
+            }
+        }
+    }
+
+    private fun applyOrientationSizing(config: Configuration = resources.configuration) {
+        val res = requireContext().resourcesFor(config)
+        attachmentBigPreviewController.setOrientationSizing(
+                showInlineArt = res.getBoolean(im.vector.lib.ui.styles.R.bool.audio_preview_show_inline_art),
+                waveformHeightPx = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.audio_preview_waveform_height),
+        )
+    }
+
+    companion object {
+        private const val TOP_BAR_DIM = 0x40000000
     }
 }

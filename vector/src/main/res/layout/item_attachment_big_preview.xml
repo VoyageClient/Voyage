@@ -39,8 +39,8 @@
 
         <ImageView
             android:id="@+id/attachmentBigAudioArt"
-            android:layout_width="160dp"
-            android:layout_height="160dp"
+            android:layout_width="@dimen/audio_preview_art_size"
+            android:layout_height="@dimen/audio_preview_art_size"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="12dp"
             android:contentDescription="@null"
@@ -81,9 +81,25 @@
         <im.vector.app.features.attachments.preview.WaveformScrubView
             android:id="@+id/attachmentBigWaveform"
             android:layout_width="match_parent"
-            android:layout_height="136dp" />
+            android:layout_height="@dimen/audio_preview_waveform_height" />
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/attachmentBigFileName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:ellipsize="middle"
+        android:gravity="center_horizontal"
+        android:singleLine="true"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:visibility="gone"
+        tools:text="document.pdf"
+        tools:visibility="visible" />
 
     <ImageView
         android:id="@+id/attachmentBigPlayPause"

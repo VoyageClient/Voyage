@@ -4,4 +4,6 @@
     <!-- Created to detect what has to be implemented (especially in the settings) -->
     <bool name="false_not_implemented">false</bool>
 
+    <!-- Landscape has no room for it next to the waveform; the blurred backdrop still shows it. -->
+    <bool name="audio_preview_show_inline_art">true</bool>
 </resources>

@@ -294,6 +294,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".features.attachments.preview.AttachmentsPreviewActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:label="@string/app_name"
             android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
         <activity
