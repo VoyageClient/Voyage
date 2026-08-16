@@ -15,11 +15,13 @@
  */
 package org.matrix.android.sdk.internal.crypto.tasks
 
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
+import org.matrix.android.sdk.internal.network.parsing.coerceWholeNumbersToLong
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomFromLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
@@ -63,7 +65,7 @@ internal class DefaultSendEventTask @Inject constructor(
                         }
                     }
 
-            val event = handleEncryption(params)
+            val event = handleEncryption(params.copy(event = params.event.withIntegralNumbers()))
             val localId = event.eventId!!
             localEchoRepository.updateSendState(localId, params.event.roomId, SendState.SENDING)
             val response = executeRequest(globalErrorReceiver) {
@@ -109,4 +111,9 @@ internal class DefaultSendEventTask @Inject constructor(
 
     private val Event.isLocalRoomEvent
         get() = RoomLocalEcho.isLocalEchoId(roomId.orEmpty())
+
+    // Resends hand us an echo read back from the database, where every number is now a Double. Applied
+    // before encryption so the megolm payload carries integers too.
+    @Suppress("UNCHECKED_CAST")
+    private fun Event.withIntegralNumbers() = copy(content = coerceWholeNumbersToLong(content) as? Content)
 }

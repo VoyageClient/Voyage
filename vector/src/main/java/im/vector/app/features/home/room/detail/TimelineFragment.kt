@@ -1505,7 +1505,10 @@ class TimelineFragment :
         renderUserIdentityWarning(mainState.userIdentityChangePrompt)
         views.massRedactionBanner.render(mainState.massRedactionState)
         if (mainState.hasFailedSending) {
-            lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.isVisible = true
+            lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.apply {
+                render(mainState.failedSendingText)
+                isVisible = true
+            }
         } else {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = false)?.isVisible = false
         }

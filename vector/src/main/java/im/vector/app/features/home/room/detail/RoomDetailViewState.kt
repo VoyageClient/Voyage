@@ -71,6 +71,8 @@ data class RoomDetailViewState(
         val isAllowedToManageWidgets: Boolean = false,
         val isAllowedToSetupEncryption: Boolean = true,
         val hasFailedSending: Boolean = false,
+        /** Warning shown above the composer, one line per distinct failure reason. Null when no reason is known. */
+        val failedSendingText: String? = null,
         val switchToParentSpace: Boolean = false,
         val rootThreadEventId: String? = null,
         val threadNotificationBadgeState: ThreadNotificationBadgeState = ThreadNotificationBadgeState(),
