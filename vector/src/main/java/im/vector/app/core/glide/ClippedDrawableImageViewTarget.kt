@@ -7,16 +7,21 @@
 
 package im.vector.app.core.glide
 
+import android.graphics.Outline
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
+import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import com.amulyakhare.textdrawable.TextDrawable
 
 /**
  * A Glide target that clips its drawable to a rounded rectangle / circle for any content that
  * Glide's bitmap transformations (CircleCrop / RoundedCorners) can't handle — i.e. animated
- * drawables and placeholders. This replaces `View.clipToOutline`, which is API 21+ only, so avatars
- * and thumbnails stay correctly shaped down to KitKat.
+ * drawables and placeholders. `View.clipToOutline` does it from Lollipop up; below that the drawable
+ * is wrapped in a masking one, so avatars stay correctly shaped down to Ice Cream Sandwich.
  *
  * Already-shaped [BitmapDrawable]s (the output of Glide's transforms) are passed through untouched
  * so the common static-image path keeps its efficient pre-rounded bitmap.
@@ -31,14 +36,34 @@ class ClippedDrawableImageViewTarget(
         animate: Boolean = true,
 ) : AnimatedContentImageViewTarget(view, animate) {
 
-    private fun clip(drawable: Drawable?): Drawable? = when {
+    private fun clip(drawable: Drawable?): Drawable? {
         // Already-shaped content passes through untouched: BitmapDrawables are shaped by Glide's
         // transforms, and TextDrawable placeholders shape themselves. Only animated drawables
-        // (GIF / WebP / APNG) actually need runtime clipping here.
-        drawable == null || drawable is BitmapDrawable || drawable is TextDrawable -> drawable
-        // A square avatar has nothing to mask, and masking costs a saveLayer on every frame.
-        cornerPercent == 0f && !oval -> drawable
-        else -> RoundedClipDrawable(drawable, cornerPercent, oval)
+        // (GIF / WebP / APNG) actually need runtime clipping here. A square avatar has nothing to
+        // shape either, and masking costs a saveLayer on every frame.
+        val shapeNeeded = drawable != null && drawable !is BitmapDrawable && drawable !is TextDrawable &&
+                (oval || cornerPercent > 0f)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            clipViewToShape(shapeNeeded)
+            return drawable
+        }
+        return if (shapeNeeded) RoundedClipDrawable(drawable!!, cornerPercent, oval) else drawable
+    }
+
+    // AnimatedImageDrawable hands its frames to the RenderThread, which composites them straight past
+    // the drawable-level mask, so the view itself has to do the clipping wherever the platform can.
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun clipViewToShape(clip: Boolean) {
+        view.outlineProvider = if (!clip) null else object : ViewOutlineProvider() {
+            override fun getOutline(v: View, outline: Outline) {
+                if (oval) {
+                    outline.setOval(0, 0, v.width, v.height)
+                } else {
+                    outline.setRoundRect(0, 0, v.width, v.height, minOf(v.width, v.height) * cornerPercent)
+                }
+            }
+        }
+        view.clipToOutline = clip
     }
 
     override fun setResource(resource: Drawable?) = super.setResource(clip(resource))

@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.session.sync.model.ToDeviceSyncResponse
 import org.matrix.android.sdk.api.session.sync.model.UserAccountDataSync
 import org.matrix.android.sdk.api.session.sync.model.UserProfileSyncUpdate
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import javax.inject.Inject
@@ -36,6 +37,7 @@ import javax.inject.Inject
  */
 internal class SlidingSyncTranslator @Inject constructor(
         @UserId private val userId: String,
+        private val stores: SessionStores,
 ) {
 
     fun toSyncResponse(response: SlidingSyncResponse): SyncResponse {
@@ -51,7 +53,7 @@ internal class SlidingSyncTranslator @Inject constructor(
 
         response.rooms.orEmpty().forEach { (roomId, room) ->
             val ephemeral = listOfNotNull(receipts[roomId], typing[roomId])
-            when (room.membership()) {
+            when (room.membership(roomId)) {
                 Membership.INVITE -> invite[roomId] = InvitedRoomSync(
                         inviteState = RoomInviteState(room.strippedStateEvents.orEmpty())
                 )
@@ -69,6 +71,9 @@ internal class SlidingSyncTranslator @Inject constructor(
         (roomAccountData.keys + receipts.keys + typing.keys)
                 .filterNot { it in join || it in invite || it in leave || it in knock }
                 .forEach { roomId ->
+                    // Nothing an extension carries applies to a room we are no longer in, and synthesizing
+                    // a join entry for one puts it back in the room list.
+                    if (localRemoval(roomId) != null) return@forEach
                     val ephemeral = listOfNotNull(receipts[roomId], typing[roomId])
                     join[roomId] = RoomSync(
                             accountData = roomAccountData[roomId]?.let { RoomSyncAccountData(events = it) },
@@ -101,7 +106,7 @@ internal class SlidingSyncTranslator @Inject constructor(
         }
     }
 
-    private fun SlidingSyncRoom.membership(): Membership? {
+    private fun SlidingSyncRoom.membership(roomId: String): Membership? {
         when (membership) {
             "invite" -> return Membership.INVITE
             "knock" -> return Membership.KNOCK
@@ -117,7 +122,18 @@ internal class SlidingSyncTranslator @Inject constructor(
                 ?.getFixedRoomMemberContent()
                 ?.membership
                 ?.let { return it }
-        return if (strippedStateEvents != null) Membership.INVITE else null
+        if (strippedStateEvents != null) return Membership.INVITE
+        return localRemoval(roomId)
+    }
+
+    /**
+     * The stored membership of a room we were kicked or banned from. Synapse keeps delivering such a room
+     * — its receipts at least — carrying nothing of our own membership, and reading that as a join puts it
+     * back among the joined rooms and clears its removed marker.
+     */
+    private fun localRemoval(roomId: String): Membership? {
+        return stores.roomMember.getByRoomAndUser(roomId, userId)?.membership
+                ?.takeIf { it == Membership.LEAVE || it == Membership.BAN }
     }
 
     private fun SlidingSyncRoom.toRoomSync(accountData: List<Event>?, ephemeral: List<Event>): RoomSync {

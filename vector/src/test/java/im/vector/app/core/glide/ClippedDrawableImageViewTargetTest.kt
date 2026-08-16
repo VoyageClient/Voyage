@@ -29,10 +29,12 @@ class ClippedDrawableImageViewTargetTest {
     @Test
     fun `a round avatar clips animated content, which no bitmap transformation can shape`() {
         val target = ClippedDrawableImageViewTarget(imageView, cornerPercent = 0f, oval = true)
+        val drawable = FakeAnimatedDrawable()
 
-        target.onResourceReady(FakeAnimatedDrawable(), null)
+        target.onResourceReady(drawable, null)
 
-        imageView.drawable shouldBeInstanceOf RoundedClipDrawable::class
+        imageView.drawable shouldBeEqualTo drawable
+        imageView.clipToOutline shouldBeEqualTo true
     }
 
     @Test
@@ -41,7 +43,7 @@ class ClippedDrawableImageViewTargetTest {
 
         target.onResourceReady(FakeAnimatedDrawable(), null)
 
-        imageView.drawable shouldBeInstanceOf RoundedClipDrawable::class
+        imageView.clipToOutline shouldBeEqualTo true
     }
 
     @Test
@@ -52,6 +54,18 @@ class ClippedDrawableImageViewTargetTest {
         target.onResourceReady(drawable, null)
 
         imageView.drawable shouldBeEqualTo drawable
+        imageView.clipToOutline shouldBeEqualTo false
+    }
+
+    @Test
+    fun `a recycled view stops clipping once it holds a shaped bitmap again`() {
+        val drawable = BitmapDrawable(context.resources, Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
+        ClippedDrawableImageViewTarget(imageView, cornerPercent = 0f, oval = true)
+                .onResourceReady(FakeAnimatedDrawable(), null)
+
+        ClippedDrawableImageViewTarget(imageView, cornerPercent = 0f, oval = true).onResourceReady(drawable, null)
+
+        imageView.clipToOutline shouldBeEqualTo false
     }
 
     @Test
@@ -72,6 +86,6 @@ class ClippedDrawableImageViewTargetTest {
         target.onResourceReady(drawable, null)
 
         drawable.isRunning shouldBeEqualTo false
-        (imageView.drawable as RoundedClipDrawable).isRunning shouldBeEqualTo false
+        imageView.drawable shouldBeEqualTo drawable
     }
 }
