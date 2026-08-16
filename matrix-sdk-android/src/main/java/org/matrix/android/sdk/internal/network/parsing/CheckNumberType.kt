@@ -27,6 +27,18 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 /**
+ * The rule below applied to an already-parsed value: Moshi's Any adapter reads every JSON number as a
+ * Double, so a map that has been through the database serializes back as `1080.0`, which Synapse rejects
+ * with M_BAD_JSON.
+ */
+internal fun coerceWholeNumbersToLong(value: Any?): Any? = when (value) {
+    is Double -> if (ceil(value) == floor(value) && !value.isInfinite()) value.toLong() else value
+    is Map<*, *> -> value.mapValues { coerceWholeNumbersToLong(it.value) }
+    is List<*> -> value.map { coerceWholeNumbersToLong(it) }
+    else -> value
+}
+
+/**
  * This is used to check if NUMBER in json is integer or double, so we can preserve typing when serializing/deserializing in a row.
  */
 internal interface CheckNumberType {

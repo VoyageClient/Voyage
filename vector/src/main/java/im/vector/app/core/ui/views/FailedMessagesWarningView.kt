@@ -8,10 +8,13 @@
 package im.vector.app.core.ui.views
 
 import android.content.Context
+import android.os.Build
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import im.vector.app.R
+import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.databinding.ViewFailedMessagesWarningBinding
+import im.vector.lib.strings.CommonStrings
 
 class FailedMessagesWarningView @JvmOverloads constructor(
         context: Context,
@@ -38,5 +41,14 @@ class FailedMessagesWarningView @JvmOverloads constructor(
 
         views.failedMessagesDeleteAllButton.setOnClickListener { callback?.onDeleteAllClicked() }
         views.failedMessagesRetryButton.setOnClickListener { callback?.onRetryClicked() }
+
+        views.failedMessagesWarningTextView.setReadOnlySelectable(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            views.failedMessagesWarningTextView.showSoftInputOnFocus = false
+        }
+    }
+
+    fun render(text: String?) {
+        views.failedMessagesWarningTextView.text = text ?: context.getString(CommonStrings.event_status_failed_messages_warning)
     }
 }

@@ -19,6 +19,7 @@ import org.matrix.android.sdk.api.failure.MatrixIdFailure
 import org.matrix.android.sdk.api.failure.isInvalidPassword
 import org.matrix.android.sdk.api.failure.isLimitExceededError
 import org.matrix.android.sdk.api.failure.isMissingEmailVerification
+import org.matrix.android.sdk.api.failure.isPolicyServerRejection
 import org.matrix.android.sdk.api.session.identity.IdentityServiceError
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
@@ -56,6 +57,9 @@ class DefaultErrorFormatter @Inject constructor(
                     throwable.error.code == MatrixError.M_CONSENT_NOT_GIVEN -> {
                         // Special case for terms and conditions
                         stringProvider.getString(CommonStrings.error_terms_not_accepted)
+                    }
+                    throwable.isPolicyServerRejection() -> {
+                        stringProvider.getString(CommonStrings.error_rejected_by_policy_server)
                     }
                     throwable.isInvalidPassword() -> {
                         stringProvider.getString(CommonStrings.auth_invalid_login_param)
