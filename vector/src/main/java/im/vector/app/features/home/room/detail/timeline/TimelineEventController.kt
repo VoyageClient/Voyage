@@ -302,7 +302,7 @@ class TimelineEventController @Inject constructor(
                 )
                 (position until position + count).forEach {
                     // Invalidate cache
-                    modelCache[it] = null
+                    invalidateAt(it)
                 }
                 // Neighbours whose grouping depends on a changed event rebuild via the content-aware
                 // neighbour check in buildCacheItemsIfNeeded. Positions here are intermediate diff-dispatch
@@ -389,7 +389,7 @@ class TimelineEventController @Inject constructor(
                 if (index >= modelCache.size) return@forEachIndexed
                 if (modelCache[index] == null) return@forEachIndexed
                 if (event.eventId == eventId || event.root.getRelationContent()?.inReplyTo?.eventId == eventId) {
-                    modelCache[index] = null
+                    invalidateAt(index)
                 }
             }
         }
@@ -419,7 +419,7 @@ class TimelineEventController @Inject constructor(
                     if (index >= modelCache.size) return@forEachIndexed
                     if (modelCache[index] == null) return@forEachIndexed
                     if (event.eventId in ids || event.root.getRelationContent()?.inReplyTo?.eventId in ids) {
-                        modelCache[index] = null
+                        invalidateAt(index)
                     }
                 }
             }
@@ -441,7 +441,7 @@ class TimelineEventController @Inject constructor(
                     if (index >= modelCache.size) return@forEachIndexed
                     if (modelCache[index] == null) return@forEachIndexed
                     if (event.senderInfo.userId in ids) {
-                        modelCache[index] = null
+                        invalidateAt(index)
                         dirty = true
                     }
                 }
@@ -463,7 +463,7 @@ class TimelineEventController @Inject constructor(
                 if (index >= modelCache.size) return@forEachIndexed
                 if (modelCache[index] == null) return@forEachIndexed
                 if (event.root.getRelationContent()?.inReplyTo?.eventId != null) {
-                    modelCache[index] = null
+                    invalidateAt(index)
                     dirty = true
                 }
             }
@@ -484,7 +484,7 @@ class TimelineEventController @Inject constructor(
                 if (index >= modelCache.size) return@forEachIndexed
                 if (modelCache[index] == null) return@forEachIndexed
                 if (event.linksTo(needle)) {
-                    modelCache[index] = null
+                    invalidateAt(index)
                     dirty = true
                 }
             }
@@ -621,6 +621,11 @@ class TimelineEventController @Inject constructor(
             requestDelayedModelBuild(0)
             inSubmitList = false
         }
+    }
+
+    /** Invalidate the model at [index], keeping the built one on screen until the rebuild replaces it. */
+    private fun invalidateAt(index: Int) {
+        modelCache[index] = modelCache[index]?.copy(isStale = true)
     }
 
     private fun assertUpdateCallbacksAllowed() {
@@ -770,7 +775,7 @@ class TimelineEventController @Inject constructor(
             val neighboursChanged = cached != null && !cached.isCollapsedPlaceholder &&
                     (cached.builtPrevDisplayable != prevDisplayableEvents[position] ||
                             cached.builtNextDisplayable != nextDisplayableEvents[position])
-            val needsBuild = cached == null || cached.isCacheable(partialState) == false ||
+            val needsBuild = cached == null || cached.isStale || cached.isCacheable(partialState) == false ||
                     reactionListFactory.needsRebuild(event) ||
                     neighboursChanged ||
                     (cached.isCollapsedPlaceholder && !isCollapsed)
@@ -1187,6 +1192,9 @@ class TimelineEventController @Inject constructor(
             val enrichedReceipts: List<ReadReceipt>? = null,
             val enrichedMergeSignature: Int = 0,
             val enrichedCreationSummaryStamp: List<Any?>? = null,
+            // Invalidated, kept on screen until its rebuild lands: dropping the model instead takes the
+            // row out of the timeline for every pass the build budget defers the rebuild by.
+            val isStale: Boolean = false,
     ) {
         fun isCacheable(partialState: PartialState): Boolean {
             return isCacheable && partialState.highlightedEventId != eventId
