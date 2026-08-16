@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.uploads
 
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
@@ -57,10 +59,13 @@ internal class DefaultGetUploadsTask @Inject constructor(
         private val tokenStore: SyncTokenStore,
         @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
+        private val coroutineDispatchers: MatrixCoroutineDispatchers,
 ) : GetUploadsTask {
 
-    override suspend fun execute(params: GetUploadsTask.Params): GetUploadsResult {
+    // Callers await this from viewModelScope, so without a hop the event and member queries below run
+    // on the main thread — enough of them to drop a second of frames when opening the uploads list.
+    override suspend fun execute(params: GetUploadsTask.Params): GetUploadsResult = withContext(coroutineDispatchers.io) {
         val result: GetUploadsResult
         val events: List<Event>
 
@@ -102,7 +107,12 @@ internal class DefaultGetUploadsTask @Inject constructor(
 
         // Get a snapshot of all room members
         run {
-            val roomMemberHelper = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, params.roomId)
+            // One scan of the member table, not one per sender: isUniqueDisplayName() counts matches over
+            // every member, so calling it per sender re-read the whole room each time.
+            val members = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, params.roomId)
+                    .queryRoomMembersEvent()
+            val membersByUserId = members.associateBy { it.userId }
+            val displayNameCounts = members.groupingBy { it.displayName }.eachCount()
 
             uploadEvents = events.flatMap { event ->
                 val eventId = event.eventId ?: return@flatMap emptyList()
@@ -112,12 +122,13 @@ internal class DefaultGetUploadsTask @Inject constructor(
                 val senderId = event.senderId ?: return@flatMap emptyList()
 
                 val senderInfo = cacheOfSenderInfos.getOrPut(senderId) {
-                    val roomMemberSummaryEntity = roomMemberHelper.getLastRoomMember(senderId)
+                    val member = membersByUserId[senderId]
+                    val displayName = member?.displayName
                     SenderInfo(
                             userId = senderId,
-                            displayName = roomMemberSummaryEntity?.displayName,
-                            isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(roomMemberSummaryEntity?.displayName),
-                            avatarUrl = roomMemberSummaryEntity?.avatarUrl
+                            displayName = displayName,
+                            isUniqueDisplayName = displayName.isNullOrEmpty() || displayNameCounts[displayName] == 1,
+                            avatarUrl = member?.avatarUrl
                     )
                 }
 
@@ -151,6 +162,6 @@ internal class DefaultGetUploadsTask @Inject constructor(
             }
         }
 
-        return result.copy(uploadEvents = uploadEvents)
+        result.copy(uploadEvents = uploadEvents)
     }
 }
