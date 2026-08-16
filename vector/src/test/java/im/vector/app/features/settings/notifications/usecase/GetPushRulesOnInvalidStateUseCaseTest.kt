@@ -55,7 +55,7 @@ internal class GetPushRulesOnInvalidStateUseCaseTest {
                         givenARuleId(RuleIds.RULE_ID_POLL_END, false, listOf(Action.Notify)), // diff
                         givenARuleId(RuleIds.RULE_ID_POLL_END_UNSTABLE, true, listOf()), // diff
                         // Another rule
-                        givenARuleId(RuleIds.RULE_ID_CONTAIN_USER_NAME, true, listOf(Action.Notify)),
+                        givenARuleId(RuleIds.RULE_ID_TOMBSTONE, true, listOf(Action.Notify)),
                 )
         )
 
