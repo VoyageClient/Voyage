@@ -53,12 +53,23 @@ data class MessageInformationData(
         // Redacted message whose original content was restored; drives the "this was deleted" styling.
         val isRevealedRedaction: Boolean = false,
         // MSC4268: the user who gave us the key to this message, who is also the only one vouching for who sent it.
-        val sharedByUserId: String? = null
+        val sharedByUserId: String? = null,
+        // MSC2723: set when the message carries metadata about the message it was forwarded from.
+        val forwardedInfo: ForwardedInfoData? = null
 ) : Parcelable {
 
     val matrixItem: MatrixItem
         get() = MatrixItem.UserItem(senderId, memberName?.toString(), avatarUrl.takeUnless { hideAvatars })
 }
+
+@Parcelize
+data class ForwardedInfoData(
+        val senderId: String?,
+        val formattedDate: String?,
+        val fromThisRoom: Boolean,
+        /** Permalink to the message this one was forwarded from, when it identified itself. */
+        val permalink: String?
+) : Parcelable
 
 @Parcelize
 data class ReferencesInfoData(

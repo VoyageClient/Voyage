@@ -88,6 +88,7 @@ import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
+import org.matrix.android.sdk.api.session.room.model.message.toForwardedInfoContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
@@ -538,7 +539,8 @@ class MessageActionsViewModel @AssistedInject constructor(
                 val baseContent = timelineEvent.getLastEditNewContent()
                         ?: timelineEvent.root.getClearContent().orEmpty()
                 @Suppress("UNCHECKED_CAST")
-                val forwardContent = coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>
+                val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
+                        timelineEvent.toForwardedInfoContent()
                 add(
                         EventSharedAction.Forward(
                                 eventId = timelineEvent.eventId,
@@ -619,7 +621,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         add(EventSharedAction.Save(timelineEvent.eventId, item))
         add(EventSharedAction.Share(timelineEvent.eventId, item))
         val itemContent = item.toAttachmentContentDict() ?: return
-        add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, coerceWholeDoublesToLongs(itemContent) as Map<String, Any?>))
+        val forwardContent = (coerceWholeDoublesToLongs(itemContent) as Map<String, Any?>) + timelineEvent.toForwardedInfoContent()
+        add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, forwardContent))
     }
 
     // Redactions and reactions only surface in the timeline with hidden events shown, itself a developer-mode

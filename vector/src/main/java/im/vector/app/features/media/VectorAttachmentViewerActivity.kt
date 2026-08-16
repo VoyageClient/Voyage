@@ -61,6 +61,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.model.message.toForwardedInfoContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import timber.log.Timber
@@ -486,7 +487,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         val timelineEvent = currentSourceProvider?.getTimelineEventAtPosition(currentPosition) ?: return
         val baseContent = timelineEvent.getLastEditNewContent() ?: timelineEvent.root.getClearContent().orEmpty()
         @Suppress("UNCHECKED_CAST")
-        val forwardContent = coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>
+        val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
+                timelineEvent.toForwardedInfoContent()
         val payloadId = ForwardPayloadHolder.put(forwardContent)
         startActivity(IncomingShareActivity.forwardIntent(this, timelineEvent.root.getClearType(), payloadId))
     }

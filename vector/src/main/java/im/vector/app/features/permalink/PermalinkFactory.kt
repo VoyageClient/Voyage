@@ -24,7 +24,7 @@ class PermalinkFactory @Inject constructor(
         return session.permalinkService().createPermalink(id)
     }
 
-    fun createPermalink(roomId: String, eventId: String): String {
-        return session.permalinkService().createPermalink(roomId, eventId)
+    fun createPermalink(roomId: String, eventId: String, viaServers: List<String> = emptyList()): String {
+        return session.permalinkService().createPermalink(roomId, eventId, viaServers = viaServers)
     }
 }

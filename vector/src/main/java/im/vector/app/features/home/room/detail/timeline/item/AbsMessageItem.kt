@@ -33,9 +33,11 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.reply.InReplyToView
 import im.vector.app.features.home.room.detail.timeline.reply.PreviewReplyUiState
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
+import im.vector.app.features.home.room.detail.timeline.tools.LinkClickSourceHolder
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -131,6 +133,8 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         // Indentation kept flat for easy diffing against upstream - end
         }
 
+        bindForwardedNotice(holder)
+
         // Threads
         val threadsMarker = im.vector.app.core.utils.PerfTrace.mark("bind.super.threads")
         if (attributes.areThreadMessagesEnabled) {
@@ -184,6 +188,41 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             bindReplyBand(holder)
         }
         replyMarker.end()
+    }
+
+    // MSC2723
+    private fun bindForwardedNotice(holder: Holder) {
+        val noticeView = holder.forwardedNoticeView ?: return
+        val forwardedInfo = attributes.informationData.forwardedInfo
+        noticeView.setOnClickListener(null)
+        noticeView.setOnLongClickListener(null)
+        if (forwardedInfo == null) {
+            noticeView.isVisible = false
+            return
+        }
+        val context = noticeView.context
+        noticeView.isVisible = true
+        val label = when {
+            forwardedInfo.senderId != null -> context.getString(CommonStrings.forwarded_message_from_user, forwardedInfo.senderId)
+            forwardedInfo.fromThisRoom -> context.getString(CommonStrings.forwarded_message_from_this_room)
+            else -> context.getString(CommonStrings.forwarded_message)
+        }
+        noticeView.text = forwardedInfo.formattedDate
+                ?.let { context.getString(CommonStrings.forwarded_message_with_date, label, it) }
+                ?: label
+        val permalink = forwardedInfo.permalink
+        if (permalink == null) {
+            noticeView.isClickable = false
+            noticeView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+        } else {
+            noticeView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_accent))
+            noticeView.setOnClickListener {
+                // Same-room jumps offer a way back to this message, as body permalinks do.
+                LinkClickSourceHolder.record(attributes.informationData.eventId)
+                attributes.callback?.onUrlClicked(permalink, noticeView.text.toString())
+            }
+            noticeView.setOnLongClickListener(attributes.itemLongClickListener)
+        }
     }
 
     /**
@@ -258,6 +297,8 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         holder.replyBandListener?.let { holder.replyToView?.removeOnLayoutChangeListener(it) }
         holder.replyBandListener = null
         holder.replyToView?.onBandStateChanged = null
+        holder.forwardedNoticeView?.setOnClickListener(null)
+        holder.forwardedNoticeView?.setOnLongClickListener(null)
         holder.redactionTint.clearBand()
         super.unbind(holder)
     }
@@ -293,6 +334,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         val sendStateImageView by bind<SendStateImageView>(R.id.messageSendStateImageView)
         val eventSendingIndicator by bind<ProgressBar>(R.id.eventSendingIndicator)
         val replyToView: InReplyToView? by lazy { view.findViewById(R.id.inReplyToContainer) }
+        val forwardedNoticeView: TextView? by lazy { view.findViewById(R.id.messageForwardedNoticeView) }
         var replyBandListener: View.OnLayoutChangeListener? = null
         val informationBottom by bind<LinearLayout>(R.id.informationBottom)
         val threadSummaryConstraintLayout by bind<ConstraintLayout>(R.id.messageThreadSummaryConstraintLayout)

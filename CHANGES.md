@@ -84,7 +84,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Message pinning** — pin and unpin messages, sorted by most recent, with a pinned-messages banner (toggleable).
 
-- **Message forwarding** — forward messages (using their most recent edit), with a custom Forward icon. Pick as many rooms as you like from the room picker, each with its own checkbox, and send to all of them at once from the button in the toolbar. The same picker handles content shared into the app from other apps.
+- **Message forwarding** — forward messages (using their most recent edit), with a custom Forward icon. Pick as many rooms as you like from the room picker, each with its own checkbox, and send to all of them at once from the button in the toolbar. The same picker handles content shared into the app from other apps. Forwards carry metadata about the message they came from (MSC2723): they are labelled in the timeline with the original sender and date, and tapping the label opens the original — offering to join the room if you are not in it.
 
 - **Mass redactions** — bulk redaction via a `/massredact` command (with cooldown, and an optional `from:`/`until:` time range); redacting a message also redacts its edits and reactions and is applied live to open timelines, "remove" is renamed to "redact", and there's a toggle to skip the confirmation dialog.
 
