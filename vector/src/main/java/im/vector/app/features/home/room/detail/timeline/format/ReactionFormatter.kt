@@ -45,7 +45,10 @@ class ReactionFormatter @Inject constructor(
         val addedByMe = reactionSenderId != null && reactionSenderId == session?.myUserId
         val blockMedia = session == null || (!addedByMe && isMediaHiddenInRoom(roomId, session, vectorPreferences))
         if (blockMedia) return QUESTION_MARK_EMOJI.prepareForDisplay()
-        val shortcode = roomId?.let { id -> imagePackProvider.get().getEmoticons(id).firstOrNull { it.mxcUrl == key } }?.shortcode.orEmpty()
+        // Cached packs only: this runs on the timeline's model-build thread, where the synchronous
+        // pack/space-hierarchy walk of getEmoticons() costs over a second. The shortcode is only the
+        // image's alt/title text, so a cold cache degrades to an empty one rather than a stall.
+        val shortcode = roomId?.let { id -> imagePackProvider.get().cachedEmoticons(id).firstOrNull { it.mxcUrl == key } }?.shortcode.orEmpty()
         val html = "<img data-mx-emoticon src=\"$key\" alt=\":$shortcode:\" title=\"$shortcode\" height=\"32\"/>"
         val rendered = htmlRenderer.get().render(html)
                 .takeIf { (it as? Spanned)?.getSpans(0, it.length, EmoteImageSpan::class.java)?.isNotEmpty() == true }
