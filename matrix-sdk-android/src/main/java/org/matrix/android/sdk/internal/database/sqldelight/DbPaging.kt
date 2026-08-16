@@ -39,7 +39,15 @@ internal fun <T> livePaged(
     val factory = object : DataSource.Factory<Int, T>() {
         override fun create(): DataSource<Int, T> {
             val perfStart = MatrixPerf.now()
-            val data = fetch()
+            val data = try {
+                fetch()
+            } catch (closed: SessionDatabaseClosedException) {
+                // An account switch closes the database under lists that are briefly still observed, and
+                // paging computes on a plain executor — the cancellation coroutines unwind on quietly
+                // would reach the thread's handler and kill the process.
+                MatrixPerf.note { "paging.fetch skipped, database closed [${describeQuery(query)}]" }
+                return EmptyPositionalDataSource<T>().also { onDataSourceCreated?.invoke(it) }
+            }
             MatrixPerf.end(perfStart) { "paging.fetch items=${data.size} [${describeQuery(query)}]" }
             return SnapshotPositionalDataSource(query, data).also { onDataSourceCreated?.invoke(it) }
         }
@@ -61,6 +69,18 @@ internal fun <T> livePaged(
         onDataSourceCreated = onDataSourceCreated,
         fetch = fetch,
 )
+
+/** Stands in for a snapshot that can no longer be read; registers no query listener, so it never refreshes. */
+private class EmptyPositionalDataSource<T> : PositionalDataSource<T>() {
+
+    override fun loadInitial(params: LoadInitialParams, callback: LoadInitialCallback<T>) {
+        callback.onResult(emptyList(), 0, 0)
+    }
+
+    override fun loadRange(params: LoadRangeParams, callback: LoadRangeCallback<T>) {
+        callback.onResult(emptyList())
+    }
+}
 
 /**
  * A Paging-2 [PositionalDataSource] over an in-memory snapshot, invalidated whenever the backing
