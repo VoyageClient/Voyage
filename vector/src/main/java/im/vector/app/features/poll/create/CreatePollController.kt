@@ -108,7 +108,7 @@ class CreatePollController @Inject constructor(
             genericButtonItem {
                 id("add_option")
                 text(host.stringProvider.getString(CommonStrings.create_poll_add_option))
-                textColor(host.colorProvider.getColor(im.vector.lib.ui.styles.R.color.palette_element_green))
+                textColor(host.colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorAccent))
                 gravity(Gravity.START)
                 bold(true)
                 highlight(false)
