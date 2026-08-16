@@ -21,7 +21,7 @@ sealed class RoomDevToolAction : VectorViewModelAction {
     data class ShowAccountDataEvent(val event: RoomAccountDataEvent) : RoomDevToolAction()
     data class ShowStateEventType(val stateEventType: String) : RoomDevToolAction()
     data class UpdateContentText(val contentJson: String) : RoomDevToolAction()
-    data class SendCustomEvent(val isStateEvent: Boolean) : RoomDevToolAction()
+    data class SendCustomEvent(val target: RoomDevToolViewState.SendTarget) : RoomDevToolAction()
     data class CustomEventTypeChange(val type: String) : RoomDevToolAction()
     data class CustomEventContentChange(val content: String) : RoomDevToolAction()
     data class CustomEventStateKeyChange(val stateKey: String) : RoomDevToolAction()

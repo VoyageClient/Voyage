@@ -12,4 +12,6 @@ import im.vector.app.core.platform.VectorViewModelAction
 sealed class AccountDataAction : VectorViewModelAction {
     data class DeleteAccountData(val type: String) : AccountDataAction()
     data class UpdateAccountData(val type: String, val content: String) : AccountDataAction()
+    data class DraftTypeChange(val type: String) : AccountDataAction()
+    data class DraftContentChange(val content: String) : AccountDataAction()
 }

@@ -174,10 +174,11 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 }
             }
             is RoomDevToolAction.SendCustomEvent -> {
+                val defaultType = if (action.target == RoomDevToolViewState.SendTarget.ACCOUNT_DATA) null else EventType.MESSAGE
                 setState {
                     copy(
-                            displayMode = RoomDevToolViewState.Mode.SendEventForm(action.isStateEvent),
-                            sendEventDraft = RoomDevToolViewState.SendEventDraft(EventType.MESSAGE, null, "{\n}")
+                            displayMode = RoomDevToolViewState.Mode.SendEventForm(action.target),
+                            sendEventDraft = RoomDevToolViewState.SendEventDraft(defaultType, null, "{\n}")
                     )
                 }
             }
@@ -214,7 +215,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     editEventContent(state)
                 }
             }
-            is RoomDevToolViewState.Mode.SendEventForm -> sendEventContent(state, state.displayMode.isState)
+            is RoomDevToolViewState.Mode.SendEventForm -> sendEventContent(state, state.displayMode.target)
             else -> Unit
         }
     }
@@ -281,7 +282,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
         }
     }
 
-    private fun sendEventContent(state: RoomDevToolViewState, isState: Boolean) {
+    private fun sendEventContent(state: RoomDevToolViewState, target: RoomDevToolViewState.SendTarget) {
         setState { copy(modalLoading = Loading()) }
         viewModelScope.launch {
             try {
@@ -291,23 +292,36 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 val json = parseJsonLeniently(state.sendEventDraft?.content ?: "")
                         ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_content))
 
-                val eventType = state.sendEventDraft?.type
-                        ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_message_type))
+                val missingTypeError = if (target == RoomDevToolViewState.SendTarget.ACCOUNT_DATA) {
+                    CommonStrings.dev_tools_error_no_type
+                } else {
+                    CommonStrings.dev_tools_error_no_message_type
+                }
+                val eventType = state.sendEventDraft?.type?.takeIf { it.isNotBlank() }
+                        ?: throw IllegalArgumentException(stringProvider.getString(missingTypeError))
 
-                if (isState) {
-                    room.stateService().sendStateEvent(
+                when (target) {
+                    RoomDevToolViewState.SendTarget.STATE -> room.stateService().sendStateEvent(
                             eventType,
                             state.sendEventDraft.stateKey.orEmpty(),
                             json
                     )
-                } else {
-                    room.sendService().sendEvent(
+                    RoomDevToolViewState.SendTarget.MESSAGE -> room.sendService().sendEvent(
+                            eventType,
+                            json
+                    )
+                    RoomDevToolViewState.SendTarget.ACCOUNT_DATA -> room.roomAccountDataService().updateAccountData(
                             eventType,
                             json
                     )
                 }
 
-                _viewEvents.post(DevToolsViewEvents.ShowSnackMessage(stringProvider.getString(CommonStrings.dev_tools_success_event)))
+                val successMessage = when (target) {
+                    RoomDevToolViewState.SendTarget.STATE -> CommonStrings.dev_tools_success_state_event
+                    RoomDevToolViewState.SendTarget.MESSAGE -> CommonStrings.dev_tools_success_event
+                    RoomDevToolViewState.SendTarget.ACCOUNT_DATA -> CommonStrings.dev_tools_success_account_data
+                }
+                _viewEvents.post(DevToolsViewEvents.ShowSnackMessage(stringProvider.getString(successMessage)))
                 setState {
                     copy(
                             modalLoading = Success(Unit),

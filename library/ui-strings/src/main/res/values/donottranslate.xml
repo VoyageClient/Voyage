@@ -592,6 +592,10 @@
 
     <string name="dev_tools_explore_room_account_data" translatable="false">Room Account Data</string>
     <string name="dev_tools_success_account_data" translatable="false">Account data updated!</string>
+    <string name="dev_tools_send_room_account_data" translatable="false">Send Room Account Data</string>
+    <string name="dev_tools_add_account_data" translatable="false">Add Account Data</string>
+    <string name="dev_tools_error_no_type" translatable="false">Missing type</string>
+    <string name="dev_tools_account_data_overwrite_warning" translatable="false">Account data of type %1$s already exists. Saving will overwrite its content.</string>
 
     <string name="action_copy_table" translatable="false">Copy table</string>
 
