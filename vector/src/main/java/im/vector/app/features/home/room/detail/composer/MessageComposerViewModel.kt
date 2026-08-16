@@ -677,7 +677,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             val displayName = room.membershipService().getRoomMember(parsedCommand.userId)?.displayName ?: parsedCommand.userId
                             _viewEvents.post(
                                     MessageComposerViewEvents.ShowMassRedactConfirmation(
-                                            parsedCommand.userId, displayName, parsedCommand.delayMs ?: 0L
+                                            parsedCommand.userId, displayName, parsedCommand.delayMs ?: 0L, parsedCommand.range
                                     )
                             )
                             popDraft(room, state.sendMode)
@@ -1323,11 +1323,14 @@ class MessageComposerViewModel @AssistedInject constructor(
                 }
                 return@launch
             }
-            session.getRoomSummary(command.roomAlias)
-                    ?.roomId
-                    ?.let {
-                        _viewEvents.post(MessageComposerViewEvents.JoinRoomCommandSuccess(it))
-                    }
+            val joinedRoomId = session.getRoomSummary(command.roomAlias)?.roomId
+            if (joinedRoomId != null) {
+                _viewEvents.post(MessageComposerViewEvents.JoinRoomCommandSuccess(joinedRoomId))
+            } else {
+                // Joined, but the summary hasn't synced yet: report the command as done anyway, else
+                // the composer waits forever for a navigation that will never come.
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(command))
+            }
         }
     }
 

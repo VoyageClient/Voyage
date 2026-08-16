@@ -26,3 +26,22 @@ data class MassRedactionFloor(
         val ts: Long,
         val anchorToken: String?,
 )
+
+/** Inclusive `origin_server_ts` bounds (ms) restricting a mass redaction to a slice of history. */
+data class MassRedactionRange(
+        val fromTs: Long? = null,
+        val toTs: Long? = null,
+) {
+
+    // An event whose timestamp is unknown can't be proven to be inside a bounded range, and redaction
+    // is irreversible — leave it alone.
+    fun contains(ts: Long?): Boolean {
+        if (fromTs == null && toTs == null) return true
+        if (ts == null) return false
+        return (fromTs == null || ts >= fromTs) && (toTs == null || ts <= toTs)
+    }
+
+    companion object {
+        val ALL = MassRedactionRange()
+    }
+}

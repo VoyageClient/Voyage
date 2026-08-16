@@ -196,6 +196,14 @@ internal class EventIndexStore @Inject constructor(
         queries.upsertMeta(KEY_SWEEP_WATERMARK, watermark.toString())
     }
 
+    suspend fun getFormatVersion(): Int = withContext(dispatcher) {
+        queries.selectMeta(KEY_FORMAT_VERSION).executeAsOneOrNull()?.toIntOrNull() ?: 0
+    }
+
+    suspend fun setFormatVersion(version: Int) = withContext(dispatcher) {
+        queries.upsertMeta(KEY_FORMAT_VERSION, version.toString())
+    }
+
     suspend fun clear() = withContext(dispatcher) {
         queries.transaction {
             queries.clearEvents()
@@ -209,6 +217,7 @@ internal class EventIndexStore @Inject constructor(
         private const val DIRECTION_BACKWARDS = "b"
         private const val DIRECTION_FORWARDS = "f"
         private const val KEY_SWEEP_WATERMARK = "sweep_watermark"
+        private const val KEY_FORMAT_VERSION = "format_version"
         private const val KEY_FULLY_CRAWLED_PREFIX = "fully_crawled:"
 
         /** LIKE pattern for a case-insensitive substring match; terms are stored lowercased. */

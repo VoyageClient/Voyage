@@ -71,6 +71,7 @@ import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.extensions.containsRtLOverride
 import im.vector.app.core.extensions.ensureEndsLeftToRight
 import im.vector.app.core.extensions.filterDirectionOverrides
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.setTextOrHide
@@ -117,6 +118,7 @@ import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.arguments.PendingEventAction
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.home.room.detail.composer.CanSendStatus
 import im.vector.app.features.home.room.detail.composer.MessageComposerAction
@@ -193,6 +195,7 @@ import im.vector.app.features.widgets.permissions.RoomWidgetPermissionBottomShee
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
@@ -201,13 +204,17 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
+import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -272,6 +279,10 @@ class TimelineFragment :
 
     companion object {
         const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
+
+        // How long an action carried in from another screen waits for its event to be paginated in.
+        private const val PENDING_ACTION_EVENT_TIMEOUT_MS = 10_000L
+        private const val PENDING_ACTION_POLL_MS = 200L
 
         // ~2 dropped frames at 60fps; gaps this large between scroll callbacks indicate a stall worth logging.
         private const val SCROLL_JANK_FRAME_MS = 32L
@@ -374,6 +385,10 @@ class TimelineFragment :
                     handleActions(it)
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        if (savedInstanceState == null) {
+            timelineArgs.pendingEventAction?.let { runPendingEventAction(it) }
+        }
 
         // When an on-demand reply-target fetch completes (success or failure), drop any
         // cached model referencing it and rebuild so the synthetic block in the timeline
@@ -2206,6 +2221,59 @@ class TimelineFragment :
                         }
             }
         }
+    }
+
+    // An action chosen on another screen (a search result) that needed this one to carry it out. The
+    // event is rebuilt from the room so the action gets the same content the timeline would give it,
+    // waiting for it to land: a search hit is often only fetched by the pagination this screen starts.
+    private fun runPendingEventAction(pending: PendingEventAction) {
+        val eventId = timelineArgs.eventId ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val event = withTimeoutOrNull(PENDING_ACTION_EVENT_TIMEOUT_MS) {
+                var candidate = session.getRoom(timelineArgs.roomId)?.getTimelineEvent(eventId)
+                while (candidate == null) {
+                    delay(PENDING_ACTION_POLL_MS)
+                    candidate = session.getRoom(timelineArgs.roomId)?.getTimelineEvent(eventId)
+                }
+                candidate
+            } ?: return@launch
+            handleActions(pending.toSharedAction(eventId, event) ?: return@launch)
+        }
+    }
+
+    private fun PendingEventAction.toSharedAction(eventId: String, event: TimelineEvent): EventSharedAction? {
+        val messageContent = event.getVectorLastMessageContent()
+        return when (this) {
+            PendingEventAction.REPLY -> EventSharedAction.Reply(eventId)
+            PendingEventAction.REPLY_IN_THREAD -> EventSharedAction.ReplyInThread(eventId, startsThread = event.root.getRootThreadEventId() == null)
+            PendingEventAction.QUOTE -> EventSharedAction.Quote(eventId)
+            PendingEventAction.EDIT -> EventSharedAction.Edit(eventId, event.root.getClearType())
+            PendingEventAction.REACT -> EventSharedAction.AddReaction(eventId)
+            PendingEventAction.FORWARD -> EventSharedAction.Forward(eventId, event.root.getClearType(), event.root.getClearContent().orEmpty())
+            PendingEventAction.SHARE -> messageContent?.let { EventSharedAction.Share(eventId, it) }
+            PendingEventAction.SAVE -> (messageContent as? MessageWithAttachmentContent)?.let { EventSharedAction.Save(eventId, it) }
+            PendingEventAction.REDACT -> redactAction(eventId, event)
+            PendingEventAction.RESEND -> EventSharedAction.Resend(eventId)
+            PendingEventAction.PIN -> EventSharedAction.Pin(eventId)
+            PendingEventAction.UNPIN -> EventSharedAction.Unpin(eventId)
+            PendingEventAction.END_POLL -> EventSharedAction.EndPoll(eventId)
+            PendingEventAction.RE_REQUEST_KEY -> EventSharedAction.ReRequestKey(eventId)
+            PendingEventAction.IGNORE_USER -> EventSharedAction.IgnoreUser(event.root.senderId)
+            PendingEventAction.REVEAL_REDACTED -> EventSharedAction.RevealRedacted(eventId)
+            PendingEventAction.HIDE_REDACTED -> EventSharedAction.HideRedacted(eventId)
+        }
+    }
+
+    // Same shape the actions sheet builds: polls get their own wording, and only someone else's
+    // message asks for a reason.
+    private fun redactAction(eventId: String, event: TimelineEvent): EventSharedAction.Redact {
+        val isPoll = event.root.getClearType() in EventType.POLL_START.values
+        return EventSharedAction.Redact(
+                eventId,
+                askForReason = event.root.senderId != session.myUserId,
+                dialogTitleRes = if (isPoll) CommonStrings.delete_poll_dialog_title else CommonStrings.redact_event_dialog_title,
+                dialogDescriptionRes = if (isPoll) CommonStrings.delete_poll_dialog_content else CommonStrings.redact_event_dialog_content,
+        )
     }
 
     private fun handleActions(action: EventSharedAction) {

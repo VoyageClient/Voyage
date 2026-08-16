@@ -590,6 +590,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/room/send/MatrixItemSpan.kt',
         'org/matrix/android/sdk/api/session/room/timeline/EventTypeFilter.kt',
         'org/matrix/android/sdk/api/session/room/timeline/TimelineEventFilters.kt',
+        'org/matrix/android/sdk/api/session/search/SearchFilters.kt',
         'org/matrix/android/sdk/api/session/search/SearchResult.kt',
         'org/matrix/android/sdk/api/session/securestorage/EncryptedSecretContent.kt',
         'org/matrix/android/sdk/internal/session/user/accountdata/AccountDataContent.kt',

@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.model.relation.PagedEventIds
 import timber.log.Timber
 import javax.inject.Inject
@@ -92,7 +93,13 @@ class MassRedactionManager @Inject constructor(
     fun currentValue() = progress.currentValue
 
     @Synchronized
-    fun start(roomId: String, userId: String, displayName: String, delayMs: Long): StartResult {
+    fun start(
+            roomId: String,
+            userId: String,
+            displayName: String,
+            delayMs: Long,
+            range: MassRedactionRange = MassRedactionRange.ALL,
+    ): StartResult {
         if (progress.currentValue != null || job?.isActive == true) return StartResult.AlreadyRunning
         val owner = currentUserId() ?: return StartResult.AlreadyRunning
         val initial = MassRedactionState(roomId, userId, displayName, completed = 0, total = 0, paused = false)
@@ -101,8 +108,8 @@ class MassRedactionManager @Inject constructor(
         // Show the banner right away, even at 0/0 — the probe over a large room can take a while and the
         // banner is the only way to cancel it.
         progress.post(initial)
-        saveRecord(owner, initial, delayMs = delayMs, token = null, remoteDone = false)
-        launchLoop(owner, roomId, userId, displayName, delayMs, startCompleted = 0, startToken = null, remoteDone = false)
+        saveRecord(owner, initial, delayMs = delayMs, token = null, remoteDone = false, range = range)
+        launchLoop(owner, roomId, userId, displayName, delayMs, range, startCompleted = 0, startToken = null, remoteDone = false)
         return StartResult.Started
     }
 
@@ -116,7 +123,7 @@ class MassRedactionManager @Inject constructor(
         paused = false
         progress.post(state.copy(paused = false))
         saveState(owner, state.copy(paused = false))
-        launchLoop(owner, state.roomId, state.targetUserId, state.targetDisplayName, record.delayMs,
+        launchLoop(owner, state.roomId, state.targetUserId, state.targetDisplayName, record.delayMs, record.range,
                 startCompleted = state.completed, startToken = record.token, remoteDone = record.remoteDone)
     }
 
@@ -148,7 +155,7 @@ class MassRedactionManager @Inject constructor(
     }
 
     private fun launchLoop(
-            owner: String, roomId: String, userId: String, displayName: String, delayMs: Long,
+            owner: String, roomId: String, userId: String, displayName: String, delayMs: Long, range: MassRedactionRange,
             startCompleted: Int, startToken: String?, remoteDone: Boolean,
     ) {
         job?.cancel()
@@ -230,7 +237,7 @@ class MassRedactionManager @Inject constructor(
             // phase 2 starts the moment the sweep finishes instead of stalling on two round trips.
             val floorDeferred = async {
                 try {
-                    relations.getMassRedactionFloor(userId)
+                    relations.getMassRedactionFloor(userId, range.fromTs)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (t: Throwable) {
@@ -244,7 +251,7 @@ class MassRedactionManager @Inject constructor(
             // runCatching inside the async: a failed async child fails the whole job even when nobody
             // awaits it, which crashed the app when a prefetch timed out while redactions were running.
             fun prefetchPage(fromToken: String?): Deferred<Result<PagedEventIds>> = async {
-                runCatching { relations.fetchMoreEventIdsFromUser(userId, fromToken, floorDeferred.await()) }
+                runCatching { relations.fetchMoreEventIdsFromUser(userId, fromToken, floorDeferred.await(), range) }
             }
             var prefetch: Deferred<Result<PagedEventIds>>? = if (!done) prefetchPage(token) else null
 
@@ -252,7 +259,7 @@ class MassRedactionManager @Inject constructor(
             // The sweep excludes events known-redacted locally (unsigned markers or a stored redaction
             // event); a stale row it can't know about just costs one no-op redaction, which also marks
             // the row so it never repeats.
-            redactBatch(relations.getLocalEventIdsFromUser(userId))
+            redactBatch(relations.getLocalEventIdsFromUser(userId, range))
 
             // Phase 2: walk the server's history for the user's events — forwards from their join when
             // the floor anchor resolved, else backwards from the live edge. Server history is
@@ -326,14 +333,21 @@ class MassRedactionManager @Inject constructor(
     }
 
     // region persistence
-    private data class RawRecord(val delayMs: Long, val token: String?, val remoteDone: Boolean)
+    private data class RawRecord(val delayMs: Long, val token: String?, val remoteDone: Boolean, val range: MassRedactionRange)
 
     // Keys are namespaced by owner (account userId) so each account keeps its own independent batch.
     private fun key(owner: String, suffix: String) = "massredact_${owner}_$suffix"
 
     // commit (not apply) for the lifecycle writes: a paused job must survive an immediate process kill,
     // which drops apply()'s not-yet-flushed background write.
-    private fun saveRecord(owner: String, state: MassRedactionState, delayMs: Long, token: String?, remoteDone: Boolean) {
+    private fun saveRecord(
+            owner: String,
+            state: MassRedactionState,
+            delayMs: Long,
+            token: String?,
+            remoteDone: Boolean,
+            range: MassRedactionRange,
+    ) {
         preferences.edit(commit = true) {
             putBoolean(key(owner, ACTIVE), true)
             putString(key(owner, ROOM), state.roomId)
@@ -345,6 +359,8 @@ class MassRedactionManager @Inject constructor(
             putLong(key(owner, DELAY), delayMs)
             putString(key(owner, TOKEN), token)
             putBoolean(key(owner, REMOTE_DONE), remoteDone)
+            putLong(key(owner, FROM_TS), range.fromTs ?: NO_TS)
+            putLong(key(owner, TO_TS), range.toTs ?: NO_TS)
         }
     }
 
@@ -390,6 +406,10 @@ class MassRedactionManager @Inject constructor(
                 delayMs = preferences.getLong(key(owner, DELAY), 0L),
                 token = preferences.getString(key(owner, TOKEN), null),
                 remoteDone = preferences.getBoolean(key(owner, REMOTE_DONE), false),
+                range = MassRedactionRange(
+                        fromTs = preferences.getLong(key(owner, FROM_TS), NO_TS).takeIf { it != NO_TS },
+                        toTs = preferences.getLong(key(owner, TO_TS), NO_TS).takeIf { it != NO_TS },
+                ),
         )
     }
 
@@ -398,6 +418,7 @@ class MassRedactionManager @Inject constructor(
             remove(key(owner, ACTIVE)); remove(key(owner, ROOM)); remove(key(owner, TARGET)); remove(key(owner, NAME))
             remove(key(owner, COMPLETED)); remove(key(owner, TOTAL)); remove(key(owner, PAUSED))
             remove(key(owner, DELAY)); remove(key(owner, TOKEN)); remove(key(owner, REMOTE_DONE))
+            remove(key(owner, FROM_TS)); remove(key(owner, TO_TS))
         }
     }
     // endregion
@@ -422,5 +443,10 @@ class MassRedactionManager @Inject constructor(
         private const val DELAY = "delay"
         private const val TOKEN = "token"
         private const val REMOTE_DONE = "remote_done"
+        private const val FROM_TS = "from_ts"
+        private const val TO_TS = "to_ts"
+
+        // Sentinel for "no bound" in the persisted record; a real origin_server_ts is never negative.
+        private const val NO_TS = -1L
     }
 }

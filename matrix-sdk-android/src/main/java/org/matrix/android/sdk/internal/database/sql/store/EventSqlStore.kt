@@ -12,6 +12,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.isRedacted
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
 import org.matrix.android.sdk.internal.database.mapper.asDomain
@@ -80,14 +81,15 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun getRedactionTargets(roomId: String): Set<String> =
             queries.selectRedactionTargetsInRoom(roomId, EventType.REDACTION).executeAsList().filterNotNull().toHashSet()
 
-    fun getRedactableEventIdsBySender(roomId: String, senderId: String): List<String> {
+    fun getRedactableEventIdsBySender(roomId: String, senderId: String, range: MassRedactionRange = MassRedactionRange.ALL): List<String> {
         val redactedIds = getRedactionTargets(roomId)
         fun markedRedacted(unsigned: String?) = unsigned != null && ("redacted_because" in unsigned || "redacted_by" in unsigned)
         return queries.selectEventIdsByRoomAndSender(roomId, senderId).executeAsList()
                 .filter {
                     it.type != EventType.REDACTION &&
                             !markedRedacted(it.unsigned_data) &&
-                            it.event_id !in redactedIds
+                            it.event_id !in redactedIds &&
+                            range.contains(it.origin_server_ts)
                 }
                 .map { it.event_id }
     }

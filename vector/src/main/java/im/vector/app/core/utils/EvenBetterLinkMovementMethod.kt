@@ -8,14 +8,17 @@
 package im.vector.app.core.utils
 
 import android.os.Build
+import android.text.Selection
 import android.text.Spannable
 import android.text.Spanned
+import android.text.style.BackgroundColorSpan
 import android.text.style.ClickableSpan
 import android.text.style.URLSpan
 import android.view.MotionEvent
 import android.widget.TextView
 import im.vector.app.features.html.SpoilerSpan
 import me.saket.bettermovementmethod.BetterLinkMovementMethod
+import me.saket.bettermovementmethod.R
 
 class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickListener? = null) : BetterLinkMovementMethod() {
 
@@ -29,6 +32,11 @@ class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickL
          */
         fun onLinkClicked(textView: TextView, span: ClickableSpan, url: String, actualText: String): Boolean
     }
+
+    // Set once a long press has been handled by the app. The library keeps re-highlighting the url on
+    // every MOVE for the rest of the gesture — the finger is still down — which is what left the link
+    // tinted after release.
+    private var highlightSuppressed = false
 
     // While a spoiler is hidden, any tap inside it (including on mentions or links it contains)
     // should reveal the spoiler rather than activate the inner span. Once revealed, prefer the
@@ -45,8 +53,14 @@ class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickL
         return spans.firstOrNull { it !is SpoilerSpan } ?: touched
     }
 
+    override fun onTouchEvent(widget: TextView, buffer: Spannable, event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) highlightSuppressed = false
+        return super.onTouchEvent(widget, buffer, event)
+    }
+
     // Don't flash the link-highlight (accent) when toggling a spoiler.
     override fun highlightUrl(textView: TextView, clickableSpan: ClickableSpan, text: Spannable) {
+        if (highlightSuppressed) return
         if (clickableSpan is SpoilerSpan) return
         // super calls TextView.getHighlightColor, which only exists from API 16 — skip the
         // (purely cosmetic) tap flash below that instead of crashing.
@@ -60,6 +74,19 @@ class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickL
         val y = event.y.toInt() - textView.totalPaddingTop + textView.scrollY
         val line = layout.getLineForVertical(y)
         return layout.getOffsetForHorizontal(line, x.toFloat())
+    }
+
+    // The library only drops its highlight from its own touch handling; a long click answered by the
+    // app never gets there, leaving the url tinted until the next touch. Its own removal is a no-op
+    // once its private "highlighted" flag has been reset, so strip the span it parked on the view too.
+    fun clearUrlHighlight(textView: TextView) {
+        highlightSuppressed = true
+        removeUrlHighlightColor(textView)
+        val text = textView.text as? Spannable ?: return
+        (textView.getTag(R.id.bettermovementmethod_highlight_background_span) as? BackgroundColorSpan)
+                ?.let { text.removeSpan(it) }
+        Selection.removeSelection(text)
+        textView.invalidate()
     }
 
     override fun dispatchUrlClick(textView: TextView, clickableSpan: ClickableSpan) {

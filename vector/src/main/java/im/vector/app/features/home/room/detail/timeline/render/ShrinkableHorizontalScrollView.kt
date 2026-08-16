@@ -38,6 +38,7 @@ class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(co
     private var downX = 0f
     private var downY = 0f
     private var directionDecided = false
+    private var beyondContent = false
 
     private var allowAwakenScrollbar = false
     private val resetAllowAwaken = Runnable { allowAwakenScrollbar = false }
@@ -79,13 +80,26 @@ class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(co
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        if (isBeyondContent(ev)) return false
         handleTouchPriority(ev)
         return super.onInterceptTouchEvent(ev)
     }
 
     override fun onTouchEvent(ev: MotionEvent): Boolean {
+        if (isBeyondContent(ev)) return false
         handleTouchPriority(ev)
         return super.onTouchEvent(ev)
+    }
+
+    // This view is as wide as the message, the table inside it usually isn't. A press on the empty
+    // strip past the table's right edge belongs to the message: consuming it here would swallow the
+    // message's tap, long-press and ripple.
+    private fun isBeyondContent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            val child = if (childCount > 0) getChildAt(0) else null
+            beyondContent = child == null || ev.x + scrollX > child.right
+        }
+        return beyondContent
     }
 
     private fun handleTouchPriority(ev: MotionEvent) {

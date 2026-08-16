@@ -82,6 +82,10 @@ class PillImageSpan(
     // then skipped, so an unresolved permalink keeps the link icon instead of a letter placeholder.
     private var useGenericIcon = false
 
+    // Set when the avatar came straight out of Glide's cache: re-rendering it asynchronously would
+    // blink the pill back through a placeholder for no gain.
+    private var hasCachedAvatar = false
+
     private val pillDrawable = createChipDrawable()
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
@@ -90,7 +94,7 @@ class PillImageSpan(
     @UiThread
     fun bind(textView: TextView) {
         tv = WeakReference(textView)
-        if (useGenericIcon) return
+        if (useGenericIcon || hasCachedAvatar) return
         avatarRenderer.render(glideRequests, matrixItem, target)
     }
 
@@ -246,7 +250,7 @@ class PillImageSpan(
             }
             else -> {
                 try {
-                    avatarRenderer.getCachedDrawable(glideRequests, matrixItem)
+                    avatarRenderer.getCachedDrawable(glideRequests, matrixItem).also { hasCachedAvatar = true }
                 } catch (exception: Exception) {
                     avatarRenderer.getPlaceholderDrawable(matrixItem)
                 }

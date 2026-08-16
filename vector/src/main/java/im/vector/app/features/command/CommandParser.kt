@@ -18,6 +18,7 @@ import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -274,13 +275,10 @@ class CommandParser @Inject constructor(
                 }
                 Command.MASS_REDACT.matches(slashCommand) -> {
                     val userId = messageParts.getOrNull(1)
-                    val cooldownPart = messageParts.getOrNull(2)
-                    val cooldown = cooldownPart?.toLongOrNull()
-                    when {
-                        userId == null || !MatrixPatterns.isUserId(userId) -> ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-                        // A cooldown token, if given, must be a non-negative integer.
-                        cooldownPart != null && (cooldown == null || cooldown < 0) -> ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-                        else -> ParsedCommand.MassRedact(userId, cooldown)
+                    if (userId == null || !MatrixPatterns.isUserId(userId)) {
+                        ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                    } else {
+                        parseMassRedactOptions(userId, messageParts.drop(2))
                     }
                 }
                 Command.BAN_USER.matches(slashCommand) -> {
@@ -621,9 +619,39 @@ class CommandParser @Inject constructor(
         return looksLikeLink && PermalinkParser.parse(candidate) is PermalinkData.RoomLink
     }
 
+    // [options] are the tokens after the user id: an optional bare cooldown in ms, plus optional
+    // from:/until: epoch bounds, in any order.
+    private fun parseMassRedactOptions(userId: String, options: List<String>): ParsedCommand {
+        var cooldown: Long? = null
+        var fromTs: Long? = null
+        var toTs: Long? = null
+        for (option in options) {
+            val separator = option.indexOf(':')
+            val key = if (separator == -1) null else option.substring(0, separator).lowercase()
+            val rawValue = if (separator == -1) option else option.substring(separator + 1)
+            val value = rawValue.toLongOrNull()?.takeIf { it >= 0 } ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+            when (key) {
+                null -> if (cooldown == null) cooldown = value else return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                "from" -> fromTs = epochToMillis(value)
+                "until" -> toTs = epochToMillis(value)
+                else -> return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+            }
+        }
+        if (fromTs != null && toTs != null && fromTs > toTs) return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+        return ParsedCommand.MassRedact(userId, cooldown, MassRedactionRange(fromTs, toTs))
+    }
+
+    // Accept the bound in either unit: anything below the threshold can only be a sensible date when read
+    // as seconds (as milliseconds it would be 1973 or earlier).
+    private fun epochToMillis(value: Long) = if (value < EPOCH_MILLIS_THRESHOLD) value * 1000 else value
+
     private fun trimParts(message: CharSequence, messageParts: List<String>): String? {
         val partsSize = messageParts.sumOf { it.length }
         val gapsNumber = messageParts.size - 1
         return message.substring(partsSize + gapsNumber).trim().takeIf { it.isNotEmpty() }
+    }
+
+    companion object {
+        private const val EPOCH_MILLIS_THRESHOLD = 100_000_000_000L
     }
 }

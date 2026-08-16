@@ -252,6 +252,14 @@ class AvatarRenderer @Inject constructor(
         }
     }
 
+    // Warms exactly the request [getCachedDrawable] reads back: an ImageView render caches under the
+    // view's measured size, and onlyRetrieveFromCache is itself part of the memory-cache key, so
+    // anything less than an identical request leaves the pill fetching again.
+    @UiThread
+    fun preloadAvatar(glideRequests: GlideRequests, matrixItem: MatrixItem) {
+        glideRequests.loadAvatar(matrixItem, cacheOnly = true).preload()
+    }
+
     @AnyThread
     fun getCachedDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem): Drawable {
         return glideRequests.loadAvatar(matrixItem, cacheOnly = true)

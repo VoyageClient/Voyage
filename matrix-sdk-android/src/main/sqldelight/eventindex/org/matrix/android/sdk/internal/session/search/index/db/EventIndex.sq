@@ -12,7 +12,8 @@ CREATE TABLE indexed_event (
     origin_server_ts INTEGER NOT NULL,
     content_text TEXT NOT NULL,
     event_json TEXT NOT NULL,
-    -- msgtype for m.room.message, or the pseudo-msgtype "m.sticker" (has: filters)
+    -- space-joined msgtypes the event answers has: with: its own, plus a gallery's item types, or
+    -- the pseudo-msgtypes "m.sticker" / "m.poll.start"
     msgtype TEXT,
     -- space-joined lowercased user ids the event mentions (mentions: filter)
     mentions TEXT
