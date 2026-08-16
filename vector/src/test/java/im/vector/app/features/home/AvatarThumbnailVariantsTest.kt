@@ -16,7 +16,6 @@ import com.bumptech.glide.request.FutureTarget
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
-import im.vector.app.core.glide.RoundedClipDrawable
 import im.vector.app.core.glide.ThumbnailAttempt
 import im.vector.app.core.glide.ThumbnailVariants
 import im.vector.app.features.settings.AvatarShape
@@ -26,7 +25,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldBeInstanceOf
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.Test
@@ -217,7 +215,7 @@ class AvatarThumbnailVariantsTest {
 
         avatarRenderer.avatarTarget(imageView, space).onResourceReady(FakeAnimatedDrawable(), null)
 
-        // Rounded content is clipped at draw time; a square avatar would be left unwrapped.
-        imageView.drawable shouldBeInstanceOf RoundedClipDrawable::class
+        // Rounded content is clipped by the view; a square avatar would leave it unclipped.
+        imageView.clipToOutline shouldBeEqualTo true
     }
 }
