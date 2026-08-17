@@ -23,6 +23,7 @@ import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
 import org.matrix.android.sdk.internal.crypto.EventDecryptor
 import org.matrix.android.sdk.internal.di.UserId
+import org.matrix.android.sdk.internal.session.user.UserDataSource
 import org.matrix.android.sdk.internal.task.Task
 import timber.log.Timber
 import javax.inject.Inject
@@ -39,6 +40,7 @@ internal class DefaultProcessEventForPushTask @Inject constructor(
         private val pushRuleFinder: PushRuleFinder,
         @UserId private val userId: String,
         private val eventDecryptor: EventDecryptor,
+        private val userDataSource: UserDataSource,
 ) : ProcessEventForPushTask {
 
     override suspend fun execute(params: ProcessEventForPushTask.Params) {
@@ -56,6 +58,9 @@ internal class DefaultProcessEventForPushTask @Inject constructor(
                 }
                 .flatten()
 
+        // An ignored user's event should never reach us, but one that does must not notify.
+        val ignoredUserIds = userDataSource.getIgnoredUserIds().toSet()
+
         val allEvents = (newJoinEvents + inviteEvents).filter { event ->
             when (event.type) {
                 in EventType.POLL_START.values,
@@ -69,7 +74,7 @@ internal class DefaultProcessEventForPushTask @Inject constructor(
                 else -> false
             }
         }.filter {
-            it.senderId != userId
+            it.senderId != userId && it.senderId !in ignoredUserIds
         }
         Timber.v(
                 "[PushRules] Found ${allEvents.size} out of ${(newJoinEvents + inviteEvents).size}" +

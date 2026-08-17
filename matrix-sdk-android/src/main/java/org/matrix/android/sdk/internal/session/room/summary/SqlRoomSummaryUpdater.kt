@@ -56,7 +56,11 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         private val roomSummaryEventsHelper: SqlRoomSummaryEventsHelper,
 ) {
 
-    fun refreshLatestPreviewableEvent(stores: SessionStores, roomId: String, thorough: Boolean = false) {
+    /**
+     * [clearIfNone] is for the ignore list changing: there, finding nothing previewable means every
+     * message in the room is now hidden, so the preview has to go rather than keep showing the last one.
+     */
+    fun refreshLatestPreviewableEvent(stores: SessionStores, roomId: String, thorough: Boolean = false, clearIfNone: Boolean = false) {
         val entity = stores.roomSummary.get(roomId) ?: return
         val latestPreviewableEvent = roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId, thorough)
         // Only advance when we actually found a previewable message — don't wipe a known-good last message
@@ -65,6 +69,8 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         if (latestPreviewableEvent != null) {
             entity.latestPreviewableEvent = latestPreviewableEvent
             latestPreviewableEvent.root?.originServerTs?.let { entity.lastActivityTime = it }
+        } else if (clearIfNone) {
+            entity.latestPreviewableEvent = null
         }
         stores.roomSummary.upsert(entity)
     }

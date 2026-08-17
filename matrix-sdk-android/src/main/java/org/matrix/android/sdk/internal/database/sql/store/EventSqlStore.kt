@@ -71,6 +71,10 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun getByEventIdInRoom(roomId: String, eventId: String): EventEntity? =
             queries.selectByEventIdInRoom(roomId, eventId).executeAsOneOrNull()?.toResolvedEntity()
 
+    fun getByTypesAndSenders(types: Collection<String>, senderIds: Collection<String>): List<EventEntity> =
+            if (senderIds.isEmpty()) emptyList()
+            else queries.selectByTypesAndSenders(types, senderIds).executeAsList().map { it.toEntity() }
+
     /** Newest-first stored copies of a state event for one (type, state_key), regardless of currency. */
     fun getRecentStateOfKey(roomId: String, type: String, stateKey: String, limit: Long): List<EventEntity> =
             queries.selectRecentStateOfKey(roomId, type, stateKey, limit).executeAsList().map { it.toResolvedEntity() }

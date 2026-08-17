@@ -117,6 +117,9 @@ SELECT event_id FROM event WHERE room_id = ? AND root_thread_event_id = ? AND se
 selectByRoomAndType:
 SELECT event_id FROM event WHERE room_id = ? AND type = ?;
 
+selectByTypesAndSenders:
+SELECT * FROM event WHERE type IN ? AND sender IN ? GROUP BY event_id;
+
 selectRecentStateOfKey:
 SELECT * FROM event WHERE room_id = ? AND type = ? AND state_key = ? ORDER BY origin_server_ts DESC LIMIT ?;
 

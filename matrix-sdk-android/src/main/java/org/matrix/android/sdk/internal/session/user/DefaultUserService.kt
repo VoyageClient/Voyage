@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.session.profile.GetProfileInfoTask
+import org.matrix.android.sdk.internal.session.user.accountdata.UnIgnoredContentRecoverer
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateIgnoredUserIdsTask
 import org.matrix.android.sdk.internal.session.user.model.ReportUserTask
 import org.matrix.android.sdk.internal.session.user.model.SearchUserTask
@@ -34,7 +35,8 @@ internal class DefaultUserService @Inject constructor(
         private val searchUserTask: SearchUserTask,
         private val updateIgnoredUserIdsTask: UpdateIgnoredUserIdsTask,
         private val reportUserTask: ReportUserTask,
-        private val getProfileInfoTask: GetProfileInfoTask
+        private val getProfileInfoTask: GetProfileInfoTask,
+        private val unIgnoredContentRecoverer: UnIgnoredContentRecoverer,
 ) : UserService, UserPagingService {
 
     override fun getUser(userId: String): User? {
@@ -86,6 +88,10 @@ internal class DefaultUserService @Inject constructor(
     override suspend fun unIgnoreUserIds(userIds: List<String>) {
         val params = UpdateIgnoredUserIdsTask.Params(userIdsToUnIgnore = userIds.toList())
         updateIgnoredUserIdsTask.execute(params)
+        // Applying the list locally only reveals what is already stored; what the server withheld while
+        // they were ignored has to be fetched. Sync would get to it when the change echoes back, but a
+        // sliding connection can sit on that echo, so start it here.
+        unIgnoredContentRecoverer.recoverPending()
     }
 
     override suspend fun reportUser(userId: String, reason: String) {

@@ -44,7 +44,7 @@ countUnreadInChunkAfterIndex:
 SELECT COUNT(*) FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ? AND timeline_event.display_index > ?
-AND event.sender IS NOT ? AND event.type IN ?
+AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%');
 
 -- Same, for when the receipt points at an event the chunk never received (see isEventRead).
@@ -52,7 +52,7 @@ countUnreadInChunkAfterTs:
 SELECT COUNT(*) FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ? AND event.origin_server_ts > ?
-AND event.sender IS NOT ? AND event.type IN ?
+AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%');
 
 -- Unread events carrying an m.mentions block. Which mention is for us (and whether an @room one is
@@ -61,7 +61,7 @@ selectMentionCandidatesInChunkAfterIndex:
 SELECT event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ? AND timeline_event.display_index > ?
-AND event.sender IS NOT ? AND event.type IN ?
+AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 AND (event.content LIKE '%m.mentions%' OR event.decryption_result_json LIKE '%m.mentions%');
 
@@ -69,7 +69,7 @@ selectMentionCandidatesInChunkAfterTs:
 SELECT event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ? AND event.origin_server_ts > ?
-AND event.sender IS NOT ? AND event.type IN ?
+AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 AND (event.content LIKE '%m.mentions%' OR event.decryption_result_json LIKE '%m.mentions%');
 
@@ -78,7 +78,7 @@ selectKeywordCandidatesInChunkAfterIndex:
 SELECT event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ? AND timeline_event.display_index > ?
-AND event.sender IS NOT ? AND event.type IN ?
+AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 AND (event.content LIKE ? ESCAPE '\' OR event.decryption_result_json LIKE ? ESCAPE '\');
 
@@ -86,7 +86,7 @@ selectKeywordCandidatesInChunkAfterTs:
 SELECT event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ? AND event.origin_server_ts > ?
-AND event.sender IS NOT ? AND event.type IN ?
+AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 AND (event.content LIKE ? ESCAPE '\' OR event.decryption_result_json LIKE ? ESCAPE '\');
 

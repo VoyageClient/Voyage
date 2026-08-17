@@ -16,9 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
+import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -40,6 +45,10 @@ internal class DefaultUpdateIgnoredUserIdsTask @Inject constructor(
         @UserId private val userId: String,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val ignoredUsersUpdater: IgnoredUsersUpdater,
+        private val ignoredUsersApplier: IgnoredUsersApplier,
+        private val pendingUnIgnoreStore: PendingUnIgnoreStore,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val databaseDispatcher: CoroutineDispatcher,
 ) : UpdateIgnoredUserIdsTask {
 
     override suspend fun execute(params: UpdateIgnoredUserIdsTask.Params) {
@@ -56,13 +65,36 @@ internal class DefaultUpdateIgnoredUserIdsTask @Inject constructor(
             if (original == ignoredUserIds) {
                 // No change (record the base so the next update reuses it)
                 ignoredUsersUpdater.lastKnownIds = ignoredUserIds
-                return
+                return@withLock
             }
             val body = IgnoredUsersContent.createWithUserIds(ignoredUserIds.toList())
             executeRequest(globalErrorReceiver) {
                 accountDataApi.setAccountData(userId, UserAccountDataTypes.TYPE_IGNORED_USER_LIST, body)
             }
             ignoredUsersUpdater.lastKnownIds = ignoredUserIds
+            // Recorded from what was just pushed, not from the local apply below: that apply writes to
+            // *this* session's database, which may already be released (a screen outlives the session it
+            // was opened with), and its content recovery has to happen either way. The account's live
+            // session drains this on its next sync.
+            val unIgnored = original.filter { it !in ignoredUserIds }
+            pendingUnIgnoreStore.add(userId, unIgnored)
+            applyLocally(ignoredUserIds)
+        }
+    }
+
+    /**
+     * Applying here rather than waiting to be told: the echo only arrives with the next sync response,
+     * which a long-polling (sliding) connection can sit on. The echo then finds nothing left to change.
+     *
+     * Best-effort: this writes to the session the caller came from, which may already be released (a
+     * screen outlives the session it was opened with). The change is on the server either way, so let
+     * the live session's echo apply it rather than failing the whole update.
+     */
+    private suspend fun applyLocally(ignoredUserIds: Set<String>) {
+        tryOrNull("Could not apply the ignore list locally") {
+            database.awaitDbTransaction(databaseDispatcher) {
+                ignoredUsersApplier.apply(stores, ignoredUserIds)
+            }
         }
     }
 }

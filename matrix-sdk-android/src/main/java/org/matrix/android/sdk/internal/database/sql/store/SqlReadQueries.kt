@@ -133,30 +133,31 @@ internal fun SessionStores.localUnreadCounts(userId: String, roomId: String): Lo
 private class UnreadWindow(
         private val queries: TimelineEventQueries,
         private val chunkId: Long,
-        private val userId: String,
+        /** Us, plus everyone we ignore: their stored messages are hidden, so they must not count. */
+        private val excludedSenders: Collection<String>,
         private val displayIndex: Long?,
         private val timestamp: Long,
 ) {
 
     fun messageCount(): Int = if (displayIndex != null) {
-        queries.countUnreadInChunkAfterIndex(chunkId, displayIndex, userId, UNREAD_COUNTABLE_TYPES)
+        queries.countUnreadInChunkAfterIndex(chunkId, displayIndex, excludedSenders, UNREAD_COUNTABLE_TYPES)
     } else {
-        queries.countUnreadInChunkAfterTs(chunkId, timestamp, userId, UNREAD_COUNTABLE_TYPES)
+        queries.countUnreadInChunkAfterTs(chunkId, timestamp, excludedSenders, UNREAD_COUNTABLE_TYPES)
     }.executeAsOne().toInt()
 
     fun mentionCandidates(): List<Event> = if (displayIndex != null) {
-        queries.selectMentionCandidatesInChunkAfterIndex(chunkId, displayIndex, userId, UNREAD_COUNTABLE_TYPES)
+        queries.selectMentionCandidatesInChunkAfterIndex(chunkId, displayIndex, excludedSenders, UNREAD_COUNTABLE_TYPES)
     } else {
-        queries.selectMentionCandidatesInChunkAfterTs(chunkId, timestamp, userId, UNREAD_COUNTABLE_TYPES)
+        queries.selectMentionCandidatesInChunkAfterTs(chunkId, timestamp, excludedSenders, UNREAD_COUNTABLE_TYPES)
     }.executeAsList().map { it.toEntity().asDomain() }
 
     /** Narrowed by a substring of the keyword; the rule's own matcher has the final say. */
     fun keywordCandidates(keyword: String): List<Event> {
         val pattern = "%${keyword.globToSqlLike()}%"
         return if (displayIndex != null) {
-            queries.selectKeywordCandidatesInChunkAfterIndex(chunkId, displayIndex, userId, UNREAD_COUNTABLE_TYPES, pattern, pattern)
+            queries.selectKeywordCandidatesInChunkAfterIndex(chunkId, displayIndex, excludedSenders, UNREAD_COUNTABLE_TYPES, pattern, pattern)
         } else {
-            queries.selectKeywordCandidatesInChunkAfterTs(chunkId, timestamp, userId, UNREAD_COUNTABLE_TYPES, pattern, pattern)
+            queries.selectKeywordCandidatesInChunkAfterTs(chunkId, timestamp, excludedSenders, UNREAD_COUNTABLE_TYPES, pattern, pattern)
         }.executeAsList().map { it.toEntity().asDomain() }
     }
 }
@@ -168,7 +169,7 @@ private fun SessionStores.unreadWindow(userId: String, roomId: String): UnreadWi
     return UnreadWindow(
             queries = database.timelineEventQueries,
             chunkId = liveChunkId,
-            userId = userId,
+            excludedSenders = user.getIgnoredUserIds() + userId,
             displayIndex = when {
                 receipt == null -> Long.MIN_VALUE
                 else -> rrIndex?.toLong()

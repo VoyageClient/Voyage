@@ -24,7 +24,8 @@ import org.matrix.android.sdk.internal.database.model.EventAnnotationsSummaryEnt
 internal object EventAnnotationsSummaryMapper {
     fun map(annotationsSummary: EventAnnotationsSummaryEntity): EventAnnotationsSummary {
         return EventAnnotationsSummary(
-                reactionsSummary = annotationsSummary.reactionsSummary.toList().map {
+                // A zero count means every reaction of that key came from an ignored user.
+                reactionsSummary = annotationsSummary.reactionsSummary.filter { it.count > 0 }.map {
                     ReactionAggregatedSummary(
                             it.key,
                             it.count,
