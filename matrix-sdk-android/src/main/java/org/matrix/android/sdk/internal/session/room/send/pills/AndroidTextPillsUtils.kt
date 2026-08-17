@@ -21,22 +21,26 @@ internal class AndroidTextPillsUtils @Inject constructor(
 ) : TextPillsUtils {
 
     override fun processSpecialSpansToHtml(text: CharSequence): String? {
-        return transformPills(text, permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.HTML))
+        return transformPills(text, permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.HTML)) { it.htmlEscape() }
     }
 
     override fun processSpecialSpansToMarkdown(text: CharSequence): String? {
-        return transformPills(text, permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.MARKDOWN))
+        return transformPills(text, permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.MARKDOWN)) { it.markdownEscape() }
     }
 
-    private fun transformPills(text: CharSequence, template: String): String? {
+    private fun transformPills(text: CharSequence, template: String, escapeLabel: (String) -> String): String? {
         val spannableString = SpannableString.valueOf(text) ?: return null
         val pills = spannableString
                 .getSpans(0, text.length, MatrixItemSpan::class.java)
                 // we use the raw text for @room notification instead of a link
                 .filterNot { it.matrixItem is MatrixItem.EveryoneInRoomItem }
                 .map {
+                    // The link text is the name the plain body uses, so the two bodies agree.
+                    val label = it.bodyText?.takeIf { name -> name.isNotBlank() }
+                            ?: it.matrixItem.displayName?.takeIf { name -> name.isNotBlank() }
+                            ?: it.matrixItem.id
                     MentionLinkSpec(
-                            replacement = String.format(template, it.matrixItem.id, it.matrixItem.id),
+                            replacement = String.format(template, it.matrixItem.id, escapeLabel(label)),
                             start = spannableString.getSpanStart(it),
                             end = spannableString.getSpanEnd(it)
                     )
@@ -79,6 +83,12 @@ internal class AndroidTextPillsUtils @Inject constructor(
             .replace(">", "&gt;")
             .replace("\"", "&quot;")
 
+    // A display name is free-form, so keep its punctuation from being read as markdown syntax once
+    // the label is spliced into a link: brackets would end the label, the rest could style it.
+    private fun String.markdownEscape(): String = MARKDOWN_PUNCTUATION.fold(this) { escaped, char ->
+        escaped.replace(char.toString(), "\\$char")
+    }
+
     private fun pruneOverlaps(links: MutableList<MentionLinkSpec>) {
         Collections.sort(links, mentionLinkSpecComparator)
         var len = links.size
@@ -110,5 +120,10 @@ internal class AndroidTextPillsUtils @Inject constructor(
             }
             i++
         }
+    }
+
+    companion object {
+        // Backslash first, so escaping it does not double up the escapes added after it.
+        private val MARKDOWN_PUNCTUATION = listOf('\\', '[', ']', '<', '>', '`', '*', '_', '~')
     }
 }

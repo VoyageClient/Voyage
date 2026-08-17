@@ -100,6 +100,8 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             }
             im.vector.app.core.utils.PerfTrace.time("bind.super.avatar") {
                 attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
+                // Tapping the name/avatar mentions the sender, so have the pill's avatar ready by then.
+                attributes.avatarRenderer.preloadAvatar(attributes.informationData.matrixItem, holder.avatarImageView)
             }
             holder.avatarImageView.setOnLongClickListener(attributes.itemLongClickListener)
             holder.avatarImageView.isVisible = true

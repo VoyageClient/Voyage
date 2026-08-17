@@ -212,7 +212,11 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         timeView?.text = attributes.informationData.time
         memberNameView?.text = attributes.informationData.memberName?.prepareForDisplay()
         memberNameView?.setTextColor(attributes.getMemberNameColor())
-        if (avatarImageView != null) attributes.avatarRenderer.render(attributes.informationData.matrixItem, avatarImageView)
+        if (avatarImageView != null) {
+            attributes.avatarRenderer.render(attributes.informationData.matrixItem, avatarImageView)
+            // Tapping the name/avatar mentions the sender, so have the pill's avatar ready by then.
+            attributes.avatarRenderer.preloadAvatar(attributes.informationData.matrixItem, avatarImageView)
+        }
         avatarImageView?.setOnLongClickListener(attributes.itemLongClickListener)
         memberNameView?.setOnLongClickListener(attributes.itemLongClickListener)
 

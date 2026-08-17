@@ -60,9 +60,10 @@ class PillImageSpan(
         private val avatarRenderer: AvatarRenderer,
         private val context: Context,
         override val matrixItem: MatrixItem,
-        // What [expandPillSpans] writes into the outgoing body: the composer passes the un-overridden
-        // name, since a local display-name override means nothing to the rest of the room.
-        val bodyText: String? = null,
+        // What [expandPillSpans] writes into the outgoing body, and the link text of the generated
+        // permalink: the composer passes the un-overridden name, since a local display-name override
+        // means nothing to the rest of the room.
+        override val bodyText: String? = null,
 ) : ReplacementSpan(), MatrixItemSpan, ContentHashedSpan {
 
     override fun contentHash() = matrixItem.hashCode()

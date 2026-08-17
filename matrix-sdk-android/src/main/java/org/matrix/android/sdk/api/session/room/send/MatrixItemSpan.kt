@@ -24,4 +24,11 @@ import org.matrix.android.sdk.api.util.MatrixItem
  */
 interface MatrixItemSpan {
     val matrixItem: MatrixItem
+
+    /**
+     * The text this pill stands for in the plain body. The generated link uses it as its link text so
+     * the two bodies agree on what the mention is called, as Element Web does. Null falls back to the
+     * item's name.
+     */
+    val bodyText: String? get() = null
 }

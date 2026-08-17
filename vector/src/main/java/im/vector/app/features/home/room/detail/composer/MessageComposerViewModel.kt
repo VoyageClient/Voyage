@@ -16,6 +16,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
+import im.vector.app.core.extensions.bodyName
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
@@ -341,7 +342,23 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleEnterEditMode(room: Room, action: MessageComposerAction.EnterEditMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
-            setState { copy(sendMode = SendMode.Edit(timelineEvent, computeEditableContent(timelineEvent))) }
+            val prefill = computeEditablePrefill(room, timelineEvent)
+            setState { copy(sendMode = SendMode.Edit(timelineEvent, prefill)) }
+        }
+    }
+
+    /**
+     * [computeEditableContent] with the mentions restored as markdown links, which the composer turns
+     * back into pills. The plain body carries a mention as a bare name, so editing against it alone
+     * would silently flatten every pill in the message to text.
+     */
+    private fun computeEditablePrefill(room: Room, timelineEvent: TimelineEvent): CharSequence {
+        val body = computeEditableContent(timelineEvent)
+        val formatted = (timelineEvent.getVectorLastMessageContent() as? MessageContentWithFormattedBody)?.matrixFormattedBody
+        return spliceMentionLinks(body.toString(), formatted) { userId ->
+            val member = room.membershipService().getRoomMember(userId)
+            // Both, since the body may predate a local override being set or cleared.
+            listOfNotNull(member?.bodyName(), member?.displayName).distinct()
         }
     }
 

@@ -61,6 +61,7 @@ import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
+import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.html.expandPillSpans
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.media.ImageContentRenderer
@@ -133,6 +134,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     // The replied-to/related event currently shown in the preview, so its media can be re-rendered
     // in place when revealed elsewhere.
     private var relatedMessageEvent: TimelineEvent? = null
+
+    // Lets a reconstructed pill resolve its member (and so its room display name) the way the timeline does.
+    var roomId: String? = null
 
     override var callback: Callback? = null
 
@@ -340,7 +344,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             out.append(source, index, match.range.first)
             val label = match.groupValues[1]
             val matrixItem = when (val data = PermalinkParser.parse(match.groupValues[2])) {
-                is PermalinkData.UserLink -> session.getUserOrDefault(data.userId).toMatrixItem()
+                // Prefer the room member: only it carries the name (and any local override) the pill
+                // should draw. The global user is a fallback that often knows nothing but the id.
+                is PermalinkData.UserLink ->
+                    roomId?.let { session.roomService().getRoomMember(data.userId, it)?.toMatrixItem() }
+                            ?: session.getUserOrDefault(data.userId).toMatrixItem()
                 is PermalinkData.RoomLink -> session.getRoomSummary(data.roomIdOrAlias)?.toMatrixItem()
                 else -> null
             }
@@ -499,6 +507,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             renderedBody
         }
         eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.prepareForDisplay())
+        // Without this the preview's pills only ever show what the synchronous avatar lookup found, so
+        // a re-render that misses the cache leaves them stuck on the placeholder.
+        views.composerRelatedMessageContent.bindPillImageSpans()
         // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none; the
         // preview's links stay inert, as they are in the reply header.
         views.composerRelatedMessageContent.movementMethod = null
