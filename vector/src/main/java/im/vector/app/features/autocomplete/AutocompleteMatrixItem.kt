@@ -36,6 +36,8 @@ abstract class AutocompleteMatrixItem : VectorEpoxyModel<AutocompleteMatrixItem.
         holder.nameView.text = matrixItem.getBestName().prepareForDisplay()
         holder.subNameView.setTextOrHide(subName?.prepareForDisplay())
         avatarRenderer.render(matrixItem, holder.avatarImageView)
+        // So picking this item draws its pill with the avatar already in hand.
+        avatarRenderer.preloadAvatar(matrixItem, holder.avatarImageView)
     }
 
     class Holder : VectorEpoxyHolder() {

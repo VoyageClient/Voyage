@@ -266,6 +266,8 @@ class RoomMemberProfileFragment :
                 }
                 avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView)
                 avatarRenderer.render(displayedMatrixItem, views.matrixProfileToolbarAvatarImageView)
+                // The Mention action below returns to the composer, so have the pill's avatar ready.
+                avatarRenderer.preloadAvatar(displayedMatrixItem, headerViews.memberProfileAvatarView)
 
                 // Follow the same hiding rule as the avatar
                 currentBannerUrl = state.resolvedBannerUrl()

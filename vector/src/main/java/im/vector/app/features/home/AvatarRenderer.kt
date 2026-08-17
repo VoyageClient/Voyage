@@ -15,6 +15,7 @@ import android.graphics.PixelFormat
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.view.View
 import android.widget.ImageView
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
@@ -79,6 +80,8 @@ class AvatarRenderer @Inject constructor(
         // Rounded-square corner radius as a fraction of the avatar's shorter side, so the rounding
         // looks the same whether the avatar is a tiny read receipt or a large profile header.
         internal const val ROUNDED_CORNER_PERCENT = 0.20f
+
+        private const val MAX_PRELOADED_AVATARS = 128
     }
 
     @UiThread
@@ -252,12 +255,24 @@ class AvatarRenderer @Inject constructor(
         }
     }
 
-    // Warms exactly the request [getCachedDrawable] reads back: an ImageView render caches under the
-    // view's measured size, and onlyRetrieveFromCache is itself part of the memory-cache key, so
-    // anything less than an identical request leaves the pill fetching again.
+    private val preloadedAvatars = object : LinkedHashMap<String, Unit>(0, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<String, Unit>) = size > MAX_PRELOADED_AVATARS
+    }
+
+    // Warms the request [getCachedDrawable] reads back. Glide's memory-cache key includes the
+    // requested size, so an ImageView render (cached under the view's measured size) is not a hit
+    // for the pill's unsized one; this fetches so picking a mention draws the avatar right away.
+    // Callers sit on rebind paths and building the request is not free, hence the dedupe; if the entry
+    // is evicted later the pill just loads asynchronously, as it did before.
     @UiThread
     fun preloadAvatar(glideRequests: GlideRequests, matrixItem: MatrixItem) {
-        glideRequests.loadAvatar(matrixItem, cacheOnly = true).preload()
+        if (preloadedAvatars.put("${matrixItem.id}|${matrixItem.avatarUrl}", Unit) != null) return
+        glideRequests.loadAvatar(matrixItem).preload()
+    }
+
+    @UiThread
+    fun preloadAvatar(matrixItem: MatrixItem, view: View) {
+        preloadAvatar(GlideApp.with(view), matrixItem)
     }
 
     @AnyThread

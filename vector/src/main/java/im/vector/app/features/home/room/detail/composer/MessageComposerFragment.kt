@@ -415,6 +415,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun setupComposer() {
         val composerEditText = composer.editText
         composerEditText.setHint(CommonStrings.room_message_placeholder)
+        views.composerLayout.roomId = roomId
 
         initAutoCompleter(composer.editText)
 
