@@ -28,13 +28,13 @@ import org.matrix.android.sdk.internal.session.pushers.GetPushRulesResponse
 import org.matrix.android.sdk.internal.session.room.SqlRoomAvatarResolver
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomDisplayNameResolver
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
-import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.BreadcrumbsContent
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.DirectMessagesContent
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.IgnoredUsersContent
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.toMutable
 import org.matrix.android.sdk.internal.session.user.accountdata.DirectChatsHelper
+import org.matrix.android.sdk.internal.session.user.accountdata.IgnoredUsersApplier
 import org.matrix.android.sdk.internal.session.user.accountdata.IgnoredUsersUpdater
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import javax.inject.Inject
@@ -47,8 +47,8 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         @UserId private val userId: String,
         private val directChatsHelper: DirectChatsHelper,
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
-        private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val ignoredUsersUpdater: IgnoredUsersUpdater,
+        private val ignoredUsersApplier: IgnoredUsersApplier,
         private val profileOverridesUpdater: ProfileOverridesUpdater,
 ) {
 
@@ -160,37 +160,11 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
                 ?.filter { it.isNotBlank() } ?: return
         // The list just changed server-side; drop the cached base so the next local update re-reads it.
         ignoredUsersUpdater.lastKnownIds = null
-        val currentIgnoredUserIds = stores.user.getIgnoredUserIds()
-        val newlyUnIgnored = currentIgnoredUserIds.filter { it !in newIgnoredUserIds }
-        val newlyIgnored = newIgnoredUserIds.filter { it !in currentIgnoredUserIds }
-        currentIgnoredUserIds.forEach { stores.user.deleteIgnoredUser(it) }
-        newIgnoredUserIds.forEach { stores.user.insertIgnoredUser(it) }
-        // Re-evaluate the room-list preview and hide/show inbound invites for the changed users. Writing
-        // room_summary here is what makes this work regardless of which client did the (un)ignore: the
-        // room list observes room_summary, but NOT the ignored_user table. (The open timeline re-filters
-        // itself separately via the ignored_user flow.)
-        val changedUsers = newlyIgnored + newlyUnIgnored
-        if (changedUsers.isNotEmpty()) {
-            // Drop a newly-ignored author's message wherever it is the current preview (keyed on the stored
-            // preview's author, so it doesn't depend on possibly-stale other_member_ids), plus re-evaluate
-            // rooms a changed user belongs to (un-ignore may restore their message as the preview).
-            val roomsToRefresh = LinkedHashSet<String>()
-            roomsToRefresh += stores.roomSummary.roomIdsWithPreviewFromSenders(newlyIgnored)
-            roomsToRefresh += stores.roomSummary.roomIdsWithActiveMembers(changedUsers)
-            roomsToRefresh.forEach { roomSummaryUpdater.refreshLatestPreviewableEvent(stores, it) }
-            // Inbound invites: hide those from a newly-ignored inviter, reveal them again on un-ignore.
-            stores.roomSummary.inviteRoomIdsByInviters(newlyIgnored).forEach { stores.roomSummary.setHiddenFromUser(it, true) }
-            stores.roomSummary.inviteRoomIdsByInviters(newlyUnIgnored).forEach { stores.roomSummary.setHiddenFromUser(it, false) }
-        }
-        // No event deletion + no forced initial sync (the old behavior): the timeline filters ignored
-        // senders' messages at display time and observes this `ignored_user` table, so ignoring hides
-        // their messages and UNIGNORING reveals already-cached ones instantly — without re-syncing.
-        // Content the server suppressed while they were ignored (invites; messages interleaved in
-        // already-synced ranges) is never re-sent by an incremental sync, so flag the un-ignored users
-        // for a post-transaction targeted catch-up (FetchUnignoredContentTask) that recovers it.
-        if (newlyUnIgnored.isNotEmpty()) {
-            aggregator.unIgnoredUserIds.addAll(newlyUnIgnored)
-        }
+        val newlyUnIgnored = ignoredUsersApplier.apply(stores, newIgnoredUserIds)
+        // Nothing stored is deleted: the timeline filters ignored senders at display time, so their
+        // already-synced messages come back the moment they are un-ignored. What the server withheld
+        // while they were ignored is never re-sent, so flag them for the post-transaction catch-up.
+        aggregator.unIgnoredUserIds.addAll(newlyUnIgnored)
     }
 
     private fun handleBreadcrumbs(event: UserAccountDataEvent) {

@@ -323,6 +323,11 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val inviterEvent = roomSync.inviteState?.events?.lastOrNull { it.type == EventType.STATE_ROOM_MEMBER }
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.INVITE)
         roomSummaryUpdater.update(stores, roomId, Membership.INVITE, updateMembers = true, inviterId = inviterEvent?.senderId, aggregator = aggregator)
+        // Servers are meant to withhold invites from ignored users; hide the ones that slip through
+        // anyway (a known sliding-sync gap) rather than showing the invite they were ignored to avoid.
+        if (inviterEvent?.senderId != null && inviterEvent.senderId in stores.user.getIgnoredUserIds()) {
+            stores.roomSummary.setHiddenFromUser(roomId, true)
+        }
         unRequestedForwardManager.onInviteReceived(roomId, inviterEvent?.senderId.orEmpty(), clock.epochMillis())
     }
 

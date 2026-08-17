@@ -818,11 +818,12 @@ internal class SqlTimeline(
         } else {
             emptyList()
         }
-        // Hide ignored users' messages at display time (keep their state events, per the spec). Filtering
-        // here — rather than deleting rows — is what makes unignore instant: nothing was ever removed.
+        // Hide everything an ignored user did at display time — their joins, leaves and ACL changes as
+        // much as their messages. The events are still stored and still applied to room state; only the
+        // timeline tiles go. Filtering here rather than deleting rows is what makes un-ignore instant.
         val ignored = stores.user.getIgnoredUserIds().toSet()
         return (sending + chunkEvents)
-                .filterNot { it.root.senderId in ignored && it.root.stateKey == null }
+                .filterNot { it.root.senderId in ignored }
                 .map { uiEchoManager.decorateEventWithReactionUiEcho(it) }
     }
 

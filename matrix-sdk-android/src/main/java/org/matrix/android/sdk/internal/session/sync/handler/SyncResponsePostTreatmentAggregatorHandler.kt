@@ -21,16 +21,18 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
 import org.matrix.android.sdk.internal.di.SessionId
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoomTask
-import org.matrix.android.sdk.internal.session.sync.FetchUnignoredContentTask
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.toMutable
 import org.matrix.android.sdk.internal.session.user.accountdata.DirectChatsHelper
+import org.matrix.android.sdk.internal.session.user.accountdata.PendingUnIgnoreStore
+import org.matrix.android.sdk.internal.session.user.accountdata.UnIgnoredContentRecoverer
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.util.logLimit
 import timber.log.Timber
@@ -43,9 +45,10 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         private val updateTrustWorkerDataRepository: UpdateTrustWorkerDataRepository,
         private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val roomShieldSummaryUpdater: ShieldSummaryUpdater,
-        // Lazy breaks the SyncResponseHandler -> this -> FetchUnignoredContentTask -> SyncResponseHandler cycle.
-        private val fetchUnignoredContentTask: dagger.Lazy<FetchUnignoredContentTask>,
         private val reanchorRejoinedRoomTask: dagger.Lazy<ReanchorRejoinedRoomTask>,
+        private val pendingUnIgnoreStore: PendingUnIgnoreStore,
+        private val unIgnoredContentRecoverer: UnIgnoredContentRecoverer,
+        @UserId private val userId: String,
         @SessionId private val sessionId: String,
 ) {
     suspend fun handle(aggregator: SyncResponsePostTreatmentAggregator) {
@@ -65,11 +68,14 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         }
     }
 
-    private suspend fun fetchUnignoredContentIfNeeded(unIgnoredUserIds: Set<String>) {
-        if (unIgnoredUserIds.isEmpty()) return
-        tryOrNull("Unable to recover content after un-ignore") {
-            fetchUnignoredContentTask.get().execute(FetchUnignoredContentTask.Params(unIgnoredUserIds.toList()))
-        }
+    /**
+     * Recovers what the homeserver withheld from users just un-ignored — those this sync brought news
+     * of, plus anything an earlier attempt left pending. Every sync is a retry, which is what gets the
+     * content in when the un-ignore was made through a session that has since been released.
+     */
+    private fun fetchUnignoredContentIfNeeded(unIgnoredUserIds: Set<String>) {
+        pendingUnIgnoreStore.add(userId, unIgnoredUserIds)
+        unIgnoredContentRecoverer.recoverPending()
     }
 
     private fun cleanupEphemeralFiles(ephemeralFilesToDelete: List<String>) {

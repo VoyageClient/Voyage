@@ -41,6 +41,7 @@ import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
 import org.matrix.android.sdk.internal.raw.RawModule
 import org.matrix.android.sdk.internal.session.MockHttpInterceptor
 import org.matrix.android.sdk.internal.session.TestInterceptor
+import org.matrix.android.sdk.internal.session.user.accountdata.PendingUnIgnoreStore
 import org.matrix.android.sdk.internal.settings.SettingsModule
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
@@ -101,6 +102,8 @@ internal interface MatrixComponent {
     fun backgroundDetectionObserver(): BackgroundDetectionObserver
 
     fun sessionManager(): SessionManager
+
+    fun pendingUnIgnoreStore(): PendingUnIgnoreStore
 
     fun secureStorageService(): SecureStorageService
 

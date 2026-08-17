@@ -52,6 +52,7 @@ import org.matrix.android.sdk.internal.session.room.aggregation.livelocation.Liv
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollAggregationProcessor
 import org.matrix.android.sdk.internal.session.room.aggregation.utd.EncryptedReferenceAggregationProcessor
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
+import org.matrix.android.sdk.internal.session.room.relation.ReactionSummaryRefresher
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import org.matrix.android.sdk.internal.util.time.Clock
@@ -78,6 +79,7 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         private val encryptedReferenceAggregationProcessor: EncryptedReferenceAggregationProcessor,
         private val stateEventDataSource: StateEventDataSource,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
+        private val reactionSummaryRefresher: ReactionSummaryRefresher,
 ) : EventInsertLiveProcessor {
 
     // OPT OUT server aggregation until API mature enough (should be true to work with e2e)
@@ -410,20 +412,9 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
             }
         }
 
-        refreshReactionSummary(stores, sum)
+        reactionSummaryRefresher.refresh(stores, sum)
         stores.annotations.upsertSummary(relatedEventID, roomId)
         stores.annotations.replaceReactions(relatedEventID, eventSummary.reactionsSummary)
-    }
-
-    /**
-     * Derive [count] and [addedByMe] from the source lists so they can never drift out of sync with
-     * the reactions actually known (which is what causes inflated counters and stale highlight state).
-     */
-    private fun refreshReactionSummary(stores: SessionStores, sum: ReactionAggregatedSummaryEntity) {
-        sum.count = sum.sourceEvents.size + sum.sourceLocalEcho.size
-        // Local echoes are always our own; otherwise look up the sender of each known source event.
-        sum.addedByMe = sum.sourceLocalEcho.isNotEmpty() ||
-                sum.sourceEvents.any { stores.event.getByEventId(it)?.sender == userId }
     }
 
     private fun handleReactionRedact(stores: SessionStores, eventToPrune: EventEntity) {
@@ -445,8 +436,10 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
             return
         }
         aggregation.sourceEvents.remove(eventToPrune.eventId)
-        refreshReactionSummary(stores, aggregation)
-        if (aggregation.count == 0) {
+        reactionSummaryRefresher.refresh(stores, aggregation)
+        // Not on count == 0: an ignored reactor's reaction counts for nothing yet must stay stored,
+        // so it comes back on un-ignore.
+        if (aggregation.sourceEvents.isEmpty() && aggregation.sourceLocalEcho.isEmpty()) {
             summary.reactionsSummary.remove(aggregation)
         }
         // Touch event_annotations_summary too: reactions live in their own table, but the timeline's
