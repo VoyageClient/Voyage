@@ -27,6 +27,7 @@ import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoomTask
+import org.matrix.android.sdk.internal.session.room.timeline.SeedJoinedRoomHistoryTask
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.toMutable
@@ -46,6 +47,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val roomShieldSummaryUpdater: ShieldSummaryUpdater,
         private val reanchorRejoinedRoomTask: dagger.Lazy<ReanchorRejoinedRoomTask>,
+        private val seedJoinedRoomHistoryTask: dagger.Lazy<SeedJoinedRoomHistoryTask>,
         private val pendingUnIgnoreStore: PendingUnIgnoreStore,
         private val unIgnoredContentRecoverer: UnIgnoredContentRecoverer,
         @UserId private val userId: String,
@@ -58,6 +60,16 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         handleRefreshRoomShieldsForRooms(aggregator.roomsWithMembershipChangesForShieldUpdate)
         fetchUnignoredContentIfNeeded(aggregator.unIgnoredUserIds)
         reanchorRejoinedRooms(aggregator.rejoinedRoomsToReanchor)
+        seedNewlyJoinedRooms(aggregator.newlyJoinedRooms)
+    }
+
+    /** Only rooms which really came in empty do anything here; the task checks before it asks the server. */
+    private suspend fun seedNewlyJoinedRooms(roomIds: Set<String>) {
+        roomIds.forEach { roomId ->
+            tryOrNull("Failed to seed the history of newly joined room $roomId") {
+                seedJoinedRoomHistoryTask.get().execute(SeedJoinedRoomHistoryTask.Params(roomId))
+            }
+        }
     }
 
     private suspend fun reanchorRejoinedRooms(roomIds: Set<String>) {
