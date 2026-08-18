@@ -25,4 +25,10 @@ interface LightweightSettingsStorage {
 
     /** Whether to sync over MSC4525 / MSC4186 when the homeserver offers them, instead of sync v2. */
     fun isSlidingSyncEnabled(): Boolean
+
+    /**
+     * Whether those previews are generated on the device rather than by the homeserver, in the given room.
+     * The room's own override wins over the account-wide mode.
+     */
+    fun getLinkPreviewMode(roomId: String): LinkPreviewMode
 }

@@ -102,11 +102,18 @@ class PreviewUrlView @JvmOverloads constructor(
     private fun onImageClick() {
         when (val finalState = state) {
             is PreviewUrlUiState.Data -> {
-                delegate?.onPreviewUrlImageClicked(
-                        sharedView = views.urlPreviewImage,
-                        mxcUrl = finalState.previewUrlData.mxcUrl,
-                        title = finalState.previewUrlData.title
-                )
+                val mxcUrl = finalState.previewUrlData.mxcUrl
+                if (mxcUrl == null) {
+                    // An encrypted thumbnail (MSC4095) is not something the image viewer can open, so the
+                    // tap does what tapping the rest of the card does.
+                    delegate?.onPreviewUrlClicked(finalState.url)
+                } else {
+                    delegate?.onPreviewUrlImageClicked(
+                            sharedView = views.urlPreviewImage,
+                            mxcUrl = mxcUrl,
+                            title = finalState.previewUrlData.title
+                    )
+                }
             }
             else -> Unit
         }
@@ -143,10 +150,11 @@ class PreviewUrlView @JvmOverloads constructor(
         isVisible = true
 
         views.urlPreviewTitle.setTextOrHide(previewUrlData.title)
-        views.urlPreviewImage.isVisible = imageContentRenderer.render(previewUrlData, views.urlPreviewImage)
+        val hasImage = imageContentRenderer.render(previewUrlData, views.urlPreviewImage)
+        views.urlPreviewImage.isVisible = hasImage
         views.urlPreviewDescription.setTextOrHide(previewUrlData.description)
         views.urlPreviewDescription.maxLines = when {
-            previewUrlData.mxcUrl != null -> 2
+            hasImage -> 2
             previewUrlData.title != null -> 3
             else -> 5
         }

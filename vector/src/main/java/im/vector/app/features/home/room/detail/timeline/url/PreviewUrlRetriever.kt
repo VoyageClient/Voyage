@@ -37,7 +37,12 @@ class PreviewUrlRetriever(
     // In memory list
     private val blockedUrl = mutableSetOf<String>()
 
-    fun getPreviewUrl(event: TimelineEvent) {
+    /**
+     * @param allowServerFetch false to never hand a URL over to the homeserver, which is what the user asks
+     * for by keeping URL previews off in encrypted rooms. Previews bundled in the event itself (MSC4095)
+     * are displayed either way: they leak nothing.
+     */
+    fun getPreviewUrl(event: TimelineEvent, allowServerFetch: Boolean) {
         val eventId = event.timelineStableId()
         val latestEventId = event.getLatestEventId()
 
@@ -46,11 +51,27 @@ class PreviewUrlRetriever(
             if (current?.latestEventId != latestEventId) {
                 // The event is not known or it has been edited
                 // Keep only the first URL for the moment
-                val url = mediaService.extractUrls(event)
-                        .firstOrNull { canShowUrlPreview(it) }
-                        ?.takeIf { it !in blockedUrl }
-                if (url == null) {
+                val bundled = mediaService.extractBundledUrlPreviews(event)
+                        ?.filter { canShowUrlPreview(it.matchedUrl) && it.matchedUrl !in blockedUrl && it.previewUrlData?.url !in blockedUrl }
+                val bundledData = bundled?.firstNotNullOfOrNull { it.previewUrlData }
+                val url = if (bundled == null) {
+                    mediaService.extractUrls(event)
+                            .firstOrNull { canShowUrlPreview(it) }
+                            ?.takeIf { it !in blockedUrl }
+                } else {
+                    // The sender listed the URLs to preview: anything else stays unpreviewed.
+                    bundled.firstOrNull()?.matchedUrl
+                }
+                if (bundledData != null) {
+                    updateState(eventId, latestEventId, PreviewUrlUiState.Data(eventId, bundledData.url, bundledData))
+                    null
+                } else if (url == null || !allowServerFetch) {
                     updateState(eventId, latestEventId, PreviewUrlUiState.NoUrl)
+                    null
+                } else if (event.root.sendState.isSending()) {
+                    // Our own message, still on its way: it carries its own preview (MSC4095), which lands
+                    // with the remote echo in a moment. Asking the homeserver now would both waste the
+                    // request and hand it the link the user may have chosen to keep from it.
                     null
                 } else if (url != (current?.previewUrlUiState as? PreviewUrlUiState.Data)?.url) {
                     // There is a not known URL, or the Event has been edited and the URL has changed
@@ -77,15 +98,15 @@ class PreviewUrlRetriever(
                             synchronized(data) {
                                 // Blocked after the request has been sent?
                                 if (urlToRetrieve in blockedUrl) {
-                                    updateState(eventId, latestEventId, PreviewUrlUiState.NoUrl)
+                                    updateStateIfCurrent(eventId, latestEventId, PreviewUrlUiState.NoUrl)
                                 } else {
-                                    updateState(eventId, latestEventId, PreviewUrlUiState.Data(eventId, urlToRetrieve, it))
+                                    updateStateIfCurrent(eventId, latestEventId, PreviewUrlUiState.Data(eventId, urlToRetrieve, it))
                                 }
                             }
                         },
                         {
                             synchronized(data) {
-                                updateState(eventId, latestEventId, PreviewUrlUiState.Error(it))
+                                updateStateIfCurrent(eventId, latestEventId, PreviewUrlUiState.Error(it))
                             }
                         }
                 )
@@ -108,6 +129,17 @@ class PreviewUrlRetriever(
                         updateState(eventId, it.latestEventId, PreviewUrlUiState.NoUrl)
                     }
         }
+    }
+
+    /**
+     * A request answers for the event as it was when the request went out. By the time it lands the event
+     * may have moved on — most often our own message, whose local echo asked the homeserver and whose
+     * remote echo then arrived carrying its own bundled preview (MSC4095). The late answer, success or
+     * failure, must not overwrite that.
+     */
+    private fun updateStateIfCurrent(eventId: String, latestEventId: String, state: PreviewUrlUiState) {
+        if (data[eventId]?.latestEventId != latestEventId) return
+        updateState(eventId, latestEventId, state)
     }
 
     private fun updateState(eventId: String, latestEventId: String, state: PreviewUrlUiState) {

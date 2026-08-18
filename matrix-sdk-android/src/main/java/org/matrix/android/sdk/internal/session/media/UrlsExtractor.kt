@@ -45,11 +45,15 @@ internal class UrlsExtractor @Inject constructor() {
                         messageContent.body
                     }
                 }
-                ?.let { urlRegex.findAll(it) }
-                ?.map { it.value }
-                ?.filter { it.startsWith("https://") || it.startsWith("http://") }
-                ?.distinct()
-                ?.toList()
+                ?.let { extract(it) }
                 .orEmpty()
+    }
+
+    fun extract(text: String): List<String> {
+        return urlRegex.findAll(text)
+                .map { it.value }
+                .filter { it.startsWith("https://") || it.startsWith("http://") }
+                .distinct()
+                .toList()
     }
 }

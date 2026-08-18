@@ -48,6 +48,8 @@ import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
+import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
+import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
@@ -119,8 +121,10 @@ class ImageContentRenderer @Inject constructor(
      * For url preview.
      */
     fun render(previewUrlData: PreviewUrlData, imageView: ImageView): Boolean {
+        val encryptedImage = previewUrlData.encryptedImage
         val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
-        val imageUrl = contentUrlResolver.resolveFullSize(previewUrlData.mxcUrl) ?: return false
+        val imageUrl = contentUrlResolver.resolveFullSize(previewUrlData.mxcUrl)
+        if (imageUrl == null && encryptedImage == null) return false
         val maxHeight = dimensionConverter.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.preview_url_view_image_max_height)
         val height = previewUrlData.imageHeight ?: URL_PREVIEW_IMAGE_MIN_FULL_HEIGHT_PX
         val width = previewUrlData.imageWidth ?: URL_PREVIEW_IMAGE_MIN_FULL_WIDTH_PX
@@ -129,12 +133,29 @@ class ImageContentRenderer @Inject constructor(
         } else {
             imageView.scaleType = ImageView.ScaleType.CENTER_CROP
         }
-        GlideApp.with(imageView)
-                .load(imageUrl)
-                .override(width, height.coerceAtMost(maxHeight))
+        val request = if (encryptedImage == null) {
+            GlideApp.with(imageView).load(imageUrl)
+        } else {
+            // MSC4095 preview thumbnails of an encrypted room are attachments of their own, so they go
+            // through the decrypting loader rather than a plain url.
+            createGlideRequest(previewUrlData.toEncryptedImageData(encryptedImage), Mode.FULL_SIZE, GlideApp.with(imageView), Size(width, height))
+        }
+        request.override(width, height.coerceAtMost(maxHeight))
                 .into(imageView)
         return true
     }
+
+    private fun PreviewUrlData.toEncryptedImageData(encryptedImage: EncryptedFileInfo) = Data(
+            eventId = encryptedImage.url.orEmpty(),
+            filename = title ?: url,
+            mimeType = imageMimeType,
+            url = encryptedImage.url,
+            elementToDecrypt = encryptedImage.toElementToDecrypt(),
+            height = imageHeight,
+            maxHeight = imageHeight ?: URL_PREVIEW_IMAGE_MIN_FULL_HEIGHT_PX,
+            width = imageWidth,
+            maxWidth = imageWidth ?: URL_PREVIEW_IMAGE_MIN_FULL_WIDTH_PX,
+    )
 
     /**
      * For gallery.

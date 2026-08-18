@@ -44,6 +44,13 @@
             android:title="@string/room_personalization_media_preview" />
 
         <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/room_link_preview_modes"
+            android:entryValues="@array/room_link_preview_mode_values"
+            android:key="SETTINGS_ROOM_LINK_PREVIEW_KEY"
+            android:persistent="false"
+            android:title="@string/room_personalization_link_preview" />
+
+        <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/room_randomize_upload_filename_modes"
             android:entryValues="@array/room_randomize_upload_filename_mode_values"
             android:key="SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"

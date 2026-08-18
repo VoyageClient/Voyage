@@ -17,9 +17,11 @@
 package org.matrix.android.sdk.internal.session.media
 
 import org.matrix.android.sdk.api.cache.CacheStrategy
+import org.matrix.android.sdk.api.session.media.BundledUrlPreview
 import org.matrix.android.sdk.api.session.media.MediaService
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.util.LruCache
@@ -37,6 +39,10 @@ internal class DefaultMediaService @Inject constructor(
 
     override fun extractUrls(event: TimelineEvent): List<String> {
         return extractedUrlsCache.getOrPut(event.cacheKey()) { urlsExtractor.extract(event) }
+    }
+
+    override fun extractBundledUrlPreviews(event: TimelineEvent): List<BundledUrlPreview>? {
+        return BundledUrlPreviews.parse(event.getLastEditNewContent() ?: event.root.getClearContent())
     }
 
     // Use the id of the latest Event edition

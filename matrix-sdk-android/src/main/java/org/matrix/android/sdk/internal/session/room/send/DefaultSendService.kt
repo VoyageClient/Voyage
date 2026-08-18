@@ -21,6 +21,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -59,6 +60,7 @@ import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.content.PendingMediaUploadRegistry
 import org.matrix.android.sdk.internal.session.content.UploadContentWorkerParams
+import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.task.TaskExecutor
 
@@ -82,6 +84,7 @@ internal class DefaultSendService @AssistedInject constructor(
         private val eventSenderProcessor: EventSenderProcessor,
         private val cancelSendTracker: CancelSendTracker,
         private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,
+        private val linkPreviewPrefetcher: LinkPreviewPrefetcher,
 ) : SendService {
 
     @AssistedFactory
@@ -93,6 +96,14 @@ internal class DefaultSendService @AssistedInject constructor(
         return localEchoEventFactory.createEvent(roomId, eventType, content)
                 .also { createLocalEcho(it) }
                 .let { sendEvent(it) }
+    }
+
+    override fun prefetchLinkPreviews(text: CharSequence) {
+        taskExecutor.executorScope.launch {
+            tryOrNull("Failed to prefetch the link previews of $roomId") {
+                linkPreviewPrefetcher.prefetch(roomId, text, encrypt = cryptoStore.roomWasOnceEncrypted(roomId))
+            }
+        }
     }
 
     override fun sendTextMessage(text: CharSequence, msgType: String, autoMarkdown: Boolean, additionalContent: Content?): Cancelable {

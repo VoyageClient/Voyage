@@ -58,6 +58,32 @@
         <item>always_hide</item>
     </string-array>
 
+    <string-array name="link_preview_modes">
+        <item>@string/settings_link_preview_mode_always</item>
+        <item>@string/settings_link_preview_mode_never</item>
+        <item>@string/settings_link_preview_mode_encrypted</item>
+        <item>@string/settings_link_preview_mode_direct</item>
+    </string-array>
+    <string-array name="link_preview_mode_values">
+        <item>always</item>
+        <item>never</item>
+        <item>encrypted</item>
+        <item>direct</item>
+    </string-array>
+
+    <!-- Per-room link previews. The account-wide "in encrypted rooms" / "in direct messages" options
+         are predicates over which rooms match; scoped to one room they are just device or homeserver. -->
+    <string-array name="room_link_preview_modes">
+        <item>@string/room_personalization_link_preview_inherit</item>
+        <item>@string/room_personalization_link_preview_device</item>
+        <item>@string/room_personalization_link_preview_homeserver</item>
+    </string-array>
+    <string-array name="room_link_preview_mode_values">
+        <item>inherit</item>
+        <item>always</item>
+        <item>never</item>
+    </string-array>
+
     <string-array name="randomize_upload_filename_modes">
         <item>@string/settings_randomize_upload_filenames_always</item>
         <item>@string/settings_randomize_upload_filenames_never</item>

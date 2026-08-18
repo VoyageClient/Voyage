@@ -846,5 +846,16 @@
     <string name="forwarded_message_with_date" translatable="false">%1$s - %2$s</string>
 
     <string name="error_rejected_by_policy_server" translatable="false">Rejected by this room\'s policy server, which automatically screens messages for spam.</string>
+
+    <string name="settings_link_preview_mode_title" translatable="false">Fetch link previews on this device</string>
+    <string name="settings_link_preview_mode_always" translatable="false">Yes</string>
+    <string name="settings_link_preview_mode_never" translatable="false">No</string>
+    <string name="settings_link_preview_mode_encrypted" translatable="false">In encrypted rooms</string>
+    <string name="settings_link_preview_mode_direct" translatable="false">In direct messages</string>
+
+    <string name="room_personalization_link_preview" translatable="false">Fetch link previews for this room</string>
+    <string name="room_personalization_link_preview_inherit" translatable="false">Use account setting</string>
+    <string name="room_personalization_link_preview_device" translatable="false">Yes</string>
+    <string name="room_personalization_link_preview_homeserver" translatable="false">No</string>
     <string name="attachment_caption_hint" translatable="false">Add a caption…</string>
 </resources>

@@ -133,9 +133,18 @@ class MessageComposerViewModel @AssistedInject constructor(
             loadDraftIfAny(room)
             observePowerLevelAndEncryption(room)
             subscribeToStateInternal()
+            observeTypedLinks(room)
         } else {
             onRoomError()
         }
+    }
+
+    // Long enough that a link is not fetched letter by letter as it is pasted or typed out.
+    private fun observeTypedLinks(room: Room) {
+        textPendingLinkPreview
+                .debounce(LINK_PREVIEW_TYPING_DEBOUNCE_MS)
+                .onEach { room.sendService().prefetchLinkPreviews(it) }
+                .launchIn(viewModelScope)
     }
 
     override fun handle(action: MessageComposerAction) {
@@ -357,6 +366,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         currentComposerText = SpannableString(action.text)
         if (needsSendButtonVisibilityUpdate) {
             updateIsSendButtonVisibility(true)
+        }
+        if (action.text.contains("http")) {
+            textPendingLinkPreview.tryEmit(action.text.toString())
         }
     }
 
@@ -2334,7 +2346,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         override fun create(initialState: MessageComposerViewState): MessageComposerViewModel
     }
 
-    companion object : MavericksViewModelFactory<MessageComposerViewModel, MessageComposerViewState> by hiltMavericksViewModelFactory()
+    companion object : MavericksViewModelFactory<MessageComposerViewModel, MessageComposerViewState> by hiltMavericksViewModelFactory() {
+        private const val LINK_PREVIEW_TYPING_DEBOUNCE_MS = 800L
+    }
 }
 
 sealed interface CaptionCommandResolution {

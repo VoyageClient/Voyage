@@ -29,6 +29,15 @@ interface MediaService {
     fun extractUrls(event: TimelineEvent): List<String>
 
     /**
+     * Extract the URL previews bundled in a TimelineEvent, as defined by MSC4095.
+     * @param event TimelineEvent to extract the previews from.
+     * @return null if the event does not bundle any preview, in which case the caller is free to
+     * request previews from the homeserver. An empty list means that the sender asked for no preview
+     * to be displayed at all.
+     */
+    fun extractBundledUrlPreviews(event: TimelineEvent): List<BundledUrlPreview>?
+
+    /**
      * Get Raw Url Preview data from the homeserver. There is no cache management for this request
      * @param url The url to get the preview data from
      * @param timestamp The optional timestamp

@@ -50,6 +50,9 @@ internal abstract class MediaModule {
     abstract fun bindMediaService(service: DefaultMediaService): MediaService
 
     @Binds
+    abstract fun bindLinkPreviewPrefetcher(bundler: UrlPreviewBundler): LinkPreviewPrefetcher
+
+    @Binds
     abstract fun bindGetRawPreviewUrlTask(task: DefaultGetRawPreviewUrlTask): GetRawPreviewUrlTask
 
     @Binds

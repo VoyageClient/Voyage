@@ -39,6 +39,12 @@ interface SendService {
     fun sendEvent(eventType: String, content: Content?): Cancelable
 
     /**
+     * Read the previews of the links in [text] ahead of sending it, so the send itself does not wait for
+     * them (MSC4095). Cheap to call repeatedly as the user types: a link already in hand is skipped.
+     */
+    fun prefetchLinkPreviews(text: CharSequence)
+
+    /**
      * Method to send a text message asynchronously.
      * The text to send can be a Spannable and contains special spans (MatrixItemSpan) that will be translated
      * by the sdk into pills.
