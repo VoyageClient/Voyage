@@ -207,6 +207,8 @@ internal class DefaultProfileService @Inject constructor(
 
     override fun getPronounsUpdateFlow() = extendedProfileCache.pronounsUpdateFlow
 
+    override fun getProfileUpdateFlow() = extendedProfileCache.profileUpdateFlow
+
     override suspend fun getProfile(userId: String): JsonDict {
         val params = GetProfileInfoTask.Params(userId)
         return getProfileInfoTask.execute(params).also {

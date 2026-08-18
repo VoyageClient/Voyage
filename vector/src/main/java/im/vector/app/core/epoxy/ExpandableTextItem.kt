@@ -21,6 +21,7 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.utils.setReadOnlySelectable
+import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
@@ -45,9 +46,9 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
     private var isExpanded = false
 
     // The content view is selectable, so a tap on a link runs the link movement method AND the view's
-    // own performClick (the expand/collapse toggle) — both fire. Record whether the last tap landed on a
-    // clickable span so the toggle can bow out and let the link win.
-    private var lastTapHitLink = false
+    // own performClick (the expand/collapse toggle) — both fire. Record whether the last tap belonged to
+    // the text (it hit a link, or it dismissed a selection) so the toggle can bow out.
+    private var lastTapHitText = false
 
     @android.annotation.SuppressLint("ClickableViewAccessibility")
     override fun bind(holder: Holder) {
@@ -67,9 +68,12 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         // flashes the full height before settling — that flash was the flicker on open.
         applyMaxLines(holder.content)
         holder.content.text = content
+        holder.content.bindEmoteImageSpans()
         holder.content.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP) {
-                lastTapHitLink = (v as TextView).hasClickableSpanAt(event)
+                val textView = v as TextView
+                // Read before the view handles the tap, which is what clears an existing selection.
+                lastTapHitText = textView.hasClickableSpanAt(event) || textView.hasSelection()
             }
             false
         }
@@ -81,8 +85,8 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
             if (fullLines > maxLines) {
                 updateArrow(holder)
                 val toggle = View.OnClickListener {
-                    if (lastTapHitLink) {
-                        lastTapHitLink = false
+                    if (lastTapHitText) {
+                        lastTapHitText = false
                         return@OnClickListener
                     }
                     isExpanded = !isExpanded

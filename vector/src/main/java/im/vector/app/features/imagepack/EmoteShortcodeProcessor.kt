@@ -24,8 +24,10 @@ private class SendableEmoteSpan(
 ) : MatrixEmoteSpan
 
 /**
- * Replaces literal `:shortcode:` occurrences in composer text with emote spans, so that typed emotes are
+ * Replaces literal `:shortcode:` occurrences in typed text with emote spans, so that typed emotes are
  * sent as custom emoticons. Already-spanned emotes and shortcodes inside inline code are left untouched.
+ * A null [roomId] resolves against the packs that apply everywhere (personal and globally-enabled ones),
+ * which is what text outside a room — a profile biography — can use.
  */
 class EmoteShortcodeProcessor @Inject constructor(
         private val imagePackProvider: ImagePackProvider,
@@ -37,12 +39,12 @@ class EmoteShortcodeProcessor @Inject constructor(
     // The base shortcode is everything before the first disambiguation delimiter ('/' or '@').
     private fun baseOf(shortcode: String) = shortcode.takeWhile { it != '/' && it != '@' }
 
-    fun process(roomId: String, text: CharSequence): CharSequence {
-        // Runs inline on the composer's single-slot send-preparation lane, so it must never do the
+    fun process(roomId: String?, text: CharSequence): CharSequence {
+        // The composer calls this inline on its single-slot send-preparation lane, so it must never do the
         // synchronous space-hierarchy DB walk of getEmoticons() — under DB contention (e.g. a /join
         // bringing a large room via sync) that read stalls for seconds and, holding the only lane
         // slot, blocks every following send. Use the in-memory cache the open room's live flow keeps
-        // warm; only a never-opened room (cold cache) falls back to the synchronous read.
+        // warm; only a cold cache falls back to the synchronous read.
         val emoticons = imagePackProvider.cachedEmoticons(roomId).ifEmpty { imagePackProvider.getEmoticons(roomId) }
         if (emoticons.isEmpty()) return text
         // Resolve the typed token by its exact (possibly disambiguated) shortcode first; otherwise by its

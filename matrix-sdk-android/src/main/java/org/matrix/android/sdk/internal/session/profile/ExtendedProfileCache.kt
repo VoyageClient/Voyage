@@ -150,6 +150,12 @@ internal class ExtendedProfileCache @Inject constructor(
     private val pronounsUpdates = MutableSharedFlow<String>(extraBufferCapacity = 64)
     val pronounsUpdateFlow: SharedFlow<String> = pronounsUpdates.asSharedFlow()
 
+    // Emits a userId once their profile has been fetched, whatever it turned out to hold. A screen which
+    // read the cache before the fetch landed — a profile opened for the first time — would otherwise show
+    // nothing until it is opened again.
+    private val profileUpdates = MutableSharedFlow<String>(extraBufferCapacity = 64)
+    val profileUpdateFlow: SharedFlow<String> = profileUpdates.asSharedFlow()
+
     fun getCachedPronouns(userId: String): List<Pronoun>? = pronounsCache[userId]
 
     fun getCachedTimezone(userId: String): String? = timezoneCache[userId]?.getOrNull()
@@ -191,6 +197,7 @@ internal class ExtendedProfileCache @Inject constructor(
         cacheBannerUrl(userId, dict.profileBannerUrl())
         cacheStatus(userId, dict.profileStatus())
         cacheBio(userId, dict.profileBio())
+        profileUpdates.tryEmit(userId)
     }
 
     /**

@@ -31,6 +31,7 @@ import im.vector.app.R
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.features.html.CenteredIconSpan
+import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 
@@ -44,6 +45,9 @@ fun TextView.setTextOrHide(newText: CharSequence?, hideWhenBlank: Boolean = true
         relatedViews.forEach { it.isVisible = false }
     } else {
         this.text = newText
+        // A custom emoticon only loads its image once bound to the view it will draw in, and topics,
+        // biographies and previews all reach one through here.
+        bindEmoteImageSpans()
         isVisible = true
         relatedViews.forEach { it.isVisible = true }
     }

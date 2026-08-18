@@ -28,6 +28,7 @@ import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -151,6 +152,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 fetchGlobalProfile()
             }
         }
+
+        observeProfileFields()
 
         session.flow().liveUserCryptoDevices(initialState.userId)
                 .map {
@@ -499,6 +502,27 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     profileFieldsLine = cachedProfileFieldsLine(),
             )
         }
+    }
+
+    /**
+     * The profile fields are seeded from the cache when the screen opens, which on a first visit is before
+     * anything has been fetched. Whichever request fills the cache — this screen's, or a prefetch started
+     * elsewhere — says so here, and the screen picks the fields up instead of waiting to be reopened.
+     */
+    private fun observeProfileFields() {
+        session.profileService().getProfileUpdateFlow()
+                .filter { it == initialState.userId }
+                .onEach {
+                    setState {
+                        copy(
+                                globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId) ?: globalBannerUrl,
+                                status = session.profileService().getCachedStatus(initialState.userId),
+                                bio = session.profileService().getCachedBio(initialState.userId),
+                                profileFieldsLine = cachedProfileFieldsLine(),
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
     }
 
     private fun fetchGlobalProfile() {

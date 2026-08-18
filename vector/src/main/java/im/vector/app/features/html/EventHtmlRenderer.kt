@@ -62,6 +62,7 @@ import io.noties.markwon.html.tag.SubScriptHandler
 import io.noties.markwon.html.tag.SuperScriptHandler
 import io.noties.markwon.html.tag.UnderlineHandler
 import io.noties.markwon.image.AsyncDrawable
+import io.noties.markwon.image.AsyncDrawableSpan
 import io.noties.markwon.image.glide.GlideImagesPlugin
 import io.noties.markwon.inlineparser.EntityInlineProcessor
 import io.noties.markwon.inlineparser.HtmlInlineProcessor
@@ -263,7 +264,11 @@ class EventHtmlRenderer @Inject constructor(
                 StrongEmphasisSpan::class.java,
                 UnderlineSpan::class.java,
                 URLSpan::class.java,
-                StrikethroughSpan::class.java
+                StrikethroughSpan::class.java,
+                // An inline image is stranded the same way: a custom emoticon mid-sentence would otherwise
+                // start its own line.
+                EmoteImageSpan::class.java,
+                AsyncDrawableSpan::class.java
         ).flatMap { current.getSpans(0, length, it).asList() }
                 .plus(current.getSpans(0, length, HtmlCodeSpan::class.java).filter { !it.isBlock })
 

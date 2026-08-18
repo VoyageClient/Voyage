@@ -149,6 +149,13 @@ interface ProfileService {
     fun getPronounsUpdateFlow(): Flow<String>
 
     /**
+     * Emits a userId once their profile has been fetched, whatever it holds. A screen which read the
+     * cached fields before the fetch landed uses this to pick them up rather than showing nothing until
+     * it is opened again.
+     */
+    fun getProfileUpdateFlow(): Flow<String>
+
+    /**
      * Kick off a best-effort background fetch of this user's extended profile fields (pronouns/tz)
      * if not already cached, so a later [getCachedPronouns]/[getCachedTimezone] can succeed.
      */
