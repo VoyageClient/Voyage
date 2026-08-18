@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
@@ -119,6 +120,10 @@ internal class DefaultRelationService @AssistedInject constructor(
             options: List<String>
     ): Cancelable {
         return eventEditor.editPoll(targetEvent, pollType, question, options)
+    }
+
+    override fun editMediaContent(targetEvent: TimelineEvent, newContent: Content): Cancelable {
+        return eventEditor.editMediaContent(targetEvent, newContent)
     }
 
     override fun editMediaCaption(

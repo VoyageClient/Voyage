@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.session.room.timeline
 
 import org.matrix.android.sdk.BuildConfig
+import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -147,7 +148,7 @@ fun TimelineEvent.getEditedEventId(): String? {
  */
 fun TimelineEvent.getLastMessageContent(): MessageContent? {
     return when (root.getClearType()) {
-        EventType.STICKER -> root.getClearContent().toModel<MessageStickerContent>()
+        EventType.STICKER -> (getLastStickerEditNewContent() ?: root.getClearContent()).toModel<MessageStickerContent>()
         // XXX
         // Polls/Beacon are not message contents like others as there is no msgtype subtype to discriminate moshi parsing
         // so toModel<MessageContent> won't parse them correctly
@@ -162,6 +163,7 @@ fun TimelineEvent.getLastMessageContent(): MessageContent? {
 
 fun TimelineEvent.getLastEditNewContent(): Content? {
     val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
+            ?.takeUnless { it.isMediaStillUploading() }
     return when {
         isReply() -> {
             // Modern reply edits carry only the new text in new_content — no m.in_reply_to,
@@ -183,6 +185,21 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
         }
         else -> lastContent
     }
+}
+
+// A sticker edit has no msgtype to parse the generic content model with.
+private fun TimelineEvent.getLastStickerEditNewContent(): Content? {
+    return annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageStickerContent>()?.newContent
+            ?.takeUnless { it.isMediaStillUploading() }
+}
+
+/**
+ * An edit which replaces the media points at the local file until the upload finishes, and that file is
+ * only readable by the sender's own device. The message keeps what it had until the media is really there.
+ */
+private fun Content.isMediaStillUploading(): Boolean {
+    val url = this["url"] as? String ?: (this["file"] as? Map<*, *>)?.get("url") as? String ?: return false
+    return !url.isMxcUrl()
 }
 
 private fun TimelineEvent.getLastPollEditNewContent(): Content? {

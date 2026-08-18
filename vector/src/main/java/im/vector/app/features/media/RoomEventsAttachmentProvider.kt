@@ -8,14 +8,13 @@
 package im.vector.app.features.media
 
 import im.vector.app.core.date.VectorDateFormatter
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.attachmentviewer.AttachmentInfo
 import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
-import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.file.FileService
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
@@ -77,9 +76,8 @@ class RoomEventsAttachmentProvider(
     private fun contentAt(position: Int): MessageWithAttachmentContent? {
         val item = getItem(position)
         item.galleryItem?.let { return it }
-        val clearContent = item.event.root.getClearContent()
-        return (clearContent.toModel<MessageContent>() ?: clearContent.toModel<MessageStickerContent>())
-                as? MessageWithAttachmentContent
+        // The media as it stands now: an edit may have replaced it.
+        return item.event.getVectorLastMessageContent() as? MessageWithAttachmentContent
     }
 
     override fun getAttachmentInfoAt(position: Int): AttachmentInfo {
@@ -196,7 +194,7 @@ class RoomEventsAttachmentProvider(
 
         private fun expand(events: List<TimelineEvent>): List<RoomTimelineAttachment> {
             return events.flatMap { event ->
-                val gallery = event.root.getClearContent().toModel<MessageContent>() as? MessageGalleryContent
+                val gallery = event.getVectorLastMessageContent() as? MessageGalleryContent
                 if (gallery != null) {
                     gallery.galleryItems().mapIndexedNotNull { index, item ->
                         RoomTimelineAttachment(event, item, index).takeIf { isGalleryViewerPage(item) }

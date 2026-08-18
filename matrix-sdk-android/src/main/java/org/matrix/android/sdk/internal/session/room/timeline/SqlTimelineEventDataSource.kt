@@ -71,9 +71,9 @@ internal class SqlTimelineEventDataSource @Inject constructor(
                     }
                     .filterNot { isAcceptedEdition(it) }
 
-    // A caption edit is a full media event carrying m.new_content, so it would otherwise appear as a
-    // second copy of the same media in the viewer. Skip replaces that were folded into their target;
-    // rejected media edits (never aggregated) fall through and remain visible as distinct media.
+    // An edit of a media event is itself a full media event, so it would otherwise appear as a second
+    // copy of the media in the viewer. Skip replaces that were folded into their target; ones that were
+    // rejected (never aggregated) fall through and remain visible as media of their own.
     private fun isAcceptedEdition(event: TimelineEvent): Boolean {
         val relation = event.root.getRelationContent()?.takeIf { it.type == RelationType.REPLACE } ?: return false
         val targetId = relation.eventId ?: return false

@@ -215,6 +215,54 @@ internal class LocalEchoEventFactory @Inject constructor(
         return createEvent(roomId, targetEvent.root.getClearType(), coerceWholeDoublesToLongs(outerContent) as Content)
     }
 
+    /**
+     * Build an m.replace edit which puts [newContent] — media which is already uploaded — in place of
+     * whatever [targetEvent] holds.
+     */
+    fun createContentReplaceEvent(roomId: String, targetEvent: TimelineEvent, newContent: Content): Event {
+        val outerContent = newContent + mapOf(
+                "m.relates_to" to RelationDefaultContent(RelationType.REPLACE, targetEvent.eventId).toContent(),
+                "m.new_content" to newContent,
+        )
+        @Suppress("UNCHECKED_CAST")
+        return createEvent(roomId, targetEvent.root.getClearType(), coerceWholeDoublesToLongs(outerContent) as Content)
+    }
+
+    /**
+     * Build an m.replace edit which puts [attachment] in place of whatever [targetEvent] holds — replacing
+     * the media of a media event, or giving a text message media it never had. The file is still local at
+     * this point: the upload pipeline fills the url in on both copies of the content.
+     */
+    fun createMediaReplaceEvent(
+            roomId: String,
+            targetEvent: TimelineEvent,
+            attachment: ContentAttachmentData,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
+            additionalContent: Content? = null,
+    ): Event {
+        val targetType = targetEvent.root.getClearType()
+        val mediaContent = createMediaEvent(
+                roomId = roomId,
+                attachment = attachment,
+                rootThreadEventId = null,
+                relatesTo = null,
+                captionText = captionText,
+                captionFormattedText = captionFormattedText,
+                autoMarkdown = autoMarkdown,
+                mentions = mentions,
+        ).content.orEmpty()
+        // A sticker is an image content without a msgtype, and an edit may not change the event type.
+        val newContent = if (targetType == EventType.STICKER) mediaContent - MessageContent.MSG_TYPE_JSON_KEY else mediaContent
+        val outerContent = newContent + mapOf(
+                "m.relates_to" to RelationDefaultContent(RelationType.REPLACE, targetEvent.eventId).toContent(),
+                "m.new_content" to newContent,
+        )
+        return createEvent(roomId, targetType, outerContent, additionalContent)
+    }
+
     private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
         is Double -> if (value.isFinite() && value % 1.0 == 0.0 &&
                 value >= Long.MIN_VALUE.toDouble() && value <= Long.MAX_VALUE.toDouble()) {

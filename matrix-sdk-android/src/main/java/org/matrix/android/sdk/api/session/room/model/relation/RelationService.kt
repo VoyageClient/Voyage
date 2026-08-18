@@ -16,6 +16,7 @@
 package org.matrix.android.sdk.api.session.room.model.relation
 
 import kotlinx.coroutines.flow.Flow
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -85,6 +86,17 @@ interface RelationService {
             pollType: PollType,
             question: String,
             options: List<String>
+    ): Cancelable
+
+    /**
+     * Replace what [targetEvent] holds with [newContent], for media which is already uploaded (a sticker
+     * picked from a pack, say). The event type is kept, as an edit may not change it.
+     * @param targetEvent The event to edit
+     * @param newContent The content to put in its place
+     */
+    fun editMediaContent(
+            targetEvent: TimelineEvent,
+            newContent: Content,
     ): Cancelable
 
     /**

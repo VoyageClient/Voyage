@@ -43,6 +43,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.coerceGalleryJsonNumbers
 import org.matrix.android.sdk.api.session.room.model.message.galleryFallbackBody
@@ -775,19 +776,27 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     ) {
         localEchoRepository.updateEcho(eventId) { event ->
             val content: Content? = event.asDomain(castJsonNumbers = true).content
-            val messageContent: MessageContent? = content.toModel()
-            // Retrieve potential additional content from the original event
-            val additionalContent = content.orEmpty() - messageContent?.toContent().orEmpty().keys
-            val updatedContent = when (messageContent) {
-                is MessageImageContent -> messageContent.update(url, encryptedFileInfo, imageBlurHash, newAttachmentAttributes)
-                is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnail, newAttachmentAttributes)
-                is MessageFileContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
-                is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize, audioWaveform)
-                is MessageGalleryContent -> messageContent
-                        .updateItem(galleryItemIndex, url, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
-                else -> messageContent
+            fun Content?.withUploadedMedia(): Content {
+                val messageContent: MessageContent? = this.toModel() ?: this.toModel<MessageStickerContent>()
+                // Retrieve potential additional content from the original event
+                val additionalContent = this.orEmpty() - messageContent?.toContent().orEmpty().keys
+                val updatedContent = when (messageContent) {
+                    is MessageImageContent -> messageContent.update(url, encryptedFileInfo, imageBlurHash, newAttachmentAttributes)
+                    is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnail, newAttachmentAttributes)
+                    is MessageFileContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
+                    is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize, audioWaveform)
+                    is MessageStickerContent -> messageContent.update(url, encryptedFileInfo, imageBlurHash, newAttachmentAttributes)
+                    is MessageGalleryContent -> messageContent
+                            .updateItem(galleryItemIndex, url, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
+                    else -> messageContent
+                }
+                return updatedContent.toContent().plus(additionalContent)
             }
-            event.content = ContentMapper.map(updatedContent.toContent().plus(additionalContent))
+            // An edit carries the media twice: the copy under m.new_content is the one clients display.
+            @Suppress("UNCHECKED_CAST")
+            val newContent = (content?.get("m.new_content") as? Content)?.withUploadedMedia()
+            val updated = content.withUploadedMedia()
+            event.content = ContentMapper.map(if (newContent == null) updated else updated + ("m.new_content" to newContent))
         }
     }
 
@@ -876,6 +885,32 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     }
 
     private fun renameForMime(name: String?, mimeType: String?): String? = MimeTypes.renameForMimeType(name, mimeType)
+
+    // Only reached by an edit which replaces a sticker: stickers are otherwise sent already uploaded.
+    private fun MessageStickerContent.update(
+            url: String,
+            encryptedFileInfo: EncryptedFileInfo?,
+            blurHash: String?,
+            newAttachmentAttributes: NewAttachmentAttributes?
+    ): MessageStickerContent {
+        val newMime = newAttachmentAttributes?.newMimeType
+        return copy(
+                url = if (encryptedFileInfo == null) url else null,
+                encryptedFileInfo = encryptedFileInfo?.copy(url = url),
+                body = if (newMime != null && filename == null) renameForMime(body, newMime) ?: body else body,
+                filename = if (newMime != null && filename != null) renameForMime(filename, newMime) else filename,
+                info = info?.let { info ->
+                    info.copy(
+                            width = newAttachmentAttributes?.newWidth ?: info.width,
+                            height = newAttachmentAttributes?.newHeight ?: info.height,
+                            size = newAttachmentAttributes?.newFileSize ?: info.size,
+                            mimeType = newMime ?: info.mimeType,
+                            blurHash = blurHash ?: info.blurHash,
+                            isAnimatedStable = newAttachmentAttributes?.newIsAnimated ?: info.isAnimatedStable,
+                    )
+                }
+        )
+    }
 
     private fun MessageVideoContent.update(
             url: String,

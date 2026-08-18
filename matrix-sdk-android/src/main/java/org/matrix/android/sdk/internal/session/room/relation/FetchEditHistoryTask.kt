@@ -42,20 +42,25 @@ internal class DefaultFetchEditHistoryTask @Inject constructor(
 
     override suspend fun execute(params: FetchEditHistoryTask.Params): List<Event> {
         val isRoomEncrypted = cryptoSessionInfoProvider.isRoomEncrypted(params.roomId)
+        val originalEvent = eventDataSource.getTimelineEvent(
+                roomId = params.roomId,
+                eventId = params.eventId,
+        )
+        // An edit has the type of what it edits, so a sticker's edits are not m.room.message.
+        val eventType = when {
+            isRoomEncrypted -> EventType.ENCRYPTED
+            else -> originalEvent?.root?.getClearType() ?: EventType.MESSAGE
+        }
         val response = executeRequest(globalErrorReceiver) {
             roomAPI.getRelationsWithEventType(
                     roomId = params.roomId,
                     eventId = params.eventId,
                     relationType = RelationType.REPLACE,
-                    eventType = if (isRoomEncrypted) EventType.ENCRYPTED else EventType.MESSAGE
+                    eventType = eventType
             )
         }
 
         // Filter out edition form other users, and redacted editions
-        val originalEvent = eventDataSource.getTimelineEvent(
-                roomId = params.roomId,
-                eventId = params.eventId,
-        )
         val originalSenderId = originalEvent?.senderInfo?.userId
         val events = response.chunks
                 .filter { it.senderId == originalSenderId }

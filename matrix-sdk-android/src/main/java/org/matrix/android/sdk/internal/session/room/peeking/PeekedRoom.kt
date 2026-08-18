@@ -268,8 +268,10 @@ internal class PeekedRoom(
 
     private val draftService = object : DraftService {
         override suspend fun saveDraft(draft: UserDraft) = Unit
+        override suspend fun saveDrafts(drafts: List<UserDraft>) = Unit
         override suspend fun deleteDraft() = Unit
         override fun getDraft(): UserDraft? = null
+        override fun getDrafts(): List<UserDraft> = emptyList()
         override fun getDraftFlow(): Flow<Optional<UserDraft>> = flowOf(Optional.empty())
     }
 
@@ -364,6 +366,16 @@ internal class PeekedRoom(
                 autoMarkdown: Boolean,
         ): Cancelable = readOnly()
 
+        override fun sendMediaEdit(
+                targetEvent: TimelineEvent,
+                attachment: ContentAttachmentData,
+                compressBeforeSending: Boolean,
+                captionText: CharSequence?,
+                captionFormattedText: String?,
+                autoMarkdown: Boolean,
+                additionalContent: Content?,
+        ): Cancelable = readOnly()
+
         override fun sendGallery(
                 attachments: List<ContentAttachmentData>,
                 compressBeforeSending: Boolean,
@@ -403,6 +415,8 @@ internal class PeekedRoom(
         override suspend fun undoReaction(targetEventId: String, reaction: String): Cancelable = readOnly()
 
         override fun editPoll(targetEvent: TimelineEvent, pollType: PollType, question: String, options: List<String>): Cancelable = readOnly()
+
+        override fun editMediaContent(targetEvent: TimelineEvent, newContent: Content): Cancelable = readOnly()
 
         override fun editMediaCaption(targetEvent: TimelineEvent, newCaption: CharSequence, newFormattedCaption: String?): Cancelable = readOnly()
 

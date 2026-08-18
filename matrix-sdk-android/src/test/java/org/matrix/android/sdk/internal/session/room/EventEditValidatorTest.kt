@@ -70,6 +70,26 @@ class EventEditValidatorTest {
     }
 
     @Test
+    fun `an edit may replace the media of a media event, not only its caption`() {
+        val mockCryptoStore = mockk<IMXCommonCryptoStore>()
+        val validator = EventEditValidator(mockCryptoStore)
+        val image = mockTextEvent.copy(
+                content = mapOf("body" to "cat.jpg", "msgtype" to "m.image", "url" to "mxc://example.com/cat")
+        )
+        val replacement = mockEdit.copy(
+                content = mapOf(
+                        "body" to "dog.jpg",
+                        "msgtype" to "m.image",
+                        "url" to "mxc://example.com/dog",
+                        "m.new_content" to mapOf("body" to "dog.jpg", "msgtype" to "m.image", "url" to "mxc://example.com/dog"),
+                        "m.relates_to" to mapOf("rel_type" to "m.replace", "event_id" to image.eventId)
+                )
+        )
+
+        validator.validateEdit(image, replacement) shouldBeInstanceOf EventEditValidator.EditValidity.Valid::class
+    }
+
+    @Test
     fun `original event and replacement event must have the same sender`() {
         val mockCryptoStore = mockk<IMXCommonCryptoStore>()
         val validator = EventEditValidator(mockCryptoStore)

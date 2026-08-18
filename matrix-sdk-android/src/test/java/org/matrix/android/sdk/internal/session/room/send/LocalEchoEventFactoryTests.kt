@@ -19,12 +19,16 @@ package org.matrix.android.sdk.internal.session.room.send
 import org.amshove.kluent.internal.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.TextContent
@@ -45,6 +49,7 @@ class LocalEchoEventFactoryTests {
         internal const val A_ROOM_ID = "!sUeOGZKsBValPTUMax:matrix.org"
         internal const val AN_EVENT_ID = "\$vApgexcL8Vfh-WxYKsFKCDooo67ttbjm3TiVKXaWijU"
         internal const val AN_EPOCH = 1655210176L
+        internal const val A_MEDIA_URI = "content://media/1"
 
         val A_START_EVENT = Event(
                 type = EventType.STATE_ROOM_CREATE,
@@ -216,6 +221,68 @@ class LocalEchoEventFactoryTests {
                 (quotedContent as? MessageContentWithFormattedBody)?.formattedBody
         )
     }
+
+    @Test
+    fun `a media edit replaces the message with the new media, and says which message it replaces`() {
+        val edit = localEchoEventFactory.createMediaReplaceEvent(
+                roomId = A_ROOM_ID,
+                targetEvent = createTimelineEvent("Text", null),
+                attachment = anImageAttachment(),
+        )
+
+        assertEquals(EventType.MESSAGE, edit.type)
+        val relation = edit.content?.get("m.relates_to") as? Map<*, *>
+        assertEquals(RelationType.REPLACE, relation?.get("rel_type"))
+        assertEquals(AN_EVENT_ID, relation?.get("event_id"))
+        val newContent = edit.newContent()
+        assertEquals(MessageType.MSGTYPE_IMAGE, newContent.toModel<MessageContent>()?.msgType)
+        assertEquals(A_MEDIA_URI, newContent?.get("url"))
+        // The copy shown by clients which don't apply edits carries the same media.
+        assertEquals(MessageType.MSGTYPE_IMAGE, edit.content.toModel<MessageContent>()?.msgType)
+        assertEquals(A_MEDIA_URI, edit.content?.get("url"))
+    }
+
+    @Test
+    fun `a media edit carries its caption, keeping the file name in filename`() {
+        val edit = localEchoEventFactory.createMediaReplaceEvent(
+                roomId = A_ROOM_ID,
+                targetEvent = createTimelineEvent("Text", null),
+                attachment = anImageAttachment(),
+                captionText = "A caption",
+        )
+
+        val newContent = edit.newContent()
+        assertEquals("A caption", newContent?.get("body"))
+        assertEquals("image.jpg", newContent?.get("filename"))
+    }
+
+    @Test
+    fun `replacing a sticker stays a sticker, which has no msgtype`() {
+        val sticker = createTimelineEvent(null, null).let { it.copy(root = it.root.copy(type = EventType.STICKER)) }
+
+        val edit = localEchoEventFactory.createMediaReplaceEvent(
+                roomId = A_ROOM_ID,
+                targetEvent = sticker,
+                attachment = anImageAttachment(),
+        )
+
+        assertEquals(EventType.STICKER, edit.type)
+        assertEquals(null, edit.content?.get(MessageContent.MSG_TYPE_JSON_KEY))
+        val newContent = edit.newContent()
+        assertEquals(null, newContent?.get(MessageContent.MSG_TYPE_JSON_KEY))
+        assertEquals(A_MEDIA_URI, newContent?.get("url"))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun Event.newContent(): Content? = content?.get("m.new_content") as? Content
+
+    private fun anImageAttachment() = ContentAttachmentData(
+            size = 1024,
+            name = "image.jpg",
+            queryUri = A_MEDIA_URI,
+            mimeType = "image/jpeg",
+            type = ContentAttachmentData.Type.IMAGE,
+    )
 
     private fun createTimelineEvent(quotedText: String?, formattedQuotedText: String?): TimelineEvent {
         val textContent = quotedText?.let {

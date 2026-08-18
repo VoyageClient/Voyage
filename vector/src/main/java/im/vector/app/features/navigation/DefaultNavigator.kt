@@ -487,6 +487,8 @@ class DefaultNavigator @Inject constructor(
             view: View,
             inMemory: List<AttachmentData>,
             standalonePreview: Boolean,
+            pageOverRoomMedia: Boolean,
+            morphFromView: Boolean,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     ) {
         val cornerRadiusPx = (view.tag as? Float)?.toInt()?.takeIf { it > 0 } ?: 0
@@ -496,11 +498,17 @@ class DefaultNavigator @Inject constructor(
                 roomId,
                 mediaData.eventId,
                 inMemory,
-                ViewCompat.getTransitionName(view),
+                ViewCompat.getTransitionName(view).takeIf { morphFromView },
                 transitionCornerRadiusPx = cornerRadiusPx,
                 standalonePreview = standalonePreview,
-                openedFromTimeline = activity is RoomDetailActivity,
+                openedFromTimeline = pageOverRoomMedia && activity is RoomDetailActivity,
         ).let { intent ->
+            if (!morphFromView) {
+                // Cross-fade, like an avatar: the message it came from stands in for the media instead.
+                val fade = ActivityOptionsCompat.makeCustomAnimation(activity, R.anim.fade_in, R.anim.fade_out)
+                ActivityCompat.startActivity(activity, intent, fade.toBundle())
+                return
+            }
             val pairs = ArrayList<Pair<View, String>>()
             activity.window.decorView.findViewById<View>(android.R.id.statusBarBackground)?.let {
                 pairs.add(Pair(it, Window.STATUS_BAR_BACKGROUND_TRANSITION_NAME))

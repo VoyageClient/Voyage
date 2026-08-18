@@ -39,13 +39,19 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
@@ -65,6 +71,8 @@ import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
@@ -105,6 +113,17 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     // Keep it out of state to avoid invalidate being called
     private var currentComposerText: CharSequence = ""
+
+    // What was being typed when an edit took the composer over, put back once the edit ends. Editing is
+    // the only mode which replaces the composer rather than keeping what is in it. Tracked next to the
+    // state rather than read from it: the stash is taken and given back as the action is handled, while
+    // a state read would settle a turn later, by which point the composer holds the edit.
+    private var editOwnsComposer = false
+    private var textStashedForEdit: CharSequence? = null
+
+    // Links are read and their thumbnails uploaded while the message is still being typed, so that sending
+    // it does not wait for a page fetch and an upload (MSC4095 carries them in the event).
+    private val textPendingLinkPreview = MutableSharedFlow<String>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     private val sendPreparationLane = Dispatchers.Default.limitedParallelism(1)
@@ -221,6 +240,15 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleSendSticker(room: Room, action: MessageComposerAction.SendSticker) = withState { state ->
+        (state.sendMode as? SendMode.Edit)?.timelineEvent?.let { edited ->
+            // Picking a sticker while editing puts it in place of the message, as picking a file does.
+            // It is uploaded already, so this replaces the content outright rather than going through
+            // the upload pipeline.
+            val target = room.getTimelineEvent(edited.eventId) ?: edited
+            room.relationService().editMediaContent(target, action.content.forEventType(target.root.getClearType()))
+            popDraft(room, state.sendMode)
+            return@withState
+        }
         val replyTo = (state.sendMode as? SendMode.Reply)?.timelineEvent
         val rootThreadEventId = state.rootThreadEventId
         val relatesTo = when {
@@ -244,6 +272,21 @@ class MessageComposerViewModel @AssistedInject constructor(
         if (replyTo != null) {
             setState { copy(sendMode = SendMode.Regular(currentComposerText, fromSharing = false)) }
         }
+    }
+
+    /**
+     * A sticker as the given event type would carry it: a sticker event holds it as it is, while a
+     * message event has to say it is an image, an edit not being allowed to change the type.
+     */
+    private fun MessageStickerContent.forEventType(eventType: String): Content {
+        if (eventType == EventType.STICKER) return copy(relatesTo = null).toContent()
+        return MessageImageContent(
+                msgType = MessageType.MSGTYPE_IMAGE,
+                body = body,
+                info = info,
+                url = url,
+                encryptedFileInfo = encryptedFileInfo,
+        ).toContent()
     }
 
     private fun handleOnVoiceRecordingUiStateChanged(action: MessageComposerAction.OnVoiceRecordingUiStateChanged) {
@@ -336,15 +379,54 @@ class MessageComposerViewModel @AssistedInject constructor(
         copy(isSendButtonVisible = isSendButtonVisible)
     }
 
-    private fun handleEnterRegularMode(action: MessageComposerAction.EnterRegularMode) = setState {
-        copy(sendMode = SendMode.Regular(currentComposerText, action.fromSharing))
+    private fun handleEnterRegularMode(action: MessageComposerAction.EnterRegularMode) {
+        val text = textAfterEditing()
+        setState { copy(sendMode = SendMode.Regular(text, action.fromSharing)) }
     }
 
     private fun handleEnterEditMode(room: Room, action: MessageComposerAction.EnterEditMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
             val prefill = computeEditablePrefill(room, timelineEvent)
+            // Switching straight from one edit to another keeps what the first one stashed.
+            if (!editOwnsComposer) {
+                textStashedForEdit = currentComposerText.takeIf { it.isNotBlank() }
+                editOwnsComposer = true
+            }
             setState { copy(sendMode = SendMode.Edit(timelineEvent, prefill)) }
         }
+    }
+
+    /** Takes back what an edit stashed, if one owns the composer; releases it either way. */
+    private fun consumeTextStashedForEdit(): CharSequence? {
+        val stashed = textStashedForEdit.takeIf { editOwnsComposer }
+        editOwnsComposer = false
+        textStashedForEdit = null
+        return stashed
+    }
+
+    /**
+     * The text the composer goes back to once an edit lets go of it: what was being typed before the edit
+     * took over, or else whatever is in the composer now.
+     */
+    private fun textAfterEditing(): CharSequence {
+        // An edit which took over an empty composer stashed nothing, and giving it back still means
+        // emptying the composer — not leaving the message that was being edited in it.
+        val owned = editOwnsComposer
+        val stashed = consumeTextStashedForEdit()
+        if (!owned) return currentComposerText
+        val restored = stashed ?: ""
+        // Drop the edit from storage now rather than at the next draft save: the message being given back
+        // has to survive the app dying in between.
+        room?.let { room ->
+            session.coroutineScope.launch {
+                if (restored.isBlank()) {
+                    room.draftService().deleteDraft()
+                } else {
+                    room.draftService().saveDrafts(listOf(UserDraft.Regular(restored.toString())))
+                }
+            }
+        }
+        return restored
     }
 
     /**
@@ -419,13 +501,15 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleEnterQuoteMode(room: Room, action: MessageComposerAction.EnterQuoteMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
-            setState { copy(sendMode = SendMode.Quote(timelineEvent, currentComposerText)) }
+            val text = textAfterEditing()
+            setState { copy(sendMode = SendMode.Quote(timelineEvent, text)) }
         }
     }
 
     private fun handleEnterReplyMode(room: Room, action: MessageComposerAction.EnterReplyMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
-            setState { copy(sendMode = SendMode.Reply(timelineEvent, currentComposerText)) }
+            val text = textAfterEditing()
+            setState { copy(sendMode = SendMode.Reply(timelineEvent, text)) }
         }
     }
 
@@ -1219,16 +1303,30 @@ class MessageComposerViewModel @AssistedInject constructor(
             // If we were sharing, we want to get back our last value from draft
             loadDraftIfAny(room)
         } else {
-            // Otherwise we clear the composer and remove the draft from db
-            setState { copy(sendMode = SendMode.Regular("", false)) }
+            // Otherwise we clear the composer and remove the draft from db — except after an edit, which
+            // gives back the message that was being written when it started.
+            val restored = consumeTextStashedForEdit() ?: ""
+            setState { copy(sendMode = SendMode.Regular(restored, false)) }
             viewModelScope.launch {
-                room.draftService().deleteDraft()
+                if (restored.isBlank()) {
+                    room.draftService().deleteDraft()
+                } else {
+                    room.draftService().saveDrafts(listOf(UserDraft.Regular(restored.toString())))
+                }
             }
         }
     }
 
     private fun loadDraftIfAny(room: Room) {
-        val currentDraft = room.draftService().getDraft()
+        val drafts = room.draftService().getDrafts()
+        val currentDraft = drafts.lastOrNull()
+        if (currentDraft is UserDraft.Edit) {
+            // An edit interrupted mid-room keeps the message that was being written underneath it.
+            editOwnsComposer = true
+            textStashedForEdit = (drafts.getOrNull(drafts.lastIndex - 1) as? UserDraft.Regular)
+                    ?.content
+                    ?.takeIf { it.isNotBlank() }
+        }
         // Drop a stale voice draft before render so the recorder doesn't flicker through Draft state.
         if (currentDraft is UserDraft.Voice && !voiceDraftFileExists(room, currentDraft.content)) {
             viewModelScope.launch { room.draftService().deleteDraft() }
@@ -1980,7 +2078,14 @@ class MessageComposerViewModel @AssistedInject constructor(
                 }
                 it.sendMode is SendMode.Edit -> {
                     setState { copy(sendMode = it.sendMode.copy(text = draft)) }
-                    room.draftService().saveDraft(UserDraft.Edit(it.sendMode.timelineEvent.root.eventId!!, draft))
+                    val edit = UserDraft.Edit(it.sendMode.timelineEvent.root.eventId!!, draft)
+                    // Store the interrupted message under the edit, so leaving the room does not lose it.
+                    val stashed = textStashedForEdit?.toString()?.takeIf { text -> text.isNotBlank() }
+                    if (stashed == null) {
+                        room.draftService().saveDraft(edit)
+                    } else {
+                        room.draftService().saveDrafts(listOf(UserDraft.Regular(stashed), edit))
+                    }
                 }
             }
         }

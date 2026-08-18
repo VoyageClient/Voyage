@@ -47,6 +47,12 @@ internal class DefaultDraftService @AssistedInject constructor(
         }
     }
 
+    override suspend fun saveDrafts(drafts: List<UserDraft>) {
+        withContext(coroutineDispatchers.main) {
+            draftRepository.saveDrafts(roomId, drafts)
+        }
+    }
+
     override suspend fun deleteDraft() {
         withContext(coroutineDispatchers.main) {
             draftRepository.deleteDraft(roomId)
@@ -55,6 +61,10 @@ internal class DefaultDraftService @AssistedInject constructor(
 
     override fun getDraft(): UserDraft? {
         return draftRepository.getDraft(roomId)
+    }
+
+    override fun getDrafts(): List<UserDraft> {
+        return draftRepository.getDrafts(roomId)
     }
 
     override fun getDraftFlow(): Flow<Optional<UserDraft>> {

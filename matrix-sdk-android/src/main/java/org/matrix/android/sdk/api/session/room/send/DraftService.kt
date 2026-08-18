@@ -27,14 +27,25 @@ interface DraftService {
     suspend fun saveDraft(draft: UserDraft)
 
     /**
+     * Save the room's drafts, the active one last: an edit in progress sits on top of the message the
+     * user was writing when they started it, and that message comes back when the edit ends.
+     */
+    suspend fun saveDrafts(drafts: List<UserDraft>)
+
+    /**
      * Delete the last draft, basically just after sending the message.
      */
     suspend fun deleteDraft()
 
     /**
-     * Return the current draft or null.
+     * Return the active draft or null.
      */
     fun getDraft(): UserDraft?
+
+    /**
+     * Return every draft of the room, the active one last. See [saveDrafts].
+     */
+    fun getDrafts(): List<UserDraft>
 
     /**
      * Return the current draft if any, as a live data.

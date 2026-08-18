@@ -28,7 +28,9 @@ data class TimelineItemFactoryParams(
         val forcedVisibleEventIds: Set<String> = emptySet(),
         // Set when [event] is a redacted event whose original content has been substituted back in,
         // so items can mark it as revealed even though it no longer looks redacted.
-        val isRevealedRedaction: Boolean = false
+        val isRevealedRedaction: Boolean = false,
+        // For hosts outside the timeline which date each row themselves.
+        val hideTimestamp: Boolean = false
 ) {
 
     val highlightedEventId: String?

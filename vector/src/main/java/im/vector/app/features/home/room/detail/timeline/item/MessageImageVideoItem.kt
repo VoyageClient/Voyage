@@ -54,6 +54,14 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     @EpoxyAttribute
     var playable: Boolean = false
 
+    /**
+     * Off for a host which cross-fades into the viewer rather than morphing this thumbnail into it (the
+     * edit history, as avatars do): there is no media flying out of the row, so nothing should stand in
+     * for it either.
+     */
+    @EpoxyAttribute
+    var handsOverToViewer: Boolean = true
+
     /** Length of a video message, in milliseconds; zero for anything else. */
     @EpoxyAttribute
     var mediaDurationMs: Int = 0
@@ -189,7 +197,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         }
         holder.imageView.onClick(clickListener?.let { listener ->
             { view: View ->
-                holder.hideDurationForViewer()
+                if (handsOverToViewer) holder.hideDurationForViewer()
                 listener.invoke(view)
             }
         })

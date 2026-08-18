@@ -163,6 +163,11 @@ interface Navigator {
             view: View,
             inMemory: List<AttachmentData> = emptyList(),
             standalonePreview: Boolean = false,
+            // Off where [inMemory] is a list of its own (e.g. a message's edit history) rather than a
+            // starting point inside the room's media.
+            pageOverRoomMedia: Boolean = true,
+            // Off to cross-fade instead of morphing out of [view], as avatars do.
+            morphFromView: Boolean = true,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     )
 

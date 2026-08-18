@@ -87,6 +87,8 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
 
     private val allowedTypes = listOf(
             EventType.MESSAGE,
+            // A sticker can be edited too — its caption, or the sticker itself.
+            EventType.STICKER,
             EventType.REDACTION,
             EventType.REACTION,
             // The aggregator handles verification events but just to render tiles in the timeline
@@ -134,7 +136,8 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
                     val encryptedEventContent = event.content.toModel<EncryptedEventContent>()
                     processEncryptedContent(encryptedEventContent, stores, event, roomId, isLocalEcho)
                 }
-                EventType.MESSAGE -> {
+                EventType.MESSAGE,
+                EventType.STICKER -> {
                     val annotations = event.unsignedData?.relations?.annotations
                     if (annotations != null && SHOULD_HANDLE_SERVER_AGREGGATION) {
                         handleInitialAggregatedRelations(stores, event, roomId, annotations)
