@@ -17,6 +17,7 @@ import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
+import android.text.Spannable
 import android.text.Spanned
 import android.text.style.ReplacementSpan
 import android.widget.TextView
@@ -89,15 +90,20 @@ class EmoteImageSpan(
 
     // A bare invalidate() is not enough here: the TextView re-records its display list from the
     // cached text Layout, which (observed on Android 14+) can skip re-running this span's draw,
-    // leaving the placeholder on screen until an unrelated full rebind. Re-setting the text forces
-    // the Layout to be rebuilt; the reserved box keeps size unchanged so there's no visible reflow.
+    // leaving the placeholder on screen until an unrelated full rebind.
     private fun repaint() {
         val textView = tv?.get() ?: return
-        val spanned = textView.text as? Spanned
-        if (spanned != null && spanned.getSpanStart(this) >= 0) {
-            textView.text = textView.text
-        } else {
-            textView.invalidate()
+        val text = textView.text
+        val start = (text as? Spanned)?.getSpanStart(this) ?: -1
+        when {
+            // Re-setting the span reflows just this range. Cheaper than re-setting the text, and it leaves
+            // the editor alone — on a selectable view (a topic, a biography, a message) setting the text
+            // drops the selection the user is making and can raise the soft keyboard.
+            start >= 0 && text is Spannable -> text.setSpan(this, start, text.getSpanEnd(this), text.getSpanFlags(this))
+            // An immutable buffer has no such notification; only setting the text rebuilds the Layout. The
+            // reserved box keeps the size unchanged, so there is no visible reflow.
+            start >= 0 -> textView.text = text
+            else -> textView.invalidate()
         }
     }
 

@@ -31,6 +31,7 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.image
@@ -90,6 +91,7 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
                 }
             }
         }
+        holder.descriptionText.bindEmoteImageSpans()
 
         holder.suggestedTag.visibility = if (suggested) View.VISIBLE else View.GONE
         holder.joinButton.text = buttonLabel

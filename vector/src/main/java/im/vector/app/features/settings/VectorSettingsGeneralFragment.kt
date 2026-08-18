@@ -60,6 +60,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.redaction.preservation.PreservedMediaStore
@@ -75,6 +76,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.isInvalidPassword
 import org.matrix.android.sdk.api.session.admin.ServerAdminStatus
@@ -103,6 +105,7 @@ class VectorSettingsGeneralFragment :
     @Inject lateinit var mediaCache: MediaCache
     @Inject lateinit var timezoneFormatter: TimezoneFormatter
     @Inject lateinit var serverAdminStatusDataSource: ServerAdminStatusDataSource
+    @Inject lateinit var emoteShortcodeProcessor: EmoteShortcodeProcessor
 
     override var titleRes = CommonStrings.settings_general_title
     override val preferenceXmlRes = R.xml.vector_settings_general
@@ -986,16 +989,30 @@ class VectorSettingsGeneralFragment :
                 .setTitle(CommonStrings.settings_biography_title)
                 .setView(container)
                 .setPositiveButton(CommonStrings.ok) { _, _ ->
-                    val body = editText.text?.toString()?.trim().orEmpty()
-                    // Markdown is resolved once, on save, exactly as a message is: the HTML is only
-                    // stored when the text actually carries formatting, so plain prose keeps its layout.
-                    val formatted = body.takeIf { it.isNotEmpty() }
-                            ?.let { tryOrNull { session.roomService().computeFormattedHtml(it.withBlankLinesKept(), autoMarkdown = true) } }
-                    saveBiography(UserBio(body, formatted).takeIf { !it.isEmpty() })
+                    saveTypedBiography(editText.text?.toString()?.trim().orEmpty())
                 }
                 .setNeutralButton(CommonStrings.settings_biography_clear) { _, _ -> saveBiography(null) }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
+    }
+
+    /**
+     * Markdown and `:shortcode:` emotes are resolved once, on save, exactly as a message's are: the HTML
+     * is only stored when the text actually carries formatting, so plain prose keeps its layout. The body
+     * keeps the shortcodes it was typed with, which is what a client that shows no HTML falls back to.
+     */
+    private fun saveTypedBiography(body: String) {
+        lifecycleScope.launch {
+            val formatted = body.takeIf { it.isNotEmpty() }?.let { text ->
+                // Resolving the emotes reads the image packs from the database.
+                val withEmotes = withContext(Dispatchers.IO) {
+                    emoteShortcodeProcessor.process(roomId = null, text = text.withBlankLinesKept())
+                }
+                tryOrNull { session.roomService().computeFormattedHtml(withEmotes, autoMarkdown = true) }
+            }
+            if (!isAdded) return@launch
+            saveBiography(UserBio(body, formatted).takeIf { !it.isEmpty() })
+        }
     }
 
     private fun saveBiography(bio: UserBio?) {

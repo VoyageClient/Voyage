@@ -21,6 +21,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
+import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.extensions.orFalse
 import timber.log.Timber
@@ -143,6 +144,11 @@ open class VectorPreference : Preference {
         }
 
         super.onBindViewHolder(holder)
+
+        // After super, which is what sets the title/summary text: a preference showing user-provided text
+        // (a biography, a room name) can carry custom emoticons, which only load once bound to their view.
+        (holder.findViewById(android.R.id.title) as? TextView)?.bindEmoteImageSpans()
+        (holder.findViewById(android.R.id.summary) as? TextView)?.bindEmoteImageSpans()
 
         if (tintIcon) {
             // Tint after super, which is what actually sets the icon drawable on the ImageView. Tint the
