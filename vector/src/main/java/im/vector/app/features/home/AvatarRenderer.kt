@@ -18,6 +18,7 @@ import android.net.Uri
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.AnyThread
+import androidx.annotation.DimenRes
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.Companion.PRIVATE
@@ -85,13 +86,11 @@ class AvatarRenderer @Inject constructor(
     }
 
     @UiThread
-    fun render(matrixItem: MatrixItem, imageView: ImageView) {
+    fun render(matrixItem: MatrixItem, imageView: ImageView, @DimenRes decodeSize: Int? = null) {
         imageView.setContentDescription(matrixItem)
-        render(
-                GlideApp.with(imageView),
-                matrixItem,
-                avatarTarget(imageView, matrixItem),
-        )
+        GlideApp.with(imageView)
+                .loadAvatar(matrixItem, decodeSizePx = decodeSize?.let { imageView.resources.getDimensionPixelSize(it) })
+                .into(avatarTarget(imageView, matrixItem))
     }
 
     // Clips avatars to the configured shape (circle / rounded square / square) for animated drawables
@@ -312,7 +311,11 @@ class AvatarRenderer @Inject constructor(
 
     // PRIVATE API *********************************************************************************
 
-    private fun GlideRequests.loadAvatar(matrixItem: MatrixItem, cacheOnly: Boolean = false): GlideRequest<Drawable> {
+    private fun GlideRequests.loadAvatar(
+            matrixItem: MatrixItem,
+            cacheOnly: Boolean = false,
+            decodeSizePx: Int? = null,
+    ): GlideRequest<Drawable> {
         val placeholder = getPlaceholderDrawable(matrixItem)
         val transformation = avatarTransform(matrixItem)
         val autoplay = vectorPreferences.autoplayAnimatedImages()
@@ -323,6 +326,7 @@ class AvatarRenderer @Inject constructor(
                 .optionalTransform(transformation)
                 .placeholder(placeholder)
                 .onlyRetrieveFromCache(retrieveFromCacheOnly)
+                .let { if (decodeSizePx != null) it.override(decodeSizePx) else it }
                 .let { if (autoplay) it.addListener(RestartAnimationListener) else it.dontAnimate() }
 
         // Once every attempt is cache-only the two still ones are the same request.

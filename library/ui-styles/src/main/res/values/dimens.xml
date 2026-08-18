@@ -9,6 +9,9 @@
     <dimen name="layout_vertical_margin_big">32dp</dimen>
 
     <dimen name="profile_avatar_size">50dp</dimen>
+    <!-- Glide keys its memory cache by decode size: the room list and room toolbar only share a
+         cached avatar while both request this one size. -->
+    <dimen name="room_avatar_decode_size">56dp</dimen>
     <dimen name="typing_avatar_size">20dp</dimen>
     <dimen name="item_event_message_state_size">16dp</dimen>
 

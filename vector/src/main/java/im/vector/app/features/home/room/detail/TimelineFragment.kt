@@ -1718,7 +1718,11 @@ class TimelineFragment :
                     val toolbarMatrixItem = roomSummary.toDisplayMatrixItem().let {
                         if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it
                     }
-                    avatarRenderer.render(toolbarMatrixItem, views.includeRoomToolbar.roomToolbarAvatarImageView)
+                    avatarRenderer.render(
+                            toolbarMatrixItem,
+                            views.includeRoomToolbar.roomToolbarAvatarImageView,
+                            decodeSize = im.vector.lib.ui.styles.R.dimen.room_avatar_decode_size,
+                    )
                     val showPresence = roomSummary.isDirect
                     views.includeRoomToolbar.roomToolbarPresenceImageView.render(showPresence, roomSummary.directUserPresence)
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
