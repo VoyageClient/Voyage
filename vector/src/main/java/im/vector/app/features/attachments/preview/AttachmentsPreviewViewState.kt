@@ -27,10 +27,21 @@ data class AttachmentsPreviewViewState(
         /** Keyed by the attachment's current queryUri. */
         val editRecords: Map<String, EditRecord> = emptyMap(),
         /** Keyed by [stableIdOf], so editing an attachment does not lose its compression choice. */
-        val compressionSettings: Map<String, CompressionSettings> = emptyMap()
+        val compressionSettings: Map<String, CompressionSettings> = emptyMap(),
+        /**
+         * Keyed by [stableIdOf]. Attachments sent as one gallery event share a single caption — the
+         * gallery has one body — so there the same text is held against every attachment.
+         */
+        val captions: Map<String, String> = emptyMap(),
+        val sharesOneCaption: Boolean = false,
 ) : MavericksState {
 
-    constructor(args: AttachmentsPreviewArgs) : this(attachments = args.attachments)
+    constructor(args: AttachmentsPreviewArgs) : this(
+            attachments = args.attachments,
+            captions = args.attachments.associate { it.queryUri to args.caption.orEmpty() },
+    )
+
+    fun captionOf(attachment: ContentAttachmentData): String = captions[stableIdOf(attachment)].orEmpty()
 
     /**
      * Editing rewrites an attachment's queryUri. Keying the list off that would make Epoxy treat

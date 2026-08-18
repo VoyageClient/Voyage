@@ -15,6 +15,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -25,13 +26,13 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.core.widget.CompoundButtonCompat
@@ -78,7 +79,9 @@ import javax.inject.Inject
 
 @Parcelize
 data class AttachmentsPreviewArgs(
-        val attachments: List<ContentAttachmentData>
+        val attachments: List<ContentAttachmentData>,
+        /** What the composer holds — the caption starts as that, so nothing has to be typed twice. */
+        val caption: String? = null,
 ) : Parcelable
 
 @AndroidEntryPoint
@@ -101,6 +104,11 @@ class AttachmentsPreviewFragment :
     /** True while the checkbox is being set from state, so its listener knows it was not a tap. */
     private var bindingKeepOriginalSize = false
 
+    /** As above, for the caption field: a state-driven set must not be read back as typing. */
+    private var bindingCaption = false
+
+    private var keyboardLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     /** Attachment the editor was opened against, needed to record the edit when it returns. */
     private var pendingEditOriginal: ContentAttachmentData? = null
     private val animatedFormats = mutableMapOf<String, AnimatedImageFormat?>()
@@ -118,6 +126,7 @@ class AttachmentsPreviewFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         applyInsets()
+        trackKeyboardBelowR(view)
         applyOrientationSizing()
         views.appBarLayout.flattenAsScrim(TOP_BAR_DIM)
         setupRecyclerViews()
@@ -128,6 +137,13 @@ class AttachmentsPreviewFragment :
         view.setOnTouchListener { _, event -> videoControls?.forwardScreenTouch(event) ?: false }
         views.attachmentPreviewerSendButton.debouncedClicks {
             setResultAndFinish()
+        }
+        // A gallery event has one body, so its items cannot caption themselves separately.
+        viewModel.handle(AttachmentsPreviewAction.SetSharesOneCaption(
+                vectorPreferences.sendMediaGalleries() && fragmentArgs.attachments.size >= 2
+        ))
+        views.attachmentPreviewerCaption.doAfterTextChanged { text ->
+            if (!bindingCaption) viewModel.handle(AttachmentsPreviewAction.SetCaption(text?.toString().orEmpty()))
         }
         val accent = ThemeUtils.getColorFromContextTheme(requireContext(), com.google.android.material.R.attr.colorAccent)
         val (fill, onFill) = ThemeUtils.accentFillOnDarkSurface(requireContext())
@@ -192,14 +208,6 @@ class AttachmentsPreviewFragment :
         bar.post {
             if (!isAdded) return@post
             bar.isVisible = videoControls != null
-            // The controls row grows the bottom panel upwards and the send button, anchored to
-            // the panel's top edge, would ride up with it; sit it back down by the row's height
-            // so it keeps the same spot it has for image attachments.
-            if (videoControls != null) {
-                bar.doOnLayout { views.attachmentPreviewerSendButton.translationY = it.height.toFloat() }
-            } else {
-                views.attachmentPreviewerSendButton.translationY = 0f
-            }
         }
     }
 
@@ -477,6 +485,16 @@ class AttachmentsPreviewFragment :
     }
 
     override fun onDestroyView() {
+        keyboardLayoutListener?.let { listener ->
+            val observer = view?.viewTreeObserver?.takeIf { it.isAlive }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                observer?.removeOnGlobalLayoutListener(listener)
+            } else {
+                @Suppress("DEPRECATION")
+                observer?.removeGlobalOnLayoutListener(listener)
+            }
+        }
+        keyboardLayoutListener = null
         views.attachmentPreviewerMiniatureList.cleanup()
         views.attachmentPreviewerBigList.cleanup()
         attachmentMiniaturePreviewController.callback = null
@@ -503,6 +521,7 @@ class AttachmentsPreviewFragment :
                 views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
             }
             renderKeepOriginalSize(state)
+            renderCaption(state)
             renderAudioBackdrop(state)
         }
     }
@@ -559,6 +578,17 @@ class AttachmentsPreviewFragment :
         bindingKeepOriginalSize = false
     }
 
+    /** Each attachment keeps its own caption, unless they are all going out as one gallery event. */
+    private fun renderCaption(state: AttachmentsPreviewViewState) {
+        val current = state.attachments.getOrNull(state.currentAttachmentIndex) ?: return
+        val caption = state.captionOf(current)
+        if (views.attachmentPreviewerCaption.text?.toString() == caption) return
+        bindingCaption = true
+        views.attachmentPreviewerCaption.setText(caption)
+        views.attachmentPreviewerCaption.setSelection(caption.length)
+        bindingCaption = false
+    }
+
     override fun onAttachmentClicked(position: Int, contentAttachmentData: ContentAttachmentData) {
         viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(position))
     }
@@ -590,7 +620,8 @@ class AttachmentsPreviewFragment :
                     compressionHeight = settings.height,
             )
         }
-        (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(attachments)
+        (requireActivity() as? AttachmentsPreviewActivity)
+                ?.setResultAndFinish(attachments, state.attachments.map { state.captionOf(it) })
     }
 
     /** The preview already read the file's peaks, so a voice message can be sent carrying them. */
@@ -604,9 +635,13 @@ class AttachmentsPreviewFragment :
     /** The activity lays this screen out under the system bars; only the controls inset themselves. */
     private fun applyInsets() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerBottomContainer) { v, insets ->
+            // The caption bar is what sits on the screen's edge, so it carries the bar and keyboard insets.
+            ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerCaptionBar) { v, insets ->
                 val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                v.updatePadding(bottom = systemBarsInsets.bottom)
+                // The caption bar has to stay above the keyboard it is typed into. The window draws
+                // under the system bars, so it never resizes for the keyboard on its own.
+                val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+                v.updatePadding(bottom = maxOf(systemBarsInsets.bottom, imeInsets.bottom))
                 insets
             }
             // Padding on the bar that carries the dim, like the bottom container: the dim then runs
@@ -622,6 +657,24 @@ class AttachmentsPreviewFragment :
             // overlapped pre-21 (and many KitKat devices have hardware keys), so no bottom padding.
             views.appBarLayout.updatePadding(top = getSystemBarHeightPx("status_bar_height"))
         }
+    }
+
+    /**
+     * Below R there are no keyboard insets to read, so the height it covers is measured from the
+     * visible frame and the bottom bar is lifted by hand — otherwise the caption is typed blind.
+     */
+    private fun trackKeyboardBelowR(view: View) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            val visible = Rect()
+            view.getWindowVisibleDisplayFrame(visible)
+            val covered = view.rootView.height - visible.bottom
+            val keyboard = if (covered > view.rootView.height / 5) covered else 0
+            views.attachmentPreviewerCaptionBar.translationY = -keyboard.toFloat()
+            views.attachmentPreviewerBottomContainer.translationY = -keyboard.toFloat()
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        keyboardLayoutListener = listener
     }
 
     private fun getSystemBarHeightPx(resName: String): Int {

@@ -296,7 +296,8 @@
             android:name=".features.attachments.preview.AttachmentsPreviewActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
+            android:theme="@style/Theme.Vector.Black.AttachmentsPreview"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".features.attachments.editor.image.ImageEditorActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"

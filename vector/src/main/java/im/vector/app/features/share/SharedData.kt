@@ -18,7 +18,11 @@ sealed class SharedData : Parcelable {
     data class Text(val text: String) : SharedData()
 
     @Parcelize
-    data class Attachments(val attachmentData: List<ContentAttachmentData>) : SharedData()
+    data class Attachments(
+            val attachmentData: List<ContentAttachmentData>,
+            /** One caption per attachment, in the same order; empty until the previewer has been through. */
+            val captions: List<String> = emptyList(),
+    ) : SharedData()
 
     @Parcelize
     data class Forward(val eventType: String, val payloadId: String) : SharedData()

@@ -122,7 +122,13 @@ class IncomingShareViewModel @AssistedInject constructor(
                     _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(state.selectedRoomIds.singleOrNull()))
                 }
                 is SharedData.Attachments -> {
-                    shareAttachments(sharedData.attachmentData, state.selectedRoomIds, proposeMediaEdition = true, compressMediaBeforeSending = false)
+                    shareAttachments(
+                            attachmentData = sharedData.attachmentData,
+                            captions = sharedData.captions,
+                            selectedRoomIds = state.selectedRoomIds,
+                            proposeMediaEdition = true,
+                            compressMediaBeforeSending = false,
+                    )
                 }
                 is SharedData.Forward -> {
                     forwardToRooms(sharedData, state.selectedRoomIds)
@@ -152,12 +158,19 @@ class IncomingShareViewModel @AssistedInject constructor(
 
     private fun handleShareMediaToSelectedRooms(action: IncomingShareAction.ShareMedia) = withState { state ->
         (state.sharedData as? SharedData.Attachments)?.let {
-            shareAttachments(it.attachmentData, state.selectedRoomIds, proposeMediaEdition = false, compressMediaBeforeSending = !action.keepOriginalSize)
+            shareAttachments(
+                    attachmentData = it.attachmentData,
+                    captions = it.captions,
+                    selectedRoomIds = state.selectedRoomIds,
+                    proposeMediaEdition = false,
+                    compressMediaBeforeSending = !action.keepOriginalSize,
+            )
         }
     }
 
     private fun shareAttachments(
             attachmentData: List<ContentAttachmentData>,
+            captions: List<String> = emptyList(),
             selectedRoomIds: Set<String>,
             proposeMediaEdition: Boolean,
             compressMediaBeforeSending: Boolean
@@ -196,7 +209,20 @@ class IncomingShareViewModel @AssistedInject constructor(
                     ?.sendService()
                     ?.let { sendService ->
                         viewModelScope.launch(Dispatchers.IO) {
-                            sendService.sendMedias(sendMediaMaterializer.materialize(attachmentData), compressMediaBeforeSending, selectedRoomIds)
+                            val materialized = sendMediaMaterializer.materialize(attachmentData)
+                            if (captions.any { it.isNotBlank() }) {
+                                // Each was captioned for itself in the previewer, so each goes out on its own.
+                                materialized.forEachIndexed { index, attachment ->
+                                    sendService.sendMedia(
+                                            attachment = attachment,
+                                            compressBeforeSending = compressMediaBeforeSending,
+                                            roomIds = selectedRoomIds,
+                                            captionText = captions.getOrNull(index)?.takeIf { it.isNotBlank() },
+                                    )
+                                }
+                            } else {
+                                sendService.sendMedias(materialized, compressMediaBeforeSending, selectedRoomIds)
+                            }
                         }
                     }
             _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(selectedRoomIds.singleOrNull()))

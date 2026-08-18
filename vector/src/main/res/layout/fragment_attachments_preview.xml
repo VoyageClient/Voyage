@@ -59,51 +59,32 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:id="@+id/attachmentPreviewerBottomContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#40000000"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerCaptionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/attachmentPreviewerMiniatureList"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerVideoControls"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             tools:itemCount="1"
             tools:listitem="@layout/item_attachment_miniature_preview" />
 
-        <CheckBox
-            android:id="@+id/attachmentPreviewerSendImageOriginalSize"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textColor="@android:color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerVideoControls"
-            tools:text="@plurals/send_images_with_original_size" />
-
         <LinearLayout
             android:id="@+id/attachmentPreviewerVideoControls"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingRight="12dp"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerSendImageOriginalSize"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerMiniatureList"
             tools:visibility="visible">
 
             <SeekBar
@@ -133,19 +114,57 @@
 
         </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <CheckBox
+            android:id="@+id/attachmentPreviewerSendImageOriginalSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="8dp"
+            android:textColor="@android:color/white"
+            tools:text="@plurals/send_images_with_original_size" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/attachmentPreviewerSendButton"
-        android:layout_width="wrap_content"
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachmentPreviewerCaptionBar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/action_send"
-        app:backgroundTint="?vctr_accent_fill"
-        app:tint="?vctr_content_on_accent"
-        app:srcCompat="@drawable/ic_send"
-        app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerBottomContainer"
+        android:background="#59000000"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="16dp"
+        android:paddingRight="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/attachmentPreviewerBottomContainer" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <EditText
+            android:id="@+id/attachmentPreviewerCaption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="@string/attachment_caption_hint"
+            android:importantForAutofill="no"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLines="4"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:textColor="@android:color/white"
+            android:textColorHint="#B3FFFFFF"
+            tools:text="A caption" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/attachmentPreviewerSendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:contentDescription="@string/action_send"
+            app:backgroundTint="?vctr_accent_fill"
+            app:fabSize="mini"
+            app:srcCompat="@drawable/ic_send"
+            app:tint="?vctr_content_on_accent" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
