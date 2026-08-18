@@ -34,8 +34,8 @@
 
         <ImageView
             android:id="@+id/roomAvatarImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="@dimen/room_avatar_decode_size"
+            android:layout_height="@dimen/room_avatar_decode_size"
             android:importantForAccessibility="no"
             tools:src="@sample/room_round_avatars" />
 
