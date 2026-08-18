@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.relation
 
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.PollType
@@ -65,6 +66,15 @@ internal class EventEditor @Inject constructor(
         // and rewrites local relation ids at send time, so the replace lands after the original.
         val event = eventFactory
                 .createReplaceTextEvent(roomId, remoteId ?: targetEvent.eventId, newBodyText, newBodyFormattedText, newBodyAutoMarkdown, msgType, compatibilityBodyText)
+        return sendReplaceEvent(event)
+    }
+
+    fun editMediaContent(targetEvent: TimelineEvent, newContent: Content): Cancelable {
+        if (!targetEvent.root.sendState.isSent()) {
+            Timber.w("Can't replace the media of a non-sent event")
+            return NoOpCancellable
+        }
+        val event = eventFactory.createContentReplaceEvent(targetEvent.roomId, targetEvent, newContent)
         return sendReplaceEvent(event)
     }
 

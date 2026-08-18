@@ -487,6 +487,33 @@ internal class DefaultSendService @AssistedInject constructor(
         return internalSendMedia(allLocalEchoes, attachment, compressBeforeSending)
     }
 
+    override fun sendMediaEdit(
+            targetEvent: TimelineEvent,
+            attachment: ContentAttachmentData,
+            compressBeforeSending: Boolean,
+            captionText: CharSequence?,
+            captionFormattedText: String?,
+            autoMarkdown: Boolean,
+            additionalContent: Content?,
+    ): Cancelable {
+        val mentions = IntentionalMentions.build(
+                body = captionText?.toString(),
+                formattedBody = captionFormattedText,
+                selfUserId = userId,
+        )
+        val localEcho = localEchoEventFactory.createMediaReplaceEvent(
+                roomId = roomId,
+                targetEvent = targetEvent,
+                attachment = attachment,
+                captionText = captionText,
+                captionFormattedText = captionFormattedText,
+                autoMarkdown = autoMarkdown,
+                mentions = mentions,
+                additionalContent = additionalContent,
+        ).also { createLocalEcho(it) }
+        return internalSendMedia(listOf(localEcho), attachment, compressBeforeSending)
+    }
+
     /**
      * We use the roomId of the local echo event.
      */

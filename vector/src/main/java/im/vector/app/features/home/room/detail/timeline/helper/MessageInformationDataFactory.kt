@@ -83,7 +83,9 @@ class MessageInformationDataFactory @Inject constructor(
         val isLastFromThisSender = prevDisplayableEvent?.root?.senderId != event.root.senderId ||
                 prevDisplayableEvent?.root?.localDateTime()?.toLocalDate() != date.toLocalDate()
 
-        val time = dateFormatter.format(event.root.originServerTs, DateFormatKind.MESSAGE_SIMPLE)
+        // Blank rather than absent: the footer measures the string, and a host which shows the time
+        // itself (the edit history) would otherwise have it twice.
+        val time = if (params.hideTimestamp) "" else dateFormatter.format(event.root.originServerTs, DateFormatKind.MESSAGE_SIMPLE)
         val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root, params.isRevealedRedaction).applyShieldPreferences()
         // PGP-over-plaintext lock indicator (not tied to e2eDecoration). Parse content only when PGP is
         // enabled — otherwise this deserialization runs for every event for nothing.
@@ -195,7 +197,8 @@ class MessageInformationDataFactory @Inject constructor(
                 messageType = if (event.root.isSticker()) {
                     MessageType.MSGTYPE_STICKER_LOCAL
                 } else {
-                    event.root.getMsgType()
+                    // What the message holds now: an edit may have replaced e.g. an image with a video.
+                    event.getVectorLastMessageContent()?.msgType ?: event.root.getMsgType()
                 },
                 sharedByUserId = event.root.mxDecryptionResult?.sharedByUserId,
                 forwardedInfo = forwardedInfo

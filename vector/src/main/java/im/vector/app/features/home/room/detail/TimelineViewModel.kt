@@ -1164,19 +1164,39 @@ private fun handleSelectStickerAttachment() {
     private suspend fun sendMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia, captionText: CharSequence?, captionFormattedText: String?) {
         val randomize = shouldRandomizeFilenames(room)
         val stripMetadata = shouldStripMetadata(room)
-        val attachments = action.attachments
+        val allAttachments = action.attachments
                 .map { if (randomize) it.withRandomizedFilename() else it }
                 .map { it.copy(stripMetadata = stripMetadata) }
                 .let { sendMediaMaterializer.materialize(it) }
+        val autoMarkdown = if (captionText === action.captionText) action.autoMarkdown else false
+        // Re-resolve the edited event: it may have finished sending since the picker was opened.
+        val editedEvent = action.editedEventId?.let { room.getTimelineEvent(it) }
+        if (editedEvent != null) {
+            allAttachments.firstOrNull()?.let { replacement ->
+                room.sendService().sendMediaEdit(
+                        targetEvent = editedEvent,
+                        attachment = replacement,
+                        compressBeforeSending = action.compressBeforeSending,
+                        captionText = captionText,
+                        captionFormattedText = captionFormattedText,
+                        autoMarkdown = autoMarkdown,
+                )
+            }
+        }
+        // Whatever else was picked in the same go is a message of its own; the caption went to the edit.
+        val attachments = if (editedEvent == null) allAttachments else allAttachments.drop(1)
+        if (attachments.isEmpty()) return
+        val remainingCaption = captionText.takeIf { editedEvent == null }
+        val remainingFormattedCaption = captionFormattedText.takeIf { editedEvent == null }
         if (vectorPreferences.sendMediaGalleries() && attachments.size >= 2) {
             room.sendService().sendGallery(
                     attachments = attachments,
                     compressBeforeSending = action.compressBeforeSending,
                     rootThreadEventId = initialState.rootThreadEventId,
                     replyToEvent = action.replyToEvent,
-                    captionText = captionText,
-                    captionFormattedText = captionFormattedText,
-                    autoMarkdown = if (captionText === action.captionText) action.autoMarkdown else false,
+                    captionText = remainingCaption,
+                    captionFormattedText = remainingFormattedCaption,
+                    autoMarkdown = autoMarkdown,
             )
             return
         }
@@ -1186,9 +1206,9 @@ private fun handleSelectStickerAttachment() {
                 roomIds = emptySet(),
                 rootThreadEventId = initialState.rootThreadEventId,
                 replyToEvent = action.replyToEvent,
-                captionText = captionText,
-                captionFormattedText = captionFormattedText,
-                autoMarkdown = if (captionText === action.captionText) action.autoMarkdown else false,
+                captionText = remainingCaption,
+                captionFormattedText = remainingFormattedCaption,
+                autoMarkdown = autoMarkdown,
         )
     }
 

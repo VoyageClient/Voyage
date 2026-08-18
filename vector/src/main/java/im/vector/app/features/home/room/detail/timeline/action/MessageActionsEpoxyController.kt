@@ -168,7 +168,7 @@ class MessageActionsEpoxyController @Inject constructor(
             body(body.prepareForDisplay().toEpoxyCharSequence())
             redacted(state.timelineEvent()?.let { it.root.isRedacted() && !host.redactedContentRestorer.isShowingRestoredContent(it) } == true)
             redactedTint(showsRestoredContent)
-            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent?.root, state.galleryItemIndex)?.toEpoxyCharSequence())
+            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent, state.galleryItemIndex)?.toEpoxyCharSequence())
             time(formattedDate)
             locationUiData(locationUiData)
             tableHtml(host.computeTableHtml(state.previewEvent))

@@ -59,6 +59,19 @@ internal class DraftRepository @Inject constructor(
         }
     }
 
+    /** Replaces the room's drafts wholesale; the active one is last, as [getDraft] reads it. */
+    suspend fun saveDrafts(roomId: String, drafts: List<UserDraft>) {
+        database.awaitDbTransaction(dispatcher) {
+            val valid = drafts.filter { it.isValid() }
+            if (valid.isEmpty()) {
+                stores.draft.deleteDrafts(roomId)
+            } else {
+                stores.draft.replaceDrafts(roomId, valid.map { DraftMapper.map(it) })
+            }
+            invalidateRoomSummary(roomId)
+        }
+    }
+
     suspend fun deleteDraft(roomId: String) {
         database.awaitDbTransaction(dispatcher) {
             stores.draft.deleteDrafts(roomId)
@@ -72,8 +85,11 @@ internal class DraftRepository @Inject constructor(
         stores.roomSummary.touch(roomId)
     }
 
-    fun getDraft(roomId: String): UserDraft? =
-            stores.draft.getDrafts(roomId).firstOrNull()?.let { DraftMapper.map(it) }
+    // The last one is the active draft: an edit is stored on top of the message it interrupted.
+    fun getDraft(roomId: String): UserDraft? = getDrafts(roomId).lastOrNull()
+
+    fun getDrafts(roomId: String): List<UserDraft> =
+            stores.draft.getDrafts(roomId).map { DraftMapper.map(it) }
 
     fun getDraftsFlow(roomId: String): Flow<Optional<UserDraft>> =
             database.draftQueries.selectByRoom(roomId)

@@ -770,6 +770,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_VIDEO,
             MessageType.MSGTYPE_FILE,
             MessageType.MSGTYPE_AUDIO -> true
+            // A gallery captions itself the same way.
+            in setOf(MessageType.MSGTYPE_GALLERY, MessageType.MSGTYPE_GALLERY_STABLE) -> true
             else -> canEditPoll(event)
         }
     }

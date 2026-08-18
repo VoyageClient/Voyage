@@ -7,20 +7,13 @@
 
 package im.vector.app.features.home.room.detail.timeline.image
 
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.galleryPageId
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
-import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
-import org.matrix.android.sdk.api.session.events.model.isImageMessage
-import org.matrix.android.sdk.api.session.events.model.isSticker
-import org.matrix.android.sdk.api.session.events.model.isVideoMessage
-import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
@@ -33,8 +26,10 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
  * item stands in for the whole gallery.
  */
 fun TimelineEvent.buildImageContentRendererData(maxHeight: Int, galleryItemIndex: Int? = null): ImageContentRenderer.Data? {
-    if (root.isGalleryMessage()) {
-        val items = (root.getClearContent().toModel<MessageContent>() as? MessageGalleryContent)?.galleryItems().orEmpty()
+    // The media as it stands now: an edit may have replaced it, or given a text message media.
+    val content = getVectorLastMessageContent()
+    if (content is MessageGalleryContent) {
+        val items = content.galleryItems()
         val index = galleryItemIndex
                 ?: items.indexOfFirst { it is MessageImageInfoContent || it is MessageVideoContent }.takeIf { it >= 0 }
                 ?: return null
@@ -45,13 +40,10 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int, galleryItemIndex
             else -> null
         }
     }
-    return when {
-        root.isImageMessage() -> root.getClearContent().toModel<MessageImageContent>()
-                ?.let { imageRendererData(it, timelineStableId(), maxHeight) }
-        root.isVideoMessage() -> root.getClearContent().toModel<MessageVideoContent>()
-                ?.let { videoThumbnailRendererData(it, timelineStableId(), maxHeight) }
-        root.isSticker() -> root.getClearContent().toModel<MessageStickerContent>()
-                ?.let { imageRendererData(it, timelineStableId(), maxHeight) }
+    return when (content) {
+        is MessageVideoContent -> videoThumbnailRendererData(content, timelineStableId(), maxHeight)
+        // Covers stickers too, which are image content without a msgtype.
+        is MessageImageInfoContent -> imageRendererData(content, timelineStableId(), maxHeight)
         else -> null
     }
 }

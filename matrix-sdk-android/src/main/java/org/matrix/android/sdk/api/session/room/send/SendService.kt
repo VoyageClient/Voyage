@@ -144,6 +144,26 @@ interface SendService {
     ): Cancelable
 
     /**
+     * Replace the media of [targetEvent] with [attachment], as an m.replace edit. The target may be a media
+     * event or a plain message, which gains the media it did not have; its previous versions stay readable
+     * in the edit history.
+     * @param targetEvent the event being edited
+     * @param attachment the media to put in its place
+     * @param compressBeforeSending set to true to compress images before sending them
+     * @param captionText the caption to send along with the media, or null for none
+     * @return a [Cancelable]
+     */
+    fun sendMediaEdit(
+            targetEvent: TimelineEvent,
+            attachment: ContentAttachmentData,
+            compressBeforeSending: Boolean,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            additionalContent: Content? = null,
+    ): Cancelable
+
+    /**
      * Send several media as a single MSC4274 gallery event.
      * @param attachments the media items, in gallery order
      * @param compressBeforeSending set to true to compress images before sending them

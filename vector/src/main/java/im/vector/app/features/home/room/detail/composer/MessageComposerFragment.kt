@@ -169,6 +169,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     // caption until popDraft resets it) isn't re-applied over the cleared box. See renderRegularMode.
     private var suppressStaleComposerRender = false
 
+    /** True while the composer shows a reply/edit/quote, whose text is the mode's rather than the user's. */
+    private var composerInSpecialMode = false
+
     private lateinit var attachmentsHelper: AttachmentsHelper
     private val attachmentTypeSelector: AttachmentTypeSelectorView get() = views.attachmentTypeSelector
     private var bottomSheetBehavior: ExpandingBottomSheetBehavior<View>? = null
@@ -635,7 +638,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
         // After sending, popDraft emits Regular("") here; on a slow device the user may have already typed
         // into the cleared composer, so don't re-apply "" over it. (sendTextMessage does the real clear.)
-        if (content.isBlank() && !composer.text.isNullOrBlank()) return
+        // Leaving reply/edit/quote is not that race though: what the box holds is the mode's own text,
+        // and an edit which took over an empty composer has an empty composer to give back.
+        if (content.isBlank() && !composer.text.isNullOrBlank() && !composerInSpecialMode) return
+        composerInSpecialMode = false
         autoCompleters.values.forEach(AutoCompleter::exitSpecialMode)
         composer.renderComposerMode(MessageComposerMode.Normal(content))
     }
@@ -643,6 +649,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun renderSpecialMode(mode: MessageComposerMode.Special) {
         // Entering reply/edit/quote means we're past any send-clear; don't keep swallowing renders.
         suppressStaleComposerRender = false
+        composerInSpecialMode = true
         // The funnel for swipe-to-reply and every other route into reply/edit/quote.
         attachmentTypeSelector.hide()
         val allowCommands = mode is MessageComposerMode.Reply
@@ -918,6 +925,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun dispatchSendMedia(attachments: List<ContentAttachmentData>, compressBeforeSending: Boolean) = withState(messageComposerViewModel) { state ->
         val replyToEvent = (state.sendMode as? SendMode.Reply)?.timelineEvent
+        // Picking media while editing puts it in place of what the message held, caption and all.
+        val editedEvent = (state.sendMode as? SendMode.Edit)?.timelineEvent
         // Keep the caption as a spanned CharSequence (and tag literal :shortcode: emotes) so custom
         // emotes survive into the formatted caption body, instead of stringifying it here.
         val rawCaption = composer.text ?: ""
@@ -935,9 +944,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         captionText = resolved.text,
                         captionFormattedText = resolved.formatted,
                         autoMarkdown = resolved.autoMarkdown,
+                        editedEventId = editedEvent?.eventId,
                 )
         )
-        if (replyToEvent != null || captionText != null) {
+        if (editedEvent != null || replyToEvent != null || captionText != null) {
             suppressStaleComposerRender = true
             composer.setTextIfDifferent("")
             composer.renderComposerMode(MessageComposerMode.Normal(""))

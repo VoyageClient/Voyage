@@ -16,11 +16,10 @@ import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.utils.TextUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
@@ -55,8 +54,8 @@ object MediaInfoCollector {
             fields[context.getString(CommonStrings.media_info_name)] = it.neutralizeDirectionOverrides()
         }
 
-        val content = event?.root?.getClearContent()
-        val declared = when (val message = content.toModel<MessageContent>() ?: content.toModel<MessageStickerContent>()) {
+        // What the event holds now, edits applied — the numbers must describe the file on screen.
+        val declared = when (val message = event?.getVectorLastMessageContent()) {
             is MessageImageContent -> message.info?.let { DeclaredInfo(it.mimeType, it.width, it.height, it.size, null) }
             is MessageStickerContent -> message.info?.let { DeclaredInfo(it.mimeType, it.width, it.height, it.size, null) }
             is MessageVideoContent -> message.videoInfo?.let { DeclaredInfo(it.mimeType, it.width, it.height, it.size, it.duration.toLong()) }
