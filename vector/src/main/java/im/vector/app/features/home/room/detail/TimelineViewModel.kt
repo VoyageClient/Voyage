@@ -608,13 +608,13 @@ class TimelineViewModel @AssistedInject constructor(
                         .map { it.isEncrypted }
                         .distinctUntilChanged()
         ) { snapshot, isRoomEncrypted ->
-            if (isRoomEncrypted && !vectorPreferences.allowUrlPreviewsInEncryptedRooms(session.myUserId)) {
-                return@combine
-            }
+            // Only the request is gated: a preview bundled in the event itself asks the homeserver nothing,
+            // so it is shown in encrypted rooms whatever this setting says.
+            val allowServerFetch = !isRoomEncrypted || vectorPreferences.allowUrlPreviewsInEncryptedRooms(session.myUserId)
             withContext(Dispatchers.Default) {
                 Timber.v("On new timeline events for urlpreview on ${Thread.currentThread()}")
                 snapshot.forEach {
-                    previewUrlRetriever.getPreviewUrl(it)
+                    previewUrlRetriever.getPreviewUrl(it, allowServerFetch)
                 }
             }
         }
@@ -1119,30 +1119,44 @@ private fun handleSelectStickerAttachment() {
 
     private fun handleSendMedia(action: RoomDetailAction.SendMedia) {
         val room = this.room ?: return
-        val caption = action.captionText?.takeIf { it.isNotBlank() }
+        val captions = action.captions.orEmpty() + listOfNotNull(action.captionText)
         viewModelScope.launch(Dispatchers.IO) {
             // In PGP mode, only the caption (body/formatted_body) is encrypted — the media itself
             // can't be (it's a plain mxc upload). Untriggered when there's no caption.
-            if (caption != null && pgpRoomEncryptor.isRoomPgpActive(room)) {
-                when (val outcome = pgpRoomEncryptor.encryptForRoom(room, caption, action.captionFormattedText)) {
-                    is PgpRoomEncryptor.Outcome.Encrypted ->
-                        sendMediasWithCaption(room, action, outcome.armoredBody, outcome.armoredFormatted)
-                    else -> {
-                        // Couldn't encrypt the caption: send the (unencryptable) media without it
-                        // rather than leaking the caption as plaintext, and say why.
-                        val reason = when (outcome) {
-                            PgpRoomEncryptor.Outcome.NoRecipients -> stringProvider.getString(CommonStrings.pgp_no_recipient_keys)
-                            is PgpRoomEncryptor.Outcome.Error -> stringProvider.getString(CommonStrings.pgp_encrypt_failed, outcome.message)
-                            else -> stringProvider.getString(CommonStrings.pgp_no_key_configured)
-                        }
-                        _viewEvents.post(RoomDetailViewEvents.ShowMessage(reason))
-                        sendMediasWithCaption(room, action, null, null)
-                    }
-                }
+            if (captions.any { it?.isNotBlank() == true } && pgpRoomEncryptor.isRoomPgpActive(room)) {
+                sendPgpMediasWithCaption(room, action)
             } else {
-                sendMediasWithCaption(room, action, action.captionText, action.captionFormattedText)
+                sendMediasWithCaption(room, action, action.captionText, action.captionFormattedText, action.captions)
             }
         }
+    }
+
+    /** Each caption is encrypted on its own; the media it describes is a plain upload either way. */
+    private suspend fun sendPgpMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia) {
+        var failure: PgpRoomEncryptor.Outcome? = null
+        suspend fun encrypt(text: CharSequence?, formatted: String?): Pair<CharSequence?, String?> {
+            if (text.isNullOrBlank()) return null to null
+            return when (val outcome = pgpRoomEncryptor.encryptForRoom(room, text, formatted)) {
+                is PgpRoomEncryptor.Outcome.Encrypted -> outcome.armoredBody to outcome.armoredFormatted
+                // Couldn't encrypt: the media goes without its caption rather than leaking it as plaintext.
+                else -> {
+                    failure = outcome
+                    null to null
+                }
+            }
+        }
+
+        val (mainCaption, mainFormatted) = encrypt(action.captionText, action.captionFormattedText)
+        val perAttachment = action.captions?.map { encrypt(it, null).first }
+        failure?.let { outcome ->
+            val reason = when (outcome) {
+                PgpRoomEncryptor.Outcome.NoRecipients -> stringProvider.getString(CommonStrings.pgp_no_recipient_keys)
+                is PgpRoomEncryptor.Outcome.Error -> stringProvider.getString(CommonStrings.pgp_encrypt_failed, outcome.message)
+                else -> stringProvider.getString(CommonStrings.pgp_no_key_configured)
+            }
+            _viewEvents.post(RoomDetailViewEvents.ShowMessage(reason))
+        }
+        sendMediasWithCaption(room, action, mainCaption, mainFormatted, perAttachment)
     }
 
     /** The room's own answer where it has one, and the account's otherwise. */
@@ -1161,7 +1175,13 @@ private fun handleSelectStickerAttachment() {
         PrivacyMode.PUBLIC_ROOMS -> room.roomSummary()?.joinRules == RoomJoinRules.PUBLIC
     }
 
-    private suspend fun sendMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia, captionText: CharSequence?, captionFormattedText: String?) {
+    private suspend fun sendMediasWithCaption(
+            room: Room,
+            action: RoomDetailAction.SendMedia,
+            captionText: CharSequence?,
+            captionFormattedText: String?,
+            perAttachmentCaptions: List<CharSequence?>?,
+    ) {
         val randomize = shouldRandomizeFilenames(room)
         val stripMetadata = shouldStripMetadata(room)
         val allAttachments = action.attachments
@@ -1198,6 +1218,24 @@ private fun handleSelectStickerAttachment() {
                     captionFormattedText = remainingFormattedCaption,
                     autoMarkdown = autoMarkdown,
             )
+            return
+        }
+        if (perAttachmentCaptions != null) {
+            // Going out as messages of their own, so each carries the caption written for it.
+            val captionOffset = if (editedEvent == null) 0 else 1
+            attachments.forEachIndexed { index, attachment ->
+                room.sendService().sendMedia(
+                        attachment = attachment,
+                        compressBeforeSending = action.compressBeforeSending,
+                        roomIds = emptySet(),
+                        rootThreadEventId = initialState.rootThreadEventId,
+                        // Reply target and rich caption belong to the first event only, as sendMedias does.
+                        replyToEvent = action.replyToEvent.takeIf { index == 0 },
+                        captionText = perAttachmentCaptions.getOrNull(index + captionOffset),
+                        captionFormattedText = remainingFormattedCaption?.takeIf { index == 0 },
+                        autoMarkdown = autoMarkdown,
+                )
+            }
             return
         }
         room.sendService().sendMedias(

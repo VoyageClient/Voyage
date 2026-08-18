@@ -25,6 +25,7 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
     companion object {
         private const val EXTRA_FRAGMENT_ARGS = "EXTRA_FRAGMENT_ARGS"
         private const val ATTACHMENTS_PREVIEW_RESULT = "ATTACHMENTS_PREVIEW_RESULT"
+        private const val ATTACHMENTS_PREVIEW_CAPTION_RESULT = "ATTACHMENTS_PREVIEW_CAPTION_RESULT"
 
         fun newIntent(context: Context, args: AttachmentsPreviewArgs): Intent {
             return Intent(context, AttachmentsPreviewActivity::class.java).apply {
@@ -34,6 +35,11 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
 
         fun getOutput(intent: Intent): List<ContentAttachmentData> {
             return intent.getSerializableExtraCompat<ArrayList<ContentAttachmentData>>(ATTACHMENTS_PREVIEW_RESULT).orEmpty()
+        }
+
+        /** One caption per attachment, in the same order as [getOutput]. */
+        fun getCaptionsOutput(intent: Intent): List<String> {
+            return intent.getStringArrayListExtra(ATTACHMENTS_PREVIEW_CAPTION_RESULT).orEmpty()
         }
     }
 
@@ -56,9 +62,10 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         }
     }
 
-    fun setResultAndFinish(data: List<ContentAttachmentData>) {
+    fun setResultAndFinish(data: List<ContentAttachmentData>, captions: List<String>) {
         val resultIntent = Intent().apply {
             putExtra(ATTACHMENTS_PREVIEW_RESULT, ArrayList(data))
+            putStringArrayListExtra(ATTACHMENTS_PREVIEW_CAPTION_RESULT, ArrayList(captions))
         }
         setResult(RESULT_OK, resultIntent)
         finish()

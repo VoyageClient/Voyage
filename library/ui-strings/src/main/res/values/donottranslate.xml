@@ -846,4 +846,5 @@
     <string name="forwarded_message_with_date" translatable="false">%1$s - %2$s</string>
 
     <string name="error_rejected_by_policy_server" translatable="false">Rejected by this room\'s policy server, which automatically screens messages for spam.</string>
+    <string name="attachment_caption_hint" translatable="false">Add a caption…</string>
 </resources>

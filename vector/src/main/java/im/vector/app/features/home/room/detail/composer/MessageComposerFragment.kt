@@ -893,7 +893,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val data = activityResult.data ?: return@registerStartForActivityResult
         if (activityResult.resultCode == Activity.RESULT_OK) {
             // Whichever attachments the sender wanted untouched say so themselves.
-            dispatchSendMedia(AttachmentsPreviewActivity.getOutput(data), true)
+            dispatchSendMedia(
+                    attachments = AttachmentsPreviewActivity.getOutput(data),
+                    compressBeforeSending = true,
+                    previewCaptions = AttachmentsPreviewActivity.getCaptionsOutput(data),
+            )
         }
     }
 
@@ -918,21 +922,34 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             dispatchSendMedia(grouped.notPreviewables, false)
         }
         if (grouped.previewables.isNotEmpty()) {
-            val intent = AttachmentsPreviewActivity.newIntent(requireContext(), AttachmentsPreviewArgs(grouped.previewables))
-            contentAttachmentActivityResultLauncher.launch(intent)
+            // The composer's text carries over as the caption, whether it was typed or an edit put it there.
+            val args = AttachmentsPreviewArgs(grouped.previewables, composer.text?.toString())
+            contentAttachmentActivityResultLauncher.launch(AttachmentsPreviewActivity.newIntent(requireContext(), args))
         }
     }
 
-    private fun dispatchSendMedia(attachments: List<ContentAttachmentData>, compressBeforeSending: Boolean) = withState(messageComposerViewModel) { state ->
+    private fun dispatchSendMedia(
+            attachments: List<ContentAttachmentData>,
+            compressBeforeSending: Boolean,
+            previewCaptions: List<String>? = null,
+    ) = withState(messageComposerViewModel) { state ->
         val replyToEvent = (state.sendMode as? SendMode.Reply)?.timelineEvent
         // Picking media while editing puts it in place of what the message held, caption and all.
         val editedEvent = (state.sendMode as? SendMode.Edit)?.timelineEvent
         // Keep the caption as a spanned CharSequence (and tag literal :shortcode: emotes) so custom
         // emotes survive into the formatted caption body, instead of stringifying it here.
         val rawCaption = composer.text ?: ""
-        val captionText: CharSequence? = rawCaption.toString().takeIf { it.isNotBlank() }
-                ?.let { SpannableString(emoteShortcodeProcessor.process(roomId, rawCaption)) }
-        val richHtml = composer.formattedText
+        // A caption typed in the previewer stands for what the composer held, which is where it started.
+        val perAttachment = previewCaptions?.map { caption ->
+            caption.takeIf { it.isNotBlank() }?.let { SpannableString(emoteShortcodeProcessor.process(roomId, it)) }
+        }
+        val captionText: CharSequence? = if (perAttachment != null) {
+            perAttachment.firstOrNull()
+        } else {
+            rawCaption.toString().takeIf { it.isNotBlank() }?.let { SpannableString(emoteShortcodeProcessor.process(roomId, rawCaption)) }
+        }
+        // The rich body only still describes the caption while the previewer left it as the composer wrote it.
+        val richHtml = composer.formattedText?.takeIf { previewCaptions == null || previewCaptions.firstOrNull() == rawCaption.toString() }
         val captionFormattedText = richHtml?.takeIf { captionText != null }
         val autoMarkdown = captionText != null && captionFormattedText == null && vectorPreferences.isMarkdownEnabled()
         val resolved = resolveCaptionCommand(state, captionText, captionFormattedText, autoMarkdown)
@@ -945,9 +962,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         captionFormattedText = resolved.formatted,
                         autoMarkdown = resolved.autoMarkdown,
                         editedEventId = editedEvent?.eventId,
+                        captions = perAttachment,
                 )
         )
-        if (editedEvent != null || replyToEvent != null || captionText != null) {
+        if (editedEvent != null || replyToEvent != null || captionText != null || rawCaption.isNotBlank()) {
             suppressStaleComposerRender = true
             composer.setTextIfDifferent("")
             composer.renderComposerMode(MessageComposerMode.Normal(""))

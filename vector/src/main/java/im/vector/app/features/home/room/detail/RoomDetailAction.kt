@@ -26,6 +26,8 @@ sealed class RoomDetailAction : VectorViewModelAction {
             val autoMarkdown: Boolean = false,
             // When set, the first attachment replaces this event's media instead of being sent as its own message.
             val editedEventId: String? = null,
+            // A caption per attachment, in the same order; [captionText] is the one a gallery sends.
+            val captions: List<CharSequence?>? = null,
     ) : RoomDetailAction()
     data class TimelineEventTurnsVisible(val event: TimelineEvent) : RoomDetailAction()
     data class TimelineEventTurnsInvisible(val event: TimelineEvent) : RoomDetailAction()

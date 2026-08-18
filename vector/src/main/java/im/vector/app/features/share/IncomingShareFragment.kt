@@ -168,15 +168,16 @@ class IncomingShareFragment :
     }
 
     private fun handleEditMediaBeforeSending(event: IncomingShareViewEvents.EditMediaBeforeSending) {
-        val intent = AttachmentsPreviewActivity.newIntent(requireContext(), AttachmentsPreviewArgs(event.contentAttachmentData))
-        attachmentPreviewActivityResultLauncher.launch(intent)
+        val args = AttachmentsPreviewArgs(event.contentAttachmentData)
+        attachmentPreviewActivityResultLauncher.launch(AttachmentsPreviewActivity.newIntent(requireContext(), args))
     }
 
     private val attachmentPreviewActivityResultLauncher = registerStartForActivityResult {
         val data = it.data ?: return@registerStartForActivityResult
         if (it.resultCode == Activity.RESULT_OK) {
             val sendData = AttachmentsPreviewActivity.getOutput(data)
-            viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Attachments(sendData)))
+            val captions = AttachmentsPreviewActivity.getCaptionsOutput(data)
+            viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Attachments(sendData, captions)))
             // Whichever attachments the sender wanted untouched say so themselves.
             viewModel.handle(IncomingShareAction.ShareMedia(keepOriginalSize = false))
         }
