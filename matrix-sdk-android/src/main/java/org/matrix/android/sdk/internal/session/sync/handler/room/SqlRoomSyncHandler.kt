@@ -128,6 +128,10 @@ internal class SqlRoomSyncHandler @Inject constructor(
             stores.chunk.clearLastBackward(roomId)
             aggregator.rejoinedRoomsToReanchor.add(roomId)
         }
+        // An accepted invite typically arrives with nothing but membership events, leaving the room with
+        // no message to preview or sort by until it is opened; seed its history after the sync instead.
+        // Not on the initial sync, where that would mean one request per quiet room in the account.
+        if (previousMembership != Membership.JOIN && !isInitialSync) aggregator.newlyJoinedRooms.add(roomId)
         roomEntity.membership = Membership.JOIN
         stores.room.upsert(roomEntity)
 

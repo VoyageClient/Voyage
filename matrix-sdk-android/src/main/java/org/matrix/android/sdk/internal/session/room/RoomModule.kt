@@ -157,6 +157,7 @@ import org.matrix.android.sdk.internal.session.room.timeline.DefaultGetContextOf
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultGetEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultPaginationTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultReanchorRejoinedRoomTask
+import org.matrix.android.sdk.internal.session.room.timeline.DefaultSeedJoinedRoomHistoryTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchRoomStartTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchTokenAndPaginateTask
@@ -164,6 +165,7 @@ import org.matrix.android.sdk.internal.session.room.timeline.GetContextOfEventTa
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationTask
 import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoomTask
+import org.matrix.android.sdk.internal.session.room.timeline.SeedJoinedRoomHistoryTask
 import org.matrix.android.sdk.internal.session.room.typing.DefaultSendTypingTask
 import org.matrix.android.sdk.internal.session.room.typing.SendTypingTask
 import org.matrix.android.sdk.internal.session.room.uploads.DefaultGetUploadsTask
@@ -327,6 +329,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindPaginationTask(task: DefaultPaginationTask): PaginationTask
+
+    @Binds
+    abstract fun bindSeedJoinedRoomHistoryTask(task: DefaultSeedJoinedRoomHistoryTask): SeedJoinedRoomHistoryTask
 
     @Binds
     abstract fun bindFetchRoomStartTask(task: DefaultFetchRoomStartTask): FetchRoomStartTask

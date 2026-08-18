@@ -45,6 +45,10 @@ internal class SyncResponsePostTreatmentAggregator {
     // (see ReanchorRejoinedRoomTask).
     val rejoinedRoomsToReanchor = mutableSetOf<String>()
 
+    // Rooms this sync brought us into, which may have arrived without any message to show
+    // (see SeedJoinedRoomHistoryTask).
+    val newlyJoinedRooms = mutableSetOf<String>()
+
     // For the crypto store
     val cryptoStoreAggregator = CryptoStoreAggregator()
 }

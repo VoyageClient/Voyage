@@ -43,6 +43,7 @@ import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelp
 import org.matrix.android.sdk.internal.session.room.relationship.SqlRoomChildRelationInfo
 import org.matrix.android.sdk.internal.session.room.timeline.RoomSummaryEventDecryptor
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
+import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -54,6 +55,7 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         private val roomAccountDataDataSource: RoomAccountDataDataSource,
         private val roomSummaryEventDecryptor: RoomSummaryEventDecryptor,
         private val roomSummaryEventsHelper: SqlRoomSummaryEventsHelper,
+        private val clock: Clock,
 ) {
 
     /**
@@ -152,6 +154,12 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
                 entity.lastActivityTime = it
                 latestPreviewableEvent.attemptToDecrypt()
             }
+        } else if (entity.lastActivityTime == null && entity.membership == Membership.JOIN) {
+            // A room joined moments ago often has nothing to show yet (see SeedJoinedRoomHistoryTask).
+            // Date it from the join so it sorts where the user expects to find it — the top of the list —
+            // rather than below every room they have ever spoken in.
+            entity.lastActivityTime = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.root?.originServerTs
+                    ?: clock.epochMillis()
         }
 
         entity.hasUnreadMessages = entity.notificationCount > 0 ||
