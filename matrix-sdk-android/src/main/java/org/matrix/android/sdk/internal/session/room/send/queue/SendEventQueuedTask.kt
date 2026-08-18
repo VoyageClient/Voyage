@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
+import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 
@@ -34,14 +35,20 @@ internal class SendEventQueuedTask(
         val sendEventTask: SendEventTask,
         val cryptoService: CryptoService,
         val localEchoRepository: LocalEchoRepository,
-        val cancelSendTracker: CancelSendTracker
+        val cancelSendTracker: CancelSendTracker,
+        val urlPreviewBundler: UrlPreviewBundler,
 ) : QueuedTask(queueIdentifier = event.roomId!!, taskIdentifier = event.eventId!!) {
 
     private var lastFailure: Throwable? = null
 
+    // Kept across retries so a resend does not reupload the preview images.
+    private var bundledEvent: Event? = null
+
     override suspend fun doExecute() {
         try {
-            sendEventTask.execute(SendEventTask.Params(remapLocalRelationTargets(event), encrypt))
+            val eventToSend = bundledEvent
+                    ?: urlPreviewBundler.bundleUrlPreviews(event, encrypt).also { bundledEvent = it }
+            sendEventTask.execute(SendEventTask.Params(remapLocalRelationTargets(eventToSend), encrypt))
         } catch (e: Throwable) {
             lastFailure = e
             throw e

@@ -54,6 +54,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Media galleries (MSC4274)** — send several photos, videos, files and audio as a single message that renders as a grid of thumbnails, with a caption underneath. Each tile opens, saves, shares and forwards on its own, the whole message can be saved at once, and every item appears individually in the room's media viewer and Uploads tab. Galleries from other clients always display; sending them is opt-in under Settings → Labs.
 
+- **Link previews that work in encrypted rooms (MSC4095)** — messages you send carry the preview of their links with them, so nobody's homeserver ever sees what you linked. The page is read by your own device rather than by any server; where that happens is configurable per account and per room under Security & privacy, down to letting your homeserver generate previews the old way. Previews received this way are displayed in encrypted rooms too, with no setting to turn on.
+
 - **Edit the media in a message** — replace the photo, video, file or sticker you sent, or give a message media it never had. Every version stays in the message's edit history, where each can be opened and saved.
 
 - **Captions in the attachment preview** — write a caption for what you are sending from the preview screen itself, one per attachment, or a single caption for the ones going out as a gallery.

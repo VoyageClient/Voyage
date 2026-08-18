@@ -397,6 +397,7 @@ ext.coreSources = [
         // Content-scanner + media + misc value types.
         'org/matrix/android/sdk/api/session/contentscanner/ScanState.kt',
         'org/matrix/android/sdk/api/session/media/PreviewUrlData.kt',
+        'org/matrix/android/sdk/api/session/media/BundledUrlPreview.kt',
         'org/matrix/android/sdk/api/MatrixCallback.kt',
         'org/matrix/android/sdk/api/util/SuspendMatrixCallback.kt',
         'org/matrix/android/sdk/api/util/UrlExtensions.kt',
@@ -497,6 +498,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/user/model/SearchUsersResponse.kt',
         'org/matrix/android/sdk/internal/session/user/model/SearchUser.kt',
         'org/matrix/android/sdk/internal/session/media/GetMediaConfigResult.kt',
+        'org/matrix/android/sdk/internal/session/media/LinkPreviewPrefetcher.kt',
         'org/matrix/android/sdk/internal/session/integrationmanager/IntegrationProvisioningContent.kt',
         'org/matrix/android/sdk/internal/session/integrationmanager/IntegrationManagerWidgetData.kt',
         'org/matrix/android/sdk/internal/session/integrationmanager/AllowedWidgetsContent.kt',
@@ -532,6 +534,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/auth/registration/SuccessResult.kt',
         // Settings/extensions/statistics + QR-code verification value types.
         'org/matrix/android/sdk/api/settings/LightweightSettingsStorage.kt',
+        'org/matrix/android/sdk/api/settings/LinkPreviewMode.kt',
         'org/matrix/android/sdk/api/extensions/MatrixSdkExtensions.kt',
         'org/matrix/android/sdk/api/extensions/MetricsExtensions.kt',
         'org/matrix/android/sdk/api/session/statistics/StatisticEvent.kt',

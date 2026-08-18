@@ -184,6 +184,14 @@
             android:summary="@string/settings_media_preview_solid_summary"
             android:title="@string/settings_media_preview_solid_title" />
 
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="always"
+            android:entries="@array/link_preview_modes"
+            android:entryValues="@array/link_preview_mode_values"
+            android:key="SETTINGS_LINK_PREVIEW_MODE_KEY"
+            android:summary="%s"
+            android:title="@string/settings_link_preview_mode_title" />
+
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
             android:key="SETTINGS_HIDE_AVATARS_KEY"

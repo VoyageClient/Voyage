@@ -53,6 +53,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.di.CacheDirectory
 import org.matrix.android.sdk.internal.di.DeviceId
+import org.matrix.android.sdk.internal.di.LinkPreview
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabaseRead
 import org.matrix.android.sdk.internal.di.SessionDatabaseTimeline
@@ -88,6 +89,7 @@ import org.matrix.android.sdk.internal.session.homeserver.DefaultHomeServerCapab
 import org.matrix.android.sdk.internal.session.identity.DefaultIdentityService
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManager
 import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
+import org.matrix.android.sdk.internal.session.media.PublicHostDns
 import org.matrix.android.sdk.internal.session.openid.DefaultOpenIdService
 import org.matrix.android.sdk.internal.session.permalinks.DefaultPermalinkService
 import org.matrix.android.sdk.internal.session.profile.ProfileOverridesLoader
@@ -111,6 +113,7 @@ import org.matrix.android.sdk.internal.session.workmanager.DefaultWorkManagerCon
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import retrofit2.Retrofit
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
 
 @Qualifier
@@ -271,6 +274,24 @@ internal abstract class SessionModule {
                     .newBuilder()
                     .addSocketFactory(homeServerConnectionConfig)
                     .addInterceptor(homeServerFallbackInterceptor)
+                    .build()
+        }
+
+        @JvmStatic
+        @Provides
+        @SessionScope
+        @LinkPreview
+        fun providesLinkPreviewOkHttpClient(@Unauthenticated okHttpClient: OkHttpClient): OkHttpClient {
+            return okHttpClient
+                    .newBuilder()
+                    // A page we preview is arbitrary and untrusted: no credential goes to it, it may not
+                    // point us at the phone's own network, and it does not get to hold a connection open.
+                    .dns(PublicHostDns())
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(10, TimeUnit.SECONDS)
+                    .followRedirects(true)
+                    .followSslRedirects(true)
                     .build()
         }
 

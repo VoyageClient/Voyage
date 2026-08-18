@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.api.session.media
 
+import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
+
 /**
  * Facility data class to get the common field of a PreviewUrl response form the server.
  *
@@ -51,5 +53,10 @@ data class PreviewUrlData(
         // Value of field "og:image:width"
         val imageWidth: Int?,
         // Value of field "og:image:height"
-        val imageHeight: Int?
+        val imageHeight: Int?,
+        // Value of field "og:image:type"
+        val imageMimeType: String? = null,
+        // Value of field "matrix:image:encrypted", when the image is an encrypted attachment (MSC4095).
+        // The mxc url then lives in there rather than in [mxcUrl].
+        val encryptedImage: EncryptedFileInfo? = null
 )

@@ -212,6 +212,9 @@ dependencies {
     implementation libs.squareup.moshiAdapters
     kapt libs.squareup.moshiKotlin
 
+    // Parses the pages we preview ourselves. Already shipped by :vector, so it costs no extra size.
+    implementation 'org.jsoup:jsoup:1.17.2'
+
     api "com.atlassian.commonmark:commonmark:0.13.0"
     api "com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0"
 

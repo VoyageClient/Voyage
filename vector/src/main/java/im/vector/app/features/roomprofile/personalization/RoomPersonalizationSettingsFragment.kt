@@ -51,6 +51,7 @@ import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.user.model.User
+import org.matrix.android.sdk.api.settings.LinkPreviewMode
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.flow.flow
@@ -234,6 +235,17 @@ class RoomPersonalizationSettingsFragment :
             vectorPreferences.setRoomMediaPreviewOverride(
                     roomId,
                     if (value == INHERIT) null else MediaPreviewMode.fromValue(value)
+            )
+            true
+        }
+
+        val linkPreviewPref = findPreference<VectorListPreference>(SETTINGS_ROOM_LINK_PREVIEW_KEY)
+        linkPreviewPref?.value = vectorPreferences.getRoomLinkPreviewOverride(roomId)?.value ?: INHERIT
+        linkPreviewPref?.setOnPreferenceChangeListener { _, newValue ->
+            val value = newValue as? String
+            vectorPreferences.setRoomLinkPreviewOverride(
+                    roomId,
+                    if (value == INHERIT) null else LinkPreviewMode.fromValue(value)
             )
             true
         }
@@ -560,6 +572,7 @@ class RoomPersonalizationSettingsFragment :
         private const val INHERIT = "inherit"
 
         private const val SETTINGS_ROOM_MEDIA_PREVIEW_KEY = "SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
+        private const val SETTINGS_ROOM_LINK_PREVIEW_KEY = "SETTINGS_ROOM_LINK_PREVIEW_KEY"
         private const val SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY = "SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"
         private const val SETTINGS_ROOM_STRIP_METADATA_KEY = "SETTINGS_ROOM_STRIP_METADATA_KEY"
         private const val SETTINGS_ROOM_REDACTION_CATEGORY_KEY = "SETTINGS_ROOM_REDACTION_CATEGORY_KEY"
