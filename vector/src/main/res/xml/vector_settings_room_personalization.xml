@@ -41,28 +41,32 @@
             android:entryValues="@array/room_media_preview_mode_values"
             android:key="SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
             android:persistent="false"
-            android:title="@string/room_personalization_media_preview" />
+            android:title="@string/settings_media_preview_title"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/room_link_preview_modes"
             android:entryValues="@array/room_link_preview_mode_values"
             android:key="SETTINGS_ROOM_LINK_PREVIEW_KEY"
             android:persistent="false"
-            android:title="@string/room_personalization_link_preview" />
+            android:title="@string/settings_link_preview_mode_title"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/room_randomize_upload_filename_modes"
             android:entryValues="@array/room_randomize_upload_filename_mode_values"
             android:key="SETTINGS_ROOM_RANDOMIZE_FILENAMES_KEY"
             android:persistent="false"
-            android:title="@string/room_personalization_randomize_filenames" />
+            android:title="@string/settings_randomize_upload_filenames_title"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/room_strip_media_metadata_modes"
             android:entryValues="@array/room_strip_media_metadata_mode_values"
             android:key="SETTINGS_ROOM_STRIP_METADATA_KEY"
             android:persistent="false"
-            android:title="@string/room_personalization_strip_metadata" />
+            android:title="@string/settings_strip_media_metadata_title"
+            app:useSimpleSummaryProvider="true" />
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
@@ -75,35 +79,40 @@
             android:entryValues="@array/redaction_inherit_bool_values"
             android:key="SETTINGS_ROOM_REDACTION_PRESERVE_KEY"
             android:persistent="false"
-            android:title="@string/settings_redaction_preserve" />
+            android:title="@string/settings_redaction_preserve"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/redaction_inherit_bools"
             android:entryValues="@array/redaction_inherit_bool_values"
             android:key="SETTINGS_ROOM_REDACTION_PRESERVE_MEDIA_KEY"
             android:persistent="false"
-            android:title="@string/settings_redaction_preserve_media" />
+            android:title="@string/settings_redaction_preserve_media"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/room_redaction_max_media_sizes"
             android:entryValues="@array/room_redaction_max_media_size_values"
             android:key="SETTINGS_ROOM_REDACTION_MAX_MEDIA_SIZE_KEY"
             android:persistent="false"
-            android:title="@string/settings_redaction_max_media_size" />
+            android:title="@string/settings_redaction_max_media_size"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/redaction_inherit_bools"
             android:entryValues="@array/redaction_inherit_bool_values"
             android:key="SETTINGS_ROOM_REDACTION_WIFI_ONLY_KEY"
             android:persistent="false"
-            android:title="@string/settings_redaction_wifi_only" />
+            android:title="@string/settings_redaction_wifi_only"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:entries="@array/redaction_inherit_bools"
             android:entryValues="@array/redaction_inherit_bool_values"
             android:key="SETTINGS_ROOM_REDACTION_CLEAR_KEY"
             android:persistent="false"
-            android:title="@string/settings_redaction_clear_with_app_cache" />
+            android:title="@string/settings_redaction_clear_with_app_cache"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_ROOM_REDACTION_CLEAR_NOW_KEY"

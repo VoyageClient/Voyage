@@ -175,8 +175,8 @@
             android:entries="@array/media_preview_modes"
             android:entryValues="@array/media_preview_mode_values"
             android:key="SETTINGS_MEDIA_PREVIEW_KEY"
-            android:summary="%s"
-            android:title="@string/settings_media_preview_title" />
+            android:title="@string/settings_media_preview_title"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
@@ -189,8 +189,8 @@
             android:entries="@array/link_preview_modes"
             android:entryValues="@array/link_preview_mode_values"
             android:key="SETTINGS_LINK_PREVIEW_MODE_KEY"
-            android:summary="%s"
-            android:title="@string/settings_link_preview_mode_title" />
+            android:title="@string/settings_link_preview_mode_title"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
@@ -244,7 +244,8 @@
             android:entryValues="@array/redaction_max_media_size_values"
             android:key="SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY"
             android:persistent="false"
-            android:title="@string/settings_redaction_max_media_size" />
+            android:title="@string/settings_redaction_max_media_size"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_REDACTION_WIFI_ONLY_KEY"
