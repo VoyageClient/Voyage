@@ -18,38 +18,38 @@
             android:entries="@array/sc_theme_entries"
             android:entryValues="@array/sc_theme_values"
             android:key="APPLICATION_THEME_KEY"
-            android:summary="%s"
             android:title="@string/settings_theme"
-            app:iconSpaceReserved="false" />
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:defaultValue="burst"
             android:entries="@array/app_logo_entries"
             android:entryValues="@array/app_logo_values"
             android:key="SETTINGS_APP_LOGO_KEY"
-            android:summary="%s"
             android:title="@string/settings_app_logo_title"
-            app:iconSpaceReserved="false" />
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.ColorMatrixListPreference
             android:defaultValue="cyan"
             android:entries="@array/sc_accent_color_light_entries"
             android:entryValues="@array/sc_accent_color_light_values"
             android:key="SETTINGS_SC_ACCENT_LIGHT"
-            android:summary="%s"
             android:title="@string/settings_accent"
             app:entryPreviews="@array/sc_accent_color_previews"
-            app:trailingRowCount="3" />
+            app:trailingRowCount="3"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.ColorMatrixListPreference
             android:defaultValue="black"
             android:entries="@array/sc_accent_color_light_entries"
             android:entryValues="@array/sc_accent_color_light_values"
             android:key="SETTINGS_APP_ICON_COLOR_KEY"
-            android:summary="%s"
             android:title="@string/settings_app_icon_color_title"
             app:entryPreviews="@array/sc_accent_color_previews"
-            app:trailingRowCount="3" />
+            app:trailingRowCount="3"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorPreference
             android:dialogTitle="@string/font_size"
@@ -379,16 +379,16 @@
             android:entries="@array/compression_levels"
             android:entryValues="@array/compression_level_values"
             android:key="SETTINGS_DEFAULT_MEDIA_COMPRESSION_KEY"
-            android:summary="%s"
-            android:title="@string/settings_default_compression" />
+            android:title="@string/settings_default_compression"
+            app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
             android:defaultValue="0"
             android:entries="@array/media_sources"
             android:entryValues="@array/media_source_values"
             android:key="SETTINGS_DEFAULT_MEDIA_SOURCE_KEY"
-            android:summary="%s"
-            android:title="@string/settings_default_media_source" />
+            android:title="@string/settings_default_media_source"
+            app:useSimpleSummaryProvider="true" />
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 

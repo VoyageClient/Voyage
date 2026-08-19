@@ -555,9 +555,6 @@
     <string name="settings_randomize_upload_filenames_always" translatable="false">Yes</string>
     <string name="settings_randomize_upload_filenames_never" translatable="false">No</string>
     <string name="settings_randomize_upload_filenames_public" translatable="false">In public rooms</string>
-    <string name="room_personalization_randomize_filenames" translatable="false">Randomize uploaded file names</string>
-    <string name="room_personalization_randomize_filenames_inherit" translatable="false">Use the account setting</string>
-    <string name="room_personalization_strip_metadata" translatable="false">Strip media metadata</string>
     <string name="login_server_matrix_id_text" translatable="false">Use your existing @user:domain.com account</string>
 
     <string name="settings_app_icon_color_title" translatable="false">App icon color</string>
@@ -747,15 +744,13 @@
     <string name="redaction_media_size_10mb" translatable="false">10 MB</string>
     <string name="redaction_media_size_25mb" translatable="false">25 MB</string>
     <string name="redaction_media_size_50mb" translatable="false">50 MB</string>
-    <string name="redaction_override_inherit" translatable="false">Use the account setting</string>
     <string name="redaction_override_on" translatable="false">Yes</string>
     <string name="redaction_override_off" translatable="false">No</string>
-    <string name="redaction_room_mode_inherit" translatable="false">Use the account setting</string>
+
+    <string name="settings_use_account_setting" translatable="false">Use the account setting</string>
 
     <string name="room_personalization_media_category" translatable="false">Security &amp; Privacy</string>
     <string name="room_personalization_redaction_category" translatable="false">Redactions</string>
-    <string name="room_personalization_media_preview" translatable="false">Show media in this room</string>
-    <string name="room_personalization_media_preview_inherit" translatable="false">Use the account setting</string>
     <string name="room_personalization_media_preview_show" translatable="false">Show</string>
     <string name="room_personalization_media_preview_hide" translatable="false">Hide</string>
 
@@ -853,9 +848,5 @@
     <string name="settings_link_preview_mode_encrypted" translatable="false">In encrypted rooms</string>
     <string name="settings_link_preview_mode_direct" translatable="false">In direct messages</string>
 
-    <string name="room_personalization_link_preview" translatable="false">Fetch link previews for this room</string>
-    <string name="room_personalization_link_preview_inherit" translatable="false">Use account setting</string>
-    <string name="room_personalization_link_preview_device" translatable="false">Yes</string>
-    <string name="room_personalization_link_preview_homeserver" translatable="false">No</string>
     <string name="attachment_caption_hint" translatable="false">Add a caption…</string>
 </resources>
