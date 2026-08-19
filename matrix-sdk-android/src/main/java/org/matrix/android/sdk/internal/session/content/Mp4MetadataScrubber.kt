@@ -35,14 +35,14 @@ internal object Mp4MetadataScrubber {
     fun scrub(file: File): Outcome = runCatching {
         RandomAccessFile(file, "rw").use { raf ->
             if (!looksLikeMp4(raf)) return@use Outcome.UNSUPPORTED
-            val blanked = mutableListOf<Long>()
-            walk(raf, 0, raf.length(), "", blanked)
-            if (blanked.isEmpty()) return@use Outcome.NOTHING_TO_STRIP
-            blanked.forEach { position ->
-                raf.seek(position)
-                raf.write(FREE_TYPE)
+            val edits = mutableListOf<Edit>()
+            walk(raf, 0, raf.length(), "", edits)
+            if (edits.isEmpty()) return@use Outcome.NOTHING_TO_STRIP
+            edits.forEach { edit ->
+                raf.seek(edit.position)
+                raf.write(edit.bytes)
             }
-            Timber.d("## Metadata: blanked ${blanked.size} identifying boxes in ${file.name}")
+            Timber.d("## Metadata: blanked ${edits.size} identifying boxes in ${file.name}")
             Outcome.SCRUBBED
         }
     }.getOrElse {
@@ -55,6 +55,9 @@ internal object Mp4MetadataScrubber {
         raf.seek(4)
         return ByteArray(4).also { raf.readFully(it) }.toType() == "ftyp"
     }
+
+    /** A pending overwrite: [bytes] written at [position]. */
+    private class Edit(val position: Long, val bytes: ByteArray)
 
     /** One box: where it starts, how long it is, and where its own children begin. */
     private class Box(val start: Long, val size: Long, val type: String, val headerSize: Long) {
@@ -81,15 +84,15 @@ internal object Mp4MetadataScrubber {
         return Box(position, size, type, headerSize)
     }
 
-    private fun walk(raf: RandomAccessFile, from: Long, to: Long, path: String, blanked: MutableList<Long>) {
+    private fun walk(raf: RandomAccessFile, from: Long, to: Long, path: String, edits: MutableList<Edit>) {
         var position = from
         while (true) {
             val box = readBox(raf, position, to) ?: return
             val childPath = if (path.isEmpty()) box.type else "$path/${box.type}"
             when {
-                path.isIdentifyingContainer() && box.type in IDENTIFYING_BOXES -> blanked.add(box.typePosition)
-                childPath in CONTAINERS -> walk(raf, box.contentStart, box.end, childPath, blanked)
-                box.type == "meta" -> walkMeta(raf, box, blanked)
+                path.isIdentifyingContainer() && box.type in IDENTIFYING_BOXES -> edits.add(Edit(box.typePosition, FREE_TYPE))
+                childPath in CONTAINERS -> walk(raf, box.contentStart, box.end, childPath, edits)
+                box.type == "meta" -> walkMeta(raf, box, edits)
             }
             position = box.end
         }
@@ -101,7 +104,7 @@ internal object Mp4MetadataScrubber {
      * named in a sibling `keys` box and referred to from `ilst` by number, so both are read before
      * anything is decided.
      */
-    private fun walkMeta(raf: RandomAccessFile, meta: Box, blanked: MutableList<Long>) {
+    private fun walkMeta(raf: RandomAccessFile, meta: Box, edits: MutableList<Edit>) {
         val immediate = readBox(raf, meta.contentStart, meta.end)
         val start = if (immediate?.type in META_CHILDREN) meta.contentStart else meta.contentStart + FULL_BOX_EXTRA
 
@@ -116,7 +119,7 @@ internal object Mp4MetadataScrubber {
         position = start
         while (true) {
             val box = readBox(raf, position, meta.end) ?: return
-            if (box.type == "ilst") blankIdentifyingEntries(raf, box, keyNames, blanked)
+            if (box.type == "ilst") blankIdentifyingEntries(raf, box, keyNames, edits)
             position = box.end
         }
     }
@@ -134,7 +137,7 @@ internal object Mp4MetadataScrubber {
         }
     }
 
-    private fun blankIdentifyingEntries(raf: RandomAccessFile, ilst: Box, keyNames: List<String>, blanked: MutableList<Long>) {
+    private fun blankIdentifyingEntries(raf: RandomAccessFile, ilst: Box, keyNames: List<String>, edits: MutableList<Edit>) {
         var position = ilst.contentStart
         var index = 0
         while (true) {
@@ -144,8 +147,28 @@ internal object Mp4MetadataScrubber {
             val name = if (entry.type.firstOrNull()?.code == 0) keyNames.getOrNull(index - 1) else entry.type
             val identifying = entry.type in IDENTIFYING_BOXES ||
                     (name != null && IDENTIFYING_KEYS.any { name.contains(it, ignoreCase = true) })
-            if (identifying) blanked.add(entry.typePosition)
+            if (identifying) blankEntryValues(raf, entry, edits)
             position = entry.end
+        }
+    }
+
+    /**
+     * Neutralise an `ilst` entry without touching a single box header. Its type is a key index, not a
+     * real box type, and `meta` is walked as part of `moov`, so overwriting either — as blanking a
+     * plain box does — makes Android's extractor abort the whole `moov` and report a file with no
+     * tracks. Only the value bytes inside each `data` box are zeroed; every type and size stays as the
+     * muxer wrote it.
+     */
+    private fun blankEntryValues(raf: RandomAccessFile, entry: Box, edits: MutableList<Edit>) {
+        var position = entry.contentStart
+        while (true) {
+            val box = readBox(raf, position, entry.end) ?: return
+            if (box.type == "data") {
+                val valueStart = box.contentStart + DATA_VALUE_PREFIX
+                val length = (box.end - valueStart).toInt()
+                if (length > 0) edits.add(Edit(valueStart, ByteArray(length)))
+            }
+            position = box.end
         }
     }
 
@@ -157,6 +180,9 @@ internal object Mp4MetadataScrubber {
     private const val LARGE_HEADER_SIZE = 16
     private const val FULL_BOX_EXTRA = 4
     private const val MAX_KEY_LENGTH = 255
+
+    // A `data` box opens with a 4-byte type indicator and a 4-byte locale before the value itself.
+    private const val DATA_VALUE_PREFIX = 8
 
     private val FREE_TYPE = "free".toByteArray(Charsets.ISO_8859_1)
 
