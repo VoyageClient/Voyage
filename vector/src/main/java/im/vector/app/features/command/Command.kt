@@ -45,7 +45,7 @@ enum class Command(
     TOPIC("/topic", null, "<topic>", CommonStrings.command_description_topic, false, false),
     KICK_USER("/kick", arrayOf("/remove"), "<user-id> [reason]", CommonStrings.command_description_kick_user, false, false),
     MASS_REDACT(
-            "/massredact", null, "<user-id> [cooldownMs] [from:<epoch>] [until:<epoch>]",
+            "/massredact", null, "<user-id> [cooldownMs] [before|after:<date>] [messagesOnly]",
             CommonStrings.command_description_mass_redact, false, false
     ),
     CHANGE_DISPLAY_NAME("/nick", null, "<display-name>", CommonStrings.command_description_nick, false, false),

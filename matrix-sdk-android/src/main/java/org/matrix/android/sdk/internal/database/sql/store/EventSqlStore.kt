@@ -93,7 +93,9 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
                     it.type != EventType.REDACTION &&
                             !markedRedacted(it.unsigned_data) &&
                             it.event_id !in redactedIds &&
-                            range.contains(it.origin_server_ts)
+                            range.contains(it.origin_server_ts) &&
+                            // messagesOnly: skip state events (m.room.member etc), which carry a state_key.
+                            (!range.messagesOnly || it.state_key == null)
                 }
                 .map { it.event_id }
     }

@@ -69,6 +69,8 @@ internal class DefaultFetchUserEventsTask @Inject constructor(
                 // say why). Mirrors the local enumeration in EventSqlStore.getRedactableEventIdsBySender.
                 .filter { it.type != EventType.REDACTION && !it.isRedacted() && !it.content.isNullOrEmpty() }
                 .filter { params.range.contains(it.originServerTs) }
+                // messagesOnly: skip state events (m.room.member etc), which carry a state_key.
+                .filter { !params.range.messagesOnly || it.stateKey == null }
                 .mapNotNull { it.eventId }
         // Redaction events in this page and what they target: server state can disagree with itself (a
         // redaction can exist in history while its target is still served unpruned), so surface targets to

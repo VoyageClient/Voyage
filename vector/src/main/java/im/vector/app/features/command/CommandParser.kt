@@ -620,30 +620,57 @@ class CommandParser @Inject constructor(
     }
 
     // [options] are the tokens after the user id: an optional bare cooldown in ms, plus optional
-    // from:/until: epoch bounds, in any order.
+    // after:/before: date bounds (in any order), matching the search tool.
     private fun parseMassRedactOptions(userId: String, options: List<String>): ParsedCommand {
         var cooldown: Long? = null
         var fromTs: Long? = null
         var toTs: Long? = null
+        var messagesOnly = false
         for (option in options) {
             val separator = option.indexOf(':')
             val key = if (separator == -1) null else option.substring(0, separator).lowercase()
             val rawValue = if (separator == -1) option else option.substring(separator + 1)
-            val value = rawValue.toLongOrNull()?.takeIf { it >= 0 } ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
             when (key) {
-                null -> if (cooldown == null) cooldown = value else return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-                "from" -> fromTs = epochToMillis(value)
-                "until" -> toTs = epochToMillis(value)
+                // A bare token is either the "messagesOnly" flag or the cooldown in ms.
+                null -> if (rawValue.equals("messagesOnly", ignoreCase = true)) {
+                    messagesOnly = true
+                } else {
+                    val value = rawValue.toLongOrNull()?.takeIf { it >= 0 } ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                    if (cooldown == null) cooldown = value else return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                }
+                "after" -> fromTs = parseDate(rawValue) ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                "before" -> toTs = parseDate(rawValue) ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                "messagesonly" -> messagesOnly = rawValue.toBooleanStrictOrNull() ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
                 else -> return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
             }
         }
         if (fromTs != null && toTs != null && fromTs > toTs) return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-        return ParsedCommand.MassRedact(userId, cooldown, MassRedactionRange(fromTs, toTs))
+        return ParsedCommand.MassRedact(userId, cooldown, MassRedactionRange(fromTs, toTs, messagesOnly))
     }
 
-    // Accept the bound in either unit: anything below the threshold can only be a sensible date when read
-    // as seconds (as milliseconds it would be 1973 or earlier).
-    private fun epochToMillis(value: Long) = if (value < EPOCH_MILLIS_THRESHOLD) value * 1000 else value
+    // Mirrors search's after:/before: parsing: a unix epoch (seconds or ms, told apart by magnitude)
+    // or a YYYY-MM-DD date (start of that day, local time). Returns ms, or null if unparseable.
+    private fun parseDate(value: String): Long? {
+        value.toLongOrNull()?.let { epoch ->
+            // Reject implausibly small epochs (e.g. a bare year "2026" would otherwise read as 1970).
+            if (epoch < EPOCH_MIN_SECONDS) return null
+            return if (epoch < EPOCH_MILLIS_THRESHOLD) epoch * 1000 else epoch
+        }
+        val parts = value.split('-')
+        if (parts.size != 3) return null
+        val year = parts[0].toIntOrNull() ?: return null
+        val month = parts[1].toIntOrNull() ?: return null
+        val day = parts[2].toIntOrNull() ?: return null
+        if (year < 1970 || month !in 1..12 || day !in 1..31) return null
+        // Non-lenient so an impossible date (e.g. 2026-02-31) is rejected rather than rolled over.
+        return runCatching {
+            java.util.Calendar.getInstance().apply {
+                isLenient = false
+                clear()
+                set(year, month - 1, day)
+            }.timeInMillis
+        }.getOrNull()
+    }
 
     private fun trimParts(message: CharSequence, messageParts: List<String>): String? {
         val partsSize = messageParts.sumOf { it.length }
@@ -652,6 +679,10 @@ class CommandParser @Inject constructor(
     }
 
     companion object {
+        // 1e11 ms is 1973; above this an epoch is already in ms, below it is seconds.
         private const val EPOCH_MILLIS_THRESHOLD = 100_000_000_000L
+
+        // 1e8 s ≈ March 1973; anything smaller is more likely a typo'd date than a real timestamp.
+        private const val EPOCH_MIN_SECONDS = 100_000_000L
     }
 }

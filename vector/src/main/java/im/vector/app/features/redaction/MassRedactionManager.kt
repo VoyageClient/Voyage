@@ -361,6 +361,7 @@ class MassRedactionManager @Inject constructor(
             putBoolean(key(owner, REMOTE_DONE), remoteDone)
             putLong(key(owner, FROM_TS), range.fromTs ?: NO_TS)
             putLong(key(owner, TO_TS), range.toTs ?: NO_TS)
+            putBoolean(key(owner, MESSAGES_ONLY), range.messagesOnly)
         }
     }
 
@@ -409,6 +410,7 @@ class MassRedactionManager @Inject constructor(
                 range = MassRedactionRange(
                         fromTs = preferences.getLong(key(owner, FROM_TS), NO_TS).takeIf { it != NO_TS },
                         toTs = preferences.getLong(key(owner, TO_TS), NO_TS).takeIf { it != NO_TS },
+                        messagesOnly = preferences.getBoolean(key(owner, MESSAGES_ONLY), false),
                 ),
         )
     }
@@ -418,7 +420,7 @@ class MassRedactionManager @Inject constructor(
             remove(key(owner, ACTIVE)); remove(key(owner, ROOM)); remove(key(owner, TARGET)); remove(key(owner, NAME))
             remove(key(owner, COMPLETED)); remove(key(owner, TOTAL)); remove(key(owner, PAUSED))
             remove(key(owner, DELAY)); remove(key(owner, TOKEN)); remove(key(owner, REMOTE_DONE))
-            remove(key(owner, FROM_TS)); remove(key(owner, TO_TS))
+            remove(key(owner, FROM_TS)); remove(key(owner, TO_TS)); remove(key(owner, MESSAGES_ONLY))
         }
     }
     // endregion
@@ -445,6 +447,7 @@ class MassRedactionManager @Inject constructor(
         private const val REMOTE_DONE = "remote_done"
         private const val FROM_TS = "from_ts"
         private const val TO_TS = "to_ts"
+        private const val MESSAGES_ONLY = "messages_only"
 
         // Sentinel for "no bound" in the persisted record; a real origin_server_ts is never negative.
         private const val NO_TS = -1L
