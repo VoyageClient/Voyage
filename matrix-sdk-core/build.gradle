@@ -247,6 +247,13 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/database/sqldelight/DbReactiveCoroutines.kt',
         'org/matrix/android/sdk/internal/database/sqldelight/SqlDriverFactory.kt',
         'org/matrix/android/sdk/internal/database/sqldelight/SessionDbPriority.kt',
+        'org/matrix/android/sdk/internal/session/media/ImageDimensionsReader.kt',
+        'org/matrix/android/sdk/internal/session/media/FetchedPreview.kt',
+        'org/matrix/android/sdk/internal/session/media/OpenGraphParser.kt',
+        'org/matrix/android/sdk/internal/session/media/UrlPreviewBundler.kt',
+        'org/matrix/android/sdk/internal/session/media/UrlPreviewFetcher.kt',
+        'org/matrix/android/sdk/internal/session/media/HomeServerUrlPreviewFetcher.kt',
+        'org/matrix/android/sdk/internal/session/media/UrlPreviewBundleCache.kt',
         'org/matrix/android/sdk/internal/crypto/model/CryptoInfo.kt',
         'org/matrix/android/sdk/internal/crypto/verification/VerificationInfo*.kt',
         'org/matrix/android/sdk/internal/session/presence/model/**',
@@ -1538,6 +1545,7 @@ dependencies {
     // library class while the platform class wins at runtime — NoSuchFieldError inside signature
     // verification, release builds only. A JVM consumer supplies it at runtime itself.
     compileOnly 'org.json:json:20240303'
+    implementation 'org.jsoup:jsoup:1.17.2'
     implementation libs.google.phonenumber
     api "com.atlassian.commonmark:commonmark:0.13.0"
     api "com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0"

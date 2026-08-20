@@ -7,7 +7,6 @@
 
 package org.matrix.android.sdk.internal.session.media
 
-import android.graphics.BitmapFactory
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -69,6 +68,7 @@ internal class UrlPreviewBundler @Inject constructor(
         private val localEchoRepository: LocalEchoRepository,
         private val taskExecutor: TaskExecutor,
         private val clock: Clock,
+        private val imageDimensionsReader: ImageDimensionsReader,
 ) : LinkPreviewPrefetcher {
 
     /**
@@ -210,13 +210,8 @@ internal class UrlPreviewBundler @Inject constructor(
     }
 
     private fun ByteArray.dimensions(): JsonDict {
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(this, 0, size, options)
-        return if (options.outWidth > 0 && options.outHeight > 0) {
-            mapOf("og:image:width" to options.outWidth, "og:image:height" to options.outHeight)
-        } else {
-            emptyMap()
-        }
+        val (width, height) = imageDimensionsReader.read(this) ?: return emptyMap()
+        return mapOf("og:image:width" to width, "og:image:height" to height)
     }
 
     // matrix.to links are permalinks to rooms, events and users: there is nothing to preview, and

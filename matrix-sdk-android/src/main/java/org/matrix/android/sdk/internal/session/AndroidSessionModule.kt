@@ -36,7 +36,9 @@ import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 import org.matrix.android.sdk.internal.session.identity.DefaultIdentityService
 import org.matrix.android.sdk.internal.session.integrationmanager.DefaultIntegrationManagerService
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManager
+import org.matrix.android.sdk.internal.session.media.AndroidImageDimensionsReader
 import org.matrix.android.sdk.internal.session.media.AndroidWebUrlPattern
+import org.matrix.android.sdk.internal.session.media.ImageDimensionsReader
 import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
 import org.matrix.android.sdk.internal.session.media.WebUrlPattern
@@ -120,6 +122,9 @@ internal abstract class AndroidSessionModule {
 
     @Binds
     abstract fun bindLinkPreviewPrefetcher(bundler: UrlPreviewBundler): LinkPreviewPrefetcher
+
+    @Binds
+    abstract fun bindImageDimensionsReader(reader: AndroidImageDimensionsReader): ImageDimensionsReader
 
     @Binds
     abstract fun bindWebUrlPattern(pattern: AndroidWebUrlPattern): WebUrlPattern

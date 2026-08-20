@@ -9,25 +9,30 @@ package im.vector.matrixcli.di
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.session.content.ContentUriResolver
 import org.matrix.android.sdk.internal.session.content.ImageExifTagRemover
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
-import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
+import org.matrix.android.sdk.internal.session.media.ImageDimensionsReader
 import org.matrix.android.sdk.internal.session.media.WebUrlPattern
 import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import org.matrix.android.sdk.internal.util.time.Clock
+import java.io.ByteArrayInputStream
 import java.io.File
+import javax.imageio.ImageIO
 import javax.inject.Inject
 
-// The seams android fills with its media and text stacks. Desktop has no equivalent for these, so
-// each one degrades to the mildest sensible answer rather than failing the send that reached it.
+// The seams android fills with its media and text stacks. These answer null/empty because that is
+// the correct answer off-android, not because they are unfinished: the thumbnail and metadata seams
+// are video-only (android returns null for anything else too, and a JVM has no demuxer), and the
+// pill converter reads Spannable spans, which desktop text does not carry.
 
 internal class DesktopThumbnailExtractor @Inject constructor() : ThumbnailExtractor {
+    // Video frames only — see above. Image attachments never reach this seam on any platform.
     override fun extractThumbnail(attachment: ContentAttachmentData, withBlurHash: Boolean): ThumbnailExtractor.ThumbnailData? = null
     override fun extractVideoThumbnailFromFile(file: File): ThumbnailExtractor.ThumbnailData? = null
 }
@@ -60,9 +65,19 @@ internal class DesktopTextPillsUtils @Inject constructor() : TextPillsUtils {
     override fun processSpecialSpansToMarkdown(text: CharSequence): String? = null
 }
 
-internal class DesktopLinkPreviewPrefetcher @Inject constructor() : LinkPreviewPrefetcher {
-    override suspend fun prefetch(roomId: String, text: CharSequence, encrypt: Boolean) = Unit
-    override suspend fun bundleUrlPreviews(event: Event, encrypt: Boolean): Event = event
+internal class DesktopImageDimensionsReader @Inject constructor() : ImageDimensionsReader {
+
+    override fun read(bytes: ByteArray): Pair<Int, Int>? = tryOrNull {
+        ImageIO.createImageInputStream(ByteArrayInputStream(bytes)).use { stream ->
+            val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return@use null
+            try {
+                reader.input = stream
+                reader.getWidth(0) to reader.getHeight(0)
+            } finally {
+                reader.dispose()
+            }
+        }
+    }
 }
 
 internal class DesktopWebUrlPattern @Inject constructor() : WebUrlPattern {
