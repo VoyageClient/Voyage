@@ -49,8 +49,8 @@ import org.matrix.android.sdk.internal.session.room.threads.AndroidThreadsServic
 import org.matrix.android.sdk.internal.session.room.threads.ThreadsServiceFactory
 import org.matrix.android.sdk.internal.session.sync.DefaultSyncService
 import org.matrix.android.sdk.internal.session.user.AndroidUserService
+import org.matrix.android.sdk.internal.session.widgets.AndroidWidgetService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetPostAPIMediator
-import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetURLFormatter
 import org.matrix.android.sdk.internal.session.workmanager.DefaultWorkManagerConfig
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
@@ -89,7 +89,7 @@ internal abstract class AndroidSessionModule {
     abstract fun bindSyncService(service: DefaultSyncService): SyncService
 
     @Binds
-    abstract fun bindWidgetService(service: DefaultWidgetService): WidgetService
+    abstract fun bindWidgetService(service: AndroidWidgetService): WidgetService
 
     @Binds
     abstract fun bindWidgetPostAPIMediator(mediator: DefaultWidgetPostAPIMediator): WidgetPostAPIMediator

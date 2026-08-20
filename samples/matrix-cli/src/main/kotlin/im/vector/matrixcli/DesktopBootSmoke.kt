@@ -43,6 +43,21 @@ class DesktopBootSmoke {
 
     private val componentDataDir = Files.createTempDirectory("matrix-cli-graph").toFile()
 
+    private fun sessionParams() = SessionParams(
+            credentials = Credentials(
+                    userId = "@cli:example.org",
+                    accessToken = "not-a-real-token",
+                    refreshToken = null,
+                    homeServer = "example.org",
+                    deviceId = "CLIDEVICE",
+            ),
+            homeServerConnectionConfig = HomeServerConnectionConfig.Builder()
+                    .withHomeServerUri("https://example.org")
+                    .build(),
+            isTokenValid = true,
+            loginType = LoginType.PASSWORD,
+    )
+
     private fun matrixComponent(): DesktopMatrixComponent {
         return DaggerDesktopMatrixComponent.factory().create(
                 DesktopMatrixModule(componentDataDir),
@@ -192,28 +207,23 @@ class DesktopBootSmoke {
         }
 
         check("desktop session graph (no server)") {
-            val params = SessionParams(
-                    credentials = Credentials(
-                            userId = "@cli:example.org",
-                            accessToken = "not-a-real-token",
-                            refreshToken = null,
-                            homeServer = "example.org",
-                            deviceId = "CLIDEVICE",
-                    ),
-                    homeServerConnectionConfig = HomeServerConnectionConfig.Builder()
-                            .withHomeServerUri("https://example.org")
-                            .build(),
-                    isTokenValid = true,
-                    loginType = LoginType.PASSWORD,
-            )
-            val session = matrixComponent().sessionManager().getOrCreateSession(params)
+            val session = matrixComponent().sessionManager().getOrCreateSession(sessionParams())
             // Lazy holders: touch the services so the graph actually constructs them.
             val services = listOf(
                     session.roomService(), session.userService(), session.cryptoService(),
                     session.syncService(), session.searchService(), session.profileService(),
                     session.fileService(), session.pushersService(), session.spaceService(),
+                    session.widgetService(), session.identityService(), session.integrationManagerService(),
             )
             "session ${session.myUserId} built with ${services.size} services from the desktop graph"
+        }
+
+        check("shared widget/identity/integration services answer off-android") {
+            val session = matrixComponent().sessionManager().getOrCreateSession(sessionParams())
+            val widgets = session.widgetService().getUserWidgets()
+            val configs = session.integrationManagerService().getOrderedConfigs()
+            val identityServer = session.identityService().getCurrentIdentityServerUrl()
+            "widgets=${widgets.size} integrationConfigs=${configs.size} identityServer=$identityServer"
         }
 
         dataDir.deleteRecursively()

@@ -19,28 +19,18 @@ package org.matrix.android.sdk.internal.session.widgets
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Content
-import org.matrix.android.sdk.api.session.widgets.WidgetPostAPIMediator
 import org.matrix.android.sdk.api.session.widgets.WidgetService
-import org.matrix.android.sdk.api.session.widgets.WidgetServiceAndroid
 import org.matrix.android.sdk.api.session.widgets.WidgetURLFormatter
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import javax.inject.Inject
-import javax.inject.Provider
 
 internal class DefaultWidgetService @Inject constructor(
         private val widgetManager: WidgetManager,
         private val widgetURLFormatter: WidgetURLFormatter,
-        private val widgetPostAPIMediator: Provider<WidgetPostAPIMediator>
-) :
-        WidgetService,
-        WidgetServiceAndroid {
+) : WidgetService {
 
     override fun getWidgetURLFormatter(): WidgetURLFormatter {
         return widgetURLFormatter
-    }
-
-    override fun getWidgetPostAPIMediator(): WidgetPostAPIMediator {
-        return widgetPostAPIMediator.get()
     }
 
     override fun getRoomWidgets(
