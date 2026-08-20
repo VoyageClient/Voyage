@@ -390,6 +390,20 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.DEVTOOLS)
                     }
                 }
+                Command.SEND_EVENT.matches(slashCommand) -> {
+                    if (messageParts.size == 1) {
+                        ParsedCommand.SendCustomEvent
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.SEND_EVENT)
+                    }
+                }
+                Command.SEND_STATE.matches(slashCommand) -> {
+                    if (messageParts.size == 1) {
+                        ParsedCommand.SendCustomStateEvent
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.SEND_STATE)
+                    }
+                }
                 Command.CLEAR_SCALAR_TOKEN.matches(slashCommand) -> {
                     if (messageParts.size == 1) {
                         ParsedCommand.ClearScalarToken

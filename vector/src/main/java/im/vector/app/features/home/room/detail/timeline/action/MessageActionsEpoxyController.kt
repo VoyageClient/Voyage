@@ -22,6 +22,7 @@ import im.vector.app.core.epoxy.bottomsheet.bottomSheetQuickReactionsItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetSendStateItem
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.app.core.extensions.sendFailureReason
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.AvatarRenderer
@@ -53,7 +54,6 @@ import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
-import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isLocationMessage
@@ -181,9 +181,7 @@ class MessageActionsEpoxyController @Inject constructor(
         if (sendState?.hasFailed().orFalse()) {
             // Get more details about the error
             val root = state.timelineEvent()?.root
-            val errorMessage = root?.sendStateError()
-                    ?.let { errorFormatter.toHumanReadable(Failure.ServerError(it, 0)) }
-                    ?: root?.sendStateDetails
+            val errorMessage = root?.sendFailureReason(errorFormatter)
                     ?: stringProvider.getString(CommonStrings.unable_to_send_message)
             bottomSheetSendStateItem {
                 id("send_state")

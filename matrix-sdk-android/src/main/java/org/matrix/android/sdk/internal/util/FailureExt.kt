@@ -26,11 +26,18 @@ import org.matrix.android.sdk.internal.di.MoshiProvider
  */
 internal fun Throwable.toMatrixErrorStr(): String {
     return (this as? Failure.ServerError)
-            ?.let {
-                // Serialize the MatrixError in this case
-                val adapter = MoshiProvider.providesMoshi().adapter(MatrixError::class.java)
-                tryOrNull { adapter.toJson(error) }
-            }
+            ?.let { tryOrNull { serializeServerError(it) } }
             ?: localizedMessage
             ?: "error"
+}
+
+/** Serializes the MatrixError with the HTTP status folded in, so readers can tell a server rejection apart. */
+private fun serializeServerError(failure: Failure.ServerError): String? {
+    val moshi = MoshiProvider.providesMoshi()
+    @Suppress("UNCHECKED_CAST")
+    val fields = (moshi.adapter(MatrixError::class.java).toJsonValue(failure.error) as? Map<String, Any?>)
+            ?.toMutableMap()
+            ?: return null
+    fields[MatrixError.HTTP_CODE_JSON_KEY] = failure.httpCode
+    return moshi.adapter(Map::class.java).toJson(fields)
 }

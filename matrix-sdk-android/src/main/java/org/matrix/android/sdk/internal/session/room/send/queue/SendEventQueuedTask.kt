@@ -16,18 +16,16 @@
 
 package org.matrix.android.sdk.internal.session.room.send.queue
 
-import org.matrix.android.sdk.api.failure.Failure
-import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.room.send.SendState
-import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
 import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
+import org.matrix.android.sdk.internal.util.toMatrixErrorStr
 
 internal class SendEventQueuedTask(
         val event: Event,
@@ -107,12 +105,5 @@ internal class SendEventQueuedTask(
         return super.isCancelled() || cancelSendTracker.isCancelRequestedFor(event.eventId, event.roomId)
     }
 
-    private fun sendStateDetailsFor(failure: Throwable?): String? {
-        val serverError = failure as? Failure.ServerError ?: return failure?.message
-        return runCatching {
-            MatrixJsonParser.getMoshi()
-                    .adapter(MatrixError::class.java)
-                    .toJson(serverError.error)
-        }.getOrNull() ?: serverError.error.toString()
-    }
+    private fun sendStateDetailsFor(failure: Throwable?): String? = failure?.toMatrixErrorStr()
 }

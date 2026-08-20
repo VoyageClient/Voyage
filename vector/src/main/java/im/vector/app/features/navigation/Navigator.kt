@@ -16,6 +16,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.util.Pair
 import androidx.fragment.app.FragmentActivity
 import im.vector.app.features.crypto.recover.SetupMode
+import im.vector.app.features.devtools.RoomDevToolViewState
 import im.vector.app.features.home.room.detail.arguments.PendingEventAction
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
 import im.vector.app.features.location.LocationData
@@ -173,7 +174,7 @@ interface Navigator {
 
     fun openSearch(context: Context, roomId: String, roomDisplayName: String?, roomAvatarUrl: String?)
 
-    fun openDevTools(context: Context, roomId: String)
+    fun openDevTools(context: Context, roomId: String, sendTarget: RoomDevToolViewState.SendTarget? = null)
 
     fun openCreatePoll(context: Context, roomId: String, editedEventId: String?, mode: PollMode)
 

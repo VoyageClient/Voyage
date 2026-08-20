@@ -61,6 +61,8 @@ enum class Command(
     TRANS("/trans", null, "<message>", CommonStrings.command_description_trans, false, true),
     TRANS_EMOTE("/transme", null, "<message>", CommonStrings.command_description_trans_emote, false, true),
     DEVTOOLS("/devtools", null, "", CommonStrings.command_description_devtools, true, false),
+    SEND_EVENT("/sendevent", null, "", CommonStrings.command_description_send_event, true, false),
+    SEND_STATE("/sendstate", null, "", CommonStrings.command_description_send_state, true, false),
     CLEAR_SCALAR_TOKEN("/clear_scalar_token", null, "", CommonStrings.command_description_clear_scalar_token, false, false),
     SPOILER("/spoiler", null, "<message>", CommonStrings.command_description_spoiler, false, true),
     SHRUG("/shrug", null, "<message>", CommonStrings.command_description_shrug, false, true),

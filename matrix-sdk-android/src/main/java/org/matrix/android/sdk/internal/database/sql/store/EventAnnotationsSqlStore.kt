@@ -43,7 +43,7 @@ internal class EventAnnotationsSqlStore(
         val reactions = hitIds.flatMapInChunks { queries.selectReactionsIn(it).executeAsList() }.groupBy { it.annotation_event_id }
         val editions = hitIds.flatMapInChunks { queries.selectEditionsIn(it).executeAsList() }.groupBy { it.annotation_event_id }
         return summaries.associateBy({ it.event_id }) { row ->
-            val editionEntities = editions[row.event_id].orEmpty().map { it.toEntity() }
+            val editionEntities = editions[row.event_id].orEmpty().map { it.toEntity() }.fromOriginalSender(row.event_id)
             EventAnnotationsSummaryEntity(
                     eventId = row.event_id,
                     roomId = row.room_id,
@@ -136,7 +136,7 @@ internal class EventAnnotationsSqlStore(
 
     private fun AnnotationsRow.toEntity(): EventAnnotationsSummaryEntity {
         val reactions = queries.selectReactions(event_id).executeAsList().map { it.toEntity() }
-        val editions = queries.selectEditions(event_id).executeAsList().map { it.toEntity() }
+        val editions = queries.selectEditions(event_id).executeAsList().map { it.toEntity() }.fromOriginalSender(event_id)
         val references = queries.selectReferences(event_id).executeAsOneOrNull()?.toEntity()
         val poll = queries.selectPollResponse(event_id).executeAsOneOrNull()?.toEntity()
         return EventAnnotationsSummaryEntity(
@@ -160,6 +160,14 @@ internal class EventAnnotationsSqlStore(
             sourceEvents = source_events.splitToRealmList(),
             sourceLocalEcho = source_local_echo.splitToRealmList(),
     )
+
+    // Only the original sender can replace an event. Aggregation can't decide that for a local echo or for an
+    // edit that arrives before its target, so enforce it here instead: a forged edit must never reach a reader.
+    private fun List<EditionOfEvent>.fromOriginalSender(targetEventId: String): List<EditionOfEvent> {
+        if (isEmpty()) return this
+        val originalSender = eventStore.getByEventId(targetEventId)?.sender ?: return this
+        return filter { edition -> edition.event?.sender?.let { it == originalSender } ?: true }
+    }
 
     private fun EditionRow.toEntity(): EditionOfEvent = EditionOfEvent(
             eventId = event_id,
