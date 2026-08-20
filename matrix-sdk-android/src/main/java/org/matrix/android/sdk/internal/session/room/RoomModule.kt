@@ -225,6 +225,9 @@ internal abstract class RoomModule {
     }
 
     @Binds
+    abstract fun bindRoomFactory(factory: DefaultRoomFactory): RoomFactory
+
+    @Binds
     abstract fun bindRoomGetter(getter: DefaultRoomGetter): RoomGetter
 
     @Binds

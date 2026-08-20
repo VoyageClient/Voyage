@@ -36,7 +36,7 @@ import org.matrix.android.sdk.internal.session.room.send.DefaultSendService
 import org.matrix.android.sdk.internal.session.room.state.DefaultStateService
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.session.room.tags.DefaultTagsService
-import org.matrix.android.sdk.internal.session.room.threads.DefaultThreadsService
+import org.matrix.android.sdk.internal.session.room.threads.ThreadsServiceFactory
 import org.matrix.android.sdk.internal.session.room.threads.local.DefaultThreadsLocalService
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultTimelineService
 import org.matrix.android.sdk.internal.session.room.typing.DefaultTypingService
@@ -48,7 +48,7 @@ import javax.inject.Inject
 internal class DefaultRoomFactory @Inject constructor(
         private val roomSummaryDataSource: RoomSummaryDataSource,
         private val timelineServiceFactory: DefaultTimelineService.Factory,
-        private val threadsServiceFactory: DefaultThreadsService.Factory,
+        private val threadsServiceFactory: ThreadsServiceFactory,
         private val threadsLocalServiceFactory: DefaultThreadsLocalService.Factory,
         private val sendServiceFactory: DefaultSendService.Factory,
         private val draftServiceFactory: DefaultDraftService.Factory,

@@ -16,20 +16,17 @@
 
 package org.matrix.android.sdk.internal.session.room
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.map
-import androidx.paging.PagedList
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
-import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasDescription
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
@@ -45,7 +42,6 @@ import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotification
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.alias.DeleteRoomAliasTask
@@ -64,10 +60,6 @@ import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.session.room.summary.SyncWatchedRoomSummariesTask
-import org.matrix.android.sdk.internal.session.room.summary.getAllRoomSummaryChildOfLive
-import org.matrix.android.sdk.internal.session.room.summary.getFlattenOrphanRoomsLive
-import org.matrix.android.sdk.internal.session.room.summary.getSortedPagedRoomSummariesLive
-import org.matrix.android.sdk.internal.session.room.summary.getUpdatablePagedRoomSummariesLive
 import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
 import org.matrix.android.sdk.internal.session.sync.SyncRemovedRoomsTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateBreadcrumbsTask
@@ -100,7 +92,7 @@ internal class DefaultRoomService @Inject constructor(
         private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
         private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater,
         private val localEchoEventFactory: org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory,
-) : RoomService, RoomPagingService {
+) : RoomService {
 
     override fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? {
         return localEchoEventFactory.computeFormattedHtml(text, autoMarkdown)
@@ -192,22 +184,6 @@ internal class DefaultRoomService @Inject constructor(
         return roomSummaryDataSource.getRoomSummariesFlow(queryParams, sortOrder)
     }
 
-    override fun getPagedRoomSummariesLive(
-            queryParams: RoomSummaryQueryParams,
-            pagedListConfig: PagedList.Config,
-            sortOrder: RoomSortOrder
-    ): LiveData<PagedList<RoomSummary>> {
-        return roomSummaryDataSource.getSortedPagedRoomSummariesLive(queryParams, pagedListConfig, sortOrder)
-    }
-
-    override fun getFilteredPagedRoomSummariesLive(
-            queryParams: RoomSummaryQueryParams,
-            pagedListConfig: PagedList.Config,
-            sortOrder: RoomSortOrder,
-    ): UpdatableLivePageResult {
-        return roomSummaryDataSource.getUpdatablePagedRoomSummariesLive(queryParams, pagedListConfig, sortOrder)
-    }
-
     override fun getRoomSummaryUpdateFlow(): Flow<Unit> {
         return roomSummaryDataSource.getRoomSummaryUpdateFlow()
     }
@@ -290,9 +266,8 @@ internal class DefaultRoomService @Inject constructor(
     }
 
     override fun getRoomMemberFlow(userId: String, roomId: String): Flow<Optional<RoomMemberSummary>> {
-        return database.roomMemberSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
+        return database.roomMemberSummaryQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map { stores.roomMember.getByRoomAndUser(roomId, userId)?.asDomain().toOptional() }
-                .asFlow()
     }
 
     override suspend fun getRoomState(roomId: String): List<Event> {
@@ -348,12 +323,5 @@ internal class DefaultRoomService @Inject constructor(
             return roomSummaryDataSource.getFlattenOrphanRooms()
         }
         return roomSummaryDataSource.getAllRoomSummaryChildOf(spaceId, memberships)
-    }
-
-    override fun getFlattenRoomSummaryChildrenOfLive(spaceId: String?, memberships: List<Membership>): LiveData<List<RoomSummary>> {
-        if (spaceId == null) {
-            return roomSummaryDataSource.getFlattenOrphanRoomsLive()
-        }
-        return roomSummaryDataSource.getAllRoomSummaryChildOfLive(spaceId, memberships)
     }
 }

@@ -16,10 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.user
 
-import androidx.lifecycle.LiveData
-import androidx.paging.PagedList
 import kotlinx.coroutines.flow.Flow
-import org.matrix.android.sdk.api.session.user.UserPagingService
 import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
@@ -37,7 +34,7 @@ internal class DefaultUserService @Inject constructor(
         private val reportUserTask: ReportUserTask,
         private val getProfileInfoTask: GetProfileInfoTask,
         private val unIgnoredContentRecoverer: UnIgnoredContentRecoverer,
-) : UserService, UserPagingService {
+) : UserService {
 
     override fun getUser(userId: String): User? {
         return userDataSource.getUser(userId)
@@ -57,10 +54,6 @@ internal class DefaultUserService @Inject constructor(
 
     override fun getUsersFlow(): Flow<List<User>> {
         return userDataSource.getUsersFlow()
-    }
-
-    override fun getPagedUsersLive(filter: String?, excludedUserIds: Set<String>?): LiveData<PagedList<User>> {
-        return userDataSource.getPagedUsersLive(filter, excludedUserIds)
     }
 
     override fun getIgnoredUsersFlow(): Flow<List<User>> {
