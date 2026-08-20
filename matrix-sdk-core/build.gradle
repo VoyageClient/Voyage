@@ -1348,6 +1348,22 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/auth/login/DirectTokenLoginTask.kt',
         'org/matrix/android/sdk/internal/auth/login/QrLoginTokenTask.kt',
         'org/matrix/android/sdk/internal/auth/registration/DefaultRegistrationWizard.kt',
+        // Crypto service impl; its paged devtools views live on the android AndroidCryptoService.
+        'org/matrix/android/sdk/internal/crypto/DefaultCryptoService.kt',
+        'org/matrix/android/sdk/internal/crypto/crosssigning/DefaultCrossSigningService.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/DefaultVerificationService.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/VerificationMessageProcessor.kt',
+        'org/matrix/android/sdk/internal/session/sync/handler/CryptoSyncHandler.kt',
+        'org/matrix/android/sdk/internal/crypto/RoomKeyBundleSender.kt',
+        'org/matrix/android/sdk/internal/crypto/RoomKeyBundleReceiver.kt',
+        'org/matrix/android/sdk/internal/crypto/EventDecryptor.kt',
+        'org/matrix/android/sdk/internal/crypto/crosssigning/UpdateTrustWorkerParams.kt',
+        'org/matrix/android/sdk/internal/crypto/RoomKeyBundleBuilder.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/VerificationActor.kt',
+        'org/matrix/android/sdk/internal/session/content/FileUploader.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/VerificationEmoji.kt',
+        'org/matrix/android/sdk/internal/session/content/ImageExifTagRemover.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/KotlinSasTransaction.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

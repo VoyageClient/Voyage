@@ -16,10 +16,7 @@
 
 package org.matrix.android.sdk.internal.crypto
 
-import android.content.Context
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.LiveData
-import androidx.paging.PagedList
 import com.squareup.moshi.Types
 import dagger.Lazy
 import kotlinx.coroutines.CancellationException
@@ -40,7 +37,6 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.logger.LoggerTag
-import org.matrix.android.sdk.api.session.crypto.CryptoDevtoolsService
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.GlobalCryptoConfig
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
@@ -62,7 +58,6 @@ import org.matrix.android.sdk.api.session.crypto.model.MXEncryptEventContentResu
 import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
 import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
 import org.matrix.android.sdk.api.session.crypto.model.RoomKeyShareRequest
-import org.matrix.android.sdk.api.session.crypto.model.TrailType
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -94,7 +89,6 @@ import org.matrix.android.sdk.internal.crypto.model.rest.KeysUploadBody
 import org.matrix.android.sdk.internal.crypto.model.toRest
 import org.matrix.android.sdk.internal.crypto.repository.WarnOnUnknownDeviceRepository
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStorePaging
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
 import org.matrix.android.sdk.internal.crypto.tasks.DeleteDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDeviceInfoTask
@@ -135,8 +129,8 @@ private val loggerTag = LoggerTag("DefaultCryptoService", LoggerTag.CRYPTO)
 
 @SessionScope
 internal class DefaultCryptoService @Inject constructor(
-        // Olm Manager
-        private val olmManager: OlmManager,
+        // Injected only to force the native olm library to load before any crypto runs.
+        @Suppress("unused") private val olmManager: OlmManager,
         @UserId
         private val userId: String,
         @DeviceId
@@ -195,7 +189,7 @@ internal class DefaultCryptoService @Inject constructor(
         private val liveEventManager: Lazy<StreamEventsManager>,
         private val unrequestedForwardManager: UnRequestedForwardManager,
         private val cryptoSyncHandler: CryptoSyncHandler,
-) : CryptoService, CryptoDevtoolsService, DeviceListManager.UserDevicesUpdateListener {
+) : CryptoService, DeviceListManager.UserDevicesUpdateListener {
 
     private val isStarting = AtomicBoolean(false)
     private val isStarted = AtomicBoolean(false)
@@ -257,10 +251,6 @@ internal class DefaultCryptoService @Inject constructor(
             deleteDeviceTask
                     .execute(DeleteDeviceTask.Params(deviceIds, userInteractiveAuthInterceptor, null))
         }
-    }
-
-    override fun getCryptoVersion(context: Context, longFormat: Boolean): String {
-        return if (longFormat) olmManager.getDetailedVersion(context) else olmManager.version
     }
 
     override suspend fun getMyCryptoDevice(): CryptoDeviceInfo = withContext(coroutineDispatchers.io) {
@@ -1375,22 +1365,11 @@ internal class DefaultCryptoService @Inject constructor(
         return cryptoStore.getOutgoingRoomKeyRequests()
     }
 
-    override fun getOutgoingRoomKeyRequestsPaged(): LiveData<PagedList<OutgoingKeyRequest>> {
-        return (cryptoStore as IMXCryptoStorePaging).getOutgoingRoomKeyRequestsPaged()
-    }
-
     override fun getIncomingRoomKeyRequests(): List<IncomingRoomKeyRequest> {
         return cryptoStore.getGossipingEvents()
                 .mapNotNull {
                     IncomingRoomKeyRequest.fromEvent(it)
                 }
-    }
-
-    override fun getIncomingRoomKeyRequestsPaged(): LiveData<PagedList<IncomingRoomKeyRequest>> {
-        return (cryptoStore as IMXCryptoStorePaging).getGossipingEventsTrail(TrailType.IncomingKeyRequest) {
-            IncomingRoomKeyRequest.fromEvent(it)
-                    ?: IncomingRoomKeyRequest(localCreationTimestamp = 0L)
-        }
     }
 
     /**
@@ -1399,10 +1378,6 @@ internal class DefaultCryptoService @Inject constructor(
      */
     override suspend fun manuallyAcceptRoomKeyRequest(request: IncomingRoomKeyRequest) {
         incomingKeyRequestManager.manuallyAcceptRoomKeyRequest(request)
-    }
-
-    override fun getGossipingEventsTrail(): LiveData<PagedList<AuditTrail>> {
-        return (cryptoStore as IMXCryptoStorePaging).getGossipingEventsTrail()
     }
 
     override fun getGossipingEvents(): List<AuditTrail> {

@@ -18,8 +18,8 @@ package org.matrix.android.sdk.internal.session.sync.handler
 
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
+import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerParams
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
@@ -130,7 +130,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
     private fun fetchAndUpdateUsers(userIdsToFetch: Collection<String>) {
         if (userIdsToFetch.isEmpty()) return
         Timber.d("## Configure Worker to update users: ${userIdsToFetch.logLimit()}")
-        val workerParams = UpdateTrustWorker.Params(
+        val workerParams = UpdateTrustWorkerParams(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(userIdsToFetch.toList())
         )

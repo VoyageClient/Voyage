@@ -21,8 +21,8 @@ import androidx.work.WorkerParameters
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.internal.SessionManager
-import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
+import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerParams
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionComponent
@@ -34,10 +34,10 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Note: We reuse the same type [UpdateTrustWorker.Params], since the input data are the same.
+ * Note: We reuse the same type [UpdateTrustWorkerParams], since the input data are the same.
  */
 internal class UpdateUserWorker(context: Context, params: WorkerParameters, sessionManager: SessionManager) :
-        SessionSafeCoroutineWorker<UpdateTrustWorker.Params>(context, params, sessionManager, UpdateTrustWorker.Params::class.java) {
+        SessionSafeCoroutineWorker<UpdateTrustWorkerParams>(context, params, sessionManager, UpdateTrustWorkerParams::class.java) {
 
     @SessionDatabase
     @Inject lateinit var database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -53,7 +53,7 @@ internal class UpdateUserWorker(context: Context, params: WorkerParameters, sess
         injector.inject(this)
     }
 
-    override suspend fun doSafeWork(params: UpdateTrustWorker.Params): Result {
+    override suspend fun doSafeWork(params: UpdateTrustWorkerParams): Result {
         val userList = params.filename
                 ?.let { updateTrustWorkerDataRepository.getParam(it) }
                 ?.userIds
@@ -98,12 +98,12 @@ internal class UpdateUserWorker(context: Context, params: WorkerParameters, sess
         Timber.d("## saveLocally() - END")
     }
 
-    private fun cleanup(params: UpdateTrustWorker.Params) {
+    private fun cleanup(params: UpdateTrustWorkerParams) {
         params.filename
                 ?.let { updateTrustWorkerDataRepository.delete(it) }
     }
 
-    override fun buildErrorParams(params: UpdateTrustWorker.Params, message: String): UpdateTrustWorker.Params {
+    override fun buildErrorParams(params: UpdateTrustWorkerParams, message: String): UpdateTrustWorkerParams {
         return params.copy(lastFailureMessage = params.lastFailureMessage ?: message)
     }
 }

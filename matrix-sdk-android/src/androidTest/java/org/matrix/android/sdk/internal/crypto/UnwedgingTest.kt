@@ -93,8 +93,8 @@ class UnwedgingTest : InstrumentedTest {
         val aliceRoomId = cryptoTestData.roomId
         val bobSession = cryptoTestData.secondSession!!
 
-        val aliceCryptoStore = (aliceSession.cryptoService() as DefaultCryptoService).cryptoStoreForTesting
-        val olmDevice = (aliceSession.cryptoService() as DefaultCryptoService).olmDeviceForTest
+        val aliceCryptoStore = (aliceSession.cryptoService() as AndroidCryptoService).delegate.cryptoStoreForTesting
+        val olmDevice = (aliceSession.cryptoService() as AndroidCryptoService).delegate.olmDeviceForTest
 
         val roomFromBobPOV = bobSession.getRoom(aliceRoomId)!!
         val roomFromAlicePOV = aliceSession.getRoom(aliceRoomId)!!
