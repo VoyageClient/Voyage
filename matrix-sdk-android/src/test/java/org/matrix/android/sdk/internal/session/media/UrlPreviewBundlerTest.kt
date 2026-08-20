@@ -49,7 +49,10 @@ private val PREVIEW = FetchedPreview(
                 "og:url" to "https://matrix.org/",
                 "og:title" to "Matrix.org",
                 "og:description" to "The open protocol",
-                "og:site_name" to "Matrix.org"
+                "og:site_name" to "Matrix.org",
+                // The fetchers keep the external image url in the fields; the bundler must replace it
+                // with its own reupload, never let it through.
+                "og:image" to "https://matrix.org/hero.png"
         ),
         image = FetchedImage(IMAGE_BYTES, "image/jpeg")
 )
