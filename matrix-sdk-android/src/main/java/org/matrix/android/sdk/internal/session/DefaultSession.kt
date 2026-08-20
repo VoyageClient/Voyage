@@ -18,7 +18,10 @@ package org.matrix.android.sdk.internal.session
 
 import androidx.annotation.MainThread
 import dagger.Lazy
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -72,15 +75,14 @@ import org.matrix.android.sdk.internal.auth.SessionParamsStore
 import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificate
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
 import org.matrix.android.sdk.internal.network.GlobalErrorHandler
-import org.matrix.android.sdk.internal.util.createUIHandler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import javax.inject.Inject
 
 @SessionScope
 internal class DefaultSession @Inject constructor(
         override val sessionParams: SessionParams,
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val globalErrorHandler: GlobalErrorHandler,
         @SessionId
         override val sessionId: String,
@@ -136,7 +138,7 @@ internal class DefaultSession @Inject constructor(
 ) : Session,
         GlobalErrorHandler.Listener {
 
-    private val uiHandler = createUIHandler()
+    private val mainScope = CoroutineScope(SupervisorJob() + coroutineDispatchers.main)
 
     override val isOpenable: Boolean
         get() = sessionParamsStore.get(sessionId)?.isTokenValid ?: false
@@ -146,9 +148,9 @@ internal class DefaultSession @Inject constructor(
         sessionState.setIsOpen(true)
         globalErrorHandler.listener = this
         cryptoService.get().start()
-        uiHandler.post {
+        mainScope.launch {
             lifecycleObservers.forEach {
-                it.onSessionStarted(this)
+                it.onSessionStarted(this@DefaultSession)
             }
             dispatchTo(sessionListeners) { session, listener ->
                 listener.onSessionStarted(session)
@@ -162,8 +164,8 @@ internal class DefaultSession @Inject constructor(
         if (!sessionState.isOpen) return
         syncService.get().stopSync()
         // timelineEventDecryptor.destroy()
-        uiHandler.post {
-            lifecycleObservers.forEach { it.onSessionStopped(this) }
+        mainScope.launch {
+            lifecycleObservers.forEach { it.onSessionStopped(this@DefaultSession) }
             dispatchTo(sessionListeners) { session, listener ->
                 listener.onSessionStopped(session)
             }
@@ -176,9 +178,9 @@ internal class DefaultSession @Inject constructor(
     override suspend fun clearCache() {
         syncService.get().stopSync()
         syncService.get().stopAnyBackgroundSync()
-        uiHandler.post {
+        mainScope.launch {
             lifecycleObservers.forEach {
-                it.onClearCache(this)
+                it.onClearCache(this@DefaultSession)
             }
             dispatchTo(sessionListeners) { session, listener ->
                 listener.onClearCache(session)
@@ -187,7 +189,7 @@ internal class DefaultSession @Inject constructor(
         withContext(NonCancellable) {
             cacheService.get().clearCache()
         }
-        workManagerProvider.cancelAllWorks()
+        backgroundTaskScheduler.cancelAllTasks()
     }
 
     override fun onGlobalError(globalError: GlobalError) {
