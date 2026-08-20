@@ -32,7 +32,9 @@ import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 import org.matrix.android.sdk.internal.session.identity.DefaultIdentityService
 import org.matrix.android.sdk.internal.session.integrationmanager.DefaultIntegrationManagerService
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManager
+import org.matrix.android.sdk.internal.session.media.ImageDimensionsReader
 import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
+import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
 import org.matrix.android.sdk.internal.session.media.WebUrlPattern
 import org.matrix.android.sdk.internal.session.room.DefaultRoomService
 import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
@@ -116,8 +118,12 @@ internal abstract class DesktopSessionModule {
     @Binds
     abstract fun bindTextPillsUtils(utils: DesktopTextPillsUtils): TextPillsUtils
 
+    // Real link previews: the bundler is shared now, needing only a way to size a fetched image.
     @Binds
-    abstract fun bindLinkPreviewPrefetcher(prefetcher: DesktopLinkPreviewPrefetcher): LinkPreviewPrefetcher
+    abstract fun bindLinkPreviewPrefetcher(bundler: UrlPreviewBundler): LinkPreviewPrefetcher
+
+    @Binds
+    abstract fun bindImageDimensionsReader(reader: DesktopImageDimensionsReader): ImageDimensionsReader
 
     @Binds
     abstract fun bindWebUrlPattern(pattern: DesktopWebUrlPattern): WebUrlPattern

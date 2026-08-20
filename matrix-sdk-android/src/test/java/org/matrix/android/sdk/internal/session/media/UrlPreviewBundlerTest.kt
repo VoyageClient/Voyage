@@ -81,7 +81,8 @@ internal class UrlPreviewBundlerTest {
             roomSummaryDataSource = roomSummaryDataSource,
             localEchoRepository = localEchoRepository,
             taskExecutor = mockk { every { executorScope } returns CoroutineScope(Dispatchers.Unconfined) },
-            clock = FakeClock().apply { givenEpoch(1234) }
+            clock = FakeClock().apply { givenEpoch(1234) },
+            imageDimensionsReader = AndroidImageDimensionsReader(),
     )
 
     init {
