@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Negative top margin pulls the control up onto the newest event's row (merged members are single-line
+     notices with a free right edge), so "Collapse" reads as inline with the last event, not a row below.
+     translationZ (API 21+, harmlessly ignored below) lifts it above the event so its tap isn't stolen. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="-32dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:translationZ="16dp"
+    tools:viewBindingIgnore="true">
+
+    <TextView
+        android:id="@+id/itemMergedCollapseFooterTextView"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:paddingStart="8dp"
+        android:paddingLeft="8dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="8dp"
+        android:paddingRight="8dp"
+        android:paddingBottom="4dp"
+        android:text="@string/merged_events_collapse"
+        android:textColor="?colorSecondary" />
+
+</FrameLayout>
