@@ -20,8 +20,8 @@ import org.matrix.android.sdk.api.session.sync.SyncService
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.session.SessionState
+import org.matrix.android.sdk.internal.session.sync.job.BackgroundSyncScheduling
 import org.matrix.android.sdk.internal.session.sync.job.SyncThread
-import org.matrix.android.sdk.internal.session.sync.job.SyncWorker
 import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRequiredState
 import timber.log.Timber
 import javax.inject.Inject
@@ -42,14 +42,14 @@ internal class DefaultSyncService @Inject constructor(
     private var syncThread: SyncThread? = null
 
     override fun requireBackgroundSync() {
-        SyncWorker.requireBackgroundSync(
+        BackgroundSyncScheduling.requireBackgroundSync(
                 backgroundTaskScheduler = backgroundTaskScheduler,
                 sessionId = sessionId,
         )
     }
 
     override fun startAutomaticBackgroundSync(timeOutInSeconds: Long, repeatDelayInSeconds: Long) {
-        SyncWorker.automaticallyBackgroundSync(
+        BackgroundSyncScheduling.automaticallyBackgroundSync(
                 backgroundTaskScheduler = backgroundTaskScheduler,
                 sessionId = sessionId,
                 serverTimeoutInSeconds = timeOutInSeconds,
@@ -58,7 +58,7 @@ internal class DefaultSyncService @Inject constructor(
     }
 
     override fun stopAnyBackgroundSync() {
-        SyncWorker.stopAnyBackgroundSync(backgroundTaskScheduler, sessionId)
+        BackgroundSyncScheduling.stopAnyBackgroundSync(backgroundTaskScheduler, sessionId)
     }
 
     @Synchronized

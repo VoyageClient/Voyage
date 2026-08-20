@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.worker
 
 import android.content.Context
-import androidx.annotation.CallSuper
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkerParameters
@@ -30,6 +29,8 @@ import timber.log.Timber
  * This worker should only sends Result.Success when added to a unique queue to avoid breaking the unique queue.
  * This abstract class handle the cases of problem when parsing parameter, and forward the error if any to
  * the next workers.
+ *
+ * The work itself lives in a [BackgroundTaskBody] so that it can also run off WorkManager.
  */
 internal abstract class SessionSafeCoroutineWorker<PARAM : SessionWorkerParams>(
         context: Context,
@@ -42,7 +43,15 @@ internal abstract class SessionSafeCoroutineWorker<PARAM : SessionWorkerParams>(
     internal data class ErrorData(
             override val sessionId: String,
             override val lastFailureMessage: String? = null
-    ) : SessionWorkerParams
+    ) : SessionWorkerParams {
+
+        override fun withFailure(message: String) = copy(lastFailureMessage = lastFailureMessage ?: message)
+    }
+
+    private val taskContext = object : BackgroundTaskContext {
+        override val isStopped get() = this@SessionSafeCoroutineWorker.isStopped
+        override val attemptCount get() = runAttemptCount
+    }
 
     final override suspend fun doWork(): Result {
         val params = WorkerParamsFactory.fromData(paramClass, inputData)
@@ -57,12 +66,9 @@ internal abstract class SessionSafeCoroutineWorker<PARAM : SessionWorkerParams>(
             injectWith(sessionComponent)
 
             when (val lastFailureMessage = params.lastFailureMessage) {
-                null -> doSafeWork(params)
-                else -> {
-                    // Forward error to the next workers
-                    doOnError(params, lastFailureMessage)
-                }
-            }
+                null -> body().execute(params, taskContext)
+                else -> body().onError(params, lastFailureMessage)
+            }.toResult()
         } catch (throwable: Throwable) {
             buildErrorResult(params, "${throwable::class.java.name}: ${throwable.localizedMessage ?: "N/A error message"}")
         }
@@ -70,32 +76,26 @@ internal abstract class SessionSafeCoroutineWorker<PARAM : SessionWorkerParams>(
 
     abstract fun injectWith(injector: SessionComponent)
 
-    /**
-     * Should only return Result.Success for workers added to a unique queue.
-     */
-    abstract suspend fun doSafeWork(params: PARAM): Result
+    abstract fun body(): BackgroundTaskBody<PARAM>
 
-    protected fun buildErrorResult(params: PARAM?, message: String): Result {
+    private fun BackgroundTaskOutcome.toResult(): Result = when (this) {
+        BackgroundTaskOutcome.Success -> Result.success()
+        is BackgroundTaskOutcome.SuccessWith -> Result.success(params.toData())
+        BackgroundTaskOutcome.Retry -> Result.retry()
+        BackgroundTaskOutcome.Failure -> Result.failure()
+    }
+
+    private fun buildErrorResult(params: PARAM?, message: String): Result {
         return Result.success(
                 if (params != null) {
-                    WorkerParamsFactory.toData(paramClass, buildErrorParams(params, message))
+                    params.withFailure(message).toData()
                 } else {
                     WorkerParamsFactory.toData(ErrorData::class.java, ErrorData(sessionId = "", lastFailureMessage = message))
                 }
         )
     }
 
-    abstract fun buildErrorParams(params: PARAM, message: String): PARAM
-
-    /**
-     * This is called when the input parameters are correct, but contain an error from the previous worker.
-     */
-    @CallSuper
-    open fun doOnError(params: PARAM, failureMessage: String): Result {
-        // Forward the error
-        return Result.success(inputData)
-                .also { Timber.e("Work cancelled due to input error from parent: $failureMessage") }
-    }
+    private fun SessionWorkerParams.toData() = WorkerParamsFactory.toData(javaClass, this)
 
     companion object {
         fun hasFailed(outputData: Data): Boolean {

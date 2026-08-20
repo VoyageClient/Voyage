@@ -24,4 +24,7 @@ internal data class UploadContentWorkerParams(
         /** Declared byte sizes of every gallery item, for one size-weighted progress bar. */
         val galleryItemSizes: List<Long>? = null,
         override val lastFailureMessage: String? = null
-) : SessionWorkerParams
+) : SessionWorkerParams {
+
+    override fun withFailure(message: String) = copy(lastFailureMessage = lastFailureMessage ?: message)
+}

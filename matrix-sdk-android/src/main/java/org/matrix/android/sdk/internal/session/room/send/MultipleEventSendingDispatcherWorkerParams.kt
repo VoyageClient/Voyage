@@ -25,4 +25,7 @@ internal data class MultipleEventSendingDispatcherWorkerParams(
         val localEchoIds: List<LocalEchoIdentifiers>,
         val isEncrypted: Boolean,
         override val lastFailureMessage: String? = null
-) : SessionWorkerParams
+) : SessionWorkerParams {
+
+    override fun withFailure(message: String) = copy(lastFailureMessage = lastFailureMessage ?: message)
+}
