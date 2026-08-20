@@ -7,6 +7,11 @@
 
 package im.vector.app.features.home.room.detail.composer
 
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
+import org.matrix.android.sdk.api.util.MatrixItem
+
 private val MENTION_ANCHOR = Regex(
         """<a\s+[^>]*href="https://matrix\.to/#/(@[^"?]+)[^"]*"[^>]*>([^<]*)</a>""",
         RegexOption.IGNORE_CASE
@@ -28,8 +33,53 @@ fun spliceMentionLinks(
         formattedBody: String?,
         displayNamesOf: (String) -> List<String> = { emptyList() },
 ): String {
-    if (formattedBody == null || body.isEmpty() || !formattedBody.contains("matrix.to/#/@")) return body
     val out = StringBuilder()
+    var cursor = 0
+    forEachMention(body, formattedBody, displayNamesOf) { start, name, userId ->
+        out.append(body, cursor, start)
+        out.append('[').append(name).append("](https://matrix.to/#/").append(userId).append(')')
+        cursor = start + name.length
+    }
+    if (cursor == 0) return body
+    out.append(body, cursor, body.length)
+    return out.toString()
+}
+
+/**
+ * [spliceMentionLinks], but tagging the located mentions with [MatrixItemSpan]s instead of rewriting
+ * them as markdown — for text sent straight to the SDK without a composer round-trip (e.g. a sed
+ * substitution), where a literal `[name](link)` would leak into the plain body.
+ */
+fun spliceMentionSpans(
+        body: String,
+        formattedBody: String?,
+        displayNamesOf: (String) -> List<String> = { emptyList() },
+): CharSequence {
+    var spannable: SpannableStringBuilder? = null
+    forEachMention(body, formattedBody, displayNamesOf) { start, name, userId ->
+        val target = spannable ?: SpannableStringBuilder(body).also { spannable = it }
+        target.setSpan(
+                SendableMentionSpan(MatrixItem.UserItem(userId, name), name),
+                start,
+                start + name.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+    }
+    return spannable ?: body
+}
+
+private class SendableMentionSpan(
+        override val matrixItem: MatrixItem,
+        override val bodyText: String,
+) : MatrixItemSpan
+
+private inline fun forEachMention(
+        body: String,
+        formattedBody: String?,
+        displayNamesOf: (String) -> List<String>,
+        onMatch: (start: Int, name: String, userId: String) -> Unit,
+) {
+    if (formattedBody == null || body.isEmpty() || !formattedBody.contains("matrix.to/#/@")) return
     var cursor = 0
     MENTION_ANCHOR.findAll(formattedBody).forEach { match ->
         val userId = match.groupValues[1]
@@ -38,13 +88,9 @@ fun spliceMentionLinks(
                 // A name carrying markdown link syntax can't round-trip through the composer.
                 .filter { it.isNotBlank() && !it.contains('[') && !it.contains(']') }
         val at = candidates.firstNotNullOfOrNull { body.wordIndexOf(it, cursor)?.to(it) } ?: return@forEach
-        out.append(body, cursor, at.first)
-        out.append('[').append(at.second).append("](https://matrix.to/#/").append(userId).append(')')
+        onMatch(at.first, at.second, userId)
         cursor = at.first + at.second.length
     }
-    if (cursor == 0) return body
-    out.append(body, cursor, body.length)
-    return out.toString()
 }
 
 // Plain indexOf would let a short display name match inside a longer word.
