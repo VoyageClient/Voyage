@@ -53,6 +53,7 @@ class HomeDetailViewModel @AssistedInject constructor(
         private val vectorDataStore: VectorDataStore,
         private val spaceStateHandler: SpaceStateHandler,
         private val autoAcceptInvites: AutoAcceptInvites,
+        private val homeScreenVisibility: HomeScreenVisibility,
 ) : VectorViewModel<HomeDetailViewState, HomeDetailAction, HomeDetailViewEvents>(initialState) {
 
     @AssistedFactory
@@ -189,7 +190,7 @@ class HomeDetailViewModel @AssistedInject constructor(
         spaceStateHandler.getSelectedSpaceFlow().distinctUntilChanged().flatMapLatest {
             // Only a trigger — the counts below load what they need. A paged summary list here mapped every
             // room on every sync, and observing it forever kept that running while the room list was hidden.
-            session.roomService().getRoomSummaryUpdateFlow()
+            homeScreenVisibility.whileVisible({ session.roomService().getRoomSummaryUpdateFlow() }, Unit)
         }
                 .throttleFirst(300)
                 .onEach {

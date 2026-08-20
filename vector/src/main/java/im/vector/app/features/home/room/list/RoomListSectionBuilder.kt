@@ -16,6 +16,7 @@ import androidx.paging.PagedList
 import com.airbnb.mvrx.Async
 import im.vector.app.SpaceStateHandler
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.HomeScreenVisibility
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.showInvites
@@ -64,6 +65,7 @@ class RoomListSectionBuilder(
         private val onUpdatable: (UpdatableLivePageResult) -> Unit,
         private val suggestedRoomJoiningState: LiveData<Map<String, Async<Unit>>>,
         private val vectorPreferences: VectorPreferences,
+        private val homeScreenVisibility: HomeScreenVisibility,
         private val onlyOrphansInHome: Boolean = false
 ) {
 
@@ -563,7 +565,10 @@ class RoomListSectionBuilder(
             // paged list active for the ViewModel's whole life and re-pages every section on every sync even
             // while the room list is off-screen. Drive it off the summary ticker so the list itself stays
             // lifecycle-bound.
-            combine(liveQueryParams, session.roomService().getRoomSummaryUpdateFlow()) { params, _ -> params }
+            combine(
+                    liveQueryParams,
+                    homeScreenVisibility.whileVisible({ session.roomService().getRoomSummaryUpdateFlow() }, Unit)
+            ) { params, _ -> params }
                     .onEach { params ->
                         sections.find { it.sectionName == name }
                                 ?.notificationCount

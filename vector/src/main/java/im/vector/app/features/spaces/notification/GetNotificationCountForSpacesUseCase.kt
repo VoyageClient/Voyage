@@ -8,6 +8,7 @@
 package im.vector.app.features.spaces.notification
 
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.features.home.HomeScreenVisibility
 import im.vector.app.features.invite.AutoAcceptInvites
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -23,6 +24,7 @@ import javax.inject.Inject
 class GetNotificationCountForSpacesUseCase @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val autoAcceptInvites: AutoAcceptInvites,
+        private val homeScreenVisibility: HomeScreenVisibility,
 ) {
 
     fun execute(spaceFilter: SpaceFilter): Flow<RoomAggregateNotificationCount> {
@@ -33,7 +35,7 @@ class GetNotificationCountForSpacesUseCase @Inject constructor(
             this.spaceFilter = spaceFilter
         }
         return session?.roomService()
-                ?.getRoomSummaryUpdateFlow()
+                ?.let { roomService -> homeScreenVisibility.whileVisible({ roomService.getRoomSummaryUpdateFlow() }, Unit) }
                 ?.sample(300)
                 ?.mapLatest {
                     val inviteCount = if (autoAcceptInvites.hideInvites) {
