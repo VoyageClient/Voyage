@@ -244,7 +244,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.AnimateSendButtonVisibility -> handleSendButtonVisibilityChanged(it)
                 is MessageComposerViewEvents.OpenRoomMemberProfile -> openRoomMemberProfile(it.userId)
                 is MessageComposerViewEvents.ShowMassRedactConfirmation -> handleMassRedactConfirmation(it)
-                is MessageComposerViewEvents.OpenRoomLink -> navigator.openMatrixToBottomSheet(requireActivity(), it.link, OriginOfMatrixTo.LINK)
+                is MessageComposerViewEvents.OpenRoomLink -> handleOpenRoomLink(it)
                 is MessageComposerViewEvents.VoicePlaybackOrRecordingFailure -> {
                     if (it.throwable is VoiceFailure.UnableToRecord) {
                         onCannotRecord()
@@ -750,6 +750,14 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun handleJoinedToAnotherRoom(action: MessageComposerViewEvents.JoinRoomCommandSuccess) {
         composer.setTextIfDifferent("")
         navigator.openRoom(vectorBaseActivity, action.roomId)
+    }
+
+    // Ends a /join that couldn't join directly. The command is done either way, so clear it like the
+    // joined case does: left in the composer, every later send re-runs it instead of sending a message.
+    private fun handleOpenRoomLink(action: MessageComposerViewEvents.OpenRoomLink) {
+        dismissLoadingDialog()
+        composer.setTextIfDifferent("")
+        navigator.openMatrixToBottomSheet(requireActivity(), action.link, OriginOfMatrixTo.LINK)
     }
 
     private fun handleSlashCommandConfirmationRequest(action: MessageComposerViewEvents.SlashCommandConfirmationRequest) {

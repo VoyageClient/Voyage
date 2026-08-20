@@ -1452,6 +1452,10 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleJoinToAnotherRoomSlashCommand(command: ParsedCommand.JoinRoom) {
+        // The join is a network round trip that ends in a navigation, so report the command as
+        // accepted up front: the composer is what the user types their next message into, and it
+        // stays locked until an event arrives. Success and failure still navigate below.
+        _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(command))
         viewModelScope.launch {
             try {
                 session.roomService().joinRoom(command.roomAlias, command.reason, emptyList())
