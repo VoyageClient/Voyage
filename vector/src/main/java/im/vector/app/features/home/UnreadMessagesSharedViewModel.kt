@@ -48,7 +48,8 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
         session: Session,
         private val vectorPreferences: VectorPreferences,
         spaceStateHandler: SpaceStateHandler,
-        private val autoAcceptInvites: AutoAcceptInvites
+        private val autoAcceptInvites: AutoAcceptInvites,
+        private val homeScreenVisibility: HomeScreenVisibility,
 ) :
         VectorViewModel<UnreadMessagesState, EmptyAction, EmptyViewEvents>(initialState) {
 
@@ -64,7 +65,7 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
     private val roomService = session.roomService()
 
     init {
-        roomService.getRoomSummaryUpdateFlow()
+        homeScreenVisibility.whileVisible({ roomService.getRoomSummaryUpdateFlow() }, Unit)
                 .throttleFirst(300)
                 .execute {
                     val counts = roomService.getNotificationCountForRooms(
@@ -95,7 +96,7 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
         combine(
                 spaceStateHandler.getSelectedSpaceFlow().distinctUntilChanged(),
                 spaceStateHandler.getSelectedSpaceFlow().flatMapLatest {
-                    roomService.getRoomSummaryUpdateFlow().throttleFirst(300)
+                    homeScreenVisibility.whileVisible({ roomService.getRoomSummaryUpdateFlow() }, Unit).throttleFirst(300)
                 }
         ) { selectedSpaceOption, _ ->
             val selectedSpace = selectedSpaceOption.orNull()?.roomId

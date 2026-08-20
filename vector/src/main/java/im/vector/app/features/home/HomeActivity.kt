@@ -113,6 +113,7 @@ class HomeActivity :
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by viewModel()
 
     @Inject lateinit var vectorUncaughtExceptionHandler: VectorUncaughtExceptionHandler
+    @Inject lateinit var homeScreenVisibility: HomeScreenVisibility
     @Inject lateinit var bugReporter: BugReporter
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var popupAlertManager: PopupAlertManager
@@ -526,6 +527,16 @@ class HomeActivity :
         views.drawerLayout.removeDrawerListener(drawerListener)
         supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
         super.onDestroy()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        homeScreenVisibility.onStarted()
+    }
+
+    override fun onStop() {
+        homeScreenVisibility.onStopped()
+        super.onStop()
     }
 
     override fun onResume() {
