@@ -323,7 +323,7 @@ internal class DefaultCryptoService @Inject constructor(
     }
 
     fun ensureDevice() {
-        cryptoCoroutineScope.launchToCallback(coroutineDispatchers.crypto, NoOpMatrixCallback()) {
+        cryptoCoroutineScope.launchToCallback(coroutineDispatchers.crypto, coroutineDispatchers.main, NoOpMatrixCallback()) {
             // Open the store
             cryptoStore.open()
 
