@@ -1395,6 +1395,8 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/SessionManager.kt',
         'org/matrix/android/sdk/internal/session/SessionModule.kt',
         'org/matrix/android/sdk/internal/di/LinkPreview.kt',
+        // The call stack and the event service, now that the send path they need is shared.
+        'org/matrix/android/sdk/internal/session/events/DefaultEventService.kt',
         'org/matrix/android/sdk/internal/session/download/DefaultContentDownloadStateTracker.kt',
         'org/matrix/android/sdk/internal/session/room/event/FilterAndStoreEventsTask.kt',
         'org/matrix/android/sdk/internal/session/room/relation/poll/FetchPollResponseEventsTask.kt',
@@ -1417,15 +1419,6 @@ ext.coreSources = [
 ext.coreExcludes = [
         // Android-coupled crypto store facade (IMXCryptoStore impl used by DefaultCryptoService).
         'org/matrix/android/sdk/internal/crypto/store/db/sql/SqlCryptoStore.kt',
-        // Call impl/factory need the local-echo/sender send-path; TurnServerDataSource uses android
-        // SystemClock; the signaling handler/service + module depend on those, so they stay android.
-        'org/matrix/android/sdk/internal/session/call/model/MxCallImpl.kt',
-        'org/matrix/android/sdk/internal/session/call/MxCallFactory.kt',
-        'org/matrix/android/sdk/internal/session/call/TurnServerDataSource.kt',
-        'org/matrix/android/sdk/internal/session/call/CallSignalingHandler.kt',
-        'org/matrix/android/sdk/internal/session/call/DefaultCallSignalingService.kt',
-        'org/matrix/android/sdk/internal/session/call/CallModule.kt',
-        'org/matrix/android/sdk/internal/session/call/CallEventProcessor.kt',
         // Crypto sub-stores blocked on android/olm-tainted deps (CryptoRoomEntity, BackupUtils, ClearCacheTask).
         'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoRoomSqlStore.kt',
         'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoMetadataStore.kt',

@@ -23,7 +23,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
-import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupService
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationService
@@ -59,11 +58,8 @@ import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.StoreRoomSessionD
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.StoreRoomSessionsDataTask
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.StoreSessionsDataTask
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.UpdateKeysBackupVersionTask
-import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.sql.CryptoSqlDatabase
 import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlClearCacheTask
-import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlCryptoStore
 import org.matrix.android.sdk.internal.crypto.tasks.ClaimOneTimeKeysForUsersDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultClaimOneTimeKeysForUsersDevice
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultDeleteDeviceTask
@@ -169,9 +165,6 @@ internal abstract class CryptoModule {
     }
 
     @Binds
-    abstract fun bindCryptoService(service: AndroidCryptoService): CryptoService
-
-    @Binds
     abstract fun bindKeysBackupService(service: DefaultKeysBackupService): KeysBackupService
 
     @Binds
@@ -257,12 +250,6 @@ internal abstract class CryptoModule {
 
     @Binds
     abstract fun bindVerificationService(service: DefaultVerificationService): VerificationService
-
-    @Binds
-    abstract fun bindCryptoStore(store: SqlCryptoStore): IMXCryptoStore
-
-    @Binds
-    abstract fun bindCommonCryptoStore(store: SqlCryptoStore): IMXCommonCryptoStore
 
     @Binds
     abstract fun bindSendEventTask(task: DefaultSendEventTask): SendEventTask

@@ -21,7 +21,6 @@ import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixConfiguration
-import org.matrix.android.sdk.api.session.identity.IdentityService
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.di.AuthenticatedIdentity
 import org.matrix.android.sdk.internal.di.IdentityDatabase
@@ -70,9 +69,6 @@ internal abstract class IdentityModule {
             )
         }
     }
-
-    @Binds
-    abstract fun bindIdentityService(service: DefaultIdentityService): IdentityService
 
     @Binds
     @AuthenticatedIdentity
