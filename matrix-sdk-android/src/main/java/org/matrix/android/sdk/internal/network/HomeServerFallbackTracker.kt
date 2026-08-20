@@ -62,8 +62,15 @@ internal class HomeServerFallbackTracker @Inject constructor(sessionParams: Sess
     }
 
     fun onReached(base: String) {
-        active = base
         downUntil.remove(base)
+        val all = candidates
+        val baseRank = all.indexOf(base)
+        if (baseRank < 0) return
+        // A response that was in flight on a lower-ranked mirror must not demote a healthy
+        // higher-ranked one — the probe's switch back would be undone by every completing long-poll.
+        val currentRank = all.indexOf(active)
+        if (currentRank in 0 until baseRank && (downUntil[active] ?: 0L) <= System.nanoTime()) return
+        active = base
     }
 
     fun markDown(base: String) {
