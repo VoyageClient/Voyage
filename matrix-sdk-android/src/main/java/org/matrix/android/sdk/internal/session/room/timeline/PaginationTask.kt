@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
+import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.filter.FilterRepository
@@ -41,10 +42,13 @@ internal class DefaultPaginationTask @Inject constructor(
         private val roomAPI: RoomAPI,
         private val filterRepository: FilterRepository,
         private val tokenChunkEventPersistor: TokenChunkEventPersistor,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
+        private val dbPriority: SessionDbPriority,
 ) : PaginationTask {
 
-    override suspend fun execute(params: PaginationTask.Params): TokenChunkEventPersistor.Result {
+    // The user is watching a spinner until the page lands, so the whole fetch-and-persist round
+    // counts as interactive: the persist must not queue behind a scan that started during the fetch.
+    override suspend fun execute(params: PaginationTask.Params): TokenChunkEventPersistor.Result = dbPriority.interactive {
         // An empty filter is not valid JSON, and the server rejects the whole request for it.
         val filter = filterRepository.getRoomFilterBody().takeIf { it.isNotBlank() }
         val chunk = executeRequest(
@@ -53,6 +57,6 @@ internal class DefaultPaginationTask @Inject constructor(
         ) {
             roomAPI.getRoomMessagesFrom(params.roomId, params.from, params.direction.value, params.limit, filter)
         }
-        return tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId)
+        tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId)
     }
 }

@@ -42,6 +42,7 @@ import org.matrix.android.sdk.internal.database.mapper.EventMapper
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.di.SessionDatabase
@@ -82,6 +83,7 @@ internal class EventIndexer @Inject constructor(
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val backgroundDetectionObserver: BackgroundDetectionObserver,
+        private val dbPriority: SessionDbPriority,
 ) : SessionLifecycleObserver, EventInsertLiveProcessor, DecryptedEventIndexer {
 
     private val enabled = AtomicBoolean(false)
@@ -357,9 +359,11 @@ internal class EventIndexer @Inject constructor(
      * [onEventsDecrypted] instead.
      */
     private suspend fun sweepEventTable() {
+        dbPriority.awaitTurn()
         val includedRoomIds = includedRoomIds()
         var watermark = indexStore.getSweepWatermark()
         while (true) {
+            dbPriority.awaitTurn()
             val batch = database.awaitDbTransaction(dbDispatcher) {
                 stores.event.getForIndexAfterId(watermark, SWEEP_BATCH_SIZE)
             }
@@ -409,7 +413,9 @@ internal class EventIndexer @Inject constructor(
      * the dedup stop condition ends the latter as soon as known events are reached.
      */
     private suspend fun addBootstrapCheckpoints() {
+        dbPriority.awaitTurn()
         for (roomId in includedRoomIds()) {
+            dbPriority.awaitTurn()
             bootstrapRoomCheckpoints(roomId)
         }
     }
