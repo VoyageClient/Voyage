@@ -34,9 +34,11 @@ import javax.inject.Inject
 
 private const val MAX_PREVIEWS = 4
 
-// How long a send is willing to wait for a preview it does not already have. Typing the link is what is
-// meant to pay for it; a message must not sit in the queue behind a slow site or homeserver.
-private const val SEND_GRACE_MS = 1_500L
+// How long a send is willing to wait for a preview it does not already have. Typing the link starts the
+// work early, but paste-and-send is common and a page fetch plus thumbnail upload takes several seconds,
+// so the wait must cover a full build; the local echo is already showing, and a site that cannot be
+// previewed is remembered so it stalls the queue at most once.
+private const val SEND_GRACE_MS = 10_000L
 
 private val DISPLAYABLE_KEYS = setOf(
         "og:title",
@@ -163,6 +165,10 @@ internal class UrlPreviewBundler @Inject constructor(
         }
         fetched ?: return null
         val preview = fetched.fields.toMutableMap()
+        // The image entry always describes our own reupload, never the site's URL: an encrypted room's
+        // upload lands under matrix:image:encrypted, which would otherwise leave the external og:image
+        // in place for receivers to fetch from the site directly.
+        preview.remove("og:image")
         fetched.image?.let { uploadImage(it, encrypt) }?.let { preview += it }
         // An entry nobody can display is one the receiver would take as an invitation to ask their own
         // homeserver about the link — the very thing bundling is for.
