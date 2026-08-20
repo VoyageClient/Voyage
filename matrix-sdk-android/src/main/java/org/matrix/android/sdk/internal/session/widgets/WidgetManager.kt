@@ -16,9 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.widgets
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.query.QueryStateEventValue
@@ -55,20 +52,12 @@ internal class WidgetManager @Inject constructor(
 
         IntegrationManagerService.Listener, SessionLifecycleObserver {
 
-    private val lifecycleOwner: LifecycleOwner = object : LifecycleOwner {
-        override val lifecycle: Lifecycle
-            get() = lifecycleRegistry
-    }
-    private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(lifecycleOwner)
-
     override fun onSessionStarted(session: Session) {
-        lifecycleRegistry.currentState = Lifecycle.State.STARTED
         integrationManager.addListener(this)
     }
 
     override fun onSessionStopped(session: Session) {
         integrationManager.removeListener(this)
-        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
     }
 
     fun getRoomWidgetsFlow(

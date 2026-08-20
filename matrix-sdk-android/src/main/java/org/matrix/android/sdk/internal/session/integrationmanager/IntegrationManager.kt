@@ -16,11 +16,17 @@
 
 package org.matrix.android.sdk.internal.session.integrationmanager
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
@@ -30,13 +36,10 @@ import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerC
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
 import org.matrix.android.sdk.api.session.widgets.model.WidgetContent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
-import org.matrix.android.sdk.internal.extensions.observeNotNull
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UserAccountDataDataSource
-import org.matrix.android.sdk.internal.session.user.accountdata.getLiveAccountDataEvent
 import org.matrix.android.sdk.internal.session.widgets.helper.WidgetFactory
 import org.matrix.android.sdk.internal.session.widgets.helper.extractWidgetSequence
 import timber.log.Timber
@@ -62,16 +65,15 @@ internal class IntegrationManager @Inject constructor(
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
         private val accountDataDataSource: UserAccountDataDataSource,
+        private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val widgetFactory: WidgetFactory
 ) :
         SessionLifecycleObserver {
 
     private val currentConfigs = ArrayList<IntegrationManagerConfig>()
-    private val lifecycleOwner: LifecycleOwner = object : LifecycleOwner {
-        override val lifecycle: Lifecycle
-            get() = lifecycleRegistry
-    }
-    private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(lifecycleOwner)
+
+    // Listeners reach UI, and currentConfigs below is plain mutable state: both want one thread.
+    private var scope: CoroutineScope? = null
 
     private val listeners = HashSet<IntegrationManagerService.Listener>()
     fun addListener(listener: IntegrationManagerService.Listener) = synchronized(listeners) { listeners.add(listener) }
@@ -87,35 +89,39 @@ internal class IntegrationManager @Inject constructor(
     }
 
     override fun onSessionStarted(session: Session) {
-        lifecycleRegistry.currentState = Lifecycle.State.STARTED
-        observeWellknownConfig()
+        if (scope != null) return
+        val newScope = CoroutineScope(SupervisorJob() + coroutineDispatchers.main)
+        scope = newScope
+        observeWellknownConfig(newScope)
         accountDataDataSource
-                .getLiveAccountDataEvent(UserAccountDataTypes.TYPE_ALLOWED_WIDGETS)
-                .observeNotNull(lifecycleOwner) {
+                .getAccountDataEventFlow(UserAccountDataTypes.TYPE_ALLOWED_WIDGETS)
+                .onEach {
                     val allowedWidgetsContent = it.getOrNull()?.content?.toModel<AllowedWidgetsContent>()
                     if (allowedWidgetsContent != null) {
                         notifyWidgetPermissionsChanged(allowedWidgetsContent)
                     }
                 }
+                .launchIn(newScope)
         accountDataDataSource
-                .getLiveAccountDataEvent(UserAccountDataTypes.TYPE_INTEGRATION_PROVISIONING)
-                .observeNotNull(lifecycleOwner) {
+                .getAccountDataEventFlow(UserAccountDataTypes.TYPE_INTEGRATION_PROVISIONING)
+                .onEach {
                     val integrationProvisioningContent = it.getOrNull()?.content?.toModel<IntegrationProvisioningContent>()
                     if (integrationProvisioningContent != null) {
                         notifyIsEnabledChanged(integrationProvisioningContent)
                     }
                 }
+                .launchIn(newScope)
         accountDataDataSource
-                .getLiveAccountDataEvent(UserAccountDataTypes.TYPE_WIDGETS)
-                .observeNotNull(lifecycleOwner) {
-                    val integrationManagerContent = it.getOrNull()?.asIntegrationManagerWidgetContent()
-                    val config = integrationManagerContent?.extractIntegrationManagerConfig()
-                    updateCurrentConfigs(IntegrationManagerConfig.Kind.ACCOUNT, config)
-                }
+                .getAccountDataEventFlow(UserAccountDataTypes.TYPE_WIDGETS)
+                .map { it.getOrNull()?.asIntegrationManagerWidgetContent()?.extractIntegrationManagerConfig() }
+                .flowOn(coroutineDispatchers.io)
+                .onEach { updateCurrentConfigs(IntegrationManagerConfig.Kind.ACCOUNT, it) }
+                .launchIn(newScope)
     }
 
     override fun onSessionStopped(session: Session) {
-        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        scope?.cancel()
+        scope = null
     }
 
     fun hasConfig() = currentConfigs.isNotEmpty()
@@ -257,17 +263,16 @@ internal class IntegrationManager @Inject constructor(
                 .firstOrNull()?.widgetContent
     }
 
-    private fun observeWellknownConfig() {
-        val liveData = database.wellknownIntegrationManagerConfigQueries.selectAll().asLiveList(dispatcher)
+    private fun observeWellknownConfig(scope: CoroutineScope) {
+        database.wellknownIntegrationManagerConfigQueries.selectAll().asFlow().mapToList(dispatcher)
                 .map {
                     stores.integrationManager.getWellknownConfig()?.let { (apiUrl, uiUrl) ->
-                        listOf(IntegrationManagerConfig(uiUrl, apiUrl, IntegrationManagerConfig.Kind.HOMESERVER))
-                    }.orEmpty()
+                        IntegrationManagerConfig(uiUrl, apiUrl, IntegrationManagerConfig.Kind.HOMESERVER)
+                    }
                 }
-        liveData.observeNotNull(lifecycleOwner) {
-            val config = it.firstOrNull()
-            updateCurrentConfigs(IntegrationManagerConfig.Kind.HOMESERVER, config)
-        }
+                .flowOn(dispatcher)
+                .onEach { updateCurrentConfigs(IntegrationManagerConfig.Kind.HOMESERVER, it) }
+                .launchIn(scope)
     }
 
     private fun updateCurrentConfigs(kind: IntegrationManagerConfig.Kind, config: IntegrationManagerConfig?) {

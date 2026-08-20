@@ -7,23 +7,11 @@
 
 package im.vector.matrixcli.di
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import org.matrix.android.sdk.api.query.QueryStateEventValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.api.session.identity.FoundThreePid
-import org.matrix.android.sdk.api.session.identity.IdentityService
-import org.matrix.android.sdk.api.session.identity.IdentityServiceListener
-import org.matrix.android.sdk.api.session.identity.SharedState
-import org.matrix.android.sdk.api.session.identity.ThreePid
-import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
-import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerConfig
-import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
-import org.matrix.android.sdk.api.session.widgets.WidgetService
-import org.matrix.android.sdk.api.session.widgets.WidgetURLFormatter
-import org.matrix.android.sdk.api.session.widgets.model.Widget
+import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.session.content.ContentUriResolver
 import org.matrix.android.sdk.internal.session.content.ImageExifTagRemover
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
@@ -32,11 +20,12 @@ import org.matrix.android.sdk.internal.session.media.WebUrlPattern
 import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
+import org.matrix.android.sdk.internal.util.time.Clock
 import java.io.File
 import javax.inject.Inject
 
-// Desktop has no media stack, no widgets and no identity server yet. These keep the session graph
-// complete: the ones the send path actually calls degrade quietly, the rest fail loudly if reached.
+// The seams android fills with its media and text stacks. Desktop has no equivalent for these, so
+// each one degrades to the mildest sensible answer rather than failing the send that reached it.
 
 internal class DesktopThumbnailExtractor @Inject constructor() : ThumbnailExtractor {
     override fun extractThumbnail(attachment: ContentAttachmentData, withBlurHash: Boolean): ThumbnailExtractor.ThumbnailData? = null
@@ -47,12 +36,23 @@ internal class DesktopImageExifTagRemover @Inject constructor() : ImageExifTagRe
     override suspend fun stripImageMetadata(imageFile: File): File = imageFile
 }
 
-internal class DesktopContentUriResolver @Inject constructor() : ContentUriResolver {
-    override suspend fun copyToTempFile(uriString: String): File = TODO("not supported on desktop")
+internal class DesktopContentUriResolver @Inject constructor(
+        @SessionFilesDirectory private val sessionDirectory: File,
+        private val clock: Clock,
+) : ContentUriResolver {
+
+    override suspend fun copyToTempFile(uriString: String): File = withContext(Dispatchers.IO) {
+        val source = uriString.toLocalFile()
+        val directory = File(sessionDirectory, "tmp").also { it.mkdirs() }
+        source.copyTo(File(directory, "${clock.epochMillis()}-${source.name}"), overwrite = true)
+    }
 }
 
 internal class DesktopVideoMetadataExtractor @Inject constructor() : VideoMetadataExtractor {
-    override fun getVideoSize(attachment: ContentAttachmentData): Pair<Int, Int> = TODO("not supported on desktop")
+
+    // No media stack to demux with. The dimensions only feed the event's info block, and android
+    // reports the same 0x0 when a file carries no dimension metadata, so the send still goes through.
+    override fun getVideoSize(attachment: ContentAttachmentData): Pair<Int, Int> = 0 to 0
 }
 
 internal class DesktopTextPillsUtils @Inject constructor() : TextPillsUtils {
@@ -73,76 +73,4 @@ internal class DesktopWebUrlPattern @Inject constructor() : WebUrlPattern {
 
 internal class DesktopWorkManagerConfig @Inject constructor() : WorkManagerConfig {
     override fun withNetworkConstraint(): Boolean = false
-}
-
-internal class DesktopWidgetService @Inject constructor() : WidgetService {
-
-    override fun getRoomWidgets(
-            roomId: String,
-            widgetId: QueryStateEventValue,
-            widgetTypes: Set<String>?,
-            excludedTypes: Set<String>?
-    ): List<Widget> = emptyList()
-
-    override fun getRoomWidgetsFlow(
-            roomId: String,
-            widgetId: QueryStateEventValue,
-            widgetTypes: Set<String>?,
-            excludedTypes: Set<String>?
-    ): Flow<List<Widget>> = emptyFlow()
-
-    override fun getUserWidgets(widgetTypes: Set<String>?, excludedTypes: Set<String>?): List<Widget> = emptyList()
-
-    override fun getUserWidgetsFlow(widgetTypes: Set<String>?, excludedTypes: Set<String>?): Flow<List<Widget>> = emptyFlow()
-    override fun getWidgetURLFormatter(): WidgetURLFormatter = TODO("not supported on desktop")
-
-    override fun getWidgetComputedUrl(widget: Widget, isLightTheme: Boolean, themeName: String?): String? = TODO("not supported on desktop")
-
-    override suspend fun createRoomWidget(roomId: String, widgetId: String, content: Content): Widget = TODO("not supported on desktop")
-    override suspend fun destroyRoomWidget(roomId: String, widgetId: String) { TODO("not supported on desktop") }
-    override fun hasPermissionsToHandleWidgets(roomId: String): Boolean = TODO("not supported on desktop")
-}
-
-internal class DesktopWidgetURLFormatter @Inject constructor() : WidgetURLFormatter {
-
-    override suspend fun format(
-            baseUrl: String,
-            params: Map<String, String>,
-            forceFetchScalarToken: Boolean,
-            bypassWhitelist: Boolean
-    ): String = TODO("not supported on desktop")
-}
-
-internal class DesktopIdentityService @Inject constructor() : IdentityService {
-    override fun getDefaultIdentityServer(): String? = TODO("not supported on desktop")
-    override fun getCurrentIdentityServerUrl(): String? = TODO("not supported on desktop")
-    override suspend fun isValidIdentityServer(url: String) { TODO("not supported on desktop") }
-    override suspend fun setNewIdentityServer(url: String): String = TODO("not supported on desktop")
-    override suspend fun disconnect() { TODO("not supported on desktop") }
-    override suspend fun startBindThreePid(threePid: ThreePid) { TODO("not supported on desktop") }
-    override suspend fun cancelBindThreePid(threePid: ThreePid) { TODO("not supported on desktop") }
-    override suspend fun sendAgainValidationCode(threePid: ThreePid) { TODO("not supported on desktop") }
-    override suspend fun submitValidationToken(threePid: ThreePid, code: String) { TODO("not supported on desktop") }
-    override suspend fun finalizeBindThreePid(threePid: ThreePid) { TODO("not supported on desktop") }
-    override suspend fun unbindThreePid(threePid: ThreePid) { TODO("not supported on desktop") }
-    override suspend fun lookUp(threePids: List<ThreePid>): List<FoundThreePid> = TODO("not supported on desktop")
-    override fun getUserConsent(): Boolean = TODO("not supported on desktop")
-    override fun setUserConsent(newValue: Boolean) { TODO("not supported on desktop") }
-    override suspend fun getShareStatus(threePids: List<ThreePid>): Map<ThreePid, SharedState> = TODO("not supported on desktop")
-    override suspend fun sign3pidInvitation(identiyServer: String, token: String, secret: String): SignInvitationResult = TODO("not supported on desktop")
-    override fun addListener(listener: IdentityServiceListener) { TODO("not supported on desktop") }
-    override fun removeListener(listener: IdentityServiceListener) { TODO("not supported on desktop") }
-}
-
-internal class DesktopIntegrationManagerService @Inject constructor() : IntegrationManagerService {
-    override fun addListener(listener: IntegrationManagerService.Listener) = Unit
-    override fun removeListener(listener: IntegrationManagerService.Listener) = Unit
-    override fun getOrderedConfigs(): List<IntegrationManagerConfig> = TODO("not supported on desktop")
-    override fun getPreferredConfig(): IntegrationManagerConfig = TODO("not supported on desktop")
-    override fun isIntegrationEnabled(): Boolean = TODO("not supported on desktop")
-    override suspend fun setIntegrationEnabled(enable: Boolean) { TODO("not supported on desktop") }
-    override suspend fun setWidgetAllowed(stateEventId: String, allowed: Boolean) { TODO("not supported on desktop") }
-    override fun isWidgetAllowed(stateEventId: String): Boolean = TODO("not supported on desktop")
-    override suspend fun setNativeWidgetDomainAllowed(widgetType: String, domain: String, allowed: Boolean) { TODO("not supported on desktop") }
-    override fun isNativeWidgetDomainAllowed(widgetType: String, domain: String): Boolean = TODO("not supported on desktop")
 }

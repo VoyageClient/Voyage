@@ -16,10 +16,12 @@
 
 package org.matrix.android.sdk.internal.session.identity
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
 import dagger.Lazy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -42,7 +44,6 @@ import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.internal.di.AuthenticatedIdentity
 import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificate
-import org.matrix.android.sdk.internal.extensions.observeNotNull
 import org.matrix.android.sdk.internal.network.RetrofitFactory
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.identity.data.IdentityStore
@@ -52,7 +53,6 @@ import org.matrix.android.sdk.internal.session.profile.UnbindThreePidsTask
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.IdentityServerContent
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UserAccountDataDataSource
-import org.matrix.android.sdk.internal.session.user.accountdata.getLiveAccountDataEvent
 import org.matrix.android.sdk.internal.util.ensureProtocol
 import timber.log.Timber
 import javax.inject.Inject
@@ -85,22 +85,22 @@ internal class DefaultIdentityService @Inject constructor(
         private val sessionParams: SessionParams
 ) : IdentityService, SessionLifecycleObserver {
 
-    private val lifecycleOwner: LifecycleOwner = object : LifecycleOwner {
-        override val lifecycle: Lifecycle
-            get() = lifecycleRegistry
-    }
-    private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(lifecycleOwner)
+    private var scope: CoroutineScope? = null
 
     private val listeners = mutableSetOf<IdentityServiceListener>()
 
     override fun onSessionStarted(session: Session) {
-        lifecycleRegistry.currentState = Lifecycle.State.STARTED
+        if (scope != null) return
+        // One thread for the unsynchronized listener set and the identity API swap it triggers.
+        val newScope = CoroutineScope(SupervisorJob() + coroutineDispatchers.main)
+        scope = newScope
         // Observe the account data change
         accountDataDataSource
-                .getLiveAccountDataEvent(UserAccountDataTypes.TYPE_IDENTITY_SERVER)
-                .observeNotNull(lifecycleOwner) {
+                .getAccountDataEventFlow(UserAccountDataTypes.TYPE_IDENTITY_SERVER)
+                .onEach {
                     notifyIdentityServerUrlChange(it.getOrNull()?.content?.toModel<IdentityServerContent>()?.baseUrl)
                 }
+                .launchIn(newScope)
 
         // Init identityApi
         updateIdentityAPI(identityStore.getIdentityData()?.identityServerUrl)
@@ -119,7 +119,8 @@ internal class DefaultIdentityService @Inject constructor(
     }
 
     override fun onSessionStopped(session: Session) {
-        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        scope?.cancel()
+        scope = null
     }
 
     /**
