@@ -1533,7 +1533,11 @@ dependencies {
     implementation libs.dagger.dagger
     implementation libs.squareup.retrofit
     implementation libs.squareup.retrofitMoshi
-    implementation 'org.json:json:20240303'
+    // compileOnly: android provides org.json natively, and its JSONArray keeps its values in a
+    // differently named field. Shipping this one too lets R8 bind canonical-JSON field access to the
+    // library class while the platform class wins at runtime — NoSuchFieldError inside signature
+    // verification, release builds only. A JVM consumer supplies it at runtime itself.
+    compileOnly 'org.json:json:20240303'
     implementation libs.google.phonenumber
     api "com.atlassian.commonmark:commonmark:0.13.0"
     api "com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0"
@@ -1543,4 +1547,6 @@ dependencies {
     kapt libs.dagger.daggerCompiler
 
     testImplementation 'junit:junit:4.13.2'
+    // The JVM has no org.json of its own, so core's own tests need a real one.
+    testImplementation 'org.json:json:20240303'
 }

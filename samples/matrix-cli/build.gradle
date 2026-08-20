@@ -32,6 +32,8 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
     implementation 'com.squareup.okio:okio:3.6.0'
     implementation 'javax.inject:javax.inject:1'
+    // Core leaves org.json to its consumer (android has one built in); a desktop JVM must supply it.
+    implementation 'org.json:json:20240303'
     implementation libs.squareup.retrofit
     implementation libs.squareup.retrofitMoshi
     // Reflection-based Kotlin adapter (KotlinJsonAdapterFactory) for the sample's own models, since
