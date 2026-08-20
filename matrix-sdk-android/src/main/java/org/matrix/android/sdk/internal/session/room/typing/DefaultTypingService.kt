@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.typing
 
-import android.os.SystemClock
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -56,7 +55,7 @@ internal class DefaultTypingService @AssistedInject constructor(
      * Notify to the server that the user is typing and schedule the auto typing off.
      */
     override fun userIsTyping() {
-        val now = SystemClock.elapsedRealtime()
+        val now = System.nanoTime() / 1_000_000
         currentTask?.cancel()
         currentTask = coroutineScope.launch {
             if (userIsTyping && now < lastRequestTimestamp + MIN_DELAY_BETWEEN_TWO_USER_IS_TYPING_REQUESTS_MILLIS) {

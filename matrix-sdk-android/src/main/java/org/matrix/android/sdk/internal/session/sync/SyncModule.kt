@@ -19,7 +19,6 @@ package org.matrix.android.sdk.internal.session.sync
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import org.matrix.android.sdk.api.session.sync.SyncService
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncAPI
 import retrofit2.Retrofit
@@ -43,9 +42,6 @@ internal abstract class SyncModule {
             return retrofit.create(SlidingSyncAPI::class.java)
         }
     }
-
-    @Binds
-    abstract fun bindSyncService(service: DefaultSyncService): SyncService
 
     @Binds
     abstract fun bindSyncTask(task: DefaultSyncTask): SyncTask
