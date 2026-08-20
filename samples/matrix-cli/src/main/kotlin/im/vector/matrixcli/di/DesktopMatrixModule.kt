@@ -36,6 +36,13 @@ import java.util.concurrent.Executors
 @Module
 internal class DesktopMatrixModule(private val dataDir: File) {
 
+    init {
+        // The crypto graph builds OlmUtility in field initializers, before anything injects OlmManager,
+        // so the native library has to be loaded before a session is created — the android Matrix does
+        // the same in its init.
+        OlmManager()
+    }
+
     @Provides
     @MatrixScope
     fun providesMatrixCoroutineDispatchers(): MatrixCoroutineDispatchers {
