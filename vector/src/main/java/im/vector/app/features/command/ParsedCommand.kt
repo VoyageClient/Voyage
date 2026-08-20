@@ -62,6 +62,8 @@ sealed interface ParsedCommand {
     data class SetMarkdown(val enable: Boolean) : ParsedCommand
     object ClearScalarToken : ParsedCommand
     object DevTools : ParsedCommand
+    object SendCustomEvent : ParsedCommand
+    object SendCustomStateEvent : ParsedCommand
     data class SendSpoiler(val message: CharSequence) : ParsedCommand
     data class SendShrug(val message: CharSequence) : ParsedCommand
     data class SendTableFlip(val message: CharSequence) : ParsedCommand

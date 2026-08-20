@@ -25,6 +25,7 @@ import im.vector.app.SpaceStateHandler
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
+import im.vector.app.core.extensions.sendFailureReason
 import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.mvrx.runCatchingToAsync
 import im.vector.app.core.platform.VectorViewModel
@@ -86,7 +87,6 @@ import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
@@ -574,10 +574,7 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     private fun failureReasonOf(root: Event): String? {
-        val reason = root.sendStateError()
-                ?.let { errorFormatter.toHumanReadable(Failure.ServerError(it, 0)) }
-                ?: root.sendStateDetails
-        return reason?.takeIf { it.isNotBlank() }
+        return root.sendFailureReason(errorFormatter)?.takeIf { it.isNotBlank() }
     }
 
     private fun isPickerPermissionFailure(details: String?): Boolean {

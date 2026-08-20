@@ -58,6 +58,9 @@ data class MatrixError(
 ) {
 
     companion object {
+        /** Local-only key: the SDK stores the HTTP status next to a persisted error body, servers never send it. */
+        const val HTTP_CODE_JSON_KEY = "http_code"
+
         /** Forbidden access, e.g. joining a room without permission, failed login. */
         const val M_FORBIDDEN = "M_FORBIDDEN"
 

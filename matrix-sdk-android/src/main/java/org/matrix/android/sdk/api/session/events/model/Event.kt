@@ -128,6 +128,15 @@ data class Event(
         }
     }
 
+    /** HTTP status of the rejection, when the send failed against the homeserver rather than locally. */
+    fun sendStateHttpCode(): Int? {
+        return sendStateDetails?.let { details ->
+            val mapAdapter = MoshiProvider.providesMoshi().adapter(Map::class.java)
+            tryOrNull { (mapAdapter.fromJson(details)?.get(MatrixError.HTTP_CODE_JSON_KEY) as? Number)?.toInt() }
+                    ?.takeIf { it > 0 }
+        }
+    }
+
     /**
      * The `age` value transcoded in a timestamp based on the device clock when the SDK received
      * the event from the homeserver.

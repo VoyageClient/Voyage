@@ -769,7 +769,9 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.SetUserPowerLevel -> {
                             handleSetUserPowerLevel(room, parsedCommand)
                         }
-                        is ParsedCommand.DevTools -> {
+                        is ParsedCommand.DevTools,
+                        is ParsedCommand.SendCustomEvent,
+                        is ParsedCommand.SendCustomStateEvent -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }

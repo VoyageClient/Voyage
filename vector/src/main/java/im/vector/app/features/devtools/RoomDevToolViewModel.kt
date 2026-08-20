@@ -28,7 +28,6 @@ import okio.Buffer
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -174,7 +173,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 }
             }
             is RoomDevToolAction.SendCustomEvent -> {
-                val defaultType = if (action.target == RoomDevToolViewState.SendTarget.ACCOUNT_DATA) null else EventType.MESSAGE
+                val defaultType = RoomDevToolViewState.defaultTypeFor(action.target)
                 setState {
                     copy(
                             displayMode = RoomDevToolViewState.Mode.SendEventForm(action.target),
@@ -322,12 +321,16 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     RoomDevToolViewState.SendTarget.ACCOUNT_DATA -> CommonStrings.dev_tools_success_account_data
                 }
                 _viewEvents.post(DevToolsViewEvents.ShowSnackMessage(stringProvider.getString(successMessage)))
-                setState {
-                    copy(
-                            modalLoading = Success(Unit),
-                            sendEventDraft = null,
-                            displayMode = RoomDevToolViewState.Mode.Root
-                    )
+                if (state.sendFormIsRoot) {
+                    _viewEvents.post(DevToolsViewEvents.Dismiss)
+                } else {
+                    setState {
+                        copy(
+                                modalLoading = Success(Unit),
+                                sendEventDraft = null,
+                                displayMode = RoomDevToolViewState.Mode.Root
+                        )
+                    }
                 }
             } catch (failure: Throwable) {
                 _viewEvents.post(DevToolsViewEvents.ShowAlertMessage(errorFormatter.toHumanReadable(failure)))
@@ -428,10 +431,14 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 }
             }
             is RoomDevToolViewState.Mode.SendEventForm -> {
-                setState {
-                    copy(
-                            displayMode = RoomDevToolViewState.Mode.Root
-                    )
+                if (it.sendFormIsRoot) {
+                    _viewEvents.post(DevToolsViewEvents.Dismiss)
+                } else {
+                    setState {
+                        copy(
+                                displayMode = RoomDevToolViewState.Mode.Root
+                        )
+                    }
                 }
             }
         }

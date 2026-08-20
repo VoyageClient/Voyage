@@ -51,7 +51,8 @@ class RoomDevToolActivity :
 
     @Parcelize
     data class Args(
-            val roomId: String
+            val roomId: String,
+            val sendTarget: RoomDevToolViewState.SendTarget? = null
     ) : Parcelable
 
     override fun initUiAndData() {
@@ -151,9 +152,9 @@ class RoomDevToolActivity :
 
     companion object {
 
-        fun intent(context: Context, roomId: String): Intent {
+        fun intent(context: Context, roomId: String, sendTarget: RoomDevToolViewState.SendTarget? = null): Intent {
             return Intent(context, RoomDevToolActivity::class.java).apply {
-                putExtra(Mavericks.KEY_ARG, Args(roomId))
+                putExtra(Mavericks.KEY_ARG, Args(roomId, sendTarget))
             }
         }
     }

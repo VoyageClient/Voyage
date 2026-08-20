@@ -38,6 +38,7 @@ import im.vector.app.features.crypto.recover.SetupMode
 import im.vector.app.features.crypto.verification.SupportedVerificationMethodsProvider
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.devtools.RoomDevToolActivity
+import im.vector.app.features.devtools.RoomDevToolViewState
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.RoomDetailActivity
 import im.vector.app.features.home.room.detail.arguments.PendingEventAction
@@ -535,8 +536,8 @@ class DefaultNavigator @Inject constructor(
         context.startActivity(intent)
     }
 
-    override fun openDevTools(context: Context, roomId: String) {
-        context.startActivity(RoomDevToolActivity.intent(context, roomId))
+    override fun openDevTools(context: Context, roomId: String, sendTarget: RoomDevToolViewState.SendTarget?) {
+        context.startActivity(RoomDevToolActivity.intent(context, roomId, sendTarget))
     }
 
     override fun openCreatePoll(context: Context, roomId: String, editedEventId: String?, mode: PollMode) {

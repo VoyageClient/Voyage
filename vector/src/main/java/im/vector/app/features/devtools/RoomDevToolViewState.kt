@@ -11,6 +11,7 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 
 data class RoomDevToolViewState(
@@ -27,10 +28,17 @@ data class RoomDevToolViewState(
          * Defaults false so preview mode never flashes the edit affordances before the VM decides. */
         val canEditState: Boolean = false,
         val modalLoading: Async<Unit> = Uninitialized,
-        val sendEventDraft: SendEventDraft? = null
+        val sendEventDraft: SendEventDraft? = null,
+        /** True when opened straight onto a send form (/sendevent, /sendstate): there is no Root to back out to. */
+        val sendFormIsRoot: Boolean = false
 ) : MavericksState {
 
-    constructor(args: RoomDevToolActivity.Args) : this(roomId = args.roomId, displayMode = Mode.Root)
+    constructor(args: RoomDevToolActivity.Args) : this(
+            roomId = args.roomId,
+            displayMode = args.sendTarget?.let { Mode.SendEventForm(it) } ?: Mode.Root,
+            sendEventDraft = args.sendTarget?.let { SendEventDraft(defaultTypeFor(it), null, "{\n}") },
+            sendFormIsRoot = args.sendTarget != null
+    )
 
     sealed class Mode {
         object Root : Mode()
@@ -44,6 +52,10 @@ data class RoomDevToolViewState(
     }
 
     enum class SendTarget { MESSAGE, STATE, ACCOUNT_DATA }
+
+    companion object {
+        fun defaultTypeFor(target: SendTarget) = if (target == SendTarget.ACCOUNT_DATA) null else EventType.MESSAGE
+    }
 
     data class SendEventDraft(
             val type: String?,

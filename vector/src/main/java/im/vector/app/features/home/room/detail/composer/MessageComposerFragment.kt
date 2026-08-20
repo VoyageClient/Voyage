@@ -67,6 +67,7 @@ import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
+import im.vector.app.features.devtools.RoomDevToolViewState
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.AutoCompleter
 import im.vector.app.features.home.room.detail.RoomDetailAction
@@ -802,6 +803,12 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         when (parsedCommand) {
             is ParsedCommand.DevTools -> {
                 navigator.openDevTools(requireContext(), roomId)
+            }
+            is ParsedCommand.SendCustomEvent -> {
+                navigator.openDevTools(requireContext(), roomId, RoomDevToolViewState.SendTarget.MESSAGE)
+            }
+            is ParsedCommand.SendCustomStateEvent -> {
+                navigator.openDevTools(requireContext(), roomId, RoomDevToolViewState.SendTarget.STATE)
             }
             is ParsedCommand.SetMarkdown -> {
                 showSnackWithMessage(getString(if (parsedCommand.enable) CommonStrings.markdown_has_been_enabled else CommonStrings.markdown_has_been_disabled))
