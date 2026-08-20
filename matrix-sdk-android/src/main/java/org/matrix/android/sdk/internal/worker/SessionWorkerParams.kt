@@ -28,4 +28,7 @@ internal interface SessionWorkerParams {
      * If it is the case, the worker should just transmit the error and shouldn't do anything else.
      */
     val lastFailureMessage: String?
+
+    /** A copy carrying [message] as the failure to forward to the next task of the queue/chain. */
+    fun withFailure(message: String): SessionWorkerParams
 }

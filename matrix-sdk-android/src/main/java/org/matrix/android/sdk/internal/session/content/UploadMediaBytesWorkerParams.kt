@@ -27,4 +27,7 @@ internal data class UploadMediaBytesWorkerParams(
         val galleryItemIndex: Int? = null,
         val galleryItemSizes: List<Long>? = null,
         override val lastFailureMessage: String? = null
-) : SessionWorkerParams
+) : SessionWorkerParams {
+
+    override fun withFailure(message: String) = copy(lastFailureMessage = lastFailureMessage ?: message)
+}

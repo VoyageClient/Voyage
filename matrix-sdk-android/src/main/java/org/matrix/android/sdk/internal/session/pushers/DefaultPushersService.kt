@@ -129,7 +129,7 @@ internal class DefaultPushersService @Inject constructor(
     )
 
     private fun enqueueAddPusher(pusher: JsonPusher): UUID {
-        val params = AddPusherWorker.Params(sessionId, pusher)
+        val params = AddPusherWorkerParams(sessionId, pusher)
         return backgroundTaskScheduler.enqueue(
                 backgroundTask(BackgroundTaskType.ADD_PUSHER, params, matrixConstraints = true)
         ).id

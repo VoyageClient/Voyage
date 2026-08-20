@@ -20,7 +20,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.internal.di.WorkManagerProvider
-import org.matrix.android.sdk.internal.session.pushers.AddPusherWorker
+import org.matrix.android.sdk.internal.session.pushers.AddPusherWorkerParams
 import org.matrix.android.sdk.internal.session.pushers.JsonPusher
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import org.robolectric.RobolectricTestRunner
@@ -53,7 +53,7 @@ class WorkManagerTaskSchedulerTest {
 
     private fun aRequest(extraTags: List<String> = emptyList(), initialDelayMillis: Long = 0) = backgroundTask(
             type = BackgroundTaskType.ADD_PUSHER,
-            params = AddPusherWorker.Params(sessionId = "a-session", pusher = JsonPusher(pushKey = "key", kind = "http", appId = "app")),
+            params = AddPusherWorkerParams(sessionId = "a-session", pusher = JsonPusher(pushKey = "key", kind = "http", appId = "app")),
             matrixConstraints = true,
             initialDelayMillis = initialDelayMillis,
             extraTags = extraTags,
