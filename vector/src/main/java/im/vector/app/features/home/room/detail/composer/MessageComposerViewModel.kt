@@ -89,6 +89,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
+import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -193,30 +194,40 @@ class MessageComposerViewModel @AssistedInject constructor(
             val messageContent = targetEvent.getVectorLastMessageContent()
             val inReplyTo = targetEvent.getRelationContent()?.inReplyTo?.eventId
             offloadSend {
-                // The substitution runs on the editable text, so re-render markdown from it the way the
-                // original send did, or a formatted message would come back as plain.
+                // The substitution runs on the editable text, so re-run the send-time preparation on
+                // the result the way the original send did — mention tagging, emote shortcode tagging,
+                // markdown, greentext — or a formatted message would come back as plain, its custom
+                // emotes as literal :shortcode: text and its mention pills as bare names.
                 val autoMarkdown = vectorPreferences.isMarkdownEnabled()
+                val oldFormatted = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
+                        ?: (messageContent as? MessageWithAttachmentContent)?.getFormattedCaption()
+                val withMentions = spliceMentionSpans(action.newBody, oldFormatted) { userId ->
+                    val member = room.membershipService().getRoomMember(userId)
+                    listOfNotNull(member?.bodyName(), member?.displayName).distinct()
+                }
+                val newText = emoteShortcodeProcessor.process(room.roomId, withMentions)
+                val quote = maybeBuildQuoteRunsForEdit(newText, null, oldFormatted)
                 val repliedTo = inReplyTo?.let { room.getTimelineEvent(it) }
                 if (messageContent is MessageWithAttachmentContent) {
                     room.relationService().editMediaCaption(
                             targetEvent,
-                            action.newBody,
-                            room.sendService().computeFormattedHtml(action.newBody, autoMarkdown)
+                            quote?.first ?: newText,
+                            quote?.second ?: room.sendService().computeFormattedHtml(newText, autoMarkdown)
                     )
                 } else if (repliedTo != null) {
                     room.relationService().editReply(
                             targetEvent,
                             repliedTo,
-                            action.newBody,
-                            room.sendService().computeFormattedHtml(action.newBody, autoMarkdown)
+                            quote?.first ?: newText,
+                            quote?.second ?: room.sendService().computeFormattedHtml(newText, autoMarkdown)
                     )
                 } else {
                     room.relationService().editTextMessage(
                             targetEvent,
                             messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
-                            action.newBody,
-                            null,
-                            autoMarkdown
+                            quote?.first ?: newText,
+                            quote?.second,
+                            quote == null && autoMarkdown
                     )
                 }
             }
@@ -1102,7 +1113,10 @@ class MessageComposerViewModel @AssistedInject constructor(
                         relationContent?.inReplyTo?.eventId
                     }
 
-                    val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
+                    val targetContent = targetEvent.getVectorLastMessageContent()
+                    val targetFormatted = (targetContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
+                            ?: (targetContent as? MessageWithAttachmentContent)?.getFormattedCaption()
+                    val greentext = maybeBuildQuoteRunsForEdit(action.text, action.formattedText, targetFormatted)
                     val editText = greentext?.first ?: action.text
                     val editFormatted = greentext?.second ?: action.formattedText
                     val editAutoMarkdown = greentext == null && action.autoMarkdown
@@ -1112,7 +1126,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             room.relationService().editReply(targetEvent, it, editText, editFormatted)
                         }
                     } else {
-                        val messageContent = targetEvent.getVectorLastMessageContent()
+                        val messageContent = targetContent
                         if (messageContent is MessageWithAttachmentContent) {
                             // Media event: edit/add/remove its caption. Empty text removes it.
                             val existingCaption = if (editFormatted != null) {
@@ -2008,6 +2022,28 @@ class MessageComposerViewModel @AssistedInject constructor(
      */
     private fun maybeBuildGreentextRuns(text: CharSequence, formattedText: String?): Pair<String, String>? {
         if (!vectorPreferences.renderBlockquotesAsGreentext()) return null
+        return buildQuoteRuns(text, formattedText, greentext = true)
+    }
+
+    /**
+     * [maybeBuildGreentextRuns] for edits: the quote style is whatever the message already uses, not
+     * what the toggle says now — a /greentext message stays greentext with the toggle off, an explicit
+     * /blockquote one stays a blockquote with it on. Only a message with neither falls back to the
+     * toggle.
+     */
+    private fun maybeBuildQuoteRunsForEdit(text: CharSequence, formattedText: String?, oldFormatted: String?): Pair<String, String>? {
+        val html = oldFormatted?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+        return when {
+            html != null && looksLikeGreentextHtml(html) -> buildQuoteRuns(text, formattedText, greentext = true)
+            html != null && html.contains("<blockquote", ignoreCase = true) ->
+                // With markdown on the `>` lines re-render as a blockquote by themselves, keeping any
+                // markdown inside the quote; only markdown-off needs the explicit rebuild.
+                if (vectorPreferences.isMarkdownEnabled()) null else buildQuoteRuns(text, formattedText, greentext = false)
+            else -> maybeBuildGreentextRuns(text, formattedText)
+        }
+    }
+
+    private fun buildQuoteRuns(text: CharSequence, formattedText: String?, greentext: Boolean): Pair<String, String>? {
         if (formattedText != null) return null
         val raw = text.toString()
         val lines = raw.split('\n')
@@ -2025,10 +2061,15 @@ class MessageComposerViewModel @AssistedInject constructor(
                 while (i < lines.size && lines[i].startsWith(">")) {
                     if (!runFirst) run.append("<br />")
                     runFirst = false
-                    run.append(escapeHtml(lines[i]))
+                    val line = if (greentext) lines[i] else lines[i].removePrefix(">").removePrefix(" ")
+                    run.append(escapeHtml(line))
                     i++
                 }
-                out.append("<font color=\"#789922\">").append(run).append("</font>")
+                if (greentext) {
+                    out.append("<font color=\"#789922\">").append(run).append("</font>")
+                } else {
+                    out.append("<blockquote>\n<p>").append(run).append("</p>\n</blockquote>")
+                }
             } else {
                 out.append(escapeHtml(lines[i]))
                 i++
