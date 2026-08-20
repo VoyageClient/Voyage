@@ -123,6 +123,12 @@ internal class TokenChunkEventPersistor @Inject constructor(
             )
             nextChunk?.let { stores.chunk.updatePrevChunkId(it.id, currentChunkId) }
             prevChunk?.let { stores.chunk.updateNextChunkId(it.id, currentChunkId) }
+            // Those token lookups are the only thing that just linked the new chunk into the graph, and
+            // boundary tokens don't reliably match ours (Synapse appends a stream suffix) — so a page
+            // fetched from a known origin could be stored unreachable from it, leaving the timeline
+            // stuck at what it held before the fetch. Link by the origin we paginated from, as the
+            // branches above do for a page that resolved to an existing chunk.
+            linkOriginToChunk(direction, originChunkId, currentChunkId)
 
             if (receivedChunk.events.isEmpty() && !receivedChunk.hasMore()) {
                 handleReachEnd(roomId, direction, currentChunkId)
