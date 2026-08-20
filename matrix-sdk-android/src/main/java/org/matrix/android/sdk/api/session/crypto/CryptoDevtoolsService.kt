@@ -7,7 +7,6 @@
 
 package org.matrix.android.sdk.api.session.crypto
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
 import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
@@ -25,6 +24,4 @@ interface CryptoDevtoolsService {
     fun getIncomingRoomKeyRequestsPaged(): LiveData<PagedList<IncomingRoomKeyRequest>>
 
     fun getGossipingEventsTrail(): LiveData<PagedList<AuditTrail>>
-
-    fun getCryptoVersion(context: Context, longFormat: Boolean): String
 }

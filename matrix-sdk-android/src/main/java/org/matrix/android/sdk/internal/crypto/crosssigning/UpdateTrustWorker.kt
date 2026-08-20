@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.crypto.crosssigning
 
 import android.content.Context
 import androidx.work.WorkerParameters
-import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
@@ -38,23 +37,11 @@ import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.util.logLimit
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
-import org.matrix.android.sdk.internal.worker.SessionWorkerParams
 import timber.log.Timber
 import javax.inject.Inject
 
 internal class UpdateTrustWorker(context: Context, params: WorkerParameters, sessionManager: SessionManager) :
-        SessionSafeCoroutineWorker<UpdateTrustWorker.Params>(context, params, sessionManager, Params::class.java) {
-
-    @JsonClass(generateAdapter = true)
-    internal data class Params(
-            override val sessionId: String,
-            override val lastFailureMessage: String? = null,
-            // Kept for compatibility, but not used anymore (can be used for pending Worker)
-            val updatedUserIds: List<String>? = null,
-            // Passing a long list of userId can break the Work Manager due to data size limitation.
-            // so now we use a temporary file to store the data
-            val filename: String? = null
-    ) : SessionWorkerParams
+        SessionSafeCoroutineWorker<UpdateTrustWorkerParams>(context, params, sessionManager, UpdateTrustWorkerParams::class.java) {
 
     @Inject lateinit var crossSigningService: CrossSigningService
 
@@ -77,7 +64,7 @@ internal class UpdateTrustWorker(context: Context, params: WorkerParameters, ses
         injector.inject(this)
     }
 
-    override suspend fun doSafeWork(params: Params): Result {
+    override suspend fun doSafeWork(params: UpdateTrustWorkerParams): Result {
         val sId = myUserId.take(5)
         Timber.v("## CrossSigning - UpdateTrustWorker started..")
         val workerParams = params.filename
@@ -197,7 +184,7 @@ internal class UpdateTrustWorker(context: Context, params: WorkerParameters, ses
         Timber.d("## CrossSigning - Updating shields for impacted rooms - END")
     }
 
-    private fun cleanup(params: Params) {
+    private fun cleanup(params: UpdateTrustWorkerParams) {
         params.filename
                 ?.let { updateTrustWorkerDataRepository.delete(it) }
     }
@@ -269,7 +256,7 @@ internal class UpdateTrustWorker(context: Context, params: WorkerParameters, ses
         }
     }
 
-    override fun buildErrorParams(params: Params, message: String): Params {
+    override fun buildErrorParams(params: UpdateTrustWorkerParams, message: String): UpdateTrustWorkerParams {
         return params.copy(lastFailureMessage = params.lastFailureMessage ?: message)
     }
 }

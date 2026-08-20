@@ -16,8 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.sync.handler
 
-import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
+import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerParams
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
@@ -37,7 +37,7 @@ internal class ShieldSummaryUpdater @Inject constructor(
 
     fun refreshShieldsForRoomIds(roomIds: Set<String>) {
         Timber.d("## CrossSigning - checkAffectedRoomShields for roomIds: ${roomIds.logLimit()}")
-        val workerParams = UpdateTrustWorker.Params(
+        val workerParams = UpdateTrustWorkerParams(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(emptyList(), roomIds = roomIds.toList())
         )

@@ -169,7 +169,7 @@ internal abstract class CryptoModule {
     }
 
     @Binds
-    abstract fun bindCryptoService(service: DefaultCryptoService): CryptoService
+    abstract fun bindCryptoService(service: AndroidCryptoService): CryptoService
 
     @Binds
     abstract fun bindKeysBackupService(service: DefaultKeysBackupService): KeysBackupService

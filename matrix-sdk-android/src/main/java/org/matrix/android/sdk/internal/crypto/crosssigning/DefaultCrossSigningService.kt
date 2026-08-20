@@ -827,7 +827,7 @@ internal class DefaultCrossSigningService @Inject constructor(
 
     override suspend fun checkTrustAndAffectedRoomShields(userIds: List<String>) {
         Timber.d("## CrossSigning - checkTrustAndAffectedRoomShields for users: ${userIds.logLimit()}")
-        val workerParams = UpdateTrustWorker.Params(
+        val workerParams = UpdateTrustWorkerParams(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(userIds)
         )

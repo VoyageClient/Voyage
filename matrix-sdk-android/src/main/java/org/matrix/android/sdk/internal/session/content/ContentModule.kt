@@ -30,6 +30,9 @@ internal abstract class ContentModule {
     abstract fun bindThumbnailExtractor(extractor: AndroidThumbnailExtractor): ThumbnailExtractor
 
     @Binds
+    abstract fun bindImageExifTagRemover(remover: AndroidImageExifTagRemover): ImageExifTagRemover
+
+    @Binds
     abstract fun bindContentUploadStateTracker(tracker: DefaultContentUploadStateTracker): ContentUploadStateTracker
 
     @Binds

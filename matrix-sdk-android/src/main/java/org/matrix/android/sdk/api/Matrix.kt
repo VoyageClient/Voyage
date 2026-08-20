@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.securestorage.SecureStorageService
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.SessionManager
+import org.matrix.android.sdk.internal.crypto.verification.installSasEmojiResourceIds
 import org.matrix.android.sdk.internal.di.DaggerMatrixComponent
 import org.matrix.android.sdk.internal.network.ApiInterceptor
 import org.matrix.android.sdk.internal.network.UserAgentHolder
@@ -79,6 +80,7 @@ class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
         }
         AndroidAppStateDriver(backgroundDetectionObserver).start()
         installAndroidHtmlConverter()
+        installSasEmojiResourceIds()
     }
 
     /**

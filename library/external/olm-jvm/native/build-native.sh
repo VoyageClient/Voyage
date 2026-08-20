@@ -32,7 +32,11 @@ SOURCES=(
     "$LIBCE_ROOT"/src/megolm.c
     "$LIBCE_ROOT"/src/outbound_group_session.c
     "$LIBCE_ROOT"/src/pickle_encoding.c
-    "$LIBCE_ROOT"/lib/crypto-algorithms/aes.c
+    "$LIBCE_ROOT"/lib/aes-ct64/aes_ct64.c
+    "$LIBCE_ROOT"/lib/aes-ct64/aes_ct64_enc.c
+    "$LIBCE_ROOT"/lib/aes-ct64/aes_ct64_dec.c
+    "$LIBCE_ROOT"/lib/aes-ct64/aes_ct64_cbcenc.c
+    "$LIBCE_ROOT"/lib/aes-ct64/aes_ct64_cbcdec.c
     "$JNI_DIR"/olm_account.c
     "$JNI_DIR"/olm_session.c
     "$JNI_DIR"/olm_jni_helper.c
