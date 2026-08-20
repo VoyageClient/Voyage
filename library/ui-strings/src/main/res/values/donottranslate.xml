@@ -329,7 +329,7 @@
     <string name="mass_redaction_confirmation_message_between" translatable="false">This will redact every event from %1$s sent between %2$s and %3$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_confirmation_message_after" translatable="false">This will redact every event from %1$s sent after %2$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_confirmation_message_before" translatable="false">This will redact every event from %1$s sent before %2$s. It can take a long time and cannot be reversed.</string>
-    <string name="command_description_mass_redact" translatable="false">Redact all events from the given user in this room, optionally within a unix epoch (seconds or ms) range</string>
+    <string name="command_description_mass_redact" translatable="false">Redact all events from the given user in this room</string>
     <string name="command_description_download" translatable="false">Download the file at the given mxc:// URL</string>
     <string name="file_has_been_downloaded" translatable="false">File has been downloaded!</string>
     <string name="steps_away_from_kitkat" translatable="false">You are now %1$d steps away from GNU/KitKat.</string>

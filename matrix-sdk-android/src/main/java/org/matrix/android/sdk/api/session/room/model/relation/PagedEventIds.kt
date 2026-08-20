@@ -27,10 +27,14 @@ data class MassRedactionFloor(
         val anchorToken: String?,
 )
 
-/** Inclusive `origin_server_ts` bounds (ms) restricting a mass redaction to a slice of history. */
+/**
+ * Inclusive `origin_server_ts` bounds (ms) restricting a mass redaction to a slice of history, plus an
+ * optional filter to skip state events (m.room.member etc) so only message events are redacted.
+ */
 data class MassRedactionRange(
         val fromTs: Long? = null,
         val toTs: Long? = null,
+        val messagesOnly: Boolean = false,
 ) {
 
     // An event whose timestamp is unknown can't be proven to be inside a bounded range, and redaction

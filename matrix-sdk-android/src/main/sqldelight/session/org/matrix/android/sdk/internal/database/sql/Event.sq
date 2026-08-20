@@ -126,7 +126,7 @@ SELECT * FROM event WHERE room_id = ? AND type = ? AND state_key = ? ORDER BY or
 -- All distinct events a sender contributed to a room (any type), for mass redaction. type + unsigned_data
 -- are returned so the caller can skip redaction events and already-redacted ones.
 selectEventIdsByRoomAndSender:
-SELECT event_id, type, unsigned_data, origin_server_ts FROM event WHERE room_id = ? AND sender = ? GROUP BY event_id;
+SELECT event_id, type, state_key, unsigned_data, origin_server_ts FROM event WHERE room_id = ? AND sender = ? GROUP BY event_id;
 
 -- Event ids targeted by a known redaction event in the room, regardless of whether the target was
 -- ever pruned locally (covers redactions synced before the target, or done by other clients).

@@ -10,8 +10,11 @@ package im.vector.app.features.command
 import im.vector.app.test.fakes.FakeVectorPreferences
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
+import java.util.Calendar
 
 private const val A_SPACE_ID = "!my-space-id"
+private const val A_USER_ID = "@alice:matrix.org"
 
 class CommandParserTest {
     private val fakeVectorPreferences = FakeVectorPreferences()
@@ -78,6 +81,45 @@ class CommandParserTest {
         test("/jumpto not-an-event", ParsedCommand.ErrorSyntax(Command.JUMP_TO))
         test("/jumpto https://matrix.to/#/@alice:example.org", ParsedCommand.ErrorSyntax(Command.JUMP_TO))
     }
+
+    @Test
+    fun parseMassRedactEpochBounds() {
+        // Seconds and milliseconds are both accepted and normalised to ms.
+        test("/massredact $A_USER_ID after:1700000000 before:1700003600000",
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(1700000000_000L, 1700003600000L)))
+    }
+
+    @Test
+    fun parseMassRedactCooldownAndSingleBound() {
+        test("/massredact $A_USER_ID 500 before:1700000000",
+                ParsedCommand.MassRedact(A_USER_ID, 500L, MassRedactionRange(null, 1700000000_000L)))
+    }
+
+    @Test
+    fun parseMassRedactYmdBounds() {
+        test("/massredact $A_USER_ID after:2026-01-02 before:2026-03-04",
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(ymd(2026, 1, 2), ymd(2026, 3, 4))))
+    }
+
+    @Test
+    fun parseMassRedactMessagesOnly() {
+        test("/massredact $A_USER_ID messagesOnly",
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(messagesOnly = true)))
+        test("/massredact $A_USER_ID 200 before:1700000000 messagesOnly:true",
+                ParsedCommand.MassRedact(A_USER_ID, 200L, MassRedactionRange(null, 1700000000_000L, messagesOnly = true)))
+    }
+
+    @Test
+    fun parseMassRedactRejectsBadBounds() {
+        // Bare year reads as an implausibly small epoch, unparseable date, and after > before.
+        test("/massredact $A_USER_ID after:2026", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+        test("/massredact $A_USER_ID before:not-a-date", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+        test("/massredact $A_USER_ID after:2026-02-31", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+        test("/massredact $A_USER_ID after:1700003600 before:1700000000", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+    }
+
+    private fun ymd(year: Int, month: Int, day: Int): Long =
+            Calendar.getInstance().apply { clear(); set(year, month - 1, day) }.timeInMillis
 
     private fun test(message: String, expectedResult: ParsedCommand) {
         val commandParser = CommandParser(fakeVectorPreferences.instance)
