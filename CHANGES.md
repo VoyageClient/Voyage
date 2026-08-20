@@ -228,6 +228,8 @@ New features, improvements, and notable removals in this fork.
 
 - Fixed message sending growing sluggish the longer the app stays open, with messages queueing up and batching out.
 
+- Fixed rooms that stopped loading history: a fetched page whose boundary token didn't match the one stored was saved unreachable, so the timeline stayed at the handful of messages the last sync had cached until the room was reopened.
+
 - **Plain-http homeservers** — logging into an `http://` homeserver (self-hosted, LAN IP, Tor) no longer fails with a cleartext-not-permitted error on Android 6+.
 
 - Fixed the app showing stale rooms after being backgrounded, with no sign it was catching up — returning to the foreground now always starts an immediate sync and shows progress while it runs.

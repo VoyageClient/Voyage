@@ -246,6 +246,12 @@ internal class SqlTimeline(
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
             seedFrom(seed)
             rebuildSnapshot()
+            // The UI only asks for older events once its loading item is on screen, and that waits for
+            // the first models to build — seconds in a room whose cache holds no more than the last sync
+            // page. Fetch that page here instead, so the request overlaps the render rather than following it.
+            if (!isThreadTimeline && initialEventId == null && builtEvents.size < initialWindowCount()) {
+                loadMore(settings.initialSize, Timeline.Direction.BACKWARDS)
+            }
         }
     }
 
@@ -630,6 +636,7 @@ internal class SqlTimeline(
                     }
                     oldestPrevToken != null -> {
                         paginate(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
+                        invalidateAfterServerPage()
                         // The server page is persisted as a new chunk linked into our chain; walk the whole
                         // prev_chunk_id chain so a page that bridges to an existing older chunk is fully picked up.
                         extendLoadedChunks(Timeline.Direction.BACKWARDS)
@@ -671,6 +678,7 @@ internal class SqlTimeline(
                     }
                     newestNextToken != null -> {
                         paginate(newestNextToken, Timeline.Direction.FORWARDS, count, newest.id)
+                        invalidateAfterServerPage()
                         extendLoadedChunks(Timeline.Direction.FORWARDS)
                         rebuildSnapshot()
                     }
@@ -679,6 +687,19 @@ internal class SqlTimeline(
             } finally {
                 forwardPaginating.set(false)
             }
+        }
+    }
+
+    // A page can extend the chunk it was fetched from, or make the persistor absorb one chunk into
+    // another, so the cached mappings (and the ids we hold) can describe rows that have moved or a
+    // chunk that is gone.
+    private fun invalidateAfterServerPage() {
+        chunkSnapshotCache.clear()
+        liveChunkFullyMapped = false
+        val alive = loadedChunkIds.filterTo(LinkedHashSet()) { stores.chunk.getById(it) != null }
+        if (alive.size != loadedChunkIds.size) {
+            loadedChunkIds.clear()
+            loadedChunkIds.addAll(alive)
         }
     }
 
