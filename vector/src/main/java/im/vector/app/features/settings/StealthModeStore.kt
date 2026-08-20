@@ -35,5 +35,37 @@ class StealthModeStore @Inject constructor(
         StealthAccountData.enabled = userId != null && isEnabled(userId)
     }
 
+    /** Pre-login stealth choice, before an account exists (see [migratePendingInto]). */
+    fun isPendingEnabled(): Boolean = isEnabled(PENDING)
+
+    /**
+     * Set the pre-login choice. [applyToProcess] mirrors it into the live SDK flag, which is only safe
+     * when no account is active (fresh onboarding) — during add-account it would touch the current account.
+     */
+    fun setPendingEnabled(enabled: Boolean, applyToProcess: Boolean) {
+        prefs.edit { putBoolean(key(PENDING), enabled) }
+        if (applyToProcess) StealthAccountData.enabled = enabled
+    }
+
+    /** Move the pre-login choice into [userId] on sign-in, then clear it. */
+    fun migratePendingInto(userId: String) {
+        if (userId == PENDING) return
+        if (isEnabled(PENDING)) setEnabled(userId, true)
+        prefs.edit { remove(key(PENDING)) }
+    }
+
+    /**
+     * Discard the pre-login choice (user backed out without signing in) and reseed the live flag from
+     * [activeUserId] (or off when signed out), undoing any pre-login toggle applied to the process.
+     */
+    fun abandonPending(activeUserId: String?) {
+        prefs.edit { remove(key(PENDING)) }
+        apply(activeUserId)
+    }
+
     private fun key(userId: String) = "SETTINGS_SECURITY_STEALTH_MODE_$userId"
+
+    companion object {
+        private const val PENDING = "pending"
+    }
 }

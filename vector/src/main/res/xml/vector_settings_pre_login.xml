@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:key="SETTINGS_PRELOGIN_STEALTH"
+        android:persistent="false"
+        android:summary="@string/settings_security_stealth_mode_summary"
+        android:title="@string/settings_security_stealth_mode_title" />
+
+    <im.vector.app.core.preference.VectorPreference
+        android:key="SETTINGS_PRELOGIN_USER_AGENT"
+        android:persistent="false"
+        android:summary="@string/settings_user_agent_summary"
+        android:title="@string/settings_user_agent_title" />
+
+</androidx.preference.PreferenceScreen>

@@ -29,6 +29,7 @@ import im.vector.app.core.device.GetDeviceInfoUseCase
 import im.vector.app.core.dispatchers.CoroutineDispatchers
 import im.vector.app.core.error.DefaultErrorFormatter
 import im.vector.app.core.error.ErrorFormatter
+import im.vector.app.core.network.UserAgentOverrideInterceptor
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.AndroidSystemSettingsProvider
 import im.vector.app.core.utils.SystemSettingsProvider
@@ -134,12 +135,13 @@ import javax.inject.Singleton
             vectorCustomEventTypesProvider: VectorCustomEventTypesProvider,
             mdmService: MdmService,
             vpnGateInterceptor: VpnGateInterceptor,
+            userAgentOverrideInterceptor: UserAgentOverrideInterceptor,
     ): MatrixConfiguration {
         return MatrixConfiguration(
                 applicationFlavor = BuildConfig.FLAVOR_DESCRIPTION,
                 roomDisplayNameFallbackProvider = vectorRoomDisplayNameFallbackProvider,
                 threadMessagesEnabledDefault = vectorPreferences.areThreadMessagesEnabled(),
-                networkInterceptors = listOf(vpnGateInterceptor),
+                networkInterceptors = listOf(vpnGateInterceptor, userAgentOverrideInterceptor),
                 customEventTypesProvider = vectorCustomEventTypesProvider,
                 clientPermalinkBaseUrl = mdmService.getData(MdmData.PermalinkBaseUrl),
                 syncConfig = SyncConfig(

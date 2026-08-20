@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="VectorPreferenceCategoryWithAction">
+        <!-- Drawable for the trailing action button; defaults to the reset/refresh icon. -->
+        <attr name="actionIcon" format="reference" />
+        <!-- Content description for the trailing action button. -->
+        <attr name="actionContentDescription" format="reference" />
+    </declare-styleable>
+</resources>

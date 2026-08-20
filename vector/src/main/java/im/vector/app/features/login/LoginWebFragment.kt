@@ -27,6 +27,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.utils.AssetReader
 import im.vector.app.databinding.FragmentLoginWebBinding
+import im.vector.app.features.settings.useragent.UaSurface
+import im.vector.app.features.settings.useragent.UserAgentSpoofBuilder
 import im.vector.app.features.signout.soft.SoftLogoutAction
 import im.vector.app.features.signout.soft.SoftLogoutViewModel
 import im.vector.lib.strings.CommonStrings
@@ -45,6 +47,7 @@ class LoginWebFragment :
         AbstractLoginFragment<FragmentLoginWebBinding>() {
 
     @Inject lateinit var assetReader: AssetReader
+    @Inject lateinit var userAgentSpoofBuilder: UserAgentSpoofBuilder
 
     private val softLogoutViewModel: SoftLogoutViewModel by activityViewModel()
 
@@ -90,7 +93,8 @@ class LoginWebFragment :
 
         // Due to https://developers.googleblog.com/2016/08/modernizing-oauth-interactions-in-native-apps.html, we hack
         // the user agent to bypass the limitation of Google, as a quick fix (a proper solution will be to use the SSO SDK)
-        views.loginWebWebView.settings.userAgentString = "Mozilla/5.0 Google"
+        views.loginWebWebView.settings.userAgentString =
+                userAgentSpoofBuilder.buildFor(UaSurface.SSO_WEBVIEW) ?: "Mozilla/5.0 Google"
 
         // AppRTC requires third party cookies to work
         val cookieManager = android.webkit.CookieManager.getInstance()

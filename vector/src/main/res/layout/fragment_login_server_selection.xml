@@ -139,5 +139,18 @@
 
     </androidx.core.widget.NestedScrollView>
 
+    <ImageButton
+        android:id="@+id/loginServerPreLoginSettings"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:background="@null"
+        android:contentDescription="@string/settings_prelogin_open"
+        android:padding="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_settings_18dp"
+        app:tint="?vctr_content_secondary" />
+
 </FrameLayout>
 

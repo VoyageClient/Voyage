@@ -849,4 +849,83 @@
     <string name="settings_link_preview_mode_direct" translatable="false">In direct messages</string>
 
     <string name="attachment_caption_hint" translatable="false">Add a caption…</string>
+
+    <!-- User-Agent spoofing -->
+    <string name="settings_user_agent_title" translatable="false">Spoof User-Agent</string>
+    <string name="settings_prelogin_title" translatable="false">Pre-sign-in settings</string>
+    <string name="settings_prelogin_open" translatable="false">Pre-sign-in settings</string>
+    <string name="settings_user_agent_summary" translatable="false">Impersonate another Matrix client on network requests</string>
+    <string name="settings_ua_category" translatable="false">User-Agent</string>
+    <string name="settings_ua_spoof_title" translatable="false">Spoof User-Agent</string>
+    <string name="settings_ua_preview_title" translatable="false">User-Agent preview</string>
+    <string name="settings_ua_applies_to_title" translatable="false">Applies to</string>
+    <string name="settings_ua_update_action" translatable="false">Update to latest versions</string>
+    <string name="settings_ua_upgrade_action" translatable="false">Upgrade software versions to latest</string>
+    <string name="settings_ua_auto_upgrade_title" translatable="false">Auto-upgrade software versions</string>
+    <string name="settings_ua_auto_upgrade_summary" translatable="false">Periodically bump the spoofed User-Agent to the latest software versions, so the server sees you gradually upgrading your client over time. Your spoofed device model stays fixed.</string>
+    <string name="settings_ua_surface_api" translatable="false">Matrix API &amp; media</string>
+    <string name="settings_ua_surface_sso" translatable="false">Login (SSO) WebView</string>
+
+    <string name="settings_ua_client_none" translatable="false">None</string>
+    <string name="settings_ua_client_chrome" translatable="false">Google Chrome (Element Web, SchildiChat Web, Cinny, Sable)</string>
+    <string name="settings_ua_client_firefox" translatable="false">Firefox (Element Web, SchildiChat Web, Cinny, Sable)</string>
+    <string name="settings_ua_client_element_x_android" translatable="false">Element X Android</string>
+    <string name="settings_ua_client_schildichat_next" translatable="false">SchildiChat Next</string>
+    <string name="settings_ua_client_element_android_legacy" translatable="false">Element Android (classic)</string>
+    <string name="settings_ua_client_element_desktop" translatable="false">Element Desktop</string>
+    <string name="settings_ua_client_schildichat_revenge" translatable="false">SchildiChat Revenge</string>
+    <string name="settings_ua_client_element_x_ios" translatable="false">Element X iOS</string>
+    <string name="settings_ua_client_element_ios_classic" translatable="false">Element iOS (classic)</string>
+    <string name="settings_ua_client_nheko" translatable="false">nheko</string>
+    <string name="settings_ua_client_gomuks" translatable="false">gomuks</string>
+    <string name="settings_ua_client_commet" translatable="false">Dart (Commet/FluffyChat)</string>
+    <string name="settings_ua_client_fractal" translatable="false">Fractal</string>
+    <string name="settings_ua_client_iamb" translatable="false">iamb</string>
+    <string name="settings_ua_client_tammy" translatable="false">tammy</string>
+    <string name="settings_ua_client_neochat" translatable="false">NeoChat/Quaternion</string>
+    <string name="settings_ua_client_curl" translatable="false">curl</string>
+    <string name="settings_ua_client_custom" translatable="false">Custom User-Agent</string>
+
+    <string name="settings_ua_field_app_version_title" translatable="false">App version</string>
+    <string name="settings_ua_field_device_manufacturer_title" translatable="false">Manufacturer</string>
+    <string name="settings_ua_field_device_model_title" translatable="false">Model</string>
+    <string name="settings_ua_field_android_version_title" translatable="false">Android version</string>
+    <string name="settings_ua_field_build_id_title" translatable="false">Build number</string>
+    <string name="settings_ua_field_sdk_version_title" translatable="false">Matrix SDK version</string>
+    <string name="settings_ua_field_flavour_title" translatable="false">Flavour</string>
+    <string name="settings_ua_field_os_title" translatable="false">Operating system</string>
+    <string name="settings_ua_field_os_version_title" translatable="false">OS version</string>
+    <string name="settings_ua_field_browser_version_title" translatable="false">Browser version</string>
+    <string name="settings_ua_field_curl_version_title" translatable="false">curl version</string>
+    <string name="settings_ua_field_suffix_title" translatable="false">Build variant</string>
+    <string name="settings_ua_field_custom_ua_title" translatable="false">Custom User-Agent string</string>
+    <string name="settings_ua_field_ios_device_title" translatable="false">iOS device</string>
+    <string name="settings_ua_field_ios_version_title" translatable="false">iOS version</string>
+    <string name="settings_ua_field_scale_title" translatable="false">Display scale</string>
+    <string name="settings_ua_field_electron_version_title" translatable="false">Electron version</string>
+    <string name="settings_ua_field_mtxclient_version_title" translatable="false">mtxclient version</string>
+    <string name="settings_ua_field_gomuks_version_title" translatable="false">gomuks version</string>
+    <string name="settings_ua_field_mautrix_version_title" translatable="false">mautrix-go version</string>
+    <string name="settings_ua_field_go_version_title" translatable="false">Go version</string>
+    <string name="settings_ua_field_dart_version_title" translatable="false">Dart version</string>
+
+    <string name="settings_ua_os_windows" translatable="false">Windows</string>
+    <string name="settings_ua_os_macos" translatable="false">macOS</string>
+    <string name="settings_ua_os_linux" translatable="false">Linux</string>
+
+    <string name="settings_ua_sort_by_latest" translatable="false">Sort by latest instead of most used</string>
+    <string name="settings_ua_search_hint" translatable="false">Search…</string>
+    <string name="settings_ua_downloading_title" translatable="false">User-Agent data</string>
+    <string name="settings_ua_downloading" translatable="false">Downloading… %1$d/%2$d done</string>
+    <string name="settings_ua_downloaded" translatable="false">Downloaded %1$d of %2$d sources.</string>
+    <string name="settings_ua_up_to_date" translatable="false">Everything is already up to date.</string>
+    <string name="settings_ua_updated_header" translatable="false">Updated:</string>
+    <string name="settings_ua_download_failed_header" translatable="false">Couldn\'t download:</string>
+
+    <string name="settings_ua_suffix_none" translatable="false">None</string>
+    <string name="settings_ua_suffix_beta" translatable="false">Beta</string>
+    <string name="settings_ua_suffix_internal" translatable="false">Internal</string>
+    <string name="settings_ua_suffix_dbg" translatable="false">Debug</string>
+    <string name="settings_ua_suffix_nightly" translatable="false">Nightly</string>
+    <string name="settings_ua_suffix_alpha" translatable="false">Alpha</string>
 </resources>
