@@ -21,7 +21,6 @@ import dagger.Component
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.securestorage.SecureStorageModule
-import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.internal.crypto.CryptoModule
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.di.MatrixComponent
@@ -72,6 +71,7 @@ import org.matrix.android.sdk.internal.util.system.SystemModule
         dependencies = [MatrixComponent::class],
         modules = [
             SessionModule::class,
+            AndroidSessionModule::class,
             RoomModule::class,
             SyncModule::class,
             HomeServerCapabilitiesModule::class,
@@ -106,13 +106,9 @@ import org.matrix.android.sdk.internal.util.system.SystemModule
         ]
 )
 @SessionScope
-internal interface SessionComponent {
+internal interface AndroidSessionComponent : SessionComponent {
 
     fun coroutineDispatchers(): MatrixCoroutineDispatchers
-
-    fun session(): Session
-
-    fun sessionReleasables(): Set<@JvmSuppressWildcards SessionReleasable>
 
     fun syncTask(): SyncTask
 
@@ -149,6 +145,6 @@ internal interface SessionComponent {
         fun create(
                 matrixComponent: MatrixComponent,
                 @BindsInstance sessionParams: SessionParams
-        ): SessionComponent
+        ): AndroidSessionComponent
     }
 }

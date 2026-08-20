@@ -30,6 +30,11 @@ internal annotation class SessionDownloadsDirectory
 @Retention(AnnotationRetention.RUNTIME)
 internal annotation class CacheDirectory
 
+/** Where the SDK keeps per-session files; on android the app's own files dir. */
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+internal annotation class FilesDirectory
+
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 internal annotation class ExternalFilesDirectory

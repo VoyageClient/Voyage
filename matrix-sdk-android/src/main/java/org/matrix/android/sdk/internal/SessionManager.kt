@@ -20,15 +20,14 @@ import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.auth.data.sessionId
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
-import org.matrix.android.sdk.internal.di.MatrixComponent
 import org.matrix.android.sdk.internal.di.MatrixScope
-import org.matrix.android.sdk.internal.session.DaggerSessionComponent
 import org.matrix.android.sdk.internal.session.SessionComponent
+import org.matrix.android.sdk.internal.session.SessionComponentFactory
 import javax.inject.Inject
 
 @MatrixScope
 internal class SessionManager @Inject constructor(
-        private val matrixComponent: MatrixComponent,
+        private val sessionComponentFactory: SessionComponentFactory,
         private val sessionParamsStore: SessionParamsStore
 ) {
 
@@ -67,9 +66,7 @@ internal class SessionManager @Inject constructor(
     fun getOrCreateSessionComponent(sessionParams: SessionParams): SessionComponent {
         return synchronized(sessionComponents) {
             sessionComponents.getOrPut(sessionParams.credentials.sessionId()) {
-                DaggerSessionComponent
-                        .factory()
-                        .create(matrixComponent, sessionParams)
+                sessionComponentFactory.create(sessionParams)
             }
         }
     }

@@ -10,7 +10,7 @@ package org.matrix.android.sdk.internal.session.content
 import android.content.Context
 import androidx.work.WorkerParameters
 import org.matrix.android.sdk.internal.SessionManager
-import org.matrix.android.sdk.internal.session.SessionComponent
+import org.matrix.android.sdk.internal.session.AndroidSessionComponent
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
 import javax.inject.Inject
 
@@ -21,7 +21,7 @@ internal class UploadMediaBytesWorker(context: Context, params: WorkerParameters
 
     @Inject lateinit var uploadMediaBytesTaskBody: UploadMediaBytesTaskBody
 
-    override fun injectWith(injector: SessionComponent) {
+    override fun injectWith(injector: AndroidSessionComponent) {
         injector.inject(this)
     }
 

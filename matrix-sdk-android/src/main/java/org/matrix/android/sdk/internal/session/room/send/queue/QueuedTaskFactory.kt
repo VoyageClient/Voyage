@@ -20,7 +20,7 @@ import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
-import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
+import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import javax.inject.Inject
@@ -31,7 +31,7 @@ internal class QueuedTaskFactory @Inject constructor(
         private val localEchoRepository: LocalEchoRepository,
         private val redactEventTask: RedactEventTask,
         private val cancelSendTracker: CancelSendTracker,
-        private val urlPreviewBundler: UrlPreviewBundler,
+        private val urlPreviewBundler: LinkPreviewPrefetcher,
 ) {
 
     fun createSendTask(event: Event, encrypt: Boolean): QueuedTask {

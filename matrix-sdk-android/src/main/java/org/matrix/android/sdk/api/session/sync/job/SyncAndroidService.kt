@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.failure.isTokenError
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.sync.SyncState
 import org.matrix.android.sdk.internal.network.NetworkConnectivityChecker
+import org.matrix.android.sdk.internal.session.AndroidSessionComponent
 import org.matrix.android.sdk.internal.session.sync.SyncPresence
 import org.matrix.android.sdk.internal.session.sync.SyncTask
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -212,7 +213,7 @@ abstract class SyncAndroidService : Service() {
         syncTimeoutSeconds = intent.getIntExtra(EXTRA_TIMEOUT_SECONDS, getDefaultSyncTimeoutSeconds())
         syncDelaySeconds = intent.getIntExtra(EXTRA_DELAY_SECONDS, getDefaultSyncDelaySeconds())
         try {
-            val sessionComponent = matrix.sessionManager.getSessionComponent(safeSessionId)
+            val sessionComponent = matrix.sessionManager.getSessionComponent(safeSessionId) as? AndroidSessionComponent
                     ?: throw IllegalStateException("## Sync: You should have a session to make it work")
             session = sessionComponent.session()
             sessionId = safeSessionId

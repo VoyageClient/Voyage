@@ -7,6 +7,8 @@
 
 package org.matrix.android.sdk.internal.session.media
 
+import org.matrix.android.sdk.api.session.events.model.Event
+
 /**
  * Reads the previews of the links in a message before it is sent. Behind an interface because the send
  * path is shared with the desktop target, while generating a preview is Android-only (it decodes images
@@ -15,4 +17,7 @@ package org.matrix.android.sdk.internal.session.media
 internal interface LinkPreviewPrefetcher {
 
     suspend fun prefetch(roomId: String, text: CharSequence, encrypt: Boolean)
+
+    /** @return the event carrying the previews of its links, or the event itself when there are none. */
+    suspend fun bundleUrlPreviews(event: Event, encrypt: Boolean): Event
 }
