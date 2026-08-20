@@ -18,7 +18,10 @@ import im.vector.matrixcli.platform.JdbcSqlDriverFactory
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.auth.LoginType
+import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
+import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.provider.RoomDisplayNameFallbackProvider
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
@@ -188,13 +191,38 @@ class DesktopBootSmoke {
             "matrix.org login types: ${types.joinToString()}"
         }
 
+        check("desktop session graph (no server)") {
+            val params = SessionParams(
+                    credentials = Credentials(
+                            userId = "@cli:example.org",
+                            accessToken = "not-a-real-token",
+                            refreshToken = null,
+                            homeServer = "example.org",
+                            deviceId = "CLIDEVICE",
+                    ),
+                    homeServerConnectionConfig = HomeServerConnectionConfig.Builder()
+                            .withHomeServerUri("https://example.org")
+                            .build(),
+                    isTokenValid = true,
+                    loginType = LoginType.PASSWORD,
+            )
+            val session = matrixComponent().sessionManager().getOrCreateSession(params)
+            // Lazy holders: touch the services so the graph actually constructs them.
+            val services = listOf(
+                    session.roomService(), session.userService(), session.cryptoService(),
+                    session.syncService(), session.searchService(), session.profileService(),
+                    session.fileService(), session.pushersService(), session.spaceService(),
+            )
+            "session ${session.myUserId} built with ${services.size} services from the desktop graph"
+        }
+
         dataDir.deleteRecursively()
         componentDataDir.deleteRecursively()
         println("== smoke complete: $passed passed, $failed failed ==")
     }
 }
 
-private object CliRoomDisplayNameFallbackProvider : RoomDisplayNameFallbackProvider {
+internal object CliRoomDisplayNameFallbackProvider : RoomDisplayNameFallbackProvider {
 
     override fun excludedUserIds(roomId: String) = emptyList<String>()
 
