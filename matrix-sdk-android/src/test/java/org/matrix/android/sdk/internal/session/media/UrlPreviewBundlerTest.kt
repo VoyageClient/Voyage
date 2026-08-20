@@ -72,7 +72,7 @@ internal class UrlPreviewBundlerTest {
     private val echoUpdate = slot<(EventEntity) -> Unit>()
 
     private val bundler = UrlPreviewBundler(
-            urlsExtractor = UrlsExtractor(),
+            urlsExtractor = UrlsExtractor(AndroidWebUrlPattern()),
             urlPreviewFetcher = urlPreviewFetcher,
             homeServerUrlPreviewFetcher = homeServerUrlPreviewFetcher,
             fileUploader = fileUploader,

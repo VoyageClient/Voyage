@@ -45,6 +45,7 @@ import org.matrix.android.sdk.internal.session.user.accountdata.PendingUnIgnoreS
 import org.matrix.android.sdk.internal.settings.SettingsModule
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
+import org.matrix.android.sdk.internal.util.system.AndroidSystemModule
 import org.matrix.android.sdk.internal.util.system.SystemModule
 import org.matrix.android.sdk.internal.worker.MatrixWorkerFactory
 import org.matrix.olm.OlmManager
@@ -59,6 +60,7 @@ import java.io.File
             DebugModule::class,
             SettingsModule::class,
             SystemModule::class,
+            AndroidSystemModule::class,
             NoOpTestModule::class,
             SecureStorageModule::class,
         ]

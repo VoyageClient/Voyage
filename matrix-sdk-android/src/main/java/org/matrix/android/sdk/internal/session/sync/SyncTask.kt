@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.sync
 
-import android.os.SystemClock
 import kotlinx.coroutines.CancellationException
 import okhttp3.ResponseBody
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -168,7 +167,7 @@ internal class DefaultSyncTask @Inject constructor(
                         }
                     }
                     // We cannot distinguish request and download in this case.
-                    syncStatisticsData.requestInitSyncTime = SystemClock.elapsedRealtime()
+                    syncStatisticsData.requestInitSyncTime = System.nanoTime() / 1_000_000
                     syncStatisticsData.downloadInitSyncTime = syncStatisticsData.requestInitSyncTime
                     logDuration("INIT_SYNC Database insertion", loggerTag, clock) {
                         syncResponseHandler.handleResponse(syncResponse, null, afterPause = true, syncRequestStateTracker)
@@ -215,7 +214,7 @@ internal class DefaultSyncTask @Inject constructor(
             Timber.tag(loggerTag.value).d("Incremental sync done")
             syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncDone)
         }
-        syncStatisticsData.treatmentSyncTime = SystemClock.elapsedRealtime()
+        syncStatisticsData.treatmentSyncTime = System.nanoTime() / 1_000_000
         syncStatisticsData.nbOfRooms = syncResponseToReturn?.rooms?.join?.size ?: 0
         sendStatistics(syncStatisticsData)
         Timber.tag(loggerTag.value).d("Sync task finished on Thread: ${Thread.currentThread().name}")
@@ -256,7 +255,7 @@ internal class DefaultSyncTask @Inject constructor(
                     getSyncResponse(requestParams, MAX_NUMBER_OF_RETRY_AFTER_TIMEOUT)
                 }
             }
-            syncStatisticsData.requestInitSyncTime = SystemClock.elapsedRealtime()
+            syncStatisticsData.requestInitSyncTime = System.nanoTime() / 1_000_000
             if (syncResponse.isSuccessful) {
                 logDuration("INIT_SYNC Download and save to file", loggerTag, clock) {
                     reportSubtask(syncRequestStateTracker, InitialSyncStep.Downloading, 1, 0.1f) {
@@ -271,7 +270,7 @@ internal class DefaultSyncTask @Inject constructor(
                 throw syncResponse.toFailure(globalErrorReceiver)
                         .also { Timber.tag(loggerTag.value).w("INIT_SYNC request failure: $this") }
             }
-            syncStatisticsData.downloadInitSyncTime = SystemClock.elapsedRealtime()
+            syncStatisticsData.downloadInitSyncTime = System.nanoTime() / 1_000_000
             initialSyncStatusRepository.setStep(InitialSyncStatus.STEP_DOWNLOADED)
         }
         return workingFile
@@ -322,7 +321,7 @@ internal class DefaultSyncTask @Inject constructor(
             val isInitSync: Boolean,
             val isAfterPause: Boolean
     ) {
-        val startTime = SystemClock.elapsedRealtime()
+        val startTime = System.nanoTime() / 1_000_000
         var requestInitSyncTime = startTime
         var downloadInitSyncTime = startTime
         var treatmentSyncTime = startTime

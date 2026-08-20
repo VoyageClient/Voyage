@@ -14,8 +14,13 @@ import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.identity.IdentityService
+import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
 import org.matrix.android.sdk.api.session.room.RoomService
+import org.matrix.android.sdk.api.session.sync.SyncService
 import org.matrix.android.sdk.api.session.user.UserService
+import org.matrix.android.sdk.api.session.widgets.WidgetPostAPIMediator
+import org.matrix.android.sdk.api.session.widgets.WidgetService
+import org.matrix.android.sdk.api.session.widgets.WidgetURLFormatter
 import org.matrix.android.sdk.internal.crypto.AndroidCryptoService
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
@@ -29,15 +34,23 @@ import org.matrix.android.sdk.internal.session.content.ContentUriResolver
 import org.matrix.android.sdk.internal.session.content.ImageExifTagRemover
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 import org.matrix.android.sdk.internal.session.identity.DefaultIdentityService
+import org.matrix.android.sdk.internal.session.integrationmanager.DefaultIntegrationManagerService
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManager
+import org.matrix.android.sdk.internal.session.media.AndroidWebUrlPattern
 import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
+import org.matrix.android.sdk.internal.session.media.WebUrlPattern
+import org.matrix.android.sdk.internal.session.room.DefaultRoomFactory
 import org.matrix.android.sdk.internal.session.room.DefaultRoomService
+import org.matrix.android.sdk.internal.session.room.RoomFactory
 import org.matrix.android.sdk.internal.session.room.send.AndroidVideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.pills.AndroidTextPillsUtils
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
+import org.matrix.android.sdk.internal.session.sync.DefaultSyncService
 import org.matrix.android.sdk.internal.session.user.DefaultUserService
+import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetPostAPIMediator
+import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetURLFormatter
 import org.matrix.android.sdk.internal.session.workmanager.DefaultWorkManagerConfig
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
@@ -65,8 +78,25 @@ internal abstract class AndroidSessionModule {
     @Binds
     abstract fun bindCommonCryptoStore(store: SqlCryptoStore): IMXCommonCryptoStore
 
+    // The room factory builds the paged threads service, so it follows RoomService here for now.
+    @Binds
+    abstract fun bindRoomFactory(factory: DefaultRoomFactory): RoomFactory
+
     @Binds
     abstract fun bindRoomService(service: DefaultRoomService): RoomService
+
+    // Sync runs on a dedicated android thread (SyncThread); another platform needs its own loop.
+    @Binds
+    abstract fun bindSyncService(service: DefaultSyncService): SyncService
+
+    @Binds
+    abstract fun bindWidgetService(service: DefaultWidgetService): WidgetService
+
+    @Binds
+    abstract fun bindWidgetPostAPIMediator(mediator: DefaultWidgetPostAPIMediator): WidgetPostAPIMediator
+
+    @Binds
+    abstract fun bindWidgetUrlBuilder(formatter: DefaultWidgetURLFormatter): WidgetURLFormatter
 
     @Binds
     abstract fun bindUserService(service: DefaultUserService): UserService
@@ -91,6 +121,12 @@ internal abstract class AndroidSessionModule {
 
     @Binds
     abstract fun bindLinkPreviewPrefetcher(bundler: UrlPreviewBundler): LinkPreviewPrefetcher
+
+    @Binds
+    abstract fun bindWebUrlPattern(pattern: AndroidWebUrlPattern): WebUrlPattern
+
+    @Binds
+    abstract fun bindIntegrationManagerService(service: DefaultIntegrationManagerService): IntegrationManagerService
 
     @Binds
     @IntoSet

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.media
 
-import android.util.Patterns
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -25,9 +24,11 @@ import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.api.util.ContentUtils
 import javax.inject.Inject
 
-internal class UrlsExtractor @Inject constructor() {
+internal class UrlsExtractor @Inject constructor(
+        webUrlPattern: WebUrlPattern,
+) {
     // Sadly Patterns.WEB_URL_WITH_PROTOCOL is not public so filter the protocol later
-    private val urlRegex = Patterns.WEB_URL.toRegex()
+    private val urlRegex = webUrlPattern.regex
 
     fun extract(event: TimelineEvent): List<String> {
         return event.takeIf { it.root.getClearType() == EventType.MESSAGE }

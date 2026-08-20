@@ -65,6 +65,7 @@ import org.matrix.android.sdk.internal.session.user.UserModule
 import org.matrix.android.sdk.internal.session.user.accountdata.AccountDataModule
 import org.matrix.android.sdk.internal.session.widgets.WidgetModule
 import org.matrix.android.sdk.internal.task.TaskExecutor
+import org.matrix.android.sdk.internal.util.system.AndroidSystemModule
 import org.matrix.android.sdk.internal.util.system.SystemModule
 
 @Component(
@@ -83,6 +84,7 @@ import org.matrix.android.sdk.internal.util.system.SystemModule
             MediaModule::class,
             CryptoModule::class,
             SystemModule::class,
+            AndroidSystemModule::class,
             PushersModule::class,
             OpenIdModule::class,
             WidgetModule::class,
