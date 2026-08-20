@@ -1390,6 +1390,26 @@ ext.coreSources = [
         // go through seams; the Dagger components it is created by are still android.
         'org/matrix/android/sdk/internal/session/content/DefaultContentUploadStateTracker.kt',
         'org/matrix/android/sdk/internal/session/DefaultSession.kt',
+        'org/matrix/android/sdk/internal/session/SessionComponent.kt',
+        'org/matrix/android/sdk/internal/session/SessionComponentFactory.kt',
+        'org/matrix/android/sdk/internal/SessionManager.kt',
+        'org/matrix/android/sdk/internal/session/SessionModule.kt',
+        'org/matrix/android/sdk/internal/di/LinkPreview.kt',
+        'org/matrix/android/sdk/internal/session/download/DefaultContentDownloadStateTracker.kt',
+        'org/matrix/android/sdk/internal/session/room/event/FilterAndStoreEventsTask.kt',
+        'org/matrix/android/sdk/internal/session/room/relation/poll/FetchPollResponseEventsTask.kt',
+        'org/matrix/android/sdk/internal/network/NetworkConnectivityChecker.kt',
+        'org/matrix/android/sdk/internal/session/download/ProgressResponseBody.kt',
+        'org/matrix/android/sdk/internal/session/room/send/queue/SendEventQueuedTask.kt',
+        'org/matrix/android/sdk/internal/session/room/aggregation/livelocation/LiveLocationAggregationProcessor.kt',
+        'org/matrix/android/sdk/internal/session/room/send/queue/QueuedTaskFactory.kt',
+        'org/matrix/android/sdk/internal/session/room/send/queue/QueueMemento.kt',
+        'org/matrix/android/sdk/internal/session/media/PublicHostDns.kt',
+        'org/matrix/android/sdk/internal/session/download/DownloadProgressInterceptor.kt',
+        'org/matrix/android/sdk/internal/session/room/EventRelationsAggregationProcessor.kt',
+        'org/matrix/android/sdk/internal/session/call/CallEventProcessor.kt',
+        'org/matrix/android/sdk/internal/session/room/send/queue/EventSenderProcessorCoroutine.kt',
+        'org/matrix/android/sdk/internal/session/room/aggregation/poll/DefaultPollAggregationProcessor.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

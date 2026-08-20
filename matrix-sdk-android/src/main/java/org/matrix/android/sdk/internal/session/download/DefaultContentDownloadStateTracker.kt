@@ -16,8 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.download
 
-import android.os.Handler
-import android.os.Looper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.internal.session.SessionScope
@@ -25,9 +27,11 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @SessionScope
-internal class DefaultContentDownloadStateTracker @Inject constructor() : ProgressListener, ContentDownloadStateTracker {
+internal class DefaultContentDownloadStateTracker @Inject constructor(
+        coroutineDispatchers: MatrixCoroutineDispatchers,
+) : ProgressListener, ContentDownloadStateTracker {
 
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val mainScope = CoroutineScope(SupervisorJob() + coroutineDispatchers.main)
     private val states = mutableMapOf<String, ContentDownloadStateTracker.State>()
     private val listeners = mutableMapOf<String, MutableList<ContentDownloadStateTracker.UpdateListener>>()
 
@@ -37,7 +41,7 @@ internal class DefaultContentDownloadStateTracker @Inject constructor() : Progre
             listeners.add(updateListener)
         }
         val currentState = states[key] ?: ContentDownloadStateTracker.State.Idle
-        mainHandler.post {
+        mainScope.launch {
             try {
                 updateListener.onDownloadStateUpdate(currentState)
             } catch (e: Exception) {
@@ -60,7 +64,7 @@ internal class DefaultContentDownloadStateTracker @Inject constructor() : Progre
 //    private fun URL.toKey() = toString()
 
     override fun update(url: String, bytesRead: Long, contentLength: Long, done: Boolean) {
-        mainHandler.post {
+        mainScope.launch {
             Timber.v("## DL Progress url:$url read:$bytesRead total:$contentLength done:$done")
             if (done) {
                 updateState(url, ContentDownloadStateTracker.State.Success)
@@ -71,7 +75,7 @@ internal class DefaultContentDownloadStateTracker @Inject constructor() : Progre
     }
 
     override fun error(url: String, errorCode: Int) {
-        mainHandler.post {
+        mainScope.launch {
             Timber.v("## DL Progress Error code:$errorCode")
             updateState(url, ContentDownloadStateTracker.State.Failure(errorCode))
             listeners[url]?.forEach {

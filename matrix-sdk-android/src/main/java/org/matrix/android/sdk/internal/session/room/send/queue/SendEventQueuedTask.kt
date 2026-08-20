@@ -22,7 +22,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
-import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
+import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.util.toMatrixErrorStr
@@ -34,7 +34,7 @@ internal class SendEventQueuedTask(
         val cryptoService: CryptoService,
         val localEchoRepository: LocalEchoRepository,
         val cancelSendTracker: CancelSendTracker,
-        val urlPreviewBundler: UrlPreviewBundler,
+        val urlPreviewBundler: LinkPreviewPrefetcher,
 ) : QueuedTask(queueIdentifier = event.roomId!!, taskIdentifier = event.eventId!!) {
 
     private var lastFailure: Throwable? = null

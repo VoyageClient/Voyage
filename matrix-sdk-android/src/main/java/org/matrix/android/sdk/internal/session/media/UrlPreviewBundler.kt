@@ -75,7 +75,7 @@ internal class UrlPreviewBundler @Inject constructor(
      * @return [event] with its bundled previews added, or [event] itself when there is nothing to bundle.
      * The local echo is updated along the way, so the sender sees the same previews as everybody else.
      */
-    suspend fun bundleUrlPreviews(event: Event, encrypt: Boolean): Event {
+    override suspend fun bundleUrlPreviews(event: Event, encrypt: Boolean): Event {
         val eventId = event.eventId ?: return event
         val roomId = event.roomId ?: return event
         val content = event.content?.takeIf { event.getClearType() == EventType.MESSAGE } ?: return event

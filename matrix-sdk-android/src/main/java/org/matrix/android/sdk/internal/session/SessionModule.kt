@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session
 
-import android.content.Context
 import app.cash.sqldelight.db.SqlDriver
 import dagger.Binds
 import dagger.Lazy
@@ -36,7 +35,6 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.ToDeviceService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
-import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.session.openid.OpenIdService
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
@@ -53,6 +51,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.di.CacheDirectory
 import org.matrix.android.sdk.internal.di.DeviceId
+import org.matrix.android.sdk.internal.di.FilesDirectory
 import org.matrix.android.sdk.internal.di.LinkPreview
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabaseRead
@@ -79,15 +78,9 @@ import org.matrix.android.sdk.internal.network.httpclient.applyMatrixConfigurati
 import org.matrix.android.sdk.internal.network.interceptors.CurlLoggingInterceptor
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
 import org.matrix.android.sdk.internal.network.token.HomeserverAccessTokenProvider
-import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
-import org.matrix.android.sdk.internal.platform.WorkManagerTaskScheduler
-import org.matrix.android.sdk.internal.session.call.CallEventProcessor
 import org.matrix.android.sdk.internal.session.download.DownloadProgressInterceptor
-import org.matrix.android.sdk.internal.session.events.DefaultEventService
 import org.matrix.android.sdk.internal.session.homeserver.DefaultHomeServerCapabilitiesService
-import org.matrix.android.sdk.internal.session.identity.DefaultIdentityService
-import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManager
 import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
 import org.matrix.android.sdk.internal.session.media.PublicHostDns
 import org.matrix.android.sdk.internal.session.openid.DefaultOpenIdService
@@ -108,9 +101,6 @@ import org.matrix.android.sdk.internal.session.search.index.EventIndexStore
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import org.matrix.android.sdk.internal.session.typing.DefaultTypingUsersTracker
 import org.matrix.android.sdk.internal.session.user.accountdata.DefaultSessionAccountDataService
-import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetURLFormatter
-import org.matrix.android.sdk.internal.session.workmanager.DefaultWorkManagerConfig
-import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import retrofit2.Retrofit
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -182,15 +172,15 @@ internal abstract class SessionModule {
         fun providesFilesDir(
                 @UserMd5 userMd5: String,
                 @SessionId sessionId: String,
-                context: Context
+                @FilesDirectory filesDir: File,
         ): File {
             // Temporary code for migration
-            val old = File(context.filesDir, userMd5)
+            val old = File(filesDir, userMd5)
             if (old.exists()) {
-                old.renameTo(File(context.filesDir, sessionId))
+                old.renameTo(File(filesDir, sessionId))
             }
 
-            return File(context.filesDir, sessionId)
+            return File(filesDir, sessionId)
         }
 
         @JvmStatic
@@ -405,9 +395,6 @@ internal abstract class SessionModule {
     abstract fun bindNetworkConnectivityChecker(checker: DefaultNetworkConnectivityChecker): NetworkConnectivityChecker
 
     @Binds
-    abstract fun bindBackgroundTaskScheduler(scheduler: WorkManagerTaskScheduler): BackgroundTaskScheduler
-
-    @Binds
     @IntoSet
     abstract fun bindEventRedactionProcessor(processor: RedactionEventProcessor): EventInsertLiveProcessor
 
@@ -429,27 +416,11 @@ internal abstract class SessionModule {
 
     @Binds
     @IntoSet
-    abstract fun bindCallEventProcessor(processor: CallEventProcessor): EventInsertLiveProcessor
-
-    @Binds
-    @IntoSet
     abstract fun bindEventInsertObserver(observer: EventInsertLiveObserver): SessionLifecycleObserver
 
     @Binds
     @IntoSet
     abstract fun bindIsMediaAuthenticated(observer: DefaultIsAuthenticatedMediaSupported): SessionLifecycleObserver
-
-    @Binds
-    @IntoSet
-    abstract fun bindIntegrationManager(manager: IntegrationManager): SessionLifecycleObserver
-
-    @Binds
-    @IntoSet
-    abstract fun bindWidgetUrlFormatter(formatter: DefaultWidgetURLFormatter): SessionLifecycleObserver
-
-    @Binds
-    @IntoSet
-    abstract fun bindIdentityService(service: DefaultIdentityService): SessionLifecycleObserver
 
     @Binds
     @IntoSet
@@ -482,9 +453,6 @@ internal abstract class SessionModule {
     abstract fun bindSessionAccountDataService(service: DefaultSessionAccountDataService): SessionAccountDataService
 
     @Binds
-    abstract fun bindEventService(service: DefaultEventService): EventService
-
-    @Binds
     abstract fun bindSharedSecretStorageService(service: DefaultSharedSecretStorageService): SharedSecretStorageService
 
     @Binds
@@ -510,7 +478,4 @@ internal abstract class SessionModule {
 
     @Binds
     abstract fun bindPollAggregationProcessor(processor: DefaultPollAggregationProcessor): PollAggregationProcessor
-
-    @Binds
-    abstract fun bindWorkManaerConfig(config: DefaultWorkManagerConfig): WorkManagerConfig
 }

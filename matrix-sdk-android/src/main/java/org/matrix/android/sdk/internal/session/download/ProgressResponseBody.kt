@@ -55,7 +55,7 @@ internal class ProgressResponseBody(
                 // Throttle: update() posts to the main thread, and this is called for every ~8KB read —
                 // unthrottled, a large file on a fast connection floods the main looper and freezes the UI
                 // for the whole download.
-                val now = android.os.SystemClock.elapsedRealtime()
+                val now = System.nanoTime() / 1_000_000
                 if (done || now - lastNotifyMs >= PROGRESS_INTERVAL_MS) {
                     lastNotifyMs = now
                     progressListener.update(chainUrl, totalBytesRead, responseBody.contentLength(), done)

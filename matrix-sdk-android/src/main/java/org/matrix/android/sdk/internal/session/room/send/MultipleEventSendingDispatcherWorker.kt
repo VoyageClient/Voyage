@@ -19,7 +19,7 @@ package org.matrix.android.sdk.internal.session.room.send
 import android.content.Context
 import androidx.work.WorkerParameters
 import org.matrix.android.sdk.internal.SessionManager
-import org.matrix.android.sdk.internal.session.SessionComponent
+import org.matrix.android.sdk.internal.session.AndroidSessionComponent
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
 import javax.inject.Inject
@@ -38,7 +38,7 @@ internal class MultipleEventSendingDispatcherWorker(context: Context, params: Wo
 
     @Inject lateinit var multipleEventSendingDispatcherTaskBody: MultipleEventSendingDispatcherTaskBody
 
-    override fun injectWith(injector: SessionComponent) {
+    override fun injectWith(injector: AndroidSessionComponent) {
         injector.inject(this)
     }
 

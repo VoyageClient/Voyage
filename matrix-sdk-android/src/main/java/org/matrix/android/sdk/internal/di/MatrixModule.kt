@@ -32,6 +32,8 @@ import org.matrix.android.sdk.internal.platform.AndroidNetworkCallbackStrategyFa
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
 import org.matrix.android.sdk.internal.platform.SharedPreferencesKeyValueStoreFactory
+import org.matrix.android.sdk.internal.session.AndroidSessionComponentFactory
+import org.matrix.android.sdk.internal.session.SessionComponentFactory
 import org.matrix.android.sdk.internal.util.createBackgroundHandler
 import org.matrix.olm.OlmManager
 import java.io.File
@@ -55,8 +57,19 @@ internal object MatrixModule {
 
     @JvmStatic
     @Provides
+    fun providesSessionComponentFactory(factory: AndroidSessionComponentFactory): SessionComponentFactory = factory
+
+    @JvmStatic
+    @Provides
     fun providesResources(context: Context): Resources {
         return context.resources
+    }
+
+    @JvmStatic
+    @Provides
+    @FilesDirectory
+    fun providesFilesDir(context: Context): File {
+        return context.filesDir
     }
 
     @JvmStatic
