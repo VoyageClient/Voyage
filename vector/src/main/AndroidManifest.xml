@@ -158,6 +158,7 @@
         </activity>
         <activity android:name=".features.createdirect.CreateDirectRoomActivity" />
         <activity android:name=".features.invite.InviteUsersToRoomActivity" />
+        <activity android:name=".features.settings.useragent.PreLoginSettingsActivity" />
         <activity android:name=".features.webview.VectorWebViewActivity" />
 
         <!-- Activity to intercept links coming from a web instance -->

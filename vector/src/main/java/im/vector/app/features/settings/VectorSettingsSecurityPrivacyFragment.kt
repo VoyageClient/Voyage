@@ -70,6 +70,7 @@ import im.vector.app.features.redaction.preservation.RedactionPreservationSettin
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_MEDIA_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_WIFI_ONLY_KEY
 import im.vector.app.features.session.coroutineScope
+import im.vector.app.features.settings.useragent.VectorSettingsUserAgentFragment
 import im.vector.app.features.settings.vpn.VectorSettingsVpnExclusionsFragment
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
@@ -321,6 +322,11 @@ class VectorSettingsSecurityPrivacyFragment :
 
         findPreference<VectorPreference>("SETTINGS_VPN_EXCLUSIONS_KEY")?.setOnPreferenceClickListener {
             (vectorActivity as? VectorSettingsActivity)?.navigateTo(VectorSettingsVpnExclusionsFragment::class.java)
+            true
+        }
+
+        findPreference<VectorPreference>("SETTINGS_USER_AGENT_KEY")?.setOnPreferenceClickListener {
+            (vectorActivity as? VectorSettingsActivity)?.navigateTo(VectorSettingsUserAgentFragment::class.java)
             true
         }
 

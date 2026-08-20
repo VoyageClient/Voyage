@@ -22,6 +22,7 @@ import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.homeserver.ServerUrlsRepository
 import im.vector.app.features.reactions.data.EmojiDataSource
+import im.vector.app.features.settings.useragent.UserAgentSettings
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
 import im.vector.lib.core.utils.timer.Clock
@@ -392,6 +393,8 @@ class VectorPreferences @Inject constructor(
 
         // remove the one to keep
         keys.removeAll(keysToKeep)
+        // User-Agent spoofing config is a device choice, not account data
+        keys.removeAll { it.startsWith(UserAgentSettings.KEY_PREFIX) }
 
         defaultPrefs.edit {
             for (key in keys) {

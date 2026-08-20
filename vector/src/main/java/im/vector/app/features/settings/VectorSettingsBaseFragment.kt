@@ -87,7 +87,10 @@ abstract class VectorSettingsBaseFragment : PreferenceFragmentCompat(), Maverick
     override fun onAttach(context: Context) {
         val singletonEntryPoint = context.singletonEntryPoint()
         super.onAttach(context)
-        session = singletonEntryPoint.activeSessionHolder().getActiveSession()
+        // Pre-login hosts (the User-Agent spoof screen) show a settings fragment with no session yet;
+        // leave `session` unset in that case rather than crashing. Session-dependent screens are never
+        // reached before authentication.
+        singletonEntryPoint.activeSessionHolder().getSafeActiveSession()?.let { session = it }
         errorFormatter = singletonEntryPoint.errorFormatter()
     }
 

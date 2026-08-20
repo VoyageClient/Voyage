@@ -37,6 +37,8 @@ import im.vector.app.features.mdm.MdmData
 import im.vector.app.features.mdm.MdmService
 import im.vector.app.features.onboarding.OnboardingAction.AuthenticateAction
 import im.vector.app.features.onboarding.StartAuthenticationFlowUseCase.StartAuthenticationResult
+import im.vector.app.features.settings.StealthModeStore
+import im.vector.app.features.settings.useragent.UserAgentSettings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -81,6 +83,8 @@ class OnboardingViewModel @AssistedInject constructor(
         private val registrationActionHandler: RegistrationActionHandler,
         private val sdkIntProvider: BuildVersionSdkIntProvider,
         private val configureAndStartSessionUseCase: ConfigureAndStartSessionUseCase,
+        private val userAgentSettings: UserAgentSettings,
+        private val stealthModeStore: StealthModeStore,
         mdmService: MdmService,
 ) : VectorViewModel<OnboardingViewState, OnboardingAction, OnboardingViewEvents>(initialState) {
 
@@ -622,6 +626,10 @@ class OnboardingViewModel @AssistedInject constructor(
         state.useCase?.let { useCase ->
             session.vectorStore(applicationContext).setUseCase(useCase)
         }
+        // Carry any pre-login choices into this account before it goes active (setActiveSession seeds
+        // the live stealth flag from the account's stored value).
+        userAgentSettings.migratePendingInto(session.myUserId)
+        stealthModeStore.migratePendingInto(session.myUserId)
         activeSessionHolder.setActiveSession(session)
 
         authenticationService.reset()

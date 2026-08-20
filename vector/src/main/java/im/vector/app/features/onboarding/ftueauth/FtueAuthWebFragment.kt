@@ -28,6 +28,8 @@ import im.vector.app.features.login.SignMode
 import im.vector.app.features.onboarding.OnboardingAction
 import im.vector.app.features.onboarding.OnboardingViewEvents
 import im.vector.app.features.onboarding.OnboardingViewState
+import im.vector.app.features.settings.useragent.UaSurface
+import im.vector.app.features.settings.useragent.UserAgentSpoofBuilder
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.util.MatrixJsonParser
@@ -44,6 +46,7 @@ class FtueAuthWebFragment :
         AbstractFtueAuthFragment<FragmentLoginWebBinding>() {
 
     @Inject lateinit var assetReader: AssetReader
+    @Inject lateinit var userAgentSpoofBuilder: UserAgentSpoofBuilder
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentLoginWebBinding {
         return FragmentLoginWebBinding.inflate(inflater, container, false)
@@ -84,7 +87,8 @@ class FtueAuthWebFragment :
 
         // Due to https://developers.googleblog.com/2016/08/modernizing-oauth-interactions-in-native-apps.html, we hack
         // the user agent to bypass the limitation of Google, as a quick fix (a proper solution will be to use the SSO SDK)
-        views.loginWebWebView.settings.userAgentString = "Mozilla/5.0 Google"
+        views.loginWebWebView.settings.userAgentString =
+                userAgentSpoofBuilder.buildFor(UaSurface.SSO_WEBVIEW) ?: "Mozilla/5.0 Google"
 
         // AppRTC requires third party cookies to work
         val cookieManager = android.webkit.CookieManager.getInstance()

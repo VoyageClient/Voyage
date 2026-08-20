@@ -52,6 +52,7 @@ import im.vector.app.features.rageshake.VectorFileLogger
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.settings.VectorLocale
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.settings.useragent.UaAutoUpgradeManager
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.version.VersionProvider
 import im.vector.lib.core.utils.audio.AudioRouteKeepAlive
@@ -97,6 +98,7 @@ class VectorApplication :
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var vpnGate: VpnGate
     @Inject lateinit var vpnGateState: VpnGateState
+    @Inject lateinit var uaAutoUpgradeManager: UaAutoUpgradeManager
     @Inject lateinit var leakDetector: LeakDetector
     @Inject lateinit var vectorLocale: VectorLocale
 
@@ -183,6 +185,7 @@ class VectorApplication :
                 // idle takes about a second to start playing again.
                 AudioRouteKeepAlive.acquire(this@VectorApplication)
                 vpnGate.onAppForegrounded()
+                uaAutoUpgradeManager.onAppForegrounded()
                 if (vpnGateState.isClosed) return
                 fcmHelper.onEnterForeground(activeSessionHolder)
                 activeSessionHolder.getSafeActiveSessionAsync {

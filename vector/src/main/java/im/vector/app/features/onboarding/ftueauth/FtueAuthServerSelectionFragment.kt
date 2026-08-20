@@ -17,6 +17,7 @@ import im.vector.app.features.login.ServerType
 import im.vector.app.features.login.SignMode
 import im.vector.app.features.onboarding.OnboardingAction
 import im.vector.app.features.onboarding.OnboardingViewState
+import im.vector.app.features.settings.useragent.PreLoginSettingsActivity
 
 /**
  * In this screen, the user chooses to sign in with a Matrix ID or to connect to a custom homeserver.
@@ -34,6 +35,10 @@ class FtueAuthServerSelectionFragment :
 
         views.loginServerChoiceMatrixId.setOnClickListener { loginWithMatrixId() }
         views.loginServerChoiceOther.setOnClickListener { selectOther() }
+        // Per-account settings that must be set before the first request reaches a homeserver (UA spoof, stealth).
+        views.loginServerPreLoginSettings.setOnClickListener {
+            startActivity(PreLoginSettingsActivity.newIntent(requireContext()))
+        }
     }
 
     private fun selectOther() {

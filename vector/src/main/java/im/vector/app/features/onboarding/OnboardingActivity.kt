@@ -21,6 +21,8 @@ import im.vector.app.core.platform.lifecycleAwareLazy
 import im.vector.app.databinding.ActivityLoginBinding
 import im.vector.app.features.login.LoginConfig
 import im.vector.app.features.pin.UnlockedActivity
+import im.vector.app.features.settings.StealthModeStore
+import im.vector.app.features.settings.useragent.UserAgentSettings
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import javax.inject.Inject
@@ -34,6 +36,8 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
 
     @Inject lateinit var onboardingVariantFactory: OnboardingVariantFactory
     @Inject lateinit var authenticationService: AuthenticationService
+    @Inject lateinit var userAgentSettings: UserAgentSettings
+    @Inject lateinit var stealthModeStore: StealthModeStore
 
     override fun getBinding() = ActivityLoginBinding.inflate(layoutInflater)
 
@@ -45,6 +49,17 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         onboardingVariant.onNewIntent(intent)
+    }
+
+    override fun onDestroy() {
+        // Backing out of onboarding without signing in means the user gave up: drop any pre-login spoof/
+        // stealth choices. On a successful sign-in they were already migrated into the account and cleared,
+        // so this is a no-op then.
+        if (isFinishing) {
+            userAgentSettings.abandonPending()
+            stealthModeStore.abandonPending(activeSessionHolder.getSafeActiveSession()?.myUserId)
+        }
+        super.onDestroy()
     }
 
     @Suppress("OVERRIDE_DEPRECATION")

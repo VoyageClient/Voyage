@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
+        android:key="SETTINGS_UA_CATEGORY"
+        android:title="@string/settings_ua_category"
+        app:actionIcon="@drawable/ic_download"
+        app:actionContentDescription="@string/settings_ua_update_action">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:key="SETTINGS_UA_CLIENT"
+            android:title="@string/settings_ua_spoof_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_UA_AUTO_UPGRADE"
+            android:persistent="false"
+            android:summary="@string/settings_ua_auto_upgrade_summary"
+            android:title="@string/settings_ua_auto_upgrade_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_UA_FIELD_CUSTOM_UA"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_custom_ua_title" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:key="SETTINGS_UA_FIELD_OS"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_os_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_OS_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_os_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_BROWSER_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_browser_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_CURL_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_curl_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_APP_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_app_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_DEVICE_MANUFACTURER"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_device_manufacturer_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_DEVICE_MODEL"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_device_model_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_ANDROID_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_android_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_BUILD_ID"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_build_id_title" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:key="SETTINGS_UA_FIELD_FLAVOUR"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_flavour_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_SDK_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_sdk_version_title" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:key="SETTINGS_UA_FIELD_SUFFIX"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_suffix_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_IOS_DEVICE"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_ios_device_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_IOS_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_ios_version_title" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:key="SETTINGS_UA_FIELD_SCALE"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_scale_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_ELECTRON_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_electron_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_MTXCLIENT_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_mtxclient_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_GOMUKS_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_gomuks_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_MAUTRIX_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_mautrix_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_GO_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_go_version_title" />
+
+        <im.vector.app.features.settings.useragent.UaVersionListPreference
+            android:key="SETTINGS_UA_FIELD_DART_VERSION"
+            android:persistent="false"
+            android:title="@string/settings_ua_field_dart_version_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_UA_APPLIES_TO"
+            android:persistent="false"
+            android:title="@string/settings_ua_applies_to_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_UA_PREVIEW"
+            android:persistent="false"
+            android:selectable="false"
+            android:title="@string/settings_ua_preview_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
+
+</androidx.preference.PreferenceScreen>

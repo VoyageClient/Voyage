@@ -325,6 +325,12 @@
             android:summary="@string/settings_security_stealth_mode_summary"
             android:title="@string/settings_security_stealth_mode_title" />
 
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_USER_AGENT_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_user_agent_summary"
+            android:title="@string/settings_user_agent_title" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
 </androidx.preference.PreferenceScreen>
