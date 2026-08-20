@@ -35,6 +35,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.ToDeviceService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
+import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.session.openid.OpenIdService
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
@@ -79,7 +80,9 @@ import org.matrix.android.sdk.internal.network.interceptors.CurlLoggingIntercept
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
 import org.matrix.android.sdk.internal.network.token.HomeserverAccessTokenProvider
 import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
+import org.matrix.android.sdk.internal.session.call.CallEventProcessor
 import org.matrix.android.sdk.internal.session.download.DownloadProgressInterceptor
+import org.matrix.android.sdk.internal.session.events.DefaultEventService
 import org.matrix.android.sdk.internal.session.homeserver.DefaultHomeServerCapabilitiesService
 import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
 import org.matrix.android.sdk.internal.session.media.PublicHostDns
@@ -405,6 +408,13 @@ internal abstract class SessionModule {
     @Binds
     @IntoSet
     abstract fun bindEventRelationsAggregationProcessor(processor: EventRelationsAggregationProcessor): EventInsertLiveProcessor
+
+    @Binds
+    @IntoSet
+    abstract fun bindCallEventProcessor(processor: CallEventProcessor): EventInsertLiveProcessor
+
+    @Binds
+    abstract fun bindEventService(service: DefaultEventService): EventService
 
     @Binds
     @IntoSet

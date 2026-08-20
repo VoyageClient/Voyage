@@ -27,11 +27,8 @@ import org.commonmark.ext.underline.UnderlineExtension
 import org.commonmark.node.BlockQuote
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
-import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.room.RoomDirectoryService
-import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.space.SpaceService
-import org.matrix.android.sdk.internal.session.DefaultFileService
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.directory.DirectoryAPI
 import org.matrix.android.sdk.internal.session.identity.DefaultSign3pidInvitationTask
@@ -138,10 +135,6 @@ import org.matrix.android.sdk.internal.session.room.reporting.DefaultReportConte
 import org.matrix.android.sdk.internal.session.room.reporting.DefaultReportRoomTask
 import org.matrix.android.sdk.internal.session.room.reporting.ReportContentTask
 import org.matrix.android.sdk.internal.session.room.reporting.ReportRoomTask
-import org.matrix.android.sdk.internal.session.room.send.AndroidVideoMetadataExtractor
-import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
-import org.matrix.android.sdk.internal.session.room.send.pills.AndroidTextPillsUtils
-import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.internal.session.room.state.DefaultSendStateTask
 import org.matrix.android.sdk.internal.session.room.state.SendStateTask
 import org.matrix.android.sdk.internal.session.room.summary.DefaultSyncWatchedRoomSummariesTask
@@ -232,28 +225,16 @@ internal abstract class RoomModule {
     }
 
     @Binds
-    abstract fun bindVideoMetadataExtractor(extractor: AndroidVideoMetadataExtractor): VideoMetadataExtractor
-
-    @Binds
-    abstract fun bindTextPillsUtils(utils: AndroidTextPillsUtils): TextPillsUtils
-
-    @Binds
     abstract fun bindRoomFactory(factory: DefaultRoomFactory): RoomFactory
 
     @Binds
     abstract fun bindRoomGetter(getter: DefaultRoomGetter): RoomGetter
 
     @Binds
-    abstract fun bindRoomService(service: DefaultRoomService): RoomService
-
-    @Binds
     abstract fun bindSpaceService(service: DefaultSpaceService): SpaceService
 
     @Binds
     abstract fun bindRoomDirectoryService(service: DefaultRoomDirectoryService): RoomDirectoryService
-
-    @Binds
-    abstract fun bindFileService(service: DefaultFileService): FileService
 
     @Binds
     abstract fun bindCreateRoomTask(task: DefaultCreateRoomTask): CreateRoomTask

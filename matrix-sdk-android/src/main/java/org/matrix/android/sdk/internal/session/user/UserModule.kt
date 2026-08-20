@@ -19,7 +19,6 @@ package org.matrix.android.sdk.internal.session.user
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.user.accountdata.DefaultUpdateIgnoredUserIdsTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateIgnoredUserIdsTask
@@ -41,9 +40,6 @@ internal abstract class UserModule {
             return retrofit.create(SearchUserAPI::class.java)
         }
     }
-
-    @Binds
-    abstract fun bindUserService(service: DefaultUserService): UserService
 
     @Binds
     abstract fun bindSearchUserTask(task: DefaultSearchUserTask): SearchUserTask

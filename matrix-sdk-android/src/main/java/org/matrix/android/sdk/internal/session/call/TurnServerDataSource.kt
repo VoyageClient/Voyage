@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.call
 
-import android.os.SystemClock
 import org.matrix.android.sdk.api.session.call.TurnServerResponse
 import javax.inject.Inject
 
@@ -26,7 +25,7 @@ internal class TurnServerDataSource @Inject constructor(private val turnServerTa
         // Keep one minute safe to avoid considering the data is valid and then actually it is not when effectively using it.
         private val MIN_TTL = 60
 
-        private val now = { SystemClock.elapsedRealtime() / 1000 }
+        private val now = { System.nanoTime() / 1_000_000_000 }
 
         private var expiresAt: Long = 0
 
