@@ -1386,6 +1386,10 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/send/MultipleEventSendingDispatcherTaskBody.kt',
         'org/matrix/android/sdk/internal/session/content/ImageExifTagRemover.kt',
         'org/matrix/android/sdk/internal/crypto/verification/KotlinSasTransaction.kt',
+        // The session facade itself, now that its main-thread dispatch and its work cancellation
+        // go through seams; the Dagger components it is created by are still android.
+        'org/matrix/android/sdk/internal/session/content/DefaultContentUploadStateTracker.kt',
+        'org/matrix/android/sdk/internal/session/DefaultSession.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

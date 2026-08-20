@@ -8,10 +8,12 @@
 package org.matrix.android.sdk.internal.session.content
 
 import android.os.Looper
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
@@ -23,7 +25,15 @@ import org.robolectric.Shadows.shadowOf
 @RunWith(RobolectricTestRunner::class)
 class GalleryUploadProgressTest {
 
-    private val tracker = DefaultContentUploadStateTracker()
+    private val tracker = DefaultContentUploadStateTracker(
+            MatrixCoroutineDispatchers(
+                    io = Dispatchers.IO,
+                    computation = Dispatchers.Default,
+                    main = Dispatchers.Main,
+                    crypto = Dispatchers.Default,
+                    dmVerif = Dispatchers.Default,
+            )
+    )
     private val states = mutableListOf<ContentUploadStateTracker.State>()
 
     private val sizes = listOf(1_000L, 9_000L)

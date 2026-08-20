@@ -16,17 +16,21 @@
 
 package org.matrix.android.sdk.internal.session.content
 
-import android.os.Handler
-import android.os.Looper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.matrix.android.sdk.internal.session.SessionScope
 import timber.log.Timber
 import javax.inject.Inject
 
 @SessionScope
-internal class DefaultContentUploadStateTracker @Inject constructor() : ContentUploadStateTracker {
+internal class DefaultContentUploadStateTracker @Inject constructor(
+        coroutineDispatchers: MatrixCoroutineDispatchers,
+) : ContentUploadStateTracker {
 
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val mainScope = CoroutineScope(SupervisorJob() + coroutineDispatchers.main)
     private val states = mutableMapOf<String, ContentUploadStateTracker.State>()
 
     /** Which items of a gallery have finished, so the last one to land ends the whole send. */
@@ -37,7 +41,7 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
         val listeners = listeners.getOrPut(key) { ArrayList() }
         listeners.add(updateListener)
         val currentState = states[key] ?: ContentUploadStateTracker.State.Idle
-        mainHandler.post {
+        mainScope.launch {
             try {
                 updateListener.onUpdate(currentState)
             } catch (e: Exception) {
@@ -152,7 +156,7 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
 
     private fun updateState(key: String, state: ContentUploadStateTracker.State) {
         states[key] = state
-        mainHandler.post {
+        mainScope.launch {
             listeners[key]?.forEach {
                 try {
                     it.onUpdate(state)
