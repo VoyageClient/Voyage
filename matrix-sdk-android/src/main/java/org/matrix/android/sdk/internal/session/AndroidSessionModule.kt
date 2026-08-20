@@ -40,15 +40,15 @@ import org.matrix.android.sdk.internal.session.media.AndroidWebUrlPattern
 import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
 import org.matrix.android.sdk.internal.session.media.WebUrlPattern
-import org.matrix.android.sdk.internal.session.room.DefaultRoomFactory
-import org.matrix.android.sdk.internal.session.room.DefaultRoomService
-import org.matrix.android.sdk.internal.session.room.RoomFactory
+import org.matrix.android.sdk.internal.session.room.AndroidRoomService
 import org.matrix.android.sdk.internal.session.room.send.AndroidVideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.pills.AndroidTextPillsUtils
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
+import org.matrix.android.sdk.internal.session.room.threads.AndroidThreadsService
+import org.matrix.android.sdk.internal.session.room.threads.ThreadsServiceFactory
 import org.matrix.android.sdk.internal.session.sync.DefaultSyncService
-import org.matrix.android.sdk.internal.session.user.DefaultUserService
+import org.matrix.android.sdk.internal.session.user.AndroidUserService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetPostAPIMediator
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetURLFormatter
@@ -78,12 +78,11 @@ internal abstract class AndroidSessionModule {
     @Binds
     abstract fun bindCommonCryptoStore(store: SqlCryptoStore): IMXCommonCryptoStore
 
-    // The room factory builds the paged threads service, so it follows RoomService here for now.
     @Binds
-    abstract fun bindRoomFactory(factory: DefaultRoomFactory): RoomFactory
+    abstract fun bindThreadsServiceFactory(factory: AndroidThreadsService.Factory): ThreadsServiceFactory
 
     @Binds
-    abstract fun bindRoomService(service: DefaultRoomService): RoomService
+    abstract fun bindRoomService(service: AndroidRoomService): RoomService
 
     // Sync runs on a dedicated android thread (SyncThread); another platform needs its own loop.
     @Binds
@@ -99,7 +98,7 @@ internal abstract class AndroidSessionModule {
     abstract fun bindWidgetUrlBuilder(formatter: DefaultWidgetURLFormatter): WidgetURLFormatter
 
     @Binds
-    abstract fun bindUserService(service: DefaultUserService): UserService
+    abstract fun bindUserService(service: AndroidUserService): UserService
 
     @Binds
     abstract fun bindFileService(service: DefaultFileService): FileService

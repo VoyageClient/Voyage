@@ -1397,6 +1397,11 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/di/LinkPreview.kt',
         // The call stack and the event service, now that the send path they need is shared.
         'org/matrix/android/sdk/internal/session/events/DefaultEventService.kt',
+        'org/matrix/android/sdk/internal/session/room/DefaultRoomFactory.kt',
+        'org/matrix/android/sdk/internal/session/room/threads/ThreadsServiceFactory.kt',
+        'org/matrix/android/sdk/internal/session/room/threads/DefaultThreadsService.kt',
+        'org/matrix/android/sdk/internal/session/user/DefaultUserService.kt',
+        'org/matrix/android/sdk/internal/session/room/DefaultRoomService.kt',
         'org/matrix/android/sdk/internal/session/sync/sliding/SlidingSyncTranslator.kt',
         'org/matrix/android/sdk/internal/session/sync/sliding/SlidingSyncTask.kt',
         'org/matrix/android/sdk/internal/session/sync/sliding/SlidingSyncModels.kt',

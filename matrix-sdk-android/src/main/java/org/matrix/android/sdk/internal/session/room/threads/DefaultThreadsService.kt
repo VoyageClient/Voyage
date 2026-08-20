@@ -16,23 +16,17 @@
 
 package org.matrix.android.sdk.internal.session.room.threads
 
-import androidx.lifecycle.MutableLiveData
-import androidx.paging.PagedList
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import org.matrix.android.sdk.api.session.room.ResultBoundaries
 import org.matrix.android.sdk.api.session.room.threads.FetchThreadsResult
 import org.matrix.android.sdk.api.session.room.threads.ThreadFilter
-import org.matrix.android.sdk.api.session.room.threads.ThreadLivePageResult
-import org.matrix.android.sdk.api.session.room.threads.ThreadsPagingService
 import org.matrix.android.sdk.api.session.room.threads.ThreadsService
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
 import org.matrix.android.sdk.internal.database.mapper.ThreadSummaryMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadSummariesTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
@@ -44,24 +38,11 @@ internal class DefaultThreadsService @AssistedInject constructor(
         private val stores: SessionStores,
         private val threadSummaryMapper: ThreadSummaryMapper,
         private val fetchThreadSummariesTask: FetchThreadSummariesTask,
-) : ThreadsService, ThreadsPagingService {
+) : ThreadsService {
 
     @AssistedFactory
-    interface Factory {
-        fun create(roomId: String): DefaultThreadsService
-    }
-
-    override suspend fun getPagedThreadsList(userParticipating: Boolean, pagedListConfig: PagedList.Config): ThreadLivePageResult {
-        val livePagedList = livePaged(
-                query = database.threadSummaryQueries.selectByRoomSortedByLatest(roomId),
-                config = pagedListConfig,
-        ) {
-            enhanceThreadWithEditions(stores.threadSummary.getByRoomSortedByLatest(roomId).map { threadSummaryMapper.map(it) })
-        }
-        // Boundary callbacks (front/end/zero loaded) are not reproduced over the snapshot paging source;
-        // the UI falls back to fetchThreadList for "load more".
-        val boundaries = MutableLiveData(ResultBoundaries())
-        return ThreadLivePageResult(livePagedList, boundaries)
+    interface Factory : ThreadsServiceFactory {
+        override fun create(roomId: String): DefaultThreadsService
     }
 
     override suspend fun fetchThreadList(nextBatchId: String?, limit: Int, filter: ThreadFilter): FetchThreadsResult {
