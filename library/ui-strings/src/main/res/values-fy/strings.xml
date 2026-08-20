@@ -789,7 +789,6 @@
     <string name="failed_to_remove_widget">Widget fuortsmite mislearre</string>
     <string name="failed_to_add_widget">Widget tafoegje mislearre</string>
     <string name="audio_video_meeting_description">Gearkomsten brûke befeiligings- en tastimmingsbelied fan Jitsi. Alle aktuele persoanen yn it petear sille in útnûging sjen wylst dyn gearkomst dwaande is.</string>
-    <string name="denied_permission_voice_message">Jou tastimming om de mikrofoan te brûken om spraakberjochten te ferstjoeren.</string>
     <string name="denied_permission_generic">Guon rjochten ûntbrekke om dizze aksje út te fieren, jou tastimming fia de systeemynstellingen.</string>
     <string name="notification_listening_for_notifications">Harket nei notifikaasjes</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s hat end-to-end-fersifering ynskeakele (ûnbekend algoritme %2$s).</string>

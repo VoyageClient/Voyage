@@ -1835,7 +1835,6 @@
     <string name="action_switch">החלף</string>
     <string name="action_view_threads">הצג שרשורים</string>
     <string name="missing_permissions_title">חסרות הרשאות</string>
-    <string name="denied_permission_voice_message">כדי לשלוח הודעות קוליות, אנא הענק הרשאה למיקרופון.</string>
     <string name="denied_permission_camera">כדי לבצע פעולה זו, אנא הענק למצלמה הרשאה מהגדרות המערכת.</string>
     <string name="denied_permission_generic">חסרות חלק מההרשאות לביצוע פעולה זו, אנא הענק את ההרשאות מהגדרות המערכת.</string>
     <string name="spaces">רווחים</string>

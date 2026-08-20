@@ -1961,7 +1961,6 @@
     <string name="allow_space_member_to_find_and_access">允許聊天空間成員找到並存取此空間。</string>
     <string name="room_create_member_of_space_name_can_join">聊天空間 %s 的成員可以找到、預覽並加入。</string>
     <string name="room_settings_room_access_private_invite_only_title">私密（邀請制）</string>
-    <string name="denied_permission_voice_message">要傳送語音訊息，請授予「麥克風」權限。</string>
     <string name="settings_room_upgrades">聊天室升級</string>
     <string name="settings_messages_by_bot">來自聊天機器人的訊息</string>
     <string name="settings_room_invitations">聊天室邀請</string>

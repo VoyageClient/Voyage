@@ -1359,7 +1359,6 @@
     <string name="settings_room_directory_show_all_rooms_summary">V adresári zobrazí všetky miestnosti, aj tie s explicitným obsahom.</string>
     <string name="settings_room_directory_show_all_rooms">Zobrazovať miestnosti s explicitným obsahom</string>
     <string name="missing_permissions_title">Chýbajúce oprávnenia</string>
-    <string name="denied_permission_voice_message">Aby ste mohli posielať hlasové správy, udeľte prosím oprávnenie používať mikrofón.</string>
     <string name="denied_permission_camera">Na vykonanie tejto akcie, prosím udeľte oprávnenie na používanie fotoaparátu cez systémové nastavenia.</string>
     <string name="denied_permission_generic">Chýbajú niektoré oprávnenia potrebné na vykonanie tejto akcie, prosím udeľte ich cez systémové nastavenia.</string>
     <string name="notification_listening_for_notifications">Čakanie na upozornenia</string>

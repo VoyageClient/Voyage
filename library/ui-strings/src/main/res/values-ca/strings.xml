@@ -1891,7 +1891,6 @@
     <string name="action_enable">Activa</string>
     <string name="action_view_threads">Mostra els fils</string>
     <string name="missing_permissions_title">Falten permisos</string>
-    <string name="denied_permission_voice_message">Per enviar missatges de veu, concedeix el permís per poder utilitzar el micròfon.</string>
     <string name="denied_permission_camera">Per dur a terme aquesta acció, concedeix el permís de càmera des de la configuració del sistema.</string>
     <string name="denied_permission_generic">Falten alguns permisos per dur a terme aquesta acció, concedeix-los des de la configuració del sistema.</string>
     <string name="spaces">Espais</string>

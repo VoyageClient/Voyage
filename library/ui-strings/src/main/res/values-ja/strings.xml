@@ -1271,7 +1271,6 @@
     <string name="no_more_results">結果がありません</string>
     <string name="audio_video_meeting_description">ミーティングはJitsiのセキュリティーとパーミッションポリシーを使用します。ミーティング中は、現在ルームにいる全ての人に招待が表示されます。</string>
     <string name="missing_permissions_title">権限がありません</string>
-    <string name="denied_permission_voice_message">音声メッセージを送信するには、マイクの権限を許可してください。</string>
     <string name="denied_permission_camera">この操作を実行するには、システム設定からカメラの権限を許可してください。</string>
     <string name="denied_permission_generic">この操作を実行するための権限がありません。システム設定から権限を付与してください。</string>
     <string name="settings_discovery_bad_identity_server">IDサーバーに接続できませんでした</string>

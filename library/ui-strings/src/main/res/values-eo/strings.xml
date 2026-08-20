@@ -1997,7 +1997,6 @@
     <string name="settings_notification_default">Implicitaj sciigoj</string>
     <string name="hs_client_url">URL de API de hejmservilo</string>
     <string name="missing_permissions_title">Mankas permesoj</string>
-    <string name="denied_permission_voice_message">Por sendi voĉmesaĝojn, bonvolu doni permeson uzi mikrofonon.</string>
     <string name="denied_permission_camera">Por ĉi tiu ago, vi bezonas permeson uzi filmilon de la sistemaj agordoj.</string>
     <string name="denied_permission_generic">Iuj permesoj necesaj por ĉi tiu ago mankas. Bonvolu doni la permesojn per la sistemaj agordoj.</string>
     <string name="space_add_existing_spaces">Aldoni jamajn arojn</string>

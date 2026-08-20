@@ -1738,7 +1738,6 @@
     <string name="dialog_edit_hint">Nowa wartość</string>
     <string name="action_switch">Przełącz</string>
     <string name="missing_permissions_title">Brak uprawnień</string>
-    <string name="denied_permission_voice_message">Proszę nadać uprawnienia do mikrofonu, aby nagrywać wiadomości głosowe.</string>
     <string name="denied_permission_camera">Aby wykonać tą akcję, proszę nadać uprawnienia do aparatu z poziomu ustawień systemowych.</string>
     <string name="denied_permission_generic">Brakuje uprawnień do wykonania tej akcji, proszę je przydzielić z poziomu ustawień systemowych.</string>
     <string name="spaces">Przestrzenie</string>

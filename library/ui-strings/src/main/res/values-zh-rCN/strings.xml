@@ -1961,7 +1961,6 @@
     <string name="allow_space_member_to_find_and_access">允许空间成员查找和访问。</string>
     <string name="room_create_member_of_space_name_can_join">%s 空间的成员可找到、预览和加入。</string>
     <string name="room_settings_room_access_private_invite_only_title">私人（仅限邀请）</string>
-    <string name="denied_permission_voice_message">要发送语音消息，请授予麦克风权限。</string>
     <string name="settings_room_upgrades">房间升级</string>
     <string name="settings_messages_by_bot">机器人消息</string>
     <string name="settings_room_invitations">房间邀请</string>

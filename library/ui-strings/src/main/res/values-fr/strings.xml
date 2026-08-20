@@ -1998,7 +1998,6 @@
     <string name="allow_space_member_to_find_and_access">Autoriser les membres de l’espace à trouver et venir.</string>
     <string name="room_create_member_of_space_name_can_join">Les membres de l’espace %s peuvent trouver, prévisualiser et venir.</string>
     <string name="room_settings_room_access_private_invite_only_title">Privé (seulement sur invitation)</string>
-    <string name="denied_permission_voice_message">Pour envoyer des messages vocaux, veuillez accorder la permission Microphone.</string>
     <string name="settings_room_upgrades">Les mises-à-jour de salon</string>
     <string name="settings_messages_by_bot">Les messages envoyés par un robot</string>
     <string name="settings_room_invitations">Les invitations à des salons</string>

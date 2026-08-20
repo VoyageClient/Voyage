@@ -1167,7 +1167,6 @@
     <string name="action_enable">Etkinleştirmek</string>
     <string name="action_switch">Değiştirmek</string>
     <string name="missing_permissions_title">Eksik izinler</string>
-    <string name="denied_permission_voice_message">Sesli mesaj göndermek için lütfen Mikrofona izin verin.</string>
     <string name="denied_permission_camera">Bu işlemi gerçekleştirmek için lütfen Kameraya sistem ayarlarından izin verin.</string>
     <string name="denied_permission_generic">Bazı izinler eksik, bu eylemi gerçekleştirmek için lütfen sistem ayarlarından izinleri verin.</string>
     <string name="spaces">Alanlar</string>

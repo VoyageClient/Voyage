@@ -1186,7 +1186,6 @@
     <string name="audio_meeting">Geluidsvergadering starten</string>
     <string name="video_meeting">Videoconferentie starten</string>
     <string name="missing_permissions_title">Ontbrekende rechten</string>
-    <string name="denied_permission_voice_message">Geef toestemming om de microfoon te gebruiken om stemberichten te versturen.</string>
     <string name="secure_backup_reset_all">Alles herstellen</string>
     <string name="direct_room_created_summary_item_by_you">Je bent toegetreden.</string>
     <string name="login_reset_password_mail_confirmation_notice">Er is een verificatie e-mail verzonden naar %1$s.</string>

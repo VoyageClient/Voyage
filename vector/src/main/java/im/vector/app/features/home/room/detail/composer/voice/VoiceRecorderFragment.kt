@@ -14,13 +14,11 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.airbnb.mvrx.parentFragmentViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.hardware.vibrate
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.utils.PERMISSIONS_FOR_VOICE_MESSAGE
 import im.vector.app.core.utils.checkPermissions
-import im.vector.app.core.utils.onPermissionDeniedSnackbar
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.databinding.FragmentVoiceRecorderBinding
 import im.vector.app.features.home.room.detail.TimelineViewModel
@@ -31,7 +29,6 @@ import im.vector.app.features.home.room.detail.composer.MessageComposerViewState
 import im.vector.app.features.home.room.detail.composer.SendMode
 import im.vector.app.features.home.room.detail.composer.boolean
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
-import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -42,15 +39,8 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
     private val messageComposerViewModel: MessageComposerViewModel by parentFragmentViewModel()
 
-    private val permissionVoiceMessageLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
-        if (allGranted) {
-            // In this case, let the user start again the gesture
-        } else if (deniedPermanently) {
-            vectorBaseActivity.onPermissionDeniedSnackbar(CommonStrings.denied_permission_voice_message)
-        } else {
-            Snackbar.make(requireView(), CommonStrings.denied_permission_voice_message, Snackbar.LENGTH_SHORT).show()
-        }
-    }
+    // Denial is silent by design: a snackbar here covers the composer the user is reaching for.
+    private val permissionVoiceMessageLauncher = registerForPermissionsResult { _, _ -> }
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentVoiceRecorderBinding {
         return FragmentVoiceRecorderBinding.inflate(inflater, container, false)

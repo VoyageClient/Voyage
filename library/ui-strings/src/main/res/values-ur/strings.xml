@@ -384,7 +384,6 @@
     <string name="invitations_header">دعوتیں</string>
     <string name="suggested_header">تجویز کردہ کمرے</string>
     <string name="invites_title">دعوتیں</string>
-    <string name="denied_permission_voice_message">صوتی پیغامات بھیجنے کیلئے، برائے مہربانی مائکروفون کی اجازت دیں۔</string>
     <string name="failed_to_remove_widget">وجیٹ ہٹانے میں ناکام</string>
     <string name="no_result_placeholder">کوئی نتائج نہیں</string>
     <string name="audio_meeting">صوتی ملاقات شروع کریں</string>

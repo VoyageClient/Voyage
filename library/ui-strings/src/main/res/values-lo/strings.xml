@@ -330,7 +330,6 @@
     <string name="audio_meeting">ເລີ່ມການປະຊຸມສຽງ</string>
     <string name="video_meeting">ເລີ່ມການປະຊຸມວິດີໂອ</string>
     <string name="missing_permissions_title">ຂາດການອະນຸຍາດ</string>
-    <string name="denied_permission_voice_message">ເພື່ອສົ່ງຂໍ້ຄວາມສຽງ, ກະລຸນາອະນຸຍາດໄມໂຄຣໂຟນ.</string>
     <string name="denied_permission_camera">ເພື່ອດໍາເນີນການນີ້, ກະລຸນາອະນຸຍາດກ້ອງຖ່າຍຮູບຈາກການຕັ້ງຄ່າລະບົບ.</string>
     <string name="denied_permission_generic">ຂາດການອະນຸຍາດບາງຢ່າງເພື່ອດໍາເນີນການນີ້, ກະລຸນາໃຫ້ການອະນຸຍາດຈາກການຕັ້ງຄ່າລະບົບ.</string>
     <string name="spaces">ພື້ນທີ່</string>

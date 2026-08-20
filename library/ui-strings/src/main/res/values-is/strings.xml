@@ -409,7 +409,6 @@
     <string name="action_view_threads">Skoða spjallþræði</string>
     <string name="failed_to_remove_widget">Mistókst að fjarlægja viðmótshluta</string>
     <string name="failed_to_add_widget">Mistókst að bæta við viðmótshluta</string>
-    <string name="denied_permission_voice_message">Til að senda talskilaboð þarf að gefa heimild fyrir hljóðnema.</string>
     <string name="denied_permission_camera">Til að framkvæma þessa aðgerð þarf að gefa heimild fyrir myndavél í kerfisstillingum.</string>
     <string name="denied_permission_generic">Það vantar heimildir til að framkvæma þessa aðgerð, það þarf að gefa viðkomandi heimildir í kerfisstillingum.</string>
     <string name="audio_meeting">Hefja talfund</string>

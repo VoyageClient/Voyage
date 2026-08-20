@@ -1989,7 +1989,6 @@
     <string name="allow_space_member_to_find_and_access">Permetti ai membri dello spazio di trovare ed accedere.</string>
     <string name="room_create_member_of_space_name_can_join">I membri dello spazio %s possono trovare, vedere l\'anteprima ed entrare.</string>
     <string name="room_settings_room_access_private_invite_only_title">Privata (solo a invito)</string>
-    <string name="denied_permission_voice_message">Per inviare messaggi vocali, consenti l\'autorizzazione del microfono.</string>
     <string name="settings_room_upgrades">Aggiornamenti stanza</string>
     <string name="settings_messages_by_bot">Messaggi da bot</string>
     <string name="settings_room_invitations">Inviti a stanze</string>

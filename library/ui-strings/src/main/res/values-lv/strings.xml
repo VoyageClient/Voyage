@@ -1903,7 +1903,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="login_error_homeserver_from_url_not_found">Nevar sasniegt mājasserveri ar URL %s. Lūgums pārbaudīt saiti vai pašrocīgi izvēlieties mājasserveri.</string>
     <string name="use_as_default_and_do_not_ask_again">Izmantot pēc noklusējuma un neprasīt atkal</string>
     <string name="option_always_ask">Vienmēr prasīt</string>
-    <string name="denied_permission_voice_message">Lai sūtītu balss ziņojumus, piešķiriet Mikrofona atļauju.</string>
     <string name="spaces">Telpas</string>
     <string name="notification_listening_for_notifications">Uztver paziņojumus</string>
     <string name="open_poll_option_title">Atvērt aptauju</string>

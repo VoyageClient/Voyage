@@ -344,7 +344,6 @@
     <!-- Permissions denied forever -->
     <string name="denied_permission_generic">Some permissions are missing to perform this action, please grant the permissions from the system settings.</string>
     <string name="denied_permission_camera">To perform this action, please grant the Camera permission from the system settings.</string>
-    <string name="denied_permission_voice_message">To send voice messages, please grant the Microphone permission.</string>
 
     <string name="missing_permissions_title">Missing permissions</string>
     <string name="video_meeting">Start video meeting</string>

@@ -1998,7 +1998,6 @@
     <string name="allow_space_member_to_find_and_access">Permitir membros de espaço a encontrar e acessar.</string>
     <string name="room_create_member_of_space_name_can_join">Membros do Espaço %s podem encontrar, pré-visualizar e entrar.</string>
     <string name="room_settings_room_access_private_invite_only_title">Privada (Convite Somente)</string>
-    <string name="denied_permission_voice_message">Para enviar mensagens de voz, por favor conceda a permissão Microfone.</string>
     <string name="settings_notification_notify_me_for">Notifique-me para</string>
     <string name="settings_room_upgrades">Upgrades de sala</string>
     <string name="settings_messages_by_bot">Mensagens por bot</string>

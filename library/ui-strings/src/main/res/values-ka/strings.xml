@@ -362,7 +362,6 @@
     <string name="sign_out_bottom_sheet_will_lose_secure_messages">დაკარგავთ დაშიფრული შეტყობინებების წვდომას, თუ არ შეასრულებთ გასაღებების რეზერვირებას.</string>
     <string name="sign_out_failed_dialog_message">ჰომესერვერთან დაკავშირება შეუძლებელია. თუ მაინც გამოხვალთ, ეს მოწყობილობა არ წაიშლება თქვენი მოწყობილობების სიიდან, შესაძლოა დაგჭირდეთ მისი წაშლა სხვა კლიენტის გამოყენებით.</string>
     <string name="denied_permission_camera">ამ მოქმედების შესასრულებლად, გთხოვთ, მიანიჭეთ კამერის ნებართვა სისტემის პარამეტრებიდან.</string>
-    <string name="denied_permission_voice_message">ხმოვანი შეტყობინებების გასაგზავნად, გთხოვთ, მიანიჭეთ მიკროფონის ნებართვა.</string>
     <string name="audio_video_meeting_description">შეხვედრები იყენებს Jitsi უსაფრთხოების და ნებართვის პოლიტიკებს. ამჟამად ოთახში მყოფი ყველა ადამიანი ნახავს მოწვევას, რომ შეუერთდეს, სანამ თქვენი შეხვედრა მიმდინარეობს.</string>
     <string name="failed_to_remove_widget">ვიჯეტის ამოღება ვერ მოხერხდა</string>
     <string name="action_sign_out_confirmation_simple">დარწმუნებული ხართ, რომ გსურთ გამოსვლა\?</string>

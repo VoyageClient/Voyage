@@ -2196,7 +2196,6 @@
     <string name="labs_enable_deferred_dm_title">Ota lykätyt yksityisviestit käyttöön</string>
     <string name="action_deselect_all">Poista valinta kaikista</string>
     <string name="action_select_all">Valitse kaikki</string>
-    <string name="denied_permission_voice_message">Anna mikrofonin käyttöoikeus ääniviestien lähettämiseksi.</string>
     <string name="denied_permission_camera">Anna kameran käyttöoikeus järjestelmän asetuksista tämän toiminnon suorittamiseksi.</string>
     <string name="denied_permission_generic">Tämän toiminnon suorittaminen vaatii enemmän oikeuksia. Anna oikeudet järjestelmän asetuksista.</string>
     <string name="notification_listening_for_notifications">Kuunnellaan ilmoituksia</string>

@@ -2001,7 +2001,6 @@
     <string name="settings_notification_mentions_and_keywords">Erwähnungen und Schlüsselwörter</string>
     <string name="settings_notification_default">Normale Benachrichtigungen</string>
     <string name="hs_client_url">Heim-Server-API-Adresse</string>
-    <string name="denied_permission_voice_message">Um Sprachnachrichten zu senden, gewähre bitte den Zugriff aufs Mikrofon.</string>
     <string name="denied_permission_camera">Um fortzufahren, gewähre bitte in den Systemeinstellungen den Zugriff auf die Kamera.</string>
     <string name="denied_permission_generic">Für diese Aktion fehlen einige Berechtigungen, bitte gewähre diese in den Systemeinstellungen.</string>
     <string name="voice_message_slide_to_cancel">Wische zum Abbrechen</string>
