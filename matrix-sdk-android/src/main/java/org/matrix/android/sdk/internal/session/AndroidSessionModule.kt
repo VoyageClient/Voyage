@@ -24,7 +24,7 @@ import org.matrix.android.sdk.api.session.widgets.WidgetURLFormatter
 import org.matrix.android.sdk.internal.crypto.AndroidCryptoService
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlCryptoStore
+import org.matrix.android.sdk.internal.crypto.store.db.sql.AndroidCryptoStore
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.WorkManagerTaskScheduler
 import org.matrix.android.sdk.internal.session.content.AndroidContentUriResolver
@@ -73,10 +73,10 @@ internal abstract class AndroidSessionModule {
     abstract fun bindCryptoService(service: AndroidCryptoService): CryptoService
 
     @Binds
-    abstract fun bindCryptoStore(store: SqlCryptoStore): IMXCryptoStore
+    abstract fun bindCryptoStore(store: AndroidCryptoStore): IMXCryptoStore
 
     @Binds
-    abstract fun bindCommonCryptoStore(store: SqlCryptoStore): IMXCommonCryptoStore
+    abstract fun bindCommonCryptoStore(store: AndroidCryptoStore): IMXCommonCryptoStore
 
     @Binds
     abstract fun bindThreadsServiceFactory(factory: AndroidThreadsService.Factory): ThreadsServiceFactory

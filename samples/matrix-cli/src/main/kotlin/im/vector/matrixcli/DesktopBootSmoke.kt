@@ -8,13 +8,18 @@
 package im.vector.matrixcli
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import im.vector.matrixcli.di.DaggerDesktopMatrixComponent
+import im.vector.matrixcli.di.DesktopMatrixComponent
+import im.vector.matrixcli.di.DesktopMatrixModule
 import im.vector.matrixcli.platform.AssumeOnlineNetworkCallbackStrategyFactory
 import im.vector.matrixcli.platform.DesktopSecureStorage
 import im.vector.matrixcli.platform.FileKeyValueStoreFactory
 import im.vector.matrixcli.platform.JdbcSqlDriverFactory
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
+import org.matrix.android.sdk.api.provider.RoomDisplayNameFallbackProvider
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
@@ -23,6 +28,7 @@ import org.matrix.android.sdk.internal.auth.db.AuthSqlDatabase
 import org.matrix.android.sdk.internal.network.RetrofitFactory
 import org.matrix.olm.OlmAccount
 import org.matrix.olm.OlmManager
+import java.io.File
 import java.nio.file.Files
 
 /**
@@ -31,6 +37,18 @@ import java.nio.file.Files
  * sqlite driver. Each step is isolated so partial capability is visible.
  */
 class DesktopBootSmoke {
+
+    private val componentDataDir = Files.createTempDirectory("matrix-cli-graph").toFile()
+
+    private fun matrixComponent(): DesktopMatrixComponent {
+        return DaggerDesktopMatrixComponent.factory().create(
+                DesktopMatrixModule(componentDataDir),
+                MatrixConfiguration(
+                        applicationFlavor = "MatrixCli",
+                        roomDisplayNameFallbackProvider = CliRoomDisplayNameFallbackProvider,
+                ),
+        )
+    }
 
     fun run() {
         var passed = 0
@@ -151,7 +169,48 @@ class DesktopBootSmoke {
             "matrix.org advertises ${versions.versions.size} versions, latest ${versions.versions.last()}"
         }
 
+        check("desktop Dagger graph (matrix component)") {
+            val component = matrixComponent()
+            component.olmManager()
+            component.sessionManager()
+            component.authenticationService()
+            "matrix component built: dispatchers, auth service, session manager, olm all resolved"
+        }
+
+        check("auth stack against a live homeserver (login flow)") {
+            val config = HomeServerConnectionConfig.Builder()
+                    .withHomeServerUri("https://matrix.org")
+                    .build()
+            val service = matrixComponent().authenticationService()
+            val flow = runBlocking { service.getLoginFlow(config) }
+            val types = flow.supportedLoginTypes
+            require(types.isNotEmpty()) { "no login types advertised" }
+            "matrix.org login types: ${types.joinToString()}"
+        }
+
         dataDir.deleteRecursively()
+        componentDataDir.deleteRecursively()
         println("== smoke complete: $passed passed, $failed failed ==")
     }
+}
+
+private object CliRoomDisplayNameFallbackProvider : RoomDisplayNameFallbackProvider {
+
+    override fun excludedUserIds(roomId: String) = emptyList<String>()
+
+    override fun getNameForRoomInvite() = "Room invite"
+
+    override fun getNameForEmptyRoom(isDirect: Boolean, leftMemberNames: List<String>) = "Empty room"
+
+    override fun getNameFor1member(name: String) = name
+
+    override fun getNameFor2members(name1: String, name2: String) = "$name1 and $name2"
+
+    override fun getNameFor3members(name1: String, name2: String, name3: String) = "$name1, $name2 and $name3"
+
+    override fun getNameFor4members(name1: String, name2: String, name3: String, name4: String) =
+            "$name1, $name2, $name3 and $name4"
+
+    override fun getNameFor4membersAndMore(name1: String, name2: String, name3: String, remainingCount: Int) =
+            "$name1, $name2, $name3 and $remainingCount others"
 }

@@ -2,6 +2,7 @@
 // It supplies the platform impls (JDBC SqlDriverFactory, file KeyValueStore, ...) that the android app
 // provides via :matrix-sdk-android, and proves the SDK's persistence/crypto/store layers run on a JVM.
 apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'application'
 
 java {
@@ -28,6 +29,7 @@ dependencies {
     implementation "app.cash.sqldelight:sqlite-driver:2.0.2"
     implementation libs.squareup.moshi
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
     implementation 'com.squareup.okio:okio:3.6.0'
     implementation 'javax.inject:javax.inject:1'
     implementation libs.squareup.retrofit
@@ -35,6 +37,8 @@ dependencies {
     // Reflection-based Kotlin adapter (KotlinJsonAdapterFactory) for the sample's own models, since
     // the sample doesn't run Moshi's kapt codegen.
     implementation 'com.squareup.moshi:moshi-kotlin:1.15.1'
+    implementation libs.dagger.dagger
+    kapt libs.dagger.daggerCompiler
 }
 
 // Friend path to reach :matrix-sdk-core's internal SDK machinery (stores, tasks, di), exactly as

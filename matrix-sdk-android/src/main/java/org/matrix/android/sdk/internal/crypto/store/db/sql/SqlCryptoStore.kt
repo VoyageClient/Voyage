@@ -7,8 +7,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.sql
 
-import androidx.lifecycle.LiveData
-import androidx.paging.PagedList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
@@ -31,7 +29,6 @@ import org.matrix.android.sdk.api.session.crypto.model.CryptoRoomInfo
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
 import org.matrix.android.sdk.api.session.crypto.model.RoomKeyRequestBody
-import org.matrix.android.sdk.api.session.crypto.model.TrailType
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventContent
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyWithHeldContent
@@ -42,7 +39,6 @@ import org.matrix.android.sdk.internal.crypto.model.MXInboundMegolmSessionWrappe
 import org.matrix.android.sdk.internal.crypto.model.OlmSessionWrapper
 import org.matrix.android.sdk.internal.crypto.model.OutboundGroupSessionWrapper
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStorePaging
 import org.matrix.android.sdk.internal.crypto.store.UserDataToStore
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
 import org.matrix.android.sdk.internal.crypto.store.db.deserializeFromRealm
@@ -53,7 +49,6 @@ import org.matrix.android.sdk.internal.crypto.store.db.model.OlmInboundGroupSess
 import org.matrix.android.sdk.internal.crypto.store.db.model.OlmSessionEntity
 import org.matrix.android.sdk.internal.crypto.store.db.model.createPrimaryKey
 import org.matrix.android.sdk.internal.crypto.store.db.serializeForRealm
-import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.CryptoDatabase
 import org.matrix.android.sdk.internal.di.DeviceId
 import org.matrix.android.sdk.internal.di.UserId
@@ -73,7 +68,7 @@ internal class SqlCryptoStore @Inject constructor(
         @DeviceId private val deviceId: String,
         private val clock: Clock,
         myDeviceLastSeenInfoEntityMapper: MyDeviceLastSeenInfoEntityMapper,
-) : IMXCryptoStore, IMXCryptoStorePaging {
+) : IMXCryptoStore {
 
     private val metadataStore = CryptoMetadataStore(database)
     private val olmSessionStore = OlmSessionSqlStore(database)
@@ -433,9 +428,6 @@ internal class SqlCryptoStore @Inject constructor(
     override fun getOutgoingRoomKeyRequests(): List<OutgoingKeyRequest> = keyRequestStore.getOutgoingRoomKeyRequests()
     override fun getOutgoingRoomKeyRequests(inStates: Set<OutgoingRoomKeyRequestState>): List<OutgoingKeyRequest> = keyRequestStore.getOutgoingRoomKeyRequests(inStates)
 
-    override fun getOutgoingRoomKeyRequestsPaged(): LiveData<PagedList<OutgoingKeyRequest>> =
-            livePaged(database.cryptoKeyRequestQueries.okrSelectAll()) { keyRequestStore.getOutgoingRoomKeyRequests() }
-
     override fun saveIncomingKeyRequestAuditTrail(requestId: String, roomId: String, sessionId: String, senderKey: String, algorithm: String, fromUser: String, fromDevice: String) =
             keyRequestStore.saveIncomingKeyRequestAuditTrail(requestId, roomId, sessionId, senderKey, algorithm, fromUser, fromDevice)
 
@@ -447,12 +439,6 @@ internal class SqlCryptoStore @Inject constructor(
 
     override fun saveIncomingForwardKeyAuditTrail(roomId: String, sessionId: String, senderKey: String, algorithm: String, userId: String, deviceId: String, chainIndex: Long?) =
             keyRequestStore.saveForwardKeyAuditTrail(roomId, sessionId, senderKey, algorithm, userId, deviceId, chainIndex, incoming = true)
-
-    override fun getGossipingEventsTrail(): LiveData<PagedList<AuditTrail>> =
-            livePaged(database.cryptoBackupAuditQueries.auditSelectAllOrdered()) { keyRequestStore.getOrderedAuditTrails() }
-
-    override fun <T> getGossipingEventsTrail(type: TrailType, mapper: (AuditTrail) -> T): LiveData<PagedList<T>> =
-            livePaged(database.cryptoBackupAuditQueries.auditSelectByTypeOrdered(type.name)) { keyRequestStore.getOrderedAuditTrailsByType(type).map(mapper) }
 
     override fun getGossipingEvents(): List<AuditTrail> = keyRequestStore.getGossipingEvents()
 

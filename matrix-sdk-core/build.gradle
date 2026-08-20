@@ -1397,6 +1397,13 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/di/LinkPreview.kt',
         // The call stack and the event service, now that the send path they need is shared.
         'org/matrix/android/sdk/internal/session/events/DefaultEventService.kt',
+        'org/matrix/android/sdk/internal/debug/DefaultDebugService.kt',
+        'org/matrix/android/sdk/internal/auth/DefaultSessionCreator.kt',
+        'org/matrix/android/sdk/internal/auth/DefaultAuthenticationService.kt',
+        'org/matrix/android/sdk/internal/di/NoOpTestModule.kt',
+        'org/matrix/android/sdk/internal/debug/DebugModule.kt',
+        'org/matrix/android/sdk/internal/auth/AuthModule.kt',
+        'org/matrix/android/sdk/internal/di/NetworkModule.kt',
         'org/matrix/android/sdk/internal/session/room/DefaultRoomFactory.kt',
         'org/matrix/android/sdk/internal/session/room/threads/ThreadsServiceFactory.kt',
         'org/matrix/android/sdk/internal/session/room/threads/DefaultThreadsService.kt',
@@ -1478,11 +1485,8 @@ ext.coreSources = [
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
 // because they return LiveData/PagedList.
 ext.coreExcludes = [
-        // Android-coupled crypto store facade (IMXCryptoStore impl used by DefaultCryptoService).
-        'org/matrix/android/sdk/internal/crypto/store/db/sql/SqlCryptoStore.kt',
-        // Crypto sub-stores blocked on android/olm-tainted deps (CryptoRoomEntity, BackupUtils, ClearCacheTask).
-        'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoRoomSqlStore.kt',
-        'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoMetadataStore.kt',
+        // The paged devtools views of the crypto store; the store itself is shared.
+        'org/matrix/android/sdk/internal/crypto/store/db/sql/AndroidCryptoStore.kt',
 ]
 
 sourceSets {
