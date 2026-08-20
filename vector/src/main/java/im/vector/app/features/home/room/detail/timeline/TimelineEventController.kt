@@ -641,6 +641,10 @@ class TimelineEventController @Inject constructor(
         // Newest first, so the first receipts of a collapsed run are the ones that belong at its
         // bottom edge. They move onto the run's header rather than vanishing with the events.
         var collapsedReceipts: ReadReceiptsItem? = null
+        // The run header (with its collapse toggle) sits at the oldest member = top of the group. For a
+        // group taller than the screen, drop a matching "collapse" footer at the newest member = bottom
+        // edge, so it stays reachable. Iteration is newest-first, so the newest member is seen first.
+        var footerRunAnchor: Long? = null
         modelCache.forEach { cacheItemData ->
             val collapsed = cacheItemData != null && mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)
             val eventModel = cacheItemData?.eventModel?.takeUnless { collapsed }
@@ -652,6 +656,13 @@ class TimelineEventController @Inject constructor(
                 collapsedReceipts?.let { models.add(it) }
                 collapsedReceipts = null
                 cacheItemData?.readReceiptsItem?.let { models.add(it) }
+            }
+            val runAnchor = if (eventModel != null) mergedHeaderItemFactory.expandedRunAnchorOf(cacheItemData.localId) else null
+            if (runAnchor != footerRunAnchor) {
+                runAnchor?.let { anchor ->
+                    mergedHeaderItemFactory.createCollapseFooter(anchor) { requestModelBuild() }?.let { models.add(it) }
+                }
+                footerRunAnchor = runAnchor
             }
             eventModel?.let { models.add(it) }
             cacheItemData?.mergedHeaderModel?.let { header ->
@@ -741,26 +752,30 @@ class TimelineEventController @Inject constructor(
         // target — deep in the list — so newest-first leaves everything around the target unbuilt (invisible)
         // for dozens of budgeted passes. Build outward from the highlight target, or failing that from the
         // viewport (fed by the fragment's scroll listener), so the user's area materializes first.
-        val focusIdx = (partialState.highlightedEventId ?: buildFocusEventId)
+        // A jump lands the viewport deep in a freshly-loaded span, so build a big batch to fill it fast.
+        val jumpIdx = partialState.highlightedEventId
+                ?.let { id -> currentSnapshot.indexOfFirst { it.eventId == id } }
+                ?.takeIf { it > 0 }
+        val focusIdx = jumpIdx ?: buildFocusEventId
                 ?.let { id -> currentSnapshot.indexOfFirst { it.eventId == id } }
                 ?.takeIf { it > 0 }
         val buildOrder = if (focusIdx == null) (0 until modelCache.size).asSequence() else {
             (0 until modelCache.size).sortedBy { kotlin.math.abs(it - focusIdx) }.asSequence()
         }
         // The small per-pass budget exists so a just-sent message renders fast — a live-edge concern.
-        // With a jump/scroll focus active the user is deep in history and each pass carries a large
-        // fixed cost (interceptor + diff over the whole list), so bigger passes fill the huge
-        // post-jump snapshot several times faster.
+        // The 6× batch is ONLY for a jump (huge post-jump snapshot to fill). A mere scroll position must
+        // keep the normal budget: expanding a large merged run at the viewport would otherwise build
+        // thousands of members in one multi-second pass instead of a screenful at a time.
         // Nothing painted yet (room open): building the whole window first costs ~35ms a message of blank
         // screen, and everything past the first screenful is invisible anyway.
         val nothingOnScreenYet = modelCache.none { it?.eventModel != null }
         val maxBuildsThisPass = when {
-            focusIdx != null -> MAX_MODEL_BUILDS_PER_PASS * 6
+            jumpIdx != null -> MAX_MODEL_BUILDS_PER_PASS * 6
             nothingOnScreenYet -> MAX_MODEL_BUILDS_PER_PASS / 4
             else -> MAX_MODEL_BUILDS_PER_PASS
         }
         val maxNanosThisPass = when {
-            focusIdx != null -> maxBuildNanosPerPass * 6
+            jumpIdx != null -> maxBuildNanosPerPass * 6
             nothingOnScreenYet -> FIRST_PAINT_BUILD_NANOS
             else -> maxBuildNanosPerPass
         }

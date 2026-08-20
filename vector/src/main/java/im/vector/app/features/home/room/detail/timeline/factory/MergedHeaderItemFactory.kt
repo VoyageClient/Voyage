@@ -17,6 +17,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisi
 import im.vector.app.features.home.room.detail.timeline.helper.isRoomConfiguration
 import im.vector.app.features.home.room.detail.timeline.helper.timelineMergeGroupType
 import im.vector.app.features.home.room.detail.timeline.item.BasedMergedItem
+import im.vector.app.features.home.room.detail.timeline.item.MergedCollapseFooterItem_
 import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationItem
 import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationItem_
 import im.vector.app.features.home.room.detail.timeline.item.MergedSimilarEventsItem
@@ -93,6 +94,10 @@ class MergedHeaderItemFactory @Inject constructor(
 
     @Volatile private var collapsedLocalIds: Set<Long> = emptySet()
     @Volatile private var anchorLocalIds: Set<Long> = emptySet()
+
+    // Member localId -> run anchor, for EXPANDED runs only: lets the controller drop a "collapse" footer
+    // at the newest end of a group taller than the screen.
+    @Volatile private var expandedMemberAnchors: Map<Long, Long> = emptyMap()
     @Volatile private var runsByAnchor: Map<Long, MergedRun> = emptyMap()
 
     /** Bumped on every collapse toggle so the controller invalidates its per-snapshot processing cache. */
@@ -128,6 +133,7 @@ class MergedHeaderItemFactory @Inject constructor(
             val collapsed = HashSet<Long>()
             val anchors = HashSet<Long>(runs.size)
             val byAnchor = HashMap<Long, MergedRun>(runs.size)
+            val expandedMembers = HashMap<Long, Long>()
             val highlightId = partialState.highlightedEventId
             runs.forEach { run ->
                 val prior = collapseStates[run.identity]
@@ -143,12 +149,14 @@ class MergedHeaderItemFactory @Inject constructor(
                 anchors.add(run.anchorLocalId)
                 byAnchor[run.anchorLocalId] = run
                 if (nowCollapsed) run.members.forEach { collapsed.add(it.localId) }
+                else run.members.forEach { expandedMembers[it.localId] = run.anchorLocalId }
             }
             collapseStates.clear()
             collapseStates.putAll(newStates)
             collapsedLocalIds = collapsed
             anchorLocalIds = anchors
             runsByAnchor = byAnchor
+            expandedMemberAnchors = expandedMembers
         }
         return shown
     }
@@ -316,6 +324,21 @@ class MergedHeaderItemFactory @Inject constructor(
 
     fun isCollapsed(localId: Long): Boolean = localId in collapsedLocalIds
 
+    /** The anchor of the expanded run [localId] belongs to (for the collapse footer), or null. */
+    fun expandedRunAnchorOf(localId: Long): Long? = expandedMemberAnchors[localId]
+
+    /**
+     * A "collapse" footer for the expanded run anchored at [anchorLocalId], or null when the run isn't
+     * live or is short enough that the top toggle stays on screen (no need for a second control).
+     */
+    fun createCollapseFooter(anchorLocalId: Long, requestModelBuild: () -> Unit): MergedCollapseFooterItem_? {
+        val run = runsByAnchor[anchorLocalId] ?: return null
+        if (run.members.size < COLLAPSE_FOOTER_MIN_MEMBERS) return null
+        return MergedCollapseFooterItem_()
+                .id("${run.epoxyId}_collapse_footer")
+                .onCollapseClicked { setCollapsed(run.identity, true, requestModelBuild) }
+    }
+
     /**
      * A cheap signature over the run anchored at [localId] (its identity, member set, and collapsed flag), so
      * the controller's enrichment can detect when a header needs rebuilding even though the event's own
@@ -443,5 +466,8 @@ class MergedHeaderItemFactory @Inject constructor(
 
     companion object {
         private const val MIN_NUMBER_OF_MERGED_EVENTS = 2
+
+        // Only groups taller than this get a bottom "collapse" footer; shorter ones keep the top toggle on screen.
+        private const val COLLAPSE_FOOTER_MIN_MEMBERS = 51
     }
 }
