@@ -693,7 +693,6 @@
     <string name="action_ignore">تجاهل</string>
     <string name="action_accept">قبُول</string>
     <string name="missing_permissions_title">تصاريح ناقصة</string>
-    <string name="denied_permission_voice_message">لإرسال رسائل صوتية امنح تصريح الوصول للميكريفون.</string>
     <string name="denied_permission_camera">لإكمال هذا الإجراء امنح تصريح الوصول للكميرا عبر إعدادات النظام.</string>
     <string name="keys_backup_setup_creating_backup">ينشئ نسخة احتياطية</string>
     <string name="keys_backup_setup_step2_button_title">عيّن عبارة مرور</string>

@@ -1474,7 +1474,6 @@
     <string name="action_switch">Перемкнути</string>
     <string name="missing_permissions_title">Відсутні дозволи</string>
     <string name="denied_permission_camera">Щоб виконати цю дію, надайте дозвіл камери у налаштуваннях системи.</string>
-    <string name="denied_permission_voice_message">Щоб надсилати голосові повідомлення, надайте дозвіл на мікрофон.</string>
     <string name="denied_permission_generic">Бракує деяких дозволів для виконання цієї дії. Будь ласка, надайте дозволи у налаштуваннях системи.</string>
     <string name="spaces_header">Простори</string>
     <string name="spaces">Простори</string>

@@ -590,7 +590,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="video_meeting">Mulai rapat video</string>
     <string name="audio_meeting">Mulai rapat audio</string>
     <string name="missing_permissions_title">Tidak ada izin</string>
-    <string name="denied_permission_voice_message">Untuk mengirim pesan suara, silakan berikan izin Mikrofon.</string>
     <string name="denied_permission_camera">Untuk melakukan tindakan ini, silakan berikan izin Kamera dari pengaturan sistem.</string>
     <string name="denied_permission_generic">Beberapa izin hilang untuk melakukan tindakan ini, mohon berikan izin dari pengaturan sistem.</string>
     <string name="start_chatting">Mulai Mengobrol</string>

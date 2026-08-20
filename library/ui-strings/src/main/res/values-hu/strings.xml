@@ -1992,7 +1992,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="settings_notification_other">Egyéb</string>
     <string name="settings_notification_mentions_and_keywords">Megemlítések és kulcsszavak</string>
     <string name="settings_notification_default">Alapértelmezett értesítések</string>
-    <string name="denied_permission_voice_message">Hangüzenet küldéséhez engedélyezze a hozzáférést a mikrofonhoz.</string>
     <string name="upgrade_room_for_restricted_note">Vedd figyelembe, hogy a fejlesztés a szoba új verzióját hozza létre. Minden jelenlegi üzenet itt marad az archivált szobában.</string>
     <string name="upgrade_room_for_restricted_no_param">A szülő térből bárki megtalálhatja és beléphet ebbe a szobába - nem kell meghívni egyenként senkit. Ezt a beállítást bármikor megváltoztathatod a szoba beállításokban.</string>
     <string name="upgrade_room_for_restricted">Itt: %s bárki megtalálhatja és beléphet ebbe a szobába - nem kell meghívni egyenként senkit. Ezt a beállítást bármikor megváltoztathatod a szoba beállításokban.</string>

@@ -1994,7 +1994,6 @@
     <string name="allow_space_member_to_find_and_access">اجازه به اعضای فضا برای یافتن و دسترسی.</string>
     <string name="room_create_member_of_space_name_can_join">اعضای فضای %s می‌توانند یافته، دیده و بپیوندند.</string>
     <string name="room_settings_room_access_private_invite_only_title">خصوصی (فقط با دعوت)</string>
-    <string name="denied_permission_voice_message">لطفاً برای فرستادن پیام صوتی، اجازهٔ میکروفون را اعطا کنید.</string>
     <string name="upgrade_room_for_restricted_note">به خاطر داشته باشید که ارتقا، نگارشی جدید از اتاق خواهد ساخت. تمامی پیام‌های کنونی در این اتاق بایگانی‌شده خواهند ماند.</string>
     <string name="upgrade_room_for_restricted_no_param">هرکسی در یک فضای والد قادر خواهد بود این اتاق را یافته و بپیوندد - نیازی به دعوت دستی همه نیست. می‌توانید هر زمان در تنظیمات اتاق، عوضش کنید.</string>
     <string name="upgrade_room_for_restricted">هرکسی در %s قادر خواهد بود این اتاق را یافته و بپیوندد - نیازی به دعوت دستی همه نیست. می‌توانید هر زمان در تنظیمات اتاق، عوضش کنید.</string>

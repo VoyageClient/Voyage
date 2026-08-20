@@ -476,7 +476,6 @@
     <string name="room_participants_leave_private_warning">Phòng này không công khai. Bạn sẽ không thể tham gia lại nếu không có lời mời.</string>
     <string name="hs_client_url">URL API máy chủ nhà</string>
     <string name="missing_permissions_title">Thiếu quyền</string>
-    <string name="denied_permission_voice_message">Để gửi những tin nhắn thoại, vui lòng cấp quyền Microphone.</string>
     <string name="denied_permission_camera">Để thực hiện hành động này, vui lòng cấp quyền Camera từ cài đặt hệ thống.</string>
     <string name="denied_permission_generic">Vài quyền đang thiếu để thực hiện hành vi này, vui lòng cấp quyền từ cài đặt hệ thống.</string>
     <string name="settings_set_sync_timeout">Yêu cầu đồng bộ hết thời hạn</string>

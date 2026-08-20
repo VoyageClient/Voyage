@@ -833,7 +833,6 @@
     <string name="denied_permission_camera">이 작업을 수행하려면 시스템 설정에서 카메라 권한을 허용해주세요.</string>
     <string name="denied_permission_generic">이 작업을 수행할 수 있는 일부 권한이 없습니다. 시스템 설정에서 권한을 허용해주세요.</string>
     <string name="action_play">재생</string>
-    <string name="denied_permission_voice_message">음성 메시지를 보내려면 마이크 권한을 허용해주세요.</string>
     <string name="action_copy">복사</string>
     <string name="unignore">차단 해제</string>
     <string name="no_ignored_users">차단한 사용자가 없습니다</string>

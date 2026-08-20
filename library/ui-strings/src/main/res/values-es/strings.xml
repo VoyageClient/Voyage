@@ -1886,7 +1886,6 @@
     <string name="settings_notification_default">Notificaciones por defecto</string>
     <string name="hs_client_url">URL de API del servidor doméstico</string>
     <string name="missing_permissions_title">Faltan permisos</string>
-    <string name="denied_permission_voice_message">Para enviar mensajes de voz has de otorgar el permiso de Micrófono.</string>
     <string name="denied_permission_camera">Para llevar a cabo esta acción has de otorgar el permiso de Cámara en las preferencias del sistema.</string>
     <string name="denied_permission_generic">Se requieren permisos para llevar a cabo esta acción. Por favor, otórgalos desde las preferencias del sistema.</string>
     <string name="create_room_disable_federation_title">Impedir a cualquiera que no forme parte de %s unirse a este sala</string>

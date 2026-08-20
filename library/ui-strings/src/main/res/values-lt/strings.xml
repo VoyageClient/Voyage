@@ -175,7 +175,6 @@
     <string name="audio_video_meeting_description">Susitikimuose naudojamos \"Jitsi\" saugumo ir leidimų politikos. Visi šiuo metu kambaryje esantys žmonės matys kvietimą prisijungti, kol vyks jūsų susitikimas.</string>
     <string name="audio_meeting">Pradėti garso susitikimą</string>
     <string name="video_meeting">Pradėti vaizdo susitikimą</string>
-    <string name="denied_permission_voice_message">Jei norite siųsti balso žinutes, suteikite mikrofono leidimą.</string>
     <string name="denied_permission_camera">Norėdami atlikti šį veiksmą, sistemos nustatymuose suteikite fotoaparato leidimą.</string>
     <string name="missing_permissions_title">Trūkstami leidimai</string>
     <string name="denied_permission_generic">Šiam veiksmui atlikti trūksta kai kurių leidimų, suteikite juos sistemos nustatymuose.</string>

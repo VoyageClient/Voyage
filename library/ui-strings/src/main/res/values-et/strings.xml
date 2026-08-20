@@ -1981,7 +1981,6 @@
     <string name="spaces_which_can_access">Kogukonnad, mis pääsevad ligi</string>
     <string name="allow_space_member_to_find_and_access">Luba kogukonna liikmetel leida ja vaadata.</string>
     <string name="room_settings_room_access_private_invite_only_title">Privaatne (vaid kutse alusel)</string>
-    <string name="denied_permission_voice_message">Häälsõnumite saatmiseks palun anna rakendusele õigus mikrofoni kasutada.</string>
     <string name="a11y_start_voice_message">Salvesta häälsõnum</string>
     <string name="voice_message_slide_to_cancel">Tühistamiseks viipa</string>
     <string name="a11y_pause_voice_message">Peata häälsõnumi esitus</string>
