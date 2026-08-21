@@ -253,12 +253,14 @@ class PillImageSpan(
      * Glide's memory cache hands every pill for a given avatar the *same* drawable instance, and a
      * Drawable has a single Callback — so only the pill that bound last ever receives frames and the
      * rest sit frozen. A copy gets a callback of its own; it shares the frame loader (which keeps a
-     * callback list), so the frames are still decoded once.
+     * callback list), so the frames are still decoded once. Only animated icons need that: a
+     * TextDrawable letter placeholder (Glide hands it back through onLoadCleared) copies as a bare
+     * ShapeDrawable, which paints the avatar colour without the letter.
      */
     private fun prepareIcon(drawable: Drawable): Drawable {
-        val copy = drawable.constantState?.newDrawable() ?: drawable
-        rawIcon = copy
-        return circular(copy)
+        val icon = if (drawable is Animatable) drawable.constantState?.newDrawable() ?: drawable else drawable
+        rawIcon = icon
+        return circular(icon)
     }
 
     // Glide's bitmap transforms can't shape animated content, so it arrives square; mask it to the
