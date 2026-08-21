@@ -7,9 +7,6 @@
 
 package im.vector.matrixcli
 
-import im.vector.matrixcli.di.DaggerDesktopMatrixComponent
-import im.vector.matrixcli.di.DesktopMatrixComponent
-import im.vector.matrixcli.di.DesktopMatrixModule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -18,6 +15,7 @@ import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
+import org.matrix.android.sdk.desktop.DesktopMatrix
 import java.io.File
 
 /**
@@ -38,19 +36,20 @@ class DesktopSessionRun(
         dataDir: File,
 ) {
 
-    private val component: DesktopMatrixComponent = DaggerDesktopMatrixComponent.factory().create(
-            DesktopMatrixModule(dataDir.also { it.mkdirs() }),
-            MatrixConfiguration(
+    private val matrix = DesktopMatrix(
+            dataDir = dataDir,
+            matrixConfiguration = MatrixConfiguration(
                     applicationFlavor = "MatrixCli",
                     roomDisplayNameFallbackProvider = CliRoomDisplayNameFallbackProvider,
             ),
+            appName = "MatrixCli",
     )
 
     fun run() = runBlocking {
         println("== desktop session run against $homeServer ==")
         val config = HomeServerConnectionConfig.Builder().withHomeServerUri(homeServer).build()
 
-        val authenticationService = component.authenticationService()
+        val authenticationService = matrix.authenticationService()
         val flow = authenticationService.getLoginFlow(config)
         println("  login types: ${flow.supportedLoginTypes.joinToString()}")
 

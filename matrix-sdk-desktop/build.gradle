@@ -1,0 +1,84 @@
+// JVM platform layer for :matrix-sdk-core — the desktop counterpart of :matrix-sdk-android. It
+// supplies what the SDK asks the platform for (SQL driver, key-value store, secure storage, network
+// reachability, olm natives, the Dagger components) and the DesktopMatrix entry point a JVM client
+// builds sessions from.
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'kotlin-kapt'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+// Core's jar deliberately omits BuildConfig (AGP generates android's); mirror the android SDK_VERSION
+// here so the two SDKs never report different versions.
+def sdkVersion = (file('../matrix-sdk-android/build.gradle').text =~ /buildConfigField\s+"String",\s*"SDK_VERSION",\s*"\\"([^"\\]+)\\""/)[0][1]
+def gitRevision = providers.exec {
+    commandLine 'git', 'rev-parse', '--short', 'HEAD'
+    ignoreExitValue = true
+}.standardOutput.asText.map { it.trim() }
+
+def generateBuildConfig = tasks.register('generateBuildConfig') {
+    def outDir = layout.buildDirectory.dir('generated/buildconfig')
+    inputs.property 'sdkVersion', sdkVersion
+    inputs.property 'gitRevision', gitRevision
+    outputs.dir outDir
+    doLast {
+        def f = outDir.get().file('org/matrix/android/sdk/BuildConfig.kt').asFile
+        f.parentFile.mkdirs()
+        f.text = """package org.matrix.android.sdk
+
+object BuildConfig {
+    const val DEBUG = false
+    const val LOG_PRIVATE_DATA = false
+    const val SDK_VERSION = "${sdkVersion}"
+    const val GIT_SDK_REVISION = "${gitRevision.get()}"
+
+    @JvmField
+    val OKHTTP_LOGGING_LEVEL: okhttp3.logging.HttpLoggingInterceptor.Level = okhttp3.logging.HttpLoggingInterceptor.Level.NONE
+}
+"""
+    }
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir generateBuildConfig
+        }
+    }
+}
+
+dependencies {
+    api project(':matrix-sdk-core')
+    api project(':library:external:olm-jvm')
+    api project(':library:external:timber-jvm')
+    api libs.jetbrains.coroutinesCore
+    api "app.cash.sqldelight:runtime:2.0.2"
+    api "app.cash.sqldelight:coroutines-extensions:2.0.2"
+    implementation "app.cash.sqldelight:jdbc-driver:2.0.2"
+    implementation "app.cash.sqldelight:sqlite-driver:2.0.2"
+    api libs.squareup.moshi
+    api 'com.squareup.okhttp3:okhttp:3.12.13'
+    api 'com.squareup.okhttp3:logging-interceptor:3.12.13'
+    api 'com.squareup.okio:okio:3.6.0'
+    implementation 'javax.inject:javax.inject:1'
+    // Core leaves org.json to its consumer (android has one built in); a desktop JVM must supply it.
+    api 'org.json:json:20240303'
+    api libs.squareup.retrofit
+    api libs.squareup.retrofitMoshi
+    api libs.dagger.dagger
+    kapt libs.dagger.daggerCompiler
+}
+
+// Friend path to reach :matrix-sdk-core's internal SDK machinery (stores, tasks, di), exactly as
+// :matrix-sdk-android does. Plain kotlin-jvm has no AGP jetify step, so the resolved jar matches.
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
+    task.friendPaths.from(providers.provider {
+        task.libraries.files.findAll { it.name.contains('matrix-sdk-core') }
+    })
+}

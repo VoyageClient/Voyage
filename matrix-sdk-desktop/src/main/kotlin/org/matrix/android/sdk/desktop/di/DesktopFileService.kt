@@ -5,7 +5,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package im.vector.matrixcli.di
+package org.matrix.android.sdk.desktop.di
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
