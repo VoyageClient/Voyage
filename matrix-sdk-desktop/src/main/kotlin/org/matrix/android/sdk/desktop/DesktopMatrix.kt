@@ -12,6 +12,7 @@ import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.raw.RawService
+import org.matrix.android.sdk.api.securestorage.SecureStorageService
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.desktop.di.DaggerDesktopMatrixComponent
 import org.matrix.android.sdk.desktop.di.DesktopMatrixComponent
@@ -42,6 +43,8 @@ class DesktopMatrix(
     fun rawService(): RawService = component.rawService()
 
     fun lightweightSettingsStorage(): LightweightSettingsStorage = component.lightweightSettingsStorage()
+
+    fun secureStorageService(): SecureStorageService = component.secureStorageService()
 
     /**
      * Drops every pooled connection and queued call. Session clients are `newBuilder()` copies of
