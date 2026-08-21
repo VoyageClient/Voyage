@@ -82,3 +82,5 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { 
         task.libraries.files.findAll { it.name.contains('matrix-sdk-core') }
     })
 }
+
+apply from: "$rootDir/gradle/jvm-publish.gradle"
