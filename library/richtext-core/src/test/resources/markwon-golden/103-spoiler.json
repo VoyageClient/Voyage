@@ -1,0 +1,22 @@
+{
+  "input": "<span data-mx-spoiler>hidden text</span> visible",
+  "compressed": "<span data-mx-spoiler>hidden text</span> visible",
+  "text": "hidden text visible",
+  "spans": [
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "spoiler"
+    }
+  ],
+  "markwon": {
+    "text": "hidden text visible",
+    "spans": [
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "spoiler"
+      }
+    ]
+  }
+}

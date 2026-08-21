@@ -1,0 +1,26 @@
+{
+  "input": "Euler: <span data-mx-maths=\"e^{i\\pi}+1=0\"><code>e^{i\\pi}+1=0</code></span> done",
+  "compressed": "Euler: <span data-mx-maths=\"e^{i\\pi}+1=0\"><code>e^{i\\pi}+1=0</code></span> done",
+  "text": "Euler: e^{i\\pi}+1=0 done",
+  "spans": [
+    {
+      "start": 7,
+      "end": 19,
+      "kind": "maths",
+      "latex": "e^{i\\pi}+1=0",
+      "display": "inline"
+    }
+  ],
+  "markwon": {
+    "text": "Euler: e^{i\\pi}+1=0 done",
+    "spans": [
+      {
+        "start": 7,
+        "end": 19,
+        "kind": "maths",
+        "latex": "e^{i\\pi}+1=0",
+        "display": "inline"
+      }
+    ]
+  }
+}

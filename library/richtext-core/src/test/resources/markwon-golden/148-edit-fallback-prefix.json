@@ -1,0 +1,10 @@
+{
+  "input": " * <p>edited body with leading star</p>",
+  "compressed": "* <p>edited body with leading star</p>",
+  "text": "* \nedited body with leading star",
+  "spans": [],
+  "markwon": {
+    "text": "* \nedited body with leading star",
+    "spans": []
+  }
+}

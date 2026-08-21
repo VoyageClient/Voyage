@@ -1,0 +1,34 @@
+{
+  "input": "<span data-mx-spoiler>@alice:example.org</span>",
+  "compressed": "<span data-mx-spoiler>@alice:example.org</span>",
+  "text": "@alice:example.org",
+  "spans": [
+    {
+      "start": 0,
+      "end": 18,
+      "kind": "permalink",
+      "url": "https://matrix.to/#/@alice:example.org"
+    },
+    {
+      "start": 0,
+      "end": 18,
+      "kind": "spoiler"
+    },
+    {
+      "start": 7,
+      "end": 18,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "@alice:example.org",
+    "spans": [
+      {
+        "start": 0,
+        "end": 18,
+        "kind": "spoiler"
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "input": "event $eventid:example.org here",
+  "compressed": "event $eventid:example.org here",
+  "text": "event $eventid:example.org here",
+  "spans": [
+    {
+      "start": 6,
+      "end": 26,
+      "kind": "permalink",
+      "url": "https://matrix.to/#/$eventid:example.org"
+    },
+    {
+      "start": 15,
+      "end": 26,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "event $eventid:example.org here",
+    "spans": []
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "input": "see (https://matrix.to/#/!roomid:example.org/$event:example.org) ok",
+  "compressed": "see (https://matrix.to/#/!roomid:example.org/$event:example.org) ok",
+  "text": "see (￼) ok",
+  "spans": [
+    {
+      "start": 5,
+      "end": 6,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "RoomItem",
+      "displayName": "Message"
+    },
+    {
+      "start": 5,
+      "end": 6,
+      "kind": "url",
+      "url": "https://matrix.to/#/!roomid:example.org/$event:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "see (https://matrix.to/#/!roomid:example.org/$event:example.org) ok",
+    "spans": []
+  }
+}

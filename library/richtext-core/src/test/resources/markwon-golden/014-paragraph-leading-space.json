@@ -1,0 +1,40 @@
+{
+  "input": "<p> leading space</p>\n<p>trailing space </p>",
+  "compressed": "<p>leading space</p> <p>trailing space </p>",
+  "text": "leading space\n \ntrailing space",
+  "spans": [
+    {
+      "start": 0,
+      "end": 13,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 16,
+      "end": 30,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "leading space\n \ntrailing space",
+    "spans": [
+      {
+        "start": 0,
+        "end": 13,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 16,
+        "end": 30,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

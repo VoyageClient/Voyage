@@ -1,0 +1,36 @@
+{
+  "input": "<span data-mx-color=\"#ffaa00\">orange</span> <span data-mx-bg-color=\"#112233\">bg</span>",
+  "compressed": "<span data-mx-color=\"#ffaa00\">orange</span> <span data-mx-bg-color=\"#112233\">bg</span>",
+  "text": "orange bg",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "color",
+      "color": "#FFFFAA00"
+    },
+    {
+      "start": 7,
+      "end": 9,
+      "kind": "bgColor",
+      "color": "#FF112233"
+    }
+  ],
+  "markwon": {
+    "text": "orange bg",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "color",
+        "color": "#FFFFAA00"
+      },
+      {
+        "start": 7,
+        "end": 9,
+        "kind": "bgColor",
+        "color": "#FF112233"
+      }
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "input": "<p>above</p>\n<hr />\n<p>below</p>",
+  "compressed": "<p>above</p> <hr/> <p>below</p>",
+  "text": "above\n \n \nbelow",
+  "spans": [
+    {
+      "start": 0,
+      "end": 5,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 10,
+      "end": 15,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "above\n \n \nbelow",
+    "spans": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 10,
+        "end": 15,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

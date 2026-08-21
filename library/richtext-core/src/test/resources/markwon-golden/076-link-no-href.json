@@ -1,0 +1,10 @@
+{
+  "input": "<a>anchor without href</a>",
+  "compressed": "<a>anchor without href</a>",
+  "text": "anchor without href",
+  "spans": [],
+  "markwon": {
+    "text": "anchor without href",
+    "spans": []
+  }
+}

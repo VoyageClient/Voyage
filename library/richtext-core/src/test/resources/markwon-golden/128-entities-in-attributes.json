@@ -1,0 +1,24 @@
+{
+  "input": "<a href=\"https://example.org/?a=1&amp;b=2\" title=\"t &amp; t\">x</a>",
+  "compressed": "<a href=\"https://example.org/?a=1&amp;b=2\" title=\"t &amp; t\">x</a>",
+  "text": "x",
+  "spans": [
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "url",
+      "url": "https://example.org/?a=1&b=2"
+    }
+  ],
+  "markwon": {
+    "text": "x",
+    "spans": [
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "link",
+        "url": "https://example.org/?a=1&b=2"
+      }
+    ]
+  }
+}

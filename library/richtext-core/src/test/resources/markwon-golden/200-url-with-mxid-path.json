@@ -1,0 +1,17 @@
+{
+  "input": "https://example.org/@alice:example.org",
+  "compressed": "https://example.org/@alice:example.org",
+  "text": "https://example.org/@alice:example.org",
+  "spans": [
+    {
+      "start": 0,
+      "end": 38,
+      "kind": "url",
+      "url": "https://example.org/@alice:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "https://example.org/@alice:example.org",
+    "spans": []
+  }
+}

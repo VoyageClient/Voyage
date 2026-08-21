@@ -1,0 +1,17 @@
+{
+  "input": "alice@example.org",
+  "compressed": "alice@example.org",
+  "text": "alice@example.org",
+  "spans": [
+    {
+      "start": 0,
+      "end": 17,
+      "kind": "url",
+      "url": "mailto:alice@example.org"
+    }
+  ],
+  "markwon": {
+    "text": "alice@example.org",
+    "spans": []
+  }
+}

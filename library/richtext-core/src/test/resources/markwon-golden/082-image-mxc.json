@@ -1,0 +1,24 @@
+{
+  "input": "<img src=\"mxc://example.org/abc123\" alt=\"a picture\" title=\"pic title\" />",
+  "compressed": "<img src=\"mxc://example.org/abc123\" alt=\"a picture\" title=\"pic title\"/>",
+  "text": "a picture",
+  "spans": [
+    {
+      "start": 0,
+      "end": 9,
+      "kind": "image",
+      "destination": "mxc://example.org/abc123"
+    }
+  ],
+  "markwon": {
+    "text": "a picture",
+    "spans": [
+      {
+        "start": 0,
+        "end": 9,
+        "kind": "image",
+        "destination": "mxc://example.org/abc123"
+      }
+    ]
+  }
+}

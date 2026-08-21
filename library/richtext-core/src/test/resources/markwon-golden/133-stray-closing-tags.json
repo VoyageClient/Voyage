@@ -1,0 +1,10 @@
+{
+  "input": "text</strong></p> more</div>",
+  "compressed": "text</strong></p> more</div>",
+  "text": "text more",
+  "spans": [],
+  "markwon": {
+    "text": "text more",
+    "spans": []
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "input": "foo.com.fizzbuzz",
+  "compressed": "foo.com.fizzbuzz",
+  "text": "foo.com.fizzbuzz",
+  "spans": [],
+  "markwon": {
+    "text": "foo.com.fizzbuzz",
+    "spans": []
+  }
+}

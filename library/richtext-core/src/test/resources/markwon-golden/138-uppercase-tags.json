@@ -1,0 +1,32 @@
+{
+  "input": "<P>Upper <STRONG>case</STRONG> tags</P><BR><EM>em</EM>",
+  "compressed": "<P>Upper <STRONG>case</STRONG> tags</P><BR><EM>em</EM>",
+  "text": "Upper case tags\n\nem",
+  "spans": [
+    {
+      "start": 6,
+      "end": 10,
+      "kind": "bold"
+    },
+    {
+      "start": 17,
+      "end": 19,
+      "kind": "italic"
+    }
+  ],
+  "markwon": {
+    "text": "Upper case tags\n\nem",
+    "spans": [
+      {
+        "start": 6,
+        "end": 10,
+        "kind": "bold"
+      },
+      {
+        "start": 17,
+        "end": 19,
+        "kind": "italic"
+      }
+    ]
+  }
+}

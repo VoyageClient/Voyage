@@ -1,0 +1,10 @@
+{
+  "input": "line one\nline two\n\nline four",
+  "compressed": "line one line two line four",
+  "text": "line one line two line four",
+  "spans": [],
+  "markwon": {
+    "text": "line one line two line four",
+    "spans": []
+  }
+}

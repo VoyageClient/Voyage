@@ -1,0 +1,74 @@
+{
+  "input": "<table>\n<thead>\n<tr>\n<th>Name</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>a</td>\n<td>1</td>\n</tr>\n<tr>\n<td>b</td>\n<td>2</td>\n</tr>\n</tbody>\n</table>",
+  "compressed": "<table> <thead> <tr> <th>Name</th> <th>Value</th> </tr> </thead> <tbody> <tr> <td>a</td> <td>1</td> </tr> <tr> <td>b</td> <td>2</td> </tr> </tbody> </table>",
+  "text": "Name Value     a 1   b 2",
+  "spans": [],
+  "markwon": {
+    "text": "Name Value     a 1   b 2",
+    "spans": []
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": true,
+          "cells": [
+            {
+              "header": true,
+              "align": "left",
+              "html": "Name",
+              "text": "Name",
+              "spans": []
+            },
+            {
+              "header": true,
+              "align": "left",
+              "html": "Value",
+              "text": "Value",
+              "spans": []
+            }
+          ]
+        },
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "a",
+              "text": "a",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "1",
+              "text": "1",
+              "spans": []
+            }
+          ]
+        },
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "b",
+              "text": "b",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "2",
+              "text": "2",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "input": "@alice:example.org said hi",
+  "compressed": "@alice:example.org said hi",
+  "text": "@alice:example.org said hi",
+  "spans": [
+    {
+      "start": 0,
+      "end": 18,
+      "kind": "permalink",
+      "url": "https://matrix.to/#/@alice:example.org"
+    },
+    {
+      "start": 7,
+      "end": 18,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "@alice:example.org said hi",
+    "spans": []
+  }
+}

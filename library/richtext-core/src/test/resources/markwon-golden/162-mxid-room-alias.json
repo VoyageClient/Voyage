@@ -1,0 +1,23 @@
+{
+  "input": "join #room:example.org today",
+  "compressed": "join #room:example.org today",
+  "text": "join #room:example.org today",
+  "spans": [
+    {
+      "start": 5,
+      "end": 22,
+      "kind": "permalink",
+      "url": "https://matrix.to/#/#room:example.org"
+    },
+    {
+      "start": 11,
+      "end": 22,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "join #room:example.org today",
+    "spans": []
+  }
+}

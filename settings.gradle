@@ -24,6 +24,7 @@ include ':library:external:libce'
 project(':library:external:libce').projectDir = new File(rootProject.projectDir, 'library/external/libce/android/olm-sdk')
 include ':library:external:olm-jvm'
 include ':library:external:timber-jvm'
+include ':library:richtext-core'
 include ':matrix-sdk-core'
 include ':library:external:libopus'
 include ':matrix-sdk-android'

@@ -1,0 +1,24 @@
+{
+  "input": "<img src=\"https://example.org/cat.png\" alt=\"cat\">",
+  "compressed": "<img src=\"https://example.org/cat.png\" alt=\"cat\">",
+  "text": "cat",
+  "spans": [
+    {
+      "start": 0,
+      "end": 3,
+      "kind": "image",
+      "destination": "https://example.org/cat.png"
+    }
+  ],
+  "markwon": {
+    "text": "cat",
+    "spans": [
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "image",
+        "destination": "https://example.org/cat.png"
+      }
+    ]
+  }
+}

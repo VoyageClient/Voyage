@@ -1,0 +1,10 @@
+{
+  "input": "<script>alert(1)</script><style>p{}</style>visible",
+  "compressed": "<script>alert(1)</script><style>p{}</style>visible",
+  "text": "alert(1)p{}visible",
+  "spans": [],
+  "markwon": {
+    "text": "alert(1)p{}visible",
+    "spans": []
+  }
+}

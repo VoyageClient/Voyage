@@ -1,0 +1,50 @@
+{
+  "input": "<p>open para<ul><li>item</li></ul>",
+  "compressed": "<p>open para<ul><li>item</li></ul>",
+  "text": "open para\n● item",
+  "spans": [
+    {
+      "start": 0,
+      "end": 9,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 10,
+      "end": 12,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 10,
+      "end": 11,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    }
+  ],
+  "markwon": {
+    "text": "open para\n● item",
+    "spans": [
+      {
+        "start": 0,
+        "end": 9,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 10,
+        "end": 12,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 10,
+        "end": 11,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      }
+    ]
+  }
+}

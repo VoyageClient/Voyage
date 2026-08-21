@@ -1,0 +1,40 @@
+{
+  "input": "<pre><code>block</code></pre>\ntrailing bare text",
+  "compressed": "<pre><code>block</code></pre> trailing bare text",
+  "text": "block trailing bare text",
+  "spans": [
+    {
+      "start": 0,
+      "end": 5,
+      "kind": "codeBlock"
+    }
+  ],
+  "markwon": {
+    "text": "block trailing bare text",
+    "spans": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "intermediateCode",
+        "block": true
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "code",
+      "code": "block"
+    },
+    {
+      "kind": "html",
+      "html": " trailing bare text",
+      "text": " trailing bare text",
+      "spans": []
+    }
+  ]
+}

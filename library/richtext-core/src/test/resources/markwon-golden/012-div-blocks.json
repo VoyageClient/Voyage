@@ -1,0 +1,10 @@
+{
+  "input": "<div>one</div><div>two</div>text after",
+  "compressed": "<div>one</div><div>two</div>text after",
+  "text": "one\ntwotext after",
+  "spans": [],
+  "markwon": {
+    "text": "one\ntwotext after",
+    "spans": []
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "input": "<p>Paragraph 1</p><p>Paragraph 2</p>",
+  "compressed": "<p>Paragraph 1</p><p>Paragraph 2</p>",
+  "text": "Paragraph 1\nParagraph 2",
+  "spans": [
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 12,
+      "end": 23,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "Paragraph 1\nParagraph 2",
+    "spans": [
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 12,
+        "end": 23,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

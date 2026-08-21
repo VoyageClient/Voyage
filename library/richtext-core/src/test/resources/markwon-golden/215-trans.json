@@ -1,0 +1,156 @@
+{
+  "input": "<font color=\"#5bcefa\">t</font><font color=\"#98bce9\">r</font><font color=\"#d5aad8\">a</font><font color=\"#f5a9b8\">n</font><font color=\"#fad4dc\">s</font> <font color=\"#ffffff\">r</font><font color=\"#fad4dc\">i</font><font color=\"#f5a9b8\">g</font><font color=\"#d5aad8\">h</font><font color=\"#98bce9\">t</font><font color=\"#5bcefa\">s</font> <font color=\"#f5a9b8\">🏳</font>",
+  "compressed": "<font color=\"#5bcefa\">t</font><font color=\"#98bce9\">r</font><font color=\"#d5aad8\">a</font><font color=\"#f5a9b8\">n</font><font color=\"#fad4dc\">s</font> <font color=\"#ffffff\">r</font><font color=\"#fad4dc\">i</font><font color=\"#f5a9b8\">g</font><font color=\"#d5aad8\">h</font><font color=\"#98bce9\">t</font><font color=\"#5bcefa\">s</font> <font color=\"#f5a9b8\">🏳</font>",
+  "text": "trans rights 🏳",
+  "spans": [
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "color",
+      "color": "#FF5BCEFA"
+    },
+    {
+      "start": 1,
+      "end": 2,
+      "kind": "color",
+      "color": "#FF98BCE9"
+    },
+    {
+      "start": 2,
+      "end": 3,
+      "kind": "color",
+      "color": "#FFD5AAD8"
+    },
+    {
+      "start": 3,
+      "end": 4,
+      "kind": "color",
+      "color": "#FFF5A9B8"
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "color",
+      "color": "#FFFAD4DC"
+    },
+    {
+      "start": 6,
+      "end": 7,
+      "kind": "color",
+      "color": "#FFFFFFFF"
+    },
+    {
+      "start": 7,
+      "end": 8,
+      "kind": "color",
+      "color": "#FFFAD4DC"
+    },
+    {
+      "start": 8,
+      "end": 9,
+      "kind": "color",
+      "color": "#FFF5A9B8"
+    },
+    {
+      "start": 9,
+      "end": 10,
+      "kind": "color",
+      "color": "#FFD5AAD8"
+    },
+    {
+      "start": 10,
+      "end": 11,
+      "kind": "color",
+      "color": "#FF98BCE9"
+    },
+    {
+      "start": 11,
+      "end": 12,
+      "kind": "color",
+      "color": "#FF5BCEFA"
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "kind": "color",
+      "color": "#FFF5A9B8"
+    }
+  ],
+  "markwon": {
+    "text": "trans rights 🏳",
+    "spans": [
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "color",
+        "color": "#FF5BCEFA"
+      },
+      {
+        "start": 1,
+        "end": 2,
+        "kind": "color",
+        "color": "#FF98BCE9"
+      },
+      {
+        "start": 2,
+        "end": 3,
+        "kind": "color",
+        "color": "#FFD5AAD8"
+      },
+      {
+        "start": 3,
+        "end": 4,
+        "kind": "color",
+        "color": "#FFF5A9B8"
+      },
+      {
+        "start": 4,
+        "end": 5,
+        "kind": "color",
+        "color": "#FFFAD4DC"
+      },
+      {
+        "start": 6,
+        "end": 7,
+        "kind": "color",
+        "color": "#FFFFFFFF"
+      },
+      {
+        "start": 7,
+        "end": 8,
+        "kind": "color",
+        "color": "#FFFAD4DC"
+      },
+      {
+        "start": 8,
+        "end": 9,
+        "kind": "color",
+        "color": "#FFF5A9B8"
+      },
+      {
+        "start": 9,
+        "end": 10,
+        "kind": "color",
+        "color": "#FFD5AAD8"
+      },
+      {
+        "start": 10,
+        "end": 11,
+        "kind": "color",
+        "color": "#FF98BCE9"
+      },
+      {
+        "start": 11,
+        "end": 12,
+        "kind": "color",
+        "color": "#FF5BCEFA"
+      },
+      {
+        "start": 13,
+        "end": 15,
+        "kind": "color",
+        "color": "#FFF5A9B8"
+      }
+    ]
+  }
+}

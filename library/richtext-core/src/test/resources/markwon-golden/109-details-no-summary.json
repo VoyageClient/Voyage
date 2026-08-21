@@ -1,0 +1,38 @@
+{
+  "input": "<details>no summary body</details>",
+  "compressed": "<details>no summary body</details>",
+  "text": "no summary body",
+  "spans": [
+    {
+      "start": 0,
+      "end": 15,
+      "kind": "leadingMargin",
+      "margin": 8.0
+    },
+    {
+      "start": 0,
+      "end": 15,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "no summary body",
+    "spans": [
+      {
+        "start": 0,
+        "end": 15,
+        "kind": "leadingMargin",
+        "margin": 8.0
+      },
+      {
+        "start": 0,
+        "end": 15,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

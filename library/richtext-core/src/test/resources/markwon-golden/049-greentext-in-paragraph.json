@@ -1,0 +1,10 @@
+{
+  "input": "<p>&gt;be me<br>&gt;write tests<br>normal</p>",
+  "compressed": "<p>&gt;be me<br>&gt;write tests<br>normal</p>",
+  "text": ">be me\n>write tests\nnormal",
+  "spans": [],
+  "markwon": {
+    "text": ">be me\n>write tests\nnormal",
+    "spans": []
+  }
+}

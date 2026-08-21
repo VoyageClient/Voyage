@@ -1,0 +1,10 @@
+{
+  "input": "just some plain text",
+  "compressed": "just some plain text",
+  "text": "just some plain text",
+  "spans": [],
+  "markwon": {
+    "text": "just some plain text",
+    "spans": []
+  }
+}

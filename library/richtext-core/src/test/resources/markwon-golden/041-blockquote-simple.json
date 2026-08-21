@@ -1,0 +1,50 @@
+{
+  "input": "<blockquote>\n<p>quoted</p>\n</blockquote>\n<p>reply</p>",
+  "compressed": "<blockquote> <p>quoted</p> </blockquote> <p>reply</p>",
+  "text": "quoted\n\nreply",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "blockquote"
+    },
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 8,
+      "end": 13,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "quoted\n\nreply",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "blockquote"
+      },
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 8,
+        "end": 13,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

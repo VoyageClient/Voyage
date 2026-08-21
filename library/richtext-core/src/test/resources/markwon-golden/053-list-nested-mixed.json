@@ -1,0 +1,108 @@
+{
+  "input": "<ul>\n<li>one\n<ol>\n<li>one-a</li>\n<li>one-b\n<ul>\n<li>deep</li>\n</ul>\n</li>\n</ol>\n</li>\n<li>two</li>\n</ul>",
+  "compressed": "<ul> <li>one <ol> <li>one-a</li> <li>one-b <ul> <li>deep</li> </ul> </li> </ol> </li> <li>two</li> </ul>",
+  "text": "● one \n   1. one-a \n   2. one-b \n      ● deep     \n● two",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 7,
+      "end": 13,
+      "kind": "listMarker",
+      "source": "   1. "
+    },
+    {
+      "start": 20,
+      "end": 26,
+      "kind": "listMarker",
+      "source": "   2. "
+    },
+    {
+      "start": 33,
+      "end": 41,
+      "kind": "listMarker",
+      "source": "      - "
+    },
+    {
+      "start": 39,
+      "end": 40,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 51,
+      "end": 53,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 51,
+      "end": 52,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    }
+  ],
+  "markwon": {
+    "text": "● one \n   1. one-a \n   2. one-b \n      ● deep     \n● two",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 7,
+        "end": 13,
+        "kind": "listMarker",
+        "source": "   1. "
+      },
+      {
+        "start": 20,
+        "end": 26,
+        "kind": "listMarker",
+        "source": "   2. "
+      },
+      {
+        "start": 33,
+        "end": 41,
+        "kind": "listMarker",
+        "source": "      - "
+      },
+      {
+        "start": 39,
+        "end": 40,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 51,
+        "end": 53,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 51,
+        "end": 52,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      }
+    ]
+  }
+}

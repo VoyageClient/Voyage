@@ -1,0 +1,38 @@
+{
+  "input": "<blockquote>\n<pre><code>quoted code</code></pre>\n</blockquote>",
+  "compressed": "<blockquote> <pre><code>quoted code</code></pre> </blockquote>",
+  "text": "quoted code",
+  "spans": [
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "blockquote"
+    },
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "codeBlock"
+    }
+  ],
+  "markwon": {
+    "text": "quoted code",
+    "spans": [
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "blockquote"
+      },
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "intermediateCode",
+        "block": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "input": "<details>\n<summary>Summary</summary>\n<p>para one</p>\n<p>para two</p>\n</details>\n<p>after</p>",
+  "compressed": "<details> <summary>Summary</summary> <p>para one</p> <p>para two</p> </details> <p>after</p>",
+  "text": " \nSummary\n \npara one\n \npara two\n  \nafter",
+  "spans": [
+    {
+      "start": 0,
+      "end": 33,
+      "kind": "leadingMargin",
+      "margin": 8.0
+    },
+    {
+      "start": 0,
+      "end": 33,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 2,
+      "end": 9,
+      "kind": "bold"
+    },
+    {
+      "start": 12,
+      "end": 20,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 23,
+      "end": 31,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 35,
+      "end": 40,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": " \nSummary\n \npara one\n \npara two\n  \nafter",
+    "spans": [
+      {
+        "start": 0,
+        "end": 33,
+        "kind": "leadingMargin",
+        "margin": 8.0
+      },
+      {
+        "start": 0,
+        "end": 33,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 2,
+        "end": 9,
+        "kind": "bold"
+      },
+      {
+        "start": 12,
+        "end": 20,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 23,
+        "end": 31,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 35,
+        "end": 40,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "input": "<blockquote>\n<br>\npadded quote\n<br>\n</blockquote>\nafter",
+  "compressed": "<blockquote><br>padded quote<br></blockquote> after",
+  "text": "padded quote\n\nafter",
+  "spans": [
+    {
+      "start": 0,
+      "end": 12,
+      "kind": "blockquote"
+    }
+  ],
+  "markwon": {
+    "text": "padded quote\n\nafter",
+    "spans": [
+      {
+        "start": 0,
+        "end": 12,
+        "kind": "blockquote"
+      }
+    ]
+  }
+}

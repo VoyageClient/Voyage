@@ -1,0 +1,16 @@
+{
+  "input": "<pre><code>   \n\n</code></pre>",
+  "compressed": "<pre><code>   \n\n</code></pre>",
+  "text": "",
+  "spans": [],
+  "markwon": {
+    "text": "",
+    "spans": []
+  },
+  "segments": [
+    {
+      "kind": "code",
+      "code": "   \n"
+    }
+  ]
+}

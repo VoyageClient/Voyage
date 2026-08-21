@@ -1,0 +1,10 @@
+{
+  "input": "first<br>second<br/>third<br />fourth",
+  "compressed": "first<br>second<br/>third<br/>fourth",
+  "text": "first\nsecond\nthird\nfourth",
+  "spans": [],
+  "markwon": {
+    "text": "first\nsecond\nthird\nfourth",
+    "spans": []
+  }
+}

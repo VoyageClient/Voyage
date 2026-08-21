@@ -1,0 +1,28 @@
+{
+  "input": "<img src=\"mxc://example.org/sized\" width=\"200\" height=\"100\" alt=\"sized\">",
+  "compressed": "<img src=\"mxc://example.org/sized\" width=\"200\" height=\"100\" alt=\"sized\">",
+  "text": "sized",
+  "spans": [
+    {
+      "start": 0,
+      "end": 5,
+      "kind": "image",
+      "destination": "mxc://example.org/sized",
+      "width": "200.0",
+      "height": "100.0"
+    }
+  ],
+  "markwon": {
+    "text": "sized",
+    "spans": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "image",
+        "destination": "mxc://example.org/sized",
+        "width": "200.0",
+        "height": "100.0"
+      }
+    ]
+  }
+}

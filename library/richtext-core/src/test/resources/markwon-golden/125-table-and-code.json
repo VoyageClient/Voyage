@@ -1,0 +1,71 @@
+{
+  "input": "<table><tr><td>t</td></tr></table>\n<pre><code>c</code></pre>\n<p>p</p>",
+  "compressed": "<table><tr><td>t</td></tr></table> <pre><code>c</code></pre> <p>p</p>",
+  "text": "t \nc \np",
+  "spans": [
+    {
+      "start": 3,
+      "end": 4,
+      "kind": "codeBlock"
+    },
+    {
+      "start": 6,
+      "end": 7,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "t \nc \np",
+    "spans": [
+      {
+        "start": 3,
+        "end": 4,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 3,
+        "end": 4,
+        "kind": "intermediateCode",
+        "block": true
+      },
+      {
+        "start": 6,
+        "end": 7,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "t",
+              "text": "t",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "code",
+      "code": "c"
+    },
+    {
+      "kind": "html",
+      "html": "<p>p</p>",
+      "text": "p",
+      "spans": []
+    }
+  ]
+}

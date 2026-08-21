@@ -1,0 +1,24 @@
+{
+  "input": "<a href=\"mailto:someone@example.org\">mail me</a>",
+  "compressed": "<a href=\"mailto:someone@example.org\">mail me</a>",
+  "text": "mail me",
+  "spans": [
+    {
+      "start": 0,
+      "end": 7,
+      "kind": "url",
+      "url": "mailto:someone@example.org"
+    }
+  ],
+  "markwon": {
+    "text": "mail me",
+    "spans": [
+      {
+        "start": 0,
+        "end": 7,
+        "kind": "link",
+        "url": "mailto:someone@example.org"
+      }
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "input": "<strong><em><u>all three</u></em></strong> then <em><strong>two</strong> one</em>",
+  "compressed": "<strong><em><u>all three</u></em></strong> then <em><strong>two</strong> one</em>",
+  "text": "all three then two one",
+  "spans": [
+    {
+      "start": 0,
+      "end": 9,
+      "kind": "bold"
+    },
+    {
+      "start": 0,
+      "end": 9,
+      "kind": "italic"
+    },
+    {
+      "start": 0,
+      "end": 9,
+      "kind": "underline"
+    },
+    {
+      "start": 15,
+      "end": 22,
+      "kind": "italic"
+    },
+    {
+      "start": 15,
+      "end": 18,
+      "kind": "bold"
+    }
+  ],
+  "markwon": {
+    "text": "all three then two one",
+    "spans": [
+      {
+        "start": 0,
+        "end": 9,
+        "kind": "bold"
+      },
+      {
+        "start": 0,
+        "end": 9,
+        "kind": "italic"
+      },
+      {
+        "start": 0,
+        "end": 9,
+        "kind": "underline"
+      },
+      {
+        "start": 15,
+        "end": 22,
+        "kind": "italic"
+      },
+      {
+        "start": 15,
+        "end": 18,
+        "kind": "bold"
+      }
+    ]
+  }
+}

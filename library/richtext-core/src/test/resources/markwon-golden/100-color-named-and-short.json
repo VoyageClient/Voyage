@@ -1,0 +1,24 @@
+{
+  "input": "<font color=\"#f0f\">short</font> <font color=\"teal\">teal</font> <font color=\"notacolor\">invalid</font>",
+  "compressed": "<font color=\"#f0f\">short</font> <font color=\"teal\">teal</font> <font color=\"notacolor\">invalid</font>",
+  "text": "short teal invalid",
+  "spans": [
+    {
+      "start": 6,
+      "end": 10,
+      "kind": "color",
+      "color": "#FF008080"
+    }
+  ],
+  "markwon": {
+    "text": "short teal invalid",
+    "spans": [
+      {
+        "start": 6,
+        "end": 10,
+        "kind": "color",
+        "color": "#FF008080"
+      }
+    ]
+  }
+}

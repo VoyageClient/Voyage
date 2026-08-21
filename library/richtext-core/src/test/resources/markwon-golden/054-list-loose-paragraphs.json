@@ -1,0 +1,88 @@
+{
+  "input": "<ul>\n<li>\n<p>first item</p>\n</li>\n<li>\n<p>second item</p>\n</li>\n</ul>\n",
+  "compressed": "<ul> <li> <p>first item</p> </li> <li> <p>second item</p> </li> </ul>",
+  "text": "● first item\n● second item",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 2,
+      "end": 12,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 13,
+      "end": 14,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 15,
+      "end": 26,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "● first item\n● second item",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 2,
+        "end": 12,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 13,
+        "end": 15,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 13,
+        "end": 14,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 15,
+        "end": 26,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

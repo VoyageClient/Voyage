@@ -1,0 +1,33 @@
+{
+  "input": "<span data-mx-spoiler>secret <img data-mx-emoticon src=\"mxc://example.org/e\" alt=\":e:\"></span>",
+  "compressed": "<span data-mx-spoiler>secret <img data-mx-emoticon src=\"mxc://example.org/e\" alt=\":e:\"></span>",
+  "text": "secret :e:",
+  "spans": [
+    {
+      "start": 7,
+      "end": 10,
+      "kind": "emote",
+      "mxcUrl": "mxc://example.org/e",
+      "shortcode": "e",
+      "body": ":e:"
+    }
+  ],
+  "markwon": {
+    "text": "secret :e:",
+    "spans": [
+      {
+        "start": 0,
+        "end": 10,
+        "kind": "spoiler"
+      },
+      {
+        "start": 7,
+        "end": 10,
+        "kind": "emote",
+        "mxcUrl": "mxc://example.org/e",
+        "shortcode": "e",
+        "body": ":e:"
+      }
+    ]
+  }
+}

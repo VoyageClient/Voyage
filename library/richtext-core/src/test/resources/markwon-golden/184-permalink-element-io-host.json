@@ -1,0 +1,25 @@
+{
+  "input": "see https://app.element.io/#/room/!roomid:example.org ok",
+  "compressed": "see https://app.element.io/#/room/!roomid:example.org ok",
+  "text": "see ￼ ok",
+  "spans": [
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "RoomItem",
+      "displayName": "Room/Space"
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "url",
+      "url": "https://app.element.io/#/room/!roomid:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "see https://app.element.io/#/room/!roomid:example.org ok",
+    "spans": []
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "input": "<p>first</p><img data-mx-emoticon src=\"mxc://example.org/emote6\" alt=\":e6:\">",
+  "compressed": "<p>first</p><img data-mx-emoticon src=\"mxc://example.org/emote6\" alt=\":e6:\">",
+  "text": "first\n:e6:",
+  "spans": [
+    {
+      "start": 6,
+      "end": 10,
+      "kind": "emote",
+      "mxcUrl": "mxc://example.org/emote6",
+      "shortcode": "e6",
+      "body": ":e6:"
+    }
+  ],
+  "markwon": {
+    "text": "first\n:e6:",
+    "spans": [
+      {
+        "start": 6,
+        "end": 10,
+        "kind": "emote",
+        "mxcUrl": "mxc://example.org/emote6",
+        "shortcode": "e6",
+        "body": ":e6:"
+      }
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "input": "<span data-mx-maths=\"x\"><code>x</code></span> and <span data-mx-maths=\"y\"><code>y</code></span>",
+  "compressed": "<span data-mx-maths=\"x\"><code>x</code></span> and <span data-mx-maths=\"y\"><code>y</code></span>",
+  "text": "x and y",
+  "spans": [
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "maths",
+      "latex": "x",
+      "display": "inline"
+    },
+    {
+      "start": 6,
+      "end": 7,
+      "kind": "maths",
+      "latex": "y",
+      "display": "inline"
+    }
+  ],
+  "markwon": {
+    "text": "x and y",
+    "spans": [
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "maths",
+        "latex": "x",
+        "display": "inline"
+      },
+      {
+        "start": 6,
+        "end": 7,
+        "kind": "maths",
+        "latex": "y",
+        "display": "inline"
+      }
+    ]
+  }
+}

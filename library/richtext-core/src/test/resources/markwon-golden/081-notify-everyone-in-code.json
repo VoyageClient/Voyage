@@ -1,0 +1,34 @@
+{
+  "input": "<code>@room</code> and email@room.org",
+  "compressed": "<code>@room</code> and email@room.org",
+  "text": "@room and email@room.org",
+  "spans": [
+    {
+      "start": 0,
+      "end": 5,
+      "kind": "code"
+    },
+    {
+      "start": 10,
+      "end": 24,
+      "kind": "url",
+      "url": "mailto:email@room.org"
+    }
+  ],
+  "markwon": {
+    "text": "@room and email@room.org",
+    "spans": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "code"
+      },
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "intermediateCode",
+        "block": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "input": "@room and @room",
+  "compressed": "@room and @room",
+  "text": "￼ and ￼",
+  "spans": [
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "EveryoneInRoomItem",
+      "displayName": "@room"
+    },
+    {
+      "start": 6,
+      "end": 7,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "EveryoneInRoomItem",
+      "displayName": "@room"
+    }
+  ],
+  "markwon": {
+    "text": "@room and @room",
+    "spans": []
+  }
+}

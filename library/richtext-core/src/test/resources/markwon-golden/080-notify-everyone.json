@@ -1,0 +1,19 @@
+{
+  "input": "@room please read",
+  "compressed": "@room please read",
+  "text": "￼ please read",
+  "spans": [
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "EveryoneInRoomItem",
+      "displayName": "@room"
+    }
+  ],
+  "markwon": {
+    "text": "@room please read",
+    "spans": []
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "input": "<table><tr><th><strong>bold</strong></th><td><a href=\"https://example.org\">link</a> <code>code</code> <em>em</em></td></tr></table>",
+  "compressed": "<table><tr><th><strong>bold</strong></th><td><a href=\"https://example.org\">link</a> <code>code</code> <em>em</em></td></tr></table>",
+  "text": "boldlink code em",
+  "spans": [
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "bold"
+    },
+    {
+      "start": 4,
+      "end": 8,
+      "kind": "url",
+      "url": "https://example.org"
+    },
+    {
+      "start": 9,
+      "end": 13,
+      "kind": "code"
+    },
+    {
+      "start": 14,
+      "end": 16,
+      "kind": "italic"
+    }
+  ],
+  "markwon": {
+    "text": "boldlink code em",
+    "spans": [
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "bold"
+      },
+      {
+        "start": 4,
+        "end": 8,
+        "kind": "link",
+        "url": "https://example.org"
+      },
+      {
+        "start": 9,
+        "end": 13,
+        "kind": "code"
+      },
+      {
+        "start": 9,
+        "end": 13,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 14,
+        "end": 16,
+        "kind": "italic"
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": true,
+              "align": "left",
+              "html": "<strong>bold</strong>",
+              "text": "bold",
+              "spans": [
+                {
+                  "start": 0,
+                  "end": 4,
+                  "kind": "bold"
+                }
+              ]
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "<a href=\"https://example.org\">link</a> <code>code</code> <em>em</em>",
+              "text": "link code em",
+              "spans": [
+                {
+                  "start": 0,
+                  "end": 4,
+                  "kind": "url",
+                  "url": "https://example.org"
+                },
+                {
+                  "start": 5,
+                  "end": 9,
+                  "kind": "code"
+                },
+                {
+                  "start": 10,
+                  "end": 12,
+                  "kind": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "input": "see <a href=\"https://matrix.to/#/!roomid:example.org?via=example.org\">the room</a>",
+  "compressed": "see <a href=\"https://matrix.to/#/!roomid:example.org?via=example.org\">the room</a>",
+  "text": "see ￼",
+  "spans": [
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "RoomItem"
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "url",
+      "url": "https://matrix.to/#/!roomid:example.org?via=example.org"
+    }
+  ],
+  "markwon": {
+    "text": "see ￼",
+    "spans": [
+      {
+        "start": 4,
+        "end": 5,
+        "kind": "link",
+        "url": "https://matrix.to/#/!roomid:example.org?via=example.org"
+      },
+      {
+        "start": 4,
+        "end": 5,
+        "kind": "pill",
+        "id": "!roomid:example.org",
+        "itemType": "RoomItem"
+      }
+    ]
+  }
+}

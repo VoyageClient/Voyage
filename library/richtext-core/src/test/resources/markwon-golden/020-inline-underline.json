@@ -1,0 +1,22 @@
+{
+  "input": "<u>underlined</u> text",
+  "compressed": "<u>underlined</u> text",
+  "text": "underlined text",
+  "spans": [
+    {
+      "start": 0,
+      "end": 10,
+      "kind": "underline"
+    }
+  ],
+  "markwon": {
+    "text": "underlined text",
+    "spans": [
+      {
+        "start": 0,
+        "end": 10,
+        "kind": "underline"
+      }
+    ]
+  }
+}

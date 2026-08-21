@@ -1,0 +1,44 @@
+{
+  "input": "<a href=\"https://example.org\"><strong>bold</strong> <em>link</em></a>",
+  "compressed": "<a href=\"https://example.org\"><strong>bold</strong> <em>link</em></a>",
+  "text": "bold link",
+  "spans": [
+    {
+      "start": 0,
+      "end": 9,
+      "kind": "url",
+      "url": "https://example.org"
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "bold"
+    },
+    {
+      "start": 5,
+      "end": 9,
+      "kind": "italic"
+    }
+  ],
+  "markwon": {
+    "text": "bold link",
+    "spans": [
+      {
+        "start": 0,
+        "end": 9,
+        "kind": "link",
+        "url": "https://example.org"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "bold"
+      },
+      {
+        "start": 5,
+        "end": 9,
+        "kind": "italic"
+      }
+    ]
+  }
+}

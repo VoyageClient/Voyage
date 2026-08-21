@@ -1,0 +1,54 @@
+{
+  "input": "<p>A<br />B</p>\n<p>C</p>\n<p>D<br>E<br/>F</p>",
+  "compressed": "<p>A<br/>B</p> <p>C</p> <p>D<br>E<br/>F</p>",
+  "text": "A\nB\n \nC\n \nD\n\nE\nF",
+  "spans": [
+    {
+      "start": 0,
+      "end": 3,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 6,
+      "end": 7,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 10,
+      "end": 16,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "A\nB\n \nC\n \nD\n\nE\nF",
+    "spans": [
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 6,
+        "end": 7,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 10,
+        "end": 16,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

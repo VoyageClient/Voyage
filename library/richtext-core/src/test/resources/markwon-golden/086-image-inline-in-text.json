@@ -1,0 +1,24 @@
+{
+  "input": "before <img src=\"mxc://example.org/mid\" alt=\"mid\"> after",
+  "compressed": "before <img src=\"mxc://example.org/mid\" alt=\"mid\"> after",
+  "text": "before mid after",
+  "spans": [
+    {
+      "start": 7,
+      "end": 10,
+      "kind": "image",
+      "destination": "mxc://example.org/mid"
+    }
+  ],
+  "markwon": {
+    "text": "before mid after",
+    "spans": [
+      {
+        "start": 7,
+        "end": 10,
+        "kind": "image",
+        "destination": "mxc://example.org/mid"
+      }
+    ]
+  }
+}

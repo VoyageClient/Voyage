@@ -1,0 +1,186 @@
+{
+  "input": "<p>table time</p><table><thead><tr><th>col</th><th>val</th></tr></thead><tbody><tr><td><code>x</code></td><td>1</td></tr></tbody></table><p>and <span data-mx-color=\"#ff9900\">colour</span> and <sup>sup</sup><sub>sub</sub> and <a href=\"https://example.org\">link</a></p>",
+  "compressed": "<p>table time</p><table><thead><tr><th>col</th><th>val</th></tr></thead><tbody><tr><td><code>x</code></td><td>1</td></tr></tbody></table><p>and <span data-mx-color=\"#ff9900\">colour</span> and <sup>sup</sup><sub>sub</sub> and <a href=\"https://example.org\">link</a></p>",
+  "text": "table time\ncolvalx1\nand \ncolour and supsub and link",
+  "spans": [
+    {
+      "start": 0,
+      "end": 10,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 17,
+      "end": 18,
+      "kind": "code"
+    },
+    {
+      "start": 20,
+      "end": 51,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 24,
+      "end": 31,
+      "kind": "color",
+      "color": "#FFFF9900"
+    },
+    {
+      "start": 36,
+      "end": 39,
+      "kind": "superscript"
+    },
+    {
+      "start": 39,
+      "end": 42,
+      "kind": "subscript"
+    },
+    {
+      "start": 47,
+      "end": 51,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "table time\ncolvalx1\nand \ncolour and supsub and link",
+    "spans": [
+      {
+        "start": 0,
+        "end": 10,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 17,
+        "end": 18,
+        "kind": "code"
+      },
+      {
+        "start": 17,
+        "end": 18,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 20,
+        "end": 51,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 24,
+        "end": 31,
+        "kind": "color",
+        "color": "#FFFF9900"
+      },
+      {
+        "start": 36,
+        "end": 39,
+        "kind": "superscript"
+      },
+      {
+        "start": 39,
+        "end": 42,
+        "kind": "subscript"
+      },
+      {
+        "start": 47,
+        "end": 51,
+        "kind": "link",
+        "url": "https://example.org"
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "html",
+      "html": "<p>table time</p>",
+      "text": "table time",
+      "spans": []
+    },
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": true,
+          "cells": [
+            {
+              "header": true,
+              "align": "left",
+              "html": "col",
+              "text": "col",
+              "spans": []
+            },
+            {
+              "header": true,
+              "align": "left",
+              "html": "val",
+              "text": "val",
+              "spans": []
+            }
+          ]
+        },
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "<code>x</code>",
+              "text": "x",
+              "spans": [
+                {
+                  "start": 0,
+                  "end": 1,
+                  "kind": "code"
+                }
+              ]
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "1",
+              "text": "1",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "html",
+      "html": "<p>and <span data-mx-color=\"#ff9900\">colour</span> and <sup>sup</sup><sub>sub</sub> and <a href=\"https://example.org\">link</a></p>",
+      "text": "and colour and supsub and link",
+      "spans": [
+        {
+          "start": 4,
+          "end": 10,
+          "kind": "color",
+          "color": "#FFFF9900"
+        },
+        {
+          "start": 15,
+          "end": 18,
+          "kind": "superscript"
+        },
+        {
+          "start": 18,
+          "end": 21,
+          "kind": "subscript"
+        },
+        {
+          "start": 26,
+          "end": 30,
+          "kind": "url",
+          "url": "https://example.org"
+        }
+      ]
+    }
+  ]
+}

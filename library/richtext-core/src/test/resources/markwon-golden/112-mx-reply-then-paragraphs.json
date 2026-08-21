@@ -1,0 +1,40 @@
+{
+  "input": "<mx-reply><blockquote>quoted</blockquote></mx-reply><p>first</p><p>second</p>",
+  "compressed": "<p>first</p><p>second</p>",
+  "text": "first\nsecond",
+  "spans": [
+    {
+      "start": 0,
+      "end": 5,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 6,
+      "end": 12,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "first\nsecond",
+    "spans": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 6,
+        "end": 12,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

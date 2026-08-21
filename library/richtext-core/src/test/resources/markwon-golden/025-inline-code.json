@@ -1,0 +1,28 @@
+{
+  "input": "use <code>git rebase -i</code> carefully",
+  "compressed": "use <code>git rebase -i</code> carefully",
+  "text": "use git rebase -i carefully",
+  "spans": [
+    {
+      "start": 4,
+      "end": 17,
+      "kind": "code"
+    }
+  ],
+  "markwon": {
+    "text": "use git rebase -i carefully",
+    "spans": [
+      {
+        "start": 4,
+        "end": 17,
+        "kind": "code"
+      },
+      {
+        "start": 4,
+        "end": 17,
+        "kind": "intermediateCode",
+        "block": false
+      }
+    ]
+  }
+}

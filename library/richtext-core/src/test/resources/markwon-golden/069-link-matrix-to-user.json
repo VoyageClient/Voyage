@@ -1,0 +1,40 @@
+{
+  "input": "hi <a href=\"https://matrix.to/#/@alice:example.org\">Alice</a>!",
+  "compressed": "hi <a href=\"https://matrix.to/#/@alice:example.org\">Alice</a>!",
+  "text": "hi ￼!",
+  "spans": [
+    {
+      "start": 3,
+      "end": 4,
+      "kind": "pill",
+      "id": "@alice:example.org",
+      "itemType": "UserItem",
+      "displayName": "Alice"
+    },
+    {
+      "start": 3,
+      "end": 4,
+      "kind": "url",
+      "url": "https://matrix.to/#/@alice:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "hi ￼!",
+    "spans": [
+      {
+        "start": 3,
+        "end": 4,
+        "kind": "link",
+        "url": "https://matrix.to/#/@alice:example.org"
+      },
+      {
+        "start": 3,
+        "end": 4,
+        "kind": "pill",
+        "id": "@alice:example.org",
+        "itemType": "UserItem",
+        "displayName": "Alice"
+      }
+    ]
+  }
+}

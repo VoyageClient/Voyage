@@ -1,0 +1,10 @@
+{
+  "input": "before <iframe src=\"https://example.org\"></iframe> after",
+  "compressed": "before <iframe src=\"https://example.org\"></iframe> after",
+  "text": "before   after",
+  "spans": [],
+  "markwon": {
+    "text": "before   after",
+    "spans": []
+  }
+}

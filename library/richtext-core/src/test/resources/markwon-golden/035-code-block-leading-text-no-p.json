@@ -1,0 +1,46 @@
+{
+  "input": "intro<pre><code>x = 1</code></pre>outro",
+  "compressed": "intro<pre><code>x = 1</code></pre>outro",
+  "text": "intro\nx = 1outro",
+  "spans": [
+    {
+      "start": 6,
+      "end": 11,
+      "kind": "codeBlock"
+    }
+  ],
+  "markwon": {
+    "text": "intro\nx = 1outro",
+    "spans": [
+      {
+        "start": 6,
+        "end": 11,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 6,
+        "end": 11,
+        "kind": "intermediateCode",
+        "block": true
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "html",
+      "html": "\nintro",
+      "text": "\nintro",
+      "spans": []
+    },
+    {
+      "kind": "code",
+      "code": "x = 1"
+    },
+    {
+      "kind": "html",
+      "html": "outro",
+      "text": "outro",
+      "spans": []
+    }
+  ]
+}

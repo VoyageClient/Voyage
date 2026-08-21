@@ -1,0 +1,39 @@
+{
+  "input": "see https://matrix.to/#/@alice:example.org and https://matrix.to/#/!roomid:example.org/$evt?via=x",
+  "compressed": "see https://matrix.to/#/@alice:example.org and https://matrix.to/#/!roomid:example.org/$evt?via=x",
+  "text": "see ￼ and ￼",
+  "spans": [
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "pill",
+      "id": "@alice:example.org",
+      "itemType": "UserItem",
+      "displayName": "Alice"
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "url",
+      "url": "https://matrix.to/#/@alice:example.org"
+    },
+    {
+      "start": 10,
+      "end": 11,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "RoomItem",
+      "displayName": "Message"
+    },
+    {
+      "start": 10,
+      "end": 11,
+      "kind": "url",
+      "url": "https://matrix.to/#/!roomid:example.org/$evt?via=x"
+    }
+  ],
+  "markwon": {
+    "text": "see https://matrix.to/#/@alice:example.org and https://matrix.to/#/!roomid:example.org/$evt?via=x",
+    "spans": []
+  }
+}

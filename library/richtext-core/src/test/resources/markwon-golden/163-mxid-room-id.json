@@ -1,0 +1,17 @@
+{
+  "input": "room !roomid:example.org here",
+  "compressed": "room !roomid:example.org here",
+  "text": "room !roomid:example.org here",
+  "spans": [
+    {
+      "start": 13,
+      "end": 24,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "room !roomid:example.org here",
+    "spans": []
+  }
+}

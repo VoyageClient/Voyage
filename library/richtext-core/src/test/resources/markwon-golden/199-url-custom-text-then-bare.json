@@ -1,0 +1,30 @@
+{
+  "input": "<a href=\"https://example.org\">custom text</a> https://example.org",
+  "compressed": "<a href=\"https://example.org\">custom text</a> https://example.org",
+  "text": "custom text https://example.org",
+  "spans": [
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "url",
+      "url": "https://example.org"
+    },
+    {
+      "start": 12,
+      "end": 31,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "custom text https://example.org",
+    "spans": [
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "link",
+        "url": "https://example.org"
+      }
+    ]
+  }
+}

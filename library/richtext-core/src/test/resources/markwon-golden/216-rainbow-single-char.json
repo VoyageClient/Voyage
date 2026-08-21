@@ -1,0 +1,24 @@
+{
+  "input": "<font color=\"#f20d0d\">!</font>",
+  "compressed": "<font color=\"#f20d0d\">!</font>",
+  "text": "!",
+  "spans": [
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "color",
+      "color": "#FFF20D0D"
+    }
+  ],
+  "markwon": {
+    "text": "!",
+    "spans": [
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "color",
+        "color": "#FFF20D0D"
+      }
+    ]
+  }
+}

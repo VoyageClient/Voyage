@@ -1,0 +1,50 @@
+{
+  "input": "<code>@alice:example.org</code> and <code><a href=\"https://matrix.to/#/@alice:example.org\">Alice</a></code>",
+  "compressed": "<code>@alice:example.org</code> and <code><a href=\"https://matrix.to/#/@alice:example.org\">Alice</a></code>",
+  "text": "@alice:example.org and Alice",
+  "spans": [
+    {
+      "start": 0,
+      "end": 18,
+      "kind": "code"
+    },
+    {
+      "start": 23,
+      "end": 28,
+      "kind": "code"
+    }
+  ],
+  "markwon": {
+    "text": "@alice:example.org and Alice",
+    "spans": [
+      {
+        "start": 0,
+        "end": 18,
+        "kind": "code"
+      },
+      {
+        "start": 0,
+        "end": 18,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 23,
+        "end": 28,
+        "kind": "code"
+      },
+      {
+        "start": 23,
+        "end": 28,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 23,
+        "end": 28,
+        "kind": "link",
+        "url": "https://matrix.to/#/@alice:example.org"
+      }
+    ]
+  }
+}

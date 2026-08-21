@@ -1,0 +1,76 @@
+{
+  "input": "<ul>\n<li>item\n<pre><code>code in item</code></pre>\n</li>\n<li>second</li>\n</ul>",
+  "compressed": "<ul> <li>item <pre><code>code in item</code></pre> </li> <li>second</li> </ul>",
+  "text": "● item \ncode in item  \n● second",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 8,
+      "end": 20,
+      "kind": "codeBlock"
+    },
+    {
+      "start": 23,
+      "end": 25,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 23,
+      "end": 24,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    }
+  ],
+  "markwon": {
+    "text": "● item \ncode in item  \n● second",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 8,
+        "end": 20,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 8,
+        "end": 20,
+        "kind": "intermediateCode",
+        "block": true
+      },
+      {
+        "start": 23,
+        "end": 25,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 23,
+        "end": 24,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      }
+    ]
+  }
+}

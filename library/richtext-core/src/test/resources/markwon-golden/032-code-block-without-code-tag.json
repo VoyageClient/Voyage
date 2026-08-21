@@ -1,0 +1,16 @@
+{
+  "input": "<pre>raw pre\n  indented\n</pre>",
+  "compressed": "<pre>raw pre\n  indented\n</pre>",
+  "text": "raw pre\nindented",
+  "spans": [],
+  "markwon": {
+    "text": "raw pre\nindented",
+    "spans": []
+  },
+  "segments": [
+    {
+      "kind": "code",
+      "code": "raw pre\n  indented"
+    }
+  ]
+}
