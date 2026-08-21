@@ -37,8 +37,11 @@ class RoundedClipDrawable(
         private val oval: Boolean,
 ) : Drawable(), Drawable.Callback, Animatable {
 
+    // DST_OUT over the *inverse* shape: a PorterDuff mode only blends the pixels the source geometry
+    // actually covers, so filling the shape itself with DST_IN leaves everything outside it untouched —
+    // i.e. no clipping at all. The region to erase is the one outside.
     private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
     }
     private val maskPath = Path()
     private var maskDirty = true
@@ -49,6 +52,8 @@ class RoundedClipDrawable(
 
     private fun rebuildMask() {
         maskPath.reset()
+        // reset() drops the fill type, so set it after.
+        maskPath.fillType = Path.FillType.INVERSE_WINDING
         val rectF = RectF(bounds)
         if (oval) {
             maskPath.addOval(rectF, Path.Direction.CW)

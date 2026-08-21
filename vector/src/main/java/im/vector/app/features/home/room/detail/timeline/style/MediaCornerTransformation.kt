@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.themes.BubbleThemeUtils
 
 /**
  * Rounds a thumbnail to the same radius as the bubble border around it, else (e.g. SC's 3dp border
@@ -33,3 +34,11 @@ fun TimelineMessageLayout.mediaCornerRadiusPx(context: Context): Int {
     return (this as? TimelineMessageLayout.ScBubble)?.bubbleAppearance?.getBubbleRadiusPx(context)
             ?: DimensionConverter(context.resources).dpToPx(8)
 }
+
+/**
+ * The same radius for media previews (reply header, reply composer, long-press sheet), which have no
+ * message layout of their own but should round exactly as the timeline does — i.e. by the configured
+ * bubble roundness.
+ */
+fun mediaPreviewCornerRadiusPx(context: Context): Int =
+        BubbleThemeUtils(context).getBubbleAppearance().getBubbleRadiusPx(context)

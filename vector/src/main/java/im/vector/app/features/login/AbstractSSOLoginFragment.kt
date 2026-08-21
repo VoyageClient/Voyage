@@ -80,7 +80,7 @@ abstract class AbstractSSOLoginFragment<VB : ViewBinding> : AbstractLoginFragmen
             if (state.loginMode.hasSso() && state.loginMode.ssoState().isFallback()) {
                 // in this case we can prefetch (not other cases for privacy concerns)
                 loginViewModel.getSsoUrl(
-                        redirectUrl = SSORedirectRouterActivity.VECTOR_REDIRECT_URL,
+                        redirectUrl = SSORedirectRouterActivity.redirectUrl(requireContext()),
                         deviceId = state.deviceId,
                         providerId = null,
                         action = if (state.signMode == SignMode.SignUp) SSOAction.REGISTER else SSOAction.LOGIN

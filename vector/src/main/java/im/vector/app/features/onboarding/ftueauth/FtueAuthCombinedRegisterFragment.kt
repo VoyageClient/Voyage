@@ -208,7 +208,7 @@ class FtueAuthCombinedRegisterFragment :
         views.ssoGroup.isVisible = true
         views.ssoButtons.render(loginMode, SocialLoginButtonsView.Mode.MODE_CONTINUE) { provider ->
             viewModel.fetchSsoUrl(
-                    redirectUrl = SSORedirectRouterActivity.VECTOR_REDIRECT_URL,
+                    redirectUrl = SSORedirectRouterActivity.redirectUrl(requireContext()),
                     deviceId = deviceId,
                     provider = provider,
                     action = SSOAction.REGISTER

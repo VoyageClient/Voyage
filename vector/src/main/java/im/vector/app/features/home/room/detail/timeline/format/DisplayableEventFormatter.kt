@@ -317,7 +317,9 @@ class DisplayableEventFormatter @Inject constructor(
         val blocks = spanned.getSpans(0, spanned.length, im.vector.app.features.html.QuoteMarginSpan::class.java).toList() +
                 spanned.getSpans(0, spanned.length, im.vector.app.features.html.HtmlCodeSpan::class.java).filter { it.isBlock } +
                 // Paragraph vertical padding renders as a blank line above/below in the one-line preview.
-                spanned.getSpans(0, spanned.length, me.gujun.android.span.style.VerticalPaddingSpan::class.java).toList()
+                spanned.getSpans(0, spanned.length, me.gujun.android.span.style.VerticalPaddingSpan::class.java).toList() +
+                // A heading scales the text and reserves its own line height, growing the whole row.
+                spanned.getSpans(0, spanned.length, io.noties.markwon.core.spans.HeadingSpan::class.java).toList()
         if (blocks.isEmpty()) return this
         val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
         blocks.forEach { builder.removeSpan(it) }

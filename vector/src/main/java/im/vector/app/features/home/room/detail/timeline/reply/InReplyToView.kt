@@ -18,7 +18,6 @@
 package im.vector.app.features.home.room.detail.timeline.reply
 
 import android.content.Context
-import android.graphics.Outline
 import android.graphics.Typeface
 import android.text.SpannableString
 import android.text.Spanned
@@ -27,7 +26,6 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewOutlineProvider
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
@@ -40,6 +38,7 @@ import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -166,21 +165,9 @@ class InReplyToView @JvmOverloads constructor(
         // Somehow this one needs it additionally?
         views.replyTextView.setOnClickListener(this)
 
-        // Round the thumbnail corners (matches the timeline). renderHidden() draws the blurhash/solid
-        // drawable directly without a corner transform, so clip the view itself to cover both cases.
-        val radius = 8 * resources.displayMetrics.density
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            // clipToOutline / ViewOutlineProvider are API 21+ (anti-aliased).
-            views.replyThumbnailView.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, radius)
-                }
-            }
-            views.replyThumbnailView.clipToOutline = true
-        } else {
-            // Pre-Lollipop: RoundedCornerImageView clips via canvas path instead.
-            views.replyThumbnailView.setCornerRadii(radius, radius, radius, radius)
-        }
+        // renderHidden() draws the blurhash/solid drawable directly without a corner transform, so the
+        // view shapes whatever it is given.
+        views.replyThumbnailView.setCornerRadius(mediaPreviewCornerRadiusPx(context).toFloat())
     }
 
     private fun hideViews() {
@@ -443,7 +430,9 @@ class InReplyToView @JvmOverloads constructor(
             retriever.imageContentRenderer.render(
                     mediaData,
                     mode,
-                    views.replyThumbnailView
+                    views.replyThumbnailView,
+                    // The view rounds the picture; a bitmap-baked radius would scale with the decode size.
+                    cornerTransformation = null,
             )
             if (caption == null) {
                 views.replyTextView.isVisible = false

@@ -585,6 +585,9 @@ class MessageActionsViewModel @AssistedInject constructor(
             }
         }
 
+        // A pin/unpin notice shows in every timeline, so its jump isn't developer-only.
+        pinnedRelatedEventId(timelineEvent)?.let { add(EventSharedAction.JumpToRelation(eventId, it)) }
+
         if (vectorPreferences.developerMode()) {
             add(EventSharedAction.CopyEventId(eventId))
             relatedEventId(timelineEvent)?.let { add(EventSharedAction.JumpToRelation(eventId, it)) }
@@ -634,6 +637,14 @@ class MessageActionsViewModel @AssistedInject constructor(
             EventType.REACTION -> timelineEvent.root.getClearContent().toModel<ReactionContent>()?.relatesTo?.eventId
             else -> null
         }
+    }
+
+    // The event a pin or unpin acted on: the single id that entered or left the pinned list.
+    private fun pinnedRelatedEventId(timelineEvent: TimelineEvent): String? {
+        if (timelineEvent.root.getClearType() != EventType.STATE_ROOM_PINNED_EVENT) return null
+        val pinned = timelineEvent.root.getClearContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
+        val previous = timelineEvent.root.resolvedPrevContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
+        return (pinned - previous.toSet()).singleOrNull() ?: (previous - pinned.toSet()).singleOrNull()
     }
 
     private fun canReply(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {

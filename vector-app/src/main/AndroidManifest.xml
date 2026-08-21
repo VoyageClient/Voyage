@@ -1674,6 +1674,24 @@
             android:theme="@android:style/Theme.Holo.Light" />
 
 
+        <!-- Declared here, not in the library: the redirect scheme is the package id, so the debug and
+             release builds claim their own and a co-installed one can't intercept the SSO callback. -->
+        <activity
+            android:name="im.vector.app.features.login.SSORedirectRouterActivity"
+            android:exported="true"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="connect"
+                    android:scheme="${applicationId}" />
+            </intent-filter>
+        </activity>
+
         <!-- Providers -->
 
         <!-- Remove WorkManagerInitializer Provider because we are using on-demand initialization of WorkManager-->

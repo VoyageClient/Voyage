@@ -36,7 +36,10 @@ sealed class MatrixItem(
     data class UserItem(
             override val id: String,
             override val displayName: String? = null,
-            override val avatarUrl: String? = null
+            override val avatarUrl: String? = null,
+            // The user's own name, when [displayName] is a decorated label ("Message from Bob") whose
+            // first letter is not the one the avatar placeholder should draw.
+            val userDisplayName: String? = null
     ) :
             MatrixItem(id, displayName?.removeSuffix(IRC_PATTERN), avatarUrl) {
 
@@ -141,6 +144,7 @@ sealed class MatrixItem(
             is EveryoneInRoomItem -> roomDisplayName
             is RoomItem -> roomDisplayName ?: displayName
             is RoomAliasItem -> roomDisplayName ?: displayName
+            is UserItem -> userDisplayName ?: displayName
             else -> displayName
         }
         return (displayName?.takeIf { it.isNotBlank() } ?: id)

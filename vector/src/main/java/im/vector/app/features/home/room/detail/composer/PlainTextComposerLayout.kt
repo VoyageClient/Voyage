@@ -8,14 +8,11 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
-import android.graphics.Outline
 import android.net.Uri
 import android.text.Editable
 import android.text.SpannableStringBuilder
 import android.text.format.DateUtils
 import android.util.AttributeSet
-import android.view.View
-import android.view.ViewOutlineProvider
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -51,6 +48,7 @@ import im.vector.app.features.home.room.detail.timeline.image.buildImageContentR
 import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
@@ -172,19 +170,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         // Round the replied-to image corners. Glide's RoundedCorners only transforms the loaded
         // bitmap, so a still-loading blurhash placeholder (Drawable) would otherwise show square.
-        val imageCornerRadius = 8 * resources.displayMetrics.density
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            // clipToOutline / ViewOutlineProvider are API 21+ (anti-aliased).
-            views.composerRelatedMessageImage.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, imageCornerRadius)
-                }
-            }
-            views.composerRelatedMessageImage.clipToOutline = true
-        } else {
-            // Pre-Lollipop: RoundedCornerImageView clips via canvas path instead.
-            views.composerRelatedMessageImage.setCornerRadii(imageCornerRadius, imageCornerRadius, imageCornerRadius, imageCornerRadius)
-        }
+        views.composerRelatedMessageImage.setCornerRadius(mediaPreviewCornerRadiusPx(context).toFloat())
 
         collapse(animate = false)
 
@@ -222,7 +208,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
     }
 
+    private var lastSpecialModeKey: Pair<String, String>? = null
+
     private fun collapse(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
+        lastSpecialModeKey = null
         if (animate) beginClassicTransition()
         views.relatedMessageGroup.isVisible = false
         views.composerTopDivider.isVisible = classic
@@ -286,7 +275,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             if (hidden) {
                 imageContentRenderer.renderHidden(data, mode, views.composerRelatedMessageImage, vectorPreferences.useSolidColorForHiddenMedia())
             } else {
-                imageContentRenderer.render(data, mode, views.composerRelatedMessageImage, crossFade = crossFade)
+                // The view rounds the picture; a bitmap-baked radius would scale with the decode size.
+                imageContentRenderer.render(data, mode, views.composerRelatedMessageImage, cornerTransformation = null, crossFade = crossFade)
             }
             true
         } else {
@@ -395,6 +385,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     }
 
     private fun renderSpecialMode(specialMode: MessageComposerMode.Special) {
+        // Re-rendering the same target (it was edited or redacted under the composer) must not replay the
+        // expand animation or pull the keyboard back up.
+        val modeKey = specialMode.javaClass.name to specialMode.event.eventId
+        val isRefresh = views.relatedMessageGroup.isVisible && lastSpecialModeKey == modeKey
+        lastSpecialModeKey = modeKey
         // A revealed redaction previews its restored content here too, matching the timeline.
         val restored = redactedContentRestorer.restoreEvent(specialMode.event)
         val event = restored ?: specialMode.event
@@ -551,9 +546,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             views.composerEditText.setText(content)
         }
 
-        expand {
+        expand(animate = !isRefresh) {
             // need to do it here also when not using quick reply
-            if (isVisible) {
+            if (isVisible && !isRefresh) {
                 // Post so the focus request runs after the RecyclerView's swipe-gesture
                 // touch processing settles; targeting the EditText directly (not the parent
                 // layout) ensures the IME input connection is fully established.

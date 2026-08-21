@@ -138,7 +138,7 @@ class FtueAuthCombinedLoginFragment :
         views.ssoButtonsHeader.isVisible = isUsernameAndPasswordVisible()
         views.ssoButtons.render(loginMode, SocialLoginButtonsView.Mode.MODE_CONTINUE) { id ->
             viewModel.fetchSsoUrl(
-                    redirectUrl = SSORedirectRouterActivity.VECTOR_REDIRECT_URL,
+                    redirectUrl = SSORedirectRouterActivity.redirectUrl(requireContext()),
                     deviceId = deviceId,
                     provider = id,
                     action = SSOAction.LOGIN

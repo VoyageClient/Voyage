@@ -15,7 +15,10 @@ import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.drawable.Animatable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.SystemClock
 import android.text.Editable
 import android.text.Layout
 import android.text.Spannable
@@ -29,12 +32,15 @@ import android.text.style.TextAppearanceSpan
 import android.widget.TextView
 import androidx.annotation.UiThread
 import androidx.appcompat.content.res.AppCompatResources
+import com.amulyakhare.textdrawable.TextDrawable
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.chip.ChipDrawable
 import im.vector.app.R
 import im.vector.app.core.extensions.isMatrixId
 import im.vector.app.core.glide.GlideRequests
+import im.vector.app.core.glide.RoundedClipDrawable
+import im.vector.app.core.glide.restartAnimation
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.emoji.TwemojiSpan
@@ -87,6 +93,10 @@ class PillImageSpan(
     // blink the pill back through a placeholder for no gain.
     private var hasCachedAvatar = false
 
+    // The unwrapped drawable the chip icon is built from, so the animation can be driven through the
+    // paths that know how to rewind it. Declared above [pillDrawable], whose initialiser sets it.
+    private var rawIcon: Drawable? = null
+
     private val pillDrawable = createChipDrawable()
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
@@ -95,8 +105,13 @@ class PillImageSpan(
     @UiThread
     fun bind(textView: TextView) {
         tv = WeakReference(textView)
+        // The chip is drawn by hand from [draw], so nothing owns it; taking its callback is what lets an
+        // animated avatar's frames reach the TextView.
+        pillDrawable.callback = chipCallback
+        // Picks the animation back up when a recycled row rebinds a pill that was parked below.
+        if (avatarRenderer.animatesAvatars()) rawIcon?.restartAnimation()
         if (useGenericIcon || hasCachedAvatar) return
-        avatarRenderer.render(glideRequests, matrixItem, target)
+        avatarRenderer.render(glideRequests, matrixItem, target, forceCircle = true)
     }
 
     // ReplacementSpan *****************************************************************************
@@ -161,6 +176,9 @@ class PillImageSpan(
             pillDrawable.ellipsize = TextUtils.TruncateAt.END
         }
 
+        // Being painted is what says the pill is on screen; take the animation back up if it was parked
+        // while off it. Plain start(), not a rewind: the pill would otherwise jump to frame 0 on a scroll.
+        (rawIcon as? Animatable)?.let { if (!it.isRunning && avatarRenderer.animatesAvatars()) it.start() }
         pillDrawable.alpha = ((1f - blurFraction) * 255).toInt()
         pillDrawable.draw(canvas)
         pillDrawable.alpha = 255
@@ -223,8 +241,52 @@ class PillImageSpan(
     }
 
     internal fun updateAvatarDrawable(drawable: Drawable?) {
-        pillDrawable.chipIcon = drawable
-        tv?.get()?.invalidate()
+        (rawIcon as? Animatable)?.stop()
+        val icon = drawable?.let { prepareIcon(it) }
+        pillDrawable.chipIcon = icon
+        // The raw drawable, not the wrapper: only it has the rewind-to-first-frame paths.
+        if (avatarRenderer.animatesAvatars()) rawIcon?.restartAnimation()
+        tv?.get()?.repaintSpan(this)
+    }
+
+    /**
+     * Glide's memory cache hands every pill for a given avatar the *same* drawable instance, and a
+     * Drawable has a single Callback — so only the pill that bound last ever receives frames and the
+     * rest sit frozen. A copy gets a callback of its own; it shares the frame loader (which keeps a
+     * callback list), so the frames are still decoded once.
+     */
+    private fun prepareIcon(drawable: Drawable): Drawable {
+        val copy = drawable.constantState?.newDrawable() ?: drawable
+        rawIcon = copy
+        return circular(copy)
+    }
+
+    // Glide's bitmap transforms can't shape animated content, so it arrives square; mask it to the
+    // circle every pill avatar is drawn as, whatever avatar shape the rest of the app uses.
+    private fun circular(drawable: Drawable): Drawable =
+            if (drawable is BitmapDrawable || drawable is TextDrawable) drawable else RoundedClipDrawable(drawable, 0f, oval = true)
+
+    private val chipCallback = object : Drawable.Callback {
+        override fun invalidateDrawable(who: Drawable) {
+            val view = tv?.get()
+            if (view == null || !view.isShown) {
+                // Nothing is painting this pill (a recycled row, or a cached message scrolled off): frames
+                // nobody draws only take decode time from the pills that are on screen. [draw] restarts it.
+                (rawIcon as? Animatable)?.stop()
+                return
+            }
+            // Not view.invalidate(): the TextView replays its display list without re-running this span's
+            // draw, so frames never reach the screen (see [repaintSpan]).
+            view.repaintSpan(this@PillImageSpan)
+        }
+
+        override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {
+            tv?.get()?.postDelayed(what, `when` - SystemClock.uptimeMillis())
+        }
+
+        override fun unscheduleDrawable(who: Drawable, what: Runnable) {
+            tv?.get()?.removeCallbacks(what)
+        }
     }
 
     // Private methods *****************************************************************************
@@ -251,9 +313,9 @@ class PillImageSpan(
             }
             else -> {
                 try {
-                    avatarRenderer.getCachedDrawable(glideRequests, matrixItem).also { hasCachedAvatar = true }
+                    prepareIcon(avatarRenderer.getCachedDrawable(glideRequests, matrixItem, forceCircle = true)).also { hasCachedAvatar = true }
                 } catch (exception: Exception) {
-                    avatarRenderer.getPlaceholderDrawable(matrixItem)
+                    avatarRenderer.getPlaceholderDrawable(matrixItem, forceCircle = true)
                 }
             }
         }

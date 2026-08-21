@@ -272,7 +272,8 @@ class ImagePackEditFragment :
             icon?.mutate()?.let { DrawableCompat.setTint(it, enabledTint) }
         }
         menu.findItem(R.id.imagePackMenuType)?.apply {
-            isVisible = !exporting && canEdit
+            // The personal pack is always usable for both emoticons and stickers.
+            isVisible = !exporting && canEdit && pageArgs.roomId != null
             icon?.mutate()?.let { DrawableCompat.setTint(it, enabledTint) }
         }
     }
@@ -474,7 +475,7 @@ class ImagePackEditFragment :
         // The account pack has no name; never read or persist one for it.
         packName = if (pageArgs.roomId == null) null else content?.pack?.displayName
         packAvatarUrl = content?.pack?.avatarUrl
-        packUsage = content?.pack?.usage?.takeIf { it.isNotEmpty() }
+        packUsage = if (pageArgs.roomId == null) null else content?.pack?.usage?.takeIf { it.isNotEmpty() }
         images.clear()
         content?.effectiveImages()?.forEach { (shortcode, image) ->
             // The toggles carry the PER-ENTRY layer only (not the pack-resolved usage): while a restricting

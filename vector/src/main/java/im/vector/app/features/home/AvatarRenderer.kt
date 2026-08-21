@@ -200,9 +200,10 @@ class AvatarRenderer @Inject constructor(
     fun render(
             glideRequests: GlideRequests,
             matrixItem: MatrixItem,
-            target: Target<Drawable>
+            target: Target<Drawable>,
+            forceCircle: Boolean = false,
     ) {
-        glideRequests.loadAvatar(matrixItem).into(target)
+        glideRequests.loadAvatar(matrixItem, forceCircle = forceCircle).into(target)
     }
 
     @AnyThread
@@ -266,7 +267,7 @@ class AvatarRenderer @Inject constructor(
     @UiThread
     fun preloadAvatar(glideRequests: GlideRequests, matrixItem: MatrixItem) {
         if (preloadedAvatars.put("${matrixItem.id}|${matrixItem.avatarUrl}", Unit) != null) return
-        glideRequests.loadAvatar(matrixItem).preload()
+        glideRequests.loadAvatar(matrixItem, forceCircle = true).preload()
     }
 
     @UiThread
@@ -274,18 +275,21 @@ class AvatarRenderer @Inject constructor(
         preloadAvatar(GlideApp.with(view), matrixItem)
     }
 
+    /** Whether animated avatars should play, for callers that drive an animation themselves. */
+    fun animatesAvatars(): Boolean = vectorPreferences.autoplayAnimatedImages()
+
     @AnyThread
-    fun getCachedDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem): Drawable {
-        return glideRequests.loadAvatar(matrixItem, cacheOnly = true)
+    fun getCachedDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem, forceCircle: Boolean = false): Drawable {
+        return glideRequests.loadAvatar(matrixItem, cacheOnly = true, forceCircle = forceCircle)
                 .submit()
                 .get()
     }
 
     @AnyThread
-    fun getPlaceholderDrawable(matrixItem: MatrixItem): Drawable {
+    fun getPlaceholderDrawable(matrixItem: MatrixItem, forceCircle: Boolean = false): Drawable {
         val avatarColor = matrixItemColorProvider.getColor(matrixItem)
         val letter = matrixItem.firstLetterOfDisplayName()
-        val shape = shapeFor(matrixItem)
+        val shape = if (forceCircle) AvatarShape.CIRCLE else shapeFor(matrixItem)
         twemojiLetterDrawable(letter, avatarColor, shape)?.let { return it }
         // Self-shape the letter avatar (proportional corners) so it matches photo avatars at any size.
         return TextDrawable.builder()
@@ -315,9 +319,10 @@ class AvatarRenderer @Inject constructor(
             matrixItem: MatrixItem,
             cacheOnly: Boolean = false,
             decodeSizePx: Int? = null,
+            forceCircle: Boolean = false,
     ): GlideRequest<Drawable> {
-        val placeholder = getPlaceholderDrawable(matrixItem)
-        val transformation = avatarTransform(matrixItem)
+        val placeholder = getPlaceholderDrawable(matrixItem, forceCircle)
+        val transformation = if (forceCircle) CircleCrop() else avatarTransform(matrixItem)
         val autoplay = vectorPreferences.autoplayAnimatedImages()
 
         // A required Bitmap transform fails animated (WebP / APNG) loads outright; the target shapes those instead.

@@ -6,17 +6,12 @@
  */
 package im.vector.app.core.epoxy.bottomsheet
 
-import android.graphics.Outline
-import android.os.Build
 import android.text.method.MovementMethod
 import android.util.TypedValue
-import android.view.View
-import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -42,6 +37,7 @@ import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
 import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
 import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
@@ -126,27 +122,17 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         holder.avatar.onClick(userClicked)
         holder.sender.onClick(userClicked)
         holder.sender.setTextOrHide(matrixItem.getBestName().prepareForDisplay())
-        // Static outline clip — Glide's RoundedCorners only applies to Bitmap output, so a
-        // blurhash placeholder (Drawable) renders with square corners without this clip.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // ViewOutlineProvider / clipToOutline are API 21+ (anti-aliased).
-            val provider = roundedOutlineProvider()
-            if (holder.imagePreview.outlineProvider !== provider) {
-                holder.imagePreview.outlineProvider = provider
-                holder.imagePreview.clipToOutline = true
-            }
-        } else {
-            // Pre-Lollipop: RoundedCornerImageView clips via canvas path instead.
-            val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, holder.imagePreview.resources.displayMetrics)
-            holder.imagePreview.setCornerRadii(r, r, r, r)
-        }
+        // Glide's RoundedCorners only applies to Bitmap output, so a blurhash placeholder (Drawable)
+        // renders square without the view shaping it.
+        holder.imagePreview.setCornerRadius(mediaPreviewCornerRadiusPx(holder.imagePreview.context).toFloat())
         data?.let {
             // Full image for transparent-capable content (server thumbnails can bake in a background).
             val mode = ImageContentRenderer.previewMode(isSticker = false, mimeType = it.mimeType)
             if (hideMedia) {
                 imageContentRenderer?.renderHidden(it, mode, holder.imagePreview, hideMediaSolidColor)
             } else {
-                imageContentRenderer?.render(it, mode, holder.imagePreview)
+                // The view rounds the picture; a bitmap-baked radius would scale with the decode size.
+                imageContentRenderer?.render(it, mode, holder.imagePreview, cornerTransformation = null)
             }
         }
         holder.imagePreview.isVisible = data != null
@@ -244,19 +230,5 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         val mapViewContainer by bind<FrameLayout>(R.id.mapViewContainer)
         val staticMapImageView by bind<ImageView>(R.id.staticMapImageView)
         val staticMapPinImageView by bind<ImageView>(R.id.staticMapPinImageView)
-    }
-
-    companion object {
-        private var cachedRoundedOutlineProvider: ViewOutlineProvider? = null
-
-        // The ViewOutlineProvider subclass is API 21+; built lazily so it is never loaded pre-21.
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-        private fun roundedOutlineProvider(): ViewOutlineProvider =
-                cachedRoundedOutlineProvider ?: object : ViewOutlineProvider() {
-                    override fun getOutline(view: View, outline: Outline) {
-                        val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, view.resources.displayMetrics)
-                        outline.setRoundRect(0, 0, view.width, view.height, r)
-                    }
-                }.also { cachedRoundedOutlineProvider = it }
     }
 }
