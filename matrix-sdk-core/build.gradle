@@ -1370,6 +1370,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/crypto/verification/VerificationActor.kt',
         'org/matrix/android/sdk/internal/session/content/FileUploader.kt',
         'org/matrix/android/sdk/internal/crypto/verification/VerificationEmoji.kt',
+        'org/matrix/android/sdk/api/crypto/Emojis.kt',
         // Background task bodies (the work the WorkManager workers used to hold) + their
         // coroutine scheduler; the two upload bodies stay android (media stack, FileProvider).
         'org/matrix/android/sdk/internal/worker/BackgroundTaskBody.kt',

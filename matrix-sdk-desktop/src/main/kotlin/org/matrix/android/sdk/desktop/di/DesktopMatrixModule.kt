@@ -13,8 +13,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.securestorage.SecureStorageService
 import org.matrix.android.sdk.desktop.platform.AssumeOnlineNetworkCallbackStrategyFactory
 import org.matrix.android.sdk.desktop.platform.DesktopSecureStorage
+import org.matrix.android.sdk.desktop.platform.DesktopSecureStorageService
 import org.matrix.android.sdk.desktop.platform.FileKeyValueStoreFactory
 import org.matrix.android.sdk.desktop.platform.JdbcSqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
@@ -94,6 +96,10 @@ internal class DesktopMatrixModule(
     @Provides
     @MatrixScope
     fun providesSecureStorage(): SecureStorage = DesktopSecureStorage(File(dataDir, "secrets.key"))
+
+    @Provides
+    @MatrixScope
+    fun providesSecureStorageService(secureStorage: SecureStorage): SecureStorageService = DesktopSecureStorageService(secureStorage)
 
     @Provides
     fun providesComputeUserAgentUseCase(): ComputeUserAgentUseCase = object : ComputeUserAgentUseCase {
