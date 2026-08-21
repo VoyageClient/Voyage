@@ -30,4 +30,12 @@ internal data class UploadMediaBytesWorkerParams(
 ) : SessionWorkerParams {
 
     override fun withFailure(message: String) = copy(lastFailureMessage = lastFailureMessage ?: message)
+
+    companion object {
+        /**
+         * Keyed by content URI, not echo: retrying a failed event re-reserves a new URI, so a stale
+         * byte upload for the old one must not replace it.
+         */
+        fun workName(sessionId: String, contentUri: String) = "MEDIA_BYTES_${sessionId}_$contentUri"
+    }
 }

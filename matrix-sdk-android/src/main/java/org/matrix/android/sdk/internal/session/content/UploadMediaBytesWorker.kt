@@ -33,6 +33,6 @@ internal class UploadMediaBytesWorker(context: Context, params: WorkerParameters
          * entry in a WorkManager chain takes everything appended after it down too, which here would
          * strand the media of attachments whose events have already been sent.
          */
-        fun workName(sessionId: String, contentUri: String) = "MEDIA_BYTES_${sessionId}_$contentUri"
+        fun workName(sessionId: String, contentUri: String) = UploadMediaBytesWorkerParams.workName(sessionId, contentUri)
     }
 }

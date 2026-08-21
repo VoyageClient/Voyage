@@ -13,6 +13,8 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustTaskBody
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.session.content.UploadContentTaskBody
+import org.matrix.android.sdk.internal.session.content.UploadMediaBytesTaskBody
 import org.matrix.android.sdk.internal.session.pushers.AddPusherTaskBody
 import org.matrix.android.sdk.internal.session.room.aggregation.livelocation.DeactivateLiveLocationShareTaskBody
 import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherTaskBody
@@ -54,6 +56,16 @@ internal abstract class BackgroundTaskBodiesModule {
     @IntoMap
     @BackgroundTaskKey(BackgroundTaskType.SEND_EVENT)
     abstract fun bindSendEvent(body: SendEventTaskBody): BackgroundTaskBody<*>
+
+    @Binds
+    @IntoMap
+    @BackgroundTaskKey(BackgroundTaskType.UPLOAD_CONTENT)
+    abstract fun bindUploadContent(body: UploadContentTaskBody): BackgroundTaskBody<*>
+
+    @Binds
+    @IntoMap
+    @BackgroundTaskKey(BackgroundTaskType.UPLOAD_MEDIA_BYTES)
+    abstract fun bindUploadMediaBytes(body: UploadMediaBytesTaskBody): BackgroundTaskBody<*>
 
     @Binds
     @IntoMap

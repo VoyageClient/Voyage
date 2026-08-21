@@ -20,15 +20,20 @@ import org.matrix.android.sdk.api.session.sync.SyncService
 import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.widgets.WidgetService
 import org.matrix.android.sdk.api.session.widgets.WidgetURLFormatter
+import org.matrix.android.sdk.desktop.platform.DesktopAttachmentMediaProcessor
+import org.matrix.android.sdk.desktop.platform.DesktopImageExifTagRemover
+import org.matrix.android.sdk.desktop.platform.DesktopTemporaryFileCreator
 import org.matrix.android.sdk.internal.crypto.DefaultCryptoService
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlCryptoStore
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.CoroutineBackgroundTaskScheduler
+import org.matrix.android.sdk.internal.session.content.AttachmentMediaProcessor
 import org.matrix.android.sdk.internal.session.content.ContentUriResolver
 import org.matrix.android.sdk.internal.session.content.ImageExifTagRemover
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
+import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
 import org.matrix.android.sdk.internal.session.identity.DefaultIdentityService
 import org.matrix.android.sdk.internal.session.integrationmanager.DefaultIntegrationManagerService
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManager
@@ -45,6 +50,7 @@ import org.matrix.android.sdk.internal.session.user.DefaultUserService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetURLFormatter
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
+import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 
 /**
  * The desktop answer to AndroidSessionModule: the same list of bindings, with the plain-JVM
@@ -108,6 +114,15 @@ internal abstract class DesktopSessionModule {
 
     @Binds
     abstract fun bindImageExifTagRemover(remover: DesktopImageExifTagRemover): ImageExifTagRemover
+
+    @Binds
+    abstract fun bindAttachmentMediaProcessor(processor: DesktopAttachmentMediaProcessor): AttachmentMediaProcessor
+
+    @Binds
+    abstract fun bindUploadedMediaCache(service: DesktopFileService): UploadedMediaCache
+
+    @Binds
+    abstract fun bindTemporaryFileCreator(creator: DesktopTemporaryFileCreator): TemporaryFileCreator
 
     @Binds
     abstract fun bindContentUriResolver(resolver: DesktopContentUriResolver): ContentUriResolver
