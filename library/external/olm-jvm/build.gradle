@@ -72,3 +72,5 @@ dependencies {
     api 'org.json:json:20240303'
     testImplementation 'junit:junit:4.13.2'
 }
+
+apply from: "$rootDir/gradle/jvm-publish.gradle"

@@ -1,0 +1,7 @@
+// JVM-only view of the build for desktop consumers: `./gradlew -c settings-jvm.gradle ...` configures
+// just the SDK modules that run off Android, so no Android SDK is needed.
+include ':library:external:olm-jvm'
+include ':library:external:timber-jvm'
+include ':matrix-sdk-core'
+include ':matrix-sdk-desktop'
+include ':samples:matrix-cli'

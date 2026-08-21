@@ -1558,3 +1558,5 @@ dependencies {
     // The JVM has no org.json of its own, so core's own tests need a real one.
     testImplementation 'org.json:json:20240303'
 }
+
+apply from: "$rootDir/gradle/jvm-publish.gradle"

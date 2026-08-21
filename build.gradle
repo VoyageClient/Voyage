@@ -223,106 +223,112 @@ if (launchTask.contains("coverage".toLowerCase())) {
     apply from: 'coverage.gradle'
 }
 
-apply plugin: 'org.sonarqube'
+// Sonar wiring needs the app modules, which the JVM-only settings (settings-jvm.gradle) leave out.
+if (findProject(':vector') != null) {
+    apply plugin: 'org.sonarqube'
 
-// To run a sonar analysis:
-// Run './gradlew sonar -Dsonar.login=<REPLACE_WITH_SONAR_KEY>'
-// The SONAR_KEY is stored in passbolt as Token Sonar Cloud Bma
+    // To run a sonar analysis:
+    // Run './gradlew sonar -Dsonar.login=<REPLACE_WITH_SONAR_KEY>'
+    // The SONAR_KEY is stored in passbolt as Token Sonar Cloud Bma
 
-sonar {
-    properties {
-        property "sonar.projectName", "element-android"
-        property "sonar.projectKey", "element-android"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.projectVersion", project(":vector").android.defaultConfig.versionName
-        property "sonar.sourceEncoding", "UTF-8"
-        property "sonar.links.homepage", "https://github.com/element-hq/element-android/"
-        property "sonar.links.ci", "https://github.com/element-hq/element-android/actions"
-        property "sonar.links.scm", "https://github.com/element-hq/element-android/"
-        property "sonar.links.issue", "https://github.com/element-hq/element-android/issues"
-        property "sonar.organization", "element-hq"
-        property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/generateCoverageReport/generateCoverageReport.xml"
-        property "sonar.login", project.hasProperty("SONAR_LOGIN") ? SONAR_LOGIN : "invalid"
-    }
-}
-
-project(":vector") {
     sonar {
         properties {
-            property "sonar.sources", project(":vector").android.sourceSets.main.java.srcDirs
-            // exclude source code from analyses separated by a colon (:)
-            // Exclude Java source
-            property "sonar.exclusions", "**/BugReporterMultipartBody.java"
+            property "sonar.projectName", "element-android"
+            property "sonar.projectKey", "element-android"
+            property "sonar.host.url", "https://sonarcloud.io"
+            property "sonar.projectVersion", project(":vector").android.defaultConfig.versionName
+            property "sonar.sourceEncoding", "UTF-8"
+            property "sonar.links.homepage", "https://github.com/element-hq/element-android/"
+            property "sonar.links.ci", "https://github.com/element-hq/element-android/actions"
+            property "sonar.links.scm", "https://github.com/element-hq/element-android/"
+            property "sonar.links.issue", "https://github.com/element-hq/element-android/issues"
+            property "sonar.organization", "element-hq"
+            property "sonar.java.coveragePlugin", "jacoco"
+            property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/generateCoverageReport/generateCoverageReport.xml"
+            property "sonar.login", project.hasProperty("SONAR_LOGIN") ? SONAR_LOGIN : "invalid"
         }
     }
+
+    project(":vector") {
+        sonar {
+            properties {
+                property "sonar.sources", project(":vector").android.sourceSets.main.java.srcDirs
+                // exclude source code from analyses separated by a colon (:)
+                // Exclude Java source
+                property "sonar.exclusions", "**/BugReporterMultipartBody.java"
+            }
+        }
+    }
+
+    project(":library:external:diff-match-patch") {
+        sonar {
+            skipProject = true
+        }
+    }
+
+    //project(":matrix-sdk-android") {
+    //    sonar {
+    //        properties {
+    //            property "sonar.sources", project(":matrix-sdk-android").android.sourceSets.main.java.srcDirs
+    //            // exclude source code from analyses separated by a colon (:)
+    //            // property "sonar.exclusions", "**/*.*"
+    //        }
+    //    }
+    //}
 }
 
-project(":library:external:diff-match-patch") {
-    sonar {
-        skipProject = true
-    }
-}
-
-//project(":matrix-sdk-android") {
-//    sonar {
-//        properties {
-//            property "sonar.sources", project(":matrix-sdk-android").android.sourceSets.main.java.srcDirs
-//            // exclude source code from analyses separated by a colon (:)
-//            // property "sonar.exclusions", "**/*.*"
-//        }
-//    }
-//}
-
-dependencyAnalysis {
-    dependencies {
-        bundle("kotlin-stdlib") {
-            includeGroup("org.jetbrains.kotlin")
-        }
-        bundle("react") {
-            includeGroup("com.facebook.react")
-        }
-    }
-    issues {
-        all {
-            ignoreKtx(true)
-            onUsedTransitiveDependencies {
-                // Transitively used dependencies that should be declared directly
-                severity("ignore")
+// Dependency-analysis rules reference the app modules, absent under settings-jvm.gradle.
+if (findProject(':vector') != null) {
+    dependencyAnalysis {
+        dependencies {
+            bundle("kotlin-stdlib") {
+                includeGroup("org.jetbrains.kotlin")
             }
-            onUnusedDependencies {
-                severity("fail")
-            }
-            onUnusedAnnotationProcessors {
-                severity("fail")
-                exclude("com.airbnb.android:epoxy-processor", "com.google.dagger:hilt-compiler") // False positives
+            bundle("react") {
+                includeGroup("com.facebook.react")
             }
         }
-        project(":library:jsonviewer") {
-            onUnusedDependencies {
-                exclude("org.json:json") // Used in unit tests, overwrites the one bundled into Android
+        issues {
+            all {
+                ignoreKtx(true)
+                onUsedTransitiveDependencies {
+                    // Transitively used dependencies that should be declared directly
+                    severity("ignore")
+                }
+                onUnusedDependencies {
+                    severity("fail")
+                }
+                onUnusedAnnotationProcessors {
+                    severity("fail")
+                    exclude("com.airbnb.android:epoxy-processor", "com.google.dagger:hilt-compiler") // False positives
+                }
             }
-        }
-        project(":library:ui-styles")
-        project(":matrix-sdk-android") {
-            onUnusedDependencies {
-                exclude("io.reactivex.rxjava2:rxkotlin") // Transitively required for mocking realm as monarchy doesn't expose Rx
+            project(":library:jsonviewer") {
+                onUnusedDependencies {
+                    exclude("org.json:json") // Used in unit tests, overwrites the one bundled into Android
+                }
             }
-        }
-        project(":matrix-sdk-android-flow") {
-            onUnusedDependencies {
-                exclude("androidx.paging:paging-runtime-ktx") // False positive
+            project(":library:ui-styles")
+            project(":matrix-sdk-android") {
+                onUnusedDependencies {
+                    exclude("io.reactivex.rxjava2:rxkotlin") // Transitively required for mocking realm as monarchy doesn't expose Rx
+                }
             }
-        }
-        project(":vector") {
-            onUnusedDependencies {
-                // False positives
-                exclude(
-                        "androidx.fragment:fragment-testing",
-                        "com.facebook.soloader:soloader",
-                        "org.maplibre.gl:android-plugin-annotation-v9",
-                        "org.maplibre.gl:android-sdk",
-                )
+            project(":matrix-sdk-android-flow") {
+                onUnusedDependencies {
+                    exclude("androidx.paging:paging-runtime-ktx") // False positive
+                }
+            }
+            project(":vector") {
+                onUnusedDependencies {
+                    // False positives
+                    exclude(
+                            "androidx.fragment:fragment-testing",
+                            "com.facebook.soloader:soloader",
+                            "org.maplibre.gl:android-plugin-annotation-v9",
+                            "org.maplibre.gl:android-sdk",
+                    )
+                }
             }
         }
     }

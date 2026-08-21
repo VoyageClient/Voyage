@@ -1,0 +1,14 @@
+// Publishes the JVM SDK modules to mavenLocal so desktop consumers on a newer Kotlin toolchain can
+// depend on the jars instead of compiling these sources themselves.
+apply plugin: 'maven-publish'
+
+group = 'im.voyage.sdk'
+version = project.findProperty('sdkPublishVersion') ?: 'local'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
