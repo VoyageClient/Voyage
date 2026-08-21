@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package im.vector.matrixcli.platform
+package org.matrix.android.sdk.desktop.platform
 
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver

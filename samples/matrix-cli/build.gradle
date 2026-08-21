@@ -1,8 +1,6 @@
-// Desktop boot sample (Phase 6): a plain kotlin-jvm application that runs :matrix-sdk-core off-Android.
-// It supplies the platform impls (JDBC SqlDriverFactory, file KeyValueStore, ...) that the android app
-// provides via :matrix-sdk-android, and proves the SDK's persistence/crypto/store layers run on a JVM.
+// Desktop boot sample: a plain kotlin-jvm application that runs the SDK off-Android through
+// :matrix-sdk-desktop, proving the persistence/crypto/store layers and a live login→sync→send.
 apply plugin: 'org.jetbrains.kotlin.jvm'
-apply plugin: 'kotlin-kapt'
 apply plugin: 'application'
 
 java {
@@ -19,34 +17,16 @@ application {
 }
 
 dependencies {
-    implementation project(':matrix-sdk-core')
-    implementation project(':library:external:olm-jvm')
-    implementation project(':library:external:timber-jvm')
-    implementation libs.jetbrains.coroutinesCore
-    implementation "app.cash.sqldelight:runtime:2.0.2"
-    implementation "app.cash.sqldelight:coroutines-extensions:2.0.2"
-    implementation "app.cash.sqldelight:jdbc-driver:2.0.2"
+    implementation project(':matrix-sdk-desktop')
     implementation "app.cash.sqldelight:sqlite-driver:2.0.2"
-    implementation libs.squareup.moshi
-    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
-    implementation 'com.squareup.okio:okio:3.6.0'
-    implementation 'javax.inject:javax.inject:1'
-    // Core leaves org.json to its consumer (android has one built in); a desktop JVM must supply it.
-    implementation 'org.json:json:20240303'
-    implementation libs.squareup.retrofit
-    implementation libs.squareup.retrofitMoshi
     // Reflection-based Kotlin adapter (KotlinJsonAdapterFactory) for the sample's own models, since
     // the sample doesn't run Moshi's kapt codegen.
     implementation 'com.squareup.moshi:moshi-kotlin:1.15.1'
-    implementation libs.dagger.dagger
-    kapt libs.dagger.daggerCompiler
 }
 
-// Friend path to reach :matrix-sdk-core's internal SDK machinery (stores, tasks, di), exactly as
-// :matrix-sdk-android does. Plain kotlin-jvm has no AGP jetify step, so the resolved jar matches.
+// The smoke pokes internal SDK machinery (session manager, stores) through both SDK jars.
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
     task.friendPaths.from(providers.provider {
-        task.libraries.files.findAll { it.name.contains('matrix-sdk-core') }
+        task.libraries.files.findAll { it.name.contains('matrix-sdk-core') || it.name.contains('matrix-sdk-desktop') }
     })
 }

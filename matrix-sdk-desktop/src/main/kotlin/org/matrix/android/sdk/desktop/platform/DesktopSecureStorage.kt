@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package im.vector.matrixcli.platform
+package org.matrix.android.sdk.desktop.platform
 
 import org.matrix.android.sdk.internal.platform.SecureStorage
 import java.io.File

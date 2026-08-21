@@ -5,17 +5,18 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package im.vector.matrixcli.di
+package org.matrix.android.sdk.desktop.di
 
 import dagger.Module
 import dagger.Provides
-import im.vector.matrixcli.platform.AssumeOnlineNetworkCallbackStrategyFactory
-import im.vector.matrixcli.platform.DesktopSecureStorage
-import im.vector.matrixcli.platform.FileKeyValueStoreFactory
-import im.vector.matrixcli.platform.JdbcSqlDriverFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
+import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.desktop.platform.AssumeOnlineNetworkCallbackStrategyFactory
+import org.matrix.android.sdk.desktop.platform.DesktopSecureStorage
+import org.matrix.android.sdk.desktop.platform.FileKeyValueStoreFactory
+import org.matrix.android.sdk.desktop.platform.JdbcSqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.di.CacheDirectory
 import org.matrix.android.sdk.internal.di.FilesDirectory
@@ -34,7 +35,11 @@ import java.util.concurrent.Executors
  * before a session exists.
  */
 @Module
-internal class DesktopMatrixModule(private val dataDir: File) {
+internal class DesktopMatrixModule(
+        private val dataDir: File,
+        private val appName: String,
+        private val appVersion: String,
+) {
 
     init {
         // The crypto graph builds OlmUtility in field initializers, before anything injects OlmManager,
@@ -90,6 +95,8 @@ internal class DesktopMatrixModule(private val dataDir: File) {
 
     @Provides
     fun providesComputeUserAgentUseCase(): ComputeUserAgentUseCase = object : ComputeUserAgentUseCase {
-        override fun execute(flavorDescription: String) = "MatrixCli/0.1 ($flavorDescription)"
+        override fun execute(flavorDescription: String) =
+                "$appName/$appVersion (${System.getProperty("os.name")} ${System.getProperty("os.version")}; " +
+                        "${System.getProperty("os.arch")}; Flavour $flavorDescription; MatrixAndroidSdk2 ${BuildConfig.SDK_VERSION})"
     }
 }

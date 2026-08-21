@@ -8,13 +8,6 @@
 package im.vector.matrixcli
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import im.vector.matrixcli.di.DaggerDesktopMatrixComponent
-import im.vector.matrixcli.di.DesktopMatrixComponent
-import im.vector.matrixcli.di.DesktopMatrixModule
-import im.vector.matrixcli.platform.AssumeOnlineNetworkCallbackStrategyFactory
-import im.vector.matrixcli.platform.DesktopSecureStorage
-import im.vector.matrixcli.platform.FileKeyValueStoreFactory
-import im.vector.matrixcli.platform.JdbcSqlDriverFactory
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixConfiguration
@@ -27,6 +20,12 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.util.MatrixJsonParser
+import org.matrix.android.sdk.desktop.DesktopMatrix
+import org.matrix.android.sdk.desktop.di.DesktopMatrixComponent
+import org.matrix.android.sdk.desktop.platform.AssumeOnlineNetworkCallbackStrategyFactory
+import org.matrix.android.sdk.desktop.platform.DesktopSecureStorage
+import org.matrix.android.sdk.desktop.platform.FileKeyValueStoreFactory
+import org.matrix.android.sdk.desktop.platform.JdbcSqlDriverFactory
 import org.matrix.android.sdk.internal.auth.db.AuthSqlDatabase
 import org.matrix.android.sdk.internal.network.RetrofitFactory
 import org.matrix.olm.OlmAccount
@@ -59,13 +58,14 @@ class DesktopBootSmoke {
     )
 
     private fun matrixComponent(): DesktopMatrixComponent {
-        return DaggerDesktopMatrixComponent.factory().create(
-                DesktopMatrixModule(componentDataDir),
-                MatrixConfiguration(
+        return DesktopMatrix(
+                dataDir = componentDataDir,
+                matrixConfiguration = MatrixConfiguration(
                         applicationFlavor = "MatrixCli",
                         roomDisplayNameFallbackProvider = CliRoomDisplayNameFallbackProvider,
                 ),
-        )
+                appName = "MatrixCli",
+        ).component
     }
 
     fun run() {
