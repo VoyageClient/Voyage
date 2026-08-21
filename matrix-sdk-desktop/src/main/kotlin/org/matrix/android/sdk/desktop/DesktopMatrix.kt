@@ -43,6 +43,17 @@ class DesktopMatrix(
 
     fun lightweightSettingsStorage(): LightweightSettingsStorage = component.lightweightSettingsStorage()
 
+    /**
+     * Drops every pooled connection and queued call. Session clients are `newBuilder()` copies of
+     * the shared client, so without this a later account could reuse a previous account's keep-alive
+     * connections to the same host.
+     */
+    fun evictConnections() {
+        val client = component.okHttpClient()
+        client.dispatcher().cancelAll()
+        client.connectionPool().evictAll()
+    }
+
     companion object {
         const val DEFAULT_USER_AGENT = "Voyage"
 
