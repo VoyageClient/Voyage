@@ -7,6 +7,7 @@
 
 package im.vector.app.features.login
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,7 +27,9 @@ class SSORedirectRouterActivity : AppCompatActivity() {
 
     companion object {
         // Note that the domain can be displayed to the user for confirmation that he trusts it. So use a human readable string.
-        // Fork-specific scheme so the SSO redirect can't be hijacked by a co-installed Element/SchildiChat that also registers element://connect.
-        const val VECTOR_REDIRECT_URL = "im.voyage.app://connect"
+        // The package id is the scheme (the intent-filter is in the app manifest, on ${applicationId}):
+        // fork-specific so a co-installed Element can't hijack element://connect, and variant-specific so
+        // debug and release builds installed side by side don't claim each other's redirect.
+        fun redirectUrl(context: Context) = "${context.packageName}://connect"
     }
 }

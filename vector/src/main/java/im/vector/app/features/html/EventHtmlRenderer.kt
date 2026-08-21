@@ -186,6 +186,8 @@ class EventHtmlRenderer @Inject constructor(
                     .codeBackgroundColor(codeBlockBackground)
                     // Links are coloured (textColorLink) but never underlined, to match the autolink path.
                     .isLinkUnderlined(false)
+                    // Markwon rules a line under h1/h2; headings are styled by size alone here.
+                    .headingBreakHeight(0)
         }
     }
 

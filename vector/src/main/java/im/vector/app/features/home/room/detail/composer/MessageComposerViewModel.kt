@@ -43,9 +43,12 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -133,7 +136,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         if (room != null) {
             loadDraftIfAny(room)
             observePowerLevelAndEncryption(room)
-            subscribeToStateInternal()
+            subscribeToStateInternal(room)
             observeTypedLinks(room)
         } else {
             onRoomError()
@@ -199,8 +202,11 @@ class MessageComposerViewModel @AssistedInject constructor(
                 // markdown, greentext — or a formatted message would come back as plain, its custom
                 // emotes as literal :shortcode: text and its mention pills as bare names.
                 val autoMarkdown = vectorPreferences.isMarkdownEnabled()
-                val oldFormatted = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
-                        ?: (messageContent as? MessageWithAttachmentContent)?.getFormattedCaption()
+                // Drop the legacy <mx-reply> fallback: it is not part of the message, and splicing mentions
+                // or quote runs out of it would pull the replied-to message's markup into the correction.
+                val oldFormatted = ((messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
+                        ?: (messageContent as? MessageWithAttachmentContent)?.getFormattedCaption())
+                        ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
                 val withMentions = spliceMentionSpans(action.newBody, oldFormatted) { userId ->
                     val member = room.membershipService().getRoomMember(userId)
                     listOfNotNull(member?.bodyName(), member?.displayName).distinct()
@@ -383,9 +389,42 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun subscribeToStateInternal() {
+    private fun subscribeToStateInternal(room: Room) {
         onEach(MessageComposerViewState::sendMode, MessageComposerViewState::canSendMessage, MessageComposerViewState::isVoiceRecording) { _, _, _ ->
             updateIsSendButtonVisibility(false)
+        }
+        onEach(MessageComposerViewState::sendMode) { mode ->
+            observeReplyTarget(room, (mode as? SendMode.Reply)?.timelineEvent?.eventId)
+        }
+    }
+
+    private var replyTargetJob: Job? = null
+    private var replyTargetEventId: String? = null
+
+    // The preview renders a snapshot of the replied-to event, so it has to follow edits (and redactions)
+    // landing while the reply is still being composed.
+    private fun observeReplyTarget(room: Room, eventId: String?) {
+        if (eventId == replyTargetEventId) return
+        replyTargetEventId = eventId
+        replyTargetJob?.cancel()
+        replyTargetJob = eventId?.let {
+            // Edits land in the annotations summary, which the timeline-event flow doesn't watch, so
+            // both have to be followed and the event re-read to pick the new content up.
+            combine(room.flow().liveTimelineEvent(it), room.flow().liveAnnotationSummary(it)) { _, _ -> }
+                    .map { withContext(Dispatchers.IO) { room.getTimelineEvent(eventId) } }
+                    .filterNotNull()
+                    .onEach { updated ->
+                        setState {
+                            if (sendMode is SendMode.Reply && sendMode.timelineEvent.eventId == updated.eventId) {
+                                // Carry what is in the box: the re-render writes sendMode.text back into
+                                // the composer, and the stale entry-time text would wipe the reply.
+                                copy(sendMode = sendMode.copy(timelineEvent = updated, text = currentComposerText))
+                            } else {
+                                this
+                            }
+                        }
+                    }
+                    .launchIn(viewModelScope)
         }
     }
 

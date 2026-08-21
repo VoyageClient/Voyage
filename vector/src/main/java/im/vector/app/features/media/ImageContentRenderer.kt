@@ -234,7 +234,9 @@ class ImageContentRenderer @Inject constructor(
             data: Data,
             mode: Mode,
             imageView: ImageView,
-            cornerTransformation: Transformation<Bitmap> = RoundedCorners(dimensionConverter.dpToPx(8)),
+            // null leaves the bitmap square, for callers that shape the view instead — which also rounds
+            // the placeholder and animated content, neither of which a Bitmap transform can touch.
+            cornerTransformation: Transformation<Bitmap>? = RoundedCorners(dimensionConverter.dpToPx(8)),
             crossFade: Boolean = false,
             // A tap asking for another go needs to look like something happened, so it drops back to
             // the loading state; a plain rebind keeps the glyph rather than flickering through it.
@@ -375,7 +377,7 @@ class ImageContentRenderer @Inject constructor(
             data: Data,
             mode: Mode,
             animate: Boolean,
-            cornerTransformation: Transformation<Bitmap>,
+            cornerTransformation: Transformation<Bitmap>?,
             size: Size,
     ): GlideRequest<Drawable> {
         return this
@@ -383,7 +385,7 @@ class ImageContentRenderer @Inject constructor(
                 // A Bitmap RoundedCorners would round GIF frames at their small native resolution and
                 // upscale the result, giving over-rounded, pixelated corners; animated content is
                 // clipped at the view level instead (clipToOutline / RoundedCornerImageView).
-                .let { if (mode == Mode.ANIMATED_THUMBNAIL) it else it.optionalTransform(cornerTransformation) }
+                .let { if (mode == Mode.ANIMATED_THUMBNAIL || cornerTransformation == null) it else it.optionalTransform(cornerTransformation) }
                 .let { if (data.isLocalContent) it.override(size.width, size.height) else it }
     }
 

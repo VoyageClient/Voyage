@@ -204,10 +204,18 @@ class EventTextRenderer @AssistedInject constructor(
         val targetRoomId = room?.roomId ?: roomIdOrAlias.takeUnless { isRoomAlias }
         return if (targetRoomId != null && targetRoomId == roomId) {
             val sender = permalinkEventResolver.getSender(targetRoomId, eventId!!)
-            val text = sender?.displayName?.takeIf { it.isNotEmpty() }?.let {
-                context.getString(CommonStrings.pill_message_from_user, it)
-            } ?: context.getString(CommonStrings.pill_message_from_unknown_user)
-            MatrixItem.RoomItem(targetRoomId, text, sender?.avatarUrl, sender?.displayName)
+            val senderName = sender?.displayName?.takeIf { it.isNotEmpty() }
+            // A user item, so the avatar placeholder gets the sender's colour and initial rather than the room's.
+            if (sender != null && senderName != null) {
+                MatrixItem.UserItem(
+                        sender.userId,
+                        context.getString(CommonStrings.pill_message_from_user, senderName),
+                        sender.avatarUrl,
+                        senderName
+                )
+            } else {
+                MatrixItem.RoomItem(targetRoomId, context.getString(CommonStrings.pill_message_from_unknown_user), sender?.avatarUrl)
+            }
         } else {
             when {
                 isRoomAlias -> MatrixItem.RoomAliasItem(

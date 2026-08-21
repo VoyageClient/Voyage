@@ -70,7 +70,7 @@ class LoginSignUpSignInSelectionFragment :
                 views.loginSignupSigninSignInSocialLoginContainer.isVisible = true
                 views.loginSignupSigninSocialLoginButtons.render(state.loginMode, Mode.MODE_CONTINUE) { provider ->
                     loginViewModel.getSsoUrl(
-                            redirectUrl = SSORedirectRouterActivity.VECTOR_REDIRECT_URL,
+                            redirectUrl = SSORedirectRouterActivity.redirectUrl(requireContext()),
                             deviceId = state.deviceId,
                             providerId = provider?.id,
                             action = if (state.signMode == SignMode.SignUp) SSOAction.REGISTER else SSOAction.LOGIN
@@ -103,7 +103,7 @@ class LoginSignUpSignInSelectionFragment :
     private fun submit() = withState(loginViewModel) { state ->
         if (state.loginMode is LoginMode.Sso) {
             loginViewModel.getSsoUrl(
-                    redirectUrl = SSORedirectRouterActivity.VECTOR_REDIRECT_URL,
+                    redirectUrl = SSORedirectRouterActivity.redirectUrl(requireContext()),
                     deviceId = state.deviceId,
                     providerId = null,
                     action = if (state.signMode == SignMode.SignUp) SSOAction.REGISTER else SSOAction.LOGIN
