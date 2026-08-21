@@ -1,0 +1,74 @@
+{
+  "input": "<ul><li>a</li><li>b</li></ul><p>p</p>",
+  "compressed": "<ul><li>a</li><li>b</li></ul><p>p</p>",
+  "text": "● a\n● b\np",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 4,
+      "end": 6,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 8,
+      "end": 9,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "● a\n● b\np",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 4,
+        "end": 6,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 4,
+        "end": 5,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 8,
+        "end": 9,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+// Platform-neutral Matrix HTML → rich-text model, shared by the Android app and the desktop client.
+// Parses with the same commonmark + Markwon HTML tokeniser sources the Android renderer uses, so both
+// clients produce identical text and span layout (asserted against Markwon goldens in src/test).
+apply plugin: 'org.jetbrains.kotlin.jvm'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+def markwonHtml = "$rootDir/library/external/markwon-html/src/main/java"
+
+sourceSets {
+    main {
+        java {
+            srcDir markwonHtml
+            include 'im/vector/lib/richtext/**'
+            include 'io/noties/markwon/inlineparser/**'
+            include 'io/noties/markwon/ext/latex/**'
+            include 'io/noties/markwon/html/jsoup/**'
+            include 'io/noties/markwon/html/AppendableUtils.java'
+            include 'io/noties/markwon/html/HtmlEmptyTagReplacement.java'
+            include 'io/noties/markwon/html/HtmlTag.java'
+            include 'io/noties/markwon/html/HtmlTagImpl.java'
+            include 'io/noties/markwon/html/MarkwonHtmlParser.java'
+            include 'io/noties/markwon/html/MarkwonHtmlParserImpl.java'
+            include 'io/noties/markwon/html/TrimmingAppender.java'
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'androidx.annotation:annotation:1.5.0'
+    api 'com.atlassian.commonmark:commonmark:0.13.0'
+    implementation 'org.jsoup:jsoup:1.17.2'
+    implementation 'com.googlecode.htmlcompressor:htmlcompressor:1.5.2'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.squareup.moshi:moshi:1.15.1'
+}
+
+apply from: "$rootDir/gradle/jvm-publish.gradle"

@@ -1,0 +1,30 @@
+{
+  "input": "x‮y https://example.org and <a href=\"https://example.org/b\">link</a> ‬",
+  "compressed": "x‮y https://example.org and <a href=\"https://example.org/b\">link</a> ‬",
+  "text": "x‮y https://example.org and link ‬",
+  "spans": [
+    {
+      "start": 4,
+      "end": 23,
+      "kind": "url",
+      "url": "https://example.org"
+    },
+    {
+      "start": 28,
+      "end": 32,
+      "kind": "url",
+      "url": "https://example.org/b"
+    }
+  ],
+  "markwon": {
+    "text": "x‮y https://example.org and link ‬",
+    "spans": [
+      {
+        "start": 28,
+        "end": 32,
+        "kind": "link",
+        "url": "https://example.org/b"
+      }
+    ]
+  }
+}

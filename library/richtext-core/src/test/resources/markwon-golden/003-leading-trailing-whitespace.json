@@ -1,0 +1,10 @@
+{
+  "input": "   padded text   \n\n",
+  "compressed": "padded text",
+  "text": "padded text",
+  "spans": [],
+  "markwon": {
+    "text": "padded text",
+    "spans": []
+  }
+}

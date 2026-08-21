@@ -1,0 +1,17 @@
+{
+  "input": "email@room.org",
+  "compressed": "email@room.org",
+  "text": "email@room.org",
+  "spans": [
+    {
+      "start": 0,
+      "end": 14,
+      "kind": "url",
+      "url": "mailto:email@room.org"
+    }
+  ],
+  "markwon": {
+    "text": "email@room.org",
+    "spans": []
+  }
+}

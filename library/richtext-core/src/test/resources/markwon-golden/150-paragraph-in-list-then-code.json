@@ -1,0 +1,80 @@
+{
+  "input": "<ul><li><p>para</p><pre><code>code</code></pre></li></ul><p>tail</p>",
+  "compressed": "<ul><li><p>para</p><pre><code>code</code></pre></li></ul><p>tail</p>",
+  "text": "● para\ncode\ntail",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 2,
+      "end": 6,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 7,
+      "end": 11,
+      "kind": "codeBlock"
+    },
+    {
+      "start": 12,
+      "end": 16,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "● para\ncode\ntail",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 2,
+        "end": 6,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 7,
+        "end": 11,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 7,
+        "end": 11,
+        "kind": "intermediateCode",
+        "block": true
+      },
+      {
+        "start": 12,
+        "end": 16,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

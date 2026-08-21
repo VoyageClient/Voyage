@@ -1,0 +1,106 @@
+{
+  "input": "<details open><summary><strong>bold summary</strong></summary><ul><li>a</li><li>b</li></ul></details>",
+  "compressed": "<details open><summary><strong>bold summary</strong></summary><ul><li>a</li><li>b</li></ul></details>",
+  "text": "bold summary\n● a\n● b",
+  "spans": [
+    {
+      "start": 0,
+      "end": 20,
+      "kind": "leadingMargin",
+      "margin": 8.0
+    },
+    {
+      "start": 0,
+      "end": 20,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 0,
+      "end": 12,
+      "kind": "bold"
+    },
+    {
+      "start": 0,
+      "end": 12,
+      "kind": "bold"
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 13,
+      "end": 14,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 17,
+      "end": 19,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 17,
+      "end": 18,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    }
+  ],
+  "markwon": {
+    "text": "bold summary\n● a\n● b",
+    "spans": [
+      {
+        "start": 0,
+        "end": 20,
+        "kind": "leadingMargin",
+        "margin": 8.0
+      },
+      {
+        "start": 0,
+        "end": 20,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 0,
+        "end": 12,
+        "kind": "bold"
+      },
+      {
+        "start": 0,
+        "end": 12,
+        "kind": "bold"
+      },
+      {
+        "start": 13,
+        "end": 15,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 13,
+        "end": 14,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 17,
+        "end": 19,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 17,
+        "end": 18,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      }
+    ]
+  }
+}

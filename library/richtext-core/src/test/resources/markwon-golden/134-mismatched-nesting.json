@@ -1,0 +1,32 @@
+{
+  "input": "<b><i>bold italic</b> italic?</i>",
+  "compressed": "<b><i>bold italic</b> italic?</i>",
+  "text": "bold italic italic?",
+  "spans": [
+    {
+      "start": 0,
+      "end": 19,
+      "kind": "italic"
+    },
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "bold"
+    }
+  ],
+  "markwon": {
+    "text": "bold italic italic?",
+    "spans": [
+      {
+        "start": 0,
+        "end": 19,
+        "kind": "italic"
+      },
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "bold"
+      }
+    ]
+  }
+}

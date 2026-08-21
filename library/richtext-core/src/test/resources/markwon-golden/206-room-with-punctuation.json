@@ -1,0 +1,19 @@
+{
+  "input": "hello @room!",
+  "compressed": "hello @room!",
+  "text": "hello ￼!",
+  "spans": [
+    {
+      "start": 6,
+      "end": 7,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "EveryoneInRoomItem",
+      "displayName": "@room"
+    }
+  ],
+  "markwon": {
+    "text": "hello @room!",
+    "spans": []
+  }
+}

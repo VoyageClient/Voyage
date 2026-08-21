@@ -1,0 +1,28 @@
+{
+  "input": "<code>@alice:example.org</code> in code",
+  "compressed": "<code>@alice:example.org</code> in code",
+  "text": "@alice:example.org in code",
+  "spans": [
+    {
+      "start": 0,
+      "end": 18,
+      "kind": "code"
+    }
+  ],
+  "markwon": {
+    "text": "@alice:example.org in code",
+    "spans": [
+      {
+        "start": 0,
+        "end": 18,
+        "kind": "code"
+      },
+      {
+        "start": 0,
+        "end": 18,
+        "kind": "intermediateCode",
+        "block": false
+      }
+    ]
+  }
+}

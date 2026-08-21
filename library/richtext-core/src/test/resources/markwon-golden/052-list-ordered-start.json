@@ -1,0 +1,36 @@
+{
+  "input": "<ol start=\"5\">\n<li>five</li>\n<li>six</li>\n</ol>",
+  "compressed": "<ol start=\"5\"> <li>five</li> <li>six</li> </ol>",
+  "text": "5. five \n6. six",
+  "spans": [
+    {
+      "start": 0,
+      "end": 3,
+      "kind": "listMarker",
+      "source": "5. "
+    },
+    {
+      "start": 9,
+      "end": 12,
+      "kind": "listMarker",
+      "source": "6. "
+    }
+  ],
+  "markwon": {
+    "text": "5. five \n6. six",
+    "spans": [
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "listMarker",
+        "source": "5. "
+      },
+      {
+        "start": 9,
+        "end": 12,
+        "kind": "listMarker",
+        "source": "6. "
+      }
+    ]
+  }
+}

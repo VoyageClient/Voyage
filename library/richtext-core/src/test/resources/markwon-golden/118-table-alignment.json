@@ -1,0 +1,69 @@
+{
+  "input": "<table><thead><tr><th align=\"left\">L</th><th align=\"center\">C</th><th align=\"right\">R</th></tr></thead><tbody><tr><td style=\"text-align: left\">l</td><td style=\"text-align:center\">c</td><td style=\"text-align: right;\">r</td></tr></tbody></table>",
+  "compressed": "<table><thead><tr><th align=\"left\">L</th><th align=\"center\">C</th><th align=\"right\">R</th></tr></thead><tbody><tr><td style=\"text-align: left\">l</td><td style=\"text-align:center\">c</td><td style=\"text-align: right;\">r</td></tr></tbody></table>",
+  "text": "LCRlcr",
+  "spans": [],
+  "markwon": {
+    "text": "LCRlcr",
+    "spans": []
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": true,
+          "cells": [
+            {
+              "header": true,
+              "align": "left",
+              "html": "L",
+              "text": "L",
+              "spans": []
+            },
+            {
+              "header": true,
+              "align": "center",
+              "html": "C",
+              "text": "C",
+              "spans": []
+            },
+            {
+              "header": true,
+              "align": "right",
+              "html": "R",
+              "text": "R",
+              "spans": []
+            }
+          ]
+        },
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "l",
+              "text": "l",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "center",
+              "html": "c",
+              "text": "c",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "right",
+              "html": "r",
+              "text": "r",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

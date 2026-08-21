@@ -1,0 +1,22 @@
+{
+  "input": "<span data-mx-spoiler=\"the reason\">hidden text</span>",
+  "compressed": "<span data-mx-spoiler=\"the reason\">hidden text</span>",
+  "text": "hidden text",
+  "spans": [
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "spoiler"
+    }
+  ],
+  "markwon": {
+    "text": "hidden text",
+    "spans": [
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "spoiler"
+      }
+    ]
+  }
+}

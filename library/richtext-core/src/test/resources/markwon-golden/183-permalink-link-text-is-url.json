@@ -1,0 +1,32 @@
+{
+  "input": "<a href=\"https://matrix.to/#/!roomid:example.org/$event:example.org\">https://matrix.to/#/!roomid:example.org/$event:example.org</a>",
+  "compressed": "<a href=\"https://matrix.to/#/!roomid:example.org/$event:example.org\">https://matrix.to/#/!roomid:example.org/$event:example.org</a>",
+  "text": "￼",
+  "spans": [
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "pill",
+      "id": "!roomid:example.org",
+      "itemType": "RoomItem",
+      "displayName": "Message"
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "url",
+      "url": "https://matrix.to/#/!roomid:example.org/$event:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "https://matrix.to/#/!roomid:example.org/$event:example.org",
+    "spans": [
+      {
+        "start": 0,
+        "end": 58,
+        "kind": "link",
+        "url": "https://matrix.to/#/!roomid:example.org/$event:example.org"
+      }
+    ]
+  }
+}

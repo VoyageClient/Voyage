@@ -1,0 +1,71 @@
+{
+  "input": "<p>before</p>\n<table><tr><td>cell</td></tr></table>\n<p>after</p>",
+  "compressed": "<p>before</p> <table><tr><td>cell</td></tr></table> <p>after</p>",
+  "text": "before\n \ncell \nafter",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 15,
+      "end": 20,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "before\n \ncell \nafter",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 15,
+        "end": 20,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "html",
+      "html": "<p>before</p>",
+      "text": "before",
+      "spans": []
+    },
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "cell",
+              "text": "cell",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "html",
+      "html": "<p>after</p>",
+      "text": "after",
+      "spans": []
+    }
+  ]
+}

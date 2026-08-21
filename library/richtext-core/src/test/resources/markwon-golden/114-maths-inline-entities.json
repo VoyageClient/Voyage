@@ -1,0 +1,26 @@
+{
+  "input": "<span data-mx-maths=\"a &lt; b &amp;&amp; \\frac{a}{b}\"><code>a &lt; b</code></span>",
+  "compressed": "<span data-mx-maths=\"a &lt; b &amp;&amp; \\frac{a}{b}\"><code>a &lt; b</code></span>",
+  "text": "a < b && \\frac{a}{b}",
+  "spans": [
+    {
+      "start": 0,
+      "end": 20,
+      "kind": "maths",
+      "latex": "a < b && \\frac{a}{b}",
+      "display": "inline"
+    }
+  ],
+  "markwon": {
+    "text": "a < b && \\frac{a}{b}",
+    "spans": [
+      {
+        "start": 0,
+        "end": 20,
+        "kind": "maths",
+        "latex": "a < b && \\frac{a}{b}",
+        "display": "inline"
+      }
+    ]
+  }
+}

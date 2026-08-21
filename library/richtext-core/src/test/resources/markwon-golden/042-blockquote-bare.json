@@ -1,0 +1,22 @@
+{
+  "input": "<blockquote>quoted bare</blockquote>reply bare",
+  "compressed": "<blockquote>quoted bare</blockquote>reply bare",
+  "text": "quoted bare\n\nreply bare",
+  "spans": [
+    {
+      "start": 0,
+      "end": 11,
+      "kind": "blockquote"
+    }
+  ],
+  "markwon": {
+    "text": "quoted bare\n\nreply bare",
+    "spans": [
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "blockquote"
+      }
+    ]
+  }
+}

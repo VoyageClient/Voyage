@@ -2,6 +2,7 @@
 // just the SDK modules that run off Android, so no Android SDK is needed.
 include ':library:external:olm-jvm'
 include ':library:external:timber-jvm'
+include ':library:richtext-core'
 include ':matrix-sdk-core'
 include ':matrix-sdk-desktop'
 include ':samples:matrix-cli'

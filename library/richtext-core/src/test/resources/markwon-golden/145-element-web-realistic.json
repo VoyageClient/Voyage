@@ -1,0 +1,242 @@
+{
+  "input": "<p>Hey <a href=\"https://matrix.to/#/@alice:example.org\">Alice</a>, I pushed the fix 🎉</p>\n<p>Changes:</p>\n<ul>\n<li>fixed the <code>NullPointerException</code> in <code>RoomListFragment</code></li>\n<li>updated <strong>deps</strong>\n<ul>\n<li>okhttp → 3.12.13</li>\n</ul>\n</li>\n</ul>\n<p>Details in <a href=\"https://example.org/pr/42\">PR #42</a>. Let me know if <em>anything</em> breaks!</p>\n<blockquote>\n<p>famous last words</p>\n</blockquote>\n",
+  "compressed": "<p>Hey <a href=\"https://matrix.to/#/@alice:example.org\">Alice</a>, I pushed the fix 🎉</p> <p>Changes:</p> <ul> <li>fixed the <code>NullPointerException</code> in <code>RoomListFragment</code></li> <li>updated <strong>deps</strong> <ul> <li>okhttp → 3.12.13</li> </ul> </li> </ul> <p>Details in <a href=\"https://example.org/pr/42\">PR #42</a>. Let me know if <em>anything</em> breaks!</p> <blockquote> <p>famous last words</p> </blockquote>",
+  "text": "Hey ￼, I pushed the fix 🎉\n \nChanges:\n● fixed the NullPointerException in RoomListFragment \n● updated deps \n   ● okhttp → 3.12.13    \nDetails in PR #42. Let me know if anything breaks!\n \nfamous last words",
+  "spans": [
+    {
+      "start": 0,
+      "end": 26,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "pill",
+      "id": "@alice:example.org",
+      "itemType": "UserItem",
+      "displayName": "Alice"
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "url",
+      "url": "https://matrix.to/#/@alice:example.org"
+    },
+    {
+      "start": 29,
+      "end": 37,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 38,
+      "end": 40,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 38,
+      "end": 39,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 50,
+      "end": 70,
+      "kind": "code"
+    },
+    {
+      "start": 74,
+      "end": 90,
+      "kind": "code"
+    },
+    {
+      "start": 92,
+      "end": 94,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 92,
+      "end": 93,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 102,
+      "end": 106,
+      "kind": "bold"
+    },
+    {
+      "start": 108,
+      "end": 113,
+      "kind": "listMarker",
+      "source": "   - "
+    },
+    {
+      "start": 111,
+      "end": 112,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 134,
+      "end": 184,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 145,
+      "end": 151,
+      "kind": "url",
+      "url": "https://example.org/pr/42"
+    },
+    {
+      "start": 168,
+      "end": 176,
+      "kind": "italic"
+    },
+    {
+      "start": 187,
+      "end": 204,
+      "kind": "blockquote"
+    },
+    {
+      "start": 187,
+      "end": 204,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "Hey ￼, I pushed the fix 🎉\n \nChanges:\n● fixed the \nNullPointerException in RoomListFragment \n● updated \ndeps \n   ● okhttp → 3.12.13    \nDetails in \nPR #42. Let me know if anything breaks!\n \nfamous last words",
+    "spans": [
+      {
+        "start": 0,
+        "end": 26,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 4,
+        "end": 5,
+        "kind": "link",
+        "url": "https://matrix.to/#/@alice:example.org"
+      },
+      {
+        "start": 4,
+        "end": 5,
+        "kind": "pill",
+        "id": "@alice:example.org",
+        "itemType": "UserItem",
+        "displayName": "Alice"
+      },
+      {
+        "start": 29,
+        "end": 37,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 38,
+        "end": 40,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 38,
+        "end": 39,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 50,
+        "end": 71,
+        "kind": "code"
+      },
+      {
+        "start": 50,
+        "end": 71,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 75,
+        "end": 91,
+        "kind": "code"
+      },
+      {
+        "start": 75,
+        "end": 91,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 93,
+        "end": 95,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 93,
+        "end": 94,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 103,
+        "end": 108,
+        "kind": "bold"
+      },
+      {
+        "start": 110,
+        "end": 115,
+        "kind": "listMarker",
+        "source": "   - "
+      },
+      {
+        "start": 113,
+        "end": 114,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 136,
+        "end": 187,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 147,
+        "end": 154,
+        "kind": "link",
+        "url": "https://example.org/pr/42"
+      },
+      {
+        "start": 171,
+        "end": 179,
+        "kind": "italic"
+      },
+      {
+        "start": 190,
+        "end": 207,
+        "kind": "blockquote"
+      },
+      {
+        "start": 190,
+        "end": 207,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

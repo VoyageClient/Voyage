@@ -1,0 +1,10 @@
+{
+  "input": "before <!-- comment --> after",
+  "compressed": "before after",
+  "text": "before after",
+  "spans": [],
+  "markwon": {
+    "text": "before after",
+    "spans": []
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "input": "<ol>\n<li>first</li>\n<li>second</li>\n<li>third</li>\n</ol>\n",
+  "compressed": "<ol> <li>first</li> <li>second</li> <li>third</li> </ol>",
+  "text": "1. first \n2. second \n3. third",
+  "spans": [
+    {
+      "start": 0,
+      "end": 3,
+      "kind": "listMarker",
+      "source": "1. "
+    },
+    {
+      "start": 10,
+      "end": 13,
+      "kind": "listMarker",
+      "source": "2. "
+    },
+    {
+      "start": 21,
+      "end": 24,
+      "kind": "listMarker",
+      "source": "3. "
+    }
+  ],
+  "markwon": {
+    "text": "1. first \n2. second \n3. third",
+    "spans": [
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "listMarker",
+        "source": "1. "
+      },
+      {
+        "start": 10,
+        "end": 13,
+        "kind": "listMarker",
+        "source": "2. "
+      },
+      {
+        "start": 21,
+        "end": 24,
+        "kind": "listMarker",
+        "source": "3. "
+      }
+    ]
+  }
+}

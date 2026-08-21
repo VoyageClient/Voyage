@@ -1,0 +1,22 @@
+{
+  "input": "<span data-mx-spoiler>line one<br>line two</span>",
+  "compressed": "<span data-mx-spoiler>line one<br>line two</span>",
+  "text": "line one\nline two",
+  "spans": [
+    {
+      "start": 0,
+      "end": 17,
+      "kind": "spoiler"
+    }
+  ],
+  "markwon": {
+    "text": "line one\nline two",
+    "spans": [
+      {
+        "start": 0,
+        "end": 17,
+        "kind": "spoiler"
+      }
+    ]
+  }
+}

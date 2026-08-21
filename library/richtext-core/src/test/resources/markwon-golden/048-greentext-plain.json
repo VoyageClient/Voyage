@@ -1,0 +1,10 @@
+{
+  "input": "&gt;implying\n&gt;greentext lines\nnormal line",
+  "compressed": "&gt;implying &gt;greentext lines normal line",
+  "text": ">implying >greentext lines normal line",
+  "spans": [],
+  "markwon": {
+    "text": ">implying >greentext lines normal line",
+    "spans": []
+  }
+}

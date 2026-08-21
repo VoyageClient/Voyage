@@ -1,0 +1,74 @@
+{
+  "input": "<blockquote>\n<p>outer</p>\n<blockquote>\n<p>inner</p>\n</blockquote>\n<p>outer again</p>\n</blockquote>",
+  "compressed": "<blockquote> <p>outer</p> <blockquote> <p>inner</p> </blockquote> <p>outer again</p> </blockquote>",
+  "text": "outer\n \ninner \nouter again",
+  "spans": [
+    {
+      "start": 0,
+      "end": 26,
+      "kind": "blockquote"
+    },
+    {
+      "start": 0,
+      "end": 5,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 8,
+      "end": 13,
+      "kind": "blockquote"
+    },
+    {
+      "start": 8,
+      "end": 13,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 15,
+      "end": 26,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "outer\n \ninner \nouter again",
+    "spans": [
+      {
+        "start": 0,
+        "end": 26,
+        "kind": "blockquote"
+      },
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 8,
+        "end": 13,
+        "kind": "blockquote"
+      },
+      {
+        "start": 8,
+        "end": 13,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 15,
+        "end": 26,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

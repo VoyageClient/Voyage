@@ -1,0 +1,36 @@
+{
+  "input": "<span style=\"color: #abcdef; background-color: rgb(1,2,3)\">styled</span> <span style=\"background-color:#445566\">bg only</span>",
+  "compressed": "<span style=\"color: #abcdef; background-color: rgb(1,2,3)\">styled</span> <span style=\"background-color:#445566\">bg only</span>",
+  "text": "styled bg only",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "color",
+      "color": "#FFABCDEF"
+    },
+    {
+      "start": 7,
+      "end": 14,
+      "kind": "bgColor",
+      "color": "#FF445566"
+    }
+  ],
+  "markwon": {
+    "text": "styled bg only",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "color",
+        "color": "#FFABCDEF"
+      },
+      {
+        "start": 7,
+        "end": 14,
+        "kind": "bgColor",
+        "color": "#FF445566"
+      }
+    ]
+  }
+}

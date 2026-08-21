@@ -1,0 +1,55 @@
+{
+  "input": "<table><tr><th>h1</th><th>h2</th></tr><tr><td>c1</td><td>c2</td></tr></table>",
+  "compressed": "<table><tr><th>h1</th><th>h2</th></tr><tr><td>c1</td><td>c2</td></tr></table>",
+  "text": "h1h2c1c2",
+  "spans": [],
+  "markwon": {
+    "text": "h1h2c1c2",
+    "spans": []
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": true,
+          "cells": [
+            {
+              "header": true,
+              "align": "left",
+              "html": "h1",
+              "text": "h1",
+              "spans": []
+            },
+            {
+              "header": true,
+              "align": "left",
+              "html": "h2",
+              "text": "h2",
+              "spans": []
+            }
+          ]
+        },
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "c1",
+              "text": "c1",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "c2",
+              "text": "c2",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

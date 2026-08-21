@@ -1,0 +1,28 @@
+{
+  "input": "<img data-mx-emoticon=\"\" src=\"mxc://example.org/emote4\" alt=\":only:\" title=\":only:\">",
+  "compressed": "<img data-mx-emoticon=\"\" src=\"mxc://example.org/emote4\" alt=\":only:\" title=\":only:\">",
+  "text": ":only:",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "emote",
+      "mxcUrl": "mxc://example.org/emote4",
+      "shortcode": "only",
+      "body": ":only:"
+    }
+  ],
+  "markwon": {
+    "text": ":only:",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "emote",
+        "mxcUrl": "mxc://example.org/emote4",
+        "shortcode": "only",
+        "body": ":only:"
+      }
+    ]
+  }
+}

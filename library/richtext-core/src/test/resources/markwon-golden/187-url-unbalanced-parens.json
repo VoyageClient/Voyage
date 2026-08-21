@@ -1,0 +1,17 @@
+{
+  "input": "(see https://example.org)",
+  "compressed": "(see https://example.org)",
+  "text": "(see https://example.org)",
+  "spans": [
+    {
+      "start": 5,
+      "end": 24,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "(see https://example.org)",
+    "spans": []
+  }
+}

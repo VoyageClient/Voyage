@@ -1,0 +1,28 @@
+{
+  "input": "<img src=\"mxc://example.org/emote2\" alt=\":wave:\" height=\"32\" width=\"32\">",
+  "compressed": "<img src=\"mxc://example.org/emote2\" alt=\":wave:\" height=\"32\" width=\"32\">",
+  "text": ":wave:",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "emote",
+      "mxcUrl": "mxc://example.org/emote2",
+      "shortcode": "wave",
+      "body": ":wave:"
+    }
+  ],
+  "markwon": {
+    "text": ":wave:",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "emote",
+        "mxcUrl": "mxc://example.org/emote2",
+        "shortcode": "wave",
+        "body": ":wave:"
+      }
+    ]
+  }
+}

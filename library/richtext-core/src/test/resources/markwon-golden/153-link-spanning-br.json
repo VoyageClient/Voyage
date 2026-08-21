@@ -1,0 +1,24 @@
+{
+  "input": "<a href=\"https://example.org\">line one<br>line two</a>",
+  "compressed": "<a href=\"https://example.org\">line one<br>line two</a>",
+  "text": "line one\nline two",
+  "spans": [
+    {
+      "start": 0,
+      "end": 17,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "line one\nline two",
+    "spans": [
+      {
+        "start": 0,
+        "end": 17,
+        "kind": "link",
+        "url": "https://example.org"
+      }
+    ]
+  }
+}

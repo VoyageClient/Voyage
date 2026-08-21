@@ -1,0 +1,74 @@
+{
+  "input": "<p>before</p>\n<pre><code>block</code></pre>\n<p>after</p>",
+  "compressed": "<p>before</p> <pre><code>block</code></pre> <p>after</p>",
+  "text": "before\n \nblock \nafter",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 9,
+      "end": 14,
+      "kind": "codeBlock"
+    },
+    {
+      "start": 16,
+      "end": 21,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "before\n \nblock \nafter",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 9,
+        "end": 14,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 9,
+        "end": 14,
+        "kind": "intermediateCode",
+        "block": true
+      },
+      {
+        "start": 16,
+        "end": 21,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "html",
+      "html": "<p>before</p>",
+      "text": "before",
+      "spans": []
+    },
+    {
+      "kind": "code",
+      "code": "block"
+    },
+    {
+      "kind": "html",
+      "html": "<p>after</p>",
+      "text": "after",
+      "spans": []
+    }
+  ]
+}

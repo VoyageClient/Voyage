@@ -1,0 +1,28 @@
+{
+  "input": "see <code>https://example.org/path</code> verbatim",
+  "compressed": "see <code>https://example.org/path</code> verbatim",
+  "text": "see https://example.org/path verbatim",
+  "spans": [
+    {
+      "start": 4,
+      "end": 28,
+      "kind": "code"
+    }
+  ],
+  "markwon": {
+    "text": "see https://example.org/path verbatim",
+    "spans": [
+      {
+        "start": 4,
+        "end": 28,
+        "kind": "code"
+      },
+      {
+        "start": 4,
+        "end": 28,
+        "kind": "intermediateCode",
+        "block": false
+      }
+    ]
+  }
+}

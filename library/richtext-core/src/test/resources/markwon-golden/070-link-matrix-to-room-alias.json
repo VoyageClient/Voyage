@@ -1,0 +1,38 @@
+{
+  "input": "join <a href=\"https://matrix.to/#/#room:example.org\">#room:example.org</a>",
+  "compressed": "join <a href=\"https://matrix.to/#/#room:example.org\">#room:example.org</a>",
+  "text": "join ￼",
+  "spans": [
+    {
+      "start": 5,
+      "end": 6,
+      "kind": "pill",
+      "id": "#room:example.org",
+      "itemType": "RoomAliasItem"
+    },
+    {
+      "start": 5,
+      "end": 6,
+      "kind": "url",
+      "url": "https://matrix.to/#/#room:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "join ￼",
+    "spans": [
+      {
+        "start": 5,
+        "end": 6,
+        "kind": "link",
+        "url": "https://matrix.to/#/#room:example.org"
+      },
+      {
+        "start": 5,
+        "end": 6,
+        "kind": "pill",
+        "id": "#room:example.org",
+        "itemType": "RoomAliasItem"
+      }
+    ]
+  }
+}

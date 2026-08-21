@@ -1,0 +1,10 @@
+{
+  "input": "above<hr>below",
+  "compressed": "above<hr>below",
+  "text": "above\nbelow",
+  "spans": [],
+  "markwon": {
+    "text": "above\nbelow",
+    "spans": []
+  }
+}

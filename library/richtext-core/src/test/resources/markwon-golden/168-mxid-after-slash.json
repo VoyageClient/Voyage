@@ -1,0 +1,17 @@
+{
+  "input": "path /@alice:example.org should not link",
+  "compressed": "path /@alice:example.org should not link",
+  "text": "path /@alice:example.org should not link",
+  "spans": [
+    {
+      "start": 13,
+      "end": 24,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "path /@alice:example.org should not link",
+    "spans": []
+  }
+}

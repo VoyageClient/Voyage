@@ -1,0 +1,10 @@
+{
+  "input": "<strong>never closed <em>also not",
+  "compressed": "<strong>never closed <em>also not",
+  "text": "never closed also not",
+  "spans": [],
+  "markwon": {
+    "text": "never closed also not",
+    "spans": []
+  }
+}

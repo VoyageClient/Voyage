@@ -1,0 +1,36 @@
+{
+  "input": "<font color=\"#ff0000\">red</font> and <font color=\"blue\">blue</font>",
+  "compressed": "<font color=\"#ff0000\">red</font> and <font color=\"blue\">blue</font>",
+  "text": "red and blue",
+  "spans": [
+    {
+      "start": 0,
+      "end": 3,
+      "kind": "color",
+      "color": "#FFFF0000"
+    },
+    {
+      "start": 8,
+      "end": 12,
+      "kind": "color",
+      "color": "#FF0000FF"
+    }
+  ],
+  "markwon": {
+    "text": "red and blue",
+    "spans": [
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "color",
+        "color": "#FFFF0000"
+      },
+      {
+        "start": 8,
+        "end": 12,
+        "kind": "color",
+        "color": "#FF0000FF"
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "input": "group +group:example.org here",
+  "compressed": "group +group:example.org here",
+  "text": "group +group:example.org here",
+  "spans": [
+    {
+      "start": 6,
+      "end": 24,
+      "kind": "permalink",
+      "url": "https://matrix.to/#/+group:example.org"
+    },
+    {
+      "start": 13,
+      "end": 24,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "group +group:example.org here",
+    "spans": []
+  }
+}

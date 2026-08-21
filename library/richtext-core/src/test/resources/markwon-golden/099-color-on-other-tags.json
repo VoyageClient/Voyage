@@ -1,0 +1,102 @@
+{
+  "input": "<strong data-mx-color=\"#ff00ff\">bold magenta</strong> <em style=\"color:#123456\">em</em> <u color=\"red\">u</u> <h2 data-mx-color=\"#654321\">heading</h2>",
+  "compressed": "<strong data-mx-color=\"#ff00ff\">bold magenta</strong> <em style=\"color:#123456\">em</em> <u color=\"red\">u</u> <h2 data-mx-color=\"#654321\">heading</h2>",
+  "text": "bold magenta em u \nheading",
+  "spans": [
+    {
+      "start": 0,
+      "end": 12,
+      "kind": "bold"
+    },
+    {
+      "start": 0,
+      "end": 12,
+      "kind": "color",
+      "color": "#FFFF00FF"
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "kind": "color",
+      "color": "#FF123456"
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "kind": "italic"
+    },
+    {
+      "start": 16,
+      "end": 17,
+      "kind": "color",
+      "color": "#FFFF0000"
+    },
+    {
+      "start": 16,
+      "end": 17,
+      "kind": "underline"
+    },
+    {
+      "start": 19,
+      "end": 26,
+      "kind": "color",
+      "color": "#FF654321"
+    },
+    {
+      "start": 19,
+      "end": 26,
+      "kind": "heading",
+      "level": 2
+    }
+  ],
+  "markwon": {
+    "text": "bold magenta em u \nheading",
+    "spans": [
+      {
+        "start": 0,
+        "end": 12,
+        "kind": "bold"
+      },
+      {
+        "start": 0,
+        "end": 12,
+        "kind": "color",
+        "color": "#FFFF00FF"
+      },
+      {
+        "start": 13,
+        "end": 15,
+        "kind": "color",
+        "color": "#FF123456"
+      },
+      {
+        "start": 13,
+        "end": 15,
+        "kind": "italic"
+      },
+      {
+        "start": 16,
+        "end": 17,
+        "kind": "color",
+        "color": "#FFFF0000"
+      },
+      {
+        "start": 16,
+        "end": 17,
+        "kind": "underline"
+      },
+      {
+        "start": 19,
+        "end": 26,
+        "kind": "color",
+        "color": "#FF654321"
+      },
+      {
+        "start": 19,
+        "end": 26,
+        "kind": "heading",
+        "level": 2
+      }
+    ]
+  }
+}

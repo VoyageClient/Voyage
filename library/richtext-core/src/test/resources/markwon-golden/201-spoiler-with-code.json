@@ -1,0 +1,33 @@
+{
+  "input": "<span data-mx-spoiler>secret <code>code</code></span>",
+  "compressed": "<span data-mx-spoiler>secret <code>code</code></span>",
+  "text": "secret code",
+  "spans": [
+    {
+      "start": 7,
+      "end": 11,
+      "kind": "code"
+    }
+  ],
+  "markwon": {
+    "text": "secret code",
+    "spans": [
+      {
+        "start": 0,
+        "end": 11,
+        "kind": "spoiler"
+      },
+      {
+        "start": 7,
+        "end": 11,
+        "kind": "code"
+      },
+      {
+        "start": 7,
+        "end": 11,
+        "kind": "intermediateCode",
+        "block": false
+      }
+    ]
+  }
+}

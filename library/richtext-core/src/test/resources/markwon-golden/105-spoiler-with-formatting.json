@@ -1,0 +1,60 @@
+{
+  "input": "<span data-mx-spoiler><strong>bold</strong> <a href=\"https://matrix.to/#/@alice:example.org\">Alice</a></span>",
+  "compressed": "<span data-mx-spoiler><strong>bold</strong> <a href=\"https://matrix.to/#/@alice:example.org\">Alice</a></span>",
+  "text": "bold ￼",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "spoiler"
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "bold"
+    },
+    {
+      "start": 5,
+      "end": 6,
+      "kind": "pill",
+      "id": "@alice:example.org",
+      "itemType": "UserItem",
+      "displayName": "Alice"
+    },
+    {
+      "start": 5,
+      "end": 6,
+      "kind": "url",
+      "url": "https://matrix.to/#/@alice:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "bold ￼",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "spoiler"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "bold"
+      },
+      {
+        "start": 5,
+        "end": 6,
+        "kind": "link",
+        "url": "https://matrix.to/#/@alice:example.org"
+      },
+      {
+        "start": 5,
+        "end": 6,
+        "kind": "pill",
+        "id": "@alice:example.org",
+        "itemType": "UserItem",
+        "displayName": "Alice"
+      }
+    ]
+  }
+}

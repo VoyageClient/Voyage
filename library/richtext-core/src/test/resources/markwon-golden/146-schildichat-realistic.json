@@ -1,0 +1,270 @@
+{
+  "input": "<p>status update:</p>\n<h2>Done</h2>\n<ol>\n<li>bubbles <span data-mx-spoiler>(almost)</span></li>\n<li>sc themes</li>\n</ol>\n<h2>Todo</h2>\n<p><del>nothing</del> <strong>everything</strong> <img data-mx-emoticon src=\"mxc://example.org/sad\" alt=\":sad:\" title=\":sad:\" height=\"32\"></p>\n<pre><code class=\"language-sh\">./gradlew assembleSc</code></pre>\n<p>cc <a href=\"https://matrix.to/#/@bob:example.org\">bob</a></p>",
+  "compressed": "<p>status update:</p> <h2>Done</h2> <ol> <li>bubbles <span data-mx-spoiler>(almost)</span></li> <li>sc themes</li> </ol> <h2>Todo</h2> <p><del>nothing</del> <strong>everything</strong> <img data-mx-emoticon src=\"mxc://example.org/sad\" alt=\":sad:\" title=\":sad:\" height=\"32\"></p> <pre><code class=\"language-sh\">./gradlew assembleSc</code></pre> <p>cc <a href=\"https://matrix.to/#/@bob:example.org\">bob</a></p>",
+  "text": "status update:\n \nDone \n1. bubbles \n(almost) \n2. sc themes  \nTodo \n\nnothing everything :sad: \n./gradlew assembleSc \ncc ￼",
+  "spans": [
+    {
+      "start": 0,
+      "end": 14,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 17,
+      "end": 21,
+      "kind": "heading",
+      "level": 2
+    },
+    {
+      "start": 23,
+      "end": 26,
+      "kind": "listMarker",
+      "source": "1. "
+    },
+    {
+      "start": 34,
+      "end": 43,
+      "kind": "spoiler"
+    },
+    {
+      "start": 45,
+      "end": 48,
+      "kind": "listMarker",
+      "source": "2. "
+    },
+    {
+      "start": 60,
+      "end": 64,
+      "kind": "heading",
+      "level": 2
+    },
+    {
+      "start": 67,
+      "end": 74,
+      "kind": "strikethrough"
+    },
+    {
+      "start": 75,
+      "end": 85,
+      "kind": "bold"
+    },
+    {
+      "start": 86,
+      "end": 91,
+      "kind": "emote",
+      "mxcUrl": "mxc://example.org/sad",
+      "shortcode": "sad",
+      "body": ":sad:"
+    },
+    {
+      "start": 93,
+      "end": 113,
+      "kind": "codeBlock"
+    },
+    {
+      "start": 115,
+      "end": 119,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 118,
+      "end": 119,
+      "kind": "pill",
+      "id": "@bob:example.org",
+      "itemType": "UserItem"
+    },
+    {
+      "start": 118,
+      "end": 119,
+      "kind": "url",
+      "url": "https://matrix.to/#/@bob:example.org"
+    }
+  ],
+  "markwon": {
+    "text": "status update:\n \nDone \n1. bubbles \n(almost) \n2. sc themes  \nTodo \n\nnothing everything :sad: \n./gradlew assembleSc \ncc ￼",
+    "spans": [
+      {
+        "start": 0,
+        "end": 14,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 17,
+        "end": 21,
+        "kind": "heading",
+        "level": 2
+      },
+      {
+        "start": 23,
+        "end": 26,
+        "kind": "listMarker",
+        "source": "1. "
+      },
+      {
+        "start": 34,
+        "end": 43,
+        "kind": "spoiler"
+      },
+      {
+        "start": 45,
+        "end": 48,
+        "kind": "listMarker",
+        "source": "2. "
+      },
+      {
+        "start": 60,
+        "end": 64,
+        "kind": "heading",
+        "level": 2
+      },
+      {
+        "start": 67,
+        "end": 74,
+        "kind": "strikethrough"
+      },
+      {
+        "start": 75,
+        "end": 85,
+        "kind": "bold"
+      },
+      {
+        "start": 86,
+        "end": 91,
+        "kind": "emote",
+        "mxcUrl": "mxc://example.org/sad",
+        "shortcode": "sad",
+        "body": ":sad:"
+      },
+      {
+        "start": 93,
+        "end": 113,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 93,
+        "end": 113,
+        "kind": "intermediateCode",
+        "block": true
+      },
+      {
+        "start": 115,
+        "end": 119,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 118,
+        "end": 119,
+        "kind": "link",
+        "url": "https://matrix.to/#/@bob:example.org"
+      },
+      {
+        "start": 118,
+        "end": 119,
+        "kind": "pill",
+        "id": "@bob:example.org",
+        "itemType": "UserItem"
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "html",
+      "html": "<p>status update:</p><h2>Done</h2><ol>\n <li>bubbles <span data-mx-spoiler>(almost)</span></li>\n <li>sc themes</li>\n</ol><h2>Todo</h2><p>\n <del>nothing</del><strong>everything</strong> <img data-mx-emoticon src=\"mxc://example.org/sad\" alt=\":sad:\" title=\":sad:\" height=\"32\"></p>",
+      "text": "status update:\nDone\n\n1. bubbles \n(almost)\n2. sc themes\nTodo\n\n\nnothingeverything :sad:",
+      "spans": [
+        {
+          "start": 0,
+          "end": 14,
+          "kind": "verticalPadding",
+          "top": 4.0,
+          "bottom": 4.0
+        },
+        {
+          "start": 15,
+          "end": 19,
+          "kind": "heading",
+          "level": 2
+        },
+        {
+          "start": 21,
+          "end": 24,
+          "kind": "listMarker",
+          "source": "1. "
+        },
+        {
+          "start": 32,
+          "end": 41,
+          "kind": "spoiler"
+        },
+        {
+          "start": 42,
+          "end": 45,
+          "kind": "listMarker",
+          "source": "2. "
+        },
+        {
+          "start": 55,
+          "end": 59,
+          "kind": "heading",
+          "level": 2
+        },
+        {
+          "start": 60,
+          "end": 61,
+          "kind": "verticalPadding",
+          "top": 4.0,
+          "bottom": 4.0
+        },
+        {
+          "start": 62,
+          "end": 69,
+          "kind": "strikethrough"
+        },
+        {
+          "start": 69,
+          "end": 79,
+          "kind": "bold"
+        },
+        {
+          "start": 80,
+          "end": 85,
+          "kind": "emote",
+          "mxcUrl": "mxc://example.org/sad",
+          "shortcode": "sad",
+          "body": ":sad:"
+        }
+      ]
+    },
+    {
+      "kind": "code",
+      "code": "./gradlew assembleSc"
+    },
+    {
+      "kind": "html",
+      "html": "<p>cc <a href=\"https://matrix.to/#/@bob:example.org\">bob</a></p>",
+      "text": "cc ￼",
+      "spans": [
+        {
+          "start": 3,
+          "end": 4,
+          "kind": "pill",
+          "id": "@bob:example.org",
+          "itemType": "UserItem"
+        },
+        {
+          "start": 3,
+          "end": 4,
+          "kind": "url",
+          "url": "https://matrix.to/#/@bob:example.org"
+        }
+      ]
+    }
+  ]
+}

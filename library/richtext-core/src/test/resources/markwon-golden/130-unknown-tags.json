@@ -1,0 +1,10 @@
+{
+  "input": "<marquee>moving</marquee> <custom-tag attr=\"x\">custom</custom-tag> <abbr title=\"HyperText\">HT</abbr>",
+  "compressed": "<marquee>moving</marquee> <custom-tag attr=\"x\">custom</custom-tag> <abbr title=\"HyperText\">HT</abbr>",
+  "text": "moving custom HT",
+  "spans": [],
+  "markwon": {
+    "text": "moving custom HT",
+    "spans": []
+  }
+}

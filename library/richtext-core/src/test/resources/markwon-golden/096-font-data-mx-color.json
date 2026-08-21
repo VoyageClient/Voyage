@@ -1,0 +1,36 @@
+{
+  "input": "<font data-mx-color=\"#00ff00\" data-mx-bg-color=\"#000000\">green on black</font>",
+  "compressed": "<font data-mx-color=\"#00ff00\" data-mx-bg-color=\"#000000\">green on black</font>",
+  "text": "green on black",
+  "spans": [
+    {
+      "start": 0,
+      "end": 14,
+      "kind": "bgColor",
+      "color": "#FF000000"
+    },
+    {
+      "start": 0,
+      "end": 14,
+      "kind": "color",
+      "color": "#FF00FF00"
+    }
+  ],
+  "markwon": {
+    "text": "green on black",
+    "spans": [
+      {
+        "start": 0,
+        "end": 14,
+        "kind": "bgColor",
+        "color": "#FF000000"
+      },
+      {
+        "start": 0,
+        "end": 14,
+        "kind": "color",
+        "color": "#FF00FF00"
+      }
+    ]
+  }
+}

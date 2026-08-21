@@ -1,0 +1,22 @@
+{
+  "input": "<blockquote><table><tr><td>in quote</td></tr></table></blockquote>",
+  "compressed": "<blockquote><table><tr><td>in quote</td></tr></table></blockquote>",
+  "text": "in quote",
+  "spans": [
+    {
+      "start": 0,
+      "end": 8,
+      "kind": "blockquote"
+    }
+  ],
+  "markwon": {
+    "text": "in quote",
+    "spans": [
+      {
+        "start": 0,
+        "end": 8,
+        "kind": "blockquote"
+      }
+    ]
+  }
+}

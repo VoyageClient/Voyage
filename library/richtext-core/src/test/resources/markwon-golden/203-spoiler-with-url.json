@@ -1,0 +1,28 @@
+{
+  "input": "<span data-mx-spoiler>https://example.org</span>",
+  "compressed": "<span data-mx-spoiler>https://example.org</span>",
+  "text": "https://example.org",
+  "spans": [
+    {
+      "start": 0,
+      "end": 19,
+      "kind": "spoiler"
+    },
+    {
+      "start": 0,
+      "end": 19,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "https://example.org",
+    "spans": [
+      {
+        "start": 0,
+        "end": 19,
+        "kind": "spoiler"
+      }
+    ]
+  }
+}

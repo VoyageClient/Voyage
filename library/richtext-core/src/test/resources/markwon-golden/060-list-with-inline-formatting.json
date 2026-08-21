@@ -1,0 +1,122 @@
+{
+  "input": "<ul>\n<li><strong>bold</strong> item</li>\n<li><code>code</code> item</li>\n<li><a href=\"https://example.org\">link</a> item</li>\n</ul>",
+  "compressed": "<ul> <li><strong>bold</strong> item</li> <li><code>code</code> item</li> <li><a href=\"https://example.org\">link</a> item</li> </ul>",
+  "text": "● bold item \n● code item \n● link item",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 2,
+      "end": 6,
+      "kind": "bold"
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 13,
+      "end": 14,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 15,
+      "end": 19,
+      "kind": "code"
+    },
+    {
+      "start": 26,
+      "end": 28,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 26,
+      "end": 27,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 28,
+      "end": 32,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "● bold item \n● code item \n● link item",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 2,
+        "end": 6,
+        "kind": "bold"
+      },
+      {
+        "start": 13,
+        "end": 15,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 13,
+        "end": 14,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 15,
+        "end": 19,
+        "kind": "code"
+      },
+      {
+        "start": 15,
+        "end": 19,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 26,
+        "end": 28,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 26,
+        "end": 27,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 28,
+        "end": 32,
+        "kind": "link",
+        "url": "https://example.org"
+      }
+    ]
+  }
+}

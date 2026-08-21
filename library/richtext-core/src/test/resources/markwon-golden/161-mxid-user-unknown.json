@@ -1,0 +1,23 @@
+{
+  "input": "ping @bob:example.org please",
+  "compressed": "ping @bob:example.org please",
+  "text": "ping @bob:example.org please",
+  "spans": [
+    {
+      "start": 5,
+      "end": 21,
+      "kind": "permalink",
+      "url": "https://matrix.to/#/@bob:example.org"
+    },
+    {
+      "start": 10,
+      "end": 21,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "ping @bob:example.org please",
+    "spans": []
+  }
+}

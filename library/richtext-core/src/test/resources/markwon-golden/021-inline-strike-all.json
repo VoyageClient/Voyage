@@ -1,0 +1,32 @@
+{
+  "input": "<del>del</del> <s>s</s> <strike>strike</strike>",
+  "compressed": "<del>del</del> <s>s</s> <strike>strike</strike>",
+  "text": "del s strike",
+  "spans": [
+    {
+      "start": 0,
+      "end": 3,
+      "kind": "strikethrough"
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "strikethrough"
+    }
+  ],
+  "markwon": {
+    "text": "del s strike",
+    "spans": [
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "strikethrough"
+      },
+      {
+        "start": 4,
+        "end": 5,
+        "kind": "strikethrough"
+      }
+    ]
+  }
+}

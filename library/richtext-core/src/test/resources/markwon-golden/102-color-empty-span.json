@@ -1,0 +1,10 @@
+{
+  "input": "<span data-mx-color=\"#ff0000\"></span>after empty",
+  "compressed": "<span data-mx-color=\"#ff0000\"></span>after empty",
+  "text": "after empty",
+  "spans": [],
+  "markwon": {
+    "text": "after empty",
+    "spans": []
+  }
+}

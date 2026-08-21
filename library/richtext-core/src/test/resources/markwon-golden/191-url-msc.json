@@ -1,0 +1,23 @@
+{
+  "input": "MSC1234 and msc4 and MSC12345678",
+  "compressed": "MSC1234 and msc4 and MSC12345678",
+  "text": "MSC1234 and msc4 and MSC12345678",
+  "spans": [
+    {
+      "start": 0,
+      "end": 7,
+      "kind": "url",
+      "url": "https://github.com/matrix-org/matrix-spec-proposals/pull/1234"
+    },
+    {
+      "start": 12,
+      "end": 16,
+      "kind": "url",
+      "url": "https://github.com/matrix-org/matrix-spec-proposals/pull/4"
+    }
+  ],
+  "markwon": {
+    "text": "MSC1234 and msc4 and MSC12345678",
+    "spans": []
+  }
+}

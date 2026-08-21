@@ -1,0 +1,34 @@
+{
+  "input": "<pre><code>a\n\n\nb\n</code></pre>",
+  "compressed": "<pre><code>a\n\n\nb\n</code></pre>",
+  "text": "a\n\nb",
+  "spans": [
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "codeBlock"
+    }
+  ],
+  "markwon": {
+    "text": "a\n\nb",
+    "spans": [
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "intermediateCode",
+        "block": true
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "code",
+      "code": "a\n\n\nb"
+    }
+  ]
+}

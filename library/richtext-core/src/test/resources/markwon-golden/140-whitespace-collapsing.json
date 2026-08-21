@@ -1,0 +1,22 @@
+{
+  "input": "a    b\t\tc\n\n\nd   <strong>  e  </strong>   f",
+  "compressed": "a b c d <strong> e </strong> f",
+  "text": "a b c d  e  f",
+  "spans": [
+    {
+      "start": 8,
+      "end": 11,
+      "kind": "bold"
+    }
+  ],
+  "markwon": {
+    "text": "a b c d  e  f",
+    "spans": [
+      {
+        "start": 8,
+        "end": 11,
+        "kind": "bold"
+      }
+    ]
+  }
+}

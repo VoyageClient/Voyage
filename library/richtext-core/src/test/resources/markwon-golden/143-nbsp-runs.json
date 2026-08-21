@@ -1,0 +1,10 @@
+{
+  "input": "a&nbsp;&nbsp;&nbsp;b&nbsp;",
+  "compressed": "a&nbsp;&nbsp;&nbsp;b&nbsp;",
+  "text": "a   b ",
+  "spans": [],
+  "markwon": {
+    "text": "a   b ",
+    "spans": []
+  }
+}

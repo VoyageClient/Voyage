@@ -1,0 +1,55 @@
+{
+  "input": "<table><tbody><tr><td>a</td><td>b</td><td>c</td></tr><tr><td>only</td></tr></tbody></table>",
+  "compressed": "<table><tbody><tr><td>a</td><td>b</td><td>c</td></tr><tr><td>only</td></tr></tbody></table>",
+  "text": "abconly",
+  "spans": [],
+  "markwon": {
+    "text": "abconly",
+    "spans": []
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "a",
+              "text": "a",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "b",
+              "text": "b",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "c",
+              "text": "c",
+              "spans": []
+            }
+          ]
+        },
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "only",
+              "text": "only",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

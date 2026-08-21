@@ -1,0 +1,17 @@
+{
+  "input": "(https://example.org/a_(b))",
+  "compressed": "(https://example.org/a_(b))",
+  "text": "(https://example.org/a_(b))",
+  "spans": [
+    {
+      "start": 1,
+      "end": 26,
+      "kind": "url",
+      "url": "https://example.org/a_(b)"
+    }
+  ],
+  "markwon": {
+    "text": "(https://example.org/a_(b))",
+    "spans": []
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "input": "<ul>\n<li>line a<br>line b</li>\n<li>second</li>\n</ul>",
+  "compressed": "<ul> <li>line a<br>line b</li> <li>second</li> </ul>",
+  "text": "● line a\nline b \n● second",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 0,
+      "end": 1,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    },
+    {
+      "start": 17,
+      "end": 19,
+      "kind": "listMarker",
+      "source": "- "
+    },
+    {
+      "start": 17,
+      "end": 18,
+      "kind": "relativeSize",
+      "proportion": 0.800000011920929
+    }
+  ],
+  "markwon": {
+    "text": "● line a\nline b \n● second",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      },
+      {
+        "start": 17,
+        "end": 19,
+        "kind": "listMarker",
+        "source": "- "
+      },
+      {
+        "start": 17,
+        "end": 18,
+        "kind": "relativeSize",
+        "proportion": 0.800000011920929
+      }
+    ]
+  }
+}

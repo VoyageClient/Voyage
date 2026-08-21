@@ -1,0 +1,54 @@
+{
+  "input": "<pre><code>one</code></pre>\n<pre><code>two</code></pre>",
+  "compressed": "<pre><code>one</code></pre> <pre><code>two</code></pre>",
+  "text": "one \ntwo",
+  "spans": [
+    {
+      "start": 0,
+      "end": 3,
+      "kind": "codeBlock"
+    },
+    {
+      "start": 5,
+      "end": 8,
+      "kind": "codeBlock"
+    }
+  ],
+  "markwon": {
+    "text": "one \ntwo",
+    "spans": [
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 0,
+        "end": 3,
+        "kind": "intermediateCode",
+        "block": true
+      },
+      {
+        "start": 5,
+        "end": 8,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 5,
+        "end": 8,
+        "kind": "intermediateCode",
+        "block": true
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "code",
+      "code": "one"
+    },
+    {
+      "kind": "code",
+      "code": "two"
+    }
+  ]
+}

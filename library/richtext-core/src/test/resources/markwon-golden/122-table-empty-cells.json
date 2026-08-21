@@ -1,0 +1,36 @@
+{
+  "input": "<table><tr><td></td><td>x</td></tr></table>",
+  "compressed": "<table><tr><td></td><td>x</td></tr></table>",
+  "text": "x",
+  "spans": [],
+  "markwon": {
+    "text": "x",
+    "spans": []
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "",
+              "text": "",
+              "spans": []
+            },
+            {
+              "header": false,
+              "align": "left",
+              "html": "x",
+              "text": "x",
+              "spans": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

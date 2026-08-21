@@ -1,0 +1,50 @@
+{
+  "input": "<p>changelog:</p>\n<ol>\n<li>first</li>\n<li>second</li>\n</ol>\n",
+  "compressed": "<p>changelog:</p> <ol> <li>first</li> <li>second</li> </ol>",
+  "text": "changelog:\n1. first \n2. second",
+  "spans": [
+    {
+      "start": 0,
+      "end": 10,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 11,
+      "end": 14,
+      "kind": "listMarker",
+      "source": "1. "
+    },
+    {
+      "start": 21,
+      "end": 24,
+      "kind": "listMarker",
+      "source": "2. "
+    }
+  ],
+  "markwon": {
+    "text": "changelog:\n1. first \n2. second",
+    "spans": [
+      {
+        "start": 0,
+        "end": 10,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 11,
+        "end": 14,
+        "kind": "listMarker",
+        "source": "1. "
+      },
+      {
+        "start": 21,
+        "end": 24,
+        "kind": "listMarker",
+        "source": "2. "
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "input": "<h2>Title</h2>bare text after heading",
+  "compressed": "<h2>Title</h2>bare text after heading",
+  "text": "Titlebare text after heading",
+  "spans": [
+    {
+      "start": 0,
+      "end": 5,
+      "kind": "heading",
+      "level": 2
+    }
+  ],
+  "markwon": {
+    "text": "Titlebare text after heading",
+    "spans": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "heading",
+        "level": 2
+      }
+    ]
+  }
+}

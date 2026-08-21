@@ -1,0 +1,58 @@
+{
+  "input": "<blockquote><p><strong>bold</strong> and <a href=\"https://example.org\">link</a> inside</p></blockquote>",
+  "compressed": "<blockquote><p><strong>bold</strong> and <a href=\"https://example.org\">link</a> inside</p></blockquote>",
+  "text": "bold and link inside",
+  "spans": [
+    {
+      "start": 0,
+      "end": 20,
+      "kind": "blockquote"
+    },
+    {
+      "start": 0,
+      "end": 20,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "bold"
+    },
+    {
+      "start": 9,
+      "end": 13,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "bold and link inside",
+    "spans": [
+      {
+        "start": 0,
+        "end": 20,
+        "kind": "blockquote"
+      },
+      {
+        "start": 0,
+        "end": 20,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "bold"
+      },
+      {
+        "start": 9,
+        "end": 13,
+        "kind": "link",
+        "url": "https://example.org"
+      }
+    ]
+  }
+}

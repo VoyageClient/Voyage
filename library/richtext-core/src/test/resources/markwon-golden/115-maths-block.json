@@ -1,0 +1,54 @@
+{
+  "input": "<p>before</p>\n<div data-mx-maths=\"\\sum_{i=0}^n i\"><code>\\sum_{i=0}^n i</code></div>\n<p>after</p>",
+  "compressed": "<p>before</p> <div data-mx-maths=\"\\sum_{i=0}^n i\"><code>\\sum_{i=0}^n i</code></div> <p>after</p>",
+  "text": "before\n\n\\sum_{i=0}^n i\n\nafter",
+  "spans": [
+    {
+      "start": 0,
+      "end": 6,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 8,
+      "end": 22,
+      "kind": "maths",
+      "latex": "\n\\sum_{i=0}^n i\n",
+      "display": "block"
+    },
+    {
+      "start": 24,
+      "end": 29,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "before\n\n\\sum_{i=0}^n i\n\nafter",
+    "spans": [
+      {
+        "start": 0,
+        "end": 6,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 8,
+        "end": 22,
+        "kind": "maths",
+        "latex": "\n\\sum_{i=0}^n i\n",
+        "display": "block"
+      },
+      {
+        "start": 24,
+        "end": 29,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  }
+}

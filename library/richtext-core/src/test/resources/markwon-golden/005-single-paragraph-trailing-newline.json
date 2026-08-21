@@ -1,0 +1,10 @@
+{
+  "input": "<p>only paragraph</p>\n",
+  "compressed": "<p>only paragraph</p>",
+  "text": "only paragraph",
+  "spans": [],
+  "markwon": {
+    "text": "only paragraph",
+    "spans": []
+  }
+}

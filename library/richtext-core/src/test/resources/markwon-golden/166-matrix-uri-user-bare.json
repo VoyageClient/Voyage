@@ -1,0 +1,23 @@
+{
+  "input": "see matrix:u/alice:example.org now",
+  "compressed": "see matrix:u/alice:example.org now",
+  "text": "see matrix:u/alice:example.org now",
+  "spans": [
+    {
+      "start": 4,
+      "end": 30,
+      "kind": "permalink",
+      "url": "matrix:u/alice:example.org"
+    },
+    {
+      "start": 19,
+      "end": 30,
+      "kind": "url",
+      "url": "http://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "see matrix:u/alice:example.org now",
+    "spans": []
+  }
+}

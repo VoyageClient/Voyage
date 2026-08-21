@@ -1,0 +1,32 @@
+{
+  "input": "<em>em</em> and <i>i</i> italic",
+  "compressed": "<em>em</em> and <i>i</i> italic",
+  "text": "em and i italic",
+  "spans": [
+    {
+      "start": 0,
+      "end": 2,
+      "kind": "italic"
+    },
+    {
+      "start": 7,
+      "end": 8,
+      "kind": "italic"
+    }
+  ],
+  "markwon": {
+    "text": "em and i italic",
+    "spans": [
+      {
+        "start": 0,
+        "end": 2,
+        "kind": "italic"
+      },
+      {
+        "start": 7,
+        "end": 8,
+        "kind": "italic"
+      }
+    ]
+  }
+}

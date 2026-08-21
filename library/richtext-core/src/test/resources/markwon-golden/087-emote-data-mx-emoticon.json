@@ -1,0 +1,28 @@
+{
+  "input": "look <img data-mx-emoticon src=\"mxc://example.org/emote1\" alt=\":party:\" title=\":party:\" height=\"32\"> fun",
+  "compressed": "look <img data-mx-emoticon src=\"mxc://example.org/emote1\" alt=\":party:\" title=\":party:\" height=\"32\"> fun",
+  "text": "look :party: fun",
+  "spans": [
+    {
+      "start": 5,
+      "end": 12,
+      "kind": "emote",
+      "mxcUrl": "mxc://example.org/emote1",
+      "shortcode": "party",
+      "body": ":party:"
+    }
+  ],
+  "markwon": {
+    "text": "look :party: fun",
+    "spans": [
+      {
+        "start": 5,
+        "end": 12,
+        "kind": "emote",
+        "mxcUrl": "mxc://example.org/emote1",
+        "shortcode": "party",
+        "body": ":party:"
+      }
+    ]
+  }
+}

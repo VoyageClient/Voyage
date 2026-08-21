@@ -1,0 +1,23 @@
+{
+  "input": "see matrix:r/room:example.org/e/$abc?via=example.org now",
+  "compressed": "see matrix:r/room:example.org/e/$abc?via=example.org now",
+  "text": "see matrix:r/room:example.org/e/$abc?via=example.org now",
+  "spans": [
+    {
+      "start": 4,
+      "end": 52,
+      "kind": "permalink",
+      "url": "matrix:r/room:example.org/e/$abc?via=example.org"
+    },
+    {
+      "start": 18,
+      "end": 52,
+      "kind": "url",
+      "url": "http://example.org/e/$abc?via=example.org"
+    }
+  ],
+  "markwon": {
+    "text": "see matrix:r/room:example.org/e/$abc?via=example.org now",
+    "spans": []
+  }
+}

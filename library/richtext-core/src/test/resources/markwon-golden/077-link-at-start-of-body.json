@@ -1,0 +1,24 @@
+{
+  "input": "<a href=\"https://example.org\">link first</a> then text",
+  "compressed": "<a href=\"https://example.org\">link first</a> then text",
+  "text": "link first then text",
+  "spans": [
+    {
+      "start": 0,
+      "end": 10,
+      "kind": "url",
+      "url": "https://example.org"
+    }
+  ],
+  "markwon": {
+    "text": "link first then text",
+    "spans": [
+      {
+        "start": 0,
+        "end": 10,
+        "kind": "link",
+        "url": "https://example.org"
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "input": "H<sub>2</sub>O and E=mc<sup>2</sup>",
+  "compressed": "H<sub>2</sub>O and E=mc<sup>2</sup>",
+  "text": "H2O and E=mc2",
+  "spans": [
+    {
+      "start": 1,
+      "end": 2,
+      "kind": "subscript"
+    },
+    {
+      "start": 12,
+      "end": 13,
+      "kind": "superscript"
+    }
+  ],
+  "markwon": {
+    "text": "H2O and E=mc2",
+    "spans": [
+      {
+        "start": 1,
+        "end": 2,
+        "kind": "subscript"
+      },
+      {
+        "start": 12,
+        "end": 13,
+        "kind": "superscript"
+      }
+    ]
+  }
+}

@@ -53,6 +53,12 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
+    // Golden-dump harness (MarkwonGoldenDumpTest): -PrichtextGoldenDir=… or RICHTEXT_GOLDEN_DIR=… overrides the output dir.
+    tasks.withType(Test).configureEach {
+        def goldenDir = project.findProperty("richtextGoldenDir") ?: System.getenv("RICHTEXT_GOLDEN_DIR")
+        if (goldenDir != null) systemProperty "RICHTEXT_GOLDEN_DIR", goldenDir
+    }
+
     testOptions {
         // Disables animations during instrumented tests you run from the command line…
         // This property does not affect tests that you run using Android Studio.”

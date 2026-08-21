@@ -1,0 +1,10 @@
+{
+  "input": "emoji 😀 and rtl שלום and combining é",
+  "compressed": "emoji 😀 and rtl שלום and combining é",
+  "text": "emoji 😀 and rtl שלום and combining é",
+  "spans": [],
+  "markwon": {
+    "text": "emoji 😀 and rtl שלום and combining é",
+    "spans": []
+  }
+}

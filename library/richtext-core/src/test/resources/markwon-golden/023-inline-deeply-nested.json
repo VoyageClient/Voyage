@@ -1,0 +1,78 @@
+{
+  "input": "<b><i><u><s><sup><code>deep</code></sup></s></u></i></b> tail",
+  "compressed": "<b><i><u><s><sup><code>deep</code></sup></s></u></i></b> tail",
+  "text": "deep tail",
+  "spans": [
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "bold"
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "code"
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "italic"
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "strikethrough"
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "superscript"
+    },
+    {
+      "start": 0,
+      "end": 4,
+      "kind": "underline"
+    }
+  ],
+  "markwon": {
+    "text": "deep tail",
+    "spans": [
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "bold"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "code"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "intermediateCode",
+        "block": false
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "italic"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "strikethrough"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "superscript"
+      },
+      {
+        "start": 0,
+        "end": 4,
+        "kind": "underline"
+      }
+    ]
+  }
+}

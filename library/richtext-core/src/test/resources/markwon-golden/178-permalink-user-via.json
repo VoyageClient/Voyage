@@ -1,0 +1,25 @@
+{
+  "input": "see https://matrix.to/#/@alice:example.org?via=example.org ok",
+  "compressed": "see https://matrix.to/#/@alice:example.org?via=example.org ok",
+  "text": "see ￼ ok",
+  "spans": [
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "pill",
+      "id": "@alice:example.org",
+      "itemType": "UserItem",
+      "displayName": "Alice"
+    },
+    {
+      "start": 4,
+      "end": 5,
+      "kind": "url",
+      "url": "https://matrix.to/#/@alice:example.org?via=example.org"
+    }
+  ],
+  "markwon": {
+    "text": "see https://matrix.to/#/@alice:example.org?via=example.org ok",
+    "spans": []
+  }
+}
