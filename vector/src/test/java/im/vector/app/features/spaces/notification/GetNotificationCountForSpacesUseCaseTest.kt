@@ -34,6 +34,7 @@ internal class GetNotificationCountForSpacesUseCaseTest {
     private val getNotificationCountForSpacesUseCase = GetNotificationCountForSpacesUseCase(
             activeSessionHolder = fakeActiveSessionHolder.instance,
             autoAcceptInvites = fakeAutoAcceptInvites,
+            homeScreenVisibility = mockk(relaxed = true),
     )
 
     @Before
