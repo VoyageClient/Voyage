@@ -37,8 +37,6 @@ internal class ImageCompressor @Inject constructor(
         private val temporaryFileCreator: TemporaryFileCreator,
         private val coroutineDispatchers: MatrixCoroutineDispatchers
 ) {
-    data class CompressedImage(val file: File, val mimeType: String?)
-
     /**
      * @param exactSize scales to exactly [desiredWidth] x [desiredHeight] rather than bounding the
      * shorter side, for a size the sender typed in themselves.

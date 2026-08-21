@@ -40,6 +40,7 @@ import org.matrix.android.sdk.internal.di.SessionDownloadsDirectory
 import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificateWithProgress
 import org.matrix.android.sdk.internal.network.httpclient.addAuthenticationHeader
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
+import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
 import org.matrix.android.sdk.internal.session.download.DownloadProgressInterceptor.Companion.DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER
 import org.matrix.android.sdk.internal.util.file.AtomicFileCreator
 import org.matrix.android.sdk.internal.util.file.safeFileName
@@ -64,7 +65,7 @@ internal class DefaultFileService @Inject constructor(
         private val imageCompressor: org.matrix.android.sdk.internal.session.content.ImageCompressor,
         private val pendingMediaUploadRegistry: org.matrix.android.sdk.internal.session.content.PendingMediaUploadRegistry,
         private val taskExecutor: org.matrix.android.sdk.internal.task.TaskExecutor,
-) : FileService {
+) : FileService, UploadedMediaCache {
 
     override suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String {
         return fileUploader.uploadFromUri(uri, fileName, mimeType).contentUri
@@ -330,7 +331,7 @@ internal class DefaultFileService @Inject constructor(
                 ?.takeIf { it.isNotBlank() }
     }
 
-    fun storeDataFor(
+    override fun storeDataFor(
             mxcUrl: String,
             filename: String?,
             mimeType: String?,

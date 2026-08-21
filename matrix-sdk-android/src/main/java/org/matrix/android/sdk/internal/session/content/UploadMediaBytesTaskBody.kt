@@ -17,7 +17,6 @@ import org.matrix.android.sdk.api.failure.shouldBeRetried
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.network.ProgressRequestBody
-import org.matrix.android.sdk.internal.session.DefaultFileService
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.util.toMatrixErrorStr
@@ -34,7 +33,7 @@ import javax.inject.Inject
  */
 internal class UploadMediaBytesTaskBody @Inject constructor(
         private val fileUploader: FileUploader,
-        private val fileService: DefaultFileService,
+        private val fileService: UploadedMediaCache,
         private val contentUploadStateTracker: DefaultContentUploadStateTracker,
         private val cancelSendTracker: CancelSendTracker,
         private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,

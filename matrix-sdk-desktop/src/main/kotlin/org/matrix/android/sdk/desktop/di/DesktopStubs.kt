@@ -13,7 +13,6 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.session.content.ContentUriResolver
-import org.matrix.android.sdk.internal.session.content.ImageExifTagRemover
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 import org.matrix.android.sdk.internal.session.media.ImageDimensionsReader
 import org.matrix.android.sdk.internal.session.media.WebUrlPattern
@@ -35,10 +34,6 @@ internal class DesktopThumbnailExtractor @Inject constructor() : ThumbnailExtrac
     // Video frames only — see above. Image attachments never reach this seam on any platform.
     override fun extractThumbnail(attachment: ContentAttachmentData, withBlurHash: Boolean): ThumbnailExtractor.ThumbnailData? = null
     override fun extractVideoThumbnailFromFile(file: File): ThumbnailExtractor.ThumbnailData? = null
-}
-
-internal class DesktopImageExifTagRemover @Inject constructor() : ImageExifTagRemover {
-    override suspend fun stripImageMetadata(imageFile: File): File = imageFile
 }
 
 internal class DesktopContentUriResolver @Inject constructor(

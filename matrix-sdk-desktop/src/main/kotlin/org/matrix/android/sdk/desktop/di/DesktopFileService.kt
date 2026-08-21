@@ -26,6 +26,7 @@ import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificateWithProg
 import org.matrix.android.sdk.internal.network.httpclient.addAuthenticationHeader
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
 import org.matrix.android.sdk.internal.session.content.FileUploader
+import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
 import org.matrix.android.sdk.internal.util.time.Clock
 import java.io.File
 import java.io.IOException
@@ -45,7 +46,7 @@ internal class DesktopFileService @Inject constructor(
         private val fileUploader: FileUploader,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val clock: Clock,
-) : FileService {
+) : FileService, UploadedMediaCache {
 
     private val encryptedFolder = File(downloadsDirectory, "F")
     private val decryptedFolder = File(encryptedFolder, "D")
@@ -181,6 +182,16 @@ internal class DesktopFileService @Inject constructor(
     }
 
     override fun getCacheSize(): Long = encryptedFolder.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+
+    override fun storeDataFor(mxcUrl: String, filename: String?, mimeType: String?, originalFile: File, encryptedFile: File?) {
+        val name = filename ?: "file"
+        if (encryptedFile != null) {
+            clearFile(mxcUrl, name, mimeType, true).also { it.parentFile?.mkdirs() }.let { originalFile.copyTo(it, overwrite = true) }
+            downloadedFile(mxcUrl, name, mimeType, true).also { it.parentFile?.mkdirs() }.let { encryptedFile.copyTo(it, overwrite = true) }
+        } else {
+            downloadedFile(mxcUrl, name, mimeType, false).also { it.parentFile?.mkdirs() }.let { originalFile.copyTo(it, overwrite = true) }
+        }
+    }
 
     private fun downloadedFile(mxcUrl: String, fileName: String, mimeType: String?, isEncrypted: Boolean) =
             File(encryptedFolder, cacheName(mxcUrl, fileName, mimeType, isEncrypted))

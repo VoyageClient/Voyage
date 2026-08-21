@@ -7,13 +7,6 @@
 
 package org.matrix.android.sdk.internal.session.content
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
-import android.os.Build
-import com.vanniktech.blurhash.BlurHash
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +15,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -43,7 +35,6 @@ import org.matrix.android.sdk.api.session.room.model.message.toGalleryItem
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.JsonDict
-import org.matrix.android.sdk.api.util.JxlSupport
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
@@ -53,7 +44,6 @@ import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
-import org.matrix.android.sdk.internal.session.DefaultFileService
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherWorkerParams
@@ -66,7 +56,6 @@ import org.matrix.android.sdk.internal.worker.BackgroundTaskContext
 import org.matrix.android.sdk.internal.worker.BackgroundTaskOutcome
 import timber.log.Timber
 import java.io.File
-import java.io.IOException
 import javax.inject.Inject
 
 /** A content URI reserved through MSC2246 whose bytes still have to be sent. */
@@ -94,15 +83,12 @@ private data class NewAttachmentAttributes(
 private typealias Params = UploadContentWorkerParams
 
 internal class UploadContentTaskBody @Inject constructor(
-        private val appContext: Context,
         private val fileUploader: FileUploader,
         private val contentUploadStateTracker: DefaultContentUploadStateTracker,
-        private val fileService: DefaultFileService,
+        private val fileService: UploadedMediaCache,
         private val cancelSendTracker: CancelSendTracker,
-        private val imageCompressor: ImageCompressor,
+        private val media: AttachmentMediaProcessor,
         private val imageExitTagRemover: ImageExifTagRemover,
-        private val videoMetadataStripper: VideoMetadataStripper,
-        private val videoCompressor: VideoCompressor,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val thumbnailExtractor: ThumbnailExtractor,
         private val localEchoRepository: LocalEchoRepository,
@@ -136,11 +122,7 @@ internal class UploadContentTaskBody @Inject constructor(
         if (context.isStopped && !isCancelledByUser(params)) return BackgroundTaskOutcome.Retry
         if (isCancelledByUser(params)) {
             Timber.e("## Send: Work cancelled by user")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                appContext.revokeUriPermission(appContext.packageName, params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            } else {
-                appContext.revokeUriPermission(params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
+            media.releaseSource(params.attachment)
             return BackgroundTaskOutcome.Failure
         }
 
@@ -164,9 +146,7 @@ internal class UploadContentTaskBody @Inject constructor(
             suspend fun workingFile(): File {
                 cachedWorkingFile?.let { return it }
                 val f = temporaryFileCreator.create().also { filesToDelete.add(it) }
-                val input = appContext.contentResolver.openInputStream(attachment.queryUriAndroid)
-                        ?: throw IOException("Cannot openInputStream for file: ${attachment.queryUri}")
-                input.use { inStream -> f.outputStream().use { inStream.copyTo(it) } }
+                media.openSource(attachment).use { inStream -> f.outputStream().use { inStream.copyTo(it) } }
                 cachedWorkingFile = f
                 return f
             }
@@ -201,7 +181,7 @@ internal class UploadContentTaskBody @Inject constructor(
                 if (attachment.type == ContentAttachmentData.Type.IMAGE && compressThisOne) {
                     notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setCompressingImage(it) }
 
-                    val compressed = imageCompressor.compress(
+                    val compressed = media.compressImage(
                             workingFile(),
                             attachment.compressionWidth ?: MAX_IMAGE_SIZE,
                             attachment.compressionHeight ?: MAX_IMAGE_SIZE,
@@ -225,7 +205,7 @@ internal class UploadContentTaskBody @Inject constructor(
                     } else {
                         // Format can't be scrubbed in place (e.g. HEIC) — re-encode so nothing leaks.
                         notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setCompressingImage(it) }
-                        val reEncoded = imageCompressor.reEncodeStrippingMetadata(working)
+                        val reEncoded = media.reEncodeImageStrippingMetadata(working)
                         fileToUpload = reEncoded.file.also { if (it !== working) filesToDelete.add(it) }
                         newAttachmentAttributes = if (reEncoded.mimeType != null) {
                             measureImageAttributes(fileToUpload, reEncoded.mimeType)
@@ -254,7 +234,7 @@ internal class UploadContentTaskBody @Inject constructor(
                                 }
                             }
                         }
-                        videoMetadataStripper.strip(attachment.queryUriAndroid, stripProgress)
+                        media.stripVideoMetadata(attachment, stripProgress)
                                 ?.also { filesToDelete.add(it) }
                     } else {
                         null
@@ -269,7 +249,7 @@ internal class UploadContentTaskBody @Inject constructor(
                                 attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE -> {
                             // Sound carries a title, an artist and its cover art as well as where it
                             // was recorded; only the last of those is worth taking off it.
-                            videoMetadataStripper.stripInPlace(working)
+                            media.stripAudioMetadataInPlace(working)
                             working
                         }
                         attachment.type == ContentAttachmentData.Type.FILE ->
@@ -280,7 +260,7 @@ internal class UploadContentTaskBody @Inject constructor(
                                 }
                             }
                         attachment.type == ContentAttachmentData.Type.VIDEO ->
-                            (videoMetadataStripper.strip(working) ?: working).also { stripped ->
+                            (media.stripVideoMetadata(working) ?: working).also { stripped ->
                                 if (stripped !== working) {
                                     filesToDelete.add(stripped)
                                     newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = stripped.length())
@@ -305,7 +285,7 @@ internal class UploadContentTaskBody @Inject constructor(
                         val waveformSource = fileToUpload
                         waveformDeferred = CoroutineScope(currentCoroutineContext()).async(Dispatchers.IO) {
                             tryOrNull("## Failed to read the voice message waveform") {
-                                AudioWaveformExtractor.extract(waveformSource).takeIf { it.isNotEmpty() }
+                                media.extractWaveform(waveformSource).takeIf { it.isNotEmpty() }
                             }
                         }
                     }
@@ -320,7 +300,7 @@ internal class UploadContentTaskBody @Inject constructor(
                 if (attachment.type == ContentAttachmentData.Type.IMAGE) {
                     val format = sniffImageFormat(fileToUpload)
                     newAttachmentAttributes = newAttachmentAttributes.copy(
-                            newIsAnimated = format.isAnimated() ?: animatedJxl(format, fileToUpload)
+                            newIsAnimated = format.isAnimated() ?: media.isAnimatedJxl(fileToUpload)
                     )
                 }
 
@@ -412,16 +392,13 @@ internal class UploadContentTaskBody @Inject constructor(
                     )
                 }
 
-                // Picked audio uses a MediaStore URI we don't own — let the delete fail quietly.
                 if (params.attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE) {
-                    tryOrNull("Failed to delete voice message source") {
-                        appContext.contentResolver.delete(params.attachment.queryUriAndroid, null, null)
-                    }
+                    media.deleteSource(params.attachment)
                 }
 
                 val uploadThumbnailResult = dealWithThumbnail(params, transcodedVideoFile)
                 val imageBlurHash = if (attachment.type == ContentAttachmentData.Type.IMAGE) {
-                    encodeBlurHashFromImage(fileToUpload)
+                    media.encodeBlurHash(fileToUpload)
                 } else {
                     null
                 }
@@ -481,9 +458,8 @@ internal class UploadContentTaskBody @Inject constructor(
             }
         }
         val attachment = params.attachment
-        val result = videoCompressor.compress(
-                attachment.queryUriAndroid,
-                attachment.size,
+        val result = media.compressVideo(
+                attachment,
                 targetWidth = attachment.compressionWidth,
                 targetHeight = attachment.compressionHeight,
                 targetBitrate = attachment.compressionQuality?.let { videoBitrateFor(it) },
@@ -493,7 +469,7 @@ internal class UploadContentTaskBody @Inject constructor(
             is VideoCompressionResult.Success -> {
                 // Transcoding produces a fresh container with no source metadata atoms.
                 val compressedFile = result.compressedFile.also { filesToDelete.add(it) }
-                val (w, h) = readCompressedVideoDimensions(compressedFile)
+                val (w, h) = media.readVideoSize(compressedFile)
                 VideoCompressOutcome(
                         fileToUpload = compressedFile,
                         attributes = initialAttributes.copy(
@@ -525,7 +501,7 @@ internal class UploadContentTaskBody @Inject constructor(
             stripMetadata: Boolean,
     ): VideoCompressOutcome {
         val file = if (stripMetadata) {
-            videoMetadataStripper.strip(working)?.also { filesToDelete.add(it) } ?: working
+            media.stripVideoMetadata(working)?.also { filesToDelete.add(it) } ?: working
         } else {
             working
         }
@@ -535,54 +511,14 @@ internal class UploadContentTaskBody @Inject constructor(
     }
 
     private fun measureImageAttributes(file: File, mimeType: String?): NewAttachmentAttributes {
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
-        // BitmapFactory reports 0x0 for anything it can't decode, and those zeros would be published
-        // as the event's dimensions.
-        val measured = if (options.outWidth > 0 && options.outHeight > 0) {
-            options.outWidth to options.outHeight
-        } else {
-            measureUndecodableImage(file)
-        }
+        // An undecodable image measures as 0x0 rather than publishing the previous dimensions.
+        val measured = media.readImageSize(file)
         return NewAttachmentAttributes(
-                newWidth = measured?.first ?: options.outWidth,
-                newHeight = measured?.second ?: options.outHeight,
+                newWidth = measured?.first ?: 0,
+                newHeight = measured?.second ?: 0,
                 newFileSize = file.length(),
                 newMimeType = mimeType,
         )
-    }
-
-    /** The JPEG XL signature alone doesn't say, but the frame count does. */
-    private fun animatedJxl(format: ImageSourceFormat, file: File): Boolean? {
-        if (format != ImageSourceFormat.JXL || !JxlSupport.isAvailable) return null
-        return JxlImageReader.frameCount(file)?.let { it > 1 }
-    }
-
-    private fun measureUndecodableImage(file: File): Pair<Int, Int>? {
-        return if (JxlSupport.isAvailable && sniffImageFormat(file) == ImageSourceFormat.JXL) {
-            JxlImageReader.readSize(file)
-        } else {
-            null
-        }
-    }
-
-    private fun readCompressedVideoDimensions(file: File): Pair<Int?, Int?> {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(file.absolutePath)
-            val rawW = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt()
-            val rawH = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt()
-            val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
-            // METADATA_KEY_VIDEO_WIDTH/HEIGHT return raw track dims; swap when rotation is
-            // sideways so layout uses display orientation.
-            val swap = rotation == 90 || rotation == 270
-            (if (swap) rawH else rawW) to (if (swap) rawW else rawH)
-        } catch (e: Exception) {
-            Timber.w(e, "Failed to read compressed video dimensions")
-            null to null
-        } finally {
-            retriever.release()
-        }
     }
 
     private data class UploadThumbnailResult(
@@ -704,12 +640,7 @@ internal class UploadContentTaskBody @Inject constructor(
         )
         return BackgroundTaskOutcome.SuccessWith(sendParams).also {
             Timber.v("## handleSuccess $attachmentUrl, work is stopped ${context.isStopped}")
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                appContext.revokeUriPermission(appContext.packageName, params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            } else {
-                appContext.revokeUriPermission(params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
+            media.releaseSource(params.attachment)
         }
     }
 
@@ -717,7 +648,7 @@ internal class UploadContentTaskBody @Inject constructor(
     private fun enqueueByteUpload(params: Params, deferred: DeferredUpload): Boolean {
         if (params.localEchoIds.isEmpty()) return false
         backgroundTaskScheduler.enqueueUnique(
-                UploadMediaBytesWorker.workName(params.sessionId, deferred.contentUri),
+                UploadMediaBytesWorkerParams.workName(params.sessionId, deferred.contentUri),
                 BackgroundQueuePolicy.REPLACE,
                 backgroundTask(
                         type = BackgroundTaskType.UPLOAD_MEDIA_BYTES,
@@ -956,37 +887,6 @@ internal class UploadContentTaskBody @Inject constructor(
         return raw.map { (it.toLong() * 1024L / max).toInt().coerceIn(0, 1024) }
     }
 
-    private fun encodeBlurHashFromImage(file: File): String? {
-        return try {
-            val bitmap = decodeForBlurHash(file) ?: return null
-            try {
-                val (xc, yc) = blurHashComponents(bitmap.width, bitmap.height)
-                BlurHash.encode(bitmap, xc, yc)
-            } finally {
-                bitmap.recycle()
-            }
-        } catch (t: Throwable) {
-            Timber.w(t, "Failed to encode blurhash")
-            null
-        }
-    }
-
-    private fun decodeForBlurHash(file: File): Bitmap? {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        file.inputStream().use { BitmapFactory.decodeStream(it, null, bounds) }
-        if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            val sample = generateSequence(1) { it * 2 }
-                    .first { it * BLURHASH_DECODE_MAX >= maxOf(bounds.outWidth, bounds.outHeight) }
-            val options = BitmapFactory.Options().apply { inSampleSize = sample }
-            return file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
-        }
-        return if (JxlSupport.isAvailable && sniffImageFormat(file) == ImageSourceFormat.JXL) {
-            JxlImageReader.decode(file, BLURHASH_DECODE_MAX)
-        } else {
-            null
-        }
-    }
-
     companion object {
         private const val MAX_IMAGE_SIZE = 640
 
@@ -1015,6 +915,5 @@ internal class UploadContentTaskBody @Inject constructor(
                 standard + (high - standard) * (clamped - STANDARD_QUALITY) / (100 - STANDARD_QUALITY)
             }
         }
-        private const val BLURHASH_DECODE_MAX = 128
     }
 }

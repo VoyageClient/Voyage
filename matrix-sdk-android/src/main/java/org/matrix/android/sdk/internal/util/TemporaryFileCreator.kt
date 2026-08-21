@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 The Matrix.org Foundation C.I.C.
+ * Copyright 2020 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,9 @@
 
 package org.matrix.android.sdk.internal.util
 
-import android.content.Context
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.UUID
-import javax.inject.Inject
 
-internal class TemporaryFileCreator @Inject constructor(
-        private val context: Context
-) {
-    suspend fun create(): File {
-        return withContext(Dispatchers.IO) {
-            File.createTempFile(UUID.randomUUID().toString(), null, context.cacheDir)
-                    .apply { mkdirs() }
-        }
-    }
+/** Platform seam: a fresh empty file in the app's cache area, owned by the caller. */
+internal interface TemporaryFileCreator {
+    suspend fun create(): File
 }

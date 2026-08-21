@@ -27,12 +27,15 @@ import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.sql.AndroidCryptoStore
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.WorkManagerTaskScheduler
+import org.matrix.android.sdk.internal.session.content.AndroidAttachmentMediaProcessor
 import org.matrix.android.sdk.internal.session.content.AndroidContentUriResolver
 import org.matrix.android.sdk.internal.session.content.AndroidImageExifTagRemover
 import org.matrix.android.sdk.internal.session.content.AndroidThumbnailExtractor
+import org.matrix.android.sdk.internal.session.content.AttachmentMediaProcessor
 import org.matrix.android.sdk.internal.session.content.ContentUriResolver
 import org.matrix.android.sdk.internal.session.content.ImageExifTagRemover
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
+import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
 import org.matrix.android.sdk.internal.session.identity.DefaultIdentityService
 import org.matrix.android.sdk.internal.session.integrationmanager.DefaultIntegrationManagerService
 import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationManager
@@ -56,6 +59,8 @@ import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetPostAPIMedia
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetURLFormatter
 import org.matrix.android.sdk.internal.session.workmanager.DefaultWorkManagerConfig
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
+import org.matrix.android.sdk.internal.util.AndroidTemporaryFileCreator
+import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 
 /**
  * Everything a session graph needs that only the android platform can supply. It is the shopping
@@ -110,6 +115,15 @@ internal abstract class AndroidSessionModule {
 
     @Binds
     abstract fun bindImageExifTagRemover(remover: AndroidImageExifTagRemover): ImageExifTagRemover
+
+    @Binds
+    abstract fun bindAttachmentMediaProcessor(processor: AndroidAttachmentMediaProcessor): AttachmentMediaProcessor
+
+    @Binds
+    abstract fun bindUploadedMediaCache(service: DefaultFileService): UploadedMediaCache
+
+    @Binds
+    abstract fun bindTemporaryFileCreator(creator: AndroidTemporaryFileCreator): TemporaryFileCreator
 
     @Binds
     abstract fun bindContentUriResolver(resolver: AndroidContentUriResolver): ContentUriResolver
