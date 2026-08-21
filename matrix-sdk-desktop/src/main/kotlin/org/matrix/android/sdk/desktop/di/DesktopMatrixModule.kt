@@ -9,9 +9,9 @@ package org.matrix.android.sdk.desktop.di
 
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.desktop.platform.AssumeOnlineNetworkCallbackStrategyFactory
 import org.matrix.android.sdk.desktop.platform.DesktopSecureStorage
@@ -37,8 +37,9 @@ import java.util.concurrent.Executors
 @Module
 internal class DesktopMatrixModule(
         private val dataDir: File,
-        private val appName: String,
-        private val appVersion: String,
+        private val cacheDir: File,
+        private val mainDispatcher: CoroutineDispatcher?,
+        private val userAgent: () -> String,
 ) {
 
     init {
@@ -54,8 +55,9 @@ internal class DesktopMatrixModule(
         return MatrixCoroutineDispatchers(
                 io = Dispatchers.IO,
                 computation = Dispatchers.Default,
-                // No UI thread here; a single thread keeps the ordering the android main looper gave.
-                main = Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
+                // Listeners the SDK marks @MainThread land here; a UI consumer passes its UI dispatcher, a
+                // headless one gets a single thread that keeps the ordering the android main looper gave.
+                main = mainDispatcher ?: Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
                 crypto = Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
                 dmVerif = Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
         )
@@ -70,7 +72,7 @@ internal class DesktopMatrixModule(
 
     @Provides
     @CacheDirectory
-    fun providesCacheDir(): File = File(dataDir, "cache").also { it.mkdirs() }
+    fun providesCacheDir(): File = cacheDir.also { it.mkdirs() }
 
     @Provides
     @MatrixScope
@@ -95,8 +97,6 @@ internal class DesktopMatrixModule(
 
     @Provides
     fun providesComputeUserAgentUseCase(): ComputeUserAgentUseCase = object : ComputeUserAgentUseCase {
-        override fun execute(flavorDescription: String) =
-                "$appName/$appVersion (${System.getProperty("os.name")} ${System.getProperty("os.version")}; " +
-                        "${System.getProperty("os.arch")}; Flavour $flavorDescription; MatrixAndroidSdk2 ${BuildConfig.SDK_VERSION})"
+        override fun execute(flavorDescription: String) = userAgent()
     }
 }

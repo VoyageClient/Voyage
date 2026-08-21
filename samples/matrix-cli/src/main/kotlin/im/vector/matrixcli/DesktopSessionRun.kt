@@ -42,7 +42,7 @@ class DesktopSessionRun(
                     applicationFlavor = "MatrixCli",
                     roomDisplayNameFallbackProvider = CliRoomDisplayNameFallbackProvider,
             ),
-            appName = "MatrixCli",
+            userAgent = { "MatrixCli/0.1" },
     )
 
     fun run() = runBlocking {

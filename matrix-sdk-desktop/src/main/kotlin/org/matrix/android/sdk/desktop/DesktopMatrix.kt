@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.desktop
 
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.auth.AuthenticationService
@@ -20,17 +21,19 @@ import java.io.File
 
 /**
  * Desktop counterpart of the android `Matrix` entry point. Everything the SDK stores lives under
- * [dataDir]; one instance per data directory.
+ * [dataDir] except evictable files, which go to [cacheDir]; one instance per data directory.
+ * [userAgent] is read per request, so a consumer can change it without rebuilding the graph.
  */
 class DesktopMatrix(
         dataDir: File,
         matrixConfiguration: MatrixConfiguration,
-        appName: String = "MatrixDesktop",
-        appVersion: String = "0.1",
+        cacheDir: File = File(dataDir, "cache"),
+        mainDispatcher: CoroutineDispatcher? = null,
+        userAgent: () -> String = { DEFAULT_USER_AGENT },
 ) {
 
     internal val component: DesktopMatrixComponent = DaggerDesktopMatrixComponent.factory().create(
-            DesktopMatrixModule(dataDir.also { it.mkdirs() }, appName, appVersion),
+            DesktopMatrixModule(dataDir.also { it.mkdirs() }, cacheDir, mainDispatcher, userAgent),
             matrixConfiguration,
     )
 
@@ -41,6 +44,8 @@ class DesktopMatrix(
     fun lightweightSettingsStorage(): LightweightSettingsStorage = component.lightweightSettingsStorage()
 
     companion object {
+        const val DEFAULT_USER_AGENT = "Voyage"
+
         fun getSdkVersion(): String = BuildConfig.SDK_VERSION + " (" + BuildConfig.GIT_SDK_REVISION + ")"
 
         fun getCryptoVersion(longFormat: Boolean): String {

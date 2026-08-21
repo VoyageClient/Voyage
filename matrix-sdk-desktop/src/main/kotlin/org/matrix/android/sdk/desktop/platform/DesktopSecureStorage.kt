@@ -18,16 +18,18 @@ package org.matrix.android.sdk.desktop.platform
 
 import org.matrix.android.sdk.internal.platform.SecureStorage
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * Example desktop [SecureStorage] using AES/GCM. A single master key is generated once and persisted
- * to [keyFile]; the alias is bound in as GCM associated-data so bytes encrypted under one alias can
- * only be decrypted with that same alias. Real Android uses the hardware Keystore; this is a plain
- * file-backed key suitable for a desktop test/dev build.
+ * File-backed [SecureStorage] using AES/GCM. A single master key is generated once and persisted to
+ * [keyFile] (owner-only permissions); the alias is bound in as GCM associated-data so bytes encrypted
+ * under one alias can only be decrypted with that same alias. Android uses the hardware Keystore;
+ * the desktop equivalent (OS keyring) is left to the consumer.
  */
 internal class DesktopSecureStorage(keyFile: File) : SecureStorage {
 
@@ -37,6 +39,7 @@ internal class DesktopSecureStorage(keyFile: File) : SecureStorage {
         } else {
             KeyGenerator.getInstance("AES").apply { init(256) }.generateKey().encoded.also { generated ->
                 keyFile.parentFile?.mkdirs()
+                createOwnerOnly(keyFile)
                 keyFile.writeBytes(generated)
             }
         }
@@ -64,6 +67,19 @@ internal class DesktopSecureStorage(keyFile: File) : SecureStorage {
 
     override fun deleteKey(alias: String) {
         // Single master key model: nothing per-alias to delete.
+    }
+
+    private fun createOwnerOnly(file: File) {
+        val path = file.toPath()
+        try {
+            Files.createFile(path, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
+        } catch (e: UnsupportedOperationException) {
+            Files.createFile(path)
+            file.setReadable(false, false)
+            file.setReadable(true, true)
+            file.setWritable(false, false)
+            file.setWritable(true, true)
+        }
     }
 
     companion object {
