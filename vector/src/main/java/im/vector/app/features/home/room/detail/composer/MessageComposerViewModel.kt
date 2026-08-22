@@ -43,6 +43,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -413,6 +414,8 @@ class MessageComposerViewModel @AssistedInject constructor(
             combine(room.flow().liveTimelineEvent(it), room.flow().liveAnnotationSummary(it)) { _, _ -> }
                     .map { withContext(Dispatchers.IO) { room.getTimelineEvent(eventId) } }
                     .filterNotNull()
+                    // The table-level query re-fires on every sync; only content changes warrant a re-render.
+                    .distinctUntilChangedBy { it.root to it.annotations?.editSummary }
                     .onEach { updated ->
                         setState {
                             if (sendMode is SendMode.Reply && sendMode.timelineEvent.eventId == updated.eventId) {
