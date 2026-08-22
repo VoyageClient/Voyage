@@ -542,7 +542,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             defaultContent
         }
 
-        if (views.composerEditText.text?.toString() != content.toString()) {
+        // On a refresh the box is the source of truth: the state's text is a snapshot that can trail the
+        // user's typing, and setText() would drop those keystrokes and send the cursor to the start.
+        if (!isRefresh && views.composerEditText.text?.toString() != content.toString()) {
             views.composerEditText.setText(content)
         }
 
