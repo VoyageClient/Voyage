@@ -30,7 +30,8 @@ internal object RoomMemberSummaryMapper {
                 avatarUrl = ProfileOverrides.avatarUrlFor(roomMemberSummaryEntity.userId) ?: roomMemberSummaryEntity.avatarUrl,
                 displayName = ProfileOverrides.displayNameFor(roomMemberSummaryEntity.userId) ?: roomMemberSummaryEntity.displayName,
                 originalDisplayName = roomMemberSummaryEntity.displayName,
-                membership = roomMemberSummaryEntity.membership
+                membership = roomMemberSummaryEntity.membership,
+                colorPreference = roomMemberSummaryEntity.colorPreference,
         )
     }
 }

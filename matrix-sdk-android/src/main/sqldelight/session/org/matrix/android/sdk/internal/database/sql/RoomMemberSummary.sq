@@ -9,7 +9,9 @@ CREATE TABLE room_member_summary (
     reason TEXT,
     is_direct INTEGER NOT NULL DEFAULT 0,
     membership_str TEXT NOT NULL DEFAULT 'NONE',
-    user_presence_user_id TEXT
+    user_presence_user_id TEXT,
+    color_on_light TEXT,
+    color_on_dark TEXT
 );
 
 CREATE INDEX room_member_summary_user_id ON room_member_summary(user_id);
@@ -30,8 +32,9 @@ SELECT * FROM room_member_summary WHERE room_id = ? AND user_id = ?;
 
 upsert:
 INSERT OR REPLACE INTO room_member_summary(
-    primary_key, user_id, room_id, display_name, avatar_url, reason, is_direct, membership_str, user_presence_user_id
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    primary_key, user_id, room_id, display_name, avatar_url, reason, is_direct, membership_str, user_presence_user_id,
+    color_on_light, color_on_dark
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateUserPresence:
 UPDATE room_member_summary SET user_presence_user_id = ? WHERE user_id = ?;

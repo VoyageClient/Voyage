@@ -85,7 +85,8 @@ class ColorMatrixListPreferenceDialogFragment : PreferenceDialogFragmentCompat()
     private fun updateSelectedLabel() {
         val index = entryValues.indexOfFirst { it.toString() == value }
         val name = entries.getOrNull(index) ?: return
-        selectedLabel?.text = getString(CommonStrings.color_picker_selected, name)
+        val hex = entryPreviews.getOrNull(index)?.toString()?.uppercase() ?: return
+        selectedLabel?.text = getString(CommonStrings.color_picker_selected_hex, name, hex)
     }
 
     private fun populate(context: Context) {

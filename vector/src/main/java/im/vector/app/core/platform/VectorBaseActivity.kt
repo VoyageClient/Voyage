@@ -21,6 +21,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -46,6 +47,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.airbnb.mvrx.MavericksView
 import com.bumptech.glide.util.Util
@@ -78,6 +80,7 @@ import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.consent.ConsentNotGivenHelper
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.mdm.MdmService
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
@@ -176,6 +179,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     @Inject lateinit var vpnGateState: VpnGateState
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var fontScalePreferences: FontScalePreferences
+    @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @Inject lateinit var vectorLocale: VectorLocaleProvider
     @Inject lateinit var vectorFeatures: VectorFeatures
     @Inject lateinit var navigator: Navigator
@@ -258,6 +262,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         super.onCreate(savedInstanceState)
         addOnMultiWindowModeChangedListener(onMultiWindowModeChangedListener)
         setupMenu()
+        observeColorChanges()
         configurationViewModel = viewModelProvider.get(ConfigurationViewModel::class.java)
         configurationViewModel.activityRestarter.observe(this) {
             if (!it.hasBeenHandled) {
@@ -430,6 +435,39 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) finishAndRemoveTask() else finish()
                 }
             }
+        }
+    }
+
+    // Name/avatar colors are resolved when an item is bound, so a palette or override change only
+    // needs the lists on screen rebound, not an activity restart.
+    private fun observeColorChanges() {
+        var seenGeneration = matrixItemColorProvider.changes.value
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                matrixItemColorProvider.changes.collect { generation ->
+                    if (generation == seenGeneration) return@collect
+                    seenGeneration = generation
+                    rebindRecyclerViews(window.decorView)
+                }
+            }
+        }
+    }
+
+    private fun rebindRecyclerViews(view: View) {
+        if (view is RecyclerView) {
+            // Epoxy forbids notify*() calls, so re-bind the attached holders in place instead. Drive
+            // the outer adapter with the absolute position so ConcatAdapter routes to the right child
+            // and keeps its holder bookkeeping intact.
+            if (view.isComputingLayout) return
+            @Suppress("UNCHECKED_CAST")
+            val adapter = view.adapter as? RecyclerView.Adapter<RecyclerView.ViewHolder> ?: return
+            for (i in 0 until view.childCount) {
+                val holder = view.getChildViewHolder(view.getChildAt(i)) ?: continue
+                val position = holder.absoluteAdapterPosition
+                if (position != RecyclerView.NO_POSITION && position < adapter.itemCount) adapter.bindViewHolder(holder, position)
+            }
+        } else if (view is ViewGroup) {
+            for (i in 0 until view.childCount) rebindRecyclerViews(view.getChildAt(i))
         }
     }
 

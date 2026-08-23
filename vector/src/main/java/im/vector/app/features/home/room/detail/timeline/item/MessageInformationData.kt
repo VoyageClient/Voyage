@@ -11,6 +11,7 @@ import android.os.Parcelable
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationState
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -55,11 +56,19 @@ data class MessageInformationData(
         // MSC4268: the user who gave us the key to this message, who is also the only one vouching for who sent it.
         val sharedByUserId: String? = null,
         // MSC2723: set when the message carries metadata about the message it was forwarded from.
-        val forwardedInfo: ForwardedInfoData? = null
+        val forwardedInfo: ForwardedInfoData? = null,
+        // MSC4522 per-room profile color for the sender, split into its two theme axes so this stays Parcelable.
+        val senderColorOnLight: String? = null,
+        val senderColorOnDark: String? = null,
 ) : Parcelable {
 
     val matrixItem: MatrixItem
-        get() = MatrixItem.UserItem(senderId, memberName?.toString(), avatarUrl.takeUnless { hideAvatars })
+        get() = MatrixItem.UserItem(
+                senderId,
+                memberName?.toString(),
+                avatarUrl.takeUnless { hideAvatars },
+                colorPreference = ColorPreference(senderColorOnLight, senderColorOnDark).takeUnless { it.isEmpty() },
+        )
 }
 
 @Parcelize

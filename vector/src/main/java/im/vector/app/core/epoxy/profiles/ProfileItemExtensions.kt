@@ -7,6 +7,7 @@
 
 package im.vector.app.core.epoxy.profiles
 
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import com.airbnb.epoxy.EpoxyController
 import im.vector.app.core.epoxy.ClickListener
@@ -34,6 +35,7 @@ fun EpoxyController.buildProfileAction(
         action: ClickListener? = null,
         @DrawableRes accessory: Int = 0,
         accessoryMatrixItem: MatrixItem? = null,
+        @ColorInt accessoryColor: Int? = null,
         notificationBadge: Boolean = false,
         avatarRenderer: AvatarRenderer? = null
 ) {
@@ -49,6 +51,7 @@ fun EpoxyController.buildProfileAction(
         title(title)
         accessoryRes(accessory)
         accessoryMatrixItem(accessoryMatrixItem)
+        accessoryColor(accessoryColor)
         avatarRenderer(avatarRenderer)
         listener(action)
     }

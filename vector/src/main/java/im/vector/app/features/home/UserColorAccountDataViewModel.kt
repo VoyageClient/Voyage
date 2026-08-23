@@ -18,12 +18,14 @@ import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorDummyViewState
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.flow.flow
 
 class UserColorAccountDataViewModel @AssistedInject constructor(
@@ -49,7 +51,17 @@ class UserColorAccountDataViewModel @AssistedInject constructor(
                 // No unwrap(): an account without the event must still clear any overrides a
                 // previously active account installed.
                 .map { it.getOrNull()?.content?.toModel<Map<String, String>>() }
-                .onEach { matrixItemColorProvider.setOverrideColors(it) }
+                .onEach { matrixItemColorProvider.setLegacyOverrideColors(it) }
+                .launchIn(viewModelScope)
+
+        ProfileOverrides.changes
+                .onEach { matrixItemColorProvider.reconcileOptimisticOverrides() }
+                .launchIn(viewModelScope)
+
+        // Per-sender MSC4522 colors land one profile fetch at a time; coalesce into one rebind.
+        session.profileService().getColorPreferenceUpdateFlow()
+                .debounce(300)
+                .onEach { matrixItemColorProvider.invalidate() }
                 .launchIn(viewModelScope)
     }
 

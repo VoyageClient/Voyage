@@ -34,6 +34,10 @@ object ProfileKeys {
     const val BIOGRAPHY_UNSTABLE = "gay.fomx.biography"
     const val BIOGRAPHY_COMMET = "chat.commet.profile_bio"
 
+    // MSC4522 name color. Write both keys, read the stable one first.
+    const val COLOR_PREFERENCE = "m.color_preference"
+    const val COLOR_PREFERENCE_UNSTABLE = "eu.she-a.color"
+
     /**
      * The extended fields worth streaming over sync (MSC4429 / MSC4262). Display name and avatar are
      * left out: those already arrive with room member events.
@@ -44,5 +48,6 @@ object ProfileKeys {
             TIMEZONE, TIMEZONE_UNSTABLE,
             STATUS, STATUS_UNSTABLE, STATUS_COMMET,
             BIOGRAPHY, BIOGRAPHY_UNSTABLE, BIOGRAPHY_COMMET,
+            COLOR_PREFERENCE, COLOR_PREFERENCE_UNSTABLE,
     )
 }

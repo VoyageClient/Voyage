@@ -25,6 +25,7 @@ import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.redaction.MassRedactionManager
+import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -33,6 +34,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -42,6 +45,8 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.room.Room
@@ -63,6 +68,7 @@ import org.matrix.android.sdk.flow.unwrap
 class RoomMemberProfileViewModel @AssistedInject constructor(
         @Assisted private val initialState: RoomMemberProfileViewState,
         private val stringProvider: StringProvider,
+        private val themeProvider: ThemeProvider,
         private val matrixItemColorProvider: MatrixItemColorProvider,
         private val directRoomHelper: DirectRoomHelper,
         private val massRedactionManager: MassRedactionManager,
@@ -76,6 +82,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     companion object : MavericksViewModelFactory<RoomMemberProfileViewModel, RoomMemberProfileViewState> by hiltMavericksViewModelFactory()
+
+    private var profileColorSameInitialized = false
 
     private val room = if (initialState.roomId != null) {
         session.getRoom(initialState.roomId)
@@ -176,6 +184,10 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private fun observeAccountData() {
+        matrixItemColorProvider.changes
+                .onEach { generation -> setState { copy(colorGeneration = generation) } }
+                .launchIn(viewModelScope)
+
         session.flow()
                 .liveUserAccountData(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
                 .unwrap()
@@ -196,17 +208,28 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     val fields = ProfileOverrides.parse(event.content)[initialState.userId]
                     val overrideName = (fields?.get(ProfileOverrides.FIELD_DISPLAY_NAME) as? String)?.takeIf { it.isNotBlank() }
                     val overrideAvatar = (fields?.get(ProfileOverrides.FIELD_AVATAR_URL) as? String)?.takeIf { it.isNotBlank() }
+                    val overrideColor = ColorPreference.parse(fields?.get(ProfileKeys.COLOR_PREFERENCE))
                     val base = bestKnownMatrixItem()
+                    val sameForThemes = if (profileColorSameInitialized) {
+                        null
+                    } else {
+                        profileColorSameInitialized = true
+                        overrideColor == null || overrideColor.onLight == null || overrideColor.onDark == null ||
+                                overrideColor.onLight == overrideColor.onDark
+                    }
                     setState {
                         copy(
                                 profileOverrideDisplayName = overrideName,
                                 profileOverrideAvatarUrl = overrideAvatar,
+                                profileOverrideColor = overrideColor,
+                                profileColorSameForThemes = sameForThemes ?: profileColorSameForThemes,
                                 hasProfileOverrides = !fields.isNullOrEmpty(),
                                 userMatrixItem = Success(
                                         MatrixItem.UserItem(
                                                 initialState.userId,
                                                 overrideName ?: base.displayName,
                                                 overrideAvatar ?: base.avatarUrl,
+                                                colorPreference = (base as? MatrixItem.UserItem)?.colorPreference,
                                         )
                                 ),
                         )
@@ -237,7 +260,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             is RoomMemberProfileAction.KickUser -> handleKickAction(action)
             RoomMemberProfileAction.RedactAllMessages -> handleRedactAllMessages()
             RoomMemberProfileAction.InviteUser -> handleInviteAction()
-            is RoomMemberProfileAction.SetUserColorOverride -> handleSetUserColorOverride(action)
+            is RoomMemberProfileAction.SetProfileOverrideColor -> handleSetProfileOverrideColor(action)
+            is RoomMemberProfileAction.SetProfileColorSameForThemes -> setState { copy(profileColorSameForThemes = action.same) }
             is RoomMemberProfileAction.SetProfileOverrideDisplayName -> handleSetProfileOverrideDisplayName(action)
             is RoomMemberProfileAction.SetProfileOverrideAvatar -> handleSetProfileOverrideAvatar(action)
             RoomMemberProfileAction.ResetProfileOverrides -> handleResetProfileOverrides()
@@ -273,31 +297,75 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private fun handleResetProfileOverrides() {
+        matrixItemColorProvider.setOptimisticOverride(initialState.userId, null)
         updateProfileOverrideFields { it.clear() }
+        writeLegacyOverrideColor(null)
+    }
+
+    private fun handleSetProfileOverrideColor(action: RoomMemberProfileAction.SetProfileOverrideColor) {
+        val color = action.color?.takeIf { !it.isEmpty() }
+        // Optimistic in the provider so name, avatar, reply headers and this row recolor in one pass,
+        // rather than waiting on the two account-data writes below (which land async and out of order).
+        matrixItemColorProvider.setOptimisticOverride(initialState.userId, color)
+        updateProfileOverrideFields { fields ->
+            val json = color?.toJson()?.filterValues { it != null }
+            if (json != null) fields[ProfileKeys.COLOR_PREFERENCE] = json else fields.remove(ProfileKeys.COLOR_PREFERENCE)
+        }
+        writeLegacyOverrideColor(color?.forTheme(themeProvider.isLightTheme()))
+    }
+
+    // Both account-data writers read-modify-write a whole-object PUT, so rapid changes must run one at
+    // a time and read the freshest state inside the lock — otherwise a stale in-flight write from an
+    // earlier change lands last and resurrects the value it captured.
+    private val accountDataWriteMutex = Mutex()
+
+    // Mirror the override into the legacy per-user color account data, for older clients that only read that.
+    private fun writeLegacyOverrideColor(hex: String?) {
+        viewModelScope.launch {
+            accountDataWriteMutex.withLock {
+                val specs = session.accountDataService()
+                        .getUserAccountDataEvent(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
+                        ?.content
+                        ?.toModel<Map<String, String>>()
+                        .orEmpty()
+                        .toMutableMap()
+                val changed = if (hex != null) specs.put(initialState.userId, hex) != hex else specs.remove(initialState.userId) != null
+                if (!changed) return@withLock
+                try {
+                    session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_OVERRIDE_COLORS, specs)
+                } catch (failure: Throwable) {
+                    _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                }
+            }
+        }
     }
 
     /** Rewrites this user's entry of the profile-overrides account data; an emptied entry is removed. */
     private fun updateProfileOverrideFields(mutate: (MutableMap<String, Any?>) -> Unit) {
-        val content = session.accountDataService()
-                .getUserAccountDataEvent(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
-                ?.content
-                .orEmpty()
-                .toMutableMap()
-        val fields = (content[initialState.userId] as? Map<*, *>)
-                .orEmpty()
-                .entries
-                .mapNotNull { (key, value) -> (key as? String)?.let { it to value } }
-                .toMap()
-                .toMutableMap()
-        mutate(fields)
-        if (fields.isEmpty()) content.remove(initialState.userId) else content[initialState.userId] = fields
         viewModelScope.launch {
-            try {
-                session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES, content)
-                _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
-            } catch (failure: Throwable) {
-                _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
-                _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+            accountDataWriteMutex.withLock {
+                val content = session.accountDataService()
+                        .getUserAccountDataEvent(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
+                        ?.content
+                        .orEmpty()
+                        .toMutableMap()
+                val fields = (content[initialState.userId] as? Map<*, *>)
+                        .orEmpty()
+                        .entries
+                        .mapNotNull { (key, value) -> (key as? String)?.let { it to value } }
+                        .toMap()
+                        .toMutableMap()
+                mutate(fields)
+                if (fields.isEmpty()) content.remove(initialState.userId) else content[initialState.userId] = fields
+                try {
+                    session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES, content)
+                    _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                } catch (failure: Throwable) {
+                    // The optimistic color assumed this write would land; it didn't, so revert to reality.
+                    matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
+                    _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                    _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                }
             }
         }
     }
@@ -316,30 +384,6 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             } else {
                 // Just go back to the previous screen (timeline)
                 _viewEvents.post(RoomMemberProfileViewEvents.GoBack)
-            }
-        }
-    }
-
-    private fun handleSetUserColorOverride(action: RoomMemberProfileAction.SetUserColorOverride) {
-        val newOverrideColorSpecs = session.accountDataService()
-                .getUserAccountDataEvent(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
-                ?.content
-                ?.toModel<Map<String, String>>()
-                .orEmpty()
-                .toMutableMap()
-        if (matrixItemColorProvider.setOverrideColor(initialState.userId, action.newColorSpec)) {
-            newOverrideColorSpecs[initialState.userId] = action.newColorSpec
-        } else {
-            newOverrideColorSpecs.remove(initialState.userId)
-        }
-        viewModelScope.launch {
-            try {
-                session.accountDataService().updateUserAccountData(
-                        type = UserAccountDataTypes.TYPE_OVERRIDE_COLORS,
-                        content = newOverrideColorSpecs
-                )
-            } catch (failure: Throwable) {
-                _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
             }
         }
     }

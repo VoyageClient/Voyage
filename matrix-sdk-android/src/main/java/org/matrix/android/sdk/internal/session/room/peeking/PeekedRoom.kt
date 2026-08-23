@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataService
@@ -185,6 +186,8 @@ internal class PeekedRoom(
         override suspend fun updateMyRoomAvatar(avatarUri: String, fileName: String) = readOnly()
         override suspend fun resetMyRoomAvatar(avatarUrl: String?) = readOnly()
         override suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?) = readOnly()
+        override suspend fun updateMyRoomColorPreference(color: ColorPreference?) = readOnly()
+        override suspend fun resetMyRoomProfile() = readOnly()
         override suspend fun setJoinRulePublic() = readOnly()
         override suspend fun setJoinRuleInviteOnly() = readOnly()
         override suspend fun setJoinRuleKnock() = readOnly()

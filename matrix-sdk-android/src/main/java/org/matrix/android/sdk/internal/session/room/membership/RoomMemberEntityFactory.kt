@@ -24,12 +24,15 @@ internal object RoomMemberEntityFactory {
 
     fun create(roomId: String, userId: String, roomMember: RoomMemberContent, presence: UserPresenceEntity?): RoomMemberSummaryEntity {
         val primaryKey = "${roomId}_$userId"
+        val color = roomMember.effectiveColorPreference()
         return RoomMemberSummaryEntity(
                 primaryKey = primaryKey,
                 userId = userId,
                 roomId = roomId,
                 displayName = roomMember.displayName,
-                avatarUrl = roomMember.avatarUrl
+                avatarUrl = roomMember.avatarUrl,
+                colorOnLight = color?.onLight,
+                colorOnDark = color?.onDark,
         ).apply {
             membership = roomMember.membership
             userPresenceEntity = presence

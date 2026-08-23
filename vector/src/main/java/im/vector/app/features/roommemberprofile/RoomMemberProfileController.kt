@@ -7,6 +7,9 @@
 
 package im.vector.app.features.roommemberprofile
 
+import android.content.Context
+import android.graphics.Color
+import androidx.annotation.StringRes
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.R
 import im.vector.app.core.epoxy.expandableTextItem
@@ -14,25 +17,33 @@ import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.epoxy.profiles.buildProfileSection
 import im.vector.app.core.epoxy.profiles.profileSectionActionItem
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.colorpicker.ProfileColorPickerDialogFragment
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
+import org.matrix.android.sdk.api.util.MatrixItem
 import javax.inject.Inject
 
 class RoomMemberProfileController @Inject constructor(
         private val stringProvider: StringProvider,
         private val session: Session,
         private val vectorPreferences: VectorPreferences,
-        private val avatarRenderer: AvatarRenderer
+        private val avatarRenderer: AvatarRenderer,
+        private val matrixItemColorProvider: MatrixItemColorProvider,
+        private val themeProvider: ThemeProvider,
+        private val context: Context,
 ) : TypedEpoxyController<RoomMemberProfileViewState>() {
 
     var callback: Callback? = null
@@ -52,7 +63,8 @@ class RoomMemberProfileController @Inject constructor(
         fun onShowDeviceList()
         fun onShowDeviceListNoCrossSigning()
         fun onOpenDmClicked()
-        fun onOverrideColorClicked()
+        fun onOverrideColorClicked(theme: ProfileColorPickerDialogFragment.Theme)
+        fun onProfileColorPerThemeChanged(perTheme: Boolean)
         fun onJumpToReadReceiptClicked()
         fun onMentionClicked()
         fun onEditPowerLevel(userPowerLevel: UserPowerLevel.Value)
@@ -158,7 +170,7 @@ class RoomMemberProfileController @Inject constructor(
         profileSectionActionItem {
             id("section_personalization")
             title(host.stringProvider.getString(CommonStrings.user_personalization_section))
-            actionEnabled(state.hasProfileOverrides)
+            actionEnabled(state.hasProfileOverrides || state.userColorOverride != null)
             actionClickListener { host.callback?.onResetProfileOverridesClicked() }
         }
         buildProfileAction(
@@ -175,8 +187,45 @@ class RoomMemberProfileController @Inject constructor(
                 editable = false,
                 title = stringProvider.getString(CommonStrings.settings_display_name),
                 subtitle = state.profileOverrideDisplayName ?: state.userMatrixItem()?.getBestName(),
-                divider = false,
+                divider = true,
                 action = { callback?.onOverrideDisplayNameClicked() }
+        )
+        if (state.profileColorSameForThemes) {
+            buildProfileColorAction(state, "override_color", CommonStrings.settings_profile_color, ProfileColorPickerDialogFragment.Theme.CURRENT)
+        } else {
+            buildProfileColorAction(state, "override_color_light", CommonStrings.settings_profile_color_light, ProfileColorPickerDialogFragment.Theme.LIGHT)
+            buildProfileColorAction(state, "override_color_dark", CommonStrings.settings_profile_color_dark, ProfileColorPickerDialogFragment.Theme.DARK)
+        }
+        formSwitchItem {
+            id("override_color_per_theme")
+            title(host.stringProvider.getString(CommonStrings.settings_profile_color_per_theme))
+            switchChecked(!state.profileColorSameForThemes)
+            listener { host.callback?.onProfileColorPerThemeChanged(it) }
+        }
+    }
+
+    private fun buildProfileColorAction(
+            state: RoomMemberProfileViewState,
+            id: String,
+            @StringRes titleRes: Int,
+            theme: ProfileColorPickerDialogFragment.Theme,
+    ) {
+        val light = when (theme) {
+            ProfileColorPickerDialogFragment.Theme.LIGHT -> true
+            ProfileColorPickerDialogFragment.Theme.DARK -> false
+            ProfileColorPickerDialogFragment.Theme.CURRENT -> themeProvider.isLightTheme()
+        }
+        val item = state.userMatrixItem() ?: MatrixItem.UserItem(state.userId)
+        val overrideHex = matrixItemColorProvider.overrideAxis(state.userId, light)
+        val hex = overrideHex ?: matrixItemColorProvider.ownColorHex(item, light) ?: matrixItemColorProvider.defaultColorHex(state.userId, light)
+        buildProfileAction(
+                id = id,
+                editable = false,
+                title = stringProvider.getString(titleRes),
+                subtitle = ProfileColorPickerDialogFragment.describe(context, hex, light, isDefault = overrideHex == null),
+                divider = false,
+                accessoryColor = Color.parseColor(hex),
+                action = { callback?.onOverrideColorClicked(theme) }
         )
     }
 
@@ -281,15 +330,6 @@ class RoomMemberProfileController @Inject constructor(
                     action = { callback?.onOpenDmClicked() }
             )
         }
-
-        buildProfileAction(
-                id = "overrideColor",
-                editable = false,
-                title = stringProvider.getString(CommonStrings.room_member_override_nick_color),
-                subtitle = state.userColorOverride,
-                divider = true,
-                action = { callback?.onOverrideColorClicked() }
-        )
 
         if (vectorPreferences.developerMode()) {
             buildProfileSourceAction(state)

@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.database.model
 
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -28,8 +29,13 @@ internal open class RoomMemberSummaryEntity(
         var displayName: String? = null,
         var avatarUrl: String? = null,
         var reason: String? = null,
-        var isDirect: Boolean = false
+        var isDirect: Boolean = false,
+        var colorOnLight: String? = null,
+        var colorOnDark: String? = null,
 ) {
+
+    val colorPreference: ColorPreference?
+        get() = ColorPreference(colorOnLight, colorOnDark).takeIf { !it.isEmpty() }
 
     private var membershipStr: String = Membership.NONE.name
     var membership: Membership
@@ -49,6 +55,7 @@ internal open class RoomMemberSummaryEntity(
             userId,
             ProfileOverrides.displayNameFor(userId) ?: displayName,
             ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+            colorPreference = colorPreference,
     )
 
     companion object

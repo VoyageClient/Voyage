@@ -131,6 +131,12 @@ interface ProfileService {
     suspend fun setBio(userId: String, bio: UserBio?)
 
     /**
+     * Set this user's MSC4522 name color. Null or an empty preference clears it; the field is written
+     * as an empty object rather than deleted, as other clients do.
+     */
+    suspend fun setColorPreference(userId: String, color: ColorPreference?)
+
+    /**
      * Pronouns/time zone/status/biography this session has last seen for this user, or null when not
      * yet known. Synchronous, for seeding UI and gendered notices ahead of a network refresh.
      */
@@ -141,6 +147,11 @@ interface ProfileService {
     fun getCachedStatus(userId: String): UserStatus?
 
     fun getCachedBio(userId: String): UserBio?
+
+    fun getCachedColorPreference(userId: String): ColorPreference?
+
+    /** Emits a userId whenever the color they should be drawn with may have changed. */
+    fun getColorPreferenceUpdateFlow(): Flow<String>
 
     /**
      * Emits a userId once that user's pronouns become known (from a background prefetch or fetch),

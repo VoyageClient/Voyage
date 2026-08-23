@@ -11,6 +11,7 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -36,11 +37,16 @@ data class RoomMemberProfileViewState(
         val allDevicesAreCrossSignedTrusted: Boolean = false,
         val asyncMembership: Async<Membership> = Uninitialized,
         val hasReadReceipt: Boolean = false,
+        // im.vector.setting.override_colors: the pre-MSC4522 per-user color spec, a fallback for overrides set by older clients
         val userColorOverride: String? = null,
         // im.voyage.setting.profile_overrides fields for this user
         val profileOverrideDisplayName: String? = null,
         val profileOverrideAvatarUrl: String? = null,
+        val profileOverrideColor: ColorPreference? = null,
         val hasProfileOverrides: Boolean = false,
+        val profileColorSameForThemes: Boolean = true,
+        // Bumped when resolved name colors change, so the header and Personalization rows re-render.
+        val colorGeneration: Long = 0,
         // "she/her • PST" line from MSC4247 pronouns + MSC4175 time zone, or null when neither is set
         val profileFieldsLine: String? = null,
         // MSC4427 profile banner field

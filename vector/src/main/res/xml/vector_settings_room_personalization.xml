@@ -15,6 +15,28 @@
             android:persistent="false"
             android:title="@string/settings_display_name" />
 
+        <im.vector.app.core.preference.ProfileColorPreference
+            android:key="SETTINGS_ROOM_PERSONALIZATION_COLOR_KEY"
+            android:persistent="false"
+            android:title="@string/settings_profile_color" />
+
+        <im.vector.app.core.preference.ProfileColorPreference
+            android:key="SETTINGS_ROOM_PERSONALIZATION_COLOR_LIGHT_KEY"
+            android:persistent="false"
+            app:isPreferenceVisible="false"
+            android:title="@string/settings_profile_color_light" />
+
+        <im.vector.app.core.preference.ProfileColorPreference
+            android:key="SETTINGS_ROOM_PERSONALIZATION_COLOR_DARK_KEY"
+            android:persistent="false"
+            app:isPreferenceVisible="false"
+            android:title="@string/settings_profile_color_dark" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_ROOM_PERSONALIZATION_COLOR_SAME_KEY"
+            android:persistent="false"
+            android:title="@string/settings_profile_color_per_theme" />
+
     </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
 
     <im.vector.app.core.preference.VectorPreferenceCategoryWithAction

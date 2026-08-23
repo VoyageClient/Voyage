@@ -85,6 +85,12 @@
             android:title="@string/settings_uglier_username_colors_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
+            android:summary="@string/settings_show_others_profile_colors_summary"
+            android:title="@string/settings_show_others_profile_colors_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_PERFORMANCE_MODE_KEY"
             android:summary="@string/settings_performance_mode_summary"
             android:title="@string/settings_performance_mode_title" />

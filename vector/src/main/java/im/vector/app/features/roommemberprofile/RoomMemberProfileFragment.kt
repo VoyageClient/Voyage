@@ -40,6 +40,7 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.resources.ColorProvider
+import im.vector.app.core.ui.colorpicker.ProfileColorPickerDialogFragment
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.databinding.DialogBaseEditTextBinding
@@ -69,6 +70,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -114,6 +116,7 @@ class RoomMemberProfileFragment :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         galleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(this)
+        childFragmentManager.setFragmentResultListener(PROFILE_COLOR_REQUEST_KEY, this) { _, bundle -> onProfileColorPicked(bundle) }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -414,24 +417,45 @@ class RoomMemberProfileFragment :
         }
     }
 
-    override fun onOverrideColorClicked(): Unit = withState(viewModel) { state ->
-        val inflater = requireActivity().layoutInflater
-        val layout = inflater.inflate(R.layout.dialog_base_edit_text, null)
-        val views = DialogBaseEditTextBinding.bind(layout)
-        views.editText.setText(state.userColorOverride)
-        views.editText.hint = "#000000"
+    override fun onOverrideColorClicked(theme: ProfileColorPickerDialogFragment.Theme): Unit = withState(viewModel) { state ->
+        if (childFragmentManager.findFragmentByTag(PROFILE_COLOR_DIALOG_TAG) != null) return@withState
+        val light = when (theme) {
+            ProfileColorPickerDialogFragment.Theme.LIGHT -> true
+            ProfileColorPickerDialogFragment.Theme.DARK -> false
+            ProfileColorPickerDialogFragment.Theme.CURRENT -> ThemeUtils.isLightTheme(requireContext())
+        }
+        val item = state.userMatrixItem() ?: MatrixItem.UserItem(state.userId)
+        val overrideHex = matrixItemColorProvider.overrideAxis(state.userId, light)
+        val ownHex = matrixItemColorProvider.ownColorHex(item, light) ?: matrixItemColorProvider.defaultColorHex(state.userId, light)
+        val titleRes = when (theme) {
+            ProfileColorPickerDialogFragment.Theme.LIGHT -> CommonStrings.settings_profile_color_light
+            ProfileColorPickerDialogFragment.Theme.DARK -> CommonStrings.settings_profile_color_dark
+            ProfileColorPickerDialogFragment.Theme.CURRENT -> CommonStrings.settings_profile_color
+        }
+        ProfileColorPickerDialogFragment.newInstance(
+                requestKey = PROFILE_COLOR_REQUEST_KEY,
+                title = getString(titleRes),
+                initialHex = overrideHex,
+                defaultHex = ownHex,
+                theme = theme,
+                showReset = overrideHex != null,
+        ).show(childFragmentManager, PROFILE_COLOR_DIALOG_TAG)
+    }
 
-        MaterialAlertDialogBuilder(requireContext())
-                .setTitle(CommonStrings.room_member_override_nick_color)
-                .setView(layout)
-                .setPositiveButton(CommonStrings.ok) { _, _ ->
-                    val newColor = views.editText.text.toString()
-                    if (newColor != state.userColorOverride) {
-                        viewModel.handle(RoomMemberProfileAction.SetUserColorOverride(newColor))
-                    }
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
+    override fun onProfileColorPerThemeChanged(perTheme: Boolean) {
+        viewModel.handle(RoomMemberProfileAction.SetProfileColorSameForThemes(!perTheme))
+    }
+
+    private fun onProfileColorPicked(bundle: Bundle) = withState(viewModel) { state ->
+        val picked = ProfileColorPickerDialogFragment.resultToColorPreference(bundle)
+        val current = state.profileOverrideColor
+                ?: matrixItemColorProvider.overrideHex(state.userId, true)?.let { ColorPreference.fromHex(it) }
+        val updated = when (ProfileColorPickerDialogFragment.themeOf(bundle)) {
+            ProfileColorPickerDialogFragment.Theme.CURRENT -> picked
+            ProfileColorPickerDialogFragment.Theme.LIGHT -> ColorPreference(picked?.onLight, current?.onDark)
+            ProfileColorPickerDialogFragment.Theme.DARK -> ColorPreference(current?.onLight, picked?.onDark)
+        }?.takeIf { !it.isEmpty() }
+        viewModel.handle(RoomMemberProfileAction.SetProfileOverrideColor(updated))
     }
 
     override fun onEditPowerLevel(userPowerLevel: UserPowerLevel.Value) {
@@ -599,5 +623,10 @@ class RoomMemberProfileFragment :
                 -1,
                 createJSonViewerStyleProvider(colorProvider)
         ).show(childFragmentManager, "JSON_VIEWER")
+    }
+
+    companion object {
+        private const val PROFILE_COLOR_REQUEST_KEY = "RoomMemberProfileFragment.profileColor"
+        private const val PROFILE_COLOR_DIALOG_TAG = "RoomMemberProfileFragment.profileColorDialog"
     }
 }

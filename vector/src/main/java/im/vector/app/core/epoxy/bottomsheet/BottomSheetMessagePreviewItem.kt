@@ -61,6 +61,13 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
     lateinit var matrixItem: MatrixItem
 
     @EpoxyAttribute
+    var senderColor: Int? = null
+
+    // Match the timeline: a notice/state/debug preview uses the secondary colour, a message the primary one.
+    @EpoxyAttribute
+    var bodyIsNotice: Boolean = false
+
+    @EpoxyAttribute
     lateinit var body: EpoxyCharSequence
 
     @EpoxyAttribute
@@ -122,6 +129,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         holder.avatar.onClick(userClicked)
         holder.sender.onClick(userClicked)
         holder.sender.setTextOrHide(matrixItem.getBestName().prepareForDisplay())
+        senderColor?.let { holder.sender.setTextColor(it) }
         // Glide's RoundedCorners only applies to Bitmap output, so a blurhash placeholder (Drawable)
         // renders square without the view shaping it.
         holder.imagePreview.setCornerRadius(mediaPreviewCornerRadiusPx(holder.imagePreview.context).toFloat())
@@ -166,7 +174,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         if (redacted) {
             holder.body.setRedactedPreviewStyle()
         } else {
-            holder.body.setTextColor(ThemeUtils.getColor(holder.body.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+            val bodyColorAttr = if (bodyIsNotice) {
+                im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+            } else {
+                im.vector.lib.ui.styles.R.attr.vctr_content_primary
+            }
+            holder.body.setTextColor(ThemeUtils.getColor(holder.body.context, bodyColorAttr))
             holder.body.clearDrawables()
         }
         holder.bodyDetails.setTextOrHide(bodyDetails?.charSequence)

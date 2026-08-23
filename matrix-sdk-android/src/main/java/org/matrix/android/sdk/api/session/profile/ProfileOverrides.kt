@@ -7,6 +7,11 @@
 
 package org.matrix.android.sdk.api.session.profile
 
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+
 /**
  * Client-side per-user profile overrides, backed by the `im.voyage.setting.profile_overrides`
  * user account data event: a map of userId to a map of profile fields (`displayname`, `avatar_url`,
@@ -27,6 +32,11 @@ object ProfileOverrides {
     @Volatile
     var generation: Long = 0L
         private set
+
+    // Fires once the map has actually been swapped, unlike the account-data live flow, which emits
+    // when the event is persisted and before the overrides are applied.
+    private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val changes: SharedFlow<Unit> = _changes.asSharedFlow()
 
     // The static is shared by every session in the process; ownership gating keeps a
     // backgrounded (not-yet-released) session's sync from clobbering the active account's map.
@@ -59,6 +69,7 @@ object ProfileOverrides {
         if (newOverrides == overrides) return
         overrides = newOverrides
         generation++
+        _changes.tryEmit(Unit)
     }
 
     fun fieldsFor(userId: String?): Map<String, Any?>? =

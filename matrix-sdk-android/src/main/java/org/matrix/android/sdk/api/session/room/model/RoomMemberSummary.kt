@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.session.room.model
 
 import org.matrix.android.sdk.api.session.presence.model.UserPresence
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 
 /**
  * Class representing a simplified version of EventType.STATE_ROOM_MEMBER state event content.
@@ -29,5 +30,6 @@ data class RoomMemberSummary constructor(
         val avatarUrl: String? = null,
         // The name the user actually publishes, before any local ProfileOverrides substitution. Text we
         // send to the room (mention bodies) must use this, since an override is meaningful only to us.
-        val originalDisplayName: String? = null
+        val originalDisplayName: String? = null,
+        val colorPreference: ColorPreference? = null,
 )

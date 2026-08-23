@@ -19,6 +19,7 @@ package org.matrix.android.sdk.api.session.room.state
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
@@ -99,6 +100,15 @@ interface StateService {
      * m.room.member event. Same null / "" semantics as the single-field variants.
      */
     suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?)
+
+    /**
+     * Set the current user's MSC4522 name color for this room only. Null removes the field so the
+     * account-wide color applies again.
+     */
+    suspend fun updateMyRoomColorPreference(color: ColorPreference?)
+
+    /** Drop this room's display name, avatar and name color overrides from the self m.room.member event. */
+    suspend fun resetMyRoomProfile()
 
     /**
      * Send a state event to the room.

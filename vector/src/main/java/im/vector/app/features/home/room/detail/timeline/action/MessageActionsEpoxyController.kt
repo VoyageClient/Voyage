@@ -26,6 +26,7 @@ import im.vector.app.core.extensions.sendFailureReason
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.format.EventDetailsFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
@@ -62,6 +63,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import javax.inject.Inject
 
@@ -71,6 +73,7 @@ import javax.inject.Inject
 class MessageActionsEpoxyController @Inject constructor(
         private val stringProvider: StringProvider,
         private val avatarRenderer: AvatarRenderer,
+        private val messageColorProvider: MessageColorProvider,
         private val fontProvider: EmojiCompatFontProvider,
         private val imageContentRenderer: ImageContentRenderer,
         private val dimensionConverter: DimensionConverter,
@@ -140,6 +143,8 @@ class MessageActionsEpoxyController @Inject constructor(
             id("preview")
             avatarRenderer(host.avatarRenderer)
             matrixItem(state.informationData.matrixItem)
+            senderColor(host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
+            bodyIsNotice(host.isNoticeStylePreview(state) || isPlaceholderPreview)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             data(
@@ -326,6 +331,14 @@ class MessageActionsEpoxyController @Inject constructor(
                 locationOwnerId = locationOwnerId,
                 locationPinProvider = locationPinProvider,
         )
+    }
+
+    // A preview mirrors the timeline: a message body renders primary, everything else (m.notice, state,
+    // call and other notice events) renders in the secondary "notice" colour.
+    private fun isNoticeStylePreview(state: MessageActionState): Boolean {
+        val type = state.previewEvent?.root?.getClearType()
+        val isMessage = type == EventType.MESSAGE || type == EventType.STICKER
+        return !isMessage || state.informationData.messageType == MessageType.MSGTYPE_NOTICE
     }
 
     private fun EventSharedAction.shouldShowBetaLabel(): Boolean =

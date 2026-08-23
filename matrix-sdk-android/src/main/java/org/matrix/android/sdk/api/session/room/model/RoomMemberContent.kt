@@ -19,6 +19,8 @@ package org.matrix.android.sdk.api.session.room.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
+import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.ProfileKeys
 
 /**
  * Class representing the EventType.STATE_ROOM_MEMBER state event content.
@@ -31,8 +33,14 @@ data class RoomMemberContent(
         @Json(name = "avatar_url") val avatarUrl: String? = null,
         @Json(name = "is_direct") val isDirect: Boolean = false,
         @Json(name = "third_party_invite") val thirdPartyInvite: Invite? = null,
-        @Json(name = "unsigned") val unsignedData: UnsignedData? = null
+        @Json(name = "unsigned") val unsignedData: UnsignedData? = null,
+        @Json(name = ProfileKeys.COLOR_PREFERENCE) val colorPreference: Map<String, Any?>? = null,
+        @Json(name = ProfileKeys.COLOR_PREFERENCE_UNSTABLE) val colorPreferenceUnstable: Map<String, Any?>? = null,
 ) {
     val safeReason
         get() = reason?.takeIf { it.isNotBlank() }
+
+    fun effectiveColorPreference(): ColorPreference? {
+        return ColorPreference.parse(colorPreference) ?: ColorPreference.parse(colorPreferenceUnstable)
+    }
 }

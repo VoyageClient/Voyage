@@ -26,6 +26,8 @@ import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorPreferenceCategoryWithAction
+import im.vector.app.core.ui.colorpicker.ProfileColorPreferenceBinder
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
@@ -47,6 +49,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
@@ -71,6 +74,7 @@ class RoomPersonalizationSettingsFragment :
     @Inject lateinit var serverAdminStatusDataSource: ServerAdminStatusDataSource
     @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
     @Inject lateinit var redactionCacheCleaner: RedactionCacheCleaner
+    @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
 
     override var titleRes = CommonStrings.room_profile_section_more_personalization
     override val preferenceXmlRes = R.xml.vector_settings_room_personalization
@@ -85,6 +89,8 @@ class RoomPersonalizationSettingsFragment :
     private var currentDisplayName: String? = null
     private var accountDisplayName: String? = null
     private var accountAvatarUrl: String? = null
+    private var currentColor: ColorPreference? = null
+    private var accountColor: ColorPreference? = null
 
     private var roomOverrideName: String? = null
     private var roomOverrideAvatarUrl: String? = null
@@ -94,6 +100,18 @@ class RoomPersonalizationSettingsFragment :
 
     private val avatarPreference by lazy {
         findPreference<UserAvatarPreference>("SETTINGS_ROOM_PERSONALIZATION_AVATAR_KEY")!!
+    }
+    private val profileColorBinder by lazy {
+        ProfileColorPreferenceBinder(
+                fragment = this,
+                single = findPreference("SETTINGS_ROOM_PERSONALIZATION_COLOR_KEY")!!,
+                light = findPreference("SETTINGS_ROOM_PERSONALIZATION_COLOR_LIGHT_KEY")!!,
+                dark = findPreference("SETTINGS_ROOM_PERSONALIZATION_COLOR_DARK_KEY")!!,
+                perThemeSwitch = findPreference("SETTINGS_ROOM_PERSONALIZATION_COLOR_SAME_KEY")!!,
+                requestKeyPrefix = "RoomPersonalizationSettingsFragment",
+                resetIsDelete = false,
+                onSave = ::applyColor,
+        )
     }
     private val displayNamePreference by lazy {
         findPreference<VectorEditTextPreference>("SETTINGS_ROOM_PERSONALIZATION_DISPLAY_NAME_KEY")!!
@@ -359,6 +377,12 @@ class RoomPersonalizationSettingsFragment :
                     ?: session.userService().getUser(session.myUserId)
             accountDisplayName = user?.displayName?.takeIf { it.isNotBlank() }
             accountAvatarUrl = user?.avatarUrl
+            accountColor = session.profileService().getCachedColorPreference(session.myUserId)
+            refreshProfileColor()
+            tryOrNull { session.profileService().getProfile(session.myUserId) }
+            if (!isAdded) return@launch
+            accountColor = session.profileService().getCachedColorPreference(session.myUserId)
+            refreshProfileColor()
             displayNamePreference.setOnBindEditTextListener { editText ->
                 // An empty field means no display name at all in this room, i.e. the Matrix ID is shown.
                 editText.hint = session.myUserId
@@ -380,6 +404,8 @@ class RoomPersonalizationSettingsFragment :
                     // "" means explicitly blanked (see DefaultStateService), same as absent for display purposes.
                     currentAvatarUrl = content.avatarUrl?.takeIf { it.isNotEmpty() }
                     currentDisplayName = content.displayName?.takeIf { it.isNotBlank() }
+                    currentColor = content.effectiveColorPreference()
+                    refreshProfileColor()
                     avatarPreference.refreshAvatar(
                             User(session.myUserId, currentDisplayName, currentAvatarUrl)
                     )
@@ -520,12 +546,26 @@ class RoomPersonalizationSettingsFragment :
         }
     }
 
-    fun isPersonalized() = currentDisplayName != accountDisplayName || currentAvatarUrl != accountAvatarUrl
+    private fun refreshProfileColor() {
+        profileColorBinder.update(currentColor, accountColor) { matrixItemColorProvider.defaultColorHex(session.myUserId) }
+    }
+
+    private fun applyColor(color: ColorPreference?) {
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = runCatching { room.stateService().updateMyRoomColorPreference(color) }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            result.onFailure { displayErrorDialog(it) }
+        }
+    }
+
+    fun isPersonalized() = currentDisplayName != accountDisplayName || currentAvatarUrl != accountAvatarUrl || currentColor != null
 
     fun resetToAccountProfile() {
         displayLoadingView()
         lifecycleScope.launch {
-            val result = runCatching { room.stateService().updateMyRoomProfile(null, null) }
+            val result = runCatching { room.stateService().resetMyRoomProfile() }
             if (!isAdded) return@launch
             hideLoadingView()
             result.onFailure { displayErrorDialog(it) }

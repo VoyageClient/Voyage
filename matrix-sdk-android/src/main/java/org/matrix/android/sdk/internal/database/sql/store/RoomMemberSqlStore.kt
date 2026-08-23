@@ -38,6 +38,8 @@ internal class RoomMemberSqlStore(private val database: SessionSqlDatabase) {
             is_direct = if (entity.isDirect) 1L else 0L,
             membership_str = entity.membership.name,
             user_presence_user_id = entity.userPresenceEntity?.userId,
+            color_on_light = entity.colorOnLight,
+            color_on_dark = entity.colorOnDark,
     )
 
     // Guarded like RoomSummarySqlStore.linkDirectUserPresence: skip the (listener-notifying) UPDATE when
@@ -57,6 +59,8 @@ internal class RoomMemberSqlStore(private val database: SessionSqlDatabase) {
             avatarUrl = avatar_url,
             reason = reason,
             isDirect = is_direct != 0L,
+            colorOnLight = color_on_light,
+            colorOnDark = color_on_dark,
     ).also {
         it.membership = Membership.valueOf(membership_str)
         it.userPresenceEntity = user_presence_user_id?.let { id -> presenceQueries.selectByUserId(id).executeAsOneOrNull()?.toEntity() }

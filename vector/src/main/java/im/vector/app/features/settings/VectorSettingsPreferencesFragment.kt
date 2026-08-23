@@ -31,6 +31,7 @@ import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.emoji.CustomEmojiFontStore
 import im.vector.app.features.home.ShortcutsHandler
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.settings.font.FontScaleSettingActivity
 import im.vector.app.features.settings.reactions.QuickReactionsSettingsActivity
 import im.vector.app.features.themes.ThemeUtils
@@ -50,6 +51,7 @@ class VectorSettingsPreferencesFragment :
     @Inject lateinit var shortcutsHandler: ShortcutsHandler
     @Inject lateinit var customEmojiFontStore: CustomEmojiFontStore
     @Inject lateinit var appLogoManager: AppLogoManager
+    @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
 
     private val emojiFontPickerLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode != Activity.RESULT_OK) return@registerStartForActivityResult
@@ -181,10 +183,13 @@ class VectorSettingsPreferencesFragment :
             }
         }
 
-        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_UGLIER_USERNAME_COLORS_KEY)?.setOnPreferenceChangeListener { _, _ ->
-            (activity as? VectorBaseActivity<*>)?.acknowledgeConfigurationChange()
+        // The change listener runs before the value is persisted, so invalidate on the next frame.
+        val invalidateColors = Preference.OnPreferenceChangeListener { _, _ ->
+            view?.post { matrixItemColorProvider.invalidate() }
             true
         }
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_UGLIER_USERNAME_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
             // Update the runtime mirror so new binds pick it up without a restart.

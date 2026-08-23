@@ -48,6 +48,7 @@ import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.core.profile.PronounHelper
 import im.vector.app.core.profile.TimezoneFormatter
+import im.vector.app.core.ui.colorpicker.ProfileColorPreferenceBinder
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.core.utils.leadingEmojiRunLength
 import im.vector.app.core.utils.openUrlInChromeCustomTab
@@ -56,6 +57,7 @@ import im.vector.app.databinding.DialogChangePasswordBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.discovery.DiscoverySettingsFragment
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -83,6 +85,7 @@ import org.matrix.android.sdk.api.session.admin.ServerAdminStatus
 import org.matrix.android.sdk.api.session.getUser
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerConfig
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.profile.UserStatus
@@ -106,6 +109,7 @@ class VectorSettingsGeneralFragment :
     @Inject lateinit var timezoneFormatter: TimezoneFormatter
     @Inject lateinit var serverAdminStatusDataSource: ServerAdminStatusDataSource
     @Inject lateinit var emoteShortcodeProcessor: EmoteShortcodeProcessor
+    @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
 
     override var titleRes = CommonStrings.settings_general_title
     override val preferenceXmlRes = R.xml.vector_settings_general
@@ -141,6 +145,18 @@ class VectorSettingsGeneralFragment :
     }
     private val mDisplayNamePreference by lazy {
         findPreference<EditTextPreference>("SETTINGS_DISPLAY_NAME_PREFERENCE_KEY")!!
+    }
+    private val profileColorBinder by lazy {
+        ProfileColorPreferenceBinder(
+                fragment = this,
+                single = findPreference("SETTINGS_PROFILE_COLOR_PREFERENCE_KEY")!!,
+                light = findPreference("SETTINGS_PROFILE_COLOR_LIGHT_PREFERENCE_KEY")!!,
+                dark = findPreference("SETTINGS_PROFILE_COLOR_DARK_PREFERENCE_KEY")!!,
+                perThemeSwitch = findPreference("SETTINGS_PROFILE_COLOR_SAME_PREFERENCE_KEY")!!,
+                requestKeyPrefix = "VectorSettingsGeneralFragment",
+                resetIsDelete = true,
+                onSave = ::saveProfileColor,
+        )
     }
     private val mStatusPreference by lazy {
         findPreference<VectorPreference>("SETTINGS_STATUS_PREFERENCE_KEY")!!
@@ -221,10 +237,28 @@ class VectorSettingsGeneralFragment :
     }
 
     private fun updateProfileFieldSummaries() {
+        updateProfileColor(session.profileService().getCachedColorPreference(session.myUserId))
         updatePronounsSummary(session.profileService().getCachedPronouns(session.myUserId))
         updateTimezoneSummary(session.profileService().getCachedTimezone(session.myUserId))
         updateStatusSummary(session.profileService().getCachedStatus(session.myUserId))
         updateBiographySummary(session.profileService().getCachedBio(session.myUserId))
+    }
+
+    private fun updateProfileColor(color: ColorPreference?) {
+        profileColorBinder.update(color, inherited = null) { matrixItemColorProvider.defaultColorHex(session.myUserId) }
+    }
+
+    private fun saveProfileColor(color: ColorPreference?) {
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = runCatching { session.profileService().setColorPreference(session.myUserId, color) }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            result.fold(
+                    onSuccess = { updateProfileColor(color) },
+                    onFailure = { displayErrorDialog(it) }
+            )
+        }
     }
 
     private fun updateStatusSummary(status: UserStatus?) {

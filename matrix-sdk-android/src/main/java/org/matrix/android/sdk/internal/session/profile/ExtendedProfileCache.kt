@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.session.profile.UserBio
@@ -53,6 +54,11 @@ internal fun JsonDict.profilePronouns(): List<Pronoun>? {
                 grammaticalGender = (map["grammatical_gender"] as? String)?.lowercase(),
         )
     }
+}
+
+internal fun JsonDict.profileColorPreference(): ColorPreference? {
+    return ColorPreference.parse(this[ProfileKeys.COLOR_PREFERENCE])
+            ?: ColorPreference.parse(this[ProfileKeys.COLOR_PREFERENCE_UNSTABLE])
 }
 
 internal fun JsonDict.profileStatus(): UserStatus? {
@@ -143,6 +149,7 @@ internal class ExtendedProfileCache @Inject constructor(
     private val bannerUrlCache = ConcurrentHashMap<String, Optional<String>>()
     private val statusCache = ConcurrentHashMap<String, Optional<UserStatus>>()
     private val bioCache = ConcurrentHashMap<String, Optional<UserBio>>()
+    private val colorCache = ConcurrentHashMap<String, Optional<ColorPreference>>()
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
     // Emits a userId once its pronouns become known, so UIs already showing the neutral fallback
@@ -155,6 +162,11 @@ internal class ExtendedProfileCache @Inject constructor(
     // nothing until it is opened again.
     private val profileUpdates = MutableSharedFlow<String>(extraBufferCapacity = 64)
     val profileUpdateFlow: SharedFlow<String> = profileUpdates.asSharedFlow()
+
+    // Emits a userId whenever the color they should be drawn with may have changed (profile or room
+    // member), so open timelines can rebind that sender's items.
+    private val colorUpdates = MutableSharedFlow<String>(extraBufferCapacity = 64)
+    val colorUpdateFlow: SharedFlow<String> = colorUpdates.asSharedFlow()
 
     fun getCachedPronouns(userId: String): List<Pronoun>? = pronounsCache[userId]
 
@@ -169,6 +181,17 @@ internal class ExtendedProfileCache @Inject constructor(
     fun getCachedStatus(userId: String): UserStatus? = statusCache[userId]?.getOrNull()
 
     fun getCachedBio(userId: String): UserBio? = bioCache[userId]?.getOrNull()
+
+    fun getCachedColorPreference(userId: String): ColorPreference? = colorCache[userId]?.getOrNull()
+
+    fun cacheColorPreference(userId: String, color: ColorPreference?) {
+        val updated = Optional.from(color?.takeIf { !it.isEmpty() })
+        if (colorCache.put(userId, updated) != updated) colorUpdates.tryEmit(userId)
+    }
+
+    fun notifyColorChanged(userId: String) {
+        colorUpdates.tryEmit(userId)
+    }
 
     fun cacheStatus(userId: String, status: UserStatus?) {
         statusCache[userId] = Optional.from(status?.takeIf { !it.isEmpty() })
@@ -197,6 +220,7 @@ internal class ExtendedProfileCache @Inject constructor(
         cacheBannerUrl(userId, dict.profileBannerUrl())
         cacheStatus(userId, dict.profileStatus())
         cacheBio(userId, dict.profileBio())
+        cacheColorPreference(userId, dict.profileColorPreference())
         profileUpdates.tryEmit(userId)
     }
 
@@ -221,10 +245,11 @@ internal class ExtendedProfileCache @Inject constructor(
         bannerUrlCache.remove(userId)
         statusCache.remove(userId)
         bioCache.remove(userId)
+        colorCache.remove(userId)
     }
 
     fun prefetch(userId: String) {
-        if (pronounsCache.containsKey(userId) && timezoneCache.containsKey(userId)) return
+        if (pronounsCache.containsKey(userId) && timezoneCache.containsKey(userId) && colorCache.containsKey(userId)) return
         if (!inFlight.add(userId)) return
         taskExecutor.executorScope.launch {
             try {
@@ -240,6 +265,7 @@ internal class ExtendedProfileCache @Inject constructor(
                     cacheBannerUrl(userId, null)
                     cacheStatus(userId, null)
                     cacheBio(userId, null)
+                    cacheColorPreference(userId, null)
                 }
             } finally {
                 inFlight.remove(userId)

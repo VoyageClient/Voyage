@@ -156,6 +156,8 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY = "SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
+        const val SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY = "SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
+        private const val SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY = "SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY"
         const val SETTINGS_PERFORMANCE_MODE_KEY = "SETTINGS_PERFORMANCE_MODE_KEY"
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
         const val SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY = "SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY"
@@ -457,6 +459,18 @@ class VectorPreferences @Inject constructor(
 
     fun useUglierUsernameColors(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_UGLIER_USERNAME_COLORS_KEY, false)
+    }
+
+    fun showOthersProfileColors(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY, true)
+    }
+
+    fun lastCustomProfileColor(): String {
+        return defaultPrefs.getString(SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY, null) ?: "#000000"
+    }
+
+    fun setLastCustomProfileColor(hex: String) {
+        defaultPrefs.edit { putString(SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY, hex) }
     }
 
     // When on, the app drops CPU-heavy graphical effects (BlurHash placeholders, spoiler blur, animated

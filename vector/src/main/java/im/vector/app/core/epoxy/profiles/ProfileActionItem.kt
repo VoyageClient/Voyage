@@ -11,6 +11,7 @@ import android.content.res.ColorStateList
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.widget.ImageViewCompat
@@ -22,6 +23,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.core.ui.colorpicker.ColorSwatches
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -49,6 +51,10 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
 
     @EpoxyAttribute
     var accessoryMatrixItem: MatrixItem? = null
+
+    @EpoxyAttribute
+    @ColorInt
+    var accessoryColor: Int? = null
 
     @EpoxyAttribute
     var avatarRenderer: AvatarRenderer? = null
@@ -111,6 +117,14 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
                 height = size
             }
             avatarRenderer?.render(accessoryMatrixItem!!, holder.secondaryAccessory)
+            holder.secondaryAccessory.isVisible = true
+        } else if (accessoryColor != null) {
+            val size = (40 * holder.view.resources.displayMetrics.density).toInt()
+            holder.secondaryAccessory.updateLayoutParams {
+                width = size
+                height = size
+            }
+            holder.secondaryAccessory.setImageDrawable(ColorSwatches.round(accessoryColor!!))
             holder.secondaryAccessory.isVisible = true
         } else {
             holder.secondaryAccessory.isVisible = false

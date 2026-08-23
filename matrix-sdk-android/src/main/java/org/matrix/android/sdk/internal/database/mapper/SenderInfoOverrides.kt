@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.database.mapper
 
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -16,6 +17,7 @@ internal fun overriddenSenderInfo(
         displayName: String?,
         isUniqueDisplayName: Boolean,
         avatarUrl: String?,
+        colorPreference: ColorPreference? = null,
 ): SenderInfo {
     val overrideName = ProfileOverrides.displayNameFor(userId)
     return SenderInfo(
@@ -24,11 +26,18 @@ internal fun overriddenSenderInfo(
             // A user-chosen override needs no "(userId)" disambiguation suffix.
             isUniqueDisplayName = overrideName != null || isUniqueDisplayName,
             avatarUrl = ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+            colorPreference = colorPreference,
     )
 }
 
-internal fun overriddenUserItem(userId: String, displayName: String?, avatarUrl: String?) = MatrixItem.UserItem(
+internal fun overriddenUserItem(
+        userId: String,
+        displayName: String?,
+        avatarUrl: String?,
+        colorPreference: ColorPreference? = null,
+) = MatrixItem.UserItem(
         userId,
         ProfileOverrides.displayNameFor(userId) ?: displayName,
         ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+        colorPreference = colorPreference,
 )
