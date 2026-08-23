@@ -40,12 +40,17 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.attachments.preview.AudioDetails
+import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.bubbleContentMaxWidth
 import im.vector.app.features.home.room.detail.timeline.style.drawsBubbleBackground
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlViewUpdater
+import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -112,8 +117,19 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute
     var captionUseBigFont: Boolean = false
 
+    @EpoxyAttribute
+    var previewUrlRetriever: PreviewUrlRetriever? = null
+
+    @EpoxyAttribute
+    var previewUrlCallback: TimelineEventController.PreviewUrlCallback? = null
+
+    @EpoxyAttribute
+    var previewUrlImageContentRenderer: ImageContentRenderer? = null
+
     private var isUserSeeking = false
     private var playbackTrackerListener: AudioMessagePlaybackTracker.Listener? = null
+
+    private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -135,6 +151,15 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
                 itemLongClickListener = attributes.itemLongClickListener,
                 markwonPlugins = captionMarkwonPlugins,
                 useBigFont = captionUseBigFont,
+        )
+
+        previewUrlViewUpdater.bind(
+                view = holder.previewUrlView,
+                retriever = previewUrlRetriever,
+                callback = previewUrlCallback,
+                imageContentRenderer = previewUrlImageContentRenderer,
+                stableId = attributes.informationData.stableId,
+                messageLayout = attributes.informationData.messageLayout,
         )
     }
 
@@ -412,6 +437,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     override fun unbind(holder: Holder) {
+        previewUrlViewUpdater.unbind()
         holder.cancelProgressAnimation()
         holder.backdropKey = null
         super.unbind(holder)
@@ -446,6 +472,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
             progressAnimator = null
         }
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val previewUrlView by bind<PreviewUrlView>(R.id.messageUrlPreview)
     }
 
     companion object {

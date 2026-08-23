@@ -11,6 +11,7 @@ import org.matrix.android.sdk.api.failure.shouldBeRetried
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
+import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.util.toMatrixErrorStr
 import org.matrix.android.sdk.internal.worker.BackgroundTaskBody
 import org.matrix.android.sdk.internal.worker.BackgroundTaskContext
@@ -23,6 +24,7 @@ internal class SendEventTaskBody @Inject constructor(
         private val sendEventTask: SendEventTask,
         private val cryptoService: CryptoService,
         private val cancelSendTracker: CancelSendTracker,
+        private val urlPreviewBundler: LinkPreviewPrefetcher,
 ) : BackgroundTaskBody<SendEventWorkerParams> {
 
     override suspend fun execute(params: SendEventWorkerParams, context: BackgroundTaskContext): BackgroundTaskOutcome {
@@ -45,7 +47,10 @@ internal class SendEventTaskBody @Inject constructor(
 
         Timber.v("## SendEvent: Send event ${params.eventId}")
         return try {
-            sendEventTask.execute(SendEventTask.Params(event, params.isEncrypted ?: cryptoService.isRoomEncrypted(roomId)))
+            val encrypt = params.isEncrypted ?: cryptoService.isRoomEncrypted(roomId)
+            // Uploaded media skips the send queue, so its caption's links get bundled (MSC4095) here instead.
+            val eventToSend = urlPreviewBundler.bundleUrlPreviews(event, encrypt)
+            sendEventTask.execute(SendEventTask.Params(eventToSend, encrypt))
             BackgroundTaskOutcome.Success
         } catch (exception: Throwable) {
             if (!exception.shouldBeRetried()) {

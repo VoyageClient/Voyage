@@ -422,6 +422,9 @@ class MessageItemFactory @Inject constructor(
                 .captionUseBigFont(renderedCaption?.useBigFont == true)
                 .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(params.callback))
+                .previewUrlRetriever(params.callback?.getPreviewUrlRetriever())
+                .previewUrlCallback(params.callback)
+                .previewUrlImageContentRenderer(imageContentRenderer)
     }
 
     /**
@@ -508,6 +511,9 @@ class MessageItemFactory @Inject constructor(
                 .captionUseBigFont(renderedCaption?.useBigFont == true)
                 .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(params.callback))
+                .previewUrlRetriever(params.callback?.getPreviewUrlRetriever())
+                .previewUrlCallback(params.callback)
+                .previewUrlImageContentRenderer(imageContentRenderer)
     }
 
     private fun buildVerificationRequestMessageItem(
@@ -584,6 +590,9 @@ class MessageItemFactory @Inject constructor(
                 .captionUseBigFont(renderedCaption?.useBigFont == true)
                 .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(callback))
+                .previewUrlRetriever(callback?.getPreviewUrlRetriever())
+                .previewUrlCallback(callback)
+                .previewUrlImageContentRenderer(imageContentRenderer)
     }
 
     private fun buildAudioContent(
@@ -725,6 +734,8 @@ class MessageItemFactory @Inject constructor(
                 .captionUseBigFont(renderedCaption?.useBigFont == true)
                 .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(callback))
+                .previewUrlRetriever(callback?.getPreviewUrlRetriever())
+                .previewUrlCallback(callback)
                 .apply {
                     // A still-sending event may have no entry in the media viewer's list yet,
                     // which would open the viewer on the wrong item; keep it untappable until sent.
@@ -811,6 +822,8 @@ class MessageItemFactory @Inject constructor(
                 .captionUseBigFont(renderedCaption?.useBigFont == true)
                 .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(callback))
+                .previewUrlRetriever(callback?.getPreviewUrlRetriever())
+                .previewUrlCallback(callback)
                 .apply {
                     if (!informationData.sendState.isSending()) {
                         clickListener { view ->
@@ -912,6 +925,8 @@ class MessageItemFactory @Inject constructor(
                 .captionUseBigFont(renderedCaption?.useBigFont == true)
                 .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(callback))
+                .previewUrlRetriever(callback?.getPreviewUrlRetriever())
+                .previewUrlCallback(callback)
                 .apply {
                     if (!informationData.sendState.isSending()) {
                         tileClickListener { index, view ->
