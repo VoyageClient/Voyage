@@ -56,6 +56,9 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
 
     abstract fun getViewStubId(): Int
 
+    /** The avatar column is reserved by default; dual-side bubbles with the avatar hidden reclaim it. */
+    open fun ignoreMessageGuideline(): Boolean = false
+
     /** A colour to wash the whole row in whenever it isn't showing the jump-to-message highlight. */
     protected open fun getRowTintColor(context: Context): Int? = null
 
@@ -81,7 +84,7 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
     override fun bind(holder: H) {
         super.bind(holder)
         holder.leftGuideline.updateLayoutParams<RelativeLayout.LayoutParams> {
-            this.marginStartCompat = leftGuideline
+            this.marginStartCompat = if (ignoreMessageGuideline()) 0 else leftGuideline
         }
         applyRowTint(holder)
         val eventId = getEventIds().firstOrNull()
