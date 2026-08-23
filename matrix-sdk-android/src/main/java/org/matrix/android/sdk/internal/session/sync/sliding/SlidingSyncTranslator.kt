@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.sync.model.UserProfileSyncUpdate
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -53,7 +54,7 @@ internal class SlidingSyncTranslator @Inject constructor(
 
         response.rooms.orEmpty().forEach { (roomId, room) ->
             val ephemeral = listOfNotNull(receipts[roomId], typing[roomId])
-            when (room.membership(roomId)) {
+            when (room.membership() ?: storedMembership(roomId)) {
                 Membership.INVITE -> invite[roomId] = InvitedRoomSync(
                         inviteState = RoomInviteState(room.strippedStateEvents.orEmpty())
                 )
@@ -62,7 +63,9 @@ internal class SlidingSyncTranslator @Inject constructor(
                 )
                 Membership.LEAVE,
                 Membership.BAN -> leave[roomId] = room.toRoomSync(roomAccountData[roomId], emptyList())
-                else -> join[roomId] = room.toRoomSync(roomAccountData[roomId], ephemeral)
+                Membership.JOIN -> join[roomId] = room.toRoomSync(roomAccountData[roomId], ephemeral)
+                // Nothing says we are in this room; filing it as joined would list an empty "0 members" room.
+                else -> Timber.w("Sliding sync: ignoring $roomId, no membership known")
             }
         }
 
@@ -71,9 +74,9 @@ internal class SlidingSyncTranslator @Inject constructor(
         (roomAccountData.keys + receipts.keys + typing.keys)
                 .filterNot { it in join || it in invite || it in leave || it in knock }
                 .forEach { roomId ->
-                    // Nothing an extension carries applies to a room we are no longer in, and synthesizing
-                    // a join entry for one puts it back in the room list.
-                    if (localRemoval(roomId) != null) return@forEach
+                    // Only a room we hold as joined may be synthesized as one: for a left room the echo no
+                    // longer applies, and for an invite or an unknown room it would fabricate a join.
+                    if (storedMembership(roomId) != Membership.JOIN) return@forEach
                     val ephemeral = listOfNotNull(receipts[roomId], typing[roomId])
                     join[roomId] = RoomSync(
                             accountData = roomAccountData[roomId]?.let { RoomSyncAccountData(events = it) },
@@ -106,7 +109,7 @@ internal class SlidingSyncTranslator @Inject constructor(
         }
     }
 
-    private fun SlidingSyncRoom.membership(roomId: String): Membership? {
+    private fun SlidingSyncRoom.membership(): Membership? {
         when (membership) {
             "invite" -> return Membership.INVITE
             "knock" -> return Membership.KNOCK
@@ -123,17 +126,16 @@ internal class SlidingSyncTranslator @Inject constructor(
                 ?.membership
                 ?.let { return it }
         if (strippedStateEvents != null) return Membership.INVITE
-        return localRemoval(roomId)
+        return null
     }
 
     /**
-     * The stored membership of a room we were kicked or banned from. Synapse keeps delivering such a room
-     * — its receipts at least — carrying nothing of our own membership, and reading that as a join puts it
-     * back among the joined rooms and clears its removed marker.
+     * What the store says about a room the response carries nothing about. Synapse keeps delivering a room
+     * we were kicked or banned from — its receipts at least — with none of our own membership, and reading
+     * that as a join puts it back among the joined rooms and clears its removed marker.
      */
-    private fun localRemoval(roomId: String): Membership? {
-        return stores.roomMember.getByRoomAndUser(roomId, userId)?.membership
-                ?.takeIf { it == Membership.LEAVE || it == Membership.BAN }
+    private fun storedMembership(roomId: String): Membership? {
+        return stores.room.get(roomId)?.membership?.takeIf { it != Membership.NONE }
     }
 
     private fun SlidingSyncRoom.toRoomSync(accountData: List<Event>?, ephemeral: List<Event>): RoomSync {
