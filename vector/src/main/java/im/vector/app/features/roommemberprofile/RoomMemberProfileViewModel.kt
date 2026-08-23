@@ -202,10 +202,10 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 .launchIn(viewModelScope)
 
         session.flow()
-                .liveUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
-                .unwrap()
-                .onEach { event ->
-                    val fields = ProfileOverrides.parse(event.content)[initialState.userId]
+                .liveUserAccountData(ProfileOverrides.ACCOUNT_DATA_TYPES.toSet())
+                .onEach { events ->
+                    val content = ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { type -> events.firstOrNull { it.type == type }?.content }
+                    val fields = ProfileOverrides.parse(content)[initialState.userId]
                     val overrideName = (fields?.get(ProfileOverrides.FIELD_DISPLAY_NAME) as? String)?.takeIf { it.isNotBlank() }
                     val overrideAvatar = (fields?.get(ProfileOverrides.FIELD_AVATAR_URL) as? String)?.takeIf { it.isNotBlank() }
                     val overrideColor = ColorPreference.parse(fields?.get(ProfileKeys.COLOR_PREFERENCE))
@@ -344,9 +344,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     private fun updateProfileOverrideFields(mutate: (MutableMap<String, Any?>) -> Unit) {
         viewModelScope.launch {
             accountDataWriteMutex.withLock {
-                val content = session.accountDataService()
-                        .getUserAccountDataEvent(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
-                        ?.content
+                val content = ProfileOverrides.ACCOUNT_DATA_TYPES
+                        .firstNotNullOfOrNull { session.accountDataService().getUserAccountDataEvent(it)?.content }
                         .orEmpty()
                         .toMutableMap()
                 val fields = (content[initialState.userId] as? Map<*, *>)
@@ -358,7 +357,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 mutate(fields)
                 if (fields.isEmpty()) content.remove(initialState.userId) else content[initialState.userId] = fields
                 try {
-                    session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES, content)
+                    ProfileOverrides.ACCOUNT_DATA_TYPES.forEach { session.accountDataService().updateUserAccountData(it, content) }
                     _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
                 } catch (failure: Throwable) {
                     // The optimistic color assumed this write would land; it didn't, so revert to reality.

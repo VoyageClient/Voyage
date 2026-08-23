@@ -39,7 +39,7 @@ data class RoomMemberProfileViewState(
         val hasReadReceipt: Boolean = false,
         // im.vector.setting.override_colors: the pre-MSC4522 per-user color spec, a fallback for overrides set by older clients
         val userColorOverride: String? = null,
-        // im.voyage.setting.profile_overrides fields for this user
+        // MSC4529 m.profile_overrides fields for this user
         val profileOverrideDisplayName: String? = null,
         val profileOverrideAvatarUrl: String? = null,
         val profileOverrideColor: ColorPreference? = null,

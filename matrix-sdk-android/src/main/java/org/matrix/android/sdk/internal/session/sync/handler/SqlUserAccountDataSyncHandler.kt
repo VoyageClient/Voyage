@@ -85,7 +85,8 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
                 UserAccountDataTypes.TYPE_PUSH_RULES -> handlePushRules(event)
                 UserAccountDataTypes.TYPE_IGNORED_USER_LIST -> handleIgnoredUsers(event, aggregator)
                 UserAccountDataTypes.TYPE_BREADCRUMBS -> handleBreadcrumbs(event)
-                UserAccountDataTypes.TYPE_PROFILE_OVERRIDES -> profileOverridesUpdater.apply(event.content)
+                UserAccountDataTypes.TYPE_PROFILE_OVERRIDES,
+                UserAccountDataTypes.TYPE_PROFILE_OVERRIDES_UNSTABLE -> profileOverridesUpdater.apply()
             }
         }
     }
