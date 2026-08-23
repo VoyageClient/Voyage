@@ -26,7 +26,7 @@
             android:id="@+id/voicePlaybackControlButton"
             android:layout_width="@dimen/item_event_message_media_button_size"
             android:layout_height="@dimen/item_event_message_media_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:contentDescription="@string/a11y_play_voice_message"
             app:srcCompat="@drawable/ic_play_pause_play"
             app:layout_constraintBottom_toBottomOf="parent"
