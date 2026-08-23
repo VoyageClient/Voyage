@@ -66,6 +66,7 @@ object UserAccountDataTypes {
     /** Cached result of the Synapse admin-API probe, so every device doesn't have to re-probe. */
     const val TYPE_SERVER_ADMIN = "im.voyage.setting.server_admin"
 
-    /** Client-side per-user profile field overrides (userId -> field -> value), see [org.matrix.android.sdk.api.session.profile.ProfileOverrides]. */
-    const val TYPE_PROFILE_OVERRIDES = "im.voyage.setting.profile_overrides"
+    /** MSC4529 per-user profile field overrides (userId -> field -> value), see [org.matrix.android.sdk.api.session.profile.ProfileOverrides]. */
+    const val TYPE_PROFILE_OVERRIDES = "m.profile_overrides"
+    const val TYPE_PROFILE_OVERRIDES_UNSTABLE = "org.matrix.msc4529.profile_overrides"
 }

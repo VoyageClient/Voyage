@@ -11,11 +11,12 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 
 /**
- * Client-side per-user profile overrides, backed by the `im.voyage.setting.profile_overrides`
- * user account data event: a map of userId to a map of profile fields (`displayname`, `avatar_url`,
- * or any other profile field) that replace the user's own values everywhere they are displayed.
+ * Client-side per-user profile overrides, backed by the MSC4529 `m.profile_overrides` user account
+ * data event: a map of userId to a map of profile fields (`displayname`, `avatar_url`, or any other
+ * profile field) that replace the user's own values everywhere they are displayed.
  *
  * Held statically so the non-injectable mappers/resolvers can consult it on every read.
  */
@@ -23,6 +24,11 @@ object ProfileOverrides {
 
     const val FIELD_DISPLAY_NAME = "displayname"
     const val FIELD_AVATAR_URL = "avatar_url"
+
+    /** Stable first: the MSC says to prefer it where both are present. */
+    val ACCOUNT_DATA_TYPES = listOf(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES, UserAccountDataTypes.TYPE_PROFILE_OVERRIDES_UNSTABLE)
+
+    fun isAccountDataType(type: String): Boolean = type in ACCOUNT_DATA_TYPES
 
     @Volatile
     var overrides: Map<String, Map<String, Any?>> = emptyMap()

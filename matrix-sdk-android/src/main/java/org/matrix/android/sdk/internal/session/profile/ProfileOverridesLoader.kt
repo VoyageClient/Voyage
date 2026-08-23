@@ -10,9 +10,7 @@ package org.matrix.android.sdk.internal.session.profile
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
-import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
-import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -28,10 +26,7 @@ internal class ProfileOverridesLoader @Inject constructor(
     override fun onSessionStarted(session: Session) {
         ProfileOverrides.claim(session.sessionId)
         taskExecutor.executorScope.launch {
-            val content = stores.accountData.getUserAccountData(UserAccountDataTypes.TYPE_PROFILE_OVERRIDES)
-                    ?.contentStr
-                    ?.let(ContentMapper::map)
-            ProfileOverrides.set(session.sessionId, ProfileOverrides.parse(content))
+            ProfileOverrides.set(session.sessionId, ProfileOverrides.parse(stores.storedProfileOverrides()))
         }
     }
 

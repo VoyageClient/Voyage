@@ -9,21 +9,22 @@ package org.matrix.android.sdk.internal.session.profile
 
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
+import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import javax.inject.Inject
 
-/** Applies a changed `im.voyage.setting.profile_overrides` content and refreshes affected room summaries. */
+/** Re-reads the persisted profile-overrides account data, applies it and refreshes affected room summaries. */
 internal class ProfileOverridesUpdater @Inject constructor(
         @SessionId private val sessionId: String,
         private val stores: SessionStores,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
 ) {
 
-    fun apply(content: Content?) {
+    fun apply() {
         val old = ProfileOverrides.overrides
-        val new = ProfileOverrides.parse(content)
+        val new = ProfileOverrides.parse(stores.storedProfileOverrides())
         if (new == old) return
         if (!ProfileOverrides.set(sessionId, new)) return
         val changedUsers = (old.keys + new.keys).filter { old[it] != new[it] }
@@ -32,3 +33,7 @@ internal class ProfileOverridesUpdater @Inject constructor(
         }
     }
 }
+
+internal fun SessionStores.storedProfileOverrides(): Content? =
+        ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { accountData.getUserAccountData(it)?.contentStr }
+                ?.let(ContentMapper::map)
