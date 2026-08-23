@@ -37,6 +37,8 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.home.room.detail.timeline.tools.LinkClickSourceHolder
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
+import im.vector.app.features.home.room.detail.timeline.view.canHideAvatars
+import im.vector.app.features.home.room.detail.timeline.view.infoInBubbles
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
@@ -291,6 +293,11 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                 addRule(RelativeLayout.ALIGN_BOTTOM, holder.informationBottom.id)
             }
         }
+    }
+
+    override fun ignoreMessageGuideline(): Boolean {
+        val messageLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.ScBubble ?: return false
+        return infoInBubbles(messageLayout) && canHideAvatars(attributes)
     }
 
     override fun unbind(holder: H) {
