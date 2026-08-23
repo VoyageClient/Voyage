@@ -64,6 +64,7 @@ import im.vector.app.features.attachments.editor.image.ImageEditorEdits
 import im.vector.app.features.attachments.editor.isRestoreOriginal
 import im.vector.app.features.attachments.editor.video.VideoEditorActivity
 import im.vector.app.features.attachments.editor.video.VideoEditorEdits
+import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.animatedimage.AnimatedImageFormat
@@ -94,6 +95,7 @@ class AttachmentsPreviewFragment :
     @Inject lateinit var attachmentMiniaturePreviewController: AttachmentMiniaturePreviewController
     @Inject lateinit var attachmentBigPreviewController: AttachmentBigPreviewController
     @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var twemojiProvider: TwemojiProvider
 
     private val fragmentArgs: AttachmentsPreviewArgs by args()
     private val viewModel: AttachmentsPreviewViewModel by fragmentViewModel()
@@ -143,6 +145,7 @@ class AttachmentsPreviewFragment :
                 vectorPreferences.sendMediaGalleries() && fragmentArgs.attachments.size >= 2
         ))
         views.attachmentPreviewerCaption.doAfterTextChanged { text ->
+            if (text != null) twemojiProvider.applyTo(text)
             if (!bindingCaption) viewModel.handle(AttachmentsPreviewAction.SetCaption(text?.toString().orEmpty()))
         }
         val accent = ThemeUtils.getColorFromContextTheme(requireContext(), com.google.android.material.R.attr.colorAccent)
