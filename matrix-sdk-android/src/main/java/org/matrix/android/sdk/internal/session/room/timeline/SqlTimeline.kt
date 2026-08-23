@@ -525,6 +525,7 @@ internal class SqlTimeline(
         chunkSnapshotCache.clear()
         liveChunkRowCap = liveChunkRowStep
         liveChunkFullyMapped = false
+        liveEdgeLoaded = false
         if (seedChunkId == null) return
         loadedChunkIds.add(seedChunkId)
         // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
@@ -954,7 +955,19 @@ internal class SqlTimeline(
             return
         }
         val perfStart = MatrixPerf.now()
-        liveEdgeLoaded = isLiveEdgeLoaded()
+        val nowAtLiveEdge = isLiveEdgeLoaded()
+        // A forced new live chunk (sliding-sync initial redelivery, rejoin) demotes the chunk we were
+        // watching without deleting it; new events land in the new chunk, so follow it. Only an edge
+        // we actually held counts: a jump into history never starts from a last-forward chunk.
+        if (liveEdgeLoaded && !nowAtLiveEdge && !isThreadTimeline) {
+            val newLive = stores.chunk.lastForward(roomId)?.id
+            if (newLive != null && newLive != loadedChunkIds.firstOrNull()) {
+                // Not inline: seedFrom cancels the observer job this rebuild usually runs in.
+                timelineScope.launch { reseedAtLiveEdge(newLive) }
+                return
+            }
+        }
+        liveEdgeLoaded = nowAtLiveEdge
         val all = computeLoadedEvents(reuseLiveChunk)
         MatrixPerf.end(perfStart) { "timeline.computeLoadedEvents reuse=$reuseLiveChunk chunks=${loadedChunkIds.size} events=${all.size}" }
         val events = applyWindow(all)
@@ -1154,12 +1167,16 @@ internal class SqlTimeline(
                 if (currentLive != null && stores.chunk.getById(currentLive) != null) null
                 else stores.chunk.lastForward(this@SqlTimeline.roomId)?.id
             } ?: return@launch
-            pendingShowEventId = null
-            oldestShownEventId = null
-            newestShownEventId = null
-            seedFrom(liveChunkId)
-            rebuildSnapshot()
+            reseedAtLiveEdge(liveChunkId)
         }
+    }
+
+    private suspend fun reseedAtLiveEdge(chunkId: Long) {
+        pendingShowEventId = null
+        oldestShownEventId = null
+        newestShownEventId = null
+        seedFrom(chunkId)
+        rebuildSnapshot()
     }
 
     /** [UIEchoManager.Listener]: patch one event in the built snapshot (reaction ui-echo decoration). */
