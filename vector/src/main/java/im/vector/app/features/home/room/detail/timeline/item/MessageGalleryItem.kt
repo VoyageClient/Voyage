@@ -17,8 +17,12 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.ui.views.GalleryGridLayout
+import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.mediaCornerRadiusPx
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlViewUpdater
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -76,6 +80,14 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
     @EpoxyAttribute
     var captionUseBigFont: Boolean = false
 
+    @EpoxyAttribute
+    var previewUrlRetriever: PreviewUrlRetriever? = null
+
+    @EpoxyAttribute
+    var previewUrlCallback: TimelineEventController.PreviewUrlCallback? = null
+
+    private val previewUrlViewUpdater = PreviewUrlViewUpdater()
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         val context = holder.view.context
@@ -117,9 +129,19 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
                 markwonPlugins = captionMarkwonPlugins,
                 useBigFont = captionUseBigFont,
         )
+
+        previewUrlViewUpdater.bind(
+                view = holder.previewUrlView,
+                retriever = previewUrlRetriever,
+                callback = previewUrlCallback,
+                imageContentRenderer = imageContentRenderer,
+                stableId = attributes.informationData.stableId,
+                messageLayout = attributes.informationData.messageLayout,
+        )
     }
 
     override fun unbind(holder: Holder) {
+        previewUrlViewUpdater.unbind()
         GalleryGridBinder.unbind(holder.grid, imageContentRenderer)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         holder.grid.setOnLongClickListener(null)
@@ -139,6 +161,7 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
         val grid by bind<GalleryGridLayout>(R.id.messageGalleryGrid)
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val previewUrlView by bind<PreviewUrlView>(R.id.messageUrlPreview)
     }
 
     companion object {

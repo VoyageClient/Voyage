@@ -17,7 +17,12 @@
 package org.matrix.android.sdk.internal.session.media
 
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.isReply
@@ -33,19 +38,7 @@ internal class UrlsExtractor @Inject constructor(
     fun extract(event: TimelineEvent): List<String> {
         return event.takeIf { it.root.getClearType() == EventType.MESSAGE }
                 ?.getLastMessageContent()
-                ?.takeIf {
-                    it.msgType == MessageType.MSGTYPE_TEXT ||
-                            it.msgType == MessageType.MSGTYPE_NOTICE ||
-                            it.msgType == MessageType.MSGTYPE_EMOTE
-                }
-                ?.let { messageContent ->
-                    if (event.isReply()) {
-                        // This is a reply, strip the reply fallback
-                        ContentUtils.extractUsefulTextFromReply(messageContent.body)
-                    } else {
-                        messageContent.body
-                    }
-                }
+                ?.previewableText(event.isReply())
                 ?.let { extract(it) }
                 .orEmpty()
     }
@@ -56,5 +49,21 @@ internal class UrlsExtractor @Inject constructor(
                 .filter { it.startsWith("https://") || it.startsWith("http://") }
                 .distinct()
                 .toList()
+    }
+
+    companion object {
+        /** The user-typed text of a message that may carry links: a text body or a media caption (MSC2530 / MSC4274). */
+        fun MessageContent.previewableText(isReply: Boolean): String? {
+            return when {
+                msgType == MessageType.MSGTYPE_TEXT ||
+                        msgType == MessageType.MSGTYPE_NOTICE ||
+                        msgType == MessageType.MSGTYPE_EMOTE -> {
+                    if (isReply) ContentUtils.extractUsefulTextFromReply(body) else body
+                }
+                this is MessageWithAttachmentContent -> getCaption(isReply)
+                this is MessageGalleryContent -> galleryCaption()
+                else -> null
+            }
+        }
     }
 }

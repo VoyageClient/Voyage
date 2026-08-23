@@ -31,10 +31,14 @@ import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.ui.views.RoundedCornerImageView
+import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.mediaCornerRadiusPx
 import im.vector.app.features.home.room.detail.timeline.style.mediaCornerTransformation
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlViewUpdater
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.media.ImageAlphaProbe
 import im.vector.app.features.media.ImageContentRenderer
@@ -101,6 +105,14 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute
     var captionUseBigFont: Boolean = false
+
+    @EpoxyAttribute
+    var previewUrlRetriever: PreviewUrlRetriever? = null
+
+    @EpoxyAttribute
+    var previewUrlCallback: TimelineEventController.PreviewUrlCallback? = null
+
+    private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -221,6 +233,15 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 markwonPlugins = captionMarkwonPlugins,
                 useBigFont = captionUseBigFont,
         )
+
+        previewUrlViewUpdater.bind(
+                view = holder.previewUrlView,
+                retriever = previewUrlRetriever,
+                callback = previewUrlCallback,
+                imageContentRenderer = imageContentRenderer,
+                stableId = attributes.informationData.stableId,
+                messageLayout = attributes.informationData.messageLayout,
+        )
     }
 
     override fun onViewAttachedToWindow(holder: Holder) {
@@ -249,6 +270,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     }
 
     override fun unbind(holder: Holder) {
+        previewUrlViewUpdater.unbind()
         holder.stopWatchingBackdrop()
         holder.showDuration(false)
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
@@ -432,6 +454,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val mediaShowButton by bind<AppCompatTextView>(R.id.messageMediaShowButton)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val previewUrlView by bind<PreviewUrlView>(R.id.messageUrlPreview)
     }
 
     companion object {

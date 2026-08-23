@@ -16,7 +16,8 @@ import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.settings.LinkPreviewMode
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -25,6 +26,7 @@ import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.session.content.FileUploader
+import org.matrix.android.sdk.internal.session.media.UrlsExtractor.Companion.previewableText
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -87,12 +89,10 @@ internal class UrlPreviewBundler @Inject constructor(
         @Suppress("UNCHECKED_CAST")
         val newContent = content["m.new_content"] as? Map<String, Any>
         val previewedContent = newContent ?: content
-        val msgType = previewedContent["msgtype"] as? String
-        if (msgType != MessageType.MSGTYPE_TEXT && msgType != MessageType.MSGTYPE_NOTICE && msgType != MessageType.MSGTYPE_EMOTE) {
-            return event
-        }
-        val body = previewedContent["body"] as? String ?: return event
-        val urls = previewableUrls(ContentUtils.extractUsefulTextFromReply(body))
+        val messageContent = previewedContent.toModel<MessageContent>() ?: return event
+        // Stripping a reply fallback is a no-op on a body that has none, so no need to check the relation.
+        val text = messageContent.previewableText(isReply = true) ?: return event
+        val urls = previewableUrls(text)
         if (urls.isEmpty()) return event
 
         val onDevice = generatesOnDevice(roomId, encrypt)

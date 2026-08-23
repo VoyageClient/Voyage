@@ -126,6 +126,7 @@ class MessageActionsEpoxyController @Inject constructor(
                 (previewType in listOf(EventType.MESSAGE, EventType.STICKER) && previewContent == null)
         // An attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
         val isFilenamePreview = previewContent is MessageWithAttachmentContent || state.galleryItemIndex != null
+        val isLocationPreview = previewContent?.msgType == MessageType.MSGTYPE_LOCATION
         // A whole-gallery sheet previews as the real grid; an item-scoped one as that item's thumbnail.
         val galleryContent = (previewContent as? MessageGalleryContent)?.takeIf { state.galleryItemIndex == null }
         val body = if (isPlaceholderPreview || isFilenamePreview) {
@@ -144,7 +145,7 @@ class MessageActionsEpoxyController @Inject constructor(
             avatarRenderer(host.avatarRenderer)
             matrixItem(state.informationData.matrixItem)
             senderColor(host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
-            bodyIsNotice(host.isNoticeStylePreview(state) || isPlaceholderPreview)
+            bodyIsNotice(host.isNoticeStylePreview(state) || isPlaceholderPreview || isFilenamePreview || isLocationPreview)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             data(

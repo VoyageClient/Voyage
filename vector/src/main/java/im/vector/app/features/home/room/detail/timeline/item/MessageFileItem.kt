@@ -22,10 +22,15 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setMediaPillColorCompat
+import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.drawsBubbleBackground
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlViewUpdater
+import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.noties.markwon.MarkwonPlugin
@@ -69,6 +74,17 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
 
     @EpoxyAttribute
     var captionUseBigFont: Boolean = false
+
+    @EpoxyAttribute
+    var previewUrlRetriever: PreviewUrlRetriever? = null
+
+    @EpoxyAttribute
+    var previewUrlCallback: TimelineEventController.PreviewUrlCallback? = null
+
+    @EpoxyAttribute
+    var previewUrlImageContentRenderer: ImageContentRenderer? = null
+
+    private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -121,9 +137,19 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
                 markwonPlugins = captionMarkwonPlugins,
                 useBigFont = captionUseBigFont,
         )
+
+        previewUrlViewUpdater.bind(
+                view = holder.previewUrlView,
+                retriever = previewUrlRetriever,
+                callback = previewUrlCallback,
+                imageContentRenderer = previewUrlImageContentRenderer,
+                stableId = attributes.informationData.stableId,
+                messageLayout = attributes.informationData.messageLayout,
+        )
     }
 
     override fun unbind(holder: Holder) {
+        previewUrlViewUpdater.unbind()
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
@@ -140,6 +166,7 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         val fileDownloadProgress by bind<ProgressBar>(R.id.messageFileProgressbar)
         val filenameView by bind<TextView>(R.id.messageFilenameView)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val previewUrlView by bind<PreviewUrlView>(R.id.messageUrlPreview)
     }
 
     companion object {

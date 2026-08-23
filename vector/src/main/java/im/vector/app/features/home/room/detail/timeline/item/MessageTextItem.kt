@@ -28,8 +28,8 @@ import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRe
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
-import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
+import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlViewUpdater
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
@@ -102,17 +102,14 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     }
 
     private fun bindInternal(holder: Holder) {
-        // Preview URL
-        previewUrlViewUpdater.previewUrlView = holder.previewUrlView
-        previewUrlViewUpdater.imageContentRenderer = imageContentRenderer
-        val safePreviewUrlRetriever = previewUrlRetriever
-        if (safePreviewUrlRetriever == null) {
-            holder.previewUrlView.isVisible = false
-        } else {
-            safePreviewUrlRetriever.addListener(attributes.informationData.stableId, previewUrlViewUpdater)
-        }
-        holder.previewUrlView.delegate = previewUrlCallback
-        holder.previewUrlView.renderMessageLayout(attributes.informationData.messageLayout)
+        previewUrlViewUpdater.bind(
+                view = holder.previewUrlView,
+                retriever = previewUrlRetriever,
+                callback = previewUrlCallback,
+                imageContentRenderer = imageContentRenderer,
+                stableId = attributes.informationData.stableId,
+                messageLayout = attributes.informationData.messageLayout,
+        )
         val segments = bodySegments
         val richBodyRendererLocal = richBodyRenderer
         if (segments != null && richBodyRendererLocal != null) {
@@ -214,9 +211,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     override fun unbind(holder: Holder) {
         super.unbind(holder)
-        previewUrlViewUpdater.previewUrlView = null
-        previewUrlViewUpdater.imageContentRenderer = null
-        previewUrlRetriever?.removeListener(attributes.informationData.stableId, previewUrlViewUpdater)
+        previewUrlViewUpdater.unbind()
     }
 
     // Overlay the inline timestamp on a single text view; the rich-body (reply) path keeps the footer below.
@@ -256,20 +251,6 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
         fun footeredMessageView(): AbstractFooteredTextView? {
             return plainMessageView as? AbstractFooteredTextView
-        }
-    }
-
-    inner class PreviewUrlViewUpdater : PreviewUrlRetriever.PreviewUrlRetrieverListener {
-        var previewUrlView: PreviewUrlView? = null
-        var imageContentRenderer: ImageContentRenderer? = null
-
-        override fun onStateUpdated(state: PreviewUrlUiState) {
-            val safeImageContentRenderer = imageContentRenderer
-            if (safeImageContentRenderer == null) {
-                previewUrlView?.isVisible = false
-                return
-            }
-            previewUrlView?.render(state, safeImageContentRenderer)
         }
     }
 
