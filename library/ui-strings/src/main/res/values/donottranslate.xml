@@ -488,6 +488,44 @@
     <string name="pgp_no_key_configured" translatable="false">Select your PGP key first in Settings → Security &amp; Privacy → PGP</string>
     <string name="pgp_disabled" translatable="false">PGP is turned off. Enable it in Settings → Security &amp; Privacy → PGP</string>
     <string name="pgp_encrypt_failed" translatable="false">Could not encrypt: %1$s</string>
+
+    <!-- Message translation -->
+    <string name="message_action_translate" translatable="false">Translate</string>
+    <string name="message_action_untranslate" translatable="false">Untranslate</string>
+    <string name="message_translated_suffix" translatable="false">(translated)</string>
+    <string name="message_translated_from_suffix" translatable="false">(%1$s)</string>
+    <string name="command_description_translate" translatable="false">Translate a message before sending it ($lang picks the target language, e.g. $fr), or toggle auto-translation of your messages in this room when used with no text</string>
+    <string name="translation_auto_on" translatable="false">Auto-translation is ON for this room</string>
+    <string name="translation_auto_off" translatable="false">Auto-translation is OFF for this room</string>
+    <string name="translation_failed" translatable="false">Translation failed (%1$s): %2$s</string>
+    <string name="translation_error_key" translatable="false">API key invalid or expired</string>
+    <string name="translation_error_limit" translatable="false">usage limit reached</string>
+    <string name="translation_error_server" translatable="false">service unavailable</string>
+    <string name="translation_error_no_key" translatable="false">no API key configured in Settings → Preferences → Translation</string>
+    <string name="translation_error_unsupported_language" translatable="false">The selected engine does not support this language pair</string>
+    <string name="translation_error_no_engine" translatable="false">No translation engine selected. Pick one in Settings → Translation</string>
+    <string name="translation_nothing_to_translate" translatable="false">Nothing to translate</string>
+    <string name="settings_translation_title" translatable="false">Translation</string>
+    <string name="settings_translation_engine_title" translatable="false">Translation engine</string>
+    <string name="settings_translation_backup_engine_title" translatable="false">Backup engine</string>
+    <string name="settings_translation_backup_engine_none" translatable="false">None</string>
+    <string name="settings_translation_keys_category" translatable="false">Engine configuration</string>
+    <string name="settings_translation_api_key_title" translatable="false">%1$s API key</string>
+    <string name="settings_translation_microsoft_region_title" translatable="false">Microsoft region</string>
+    <string name="settings_translation_oai_endpoint_title" translatable="false">OpenAI-compatible endpoint</string>
+    <string name="settings_translation_oai_model_title" translatable="false">OpenAI-compatible model</string>
+    <string name="settings_translation_not_set" translatable="false">Not set</string>
+    <string name="settings_translation_local_category" translatable="false">Local translation</string>
+    <string name="settings_translation_local_download_title" translatable="false">Download model (~1 GB)</string>
+    <string name="settings_translation_local_delete_title" translatable="false">Delete model</string>
+    <string name="settings_translation_local_status_ready" translatable="false">Downloaded</string>
+    <string name="settings_translation_local_status_missing" translatable="false">Model is not downloaded</string>
+    <string name="settings_translation_local_status_downloading" translatable="false">Downloading… %1$d%%</string>
+    <string name="settings_translation_local_status_failed" translatable="false">Download failed: %1$s. Tap to retry</string>
+    <string name="settings_translation_local_deleted" translatable="false">Local translation model deleted</string>
+    <string name="settings_translation_local_delete_message" translatable="false">Delete the downloaded translation model (~1 GB)? Local translation will stop working until it is downloaded again.</string>
+    <string name="translation_error_local_missing" translatable="false">Local translation model isn\'t downloaded</string>
+
     <string name="pgp_not_in_encrypted_room" translatable="false">PGP is not used in encrypted rooms — this room already uses Matrix encryption</string>
     <string name="pgp_no_recipient_keys" translatable="false">No other member of this room has a PGP key</string>
     <string name="pgp_interaction_required" translatable="false">Complete the OpenKeychain prompt, then send again</string>

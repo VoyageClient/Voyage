@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_TRANSLATION_ENGINE_CATEGORY"
+        android:title="@string/settings_translation_title">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="local"
+            android:key="SETTINGS_TRANSLATION_ENGINE"
+            android:title="@string/settings_translation_engine_title" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="none"
+            android:key="SETTINGS_TRANSLATION_BACKUP_ENGINE"
+            android:title="@string/settings_translation_backup_engine_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_TRANSLATION_LOCAL_CATEGORY"
+        android:title="@string/settings_translation_local_category">
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_TRANSLATION_LOCAL_DOWNLOAD"
+            android:persistent="false"
+            android:title="@string/settings_translation_local_download_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_TRANSLATION_LOCAL_DELETE"
+            android:persistent="false"
+            android:title="@string/settings_translation_local_delete_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_translation_keys_category">
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_TRANSLATION_API_KEY_microsoft"
+            android:title="@string/settings_translation_api_key_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_TRANSLATION_MICROSOFT_REGION"
+            android:title="@string/settings_translation_microsoft_region_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_TRANSLATION_API_KEY_deepl"
+            android:title="@string/settings_translation_api_key_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_TRANSLATION_API_KEY_deepseek"
+            android:title="@string/settings_translation_api_key_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_TRANSLATION_API_KEY_oaicompat"
+            android:title="@string/settings_translation_api_key_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_TRANSLATION_OAI_ENDPOINT"
+            android:title="@string/settings_translation_oai_endpoint_title" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_TRANSLATION_OAI_MODEL"
+            android:title="@string/settings_translation_oai_model_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

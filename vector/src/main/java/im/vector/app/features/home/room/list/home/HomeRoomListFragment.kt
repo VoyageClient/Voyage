@@ -56,6 +56,7 @@ class HomeRoomListFragment :
     @Inject lateinit var headersController: HomeRoomsHeadersController
     @Inject lateinit var roomsController: HomeFilteredRoomsController
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
 
     private val roomListViewModel: HomeRoomListViewModel by fragmentViewModel()
@@ -99,6 +100,12 @@ class HomeRoomListFragment :
 
         // Re-render last-message previews once a PGP body finishes decrypting.
         pgpDecryptor.updates
+                .sample(300)
+                .onEach { roomsController.requestForcedModelBuild() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Same when a last message gets translated / untranslated.
+        messageTranslationStore.updates
                 .sample(300)
                 .onEach { roomsController.requestForcedModelBuild() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)

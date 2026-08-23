@@ -64,6 +64,8 @@ class MessageComposerEditStashTest {
             pgpKeyStore = mockk(relaxed = true),
             pgpRoomEncryptor = mockk(relaxed = true),
             pgpDecryptor = mockk(relaxed = true),
+            translationSettings = mockk(relaxed = true),
+            outgoingMessageTranslator = mockk(relaxed = true),
             emoteShortcodeProcessor = mockk(relaxed = true),
             downloadMediaUseCase = mockk(relaxed = true),
     )

@@ -21,6 +21,11 @@
         app:isPreferenceVisible="@bool/settings_root_preferences_visible" />
 
     <im.vector.app.core.preference.VectorPreference
+        android:icon="@drawable/ic_translate"
+        android:title="@string/settings_translation_title"
+        app:fragment="im.vector.app.features.settings.VectorSettingsTranslationFragment" />
+
+    <im.vector.app.core.preference.VectorPreference
         android:key="SETTINGS_IMAGE_PACKS_KEY"
         android:icon="@drawable/ic_attachment_sticker"
         android:persistent="false"

@@ -174,6 +174,7 @@ class MessageItemFactory @Inject constructor(
         private val mediaContentRevealManager: MediaContentRevealManager,
         private val sendingMediaGate: SendingMediaGate,
         private val pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor,
+        private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
 ) {
 
     // MapLibre (and the whole location UI) is unavailable pre-Lollipop; never touch the location
@@ -967,6 +968,9 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): VectorEpoxyModel<*>? {
+        messageTranslationStore.get(informationData.eventId)?.let { translation ->
+            return buildTranslatedItem(translation, informationData, highlight, callback, attributes)
+        }
         // PGP-over-plaintext: replace the armored body with the decrypted plaintext (or a
         // placeholder while OpenKeychain works / on failure). The lock badge is rendered
         // separately in the shield slot — this only touches the bubble text.
@@ -1027,6 +1031,7 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
             noticeStyle: Boolean = false,
+            translation: im.vector.app.features.translation.MessageTranslationStore.Translation? = null,
     ): MessageTextItem? {
         // Strip any embedded legacy `<mx-reply>`; the replied-to preview is rendered separately by InReplyToView.
         val bareBody = processBodyOfReplyToEventUseCase.stripExistingMxReply(matrixFormattedBody)
@@ -1060,6 +1065,7 @@ class MessageItemFactory @Inject constructor(
                 noticeStyle = noticeStyle,
                 richReplyHeader = null,
                 blockedBody = blockedBody,
+                translation = translation,
         )
     }
 
@@ -1112,11 +1118,12 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
     ): RenderedCaption? {
         if (body.isEmpty()) return null
+        val translation = messageTranslationStore.get(informationData.eventId)
         // PGP: a captioned media's caption may be an armored block — show the decrypted plaintext
         // (and ignore the armored formatted_body).
-        val pgpCaption = pgpDecryptor.peekDecryptedBody(body)
-        val effectiveBody = pgpCaption ?: body
-        val effectiveFormatted = if (pgpCaption != null) null else formattedBody
+        val pgpCaption = if (translation == null) pgpDecryptor.peekDecryptedBody(body) else null
+        val effectiveBody = translation?.text ?: pgpCaption ?: body
+        val effectiveFormatted = if (pgpCaption != null || translation != null) null else formattedBody
         val initialBody: CharSequence = if (effectiveFormatted != null) {
             val compressed = htmlCompressor.compress(effectiveFormatted)
             val raw = htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned
@@ -1130,11 +1137,11 @@ class MessageItemFactory @Inject constructor(
         val emoteRanges = (linkified as? Spanned)
                 ?.let { spanned -> spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) } }
                 .orEmpty()
-        val final = if (informationData.hasBeenEdited) {
+        val final = (if (informationData.hasBeenEdited) {
             annotateWithEdited(linkified, callback, informationData)
         } else {
             linkified
-        }
+        }).let { annotated -> translation?.let { annotateWithTranslated(annotated, it) } ?: annotated }
         return RenderedCaption(
                 epoxy = final.prepareForDisplay().toEpoxyCharSequence(),
                 bindingOptions = bindingOptions,
@@ -1153,6 +1160,7 @@ class MessageItemFactory @Inject constructor(
             noticeStyle: Boolean = false,
             richReplyHeader: CharSequence? = null,
             blockedBody: CharSequence? = null,
+            translation: im.vector.app.features.translation.MessageTranslationStore.Translation? = null,
     ): MessageTextItem? {
         val renderedBody = textRenderer.render(body)
         val bindingOptions = im.vector.app.core.utils.PerfTrace.time("build.text.bindingOptions") { spanUtils.getBindingOptions(renderedBody) }
@@ -1166,14 +1174,14 @@ class MessageItemFactory @Inject constructor(
                 ?.let { spanned -> spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) } }
                 .orEmpty()
 
+        val annotatedBody = (if (informationData.hasBeenEdited) {
+            annotateWithEdited(linkifiedBody, callback, informationData)
+        } else {
+            linkifiedBody
+        }).let { annotated -> translation?.let { annotateWithTranslated(annotated, it) } ?: annotated }
+
         return MessageTextItem_()
-                .message(
-                        (if (informationData.hasBeenEdited) {
-                            annotateWithEdited(linkifiedBody, callback, informationData)
-                        } else {
-                            linkifiedBody
-                        }).prepareForDisplay().toEpoxyCharSequence()
-                )
+                .message(annotatedBody.prepareForDisplay().toEpoxyCharSequence())
                 .useBigFont(containsOnlyEmojisAndEmotes(linkifiedBody, emoteRanges, MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT))
                 .bindingOptions(bindingOptions)
                 .markwonPlugins(htmlRenderer.get().plugins)
@@ -1200,6 +1208,50 @@ class MessageItemFactory @Inject constructor(
                         urlClickCallback(callback)
                     }
                 }
+    }
+
+    // Renders the stored translation instead of the real body.
+    private fun buildTranslatedItem(
+            translation: im.vector.app.features.translation.MessageTranslationStore.Translation,
+            informationData: MessageInformationData,
+            highlight: Boolean,
+            callback: TimelineEventController.Callback?,
+            attributes: AbsMessageItem.Attributes,
+            noticeStyle: Boolean = false,
+            emotePrefix: String? = null,
+    ): MessageTextItem? {
+        return buildMessageTextItem(
+                (emotePrefix.orEmpty()) + translation.text,
+                false,
+                informationData,
+                highlight,
+                callback,
+                attributes,
+                noticeStyle = noticeStyle,
+                translation = translation,
+        )
+    }
+
+    private fun annotateWithTranslated(
+            body: CharSequence,
+            translation: im.vector.app.features.translation.MessageTranslationStore.Translation,
+    ): Spannable {
+        val spannable = SpannableStringBuilder()
+        spannable.append(body)
+        val sourceName = im.vector.app.features.translation.TranslationLanguages.nameOf(translation.sourceLanguage)
+        val suffix = if (sourceName != null) {
+            stringProvider.getString(CommonStrings.message_translated_from_suffix, sourceName)
+        } else {
+            stringProvider.getString(CommonStrings.message_translated_suffix)
+        }
+        spannable.append(" ").append(suffix)
+        val start = spannable.length - suffix.length
+        spannable.setSpan(
+                ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)),
+                start, spannable.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE
+        )
+        spannable.setSpan(AbsoluteSizeSpan(dimensionConverter.spToPx(13)), start, spannable.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+        return spannable
     }
 
     private fun annotateWithEdited(
@@ -1253,6 +1305,9 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): MessageTextItem? {
+        messageTranslationStore.get(informationData.eventId)?.let { translation ->
+            return buildTranslatedItem(translation, informationData, highlight, callback, attributes, noticeStyle = true)
+        }
         val matrixFormattedBody = messageContent.matrixFormattedBody
         val replyToContent = messageContent.relatesTo?.inReplyTo
         return if (matrixFormattedBody != null) {
@@ -1270,6 +1325,9 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): MessageTextItem? {
+        messageTranslationStore.get(informationData.eventId)?.let { translation ->
+            return buildTranslatedItem(translation, informationData, highlight, callback, attributes, emotePrefix = "* ${informationData.memberName} ")
+        }
         val formattedBody = SpannableStringBuilder()
         formattedBody.append("* ${informationData.memberName} ")
         formattedBody.append(messageContent.getHtmlBody())
