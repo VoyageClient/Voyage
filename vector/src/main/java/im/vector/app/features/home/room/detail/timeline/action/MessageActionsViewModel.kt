@@ -78,6 +78,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -303,7 +304,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                         val isReply = messageContent?.relatesTo?.inReplyTo?.eventId != null
                         val isEmote = messageContent?.msgType == MessageType.MSGTYPE_EMOTE
                         val formattedContent = (messageContent as? MessageContentWithFormattedBody)
-                                ?.takeIf { messageContent is MessageTextContent || messageContent is MessageEmoteContent }
+                                ?.takeIf { messageContent is MessageTextContent || messageContent is MessageEmoteContent || messageContent is MessageNoticeContent }
                         val body = if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
                             // Strip the legacy reply fallback ("In reply to" / "> <@user> …") that
                             // outdated clients embed in the body, so the preview shows only the message.

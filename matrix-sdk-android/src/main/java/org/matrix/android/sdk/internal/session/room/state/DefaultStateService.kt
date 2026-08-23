@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.model.BannerImageInfo
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -247,6 +248,15 @@ internal class DefaultStateService @AssistedInject constructor(
 
     override suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?) {
         sendMyRoomMemberContent { copy(displayName = displayName, avatarUrl = avatarUrl) }
+    }
+
+    override suspend fun updateMyRoomColorPreference(color: ColorPreference?) {
+        val json = color?.takeIf { !it.isEmpty() }?.toJson()?.filterValues { it != null }
+        sendMyRoomMemberContent { copy(colorPreference = json, colorPreferenceUnstable = json) }
+    }
+
+    override suspend fun resetMyRoomProfile() {
+        sendMyRoomMemberContent { copy(displayName = null, avatarUrl = null, colorPreference = null, colorPreferenceUnstable = null) }
     }
 
     private suspend fun sendMyRoomMemberContent(transform: RoomMemberContent.() -> RoomMemberContent) {

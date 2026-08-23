@@ -166,6 +166,8 @@ class MessageInformationDataFactory @Inject constructor(
         return MessageInformationData(
                 isRevealedRedaction = params.isRevealedRedaction,
                 eventId = eventId,
+                senderColorOnLight = event.senderInfo.colorPreference?.onLight,
+                senderColorOnDark = event.senderInfo.colorPreference?.onDark,
                 stableId = event.timelineStableId(),
                 senderId = senderId,
                 sendState = event.root.sendState,

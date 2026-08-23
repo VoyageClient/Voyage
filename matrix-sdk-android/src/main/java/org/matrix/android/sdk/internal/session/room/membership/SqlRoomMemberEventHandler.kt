@@ -21,6 +21,7 @@ import javax.inject.Inject
 /** SQLDelight write-path counterpart of [RoomMemberEventHandler]. Runs inside the session DB transaction. */
 internal class SqlRoomMemberEventHandler @Inject constructor(
         @UserId private val myUserId: String,
+        private val roomMemberColorCache: RoomMemberColorCache,
 ) {
 
     fun handle(
@@ -48,10 +49,14 @@ internal class SqlRoomMemberEventHandler @Inject constructor(
 
     private fun saveRoomMemberEntityLocally(stores: SessionStores, roomId: String, userId: String, roomMember: RoomMemberContent) {
         val existing = stores.roomMember.getByRoomAndUser(roomId, userId)
+        val color = roomMember.effectiveColorPreference()
+        roomMemberColorCache.put(roomId, userId, color)
         if (existing != null) {
             existing.displayName = roomMember.displayName
             existing.avatarUrl = roomMember.avatarUrl
             existing.membership = roomMember.membership
+            existing.colorOnLight = color?.onLight
+            existing.colorOnDark = color?.onDark
             stores.roomMember.upsert(existing)
         } else {
             val presence = stores.user.getPresence(userId)

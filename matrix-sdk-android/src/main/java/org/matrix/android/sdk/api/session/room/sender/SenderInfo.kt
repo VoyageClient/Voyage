@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.sender
 
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.internal.util.replaceSpaceChars
 
 data class SenderInfo(
@@ -25,7 +26,9 @@ data class SenderInfo(
          */
         val displayName: String?,
         val isUniqueDisplayName: Boolean,
-        val avatarUrl: String?
+        val avatarUrl: String?,
+        /** The sender's MSC4522 color in this room, when they set one. */
+        val colorPreference: ColorPreference? = null,
 ) {
     val disambiguatedDisplayName: String
         get() = when {

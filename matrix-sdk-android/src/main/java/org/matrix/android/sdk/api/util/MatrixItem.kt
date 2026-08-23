@@ -18,6 +18,7 @@ package org.matrix.android.sdk.api.util
 
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -39,7 +40,9 @@ sealed class MatrixItem(
             override val avatarUrl: String? = null,
             // The user's own name, when [displayName] is a decorated label ("Message from Bob") whose
             // first letter is not the one the avatar placeholder should draw.
-            val userDisplayName: String? = null
+            val userDisplayName: String? = null,
+            /** The user's MSC4522 color in the room this item came from, when known. */
+            val colorPreference: ColorPreference? = null,
     ) :
             MatrixItem(id, displayName?.removeSuffix(IRC_PATTERN), avatarUrl) {
 
@@ -214,11 +217,11 @@ fun RoomSummary.toEveryoneInRoomMatrixItem() = MatrixItem.EveryoneInRoomItem(id 
 // If no name is available, use room alias as Riot-Web does
 fun PublicRoom.toMatrixItem() = MatrixItem.RoomItem(roomId, name ?: getPrimaryAlias() ?: "", avatarUrl)
 
-fun RoomMemberSummary.toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl)
+fun RoomMemberSummary.toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl, colorPreference = colorPreference)
 
-fun SenderInfo.toMatrixItem() = MatrixItem.UserItem(userId, disambiguatedDisplayName, avatarUrl)
+fun SenderInfo.toMatrixItem() = MatrixItem.UserItem(userId, disambiguatedDisplayName, avatarUrl, colorPreference = colorPreference)
 
-fun SenderInfo.toMatrixItemOrNull() = tryOrNull { MatrixItem.UserItem(userId, disambiguatedDisplayName, avatarUrl) }
+fun SenderInfo.toMatrixItemOrNull() = tryOrNull { toMatrixItem() }
 
 fun SpaceChildInfo.toMatrixItem() = if (roomType == RoomType.SPACE) {
     MatrixItem.SpaceItem(childRoomId, name ?: canonicalAlias, avatarUrl)

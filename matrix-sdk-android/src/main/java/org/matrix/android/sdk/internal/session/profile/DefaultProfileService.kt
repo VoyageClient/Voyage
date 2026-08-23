@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.profile.Pronoun
@@ -164,6 +165,17 @@ internal class DefaultProfileService @Inject constructor(
         }
         extendedProfileCache.cacheBio(userId, cleared)
     }
+
+    override suspend fun setColorPreference(userId: String, color: ColorPreference?) {
+        val cleared = color?.takeIf { !it.isEmpty() }
+        val value: Map<String, String> = cleared?.toJson()?.filterValues { it != null }?.mapValues { it.value!! }.orEmpty()
+        setProfileFieldBothKeys(userId, ProfileKeys.COLOR_PREFERENCE, ProfileKeys.COLOR_PREFERENCE_UNSTABLE, value)
+        extendedProfileCache.cacheColorPreference(userId, cleared)
+    }
+
+    override fun getCachedColorPreference(userId: String): ColorPreference? = extendedProfileCache.getCachedColorPreference(userId)
+
+    override fun getColorPreferenceUpdateFlow() = extendedProfileCache.colorUpdateFlow
 
     override fun getCachedStatus(userId: String): UserStatus? = extendedProfileCache.getCachedStatus(userId)
 

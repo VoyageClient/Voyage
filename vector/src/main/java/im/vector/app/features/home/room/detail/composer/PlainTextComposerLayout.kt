@@ -96,6 +96,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.util.toMatrixItemOrNull
 import javax.inject.Inject
 
 /**
@@ -418,7 +419,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // switch to expanded bar
         views.composerRelatedMessageTitle.apply {
             text = event.senderInfo.disambiguatedDisplayName.prepareForDisplay()
-            setTextColor(matrixItemColorProvider.getColor(MatrixItem.UserItem(event.root.senderId ?: "@")))
+            setTextColor(matrixItemColorProvider.getColor(event.senderInfo.toMatrixItemOrNull() ?: MatrixItem.UserItem("@")))
         }
 
         val messageContent: MessageContent? = event.getVectorLastMessageContent()

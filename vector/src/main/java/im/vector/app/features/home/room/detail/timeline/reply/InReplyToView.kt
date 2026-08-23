@@ -124,6 +124,8 @@ class InReplyToView @JvmOverloads constructor(
         val revealed = effectiveState !== newState
 
         if (effectiveState == state && revealed == quotesRevealedRedaction && !force) {
+            // The sender's color can change under an otherwise identical state (override, palette).
+            (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { applySenderColor(retriever.getMemberNameColor(it.event)) }
             return
         }
 
@@ -223,6 +225,11 @@ class InReplyToView @JvmOverloads constructor(
         views.inReplyToBar.setBackgroundColor(color)
     }
 
+    private fun applySenderColor(color: Int) {
+        views.replyMemberNameView.setTextColor(color)
+        views.inReplyToBar.setBackgroundColor(color)
+    }
+
     private fun renderReplyTo(
             state: PreviewReplyUiState.InReplyTo,
             retriever: ReplyPreviewRetriever,
@@ -234,9 +241,7 @@ class InReplyToView @JvmOverloads constructor(
         isVisible = true
         views.replyMemberNameView.isVisible = true
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()
-        val senderColor = retriever.getMemberNameColor(state.event)
-        views.replyMemberNameView.setTextColor(senderColor)
-        views.inReplyToBar.setBackgroundColor(senderColor)
+        applySenderColor(retriever.getMemberNameColor(state.event))
         if (state.event.root.isRedacted()) {
             renderRedacted()
         } else {

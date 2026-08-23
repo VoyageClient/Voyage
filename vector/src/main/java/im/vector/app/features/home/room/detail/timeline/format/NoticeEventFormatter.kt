@@ -850,6 +850,18 @@ class NoticeEventFormatter @Inject constructor(
             }
             displayText.append(displayAvatarText)
         }
+        val newColor = eventContent?.effectiveColorPreference()
+        val prevColor = prevEventContent?.effectiveColorPreference()
+        if (displayText.isEmpty() && newColor != prevColor) {
+            displayText.append(
+                    when {
+                        newColor == null && event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_color_removed_by_you)
+                        newColor == null -> sp.getString(CommonStrings.notice_member_color_removed, senderName)
+                        event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_color_changed_by_you)
+                        else -> sp.getString(CommonStrings.notice_member_color_changed, senderName)
+                    }
+            )
+        }
         if (displayText.isEmpty()) {
             // A repeated knock (re-request to join) makes no real change. Only the first knock is a
             // membership transition shown as a notice; hide the rest as debug events instead of

@@ -224,7 +224,39 @@
     <string name="sc_theme_dark" translatable="false">SchildiChat Dark</string>
     <string name="sc_theme_black" translatable="false">SchildiChat Black</string>
     <string name="settings_accent" translatable="false">Accent color</string>
-    <string name="color_picker_selected" translatable="false">Selected: %s</string>
+    <string name="color_picker_selected_hex" translatable="false">Selected: %1$s (%2$s)</string>
+    <string name="color_picker_selected_custom" translatable="false">Selected: Custom (%s)</string>
+    <string name="color_picker_selected_default" translatable="false">Selected: Default (%s)</string>
+    <string name="color_picker_custom" translatable="false">Custom color</string>
+    <string name="color_picker_ugly_palette" translatable="false">🤮</string>
+    <string name="color_picker_normal_palette" translatable="false">🤩</string>
+    <string name="settings_profile_color" translatable="false">Profile Color</string>
+    <string name="settings_profile_color_light" translatable="false">Profile Color (light theme)</string>
+    <string name="settings_profile_color_dark" translatable="false">Profile Color (dark theme)</string>
+    <string name="settings_profile_color_per_theme" translatable="false">Per-theme colors</string>
+    <string name="profile_color_summary_default" translatable="false">Default (%s)</string>
+    <string name="profile_color_summary_named" translatable="false">%1$s (%2$s)</string>
+    <string name="profile_color_summary_custom" translatable="false">Custom (%s)</string>
+    <string name="settings_show_others_profile_colors_title" translatable="false">Show other users\' profile colors</string>
+    <string name="settings_show_others_profile_colors_summary" translatable="false">Use the name color a user set in their profile or in a room. Your own color is always shown.</string>
+    <string name="profile_color_name_azure" translatable="false">Azure</string>
+    <string name="profile_color_name_grape" translatable="false">Grape</string>
+    <string name="profile_color_name_verde" translatable="false">Verde</string>
+    <string name="profile_color_name_polly" translatable="false">Polly</string>
+    <string name="profile_color_name_melon" translatable="false">Melon</string>
+    <string name="profile_color_name_aqua" translatable="false">Aqua</string>
+    <string name="profile_color_name_prune" translatable="false">Prune</string>
+    <string name="profile_color_name_kiwi" translatable="false">Kiwi</string>
+    <string name="profile_color_ugly_green" translatable="false">Green</string>
+    <string name="profile_color_ugly_blue" translatable="false">Blue</string>
+    <string name="profile_color_ugly_purple" translatable="false">Purple</string>
+    <string name="profile_color_ugly_violet" translatable="false">Violet</string>
+    <string name="profile_color_ugly_pink" translatable="false">Pink</string>
+    <string name="profile_color_ugly_orange" translatable="false">Orange</string>
+    <string name="notice_member_color_changed" translatable="false">%1$s changed their profile color</string>
+    <string name="notice_member_color_changed_by_you" translatable="false">You changed your profile color</string>
+    <string name="notice_member_color_removed" translatable="false">%1$s removed their profile color</string>
+    <string name="notice_member_color_removed_by_you" translatable="false">You removed your profile color</string>
     <string name="sc_accent_peach" translatable="false">Peach</string>
     <string name="sc_accent_slate" translatable="false">Gray</string>
     <string name="sc_accent_rose" translatable="false">Rose</string>

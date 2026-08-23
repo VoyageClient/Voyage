@@ -85,10 +85,11 @@ class DisplayableEventFormatter @Inject constructor(
                         return@let simpleFormat(senderName, pgp, appendAuthor)
                     }
                     when (messageContent.msgType) {
-                        MessageType.MSGTYPE_TEXT -> {
+                        MessageType.MSGTYPE_TEXT,
+                        MessageType.MSGTYPE_NOTICE -> {
                             val preview = messageContent.previewText()
                             if (preview.formattedBody != null) {
-                                // Render the formatted HTML so custom emotes survive as image spans.
+                                // Render the formatted HTML so custom emotes and inline colours survive.
                                 simpleFormat(senderName, renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody), appendAuthor)
                             } else {
                                 simpleFormat(senderName, renderPlainPreview(timelineEvent.root.roomId, preview.body), appendAuthor)
@@ -215,7 +216,8 @@ class DisplayableEventFormatter @Inject constructor(
             EventType.MESSAGE -> {
                 (event.getClearContent().toModel() as? MessageContent)?.let { messageContent ->
                     when (messageContent.msgType) {
-                        MessageType.MSGTYPE_TEXT -> {
+                        MessageType.MSGTYPE_TEXT,
+                        MessageType.MSGTYPE_NOTICE -> {
                             val preview = messageContent.previewText()
                             if (preview.formattedBody != null) {
                                 renderFormattedPreview(event.roomId, preview.formattedBody)
