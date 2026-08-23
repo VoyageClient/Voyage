@@ -328,6 +328,8 @@ dependencies {
     }
     // SVG rendering
     implementation 'com.caverock:androidsvg-aar:1.4'
+    // On-device NLLB translation; needs API 24+ at runtime (gated in NllbTranslator).
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.23.2'
     implementation 'com.github.yalantis:ucrop:2.2.8'
 
     // DI

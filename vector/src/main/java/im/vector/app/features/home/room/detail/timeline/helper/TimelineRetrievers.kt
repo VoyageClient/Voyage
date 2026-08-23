@@ -56,6 +56,7 @@ class TimelineRetrieversFactory @Inject constructor(
         private val imageContentRenderer: ImageContentRenderer,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val pgpDecryptor: PgpDecryptor,
+        private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         private val pgpServiceManager: PgpServiceManager,
         private val pgpKeyStore: PgpKeyStore,
         private val redactedContentRestorer: RedactedContentRestorer,
@@ -81,6 +82,7 @@ class TimelineRetrieversFactory @Inject constructor(
                         imageContentRenderer,
                         richMessageBodyRenderer,
                         pgpDecryptor,
+                        messageTranslationStore,
                         redactedContentRestorer,
                 ),
         )

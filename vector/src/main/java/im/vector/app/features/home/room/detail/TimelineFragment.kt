@@ -252,6 +252,7 @@ class TimelineFragment :
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var timelineEventController: TimelineEventController
     @Inject lateinit var permalinkHandler: PermalinkHandler
@@ -416,6 +417,18 @@ class TimelineFragment :
 
         timelineViewModel.pgpDecryptionRetriever.interaction
                 .onEach { pendingIntent -> launchPgpPendingIntent(pendingIntent) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            messageTranslationStore.updates
+                    .collectBatched(quietMs = 100, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
+                        timelineEventController.invalidateEventCaches(batch)
+                        // Replies quoting a translated event render its translation in their header.
+                        timelineEventController.invalidateReplyEventCaches()
+                    }
+        }
+        messageTranslationStore.errors
+                .onEach { showSnackWithMessage(it) }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // A sender's MSC4247 pronouns are fetched lazily; when they land, rebuild that sender's
@@ -2318,6 +2331,12 @@ class TimelineFragment :
             }
             is EventSharedAction.HideRedacted -> {
                 redactedContentRevealManager.setRevealedWithEdits(timelineArgs.roomId, action.eventId, false)
+            }
+            is EventSharedAction.Translate -> {
+                messageTranslationStore.translate(action.eventId, action.text)
+            }
+            is EventSharedAction.Untranslate -> {
+                messageTranslationStore.untranslate(action.eventId)
             }
             is EventSharedAction.Forward -> {
                 onForwardActionClicked(action)

@@ -79,6 +79,7 @@ class ReplyPreviewRetriever(
         val imageContentRenderer: ImageContentRenderer,
         val richMessageBodyRenderer: RichMessageBodyRenderer,
         val pgpDecryptor: PgpDecryptor,
+        val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         val redactedContentRestorer: RedactedContentRestorer,
 ) {
     private data class ReplyPreviewUiState(

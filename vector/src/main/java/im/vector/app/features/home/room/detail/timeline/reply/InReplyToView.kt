@@ -246,11 +246,12 @@ class InReplyToView @JvmOverloads constructor(
             renderRedacted()
         } else {
             views.expandableReplyView.setExpanded(false)
-            // PGP: show the decrypted plaintext for the quoted message, like the timeline.
-            val pgpPlain = (state.event.getLastMessageContent() as? MessageContentWithFormattedBody)
-                    ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
-            if (pgpPlain != null) {
-                renderPgpReplyText(pgpPlain)
+            // Translation / PGP: show the plaintext the timeline shows for the quoted message.
+            val plainOverride = retriever.messageTranslationStore.get(state.event.eventId)?.text
+                    ?: (state.event.getLastMessageContent() as? MessageContentWithFormattedBody)
+                            ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
+            if (plainOverride != null) {
+                renderPgpReplyText(plainOverride)
             } else when (val content = state.event.getLastMessageContent()) {
                 is MessageImageInfoContent -> renderImageThumbnailContent(content, state.event, retriever, coroutineScope)
                 is MessageVideoContent -> renderVideoThumbnailContent(content, state.event, retriever, coroutineScope)

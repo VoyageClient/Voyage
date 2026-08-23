@@ -124,6 +124,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var twemojiProvider: TwemojiProvider
 
     private val views: ComposerLayoutBinding
@@ -423,9 +424,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
 
         val messageContent: MessageContent? = event.getVectorLastMessageContent()
-        // PGP: show the decrypted plaintext for the quoted message (and skip HTML rendering of the
-        // armored formatted_body below).
-        val pgpPlain = (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
+        // Translation / PGP: show the text the timeline shows for the quoted message (and skip HTML
+        // rendering of the real formatted_body below).
+        val pgpPlain = messageTranslationStore.get(event.eventId)?.text
+                ?: (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
         val nonFormattedBody = when {
             pgpPlain != null -> pgpPlain
             event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)

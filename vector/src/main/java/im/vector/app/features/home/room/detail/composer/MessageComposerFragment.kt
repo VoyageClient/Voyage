@@ -145,6 +145,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var emoteShortcodeProcessor: im.vector.app.features.imagepack.EmoteShortcodeProcessor
     @Inject lateinit var emojiPickerSectionFactory: im.vector.app.features.reactions.EmojiPickerSectionFactory
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
+    @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var massRedactionManager: MassRedactionManager
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var permalinkHandler: PermalinkHandler
@@ -275,6 +276,23 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         // the timeline) so it updates in place rather than only after re-opening the reply.
         mediaContentRevealManager.revealedEvents
                 .onEach { composer.refreshRelatedMessageMedia() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Re-render the reply/quote/edit preview when its target gets translated or untranslated.
+        messageTranslationStore.updates
+                .onEach { eventId ->
+                    withState(messageComposerViewModel) { state ->
+                        when (val mode = state.sendMode) {
+                            is SendMode.Edit -> mode.timelineEvent.takeIf { it.eventId == eventId }
+                                    ?.let { renderSpecialMode(MessageComposerMode.Edit(it, mode.text)) }
+                            is SendMode.Quote -> mode.timelineEvent.takeIf { it.eventId == eventId }
+                                    ?.let { renderSpecialMode(MessageComposerMode.Quote(it, mode.text)) }
+                            is SendMode.Reply -> mode.timelineEvent.takeIf { it.eventId == eventId }
+                                    ?.let { renderSpecialMode(MessageComposerMode.Reply(it, mode.text)) }
+                            else -> Unit
+                        }
+                    }
+                }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         attachmentActionsViewModel.stream()

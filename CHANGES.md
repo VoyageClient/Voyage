@@ -34,6 +34,8 @@ New features, improvements, and notable removals in this fork.
 
 - **PGP encryption** — opt-in PGP encrypt/decrypt over otherwise-unencrypted rooms via OpenKeychain, with an `/encrypt` command.
 
+- **Message translation** — translate any received message (and untranslate it again), and translate outgoing messages with `/translate`, a `$lang` message prefix, or a per-room auto-translate mode. Translation runs fully on-device by default (Meta's NLLB-200 model, [downloaded once from RTranslator's releases](https://github.com/niedev/RTranslator/releases/tag/2.0.0), ~1 GB, Android 7+), with Google, Microsoft, DeepL, DeepSeek and OpenAI-compatible web engines available as alternatives or fallbacks.
+
 - **Stealth mode** — keep this fork's own client-specific settings on your device instead of in account data, so a homeserver administrator can't tell which client you use. Opt-in per account.
 
 - **Multi-account switcher** — switch between multiple logged-in accounts.

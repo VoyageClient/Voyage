@@ -34,6 +34,9 @@ import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpRoomEncryptor
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.translation.OutgoingMessageTranslator
+import im.vector.app.features.translation.TranslationLanguages
+import im.vector.app.features.translation.TranslationSettings
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
@@ -110,6 +113,8 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val pgpKeyStore: PgpKeyStore,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
         private val pgpDecryptor: PgpDecryptor,
+        private val translationSettings: TranslationSettings,
+        private val outgoingMessageTranslator: OutgoingMessageTranslator,
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
         private val downloadMediaUseCase: DownloadMediaUseCase,
 ) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialState) {
@@ -379,6 +384,54 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
+    private fun handleToggleAutoTranslate(room: Room, targetLanguage: String?) {
+        // An explicit language always turns auto-translation on (or retargets it); bare /translate toggles.
+        val enable = targetLanguage != null || !translationSettings.isRoomAutoTranslateEnabled(room.roomId)
+        translationSettings.setRoomAutoTranslate(room.roomId, if (enable) targetLanguage ?: TranslationLanguages.APP else null)
+        val message = stringProvider.getString(if (enable) CommonStrings.translation_auto_on else CommonStrings.translation_auto_off)
+        _viewEvents.post(MessageComposerViewEvents.ShowMessage(message))
+    }
+
+    /**
+     * Translation takes seconds, so the composer is cleared up-front like any other send; on failure
+     * [restoreMode] puts the user's original input back so nothing is lost.
+     */
+    private fun handleTranslatedSend(
+            room: Room,
+            message: CharSequence,
+            targetLanguage: String?,
+            consumedMode: SendMode?,
+            restoreMode: SendMode?,
+            send: suspend (text: String, formatted: String?) -> Unit,
+    ) {
+        _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(ParsedCommand.SendTranslated(message, targetLanguage)))
+        popDraft(room, consumedMode)
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val outcome = outgoingMessageTranslator.translate(message, targetLanguage)) {
+                is OutgoingMessageTranslator.Outcome.Failed -> {
+                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(outcome.message))
+                    // Give the user their input back, unless they already started typing something else
+                    // (typing updates currentComposerText, not sendMode) or switched modes.
+                    restoreMode?.let { mode ->
+                        withState { state ->
+                            val untouched = currentComposerText.isBlank() &&
+                                    state.sendMode.let { it is SendMode.Regular && it.text.isBlank() }
+                            if (untouched) setState { copy(sendMode = mode) }
+                        }
+                    }
+                }
+                OutgoingMessageTranslator.Outcome.Unchanged -> {
+                    send(message.toString(), null)
+                    _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                }
+                is OutgoingMessageTranslator.Outcome.Translated -> {
+                    send(outcome.text, outcome.formatted)
+                    _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                }
+            }
+        }
+    }
+
     private fun handleOnTextChanged(action: MessageComposerAction.OnTextChanged) {
         val needsSendButtonVisibilityUpdate = currentComposerText.isBlank() != action.text.isBlank()
         currentComposerText = SpannableString(action.text)
@@ -608,6 +661,28 @@ class MessageComposerViewModel @AssistedInject constructor(
                     )) {
                         is ParsedCommand.ErrorNotACommand -> {
                             val roomPgpOn = pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(room.roomId) && !room.roomCryptoService().isEncrypted()
+                            val prefixSend = if (roomPgpOn) null else TranslationLanguages.sendPrefix(action.text)
+                            val autoTarget = if (roomPgpOn) null else translationSettings.roomAutoTranslateTarget(room.roomId)
+                            if (prefixSend != null || autoTarget != null) {
+                                handleTranslatedSend(
+                                        room, prefixSend?.second ?: action.text, prefixSend?.first ?: autoTarget, state.sendMode,
+                                        restoreMode = SendMode.Regular(action.text, fromSharing = false),
+                                ) { text, formatted ->
+                                    if (state.rootThreadEventId != null) {
+                                        room.relationService().replyInThread(
+                                                rootThreadEventId = state.rootThreadEventId,
+                                                replyInThreadText = text,
+                                                formattedText = formatted,
+                                                autoMarkdown = false,
+                                        )
+                                    } else if (formatted != null) {
+                                        room.sendService().sendFormattedTextMessage(text, formatted)
+                                    } else {
+                                        room.sendService().sendTextMessage(text, autoMarkdown = false)
+                                    }
+                                }
+                                return@launch
+                            }
                             if (roomPgpOn) {
                                 // Room is in PGP mode: encrypt the body (and the formatted body, if any,
                                 // separately) — each field carries its own armored block.
@@ -691,6 +766,29 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.DownloadFile -> {
                             handleDownloadSlashCommand(room, parsedCommand)
+                        }
+                        is ParsedCommand.ToggleAutoTranslate -> {
+                            popDraft(room, state.sendMode)
+                            handleToggleAutoTranslate(room, parsedCommand.targetLanguage)
+                        }
+                        is ParsedCommand.SendTranslated -> {
+                            handleTranslatedSend(
+                                    room, parsedCommand.message, parsedCommand.targetLanguage, state.sendMode,
+                                    restoreMode = SendMode.Regular(action.text, fromSharing = false),
+                            ) { text, formatted ->
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = text,
+                                            formattedText = formatted,
+                                            autoMarkdown = false,
+                                    )
+                                } else if (formatted != null) {
+                                    room.sendService().sendFormattedTextMessage(text, formatted)
+                                } else {
+                                    room.sendService().sendTextMessage(text, autoMarkdown = false)
+                                }
+                            }
                         }
                         is ParsedCommand.SendPgpEncrypted -> {
                             if (!pgpKeyStore.isEnabled) {
@@ -1273,6 +1371,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                     val handledAsCommand = handleReplyCommand(
                             room = room,
                             parsedCommand = parsedCommand,
+                            originalText = action.text,
                             eventReplied = timelineEvent,
                             threadRootEventId = state.rootThreadEventId,
                             showInThread = showInThread,
@@ -1307,6 +1406,31 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     eventReplied = timelineEvent,
                                     replyText = armoredBody,
                                     replyFormattedText = armoredFormatted,
+                                    autoMarkdown = false,
+                                    showInThread = showInThread,
+                                    rootThreadEventId = rootThreadEventId
+                            )
+                        }
+                    } else if (!handledAsCommand &&
+                            (translationSettings.isRoomAutoTranslateEnabled(room.roomId) || TranslationLanguages.sendPrefix(action.text) != null)) {
+                        val prefixSend = TranslationLanguages.sendPrefix(action.text)
+                        val autoTarget = translationSettings.roomAutoTranslateTarget(room.roomId)
+                        handleTranslatedSend(
+                                room, prefixSend?.second ?: action.text, prefixSend?.first ?: autoTarget, state.sendMode,
+                                restoreMode = SendMode.Reply(timelineEvent, action.text),
+                        ) { text, formatted ->
+                            state.rootThreadEventId?.let {
+                                room.relationService().replyInThread(
+                                        rootThreadEventId = it,
+                                        replyInThreadText = text,
+                                        autoMarkdown = false,
+                                        formattedText = formatted,
+                                        eventReplied = timelineEvent
+                                )
+                            } ?: room.relationService().replyToMessage(
+                                    eventReplied = timelineEvent,
+                                    replyText = text,
+                                    replyFormattedText = formatted,
                                     autoMarkdown = false,
                                     showInThread = showInThread,
                                     rootThreadEventId = rootThreadEventId
@@ -1748,6 +1872,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handleReplyCommand(
             room: Room,
             parsedCommand: ParsedCommand,
+            originalText: CharSequence,
             eventReplied: TimelineEvent,
             threadRootEventId: String?,
             showInThread: Boolean,
@@ -1843,6 +1968,20 @@ class MessageComposerViewModel @AssistedInject constructor(
                         text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})",
                         formatted = "<span data-mx-spoiler>${mentionsToHtml(parsedCommand.message)}</span>",
                 )
+                finish()
+                true
+            }
+            is ParsedCommand.SendTranslated -> {
+                handleTranslatedSend(
+                        room, parsedCommand.message, parsedCommand.targetLanguage, consumedMode,
+                        restoreMode = SendMode.Reply(eventReplied, originalText),
+                ) { text, formatted ->
+                    reply(text, formatted)
+                }
+                true
+            }
+            is ParsedCommand.ToggleAutoTranslate -> {
+                handleToggleAutoTranslate(room, parsedCommand.targetLanguage)
                 finish()
                 true
             }

@@ -47,6 +47,7 @@ class DisplayableEventFormatter @Inject constructor(
         private val reactionFormatter: ReactionFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val pgpDecryptor: PgpDecryptor,
+        private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         private val pillsPostProcessorFactory: im.vector.app.features.html.PillsPostProcessor.Factory,
         private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
 ) {
@@ -80,6 +81,10 @@ class DisplayableEventFormatter @Inject constructor(
         return when (timelineEvent.root.getClearType()) {
             EventType.MESSAGE -> {
                 timelineEvent.getVectorLastMessageContent()?.let { messageContent ->
+                    val translation = messageTranslationStore.get(timelineEvent.eventId)
+                    if (translation != null) {
+                        return@let simpleFormat(senderName, translation.text, appendAuthor)
+                    }
                     val pgp = (messageContent as? MessageTextContent)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
                     if (pgp != null) {
                         return@let simpleFormat(senderName, pgp, appendAuthor)

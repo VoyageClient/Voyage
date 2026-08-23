@@ -11,6 +11,7 @@ import androidx.core.text.HtmlCompat
 import im.vector.app.core.extensions.isMsisdn
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.translation.TranslationLanguages
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.isEmail
@@ -544,6 +545,28 @@ class CommandParser @Inject constructor(
                         ParsedCommand.TogglePgpMode
                     } else {
                         ParsedCommand.SendPgpEncrypted(message = message)
+                    }
+                }
+                Command.TRANSLATE.matches(slashCommand) -> {
+                    if (message.isEmpty()) {
+                        ParsedCommand.ToggleAutoTranslate(targetLanguage = null)
+                    } else {
+                        val first = messageParts.getOrNull(1).orEmpty().toString()
+                        val code = if (first.startsWith("$")) first.drop(1) else first
+                        val language = TranslationLanguages.normalize(code)
+                        if (code.isNotEmpty() && TranslationLanguages.isKnown(language)) {
+                            val rest = message.subSequence(first.length, message.length).trimSequence()
+                            if (rest.isNotEmpty()) {
+                                ParsedCommand.SendTranslated(rest, language)
+                            } else {
+                                // Just a language: turn on auto-translation to it for this room.
+                                ParsedCommand.ToggleAutoTranslate(targetLanguage = language)
+                            }
+                        } else if (first.startsWith("$")) {
+                            ParsedCommand.ErrorSyntax(Command.TRANSLATE)
+                        } else {
+                            ParsedCommand.SendTranslated(message, null)
+                        }
                     }
                 }
                 Command.DOWNLOAD.matches(slashCommand) -> {

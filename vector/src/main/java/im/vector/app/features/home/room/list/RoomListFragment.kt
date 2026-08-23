@@ -76,6 +76,7 @@ class RoomListFragment :
 
     @Inject lateinit var pagedControllerFactory: RoomSummaryPagedControllerFactory
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var footerController: RoomListFooterController
@@ -147,6 +148,12 @@ class RoomListFragment :
         // summaries are unchanged, so a plain requestModelBuild() would diff to a no-op and the
         // preview would stay as the raw armored ciphertext.
         pgpDecryptor.updates
+                .sample(300)
+                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Same forced rebuild when a last message gets translated / untranslated.
+        messageTranslationStore.updates
                 .sample(300)
                 .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
                 .launchIn(viewLifecycleOwner.lifecycleScope)

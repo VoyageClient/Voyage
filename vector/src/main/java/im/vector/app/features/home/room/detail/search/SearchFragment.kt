@@ -36,6 +36,7 @@ import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.core.utils.openUrlInExternalBrowser
+import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentSearchBinding
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.home.room.detail.arguments.PendingEventAction
@@ -86,6 +87,7 @@ class SearchFragment :
     @Inject lateinit var audioMessageHelper: AudioMessageHelper
     @Inject lateinit var playbackTracker: AudioMessagePlaybackTracker
     @Inject lateinit var colorProvider: ColorProvider
+    @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     private val fragmentArgs: SearchArgs by args()
     private val searchViewModel: SearchViewModel by fragmentViewModel()
     private val playedEventIds = mutableSetOf<String>()
@@ -108,6 +110,12 @@ class SearchFragment :
         sharedActionViewModel
                 .stream()
                 .onEach(::handleSharedAction)
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+        messageTranslationStore.updates
+                .onEach { controller.requestModelBuild() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+        messageTranslationStore.errors
+                .onEach { requireActivity().toast(it) }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         configureRecyclerView()
@@ -307,6 +315,8 @@ class SearchFragment :
             }
             is EventSharedAction.ViewSource -> showJsonDialog(action.content)
             is EventSharedAction.ViewDecryptedSource -> showJsonDialog(action.content)
+            is EventSharedAction.Translate -> messageTranslationStore.translate(action.eventId, action.text)
+            is EventSharedAction.Untranslate -> messageTranslationStore.untranslate(action.eventId)
             is EventSharedAction.OpenUserProfile -> onAvatarClicked(action.userId)
             is EventSharedAction.ViewReactions ->
                 ViewReactionsBottomSheet.newInstance(fragmentArgs.roomId, action.messageInformationData)

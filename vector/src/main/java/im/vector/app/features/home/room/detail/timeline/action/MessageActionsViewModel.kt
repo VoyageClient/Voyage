@@ -46,6 +46,7 @@ import im.vector.app.features.redaction.preservation.RedactedContentRevealManage
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
+import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -130,6 +131,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val redactedContentRepository: RedactedContentRepository,
         private val redactedContentRestorer: RedactedContentRestorer,
         private val serverAdminStatusDataSource: ServerAdminStatusDataSource,
+        private val messageTranslationStore: MessageTranslationStore,
+        private val translationSettings: im.vector.app.features.translation.TranslationSettings,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -292,7 +295,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (timelineEvent.root.isRedacted()) {
                 noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
             } else {
-                computePgpDecryptedBody(timelineEvent) ?: when (timelineEvent.root.getClearType()) {
+                messageTranslationStore.get(timelineEvent.eventId)?.text
+                        ?: computePgpDecryptedBody(timelineEvent) ?: when (timelineEvent.root.getClearType()) {
                     EventType.MESSAGE,
                     EventType.STICKER -> {
                         // An item-scoped gallery sheet previews exactly like that item sent alone,
@@ -519,6 +523,13 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard
                 add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!)))
+            }
+
+            if (canTranslate(msgType, messageContent)) {
+                when {
+                    messageTranslationStore.isTranslated(eventId) -> add(EventSharedAction.Untranslate(eventId))
+                    !messageTranslationStore.isTranslating(eventId) -> add(EventSharedAction.Translate(eventId, pgpCopyBody(timelineEvent, messageContent!!)))
+                }
             }
 
             if (timelineEvent.hasBeenEdited()) {
@@ -787,6 +798,10 @@ class MessageActionsViewModel @AssistedInject constructor(
             else -> canEditPoll(event)
         }
     }
+
+    private fun canTranslate(msgType: String?, messageContent: MessageContent?): Boolean =
+            (translationSettings.engine != null || translationSettings.backupEngine != null) &&
+                    msgType != MessageType.MSGTYPE_LOCATION && canCopy(msgType, messageContent) && messageContent?.body?.isNotBlank() == true
 
     private fun canCopy(msgType: String?, messageContent: MessageContent? = null): Boolean {
         // Text-shaped messages: always copyable (body is the user-typed text).

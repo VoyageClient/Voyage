@@ -78,6 +78,12 @@ sealed class EventSharedAction(
     data class ViewSource(val content: String) :
             EventSharedAction(CommonStrings.view_source, R.drawable.ic_view_source)
 
+    data class Translate(val eventId: String, val text: String) :
+            EventSharedAction(CommonStrings.message_action_translate, R.drawable.ic_translate)
+
+    data class Untranslate(val eventId: String) :
+            EventSharedAction(CommonStrings.message_action_untranslate, R.drawable.ic_translate)
+
     data class ViewDecryptedSource(val content: String) :
             EventSharedAction(CommonStrings.view_decrypted_source, R.drawable.ic_view_source)
 
