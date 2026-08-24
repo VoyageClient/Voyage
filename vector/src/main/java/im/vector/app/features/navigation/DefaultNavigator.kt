@@ -22,6 +22,9 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import im.vector.app.R
 import im.vector.app.SpaceStateHandler
 import im.vector.app.config.OnboardingVariant
@@ -521,9 +524,42 @@ class DefaultNavigator @Inject constructor(
             pairs.add(Pair(view, ViewCompat.getTransitionName(view) ?: ""))
             options?.invoke(pairs)
 
+            if (!claimSceneTransition(activity)) return
             val bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(activity, *pairs.toTypedArray()).toBundle()
             ActivityCompat.startActivity(activity, intent, bundle)
         }
+    }
+
+    private var sceneTransitionPending = false
+
+    /**
+     * A second scene transition started before the first one returns never restores its shared views —
+     * on the uploads screen the app bar carrying the room name and the Media/Files tabs then stays
+     * invisible for good. Refuse further launches until the source activity is back on screen.
+     */
+    private fun claimSceneTransition(activity: Activity): Boolean {
+        if (sceneTransitionPending) return false
+        val lifecycle = (activity as? LifecycleOwner)?.lifecycle ?: return true
+        sceneTransitionPending = true
+        lifecycle.addObserver(object : LifecycleEventObserver {
+            // The observer is registered while the activity is still resumed, so wait for it to leave.
+            private var left = false
+
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                when (event) {
+                    Lifecycle.Event.ON_PAUSE -> left = true
+                    Lifecycle.Event.ON_RESUME -> if (left) release(source)
+                    Lifecycle.Event.ON_DESTROY -> release(source)
+                    else -> Unit
+                }
+            }
+
+            private fun release(source: LifecycleOwner) {
+                sceneTransitionPending = false
+                source.lifecycle.removeObserver(this)
+            }
+        })
+        return true
     }
 
     override fun openSearch(
