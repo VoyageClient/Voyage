@@ -53,6 +53,11 @@ object ThemeUtils {
 
     private val mColorByAttr = HashMap<Int, Int>()
 
+    /** Bumped on every application-theme change, so caches holding resolved colors can drop stale entries. */
+    @Volatile
+    var themeGeneration = 0
+        private set
+
     // Colors are resolved against this freshly-built theme rather than a Context's theme. Context.setTheme
     // is cumulative (applyStyle never resets), so a live theme swap leaves stale attrs from the previous
     // theme on the app context; rebuilding from scratch each change keeps resolution accurate without a
@@ -129,6 +134,7 @@ object ThemeUtils {
 
         // Clear the cache
         mColorByAttr.clear()
+        themeGeneration++
     }
 
     /** Convenience for the theme picker. */

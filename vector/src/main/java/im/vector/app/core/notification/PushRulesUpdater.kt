@@ -9,6 +9,7 @@ package im.vector.app.core.notification
 
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.notifications.usecase.UpdatePushRulesIfNeededUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -35,7 +36,8 @@ class PushRulesUpdater @Inject constructor(
 
     private fun updatePushRulesOnChange(session: Session) {
         job?.cancel()
-        job = session.coroutineScope.launch {
+        // Default, not the scope's main dispatcher: the use case reads every push rule from the DB.
+        job = session.coroutineScope.launch(Dispatchers.Default) {
             session.flow()
                     .liveUserAccountData(UserAccountDataTypes.TYPE_PUSH_RULES)
                     .onEach { updatePushRulesIfNeededUseCase.execute(session) }

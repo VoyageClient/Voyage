@@ -355,10 +355,16 @@ class TimelineViewModel @AssistedInject constructor(
     private fun observePowerLevel() {
         if (room == null) return
         room.flow().liveRoomPowerLevels()
-                .onEach { powerLevels ->
-                    val canInvite = powerLevels.isUserAbleToInvite(session.myUserId)
-                    val isAllowedToManageWidgets = session.widgetService().hasPermissionsToHandleWidgets(room.roomId)
-                    val isAllowedToSetupEncryption = powerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_ENCRYPTION)
+                .map { powerLevels ->
+                    Triple(
+                            powerLevels.isUserAbleToInvite(session.myUserId),
+                            // Re-reads the room's whole state from the DB: 200ms+ per emission, never on the main thread.
+                            session.widgetService().hasPermissionsToHandleWidgets(room.roomId),
+                            powerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_ENCRYPTION)
+                    )
+                }
+                .flowOn(Dispatchers.Default)
+                .onEach { (canInvite, isAllowedToManageWidgets, isAllowedToSetupEncryption) ->
                     setState {
                         copy(
                                 canInvite = canInvite,

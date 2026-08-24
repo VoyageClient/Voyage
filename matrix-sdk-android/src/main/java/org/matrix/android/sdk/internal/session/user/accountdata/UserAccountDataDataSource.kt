@@ -20,6 +20,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.util.Optional
@@ -53,7 +54,9 @@ internal class UserAccountDataDataSource @Inject constructor(
 
     fun getAccountDataEventsFlow(types: Set<String>): Flow<List<UserAccountDataEvent>> {
         val query = if (types.isEmpty()) queries.selectAll() else queries.selectByTypes(types)
+        // flowOn: toEvent() parses each row's JSON, which otherwise runs on the collector's thread.
         return query.asFlow().mapToList(dispatcher).map { rows -> rows.map { it.toEvent() } }
+                .flowOn(dispatcher)
     }
 
     fun getAccountDataEventsStartWith(type: String): List<UserAccountDataEvent> {

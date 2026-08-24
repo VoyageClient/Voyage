@@ -165,6 +165,7 @@ internal class RoomSummaryDataSource @Inject constructor(
     fun getRoomSummaryFlow(roomId: String): Flow<Optional<RoomSummary>> {
         return queries.selectByRoomId(roomId).asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull { !it.display_name.isNullOrEmpty() }?.toDomain().toOptional() }
+                .flowOn(dispatcher)
     }
 
     fun getRoomSummaries(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): List<RoomSummary> {
