@@ -438,6 +438,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             }
             // The grid preview carries the content, so the text slot is caption-only.
             messageContent is MessageGalleryContent -> messageContent.galleryCaption().orEmpty()
+            messageContent is MessageWithAttachmentContent ->
+                messageContent.getCaption(messageContent.relatesTo?.inReplyTo?.eventId != null) ?: messageContent.getFileName()
             messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
             messageContent is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
             messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
@@ -511,9 +513,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none; the
         // preview's links stay inert, as they are in the reply header.
         views.composerRelatedMessageContent.movementMethod = null
-        // Muted grey for non-message notices and m.notice messages (which render grey in the
-        // timeline), normal text colour for everything else.
-        val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {
+        // Muted grey for non-message notices, m.notice messages (which render grey in the timeline)
+        // and bare attachment names, normal text colour for everything else.
+        val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE || isFilenamePreview) {
             im.vector.lib.ui.styles.R.attr.vctr_content_secondary
         } else {
             im.vector.lib.ui.styles.R.attr.vctr_message_text_color
@@ -595,7 +597,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         return if (messageContent.voiceMessageIndicator != null) {
             resources.getString(CommonStrings.voice_message_reply_content, formattedDuration)
         } else {
-            resources.getString(CommonStrings.audio_message_reply_content, messageContent.body, formattedDuration)
+            resources.getString(CommonStrings.audio_message_reply_content, messageContent.getFileName(), formattedDuration)
         }
     }
 

@@ -198,9 +198,10 @@ class ViewEditHistoryEpoxyController @Inject constructor(
         val effectiveMap = newContentMap ?: topContent
         val effectiveModel = newContent ?: clearContent
 
-        // For media messages the body holds the filename when the MSC2530 `filename` field is
-        // absent; that isn't user-facing, so show nothing to keep caption add/remove readable.
-        if (effectiveModel?.msgType in MEDIA_MSG_TYPES && effectiveMap?.containsKey("filename") != true) {
+        // Without a caption the media body is just the filename; that isn't user-facing, so show
+        // nothing to keep caption add/remove readable.
+        if (effectiveModel?.msgType in MEDIA_MSG_TYPES &&
+                ((effectiveMap?.get("filename") as? String).isNullOrBlank() || effectiveModel?.body.isNullOrBlank())) {
             return TextContent("")
         }
 

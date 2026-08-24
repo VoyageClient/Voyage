@@ -50,7 +50,7 @@ fun MessageWithAttachmentContent.getFileUrl() = encryptedFileInfo?.url ?: url
  * Returns the canonical filename — the explicit `filename` field if set (MSC2530), otherwise
  * the legacy `body` field which historically doubled as the filename.
  */
-fun MessageWithAttachmentContent.getFileName(): String = filename ?: body
+fun MessageWithAttachmentContent.getFileName(): String = filename?.takeIf { it.isNotBlank() } ?: body
 
 /**
  * Returns the user-typed plain-text caption when one is present (MSC2530 style: `filename`
@@ -58,7 +58,7 @@ fun MessageWithAttachmentContent.getFileName(): String = filename ?: body
  */
 fun MessageWithAttachmentContent.getCaption(isReply: Boolean = false): String? {
     val name = filename ?: return null
-    if (body.isEmpty() || body == name) return null
+    if (body.isBlank() || body == name) return null
     // Legacy reply-fallback bodies are shaped like:
     //   > <@user:server> previewline
     //   > another preview line
