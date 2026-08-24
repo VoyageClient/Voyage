@@ -344,6 +344,38 @@ object ThemeUtils {
                 "black" -> R.style.AppTheme_SC_Dark_Black
                 else -> resId
             }
+            R.style.AppTheme_Transparent_SC -> when (themeAccent) {
+                "bluelight" -> R.style.AppTheme_Transparent_SC_BlueLight
+                "amber" -> R.style.AppTheme_Transparent_SC_Amber
+                "cyan" -> R.style.AppTheme_Transparent_SC_Cyan
+                "gold" -> R.style.AppTheme_Transparent_SC_Gold
+                "lime" -> R.style.AppTheme_Transparent_SC_Lime
+                "orange" -> R.style.AppTheme_Transparent_SC_Orange
+                "pink" -> R.style.AppTheme_Transparent_SC_Pink
+                "purple" -> R.style.AppTheme_Transparent_SC_Purple
+                "red" -> R.style.AppTheme_Transparent_SC_Red
+                "teal" -> R.style.AppTheme_Transparent_SC_Teal
+                "turquoise" -> R.style.AppTheme_Transparent_SC_Turquoise
+                "yellow" -> R.style.AppTheme_Transparent_SC_Yellow
+                "carnation" -> R.style.AppTheme_Transparent_SC_Carnation
+                "denim" -> R.style.AppTheme_Transparent_SC_Denim
+                "indigo" -> R.style.AppTheme_Transparent_SC_Indigo
+                "lava" -> R.style.AppTheme_Transparent_SC_Lava
+                "blue" -> R.style.AppTheme_Transparent_SC_Blue
+                "greendark" -> R.style.AppTheme_Transparent_SC_GreenDark
+                "element" -> R.style.AppTheme_Transparent_SC_Element
+                "vibecoder" -> R.style.AppTheme_Transparent_SC_Vibecoder
+                "peach" -> R.style.AppTheme_Transparent_SC_Peach
+                "slate" -> R.style.AppTheme_Transparent_SC_Slate
+                "rose" -> R.style.AppTheme_Transparent_SC_Rose
+                "magenta" -> R.style.AppTheme_Transparent_SC_Magenta
+                "violet" -> R.style.AppTheme_Transparent_SC_Violet
+                "lavender" -> R.style.AppTheme_Transparent_SC_Lavender
+                "periwinkle" -> R.style.AppTheme_Transparent_SC_Periwinkle
+                "white" -> R.style.AppTheme_Transparent_SC_White
+                "black" -> R.style.AppTheme_Transparent_SC_Black
+                else -> resId
+            }
             R.style.AppTheme_SC_Colored -> when (themeAccent) {
                 "bluelight" -> R.style.AppTheme_SC_Colored_BlueLight
                 "amber" -> R.style.AppTheme_SC_Colored_Amber
