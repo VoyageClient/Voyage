@@ -49,6 +49,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.airbnb.mvrx.MavericksView
 import com.bumptech.glide.util.Util
 import com.google.android.material.appbar.MaterialToolbar
@@ -454,7 +455,9 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     }
 
     private fun rebindRecyclerViews(view: View) {
-        if (view is RecyclerView) {
+        // ViewPager2's FragmentStateAdapter throws "Design assumption violated" on a manual re-bind;
+        // its pages are ordinary fragments, so walk into them instead of rebinding.
+        if (view is RecyclerView && view.adapter !is FragmentStateAdapter) {
             // Epoxy forbids notify*() calls, so re-bind the attached holders in place instead. Drive
             // the outer adapter with the absolute position so ConcatAdapter routes to the right child
             // and keeps its holder bookkeeping intact.
