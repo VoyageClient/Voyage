@@ -48,12 +48,15 @@
 
         </FrameLayout>
 
+        <!-- Padding, not margins, so the flat toolbar background covers the whole band: the bare
+             AppBarLayout surface below it picks up the elevation overlay and reads grey. -->
         <androidx.appcompat.widget.SearchView
             android:id="@+id/memberNameFilter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
+            android:background="?vctr_toolbar_background"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/addRoomToSpaceToolbar"
