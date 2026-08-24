@@ -504,7 +504,7 @@ class InReplyToView @JvmOverloads constructor(
         if (content.voiceMessageIndicator != null) {
             renderAttachmentPill(R.drawable.ic_microphone, context.getString(CommonStrings.voice_message_reply_content, formattedDuration))
         } else {
-            renderAttachmentPill(R.drawable.ic_music_note, context.getString(CommonStrings.audio_message_reply_content, content.body, formattedDuration))
+            renderAttachmentPill(R.drawable.ic_music_note, context.getString(CommonStrings.audio_message_reply_content, content.getFileName(), formattedDuration))
         }
     }
 
