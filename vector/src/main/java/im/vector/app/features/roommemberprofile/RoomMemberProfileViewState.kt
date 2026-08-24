@@ -33,6 +33,7 @@ data class RoomMemberProfileViewState(
         val userPowerLevelString: Async<String> = Uninitialized,
         val userMatrixItem: Async<MatrixItem> = Uninitialized,
         val userMXCrossSigningInfo: MXCrossSigningInfo? = null,
+        val userCryptoInfoLoaded: Boolean = false,
         val allDevicesAreTrusted: Boolean = false,
         val allDevicesAreCrossSignedTrusted: Boolean = false,
         val asyncMembership: Async<Membership> = Uninitialized,

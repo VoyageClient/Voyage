@@ -16,6 +16,7 @@ import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import com.amulyakhare.textdrawable.TextDrawable
+import com.bumptech.glide.request.transition.Transition
 
 /**
  * A Glide target that clips its drawable to a rounded rectangle / circle for any content that
@@ -64,6 +65,13 @@ class ClippedDrawableImageViewTarget(
             }
         }
         view.clipToOutline = clip
+    }
+
+    // The transition path bypasses setResource, where the clip is applied — drop the transition for
+    // content that needs runtime clipping so animated avatars never draw unshaped mid-fade.
+    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+        val needsClip = resource !is BitmapDrawable && resource !is TextDrawable && (oval || cornerPercent > 0f)
+        super.onResourceReady(resource, if (needsClip) null else transition)
     }
 
     override fun setResource(resource: Drawable?) = super.setResource(clip(resource))

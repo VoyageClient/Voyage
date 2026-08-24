@@ -12,9 +12,12 @@ import android.graphics.Canvas
 import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
+import android.os.SystemClock
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.AnyThread
@@ -25,14 +28,18 @@ import androidx.annotation.VisibleForTesting.Companion.PRIVATE
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import com.amulyakhare.textdrawable.TextDrawable
+import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.Transition
+import com.bumptech.glide.request.transition.TransitionFactory
 import com.bumptech.glide.signature.ObjectKey
 import im.vector.app.core.contacts.MappedContact
 import im.vector.app.core.di.ActiveSessionHolder
@@ -83,13 +90,86 @@ class AvatarRenderer @Inject constructor(
         internal const val ROUNDED_CORNER_PERCENT = 0.20f
 
         private const val MAX_PRELOADED_AVATARS = 128
+
+        private const val FADE_MS = 220L
     }
 
+    /**
+     * Fades the letter placeholder out on top of the avatar rather than cross-fading, which would
+     * draw the avatar over a still-visible letter and show it through transparent avatars.
+     * Memory-cached hits fade too: off the room list the avatar is usually already in memory.
+     */
+    private class FadeOutPlaceholderFactory(
+            private val durationMs: Long,
+            private val placeholder: Drawable?,
+    ) : TransitionFactory<Drawable> {
+        override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> {
+            return FadeOutPlaceholderTransition(durationMs, placeholder)
+        }
+    }
+
+    private class FadeOutPlaceholderTransition(
+            private val durationMs: Long,
+            private val placeholder: Drawable?,
+    ) : Transition<Drawable> {
+        override fun transition(current: Drawable, adapter: Transition.ViewAdapter): Boolean {
+            // A memory hit can land before the placeholder is ever drawn, leaving nothing on the
+            // view to fade — use the request's own placeholder as the outgoing layer then.
+            val shown = adapter.currentDrawable
+            val previous = (if (shown == null || shown === current) placeholder else shown) ?: return false
+            val fading = FadingDrawable(previous, durationMs)
+            val layered = LayerDrawable(arrayOf(current, fading))
+            adapter.setDrawable(layered)
+            // Only the end state is scheduled; the fade itself is driven from draw(), since nothing
+            // repaints these views between animator frames.
+            layered.scheduleSelf({ if (adapter.currentDrawable === layered) adapter.setDrawable(current) }, SystemClock.uptimeMillis() + durationMs)
+            return true
+        }
+    }
+
+    /**
+     * Fades [inner] out over the content beneath it, re-invalidating from draw() the way
+     * TransitionDrawable does. The canvas alpha layer is needed because TextDrawable ignores setAlpha.
+     */
+    private class FadingDrawable(private val inner: Drawable, private val durationMs: Long) : Drawable() {
+        private var startUptime = 0L
+
+        override fun onBoundsChange(bounds: Rect) {
+            inner.bounds = bounds
+        }
+
+        override fun draw(canvas: Canvas) {
+            val now = SystemClock.uptimeMillis()
+            if (startUptime == 0L) startUptime = now
+            val fraction = ((now - startUptime).toFloat() / durationMs).coerceIn(0f, 1f)
+            val alpha = ((1f - fraction) * 255f).toInt()
+            if (alpha <= 0) return
+            val b = bounds
+            @Suppress("DEPRECATION")
+            val save = canvas.saveLayerAlpha(b.left.toFloat(), b.top.toFloat(), b.right.toFloat(), b.bottom.toFloat(), alpha, Canvas.ALL_SAVE_FLAG)
+            inner.draw(canvas)
+            canvas.restoreToCount(save)
+            invalidateSelf()
+        }
+
+        override fun setAlpha(alpha: Int) = Unit
+        override fun setColorFilter(colorFilter: ColorFilter?) = inner.setColorFilter(colorFilter)
+        @Deprecated("Deprecated in Java")
+        override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
+        override fun getIntrinsicWidth(): Int = inner.intrinsicWidth
+        override fun getIntrinsicHeight(): Int = inner.intrinsicHeight
+    }
+
+    /**
+     * [crossfade] is opt-in: in a recycler every rebind re-shows the placeholder, so fading there
+     * flickers the letter constantly and costs a redraw per frame per row. Enable it on screens
+     * showing a single, stable avatar.
+     */
     @UiThread
-    fun render(matrixItem: MatrixItem, imageView: ImageView, @DimenRes decodeSize: Int? = null) {
+    fun render(matrixItem: MatrixItem, imageView: ImageView, @DimenRes decodeSize: Int? = null, crossfade: Boolean = false) {
         imageView.setContentDescription(matrixItem)
         GlideApp.with(imageView)
-                .loadAvatar(matrixItem, decodeSizePx = decodeSize?.let { imageView.resources.getDimensionPixelSize(it) })
+                .loadAvatar(matrixItem, decodeSizePx = decodeSize?.let { imageView.resources.getDimensionPixelSize(it) }, crossfade = crossfade)
                 .into(avatarTarget(imageView, matrixItem))
     }
 
@@ -320,6 +400,7 @@ class AvatarRenderer @Inject constructor(
             cacheOnly: Boolean = false,
             decodeSizePx: Int? = null,
             forceCircle: Boolean = false,
+            crossfade: Boolean = false,
     ): GlideRequest<Drawable> {
         val placeholder = getPlaceholderDrawable(matrixItem, forceCircle)
         val transformation = if (forceCircle) CircleCrop() else avatarTransform(matrixItem)
@@ -327,12 +408,15 @@ class AvatarRenderer @Inject constructor(
 
         // A required Bitmap transform fails animated (WebP / APNG) loads outright; the target shapes those instead.
         // dontAnimate asks the decoders that can for a still bitmap, which the shape can be baked into.
+        // The target drops the crossfade for drawables needing its runtime clipping (animated ones):
+        // the transition path bypasses setResource, where that clip is applied.
         fun requestFor(url: String?, retrieveFromCacheOnly: Boolean) = load(url)
                 .optionalTransform(transformation)
                 .placeholder(placeholder)
                 .onlyRetrieveFromCache(retrieveFromCacheOnly)
                 .let { if (decodeSizePx != null) it.override(decodeSizePx) else it }
                 .let { if (autoplay) it.addListener(RestartAnimationListener) else it.dontAnimate() }
+                .let { if (crossfade) it.transition(DrawableTransitionOptions.with(FadeOutPlaceholderFactory(FADE_MS, placeholder))) else it }
 
         // Once every attempt is cache-only the two still ones are the same request.
         val attempts = avatarAttempts(matrixItem.avatarUrl, autoplay)
