@@ -7,10 +7,16 @@
     android:layout_height="match_parent"
     android:background="?colorSurface">
 
+    <!-- Flat, explicitly background-colored: the default surface + elevation overlay is lighter than
+         the header, which flashed through as the header parallaxed away on scroll. -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/matrixProfileAppBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="?android:colorBackground"
+        android:stateListAnimator="@null"
+        app:elevation="0dp"
+        app:liftOnScroll="false">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/matrixProfileCollapsingToolbarLayout"
@@ -104,6 +110,35 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/item_profile_action" />
+
+    <FrameLayout
+        android:id="@+id/matrixProfileLoadingView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:colorBackground"
+        android:clickable="true"
+        android:elevation="12dp"
+        android:focusable="true"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <!-- Its own back arrow, so the loading screen is one flat surface with no toolbar strip -->
+        <ImageButton
+            android:id="@+id/matrixProfileLoadingBackButton"
+            android:layout_width="?attr/actionBarSize"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_gravity="top|start"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
+            android:scaleType="center"
+            app:srcCompat="?attr/homeAsUpIndicator"
+            app:tint="?vctr_content_secondary" />
+    </FrameLayout>
 
     <include
         android:id="@+id/waiting_view"

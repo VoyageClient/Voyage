@@ -175,6 +175,8 @@ internal class DefaultProfileService @Inject constructor(
 
     override fun getCachedColorPreference(userId: String): ColorPreference? = extendedProfileCache.getCachedColorPreference(userId)
 
+    override fun getCachedProfile(userId: String): JsonDict? = extendedProfileCache.getCachedProfile(userId)
+
     override fun getColorPreferenceUpdateFlow() = extendedProfileCache.colorUpdateFlow
 
     override fun getCachedStatus(userId: String): UserStatus? = extendedProfileCache.getCachedStatus(userId)

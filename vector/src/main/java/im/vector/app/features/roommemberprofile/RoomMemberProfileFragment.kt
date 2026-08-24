@@ -7,6 +7,8 @@
 
 package im.vector.app.features.roommemberprofile
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
@@ -107,6 +109,13 @@ class RoomMemberProfileFragment :
     private var bannerAppBarStateChangeListener: AppBarStateChangeListener? = null
     private var bannerUiHelper: ProfileBannerUiHelper? = null
     private var currentBannerUrl: String? = null
+    private var lastRenderedAvatarKey: List<Any?>? = null
+
+    private var headerRevealed = true
+    private var pendingReveal = false
+
+    /** True from raising the cover until it has fully faded out — nothing may move the layout then. */
+    private var coverActive = false
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
@@ -153,11 +162,29 @@ class RoomMemberProfileFragment :
         )
         bannerAppBarStateChangeListener = object : AppBarStateChangeListener() {
             override fun onStateChanged(appBarLayout: AppBarLayout, state: State) {
-                bannerUiHelper?.update(currentBannerUrl != null, state == State.COLLAPSED)
+                if (!coverActive) {
+                    bannerUiHelper?.update(currentBannerUrl != null, state == State.COLLAPSED)
+                }
             }
         }
         views.matrixProfileAppBarLayout.addOnOffsetChangedListener(bannerAppBarStateChangeListener)
         headerViews.memberProfileBannerView.debouncedClicks { onBannerClicked() }
+        // Raise the cover here, before the enter animation runs: raising it in the first invalidate()
+        // lets the empty page show during the slide-in.
+        withState(viewModel) { state ->
+            if (state.userMatrixItem is Loading) {
+                headerRevealed = false
+                showLoadingCover()
+            }
+        }
+        views.matrixProfileLoadingBackButton.debouncedClicks { vectorBaseActivity.onBackPressedDispatcher.onBackPressed() }
+        roomMemberProfileController.addModelBuildListener {
+            if (pendingReveal) {
+                pendingReveal = false
+                // One more frame so the recycler actually lays the new models out before the reveal
+                views.matrixProfileRecyclerView.post { revealHeader() }
+            }
+        }
         viewModel.observeViewEvents {
             when (it) {
                 is RoomMemberProfileViewEvents.Loading -> showLoading(it.message)
@@ -225,6 +252,7 @@ class RoomMemberProfileFragment :
     }
 
     override fun onDestroyView() {
+        lastRenderedAvatarKey = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(bannerAppBarStateChangeListener)
         roomMemberProfileController.callback = null
@@ -242,16 +270,23 @@ class RoomMemberProfileFragment :
             is Loading -> {
                 views.matrixProfileToolbarTitleView.text = state.userId.neutralizeDirectionOverrides()
                 avatarRenderer.render(MatrixItem.UserItem(state.userId, null, null), views.matrixProfileToolbarAvatarImageView)
-                headerViews.memberProfileStateView.state = StateView.State.Loading
+                headerRevealed = false
+                // The header stays laid out and merely covered: hiding it would collapse the AppBar,
+                // whose CollapsingToolbarLayout then animates its scrim — the toolbar "fading in".
+                showLoadingCover()
             }
             is Fail -> {
                 avatarRenderer.render(MatrixItem.UserItem(state.userId, null, null), views.matrixProfileToolbarAvatarImageView)
                 views.matrixProfileToolbarTitleView.text = state.userId.neutralizeDirectionOverrides()
                 val failureMessage = errorFormatter.toHumanReadable(asyncUserMatrixItem.error)
+                revealHeader()
                 headerViews.memberProfileStateView.state = StateView.State.Error(failureMessage)
             }
             is Success -> {
                 val userMatrixItem = asyncUserMatrixItem()
+                // Don't reveal yet: wait for the epoxy list (biography, More, admin…) to build and lay
+                // out, so the whole page — header AND sheet below it — appears in one frame.
+                if (!headerRevealed) pendingReveal = true
                 headerViews.memberProfileStateView.state = StateView.State.Content
                 headerViews.memberProfileIdView.text = userMatrixItem.id.neutralizeDirectionOverrides()
                 headerViews.memberProfileIdView.setCopySource(userMatrixItem.id)
@@ -267,10 +302,26 @@ class RoomMemberProfileFragment :
                 } else {
                     userMatrixItem
                 }
-                avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView)
-                avatarRenderer.render(displayedMatrixItem, views.matrixProfileToolbarAvatarImageView)
-                // The Mention action below returns to the composer, so have the pill's avatar ready.
-                avatarRenderer.preloadAvatar(displayedMatrixItem, headerViews.memberProfileAvatarView)
+                // Re-issuing the (multi-attempt) avatar request on every state emission blanks the view
+                // to the placeholder for a frame whenever Glide can't answer synchronously. With a real
+                // avatar the name/color only reach the invisible placeholder, so they stay out of the key.
+                val avatarKey = if (!displayedMatrixItem.avatarUrl.isNullOrEmpty()) {
+                    listOf(displayedMatrixItem.avatarUrl)
+                } else {
+                    listOf(
+                            null,
+                            displayedMatrixItem.getBestName(),
+                            matrixItemColorProvider.getColor(displayedMatrixItem),
+                            state.colorGeneration,
+                    )
+                }
+                if (avatarKey != lastRenderedAvatarKey) {
+                    lastRenderedAvatarKey = avatarKey
+                    avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView, crossfade = true)
+                    avatarRenderer.render(displayedMatrixItem, views.matrixProfileToolbarAvatarImageView, crossfade = true)
+                    // The Mention action below returns to the composer, so have the pill's avatar ready.
+                    avatarRenderer.preloadAvatar(displayedMatrixItem, headerViews.memberProfileAvatarView)
+                }
 
                 // Follow the same hiding rule as the avatar
                 currentBannerUrl = state.resolvedBannerUrl()
@@ -281,9 +332,14 @@ class RoomMemberProfileFragment :
                 headerViews.memberProfileBannerOverlap.isVisible = hasBanner
                 bannerRenderer.render(currentBannerUrl, headerViews.memberProfileBannerView)
                 bannerRenderer.applyAvatarStroke(headerViews.memberProfileAvatarView, displayedMatrixItem, hasBanner)
-                bannerUiHelper?.update(hasBanner, bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED)
+                // Deferred while the cover is up: this flips the window to draw under the status bar,
+                // which drops the root's top padding and yanks the cover (and its back arrow) up
+                // behind the status bar. Applied once the cover is gone instead.
+                if (!coverActive) {
+                    bannerUiHelper?.update(hasBanner, bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED)
+                }
 
-                if (state.isRoomEncrypted) {
+                if (state.isRoomEncrypted && state.userCryptoInfoLoaded) {
                     headerViews.memberProfileDecorationImageView.isVisible = true
                     val trustLevel = if (state.userMXCrossSigningInfo != null) {
                         // Cross signing is enabled for this user
@@ -327,6 +383,45 @@ class RoomMemberProfileFragment :
         headerViews.memberProfilePowerLevelView.setTextOrHide(state.userPowerLevelString())
         renderStatus(state)
         roomMemberProfileController.setData(state)
+    }
+
+    private fun revealHeader() {
+        if (headerRevealed) {
+            return
+        }
+        headerRevealed = true
+        pendingReveal = false
+        val cover = views.matrixProfileLoadingView
+        // Settle the page in its final position BEHIND the cover, since with a banner this drops the
+        // root's top padding and would otherwise jump the page up once the cover is gone. The cover
+        // keeps its own contents put by taking that padding on itself.
+        val hasBanner = currentBannerUrl != null
+        cover.setPadding(0, if (hasBanner) vectorBaseActivity.systemBarsTopInset else 0, 0, 0)
+        bannerUiHelper?.update(
+                hasBanner,
+                bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED
+        )
+        if (cover.isVisible) {
+            cover.animate().alpha(0f).setDuration(COVER_FADE_MS).setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    cover.isVisible = false
+                    cover.alpha = 1f
+                    cover.setPadding(0, 0, 0, 0)
+                    coverActive = false
+                }
+            })
+        } else {
+            coverActive = false
+        }
+    }
+
+    /** Opaque panel over the whole page, so it builds unseen behind a plain spinner + back arrow. */
+    private fun showLoadingCover() {
+        val cover = views.matrixProfileLoadingView
+        coverActive = true
+        cover.animate().cancel()
+        cover.alpha = 1f
+        cover.isVisible = true
     }
 
     private fun renderStatus(state: RoomMemberProfileViewState) {
@@ -628,5 +723,6 @@ class RoomMemberProfileFragment :
     companion object {
         private const val PROFILE_COLOR_REQUEST_KEY = "RoomMemberProfileFragment.profileColor"
         private const val PROFILE_COLOR_DIALOG_TAG = "RoomMemberProfileFragment.profileColorDialog"
+        private const val COVER_FADE_MS = 180L
     }
 }

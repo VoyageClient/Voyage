@@ -97,6 +97,7 @@ class RoomProfileFragment :
     private var bannerAppBarStateChangeListener: AppBarStateChangeListener? = null
     private var bannerUiHelper: ProfileBannerUiHelper? = null
     private var currentBannerUrl: String? = null
+    private var lastRenderedAvatarKey: List<Any?>? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
@@ -258,6 +259,7 @@ class RoomProfileFragment :
     }
 
     override fun onDestroyView() {
+        lastRenderedAvatarKey = null
         roomProfileController.callback = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(bannerAppBarStateChangeListener)
@@ -291,9 +293,15 @@ class RoomProfileFragment :
                 headerViews.roomProfileAliasView.setTextOrHide(it.canonicalAlias?.neutralizeDirectionOverrides())
                 headerViews.roomProfileAliasView.setCopySource(it.canonicalAlias)
                 val matrixItem = it.toDisplayMatrixItem()
-                avatarRenderer.render(matrixItem, headerViews.roomProfileAvatarView)
+                // Only re-issue when the drawn avatar actually changes: this screen invalidates on
+                // every state emission, and re-rendering replays the placeholder each time.
+                val avatarKey = listOf(matrixItem.avatarUrl, matrixItem.getBestName())
+                if (avatarKey != lastRenderedAvatarKey) {
+                    lastRenderedAvatarKey = avatarKey
+                    avatarRenderer.render(matrixItem, headerViews.roomProfileAvatarView, crossfade = true)
+                    avatarRenderer.render(matrixItem, views.matrixProfileToolbarAvatarImageView, crossfade = true)
+                }
                 bannerRenderer.applyAvatarStroke(headerViews.roomProfileAvatarView, matrixItem, state.bannerUrl != null)
-                avatarRenderer.render(matrixItem, views.matrixProfileToolbarAvatarImageView)
                 val isPgp = pgpKeyStore.isEnabled && !it.isEncrypted && pgpKeyStore.isRoomPgpEnabled(it.roomId)
                 headerViews.roomProfileDecorationImageView.renderRoomShield(it.roomEncryptionTrustLevel, isPgp)
                 views.matrixProfileDecorationToolbarAvatarImageView.renderRoomShield(it.roomEncryptionTrustLevel, isPgp)

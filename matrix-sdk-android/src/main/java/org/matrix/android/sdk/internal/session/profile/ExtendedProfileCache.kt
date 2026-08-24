@@ -168,6 +168,8 @@ internal class ExtendedProfileCache @Inject constructor(
     private val colorUpdates = MutableSharedFlow<String>(extraBufferCapacity = 64)
     val colorUpdateFlow: SharedFlow<String> = colorUpdates.asSharedFlow()
 
+    fun getCachedProfile(userId: String): Map<String, Any>? = rawProfiles[userId]
+
     fun getCachedPronouns(userId: String): List<Pronoun>? = pronounsCache[userId]
 
     fun getCachedTimezone(userId: String): String? = timezoneCache[userId]?.getOrNull()

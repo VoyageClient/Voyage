@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -64,6 +65,8 @@ import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
+
+private const val PROFILE_FETCH_TIMEOUT_MS = 5_000L
 
 class RoomMemberProfileViewModel @AssistedInject constructor(
         @Assisted private val initialState: RoomMemberProfileViewState,
@@ -124,24 +127,29 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         setState {
             copy(
                     isMine = session.myUserId == this.userId,
-                    // Always resolve to at least the mxid item, so a redacted/absent membership shows the
-                    // user tag as the display name instead of leaving the profile stuck on loading.
-                    userMatrixItem = Success(bestKnownMatrixItem()),
+                    // Members render instantly. Anyone else stays Loading until fetchProfileInfo's single
+                    // final setState, so the page reveals once and complete rather than field by field;
+                    // that setState always lands (bare-mxid fallback), so it cannot get stuck.
+                    userMatrixItem = initialRoomMember?.let { Success(it.toMatrixItem()) } ?: Loading(),
                     hasReadReceipt = room?.readService()?.getUserReadReceipt(initialState.userId) != null,
                     isSpace = initialRoomSummary?.roomType == RoomType.SPACE,
                     isHistoricalOrWatchedRoom = initialRoomSummary?.let { it.isRemovedFromRoom || it.isWatched } == true,
+                    isRoomEncrypted = initialRoomSummary?.isEncrypted == true,
+                    isAlgorithmSupported = initialRoomSummary?.roomEncryptionAlgorithm is RoomEncryptionAlgorithm.SupportedAlgorithm,
                     roomPowerLevels = initialRoomPowerLevels,
                     actionPermissions = initialPermissions,
                     userPowerLevelString = initialUserPowerLevelString?.let { Success(it) } ?: Uninitialized,
                     asyncMembership = initialRoomMember?.membership?.let { Success(it) } ?: Uninitialized,
                     // Seeded synchronously so the banner doesn't pop in a frame late
+                    profileJson = session.profileService().getCachedProfile(initialState.userId),
                     globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId),
                     status = session.profileService().getCachedStatus(initialState.userId),
                     bio = session.profileService().getCachedBio(initialState.userId),
                     profileFieldsLine = cachedProfileFieldsLine(),
             )
         }
-        session.profileService().prefetchProfileFields(initialState.userId)
+        // No prefetchProfileFields: the paths below already end in getProfile(), and a second
+        // concurrent fetch splits the reveal into staggered partial updates.
         observeIgnoredState()
         observeAccountData()
         viewModelScope.launch(Dispatchers.Main) {
@@ -163,24 +171,21 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
 
         observeProfileFields()
 
-        session.flow().liveUserCryptoDevices(initialState.userId)
-                .map {
-                    Pair(
-                            it.fold(true) { prev, dev -> prev && dev.isVerified },
-                            it.fold(true) { prev, dev -> prev && (dev.trustLevel?.crossSigningVerified == true) }
-                    )
-                }
-                .execute {
-                    copy(
-                            allDevicesAreTrusted = it()?.first == true,
-                            allDevicesAreCrossSignedTrusted = it()?.second == true
-                    )
-                }
-
-        session.flow().liveCrossSigningInfo(initialState.userId)
-                .execute {
-                    copy(userMXCrossSigningInfo = it.invoke()?.getOrNull())
-                }
+        // Combined + onEach, not execute: execute's initial Loading would reset the trust state
+        // and flash a wrong shield; the shield stays hidden until userCryptoInfoLoaded instead.
+        combine(
+                session.flow().liveUserCryptoDevices(initialState.userId),
+                session.flow().liveCrossSigningInfo(initialState.userId)
+        ) { devices, crossSigningInfo ->
+            setState {
+                copy(
+                        userCryptoInfoLoaded = true,
+                        userMXCrossSigningInfo = crossSigningInfo.getOrNull(),
+                        allDevicesAreTrusted = devices.all { it.isVerified },
+                        allDevicesAreCrossSignedTrusted = devices.all { it.trustLevel?.crossSigningVerified == true }
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun observeAccountData() {
@@ -224,14 +229,21 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                                 profileOverrideColor = overrideColor,
                                 profileColorSameForThemes = sameForThemes ?: profileColorSameForThemes,
                                 hasProfileOverrides = !fields.isNullOrEmpty(),
-                                userMatrixItem = Success(
-                                        MatrixItem.UserItem(
-                                                initialState.userId,
-                                                overrideName ?: base.displayName,
-                                                overrideAvatar ?: base.avatarUrl,
-                                                colorPreference = (base as? MatrixItem.UserItem)?.colorPreference,
-                                        )
-                                ),
+                                // Only rebuild an already-resolved item: while it is Loading, forcing
+                                // Success here would dismiss the spinner with stale store data, and
+                                // fetchProfileInfo already merges the overrides into its own result.
+                                userMatrixItem = if (userMatrixItem is Success) {
+                                    Success(
+                                            MatrixItem.UserItem(
+                                                    initialState.userId,
+                                                    overrideName ?: base.displayName,
+                                                    overrideAvatar ?: base.avatarUrl,
+                                                    colorPreference = (base as? MatrixItem.UserItem)?.colorPreference,
+                                            )
+                                    )
+                                } else {
+                                    userMatrixItem
+                                },
                         )
                     }
                 }
@@ -528,7 +540,11 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
 
     private suspend fun fetchProfileInfo() {
         val profile = try {
-            session.profileService().getProfile(initialState.userId)
+            // A dead homeserver otherwise rides the full connect-timeout ladder while the spinner
+            // spins; give up and reveal the blank fallback profile instead.
+            withTimeoutOrNull(PROFILE_FETCH_TIMEOUT_MS) {
+                session.profileService().getProfile(initialState.userId)
+            }
         } catch (throwable: Throwable) {
             null
         }
@@ -559,6 +575,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     setState {
                         copy(
                                 globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId) ?: globalBannerUrl,
+                                profileJson = session.profileService().getCachedProfile(initialState.userId) ?: profileJson,
                                 status = session.profileService().getCachedStatus(initialState.userId),
                                 bio = session.profileService().getCachedBio(initialState.userId),
                                 profileFieldsLine = cachedProfileFieldsLine(),
@@ -626,11 +643,13 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 withRoomState.copy(isRoomEncrypted = false)
             }
         }
+        // onEach, not execute: execute's initial Loading would wipe the synchronously seeded
+        // value and blank the header line until the DB flow's first emission arrives.
         roomSummaryLive.combine(powerLevelsFlow) { roomSummary, roomPowerLevels ->
             computeUserPowerLevelString(roomPowerLevels, roomSummary)
-        }.execute {
-            copy(userPowerLevelString = it)
-        }
+        }.onEach {
+            setState { copy(userPowerLevelString = Success(it)) }
+        }.launchIn(viewModelScope)
     }
 
     private fun computeUserPowerLevelString(
