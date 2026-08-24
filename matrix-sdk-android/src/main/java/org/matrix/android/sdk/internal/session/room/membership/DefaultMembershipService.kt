@@ -23,6 +23,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -93,8 +94,10 @@ internal class DefaultMembershipService @AssistedInject constructor(
     }
 
     override fun getRoomMembersFlow(queryParams: RoomMemberQueryParams): Flow<List<RoomMemberSummary>> {
+        // flowOn: the map re-queries and maps every room member, so it must not run on the collector's thread.
         return database.roomMemberSummaryQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map { roomMembersFiltered(queryParams).map { entity -> entity.asDomain() } }
+                .flowOn(dispatcher)
     }
 
     private fun roomMembersFiltered(queryParams: RoomMemberQueryParams): List<RoomMemberSummaryEntity> {

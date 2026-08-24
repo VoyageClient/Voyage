@@ -22,6 +22,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.pgp.PgpDecryptor
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
@@ -55,6 +56,13 @@ class DisplayableEventFormatter @Inject constructor(
     // AUTOLINK_WEB_URL, not WEB_URL: its (?<!://) lookbehind is what stops the host part of a
     // non-web URI (mxc://server/id) from matching, mirroring the timeline's LinkifyCompat behavior.
     private val webUrlRegex = androidx.core.util.PatternsCompat.AUTOLINK_WEB_URL.toRegex()
+
+    // Rendered previews, keyed by room + source HTML. The room list re-renders every visible summary
+    // on each update, and parsing the same HTML again cost hundreds of ms on the main thread.
+    private val previewCache = android.util.LruCache<String, CharSequence>(256)
+
+    // textColorLink is stamped into the spans at render time, so a theme change invalidates the cache.
+    private var previewCacheThemeGeneration = ThemeUtils.themeGeneration
 
     // Per-room pill processors, cached so the room list doesn't rebuild them on every summary render.
     private val pillProcessors = java.util.concurrent.ConcurrentHashMap<String, Pair<im.vector.app.features.html.PillsPostProcessor, im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer>>()
@@ -308,11 +316,25 @@ class DisplayableEventFormatter @Inject constructor(
     // Render a formatted preview the way the timeline does: mentions/rooms become pills (pillsPostProcessor),
     // matrix.to message links become "Message in Room" pills (EventTextRenderer), then bare links get coloured.
     private fun renderFormattedPreview(roomId: String?, formattedBody: String): CharSequence {
+        val generation = ThemeUtils.themeGeneration
+        if (generation != previewCacheThemeGeneration) {
+            previewCacheThemeGeneration = generation
+            previewCache.evictAll()
+        }
+        val key = "${roomId.orEmpty()}\u0000$formattedBody"
+        // Copy on the way out: callers run the result through EmojiCompat.process(), which spans a
+        // Spannable in place, so handing out the cached instance would mutate it from several threads.
+        previewCache.get(key)?.let { return SpannableStringBuilder(it) }
         // colorBareLinks must run before sanitizeForPreview, which strips block-level code spans it relies
         // on to leave URLs inside a code block un-coloured.
-        if (roomId == null) return htmlRenderer.get().render(formattedBody).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
-        val (pills, textRenderer) = pillProcessorsFor(roomId)
-        return textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
+        val rendered = if (roomId == null) {
+            htmlRenderer.get().render(formattedBody).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
+        } else {
+            val (pills, textRenderer) = pillProcessorsFor(roomId)
+            textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
+        }
+        previewCache.put(key, SpannableStringBuilder(rendered))
+        return rendered
     }
 
     // Block-level spans don't render in a one-line preview: a blockquote draws its stripe/indent and a

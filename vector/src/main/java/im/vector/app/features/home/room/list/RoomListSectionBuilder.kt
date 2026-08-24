@@ -561,42 +561,40 @@ class RoomListSectionBuilder(
             }
 
             val livePagedList = filteredPagedRoomSummariesLive.livePagedList
+            val collapseId = collapseKeyFor(name)
+            val section = RoomsSection(
+                    sectionName = name,
+                    collapseId = collapseId,
+                    livePages = livePagedList,
+                    notifyOfLocalEcho = notifyOfLocalEcho,
+                    isExpanded = MutableLiveData(!vectorPreferences.isRoomSectionCollapsed(collapseId)),
+                    itemCount = itemCountFlow
+            )
+            sections.add(section)
+
             // The count must NOT be driven off livePagedList: collecting it observes forever, which pins the
             // paged list active for the ViewModel's whole life and re-pages every section on every sync even
             // while the room list is off-screen. Drive it off the summary ticker so the list itself stays
-            // lifecycle-bound.
+            // lifecycle-bound. Reference the section directly: searching `sections` from this background
+            // flow races the main thread still appending later sections (ConcurrentModificationException).
             combine(
                     liveQueryParams,
                     homeScreenVisibility.whileVisible({ session.roomService().getRoomSummaryUpdateFlow() }, Unit)
             ) { params, _ -> params }
                     .onEach { params ->
-                        sections.find { it.sectionName == name }
-                                ?.notificationCount
-                                ?.postValue(
-                                        if (countRoomAsNotif) {
-                                            val count = session.roomService().getRoomSummaries(params).size
-                                            RoomAggregateNotificationCount(count, count)
-                                        } else {
-                                            session.roomService().getNotificationCountForRooms(
-                                                    roomQueryParams.process(spaceFilterStrategy, spaceStateHandler.getSafeActiveSpaceId())
-                                            )
-                                        }
-                                )
+                        section.notificationCount.postValue(
+                                if (countRoomAsNotif) {
+                                    val count = session.roomService().getRoomSummaries(params).size
+                                    RoomAggregateNotificationCount(count, count)
+                                } else {
+                                    session.roomService().getNotificationCountForRooms(
+                                            roomQueryParams.process(spaceFilterStrategy, spaceStateHandler.getSafeActiveSpaceId())
+                                    )
+                                }
+                        )
                     }
                     .flowOn(Dispatchers.Default)
                     .launchIn(viewModelScope)
-
-            val collapseId = collapseKeyFor(name)
-            sections.add(
-                    RoomsSection(
-                            sectionName = name,
-                            collapseId = collapseId,
-                            livePages = livePagedList,
-                            notifyOfLocalEcho = notifyOfLocalEcho,
-                            isExpanded = MutableLiveData(!vectorPreferences.isRoomSectionCollapsed(collapseId)),
-                            itemCount = itemCountFlow
-                    )
-            )
         }
     }
 
