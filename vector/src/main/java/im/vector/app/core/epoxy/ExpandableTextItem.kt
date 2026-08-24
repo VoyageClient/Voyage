@@ -13,9 +13,9 @@ import android.text.method.MovementMethod
 import android.text.style.ClickableSpan
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -78,33 +78,44 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
             false
         }
 
-        holder.content.doOnPreDraw {
-            // Measure the full line count off-view (a selectable TextView doesn't reliably report ellipsis,
-            // and reading it off the live view would need a full-height pass — the flicker we're avoiding).
-            val fullLines = holder.content.fullLineCount()
-            if (fullLines > maxLines) {
-                updateArrow(holder)
-                val toggle = View.OnClickListener {
-                    if (lastTapHitText) {
-                        lastTapHitText = false
-                        return@OnClickListener
-                    }
-                    isExpanded = !isExpanded
-                    onExpandedChange?.invoke(isExpanded)
-                    // Set maxLines directly rather than animating it: animating maxLines on a selectable
-                    // (DynamicLayout) TextView crashes in getLineTop(-1) when a re-measure races the animation,
-                    // which rapid link taps rebinding the screen readily trigger.
-                    applyMaxLines(holder.content)
+        // Manual pre-draw listener (not doOnPreDraw) so the frame can be canceled when the arrow's
+        // visibility changes — otherwise the first frame draws at the wrong height and then jumps.
+        holder.content.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                holder.content.viewTreeObserver.removeOnPreDrawListener(this)
+                // Measure the full line count off-view (a selectable TextView doesn't reliably report ellipsis,
+                // and reading it off the live view would need a full-height pass — the flicker we're avoiding).
+                val fullLines = holder.content.fullLineCount()
+                val needsArrow = fullLines > maxLines
+                val changed = holder.arrow.isVisible != needsArrow
+                if (needsArrow) {
                     updateArrow(holder)
+                    val toggle = View.OnClickListener {
+                        if (lastTapHitText) {
+                            lastTapHitText = false
+                            return@OnClickListener
+                        }
+                        isExpanded = !isExpanded
+                        onExpandedChange?.invoke(isExpanded)
+                        // Set maxLines directly rather than animating it: animating maxLines on a selectable
+                        // (DynamicLayout) TextView crashes in getLineTop(-1) when a re-measure races the animation,
+                        // which rapid link taps rebinding the screen readily trigger.
+                        applyMaxLines(holder.content)
+                        updateArrow(holder)
+                    }
+                    holder.view.setOnClickListener(toggle)
+                    // The selectable text view consumes taps, so it needs the toggle too
+                    holder.content.setOnClickListener(toggle)
+                } else {
+                    // A recycled holder still carries the previous model's toggle, which would drive
+                    // that model's onExpandedChange from this item.
+                    holder.view.setOnClickListener(null)
+                    holder.content.setOnClickListener(null)
                 }
-                holder.view.setOnClickListener(toggle)
-                // The selectable text view consumes taps, so it needs the toggle too
-                holder.content.setOnClickListener(toggle)
-                holder.arrow.isVisible = true
-            } else {
-                holder.arrow.isVisible = false
+                holder.arrow.isVisible = needsArrow
+                return !changed
             }
-        }
+        })
     }
 
     private fun applyMaxLines(textView: TextView) {
