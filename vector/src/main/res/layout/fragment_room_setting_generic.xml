@@ -95,10 +95,13 @@
             android:visibility="gone"
             tools:visibility="visible">
 
-            <!-- Use an extra container for the margin to be taken into account by the layout_scrollFlags -->
+            <!-- Use an extra container for the margin to be taken into account by the layout_scrollFlags.
+                 It also carries the flat toolbar background, which a MaterialToolbar would otherwise
+                 provide: bare AppBarLayout surface picks up the elevation overlay and reads grey. -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="?vctr_toolbar_background"
                 app:layout_scrollFlags="scroll|enterAlways|snap">
 
                 <androidx.appcompat.widget.SearchView
