@@ -60,6 +60,7 @@ internal data class SendEventTaskInfo(
         @Json(name = "type") override val type: String = TaskInfo.TYPE_SEND,
         @Json(name = "localEchoId") val localEchoId: String,
         @Json(name = "encrypt") val encrypt: Boolean?,
+        @Json(name = "bundleUrlPreviews") val bundleUrlPreviews: Boolean? = null,
         @Json(name = "order") override val order: Int
 ) : TaskInfo
 

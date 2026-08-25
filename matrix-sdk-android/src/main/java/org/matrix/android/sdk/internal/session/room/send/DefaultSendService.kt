@@ -95,7 +95,7 @@ internal class DefaultSendService @AssistedInject constructor(
     override fun sendEvent(eventType: String, content: JsonDict?): Cancelable {
         return localEchoEventFactory.createEvent(roomId, eventType, content)
                 .also { createLocalEcho(it) }
-                .let { sendEvent(it) }
+                .let { eventSenderProcessor.postEvent(it, cryptoStore.roomWasOnceEncrypted(roomId), bundleUrlPreviews = false) }
     }
 
     override fun prefetchLinkPreviews(text: CharSequence) {

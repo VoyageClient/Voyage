@@ -99,8 +99,8 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
         return postEvent(event, shouldEncrypt)
     }
 
-    override fun postEvent(event: Event, encrypt: Boolean): Cancelable {
-        val task = queuedTaskFactory.createSendTask(event, encrypt)
+    override fun postEvent(event: Event, encrypt: Boolean, bundleUrlPreviews: Boolean): Cancelable {
+        val task = queuedTaskFactory.createSendTask(event, encrypt, bundleUrlPreviews)
         return postTask(task)
     }
 

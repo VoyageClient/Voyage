@@ -30,6 +30,7 @@ import org.matrix.android.sdk.internal.util.toMatrixErrorStr
 internal class SendEventQueuedTask(
         val event: Event,
         val encrypt: Boolean,
+        val bundleUrlPreviews: Boolean,
         val sendEventTask: SendEventTask,
         val cryptoService: CryptoService,
         val localEchoRepository: LocalEchoRepository,
@@ -45,7 +46,7 @@ internal class SendEventQueuedTask(
     override suspend fun doExecute() {
         try {
             val eventToSend = bundledEvent
-                    ?: urlPreviewBundler.bundleUrlPreviews(event, encrypt).also { bundledEvent = it }
+                    ?: (if (bundleUrlPreviews) urlPreviewBundler.bundleUrlPreviews(event, encrypt) else event).also { bundledEvent = it }
             sendEventTask.execute(SendEventTask.Params(remapLocalRelationTargets(eventToSend), encrypt))
         } catch (e: Throwable) {
             lastFailure = e
