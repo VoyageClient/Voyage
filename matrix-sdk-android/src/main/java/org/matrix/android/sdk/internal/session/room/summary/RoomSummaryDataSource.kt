@@ -95,6 +95,12 @@ internal class RoomSummaryDataSource @Inject constructor(
     // Retained so the driver-level listener registration lives as long as the (session-scoped) source.
     private val invalidationQuery = database.roomSummaryQueries.selectAll().also { it.addListener(allRowsInvalidator) }
 
+    // Tags live in room_tag, not in the summary row, so a tag-only change (e.g. moving a room into a
+    // custom section) leaves the row — and therefore the memoized RoomSummary with its stale tag
+    // list — untouched. Tag writes are rare; evicting the whole memo is fine.
+    private val tagInvalidator = Query.Listener { summaryCache.clear() }
+    private val tagInvalidationQuery = database.roomTagQueries.selectRoomIdsByTag("").also { it.addListener(tagInvalidator) }
+
     init {
         // Preview decryption changes the mapped summary without changing the row, so the row-keyed
         // memo must be evicted explicitly (see RoomSummaryPreviewInvalidation).
@@ -313,10 +319,18 @@ internal class RoomSummaryDataSource @Inject constructor(
     private fun applyFilterAndSort(rows: List<RoomSummaryRow>, queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> {
         // Resolved once per pass: a per-row lookup here was one DB query per room, on every pass.
         val taggedRoomIds = queryParams.activeTagFilter?.let { database.roomTagQueries.selectRoomIdsByTag(it).executeAsList().toHashSet() }
-        return sort(rows.filter { it.matches(queryParams, taggedRoomIds) }, sortOrder)
+        val hasTagRoomIds = queryParams.hasTag?.let { database.roomTagQueries.selectRoomIdsByTag(it).executeAsList().toHashSet() }
+        val excludedTagRoomIds = queryParams.excludeTags.takeIf { it.isNotEmpty() }
+                ?.flatMapTo(HashSet()) { database.roomTagQueries.selectRoomIdsByTag(it).executeAsList() }
+        return sort(rows.filter { it.matches(queryParams, taggedRoomIds, hasTagRoomIds, excludedTagRoomIds) }, sortOrder)
     }
 
-    private fun RoomSummaryRow.matches(p: RoomSummaryQueryParams, taggedRoomIds: Set<String>?): Boolean {
+    private fun RoomSummaryRow.matches(
+            p: RoomSummaryQueryParams,
+            taggedRoomIds: Set<String>?,
+            hasTagRoomIds: Set<String>?,
+            excludedTagRoomIds: Set<String>?,
+    ): Boolean {
         if (room_id.isEmpty()) return false
         if (!p.roomId.matches(room_id)) return false
         val displayNameField = if (p.displayName.isNormalized()) normalized_display_name else display_name
@@ -347,6 +361,8 @@ internal class RoomSummaryDataSource @Inject constructor(
             SpaceFilter.NoFilter -> Unit
         }
         if (p.activeTagFilter != null && room_id !in taggedRoomIds.orEmpty()) return false
+        if (p.hasTag != null && room_id !in hasTagRoomIds.orEmpty()) return false
+        if (excludedTagRoomIds != null && room_id in excludedTagRoomIds) return false
         return true
     }
 

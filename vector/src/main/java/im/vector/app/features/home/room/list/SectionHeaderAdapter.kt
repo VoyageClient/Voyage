@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -21,7 +22,10 @@ import im.vector.app.features.themes.ThemeUtils
 
 class SectionHeaderAdapter constructor(
         roomsSectionData: RoomsSectionData,
-        private val onClickAction: ClickListener
+        private val onClickAction: ClickListener,
+        private val onLongClickAction: ClickListener? = null,
+        private val onRenameAction: ClickListener? = null,
+        private val onDeleteAction: ClickListener? = null
 ) : RecyclerView.Adapter<SectionHeaderAdapter.VH>() {
 
     data class RoomsSectionData(
@@ -33,17 +37,25 @@ class SectionHeaderAdapter constructor(
             val isHidden: Boolean = true,
             // This will be false until real data has been submitted once
             val isLoading: Boolean = true,
-            val isCollapsable: Boolean = false
+            val isCollapsable: Boolean = false,
+            // Custom room-list section: shows the rename/delete actions on the header
+            val isCustom: Boolean = false
     )
 
     var roomsSectionData: RoomsSectionData = roomsSectionData
         private set
 
     fun updateSection(block: (RoomsSectionData) -> RoomsSectionData) {
-        val newRoomsSectionData = block(roomsSectionData)
-        if (roomsSectionData != newRoomsSectionData) {
-            roomsSectionData = newRoomsSectionData
-            notifyDataSetChanged()
+        val old = roomsSectionData
+        val newRoomsSectionData = block(old)
+        if (old == newRoomsSectionData) return
+        roomsSectionData = newRoomsSectionData
+        // Granular notifications: a child notifyDataSetChanged() makes ConcatAdapter invalidate the
+        // whole concatenated list, detaching every view holder (and killing any active header drag).
+        when {
+            old.isHidden && !newRoomsSectionData.isHidden -> notifyItemInserted(0)
+            !old.isHidden && newRoomsSectionData.isHidden -> notifyItemRemoved(0)
+            !newRoomsSectionData.isHidden -> notifyItemChanged(0)
         }
     }
 
@@ -56,7 +68,7 @@ class SectionHeaderAdapter constructor(
     override fun getItemViewType(position: Int) = R.layout.item_room_category
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        return VH.create(parent, onClickAction)
+        return VH.create(parent, onClickAction, onLongClickAction, onRenameAction, onDeleteAction)
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
@@ -67,11 +79,22 @@ class SectionHeaderAdapter constructor(
 
     class VH constructor(
             private val binding: ItemRoomCategoryBinding,
-            onClickAction: ClickListener
+            onClickAction: ClickListener,
+            onLongClickAction: ClickListener?,
+            private val onRenameAction: ClickListener?,
+            private val onDeleteAction: ClickListener?
     ) : RecyclerView.ViewHolder(binding.root) {
 
         init {
             binding.root.onClick(onClickAction)
+            if (onLongClickAction != null) {
+                binding.root.setOnLongClickListener {
+                    onLongClickAction(it)
+                    true
+                }
+            }
+            onRenameAction?.let { binding.roomCategoryRenameView.onClick(it) }
+            onDeleteAction?.let { binding.roomCategoryDeleteView.onClick(it) }
         }
 
         fun bind(roomsSectionData: RoomsSectionData) {
@@ -91,14 +114,23 @@ class SectionHeaderAdapter constructor(
             binding.roomCategoryUnreadCounterBadgeView.render(
                     UnreadCounterBadgeView.State.Count(roomsSectionData.notificationCount, roomsSectionData.isHighlighted)
             )
+            val showActions = roomsSectionData.isCustom && onRenameAction != null && onDeleteAction != null
+            binding.roomCategoryRenameView.isVisible = showActions
+            binding.roomCategoryDeleteView.isVisible = showActions
         }
 
         companion object {
-            fun create(parent: ViewGroup, onClickAction: ClickListener): VH {
+            fun create(
+                    parent: ViewGroup,
+                    onClickAction: ClickListener,
+                    onLongClickAction: ClickListener?,
+                    onRenameAction: ClickListener?,
+                    onDeleteAction: ClickListener?
+            ): VH {
                 val view = LayoutInflater.from(parent.context)
                         .inflate(R.layout.item_room_category, parent, false)
                 val binding = ItemRoomCategoryBinding.bind(view)
-                return VH(binding, onClickAction)
+                return VH(binding, onClickAction, onLongClickAction, onRenameAction, onDeleteAction)
             }
         }
     }

@@ -24,6 +24,8 @@ import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
+import im.vector.app.features.home.room.list.home.header.HomeRoomFilterTab
+import im.vector.app.features.home.room.list.sections.RoomSections
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.app.features.settings.VectorPreferences
@@ -120,6 +122,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         observeInvites()
         observeRecents()
         observeFilterTabs()
+        observeSectionsConfig()
         observeSpaceChanges()
         observeDirectRoomsForMemberLoading()
         vectorPreferences.subscribeToChanges(overrideDisplayPrefListener)
@@ -226,6 +229,16 @@ class HomeRoomListViewModel @AssistedInject constructor(
                 }.launchIn(viewModelScope)
     }
 
+    private fun observeSectionsConfig() {
+        RoomSections.flow(session)
+                .map { it.showSections }
+                .distinctUntilChanged()
+                .onEach { canCreate ->
+                    setState { copy(headersData = headersData.copy(canCreateSection = canCreate)) }
+                }
+                .launchIn(viewModelScope)
+    }
+
     private fun observeFilterTabs() {
         preferencesStore.areFiltersEnabledFlow
                 .distinctUntilChanged()
@@ -234,7 +247,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
                 }.onEach { filtersOptional ->
                     val filters = filtersOptional.getOrNull()
                     if (!isCurrentFilterStillValid(filters)) {
-                        changeRoomFilter(HomeRoomFilter.ALL)
+                        changeRoomFilter(HomeRoomFilterTab.Standard(HomeRoomFilter.ALL))
                     }
                     setState {
                         copy(
@@ -246,13 +259,13 @@ class HomeRoomListViewModel @AssistedInject constructor(
                 }.launchIn(viewModelScope)
     }
 
-    private suspend fun isCurrentFilterStillValid(filtersList: List<HomeRoomFilter>?): Boolean {
+    private suspend fun isCurrentFilterStillValid(filtersList: List<HomeRoomFilterTab>?): Boolean {
         if (filtersList.isNullOrEmpty()) return false
         val currentFilter = awaitState().headersData.currentFilter
-        return filtersList.contains(currentFilter)
+        return filtersList.any { it.isSameTab(currentFilter) }
     }
 
-    private fun getFilterTabsFlow(isEnabled: Boolean): Flow<Optional<MutableList<HomeRoomFilter>>> {
+    private fun getFilterTabsFlow(isEnabled: Boolean): Flow<Optional<List<HomeRoomFilterTab>>> {
         if (!isEnabled) return flowOf(Optional.empty())
         val spaceFLow = spaceStateHandler.getSelectedSpaceFlow()
                 .distinctUntilChanged()
@@ -284,24 +297,27 @@ class HomeRoomListViewModel @AssistedInject constructor(
                         .map { it > 0 }
                         .distinctUntilChanged()
 
-        return combine(favouritesFlow, dmsFLow) { hasFavourite, hasDm ->
-            hasFavourite to hasDm
-        }.map { (hasFavourite, hasDm) ->
-            val filtersData = mutableListOf(
-                    HomeRoomFilter.ALL,
-                    HomeRoomFilter.UNREADS
+        return combine(favouritesFlow, dmsFLow, RoomSections.flow(session)) { hasFavourite, hasDm, sectionsConfig ->
+            val filtersData = mutableListOf<HomeRoomFilterTab>(
+                    HomeRoomFilterTab.Standard(HomeRoomFilter.ALL),
+                    HomeRoomFilterTab.Standard(HomeRoomFilter.UNREADS)
             )
             if (hasFavourite) {
                 filtersData.add(
-                        HomeRoomFilter.FAVOURITES
+                        HomeRoomFilterTab.Standard(HomeRoomFilter.FAVOURITES)
                 )
             }
             if (hasDm) {
                 filtersData.add(
-                        HomeRoomFilter.PEOPlE
+                        HomeRoomFilterTab.Standard(HomeRoomFilter.PEOPlE)
                 )
             }
-            Optional.from(filtersData)
+            if (sectionsConfig.showSections) {
+                sectionsConfig.all.forEach { section ->
+                    filtersData.add(HomeRoomFilterTab.Section(section.tag, section.name))
+                }
+            }
+            Optional.from<List<HomeRoomFilterTab>>(filtersData)
         }
     }
 
@@ -322,29 +338,41 @@ class HomeRoomListViewModel @AssistedInject constructor(
         setState { copy(emptyState = emptyState) }
     }
 
-    private fun getFilteredQueryParams(filter: HomeRoomFilter, currentParams: RoomSummaryQueryParams): RoomSummaryQueryParams {
-        return when (filter) {
-            HomeRoomFilter.ALL -> currentParams.copy(
+    private fun getFilteredQueryParams(tab: HomeRoomFilterTab, currentParams: RoomSummaryQueryParams): RoomSummaryQueryParams {
+        return when (tab) {
+            is HomeRoomFilterTab.Section -> currentParams.copy(
                     roomCategoryFilter = null,
-                    roomTagQueryFilter = null
+                    roomTagQueryFilter = null,
+                    hasTag = tab.tag
             )
-            HomeRoomFilter.UNREADS -> currentParams.copy(
-                    roomCategoryFilter = RoomCategoryFilter.ONLY_WITH_NOTIFICATIONS,
-                    roomTagQueryFilter = RoomTagQueryFilter(null, false, null)
-            )
-            HomeRoomFilter.FAVOURITES ->
-                currentParams.copy(
+            is HomeRoomFilterTab.Standard -> when (tab.filter) {
+                HomeRoomFilter.ALL -> currentParams.copy(
                         roomCategoryFilter = null,
-                        roomTagQueryFilter = RoomTagQueryFilter(true, null, null)
+                        roomTagQueryFilter = null,
+                        hasTag = null
                 )
-            HomeRoomFilter.PEOPlE -> currentParams.copy(
-                    roomCategoryFilter = RoomCategoryFilter.ONLY_DM,
-                    roomTagQueryFilter = null
-            )
+                HomeRoomFilter.UNREADS -> currentParams.copy(
+                        roomCategoryFilter = RoomCategoryFilter.ONLY_WITH_NOTIFICATIONS,
+                        roomTagQueryFilter = RoomTagQueryFilter(null, false, null),
+                        hasTag = null
+                )
+                HomeRoomFilter.FAVOURITES ->
+                    currentParams.copy(
+                            roomCategoryFilter = null,
+                            roomTagQueryFilter = RoomTagQueryFilter(true, null, null),
+                            hasTag = null
+                    )
+                HomeRoomFilter.PEOPlE -> currentParams.copy(
+                        roomCategoryFilter = RoomCategoryFilter.ONLY_DM,
+                        roomTagQueryFilter = null,
+                        hasTag = null
+                )
+            }
         }
     }
 
-    private fun getEmptyStateData(filter: HomeRoomFilter, selectedSpace: RoomSummary?): StateView.State.Empty? {
+    private fun getEmptyStateData(tab: HomeRoomFilterTab, selectedSpace: RoomSummary?): StateView.State.Empty? {
+        val filter = (tab as? HomeRoomFilterTab.Standard)?.filter
         return when (filter) {
             HomeRoomFilter.ALL ->
                 if (selectedSpace != null) {
@@ -386,19 +414,62 @@ class HomeRoomListViewModel @AssistedInject constructor(
             is HomeRoomListAction.SetMarkedUnread -> handleSetMarkedUnread(action)
             is HomeRoomListAction.MarkRoomAsRead -> handleMarkRoomAsRead(action)
             is HomeRoomListAction.ChangeRoomFilter -> handleChangeRoomFilter(action.filter)
+            is HomeRoomListAction.CreateSection -> handleCreateSection(action)
+            is HomeRoomListAction.RenameSection -> handleRenameSection(action)
+            is HomeRoomListAction.MoveSection -> handleMoveSection(action)
+            is HomeRoomListAction.RequestDeleteSection -> handleRequestDeleteSection(action)
+            is HomeRoomListAction.DeleteSection -> handleDeleteSection(action)
             HomeRoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
         }
     }
 
-    private fun handleChangeRoomFilter(newFilter: HomeRoomFilter) {
+    private fun handleCreateSection(action: HomeRoomListAction.CreateSection) {
+        viewModelScope.launch {
+            val spaceId = spaceStateHandler.getCurrentSpace()?.roomId ?: RoomSections.HOME_SPACE_ID
+            runCatching { RoomSections.createSection(session, action.name, spaceId) }
+                    .onFailure { _viewEvents.post(HomeRoomListViewEvents.Failure(it)) }
+        }
+    }
+
+    private fun handleMoveSection(action: HomeRoomListAction.MoveSection) {
+        viewModelScope.launch {
+            runCatching { RoomSections.moveSection(session, action.tag, action.up) }
+                    .onFailure { _viewEvents.post(HomeRoomListViewEvents.Failure(it)) }
+        }
+    }
+
+    private fun handleRenameSection(action: HomeRoomListAction.RenameSection) {
+        viewModelScope.launch {
+            runCatching { RoomSections.renameSection(session, action.tag, action.newName) }
+                    .onFailure { _viewEvents.post(HomeRoomListViewEvents.Failure(it)) }
+        }
+    }
+
+    private fun handleRequestDeleteSection(action: HomeRoomListAction.RequestDeleteSection) {
+        viewModelScope.launch {
+            val isEmpty = withContext(Dispatchers.IO) {
+                session.roomService().getRoomSummaries(roomSummaryQueryParams { hasTag = action.tag }).isEmpty()
+            }
+            _viewEvents.post(HomeRoomListViewEvents.PromptDeleteSection(action.tag, isEmpty))
+        }
+    }
+
+    private fun handleDeleteSection(action: HomeRoomListAction.DeleteSection) {
+        viewModelScope.launch {
+            runCatching { RoomSections.deleteSection(session, action.tag) }
+                    .onFailure { _viewEvents.post(HomeRoomListViewEvents.Failure(it)) }
+        }
+    }
+
+    private fun handleChangeRoomFilter(newFilter: HomeRoomFilterTab) {
         viewModelScope.launch {
             changeRoomFilter(newFilter)
         }
     }
 
-    private suspend fun changeRoomFilter(newFilter: HomeRoomFilter) {
+    private suspend fun changeRoomFilter(newFilter: HomeRoomFilterTab) {
         val currentFilter = awaitState().headersData.currentFilter
-        if (currentFilter == newFilter) {
+        if (currentFilter.isSameTab(newFilter)) {
             return
         }
         setState { copy(headersData = headersData.copy(currentFilter = newFilter)) }

@@ -15,6 +15,7 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.list.sections.RoomSections
 import im.vector.app.features.spaces.RoomTagItem
 import im.vector.app.features.spaces.tags.displayNameForTag
 import im.vector.app.features.spaces.tags.tagSortKey
@@ -55,8 +56,11 @@ class RoomTagViewModel @AssistedInject constructor(
                 room.flow().liveRoomSummary().distinctUntilChanged(),
                 allRoomsFlow,
         ) { roomSummaryOption, allRooms ->
+            // Custom-section tags have their own management UI (RoomSectionBottomSheet).
             val currentTagNames = roomSummaryOption.getOrNull()?.tags?.map { it.name }.orEmpty()
+                    .filterNot { RoomSections.isSectionTag(it) }
             val allTagNames = allRooms.flatMap { summary -> summary.tags.map { it.name } }.distinct()
+                    .filterNot { RoomSections.isSectionTag(it) }
 
             val roomTags = currentTagNames
                     .map { RoomTagItem(it, displayNameForTag(stringProvider, it), 0) }

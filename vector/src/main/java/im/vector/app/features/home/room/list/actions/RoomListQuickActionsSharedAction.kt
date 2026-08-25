@@ -59,6 +59,11 @@ sealed class RoomListQuickActionsSharedAction(
             R.drawable.ic_tag_24
     )
 
+    data class Sections(val roomId: String) : RoomListQuickActionsSharedAction(
+            CommonStrings.room_list_quick_actions_section,
+            R.drawable.ic_composer_bullet_list
+    )
+
     data class MarkUnread(val roomId: String) : RoomListQuickActionsSharedAction(
             CommonStrings.room_list_quick_actions_mark_unread,
             R.drawable.ic_room_actions_mark_room_unread

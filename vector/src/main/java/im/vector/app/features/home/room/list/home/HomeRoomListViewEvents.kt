@@ -15,4 +15,5 @@ sealed class HomeRoomListViewEvents : VectorViewEvents {
     data class Failure(val throwable: Throwable) : HomeRoomListViewEvents()
     object Done : HomeRoomListViewEvents()
     data class SelectRoom(val roomSummary: RoomSummary, val isInviteAlreadyAccepted: Boolean = false) : HomeRoomListViewEvents()
+    data class PromptDeleteSection(val tag: String, val isEmpty: Boolean) : HomeRoomListViewEvents()
 }

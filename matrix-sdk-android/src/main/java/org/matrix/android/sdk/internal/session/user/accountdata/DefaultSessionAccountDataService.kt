@@ -68,18 +68,29 @@ internal class DefaultSessionAccountDataService @Inject constructor(
             roomAccountDataDataSource.getAccountDataEventsFlow(null, types)
 
     override suspend fun updateUserAccountData(type: String, content: Content) {
+        val previous = userAccountDataDataSource.getAccountDataEvent(type)?.content
+        // Local echo before the upload so the UI reacts instantly instead of after a server
+        // round-trip (and, under stealth mode, this local write is the only place it is ever stored).
+        persistUserAccountData(type, content)
         if (!StealthAccountData.isLocalOnly(type)) {
             val params = UpdateUserAccountDataTask.AnyParams(type = type, any = content)
-            awaitCallback { callback ->
-                updateUserAccountDataTask.configureWith(params) {
-                    this.retryCount = 5
-                    this.callback = callback
+            try {
+                awaitCallback<Unit> { callback ->
+                    updateUserAccountDataTask.configureWith(params) {
+                        this.retryCount = 5
+                        this.callback = callback
+                    }
+                            .executeBy(taskExecutor)
                 }
-                        .executeBy(taskExecutor)
+            } catch (failure: Throwable) {
+                // The server rejected the change and won't echo it back on sync: roll the echo back.
+                persistUserAccountData(type, previous)
+                throw failure
             }
         }
-        // Local echo: persist immediately rather than waiting for the resulting sync
-        // (and, under stealth mode, this local write is the only place it is ever stored).
+    }
+
+    private suspend fun persistUserAccountData(type: String, content: Content?) {
         database.awaitDbTransaction(dispatcher) {
             if (content.isNullOrEmpty()) {
                 stores.accountData.deleteUserAccountData(type)

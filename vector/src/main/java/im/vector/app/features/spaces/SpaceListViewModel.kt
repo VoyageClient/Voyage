@@ -18,6 +18,7 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.list.sections.RoomSections
 import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
@@ -214,31 +215,36 @@ class SpaceListViewModel @AssistedInject constructor(
         val params = roomSummaryQueryParams {
             memberships = listOf(Membership.JOIN)
         }
-        session.flow().liveRoomSummaries(params)
-                .map { roomSummaries ->
-                    val tagItems = roomSummaries
-                            .flatMap { summary -> summary.tags.map { it.name } }
-                            .groupingBy { it }
-                            .eachCount()
-                            .map { (name, count) ->
-                                RoomTagItem(
-                                        name = name,
-                                        displayName = displayNameForTag(stringProvider, name),
-                                        roomCount = count,
-                                )
-                            }
-                            .sortedBy { tagSortKey(it.name) }
-                    if (vectorPreferences.combinedOverview()) {
-                        val dmItem = RoomTagItem(
-                                name = DM_FILTER_TAG,
-                                displayName = stringProvider.getString(CommonStrings.room_list_dm_filter),
-                                roomCount = roomSummaries.count { it.isDirect },
+        combine(
+                session.flow().liveRoomSummaries(params),
+                RoomSections.flow(session),
+        ) { roomSummaries, sectionsConfig ->
+            val sectionNames = sectionsConfig.all.associate { it.tag to it.name }
+            val tagItems = roomSummaries
+                    .flatMap { summary -> summary.tags.map { it.name } }
+                    // Orphaned section tags (definition deleted) are ignored, matching web.
+                    .filterNot { RoomSections.isSectionTag(it) && it !in sectionNames }
+                    .groupingBy { it }
+                    .eachCount()
+                    .map { (name, count) ->
+                        RoomTagItem(
+                                name = name,
+                                displayName = sectionNames[name] ?: displayNameForTag(stringProvider, name),
+                                roomCount = count,
                         )
-                        listOf(dmItem) + tagItems
-                    } else {
-                        tagItems
                     }
-                }
+                    .sortedBy { sectionNames[it.name]?.let { display -> "3" + display.lowercase() } ?: tagSortKey(it.name) }
+            if (vectorPreferences.combinedOverview()) {
+                val dmItem = RoomTagItem(
+                        name = DM_FILTER_TAG,
+                        displayName = stringProvider.getString(CommonStrings.room_list_dm_filter),
+                        roomCount = roomSummaries.count { it.isDirect },
+                )
+                listOf(dmItem) + tagItems
+            } else {
+                tagItems
+            }
+        }
                 .distinctUntilChanged()
                 .onEach { tags ->
                     val selectedTag = tagFilterStateHandler.getSelectedTag()

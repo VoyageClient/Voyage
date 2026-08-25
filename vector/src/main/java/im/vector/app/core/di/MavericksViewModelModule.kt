@@ -108,6 +108,11 @@ interface HomeMavericksViewModelModule {
 
     @Binds
     @IntoMap
+    @MavericksViewModelKey("im.vector.app.features.home.room.list.actions.RoomSectionViewModel")
+    fun vm30(factory: im.vector.app.features.home.room.list.actions.RoomSectionViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.home.room.list.home.HomeRoomListViewModel")
     fun vm18(factory: im.vector.app.features.home.room.list.home.HomeRoomListViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 

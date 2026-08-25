@@ -18,6 +18,7 @@ import im.vector.app.SpaceStateHandler
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.HomeScreenVisibility
 import im.vector.app.features.home.RoomListDisplayMode
+import im.vector.app.features.home.room.list.sections.RoomSections
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.showInvites
 import im.vector.app.features.settings.VectorPreferences
@@ -82,6 +83,10 @@ class RoomListSectionBuilder(
 
     private val activeSpaceAwareQueries = mutableListOf<RoomListViewModel.ActiveSpaceQueryUpdater>()
 
+    // Snapshot of the custom-section definitions at build time; the view model rebuilds the whole
+    // section list when the definitions change.
+    private var sectionsConfig: RoomSections.Config = RoomSections.Config.EMPTY
+
     private fun collapseKeyFor(sectionName: String) = "${displayMode.name}|$sectionName"
 
     /**
@@ -97,6 +102,7 @@ class RoomListSectionBuilder(
 
     fun buildSections(mode: RoomListDisplayMode): List<RoomsSection> {
         displayMode = mode
+        sectionsConfig = RoomSections.get(session).takeIf { it.showSections } ?: RoomSections.Config.EMPTY
         val sections = mutableListOf<RoomsSection>()
         activeSpaceAwareQueries.clear()
         when (mode) {
@@ -171,32 +177,36 @@ class RoomListSectionBuilder(
             it.roomTagQueryFilter = RoomTagQueryFilter(true, null, null)
         }
 
+        val roomsStrategy = if (onlyOrphansInHome) {
+            RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL
+        } else {
+            RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL
+        }
+
+        addCustomSections(sections, activeSpaceAwareQueries, sectionsConfig.aboveChats, RoomCategoryFilter.ONLY_ROOMS, roomsStrategy)
+
         addSection(
                 sections = sections,
                 activeSpaceUpdaters = activeSpaceAwareQueries,
                 nameRes = CommonStrings.bottom_action_rooms,
                 notifyOfLocalEcho = false,
-                spaceFilterStrategy = if (onlyOrphansInHome) {
-                    RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL
-                } else {
-                    RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL
-                }
+                spaceFilterStrategy = roomsStrategy,
+                reorderTag = RoomSections.CHATS_TAG
         ) {
             it.memberships = listOf(Membership.JOIN)
             it.roomCategoryFilter = RoomCategoryFilter.ONLY_ROOMS
             it.roomTagQueryFilter = RoomTagQueryFilter(isFavorite = false, isLowPriority = false, isServerNotice = false)
+            it.excludeTags = sectionsConfig.allTags
         }
+
+        addCustomSections(sections, activeSpaceAwareQueries, sectionsConfig.belowChats, RoomCategoryFilter.ONLY_ROOMS, roomsStrategy)
 
         addSection(
                 sections = sections,
                 activeSpaceUpdaters = activeSpaceAwareQueries,
                 nameRes = CommonStrings.low_priority_header,
                 notifyOfLocalEcho = false,
-                spaceFilterStrategy = if (onlyOrphansInHome) {
-                    RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL
-                } else {
-                    RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL
-                }
+                spaceFilterStrategy = roomsStrategy
         ) {
             it.memberships = listOf(Membership.JOIN)
             it.roomCategoryFilter = RoomCategoryFilter.ONLY_ROOMS
@@ -254,20 +264,28 @@ class RoomListSectionBuilder(
             it.roomTagQueryFilter = RoomTagQueryFilter(true, null, null)
         }
 
+        val unifiedStrategy = if (onlyOrphansInHome) {
+            RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL
+        } else {
+            RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL
+        }
+
+        addCustomSections(sections, activeSpaceAwareQueries, sectionsConfig.aboveChats, null, unifiedStrategy)
+
         addSection(
                 sections = sections,
                 activeSpaceUpdaters = activeSpaceAwareQueries,
                 nameRes = CommonStrings.normal_priority_header,
                 notifyOfLocalEcho = false,
-                spaceFilterStrategy = if (onlyOrphansInHome) {
-                    RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL
-                } else {
-                    RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL
-                }
+                spaceFilterStrategy = unifiedStrategy,
+                reorderTag = RoomSections.CHATS_TAG
         ) {
             it.memberships = listOf(Membership.JOIN)
             it.roomTagQueryFilter = RoomTagQueryFilter(isFavorite = false, isLowPriority = false, isServerNotice = false)
+            it.excludeTags = sectionsConfig.allTags
         }
+
+        addCustomSections(sections, activeSpaceAwareQueries, sectionsConfig.belowChats, null, unifiedStrategy)
 
         addSection(
                 sections = sections,
@@ -300,6 +318,31 @@ class RoomListSectionBuilder(
         }
 
         addSuggestedRoomsSection(sections)
+    }
+
+    private fun addCustomSections(
+            sections: MutableList<RoomsSection>,
+            activeSpaceUpdaters: MutableList<RoomListViewModel.ActiveSpaceQueryUpdater>,
+            customSections: List<RoomSections.CustomRoomSection>,
+            categoryFilter: RoomCategoryFilter?,
+            spaceFilterStrategy: RoomListViewModel.SpaceFilterStrategy,
+    ) {
+        customSections.forEach { custom ->
+            addSectionNamed(
+                    sections = sections,
+                    activeSpaceUpdaters = activeSpaceUpdaters,
+                    name = custom.name,
+                    notifyOfLocalEcho = false,
+                    spaceFilterStrategy = spaceFilterStrategy,
+                    collapseKey = custom.tag,
+                    customTag = custom.tag,
+                    reorderTag = custom.tag,
+            ) {
+                it.memberships = listOf(Membership.JOIN)
+                it.roomCategoryFilter = categoryFilter
+                it.hasTag = custom.tag
+            }
+        }
     }
 
     private fun addSuggestedRoomsSection(sections: MutableList<RoomsSection>) {
@@ -383,17 +426,35 @@ class RoomListSectionBuilder(
             it.roomTagQueryFilter = RoomTagQueryFilter(true, null, null)
         }
 
+        addCustomSections(
+                sections,
+                activeSpaceAwareQueries,
+                sectionsConfig.aboveChats,
+                RoomCategoryFilter.ONLY_DM,
+                RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL,
+        )
+
         addSection(
                 sections,
                 activeSpaceAwareQueries,
                 CommonStrings.bottom_action_people_x,
                 false,
-                RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL
+                RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL,
+                reorderTag = RoomSections.CHATS_TAG
         ) {
             it.memberships = listOf(Membership.JOIN)
             it.roomCategoryFilter = RoomCategoryFilter.ONLY_DM
             it.roomTagQueryFilter = RoomTagQueryFilter(isFavorite = false, isLowPriority = false, isServerNotice = null)
+            it.excludeTags = sectionsConfig.allTags
         }
+
+        addCustomSections(
+                sections,
+                activeSpaceAwareQueries,
+                sectionsConfig.belowChats,
+                RoomCategoryFilter.ONLY_DM,
+                RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL,
+        )
 
         addSection(
                 sections,
@@ -478,6 +539,29 @@ class RoomListSectionBuilder(
             notifyOfLocalEcho: Boolean = false,
             spaceFilterStrategy: RoomListViewModel.SpaceFilterStrategy = RoomListViewModel.SpaceFilterStrategy.NONE,
             countRoomAsNotif: Boolean = false,
+            reorderTag: String? = null,
+            query: (RoomSummaryQueryParams.Builder) -> Unit
+    ) = addSectionNamed(
+            sections = sections,
+            activeSpaceUpdaters = activeSpaceUpdaters,
+            name = stringProvider.getString(nameRes),
+            notifyOfLocalEcho = notifyOfLocalEcho,
+            spaceFilterStrategy = spaceFilterStrategy,
+            countRoomAsNotif = countRoomAsNotif,
+            reorderTag = reorderTag,
+            query = query,
+    )
+
+    private fun addSectionNamed(
+            sections: MutableList<RoomsSection>,
+            activeSpaceUpdaters: MutableList<RoomListViewModel.ActiveSpaceQueryUpdater>,
+            name: String,
+            notifyOfLocalEcho: Boolean = false,
+            spaceFilterStrategy: RoomListViewModel.SpaceFilterStrategy = RoomListViewModel.SpaceFilterStrategy.NONE,
+            countRoomAsNotif: Boolean = false,
+            collapseKey: String = name,
+            customTag: String? = null,
+            reorderTag: String? = null,
             query: (RoomSummaryQueryParams.Builder) -> Unit
     ) {
         withQueryParams(query) { roomQueryParams ->
@@ -490,7 +574,6 @@ class RoomListSectionBuilder(
                     .flowOn(Dispatchers.Main)
                     .distinctUntilChanged()
 
-            val name = stringProvider.getString(nameRes)
             val filteredPagedRoomSummariesLive = (session.roomService() as RoomPagingService).getFilteredPagedRoomSummariesLive(
                     roomQueryParams.process(spaceFilterStrategy, spaceStateHandler.getSafeActiveSpaceId()),
                     pagedListConfig
@@ -501,6 +584,7 @@ class RoomListSectionBuilder(
             // favourites, low priority…) gets the same flag filter too and so matches nothing
             // while one of these views is selected.
             val isMainJoinedSection = roomQueryParams.memberships == listOf(Membership.JOIN) &&
+                    roomQueryParams.hasTag == null &&
                     roomQueryParams.roomTagQueryFilter?.let { f ->
                         f.isFavorite != true && f.isLowPriority != true && f.isServerNotice != true
                     } != false
@@ -520,6 +604,11 @@ class RoomListSectionBuilder(
             fun tagQueryFilterForTag(tag: String?): RoomTagQueryFilter? =
                     if ((tag == HISTORICAL_FILTER_TAG || tag == WATCHING_FILTER_TAG) && isMainJoinedSection) null else roomQueryParams.roomTagQueryFilter
 
+            // Same reasoning for custom-section tags: the historical/watching views must show every
+            // matching room even if it sits in a custom section.
+            fun excludeTagsForTag(tag: String?): List<String> =
+                    if ((tag == HISTORICAL_FILTER_TAG || tag == WATCHING_FILTER_TAG) && isMainJoinedSection) emptyList() else roomQueryParams.excludeTags
+
             when (spaceFilterStrategy) {
                 RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL -> {
                     activeSpaceUpdaters.add(object : RoomListViewModel.ActiveSpaceQueryUpdater {
@@ -533,6 +622,7 @@ class RoomListSectionBuilder(
                                     removedFromRoom = removedFilterForTag(tag),
                                     watched = watchedFilterForTag(tag),
                                     roomTagQueryFilter = tagQueryFilterForTag(tag),
+                                    excludeTags = excludeTagsForTag(tag),
                             )
                             liveQueryParams.update { filteredPagedRoomSummariesLive.queryParams }
                         }
@@ -550,6 +640,7 @@ class RoomListSectionBuilder(
                                     removedFromRoom = removedFilterForTag(tag),
                                     watched = watchedFilterForTag(tag),
                                     roomTagQueryFilter = tagQueryFilterForTag(tag),
+                                    excludeTags = excludeTagsForTag(tag),
                             )
                             liveQueryParams.update { filteredPagedRoomSummariesLive.queryParams }
                         }
@@ -561,14 +652,16 @@ class RoomListSectionBuilder(
             }
 
             val livePagedList = filteredPagedRoomSummariesLive.livePagedList
-            val collapseId = collapseKeyFor(name)
+            val collapseId = collapseKeyFor(collapseKey)
             val section = RoomsSection(
                     sectionName = name,
                     collapseId = collapseId,
                     livePages = livePagedList,
                     notifyOfLocalEcho = notifyOfLocalEcho,
                     isExpanded = MutableLiveData(!vectorPreferences.isRoomSectionCollapsed(collapseId)),
-                    itemCount = itemCountFlow
+                    itemCount = itemCountFlow,
+                    customTag = customTag,
+                    reorderTag = reorderTag
             )
             sections.add(section)
 

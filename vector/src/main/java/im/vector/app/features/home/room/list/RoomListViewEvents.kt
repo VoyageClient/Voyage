@@ -20,4 +20,10 @@ sealed class RoomListViewEvents : VectorViewEvents {
     data class SelectRoom(val roomSummary: RoomSummary, val isInviteAlreadyAccepted: Boolean = false) : RoomListViewEvents()
     object Done : RoomListViewEvents()
     data class NavigateToMxToBottomSheet(val link: String) : RoomListViewEvents()
+
+    /** The section list was rebuilt (custom sections changed); the fragment must recreate its adapters. */
+    object SectionsRebuilt : RoomListViewEvents()
+
+    /** Only section names changed; the fragment updates its headers in place. Keyed by section tag. */
+    data class SectionsRenamed(val names: Map<String, String>) : RoomListViewEvents()
 }

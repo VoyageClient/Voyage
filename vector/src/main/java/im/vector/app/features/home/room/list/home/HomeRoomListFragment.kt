@@ -32,10 +32,12 @@ import im.vector.app.features.home.room.list.RoomListListener
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedActionViewModel
+import im.vector.app.features.home.room.list.actions.RoomSectionBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomTagBottomSheet
-import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
+import im.vector.app.features.home.room.list.home.header.HomeRoomFilterTab
 import im.vector.app.features.home.room.list.home.header.HomeRoomsHeadersController
 import im.vector.app.features.home.room.list.home.invites.InvitesActivity
+import im.vector.app.features.home.room.list.sections.RoomSectionDialogs
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
@@ -120,6 +122,11 @@ class HomeRoomListFragment :
                 is HomeRoomListViewEvents.Loading -> showLoading(it.message)
                 is HomeRoomListViewEvents.Failure -> showFailure(it.throwable)
                 is HomeRoomListViewEvents.SelectRoom -> handleSelectRoom(it, it.isInviteAlreadyAccepted)
+                is HomeRoomListViewEvents.PromptDeleteSection -> {
+                    RoomSectionDialogs.showDeleteDialog(requireContext(), it.isEmpty) {
+                        roomListViewModel.handle(HomeRoomListAction.DeleteSection(it.tag))
+                    }
+                }
                 is HomeRoomListViewEvents.Done -> Unit
             }
         }
@@ -151,6 +158,10 @@ class HomeRoomListFragment :
             is RoomListQuickActionsSharedAction.Tag -> {
                 RoomTagBottomSheet.newInstance(quickAction.roomId)
                         .show(childFragmentManager, "ROOM_TAG")
+            }
+            is RoomListQuickActionsSharedAction.Sections -> {
+                RoomSectionBottomSheet.newInstance(quickAction.roomId)
+                        .show(childFragmentManager, "ROOM_SECTION")
             }
             is RoomListQuickActionsSharedAction.MarkUnread -> {
                 roomListViewModel.handle(HomeRoomListAction.SetMarkedUnread(quickAction.roomId, true))
@@ -215,6 +226,8 @@ class HomeRoomListFragment :
         val headersAdapter = headersController.also { controller ->
             controller.invitesClickListener = ::onInvitesCounterClicked
             controller.onFilterChangedListener = ::onRoomFilterChanged
+            controller.onSectionLongPressListener = ::onSectionLongPressed
+            controller.onCreateSectionListener = ::onCreateSectionClicked
             controller.recentsRoomListener = this
         }.adapter
 
@@ -238,8 +251,37 @@ class HomeRoomListFragment :
         startActivity(Intent(activity, InvitesActivity::class.java))
     }
 
-    private fun onRoomFilterChanged(filter: HomeRoomFilter) {
+    private fun onRoomFilterChanged(filter: HomeRoomFilterTab) {
         roomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(filter))
+    }
+
+    private fun onCreateSectionClicked() {
+        RoomSectionDialogs.showNameDialog(requireContext(), CommonStrings.room_section_create_title, initialName = null) { name ->
+            roomListViewModel.handle(HomeRoomListAction.CreateSection(name))
+        }
+    }
+
+    private fun onSectionLongPressed(section: HomeRoomFilterTab.Section) {
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(section.name)
+                .setItems(
+                        arrayOf(
+                                getString(CommonStrings.room_section_rename),
+                                getString(CommonStrings.room_section_move_up),
+                                getString(CommonStrings.room_section_move_down),
+                                getString(CommonStrings.room_section_delete),
+                        )
+                ) { _, which ->
+                    when (which) {
+                        0 -> RoomSectionDialogs.showNameDialog(requireContext(), CommonStrings.room_section_rename, section.name) { name ->
+                            roomListViewModel.handle(HomeRoomListAction.RenameSection(section.tag, name))
+                        }
+                        1 -> roomListViewModel.handle(HomeRoomListAction.MoveSection(section.tag, up = true))
+                        2 -> roomListViewModel.handle(HomeRoomListAction.MoveSection(section.tag, up = false))
+                        else -> roomListViewModel.handle(HomeRoomListAction.RequestDeleteSection(section.tag))
+                    }
+                }
+                .show()
     }
 
     private fun handleSelectRoom(event: HomeRoomListViewEvents.SelectRoom, isInviteAlreadyAccepted: Boolean) {
@@ -256,6 +298,8 @@ class HomeRoomListFragment :
         headersController.recentsRoomListener = null
         headersController.invitesClickListener = null
         headersController.onFilterChangedListener = null
+        headersController.onSectionLongPressListener = null
+        headersController.onCreateSectionListener = null
 
         roomsController.listener = null
 

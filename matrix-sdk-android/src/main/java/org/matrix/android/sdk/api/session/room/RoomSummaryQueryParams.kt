@@ -98,6 +98,17 @@ data class RoomSummaryQueryParams(
          */
         val activeTagFilter: String?,
         /**
+         * When non-null, keep only rooms carrying this tag. Unlike [activeTagFilter] (owned by the
+         * drawer tag-filter feature, which overwrites it on selection changes) this is a stable part
+         * of the query, used for custom room-list sections.
+         */
+        val hasTag: String?,
+        /**
+         * Exclude rooms carrying any of these tags. Used for the catch-all room-list section so rooms
+         * in custom sections don't appear twice.
+         */
+        val excludeTags: List<String>,
+        /**
          * When non-null, keep only rooms whose [org.matrix.android.sdk.api.session.room.model.RoomSummary.isRemovedFromRoom]
          * matches (true = kicked/banned rooms, false = everything else).
          */
@@ -124,6 +135,8 @@ data class RoomSummaryQueryParams(
         var includeType: List<String?>? = null
         var spaceFilter: SpaceFilter = SpaceFilter.NoFilter
         var activeTagFilter: String? = null
+        var hasTag: String? = null
+        var excludeTags: List<String> = emptyList()
         var removedFromRoom: Boolean? = null
         var watched: Boolean? = null
 
@@ -138,6 +151,8 @@ data class RoomSummaryQueryParams(
                 includeType = includeType,
                 spaceFilter = spaceFilter,
                 activeTagFilter = activeTagFilter,
+                hasTag = hasTag,
+                excludeTags = excludeTags,
                 removedFromRoom = removedFromRoom,
                 watched = watched,
         )

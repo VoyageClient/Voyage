@@ -160,6 +160,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Room tags** — tag support for rooms.
 
+- **Custom room-list sections** — group rooms into named sections of your own, which appear in the room list and can be created, renamed, reordered and removed in place. The sections are the same ones Element Web offers, and stay in sync with it.
+
 - **"Kick", not "remove"** — the action to remove a member from a room is now labelled "kick" rather than the vaguer "remove".
 
 - **Spaces improvements** — view a space's own timeline, show all rooms in Home by default, and a spaces drawer replacing the new UI's custom spaces view.

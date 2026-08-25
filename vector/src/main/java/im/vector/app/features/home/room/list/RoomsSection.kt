@@ -15,7 +15,8 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
 
 data class RoomsSection(
-        val sectionName: String,
+        // var: a rename-only definitions change is applied in place instead of rebuilding the list
+        var sectionName: String,
         // Stable key used to persist the expand/collapse state. Qualified by display mode so the
         // same-named section (e.g. Favourites) collapses independently on the People vs Rooms tabs.
         val collapseId: String = sectionName,
@@ -26,5 +27,10 @@ data class RoomsSection(
         val isExpanded: MutableLiveData<Boolean> = MutableLiveData(true),
         val itemCount: Flow<Int>,
         val notificationCount: MutableLiveData<RoomAggregateNotificationCount> = MutableLiveData(RoomAggregateNotificationCount(0, 0)),
-        val notifyOfLocalEcho: Boolean = false
+        val notifyOfLocalEcho: Boolean = false,
+        // Set for custom room-list sections; enables the header's rename/remove management.
+        val customTag: String? = null,
+        // Identity within the stored section order: the custom tag, or "chats" for the catch-all.
+        // Null for sections that can't take part in reordering (favourites, invites, ...).
+        val reorderTag: String? = null
 )
