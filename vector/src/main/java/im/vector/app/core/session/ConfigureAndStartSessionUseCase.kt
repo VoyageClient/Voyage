@@ -26,7 +26,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.launch
@@ -79,10 +81,17 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         val newJob = session.coroutineScope.launch {
             // Initial seed — we own this regardless of whether the live data has emitted yet.
             accountInfoCache.storeForActive(session)
-            session.userService().getUserFlow(session.myUserId)
-                    .map { it.getOrNull()?.let { user -> user.displayName to user.avatarUrl } }
-                    .distinctUntilChanged()
-                    .drop(1) // skip the replay of the value we just seeded
+            merge(
+                    session.userService().getUserFlow(session.myUserId)
+                            .map { it.getOrNull()?.let { user -> user.displayName to user.avatarUrl } }
+                            .distinctUntilChanged()
+                            .drop(1) // skip the replay of the value we just seeded
+                            .map { },
+                    // Color edits don't touch the user entry, so the flow above never sees them.
+                    session.profileService().getColorPreferenceUpdateFlow()
+                            .filter { it == session.myUserId }
+                            .map { },
+            )
                     .onEach { accountInfoCache.storeForActive(session) }
                     .retryWhen { cause, attempt ->
                         if (cause is CancellationException) return@retryWhen false

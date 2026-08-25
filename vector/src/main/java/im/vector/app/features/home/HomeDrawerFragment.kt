@@ -16,7 +16,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,6 +39,7 @@ import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.home.accountswitcher.AccountSwitcherAdapter
 import im.vector.app.features.home.accountswitcher.AccountSwitcherEntry
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.onboarding.OnboardingActivity
 import im.vector.app.features.roomdirectory.pendingrequests.PendingJoinRequestsActivity
@@ -51,6 +54,7 @@ import org.matrix.android.sdk.api.session.room.getRoomSummariesLive
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.user.getUserLive
+import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import javax.inject.Inject
@@ -69,10 +73,12 @@ class HomeDrawerFragment :
     @Inject lateinit var accountInfoCache: AccountInfoCache
     @Inject lateinit var vpnDetector: VpnDetector
     @Inject lateinit var vpnGate: VpnGate
+    @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
 
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
     private lateinit var accountAdapter: AccountSwitcherAdapter
     private var hasPendingJoinRequests = false
+    private var headerUser: User? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentHomeDrawerBinding {
         return FragmentHomeDrawerBinding.inflate(inflater, container, false)
@@ -92,11 +98,24 @@ class HomeDrawerFragment :
         session.userService().getUserLive(session.myUserId).observeK(viewLifecycleOwner) { optionalUser ->
             val user = optionalUser?.getOrNull()
             if (user != null) {
+                headerUser = user
                 avatarRenderer.render(user.toMatrixItem(), views.homeDrawerHeaderAvatarView)
                 views.homeDrawerUsernameView.text = (user.displayName?.takeIf { it.isNotBlank() } ?: user.userId).prepareForDisplay()
                 views.homeDrawerUserIdView.text = user.userId
                 // Keep the switcher's active row in sync with profile edits when the panel is up.
                 if (views.homeDrawerAccountList.isVisible) refreshAccountList()
+            }
+        }
+        // The header avatar is a plain ImageView, so the base activity's recycler rebind on color
+        // changes doesn't reach it — re-render when the own profile color lands or changes.
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                matrixItemColorProvider.changes.collect {
+                    headerUser?.let { avatarRenderer.render(it.toMatrixItem(), views.homeDrawerHeaderAvatarView) }
+                    // The switcher rows carry the color in their entry data, so a plain rebind
+                    // would keep the stale value — rebuild the entries instead.
+                    if (views.homeDrawerAccountList.isVisible) refreshAccountList()
+                }
             }
         }
         // Profile
@@ -214,6 +233,11 @@ class HomeDrawerFragment :
                         homeServerHost = snap.homeServerHost,
                         isActive = isActive,
                         liveAvatarUrl = if (isActive) activeUser?.avatarUrl else null,
+                        colorPreference = if (isActive) {
+                            session.profileService().getCachedColorPreference(session.myUserId) ?: snap.colorPreference
+                        } else {
+                            snap.colorPreference
+                        },
                 )
             }.sortedByDescending { it.isActive }
             accountAdapter.submit(entries)
