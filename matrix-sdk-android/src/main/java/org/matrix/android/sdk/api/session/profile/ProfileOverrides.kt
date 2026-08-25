@@ -87,6 +87,16 @@ object ProfileOverrides {
     fun avatarUrlFor(userId: String?): String? =
             (fieldsFor(userId)?.get(FIELD_AVATAR_URL) as? String)?.takeIf { it.isNotBlank() }
 
+    /** [profile] with this user's overrides merged over it: an override replaces (or adds) the field, a null override removes it. */
+    fun mergedOver(userId: String, profile: Map<String, Any>): Map<String, Any> {
+        val overrides = fieldsFor(userId) ?: return profile
+        val merged = profile.toMutableMap()
+        overrides.forEach { (key, value) ->
+            if (value == null) merged.remove(key) else merged[key] = value
+        }
+        return merged
+    }
+
     fun parse(content: Map<String, Any?>?): Map<String, Map<String, Any?>> =
             content.orEmpty().entries.mapNotNull { (userId, fields) ->
                 if (!userId.startsWith("@")) return@mapNotNull null

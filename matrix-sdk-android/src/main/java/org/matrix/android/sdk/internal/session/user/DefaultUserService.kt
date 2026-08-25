@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.user
 
 import kotlinx.coroutines.flow.Flow
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
@@ -43,7 +44,7 @@ internal class DefaultUserService @Inject constructor(
     override suspend fun resolveUser(userId: String): User {
         return getUser(userId) ?: run {
             val params = GetProfileInfoTask.Params(userId)
-            val json = getProfileInfoTask.execute(params)
+            val json = ProfileOverrides.mergedOver(userId, getProfileInfoTask.execute(params))
             User.fromJson(userId, json)
         }
     }
