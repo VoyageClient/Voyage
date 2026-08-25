@@ -208,28 +208,25 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 .onEach { generation -> setState { copy(colorGeneration = generation) } }
                 .launchIn(viewModelScope)
 
+        // The in-flight guards: all user account data shares one table, so each of our sequential
+        // writes re-notifies every query below, and a mid-sequence read would resurrect the entries
+        // the remaining writes are about to clear. trackingAccountDataWrite refreshes once at the end.
         session.flow()
                 .liveUserAccountData(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
-                .unwrap()
-                .onEach {
-                    val newUserColor = it.content.toModel<Map<String, String>>()?.get(initialState.userId)
-                    setState {
-                        copy(
-                                userColorOverride = newUserColor
-                        )
-                    }
-                }
+                // No unwrap(): removing the last override deletes the event, and that empty
+                // emission must still clear the state.
+                .onEach { if (accountDataWritesInFlight == 0) refreshLegacyOverrideColor() }
                 .launchIn(viewModelScope)
 
         session.flow()
                 .liveUserAccountData(ProfileOverrides.ACCOUNT_DATA_TYPES.toSet())
-                .onEach { refreshProfileOverrides() }
+                .onEach { if (accountDataWritesInFlight == 0) refreshProfileOverrides() }
                 .launchIn(viewModelScope)
 
         // The account data itself does not change when the ADK arrives and encrypted overrides
         // become readable, so also refresh whenever the applied override map swaps.
         ProfileOverrides.changes
-                .onEach { refreshProfileOverrides() }
+                .onEach { if (accountDataWritesInFlight == 0) refreshProfileOverrides() }
                 .launchIn(viewModelScope)
     }
 
@@ -250,7 +247,10 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private fun refreshProfileOverrides() {
-        val fields = ProfileOverrides.parse(overridesClearContent())[initialState.userId]
+        applyProfileOverrideFieldsToState(ProfileOverrides.parse(overridesClearContent())[initialState.userId])
+    }
+
+    private fun applyProfileOverrideFieldsToState(fields: Map<String, Any?>?) {
         val overrideName = (fields?.get(ProfileOverrides.FIELD_DISPLAY_NAME) as? String)?.takeIf { it.isNotBlank() }
         val overrideAvatar = (fields?.get(ProfileOverrides.FIELD_AVATAR_URL) as? String)?.takeIf { it.isNotBlank() }
         val overrideColor = ColorPreference.parse(fields?.get(ProfileKeys.COLOR_PREFERENCE))
@@ -530,22 +530,48 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     // earlier change lands last and resurrects the value it captured.
     private val accountDataWriteMutex = Mutex()
 
+    // Main-thread only, like the flow collectors that read it.
+    private var accountDataWritesInFlight = 0
+
+    private suspend fun trackingAccountDataWrite(block: suspend () -> Unit) {
+        accountDataWritesInFlight++
+        try {
+            block()
+        } finally {
+            if (--accountDataWritesInFlight == 0) {
+                refreshProfileOverrides()
+                refreshLegacyOverrideColor()
+            }
+        }
+    }
+
+    private fun refreshLegacyOverrideColor() {
+        val stored = session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
+                ?.content?.toModel<Map<String, String>>()?.get(initialState.userId)
+        setState { copy(userColorOverride = stored) }
+    }
+
     // Mirror the override into the legacy per-user color account data, for older clients that only read that.
     private fun writeLegacyOverrideColor(hex: String?) {
+        // Before the lock: the profile-overrides writer holds the mutex across its network PUTs,
+        // and disabling the reset action needs this cleared alongside hasProfileOverrides.
+        setState { copy(userColorOverride = hex) }
         viewModelScope.launch {
-            accountDataWriteMutex.withLock {
-                val specs = session.accountDataService()
-                        .getUserAccountDataEvent(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
-                        ?.content
-                        ?.toModel<Map<String, String>>()
-                        .orEmpty()
-                        .toMutableMap()
-                val changed = if (hex != null) specs.put(initialState.userId, hex) != hex else specs.remove(initialState.userId) != null
-                if (!changed) return@withLock
-                try {
-                    session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_OVERRIDE_COLORS, specs)
-                } catch (failure: Throwable) {
-                    _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+            trackingAccountDataWrite {
+                accountDataWriteMutex.withLock {
+                    val specs = session.accountDataService()
+                            .getUserAccountDataEvent(UserAccountDataTypes.TYPE_OVERRIDE_COLORS)
+                            ?.content
+                            ?.toModel<Map<String, String>>()
+                            .orEmpty()
+                            .toMutableMap()
+                    val changed = if (hex != null) specs.put(initialState.userId, hex) != hex else specs.remove(initialState.userId) != null
+                    if (!changed) return@withLock
+                    try {
+                        session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_OVERRIDE_COLORS, specs)
+                    } catch (failure: Throwable) {
+                        _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                    }
                 }
             }
         }
@@ -560,55 +586,61 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
      */
     private fun updateProfileOverrideFields(mutate: (MutableMap<String, Any?>) -> Unit) {
         viewModelScope.launch {
-            accountDataWriteMutex.withLock {
-                val service = session.encryptedAccountDataService()
-                val existing = ProfileOverrides.ACCOUNT_DATA_TYPES
-                        .firstNotNullOfOrNull { type -> session.accountDataService().getUserAccountDataEvent(type)?.content?.let { type to it } }
-                val existingEncrypted = existing != null && service.isEncrypted(existing.second)
-                val encryptWrites = vectorPreferences.encryptAccountData()
-                val adkAvailable = (existingEncrypted || encryptWrites) && service.ensureAccountDataKey()
-                // Without the ADK an encrypted store cannot be read-modified at all: run the
-                // recovery-key flow and replay this update once the key is in. A plaintext store
-                // just skips the upgrade for this write.
-                if (existingEncrypted && !adkAvailable) {
-                    pendingOverridesMutate = mutate
-                    matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
-                    _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
-                    _viewEvents.post(RoomMemberProfileViewEvents.RequireProfileOverridesAdk)
-                    return@withLock
-                }
-                val content = try {
-                    when {
-                        existing == null -> emptyMap()
-                        existingEncrypted -> service.decrypt(existing.first, existing.second)
-                        else -> existing.second
-                    }.toMutableMap()
-                } catch (failure: Throwable) {
-                    // Undecryptable despite the ADK: bail out rather than clobber the stored map
-                    matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
-                    _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
-                    _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
-                    return@withLock
-                }
-                val fields = (content[initialState.userId] as? Map<*, *>)
-                        .orEmpty()
-                        .entries
-                        .mapNotNull { (key, value) -> (key as? String)?.let { it to value } }
-                        .toMap()
-                        .toMutableMap()
-                mutate(fields)
-                if (fields.isEmpty()) content.remove(initialState.userId) else content[initialState.userId] = fields
-                try {
-                    ProfileOverrides.ACCOUNT_DATA_TYPES.forEach { type ->
-                        val payload = if (content.isNotEmpty() && encryptWrites && adkAvailable) service.encrypt(type, content) else content
-                        session.accountDataService().updateUserAccountData(type, payload)
+            trackingAccountDataWrite {
+                accountDataWriteMutex.withLock {
+                    val service = session.encryptedAccountDataService()
+                    val existing = ProfileOverrides.ACCOUNT_DATA_TYPES
+                            .firstNotNullOfOrNull { type -> session.accountDataService().getUserAccountDataEvent(type)?.content?.let { type to it } }
+                    val existingEncrypted = existing != null && service.isEncrypted(existing.second)
+                    val encryptWrites = vectorPreferences.encryptAccountData()
+                    val adkAvailable = (existingEncrypted || encryptWrites) && service.ensureAccountDataKey()
+                    // Without the ADK an encrypted store cannot be read-modified at all: run the
+                    // recovery-key flow and replay this update once the key is in. A plaintext store
+                    // just skips the upgrade for this write.
+                    if (existingEncrypted && !adkAvailable) {
+                        pendingOverridesMutate = mutate
+                        matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
+                        _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                        _viewEvents.post(RoomMemberProfileViewEvents.RequireProfileOverridesAdk)
+                        return@withLock
                     }
-                    _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
-                } catch (failure: Throwable) {
-                    // The optimistic color assumed this write would land; it didn't, so revert to reality.
-                    matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
-                    _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
-                    _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                    val content = try {
+                        when {
+                            existing == null -> emptyMap()
+                            existingEncrypted -> service.decrypt(existing.first, existing.second)
+                            else -> existing.second
+                        }.toMutableMap()
+                    } catch (failure: Throwable) {
+                        // Undecryptable despite the ADK: bail out rather than clobber the stored map
+                        matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
+                        _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                        _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                        return@withLock
+                    }
+                    val fields = (content[initialState.userId] as? Map<*, *>)
+                            .orEmpty()
+                            .entries
+                            .mapNotNull { (key, value) -> (key as? String)?.let { it to value } }
+                            .toMap()
+                            .toMutableMap()
+                    mutate(fields)
+                    if (fields.isEmpty()) content.remove(initialState.userId) else content[initialState.userId] = fields
+                    // Optimistic: the SDK only persists the local echo after the server PUT lands,
+                    // so waiting on the account-data flow would leave the UI stale for the round-trip.
+                    applyProfileOverrideFieldsToState(fields.takeIf { it.isNotEmpty() })
+                    try {
+                        ProfileOverrides.ACCOUNT_DATA_TYPES.forEach { type ->
+                            val payload = if (content.isNotEmpty() && encryptWrites && adkAvailable) service.encrypt(type, content) else content
+                            session.accountDataService().updateUserAccountData(type, payload)
+                        }
+                        _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                    } catch (failure: Throwable) {
+                        // The optimistic color and state assumed this write would land; the end-of-write
+                        // refresh in trackingAccountDataWrite reverts the state to what is stored.
+                        matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
+                        _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
+                        _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                    }
                 }
             }
         }

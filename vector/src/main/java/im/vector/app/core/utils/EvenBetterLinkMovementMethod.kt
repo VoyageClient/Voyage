@@ -90,13 +90,24 @@ class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickL
     }
 
     override fun dispatchUrlClick(textView: TextView, clickableSpan: ClickableSpan) {
-        val spanned = textView.text as Spanned
-        val actualText = textView.text.subSequence(spanned.getSpanStart(clickableSpan), spanned.getSpanEnd(clickableSpan)).toString()
+        val spanned = textView.text as? Spanned ?: return
+        val start = spanned.getSpanStart(clickableSpan)
+        val end = spanned.getSpanEnd(clickableSpan)
+        // The view can be rebound between the touch and the dispatch, detaching the span (-1/-1).
+        if (start < 0 || end < 0) return
+        val actualText = spanned.subSequence(start, end).toString()
         val url = (clickableSpan as? URLSpan)?.url ?: actualText
 
         if (onLinkClickListener == null || !onLinkClickListener.onLinkClicked(textView, clickableSpan, url, actualText)) {
             // Let Android handle this long click as a short-click.
             clickableSpan.onClick(textView)
         }
+    }
+
+    // Same rebind race on the long-press timer: the library would crash on subSequence(-1, -1).
+    override fun dispatchUrlLongClick(textView: TextView, clickableSpan: ClickableSpan) {
+        val spanned = textView.text as? Spanned
+        if (spanned == null || spanned.getSpanStart(clickableSpan) < 0) return
+        super.dispatchUrlLongClick(textView, clickableSpan)
     }
 }

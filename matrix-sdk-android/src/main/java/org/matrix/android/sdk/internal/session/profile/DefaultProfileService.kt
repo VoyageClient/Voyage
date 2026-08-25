@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.session.profile.UserBio
@@ -67,7 +68,7 @@ internal class DefaultProfileService @Inject constructor(
 
     override suspend fun getDisplayName(userId: String): Optional<String> {
         val params = GetProfileInfoTask.Params(userId)
-        val data = getProfileInfoTask.execute(params)
+        val data = ProfileOverrides.mergedOver(userId, getProfileInfoTask.execute(params))
         val displayName = data[ProfileService.DISPLAY_NAME_KEY] as? String
         return Optional.from(displayName)
     }
@@ -92,7 +93,7 @@ internal class DefaultProfileService @Inject constructor(
 
     override suspend fun getAvatarUrl(userId: String): Optional<String> {
         val params = GetProfileInfoTask.Params(userId)
-        val data = getProfileInfoTask.execute(params)
+        val data = ProfileOverrides.mergedOver(userId, getProfileInfoTask.execute(params))
         val avatarUrl = data[ProfileService.AVATAR_URL_KEY] as? String
         return Optional.from(avatarUrl)
     }
@@ -118,9 +119,8 @@ internal class DefaultProfileService @Inject constructor(
 
     override suspend fun getBannerUrl(userId: String): Optional<String> {
         val data = getProfileInfoTask.execute(GetProfileInfoTask.Params(userId))
-        return Optional.from(data.profileBannerUrl()).also {
-            extendedProfileCache.cacheBannerUrl(userId, it.getOrNull())
-        }
+        extendedProfileCache.cacheBannerUrl(userId, data.profileBannerUrl())
+        return Optional.from(ProfileOverrides.mergedOver(userId, data).profileBannerUrl())
     }
 
     override fun getCachedBannerUrl(userId: String): String? {
@@ -225,8 +225,11 @@ internal class DefaultProfileService @Inject constructor(
 
     override suspend fun getProfile(userId: String): JsonDict {
         val params = GetProfileInfoTask.Params(userId)
-        return getProfileInfoTask.execute(params).also {
+        return getProfileInfoTask.execute(params).let {
+            // Cache the raw profile — the caches hold server truth, with overrides overlaid at
+            // display time — but return the merged view callers render directly.
             extendedProfileCache.cacheFromProfile(userId, it)
+            ProfileOverrides.mergedOver(userId, it)
         }
     }
 
