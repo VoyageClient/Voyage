@@ -295,6 +295,8 @@ class SharedSecureStorageViewModel @AssistedInject constructor(
                 }
             }
         }
+        // The key worked: remember it so future secret access needs no recovery-key prompt
+        session.sharedSecretStorageService().cacheKeySpec(keyInfo.id, keySpec)
     }
 
     private fun handleSubmitPassphrase(action: SharedSecureStorageAction.SubmitPassphrase) {

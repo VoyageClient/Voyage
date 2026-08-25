@@ -21,7 +21,6 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.SSSS_ALGORITHM_AES_HMAC_SHA2
 import org.matrix.android.sdk.api.crypto.SSSS_ALGORITHM_CURVE25519_AES_SHA2
-import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.crypto.keysbackup.computeRecoveryKey
@@ -43,25 +42,44 @@ import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toBase64NoPadding
 import org.matrix.android.sdk.internal.crypto.SecretShareManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.generatePrivateKeyWithPassword
-import org.matrix.android.sdk.internal.crypto.tools.HkdfSha256
 import org.matrix.android.sdk.internal.crypto.tools.withOlmDecryption
+import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UserId
+import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.olm.OlmPkMessage
 import java.security.SecureRandom
-import javax.crypto.Cipher
-import javax.crypto.Mac
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
-import kotlin.experimental.and
 
 internal class DefaultSharedSecretStorageService @Inject constructor(
         @UserId private val userId: String,
+        @SessionId sessionId: String,
+        storeFactory: KeyValueStoreFactory,
         private val accountDataService: SessionAccountDataService,
         private val secretShareManager: SecretShareManager,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val cryptoCoroutineScope: CoroutineScope
 ) : SharedSecretStorageService {
+
+    private val keyCache = storeFactory.create("SsssKeyCache_$sessionId")
+
+    override fun cacheKeySpec(keyId: String, keySpec: SsssKeySpec) {
+        val rawKey = (keySpec as? RawBytesKeySpec)?.privateKey ?: return
+        keyCache.putString(CACHED_KEY_ID, keyId)
+        keyCache.putString(CACHED_KEY_PRIVATE, rawKey.toBase64NoPadding())
+    }
+
+    override fun getCachedKeySpec(): Pair<String, SsssKeySpec>? {
+        val keyId = keyCache.getString(CACHED_KEY_ID, null) ?: return null
+        val privateKey = keyCache.getString(CACHED_KEY_PRIVATE, null)?.fromBase64() ?: return null
+        val defaultKeyId = (getDefaultKey() as? KeyInfoResult.Success)?.keyInfo?.id ?: return null
+        if (keyId != defaultKeyId) return null
+        return keyId to RawBytesKeySpec(privateKey)
+    }
+
+    override fun clearCachedKeySpec() {
+        keyCache.remove(CACHED_KEY_ID)
+        keyCache.remove(CACHED_KEY_PRIVATE)
+    }
 
     override suspend fun generateKey(
             keyId: String,
@@ -191,107 +209,17 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
     }
 
     /**
-     * Encryption algorithm m.secret_storage.v1.aes-hmac-sha2
-     * Secrets are encrypted using AES-CTR-256 and MACed using HMAC-SHA-256. The data is encrypted and MACed as follows:
-     *
-     * Given the secret storage key, generate 64 bytes by performing an HKDF with SHA-256 as the hash, a salt of 32 bytes
-     * of 0, and with the secret name as the info.
-     *
-     * The first 32 bytes are used as the AES key, and the next 32 bytes are used as the MAC key
-     *
-     * Generate 16 random bytes, set bit 63 to 0 (in order to work around differences in AES-CTR implementations), and use
-     * this as the AES initialization vector.
-     * This becomes the iv property, encoded using base64.
-     *
-     * Encrypt the data using AES-CTR-256 using the AES key generated above.
-     *
-     * This encrypted data, encoded using base64, becomes the ciphertext property.
-     *
-     * Pass the raw encrypted data (prior to base64 encoding) through HMAC-SHA-256 using the MAC key generated above.
-     * The resulting MAC is base64-encoded and becomes the mac property.
-     * (We use AES-CTR to match file encryption and key exports.)
+     * Encryption algorithm m.secret_storage.v1.aes-hmac-sha2, see [AesHmacSha2].
      */
     @Throws
     private fun encryptAesHmacSha2(secretKey: SsssKeySpec, secretName: String, clearDataBase64: String): EncryptedSecretContent {
         secretKey as RawBytesKeySpec
-        val pseudoRandomKey = HkdfSha256.deriveSecret(
-                secretKey.privateKey,
-                ByteArray(32) { 0.toByte() },
-                secretName.toByteArray(),
-                64
-        )
-
-        // The first 32 bytes are used as the AES key, and the next 32 bytes are used as the MAC key
-        val aesKey = pseudoRandomKey.copyOfRange(0, 32)
-        val macKey = pseudoRandomKey.copyOfRange(32, 64)
-
-        val secureRandom = SecureRandom()
-        val iv = ByteArray(16)
-        secureRandom.nextBytes(iv)
-
-        // clear bit 63 of the salt to stop us hitting the 64-bit counter boundary
-        // (which would mean we wouldn't be able to decrypt on Android). The loss
-        // of a single bit of salt is a price we have to pay.
-        iv[9] = iv[9] and 0x7f
-
-        val cipher = Cipher.getInstance("AES/CTR/NoPadding")
-
-        val secretKeySpec = SecretKeySpec(aesKey, "AES")
-        val ivParameterSpec = IvParameterSpec(iv)
-        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec)
-        // secret are not that big, just do Final
-        val cipherBytes = cipher.doFinal(clearDataBase64.toByteArray())
-        require(cipherBytes.isNotEmpty())
-
-        val macKeySpec = SecretKeySpec(macKey, "HmacSHA256")
-        val mac = Mac.getInstance("HmacSHA256")
-        mac.init(macKeySpec)
-        val digest = mac.doFinal(cipherBytes)
-
-        return EncryptedSecretContent(
-                ciphertext = cipherBytes.toBase64NoPadding(),
-                initializationVector = iv.toBase64NoPadding(),
-                mac = digest.toBase64NoPadding()
-        )
+        return AesHmacSha2.encrypt(secretKey.privateKey, secretName, clearDataBase64)
     }
 
     private fun decryptAesHmacSha2(secretKey: SsssKeySpec, secretName: String, cipherContent: EncryptedSecretContent): String {
         secretKey as RawBytesKeySpec
-        val pseudoRandomKey = HkdfSha256.deriveSecret(
-                secretKey.privateKey,
-                ByteArray(32) { 0.toByte() },
-                secretName.toByteArray(),
-                64
-        )
-
-        // The first 32 bytes are used as the AES key, and the next 32 bytes are used as the MAC key
-        val aesKey = pseudoRandomKey.copyOfRange(0, 32)
-        val macKey = pseudoRandomKey.copyOfRange(32, 64)
-
-        val iv = cipherContent.initializationVector?.fromBase64() ?: ByteArray(16)
-
-        val cipherRawBytes = cipherContent.ciphertext?.fromBase64() ?: throw SharedSecretStorageError.BadCipherText
-
-        // Check Signature
-        val macKeySpec = SecretKeySpec(macKey, "HmacSHA256")
-        val mac = Mac.getInstance("HmacSHA256").apply { init(macKeySpec) }
-        val digest = mac.doFinal(cipherRawBytes)
-
-        if (!cipherContent.mac?.fromBase64()?.contentEquals(digest).orFalse()) {
-            throw SharedSecretStorageError.BadMac
-        }
-
-        val cipher = Cipher.getInstance("AES/CTR/NoPadding")
-
-        val secretKeySpec = SecretKeySpec(aesKey, "AES")
-        val ivParameterSpec = IvParameterSpec(iv)
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec)
-        // secret are not that big, just do Final
-        val decryptedSecret = cipher.doFinal(cipherRawBytes)
-
-        require(decryptedSecret.isNotEmpty())
-
-        return String(decryptedSecret, Charsets.UTF_8)
+        return AesHmacSha2.decrypt(secretKey.privateKey, secretName, cipherContent)
     }
 
     override fun getAlgorithmsForSecret(name: String): List<KeyInfoResult> {
@@ -350,6 +278,8 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         const val KEY_ID_BASE = "m.secret_storage.key"
         const val ENCRYPTED = "encrypted"
         const val DEFAULT_KEY_ID = "m.secret_storage.default_key"
+        private const val CACHED_KEY_ID = "keyId"
+        private const val CACHED_KEY_PRIVATE = "privateKey"
     }
 
     override fun checkShouldBeAbleToAccessSecrets(secretNames: List<String>, keyId: String?): IntegrityResult {

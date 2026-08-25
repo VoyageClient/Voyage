@@ -7,6 +7,7 @@
 
 package im.vector.app.features.settings.devtools
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -20,11 +21,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
+import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentGenericRecyclerBinding
+import im.vector.app.features.crypto.quads.AdkFlows
+import im.vector.app.features.crypto.quads.SharedSecureStorageActivity
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,6 +39,7 @@ class AccountDataCreateFragment :
         AccountDataCreateController.InteractionListener {
 
     @Inject lateinit var epoxyController: AccountDataCreateController
+    @Inject lateinit var session: Session
 
     private val viewModel: AccountDataViewModel by fragmentViewModel(AccountDataViewModel::class)
 
@@ -54,6 +60,7 @@ class AccountDataCreateFragment :
                     vectorBaseActivity.showSnackbar(getString(CommonStrings.dev_tools_success_account_data))
                     parentFragmentManager.popBackStack()
                 }
+                is AccountDataViewEvents.AdkRequired -> handleAdkRequired(it.pending)
             }
         }
     }
@@ -94,17 +101,39 @@ class AccountDataCreateFragment :
             return@withState
         }
         val content = state.draft.content.orEmpty()
+        val update = AccountDataAction.UpdateAccountData(type, content, state.draft.encrypt)
         if (state.accountData.invoke().orEmpty().any { it.type == type }) {
             MaterialAlertDialogBuilder(requireActivity())
                     .setTitle(CommonStrings.dev_tools_add_account_data)
                     .setMessage(getString(CommonStrings.dev_tools_account_data_overwrite_warning, type.neutralizeDirectionOverrides()))
                     .setNegativeButton(CommonStrings.action_cancel, null)
                     .setPositiveButton(CommonStrings.action_save) { _, _ ->
-                        viewModel.handle(AccountDataAction.UpdateAccountData(type, content))
+                        viewModel.handle(update)
                     }
                     .show()
         } else {
-            viewModel.handle(AccountDataAction.UpdateAccountData(type, content))
+            viewModel.handle(update)
+        }
+    }
+
+    private fun handleAdkRequired(pending: AccountDataAction.UpdateAccountData) {
+        val intent = AdkFlows.buildAdkIntent(requireContext(), session)
+        if (intent == null) {
+            showFailure(IllegalStateException(getString(CommonStrings.account_data_encryption_needs_backup)))
+            return
+        }
+        pendingUpdate = pending
+        adkActivityResultLauncher.launch(intent)
+    }
+
+    private var pendingUpdate: AccountDataAction.UpdateAccountData? = null
+
+    private val adkActivityResultLauncher = registerStartForActivityResult { activityResult ->
+        val cipher = activityResult.data?.getStringExtra(SharedSecureStorageActivity.EXTRA_DATA_RESULT)
+        val update = pendingUpdate
+        pendingUpdate = null
+        if (activityResult.resultCode == Activity.RESULT_OK && cipher != null && update != null) {
+            viewModel.handle(AccountDataAction.GotAdkFromSsss(cipher, SharedSecureStorageActivity.DEFAULT_RESULT_KEYSTORE_ALIAS, thenUpdate = update))
         }
     }
 }

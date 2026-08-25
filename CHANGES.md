@@ -18,6 +18,10 @@ New features, improvements, and notable removals in this fork.
 
 - **Personal room and user overrides (MSC3015, MSC4529)** — rename any room or change its avatar just for yourself, from the room's Personalization screen (MSC3015). A Personalization section on every user's profile likewise lets you override their display name and avatar, replacing them everywhere they appear.
 
+- **Profile notes (MSC4441)** — keep a private note on any user's profile, edited inline with markdown support, visible only to you and synced across your devices. Notes are always end-to-end encrypted (MSC4483).
+
+- **Encrypted account data (MSC4483)** — account data encrypted with a key from secure storage is shown decrypted in the developer account-data browser (with a Raw toggle for the ciphertext), can be edited in decrypted form, and new entries can be created encrypted.
+
 - **Live room previews** — a public world-readable room now opens as a real, live-updating timeline before you join it, from the room directory or a link, the way Element Web previews rooms. You can scroll back through history, search it, and browse the room's profile, members and media gallery, all read-only, with a join bar at the bottom; nothing is stored locally until you actually join.
 
 - **Historical rooms** — being kicked or banned no longer wipes the conversation. The room stays open read-only if you're in it, with a banner saying who removed you and why (and a Rejoin button after a kick), and it moves to a new "Historical" entry in the sidebar drawer instead of vanishing from All Chats. You can still scroll and search the history up to the moment you were removed, browse the room's profile and members, and load older messages from the server. Historical rooms survive re-login, and a long-press lets you forget one for good. Leaving a room voluntarily still removes it immediately. Rejoining stitches the timeline back together, recovering whatever the room's history-visibility rules let you see of what happened while you were out — always including your own invite.

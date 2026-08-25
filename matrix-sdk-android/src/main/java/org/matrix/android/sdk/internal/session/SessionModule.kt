@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.session.EventStreamService
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.ToDeviceService
+import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
@@ -103,6 +104,7 @@ import org.matrix.android.sdk.internal.session.room.tombstone.RoomTombstoneEvent
 import org.matrix.android.sdk.internal.session.search.index.EventIndexStore
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import org.matrix.android.sdk.internal.session.typing.DefaultTypingUsersTracker
+import org.matrix.android.sdk.internal.session.user.accountdata.DefaultEncryptedAccountDataService
 import org.matrix.android.sdk.internal.session.user.accountdata.DefaultSessionAccountDataService
 import retrofit2.Retrofit
 import java.io.File
@@ -461,6 +463,9 @@ internal abstract class SessionModule {
 
     @Binds
     abstract fun bindSessionAccountDataService(service: DefaultSessionAccountDataService): SessionAccountDataService
+
+    @Binds
+    abstract fun bindEncryptedAccountDataService(service: DefaultEncryptedAccountDataService): EncryptedAccountDataService
 
     @Binds
     abstract fun bindSharedSecretStorageService(service: DefaultSharedSecretStorageService): SharedSecretStorageService

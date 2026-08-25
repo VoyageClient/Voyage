@@ -55,6 +55,11 @@ data class RoomMemberProfileViewState(
         // MSC4426 status / MSC4440 biography
         val status: UserStatus? = null,
         val bio: UserBio? = null,
+        // MSC4441 personal note on this user; locked = the notes blob is MSC4483-encrypted and the ADK is missing
+        val personalNote: UserBio? = null,
+        val personalNoteLocked: Boolean = false,
+        // Bumped to force the inline note editor to re-sync with the stored note (e.g. after an aborted save)
+        val personalNoteGeneration: Long = 0,
         // Raw MSC4133 profile dict, for the developer-mode source viewer
         val profileJson: JsonDict? = null,
         val actionPermissions: ActionPermissions = ActionPermissions()

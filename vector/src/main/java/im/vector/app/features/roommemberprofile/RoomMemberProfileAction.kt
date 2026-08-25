@@ -27,4 +27,16 @@ sealed class RoomMemberProfileAction : VectorViewModelAction {
     data class SetProfileOverrideAvatar(val avatarUri: Uri?) : RoomMemberProfileAction()
     object ResetProfileOverrides : RoomMemberProfileAction()
     data class OpenOrCreateDm(val userId: String) : RoomMemberProfileAction()
+
+    /** MSC4441: set (or clear, when null/blank) the personal note on this user. */
+    data class SetPersonalNote(val note: String?) : RoomMemberProfileAction()
+
+    /** A note save was aborted (e.g. the recovery-key flow was cancelled): re-sync the editor with the stored note. */
+    object RevertPersonalNote : RoomMemberProfileAction()
+
+    /**
+     * The 4S flow handed back its result cipher: cache the ADK from it, then save
+     * [pendingNote] if a note edit was waiting on the key (null = just re-read the note).
+     */
+    data class GotAdkFromSsss(val cipher: String, val alias: String, val pendingNote: String? = null) : RoomMemberProfileAction()
 }

@@ -30,6 +30,11 @@ object UserAccountDataTypes {
     const val TYPE_OVERRIDE_COLORS = "im.vector.setting.override_colors"
     const val TYPE_LOCAL_NOTIFICATION_SETTINGS = "org.matrix.msc3890.local_notification_settings."
 
+    // MSC4441 profile annotations ("profile notes"), optionally MSC4483-encrypted
+    const val TYPE_PROFILE_ANNOTATIONS = "m.profile_annotations"
+    const val TYPE_PROFILE_ANNOTATIONS_UNSTABLE = "dev.zirco.msc4441.profile_annotations"
+    val TYPES_PROFILE_ANNOTATIONS = listOf(TYPE_PROFILE_ANNOTATIONS, TYPE_PROFILE_ANNOTATIONS_UNSTABLE)
+
     // Frequently-used unicode emojis. Element Web migrated to the stable type but still writes both.
     const val TYPE_RECENT_EMOJI = "m.recent_emoji"
     const val TYPE_RECENT_EMOJI_UNSTABLE = "io.element.recent_emoji"

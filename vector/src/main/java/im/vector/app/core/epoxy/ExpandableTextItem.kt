@@ -7,10 +7,8 @@
 
 package im.vector.app.core.epoxy
 
-import android.text.Spanned
 import android.text.TextUtils
 import android.text.method.MovementMethod
-import android.text.style.ClickableSpan
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
@@ -20,6 +18,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
+import im.vector.app.core.extensions.hasClickableSpanAt
 import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.lib.strings.CommonStrings
@@ -143,18 +142,6 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         return android.text.StaticLayout(
                 text, paint, available, android.text.Layout.Alignment.ALIGN_NORMAL, mult, extra, includePad
         ).lineCount
-    }
-
-    private fun TextView.hasClickableSpanAt(event: MotionEvent): Boolean {
-        val spanned = text as? Spanned ?: return false
-        val layout = layout ?: return false
-        val x = event.x.toInt() - totalPaddingLeft + scrollX
-        val y = event.y.toInt() - totalPaddingTop + scrollY
-        val line = layout.getLineForVertical(y)
-        // getOffsetForHorizontal clamps to the line, so guard against taps past the line's end.
-        if (x < layout.getLineLeft(line) || x > layout.getLineRight(line)) return false
-        val offset = layout.getOffsetForHorizontal(line, x.toFloat())
-        return spanned.getSpans(offset, offset, ClickableSpan::class.java).isNotEmpty()
     }
 
     class Holder : VectorEpoxyHolder() {

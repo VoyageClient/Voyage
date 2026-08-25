@@ -142,6 +142,8 @@ class BootstrapCrossSigningTask @Inject constructor(
                 )
         )
 
+        ssssService.cacheKeySpec(keyInfo.keyId, keyInfo.keySpec)
+
         Timber.d("## BootstrapCrossSigningTask: Creating 4S - Set default key")
         try {
             ssssService.setDefaultKey(keyInfo.keyId)

@@ -25,32 +25,42 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
 import okio.Buffer
+import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixJsonParser
+import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.flow.flow
 
 data class AccountDataViewState(
         val accountData: Async<List<UserAccountDataEvent>> = Uninitialized,
-        val draft: Draft = Draft()
+        val draft: Draft = Draft(),
+        // Bumped when the cached ADK changes so open screens re-render decrypted content.
+        val adkGeneration: Long = 0
 ) : MavericksState {
 
     data class Draft(
             val type: String? = null,
-            val content: String? = "{\n}"
+            val content: String? = "{\n}",
+            val encrypt: Boolean = false
     )
 }
 
 sealed class AccountDataViewEvents : VectorViewEvents {
     data class Failure(val throwable: Throwable) : AccountDataViewEvents()
     object UpdateSuccess : AccountDataViewEvents()
+
+    /** An encrypted update needs the ADK and it could not be acquired silently: run the recovery-key flow. */
+    data class AdkRequired(val pending: AccountDataAction.UpdateAccountData) : AccountDataViewEvents()
 }
 
 class AccountDataViewModel @AssistedInject constructor(
         @Assisted initialState: AccountDataViewState,
         private val stringProvider: StringProvider,
-        private val session: Session
+        private val session: Session,
+        private val matrix: Matrix
 ) :
         VectorViewModel<AccountDataViewState, AccountDataAction, AccountDataViewEvents>(initialState) {
 
@@ -70,6 +80,32 @@ class AccountDataViewModel @AssistedInject constructor(
             is AccountDataAction.UpdateAccountData -> handleUpdateAccountData(action)
             is AccountDataAction.DraftTypeChange -> setState { copy(draft = draft.copy(type = action.type)) }
             is AccountDataAction.DraftContentChange -> setState { copy(draft = draft.copy(content = action.content)) }
+            is AccountDataAction.DraftEncryptChange -> setState { copy(draft = draft.copy(encrypt = action.encrypt)) }
+            is AccountDataAction.GotAdkFromSsss -> handleGotAdkFromSsss(action)
+            AccountDataAction.EnsureAdk -> handleEnsureAdk()
+        }
+    }
+
+    private fun handleEnsureAdk() {
+        viewModelScope.launch {
+            if (session.encryptedAccountDataService().ensureAccountDataKey()) {
+                setState { copy(adkGeneration = adkGeneration + 1) }
+            }
+        }
+    }
+
+    private fun handleGotAdkFromSsss(action: AccountDataAction.GotAdkFromSsss) {
+        try {
+            val secrets = action.cipher.fromBase64().inputStream().use {
+                matrix.secureStorageService().loadSecureSecret<Map<String, String>>(it, action.alias)
+            }
+            val adk = EncryptedAccountDataService.ADK_SECRET_NAMES.firstNotNullOfOrNull { secrets?.get(it) }
+                    ?: throw IllegalStateException(stringProvider.getString(CommonStrings.failed_to_access_secure_storage))
+            session.encryptedAccountDataService().setAccountDataKey(adk)
+            setState { copy(adkGeneration = adkGeneration + 1) }
+            action.thenUpdate?.let { handleUpdateAccountData(it) }
+        } catch (failure: Throwable) {
+            _viewEvents.post(AccountDataViewEvents.Failure(failure))
         }
     }
 
@@ -88,7 +124,16 @@ class AccountDataViewModel @AssistedInject constructor(
             try {
                 val json = parseJsonLeniently(action.content)
                         ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_content))
-                session.accountDataService().updateUserAccountData(action.type, json)
+                val content = if (action.encrypt) {
+                    if (!session.encryptedAccountDataService().ensureAccountDataKey()) {
+                        _viewEvents.post(AccountDataViewEvents.AdkRequired(action))
+                        return@launch
+                    }
+                    session.encryptedAccountDataService().encrypt(action.type, json)
+                } else {
+                    json
+                }
+                session.accountDataService().updateUserAccountData(action.type, content)
                 _viewEvents.post(AccountDataViewEvents.UpdateSuccess)
             } catch (failure: Throwable) {
                 _viewEvents.post(AccountDataViewEvents.Failure(failure))
@@ -96,20 +141,36 @@ class AccountDataViewModel @AssistedInject constructor(
         }
     }
 
+    fun adkCached(): Boolean = session.encryptedAccountDataService().hasAccountDataKey()
+
+    fun isEncrypted(event: UserAccountDataEvent): Boolean = session.encryptedAccountDataService().isEncrypted(event.content)
+
+    private fun decryptedContent(event: UserAccountDataEvent): JsonDict? {
+        if (!isEncrypted(event) || !adkCached()) return null
+        return session.encryptedAccountDataService().decryptOrNull(event.type, event.content)
+    }
+
     // Coerce up front so the JSON we show (and prefill the editor with) is already correct —
-    // integers, not floats from Moshi's Any adapter.
+    // integers, not floats from Moshi's Any adapter. With [decrypted], an MSC4483 event is
+    // shown with its content replaced by the decrypted payload (falling back to the raw
+    // ciphertext when decryption is not possible).
     @Suppress("UNCHECKED_CAST")
-    fun sanitizedJson(event: UserAccountDataEvent): String {
-        val sanitized = event.copy(content = (coerceWholeDoublesToLongs(event.content) as? JsonDict).orEmpty())
+    fun sanitizedJson(event: UserAccountDataEvent, decrypted: Boolean = false): String {
+        val content = displayContent(event, decrypted)
+        val sanitized = event.copy(content = (coerceWholeDoublesToLongs(content) as? JsonDict).orEmpty())
         return MatrixJsonParser.getMoshi()
                 .adapter(UserAccountDataEvent::class.java)
                 .toJson(sanitized)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun prettyContent(event: UserAccountDataEvent): String {
-        val sanitized = (coerceWholeDoublesToLongs(event.content) as? JsonDict).orEmpty()
+    fun prettyContent(event: UserAccountDataEvent, decrypted: Boolean = false): String {
+        val sanitized = (coerceWholeDoublesToLongs(displayContent(event, decrypted)) as? JsonDict).orEmpty()
         return contentAdapter.indent("    ").toJson(sanitized)
+    }
+
+    private fun displayContent(event: UserAccountDataEvent, decrypted: Boolean): JsonDict {
+        return if (decrypted) decryptedContent(event) ?: event.content else event.content
     }
 
     // Lenient so minor hand-editing of the JSON isn't rejected outright.
