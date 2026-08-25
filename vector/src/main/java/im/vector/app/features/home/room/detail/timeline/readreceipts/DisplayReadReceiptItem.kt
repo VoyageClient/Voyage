@@ -19,6 +19,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -28,12 +29,14 @@ abstract class DisplayReadReceiptItem : VectorEpoxyModel<DisplayReadReceiptItem.
     @EpoxyAttribute lateinit var matrixItem: MatrixItem
     @EpoxyAttribute var timestamp: String? = null
     @EpoxyAttribute lateinit var avatarRenderer: AvatarRenderer
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var userClicked: ClickListener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
         avatarRenderer.render(matrixItem, holder.avatarView)
         holder.displayNameView.text = matrixItem.getBestName().prepareForDisplay()
+        holder.displayNameView.setTextColor(matrixItemColorProvider.getColor(matrixItem))
         timestamp?.let {
             holder.timestampView.text = it
             holder.timestampView.isVisible = true

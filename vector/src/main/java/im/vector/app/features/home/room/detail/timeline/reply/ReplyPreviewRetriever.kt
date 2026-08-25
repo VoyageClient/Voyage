@@ -367,8 +367,14 @@ class ReplyPreviewRetriever(
         fun onStateUpdated(state: PreviewReplyUiState)
     }
 
+    private val roomForColors by lazy { session.getRoom(roomId) }
+
     fun getMemberNameColor(event: TimelineEvent): Int {
-        return messageColorProvider.getMemberNameTextColor(event.senderInfo.toMatrixItem())
+        // The cached event's senderInfo snapshots the color at retrieval time; resolve the current
+        // per-room color instead so the header follows changes like the rest of the timeline.
+        val senderInfo = event.senderInfo
+        val fresh = roomForColors?.membershipService()?.getRoomMemberColorPreference(senderInfo.userId)
+        return messageColorProvider.getMemberNameTextColor(senderInfo.copy(colorPreference = fresh).toMatrixItem())
     }
 
     val useSolidColorForHiddenMedia: Boolean

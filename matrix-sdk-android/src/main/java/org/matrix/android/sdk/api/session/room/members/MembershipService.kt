@@ -18,6 +18,7 @@ package org.matrix.android.sdk.api.session.room.members
 
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 
 /**
@@ -57,6 +58,12 @@ interface MembershipService {
      * @return the roomMember with userId or null
      */
     fun getRoomMember(userId: String): RoomMemberSummary?
+
+    /**
+     * The member's current MSC4522 color, from an in-memory cache — cheap enough for bind-time reads,
+     * unlike [getRoomMember]. Snapshots of it (e.g. on a cached TimelineEvent's senderInfo) go stale.
+     */
+    fun getRoomMemberColorPreference(userId: String): ColorPreference? = getRoomMember(userId)?.colorPreference
 
     /**
      * Return all the roomMembers of the room with params.

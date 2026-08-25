@@ -11,6 +11,7 @@ import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.toMatrixItem
 import org.matrix.android.sdk.api.session.Session
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class DisplayReadReceiptsController @Inject constructor(
         private val dateFormatter: VectorDateFormatter,
         private val session: Session,
-        private val avatarRender: AvatarRenderer
+        private val avatarRender: AvatarRenderer,
+        private val matrixItemColorProvider: MatrixItemColorProvider,
 ) :
         TypedEpoxyController<List<ReadReceiptData>>() {
 
@@ -35,6 +37,7 @@ class DisplayReadReceiptsController @Inject constructor(
                     .id(readReceiptData.userId)
                     .matrixItem(readReceiptData.toMatrixItem())
                     .avatarRenderer(avatarRender)
+                    .matrixItemColorProvider(matrixItemColorProvider)
                     .timestamp(timestamp)
                     .userClicked { listener?.didSelectUser(readReceiptData.userId) }
                     .addIf(session.myUserId != readReceiptData.userId, this)
