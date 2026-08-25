@@ -8,7 +8,7 @@
 package im.vector.app.features.home.room.list.home
 
 import im.vector.app.core.platform.VectorViewModelAction
-import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
+import im.vector.app.features.home.room.list.home.header.HomeRoomFilterTab
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 
@@ -20,6 +20,11 @@ sealed class HomeRoomListAction : VectorViewModelAction {
     data class MarkRoomAsRead(val roomId: String) : HomeRoomListAction()
     data class LeaveRoom(val roomId: String) : HomeRoomListAction()
     data class ForgetRoom(val roomId: String) : HomeRoomListAction()
-    data class ChangeRoomFilter(val filter: HomeRoomFilter) : HomeRoomListAction()
+    data class ChangeRoomFilter(val filter: HomeRoomFilterTab) : HomeRoomListAction()
+    data class CreateSection(val name: String) : HomeRoomListAction()
+    data class RenameSection(val tag: String, val newName: String) : HomeRoomListAction()
+    data class MoveSection(val tag: String, val up: Boolean) : HomeRoomListAction()
+    data class RequestDeleteSection(val tag: String) : HomeRoomListAction()
+    data class DeleteSection(val tag: String) : HomeRoomListAction()
     object DeleteAllLocalRoom : HomeRoomListAction()
 }

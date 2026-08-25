@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?colorSurface"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:minHeight="50dp"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
+    android:paddingTop="8dp"
+    android:paddingRight="@dimen/layout_horizontal_margin"
+    android:paddingBottom="8dp">
+
+    <ImageView
+        android:id="@+id/sectionIcon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginEnd="16dp"
+        android:importantForAccessibility="no"
+        android:scaleType="center"
+        android:src="@drawable/ic_composer_bullet_list"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?vctr_content_secondary" />
+
+    <TextView
+        android:id="@+id/sectionTitle"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?vctr_content_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/sectionRename"
+        app:layout_constraintStart_toEndOf="@id/sectionIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Work" />
+
+    <ImageView
+        android:id="@+id/sectionRename"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:contentDescription="@string/room_section_rename"
+        android:padding="6dp"
+        android:src="@drawable/ic_edit"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/sectionDelete"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?vctr_content_secondary" />
+
+    <ImageView
+        android:id="@+id/sectionDelete"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:contentDescription="@string/room_section_delete"
+        android:padding="6dp"
+        android:src="@drawable/ic_trash_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?vctr_content_secondary" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

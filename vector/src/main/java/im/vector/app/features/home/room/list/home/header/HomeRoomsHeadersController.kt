@@ -32,7 +32,11 @@ class HomeRoomsHeadersController @Inject constructor(
 
     private var data: RoomsHeadersData = RoomsHeadersData()
 
-    var onFilterChangedListener: ((HomeRoomFilter) -> Unit)? = null
+    var onFilterChangedListener: ((HomeRoomFilterTab) -> Unit)? = null
+
+    var onSectionLongPressListener: ((HomeRoomFilterTab.Section) -> Unit)? = null
+
+    var onCreateSectionListener: (() -> Unit)? = null
     var recentsRoomListener: RoomListListener? = null
     var invitesClickListener: (() -> Unit)? = null
 
@@ -66,7 +70,8 @@ class HomeRoomsHeadersController @Inject constructor(
             addRoomFilterHeaderItem(
                     filterChangedListener = host.onFilterChangedListener,
                     filtersList = it,
-                    currentFilter = host.data.currentFilter)
+                    currentFilter = host.data.currentFilter,
+                    canCreateSection = host.data.canCreateSection)
         }
     }
 
@@ -148,15 +153,19 @@ class HomeRoomsHeadersController @Inject constructor(
     }
 
     private fun addRoomFilterHeaderItem(
-            filterChangedListener: ((HomeRoomFilter) -> Unit)?,
-            filtersList: List<HomeRoomFilter>,
-            currentFilter: HomeRoomFilter?,
+            filterChangedListener: ((HomeRoomFilterTab) -> Unit)?,
+            filtersList: List<HomeRoomFilterTab>,
+            currentFilter: HomeRoomFilterTab?,
+            canCreateSection: Boolean,
     ) {
         roomFilterHeaderItem {
             id("filter_header")
             filtersData(filtersList)
             selectedFilter(currentFilter)
+            showCreateSection(canCreateSection)
             onFilterChangedListener(filterChangedListener)
+            onSectionLongPressListener(this@HomeRoomsHeadersController.onSectionLongPressListener)
+            onCreateSectionListener(this@HomeRoomsHeadersController.onCreateSectionListener)
         }
     }
 

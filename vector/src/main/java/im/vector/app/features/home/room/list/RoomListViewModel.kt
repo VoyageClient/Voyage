@@ -24,16 +24,24 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.HomeScreenVisibility
+import im.vector.app.features.home.room.list.sections.RoomSections
 import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -56,11 +64,11 @@ import timber.log.Timber
 class RoomListViewModel @AssistedInject constructor(
         @Assisted initialState: RoomListViewState,
         private val session: Session,
-        stringProvider: StringProvider,
-        spaceStateHandler: SpaceStateHandler,
-        tagFilterStateHandler: TagFilterStateHandler,
+        private val stringProvider: StringProvider,
+        private val spaceStateHandler: SpaceStateHandler,
+        private val tagFilterStateHandler: TagFilterStateHandler,
         private val vectorPreferences: VectorPreferences,
-        autoAcceptInvites: AutoAcceptInvites,
+        private val autoAcceptInvites: AutoAcceptInvites,
         private val homeScreenVisibility: HomeScreenVisibility,
 ) : VectorViewModel<RoomListViewState, RoomListAction, RoomListViewEvents>(initialState) {
 
@@ -105,6 +113,7 @@ class RoomListViewModel @AssistedInject constructor(
     init {
         observeMembershipChanges()
         observeInitialSync()
+        observeSectionDefinitions()
         vectorPreferences.subscribeToChanges(overrideDisplayPrefListener)
 
         spaceStateHandler.getSelectedSpaceFlow()
@@ -123,6 +132,41 @@ class RoomListViewModel @AssistedInject constructor(
                             currentUserName = it.invoke() ?: session.myUserId
                     )
                 }
+    }
+
+    private fun observeSectionDefinitions() {
+        RoomSections.flow(session)
+                .drop(1)
+                .onEach { config ->
+                    val sections = _sections ?: return@onEach
+                    val effective = config.takeIf { it.showSections } ?: RoomSections.Config.EMPTY
+                    val split = currentSectionSplit(sections)
+                    if (split != null && split == effective.aboveChats.map { it.tag } to effective.belowChats.map { it.tag }) {
+                        // Same sections in the same order: a rename-only change, applied in place —
+                        // a full rebuild costs ~500ms of teardown for a text change.
+                        val names = effective.all.associate { it.tag to it.name }
+                        var changed = false
+                        sections.forEach { section ->
+                            val newName = section.customTag?.let { names[it] } ?: return@forEach
+                            if (section.sectionName != newName) {
+                                section.sectionName = newName
+                                changed = true
+                            }
+                        }
+                        if (changed) _viewEvents.post(RoomListViewEvents.SectionsRenamed(names))
+                    } else {
+                        rebuildSections()
+                        _viewEvents.post(RoomListViewEvents.SectionsRebuilt)
+                    }
+                }
+                .launchIn(viewModelScope)
+    }
+
+    /** The custom tags above resp. below the catch-all, or null when this list has no catch-all. */
+    private fun currentSectionSplit(sections: List<RoomsSection>): Pair<List<String>, List<String>>? {
+        val chatsIndex = sections.indexOfFirst { it.reorderTag == RoomSections.CHATS_TAG }
+        if (chatsIndex == -1) return null
+        return sections.take(chatsIndex).mapNotNull { it.customTag } to sections.drop(chatsIndex).mapNotNull { it.customTag }
     }
 
     private fun observeMembershipChanges() {
@@ -147,24 +191,39 @@ class RoomListViewModel @AssistedInject constructor(
 
     companion object : MavericksViewModelFactory<RoomListViewModel, RoomListViewState> by hiltMavericksViewModelFactory()
 
-    private val roomListSectionBuilder = RoomListSectionBuilder(
-            session,
-            stringProvider,
-            spaceStateHandler,
-            tagFilterStateHandler,
-            viewModelScope,
-            autoAcceptInvites,
-            {
-                updatableQuery = it
-            },
-            suggestedRoomJoiningState,
-            vectorPreferences,
-            homeScreenVisibility,
-            !vectorPreferences.prefSpacesShowAllRoomInHome()
-    )
+    private val displayMode = initialState.displayMode
+    private var roomListSectionBuilder: RoomListSectionBuilder? = null
+    private var sectionsJob: Job? = null
+    private var _sections: List<RoomsSection>? = null
 
-    val sections: List<RoomsSection> by lazy {
-        roomListSectionBuilder.buildSections(initialState.displayMode)
+    val sections: List<RoomsSection>
+        get() = _sections ?: rebuildSections()
+
+    /**
+     * (Re)build the section list, cancelling the previous build's observers. Used initially and
+     * whenever the custom-section definitions change (created/renamed/deleted/reordered).
+     */
+    private fun rebuildSections(): List<RoomsSection> {
+        sectionsJob?.cancel()
+        val job = SupervisorJob(viewModelScope.coroutineContext.job)
+        sectionsJob = job
+        val builder = RoomListSectionBuilder(
+                session,
+                stringProvider,
+                spaceStateHandler,
+                tagFilterStateHandler,
+                CoroutineScope(viewModelScope.coroutineContext + job),
+                autoAcceptInvites,
+                {
+                    updatableQuery = it
+                },
+                suggestedRoomJoiningState,
+                vectorPreferences,
+                homeScreenVisibility,
+                !vectorPreferences.prefSpacesShowAllRoomInHome()
+        )
+        roomListSectionBuilder = builder
+        return builder.buildSections(displayMode).also { _sections = it }
     }
 
     override fun onCleared() {
@@ -177,7 +236,7 @@ class RoomListViewModel @AssistedInject constructor(
             withContext(Dispatchers.IO) {
                 session.roomService().refreshJoinedRoomSummaryDisplay(null)
             }
-            roomListSectionBuilder.refreshSections()
+            roomListSectionBuilder?.refreshSections()
         }
     }
 
@@ -195,6 +254,9 @@ class RoomListViewModel @AssistedInject constructor(
             is RoomListAction.SetMarkedUnread -> handleSetMarkedUnread(action)
             is RoomListAction.MarkRoomAsRead -> handleMarkRoomAsRead(action)
             is RoomListAction.ToggleSection -> handleToggleSection(action.section, action.persist)
+            is RoomListAction.RenameSection -> handleRenameSection(action)
+            is RoomListAction.SetSectionOrder -> handleSetSectionOrder(action)
+            is RoomListAction.DeleteSection -> handleDeleteSection(action)
             is RoomListAction.JoinSuggestedRoom -> handleJoinSuggestedRoom(action)
             is RoomListAction.ShowRoomDetails -> handleShowRoomDetails(action)
             RoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
@@ -229,6 +291,27 @@ class RoomListViewModel @AssistedInject constructor(
             val value = runCatching { WatchedRooms.remove(session, action.roomId) }
                     .fold({ RoomListViewEvents.Done }, { RoomListViewEvents.Failure(it) })
             _viewEvents.post(value)
+        }
+    }
+
+    private fun handleSetSectionOrder(action: RoomListAction.SetSectionOrder) {
+        viewModelScope.launch {
+            runCatching { RoomSections.setSectionOrder(session, action.order) }
+                    .onFailure { _viewEvents.post(RoomListViewEvents.Failure(it)) }
+        }
+    }
+
+    private fun handleRenameSection(action: RoomListAction.RenameSection) {
+        viewModelScope.launch {
+            runCatching { RoomSections.renameSection(session, action.tag, action.newName) }
+                    .onFailure { _viewEvents.post(RoomListViewEvents.Failure(it)) }
+        }
+    }
+
+    private fun handleDeleteSection(action: RoomListAction.DeleteSection) {
+        viewModelScope.launch {
+            runCatching { RoomSections.deleteSection(session, action.tag) }
+                    .onFailure { _viewEvents.post(RoomListViewEvents.Failure(it)) }
         }
     }
 

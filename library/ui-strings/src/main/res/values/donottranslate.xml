@@ -201,6 +201,19 @@
     <string name="room_tag_add_existing" translatable="false">Add a tag</string>
     <string name="room_tag_create_new" translatable="false">Create new tag…</string>
     <string name="room_tag_new_hint" translatable="false">Tag name</string>
+    <string name="room_list_quick_actions_section" translatable="false">Move to section</string>
+    <string name="room_section_current" translatable="false">Current section</string>
+    <string name="room_section_remove_from" translatable="false">Remove from section</string>
+    <string name="room_section_move_to" translatable="false">Move to</string>
+    <string name="room_section_create_new" translatable="false">New section…</string>
+    <string name="room_section_name_hint" translatable="false">Section name</string>
+    <string name="room_section_create_title" translatable="false">Create section</string>
+    <string name="room_section_rename" translatable="false">Rename section</string>
+    <string name="room_section_delete" translatable="false">Remove section</string>
+    <string name="room_section_move_up" translatable="false">Move up</string>
+    <string name="room_section_move_down" translatable="false">Move down</string>
+    <string name="room_section_delete_prompt" translatable="false">Remove this section?</string>
+    <string name="room_section_delete_warning" translatable="false">The rooms inside won\'t be deleted. They\'ll go back to the main list.</string>
     <string name="settings_clear_emoji_cache" translatable="false">Clear remote emoji cache</string>
     <string name="settings_quick_reactions" translatable="false">Quick reactions</string>
     <string name="settings_quick_reactions_summary" translatable="false">Reactions shown when long-pressing a message.</string>

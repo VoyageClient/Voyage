@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.list.actions
 import androidx.annotation.StringRes
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.R
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.epoxy.bottomSheetDividerItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetActionItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetRoomPreviewItem
@@ -16,6 +17,7 @@ import im.vector.app.core.epoxy.profiles.notifications.radioButtonItem
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.list.sections.RoomSections
 import im.vector.app.features.roomprofile.notifications.notificationOptions
 import im.vector.app.features.roomprofile.notifications.notificationStateMapped
 import im.vector.lib.strings.CommonStrings
@@ -30,6 +32,7 @@ class RoomListQuickActionsEpoxyController @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
         private val colorProvider: ColorProvider,
         private val stringProvider: StringProvider,
+        private val activeSessionHolder: ActiveSessionHolder,
 ) : TypedEpoxyController<RoomListQuickActionViewState>() {
 
     var listener: Listener? = null
@@ -99,6 +102,17 @@ class RoomListQuickActionsEpoxyController @Inject constructor(
             markAction.iconResId?.let { iconRes(it) }
             textRes(markAction.titleRes)
             listener { host.listener?.didSelectMenuAction(markAction) }
+        }
+
+        val showSections = activeSessionHolder.getSafeActiveSession()?.let { RoomSections.get(it).showSections } == true
+        if (showSections) {
+            bottomSheetActionItem {
+                id("action_move_to_section")
+                selected(false)
+                iconRes(R.drawable.ic_composer_bullet_list)
+                textRes(CommonStrings.room_list_quick_actions_section)
+                listener { host.listener?.didSelectMenuAction(RoomListQuickActionsSharedAction.Sections(roomSummary.roomId)) }
+            }
         }
 
         RoomListQuickActionsSharedAction.Leave(roomSummary.roomId, showIcon = !true).toBottomSheetItem()

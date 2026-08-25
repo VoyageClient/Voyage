@@ -7,17 +7,24 @@
 
 package im.vector.app.features.home.room.list
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ConcatAdapter
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyController
@@ -41,12 +48,15 @@ import im.vector.app.features.home.room.filtered.FilteredRoomFooterItem
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedActionViewModel
+import im.vector.app.features.home.room.list.actions.RoomSectionBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomTagBottomSheet
+import im.vector.app.features.home.room.list.sections.RoomSectionDialogs
 import im.vector.app.features.home.room.list.widget.NotifsFabMenuView
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -106,6 +116,13 @@ class RoomListFragment :
 
     private val adapterInfosList = mutableListOf<SectionAdapterInfo>()
     private var concatAdapter: ConcatAdapter? = null
+    private var boundSections: List<RoomsSection> = emptyList()
+    private val itemCountJobs = mutableListOf<Job>()
+    private var adapterSwapPending = false
+    private var sectionReorderInProgress = false
+    private var sectionReorderAdapter: SectionReorderAdapter? = null
+    private var fingerDown = false
+    private val sectionItemTouchHelper by lazy { ItemTouchHelper(SectionReorderCallback()) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,6 +151,16 @@ class RoomListFragment :
                 is RoomListViewEvents.SelectRoom -> handleSelectRoom(it, it.isInviteAlreadyAccepted)
                 is RoomListViewEvents.Done -> Unit
                 is RoomListViewEvents.NavigateToMxToBottomSheet -> handleShowMxToLink(it.link)
+                is RoomListViewEvents.SectionsRebuilt -> {
+                    clearSectionAdapters()
+                    buildSectionAdapters(deferSwap = true)
+                }
+                is RoomListViewEvents.SectionsRenamed -> {
+                    boundSections.forEachIndexed { index, section ->
+                        val newName = section.customTag?.let { tag -> it.names[tag] } ?: return@forEachIndexed
+                        adapterInfosList.getOrNull(index)?.sectionHeaderAdapter?.updateSection { data -> data.copy(name = newName) }
+                    }
+                }
             }
         }
 
@@ -180,6 +207,8 @@ class RoomListFragment :
     }
 
     private fun refreshCollapseStates() {
+        // Everything is force-collapsed while a section drag is running; restore only when it ends.
+        if (sectionReorderInProgress) return
         // A still-loading section may yet become visible, so count it as present when deciding
         // collapsability. Otherwise every section reads as hidden during load, is deemed
         // non-collapsable, and is force-expanded — flashing the saved-collapsed sections open
@@ -188,7 +217,9 @@ class RoomListFragment :
             !it.sectionHeaderAdapter.roomsSectionData.isHidden || it.sectionHeaderAdapter.roomsSectionData.isLoading
         }
         roomListViewModel.sections.forEachIndexed { index, roomsSection ->
-            val actualBlock = adapterInfosList[index]
+            // A LiveData with a cached value dispatches synchronously from observe() while
+            // buildSectionAdapters() is still appending, so the list may be shorter than sections.
+            val actualBlock = adapterInfosList.getOrNull(index) ?: return@forEachIndexed
             val isRoomSectionCollapsable = sectionsCount > 1
             // The saved/live state is the source of truth. A lone (non-collapsable) section is always shown
             // expanded for usability, but we never write that back so the user's saved choice survives.
@@ -216,6 +247,12 @@ class RoomListFragment :
     override fun onDestroyView() {
         adapterInfosList.onEach { it.contentEpoxyController.removeModelBuildListener(modelBuildListener) }
         adapterInfosList.clear()
+        boundSections = emptyList()
+        itemCountJobs.forEach { it.cancel() }
+        itemCountJobs.clear()
+        sectionReorderInProgress = false
+        sectionReorderAdapter = null
+        adapterSwapPending = false
         modelBuildListener = null
         views.roomListView.cleanup()
         footerController.listener = null
@@ -313,14 +350,72 @@ class RoomListFragment :
 
         modelBuildListener = OnModelBuildFinishedListener { it.dispatchTo(stateRestorer) }
 
+        views.roomListView.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> fingerDown = true
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> fingerDown = false
+                }
+                return false
+            }
+        })
+        sectionItemTouchHelper.attachToRecyclerView(views.roomListView)
+
+        buildSectionAdapters()
+    }
+
+    /**
+     * [deferSwap] keeps the previous (frozen) adapter on screen until every rebuilt section has
+     * delivered its first data, so a live section rebuild doesn't flash an empty list.
+     */
+    private fun buildSectionAdapters(deferSwap: Boolean = false) {
         val concatAdapter = ConcatAdapter()
 
-        roomListViewModel.sections.forEachIndexed { index, section ->
-            val sectionAdapter = SectionHeaderAdapter(SectionHeaderAdapter.RoomsSectionData(section.sectionName)) {
-                if (adapterInfosList[index].sectionHeaderAdapter.roomsSectionData.isCollapsable) {
-                    roomListViewModel.handle(RoomListAction.ToggleSection(section))
+        val newBoundSections = roomListViewModel.sections
+        boundSections = newBoundSections
+        // Only paged/list sections reliably emit; the suggested-rooms flow may stay silent until a
+        // space change and would otherwise pin every rebuild on the fallback timeout.
+        var awaitingSections = newBoundSections.count { it.livePages != null || it.liveList != null }
+        var swapped = false
+        adapterSwapPending = deferSwap
+
+        fun performSwap() {
+            if (swapped || view == null || boundSections !== newBoundSections) return
+            swapped = true
+            adapterSwapPending = false
+            this.concatAdapter = concatAdapter
+            views.roomListView.adapter = concatAdapter
+            checkEmptyState()
+        }
+
+        // One extra frame so the epoxy controllers' async model builds land before the swap.
+        fun onSectionLoaded() {
+            if (!deferSwap || swapped) return
+            awaitingSections--
+            if (awaitingSections <= 0) views.roomListView.postDelayed({ performSwap() }, 100)
+        }
+
+        newBoundSections.forEachIndexed { index, section ->
+            var sectionLoaded = false
+            fun notifySectionLoaded() {
+                if (!sectionLoaded) {
+                    sectionLoaded = true
+                    onSectionLoaded()
                 }
             }
+            val sectionAdapter = SectionHeaderAdapter(
+                    SectionHeaderAdapter.RoomsSectionData(section.sectionName, isCustom = section.customTag != null),
+                    onClickAction = {
+                        // getOrNull: a click on a still-displayed old header can land while a rebuild
+                        // has already cleared the list and not yet swapped the new adapters in.
+                        if (adapterInfosList.getOrNull(index)?.sectionHeaderAdapter?.roomsSectionData?.isCollapsable == true) {
+                            roomListViewModel.handle(RoomListAction.ToggleSection(section))
+                        }
+                    },
+                    onLongClickAction = section.customTag?.let { _ -> { headerView -> beginSectionDrag(headerView) } },
+                    onRenameAction = section.customTag?.let { tag -> { promptRenameSection(tag, section.sectionName) } },
+                    onDeleteAction = section.customTag?.let { tag -> { promptDeleteSection(tag, section) } }
+            )
             val contentAdapter =
                     when {
                         section.livePages != null -> {
@@ -336,6 +431,7 @@ class RoomListFragment :
                                             }
                                             refreshCollapseStates()
                                             checkEmptyState()
+                                            notifySectionLoaded()
                                         }
                                         observeItemCount(section, sectionAdapter)
                                         section.notificationCount.observe(viewLifecycleOwner) { counts ->
@@ -386,6 +482,7 @@ class RoomListFragment :
                                             }
                                             refreshCollapseStates()
                                             checkEmptyState()
+                                            notifySectionLoaded()
                                         }
                                         observeItemCount(section, sectionAdapter)
                                         section.notificationCount.observe(viewLifecycleOwner) { counts ->
@@ -424,8 +521,200 @@ class RoomListFragment :
         footerController.listener = this
         concatAdapter.addAdapter(footerController.adapter)
 
-        this.concatAdapter = concatAdapter
-        views.roomListView.adapter = concatAdapter
+        if (deferSwap) {
+            // In case some section never emits, swap anyway rather than freezing the old list.
+            views.roomListView.postDelayed({ performSwap() }, 1500)
+        } else {
+            performSwap()
+        }
+    }
+
+    private fun clearSectionAdapters() {
+        boundSections.forEach { section ->
+            section.livePages?.removeObservers(viewLifecycleOwner)
+            section.liveList?.removeObservers(viewLifecycleOwner)
+            section.liveSuggested?.removeObservers(viewLifecycleOwner)
+            section.notificationCount.removeObservers(viewLifecycleOwner)
+            section.isExpanded.removeObservers(viewLifecycleOwner)
+        }
+        boundSections = emptyList()
+        itemCountJobs.forEach { it.cancel() }
+        itemCountJobs.clear()
+        adapterInfosList.onEach { it.contentEpoxyController.removeModelBuildListener(modelBuildListener) }
+        adapterInfosList.clear()
+    }
+
+    private fun promptRenameSection(tag: String, currentName: String) {
+        RoomSectionDialogs.showNameDialog(requireContext(), CommonStrings.room_section_rename, currentName) { name ->
+            roomListViewModel.handle(RoomListAction.RenameSection(tag, name))
+        }
+    }
+
+    private fun promptDeleteSection(tag: String, section: RoomsSection) {
+        val isEmpty = section.livePages?.value?.isEmpty() ?: true
+        RoomSectionDialogs.showDeleteDialog(requireContext(), isEmpty) {
+            roomListViewModel.handle(RoomListAction.DeleteSection(tag))
+        }
+    }
+
+    private fun reorderTagFor(adapter: RecyclerView.Adapter<*>?): String? {
+        val index = adapterInfosList.indexOfFirst { it.sectionHeaderAdapter === adapter }
+        return boundSections.getOrNull(index)?.reorderTag
+    }
+
+    /**
+     * Reorder mode swaps the whole list for this flat headers-only adapter, so moves are plain
+     * notifyItemMoved calls that the item animator renders as smooth slides — the same mechanics as
+     * the space list / image pack reordering. Non-reorderable sections are shown as fixed context
+     * rows; the real list (with untouched expand states) comes back once the drag ends.
+     */
+    private class SectionReorderAdapter(private val rows: MutableList<Row>) : RecyclerView.Adapter<SectionHeaderAdapter.VH>() {
+
+        data class Row(val data: SectionHeaderAdapter.RoomsSectionData, val reorderTag: String?)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionHeaderAdapter.VH =
+                SectionHeaderAdapter.VH.create(parent, onClickAction = {}, onLongClickAction = null, onRenameAction = null, onDeleteAction = null)
+
+        override fun onBindViewHolder(holder: SectionHeaderAdapter.VH, position: Int) = holder.bind(rows[position].data)
+
+        override fun getItemCount() = rows.size
+
+        fun reorderTagAt(position: Int): String? = rows.getOrNull(position)?.reorderTag
+
+        fun currentOrder(): List<String> = rows.mapNotNull { it.reorderTag }
+
+        fun move(from: Int, to: Int) {
+            rows.add(to, rows.removeAt(from))
+            notifyItemMoved(from, to)
+        }
+    }
+
+    private inner class SectionReorderCallback : ItemTouchHelper.Callback() {
+
+        private var initialElevation: Float? = null
+
+        // Drags are started manually by beginSectionDrag once the reorder adapter is in place.
+        override fun isLongPressDragEnabled() = false
+
+        override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+            val adapter = sectionReorderAdapter ?: return 0
+            if (viewHolder.bindingAdapter !== adapter) return 0
+            if (adapter.reorderTagAt(viewHolder.bindingAdapterPosition) == null) return 0
+            return makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
+        }
+
+        override fun canDropOver(recyclerView: RecyclerView, current: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            return sectionReorderAdapter?.reorderTagAt(target.bindingAdapterPosition) != null
+        }
+
+        override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+            super.onSelectedChanged(viewHolder, actionState)
+            if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && viewHolder != null) {
+                viewHolder.itemView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                initialElevation = ViewCompat.getElevation(viewHolder.itemView)
+                ViewCompat.setElevation(viewHolder.itemView, 6f)
+            }
+        }
+
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            val adapter = sectionReorderAdapter ?: return false
+            val from = viewHolder.bindingAdapterPosition
+            val to = target.bindingAdapterPosition
+            if (from == -1 || to == -1) return false
+            adapter.move(from, to)
+            return true
+        }
+
+        override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+            super.clearView(recyclerView, viewHolder)
+            ViewCompat.setElevation(viewHolder.itemView, initialElevation ?: 0f)
+            if (!sectionReorderInProgress) return
+            val newOrder = sectionReorderAdapter?.currentOrder().orEmpty()
+            val changed = newOrder != boundSections.mapNotNull { it.reorderTag }
+            // Post: swapping the adapter inside clearView would clash with the drop-settle animation.
+            views.roomListView.post {
+                endSectionReorder()
+                if (changed) {
+                    roomListViewModel.handle(RoomListAction.SetSectionOrder(newOrder))
+                }
+            }
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
+    }
+
+    private fun beginSectionDrag(headerView: View) {
+        if (sectionReorderInProgress) return
+        val headerAdapter = views.roomListView.findContainingViewHolder(headerView)?.bindingAdapter as? SectionHeaderAdapter ?: return
+        if (reorderTagFor(headerAdapter) == null) return
+        val oldTop = headerView.top
+        var draggedIndex = -1
+        val rows = mutableListOf<SectionReorderAdapter.Row>()
+        adapterInfosList.forEachIndexed { index, info ->
+            val data = info.sectionHeaderAdapter.roomsSectionData
+            if (data.isHidden) return@forEachIndexed
+            if (info.sectionHeaderAdapter === headerAdapter) draggedIndex = rows.size
+            rows += SectionReorderAdapter.Row(
+                    data.copy(isExpanded = false, isCollapsable = false, isCustom = false),
+                    boundSections.getOrNull(index)?.reorderTag
+            )
+        }
+        if (draggedIndex == -1) return
+        sectionReorderInProgress = true
+        val reorderAdapter = SectionReorderAdapter(rows)
+        sectionReorderAdapter = reorderAdapter
+        fadeRoomList(toAlpha = 0f) {
+            if (view == null || sectionReorderAdapter !== reorderAdapter) return@fadeRoomList
+            // The room list deliberately runs with moveDuration = 0 (sync updates shouldn't jiggle);
+            // shuffle mode needs real move animations for the rows sliding around the drag.
+            views.roomListView.itemAnimator = DefaultItemAnimator()
+            views.roomListView.adapter = reorderAdapter
+            (views.roomListView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(draggedIndex, oldTop)
+            fadeRoomList(toAlpha = 1f) { onReorderAdapterShown(reorderAdapter, draggedIndex) }
+        }
+    }
+
+    // ViewPropertyAnimator.withEndAction needs API 16; the listener variant runs everywhere.
+    private fun fadeRoomList(toAlpha: Float, endAction: (() -> Unit)? = null) {
+        views.roomListView.animate()
+                .alpha(toAlpha)
+                .setDuration(REORDER_FADE_MS)
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        if (view != null) views.roomListView.animate().setListener(null)
+                        endAction?.invoke()
+                    }
+                })
+                .start()
+    }
+
+    private fun onReorderAdapterShown(reorderAdapter: SectionReorderAdapter, draggedIndex: Int) {
+        if (view == null || sectionReorderAdapter !== reorderAdapter) return
+        // The long-press may have been released before the reorder adapter settled; starting a drag
+        // then would leave shuffle mode stuck until the next tap.
+        if (!fingerDown) {
+            endSectionReorder()
+            return
+        }
+        val viewHolder = views.roomListView.findViewHolderForAdapterPosition(draggedIndex)
+        if (viewHolder != null) {
+            sectionItemTouchHelper.startDrag(viewHolder)
+        } else {
+            endSectionReorder()
+        }
+    }
+
+    private fun endSectionReorder() {
+        sectionReorderInProgress = false
+        sectionReorderAdapter = null
+        if (view == null) return
+        fadeRoomList(toAlpha = 0f) {
+            if (view == null) return@fadeRoomList
+            views.roomListView.itemAnimator = RoomListAnimator()
+            views.roomListView.adapter = concatAdapter
+            refreshCollapseStates()
+            fadeRoomList(toAlpha = 1f)
+        }
     }
 
     private val showFabRunnable = Runnable {
@@ -441,7 +730,7 @@ class RoomListFragment :
     }
 
     private fun observeItemCount(section: RoomsSection, sectionAdapter: SectionHeaderAdapter) {
-        lifecycleScope.launch {
+        itemCountJobs += lifecycleScope.launch {
             section.itemCount
                     .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                     .filter { it > 0 }
@@ -483,6 +772,10 @@ class RoomListFragment :
                 RoomTagBottomSheet.newInstance(quickAction.roomId)
                         .show(childFragmentManager, "ROOM_TAG")
             }
+            is RoomListQuickActionsSharedAction.Sections -> {
+                RoomSectionBottomSheet.newInstance(quickAction.roomId)
+                        .show(childFragmentManager, "ROOM_SECTION")
+            }
             is RoomListQuickActionsSharedAction.MarkUnread -> {
                 roomListViewModel.handle(RoomListAction.SetMarkedUnread(quickAction.roomId, true))
             }
@@ -522,6 +815,9 @@ class RoomListFragment :
     }
 
     private fun checkEmptyState() {
+        // While a rebuilt adapter waits to be swapped in, its still-loading sections would read as
+        // "all hidden" and flash the empty state over the frozen list.
+        if (adapterSwapPending) return
         val isInitialSyncInProgress = withState(roomListViewModel) { it.isInitialSyncInProgress }
         val shouldShowEmpty = adapterInfosList.all { it.sectionHeaderAdapter.roomsSectionData.isHidden } &&
                 !adapterInfosList.any { it.sectionHeaderAdapter.roomsSectionData.isLoading } &&
@@ -608,5 +904,9 @@ class RoomListFragment :
     override fun onRejectRoomInvitation(room: RoomSummary) {
         notificationDrawerManager.updateEvents { it.clearMemberShipNotificationForRoom(room.roomId) }
         roomListViewModel.handle(RoomListAction.RejectInvitation(room))
+    }
+
+    private companion object {
+        const val REORDER_FADE_MS = 120L
     }
 }

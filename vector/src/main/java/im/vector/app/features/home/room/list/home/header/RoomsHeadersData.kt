@@ -11,7 +11,8 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
 data class RoomsHeadersData(
         val invitesCount: Int = 0,
-        val filtersList: List<HomeRoomFilter>? = null,
-        val currentFilter: HomeRoomFilter = HomeRoomFilter.ALL,
+        val filtersList: List<HomeRoomFilterTab>? = null,
+        val currentFilter: HomeRoomFilterTab = HomeRoomFilterTab.Standard(HomeRoomFilter.ALL),
+        val canCreateSection: Boolean = true,
         val recents: List<RoomSummary>? = null
 )

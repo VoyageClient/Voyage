@@ -20,6 +20,7 @@ import im.vector.app.features.home.room.list.home.HomeRoomListAction
 import im.vector.app.features.home.room.list.home.HomeRoomListViewModel
 import im.vector.app.features.home.room.list.home.HomeRoomListViewState
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
+import im.vector.app.features.home.room.list.home.header.HomeRoomFilterTab
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.app.test.fakes.FakeDrawableProvider
 import im.vector.app.test.fakes.FakeHomeLayoutPreferencesStore
@@ -150,9 +151,9 @@ class RoomsListViewModelTest {
 
         fakeHomeLayoutPreferencesStore.givenFiltersEnabled(true)
 
-        val filtersData = mutableListOf(
-                HomeRoomFilter.ALL,
-                HomeRoomFilter.UNREADS
+        val filtersData = listOf<HomeRoomFilterTab>(
+                HomeRoomFilterTab.Standard(HomeRoomFilter.ALL),
+                HomeRoomFilterTab.Standard(HomeRoomFilter.UNREADS)
         )
 
         val userName = fakeSession.getUserOrDefault(fakeSession.myUserId).toMatrixItem().getBestName()
@@ -172,7 +173,7 @@ class RoomsListViewModelTest {
     fun `when filter tab is selected then updates state`() = runTest {
         val test = viewModel.test()
 
-        val aFilter = HomeRoomFilter.UNREADS
+        val aFilter = HomeRoomFilterTab.Standard(HomeRoomFilter.UNREADS)
         viewModel.handle(HomeRoomListAction.ChangeRoomFilter(filter = aFilter))
 
         val unreadsEmptyState = StateView.State.Empty(
