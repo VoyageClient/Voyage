@@ -392,16 +392,21 @@ class DisplayableEventFormatter @Inject constructor(
         return if (start == 0 && end == length) this else subSequence(start, end)
     }
 
-    // Colour exactly what the timeline linkifies (VectorLinkify: web URLs, whole email addresses, geo/MSC),
-    // so the preview matches the opened message. Previews aren't independently tappable, so every link —
-    // including Markwon's own <a> spans — is flattened to a plain colour span.
+    // Colour exactly what the timeline linkifies (MatrixLinkify: user/room/event ids and permalinks;
+    // VectorLinkify: web URLs, whole email addresses, geo/MSC), so the preview matches the opened
+    // message. Previews aren't independently tappable, so every link — including Markwon's own <a>
+    // spans — is flattened to a plain colour span.
     private fun CharSequence.colorLinks(): CharSequence {
         val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
+        // Matrix ids first, like the timeline: otherwise the web-URL matcher claims the id's domain half
+        org.matrix.android.sdk.api.session.permalinks.MatrixLinkify.addLinks(builder, null)
         im.vector.app.core.linkify.VectorLinkify.addLinks(builder, keepExistingUrlSpan = true)
         val linkColor = colorProvider.getColorFromAttribute(android.R.attr.textColorLink)
         val codeSpans = builder.getSpans(0, builder.length, im.vector.app.features.html.HtmlCodeSpan::class.java)
         val pillSpans = builder.getSpans(0, builder.length, PillImageSpan::class.java)
-        builder.getSpans(0, builder.length, URLSpan::class.java).forEach { link ->
+        val links = builder.getSpans(0, builder.length, URLSpan::class.java).asList() +
+                builder.getSpans(0, builder.length, org.matrix.android.sdk.api.session.permalinks.MatrixPermalinkSpan::class.java).asList()
+        links.forEach { link ->
             val start = builder.getSpanStart(link)
             val end = builder.getSpanEnd(link)
             builder.removeSpan(link)
