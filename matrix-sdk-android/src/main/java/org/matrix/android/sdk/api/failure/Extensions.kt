@@ -45,9 +45,21 @@ fun Throwable.isLimitExceededError() = this is Failure.ServerError &&
         httpCode == 429 &&
         error.code == MatrixError.M_LIMIT_EXCEEDED
 
+// 502/503/504 are availability blips (matrix.org's token introspection outages return 503);
+// 500/501 usually mean the request itself is broken, so they stay un-retryable.
+fun Throwable.isTransientServerError(): Boolean {
+    val httpCode = when (this) {
+        is Failure.ServerError -> httpCode
+        is Failure.OtherServerError -> httpCode
+        else -> return false
+    }
+    return httpCode == 502 || httpCode == 503 || httpCode == 504
+}
+
 fun Throwable.shouldBeRetried() = this is Failure.NetworkConnection ||
         this is IOException ||
-        isLimitExceededError()
+        isLimitExceededError() ||
+        isTransientServerError()
 
 /**
  * Get the retry delay in case of rate limit exceeded error, adding 100 ms, of defaultValue otherwise.
