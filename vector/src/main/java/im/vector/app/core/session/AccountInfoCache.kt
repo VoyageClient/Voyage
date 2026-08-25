@@ -17,6 +17,7 @@ import okhttp3.Request
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.auth.data.sessionId
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -34,6 +35,8 @@ data class AccountSnapshot(
         val displayName: String?,
         /** Non-null only when more than one stored account shares this exact MXID. */
         val homeServerHost: String?,
+        /** The MSC4522 profile color this account had chosen while it was last active. */
+        val colorPreference: ColorPreference?,
 )
 
 /**
@@ -68,6 +71,7 @@ class AccountInfoCache @Inject constructor(
                     sessionId = sessionId,
                     userId = params.userId,
                     displayName = displayNameFor(sessionId),
+                    colorPreference = colorPreferenceFor(sessionId),
                     homeServerHost = if (ambiguous) {
                         Uri.parse(params.homeServerConnectionConfig.homeServerUriBase).host
                                 ?: Uri.parse(params.homeServerConnectionConfig.homeServerUri).host
@@ -87,10 +91,21 @@ class AccountInfoCache @Inject constructor(
 
     fun displayNameFor(sessionId: String): String? = prefs.getString(keyDisplayName(sessionId), null)
 
+    fun colorPreferenceFor(sessionId: String): ColorPreference? = ColorPreference(
+            onLight = prefs.getString(keyColorLight(sessionId), null),
+            onDark = prefs.getString(keyColorDark(sessionId), null),
+    ).takeIf { !it.isEmpty() }
+
     suspend fun storeForActive(session: Session) = withContext(coroutineDispatchers.io) {
         val user = runCatching { session.userService().getUser(session.myUserId) }.getOrNull()
         val name = user?.displayName?.takeIf { it.isNotBlank() }
         val mxc = user?.avatarUrl
+
+        // The profile-field cache is in-memory: at session start it holds nothing yet, and a null
+        // color then means "unknown", not "cleared" — only persist once the profile has been seen.
+        val profileService = session.profileService()
+        val color = profileService.getCachedColorPreference(session.myUserId)
+        val colorKnown = color != null || profileService.getCachedProfile(session.myUserId) != null
 
         // Avatar — only re-download when the MXC URL actually changed (or got removed).
         // Avoids burning bandwidth on every display-name edit.
@@ -126,6 +141,10 @@ class AccountInfoCache @Inject constructor(
             prefs.edit(commit = true) {
                 if (name == null) remove(keyDisplayName(session.sessionId)) else putString(keyDisplayName(session.sessionId), name)
                 if (mxc.isNullOrBlank()) remove(keyAvatarMxc(session.sessionId)) else putString(keyAvatarMxc(session.sessionId), mxc)
+                if (colorKnown) {
+                    if (color?.onLight == null) remove(keyColorLight(session.sessionId)) else putString(keyColorLight(session.sessionId), color.onLight)
+                    if (color?.onDark == null) remove(keyColorDark(session.sessionId)) else putString(keyColorDark(session.sessionId), color.onDark)
+                }
             }
         }.onFailure { Timber.w(it, "AccountInfoCache: failed to persist prefs for ${session.sessionId}") }
     }
@@ -137,12 +156,16 @@ class AccountInfoCache @Inject constructor(
             prefs.edit(commit = true) {
                 remove(keyDisplayName(sessionId))
                 remove(keyAvatarMxc(sessionId))
+                remove(keyColorLight(sessionId))
+                remove(keyColorDark(sessionId))
             }
         }.onFailure { Timber.w(it, "AccountInfoCache: failed to clear prefs for $sessionId") }
     }
 
     private fun keyDisplayName(sessionId: String) = "displayName_$sessionId"
     private fun keyAvatarMxc(sessionId: String) = "avatarMxc_$sessionId"
+    private fun keyColorLight(sessionId: String) = "colorLight_$sessionId"
+    private fun keyColorDark(sessionId: String) = "colorDark_$sessionId"
 
     companion object {
         private const val DIR_NAME = "account_info"

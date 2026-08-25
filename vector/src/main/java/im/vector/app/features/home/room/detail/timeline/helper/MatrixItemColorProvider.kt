@@ -91,7 +91,10 @@ class MatrixItemColorProvider @Inject constructor(
         val userId = matrixItem.id
         val session = activeSessionHolder.get().getSafeActiveSession()
         if (userId != session?.myUserId && !vectorPreferences.showOthersProfileColors()) return null
-        matrixItem.colorPreference?.forTheme(light)?.let { return it }
+        // A non-null preference is authoritative — an empty one means "known to have none"
+        // (offline-only consumers like the account switcher), so don't fall through to the
+        // profile cache and its network prefetch. Parsers never produce empty preferences.
+        matrixItem.colorPreference?.let { return it.forTheme(light) }
         val profileService = session?.profileService() ?: return null
         val global = profileService.getCachedColorPreference(userId)
         // prefetch dedups internally (in-flight set + already-cached check), so calling per bind is cheap

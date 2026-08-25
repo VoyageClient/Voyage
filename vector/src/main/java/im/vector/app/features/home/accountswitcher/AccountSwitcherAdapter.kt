@@ -23,6 +23,7 @@ import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.util.MatrixItem
 
 data class AccountSwitcherEntry(
@@ -42,6 +43,8 @@ data class AccountSwitcherEntry(
          * to keep their avatar lookups offline-only.
          */
         val liveAvatarUrl: String?,
+        /** The MSC4522 color this account chose for itself, for the avatar placeholder. */
+        val colorPreference: ColorPreference?,
 )
 
 class AccountSwitcherAdapter(
@@ -97,12 +100,20 @@ class AccountSwitcherAdapter(
                 // account's own homeserver, so AuthenticatedGlideUrlLoader hitting the active
                 // session is no leak — and it removes the first-activation "raw MXID" flicker
                 // before the cache has been seeded.
-                avatarRenderer.render(MatrixItem.UserItem(entry.userId, entry.displayName, entry.liveAvatarUrl), avatar)
+                avatarRenderer.render(
+                        MatrixItem.UserItem(entry.userId, entry.displayName, entry.liveAvatarUrl, colorPreference = entry.colorPreference),
+                        avatar,
+                )
             } else {
                 // Non-active row: read the cached binary that was written while *this* account
                 // was active, never the network. Guarantees we never ask another account's
-                // homeserver to resolve/proxy this account's media.
-                val matrixItem = MatrixItem.UserItem(entry.userId, entry.displayName, null)
+                // homeserver to resolve/proxy this account's media. An empty (not null) color
+                // preference marks "known to have none" so the placeholder color is resolved
+                // without a profile prefetch through the active session either.
+                val matrixItem = MatrixItem.UserItem(
+                        entry.userId, entry.displayName, null,
+                        colorPreference = entry.colorPreference ?: ColorPreference(),
+                )
                 val cached = accountInfoCache.avatarFileFor(entry.sessionId).takeIf { it.exists() && it.length() > 0 }
                 avatarRenderer.render(matrixItem, cached?.let { Uri.fromFile(it) }, avatar)
             }
