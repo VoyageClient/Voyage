@@ -23,6 +23,7 @@ import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.federation.FederationService
 import org.matrix.android.sdk.api.session.account.AccountService
+import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.admin.AdminService
 import org.matrix.android.sdk.api.session.call.CallSignalingService
@@ -294,6 +295,11 @@ interface Session {
      * Returns the account data service associated with the session.
      */
     fun accountDataService(): SessionAccountDataService
+
+    /**
+     * Returns the MSC4483 encrypted account data service associated with the session.
+     */
+    fun encryptedAccountDataService(): EncryptedAccountDataService
 
     /**
      * Returns the SharedSecretStorageService associated with the session.

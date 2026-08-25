@@ -25,6 +25,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.ui.colorpicker.ColorSwatches
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -89,7 +90,8 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
         }
         holder.title.setTextColor(titleTintColor)
-        holder.subtitle.setTextOrHide(subtitle)
+        // Subtitles carry user content (names, room names): render emoji and box direction overrides
+        holder.subtitle.setTextOrHide(subtitle?.prepareForDisplay())
         if (iconRes != 0) {
             holder.icon.setImageResource(iconRes)
             if (tintIcon) {

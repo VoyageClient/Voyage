@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:colorBackground"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    tools:viewBindingIgnore="true">
+
+    <TextView
+        android:id="@+id/personalNoteRendered"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/personal_note_hint"
+        android:minHeight="24dp"
+        android:textColorHint="?vctr_content_secondary"
+        tools:text="A note about this user" />
+
+    <im.vector.app.features.roommemberprofile.PersonalNoteEditText
+        android:id="@+id/personalNoteEdit"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:hint="@string/personal_note_hint"
+        android:inputType="textMultiLine|textCapSentences"
+        android:minHeight="24dp"
+        android:textColorHint="?vctr_content_secondary"
+        android:visibility="gone"
+        tools:visibility="gone" />
+
+</FrameLayout>

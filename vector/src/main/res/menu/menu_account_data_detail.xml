@@ -22,6 +22,21 @@
         android:title="@string/action_save" />
 
     <item
+        android:id="@+id/menuItemRaw"
+        android:visible="false"
+        tools:visible="true"
+        android:checkable="true"
+        app:showAsAction="never"
+        android:title="@string/account_data_view_raw" />
+
+    <item
+        android:id="@+id/menuItemDecrypt"
+        android:visible="false"
+        tools:visible="true"
+        app:showAsAction="never"
+        android:title="@string/account_data_decrypt" />
+
+    <item
         android:id="@+id/menuItemDelete"
         android:visible="false"
         tools:visible="true"

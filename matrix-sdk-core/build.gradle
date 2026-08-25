@@ -319,6 +319,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/sync/InitialSyncStep.kt',
         'org/matrix/android/sdk/api/session/room/send/DraftService.kt',
         'org/matrix/android/sdk/api/session/accountdata/SessionAccountDataService.kt',
+        'org/matrix/android/sdk/api/session/accountdata/EncryptedAccountDataService.kt',
         'org/matrix/android/sdk/api/session/room/accountdata/RoomAccountDataService.kt',
         'org/matrix/android/sdk/api/session/room/accountdata/RoomAccountDataEvent.kt',
         'org/matrix/android/sdk/api/session/pushers/PushersService.kt',
@@ -1180,6 +1181,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/crypto/algorithms/olm/MXOlmEncryptionFactory.kt',
         'org/matrix/android/sdk/internal/crypto/keysbackup/DefaultKeysBackupService.kt',
         'org/matrix/android/sdk/internal/crypto/keysbackup/KeysBackupPassword.kt',
+        'org/matrix/android/sdk/internal/crypto/secrets/AesHmacSha2.kt',
         'org/matrix/android/sdk/internal/crypto/secrets/DefaultSharedSecretStorageService.kt',
         'org/matrix/android/sdk/internal/crypto/task/InitializeCrossSigningTask.kt',
         'org/matrix/android/sdk/internal/crypto/tasks/DeleteDeviceTask.kt',
@@ -1203,6 +1205,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/terms/DefaultTermsService.kt',
         'org/matrix/android/sdk/internal/session/terms/TermsModule.kt',
         'org/matrix/android/sdk/internal/session/user/accountdata/DefaultSessionAccountDataService.kt',
+        'org/matrix/android/sdk/internal/session/user/accountdata/DefaultEncryptedAccountDataService.kt',
         'org/matrix/android/sdk/internal/session/user/accountdata/UserAccountDataDataSource.kt',
         // MatrixPerf: its only android coupling is android.util.Log, resolved on core's classpath
         // by the olm-jvm stand-in (real android.util.Log is used at runtime on device).

@@ -24,6 +24,7 @@ import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.strings.CommonStrings
@@ -38,10 +39,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -50,6 +54,7 @@ import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.profile.ProfileService
+import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -62,6 +67,7 @@ import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
+import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
@@ -76,7 +82,9 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         private val directRoomHelper: DirectRoomHelper,
         private val massRedactionManager: MassRedactionManager,
         private val profileFieldsFormatter: ProfileFieldsFormatter,
-        private val session: Session
+        private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
+        private val session: Session,
+        private val matrix: Matrix
 ) : VectorViewModel<RoomMemberProfileViewState, RoomMemberProfileAction, RoomMemberProfileViewEvents>(initialState) {
 
     @AssistedFactory
@@ -189,6 +197,11 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private fun observeAccountData() {
+        session.flow()
+                .liveUserAccountData(UserAccountDataTypes.TYPES_PROFILE_ANNOTATIONS.toSet())
+                .onEach { refreshPersonalNote() }
+                .launchIn(viewModelScope)
+
         matrixItemColorProvider.changes
                 .onEach { generation -> setState { copy(colorGeneration = generation) } }
                 .launchIn(viewModelScope)
@@ -278,6 +291,149 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             is RoomMemberProfileAction.SetProfileOverrideAvatar -> handleSetProfileOverrideAvatar(action)
             RoomMemberProfileAction.ResetProfileOverrides -> handleResetProfileOverrides()
             is RoomMemberProfileAction.OpenOrCreateDm -> handleOpenOrCreateDm(action)
+            is RoomMemberProfileAction.SetPersonalNote -> handleSetPersonalNote(action)
+            RoomMemberProfileAction.RevertPersonalNote -> {
+                setState { copy(personalNoteGeneration = personalNoteGeneration + 1) }
+                refreshPersonalNote()
+            }
+            is RoomMemberProfileAction.GotAdkFromSsss -> handleGotAdkFromSsss(action)
+        }
+    }
+
+    // ==================== MSC4441 personal notes ====================
+
+    /** The stored profile-annotations account data, stable type preferred. */
+    private fun annotationsEvent(): Pair<String, Content>? {
+        return UserAccountDataTypes.TYPES_PROFILE_ANNOTATIONS.firstNotNullOfOrNull { type ->
+            session.accountDataService().getUserAccountDataEvent(type)?.let { type to it.content }
+        }
+    }
+
+    private var adkSilentAttempted = false
+
+    private fun refreshPersonalNote() {
+        val service = session.encryptedAccountDataService()
+        val (type, content) = annotationsEvent() ?: run {
+            setState { copy(personalNote = null, personalNoteLocked = false) }
+            return
+        }
+        val clear = if (service.isEncrypted(content)) {
+            service.takeIf { it.hasAccountDataKey() }?.decryptOrNull(type, content) ?: run {
+                setState { copy(personalNote = null, personalNoteLocked = true) }
+                // The 4S key may be cached from an earlier unlock: try to fetch the ADK silently
+                if (!adkSilentAttempted) {
+                    adkSilentAttempted = true
+                    viewModelScope.launch {
+                        if (service.ensureAccountDataKey()) refreshPersonalNote()
+                    }
+                }
+                return
+            }
+        } else {
+            content
+        }
+        setState { copy(personalNote = parsePersonalNote(clear[initialState.userId]), personalNoteLocked = false) }
+    }
+
+    /** The user's annotation entry holds an MSC1767 m.text array; pick the plain and html representations. */
+    private fun parsePersonalNote(entry: Any?): UserBio? {
+        val texts = (entry as? Map<*, *>)?.get("m.text") as? List<*> ?: return null
+        var plain: String? = null
+        var html: String? = null
+        texts.forEach { representation ->
+            val body = (representation as? Map<*, *>)?.get("body") as? String ?: return@forEach
+            when (representation["mimetype"] as? String ?: MimeTypes.PlainText) {
+                MimeTypes.Html -> if (html == null) html = body
+                MimeTypes.PlainText -> if (plain == null) plain = body
+            }
+        }
+        return UserBio(plain ?: html ?: return null, html).takeIf { !it.isEmpty() }
+    }
+
+    private fun handleSetPersonalNote(action: RoomMemberProfileAction.SetPersonalNote) {
+        viewModelScope.launch {
+            accountDataWriteMutex.withLock {
+                try {
+                    val service = session.encryptedAccountDataService()
+                    // Notes are always written encrypted (reading plaintext ones stays supported);
+                    // when the ADK cannot be acquired silently, the UI runs the recovery-key flow.
+                    if (!service.ensureAccountDataKey()) {
+                        _viewEvents.post(RoomMemberProfileViewEvents.RequirePersonalNoteAdk(action.note))
+                        return@withLock
+                    }
+                    val existing = annotationsEvent()
+                    val annotations = when {
+                        existing == null -> emptyMap()
+                        service.isEncrypted(existing.second) -> service.decrypt(existing.first, existing.second)
+                        else -> existing.second
+                    }.toMutableMap()
+                    val note = action.note?.trim()?.takeIf { it.isNotEmpty() }
+                    if (note == null) {
+                        annotations.remove(initialState.userId)
+                    } else {
+                        // Preserve any other annotation fields stored on this user
+                        val entry = (annotations[initialState.userId] as? Map<*, *>)
+                                .orEmpty()
+                                .entries
+                                .mapNotNull { (key, value) -> (key as? String)?.let { it to value } }
+                                .toMap()
+                                .toMutableMap()
+                        entry["m.text"] = noteRepresentations(note)
+                        annotations[initialState.userId] = entry
+                    }
+                    // Optimistic: render the new note now rather than after the server round-trip
+                    setState { copy(personalNote = parsePersonalNote(annotations[initialState.userId]), personalNoteLocked = false) }
+                    UserAccountDataTypes.TYPES_PROFILE_ANNOTATIONS.forEach { type ->
+                        session.accountDataService().updateUserAccountData(type, service.encrypt(type, annotations))
+                    }
+                    refreshPersonalNote()
+                } catch (failure: Throwable) {
+                    // Roll back the optimistic rendering to what is actually stored
+                    refreshPersonalNote()
+                    _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+                }
+            }
+        }
+    }
+
+    // Commonmark folds any run of blank lines into a single paragraph break, which would silently
+    // flatten the spacing someone laid their note out with. Each blank line past the first becomes a
+    // raw <br /> block, which the parser passes through untouched. Code fences are left alone: their
+    // blank lines are content. (Same treatment as the biography editor.)
+    private fun String.withBlankLinesKept(): String {
+        if (contains("```")) return this
+        return replace(Regex("\n{3,}")) { match -> "\n\n" + "<br />\n\n".repeat(match.value.length - 2) }
+    }
+
+    /**
+     * MSC1767 representations for the note: the typed source as plain text, plus HTML when it
+     * actually carries formatting — markdown and `:shortcode:` emotes resolved exactly as a
+     * message's (and a biography's) are.
+     */
+    private suspend fun noteRepresentations(source: String): List<Map<String, String>> {
+        val plain = mapOf("body" to source)
+        val withEmotes = withContext(Dispatchers.IO) {
+            emoteShortcodeProcessor.process(roomId = null, text = source.withBlankLinesKept())
+        }
+        val html = tryOrNull { session.roomService().computeFormattedHtml(withEmotes, autoMarkdown = true) }
+                ?: return listOf(plain)
+        return listOf(mapOf("mimetype" to MimeTypes.Html, "body" to html), plain)
+    }
+
+    private fun handleGotAdkFromSsss(action: RoomMemberProfileAction.GotAdkFromSsss) {
+        try {
+            val secrets = action.cipher.fromBase64().inputStream().use {
+                matrix.secureStorageService().loadSecureSecret<Map<String, String>>(it, action.alias)
+            }
+            val adk = EncryptedAccountDataService.ADK_SECRET_NAMES.firstNotNullOfOrNull { secrets?.get(it) }
+                    ?: throw IllegalStateException(stringProvider.getString(CommonStrings.failed_to_access_secure_storage))
+            session.encryptedAccountDataService().setAccountDataKey(adk)
+            refreshPersonalNote()
+            if (action.pendingNote != null) {
+                handleSetPersonalNote(RoomMemberProfileAction.SetPersonalNote(action.pendingNote))
+            }
+        } catch (failure: Throwable) {
+            _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
         }
     }
 

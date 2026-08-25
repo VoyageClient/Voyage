@@ -135,6 +135,19 @@ interface SharedSecretStorageService {
 
     fun checkShouldBeAbleToAccessSecrets(secretNames: List<String>, keyId: String?): IntegrityResult
 
+    /**
+     * Remember the 4S key on this device after the user has entered (or created) it once, so
+     * later secret reads/writes can happen without prompting for the recovery key again.
+     * The device already persists the cross-signing and key backup private keys, so this
+     * stays within the same local trust model.
+     */
+    fun cacheKeySpec(keyId: String, keySpec: SsssKeySpec) {}
+
+    /** The locally cached 4S key, provided it still matches the account's default key. */
+    fun getCachedKeySpec(): Pair<String, SsssKeySpec>? = null
+
+    fun clearCachedKeySpec() {}
+
     @Deprecated("Requesting custom secrets not yet support by rust stack, prefer requestMissingSecrets")
     suspend fun requestSecret(name: String, myOtherDeviceId: String)
 

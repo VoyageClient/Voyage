@@ -19,6 +19,7 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.UnderlineSpan
+import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.AttrRes
@@ -190,4 +191,17 @@ fun TextView.copyOnLongClick() {
  *  (e.g. direction-override characters neutralized to a placeholder glyph). */
 fun TextView.setCopySource(raw: CharSequence?) {
     setTag(R.id.copy_on_long_click_source, raw)
+}
+
+/** Whether [event] lands on a [ClickableSpan] (link, spoiler…), so a view-level tap action can bow out. */
+fun TextView.hasClickableSpanAt(event: MotionEvent): Boolean {
+    val spanned = text as? Spanned ?: return false
+    val layout = layout ?: return false
+    val x = event.x.toInt() - totalPaddingLeft + scrollX
+    val y = event.y.toInt() - totalPaddingTop + scrollY
+    val line = layout.getLineForVertical(y)
+    // getOffsetForHorizontal clamps to the line, so guard against taps past the line's end.
+    if (x < layout.getLineLeft(line) || x > layout.getLineRight(line)) return false
+    val offset = layout.getOffsetForHorizontal(line, x.toFloat())
+    return spanned.getSpans(offset, offset, ClickableSpan::class.java).isNotEmpty()
 }

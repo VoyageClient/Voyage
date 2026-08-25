@@ -1000,4 +1000,17 @@
     <string name="settings_ua_suffix_dbg" translatable="false">Debug</string>
     <string name="settings_ua_suffix_nightly" translatable="false">Nightly</string>
     <string name="settings_ua_suffix_alpha" translatable="false">Alpha</string>
+
+    <!-- MSC4483 encrypted account data -->
+    <string name="account_data_view_raw" translatable="false">Raw</string>
+    <string name="account_data_decrypt" translatable="false">Decrypt</string>
+    <string name="account_data_encrypt" translatable="false">Encrypt</string>
+    <string name="account_data_encryption_needs_backup" translatable="false">Secure backup is not set up, so encrypted account data cannot be created.</string>
+
+    <!-- MSC4441 profile notes -->
+    <string name="personal_note_section" translatable="false">Note</string>
+    <string name="personal_note_unlock" translatable="false">Unlock note</string>
+    <string name="personal_note_hint" translatable="false">Tap to add a note</string>
+    <string name="personal_note_locked_hint" translatable="false">This note is encrypted; unlock it with your recovery key</string>
+    <string name="personal_note_needs_backup" translatable="false">Secure backup is not set up, so the note cannot be saved encrypted.</string>
 </resources>

@@ -34,4 +34,7 @@ sealed class RoomMemberProfileViewEvents : VectorViewEvents {
 
     data class OpenRoom(val roomId: String) : RoomMemberProfileViewEvents()
     object GoBack : RoomMemberProfileViewEvents()
+
+    /** Saving a personal note needs the ADK, which needs the recovery-key flow. */
+    data class RequirePersonalNoteAdk(val note: String?) : RoomMemberProfileViewEvents()
 }

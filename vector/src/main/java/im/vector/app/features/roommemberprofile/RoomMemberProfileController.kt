@@ -52,8 +52,35 @@ class RoomMemberProfileController @Inject constructor(
     private var isBioExpanded = false
     private var bioCacheKey: UserBio? = null
     private var bioCacheValue: CharSequence? = null
+    private var noteCacheKey: UserBio? = null
+    private var noteCacheValue: CharSequence? = null
+
+    // Note edit state lives here (not in the recycled view) so scrolling the note off screen
+    // and back resumes the edit; the fragment reads it to save a pending draft on pause.
+    var personalNoteEditing = false
+        private set
+    var personalNoteDraft: String? = null
+        private set
+    var personalNoteSelection: Pair<Int, Int>? = null
+        private set
+
+    fun clearPersonalNoteEdit() {
+        personalNoteEditing = false
+        personalNoteDraft = null
+        personalNoteSelection = null
+    }
+
+    /** Draft/selection updates typed into the fragment's off-list proxy input while the editor is recycled. */
+    fun stashPersonalNoteEdit(draft: String, selection: Pair<Int, Int>) {
+        if (!personalNoteEditing) return
+        personalNoteDraft = draft
+        personalNoteSelection = selection
+    }
 
     interface Callback {
+        fun onPersonalNoteChanged(note: String)
+        fun onPersonalNoteUnlockClicked()
+        fun onPersonalNoteEditorDetached()
         fun onMutualRoomsClicked()
         fun onOverrideDisplayNameClicked()
         fun onOverrideAvatarClicked()
@@ -82,6 +109,7 @@ class RoomMemberProfileController @Inject constructor(
             return
         }
         buildBiography(data)
+        buildPersonalNoteSection(data)
         if (data.showAsMember) {
             buildRoomMemberActions(data)
         } else {
@@ -124,6 +152,52 @@ class RoomMemberProfileController @Inject constructor(
         return bio.body.formatProfileBio(bio.formattedBody).also {
             bioCacheKey = bio
             bioCacheValue = it
+        }
+    }
+
+    private fun buildPersonalNoteSection(state: RoomMemberProfileViewState) {
+        val host = this
+        buildProfileSection(stringProvider.getString(CommonStrings.personal_note_section))
+        if (state.personalNoteLocked) {
+            buildProfileAction(
+                    id = "personal_note_unlock",
+                    editable = false,
+                    divider = false,
+                    title = stringProvider.getString(CommonStrings.personal_note_unlock),
+                    subtitle = stringProvider.getString(CommonStrings.personal_note_locked_hint),
+                    action = { callback?.onPersonalNoteUnlockClicked() }
+            )
+        } else {
+            val note = state.personalNote
+            personalNoteItem {
+                id("personal_note")
+                noteSource(note?.body.orEmpty())
+                renderedNote(note?.let { host.formattedNote(it) })
+                generation(state.personalNoteGeneration)
+                editingProvider { host.personalNoteEditing }
+                draftProvider { host.personalNoteDraft }
+                selectionProvider { host.personalNoteSelection }
+                onSelectionStashed { start, end -> host.personalNoteSelection = start to end }
+                movementMethod(createLinkMovementMethod(null))
+                onNoteChanged { host.callback?.onPersonalNoteChanged(it) }
+                onEditingChanged { editing ->
+                    host.personalNoteEditing = editing
+                    if (!editing) {
+                        host.personalNoteDraft = null
+                        host.personalNoteSelection = null
+                    }
+                }
+                onDraftChanged { host.personalNoteDraft = it }
+                onDetachedWhileEditing { host.callback?.onPersonalNoteEditorDetached() }
+            }
+        }
+    }
+
+    private fun formattedNote(note: UserBio): CharSequence {
+        noteCacheValue?.let { if (noteCacheKey == note) return it }
+        return note.body.formatProfileBio(note.formattedBody).also {
+            noteCacheKey = note
+            noteCacheValue = it
         }
     }
 

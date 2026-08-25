@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.ToDeviceService
 import org.matrix.android.sdk.api.session.account.AccountService
+import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.admin.AdminService
 import org.matrix.android.sdk.api.session.cache.CacheService
@@ -117,6 +118,7 @@ internal class DefaultSession @Inject constructor(
         private val homeServerCapabilitiesService: Lazy<HomeServerCapabilitiesService>,
         private val homeServerUrlsService: Lazy<HomeServerUrlsService>,
         private val accountDataService: Lazy<SessionAccountDataService>,
+        private val encryptedAccountDataService: Lazy<EncryptedAccountDataService>,
         private val sharedSecretStorageService: Lazy<SharedSecretStorageService>,
         private val accountService: Lazy<AccountService>,
         private val eventService: Lazy<EventService>,
@@ -237,6 +239,7 @@ internal class DefaultSession @Inject constructor(
     override fun spaceService(): SpaceService = spaceService.get()
     override fun openIdService(): OpenIdService = openIdService.get()
     override fun accountDataService(): SessionAccountDataService = accountDataService.get()
+    override fun encryptedAccountDataService(): EncryptedAccountDataService = encryptedAccountDataService.get()
     override fun sharedSecretStorageService(): SharedSecretStorageService = sharedSecretStorageService.get()
 
     override fun getOkHttpClient(): OkHttpClient {

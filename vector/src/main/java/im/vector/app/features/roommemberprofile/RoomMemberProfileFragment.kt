@@ -9,12 +9,18 @@ package im.vector.app.features.roommemberprofile
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.app.Activity
+import android.graphics.Rect
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.Editable
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
@@ -37,8 +43,10 @@ import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
+import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.resources.ColorProvider
@@ -48,6 +56,8 @@ import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomMemberProfileHeaderBinding
+import im.vector.app.features.crypto.quads.AdkFlows
+import im.vector.app.features.crypto.quads.SharedSecureStorageActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
@@ -130,6 +140,7 @@ class RoomMemberProfileFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupNotesInputProxy()
         setupToolbar(views.matrixProfileToolbar)
                 .allowBack()
         val headerView = views.matrixProfileHeaderView.let {
@@ -206,6 +217,7 @@ class RoomMemberProfileFragment :
                 is RoomMemberProfileViewEvents.OnIgnoreActionSuccess -> Unit
                 is RoomMemberProfileViewEvents.OnInviteActionSuccess -> Unit
                 RoomMemberProfileViewEvents.GoBack -> handleGoBack()
+                is RoomMemberProfileViewEvents.RequirePersonalNoteAdk -> launchAdkFlow(it.note)
             }
         }
         setupLongClicks()
@@ -251,7 +263,30 @@ class RoomMemberProfileFragment :
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        // Safety net: persist a pending draft when leaving. Edit mode itself survives the app switch —
+        // the editor resumes focused, and the system brings the keyboard back with it.
+        val draft = roomMemberProfileController.personalNoteDraft
+        if (roomMemberProfileController.personalNoteEditing && draft != null) {
+            withState(viewModel) { state ->
+                if (draft.trim() != state.personalNote?.body?.trim().orEmpty()) {
+                    viewModel.handle(RoomMemberProfileAction.SetPersonalNote(draft))
+                }
+            }
+        }
+    }
+
     override fun onDestroyView() {
+        notesInputProxy?.let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                it.viewTreeObserver.removeOnGlobalLayoutListener(proxyKeyboardListener)
+            } else {
+                @Suppress("DEPRECATION")
+                it.viewTreeObserver.removeGlobalOnLayoutListener(proxyKeyboardListener)
+            }
+        }
+        notesInputProxy = null
         lastRenderedAvatarKey = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(bannerAppBarStateChangeListener)
@@ -380,7 +415,7 @@ class RoomMemberProfileFragment :
             }
         }
         headerViews.memberProfileFieldsView.setTextOrHide(state.profileFieldsLine)
-        headerViews.memberProfilePowerLevelView.setTextOrHide(state.userPowerLevelString())
+        headerViews.memberProfilePowerLevelView.setTextOrHide(state.userPowerLevelString()?.prepareForDisplay())
         renderStatus(state)
         roomMemberProfileController.setData(state)
     }
@@ -637,6 +672,117 @@ class RoomMemberProfileFragment :
 
     override fun onMutualRoomsClicked() {
         startActivity(MutualRoomsActivity.newIntent(requireContext(), fragmentArgs.userId))
+    }
+
+    override fun onPersonalNoteChanged(note: String) {
+        viewModel.handle(RoomMemberProfileAction.SetPersonalNote(note))
+    }
+
+    override fun onPersonalNoteUnlockClicked() {
+        launchAdkFlow(note = null)
+    }
+
+    // An invisible off-list input with the note editor's exact input type. When the editor is
+    // recycled mid-edit, focus moves here so the IME keeps a live same-typed connection (no layout
+    // morphing) and typing keeps flowing into the draft; the editor takes focus back on reattach.
+    private var notesInputProxy: PersonalNoteEditText? = null
+    private var proxyKeyboardWasOpen = false
+
+    private val proxyKeyboardListener = ViewTreeObserver.OnGlobalLayoutListener {
+        val proxy = notesInputProxy ?: return@OnGlobalLayoutListener
+        if (!proxy.hasFocus()) {
+            proxyKeyboardWasOpen = false
+            return@OnGlobalLayoutListener
+        }
+        val root = proxy.rootView ?: return@OnGlobalLayoutListener
+        val frame = Rect()
+        root.getWindowVisibleDisplayFrame(frame)
+        if (frame.height() <= 0 || root.height <= 0) return@OnGlobalLayoutListener
+        // App-switching closes the keyboard too; only a dismissal in the focused window is a save gesture
+        if (!root.hasWindowFocus()) return@OnGlobalLayoutListener
+        val keyboardOpen = root.height - frame.height() > root.height * 0.15
+        if (keyboardOpen) {
+            proxyKeyboardWasOpen = true
+        } else if (proxyKeyboardWasOpen) {
+            proxyKeyboardWasOpen = false
+            commitNoteFromProxy()
+        }
+    }
+
+    private fun setupNotesInputProxy() {
+        val proxy = PersonalNoteEditText(requireContext()).apply {
+            layoutParams = ViewGroup.LayoutParams(1, 1)
+            alpha = 0f
+            background = null
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            addTextChangedListener(object : SimpleTextWatcher() {
+                override fun afterTextChanged(s: Editable) {
+                    if (hasFocus()) roomMemberProfileController.stashPersonalNoteEdit(s.toString(), selectionStart to selectionEnd)
+                }
+            })
+            onImeBack = { commitNoteFromProxy() }
+        }
+        (views.root as? ViewGroup)?.addView(proxy)
+        proxy.viewTreeObserver.addOnGlobalLayoutListener(proxyKeyboardListener)
+        notesInputProxy = proxy
+    }
+
+    override fun onPersonalNoteEditorDetached() {
+        val proxy = notesInputProxy ?: return
+        if (view == null || !roomMemberProfileController.personalNoteEditing) return
+        val draft = roomMemberProfileController.personalNoteDraft ?: withState(viewModel) { it.personalNote?.body }.orEmpty()
+        proxy.setText(draft)
+        val selection = roomMemberProfileController.personalNoteSelection
+        if (selection != null) {
+            proxy.setSelection(selection.first.coerceIn(0, draft.length), selection.second.coerceIn(0, draft.length))
+        } else {
+            proxy.setSelection(draft.length)
+        }
+        proxy.requestFocus()
+    }
+
+    /** Keyboard dismissed while the off-list proxy held the edit: save the draft and leave edit mode. */
+    private fun commitNoteFromProxy() {
+        if (!roomMemberProfileController.personalNoteEditing) return
+        val draft = roomMemberProfileController.personalNoteDraft
+        roomMemberProfileController.clearPersonalNoteEdit()
+        notesInputProxy?.clearFocus()
+        withState(viewModel) { state ->
+            if (draft != null && draft.trim() != state.personalNote?.body?.trim().orEmpty()) {
+                viewModel.handle(RoomMemberProfileAction.SetPersonalNote(draft))
+            } else {
+                // Nothing to save; still force a rebuild so a later scroll-back shows the rendered note
+                viewModel.handle(RoomMemberProfileAction.RevertPersonalNote)
+            }
+        }
+    }
+
+    /** Reads the ADK from 4S, or generates one and stores it there when 4S has none yet. */
+    private fun launchAdkFlow(note: String?) {
+        val intent = AdkFlows.buildAdkIntent(requireContext(), session)
+        if (intent == null) {
+            // Notes are only ever stored encrypted, so without secure backup they cannot be saved
+            vectorBaseActivity.showSnackbar(getString(CommonStrings.personal_note_needs_backup))
+            return
+        }
+        pendingNote = note
+        adkActivityResultLauncher.launch(intent)
+    }
+
+    private var pendingNote: String? = null
+
+    private val adkActivityResultLauncher = registerStartForActivityResult { activityResult ->
+        val note = pendingNote
+        pendingNote = null
+        val cipher = activityResult.data?.getStringExtra(SharedSecureStorageActivity.EXTRA_DATA_RESULT)
+        if (activityResult.resultCode == Activity.RESULT_OK && cipher != null) {
+            viewModel.handle(
+                    RoomMemberProfileAction.GotAdkFromSsss(cipher, SharedSecureStorageActivity.DEFAULT_RESULT_KEYSTORE_ALIAS, pendingNote = note)
+            )
+        } else if (note != null) {
+            // Aborted: put the editor back in sync with what is actually stored
+            viewModel.handle(RoomMemberProfileAction.RevertPersonalNote)
+        }
     }
 
     override fun onOverrideDisplayNameClicked(): Unit = withState(viewModel) { state ->
