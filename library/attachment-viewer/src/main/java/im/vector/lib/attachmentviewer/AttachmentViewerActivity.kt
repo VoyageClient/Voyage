@@ -19,7 +19,6 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
@@ -236,11 +235,6 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     override fun onPause() {
         attachmentsAdapter.onPause(currentPosition)
-        // The immersive hide must not outlive this screen: left hidden here, the bar can stay
-        // gone in the rest of the app until it is next backgrounded.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.decorView.windowInsetsController?.show(WindowInsets.Type.navigationBars())
-        }
         super.onPause()
     }
 
@@ -507,50 +501,24 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
                 ?.handleCommand(commands)
     }
 
+    // The navigation bar deliberately stays visible with the chrome hidden; only the pre-R status
+    // bar goes with it, so on R+ there is nothing to hide or restore.
     private fun hideSystemUI() {
-        // Enables regular immersive mode.
-        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
-        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // New API instead of SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN and SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            @Suppress("DEPRECATION")
-            window.setDecorFitsSystemWindows(false)
-            // new API instead of SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            window.decorView.windowInsetsController?.hide(WindowInsets.Type.navigationBars())
-            // New API instead of SYSTEM_UI_FLAG_IMMERSIVE
-            window.decorView.windowInsetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            // New API instead of FLAG_TRANSLUCENT_STATUS
-            @Suppress("DEPRECATION")
-            window.statusBarColor = ContextCompat.getColor(this, R.color.half_transparent_status_bar)
-            // New API instead of FLAG_TRANSLUCENT_NAVIGATION
-            @Suppress("DEPRECATION")
-            window.navigationBarColor = ContextCompat.getColor(this, R.color.half_transparent_status_bar)
-        } else {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE
-                    // Set the content to appear under the system bars so that the
-                    // content doesn't resize when the system bars hide and show.
+                    // Layout flags keep the content under the system bars so it doesn't resize
+                    // when they hide and show.
                     or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    // Hide the nav bar and status bar
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN)
         }
     }
 
-    // Shows the system bars by removing all the flags
-// except for the ones that make the content appear under the system bars.
     private fun showSystemUI() {
         systemUiVisibility = true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // New API instead of SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN and SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            @Suppress("DEPRECATION")
-            window.setDecorFitsSystemWindows(false)
-            // The hide() in hideSystemUI is not undone by anything else on R+; without this the
-            // navigation bar stays gone for good once the chrome has been hidden once.
-            window.decorView.windowInsetsController?.show(WindowInsets.Type.navigationBars())
-        } else {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION

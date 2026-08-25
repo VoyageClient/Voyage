@@ -51,9 +51,6 @@ class MatrixItemColorProvider @Inject constructor(
     // An absent value means "optimistically cleared". Reconciled away once the real data arrives.
     private val optimisticOverrides = ConcurrentHashMap<String, Optional<ColorPreference>>()
 
-    // Users we've already kicked a profile fetch for, so a colorless sender doesn't re-request on every bind.
-    private val prefetchedColorUsers = ConcurrentHashMap.newKeySet<String>()
-
     // The element-web palette is theme-dependent and opt-in, so the computed cache is only valid for the
     // current (uglier?, light?) combination. Drop it when either flips.
     @Volatile
@@ -97,7 +94,9 @@ class MatrixItemColorProvider @Inject constructor(
         matrixItem.colorPreference?.forTheme(light)?.let { return it }
         val profileService = session?.profileService() ?: return null
         val global = profileService.getCachedColorPreference(userId)
-        if (global == null && prefetchedColorUsers.add(userId)) profileService.prefetchProfileFields(userId)
+        // prefetch dedups internally (in-flight set + already-cached check), so calling per bind is cheap
+        // and lets a forgotten/failed profile be re-requested instead of staying colorless all session.
+        if (global == null) profileService.prefetchProfileFields(userId)
         return global?.forTheme(light)
     }
 

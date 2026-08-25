@@ -152,6 +152,11 @@ internal class ExtendedProfileCache @Inject constructor(
     private val colorCache = ConcurrentHashMap<String, Optional<ColorPreference>>()
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
+    // Users whose full field dict we hold (vs. only MSC4429 deltas), and when a fetch last failed so
+    // it can be retried instead of the failure being cached for the whole session.
+    private val fullProfiles = ConcurrentHashMap.newKeySet<String>()
+    private val failedFetchAt = ConcurrentHashMap<String, Long>()
+
     // Emits a userId once its pronouns become known, so UIs already showing the neutral fallback
     // (e.g. timeline "changed their avatar") can rebuild with the gendered wording.
     private val pronounsUpdates = MutableSharedFlow<String>(extraBufferCapacity = 64)
@@ -217,6 +222,8 @@ internal class ExtendedProfileCache @Inject constructor(
 
     fun cacheFromProfile(userId: String, dict: JsonDict) {
         rawProfiles[userId] = dict
+        fullProfiles.add(userId)
+        failedFetchAt.remove(userId)
         cachePronouns(userId, dict.profilePronouns())
         cacheTimezone(userId, dict.profileTimezone())
         cacheBannerUrl(userId, dict.profileBannerUrl())
@@ -236,12 +243,34 @@ internal class ExtendedProfileCache @Inject constructor(
         updates.forEach { (field, value) ->
             if (value == null) merged.remove(field) else merged[field] = value
         }
-        cacheFromProfile(userId, merged)
+        if (userId in fullProfiles) {
+            cacheFromProfile(userId, merged)
+        } else {
+            // Without a full baseline, fields absent from the delta are unknown, not cleared: caching
+            // them as absent would also stop the lazy full fetch from ever running for this user.
+            rawProfiles[userId] = merged
+            val keys = updates.keys
+            if (ProfileKeys.PRONOUNS in keys || ProfileKeys.PRONOUNS_UNSTABLE in keys) cachePronouns(userId, merged.profilePronouns())
+            if (ProfileKeys.TIMEZONE in keys || ProfileKeys.TIMEZONE_UNSTABLE in keys) cacheTimezone(userId, merged.profileTimezone())
+            if (ProfileKeys.BANNER_URL in keys || ProfileKeys.BANNER_URL_UNSTABLE in keys) cacheBannerUrl(userId, merged.profileBannerUrl())
+            if (ProfileKeys.STATUS in keys || ProfileKeys.STATUS_UNSTABLE in keys || ProfileKeys.STATUS_COMMET in keys) {
+                cacheStatus(userId, merged.profileStatus())
+            }
+            if (ProfileKeys.BIOGRAPHY in keys || ProfileKeys.BIOGRAPHY_UNSTABLE in keys || ProfileKeys.BIOGRAPHY_COMMET in keys) {
+                cacheBio(userId, merged.profileBio())
+            }
+            if (ProfileKeys.COLOR_PREFERENCE in keys || ProfileKeys.COLOR_PREFERENCE_UNSTABLE in keys) {
+                cacheColorPreference(userId, merged.profileColorPreference())
+            }
+            profileUpdates.tryEmit(userId)
+        }
     }
 
     /** The server told us we no longer share a room with this user, so drop what we cached. */
     fun forget(userId: String) {
         rawProfiles.remove(userId)
+        fullProfiles.remove(userId)
+        failedFetchAt.remove(userId)
         pronounsCache.remove(userId)
         timezoneCache.remove(userId)
         bannerUrlCache.remove(userId)
@@ -251,7 +280,12 @@ internal class ExtendedProfileCache @Inject constructor(
     }
 
     fun prefetch(userId: String) {
-        if (pronounsCache.containsKey(userId) && timezoneCache.containsKey(userId) && colorCache.containsKey(userId)) return
+        val failedAt = failedFetchAt[userId]
+        if (failedAt != null) {
+            if (System.currentTimeMillis() - failedAt < FAILED_FETCH_RETRY_MS) return
+        } else {
+            if (pronounsCache.containsKey(userId) && timezoneCache.containsKey(userId) && colorCache.containsKey(userId)) return
+        }
         if (!inFlight.add(userId)) return
         taskExecutor.executorScope.launch {
             try {
@@ -261,7 +295,10 @@ internal class ExtendedProfileCache @Inject constructor(
                 if (dict != null) {
                     cacheFromProfile(userId, dict)
                 } else {
-                    // Cache the negative result so we don't hammer a failing/absent profile.
+                    // Cache the negative result so we don't hammer a failing/absent profile, but keep
+                    // the failure timestamp so it can be retried later rather than staying colorless
+                    // for the whole session.
+                    failedFetchAt[userId] = System.currentTimeMillis()
                     cachePronouns(userId, null)
                     cacheTimezone(userId, null)
                     cacheBannerUrl(userId, null)
@@ -273,5 +310,9 @@ internal class ExtendedProfileCache @Inject constructor(
                 inFlight.remove(userId)
             }
         }
+    }
+
+    private companion object {
+        private const val FAILED_FETCH_RETRY_MS = 5 * 60_000L
     }
 }

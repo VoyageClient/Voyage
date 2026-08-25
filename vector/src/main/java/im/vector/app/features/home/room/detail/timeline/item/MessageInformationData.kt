@@ -113,7 +113,10 @@ data class ReadReceiptData(
         val userId: String,
         val avatarUrl: String?,
         val displayName: String?,
-        val timestamp: Long
+        val timestamp: Long,
+        // MSC4522 per-room color, split into its two theme axes so this stays Parcelable.
+        val colorOnLight: String? = null,
+        val colorOnDark: String? = null,
 ) : Parcelable
 
 @Parcelize
@@ -157,4 +160,7 @@ enum class AnonymousReadReceipt {
     PROCESSING,
 }
 
-fun ReadReceiptData.toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl)
+fun ReadReceiptData.toMatrixItem() = MatrixItem.UserItem(
+        userId, displayName, avatarUrl,
+        colorPreference = ColorPreference(colorOnLight, colorOnDark).takeUnless { it.isEmpty() },
+)
