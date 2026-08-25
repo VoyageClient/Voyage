@@ -16,9 +16,9 @@ New features, improvements, and notable removals in this fork.
 
 - **Per-room media visibility** — the media-visibility settings can now be overridden per room from Personalization, so a single room can show or hide media regardless of the account-wide choice.
 
-- **Personal room and user overrides (MSC3015, MSC4529)** — rename any room or change its avatar just for yourself, from the room's Personalization screen (MSC3015). A Personalization section on every user's profile likewise lets you override their display name and avatar, replacing them everywhere they appear.
+- **Personal room and user overrides (MSC3015, MSC4529)** — rename any room or change its avatar just for yourself, from the room's Personalization screen (MSC3015). A Personalization section on every user's profile likewise lets you override their display name and avatar, replacing them everywhere they appear. User overrides are end-to-end encrypted (MSC4483) by default.
 
-- **Profile notes (MSC4441)** — keep a private note on any user's profile, edited inline with markdown support, visible only to you and synced across your devices. Notes are always end-to-end encrypted (MSC4483).
+- **Profile notes (MSC4441)** — keep a private note on any user's profile, edited inline with markdown support, visible only to you and synced across your devices. Notes are end-to-end encrypted (MSC4483) by default.
 
 - **Encrypted account data (MSC4483)** — account data encrypted with a key from secure storage is shown decrypted in the developer account-data browser (with a Raw toggle for the ciphertext), can be edited in decrypted form, and new entries can be created encrypted.
 

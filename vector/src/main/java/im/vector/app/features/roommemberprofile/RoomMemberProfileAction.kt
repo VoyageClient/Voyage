@@ -39,4 +39,7 @@ sealed class RoomMemberProfileAction : VectorViewModelAction {
      * [pendingNote] if a note edit was waiting on the key (null = just re-read the note).
      */
     data class GotAdkFromSsss(val cipher: String, val alias: String, val pendingNote: String? = null) : RoomMemberProfileAction()
+
+    /** The recovery-key flow for an encrypted profile-overrides update was cancelled: drop the pending change. */
+    object AbortPendingOverrideUpdate : RoomMemberProfileAction()
 }

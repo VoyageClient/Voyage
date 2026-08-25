@@ -53,6 +53,12 @@
         android:title="@string/labs_enable_media_galleries_title" />
 
     <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_LABS_ENCRYPT_ACCOUNT_DATA"
+        android:summary="@string/labs_encrypt_account_data_summary"
+        android:title="@string/labs_encrypt_account_data_title" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="false"
         android:key="SETTINGS_LABS_ENABLE_LIVE_LOCATION"
         android:summary="@string/labs_enable_live_location_summary"

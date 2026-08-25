@@ -1013,4 +1013,7 @@
     <string name="personal_note_hint" translatable="false">Tap to add a note</string>
     <string name="personal_note_locked_hint" translatable="false">This note is encrypted; unlock it with your recovery key</string>
     <string name="personal_note_needs_backup" translatable="false">Secure backup is not set up, so the note cannot be saved encrypted.</string>
+    <string name="profile_overrides_need_backup" translatable="false">These profile overrides are encrypted, and changing them needs the account data key from secure backup.</string>
+    <string name="labs_encrypt_account_data_title" translatable="false">MSC4483: Encrypt account data</string>
+    <string name="labs_encrypt_account_data_summary" translatable="false">Store supported account data (profile overrides, personal notes) encrypted with the account data key. When disabled, it is written back unencrypted on the next change.</string>
 </resources>

@@ -7,9 +7,11 @@
 
 package org.matrix.android.sdk.internal.session.profile
 
+import dagger.Lazy
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
+import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.SessionScope
@@ -21,12 +23,19 @@ import javax.inject.Inject
 internal class ProfileOverridesLoader @Inject constructor(
         private val stores: SessionStores,
         private val taskExecutor: TaskExecutor,
+        private val encryptedAccountDataService: Lazy<EncryptedAccountDataService>,
 ) : SessionLifecycleObserver {
 
     override fun onSessionStarted(session: Session) {
         ProfileOverrides.claim(session.sessionId)
         taskExecutor.executorScope.launch {
-            ProfileOverrides.set(session.sessionId, ProfileOverrides.parse(stores.storedProfileOverrides()))
+            val encryption = encryptedAccountDataService.get()
+            ProfileOverrides.set(session.sessionId, ProfileOverrides.parse(stores.storedProfileOverrides(encryption)))
+            // Encrypted overrides with no ADK: the 4S key may be cached from an earlier unlock, so
+            // try to acquire the ADK silently; success re-applies through setAccountDataKey.
+            if (stores.hasLockedProfileOverrides(encryption)) {
+                encryption.ensureAccountDataKey()
+            }
         }
     }
 
