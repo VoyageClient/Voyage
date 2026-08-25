@@ -34,10 +34,11 @@ internal class QueuedTaskFactory @Inject constructor(
         private val urlPreviewBundler: LinkPreviewPrefetcher,
 ) {
 
-    fun createSendTask(event: Event, encrypt: Boolean): QueuedTask {
+    fun createSendTask(event: Event, encrypt: Boolean, bundleUrlPreviews: Boolean = true): QueuedTask {
         return SendEventQueuedTask(
                 event = event,
                 encrypt = encrypt,
+                bundleUrlPreviews = bundleUrlPreviews,
                 cryptoService = cryptoService,
                 localEchoRepository = localEchoRepository,
                 sendEventTask = sendEventTask,

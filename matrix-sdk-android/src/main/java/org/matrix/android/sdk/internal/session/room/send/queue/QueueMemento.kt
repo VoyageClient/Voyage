@@ -72,6 +72,7 @@ internal class QueueMemento @Inject constructor(
             is SendEventQueuedTask -> SendEventTaskInfo(
                     localEchoId = task.event.eventId ?: "",
                     encrypt = task.encrypt,
+                    bundleUrlPreviews = task.bundleUrlPreviews,
                     order = order
             )
             is RedactQueuedTask -> RedactEventTaskInfo(
@@ -99,7 +100,13 @@ internal class QueueMemento @Inject constructor(
                                     if (echo.sendState.isSending() && eventId != null && roomId != null) {
                                         localEchoRepository.updateSendState(eventId, roomId, SendState.UNSENT)
                                         Timber.d("## Send -Reschedule send $info")
-                                        eventProcessor.postTask(queuedTaskFactory.createSendTask(echo, info.encrypt ?: cryptoService.isRoomEncrypted(roomId)))
+                                        eventProcessor.postTask(
+                                                queuedTaskFactory.createSendTask(
+                                                        echo,
+                                                        info.encrypt ?: cryptoService.isRoomEncrypted(roomId),
+                                                        info.bundleUrlPreviews ?: true
+                                                )
+                                        )
                                     }
                                 }
                             }

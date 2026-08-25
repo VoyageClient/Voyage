@@ -32,6 +32,7 @@ interface SendService {
 
     /**
      * Method to send a generic event asynchronously. If you want to send a state event, please use [StateService] instead.
+     * The content is sent verbatim: no link previews are bundled onto it.
      * @param eventType the type of the event
      * @param content the optional body as a json dict.
      * @return a [Cancelable]
