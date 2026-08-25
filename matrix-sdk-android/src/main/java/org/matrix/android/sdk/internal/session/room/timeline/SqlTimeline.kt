@@ -397,7 +397,13 @@ internal class SqlTimeline(
             // on screen, so the fragment's scroll hint briefly reports "at live edge" — if believed, the
             // live-edge cap clips the target straight back out of the window.
             viewAtLiveEdge = eventId == null
-            val seed = eventId?.let { chunkForEvent(it) } ?: resolveSeedChunkId()
+            // Not resolveSeedChunkId(): in a room opened at a permalink it prefers initialEventId's
+            // chunk, so a jump-to-live would land back on the search hit instead of the live edge.
+            val seed = when {
+                eventId != null -> chunkForEvent(eventId) ?: resolveSeedChunkId()
+                threadRootId != null -> stores.chunk.lastForwardThread(roomId, threadRootId!!)?.id
+                else -> stores.chunk.lastForward(roomId)?.id
+            }
             seedFrom(seed)
             rebuildSnapshot()
         }
