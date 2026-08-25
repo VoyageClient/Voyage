@@ -35,6 +35,7 @@ import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.alias.RoomAliasAvailabilityChecker
 import org.matrix.android.sdk.internal.session.room.read.SetReadMarkersTask
+import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.user.accountdata.DirectChatsHelper
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.task.Task
@@ -51,6 +52,7 @@ internal class DefaultCreateRoomTask @Inject constructor(
         private val stores: SessionStores,
         private val aliasAvailabilityChecker: RoomAliasAvailabilityChecker,
         private val directChatsHelper: DirectChatsHelper,
+        private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
         private val readMarkersTask: SetReadMarkersTask,
         private val createRoomBodyBuilder: CreateRoomBodyBuilder,
@@ -110,10 +112,12 @@ internal class DefaultCreateRoomTask @Inject constructor(
 
     private suspend fun handleDirectChatCreation(roomId: String, otherUserId: String?) {
         otherUserId ?: return // This is not a direct room
-        database.awaitDbTransaction(dispatcher) {
+        val directChats = database.awaitDbTransaction(dispatcher) {
             stores.roomSummary.updateDirectInfo(roomId, isDirect = true, directUserId = otherUserId)
+            // The summary was built before the direct flags existed, so its name/avatar are the plain-room ones.
+            roomSummaryUpdater.refreshDisplay(stores, roomId)
+            directChatsHelper.getLocalDirectMessages().also { directChatsHelper.storeLocally(it) }
         }
-        val directChats = directChatsHelper.getLocalDirectMessages()
         updateUserAccountDataTask.execute(UpdateUserAccountDataTask.DirectChatParams(directMessages = directChats))
     }
 

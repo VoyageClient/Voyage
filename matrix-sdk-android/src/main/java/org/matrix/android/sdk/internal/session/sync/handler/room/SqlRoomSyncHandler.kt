@@ -202,6 +202,9 @@ internal class SqlRoomSyncHandler @Inject constructor(
                         // connection: it brings only its newest few events, which need not join up with what
                         // is already stored, and a restarted connection re-delivers every room that way.
                         forceNewChunk = rejoinAfterRemoval || roomSync.isInitialDelivery,
+                        // A rejoin window is visibility-filtered server-side (see ReanchorRejoinedRoomTask),
+                        // so overlap with the retained chunk does not imply contiguity there.
+                        absorbOnOverlap = !rejoinAfterRemoval,
                 )
             }
         }
@@ -431,9 +434,18 @@ internal class SqlRoomSyncHandler @Inject constructor(
             stores: SessionStores, roomId: String, eventList: List<Event>,
             prevToken: String?, isLimited: Boolean, insertType: EventInsertType, syncTs: Long,
             forceNewChunk: Boolean = false,
+            absorbOnOverlap: Boolean = true,
     ) {
         val lastChunkId = stores.chunk.lastForward(roomId)?.id
+        // A batch sharing an event with the live chunk connects to it: the batch is a contiguous newest
+        // slice, so everything past the shared event fills in without a gap. Absorb it there even when
+        // flagged limited/initial — a forced new chunk would orphan an open timeline seeded on the old
+        // one, and a limited sync would wipe stored history it actually joins up with.
+        val overlapsLastChunk = absorbOnOverlap && (forceNewChunk || isLimited) && lastChunkId != null && eventList.any { event ->
+            event.eventId?.let { stores.timelineEvent.getInChunkByEventId(lastChunkId, it) } != null
+        }
         val chunkId = when {
+            overlapsLastChunk -> lastChunkId!!
             forceNewChunk && lastChunkId != null -> {
                 stores.chunk.setLastForward(lastChunkId, false)
                 stores.chunk.insert(roomId, prevToken, null, null, null, isLastForward = true, isLastBackward = false, null, false)

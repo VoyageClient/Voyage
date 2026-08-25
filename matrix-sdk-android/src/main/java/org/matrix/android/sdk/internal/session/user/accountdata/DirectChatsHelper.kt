@@ -16,7 +16,9 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.DirectMessagesContent
 import javax.inject.Inject
@@ -35,5 +37,14 @@ internal class DirectChatsHelper @Inject constructor(
                     roomId != filterRoomId && directUserId != null && Membership.valueOf(membershipStr).isActive()
                 }
                 .groupByTo(mutableMapOf(), { it.second!! }, { it.first })
+    }
+
+    /**
+     * Write-through for an m.direct PUT. refreshDirectChatRooms() re-applies the *stored* copy after
+     * sliding-sync batches, so leaving it stale until the server echoes the PUT back would let that
+     * pass wipe the direct flags just set locally (e.g. on a freshly created DM).
+     */
+    fun storeLocally(directMessages: DirectMessagesContent) {
+        stores.accountData.upsertUserAccountData(UserAccountDataTypes.TYPE_DIRECT_MESSAGES, ContentMapper.map(directMessages))
     }
 }
