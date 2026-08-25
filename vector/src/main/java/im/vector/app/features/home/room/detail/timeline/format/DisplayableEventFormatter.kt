@@ -53,10 +53,6 @@ class DisplayableEventFormatter @Inject constructor(
         private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
 ) {
 
-    // AUTOLINK_WEB_URL, not WEB_URL: its (?<!://) lookbehind is what stops the host part of a
-    // non-web URI (mxc://server/id) from matching, mirroring the timeline's LinkifyCompat behavior.
-    private val webUrlRegex = androidx.core.util.PatternsCompat.AUTOLINK_WEB_URL.toRegex()
-
     // Rendered previews, keyed by room + source HTML. The room list re-renders every visible summary
     // on each update, and parsing the same HTML again cost hundreds of ms on the main thread.
     private val previewCache = android.util.LruCache<String, CharSequence>(256)
@@ -325,13 +321,13 @@ class DisplayableEventFormatter @Inject constructor(
         // Copy on the way out: callers run the result through EmojiCompat.process(), which spans a
         // Spannable in place, so handing out the cached instance would mutate it from several threads.
         previewCache.get(key)?.let { return SpannableStringBuilder(it) }
-        // colorBareLinks must run before sanitizeForPreview, which strips block-level code spans it relies
+        // colorLinks must run before sanitizeForPreview, which strips block-level code spans it relies
         // on to leave URLs inside a code block un-coloured.
         val rendered = if (roomId == null) {
-            htmlRenderer.get().render(formattedBody).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
+            htmlRenderer.get().render(formattedBody).colorLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
         } else {
             val (pills, textRenderer) = pillProcessorsFor(roomId)
-            textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
+            textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).colorLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
         }
         previewCache.put(key, SpannableStringBuilder(rendered))
         return rendered
@@ -358,7 +354,7 @@ class DisplayableEventFormatter @Inject constructor(
     // Plain-text preview: still run the text renderer so a bare permalink / @room pills, then colour links.
     private fun renderPlainPreview(roomId: String?, plainBody: CharSequence): CharSequence {
         val resolved = if (roomId == null) plainBody else pillProcessorsFor(roomId).second.render(plainBody)
-        return resolved.colorBareLinks().flattenForPreview().trimForPreview()
+        return resolved.colorLinks().flattenForPreview().trimForPreview()
     }
 
     // The room-list / thread preview is a single line, so a block element (blockquote, code, list) must
@@ -396,19 +392,23 @@ class DisplayableEventFormatter @Inject constructor(
         return if (start == 0 && end == length) this else subSequence(start, end)
     }
 
-    // Markwon already colours <a> links and the pill pipeline pills mentions/permalinks; this only adds a
-    // link colour to bare http(s) URLs in plain text. Previews aren't independently tappable, so colour only.
-    private fun CharSequence.colorBareLinks(): CharSequence {
-        if (!contains("://")) return this
+    // Colour exactly what the timeline linkifies (VectorLinkify: web URLs, whole email addresses, geo/MSC),
+    // so the preview matches the opened message. Previews aren't independently tappable, so every link —
+    // including Markwon's own <a> spans — is flattened to a plain colour span.
+    private fun CharSequence.colorLinks(): CharSequence {
         val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
+        im.vector.app.core.linkify.VectorLinkify.addLinks(builder, keepExistingUrlSpan = true)
         val linkColor = colorProvider.getColorFromAttribute(android.R.attr.textColorLink)
-        webUrlRegex.findAll(builder.toString()).forEach { match ->
-            val start = match.range.first
-            val end = match.range.last + 1
-            val covered = builder.getSpans(start, end, URLSpan::class.java).isNotEmpty() ||
-                    builder.getSpans(start, end, PillImageSpan::class.java).isNotEmpty() ||
-                    // A URL inside inline code or a code block stays verbatim, not link-coloured.
-                    builder.getSpans(start, end, im.vector.app.features.html.HtmlCodeSpan::class.java).isNotEmpty()
+        val codeSpans = builder.getSpans(0, builder.length, im.vector.app.features.html.HtmlCodeSpan::class.java)
+        val pillSpans = builder.getSpans(0, builder.length, PillImageSpan::class.java)
+        builder.getSpans(0, builder.length, URLSpan::class.java).forEach { link ->
+            val start = builder.getSpanStart(link)
+            val end = builder.getSpanEnd(link)
+            builder.removeSpan(link)
+            // A URL inside inline code or a code block stays verbatim (as in the timeline), and a match
+            // over a pill's alt text would tint the pill's label.
+            val covered = codeSpans.any { start < builder.getSpanEnd(it) && builder.getSpanStart(it) < end } ||
+                    pillSpans.any { start < builder.getSpanEnd(it) && builder.getSpanStart(it) < end }
             if (!covered) builder.setSpan(ForegroundColorSpan(linkColor), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         return builder
