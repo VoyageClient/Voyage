@@ -72,6 +72,7 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         }
         if (hasUpdate) {
             tryOrNull("Unable to update user account data") {
+                directChatsHelper.storeLocally(directChats)
                 updateUserAccountDataTask.execute(UpdateUserAccountDataTask.DirectChatParams(directMessages = directChats))
             }
         }
