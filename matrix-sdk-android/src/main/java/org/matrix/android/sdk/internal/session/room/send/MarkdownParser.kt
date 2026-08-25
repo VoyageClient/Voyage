@@ -43,8 +43,12 @@ internal class MarkdownParser @Inject constructor(
 
     private val mdSpecialChars = "[`_\\-*>.\\[\\]#~$^|]".toRegex()
 
+    // Mirrors VectorAutoLinkPatterns.MSC / the MSC render-side linkification
+    private val mscRegex = Regex("\\bMSC(\\d{1,6})\\b", RegexOption.IGNORE_CASE)
+
     private companion object {
         const val CUSTOM_EMOTICON_MARKER = "data-mx-emoticon"
+        const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
         val listItemMarker = Regex("""^( {0,3})((?:[-*+]|\d{1,9}[.)])[ \t]+)""")
         val fenceLine = Regex("""^ {0,3}(```|~~~)""")
     }
@@ -61,7 +65,7 @@ internal class MarkdownParser @Inject constructor(
 
         // If no special char are detected, just return plain text
         if (!force && source.contains(mdSpecialChars).not()) {
-            return TextContent(source)
+            return TextContent(source).linkifyMscReferences()
         }
 
         val effectiveSource = if (advanced) preserveExtraBlankLinesBeforeListItems(source) else source
@@ -90,7 +94,52 @@ internal class MarkdownParser @Inject constructor(
             TextContent(text.toString(), cleanHtmlText.postTreatment())
         } else {
             TextContent(source)
+        }.linkifyMscReferences()
+    }
+
+    /**
+     * Bakes MSC references into the formatted body as real links (matching what clients render
+     * ad hoc), so they arrive clickable everywhere. The plain body keeps the bare "MSC1234".
+     */
+    private fun TextContent.linkifyMscReferences(): TextContent {
+        val html = formattedText
+        return if (html != null) {
+            val rewritten = linkifyMscInHtml(html)
+            if (rewritten == html) this else copy(formattedText = rewritten)
+        } else {
+            if (!mscRegex.containsMatchIn(text)) return this
+            val escaped = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            copy(formattedText = mscRegex.replace(escaped) { it.toMscAnchor() })
         }
+    }
+
+    private fun MatchResult.toMscAnchor() = "<a href=\"$MSC_PULL_URL${groupValues[1]}\">$value</a>"
+
+    // Rewrites only text between tags, leaving anything already inside <a>/<code>/<pre> verbatim.
+    private fun linkifyMscInHtml(html: String): String {
+        val out = StringBuilder(html.length + 64)
+        var index = 0
+        var skipDepth = 0
+        while (index < html.length) {
+            val tagStart = html.indexOf('<', index)
+            val textEnd = if (tagStart == -1) html.length else tagStart
+            val segment = html.substring(index, textEnd)
+            out.append(if (skipDepth == 0) mscRegex.replace(segment) { it.toMscAnchor() } else segment)
+            if (tagStart == -1) break
+            val tagEnd = html.indexOf('>', tagStart)
+            if (tagEnd == -1) {
+                out.append(html.substring(tagStart))
+                break
+            }
+            val tag = html.substring(tagStart, tagEnd + 1)
+            val tagName = tag.trimStart('<', '/').takeWhile { it.isLetter() }.lowercase()
+            if (tagName == "a" || tagName == "code" || tagName == "pre") {
+                if (tag.startsWith("</")) skipDepth = (skipDepth - 1).coerceAtLeast(0) else if (!tag.endsWith("/>")) skipDepth++
+            }
+            out.append(tag)
+            index = tagEnd + 1
+        }
+        return out.toString()
     }
 
     // Commonmark records blank lines between list items only as list-wide "looseness" (every item
