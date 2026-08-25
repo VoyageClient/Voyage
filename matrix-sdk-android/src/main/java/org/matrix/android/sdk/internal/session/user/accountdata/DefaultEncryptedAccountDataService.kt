@@ -9,6 +9,8 @@ package org.matrix.android.sdk.internal.session.user.accountdata
 
 import com.squareup.moshi.Types
 import dagger.Lazy
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
@@ -20,10 +22,15 @@ import org.matrix.android.sdk.api.session.securestorage.SharedSecretStorageServi
 import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toBase64NoPadding
 import org.matrix.android.sdk.internal.crypto.secrets.AesHmacSha2
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.MoshiProvider
+import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.profile.ProfileOverridesUpdater
+import org.matrix.android.sdk.internal.task.TaskExecutor
 import timber.log.Timber
 import java.security.SecureRandom
 import javax.inject.Inject
@@ -37,6 +44,10 @@ internal class DefaultEncryptedAccountDataService @Inject constructor(
         storeFactory: KeyValueStoreFactory,
         private val accountDataService: Lazy<SessionAccountDataService>,
         private val sharedSecretStorageService: Lazy<SharedSecretStorageService>,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val taskExecutor: TaskExecutor,
+        private val profileOverridesUpdater: Lazy<ProfileOverridesUpdater>,
 ) : EncryptedAccountDataService {
 
     private val store = storeFactory.create("EncryptedAccountData_$sessionId")
@@ -48,9 +59,22 @@ internal class DefaultEncryptedAccountDataService @Inject constructor(
 
     override fun getAccountDataKey(): String? = store.getString(ADK_STORE_KEY, null)
 
-    override fun setAccountDataKey(adkBase64: String) = store.putString(ADK_STORE_KEY, adkBase64)
+    override fun setAccountDataKey(adkBase64: String) {
+        store.putString(ADK_STORE_KEY, adkBase64)
+        reapplyEncryptedConsumers()
+    }
 
-    override fun clearAccountDataKey() = store.remove(ADK_STORE_KEY)
+    override fun clearAccountDataKey() {
+        store.remove(ADK_STORE_KEY)
+        reapplyEncryptedConsumers()
+    }
+
+    // Data derived from encrypted account data becomes (un)readable when the ADK comes or goes
+    private fun reapplyEncryptedConsumers() {
+        taskExecutor.executorScope.launch {
+            database.awaitDbTransaction(dispatcher) { profileOverridesUpdater.get().apply() }
+        }
+    }
 
     override fun generateAccountDataKey(): String {
         return ByteArray(32).also { SecureRandom().nextBytes(it) }.toBase64NoPadding()

@@ -37,4 +37,7 @@ sealed class RoomMemberProfileViewEvents : VectorViewEvents {
 
     /** Saving a personal note needs the ADK, which needs the recovery-key flow. */
     data class RequirePersonalNoteAdk(val note: String?) : RoomMemberProfileViewEvents()
+
+    /** Rewriting the encrypted profile overrides needs the ADK; the pending change replays once it is in. */
+    object RequireProfileOverridesAdk : RoomMemberProfileViewEvents()
 }

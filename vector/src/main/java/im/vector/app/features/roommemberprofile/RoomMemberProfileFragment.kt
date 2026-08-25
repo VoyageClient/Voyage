@@ -218,6 +218,7 @@ class RoomMemberProfileFragment :
                 is RoomMemberProfileViewEvents.OnInviteActionSuccess -> Unit
                 RoomMemberProfileViewEvents.GoBack -> handleGoBack()
                 is RoomMemberProfileViewEvents.RequirePersonalNoteAdk -> launchAdkFlow(it.note)
+                RoomMemberProfileViewEvents.RequireProfileOverridesAdk -> launchAdkFlow(note = null, forOverrides = true)
             }
         }
         setupLongClicks()
@@ -758,30 +759,38 @@ class RoomMemberProfileFragment :
     }
 
     /** Reads the ADK from 4S, or generates one and stores it there when 4S has none yet. */
-    private fun launchAdkFlow(note: String?) {
+    private fun launchAdkFlow(note: String?, forOverrides: Boolean = false) {
         val intent = AdkFlows.buildAdkIntent(requireContext(), session)
         if (intent == null) {
-            // Notes are only ever stored encrypted, so without secure backup they cannot be saved
-            vectorBaseActivity.showSnackbar(getString(CommonStrings.personal_note_needs_backup))
+            // Without secure backup the ADK cannot be obtained at all
+            vectorBaseActivity.showSnackbar(
+                    getString(if (forOverrides) CommonStrings.profile_overrides_need_backup else CommonStrings.personal_note_needs_backup)
+            )
+            if (forOverrides) viewModel.handle(RoomMemberProfileAction.AbortPendingOverrideUpdate)
             return
         }
         pendingNote = note
+        pendingAdkForOverrides = forOverrides
         adkActivityResultLauncher.launch(intent)
     }
 
     private var pendingNote: String? = null
+    private var pendingAdkForOverrides = false
 
     private val adkActivityResultLauncher = registerStartForActivityResult { activityResult ->
         val note = pendingNote
+        val forOverrides = pendingAdkForOverrides
         pendingNote = null
+        pendingAdkForOverrides = false
         val cipher = activityResult.data?.getStringExtra(SharedSecureStorageActivity.EXTRA_DATA_RESULT)
         if (activityResult.resultCode == Activity.RESULT_OK && cipher != null) {
             viewModel.handle(
                     RoomMemberProfileAction.GotAdkFromSsss(cipher, SharedSecureStorageActivity.DEFAULT_RESULT_KEYSTORE_ALIAS, pendingNote = note)
             )
-        } else if (note != null) {
-            // Aborted: put the editor back in sync with what is actually stored
-            viewModel.handle(RoomMemberProfileAction.RevertPersonalNote)
+        } else {
+            // Aborted: put the editor / pending override change back in sync with what is stored
+            if (note != null) viewModel.handle(RoomMemberProfileAction.RevertPersonalNote)
+            if (forOverrides) viewModel.handle(RoomMemberProfileAction.AbortPendingOverrideUpdate)
         }
     }
 
