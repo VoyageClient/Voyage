@@ -158,9 +158,9 @@ internal class SyncResponseHandler @Inject constructor(
     }
 
     /** See [SqlUserAccountDataSyncHandler.refreshDirectChatRooms]; only the sliding-sync path needs this. */
-    suspend fun refreshDirectChatRooms() {
+    suspend fun refreshDirectChatRooms(limitToRooms: Collection<String>? = null) {
         database.awaitDbTransaction(sessionDbDispatcher) {
-            userAccountDataSyncHandler.refreshDirectChatRooms()
+            userAccountDataSyncHandler.refreshDirectChatRooms(limitToRooms)
         }
     }
 

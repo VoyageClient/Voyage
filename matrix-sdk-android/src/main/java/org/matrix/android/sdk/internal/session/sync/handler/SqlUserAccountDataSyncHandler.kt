@@ -121,29 +121,37 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
      * over in the first response and rooms over gradually after it, so a DM that arrived in a later batch
      * was not there to be marked when `m.direct` was processed.
      */
-    fun refreshDirectChatRooms() {
+    /**
+     * @param limitToRooms only (re-)mark these rooms, skipping the no-longer-direct sweep — for the
+     * sliding-sync fill, which calls this once per response and only needs the rooms that response
+     * delivered. null = full re-application (m.direct changed).
+     */
+    fun refreshDirectChatRooms(limitToRooms: Collection<String>? = null) {
         val stored = stores.accountData.getUserAccountData(UserAccountDataTypes.TYPE_DIRECT_MESSAGES) ?: return
         val content = ContentMapper.map(stored.contentStr) ?: return
-        handleDirectChatRooms(UserAccountDataEvent(type = UserAccountDataTypes.TYPE_DIRECT_MESSAGES, content = content))
+        handleDirectChatRooms(UserAccountDataEvent(type = UserAccountDataTypes.TYPE_DIRECT_MESSAGES, content = content), limitToRooms)
     }
 
-    private fun handleDirectChatRooms(event: UserAccountDataEvent) {
+    private fun handleDirectChatRooms(event: UserAccountDataEvent, limitToRooms: Collection<String>? = null) {
         val content = event.content.toModel<DirectMessagesContent>() ?: return
         val directRoomIds = content.values.flatten().toSet()
         content.forEach { (directUserId, roomIds) ->
-            roomIds.forEach { roomId ->
-                stores.roomSummary.get(roomId)?.let { entity ->
-                    entity.isDirect = true
-                    entity.directUserId = directUserId
-                    // Persist the direct flags before resolving: the resolvers re-read room_summary from
-                    // the DB, so they only pick the DM peer's avatar/name once is_direct is actually stored.
-                    stores.roomSummary.upsert(entity)
-                    entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
-                    entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
-                    stores.roomSummary.upsert(entity)
-                }
+            roomIds.forEach roomLoop@{ roomId ->
+                if (limitToRooms != null && roomId !in limitToRooms) return@roomLoop
+                val entity = stores.roomSummary.get(roomId) ?: return@roomLoop
+                // Already correctly marked: skip the avatar/name resolution round-trips.
+                if (entity.isDirect && entity.directUserId == directUserId) return@roomLoop
+                entity.isDirect = true
+                entity.directUserId = directUserId
+                // Persist the direct flags before resolving: the resolvers re-read room_summary from
+                // the DB, so they only pick the DM peer's avatar/name once is_direct is actually stored.
+                stores.roomSummary.upsert(entity)
+                entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
+                entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
+                stores.roomSummary.upsert(entity)
             }
         }
+        if (limitToRooms != null) return
         // Reset rooms that are no longer direct
         stores.roomSummary.getAll().filter { it.isDirect && it.roomId !in directRoomIds }.forEach { entity ->
             entity.isDirect = false

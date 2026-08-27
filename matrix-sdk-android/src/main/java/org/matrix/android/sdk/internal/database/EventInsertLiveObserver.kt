@@ -15,6 +15,7 @@
  */
 package org.matrix.android.sdk.internal.database
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -48,32 +49,57 @@ internal class EventInsertLiveObserver @Inject constructor(
 
     override suspend fun onChange() {
         lock.withLock {
-            database.awaitDbTransaction(dispatcher) {
-                val inserts = stores.eventInsert.getProcessable()
-                if (inserts.isEmpty()) return@awaitDbTransaction
-                Timber.v("EventInsert processing ${inserts.size} events")
-                val idsToDelete = ArrayList<String>()
-                val idsEncrypted = ArrayList<String>()
-                inserts.forEach { insert ->
-                    val event = stores.event.getByEventId(insert.eventId)?.asDomain()
-                    if (event == null) {
-                        idsToDelete.add(insert.eventId)
-                        return@forEach
-                    }
-                    if (event.getClearType() == EventType.ENCRYPTED) {
-                        idsEncrypted.add(insert.eventId)
-                    } else {
-                        idsToDelete.add(insert.eventId)
-                    }
-                    processors
-                            .filter { it.shouldProcess(insert.eventId, event.getClearType(), insert.insertType) }
-                            .forEach { it.process(stores, event) }
-                }
-                idsToDelete.forEach { stores.eventInsert.deleteByEventId(it) }
-                // Encrypted events stay non-processable; they are processed again after decryption.
-                idsEncrypted.forEach { stores.eventInsert.setCanBeProcessed(it, false) }
+            // A large backlog must not be chewed through in one giant write transaction; batch so
+            // sync and sends can interleave.
+            while (true) {
+                val processed = processBatch()
+                if (processed < BATCH_SIZE) break
             }
             processors.forEach { it.onPostProcess() }
         }
+    }
+
+    private suspend fun processBatch(): Int {
+        return database.awaitDbTransaction(dispatcher) {
+            val inserts = stores.eventInsert.getProcessable(BATCH_SIZE.toLong())
+            if (inserts.isEmpty()) return@awaitDbTransaction 0
+            Timber.v("EventInsert processing ${inserts.size} events")
+            val idsToDelete = ArrayList<String>()
+            val idsEncrypted = ArrayList<String>()
+            inserts.forEach { insert ->
+                val event = stores.event.getByEventId(insert.eventId)?.asDomain()
+                if (event == null) {
+                    idsToDelete.add(insert.eventId)
+                    return@forEach
+                }
+                if (event.getClearType() == EventType.ENCRYPTED) {
+                    idsEncrypted.add(insert.eventId)
+                } else {
+                    idsToDelete.add(insert.eventId)
+                }
+                processors
+                        .filter { it.shouldProcess(insert.eventId, event.getClearType(), insert.insertType) }
+                        .forEach {
+                            try {
+                                it.process(stores, event)
+                            } catch (failure: CancellationException) {
+                                throw failure
+                            } catch (failure: Throwable) {
+                                // A processor choking on one event must not kill the whole insert
+                                // pipeline (the row would stay queued and re-throw on every restart,
+                                // silently breaking redactions/aggregation for the entire session).
+                                Timber.e(failure, "EventInsert processor ${it.javaClass.simpleName} failed on ${insert.eventId} (${event.getClearType()})")
+                            }
+                        }
+            }
+            idsToDelete.forEach { stores.eventInsert.deleteByEventId(it) }
+            // Encrypted events stay non-processable; they are processed again after decryption.
+            idsEncrypted.forEach { stores.eventInsert.setCanBeProcessed(it, false) }
+            inserts.size
+        }
+    }
+
+    companion object {
+        private const val BATCH_SIZE = 200
     }
 }

@@ -27,7 +27,10 @@ internal interface GetContextOfEventTask : Task<GetContextOfEventTask.Params, To
 
     data class Params(
             val roomId: String,
-            val eventId: String
+            val eventId: String,
+            // 0 = the target event alone (the default for jump-to-event, where merging must stay
+            // trivial); gap recovery asks for a window so the recovered chunk holds real history.
+            val limit: Int = 0,
     )
 }
 
@@ -41,8 +44,7 @@ internal class DefaultGetContextOfEventTask @Inject constructor(
     override suspend fun execute(params: GetContextOfEventTask.Params): TokenChunkEventPersistor.Result {
         val filter = filterRepository.getRoomFilterBody()
         val response = executeRequest(globalErrorReceiver) {
-            // We are limiting the response to the event with eventId to be sure we don't have any issue with potential merging process.
-            roomAPI.getContextOfEvent(params.roomId, params.eventId, 0, filter)
+            roomAPI.getContextOfEvent(params.roomId, params.eventId, params.limit, filter)
         }
         return tokenChunkEventPersistor.insertInDb(response, params.roomId, PaginationDirection.FORWARDS)
     }

@@ -100,6 +100,14 @@ internal interface RoomAPI {
             @Query("filter") filter: String?,
     ): PaginationResponse
 
+    /** Unstable-prefix variant of [getEventForTimestamp] for servers predating spec v1.6. */
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "org.matrix.msc3030/rooms/{roomId}/timestamp_to_event")
+    suspend fun getEventForTimestampUnstable(
+            @Path("roomId") roomId: String,
+            @Query("ts") ts: Long,
+            @Query("dir") dir: String,
+    ): TimestampToEventResponse
+
     /**
      * Same as [getRoomMessagesFrom] with a longer read timeout: mass-redaction pages over sparsely-cached
      * history can require federation backfill that takes the server past the default 60s.

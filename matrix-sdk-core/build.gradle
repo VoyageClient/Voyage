@@ -1018,6 +1018,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/membership/threepid/InviteThreePidTask.kt',
         'org/matrix/android/sdk/internal/session/room/poll/DefaultPollHistoryService.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/PaginationTask.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/TimelineGapHealer.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/FetchInvitedRoomPreviewTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/ReanchorRejoinedRoomTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/TokenChunkEventPersistor.kt',

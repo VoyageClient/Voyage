@@ -12,6 +12,9 @@ CREATE INDEX event_insert_event_id ON event_insert(event_id);
 selectProcessable:
 SELECT * FROM event_insert WHERE can_be_processed = 1;
 
+selectProcessableLimited:
+SELECT * FROM event_insert WHERE can_be_processed = 1 LIMIT ?;
+
 selectByEventId:
 SELECT * FROM event_insert WHERE event_id = ?;
 

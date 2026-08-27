@@ -19,6 +19,9 @@ internal class EventInsertSqlStore(private val database: SessionSqlDatabase) {
 
     fun getProcessable(): List<EventInsertEntity> = queries.selectProcessable().executeAsList().map { it.toEntity() }
 
+    fun getProcessable(limit: Long): List<EventInsertEntity> =
+            queries.selectProcessableLimited(limit).executeAsList().map { it.toEntity() }
+
     fun exists(eventId: String): Boolean = queries.selectByEventId(eventId).executeAsList().isNotEmpty()
 
     fun insert(eventId: String, eventType: String, canBeProcessed: Boolean, insertType: EventInsertType) =

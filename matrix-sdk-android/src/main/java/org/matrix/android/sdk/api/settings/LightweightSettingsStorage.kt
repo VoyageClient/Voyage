@@ -27,6 +27,12 @@ interface LightweightSettingsStorage {
     fun isSlidingSyncEnabled(): Boolean
 
     /**
+     * Whether backward pagination detects artificial history gaps (depth-bombed rooms serving
+     * months-old events as adjacent) and auto-recovers the skipped span.
+     */
+    fun isTimelineGapHealingEnabled(): Boolean
+
+    /**
      * Whether those previews are generated on the device rather than by the homeserver, in the given room.
      * The room's own override wins over the account-wide mode.
      */

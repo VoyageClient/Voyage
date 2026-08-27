@@ -84,6 +84,9 @@ internal class TimelineEventSqlStore(
     fun getLoneEventRows(roomId: String): List<LoneEventRow> =
             queries.selectLoneEventRows(roomId).executeAsList().map { LoneEventRow(it.id, it.event_id, it.chunk_id) }
 
+    fun minTsForChunk(chunkId: Long): Long? =
+            queries.selectMinTsForChunk(chunkId).executeAsOneOrNull()?.ts
+
     fun maxDisplayIndexAtOrBeforeTs(chunkId: Long, ts: Long): Long? =
             queries.selectMaxDisplayIndexAtOrBeforeTs(chunkId, ts).executeAsOne().idx
 

@@ -210,6 +210,11 @@ WHERE room_id = :roomId AND chunk_id IS NOT NULL AND chunk_id IN (
     SELECT chunk_id FROM timeline_event WHERE room_id = :roomId AND chunk_id IS NOT NULL GROUP BY chunk_id HAVING COUNT(*) = 1
 );
 
+selectMinTsForChunk:
+SELECT MIN(e.origin_server_ts) AS ts FROM timeline_event te
+JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
+WHERE te.chunk_id = ?;
+
 selectMaxDisplayIndexAtOrBeforeTs:
 SELECT MAX(te.display_index) AS idx FROM timeline_event te
 JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
