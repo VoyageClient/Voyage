@@ -230,6 +230,8 @@ New features, improvements, and notable removals in this fork.
 
 ## Significant bugfixes
 
+- Fixed scrolling back in rooms damaged by the Synapse depth exploit jumping over months or years of history as if it didn't exist. Suspicious jumps are now verified against the local search index or the server, and the skipped span is fetched and stitched back into the timeline automatically (labs toggle, on by default).
+
 - Fixed attachment sends sticking at "Waiting…" forever when the network dropped or the system reclaimed the upload task, which was treated as a cancellation and killed the send permanently instead of retrying it.
 
 - Fixed media uploads failing with a permission error when the app restarts mid-send — attachments are now copied into app storage before upload, so a resumed upload no longer depends on the picker's expired access grant.

@@ -78,6 +78,18 @@ WHERE room_id = ? AND content_text LIKE ? ESCAPE '\'
 ORDER BY origin_server_ts DESC
 LIMIT ? OFFSET ?;
 
+eventsInTsRangeNewestFirst:
+SELECT event_id, origin_server_ts FROM indexed_event
+WHERE room_id = ? AND origin_server_ts > ? AND origin_server_ts < ?
+ORDER BY origin_server_ts DESC
+LIMIT ?;
+
+eventsInTsRangeOldestFirst:
+SELECT event_id, origin_server_ts FROM indexed_event
+WHERE room_id = ? AND origin_server_ts > ? AND origin_server_ts < ?
+ORDER BY origin_server_ts ASC
+LIMIT ?;
+
 oldestTsInRoom:
 SELECT origin_server_ts FROM indexed_event WHERE room_id = ? ORDER BY origin_server_ts ASC LIMIT 1;
 

@@ -35,6 +35,11 @@ internal interface PaginationTask : Task<PaginationTask.Params, TokenChunkEventP
             // (homeserver boundary tokens don't reliably match our stored ones — Synapse appends a
             // stream suffix — so token-based linking alone strands chunks).
             val originChunkId: Long? = null,
+            // Optional out-params for the caller's fetch loop (new-row count, landed chunk).
+            val stats: TokenChunkEventPersistor.PageWriteStats? = null,
+            // Interactive timelines only: lets gap detection ask the server (/timestamp_to_event)
+            // when the local index can't classify a jump. Fills/seeds must leave this off.
+            val serverGapProbe: Boolean = false,
     )
 }
 
@@ -44,6 +49,7 @@ internal class DefaultPaginationTask @Inject constructor(
         private val tokenChunkEventPersistor: TokenChunkEventPersistor,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val dbPriority: SessionDbPriority,
+        private val gapHealer: TimelineGapHealer,
 ) : PaginationTask {
 
     // The user is watching a spinner until the page lands, so the whole fetch-and-persist round
@@ -57,6 +63,12 @@ internal class DefaultPaginationTask @Inject constructor(
         ) {
             roomAPI.getRoomMessagesFrom(params.roomId, params.from, params.direction.value, params.limit, filter)
         }
-        tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId)
+        val detection = if (params.direction == PaginationDirection.BACKWARDS) {
+            gapHealer.detectArtificialGap(params.roomId, params.originChunkId, chunk, params.serverGapProbe)
+        } else null
+        params.stats?.gapDetected = detection != null
+        val result = tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId, detection?.split, params.stats)
+        gapHealer.recoverAfterPersist(params.roomId, detection)
+        result
     }
 }

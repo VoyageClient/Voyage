@@ -54,6 +54,11 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         return sdkDefaultPrefs.getBoolean(SETTINGS_LABS_SLIDING_SYNC, true)
     }
 
+    // Backed by the app's labs toggle (shared default prefs); defaults to on.
+    override fun isTimelineGapHealingEnabled(): Boolean {
+        return sdkDefaultPrefs.getBoolean(SETTINGS_LABS_TIMELINE_GAP_HEALING, true)
+    }
+
     // Backed by the app's "Fetch link previews on this device" setting (shared default prefs).
     override fun getLinkPreviewMode(roomId: String): LinkPreviewMode {
         val override = sdkDefaultPrefs.getString("${SETTINGS_LINK_PREVIEW_MODE}_$roomId", null)
@@ -86,6 +91,7 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         // Must match the app-side preference key (im.vector.app VectorPreferences).
         private const val SETTINGS_STRIP_MEDIA_METADATA = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
         private const val SETTINGS_LABS_SLIDING_SYNC = "SETTINGS_LABS_SLIDING_SYNC_KEY"
+        private const val SETTINGS_LABS_TIMELINE_GAP_HEALING = "SETTINGS_LABS_TIMELINE_GAP_HEALING_KEY"
         private const val SETTINGS_LINK_PREVIEW_MODE = "SETTINGS_LINK_PREVIEW_MODE_KEY"
     }
 }

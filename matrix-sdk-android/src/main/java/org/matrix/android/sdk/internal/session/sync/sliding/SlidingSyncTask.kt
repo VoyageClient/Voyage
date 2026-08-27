@@ -142,10 +142,13 @@ internal class SlidingSyncTask @Inject constructor(
             syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncDone)
         }
 
-        if (syncResponse.rooms?.join?.values?.any { it.isInitialDelivery } == true) {
+        val initialRoomIds = syncResponse.rooms?.join?.filterValues { it.isInitialDelivery }?.keys
+        if (!initialRoomIds.isNullOrEmpty()) {
             // Account data arrives with the first response but rooms keep coming after it, so rooms handed
             // over later were not in the database when m.direct was applied and would never be seen as DMs.
-            syncResponseHandler.refreshDirectChatRooms()
+            // Scoped to this response's rooms: the full re-application costs seconds and a fill calls this
+            // once per response.
+            syncResponseHandler.refreshDirectChatRooms(initialRoomIds)
         }
 
         spaceValidationOwed = spaceValidationOwed || owesSpaceValidation

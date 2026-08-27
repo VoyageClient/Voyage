@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.database.sqldelight
 
 import app.cash.sqldelight.Query
 import app.cash.sqldelight.coroutines.asFlow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.internal.database.LiveEntityObserver
+import timber.log.Timber
 
 /**
  * SQLDelight counterpart of [org.matrix.android.sdk.internal.database.RealmLiveEntityObserver]: collects
@@ -34,7 +36,17 @@ internal abstract class SqlLiveEntityObserver(
     override fun onSessionStarted(session: Session) {
         if (job == null) {
             job = observerScope.launch {
-                query.asFlow().collect { onChange() }
+                query.asFlow().collect {
+                    try {
+                        onChange()
+                    } catch (failure: CancellationException) {
+                        throw failure
+                    } catch (failure: Throwable) {
+                        // An observer dying here stays dead until the session restarts, silently
+                        // stopping whatever pipeline it drives; log and keep collecting.
+                        Timber.e(failure, "${javaClass.simpleName}.onChange failed")
+                    }
+                }
             }
         }
     }

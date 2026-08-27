@@ -774,18 +774,39 @@ internal class SqlTimeline(
     private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null) {
         updateState(direction) { it.copy(loading = true) }
         try {
-            // SHOULD_FETCH_MORE = the page made token-progress only (invisible span, boundary
-            // overlap): keep going right away instead of waiting for the UI to re-trigger, following
-            // the origin chunk's token as the persistor slides it.
+            // Keep fetching within one user-visible round until real progress is made:
+            // - SHOULD_FETCH_MORE = the page made token-progress only (invisible span, boundary
+            //   overlap): follow the origin chunk's token as the persistor slides it.
+            // - a SUCCESS page can still be almost entirely overlap-skipped duplicates (server token
+            //   paths re-covering stored regions); stopping there dribbles one or two events per
+            //   scroll, so follow the landed chunk's far token until enough new rows accumulated.
             var from = token
+            var origin = originChunkId
             var rounds = 0
+            var newRows = 0
             while (rounds++ < MAX_PAGINATION_ROUNDS) {
-                val result = paginationTask.execute(PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, originChunkId))
-                if (result != TokenChunkEventPersistor.Result.SHOULD_FETCH_MORE || originChunkId == null) break
-                val origin = withContext(sessionDispatcher) { stores.chunk.getById(originChunkId) } ?: break
-                val next = (if (direction == Timeline.Direction.BACKWARDS) origin.prev_token else origin.next_token) ?: break
+                val stats = TokenChunkEventPersistor.PageWriteStats()
+                val result = paginationTask.execute(
+                        PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, origin, stats, serverGapProbe = true)
+                )
+                newRows += stats.written
+                if (result == TokenChunkEventPersistor.Result.REACHED_END) break
+                // A detected gap ends the round: its recovery decides how the walk continues.
+                if (stats.gapDetected) break
+                val followChunkId = if (result == TokenChunkEventPersistor.Result.SHOULD_FETCH_MORE) origin else {
+                    if (newRows >= minOf(count, MIN_NEW_ROWS_PER_LOAD)) break
+                    stats.landedChunkId
+                }
+                val follow = followChunkId?.let { withContext(sessionDispatcher) { stores.chunk.getById(it) } } ?: break
+                if (direction == Timeline.Direction.BACKWARDS && follow.is_last_backward != 0L) break
+                if (direction == Timeline.Direction.FORWARDS && follow.is_last_forward != 0L) break
+                // The landed chunk already links onward: the walk continues locally, no fetch needed.
+                val alreadyLinked = if (direction == Timeline.Direction.BACKWARDS) follow.prev_chunk_id else follow.next_chunk_id
+                if (result == TokenChunkEventPersistor.Result.SUCCESS && alreadyLinked != null) break
+                val next = (if (direction == Timeline.Direction.BACKWARDS) follow.prev_token else follow.next_token) ?: break
                 if (next == from) break
                 from = next
+                origin = follow.id
             }
         } catch (failure: Throwable) {
             if (failure is CancellationException) throw failure
@@ -1222,6 +1243,10 @@ internal class SqlTimeline(
         // Bounds the immediate follow-ups after token-progress-only pages; the UI's loading item
         // re-triggers for anything longer.
         private const val MAX_PAGINATION_ROUNDS = 10
+
+        // A pagination round keeps fetching until at least this many genuinely new rows landed (or
+        // the round cap), so near-duplicate pages don't dribble one event per scroll.
+        private const val MIN_NEW_ROWS_PER_LOAD = 10
         private const val MAX_RAW_REVEAL_STEP = 150
     }
 }

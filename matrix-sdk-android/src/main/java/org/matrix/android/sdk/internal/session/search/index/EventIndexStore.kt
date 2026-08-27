@@ -131,6 +131,18 @@ internal class EventIndexStore @Inject constructor(
                 queries.search(roomId, likePattern(searchTerm), limit.toLong(), offset.toLong()).executeAsList()
             }
 
+    /** Indexed events with origin_server_ts strictly inside (olderTs, newerTs), newest first. */
+    suspend fun eventsInTsRange(roomId: String, olderTs: Long, newerTs: Long, limit: Int, newestFirst: Boolean = true): List<Pair<String, Long>> =
+            withContext(dispatcher) {
+                if (newestFirst) {
+                    queries.eventsInTsRangeNewestFirst(roomId, olderTs, newerTs, limit.toLong()).executeAsList()
+                            .map { it.event_id to it.origin_server_ts }
+                } else {
+                    queries.eventsInTsRangeOldestFirst(roomId, olderTs, newerTs, limit.toLong()).executeAsList()
+                            .map { it.event_id to it.origin_server_ts }
+                }
+            }
+
     suspend fun oldestTsInRoom(roomId: String): Long? = withContext(dispatcher) {
         queries.oldestTsInRoom(roomId).executeAsOneOrNull()
     }
