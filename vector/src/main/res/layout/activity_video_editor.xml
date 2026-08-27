@@ -34,10 +34,57 @@
         android:id="@+id/videoEditorTimeline"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginBottom="24dp"
-        app:layout_constraintBottom_toTopOf="@id/videoEditorSaveButton"
+        app:layout_constraintBottom_toTopOf="@id/videoEditorPlaybackControls"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/videoEditorPlaybackControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingRight="12dp"
+        app:layout_constraintBottom_toTopOf="@id/videoEditorSaveButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- The seek bar's asymmetric vertical padding pushes its track below the row's centre;
+             the button and label are nudged down the same amount to stay level with it. -->
+        <ImageView
+            android:id="@+id/videoEditorPlayPause"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_play"
+            android:padding="10dp"
+            android:src="@drawable/ic_play_arrow"
+            android:translationY="8dp"
+            app:tint="@android:color/white"
+            tools:ignore="MissingPrefix" />
+
+        <SeekBar
+            android:id="@+id/videoEditorSeekBar"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="0dp" />
+
+        <TextView
+            android:id="@+id/videoEditorPlaybackTime"
+            style="@style/Widget.Vector.TextView.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:textColor="@android:color/white"
+            android:translationY="8dp"
+            tools:text="0:12 / 0:42" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/videoEditorDurationLabel"

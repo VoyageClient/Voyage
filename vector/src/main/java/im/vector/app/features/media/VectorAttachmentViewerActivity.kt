@@ -60,6 +60,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.message.toForwardedInfoContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -110,6 +111,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private var providerInstalled = false
     private var handoffPending = false
 
+    // Swapping the transition thumbnail away before the pager's full-size decode lands flashes
+    // blurhash between two sharp frames; hold it until the first image settles (timeout-bounded).
+    private var awaitedImageUid: String? = null
+    private var enterTransitionEnded = false
+
     // Absolute pixel corner radius for rounded shared elements.
     private var transitionCornerPx = 0f
     private var cornerAnimator: android.animation.ValueAnimator? = null
@@ -158,6 +164,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 val mediaData: Parcelable? = intent.getParcelableExtraCompat(EXTRA_IMAGE_DATA)
                 if (mediaData is ImageContentRenderer.Data) {
                     pager2.isInvisible = true
+                    awaitedImageUid = galleryPageId(mediaData.eventId, mediaData.galleryIndex)
                     supportPostponeEnterTransition()
                     schedulePostponedTransitionTimeout(imageTransitionView)
                     imageContentRenderer.renderForSharedElementTransition(mediaData, imageTransitionView) {
@@ -250,6 +257,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>) {
         sourceProvider.interactionListener = this
+        sourceProvider.imageSettledListener = { uid ->
+            if (uid == awaitedImageUid) {
+                awaitedImageUid = null
+                completeHandOff()
+            }
+        }
         sourceProvider.showOverlayInfo = args()?.standalonePreview != true
         setSourceProvider(sourceProvider)
         currentSourceProvider = sourceProvider
@@ -375,6 +388,19 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             handoffPending = true
             return
         }
+        enterTransitionEnded = true
+        if (awaitedImageUid != null) {
+            pager2.postDelayed({
+                awaitedImageUid = null
+                completeHandOff()
+            }, IMAGE_HANDOFF_TIMEOUT_MS)
+            return
+        }
+        completeHandOff()
+    }
+
+    private fun completeHandOff() {
+        if (isAnimatingOut || !enterTransitionEnded || awaitedImageUid != null) return
         transitionImageContainer.isVisible = false
         pager2.isInvisible = false
     }
@@ -486,9 +512,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     override fun onForward() {
         val timelineEvent = currentSourceProvider?.getTimelineEventAtPosition(currentPosition) ?: return
         val baseContent = timelineEvent.getLastEditNewContent() ?: timelineEvent.root.getClearContent().orEmpty()
+        // A DM's room id and sender are private to its members; a forwarded copy must not carry them.
+        val isDmSource = activeSessionHolder.getSafeActiveSession()?.getRoomSummary(timelineEvent.roomId)?.isDirect == true
         @Suppress("UNCHECKED_CAST")
         val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
-                timelineEvent.toForwardedInfoContent()
+                (if (isDmSource) emptyMap() else timelineEvent.toForwardedInfoContent())
         val payloadId = ForwardPayloadHolder.put(forwardContent)
         startActivity(IncomingShareActivity.forwardIntent(this, timelineEvent.root.getClearType(), payloadId))
     }
@@ -580,6 +608,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         private const val EXTRA_IN_MEMORY_DATA = "EXTRA_IN_MEMORY_DATA"
         private const val STATE_CURRENT_POSITION = "STATE_CURRENT_POSITION"
         private const val POSTPONED_TRANSITION_TIMEOUT_MS = 150L
+        private const val IMAGE_HANDOFF_TIMEOUT_MS = 3000L
         private const val DEFAULT_TRANSITION_MS = 300L
 
         fun newIntent(

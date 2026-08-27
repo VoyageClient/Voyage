@@ -83,6 +83,12 @@ class ImageEditorView @JvmOverloads constructor(
         strokeWidth = dp(2f)
     }
     private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
+    private val edgeHandlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        strokeWidth = dp(4f)
+        strokeCap = Paint.Cap.ROUND
+    }
+    private val edgeHandleLength = dp(16f)
     private val selectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         style = Paint.Style.STROKE
@@ -101,6 +107,14 @@ class ImageEditorView @JvmOverloads constructor(
     private val badgeRadius = dp(12f)
     private val touchSlop = max(dp(24f), ViewConfiguration.get(context).scaledTouchSlop.toFloat())
     private val minNormalisedSize = 0.05f
+    private val tapSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
+
+    // Censor minimums are screen-based, unlike the crop's normalised one: a censor over a small
+    // detail can legitimately be a few pixels of a large image, reached by zooming in.
+    private val minCensorScreenSize = dp(4f)
+
+    private fun minCensorNormalisedWidth() = (minCensorScreenSize / imageRect.width()).coerceAtMost(minNormalisedSize)
+    private fun minCensorNormalisedHeight() = (minCensorScreenSize / imageRect.height()).coerceAtMost(minNormalisedSize)
 
     private var dragMode = DragMode.NONE
     private var dragCornerX = 0
@@ -120,6 +134,11 @@ class ImageEditorView @JvmOverloads constructor(
         // The first finger already staked out a zero-size censor; abandoning the drag here would
         // otherwise strand it in the list, invisible but enough to count as an edit.
         if (dragMode == DragMode.CENSOR_CREATE) discardPendingCensor()
+        // A pinch is navigation: leave censor mode so the next one-finger drag pans, not paints.
+        if (tool == Tool.CENSOR) {
+            tool = Tool.CROP
+            onToolChanged?.invoke(Tool.CROP)
+        }
         dragMode = DragMode.NONE
         gesture.beginPinch(event)
     }
@@ -311,6 +330,21 @@ class ImageEditorView @JvmOverloads constructor(
                 canvas.drawCircle(x, y, handleRadius, handlePaint)
             }
         }
+        drawEdgeHandles(canvas, rect)
+    }
+
+    /** AOSP-gallery-style bars at the edge midpoints, marking the sides as grabbable. */
+    private fun drawEdgeHandles(canvas: Canvas, rect: RectF) {
+        val halfH = min(edgeHandleLength, rect.width() / 3f) / 2f
+        val halfV = min(edgeHandleLength, rect.height() / 3f) / 2f
+        if (halfH > 0) {
+            canvas.drawLine(rect.centerX() - halfH, rect.top, rect.centerX() + halfH, rect.top, edgeHandlePaint)
+            canvas.drawLine(rect.centerX() - halfH, rect.bottom, rect.centerX() + halfH, rect.bottom, edgeHandlePaint)
+        }
+        if (halfV > 0) {
+            canvas.drawLine(rect.left, rect.centerY() - halfV, rect.left, rect.centerY() + halfV, edgeHandlePaint)
+            canvas.drawLine(rect.right, rect.centerY() - halfV, rect.right, rect.centerY() + halfV, edgeHandlePaint)
+        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -343,10 +377,10 @@ class ImageEditorView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (dragMode == DragMode.CENSOR_CREATE) {
-                    val created = censors.getOrNull(selectedCensor)
-                    if (created != null && (created.width() < minNormalisedSize || created.height() < minNormalisedSize)) {
-                        // A tap rather than a drag: discard the degenerate rectangle and take it
-                        // as the user asking to leave censor mode and get the crop handles back.
+                    val created = censors.getOrNull(selectedCensor)?.toScreen()
+                    if (created != null && created.width() < tapSlop && created.height() < tapSlop) {
+                        // A tap rather than a drag: discard it and leave censor mode. Judged on
+                        // screen distance, so a deliberately drawn small censor survives.
                         discardPendingCensor()
                         tool = Tool.CROP
                         onToolChanged?.invoke(Tool.CROP)
@@ -363,10 +397,10 @@ class ImageEditorView @JvmOverloads constructor(
 
     private fun beginCropDrag(x: Float, y: Float): DragMode {
         val rect = crop.toScreen()
-        val corner = nearestCorner(rect, x, y)
-        if (corner != null) {
-            dragCornerX = corner.first
-            dragCornerY = corner.second
+        val handle = nearestHandle(rect, x, y)
+        if (handle != null) {
+            dragCornerX = handle.first
+            dragCornerY = handle.second
             return DragMode.CROP_RESIZE
         }
         // Touching an existing censor is a request to go back and adjust it. Crop handles win
@@ -393,10 +427,10 @@ class ImageEditorView @JvmOverloads constructor(
                 deleteSelectedCensor()
                 return DragMode.NONE
             }
-            val corner = nearestCorner(screen, x, y)
-            if (corner != null) {
-                dragCornerX = corner.first
-                dragCornerY = corner.second
+            val handle = nearestHandle(screen, x, y)
+            if (handle != null) {
+                dragCornerX = handle.first
+                dragCornerY = handle.second
                 return DragMode.CENSOR_RESIZE
             }
         }
@@ -416,18 +450,24 @@ class ImageEditorView @JvmOverloads constructor(
         return DragMode.CENSOR_CREATE
     }
 
-    private fun nearestCorner(rect: RectF, x: Float, y: Float): Pair<Int, Int>? {
+    /** Corner or side handle at (x, y): 0 = left/top edge, 1 = right/bottom, -1 = axis left alone. */
+    private fun nearestHandle(rect: RectF, x: Float, y: Float): Pair<Int, Int>? {
         val horizontal = when {
             abs(x - rect.left) <= touchSlop -> 0
             abs(x - rect.right) <= touchSlop -> 1
-            else -> return null
+            else -> -1
         }
         val vertical = when {
             abs(y - rect.top) <= touchSlop -> 0
             abs(y - rect.bottom) <= touchSlop -> 1
-            else -> return null
+            else -> -1
         }
-        return horizontal to vertical
+        return when {
+            horizontal != -1 && vertical != -1 -> horizontal to vertical
+            horizontal != -1 && y in rect.top..rect.bottom -> horizontal to -1
+            vertical != -1 && x in rect.left..rect.right -> -1 to vertical
+            else -> null
+        }
     }
 
     private fun applyDrag(x: Float, y: Float) {
@@ -441,7 +481,9 @@ class ImageEditorView @JvmOverloads constructor(
             DragMode.CROP_MOVE -> translateWithinBounds(crop, dx, dy)
             DragMode.CROP_RESIZE -> resizeCorner(crop, nx, ny)
             DragMode.CENSOR_MOVE -> censors.getOrNull(selectedCensor)?.let { translateWithinBounds(it, dx, dy) }
-            DragMode.CENSOR_RESIZE -> censors.getOrNull(selectedCensor)?.let { resizeCorner(it, nx, ny) }
+            DragMode.CENSOR_RESIZE -> censors.getOrNull(selectedCensor)?.let {
+                resizeCorner(it, nx, ny, minCensorNormalisedWidth(), minCensorNormalisedHeight())
+            }
             DragMode.CENSOR_CREATE -> censors.getOrNull(selectedCensor)?.set(
                     min(createAnchorX, nx), min(createAnchorY, ny), max(createAnchorX, nx), max(createAnchorY, ny)
             )
@@ -455,16 +497,20 @@ class ImageEditorView @JvmOverloads constructor(
         rect.offset(clampedDx, clampedDy)
     }
 
-    private fun resizeCorner(rect: RectF, nx: Float, ny: Float) {
-        if (dragCornerX == 0) {
-            rect.left = nx.coerceAtMost(rect.right - minNormalisedSize)
-        } else {
-            rect.right = nx.coerceAtLeast(rect.left + minNormalisedSize)
+    private fun resizeCorner(
+            rect: RectF,
+            nx: Float,
+            ny: Float,
+            minWidth: Float = minNormalisedSize,
+            minHeight: Float = minNormalisedSize,
+    ) {
+        when (dragCornerX) {
+            0 -> rect.left = nx.coerceAtMost(rect.right - minWidth)
+            1 -> rect.right = nx.coerceAtLeast(rect.left + minWidth)
         }
-        if (dragCornerY == 0) {
-            rect.top = ny.coerceAtMost(rect.bottom - minNormalisedSize)
-        } else {
-            rect.bottom = ny.coerceAtLeast(rect.top + minNormalisedSize)
+        when (dragCornerY) {
+            0 -> rect.top = ny.coerceAtMost(rect.bottom - minHeight)
+            1 -> rect.bottom = ny.coerceAtLeast(rect.top + minHeight)
         }
     }
 

@@ -22,7 +22,6 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 
 private const val GIF_MAGIC_BYTES = 6
-private const val GIF_SNIFF_MARK_BYTES = 8 * 1024
 
 /**
  * GIF through the platform's native decoder.
@@ -106,9 +105,7 @@ private class StreamPlatformGifDecoder : ResourceDecoder<InputStream, Drawable> 
 
     override fun handles(source: InputStream, options: Options): Boolean {
         if (!source.markSupported()) return false
-        // Promise a generous read limit: the decoders that run after this one must still be able to
-        // reset() after reading well past the few bytes peeked here.
-        source.mark(GIF_SNIFF_MARK_BYTES)
+        source.mark(SNIFF_MARK_BYTES)
         val head = ByteArray(GIF_MAGIC_BYTES)
         val length = try {
             source.read(head)

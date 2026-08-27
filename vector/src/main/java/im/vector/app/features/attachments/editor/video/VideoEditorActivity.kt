@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.SurfaceTexture
 import android.media.MediaMetadataRetriever
@@ -21,6 +22,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.text.format.DateUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.Surface
@@ -28,6 +30,7 @@ import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.view.ContextThemeWrapper
@@ -155,7 +158,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             views.videoEditorTextureView.setTransform(it)
             views.videoEditorTextureView.invalidate()
         }
-        views.videoEditorCropOverlay.onTap = { togglePlayback() }
+        setupPlaybackControls(accent)
 
         views.videoEditorTimeline.listener = VideoTimelineStripView.Listener { start, end, dragging ->
             // Null means neither edge moved, and a mere grab must not disturb playback.
@@ -364,6 +367,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             durationUs = info.durationUs
             frameRate = info.frameRate
+            views.videoEditorSeekBar.max = (durationUs / 1000).toInt().coerceAtLeast(1)
             views.videoEditorTimeline.durationUs = durationUs
             views.videoEditorTimeline.frameRate = info.frameRate
             val edits = initialEdits
@@ -405,6 +409,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             animatedSource = file
             durationUs = source.durationUs
             frameRate = source.frameRate
+            views.videoEditorSeekBar.max = (durationUs / 1000).toInt().coerceAtLeast(1)
             views.videoEditorTimeline.durationUs = durationUs
             views.videoEditorTimeline.frameRate = frameRate
             val edits = initialEdits
@@ -419,7 +424,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             updateDurationLabel()
             addAnimatedThumbnails(source)
             animatedPlayer = AnimatedFramePlayer(source, views.videoEditorTextureView, handler) { positionUs ->
-                views.videoEditorTimeline.playheadUs = positionUs
+                setPlayhead(positionUs)
             }
             applyPlaybackSpeed()
             animatedPlayer?.reversed = reversed
@@ -654,6 +659,44 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         return boost
     }
 
+    private fun setupPlaybackControls(accent: Int) {
+        // progressTintList is API 21+, and this fork runs from 14.
+        @Suppress("DEPRECATION")
+        views.videoEditorSeekBar.apply {
+            progressDrawable?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
+            thumb?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
+        }
+        views.videoEditorPlayPause.setOnClickListener { togglePlayback() }
+        views.videoEditorSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                if (fromUser) seekThrottled(progress * 1000L)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                beginScrubbing()
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                endScrubbing(seekBar.progress * 1000L)
+            }
+        })
+    }
+
+    /** Everything that moves the playhead goes through here so the strip, bar and label agree. */
+    private fun setPlayhead(us: Long) {
+        views.videoEditorTimeline.playheadUs = us
+        views.videoEditorSeekBar.progress = (us / 1000).toInt()
+        views.videoEditorPlaybackTime.text = getString(
+                CommonStrings.video_position_of_duration,
+                DateUtils.formatElapsedTime(us / 1_000_000),
+                DateUtils.formatElapsedTime(durationUs / 1_000_000)
+        )
+    }
+
+    private fun updatePlayPauseIcon() {
+        views.videoEditorPlayPause.setImageResource(if (isPlaying()) R.drawable.ic_pause else R.drawable.ic_play_arrow)
+    }
+
     private fun togglePlayback() {
         if (isPlaying()) pausePlayback() else startPlayback()
     }
@@ -663,6 +706,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private fun startPlayback() {
         animatedPlayer?.let {
             it.start()
+            updatePlayPauseIcon()
             return
         }
         val player = player ?: return
@@ -670,15 +714,18 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         player.start()
         if (speedAwaitingPlayback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) pushPlaybackSpeed(player)
         handler.post(playbackTicker)
+        updatePlayPauseIcon()
     }
 
     private fun pausePlayback() {
         animatedPlayer?.let {
             it.pause()
+            updatePlayPauseIcon()
             return
         }
         handler.removeCallbacks(playbackTicker)
         player?.takeIf { it.isPlaying }?.pause()
+        updatePlayPauseIcon()
     }
 
     /** Playback runs the trimmed window and stops at its end, where the export would. */
@@ -686,7 +733,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         override fun run() {
             val player = player ?: return
             val positionUs = player.currentPosition * 1000L
-            views.videoEditorTimeline.playheadUs = positionUs
+            setPlayhead(positionUs)
             // endUs is zero until the metadata probe lands, and stopping against it then would
             // park playback at the start every tick.
             if (endUs > 0 && positionUs >= endUs) {
@@ -700,7 +747,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     /** The cut is where this clip ends; playing again starts it over from the other cut. */
     private fun stopAtEnd() {
         pausePlayback()
-        views.videoEditorTimeline.playheadUs = endUs
+        setPlayhead(endUs)
     }
 
     /**
@@ -778,7 +825,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     /** Seeks are expensive enough that one per touch-move event stutters. */
     private fun seekThrottled(us: Long) {
-        views.videoEditorTimeline.playheadUs = us
+        setPlayhead(us)
         blipAudio(us)
         val now = SystemClock.uptimeMillis()
         if (now - lastSeekAt < SEEK_THROTTLE_MS) return
@@ -787,7 +834,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     private fun seekTo(us: Long) {
-        views.videoEditorTimeline.playheadUs = us
+        setPlayhead(us)
         animatedPlayer?.let {
             it.seekTo(us)
             return
@@ -943,6 +990,14 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         activityPaused = true
         super.onPause()
         pausePlayback()
+        // The previewer underneath re-creates its player in onResume, before this onDestroy —
+        // release the decoders first or it can lose the codec race.
+        if (isFinishing) {
+            handler.removeCallbacks(playbackTicker)
+            releasePlayer()
+            animatedPlayer?.release()
+            animatedPlayer = null
+        }
     }
 
     override fun onDestroy() {

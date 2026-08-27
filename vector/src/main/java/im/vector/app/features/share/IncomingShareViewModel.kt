@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.message.ForwardedInfo
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.flow.flow
 
@@ -87,7 +88,7 @@ class IncomingShareViewModel @AssistedInject constructor(
     override fun handle(action: IncomingShareAction) {
         when (action) {
             is IncomingShareAction.SelectRoom -> handleSelectRoom(action)
-            is IncomingShareAction.ShareToSelectedRooms -> handleShareToSelectedRooms()
+            is IncomingShareAction.ShareToSelectedRooms -> handleShareToSelectedRooms(action.stripForwardedInfo)
             is IncomingShareAction.ShareToRoom -> handleShareToRoom(action)
             is IncomingShareAction.ShareMedia -> handleShareMediaToSelectedRooms(action)
             is IncomingShareAction.FilterWith -> handleFilter(action)
@@ -103,7 +104,7 @@ class IncomingShareViewModel @AssistedInject constructor(
         filterStream.tryEmit(action.filter)
     }
 
-    private fun handleShareToSelectedRooms() = withState { state ->
+    private fun handleShareToSelectedRooms(stripForwardedInfo: Boolean = false) = withState { state ->
         val sharedData = state.sharedData ?: return@withState
         if (state.selectedRoomIds.isEmpty()) return@withState
         // A forward is sent straight away, so it never goes through the room screen.
@@ -131,17 +132,20 @@ class IncomingShareViewModel @AssistedInject constructor(
                     )
                 }
                 is SharedData.Forward -> {
-                    forwardToRooms(sharedData, state.selectedRoomIds)
+                    forwardToRooms(sharedData, state.selectedRoomIds, stripForwardedInfo)
                 }
             }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun forwardToRooms(forward: SharedData.Forward, roomIds: Set<String>) {
-        val content = ForwardPayloadHolder.take(forward.payloadId) as? Map<String, Any> ?: run {
+    private fun forwardToRooms(forward: SharedData.Forward, roomIds: Set<String>, stripForwardedInfo: Boolean) {
+        var content = ForwardPayloadHolder.take(forward.payloadId) as? Map<String, Any> ?: run {
             _viewEvents.post(IncomingShareViewEvents.ForwardFailed)
             return
+        }
+        if (stripForwardedInfo) {
+            content = content - ForwardedInfo.STABLE_KEY - ForwardedInfo.UNSTABLE_KEY
         }
         roomIds.forEach { roomId ->
             session.getRoom(roomId)?.sendService()?.sendEvent(forward.eventType, content)

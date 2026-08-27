@@ -50,6 +50,7 @@ class IncomingShareFragment :
     @Inject lateinit var shareIntentHandler: ShareIntentHandler
 
     private val viewModel: IncomingShareViewModel by fragmentViewModel()
+    private var isForwardMode = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentIncomingShareBinding {
         return FragmentIncomingShareBinding.inflate(inflater, container, false)
@@ -62,12 +63,22 @@ class IncomingShareFragment :
         val enabled = withState(viewModel) { it.selectedRoomIds.isNotEmpty() }
         sendItem.isEnabled = enabled
         sendItem.icon?.mutate()?.setAlpha(if (enabled) 255 else 100)
+        // Long-press forwards without the MSC2723 metadata; the action view only exists post-layout.
+        if (isForwardMode) {
+            views.incomingShareToolbar.post {
+                views.incomingShareToolbar.findViewById<View>(R.id.incomingShareSend)?.setOnLongClickListener {
+                    val allowed = withState(viewModel) { it.selectedRoomIds.isNotEmpty() }
+                    if (allowed) viewModel.handle(IncomingShareAction.ShareToSelectedRooms(stripForwardedInfo = true))
+                    allowed
+                }
+            }
+        }
     }
 
     override fun handleMenuItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.incomingShareSend -> {
-                viewModel.handle(IncomingShareAction.ShareToSelectedRooms)
+                viewModel.handle(IncomingShareAction.ShareToSelectedRooms())
                 true
             }
             else -> false
@@ -104,7 +115,7 @@ class IncomingShareFragment :
         val intent = vectorBaseActivity.intent
         val forwardEventType = intent?.getStringExtra(IncomingShareActivity.EXTRA_FORWARD_EVENT_TYPE)
         val forwardPayloadId = intent?.getStringExtra(IncomingShareActivity.EXTRA_FORWARD_PAYLOAD_ID)
-        val isForwardMode = forwardEventType != null && forwardPayloadId != null
+        isForwardMode = forwardEventType != null && forwardPayloadId != null
         if (isForwardMode) {
             views.incomingShareToolbar.setNavigationIcon(R.drawable.ic_back_24dp)
             views.incomingShareToolbar.setNavigationOnClickListener { requireActivity().finish() }

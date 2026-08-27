@@ -15,6 +15,7 @@
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:hint="@string/personal_note_hint"
         android:minHeight="24dp"
         android:textColorHint="?vctr_content_secondary"
