@@ -19,7 +19,6 @@ import android.view.View
 import android.view.ViewConfiguration
 import im.vector.app.features.attachments.ZoomPanGesture
 import kotlin.math.abs
-import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 
@@ -46,9 +45,6 @@ class VideoCropOverlayView @JvmOverloads constructor(
 
     /** Raised with the transform the video surface should adopt. */
     var onTransform: ((Matrix) -> Unit)? = null
-
-    /** Raised on a touch that changed nothing, i.e. a request to play or pause. */
-    var onTap: (() -> Unit)? = null
 
     var rotationDegrees = 0
         private set
@@ -80,6 +76,12 @@ class VideoCropOverlayView @JvmOverloads constructor(
         strokeWidth = dp(2f)
     }
     private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
+    private val edgeHandlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        strokeWidth = dp(4f)
+        strokeCap = Paint.Cap.ROUND
+    }
+    private val edgeHandleLength = dp(16f)
 
     private val handleRadius = dp(8f)
     private val touchSlop = max(dp(24f), ViewConfiguration.get(context).scaledTouchSlop.toFloat())
@@ -92,10 +94,6 @@ class VideoCropOverlayView @JvmOverloads constructor(
     private var dragCornerY = 0
     private var lastTouchX = 0f
     private var lastTouchY = 0f
-    private var downX = 0f
-    private var downY = 0f
-    private var movedDuringGesture = false
-    private val tapSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
 
     private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM) { invalidate() }.apply {
         onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
@@ -216,6 +214,21 @@ class VideoCropOverlayView @JvmOverloads constructor(
                 canvas.drawCircle(x, y, handleRadius, handlePaint)
             }
         }
+        drawEdgeHandles(canvas, rect)
+    }
+
+    /** AOSP-gallery-style bars at the edge midpoints, marking the sides as grabbable. */
+    private fun drawEdgeHandles(canvas: Canvas, rect: RectF) {
+        val halfH = min(edgeHandleLength, rect.width() / 3f) / 2f
+        val halfV = min(edgeHandleLength, rect.height() / 3f) / 2f
+        if (halfH > 0) {
+            canvas.drawLine(rect.centerX() - halfH, rect.top, rect.centerX() + halfH, rect.top, edgeHandlePaint)
+            canvas.drawLine(rect.centerX() - halfH, rect.bottom, rect.centerX() + halfH, rect.bottom, edgeHandlePaint)
+        }
+        if (halfV > 0) {
+            canvas.drawLine(rect.left, rect.centerY() - halfV, rect.left, rect.centerY() + halfV, edgeHandlePaint)
+            canvas.drawLine(rect.right, rect.centerY() - halfV, rect.right, rect.centerY() + halfV, edgeHandlePaint)
+        }
     }
 
     @Suppress("ReturnCount")
@@ -225,7 +238,6 @@ class VideoCropOverlayView @JvmOverloads constructor(
             // A second finger turns the gesture into zoom/pan; abandon any edit it started as.
             gesture.beginPinch(event)
             dragMode = DragMode.NONE
-            movedDuringGesture = true
             parent?.requestDisallowInterceptTouchEvent(true)
             return true
         }
@@ -238,15 +250,11 @@ class VideoCropOverlayView @JvmOverloads constructor(
                 parent?.requestDisallowInterceptTouchEvent(true)
                 lastTouchX = event.x
                 lastTouchY = event.y
-                downX = event.x
-                downY = event.y
-                movedDuringGesture = false
                 dragMode = beginDrag(event.x, event.y)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
                 if (dragMode == DragMode.NONE) return true
-                if (hypot(event.x - downX, event.y - downY) > tapSlop) movedDuringGesture = true
                 applyDrag(event.x, event.y)
                 lastTouchX = event.x
                 lastTouchY = event.y
@@ -256,7 +264,6 @@ class VideoCropOverlayView @JvmOverloads constructor(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 dragMode = DragMode.NONE
                 parent?.requestDisallowInterceptTouchEvent(false)
-                if (!movedDuringGesture && event.actionMasked == MotionEvent.ACTION_UP) onTap?.invoke()
                 invalidate()
                 return true
             }
@@ -266,10 +273,10 @@ class VideoCropOverlayView @JvmOverloads constructor(
 
     private fun beginDrag(x: Float, y: Float): DragMode {
         val rect = crop.toScreen()
-        val corner = nearestCorner(rect, x, y)
-        if (corner != null) {
-            dragCornerX = corner.first
-            dragCornerY = corner.second
+        val handle = nearestHandle(rect, x, y)
+        if (handle != null) {
+            dragCornerX = handle.first
+            dragCornerY = handle.second
             return DragMode.CROP_RESIZE
         }
         // Once zoomed, dragging navigates the video — otherwise a tall clip zoomed in would only be
@@ -278,18 +285,24 @@ class VideoCropOverlayView @JvmOverloads constructor(
         return if (rect.contains(x, y)) DragMode.CROP_MOVE else DragMode.NONE
     }
 
-    private fun nearestCorner(rect: RectF, x: Float, y: Float): Pair<Int, Int>? {
+    /** Corner or side handle at (x, y): 0 = left/top edge, 1 = right/bottom, -1 = axis left alone. */
+    private fun nearestHandle(rect: RectF, x: Float, y: Float): Pair<Int, Int>? {
         val horizontal = when {
             abs(x - rect.left) <= touchSlop -> 0
             abs(x - rect.right) <= touchSlop -> 1
-            else -> return null
+            else -> -1
         }
         val vertical = when {
             abs(y - rect.top) <= touchSlop -> 0
             abs(y - rect.bottom) <= touchSlop -> 1
-            else -> return null
+            else -> -1
         }
-        return horizontal to vertical
+        return when {
+            horizontal != -1 && vertical != -1 -> horizontal to vertical
+            horizontal != -1 && y in rect.top..rect.bottom -> horizontal to -1
+            vertical != -1 && x in rect.left..rect.right -> -1 to vertical
+            else -> null
+        }
     }
 
     private fun applyDrag(x: Float, y: Float) {
@@ -311,15 +324,13 @@ class VideoCropOverlayView @JvmOverloads constructor(
     }
 
     private fun resizeCorner(nx: Float, ny: Float) {
-        if (dragCornerX == 0) {
-            crop.left = nx.coerceAtMost(crop.right - minNormalisedSize)
-        } else {
-            crop.right = nx.coerceAtLeast(crop.left + minNormalisedSize)
+        when (dragCornerX) {
+            0 -> crop.left = nx.coerceAtMost(crop.right - minNormalisedSize)
+            1 -> crop.right = nx.coerceAtLeast(crop.left + minNormalisedSize)
         }
-        if (dragCornerY == 0) {
-            crop.top = ny.coerceAtMost(crop.bottom - minNormalisedSize)
-        } else {
-            crop.bottom = ny.coerceAtLeast(crop.top + minNormalisedSize)
+        when (dragCornerY) {
+            0 -> crop.top = ny.coerceAtMost(crop.bottom - minNormalisedSize)
+            1 -> crop.bottom = ny.coerceAtLeast(crop.top + minNormalisedSize)
         }
     }
 

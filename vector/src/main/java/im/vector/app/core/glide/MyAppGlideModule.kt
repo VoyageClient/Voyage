@@ -51,9 +51,10 @@ class MyAppGlideModule : AppGlideModule() {
     override fun isManifestParsingEnabled(): Boolean = false
 
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
+        // ByteBuffer, not InputStream — see ImageContentRendererDataLoaderFactory.
         registry.append(
                 ImageContentRenderer.Data::class.java,
-                InputStream::class.java,
+                ByteBuffer::class.java,
                 ImageContentRendererDataLoaderFactory(context)
         )
         registry.append(
@@ -62,6 +63,7 @@ class MyAppGlideModule : AppGlideModule() {
                 AvatarPlaceholderModelLoaderFactory(context)
         )
         registry.prepend(InputStream::class.java, Drawable::class.java, SvgDecoder())
+        registry.prepend(ByteBuffer::class.java, Drawable::class.java, SvgByteBufferDecoder())
         // APNG via penfeizhou — see AnimatedDrawableDecoder. Registered for both ByteBuffer (disk
         // cache) and InputStream (the timeline's custom data loader) so every source reaches
         // penfeizhou rather than Glide's bundled decoders, which miss some APNG headers and fall back

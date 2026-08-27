@@ -19,10 +19,12 @@ import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.resource.SimpleResource
+import com.bumptech.glide.util.ByteBufferUtil
 import com.caverock.androidsvg.SVG
 import com.caverock.androidsvg.SVGParseException
 import java.io.BufferedInputStream
 import java.io.InputStream
+import java.nio.ByteBuffer
 
 /**
  * Renders an SVG source into a picture-backed Drawable so it stays a vector. Glide hands the
@@ -35,51 +37,73 @@ internal class SvgDecoder : ResourceDecoder<InputStream, Drawable> {
 
     override fun handles(source: InputStream, options: Options): Boolean {
         if (!source.markSupported()) return false
-        source.mark(SNIFF_BYTES)
+        source.mark(SNIFF_MARK_BYTES)
         return try {
             val buf = ByteArray(SNIFF_BYTES)
             val read = source.read(buf)
-            if (read <= 0) return false
-            val head = String(buf, 0, read, Charsets.US_ASCII).trimStart()
-            head.startsWith("<?xml") && head.contains("<svg", ignoreCase = true) ||
-                    head.startsWith("<svg", ignoreCase = true) ||
-                    head.startsWith("<!DOCTYPE svg", ignoreCase = true)
+            looksLikeSvg(buf, read)
         } finally {
             source.reset()
         }
     }
 
     override fun decode(source: InputStream, width: Int, height: Int, options: Options): Resource<Drawable>? {
-        val svg = try {
-            SVG.getFromInputStream(BufferedInputStream(source))
-        } catch (e: SVGParseException) {
-            return null
-        }
-
-        val (intrinsicW, intrinsicH) = intrinsicSize(svg)
-        // Record the picture at the SVG's intrinsic dimensions so the drawable reports those
-        // as its intrinsic size (FIT_CENTER on PhotoView then fits-with-aspect into the view).
-        // The picture itself is resolution-independent — replaying it through the canvas's
-        // transform at zoom time produces crisp output at any scale.
-        svg.documentWidth = intrinsicW.toFloat()
-        svg.documentHeight = intrinsicH.toFloat()
-        val picture = svg.renderToPicture(intrinsicW, intrinsicH)
-        return SimpleResource(ScaledPictureDrawable(picture))
-    }
-
-    private fun intrinsicSize(svg: SVG): Pair<Int, Int> {
-        val docW = svg.documentWidth.takeIf { it > 0 }
-        val docH = svg.documentHeight.takeIf { it > 0 }
-        val viewBox = svg.documentViewBox
-        val w = (docW ?: viewBox?.width()?.takeIf { it > 0 } ?: DEFAULT_SIZE.toFloat()).toInt().coerceAtLeast(1)
-        val h = (docH ?: viewBox?.height()?.takeIf { it > 0 } ?: DEFAULT_SIZE.toFloat()).toInt().coerceAtLeast(1)
-        return w to h
+        return decodeSvg(BufferedInputStream(source))
     }
 
     companion object {
-        private const val SNIFF_BYTES = 256
-        private const val DEFAULT_SIZE = 512
+        internal const val SNIFF_BYTES = 256
+        internal const val DEFAULT_SIZE = 512
+
+        internal fun looksLikeSvg(buf: ByteArray, read: Int): Boolean {
+            if (read <= 0) return false
+            val head = String(buf, 0, minOf(read, SNIFF_BYTES), Charsets.US_ASCII).trimStart()
+            return head.startsWith("<?xml") && head.contains("<svg", ignoreCase = true) ||
+                    head.startsWith("<svg", ignoreCase = true) ||
+                    head.startsWith("<!DOCTYPE svg", ignoreCase = true)
+        }
     }
+}
+
+internal class SvgByteBufferDecoder : ResourceDecoder<ByteBuffer, Drawable> {
+
+    override fun handles(source: ByteBuffer, options: Options): Boolean {
+        val peek = source.duplicate()
+        val buf = ByteArray(minOf(peek.remaining(), SvgDecoder.SNIFF_BYTES))
+        peek.get(buf)
+        return SvgDecoder.looksLikeSvg(buf, buf.size)
+    }
+
+    override fun decode(source: ByteBuffer, width: Int, height: Int, options: Options): Resource<Drawable>? {
+        return decodeSvg(ByteBufferUtil.toStream(source))
+    }
+}
+
+private fun decodeSvg(source: InputStream): Resource<Drawable>? {
+    val svg = try {
+        SVG.getFromInputStream(source)
+    } catch (e: SVGParseException) {
+        return null
+    }
+
+    val (intrinsicW, intrinsicH) = intrinsicSize(svg)
+    // Record the picture at the SVG's intrinsic dimensions so the drawable reports those
+    // as its intrinsic size (FIT_CENTER on PhotoView then fits-with-aspect into the view).
+    // The picture itself is resolution-independent — replaying it through the canvas's
+    // transform at zoom time produces crisp output at any scale.
+    svg.documentWidth = intrinsicW.toFloat()
+    svg.documentHeight = intrinsicH.toFloat()
+    val picture = svg.renderToPicture(intrinsicW, intrinsicH)
+    return SimpleResource(ScaledPictureDrawable(picture))
+}
+
+private fun intrinsicSize(svg: SVG): Pair<Int, Int> {
+    val docW = svg.documentWidth.takeIf { it > 0 }
+    val docH = svg.documentHeight.takeIf { it > 0 }
+    val viewBox = svg.documentViewBox
+    val w = (docW ?: viewBox?.width()?.takeIf { it > 0 } ?: SvgDecoder.DEFAULT_SIZE.toFloat()).toInt().coerceAtLeast(1)
+    val h = (docH ?: viewBox?.height()?.takeIf { it > 0 } ?: SvgDecoder.DEFAULT_SIZE.toFloat()).toInt().coerceAtLeast(1)
+    return w to h
 }
 
 /**

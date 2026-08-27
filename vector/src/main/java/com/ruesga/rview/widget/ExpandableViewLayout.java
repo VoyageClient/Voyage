@@ -43,6 +43,7 @@ public class ExpandableViewLayout extends FrameLayout {
     private boolean mAllowExpand;
     private View mExpandableControl;
     private int mChildViewHeight;
+    private boolean mFadeShown;
     private Paint mFadePaint;
     private int mFadeShaderHeight;
 
@@ -91,6 +92,10 @@ public class ExpandableViewLayout extends FrameLayout {
                 setExpandableControlVisibility();
                 requestLayout();
             });
+        } else {
+            // A non-clickable control is only a fade-height marker; keeping it out of layout means
+            // measure-time state changes never call requestLayout(), which looped the layout pass.
+            mExpandableControl.setVisibility(View.GONE);
         }
     }
 
@@ -118,8 +123,14 @@ public class ExpandableViewLayout extends FrameLayout {
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
-        final int fadeHeight = mExpandableControl.getVisibility() == View.VISIBLE
-                ? mExpandableControl.getHeight() : 0;
+        final int fadeHeight;
+        if (!mFadeShown) {
+            fadeHeight = 0;
+        } else if (mAllowExpand) {
+            fadeHeight = mExpandableControl.getHeight();
+        } else {
+            fadeHeight = mExpandableControl.getLayoutParams().height;
+        }
         if (fadeHeight <= 0) {
             super.dispatchDraw(canvas);
             return;
@@ -147,7 +158,13 @@ public class ExpandableViewLayout extends FrameLayout {
 
     private void setExpandableControlVisibility() {
         final boolean expanded = mExpanded || mMaxHeight == 0 || mMaxHeight > mChildViewHeight;
-        mExpandableControl.setVisibility(expanded ? View.GONE : View.VISIBLE);
+        if (mFadeShown == !expanded) return;
+        mFadeShown = !expanded;
+        if (mAllowExpand) {
+            mExpandableControl.setVisibility(expanded ? View.GONE : View.VISIBLE);
+        } else {
+            invalidate();
+        }
     }
 
     @Override

@@ -109,6 +109,7 @@ import org.matrix.android.sdk.api.session.terms.TermsService
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
+import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -530,17 +531,19 @@ class DefaultNavigator @Inject constructor(
         }
     }
 
-    private var sceneTransitionPending = false
+    private var sceneTransitionOwner: WeakReference<Activity>? = null
 
     /**
      * A second scene transition started before the first one returns never restores its shared views —
      * on the uploads screen the app bar carrying the room name and the Media/Files tabs then stays
-     * invisible for good. Refuse further launches until the source activity is back on screen.
+     * invisible for good. Refuse further launches from that activity until it is back on screen.
+     * Keyed to the launching activity, not global: a claimant parked in the back stack (the
+     * viewer's forward flow) would otherwise swallow media taps everywhere.
      */
     private fun claimSceneTransition(activity: Activity): Boolean {
-        if (sceneTransitionPending) return false
+        if (sceneTransitionOwner?.get() === activity) return false
         val lifecycle = (activity as? LifecycleOwner)?.lifecycle ?: return true
-        sceneTransitionPending = true
+        sceneTransitionOwner = WeakReference(activity)
         lifecycle.addObserver(object : LifecycleEventObserver {
             // The observer is registered while the activity is still resumed, so wait for it to leave.
             private var left = false
@@ -555,7 +558,7 @@ class DefaultNavigator @Inject constructor(
             }
 
             private fun release(source: LifecycleOwner) {
-                sceneTransitionPending = false
+                if (sceneTransitionOwner?.get() === source) sceneTransitionOwner = null
                 source.lifecycle.removeObserver(this)
             }
         })

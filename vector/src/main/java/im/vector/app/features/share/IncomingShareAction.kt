@@ -12,7 +12,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
 sealed class IncomingShareAction : VectorViewModelAction {
     data class SelectRoom(val roomSummary: RoomSummary) : IncomingShareAction()
-    object ShareToSelectedRooms : IncomingShareAction()
+    data class ShareToSelectedRooms(val stripForwardedInfo: Boolean = false) : IncomingShareAction()
     data class ShareToRoom(val roomId: String) : IncomingShareAction()
     data class ShareMedia(val keepOriginalSize: Boolean) : IncomingShareAction()
     data class FilterWith(val filter: String) : IncomingShareAction()

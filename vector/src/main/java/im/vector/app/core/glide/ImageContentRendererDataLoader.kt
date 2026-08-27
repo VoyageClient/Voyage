@@ -16,6 +16,7 @@ import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.signature.ObjectKey
+import com.bumptech.glide.util.ByteBufferUtil
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.features.media.ImageContentRenderer
@@ -25,14 +26,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
-import java.io.BufferedInputStream
 import java.io.IOException
-import java.io.InputStream
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
-class ImageContentRendererDataLoaderFactory(private val context: Context) : ModelLoaderFactory<ImageContentRenderer.Data, InputStream> {
+// Delivers ByteBuffer, not InputStream: Glide caps InputStream rewinds at 5MB, and its orientation
+// probe consumes the whole source — any image over 5MB would fail every decode path with
+// InvalidMarkException. A ByteBuffer rewinds by re-wrapping, with no size limit.
+class ImageContentRendererDataLoaderFactory(private val context: Context) : ModelLoaderFactory<ImageContentRenderer.Data, ByteBuffer> {
 
-    override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<ImageContentRenderer.Data, InputStream> {
+    override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<ImageContentRenderer.Data, ByteBuffer> {
         return ImageContentRendererDataLoader(context)
     }
 
@@ -42,13 +45,13 @@ class ImageContentRendererDataLoaderFactory(private val context: Context) : Mode
 }
 
 class ImageContentRendererDataLoader(private val context: Context) :
-        ModelLoader<ImageContentRenderer.Data, InputStream> {
+        ModelLoader<ImageContentRenderer.Data, ByteBuffer> {
     override fun handles(model: ImageContentRenderer.Data): Boolean {
         // Always handle
         return true
     }
 
-    override fun buildLoadData(model: ImageContentRenderer.Data, width: Int, height: Int, options: Options): ModelLoader.LoadData<InputStream>? {
+    override fun buildLoadData(model: ImageContentRenderer.Data, width: Int, height: Int, options: Options): ModelLoader.LoadData<ByteBuffer>? {
         return ModelLoader.LoadData(ObjectKey(model), ImageContentRendererDataFetcher(context, model, width, height))
     }
 }
@@ -59,16 +62,15 @@ class ImageContentRendererDataFetcher(
         private val width: Int,
         private val height: Int
 ) :
-        DataFetcher<InputStream> {
+        DataFetcher<ByteBuffer> {
 
     private val localFilesHelper = LocalFilesHelper(context)
     private val activeSessionHolder = context.singletonEntryPoint().activeSessionHolder()
 
-    override fun getDataClass(): Class<InputStream> {
-        return InputStream::class.java
+    override fun getDataClass(): Class<ByteBuffer> {
+        return ByteBuffer::class.java
     }
 
-    private var stream: InputStream? = null
     private val delivered = AtomicBoolean(false)
 
     override fun cleanup() {
@@ -81,41 +83,25 @@ class ImageContentRendererDataFetcher(
     }
 
     override fun cancel() {
-        if (stream != null) {
-            try {
-                // This is often called on main thread, and this could be a network Stream..
-                // on close will throw android.os.NetworkOnMainThreadException, so we catch throwable
-                stream?.close() // interrupts decode if any
-                stream = null
-            } catch (ignore: Throwable) {
-                Timber.e("Failed to close stream ${ignore.localizedMessage}")
-            } finally {
-                stream = null
-            }
-        }
     }
 
-    override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
+    override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in ByteBuffer>) {
         val isLocal = localFilesHelper.isLocalFile(data.url)
         Timber.i("MEDIADBG fetcher start url=${data.url} local=$isLocal event=${data.eventId} thread=${Thread.currentThread().name}")
         if (isLocal) {
-            // Wrap so the stream supports mark/reset — content-URI input streams typically don't,
-            // and Glide's animated decoders skip non-markable sources.
-            val stream = try {
-                localFilesHelper.openInputStream(data.url)?.let(::BufferedInputStream)
+            val buffer = try {
+                localFilesHelper.openInputStream(data.url)?.use { ByteBuffer.wrap(it.readBytes()) }
             } catch (throwable: Throwable) {
                 Timber.w(throwable, "MEDIADBG fetcher local open failed url=${data.url}")
                 null
             }
-            if (stream == null) {
+            if (buffer == null) {
                 // Glide waits forever on a fetcher that answers with neither callback.
                 Timber.w("MEDIADBG fetcher local stream unavailable url=${data.url}")
                 callback.onLoadFailed(IOException("Cannot open local file ${data.url}"))
             } else {
-                stream.use {
-                    callback.onDataReady(it)
-                    Timber.i("MEDIADBG fetcher local done url=${data.url}")
-                }
+                callback.onDataReady(buffer)
+                Timber.i("MEDIADBG fetcher local done url=${data.url}")
             }
             return
         }
@@ -144,10 +130,12 @@ class ImageContentRendererDataFetcher(
                 }
             }
             Timber.i("MEDIADBG fetcher download settled url=${data.url} ok=${result.isSuccess}")
+            // Mapped, not read: decodes touch only what they sample.
+            val buffered = result.mapCatching { ByteBufferUtil.fromFile(it) }
             withContext(Dispatchers.Main) {
                 if (delivered.getAndSet(true)) return@withContext
-                result.fold(
-                        { callback.onDataReady(BufferedInputStream(it.inputStream())) },
+                buffered.fold(
+                        { callback.onDataReady(it) },
                         // Failure is a Throwable, not an Exception, so it never survives the cast —
                         // keep it as the cause or the HTTP status is lost before anything can read it.
                         { callback.onLoadFailed(it as? Exception ?: IOException(it.localizedMessage, it)) }

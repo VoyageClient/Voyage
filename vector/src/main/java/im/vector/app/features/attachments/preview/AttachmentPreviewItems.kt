@@ -67,14 +67,20 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                 // hand Glide that hint. The low-res thumbnail request paints first — a scaled
                 // frame extract is much faster than the full-size one, which can take a second
                 // of black screen on a large clip.
+                val uri = attachment.queryUriAndroid
+                // Backgrounding trims the Glide memory cache, so a rebind re-extracts the frame;
+                // keep the clip's current poster up instead of clearing to black meanwhile.
+                val currentPoster = holder.imageView.drawable.takeIf { holder.imageView.tag == uri }
+                holder.imageView.tag = uri
                 Glide.with(holder.view.context)
                         .asBitmap()
-                        .load(attachment.queryUriAndroid)
+                        .load(uri)
                         .apply(RequestOptions().frame(0))
+                        .placeholder(currentPoster)
                         .thumbnail(
                                 Glide.with(holder.view.context)
                                         .asBitmap()
-                                        .load(attachment.queryUriAndroid)
+                                        .load(uri)
                                         .apply(RequestOptions().frame(0).override(240))
                         )
                         .into(holder.imageView)
@@ -660,8 +666,20 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             mediaPlayer?.let {
                 resumePositionMs = runCatching { it.currentPosition }.getOrDefault(0)
                 resumeWasPlaying = it.isPlayingSafe()
+                capturePosterFromVideo()
             }
             releasePlayer()
+        }
+
+        /** Makes the on-screen frame the poster, so teardown gaps show the paused video, not black. */
+        private fun capturePosterFromVideo() {
+            val uri = videoUri ?: return
+            if (!videoView.isAvailable || videoView.alpha != 1f) return
+            if (videoWidth <= 0 || videoHeight <= 0) return
+            // The no-arg getBitmap() stretches the buffer to the view's bounds, ignoring aspect.
+            val frame = runCatching { videoView.getBitmap(videoWidth, videoHeight) }.getOrNull() ?: return
+            bigImageView.setImageBitmap(frame)
+            bigImageView.tag = uri
         }
 
         fun resumePlaybackIfNeeded() {
@@ -692,6 +710,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                         resumePositionMs = runCatching { it.currentPosition }.getOrDefault(0)
                         resumeWasPlaying = it.isPlayingSafe()
                     }
+                    capturePosterFromVideo()
                     releasePlayer()
                     surface?.release()
                     surface = null
@@ -720,6 +739,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             val activeSurface = surface
             if (videoUri != null && activeSurface == null) return
             releasePlayer()
+            // A rebind lays the poster back over the video and only surface-destroyed re-arms the
+            // reveal — a quick trip through another activity can keep the surface alive, so arm here.
+            if (videoUri != null && bigImageView.isVisible) waitingForFirstFrame = true
             try {
                 mediaPlayer = MediaPlayer().apply {
                     activeSurface?.let { setSurface(it) }

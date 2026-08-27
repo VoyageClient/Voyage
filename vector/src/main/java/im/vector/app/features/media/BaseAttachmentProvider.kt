@@ -43,6 +43,9 @@ abstract class BaseAttachmentProvider<Type>(
 
     var interactionListener: AttachmentInteractionListener? = null
 
+    /** Notified when an image page's load settles (ready or failed), with the attachment uid. */
+    var imageSettledListener: ((uid: String) -> Unit)? = null
+
     // Off where the attachment stands on its own — an avatar or banner preview, a search hit —
     // and a "1 of 1" counter over the message it came from is just noise.
     var showOverlayInfo = true
@@ -107,6 +110,7 @@ abstract class BaseAttachmentProvider<Type>(
             imageContentRenderer.render(it, target.contextView(), object : CustomViewTarget<ImageView, Drawable>(target.contextView()) {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
                     target.onLoadFailed(info.uid, errorDrawable)
+                    imageSettledListener?.invoke(info.uid)
                 }
 
                 override fun onResourceCleared(placeholder: Drawable?) {
@@ -118,6 +122,7 @@ abstract class BaseAttachmentProvider<Type>(
 
                 override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
                     target.onResourceReady(info.uid, resource)
+                    imageSettledListener?.invoke(info.uid)
                 }
             })
         }
@@ -128,6 +133,7 @@ abstract class BaseAttachmentProvider<Type>(
             imageContentRenderer.render(it, target.contextView(), object : CustomViewTarget<ImageView, Drawable>(target.contextView()) {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
                     target.onLoadFailed(info.uid, errorDrawable)
+                    imageSettledListener?.invoke(info.uid)
                 }
 
                 override fun onResourceCleared(placeholder: Drawable?) {
@@ -139,6 +145,7 @@ abstract class BaseAttachmentProvider<Type>(
 
                 override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
                     target.onResourceReady(info.uid, resource)
+                    imageSettledListener?.invoke(info.uid)
                 }
             })
         }

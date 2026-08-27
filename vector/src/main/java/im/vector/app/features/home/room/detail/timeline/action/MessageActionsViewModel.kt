@@ -69,6 +69,7 @@ import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
@@ -552,7 +553,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                         ?: timelineEvent.root.getClearContent().orEmpty()
                 @Suppress("UNCHECKED_CAST")
                 val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
-                        timelineEvent.toForwardedInfoContent()
+                        timelineEvent.forwardedInfoUnlessDm()
                 add(
                         EventSharedAction.Forward(
                                 eventId = timelineEvent.eventId,
@@ -636,7 +637,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         add(EventSharedAction.Save(timelineEvent.eventId, item))
         add(EventSharedAction.Share(timelineEvent.eventId, item))
         val itemContent = item.toAttachmentContentDict() ?: return
-        val forwardContent = (coerceWholeDoublesToLongs(itemContent) as Map<String, Any?>) + timelineEvent.toForwardedInfoContent()
+        val forwardContent = (coerceWholeDoublesToLongs(itemContent) as Map<String, Any?>) + timelineEvent.forwardedInfoUnlessDm()
         add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, forwardContent))
     }
 
@@ -827,6 +828,10 @@ class MessageActionsViewModel @AssistedInject constructor(
         is List<*> -> value.map { coerceWholeDoublesToLongs(it) }
         else -> value
     }
+
+    // A DM's room id and sender are private to its members; a forwarded copy must not carry them.
+    private fun TimelineEvent.forwardedInfoUnlessDm(): Map<String, Any> =
+            if (session.getRoomSummary(roomId)?.isDirect == true) emptyMap() else toForwardedInfoContent()
 
     private fun canForward(event: TimelineEvent, msgType: String?): Boolean {
         if (event.root.getClearType() == EventType.STICKER) return true

@@ -72,7 +72,7 @@ internal class AnimatedStreamDrawableDecoder(
 
     override fun handles(source: InputStream, options: Options): Boolean {
         if (!source.markSupported()) return false
-        source.mark(SNIFF_BYTES)
+        source.mark(SNIFF_MARK_BYTES)
         return try {
             val buf = ByteArray(SNIFF_BYTES)
             var read = 0
