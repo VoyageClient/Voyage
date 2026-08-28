@@ -45,10 +45,32 @@ internal class UrlsExtractor @Inject constructor(
 
     fun extract(text: String): List<String> {
         return urlRegex.findAll(text)
-                .map { it.value }
+                .map { text.substring(it.range.first, balanceParens(text, it.range.first, it.range.last + 1)) }
                 .filter { it.startsWith("https://") || it.startsWith("http://") }
                 .distinct()
                 .toList()
+    }
+
+    // The pattern stops before a trailing ')' unless the url ends the text, truncating urls with a
+    // bracketed path; a url wrapped in brackets needs the opposite trim.
+    private fun balanceParens(text: String, start: Int, end: Int): Int {
+        var depth = 0
+        for (i in start until end) {
+            when (text[i]) {
+                '(' -> depth++
+                ')' -> depth--
+            }
+        }
+        var balancedEnd = end
+        while (depth > 0 && balancedEnd < text.length && text[balancedEnd] == ')') {
+            balancedEnd++
+            depth--
+        }
+        while (depth < 0 && balancedEnd > start && text[balancedEnd - 1] == ')') {
+            balancedEnd--
+            depth++
+        }
+        return balancedEnd
     }
 
     companion object {
