@@ -16,20 +16,22 @@
 
 package org.matrix.android.sdk.internal.session.sync
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
 
 @SessionScope
-internal class SyncRequestStateTracker @Inject constructor(
-        private val coroutineScope: CoroutineScope
-) : ProgressReporter {
+internal class SyncRequestStateTracker @Inject constructor() : ProgressReporter {
 
-    val syncRequestState = MutableSharedFlow<SyncRequestState>()
+    // Buffered, and emitted from the caller's thread: emitting into a rendezvous flow from launched
+    // coroutines delivers progress out of order, stranding the overlay on a step the sync is past.
+    val syncRequestState = MutableSharedFlow<SyncRequestState>(
+            extraBufferCapacity = 64,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
     private var rootTask: TaskInfo? = null
 
@@ -102,8 +104,6 @@ internal class SyncRequestStateTracker @Inject constructor(
     }
 
     private fun emitSyncState(state: SyncRequestState) {
-        coroutineScope.launch {
-            syncRequestState.emit(state)
-        }
+        syncRequestState.tryEmit(state)
     }
 }

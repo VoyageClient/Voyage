@@ -84,43 +84,45 @@ internal class SyncResponseHandler @Inject constructor(
         val aggregator = SyncResponsePostTreatmentAggregator()
 
         relevantPlugins.filter { it.shouldReport(isInitialSync, afterPause) }.measureSpannableMetric {
-            startCryptoService(isInitialSync)
+            reportSubtask(reporter, InitialSyncStep.ImportingAccountCrypto, 1, 0.1f) {
+                startCryptoService(isInitialSync)
 
-            // Handle the to device events before the room ones
-            // to ensure to decrypt them properly
-            handleToDevice(syncResponse, isInitialSync)
+                // Handle the to device events before the room ones
+                // to ensure to decrypt them properly
+                handleToDevice(syncResponse, isInitialSync)
 
-            val syncLocalTimestampMillis = clock.epochMillis()
+                val syncLocalTimestampMillis = clock.epochMillis()
 
-            // pass live state/crypto related event to crypto
+                // pass live state/crypto related event to crypto
 
-            measureSpan("task", "crypto_session_event_handling") {
-                syncResponse.rooms?.invite?.entries?.map { (roomId, roomSync) ->
-                    roomSync.inviteState
-                            ?.events
-                            ?.filter { it.isStateEvent() }
-                            ?.forEach {
-                                cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator)
+                measureSpan("task", "crypto_session_event_handling") {
+                    syncResponse.rooms?.invite?.entries?.map { (roomId, roomSync) ->
+                        roomSync.inviteState
+                                ?.events
+                                ?.filter { it.isStateEvent() }
+                                ?.forEach {
+                                    cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator)
+                                }
+                    }
+
+                    syncResponse.rooms?.join?.entries?.map { (roomId, roomSync) ->
+                        // MSC4222 replaces `state` with `state_after`; crypto still needs to see
+                        // m.room.encryption either way or the room isn't recognised as encrypted.
+                        val isGappySync = roomSync.timeline?.limited.orFalse()
+                        (roomSync.stateAfter ?: roomSync.state)
+                                ?.events
+                                ?.filter { it.isStateEvent() }
+                                ?.forEach {
+                                    cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator, isGappySync)
+                                }
+
+                        roomSync.timeline?.events?.forEach {
+                            if (it.isEncrypted() && !isInitialSync) {
+                                decryptIfNeeded(it, roomId)
                             }
-                }
-
-                syncResponse.rooms?.join?.entries?.map { (roomId, roomSync) ->
-                    // MSC4222 replaces `state` with `state_after`; crypto still needs to see
-                    // m.room.encryption either way or the room isn't recognised as encrypted.
-                    val isGappySync = roomSync.timeline?.limited.orFalse()
-                    (roomSync.stateAfter ?: roomSync.state)
-                            ?.events
-                            ?.filter { it.isStateEvent() }
-                            ?.forEach {
-                                cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator, isGappySync)
-                            }
-
-                    roomSync.timeline?.events?.forEach {
-                        if (it.isEncrypted() && !isInitialSync) {
-                            decryptIfNeeded(it, roomId)
+                            it.ageLocalTs = syncLocalTimestampMillis - (it.unsignedData?.age ?: 0)
+                            cryptoService.onLiveEvent(roomId, it, isInitialSync, aggregator.cryptoStoreAggregator)
                         }
-                        it.ageLocalTs = syncLocalTimestampMillis - (it.unsignedData?.age ?: 0)
-                        cryptoService.onLiveEvent(roomId, it, isInitialSync, aggregator.cryptoStoreAggregator)
                     }
                 }
             }

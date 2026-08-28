@@ -8,6 +8,10 @@
 package org.matrix.android.sdk.internal.session.sync.sliding
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.logger.LoggerTag
@@ -28,10 +32,12 @@ import org.matrix.android.sdk.internal.session.sync.SyncRequestStateTracker
 import org.matrix.android.sdk.internal.session.sync.SyncResponseHandler
 import org.matrix.android.sdk.internal.session.sync.SyncTask
 import org.matrix.android.sdk.internal.session.sync.SyncTokenStore
+import org.matrix.android.sdk.internal.session.sync.reportSubtask
 import org.matrix.android.sdk.internal.session.user.UserStore
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.math.exp
 
 private val loggerTag = LoggerTag("SlidingSyncTask", LoggerTag.SYNC)
 
@@ -100,31 +106,47 @@ internal class SlidingSyncTask @Inject constructor(
             syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncIdle)
         }
 
+        val initialSyncReporter = syncRequestStateTracker.takeIf { isInitialSync }
+
         // One response per call, rather than looping until the account is covered: the sync thread treats
         // this method returning as "the sync finished", and holding it open for the whole fill leaves the
         // spinner up, the thread unable to pause when the app is backgrounded, and every other database
         // user queued behind an unbroken run of writes. Coverage continues on the next call instead.
         val timeout = if (coverageIncomplete) 0L else params.timeout
         val requestedAt = clock.epochMillis()
-        val slidingResponse = executeSync(mode, pos, timeout, params.presence)
+        val slidingResponse = if (isInitialSync) {
+            reportSubtask(initialSyncReporter, InitialSyncStep.ServerComputing, WAIT_PROGRESS_STEPS, 0.3f) {
+                whileWaitingForServer { executeSync(mode, pos, timeout, params.presence) }
+            }
+        } else {
+            executeSync(mode, pos, timeout, params.presence)
+        }
         logResponse(mode, slidingResponse, clock.epochMillis() - requestedAt)
         val syncResponse = translator.toSyncResponse(slidingResponse)
         // An expired connection is dropped inside executeSync, which clears the stored pos; re-reading it is
         // how this call learns the response is a fresh connection and not a delta.
         val fromToken = syncTokenStore.getSlidingSyncPos()
 
-        val owesSpaceValidation = syncResponseHandler.handleResponse(
-                syncResponse = syncResponse,
-                fromToken = fromToken,
-                afterPause = params.afterPause,
-                reporter = if (isInitialSync) syncRequestStateTracker else null,
-                // The pos is not a v2 since-token; storing it in that slot would corrupt a later fallback to
-                // sync v2. It is persisted separately below.
-                persistToken = false,
-                // Revalidating the space graph costs ~2s and every response of a fill brings new rooms, so
-                // doing it each time would spend most of a first sync on it. Run it once the fill settles.
-                deferSpaceValidation = true,
-        )
+        val owesSpaceValidation = reportSubtask(
+                reporter = initialSyncReporter,
+                initialSyncStep = InitialSyncStep.ImportingAccount,
+                totalProgress = 1,
+                parentWeight = 0.7f
+        ) {
+            syncResponseHandler.handleResponse(
+                    syncResponse = syncResponse,
+                    fromToken = fromToken,
+                    afterPause = params.afterPause,
+                    reporter = initialSyncReporter,
+                    // The pos is not a v2 since-token; storing it in that slot would corrupt a later fallback
+                    // to sync v2. It is persisted separately below.
+                    persistToken = false,
+                    // Revalidating the space graph costs ~2s and every response of a fill brings new rooms,
+                    // so doing it each time would spend most of a first sync on it. Run it once the fill
+                    // settles.
+                    deferSpaceValidation = true,
+            )
+        }
 
         syncTokenStore.setSlidingSyncPos(slidingResponse.pos)
         slidingResponse.extensions?.toDevice?.nextBatch?.let { syncTokenStore.setSlidingSyncToDeviceSince(it) }
@@ -158,6 +180,25 @@ internal class SlidingSyncTask @Inject constructor(
             syncResponseHandler.validateSpaceHierarchy()
         }
         return syncResponse
+    }
+
+    // One opaque call, so there is no real sub-progress to report — but a bar frozen at zero for the
+    // longest phase of a first sync reads as a hang. Creep towards, never reaching, the end of the phase.
+    private suspend fun <T> whileWaitingForServer(block: suspend () -> T): T = coroutineScope {
+        val ticker = launch {
+            var elapsedMs = 0L
+            while (isActive) {
+                delay(WAIT_PROGRESS_TICK_MS)
+                elapsedMs += WAIT_PROGRESS_TICK_MS
+                val ratio = 1f - exp(-elapsedMs.toFloat() / WAIT_PROGRESS_TIME_CONSTANT_MS)
+                syncRequestStateTracker.reportProgress(ratio * WAIT_PROGRESS_STEPS)
+            }
+        }
+        try {
+            block()
+        } finally {
+            ticker.cancel()
+        }
     }
 
     private fun logResponse(mode: SlidingSyncMode, response: SlidingSyncResponse, durationMs: Long) {
@@ -307,6 +348,10 @@ internal class SlidingSyncTask @Inject constructor(
         private const val RANGE_STEP = 12
 
         private const val PAGE_SIZE = 100
+
+        private const val WAIT_PROGRESS_STEPS = 100
+        private const val WAIT_PROGRESS_TICK_MS = 200L
+        private const val WAIT_PROGRESS_TIME_CONSTANT_MS = 6_000f
 
         // What a room already known to the connection may deliver per response.
         private const val TIMELINE_LIMIT = 20
