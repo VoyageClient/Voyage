@@ -192,7 +192,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
             }
             MatrixPerf.time("sync.room.timelineEvents n=${timelineEvents.size}") {
                 handleTimelineEvents(
-                        stores, roomId, timelineEvents, timeline.prevToken, timeline.limited, insertType, syncTs,
+                        stores, roomId, timelineEvents, timeline.prevToken, timeline.limited, insertType, syncTs, aggregator,
                         // Rejoining over a retained removed timeline: the old live chunk must not
                         // absorb the join batch — its token span would swallow the unfetched removal
                         // gap, and /context islands for gap events would then interleave against the
@@ -258,6 +258,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
             val stateKey = event.stateKey
             val type = event.type
             if (stateKey == null || type == null) return@forEach
+            if (type in SPACE_RELATION_TYPES) aggregator.spaceHierarchyChanged = true
             if (eventId == null) {
                 // MSC4186 reports state that no longer applies as a bare {type, state_key} stub. Sync v2
                 // never sends an event without an id, so this cannot fire on that path.
@@ -385,7 +386,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 // server on demand — but a ban revokes all history access, so replacing would
                 // destroy cached history for good. Append instead; the gap's middle is lost either way.
                 val limited = timeline.limited && removalMembership != Membership.BAN
-                handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, limited, insertType, syncTs)
+                handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, limited, insertType, syncTs, aggregator)
                 // A ban's leave sync is stripped down to the ban itself, so a fuller batch delivered later
                 // is *older* than the chunk already holds and appending it strands the ban at the top.
                 stores.chunk.lastForward(roomId)?.id?.let { stores.timelineEvent.resequenceChunkByTimestamp(it) }
@@ -433,6 +434,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
     private fun handleTimelineEvents(
             stores: SessionStores, roomId: String, eventList: List<Event>,
             prevToken: String?, isLimited: Boolean, insertType: EventInsertType, syncTs: Long,
+            aggregator: SyncResponsePostTreatmentAggregator,
             forceNewChunk: Boolean = false,
             absorbOnOverlap: Boolean = true,
     ) {
@@ -478,6 +480,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
             val stateKey = event.stateKey
             if (stateKey != null) {
                 stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
+                if (type in SPACE_RELATION_TYPES) aggregator.spaceHierarchyChanged = true
                 if (type == EventType.STATE_ROOM_MEMBER) {
                     roomMemberContentsByUser[stateKey] = event.getFixedRoomMemberContent()
                     roomMemberEventIdsByUser[stateKey] = eventId
@@ -602,5 +605,11 @@ internal class SqlRoomSyncHandler @Inject constructor(
         stores.chunk.getByRoom(roomId).forEach { stores.timelineEvent.deleteByChunk(it.id) }
         stores.chunk.deleteByRoom(roomId)
         Timber.v("Cleared timeline for $roomId")
+    }
+
+    companion object {
+        // Adding or removing a space child/parent reshapes the graph the room list filters on, so the
+        // flattened parent ids have to be recomputed after this sync.
+        private val SPACE_RELATION_TYPES = setOf(EventType.STATE_SPACE_CHILD, EventType.STATE_SPACE_PARENT)
     }
 }

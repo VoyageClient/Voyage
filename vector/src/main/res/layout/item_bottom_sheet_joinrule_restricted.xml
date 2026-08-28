@@ -48,11 +48,12 @@
     <TextView
         android:id="@+id/actionDescription"
         style="@style/Widget.Vector.TextView.Body"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text="@string/allow_space_member_to_find_and_access"
         android:textColor="?vctr_content_secondary"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/actionTitle"
         app:layout_constraintTop_toBottomOf="@id/actionTitle"
         app:layout_goneMarginTop="0dp" />
@@ -74,13 +75,14 @@
     <TextView
         android:id="@+id/listTitle"
         style="@style/Widget.Vector.TextView.Body.Medium"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text="@string/spaces_which_can_access"
         android:textAllCaps="true"
         android:textColor="?vctr_content_secondary"
         android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/actionTitle"
         app:layout_constraintTop_toBottomOf="@id/upgradeRequiredButton"
         app:layout_goneMarginTop="8dp" />
@@ -179,11 +181,12 @@
     <TextView
         android:id="@+id/helperText"
         style="@style/Widget.Vector.TextView.Body.Medium"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text="@string/tap_to_edit_spaces"
         android:textColor="?vctr_content_secondary"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/actionTitle"
         app:layout_constraintTop_toBottomOf="@id/spacesFlow"
         app:layout_goneMarginTop="0dp" />

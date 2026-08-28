@@ -21,15 +21,15 @@ data class CreateRoomViewState(
         val roomJoinRules: RoomJoinRules = RoomJoinRules.INVITE,
         val isEncrypted: Boolean? = null,
         val defaultEncrypted: Map<RoomJoinRules, Boolean> = emptyMap(),
-        val showAdvanced: Boolean = false,
-        val disableFederation: Boolean = false,
-        val roomVersion: String? = null,
-        val defaultRoomVersion: String? = null,
-        val availableRoomVersions: List<String> = emptyList(),
-        val myPowerLevelOverride: Int? = null,
-        val isDeveloperMode: Boolean = false,
-        val initialStateJson: String = "",
-        val initialStateJsonInvalid: Boolean = false,
+        override val showAdvanced: Boolean = false,
+        override val disableFederation: Boolean = false,
+        override val roomVersion: String? = null,
+        override val defaultRoomVersion: String? = null,
+        override val availableRoomVersions: List<String> = emptyList(),
+        override val myPowerLevelOverride: Int? = null,
+        override val isDeveloperMode: Boolean = false,
+        override val initialStateJson: String = "",
+        override val initialStateJsonInvalid: Boolean = false,
         val homeServerName: String = "",
         val hsAdminHasDisabledE2E: Boolean = false,
         val asyncCreateRoomRequest: Async<String> = Uninitialized,
@@ -40,7 +40,7 @@ data class CreateRoomViewState(
         val aliasLocalPart: String? = null,
         val isSubSpace: Boolean = false,
         val openAfterCreate: Boolean = true
-) : MavericksState {
+) : MavericksState, AdvancedRoomOptions {
 
     constructor(args: CreateRoomArgs) : this(
             roomName = args.initialName,
@@ -48,13 +48,6 @@ data class CreateRoomViewState(
             isSubSpace = args.isSpace,
             openAfterCreate = args.openAfterCreate
     )
-
-    /**
-     * From room version 12, creators are immutable owners with implicit infinite power and cannot be listed
-     * in m.room.power_levels, so overriding your own power level is not possible.
-     */
-    val canOverrideOwnPowerLevel: Boolean
-        get() = ((roomVersion ?: defaultRoomVersion)?.toIntOrNull() ?: 0) < 12
 
     /**
      * Return true if there is not important input from user.

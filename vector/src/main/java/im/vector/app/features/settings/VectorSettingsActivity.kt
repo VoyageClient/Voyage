@@ -22,6 +22,8 @@ import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityVectorSettingsBinding
 import im.vector.app.features.discovery.DiscoverySettingsFragment
+import im.vector.app.features.matrixto.MatrixToBottomSheet
+import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.settings.devices.VectorSettingsDevicesFragment
 import im.vector.app.features.settings.notifications.VectorSettingsNotificationFragment
@@ -42,6 +44,7 @@ private const val KEY_ACTIVITY_PAYLOAD = "settings-activity-payload"
 class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>(),
         PreferenceFragmentCompat.OnPreferenceStartFragmentCallback,
         FragmentManager.OnBackStackChangedListener,
+        MatrixToBottomSheet.InteractionListener,
         VectorSettingsFragmentInteractionListener {
 
     override fun getBinding() = ActivityVectorSettingsBinding.inflate(layoutInflater)
@@ -163,6 +166,14 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
                 .replace(views.vectorSettingsPage.id, fragmentClass, arguments)
                 .addToBackStack(null)
                 .commit()
+    }
+
+    override fun mxToBottomSheetNavigateToRoom(roomId: String) {
+        navigator.openRoom(this, roomId)
+    }
+
+    override fun mxToBottomSheetSwitchToSpace(spaceId: String) {
+        navigator.switchToSpace(this, spaceId, Navigator.PostSwitchSpaceAction.None)
     }
 
     companion object {

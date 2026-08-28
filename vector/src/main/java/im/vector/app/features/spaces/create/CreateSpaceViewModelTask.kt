@@ -11,10 +11,13 @@ import android.net.Uri
 import im.vector.app.core.platform.ViewModelTask
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
+import im.vector.app.features.roomdirectory.createroom.AdvancedRoomOptions
+import im.vector.app.features.roomdirectory.createroom.applyAdvancedRoomOptions
 import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.room.failure.CreateRoomFailure
@@ -22,9 +25,11 @@ import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesAllowEntry
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
+import org.matrix.android.sdk.api.session.room.model.create.CreateRoomStateEvent
 import org.matrix.android.sdk.api.session.room.model.create.RestrictedRoomPreset
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
@@ -41,11 +46,14 @@ sealed class CreateSpaceTaskResult {
 }
 
 data class CreateSpaceTaskParams(
+        val advancedOptions: AdvancedRoomOptions,
+        val customInitialStates: List<CreateRoomStateEvent>,
         val spaceName: String,
         val spaceTopic: String?,
         val spaceAvatar: Uri? = null,
         val spaceAlias: String? = null,
-        val isPublic: Boolean,
+        val joinRule: RoomJoinRules,
+        val isEncrypted: Boolean,
         val defaultRooms: List<String> = emptyList(),
         val defaultEmailToInvite: List<String> = emptyList()
 )
@@ -57,12 +65,13 @@ class CreateSpaceViewModelTask @Inject constructor(
 ) : ViewModelTask<CreateSpaceTaskParams, CreateSpaceTaskResult> {
 
     override suspend fun execute(params: CreateSpaceTaskParams): CreateSpaceTaskResult {
+        val isPublic = params.joinRule == RoomJoinRules.PUBLIC
         val spaceID = try {
             session.spaceService().createSpace(CreateSpaceParams().apply {
                 this.name = params.spaceName
                 this.topic = params.spaceTopic
                 this.avatarUri = params.spaceAvatar?.toString()
-                if (params.isPublic) {
+                if (isPublic) {
                     this.roomAliasName = params.spaceAlias
                     this.powerLevelContentOverride = (powerLevelContentOverride ?: PowerLevelsContent()).copy(
                             invite = UserPowerLevel.User.value
@@ -82,6 +91,19 @@ class CreateSpaceViewModelTask @Inject constructor(
                             invite = UserPowerLevel.Moderator.value
                     )
                 }
+                if (params.joinRule == RoomJoinRules.KNOCK) {
+                    // No preset asks for knocking, and initial state wins over the preset's join rule.
+                    this.initialStates.add(
+                            CreateRoomStateEvent(
+                                    type = EventType.STATE_ROOM_JOIN_RULES,
+                                    content = mapOf("join_rule" to RoomJoinRules.KNOCK.value)
+                            )
+                    )
+                }
+                if (params.isEncrypted) {
+                    enableEncryption()
+                }
+                applyAdvancedRoomOptions(params.advancedOptions, session.myUserId, params.customInitialStates)
             })
         } catch (failure: Throwable) {
             return CreateSpaceTaskResult.FailedToCreateSpace(failure)
@@ -103,7 +125,7 @@ class CreateSpaceViewModelTask @Inject constructor(
                 .forEach { roomName ->
                     try {
                         val roomId = try {
-                            if (params.isPublic) {
+                            if (isPublic) {
                                 session.roomService().createRoom(
                                         CreateRoomParams().apply {
                                             this.name = roomName

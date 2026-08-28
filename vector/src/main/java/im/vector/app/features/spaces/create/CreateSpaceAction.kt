@@ -9,9 +9,9 @@ package im.vector.app.features.spaces.create
 
 import android.net.Uri
 import im.vector.app.core.platform.VectorViewModelAction
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 
 sealed class CreateSpaceAction : VectorViewModelAction {
-    data class SetRoomType(val type: SpaceType) : CreateSpaceAction()
     data class NameChanged(val name: String) : CreateSpaceAction()
     data class TopicChanged(val topic: String) : CreateSpaceAction()
     data class SpaceAliasChanged(val aliasLocalPart: String) : CreateSpaceAction()
@@ -22,5 +22,11 @@ sealed class CreateSpaceAction : VectorViewModelAction {
     object NextFromAdd3pid : CreateSpaceAction()
     data class DefaultRoomNameChanged(val index: Int, val name: String) : CreateSpaceAction()
     data class DefaultInvite3pidChanged(val index: Int, val email: String) : CreateSpaceAction()
-    data class SetSpaceTopology(val topology: SpaceTopology) : CreateSpaceAction()
+    data class SetJoinRule(val joinRule: RoomJoinRules) : CreateSpaceAction()
+    data class SetIsEncrypted(val isEncrypted: Boolean) : CreateSpaceAction()
+    object ToggleShowAdvanced : CreateSpaceAction()
+    data class SetDisableFederation(val disableFederation: Boolean) : CreateSpaceAction()
+    data class SetRoomVersion(val version: String) : CreateSpaceAction()
+    data class SetMyPowerLevel(val powerLevel: Int?) : CreateSpaceAction()
+    data class SetInitialStateJson(val json: String) : CreateSpaceAction()
 }

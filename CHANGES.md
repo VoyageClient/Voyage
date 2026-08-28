@@ -166,6 +166,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Spaces improvements** — view a space's own timeline, show all rooms in Home by default, and a spaces drawer replacing the new UI's custom spaces view.
 
+- **Space creation like room creation** — creating a space no longer starts with an opaque public/private choice. It is one form with the same controls a room gets: a space-access setting (invite only, ask to join, or public), encryption, and an advanced section for room version, your own power level, custom initial state and blocking other servers.
+
 - **Force display name & avatar** — override display name and avatar per room and per group DM.
 
 - **Configurable avatars** — configurable avatar shapes, avatar-hiding options (in the timeline and on invites), avatar removal, an empty-display-name fallback, and full-screen avatar zoom through the media viewer with a smooth open/close animation.

@@ -14,14 +14,17 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.preference.VectorPreference
-import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.FirstThrottler
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.openAppSettingsPage
-import im.vector.app.core.utils.openUrlInChromeCustomTab
+import im.vector.app.core.utils.toast
+import im.vector.app.features.matrixto.OriginOfMatrixTo
+import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.version.VersionProvider
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.Matrix
+import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.room.model.Membership
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,7 +32,7 @@ class VectorSettingsHelpAboutFragment :
         VectorSettingsBaseFragment() {
 
     @Inject lateinit var versionProvider: VersionProvider
-    @Inject lateinit var buildMeta: BuildMeta
+    @Inject lateinit var navigator: Navigator
 
     override var titleRes = CommonStrings.preference_root_help_about
     override val preferenceXmlRes = R.xml.vector_settings_help_about
@@ -40,12 +43,27 @@ class VectorSettingsHelpAboutFragment :
         super.onCreate(savedInstanceState)
     }
 
+    private fun openSupportRoom() {
+        val activity = activity ?: return
+        val joined = session.getRoomSummary(SUPPORT_ROOM_ALIAS)?.takeIf { it.membership == Membership.JOIN }
+        if (joined != null) {
+            navigator.openRoom(activity, joined.roomId)
+        } else {
+            val link = session.permalinkService().createPermalink(SUPPORT_ROOM_ALIAS)
+            if (link == null) {
+                activity.toast(CommonStrings.unknown_error)
+            } else {
+                navigator.openMatrixToBottomSheet(activity, link, OriginOfMatrixTo.LINK)
+            }
+        }
+    }
+
     override fun bindPref() {
         // Help
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_HELP_PREFERENCE_KEY)!!
                 .onPreferenceClickListener = Preference.OnPreferenceClickListener {
             if (firstThrottler.canHandle() is FirstThrottler.CanHandlerResult.Yes) {
-                openUrlInChromeCustomTab(requireContext(), null, VectorSettingsUrls.HELP)
+                openSupportRoom()
             }
             false
         }
@@ -59,15 +77,7 @@ class VectorSettingsHelpAboutFragment :
 
         // application version
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_VERSION_PREFERENCE_KEY)!!.let {
-            it.summary = buildString {
-                append(versionProvider.getVersion(longFormat = false))
-                if (buildMeta.isDebug) {
-                    append(" ")
-                    append(buildMeta.gitBranchName)
-                    append(" ")
-                    append(buildMeta.gitRevision)
-                }
-            }
+            it.summary = versionProvider.getVersion(longFormat = false)
 
             it.setOnPreferenceClickListener { pref ->
                 copyToClipboard(requireContext(), pref.summary.orEmpty())
@@ -135,5 +145,6 @@ class VectorSettingsHelpAboutFragment :
     companion object {
         private const val APP_INFO_LINK_PREFERENCE_KEY = "APP_INFO_LINK_PREFERENCE_KEY"
         private const val KITKAT_TAPS = 7
+        private const val SUPPORT_ROOM_ALIAS = "#voyage:matrix.org"
     }
 }
