@@ -15,6 +15,7 @@ import android.net.Uri
 import android.util.LruCache
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import im.vector.app.core.extensions.useCompat
 import im.vector.app.features.home.AvatarRenderer
 import timber.log.Timber
 import java.io.File
@@ -81,7 +82,7 @@ object AudioDetails {
     private fun lengthOf(context: Context, source: Uri): Long {
         source.path?.takeIf { source.scheme == "file" }?.let { return File(it).length() }
         return runCatching {
-            context.contentResolver.openAssetFileDescriptor(source, "r")?.use { it.length }
+            context.contentResolver.openAssetFileDescriptor(source, "r")?.useCompat { it.length }
         }.getOrNull()?.takeIf { it >= 0 } ?: UNKNOWN_LENGTH
     }
 

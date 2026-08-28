@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.features.themes.ThemeUtils
 
@@ -43,7 +44,7 @@ class ProfileBannerUiHelper(
     private var overBanner = false
 
     init {
-        scrimView.background = GradientDrawable(
+        scrimView.backgroundCompat = GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
                 intArrayOf(Color.BLACK, Color.TRANSPARENT)
         )

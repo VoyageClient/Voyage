@@ -29,7 +29,8 @@
         android:id="@+id/messageStartGuideline"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="52dp" />
+        android:layout_marginStart="52dp"
+        android:layout_marginLeft="52dp" />
         android:layout_marginLeft="52dp"
 
     <View
@@ -38,7 +39,8 @@
         android:layout_height="0dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_marginEnd="52dp" />
+        android:layout_marginEnd="52dp"
+        android:layout_marginRight="52dp" />
         android:layout_marginRight="52dp"
 
     <FrameLayout

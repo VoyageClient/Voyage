@@ -41,8 +41,7 @@ class UserBannerPreference : Preference {
 
     init {
         widgetLayoutResource = R.layout.vector_settings_wide_banner
-        // Set to false to remove the space when there is no icon
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {

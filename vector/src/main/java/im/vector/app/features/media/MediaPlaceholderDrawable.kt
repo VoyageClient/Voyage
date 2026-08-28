@@ -146,9 +146,11 @@ class MediaPlaceholderDrawable(
             blurHash.alpha = alpha
             blurHash.draw(canvas)
         } else {
-            val waiting = ColorUtils.setAlphaComponent(fillColor, alpha)
+            // Scale the source alpha rather than replacing it: the SC themes give these attributes a
+            // translucent white overlay, which setAlphaComponent alone would pulse up to solid white.
+            val waiting = fillColor.scaleAlpha(alpha)
             fillPaint.color = if (settlesIntoBackground) {
-                ColorUtils.blendARGB(waiting, ColorUtils.setAlphaComponent(settledColor, externalAlpha), failProgress)
+                ColorUtils.blendARGB(waiting, settledColor.scaleAlpha(externalAlpha), failProgress)
             } else {
                 waiting
             }
@@ -250,3 +252,6 @@ class MediaPlaceholderDrawable(
         private const val WAIT_TIMEOUT_MS = 30_000L
     }
 }
+
+private fun Int.scaleAlpha(alpha: Int): Int =
+        ColorUtils.setAlphaComponent(this, Color.alpha(this) * alpha / 255)

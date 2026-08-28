@@ -17,6 +17,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:paddingHorizontal="24dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
         android:text="@string/device_manager_filter_bottom_sheet_title" />
 
     <ScrollView
@@ -24,6 +26,8 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingHorizontal="24dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
         android:paddingBottom="32dp"
         android:scrollbarStyle="outsideOverlay">
 
@@ -44,6 +48,7 @@
                 android:button="@null"
                 android:checked="true"
                 android:drawableEnd="?android:attr/listChoiceIndicatorSingle"
+                android:drawableRight="?android:attr/listChoiceIndicatorSingle"
                 android:minHeight="0dp"
                 android:text="@string/device_manager_filter_option_all_sessions"
                 android:textAlignment="textStart" />
@@ -58,6 +63,7 @@
                 android:background="?android:selectableItemBackground"
                 android:button="@null"
                 android:drawableEnd="?android:attr/listChoiceIndicatorSingle"
+                android:drawableRight="?android:attr/listChoiceIndicatorSingle"
                 android:minHeight="0dp"
                 android:text="@string/device_manager_filter_option_verified"
                 android:textAlignment="textStart" />
@@ -79,6 +85,7 @@
                 android:background="?android:selectableItemBackground"
                 android:button="@null"
                 android:drawableEnd="?android:attr/listChoiceIndicatorSingle"
+                android:drawableRight="?android:attr/listChoiceIndicatorSingle"
                 android:minHeight="0dp"
                 android:text="@string/device_manager_filter_option_unverified"
                 android:textAlignment="textStart" />
@@ -100,6 +107,7 @@
                 android:background="?android:selectableItemBackground"
                 android:button="@null"
                 android:drawableEnd="?android:attr/listChoiceIndicatorSingle"
+                android:drawableRight="?android:attr/listChoiceIndicatorSingle"
                 android:minHeight="0dp"
                 android:text="@string/device_manager_filter_option_inactive"
                 android:textAlignment="textStart" />

@@ -7,17 +7,21 @@
 
 package im.vector.app.core.extensions
 
+import android.content.res.AssetFileDescriptor
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.text.format.DateFormat
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.RelativeLayout
+import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.view.MarginLayoutParamsCompat
 import androidx.core.view.ViewCompat
 import androidx.core.widget.TextViewCompat
 import java.util.Locale
+import java.util.WeakHashMap
 
 // Layout/View APIs added after API 14 (our floor), wrapped via androidx *Compat shims (or a guarded
 // fallback) so the same call sites keep working on ICS. Property forms let call sites be swapped
@@ -43,6 +47,36 @@ var View.backgroundCompat: Drawable?
     set(value) {
         ViewCompat.setBackground(this, value)
     }
+
+// AssetFileDescriptor implements Closeable only from API 19, so `use` resolves a close() the
+// platform can't dispatch on ICS.
+inline fun <R> AssetFileDescriptor.useCompat(block: (AssetFileDescriptor) -> R): R =
+        try {
+            block(this)
+        } finally {
+            runCatching { close() }
+        }
+
+// ImageView.getAdjustViewBounds is API 16+ (the setter is not); pre-16 nothing sets it, so it is false.
+val ImageView.adjustViewBoundsCompat: Boolean
+    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && adjustViewBounds
+
+// AbsSeekBar.getThumb is API 16+; pre-16 the thumb can't be reached, so callers just skip tinting it.
+val SeekBar.thumbCompat: Drawable?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) thumb else null
+
+private val pristinePadding = WeakHashMap<View, IntArray>()
+
+// Setting a background applies that drawable's own padding, and pre-Lollipop selectableItemBackground
+// is a 9-patch that reports some. Reading the padding back at call time is too late: androidx's
+// PreferenceViewHolder.resetState() has already flattened it on any recycled row.
+fun View.setBackgroundKeepingPadding(drawable: Drawable?) {
+    val pristine = pristinePadding.getOrPut(this) {
+        intArrayOf(paddingLeft, paddingTop, paddingRight, paddingBottom)
+    }
+    backgroundCompat = drawable
+    setPadding(pristine[0], pristine[1], pristine[2], pristine[3])
+}
 
 // View.set/getLayoutDirection is API 17+.
 var View.layoutDirectionCompat: Int

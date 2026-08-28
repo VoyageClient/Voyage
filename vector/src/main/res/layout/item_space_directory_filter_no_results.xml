@@ -8,6 +8,8 @@
     android:foreground="?attr/selectableItemBackground"
     android:orientation="vertical"
     android:paddingHorizontal="32dp"
+    android:paddingLeft="32dp"
+    android:paddingRight="32dp"
     android:paddingTop="16dp"
     tools:viewBindingIgnore="true">
 

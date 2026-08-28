@@ -6,6 +6,8 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_current_session"
     android:paddingHorizontal="24dp"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
     android:paddingBottom="8dp">
 
     <ImageView

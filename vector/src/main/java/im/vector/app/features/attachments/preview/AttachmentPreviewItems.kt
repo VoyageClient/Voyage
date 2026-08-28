@@ -35,6 +35,7 @@ import com.github.penfeizhou.animation.FrameAnimationDrawable
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.platform.CheckableImageView
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.VideoForwardDrawable
@@ -271,7 +272,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private val bigImageView by bind<ZoomableImageView>(R.id.attachmentBigImageView)
         private val videoView by bind<ZoomableTextureView>(R.id.attachmentBigVideoView)
         private val seekRipple by bind<View>(R.id.attachmentBigSeekRipple)
-        private val seekRippleDrawable by lazy { VideoForwardDrawable(view.context).also { seekRipple.background = it } }
+        private val seekRippleDrawable by lazy { VideoForwardDrawable(view.context).also { seekRipple.backgroundCompat = it } }
         private val playPauseButton by bind<ImageView>(R.id.attachmentBigPlayPause)
         private val waveformView by bind<WaveformScrubView>(R.id.attachmentBigWaveform)
         private val audioNameView by bind<TextView>(R.id.attachmentBigAudioName)

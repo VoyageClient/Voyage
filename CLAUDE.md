@@ -8,6 +8,28 @@ This is a fork that targets Ice Cream Sandwich (API 14). Any new feature or code
 - Don't bump `minSdk`, and don't pull in a library whose own `minSdk` exceeds 14. AndroidX raised its floor 14→19 in Oct 2023 (and 19→21 in 2024), so any new AndroidX artifact must stay on its last minSdk-14 release; the `resolutionStrategy.force` block in the root `build.gradle` pins the stack accordingly.
 - When a feature genuinely can't work on 14, the higher-API branch must be isolated behind a version check and the 14 branch must still leave the app usable.
 
+# Vector drawables
+
+`<vector>` is API 21+. Below that only AppCompat can inflate one, and it never gets the chance if the framework resolves the resource first — the platform throws `XmlPullParserException: invalid drawable tag vector`, which surfaces as `InflateException: Error inflating class ImageView` and kills the screen. `vectorDrawables.useSupportLibrary = true` and `setCompatVectorFromResourcesEnabled(true)` do NOT cover these cases.
+
+So, whenever the drawable you are referencing is a `<vector>` (check the file — most `ic_*` in `res/drawable/` are):
+
+- In layouts, never `android:src`, `android:background`, `android:foreground` or `android:drawableStart`/`End`/`Left`/`Right`/`Top`/`Bottom`. Use `app:srcCompat` (on `ImageView`/`ImageButton`) and `app:drawableStartCompat` and friends (on `TextView` and subclasses), and add `xmlns:app="http://schemas.android.com/apk/res-auto"` if the file lacks it. There is no compat attribute for a background — use a PNG or set it from code with `AppCompatResources.getDrawable()`.
+- The same ban applies in styles and themes: a `<style>` that sets `android:background` to a vector crashes identically.
+- Never nest a vector inside a framework-inflated container drawable — a `<selector>`, `<layer-list>`, `<inset>` or `<ripple>` whose `android:drawable` item points at one. AppCompat's delegate only handles a `<vector>` at the XML root.
+- In code, `setImageResource()` / `setBackgroundResource()` / `setCompoundDrawablesWithIntrinsicBounds(int, …)` all go straight to the framework. Use `AppCompatResources.getDrawable(context, R.drawable.x)` and pass the `Drawable`, or `ImageViewCompat`.
+- Menu XML `android:icon` is fine — AppCompat's menu inflater already resolves icons through `AppCompatResources`.
+
+The same trap exists in code for any framework method added after API 14 — `View.setBackground` (16), `ImageView.getAdjustViewBounds` (16), `AbsSeekBar.getThumb` (16), the `AssetFileDescriptor`/`Cursor` `Closeable` implementations (19/16). R8 outlines these into `$$ExternalSyntheticApiModelOutline` calls that throw `NoSuchMethodError` on ICS. `im.vector.app.core.extensions.ApiCompatExtensions` holds the shims (`backgroundCompat`, `adjustViewBoundsCompat`, `thumbCompat`, `useCompat`, …) — add to it rather than writing a one-off guard, and note that `background = …` inside an `apply { }` block is the same call with the receiver hidden.
+
+`./gradlew :vector-app:lintRelease` finds all of these; read the `NewApi` entries for `.kt`/`.java` files in `vector-app/build/reports/lint-results-release.xml`. Resource `NewApi` hits are mostly noise (unknown XML attributes are ignored at runtime), and lint misses nothing that desugaring covers, so triage code hits first.
+
+Audit before committing a layout change:
+
+    grep -rn 'android:\(src\|background\|foreground\|drawable\(Start\|End\|Left\|Right\|Top\|Bottom\)\)="@drawable/' --include=*.xml */src/*/res/layout*/
+
+and check whether each hit's drawable file starts with `<vector`.
+
 # Strings
 
 New strings always go into `library/ui-strings/src/main/res/values/donottranslate.xml` with `translatable="false"`. Do not add them to `strings.xml` — that file is the source for translation pipelines and stale entries cause AAPT warnings ("removing resource X without required default value") across every locale.
@@ -80,7 +102,7 @@ NEVER remove temporary debug-related logging until either the problem has been r
 
 # Reviewing changes
 
-When asked to review, review the entire diff since the last git commit — not just the most recent edit. Go through all of it and check for: dead or unreachable code, stale/unnecessary/narrating comments, bugs and logic errors, and anything that would break on the minimum supported API (currently Ice Cream Sandwich / API 14) — verify it genuinely runs there, not just that it compiles. Don't only report problems: if you spot improvements worth making to the changed code, make them.
+When asked to review, review the entire diff since the last git commit — not just the most recent edit. Go through all of it and check for: dead or unreachable code, stale/unnecessary/narrating comments, bugs and logic errors, and anything that would break on the minimum supported API (currently Ice Cream Sandwich / API 14) — verify it genuinely runs there, not just that it compiles. If the diff touches a layout, style or drawable, run the vector-drawable audit above — resources compile fine and blow up at inflation time on device. Don't only report problems: if you spot improvements worth making to the changed code, make them.
 
 Also during review, compact overly verbose comments down to the minimal non-obvious WHY. And delete comments that only make sense relative to uncommitted history — i.e. notes explaining a fix for a problem we introduced earlier in this same uncommitted batch, or contrasting against "how this used to be handled" when that prior state was never committed. To an outside observer reading the committed code fresh, such comments are meaningless; the code should read as if it was always written this way.
 

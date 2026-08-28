@@ -15,6 +15,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.media.MediaPlaceholderDrawable
 import im.vector.app.features.settings.AvatarShape
@@ -104,14 +105,14 @@ class BannerRenderer @Inject constructor(
                 AvatarShape.SQUARE -> 0f
             }
             val size = imageView.layoutParams.width
-            imageView.background = GradientDrawable().apply {
+            imageView.backgroundCompat = GradientDrawable().apply {
                 setColor(ThemeUtils.getColor(imageView.context, android.R.attr.colorBackground))
                 cornerRadius = cornerFraction * size
             }
             val stroke = (imageView.resources.displayMetrics.density * 4).toInt()
             imageView.setPadding(stroke, stroke, stroke, stroke)
         } else {
-            imageView.background = null
+            imageView.backgroundCompat = null
             imageView.setPadding(0, 0, 0, 0)
         }
     }

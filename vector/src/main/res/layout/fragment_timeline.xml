@@ -84,6 +84,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingVertical="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:textColor="?vctr_content_secondary"
                 android:textSize="14sp"
                 tools:text="@string/room_tombstone_banner_message_with_replacement" />
@@ -204,8 +206,10 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingStart="20dp"
+                android:paddingLeft="20dp"
                 android:paddingTop="8dp"
                 android:paddingEnd="8dp"
+                android:paddingRight="8dp"
                 android:paddingBottom="8dp">
 
                 <TextView
@@ -214,6 +218,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="12dp"
+                    android:layout_marginRight="12dp"
                     android:layout_weight="1"
                     android:textColor="?vctr_content_primary"
                     android:textStyle="bold"
@@ -224,6 +229,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
+                    android:layout_marginRight="8dp"
                     android:visibility="gone"
                     app:bsv_button_text="@string/action_decline"
                     app:bsv_loaded_image_src="@drawable/ic_tick"
@@ -306,6 +312,8 @@
                 android:layout_marginTop="@dimen/layout_vertical_margin"
                 android:gravity="center"
                 android:paddingHorizontal="16dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
                 android:text="@string/timeline_error_room_not_found"
                 android:textColor="?vctr_content_primary"
                 app:layout_constraintBottom_toBottomOf="parent"

@@ -18,6 +18,7 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceViewHolder
 import im.vector.app.R
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 
@@ -70,7 +71,7 @@ class VectorPreferenceCategoryWithAction : PreferenceCategory {
     init {
         layoutResource = R.layout.vector_preference_category_with_action
         // Matches VectorPreferenceCategory, so both kinds of header align on the same left edge.
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
@@ -86,7 +87,7 @@ class VectorPreferenceCategoryWithAction : PreferenceCategory {
             // reads as tappable. The default reset icon keeps its own light-grey stroke.
             if (actionIconRes != R.drawable.ic_refresh_cw) {
                 setColorFilter(ThemeUtils.getColor(context, androidx.appcompat.R.attr.colorAccent))
-                background = null
+                backgroundCompat = null
             } else {
                 clearColorFilter()
             }
@@ -99,7 +100,7 @@ class VectorPreferenceCategoryWithAction : PreferenceCategory {
         }
         (holder.findViewById(R.id.preferenceCategoryReset) as? ImageView)?.apply {
             setColorFilter(ThemeUtils.getColor(context, androidx.appcompat.R.attr.colorAccent))
-            background = null
+            backgroundCompat = null
             isVisible = isResetVisible
             isEnabled = isResetEnabled
             alpha = if (isResetEnabled) 1f else 0.4f

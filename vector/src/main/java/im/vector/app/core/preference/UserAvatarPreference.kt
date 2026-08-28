@@ -36,8 +36,7 @@ class UserAvatarPreference : Preference {
 
     init {
         widgetLayoutResource = R.layout.vector_settings_round_avatar
-        // Set to false to remove the space when there is no icon
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {

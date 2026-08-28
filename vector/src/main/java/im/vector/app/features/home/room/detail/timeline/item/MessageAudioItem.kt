@@ -37,6 +37,7 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.attachments.preview.AudioDetails
@@ -226,7 +227,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val context = holder.view.context
         if (backdrop == null) {
             holder.backdropKey = null
-            holder.mainLayout.background =
+            holder.mainLayout.backgroundCompat =
                     ContextCompat.getDrawable(context, im.vector.lib.ui.styles.R.drawable.bg_media_pill)
             applyLayoutTint(holder)
             applyTextColors(holder, onBackdrop = false)
@@ -254,7 +255,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         // Cleared first: setting a background re-applies whatever tint the view is carrying, and
         // the pill's own tint would paint a flat colour over the artwork.
         ViewCompat.setBackgroundTintList(holder.mainLayout, null)
-        holder.mainLayout.background = drawable
+        holder.mainLayout.backgroundCompat = drawable
     }
 
     /**

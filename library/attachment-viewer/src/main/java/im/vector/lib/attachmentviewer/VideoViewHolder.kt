@@ -20,6 +20,7 @@ import android.view.TextureView
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.animation.doOnEnd
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import im.vector.lib.attachmentviewer.databinding.ItemVideoAttachmentBinding
 import im.vector.lib.core.utils.audio.LoudnessBoost
@@ -87,7 +88,7 @@ class VideoViewHolder constructor(itemView: View) :
     private val seekRippleDrawable = VideoForwardDrawable(itemView.context)
 
     init {
-        views.videoSeekRipple.background = seekRippleDrawable
+        ViewCompat.setBackground(views.videoSeekRipple, seekRippleDrawable)
         attachZoomGestures()
         views.videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {

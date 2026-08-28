@@ -20,6 +20,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
+import im.vector.app.core.extensions.useCompat
+import im.vector.app.core.utils.DeviceCapabilities
 
 /**
  * The end of the Crypto-version tap countdown: a chromeless, fullscreen, letterboxed video with
@@ -30,6 +32,7 @@ import android.widget.FrameLayout
 class KitkatVideoActivity : Activity(), SurfaceHolder.Callback {
 
     private var videoPlayer: MediaPlayer? = null
+    private var advancing = false
     private lateinit var root: FrameLayout
     private lateinit var surfaceView: SurfaceView
 
@@ -70,16 +73,21 @@ class KitkatVideoActivity : Activity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        val video = createPlayer(VIDEO_ASSET) ?: run {
+        val video = createPlayer(assetFor()) ?: run {
             finish()
             return
         }
         video.setDisplay(holder)
         video.setOnCompletionListener {
+            if (advancing) return@setOnCompletionListener
+            advancing = true
             startActivity(Intent(this@KitkatVideoActivity, KitkatPlatLogoActivity::class.java))
-            finish()
+            // A cross-fade can't animate a SurfaceView's own window, it only exposes the torn-down
+            // surface. Cut, and stay alive underneath until the logo draws: finishing releases the
+            // player, and the last frame would vanish before anything covers it.
             @Suppress("DEPRECATION")
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+            overridePendingTransition(0, 0)
+            root.postDelayed({ finish() }, HAND_OFF_DELAY_MS)
         }
         videoPlayer = video
         applyLetterbox()
@@ -88,7 +96,7 @@ class KitkatVideoActivity : Activity(), SurfaceHolder.Callback {
 
     private fun createPlayer(assetName: String): MediaPlayer? {
         return runCatching {
-            assets.openFd(assetName).use { fd ->
+            assets.openFd(assetName).useCompat { fd ->
                 val player = MediaPlayer()
                 try {
                     player.setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
@@ -127,12 +135,21 @@ class KitkatVideoActivity : Activity(), SurfaceHolder.Callback {
     }
 
     companion object {
+        private const val HAND_OFF_DELAY_MS = 600L
+
         // Bundled at assets/; the easter egg silently stays dormant until the file exists.
         private const val VIDEO_ASSET = "gnu_kitkat.mp4"
 
+        // The full-size cut is H.264 High@5.1 at 1620x2160; the decoders that ship with low-power
+        // hardware reject it outright, so those devices get a Baseline 480x640 cut instead.
+        private const val SMALL_VIDEO_ASSET = "gnu_kitkat_small.mp4"
+
+        private fun assetFor(): String =
+                if (DeviceCapabilities.isLowPerformanceHardware) SMALL_VIDEO_ASSET else VIDEO_ASSET
+
         /** Launches the video when the asset is bundled; no-op otherwise. */
         fun start(context: Context) {
-            val present = runCatching { context.assets.openFd(VIDEO_ASSET).close() }.isSuccess
+            val present = runCatching { context.assets.openFd(assetFor()).close() }.isSuccess
             if (present) context.startActivity(Intent(context, KitkatVideoActivity::class.java))
         }
     }

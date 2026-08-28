@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.preference.PreferenceViewHolder
 import androidx.preference.SwitchPreference
+import im.vector.app.core.extensions.setBackgroundKeepingPadding
 import im.vector.app.features.themes.ThemeUtils
 
 /**
@@ -34,8 +35,7 @@ open class VectorSwitchPreference : SwitchPreference {
     constructor(context: Context) : super(context)
 
     init {
-        // Set to false to remove the space when there is no icon
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     var isHighlighted = false
@@ -51,7 +51,7 @@ open class VectorSwitchPreference : SwitchPreference {
     // preference layout's own selectableItemBackground).
     private fun restoreRippleBackground(itemView: android.view.View) {
         val ta = itemView.context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
-        itemView.background = ta.getDrawable(0)
+        itemView.setBackgroundKeepingPadding(ta.getDrawable(0))
         ta.recycle()
     }
 

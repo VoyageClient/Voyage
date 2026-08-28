@@ -29,6 +29,6 @@ class ColorMatrixListPreference(context: Context, attrs: AttributeSet) : ListPre
         trailingRowCount = a.getInt(R.styleable.ColorMatrixListPreference_trailingRowCount, 0)
         a.recycle()
         // Reserve icon space like VectorListPreference so the row aligns with the other settings entries.
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 }

@@ -64,6 +64,7 @@ import im.vector.app.core.dialogs.DialogLocker
 import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.error.fatalError
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.observeEvent
 import im.vector.app.core.extensions.observeNotNull
 import im.vector.app.core.extensions.registerStartForActivityResult
@@ -568,7 +569,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         val windowBackground = ThemeUtils.getColor(this, android.R.attr.colorBackground)
         val layers = LayerDrawable(arrayOf(ColorDrawable(windowBackground), ColorDrawable(color)))
         navigationBarStrip = layers
-        rootView.background = layers
+        rootView.backgroundCompat = layers
         rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateNavigationBarStrip() }
         updateNavigationBarStrip()
     }

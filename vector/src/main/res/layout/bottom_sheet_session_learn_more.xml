@@ -6,6 +6,8 @@
     android:layout_height="wrap_content"
     android:background="?colorSurface"
     android:paddingHorizontal="24dp"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
     android:paddingTop="8dp"
     android:paddingBottom="16dp">
 

@@ -20,7 +20,9 @@
         android:minHeight="48dp"
         android:orientation="horizontal"
         android:paddingStart="16dp"
+        android:paddingLeft="16dp"
         android:paddingEnd="8dp"
+        android:paddingRight="8dp"
         android:paddingTop="6dp"
         android:paddingBottom="6dp">
 
@@ -59,6 +61,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
             android:textColor="?vctr_content_secondary"
             tools:text="30/100" />
 
@@ -67,6 +70,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="4dp"
+            android:layout_marginLeft="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/mass_redaction_pause"
             app:srcCompat="@drawable/ic_pause"

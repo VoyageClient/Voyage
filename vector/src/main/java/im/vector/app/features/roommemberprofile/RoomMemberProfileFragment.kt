@@ -40,6 +40,7 @@ import im.vector.app.core.animations.MatrixItemAppBarStateChangeListener
 import im.vector.app.core.dialogs.ConfirmationDialogBuilder
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
@@ -714,7 +715,7 @@ class RoomMemberProfileFragment :
         val proxy = PersonalNoteEditText(requireContext()).apply {
             layoutParams = ViewGroup.LayoutParams(1, 1)
             alpha = 0f
-            background = null
+            backgroundCompat = null
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             addTextChangedListener(object : SimpleTextWatcher() {
                 override fun afterTextChanged(s: Editable) {

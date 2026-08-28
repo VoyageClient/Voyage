@@ -58,7 +58,7 @@
             android:layout_height="44dp"
             android:contentDescription="@string/action_play"
             android:padding="10dp"
-            android:src="@drawable/ic_play_arrow"
+            app:srcCompat="@drawable/ic_play_arrow"
             android:translationY="8dp"
             app:tint="@android:color/white"
             tools:ignore="MissingPrefix" />

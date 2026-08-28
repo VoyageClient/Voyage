@@ -149,7 +149,7 @@
         android:contentDescription="@string/settings_prelogin_open"
         android:padding="10dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_settings_18dp"
+        app:srcCompat="@drawable/ic_settings_18dp"
         app:tint="?vctr_content_secondary" />
 
 </FrameLayout>
