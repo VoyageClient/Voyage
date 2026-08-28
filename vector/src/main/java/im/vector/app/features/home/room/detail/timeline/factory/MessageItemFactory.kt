@@ -90,6 +90,7 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.hasPoster
 import im.vector.app.features.media.isGalleryViewerPage
 import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.pgp.PgpUtils
@@ -815,6 +816,7 @@ class MessageItemFactory @Inject constructor(
                 .hiddenMediaSolidColor(vectorPreferences.useSolidColorForHiddenMedia())
                 .mediaRevealManager(mediaContentRevealManager)
                 .playable(true)
+                .handsOverToViewer(videoData.hasPoster)
                 .mediaDurationMs(messageContent.videoInfo?.duration ?: 0)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)

@@ -52,6 +52,7 @@ import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.hasPoster
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
@@ -270,6 +271,7 @@ class SearchFragment :
                 // A hit stands on its own; a gallery's tile pages over that gallery's items.
                 inMemory = inMemory.ifEmpty { listOf(mediaData) },
                 standalonePreview = inMemory.isEmpty(),
+                morphFromView = mediaData.hasPoster,
         ) { }
     }
 

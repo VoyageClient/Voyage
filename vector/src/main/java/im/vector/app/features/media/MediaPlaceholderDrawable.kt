@@ -20,6 +20,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
 import im.vector.app.R
 import im.vector.app.features.themes.ThemeUtils
@@ -36,6 +37,11 @@ class MediaPlaceholderDrawable(
         context: Context,
         val blurHash: BlurHashDrawable? = null,
         private val showGlyph: Boolean = true,
+        /**
+         * For media with no picture coming — a video the sender gave no thumbnail for. Settles into
+         * the timeline's own background rather than the lighter waiting fill: nothing is on its way.
+         */
+        private val settlesIntoBackground: Boolean = false,
 ) : Drawable(), Drawable.Callback, Runnable {
 
     init {
@@ -44,8 +50,12 @@ class MediaPlaceholderDrawable(
         blurHash?.callback = this
     }
 
+    private val fillColor = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
+
+    private val settledColor = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
+        color = fillColor
     }
 
     // A blurhash can be any colour, including one the glyph would vanish against.
@@ -136,7 +146,12 @@ class MediaPlaceholderDrawable(
             blurHash.alpha = alpha
             blurHash.draw(canvas)
         } else {
-            fillPaint.alpha = alpha
+            val waiting = ColorUtils.setAlphaComponent(fillColor, alpha)
+            fillPaint.color = if (settlesIntoBackground) {
+                ColorUtils.blendARGB(waiting, ColorUtils.setAlphaComponent(settledColor, externalAlpha), failProgress)
+            } else {
+                waiting
+            }
             canvas.drawRoundRect(rect, cornerRadius, cornerRadius, fillPaint)
         }
 

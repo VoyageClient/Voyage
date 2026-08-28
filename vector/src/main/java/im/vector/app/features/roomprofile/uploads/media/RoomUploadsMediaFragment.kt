@@ -34,6 +34,7 @@ import im.vector.app.databinding.FragmentGenericStateViewRecyclerBinding
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.hasPoster
 import im.vector.app.features.roomprofile.uploads.RoomUploadsAction
 import im.vector.app.features.roomprofile.uploads.RoomUploadsFragment
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewModel
@@ -174,7 +175,8 @@ class RoomUploadsMediaFragment :
                 roomId = state.roomId,
                 mediaData = mediaData,
                 view = view,
-                inMemory = inMemory
+                inMemory = inMemory,
+                morphFromView = mediaData.hasPoster,
         ) { pairs ->
             trickFindAppBar()?.let {
                 pairs.add(Pair(it, ViewCompat.getTransitionName(it) ?: ""))
