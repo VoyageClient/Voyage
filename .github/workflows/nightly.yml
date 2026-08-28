@@ -51,7 +51,7 @@ jobs:
       - name: Install NDK and CMake
         run: |
           set -euo pipefail
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          printf 'y\n%.0s' {1..50} | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$NDK_VERSION" "$CMAKE_VERSION"
 
       - name: Assemble debug APKs
