@@ -21,6 +21,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
+import im.vector.app.core.extensions.setBackgroundKeepingPadding
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -63,8 +64,8 @@ open class VectorPreference : Preference {
     constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle)
 
     init {
-        // Set to false to remove the space when there is no icon
-        isIconSpaceReserved = true
+        // A row with no icon starts its text at the row padding, so the left inset matches the right.
+        isIconSpaceReserved = false
     }
 
     var isHighlighted = false
@@ -86,7 +87,7 @@ open class VectorPreference : Preference {
     // the highlight animation above).
     private fun restoreRippleBackground(itemView: android.view.View) {
         val ta = itemView.context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
-        itemView.background = ta.getDrawable(0)
+        itemView.setBackgroundKeepingPadding(ta.getDrawable(0))
         ta.recycle()
     }
 

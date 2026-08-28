@@ -28,8 +28,7 @@ class VectorEditTextPreference : EditTextPreference {
 
     init {
         dialogLayoutResource = R.layout.dialog_preference_edit_text
-        // Set to false to remove the space when there is no icon
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     // No single line for title

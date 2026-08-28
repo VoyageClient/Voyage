@@ -50,6 +50,7 @@ import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.flattenAsScrim
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.resourcesFor
+import im.vector.app.core.extensions.thumbCompat
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.OnSnapPositionChangeListener
@@ -171,7 +172,7 @@ class AttachmentsPreviewFragment :
         @Suppress("DEPRECATION")
         views.attachmentPreviewerVideoSeekBar.apply {
             progressDrawable?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
-            thumb?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
+            thumbCompat?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
         }
         views.attachmentPreviewerVideoSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {

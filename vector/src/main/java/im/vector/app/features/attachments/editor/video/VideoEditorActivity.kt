@@ -45,6 +45,7 @@ import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.thumbCompat
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityVideoEditorBinding
 import im.vector.app.features.attachments.editor.restoreOriginalResult
@@ -664,7 +665,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         @Suppress("DEPRECATION")
         views.videoEditorSeekBar.apply {
             progressDrawable?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
-            thumb?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
+            thumbCompat?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
         }
         views.videoEditorPlayPause.setOnClickListener { togglePlayback() }
         views.videoEditorSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

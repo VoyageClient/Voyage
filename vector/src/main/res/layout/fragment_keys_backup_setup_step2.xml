@@ -14,7 +14,8 @@
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/layout_horizontal_margin"
         android:paddingLeft="@dimen/layout_horizontal_margin"
-        android:paddingEnd="@dimen/layout_horizontal_margin">
+        android:paddingEnd="@dimen/layout_horizontal_margin"
+        android:paddingRight="@dimen/layout_horizontal_margin">
         android:paddingRight="@dimen/layout_horizontal_margin"
 
         <TextView

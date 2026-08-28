@@ -7,7 +7,11 @@
     android:background="?attr/selectableItemBackground"
     android:minHeight="64dp"
     android:paddingHorizontal="@dimen/layout_horizontal_margin"
-    android:paddingVertical="8dp">
+    android:paddingLeft="@dimen/layout_horizontal_margin"
+    android:paddingRight="@dimen/layout_horizontal_margin"
+    android:paddingVertical="8dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <ImageView
         android:id="@+id/accountSwitcherItemAvatar"

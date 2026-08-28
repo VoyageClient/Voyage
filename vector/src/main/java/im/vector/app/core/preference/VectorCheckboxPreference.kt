@@ -26,8 +26,7 @@ class VectorCheckboxPreference : CheckBoxPreference {
     var summaryTextColor: Int? = null
 
     init {
-        // Set to false to remove the space when there is no icon
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {

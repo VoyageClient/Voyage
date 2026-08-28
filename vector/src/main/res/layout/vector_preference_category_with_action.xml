@@ -3,6 +3,7 @@
   ~ VectorPreferenceCategory ones; only the trailing action view is ours.
   -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="16dp"
@@ -33,7 +34,7 @@
         android:contentDescription="@string/settings_ua_upgrade_action"
         android:padding="8dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_ua_upgrade"
+        app:srcCompat="@drawable/ic_ua_upgrade"
         android:visibility="gone" />
 
     <ImageView
@@ -44,7 +45,7 @@
         android:contentDescription="@string/action_reset"
         android:padding="8dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_refresh_cw"
+        app:srcCompat="@drawable/ic_refresh_cw"
         android:visibility="gone" />
 
     <ImageView
@@ -55,6 +56,6 @@
         android:contentDescription="@string/action_reset"
         android:padding="8dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_refresh_cw" />
+        app:srcCompat="@drawable/ic_refresh_cw" />
 
 </LinearLayout>

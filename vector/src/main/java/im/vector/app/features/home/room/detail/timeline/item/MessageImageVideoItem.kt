@@ -26,6 +26,7 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.adjustViewBoundsCompat
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
@@ -157,7 +158,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         }
         holder.alphaProbeKey = mediaData.stableId
         holder.alphaProbeCornerPx = cornerPx
-        holder.thumbnailBackdrop.background = GradientDrawable().apply {
+        holder.thumbnailBackdrop.backgroundCompat = GradientDrawable().apply {
             setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
             cornerRadius = if (isBubble) {
                 (messageLayout as TimelineMessageLayout.Bubble).cornersRadius.topStartRadius
@@ -430,7 +431,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         fun fitToRow() {
             fitted = false
             imageView.doOnLayout {
-                if (fitted || imageView.adjustViewBounds) return@doOnLayout
+                if (fitted || imageView.adjustViewBoundsCompat) return@doOnLayout
                 val parent = imageView.parent as? View ?: return@doOnLayout
                 val available = parent.width - parent.paddingLeft - parent.paddingRight
                 val params = imageView.layoutParams ?: return@doOnLayout

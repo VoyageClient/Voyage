@@ -31,7 +31,7 @@ class ProfileColorPreference : Preference {
 
     init {
         widgetLayoutResource = R.layout.vector_settings_color_swatch
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {

@@ -7,6 +7,8 @@
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingHorizontal="16dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
     android:paddingTop="8dp"
     android:paddingBottom="8dp">
 
@@ -51,6 +53,8 @@
                 android:inputType="text|textNoSuggestions"
                 android:maxLines="1"
                 android:paddingHorizontal="2dp"
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
                 android:singleLine="true"
                 android:textColor="?vctr_content_primary"
                 tools:text="shortcode" />

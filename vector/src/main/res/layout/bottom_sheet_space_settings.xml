@@ -14,7 +14,8 @@
         android:padding="8dp"
         android:paddingStart="16dp"
         android:paddingLeft="16dp"
-        android:paddingEnd="8dp">
+        android:paddingEnd="8dp"
+        android:paddingRight="8dp">
         android:paddingRight="8dp"
 
         <ImageView

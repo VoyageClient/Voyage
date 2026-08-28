@@ -18,6 +18,7 @@ import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.utils.DeviceCapabilities
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.homeserver.ServerUrlsRepository
@@ -481,14 +482,14 @@ class VectorPreferences @Inject constructor(
     // When on, the app drops CPU-heavy graphical effects (BlurHash placeholders, spoiler blur, animated
     // image corner clipping) in favour of cheaper routes. Defaults on for low-power hardware.
     fun isPerformanceModeEnabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_PERFORMANCE_MODE_KEY, isLowPerformanceHardware())
+        return defaultPrefs.getBoolean(SETTINGS_PERFORMANCE_MODE_KEY, DeviceCapabilities.isLowPerformanceHardware)
     }
 
     // Persist the hardware-derived default once so the settings toggle and the runtime mirror agree.
     fun seedPerformanceModeDefaultIfNeeded() {
         if (!defaultPrefs.contains(SETTINGS_PERFORMANCE_MODE_KEY)) {
             defaultPrefs.edit {
-                putBoolean(SETTINGS_PERFORMANCE_MODE_KEY, isLowPerformanceHardware())
+                putBoolean(SETTINGS_PERFORMANCE_MODE_KEY, DeviceCapabilities.isLowPerformanceHardware)
             }
         }
     }
@@ -501,36 +502,6 @@ class VectorPreferences @Inject constructor(
             putBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, false)
             putBoolean(SETTINGS_SHOW_URL_PREVIEW_KEY, false)
         }
-    }
-
-    // Rough capability check: single/dual-core or low-clocked CPUs default into performance mode.
-    // availableProcessors() reports only online cores (old kernels hot-unplug them), so count the
-    // physical cpuN entries in sysfs; fall back to the runtime value if that read fails.
-    private fun isLowPerformanceHardware(): Boolean {
-        val cores = physicalCoreCount()
-        val maxFreqGhz = maxCpuFreqGhz()
-        return when {
-            cores <= 2 -> true
-            maxFreqGhz in 0.01..1.3 -> true
-            else -> false
-        }
-    }
-
-    private fun physicalCoreCount(): Int {
-        return tryOrNull {
-            java.io.File("/sys/devices/system/cpu/")
-                    .listFiles { file -> file.name.matches(Regex("cpu[0-9]+")) }
-                    ?.size
-                    ?.takeIf { it > 0 }
-        } ?: Runtime.getRuntime().availableProcessors()
-    }
-
-    // Max clock of cpu0 in GHz, or 0.0 if sysfs is unreadable (some devices restrict it).
-    private fun maxCpuFreqGhz(): Double {
-        val khz = tryOrNull {
-            java.io.File("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").readText().trim().toLong()
-        } ?: return 0.0
-        return khz / 1_000_000.0
     }
 
     // Below KitKat there is no usable system emoji font and EmojiCompat is a no-op, so bundled

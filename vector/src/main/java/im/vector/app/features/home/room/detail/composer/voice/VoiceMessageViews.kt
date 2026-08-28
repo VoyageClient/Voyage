@@ -20,6 +20,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.importantForAccessibilityCompat
 import im.vector.app.core.extensions.setAttributeBackground
 import im.vector.app.core.utils.DimensionConverter
@@ -49,7 +50,7 @@ class VoiceMessageViews(
     // Match the classic composer's other buttons: accent tint, no ripple. The mic drawable is
     // hardcoded to ?vctr_content_tertiary, so it needs an explicit tint rather than a theme attr.
     private fun applyClassicMicStyle() {
-        views.voiceMessageMicButton.background = null
+        views.voiceMessageMicButton.backgroundCompat = null
         val accent = ThemeUtils.getColor(views.voiceMessageMicButton.context, com.google.android.material.R.attr.colorAccent)
         ImageViewCompat.setImageTintList(views.voiceMessageMicButton, ColorStateList.valueOf(accent))
     }

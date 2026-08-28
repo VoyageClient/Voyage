@@ -16,6 +16,8 @@
 
 package im.vector.app.features.settings
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
@@ -56,6 +58,11 @@ class KitkatPlatLogoActivity : Activity() {
                 FrameLayout.LayoutParams.WRAP_CONTENT
         )
         lp.gravity = Gravity.CENTER
+        // platlogo is a nodpi 920px bitmap, so on a narrower screen it measures wider than the window
+        // and sits edge to edge. The margins cap that, and CENTER_INSIDE scales the artwork to fit.
+        val logoMargin = (24 * metrics.density).toInt()
+        lp.leftMargin = logoMargin
+        lp.rightMargin = logoMargin
 
         val bg = View(this)
         bg.setBackgroundColor(BGCOLOR)
@@ -80,7 +87,8 @@ class KitkatPlatLogoActivity : Activity() {
         content.addView(bg)
         content.addView(logo, lp)
 
-        val lp2 = FrameLayout.LayoutParams(lp)
+        // The FrameLayout.LayoutParams copy constructor is API 19+.
+        val lp2 = FrameLayout.LayoutParams(lp.width, lp.height)
         lp2.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
         lp2.bottomMargin = 10 * p
 
@@ -95,19 +103,43 @@ class KitkatPlatLogoActivity : Activity() {
         // The original long-press transformation, played as the entrance (the K it used to replace
         // is skipped): red panel wipes in, logo overshoots in, caption fades up.
         bg.scaleX = 0.01f
-        bg.animate().alpha(1f).scaleX(1f).setStartDelay(500).start()
         logo.alpha = 0f
         logo.scaleX = 0.5f
         logo.scaleY = 0.5f
-        logo.animate().alpha(1f).scaleX(1f).scaleY(1f)
-                .setDuration(1000).setStartDelay(500)
-                .setInterpolator(AnticipateOvershootInterpolator())
-                .start()
         tv.alpha = 0f
         tv.visibility = View.VISIBLE
-        tv.animate().alpha(1f).setDuration(1000).setStartDelay(1000).start()
 
         setContentView(content)
+
+        if (savedInstanceState != null) {
+            // A rotation is not a fresh reveal; land on the finished state instead of replaying it.
+            bg.alpha = 1f
+            bg.scaleX = 1f
+            logo.alpha = 1f
+            logo.scaleX = 1f
+            logo.scaleY = 1f
+            tv.alpha = 1f
+            return
+        }
+
+        // Started once the tree is attached: from onCreate the start-delay clock runs while nothing is
+        // on screen, so on slow hardware the first frame lands mid-animation.
+        content.post {
+            bg.animate().alpha(1f).scaleX(1f).start()
+            // Scale and alpha need separate animators: anticipation drives its input below zero at
+            // the start, and on alpha that clamps and blinks the logo out just as it appears.
+            AnimatorSet().apply {
+                duration = 1000
+                play(ObjectAnimator.ofFloat(logo, View.ALPHA, 0f, 1f))
+                        .with(ObjectAnimator.ofFloat(logo, View.SCALE_X, 0.5f, 1f).apply {
+                            interpolator = AnticipateOvershootInterpolator()
+                        })
+                        .with(ObjectAnimator.ofFloat(logo, View.SCALE_Y, 0.5f, 1f).apply {
+                            interpolator = AnticipateOvershootInterpolator()
+                        })
+            }.start()
+            tv.animate().alpha(1f).setDuration(1000).setStartDelay(500).start()
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

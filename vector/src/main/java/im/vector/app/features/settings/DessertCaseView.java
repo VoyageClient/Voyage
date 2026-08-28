@@ -26,6 +26,7 @@ import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -167,6 +168,11 @@ public class DessertCaseView extends FrameLayout {
         final BitmapFactory.Options opts = new BitmapFactory.Options();
         if (mCellSize < 512) { // assuming 512x512 images
             opts.inSampleSize = 2;
+        }
+        // Twenty decodes plus alpha-masking costs over a second on the main thread on ICS-era
+        // hardware. These are flat masks in a large cell, so the softer result is worth the stall.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            opts.inSampleSize *= 2;
         }
         for (int[] list : new int[][] { PASTRIES, RARE_PASTRIES, XRARE_PASTRIES, XXRARE_PASTRIES }) {
             for (int resid : list) {

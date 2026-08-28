@@ -29,7 +29,8 @@
                 android:layout_marginStart="@dimen/layout_horizontal_margin"
                 android:layout_marginLeft="@dimen/layout_horizontal_margin"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="@dimen/layout_horizontal_margin">
+                android:layout_marginEnd="@dimen/layout_horizontal_margin"
+                android:layout_marginRight="@dimen/layout_horizontal_margin">
                 android:layout_marginRight="@dimen/layout_horizontal_margin"
 
                 <com.google.android.material.textfield.TextInputEditText
