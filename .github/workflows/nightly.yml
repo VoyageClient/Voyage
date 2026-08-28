@@ -54,10 +54,7 @@ jobs:
           printf 'y\n%.0s' {1..50} | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$NDK_VERSION" "$CMAKE_VERSION"
 
-      - name: Assemble debug APKs
-        run: ./gradlew :vector-app:assembleDebug --stacktrace
-
-      - name: Assemble release APKs
+      - name: Assemble APKs
         run: ./gradlew :vector-app:assembleRelease --stacktrace
 
       - name: Collect APKs
@@ -75,9 +72,7 @@ jobs:
           {
             echo "Nightly build of \`develop\` at ${{ github.sha }}."
             echo
-            echo "Both variants are signed with the checked-in debug key, so they can be installed side by side:"
-            echo "- \`*-release.apk\` — R8-shrunk, package \`im.voyage.app\` (the one to use on Ice Cream Sandwich)."
-            echo "- \`*-debug.apk\` — unshrunk and debuggable, package \`im.voyage.app.debug\` (KitKat and newer only)."
+            echo "R8-shrunk release build, package \`im.voyage.app\`, signed with the checked-in debug key."
             echo
             echo "Per-ABI APKs plus a universal one are attached; install the universal APK if unsure."
             echo
