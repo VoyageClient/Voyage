@@ -201,16 +201,27 @@ class VectorSettingsSecurityPrivacyFragment :
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
+        // The session id needs no lookup at all, so fill it in before anything can suspend.
+        session.sessionParams.deviceId.takeIf { it.isNotEmpty() }?.let { cryptoInfoDeviceIdPreference.summary = it }
+
+        // Show last visit's cross-signing state right away; the crypto store takes ~250ms to answer and
+        // the row would otherwise appear only once it did.
+        vectorPreferences.getLastCrossSigningState(session.myUserId)
+                ?.let { name -> CrossSigningState.entries.firstOrNull { it.name == name } }
+                ?.let { bindXSigningState(it) }
+
         viewLifecycleOwner.lifecycleScope.launch {
             findPreference<VectorPreference>(VectorPreferences.SETTINGS_CRYPTOGRAPHY_HS_ADMIN_DISABLED_E2E_DEFAULT)?.isVisible =
                     rawService
                             .getElementWellknown(session.sessionParams)
                             ?.isE2EByDefault() == false
-
-            refreshXSigningStatus()
-            // My device name may have been updated
-            refreshMyDevice()
         }
+
+        // Not chained after the well-known lookup above: that one is a network call, and the cryptography
+        // section must not wait on it.
+        viewLifecycleOwner.lifecycleScope.launch { refreshXSigningStatus() }
+        // My device name may have been updated
+        viewLifecycleOwner.lifecycleScope.launch { refreshMyDevice() }
     }
 
     private val secureBackupCategory by lazy {
@@ -624,32 +635,43 @@ class VectorSettingsSecurityPrivacyFragment :
     }
 
     // Todo this should be refactored and use same state as 4S section
-    private suspend fun refreshXSigningStatus() {
-        val crossSigningKeys = session.cryptoService().crossSigningService().getMyCrossSigningKeys()
-        val xSigningIsEnableInAccount = crossSigningKeys != null
-        val xSigningKeysAreTrusted = session.cryptoService().crossSigningService().checkUserTrust(session.myUserId).isVerified()
-        val xSigningKeyCanSign = session.cryptoService().crossSigningService().canCrossSign()
+    private enum class CrossSigningState { CAN_SIGN, TRUSTED, ENABLED, DISABLED }
 
-        withContext(Dispatchers.Main) {
-            when {
-                xSigningKeyCanSign -> {
-                    mCrossSigningStatePreference.setIcon(R.drawable.ic_shield_trusted)
-                    mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_complete)
-                }
-                xSigningKeysAreTrusted -> {
-                    mCrossSigningStatePreference.setIcon(R.drawable.ic_shield_custom)
-                    mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_trusted)
-                }
-                xSigningIsEnableInAccount -> {
-                    mCrossSigningStatePreference.setIcon(R.drawable.ic_shield_black)
-                    mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_not_trusted)
-                }
-                else -> {
-                    mCrossSigningStatePreference.setIcon(android.R.color.transparent)
-                    mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_disabled)
-                }
+    private fun bindXSigningState(state: CrossSigningState) {
+        when (state) {
+            CrossSigningState.CAN_SIGN -> {
+                mCrossSigningStatePreference.setIcon(R.drawable.ic_shield_trusted)
+                mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_complete)
             }
-            mCrossSigningStatePreference.isVisible = true
+            CrossSigningState.TRUSTED -> {
+                mCrossSigningStatePreference.setIcon(R.drawable.ic_shield_custom)
+                mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_trusted)
+            }
+            CrossSigningState.ENABLED -> {
+                mCrossSigningStatePreference.setIcon(R.drawable.ic_shield_black)
+                mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_not_trusted)
+            }
+            CrossSigningState.DISABLED -> {
+                mCrossSigningStatePreference.setIcon(android.R.color.transparent)
+                mCrossSigningStatePreference.summary = getString(CommonStrings.encryption_information_dg_xsigning_disabled)
+            }
+        }
+        mCrossSigningStatePreference.isVisible = true
+    }
+
+    private suspend fun refreshXSigningStatus() {
+        val crossSigning = session.cryptoService().crossSigningService()
+        val state = withContext(Dispatchers.IO) {
+            when {
+                crossSigning.canCrossSign() -> CrossSigningState.CAN_SIGN
+                crossSigning.checkUserTrust(session.myUserId).isVerified() -> CrossSigningState.TRUSTED
+                crossSigning.getMyCrossSigningKeys() != null -> CrossSigningState.ENABLED
+                else -> CrossSigningState.DISABLED
+            }
+        }
+        withContext(Dispatchers.Main) {
+            vectorPreferences.setLastCrossSigningState(session.myUserId, state.name)
+            bindXSigningState(state)
         }
     }
 
@@ -907,7 +929,7 @@ class VectorSettingsSecurityPrivacyFragment :
         }
 
         // crypto section: device key (fingerprint)
-        val deviceInfo = session.cryptoService().getCryptoDeviceInfo(userId, deviceId)
+        val deviceInfo = withContext(Dispatchers.IO) { session.cryptoService().getCryptoDeviceInfo(userId, deviceId) }
 
         val fingerprint = deviceInfo?.fingerprint()
         if (fingerprint?.isNotEmpty() == true) {
@@ -933,12 +955,14 @@ class VectorSettingsSecurityPrivacyFragment :
     // ==============================================================================================================
 
     private suspend fun refreshMyDevice() {
-        session.cryptoService().getUserDevices(session.myUserId).map {
-            DeviceInfo(
-                    userId = session.myUserId,
-                    deviceId = it.deviceId,
-                    displayName = it.displayName()
-            )
+        withContext(Dispatchers.IO) {
+            session.cryptoService().getUserDevices(session.myUserId).map {
+                DeviceInfo(
+                        userId = session.myUserId,
+                        deviceId = it.deviceId,
+                        displayName = it.displayName()
+                )
+            }
         }.let {
             withContext(Dispatchers.Main) {
                 refreshCryptographyPreference(it)

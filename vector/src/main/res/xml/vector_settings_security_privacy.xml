@@ -23,7 +23,9 @@
             android:persistent="false"
             android:title="@string/encryption_information_cross_signing_state"
             app:fragment="im.vector.app.features.settings.crosssigning.CrossSigningSettingsFragment"
+            app:isPreferenceVisible="false"
             tools:icon="@drawable/ic_shield_trusted"
+            tools:isPreferenceVisible="true"
             tools:summary="@string/encryption_information_dg_xsigning_complete" />
 
         <im.vector.app.core.preference.VectorPreference

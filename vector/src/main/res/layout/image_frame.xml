@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  Overrides androidx.preference's image_frame. Its 56dp minWidth reserves a Material keyline column,
+  which leaves a wide gap between a settings row's icon and its text and does not line up with the
+  rows that have no icon and start their text at the row padding.
+  -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/icon_frame"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="start|center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="0dp"
+    android:paddingTop="4dp"
+    android:paddingRight="12dp"
+    android:paddingBottom="4dp"
+    android:paddingStart="0dp"
+    android:paddingEnd="12dp">
+
+    <androidx.preference.internal.PreferenceImageView
+        android:id="@android:id/icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:maxWidth="48dp"
+        app:maxHeight="48dp" />
+
+</LinearLayout>

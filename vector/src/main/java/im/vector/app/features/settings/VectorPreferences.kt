@@ -159,6 +159,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
         const val SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY = "SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
         private const val SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY = "SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY"
+        private const val SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX = "SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_"
         const val SETTINGS_PERFORMANCE_MODE_KEY = "SETTINGS_PERFORMANCE_MODE_KEY"
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
         const val SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY = "SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY"
@@ -477,6 +478,16 @@ class VectorPreferences @Inject constructor(
 
     fun setLastCustomProfileColor(hex: String) {
         defaultPrefs.edit { putString(SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY, hex) }
+    }
+
+    // The cross-signing state the security settings resolved last time, per account: reading it from the
+    // crypto store takes ~250ms, which the row would otherwise spend blank.
+    fun getLastCrossSigningState(userId: String): String? {
+        return defaultPrefs.getString(SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX + userId, null)
+    }
+
+    fun setLastCrossSigningState(userId: String, state: String) {
+        defaultPrefs.edit { putString(SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX + userId, state) }
     }
 
     // When on, the app drops CPU-heavy graphical effects (BlurHash placeholders, spoiler blur, animated

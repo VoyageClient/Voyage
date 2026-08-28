@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.render
 
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.extensions.toCachedTimelineEvent
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
@@ -121,7 +122,9 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         val repliedToEvent = timelineEvent?.root
                 ?: session?.eventService()?.getEventFromCache(roomId, eventId)
                 ?: fetchedEvents[cacheKey(session?.sessionId, eventId)]
+        // An event resolved from the plain event cache carries no aggregated edits of its own.
         val latestContent = timelineEvent?.getLastMessageContent()
+                ?: repliedToEvent?.let { session?.toCachedTimelineEvent(roomId, it) }?.getLastMessageContent()
 
         if (repliedToEvent == null && !failedFetches.contains(cacheKey(session?.sessionId, eventId))) {
             triggerFetch(roomId, eventId)
