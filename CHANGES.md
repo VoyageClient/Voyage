@@ -12,6 +12,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Custom emoticons & stickers (MSC2545 image packs)** — send custom emoji and stickers, pickers for both, author your own packs, import and export packs as Misskey-style zip archives, react with emoticons, and put them in your profile biography.
 
+- **Web sticker packs without an integration manager** — a sticker picker you have set up yourself opens straight from your account's widgets, with no integration server involved and none required to be enabled.
+
 - **Keep deleted messages (MSC2815)** — see what a deleted message said. Room moderators and homeserver admins can fetch the original content back from a Synapse server that supports it. Each deleted message can be revealed or re-hidden from its long-press menu. Configurable account-wide under Settings → Security & privacy → Redactions and per room under Personalization: whether to preserve media, how large a download to accept, whether to restrict it to Wi-Fi, and whether the kept content survives clearing the app cache. Preserved media has its own clear actions, account-wide under Settings → General and per room under Personalization.
 
 - **Per-room media visibility** — the media-visibility settings can now be overridden per room from Personalization, so a single room can show or hide media regardless of the account-wide choice.

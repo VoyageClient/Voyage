@@ -17,18 +17,15 @@ import javax.inject.Inject
 class StickerPickerActionHandler @Inject constructor(private val session: Session) {
 
     suspend fun handle(): RoomDetailViewEvents = withContext(Dispatchers.Default) {
-        // Search for the sticker picker widget in the user account
-        val integrationsEnabled = session.integrationManagerService().isIntegrationEnabled()
-        if (!integrationsEnabled) {
-            return@withContext RoomDetailViewEvents.DisplayEnableIntegrationsWarning
-        }
+        // A sticker picker in the account's m.widgets is configured by the user and served directly, so
+        // it needs no integration manager. Only fall back to those prompts when there is none to open.
         val stickerWidget = session.widgetService().getUserWidgets(WidgetType.StickerPicker.values()).firstOrNull { it.isActive }
-        if (stickerWidget == null || stickerWidget.widgetContent.url.isNullOrBlank()) {
-            RoomDetailViewEvents.DisplayPromptForIntegrationManager
-        } else {
-            RoomDetailViewEvents.OpenStickerPicker(
-                    widget = stickerWidget
-            )
+        when {
+            stickerWidget != null && !stickerWidget.widgetContent.url.isNullOrBlank() -> {
+                RoomDetailViewEvents.OpenStickerPicker(widget = stickerWidget)
+            }
+            !session.integrationManagerService().isIntegrationEnabled() -> RoomDetailViewEvents.DisplayEnableIntegrationsWarning
+            else -> RoomDetailViewEvents.DisplayPromptForIntegrationManager
         }
     }
 }

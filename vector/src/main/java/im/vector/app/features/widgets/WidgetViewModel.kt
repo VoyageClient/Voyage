@@ -61,6 +61,10 @@ class WidgetViewModel @AssistedInject constructor(
     // Flag to avoid infinite loop
     private var canRefreshToken = true
 
+    // A sticker picker comes from the account's own m.widgets and is loaded straight from its URL (an
+    // unwhitelisted one simply gets no scalar token), so it stays usable with integrations turned off.
+    private val requiresIntegrationManager = initialState.widgetKind != WidgetKind.STICKER_PICKER
+
     init {
         integrationManagerService.addListener(this)
         if (initialState.widgetKind.isAdmin()) {
@@ -69,7 +73,7 @@ class WidgetViewModel @AssistedInject constructor(
             }
             postAPIMediator.setHandler(widgetPostAPIHandler)
         }
-        if (!integrationManagerService.isIntegrationEnabled()) {
+        if (requiresIntegrationManager && !integrationManagerService.isIntegrationEnabled()) {
             _viewEvents.post(WidgetViewEvents.Close(null))
         }
         setupName()
@@ -267,7 +271,7 @@ class WidgetViewModel @AssistedInject constructor(
     }
 
     override fun onIsEnabledChanged(enabled: Boolean) {
-        if (!enabled) {
+        if (!enabled && requiresIntegrationManager) {
             _viewEvents.post(WidgetViewEvents.Close(null))
         }
     }

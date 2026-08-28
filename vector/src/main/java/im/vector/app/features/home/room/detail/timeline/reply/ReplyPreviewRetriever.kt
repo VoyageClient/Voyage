@@ -17,6 +17,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.reply
 
+import im.vector.app.core.extensions.toCachedTimelineEvent
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
@@ -42,13 +43,11 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
-import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
@@ -237,7 +236,8 @@ class ReplyPreviewRetriever(
                         // The event cache is a local read, so consult it even when rate-limited for the
                         // server: a sibling reply's fetch may have cached the event without timeline rows.
                         timelineEvent
-                                ?: session.eventService().getEventFromCache(roomId, eventIdToRetrieve)?.toFallbackTimelineEvent()
+                                ?: session.eventService().getEventFromCache(roomId, eventIdToRetrieve)
+                                        ?.let { session.toCachedTimelineEvent(roomId, it) }
                     }?.apply {
                         // Decrypt synchronously if needed
                         val repliedToEvent = root
@@ -285,19 +285,6 @@ class ReplyPreviewRetriever(
                 }
             }
         }
-    }
-
-    private fun Event.toFallbackTimelineEvent(): TimelineEvent? {
-        val evId = eventId ?: return null
-        val sender = senderId.orEmpty()
-        val member = session.roomService().getRoomMember(sender, this@ReplyPreviewRetriever.roomId)
-        return TimelineEvent(
-                root = this,
-                localId = evId.hashCode().toLong(),
-                eventId = evId,
-                displayIndex = 0,
-                senderInfo = SenderInfo(sender, member?.displayName, isUniqueDisplayName = true, member?.avatarUrl)
-        )
     }
 
     private fun updateState(eventId: String, latestRepliedToEventId: String?, state: PreviewReplyUiState) {
