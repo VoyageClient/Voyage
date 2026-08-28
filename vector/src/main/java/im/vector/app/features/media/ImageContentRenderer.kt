@@ -754,6 +754,7 @@ class ImageContentRenderer @Inject constructor(
                     context = context,
                     blurHash = data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height, pulse = false) },
                     showGlyph = showGlyph && (data.url != null || data.preservedFile != null),
+                    settlesIntoBackground = data.url == null && data.preservedFile == null,
             ).also { placeholders.put(key, it) }
         }.also {
             // The fade-out transition marks the blurhash finished when an image lands, after which

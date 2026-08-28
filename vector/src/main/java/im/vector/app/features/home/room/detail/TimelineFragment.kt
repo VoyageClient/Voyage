@@ -169,6 +169,7 @@ import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.hasPoster
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.permalink.NavigationInterceptor
@@ -1962,7 +1963,8 @@ class TimelineFragment :
                 roomId = timelineArgs.roomId,
                 mediaData = mediaData,
                 view = view,
-                inMemory = inMemory
+                inMemory = inMemory,
+                morphFromView = mediaData.hasPoster,
         ) { pairs ->
             pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))
             pairs.add(Pair(views.composerContainer, ViewCompat.getTransitionName(views.composerContainer) ?: ""))

@@ -26,6 +26,10 @@ import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import timber.log.Timber
 import javax.inject.Inject
 
+/** Whether the row has a picture to morph into the viewer; without one it cross-fades, as an avatar does. */
+val VideoContentRenderer.Data.hasPoster: Boolean
+    get() = thumbnailMediaData.url != null || thumbnailMediaData.preservedFile != null
+
 class VideoContentRenderer @Inject constructor(
         private val localFilesHelper: LocalFilesHelper,
         private val activeSessionHolder: ActiveSessionHolder,
