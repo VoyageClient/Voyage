@@ -14,7 +14,9 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldContain
 import org.junit.Test
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
+import org.matrix.android.sdk.internal.database.model.RoomEntity
 import org.matrix.android.sdk.internal.di.MoshiProvider
 
 /**
@@ -28,6 +30,8 @@ class SlidingSyncTranslatorTest {
             userId = "@me:example.org",
             stores = mockk {
                 every { roomMember.getByRoomAndUser(any(), any()) } returns null
+                // Nothing is stored: every room's membership has to come out of the response itself.
+                every { room.get(any()) } returns null
             },
     )
 
@@ -66,12 +70,12 @@ class SlidingSyncTranslatorTest {
     @Test
     fun `unread counts are read whether flattened or nested`() {
         val flattened = translate(
-                """{ "pos": "s1", "rooms": { "!r:example.org": { "notification_count": 3, "highlight_count": 1 } } }"""
+                """{ "pos": "s1", "rooms": { "!r:example.org": { "membership": "join", "notification_count": 3, "highlight_count": 1 } } }"""
         )
         flattened.rooms?.join?.get("!r:example.org")?.unreadNotifications?.notificationCount shouldBeEqualTo 3
 
         val nested = translate(
-                """{ "pos": "s1", "rooms": { "!r:example.org": { "unread_notifications": { "notification_count": 3 } } } }"""
+                """{ "pos": "s1", "rooms": { "!r:example.org": { "membership": "join", "unread_notifications": { "notification_count": 3 } } } }"""
         )
         nested.rooms?.join?.get("!r:example.org")?.unreadNotifications?.notificationCount shouldBeEqualTo 3
     }
@@ -84,6 +88,7 @@ class SlidingSyncTranslatorTest {
                   "pos": "s1",
                   "rooms": {
                     "!room:example.org": {
+                      "membership": "join",
                       "required_state": [
                         {
                           "type": "m.room.encryption", "state_key": "", "event_id": "${'$'}s1",
@@ -122,7 +127,7 @@ class SlidingSyncTranslatorTest {
 
     @Test
     fun `absent unread counts stay absent rather than becoming zero`() {
-        val response = translate("""{ "pos": "s1", "rooms": { "!room:example.org": { "timeline": [] } } }""")
+        val response = translate("""{ "pos": "s1", "rooms": { "!room:example.org": { "membership": "join", "timeline": [] } } }""")
 
         response.rooms?.join?.get("!room:example.org")?.unreadNotifications.shouldBeNull()
     }
@@ -134,8 +139,8 @@ class SlidingSyncTranslatorTest {
                 {
                   "pos": "s1",
                   "rooms": {
-                    "!fresh:example.org": { "initial": true, "timeline": [] },
-                    "!known:example.org": { "timeline": [] }
+                    "!fresh:example.org": { "membership": "join", "initial": true, "timeline": [] },
+                    "!known:example.org": { "membership": "join", "timeline": [] }
                   }
                 }
                 """
@@ -153,6 +158,7 @@ class SlidingSyncTranslatorTest {
                   "pos": "s1",
                   "rooms": {
                     "!room:example.org": {
+                      "membership": "join",
                       "required_state": [ { "type": "m.room.topic", "state_key": "" } ]
                     }
                   }
@@ -254,7 +260,32 @@ class SlidingSyncTranslatorTest {
                 """
         )
 
-        response.rooms?.join?.keys?.shouldContain("!room:example.org")
+        // Nothing says we are in the room, and someone else's membership does not stand in for ours.
+        response.rooms?.join?.size shouldBeEqualTo 0
+        response.rooms?.leave?.size shouldBeEqualTo 0
+        response.rooms?.invite?.size shouldBeEqualTo 0
+    }
+
+    @Test
+    fun `a room the response says nothing about keeps the membership we hold`() {
+        // Synapse keeps delivering a room we were kicked from — its receipts at least — with none of our
+        // own membership in it.
+        val translator = SlidingSyncTranslator(
+                userId = "@me:example.org",
+                stores = mockk {
+                    every { roomMember.getByRoomAndUser(any(), any()) } returns null
+                    every { room.get(any()) } returns RoomEntity(roomId = "!room:example.org").apply {
+                        membership = Membership.LEAVE
+                    }
+                },
+        )
+
+        val response = translator.toSyncResponse(
+                adapter.fromJson("""{ "pos": "s1", "rooms": { "!room:example.org": { "timeline": [] } } }""")!!
+        )
+
+        response.rooms?.leave?.keys?.shouldContain("!room:example.org")
+        response.rooms?.join?.size shouldBeEqualTo 0
     }
 
     @Test
@@ -282,7 +313,7 @@ class SlidingSyncTranslatorTest {
                 """
                 {
                   "pos": "s1",
-                  "rooms": { "!room:example.org": { "timeline": [] } },
+                  "rooms": { "!room:example.org": { "membership": "join", "timeline": [] } },
                   "extensions": {
                     "to_device": {
                       "next_batch": "td1",
