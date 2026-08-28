@@ -87,23 +87,15 @@ object VectorLinkify {
                 createdSpans.add(spec)
                 return@forEachUrlSpanIndexed
             }
-            // Try to do something for ending ) issues/3020
-            if (spannable[end - 1] == ')') {
-                var lbehind = end - 2
-                var isFullyContained = 1
-                while (lbehind > start) {
-                    val char = spannable[lbehind]
-                    if (char == '(') isFullyContained -= 1
-                    if (char == ')') isFullyContained += 1
-                    lbehind--
+            // Patterns.WEB_URL stops before a trailing ')' unless the url ends the text, so a url with a
+            // bracketed path loses its closing bracket; a wrapping `(…)` needs the opposite trim. issues/3020
+            val balancedEnd = balanceParens(spannable, start, end)
+            if (balancedEnd != end) {
+                val url = urlSpan.url.orEmpty().let {
+                    if (balancedEnd > end) it + spannable.substring(end, balancedEnd) else it.dropLast(end - balancedEnd)
                 }
-                if (isFullyContained != 0) {
-                    // In this case we will return false to match, and manually add span if we want?
-                    val span = NoUnderlineUrlSpan(spannable.substring(start, end - 1))
-                    val spec = LinkSpec(span, start, end - 1)
-                    createdSpans.add(spec)
-                    return@forEachUrlSpanIndexed
-                }
+                createdSpans.add(LinkSpec(NoUnderlineUrlSpan(url), start, balancedEnd))
+                return@forEachUrlSpanIndexed
             }
 
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
@@ -125,6 +117,26 @@ object VectorLinkify {
         for (spec in createdSpans) {
             spannable.setSpan(spec.span, spec.start, spec.end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
+    }
+
+    private fun balanceParens(text: CharSequence, start: Int, end: Int): Int {
+        var depth = 0
+        for (i in start until end) {
+            when (text[i]) {
+                '(' -> depth++
+                ')' -> depth--
+            }
+        }
+        var balancedEnd = end
+        while (depth > 0 && balancedEnd < text.length && text[balancedEnd] == ')') {
+            balancedEnd++
+            depth--
+        }
+        while (depth < 0 && balancedEnd > start && text[balancedEnd - 1] == ')') {
+            balancedEnd--
+            depth++
+        }
+        return balancedEnd
     }
 
     private fun pruneOverlaps(links: ArrayList<LinkSpec>) {

@@ -112,19 +112,13 @@ internal object VectorLinkify {
                 created.add(LinkSpec("$url/", start, end + 1))
                 return@forEachUrlSpan
             }
-            if (text[end - 1] == ')') {
-                var lbehind = end - 2
-                var isFullyContained = 1
-                while (lbehind > start) {
-                    val char = text[lbehind]
-                    if (char == '(') isFullyContained -= 1
-                    if (char == ')') isFullyContained += 1
-                    lbehind--
-                }
-                if (isFullyContained != 0) {
-                    created.add(LinkSpec(text.substring(start, end - 1), start, end - 1))
-                    return@forEachUrlSpan
-                }
+            // AUTOLINK_WEB_URL stops before a trailing ')' unless the url ends the text, so a url with
+            // a bracketed path loses its closing bracket; a wrapping `(…)` gives the opposite.
+            val balancedEnd = balanceParens(text, start, end)
+            if (balancedEnd != end) {
+                val balancedUrl = if (balancedEnd > end) url + text.substring(end, balancedEnd) else url.dropLast(end - balancedEnd)
+                created.add(LinkSpec(balancedUrl, start, balancedEnd))
+                return@forEachUrlSpan
             }
             created.add(LinkSpec(url, start, end))
         }
@@ -144,6 +138,26 @@ internal object VectorLinkify {
 
         pruneOverlaps(created)
         for (spec in created) text.setSpan(RichStyle.Url(spec.url), spec.start, spec.end)
+    }
+
+    private fun balanceParens(text: SpanBuffer, start: Int, end: Int): Int {
+        var depth = 0
+        for (i in start until end) {
+            when (text[i]) {
+                '(' -> depth++
+                ')' -> depth--
+            }
+        }
+        var balancedEnd = end
+        while (depth > 0 && balancedEnd < text.length && text[balancedEnd] == ')') {
+            balancedEnd++
+            depth--
+        }
+        while (depth < 0 && balancedEnd > start && text[balancedEnd - 1] == ')') {
+            balancedEnd--
+            depth++
+        }
+        return balancedEnd
     }
 
     private fun pruneOverlaps(links: ArrayList<LinkSpec>) {
