@@ -12,6 +12,24 @@ This is a fork that targets Ice Cream Sandwich (API 14). Any new feature or code
 
 New strings always go into `library/ui-strings/src/main/res/values/donottranslate.xml` with `translatable="false"`. Do not add them to `strings.xml` — that file is the source for translation pipelines and stale entries cause AAPT warnings ("removing resource X without required default value") across every locale.
 
+# Copyright headers
+
+Every file this fork creates gets exactly this header, verbatim, as the first thing in the file:
+
+```
+/*
+ * Copyright 2026 Voyage Client
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * Please see LICENSE files in the repository root for full details.
+ */
+```
+
+- The holder is "Voyage Client" — never "New Vector Ltd.", "The Matrix.org Foundation C.I.C.", or anything else.
+- AGPL-3.0-only, on its own. Never `OR LicenseRef-Element-Commercial`; the Element commercial license does not apply to our code.
+- Never Apache-2.0, even for new files under `matrix-sdk-android/` where the surrounding upstream files use it. Don't copy a neighboring file's header when creating a file — write this one.
+- Only for files we created. Files that came from upstream Element, from another project (SchildiChat, AOSP, Markwon/jsoup, openpgp-api, …), or that are mostly upstream code moved or split into a new path keep their original header untouched. Editing an upstream file does not relicense it.
+
 # Comments
 
 Default to no comment when writing code. Only write one when the WHY is non-obvious (hidden constraint, upstream-bug workaround, surprising behavior). Don't narrate what the code does or restate the diff in code comments. Identifiers and types already say what; comments are only for what they can't. No multi-paragraph kdoc on internal helpers. Note that this does not apply to dialogue, please do describe what changes you are making.
