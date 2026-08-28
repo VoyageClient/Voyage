@@ -1,0 +1,101 @@
+name: Nightly APKs
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+env:
+  # Only libopus/libce compile native code, and both pin this version. The 21.3.6528147 in
+  # vector/ and vector-app/ is inert (no externalNativeBuild there) — local builds never install it.
+  NDK_VERSION: 'ndk;23.2.8568313'
+  CMAKE_VERSION: 'cmake;3.22.1'
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout the pushed commit
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # Shallow and tagless on purpose: the rolling `nightly` tag lands on HEAD every run, and a
+          # tag on HEAD would switch getVersionCode() from the monotonic timestamp scheme to the
+          # version-name one, breaking upgrades over older nightlies.
+          fetch-depth: 20
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc /usr/local/share/boost
+          df -h /
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install NDK and CMake
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "$NDK_VERSION" "$CMAKE_VERSION"
+
+      - name: Assemble debug APKs
+        run: ./gradlew :vector-app:assembleDebug --stacktrace
+
+      - name: Assemble release APKs
+        run: ./gradlew :vector-app:assembleRelease --stacktrace
+
+      - name: Collect APKs
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          find vector-app/build/outputs/apk -name '*.apk' -exec cp {} artifacts/ \;
+          ls -lh artifacts
+
+      - name: Update the nightly prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Nightly build of \`develop\` at ${{ github.sha }}."
+            echo
+            echo "Both variants are signed with the checked-in debug key, so they can be installed side by side:"
+            echo "- \`*-release.apk\` — R8-shrunk, package \`im.voyage.app\` (the one to use on Ice Cream Sandwich)."
+            echo "- \`*-debug.apk\` — unshrunk and debuggable, package \`im.voyage.app.debug\` (KitKat and newer only)."
+            echo
+            echo "Per-ABI APKs plus a universal one are attached; install the universal APK if unsure."
+            echo
+            echo "Recent commits:"
+            git log -10 --pretty='- %h %s'
+          } > release-notes.md
+
+          # The release keeps one tag forever; move it to the commit being built.
+          git tag -f nightly "${{ github.sha }}"
+          git push -f origin refs/tags/nightly
+
+          if gh release view nightly > /dev/null 2>&1; then
+            gh release edit nightly --title 'Nightly' --notes-file release-notes.md --prerelease
+            gh release view nightly --json assets --jq '.assets[].name' | while read -r asset; do
+              gh release delete-asset nightly "$asset" --yes
+            done
+          else
+            gh release create nightly --title 'Nightly' --notes-file release-notes.md --prerelease
+          fi
+
+          gh release upload nightly artifacts/*.apk
