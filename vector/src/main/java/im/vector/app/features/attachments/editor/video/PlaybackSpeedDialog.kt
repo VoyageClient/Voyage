@@ -104,6 +104,9 @@ class PlaybackSpeedDialog(
         if (views.speedChangePitch.isChecked != current.changePitch) {
             views.speedChangePitch.isChecked = current.changePitch
         }
+        val canReset = !current.isDefault || !current.changePitch
+        views.speedReset.isEnabled = canReset
+        views.speedReset.alpha = if (canReset) 1f else DISABLED_ALPHA
     }
 
     private fun format(speed: Float) =
@@ -115,5 +118,7 @@ class PlaybackSpeedDialog(
 
         /** NewPipe's own default. */
         private const val DEFAULT_STEP_PERCENTAGE = 25
+
+        private const val DISABLED_ALPHA = 0.4f
     }
 }

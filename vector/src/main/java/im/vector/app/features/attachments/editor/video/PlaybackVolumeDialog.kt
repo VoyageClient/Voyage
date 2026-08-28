@@ -114,6 +114,8 @@ class PlaybackVolumeDialog(
         views.volumeMinimum.alpha = alpha
         views.volumeMaximum.alpha = alpha
         views.volumeStepSelector.alpha = alpha
+        views.volumeReset.isEnabled = !current.isDefault
+        views.volumeReset.alpha = if (current.isDefault) DISABLED_ALPHA else 1f
     }
 
     private fun percentOf(gain: Float) = (gain * 100).roundToInt()

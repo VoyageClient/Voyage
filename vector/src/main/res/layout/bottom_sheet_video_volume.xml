@@ -29,7 +29,7 @@
             android:id="@+id/volumeReset"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="?selectableItemBackgroundBorderless"
+            android:background="@null"
             android:contentDescription="@string/video_editor_reset"
             android:padding="12dp"
             android:scaleType="fitCenter"
@@ -48,8 +48,8 @@
         <TextView
             android:id="@+id/volumeStepDown"
             android:layout_width="56dp"
-            android:layout_height="48dp"
-            android:background="?selectableItemBackgroundBorderless"
+            android:layout_height="32dp"
+            android:background="?selectableItemBackground"
             android:gravity="center"
             android:textColor="?vctr_content_primary"
             android:textStyle="bold"
@@ -69,8 +69,8 @@
         <TextView
             android:id="@+id/volumeStepUp"
             android:layout_width="56dp"
-            android:layout_height="48dp"
-            android:background="?selectableItemBackgroundBorderless"
+            android:layout_height="32dp"
+            android:background="?selectableItemBackground"
             android:gravity="center"
             android:textColor="?vctr_content_primary"
             android:textStyle="bold"
@@ -114,14 +114,16 @@
     <LinearLayout
         android:id="@+id/volumeStepSelector"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="32dp"
         android:layout_marginTop="12dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
             android:text="@string/video_editor_step"
             android:textColor="?vctr_content_secondary"
             android:textSize="13sp" />

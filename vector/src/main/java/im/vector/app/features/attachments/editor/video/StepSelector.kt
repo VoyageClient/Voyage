@@ -7,10 +7,16 @@
 
 package im.vector.app.features.attachments.editor.video
 
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 
@@ -27,6 +33,10 @@ class StepSelector(
     private val accent = ThemeUtils.getColorFromContextTheme(context, com.google.android.material.R.attr.colorAccent)
     private val normal = ThemeUtils.getColorFromContextTheme(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
 
+    private val density = context.resources.displayMetrics.density
+    private val rippleResource =
+            ThemeUtils.getAttribute(context, androidx.appcompat.R.attr.selectableItemBackground)?.resourceId ?: 0
+
     var percentage = initial
         private set
 
@@ -37,17 +47,11 @@ class StepSelector(
         }
 
     init {
-        val padding = (STEP_PADDING_DP * context.resources.displayMetrics.density).toInt()
         percentages.forEach { value ->
             val button = TextView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
                 gravity = Gravity.CENTER
-                setPadding(0, padding, 0, padding)
                 text = context.getString(CommonStrings.video_editor_step_value, value)
-                // AppCompat's, not the framework's: the borderless variant is API 21 in android:.
-                setBackgroundResource(
-                        ThemeUtils.getAttribute(context, androidx.appcompat.R.attr.selectableItemBackgroundBorderless)?.resourceId ?: 0
-                )
                 setOnClickListener {
                     percentage = value
                     render()
@@ -64,9 +68,20 @@ class StepSelector(
         val selected = percentages[index] == percentage
         button.setTextColor(if (selected) accent else normal)
         button.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
+        val ripple = rippleDrawable()
+        val background = if (selected) LayerDrawable(listOfNotNull(dashedBorder(), ripple).toTypedArray()) else ripple
+        ViewCompat.setBackground(button, background)
+    }
+
+    private fun rippleDrawable(): Drawable? =
+            if (rippleResource == 0) null else ContextCompat.getDrawable(context, rippleResource)
+
+    private fun dashedBorder(): Drawable = GradientDrawable().apply {
+        setColor(Color.TRANSPARENT)
+        setStroke(density.toInt().coerceAtLeast(1), accent, DASH_DP * density, DASH_DP * density)
     }
 
     companion object {
-        private const val STEP_PADDING_DP = 12
+        private const val DASH_DP = 4f
     }
 }
