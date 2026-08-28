@@ -13,11 +13,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.view.ActionMode
-import androidx.appcompat.view.ActionMode.Callback
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.transition.TransitionManager
 import com.airbnb.epoxy.EpoxyVisibilityTracker
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
@@ -29,6 +26,7 @@ import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentSpaceAddRoomsBinding
 import im.vector.lib.strings.CommonPlurals
@@ -45,7 +43,7 @@ class SpaceManageRoomsFragment :
         VectorBaseFragment<FragmentSpaceAddRoomsBinding>(),
         OnBackPressed,
         SpaceManageRoomsController.Listener,
-        Callback {
+        VectorMenuProvider {
 
     @Inject lateinit var epoxyController: SpaceManageRoomsController
 
@@ -56,6 +54,10 @@ class SpaceManageRoomsFragment :
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?) = FragmentSpaceAddRoomsBinding.inflate(inflater)
 
     override fun onBackPressed(toolbarButton: Boolean): Boolean {
+        if (withState(viewModel) { it.selectedRooms.isNotEmpty() }) {
+            viewModel.handle(SpaceManageRoomViewAction.ClearSelection)
+            return true
+        }
         parentFragmentManager.popBackStack()
         return true
     }
@@ -109,26 +111,17 @@ class SpaceManageRoomsFragment :
     override fun invalidate() = withState(viewModel) { state ->
         epoxyController.setData(state)
 
-        state.spaceSummary.invoke()?.let {
-            toolbar?.subtitle = it.displayName
-        }
-
-        if (state.selectedRooms.isNotEmpty()) {
-            if (currentActionMode == null) {
-                views.addRoomToSpaceToolbar.isVisible = true
-                vectorBaseActivity.startSupportActionMode(this)
-            } else {
-                toolbar?.title = resources.getQuantityString(CommonPlurals.room_details_selected, state.selectedRooms.size, state.selectedRooms.size)
-            }
-//            views.addRoomToSpaceToolbar.isVisible = false
-//            views.addRoomToSpaceToolbar.startActionMode(this)
+        val selectedCount = state.selectedRooms.size
+        if (selectedCount > 0) {
+            toolbar?.title = resources.getQuantityString(CommonPlurals.room_details_selected, selectedCount, selectedCount)
+            toolbar?.subtitle = null
         } else {
-            currentActionMode?.finish()
+            toolbar?.setTitle(CommonStrings.space_manage_rooms_and_spaces)
+            toolbar?.subtitle = state.spaceSummary.invoke()?.displayName
         }
+        invalidateOptionsMenu()
         Unit
     }
-
-    var currentActionMode: ActionMode? = null
 
     override fun toggleSelection(childInfo: SpaceChildInfo) {
         viewModel.handle(SpaceManageRoomViewAction.ToggleSelection(childInfo.childRoomId))
@@ -142,60 +135,28 @@ class SpaceManageRoomsFragment :
         viewModel.handle(SpaceManageRoomViewAction.LoadAdditionalItemsIfNeeded)
     }
 
-    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        val inflater = mode?.menuInflater
-        inflater?.inflate(R.menu.menu_manage_space, menu)
-        withState(viewModel) {
-            mode?.title = resources.getQuantityString(CommonPlurals.room_details_selected, it.selectedRooms.size, it.selectedRooms.size)
+    // Selection lives in the toolbar: an ActionMode inflates its bar into the window above the fragment,
+    // pushing the content down and fading in over the gap that leaves.
+    override fun getMenuRes() = R.menu.menu_manage_space
+
+    override fun handlePrepareMenu(menu: Menu) = withState(viewModel) { state ->
+        val hasSelection = state.selectedRooms.isNotEmpty()
+        val areAllSuggested = state.childrenInfo.invoke()?.children.orEmpty()
+                .filter { state.selectedRooms.contains(it.childRoomId) }
+                .all { it.suggested == true }
+        menu.findItem(R.id.action_delete)?.isVisible = hasSelection
+        menu.findItem(R.id.action_mark_as_suggested)?.isVisible = hasSelection && !areAllSuggested
+        menu.findItem(R.id.action_mark_as_not_suggested)?.isVisible = hasSelection && areAllSuggested
+    }
+
+    override fun handleMenuItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_delete -> viewModel.handle(SpaceManageRoomViewAction.BulkRemove)
+            R.id.action_mark_as_suggested -> viewModel.handle(SpaceManageRoomViewAction.MarkAllAsSuggested(true))
+            R.id.action_mark_as_not_suggested -> viewModel.handle(SpaceManageRoomViewAction.MarkAllAsSuggested(false))
+            else -> return false
         }
-        currentActionMode = mode
-        views.addRoomToSpaceToolbar.isVisible = false
-        return true
-    }
-
-    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        withState(viewModel) { state ->
-            // check if we show mark as suggested or not
-            val areAllSuggested = state.childrenInfo.invoke()?.children.orEmpty().filter { state.selectedRooms.contains(it.childRoomId) }
-                    .all { it.suggested == true }
-            menu?.findItem(R.id.action_mark_as_suggested)?.isVisible = !areAllSuggested
-            menu?.findItem(R.id.action_mark_as_not_suggested)?.isVisible = areAllSuggested
-        }
-
-        return true
-    }
-
-    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            R.id.action_delete -> {
-                handleDeleteSelection()
-            }
-            R.id.action_mark_as_suggested -> {
-                viewModel.handle(SpaceManageRoomViewAction.MarkAllAsSuggested(true))
-            }
-            R.id.action_mark_as_not_suggested -> {
-                viewModel.handle(SpaceManageRoomViewAction.MarkAllAsSuggested(false))
-            }
-            else -> {
-            }
-        }
-        mode?.finish()
-        return true
-    }
-
-    private fun handleDeleteSelection() {
-        viewModel.handle(SpaceManageRoomViewAction.BulkRemove)
-    }
-
-    override fun onDestroyActionMode(mode: ActionMode?) {
-        // should force a refresh
-        currentActionMode = null
         viewModel.handle(SpaceManageRoomViewAction.ClearSelection)
-        views.coordinatorLayout.post {
-            if (isAdded) {
-                TransitionManager.beginDelayedTransition(views.coordinatorLayout)
-                views.addRoomToSpaceToolbar.isVisible = true
-            }
-        }
+        return true
     }
 }

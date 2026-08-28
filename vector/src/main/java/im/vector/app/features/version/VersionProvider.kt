@@ -17,23 +17,14 @@ class VersionProvider @Inject constructor(
 ) {
 
     fun getVersion(longFormat: Boolean): String {
-        var result = "${buildMeta.versionName} [${versionCodeProvider.getVersionCode()}]"
+        val result = "${buildMeta.versionName} [${versionCodeProvider.getVersionCode()}]"
 
-        var flavor = buildMeta.flavorShortDescription
+        val details = listOfNotNull(
+                buildMeta.flavorShortDescription.takeIf { it.isNotBlank() },
+                buildMeta.gitRevision.takeIf { it.isNotBlank() },
+                buildMeta.gitRevisionDate.takeIf { longFormat && it.isNotBlank() },
+        )
 
-        if (flavor.isNotBlank()) {
-            flavor += "-"
-        }
-
-        val gitVersion = buildMeta.gitRevision
-        val gitRevisionDate = buildMeta.gitRevisionDate
-
-        result += if (longFormat) {
-            " ($flavor$gitVersion-$gitRevisionDate)"
-        } else {
-            " ($flavor$gitVersion)"
-        }
-
-        return result
+        return if (details.isEmpty()) result else result + details.joinToString("-", prefix = " (", postfix = ")")
     }
 }

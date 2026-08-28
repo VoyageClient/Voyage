@@ -1031,4 +1031,7 @@
     <string name="profile_overrides_need_backup" translatable="false">These profile overrides are encrypted, and changing them needs the account data key from secure backup.</string>
     <string name="labs_encrypt_account_data_title" translatable="false">MSC4483: Encrypt account data</string>
     <string name="labs_encrypt_account_data_summary" translatable="false">Store supported account data (profile overrides, personal notes) encrypted with the account data key. When disabled, it is written back unencrypted on the next change.</string>
+
+    <!-- Space creation -->
+    <string name="create_space_encryption_description" translatable="false">Spaces hold no messages of their own, so this only encrypts what little is sent in the space room itself. Once enabled, it cannot be disabled.</string>
 </resources>

@@ -19,8 +19,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.platform.SimpleFragmentActivity
-import im.vector.app.features.spaces.create.ChoosePrivateSpaceTypeFragment
-import im.vector.app.features.spaces.create.ChooseSpaceTypeFragment
 import im.vector.app.features.spaces.create.CreateSpaceAction
 import im.vector.app.features.spaces.create.CreateSpaceAdd3pidInvitesFragment
 import im.vector.app.features.spaces.create.CreateSpaceDefaultRoomsFragment
@@ -28,8 +26,6 @@ import im.vector.app.features.spaces.create.CreateSpaceDetailsFragment
 import im.vector.app.features.spaces.create.CreateSpaceEvents
 import im.vector.app.features.spaces.create.CreateSpaceState
 import im.vector.app.features.spaces.create.CreateSpaceViewModel
-import im.vector.app.features.spaces.create.SpaceTopology
-import im.vector.app.features.spaces.create.SpaceType
 import im.vector.lib.strings.CommonStrings
 
 @AndroidEntryPoint
@@ -41,20 +37,14 @@ class SpaceCreationActivity : SimpleFragmentActivity() {
         super.onCreate(savedInstanceState)
         if (isFirstCreation()) {
             when (withState(viewModel) { it.step }) {
-                CreateSpaceState.Step.ChooseType -> {
-                    navigateToFragment(ChooseSpaceTypeFragment::class.java)
-                }
                 CreateSpaceState.Step.SetDetails -> {
-                    navigateToFragment(ChooseSpaceTypeFragment::class.java)
-                }
-                CreateSpaceState.Step.AddRooms -> {
-                    navigateToFragment(CreateSpaceDefaultRoomsFragment::class.java)
-                }
-                CreateSpaceState.Step.ChoosePrivateType -> {
-                    navigateToFragment(ChoosePrivateSpaceTypeFragment::class.java)
+                    navigateToFragment(CreateSpaceDetailsFragment::class.java)
                 }
                 CreateSpaceState.Step.AddEmailsOrInvites -> {
                     navigateToFragment(CreateSpaceAdd3pidInvitesFragment::class.java)
+                }
+                CreateSpaceState.Step.AddRooms -> {
+                    navigateToFragment(CreateSpaceDefaultRoomsFragment::class.java)
                 }
             }
         }
@@ -72,9 +62,6 @@ class SpaceCreationActivity : SimpleFragmentActivity() {
                 CreateSpaceEvents.NavigateToDetails -> {
                     navigateToFragment(CreateSpaceDetailsFragment::class.java)
                 }
-                CreateSpaceEvents.NavigateToChooseType -> {
-                    navigateToFragment(ChooseSpaceTypeFragment::class.java)
-                }
                 CreateSpaceEvents.Dismiss -> {
                     finish()
                 }
@@ -83,9 +70,6 @@ class SpaceCreationActivity : SimpleFragmentActivity() {
                 }
                 CreateSpaceEvents.NavigateToAdd3Pid -> {
                     navigateToFragment(CreateSpaceAdd3pidInvitesFragment::class.java)
-                }
-                CreateSpaceEvents.NavigateToChoosePrivateType -> {
-                    navigateToFragment(ChoosePrivateSpaceTypeFragment::class.java)
                 }
                 is CreateSpaceEvents.ShowModalError -> {
                     hideWaitingView()
@@ -98,7 +82,7 @@ class SpaceCreationActivity : SimpleFragmentActivity() {
                     setResult(RESULT_OK, Intent().apply {
                         putExtra(RESULT_DATA_CREATED_SPACE_ID, it.spaceId)
                         putExtra(RESULT_DATA_DEFAULT_ROOM_ID, it.defaultRoomId)
-                        putExtra(RESULT_DATA_CREATED_SPACE_IS_JUST_ME, it.topology == SpaceTopology.JustMe)
+                        putExtra(RESULT_DATA_CREATED_SPACE_IS_JUST_ME, it.isJustMe)
                     })
                     finish()
                 }
@@ -131,16 +115,7 @@ class SpaceCreationActivity : SimpleFragmentActivity() {
     }
 
     private fun renderState(state: CreateSpaceState) {
-        val titleRes = when (state.step) {
-            CreateSpaceState.Step.ChooseType -> CommonStrings.activity_create_space_title
-            CreateSpaceState.Step.SetDetails,
-            CreateSpaceState.Step.AddRooms -> {
-                if (state.spaceType == SpaceType.Public) CommonStrings.your_public_space
-                else CommonStrings.your_private_space
-            }
-            CreateSpaceState.Step.AddEmailsOrInvites,
-            CreateSpaceState.Step.ChoosePrivateType -> CommonStrings.your_private_space
-        }
+        val titleRes = CommonStrings.activity_create_space_title
         supportActionBar?.let {
             it.title = getString(titleRes)
         } ?: run {

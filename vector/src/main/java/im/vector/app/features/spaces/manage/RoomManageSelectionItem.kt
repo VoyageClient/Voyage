@@ -9,7 +9,6 @@ package im.vector.app.features.spaces.manage
 
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -21,6 +20,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.list.renderRoomSelectionCheckbox
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -39,13 +39,10 @@ abstract class RoomManageSelectionItem : VectorEpoxyModel<RoomManageSelectionIte
 
         holder.titleText.text = matrixItem.getBestName().prepareForDisplay()
 
-        if (selected) {
-            holder.checkboxImage.setImageDrawable(ContextCompat.getDrawable(holder.view.context, R.drawable.ic_checkbox_on))
-            holder.checkboxImage.contentDescription = holder.view.context.getString(CommonStrings.a11y_checked)
-        } else {
-            holder.checkboxImage.setImageDrawable(ContextCompat.getDrawable(holder.view.context, R.drawable.ic_checkbox_off))
-            holder.checkboxImage.contentDescription = holder.view.context.getString(CommonStrings.a11y_unchecked)
-        }
+        holder.checkboxImage.renderRoomSelectionCheckbox(selected)
+        holder.checkboxImage.contentDescription = holder.view.context.getString(
+                if (selected) CommonStrings.a11y_checked else CommonStrings.a11y_unchecked
+        )
 
         holder.suggestedText.isVisible = suggested
 

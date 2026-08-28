@@ -10,17 +10,24 @@ package im.vector.app.features.spaces.create
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Fail
 import im.vector.app.core.epoxy.TextListener
+import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.discovery.settingsSectionTitleItem
 import im.vector.app.features.form.formEditTextItem
 import im.vector.app.features.form.formEditableSquareAvatarItem
 import im.vector.app.features.form.formMultiLineEditTextItem
+import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.roomdirectory.createroom.AdvancedRoomOptionsListener
 import im.vector.app.features.roomdirectory.createroom.RoomAliasErrorFormatter
+import im.vector.app.features.roomdirectory.createroom.buildAdvancedRoomOptions
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.MatrixConstants
+import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasError
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.util.MatrixItem
 import javax.inject.Inject
 
@@ -48,13 +55,8 @@ class SpaceDetailEpoxyController @Inject constructor(
         val host = this
         genericFooterItem {
             id("info_help")
-            text(
-                    if (data?.spaceType == SpaceType.Public) {
-                        host.stringProvider.getString(CommonStrings.create_spaces_details_public_header)
-                    } else {
-                        host.stringProvider.getString(CommonStrings.create_spaces_details_private_header)
-                    }.toEpoxyCharSequence()
-            )
+            // Wording is not specific to a private space, and this one is already translated.
+            text(host.stringProvider.getString(CommonStrings.create_spaces_details_private_header).toEpoxyCharSequence())
         }
 
         formEditableSquareAvatarItem {
@@ -78,7 +80,32 @@ class SpaceDetailEpoxyController @Inject constructor(
             }
         }
 
-        if (data?.spaceType == SpaceType.Public) {
+        formMultiLineEditTextItem {
+            id("topic")
+            enabled(true)
+            value(data?.topic)
+            hint(host.stringProvider.getString(CommonStrings.create_space_topic_hint))
+            textSizeSp(16)
+            onTextChange { text ->
+                host.listener?.onTopicChange(text)
+            }
+        }
+
+        settingsSectionTitleItem {
+            id("accessSection")
+            titleResId(CommonStrings.room_settings_space_access_title)
+        }
+
+        buildProfileAction(
+                id = "joinRule",
+                title = host.joinRuleTitle(data?.joinRule),
+                subtitle = host.joinRuleSubtitle(data?.joinRule),
+                divider = false,
+                editable = true,
+                action = { host.listener?.selectJoinRule() }
+        )
+
+        if (data?.isPublic == true) {
             formEditTextItem {
                 id("alias")
                 enabled(true)
@@ -98,25 +125,55 @@ class SpaceDetailEpoxyController @Inject constructor(
                 )
                 onTextChange(host.aliasTextWatcher)
             }
+        } else {
+            formSwitchItem {
+                id("encryption")
+                enabled(true)
+                title(host.stringProvider.getString(CommonStrings.create_room_encryption_title))
+                summary(host.stringProvider.getString(CommonStrings.create_space_encryption_description))
+                switchChecked(data?.isEncrypted.orFalse())
+                listener { value -> host.listener?.setIsEncrypted(value) }
+            }
         }
 
-        formMultiLineEditTextItem {
-            id("topic")
-            enabled(true)
-            value(data?.topic)
-            hint(host.stringProvider.getString(CommonStrings.create_space_topic_hint))
-            textSizeSp(16)
-            onTextChange { text ->
-                host.listener?.onTopicChange(text)
-            }
+        if (data != null) {
+            buildAdvancedRoomOptions(
+                    options = data,
+                    stringProvider = stringProvider,
+                    homeServerName = data.homeServerName,
+                    enabled = true,
+                    listener = listener,
+            )
         }
     }
 
-    interface Listener {
+    private fun joinRuleTitle(joinRule: RoomJoinRules?): String {
+        return stringProvider.getString(
+                when (joinRule) {
+                    RoomJoinRules.PUBLIC -> CommonStrings.room_settings_room_access_public_title
+                    RoomJoinRules.KNOCK -> CommonStrings.room_settings_room_access_knock_title
+                    else -> CommonStrings.room_settings_room_access_private_title
+                }
+        )
+    }
+
+    private fun joinRuleSubtitle(joinRule: RoomJoinRules?): String {
+        return stringProvider.getString(
+                when (joinRule) {
+                    RoomJoinRules.PUBLIC -> CommonStrings.room_settings_space_access_public_description
+                    RoomJoinRules.KNOCK -> CommonStrings.room_settings_space_access_knock_description
+                    else -> CommonStrings.room_settings_room_access_private_description
+                }
+        )
+    }
+
+    interface Listener : AdvancedRoomOptionsListener {
         fun onAvatarDelete()
         fun onAvatarChange()
         fun onNameChange(newName: String)
         fun onTopicChange(newTopic: String)
         fun setAliasLocalPart(aliasLocalPart: String)
+        fun selectJoinRule()
+        fun setIsEncrypted(isEncrypted: Boolean)
     }
 }

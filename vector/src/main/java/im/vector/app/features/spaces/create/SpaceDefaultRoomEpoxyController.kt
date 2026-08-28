@@ -33,7 +33,7 @@ class SpaceDefaultRoomEpoxyController @Inject constructor(
             id("info_help_header")
             style(ItemStyle.TITLE)
             text(
-                    if (data?.spaceType == SpaceType.Public) {
+                    if (data?.isPublic == true) {
                         host.stringProvider.getString(CommonStrings.create_spaces_room_public_header, data.name)
                     } else {
                         host.stringProvider.getString(CommonStrings.create_spaces_room_private_header)
@@ -46,7 +46,7 @@ class SpaceDefaultRoomEpoxyController @Inject constructor(
             id("info_help")
             text(
                     host.stringProvider.getString(
-                            if (data?.spaceType == SpaceType.Public) {
+                            if (data?.isPublic == true) {
                                 CommonStrings.create_spaces_room_public_header_desc
                             } else {
                                 CommonStrings.create_spaces_room_private_header_desc

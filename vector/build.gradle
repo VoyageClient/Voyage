@@ -13,9 +13,25 @@ kapt {
     correctErrorTypes = true
 }
 
-static def gitRevision() {
-    def cmd = "git rev-parse --short=8 HEAD"
-    return cmd.execute().text.trim()
+// The Gradle daemon inherits an empty GIT_DIR, which fails every git call with "not a git repository",
+// and its working directory is not the project. Both have to be set explicitly here.
+def gitOutput(String cmd) {
+    try {
+        def builder = new ProcessBuilder(cmd.split(" ") as List)
+        builder.directory(rootDir)
+        builder.environment().remove("GIT_DIR")
+        builder.environment().remove("GIT_WORK_TREE")
+        builder.redirectErrorStream(true)
+        def process = builder.start()
+        def output = process.inputStream.text.trim()
+        return process.waitFor() == 0 ? output : ""
+    } catch (Exception ignored) {
+        return ""
+    }
+}
+
+def gitRevision() {
+    return gitOutput("git rev-parse --short=8 HEAD")
 }
 
 initScreenshotTests(project)

@@ -14,7 +14,6 @@ import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.discovery.settingsSectionTitleItem
-import im.vector.app.features.form.formAdvancedToggleItem
 import im.vector.app.features.form.formEditTextItem
 import im.vector.app.features.form.formEditableAvatarItem
 import im.vector.app.features.form.formSubmitButtonItem
@@ -170,54 +169,14 @@ class CreateRoomController @Inject constructor(
             }
         }
 
-//        dividerItem {
-//            id("divider1")
-//        }
-        formAdvancedToggleItem {
-            id("showAdvanced")
-            title(host.stringProvider.getString(if (viewState.showAdvanced) CommonStrings.hide_advanced else CommonStrings.show_advanced))
-            expanded(!viewState.showAdvanced)
-            listener { host.listener?.toggleShowAdvanced() }
-        }
-        if (viewState.showAdvanced) {
-            formSwitchItem {
-                id("federation")
-                enabled(enableFormElement)
-                title(host.stringProvider.getString(CommonStrings.create_room_disable_federation_title, viewState.homeServerName))
-                summary(host.stringProvider.getString(CommonStrings.create_room_disable_federation_description))
-                switchChecked(viewState.disableFederation)
-                listener { value -> host.listener?.setDisableFederation(value) }
-            }
+        buildAdvancedRoomOptions(
+                options = viewState,
+                stringProvider = stringProvider,
+                homeServerName = viewState.homeServerName,
+                enabled = enableFormElement,
+                listener = listener,
+        )
 
-            buildRoomVersion(viewState, enableFormElement)
-
-            if (viewState.canOverrideOwnPowerLevel) {
-                buildProfileAction(
-                        id = "powerLevel",
-                        title = stringProvider.getString(CommonStrings.create_room_power_level_title),
-                        subtitle = viewState.myPowerLevelOverride?.toString(),
-                        divider = false,
-                        editable = true,
-                        action = { if (enableFormElement) host.listener?.selectMyPowerLevel() }
-                )
-            }
-
-            if (viewState.isDeveloperMode) {
-                buildProfileAction(
-                        id = "initialState",
-                        title = stringProvider.getString(CommonStrings.create_room_initial_state_title),
-                        subtitle = if (viewState.initialStateJsonInvalid) {
-                            stringProvider.getString(CommonStrings.create_room_initial_state_invalid)
-                        } else {
-                            viewState.initialStateJson.takeIf { it.isNotBlank() }
-                        },
-                        destructive = viewState.initialStateJsonInvalid,
-                        divider = false,
-                        editable = true,
-                        action = { if (enableFormElement) host.listener?.editInitialState() }
-                )
-            }
-        }
         formSubmitButtonItem {
             id("submit")
             enabled(enableFormElement)
@@ -226,21 +185,7 @@ class CreateRoomController @Inject constructor(
         }
     }
 
-    private fun buildRoomVersion(viewState: CreateRoomViewState, enableFormElement: Boolean) {
-        val host = this
-        if (viewState.availableRoomVersions.size < 2) return
-
-        buildProfileAction(
-                id = "roomVersion",
-                title = stringProvider.getString(CommonStrings.create_room_version_title),
-                subtitle = viewState.roomVersion ?: viewState.defaultRoomVersion,
-                divider = false,
-                editable = true,
-                action = { if (enableFormElement) host.listener?.selectRoomVersion() }
-        )
-    }
-
-    interface Listener {
+    interface Listener : AdvancedRoomOptionsListener {
         fun onAvatarDelete()
         fun onAvatarChange()
         fun onNameChange(newName: String)
@@ -248,11 +193,6 @@ class CreateRoomController @Inject constructor(
         fun selectVisibility()
         fun setAliasLocalPart(aliasLocalPart: String)
         fun setIsEncrypted(isEncrypted: Boolean)
-        fun toggleShowAdvanced()
-        fun setDisableFederation(disableFederation: Boolean)
-        fun selectRoomVersion()
-        fun selectMyPowerLevel()
-        fun editInitialState()
         fun submit()
     }
 }

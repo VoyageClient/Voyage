@@ -37,9 +37,21 @@ ext.versionMinor = 6
 // is the value for the next regular release.
 ext.versionPatch = 62
 
-static def getGitTimestamp() {
-    def cmd = 'git show -s --format=%ct'
-    return cmd.execute().text.trim() as Long
+// The Gradle daemon inherits an empty GIT_DIR, which fails every git call with "not a git repository",
+// and its working directory is not the project. Both have to be set explicitly here.
+def gitOutput(String cmd) {
+    try {
+        def builder = new ProcessBuilder(cmd.split(" ") as List)
+        builder.directory(rootDir)
+        builder.environment().remove("GIT_DIR")
+        builder.environment().remove("GIT_WORK_TREE")
+        builder.redirectErrorStream(true)
+        def process = builder.start()
+        def output = process.inputStream.text.trim()
+        return process.waitFor() == 0 ? output : ""
+    } catch (Exception ignored) {
+        return ""
+    }
 }
 
 static def generateVersionCodeFromTimestamp() {
@@ -65,28 +77,24 @@ def getVersionCode() {
     }
 }
 
-static def gitRevision() {
-    def cmd = "git rev-parse --short=8 HEAD"
-    return cmd.execute().text.trim()
+def gitRevision() {
+    return gitOutput("git rev-parse --short=8 HEAD")
 }
 
-static def gitRevisionDate() {
-    def cmd = "git show -s --format=%ci HEAD^{commit}"
-    return cmd.execute().text.trim()
+def gitRevisionDate() {
+    return gitOutput("git show -s --format=%ci HEAD^{commit}")
 }
 
-static def gitBranchName() {
-    def cmd = "git rev-parse --abbrev-ref HEAD"
-    return cmd.execute().text.trim()
+def gitBranchName() {
+    return gitOutput("git rev-parse --abbrev-ref HEAD")
 }
 
-static def gitTag() {
-    def cmd = "git describe --exact-match --tags"
-    return cmd.execute().text.trim()
+def gitTag() {
+    return gitOutput("git describe --exact-match --tags")
 }
 
 // For F-Droid build, build on a not tagged commit will have a "-dev" suffix
-static def getFdroidVersionSuffix() {
+def getFdroidVersionSuffix() {
     if (gitTag() == "") {
         return "-dev"
     } else {
