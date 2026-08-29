@@ -895,6 +895,8 @@
     <string name="settings_loop_videos_summary" translatable="false">Start videos over from the beginning when they finish playing</string>
 
     <string name="settings_category_message_composer" translatable="false">Message composer</string>
+    <string name="settings_linkify_msc_references" translatable="false">Linkify MSCs</string>
+    <string name="settings_linkify_msc_references_summary" translatable="false">Linkify MSCs in sent messages so that other clients can open them, rather than relying on render-side linkification.</string>
     <string name="settings_sed_replacement_title" translatable="false">Sed substitutions</string>
     <string name="settings_sed_replacement_summary" translatable="false">Maubot-style s/typo/fixed/ substitutions, usable anywhere: your own messages are corrected as an edit, everyone else\'s with a notice</string>
     <string name="sed_error_invalid" translatable="false">Invalid sed expression: %1$s</string>

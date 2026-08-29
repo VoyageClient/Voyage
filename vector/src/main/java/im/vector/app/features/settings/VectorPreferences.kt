@@ -135,6 +135,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_ENABLE_MARKDOWN_KEY = "SETTINGS_ENABLE_MARKDOWN_KEY"
         private const val SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY = "SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY"
         private const val SETTINGS_ENABLE_SED_REPLACEMENT_KEY = "SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
+        private const val SETTINGS_LINKIFY_MSC_REFERENCES_KEY = "SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
         private const val SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY = "SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"
         private const val SETTINGS_12_24_TIMESTAMPS_KEY = "SETTINGS_12_24_TIMESTAMPS_KEY"
         private const val SETTINGS_SHOW_READ_RECEIPTS_KEY = "SETTINGS_SHOW_READ_RECEIPTS_KEY"
@@ -1709,6 +1710,10 @@ class VectorPreferences @Inject constructor(
 
     override fun includeSpaceMembersAsSpaceRooms(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS, true)
+    }
+
+    override fun linkifyMscReferencesOnSend(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_LINKIFY_MSC_REFERENCES_KEY, true)
     }
 
     fun compactQuickReactions(): Boolean {

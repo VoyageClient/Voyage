@@ -101,6 +101,9 @@ class InReplyToView @JvmOverloads constructor(
 
     private var state: PreviewReplyUiState = PreviewReplyUiState.NoReply
 
+    // The translation/PGP plaintext the current render substituted for the quoted body (null = none).
+    private var renderedPlainOverride: String? = null
+
     /** The renderer the gallery tiles were bound with, so a recycled header can let them go. */
     private var boundGalleryRenderer: ImageContentRenderer? = null
 
@@ -123,13 +126,22 @@ class InReplyToView @JvmOverloads constructor(
                 ?: newState
         val revealed = effectiveState !== newState
 
-        if (effectiveState == state && revealed == quotesRevealedRedaction && !force) {
+        // The translation/PGP plaintext substituted for the quoted body lives outside the state, so
+        // an identical state can arrive after it changed — compare it too, or the old text stays up.
+        val plainOverride = (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { s ->
+            retriever.messageTranslationStore.get(s.event.eventId)?.text
+                    ?: (s.event.getLastMessageContent() as? MessageContentWithFormattedBody)
+                            ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
+        }
+
+        if (effectiveState == state && revealed == quotesRevealedRedaction && plainOverride == renderedPlainOverride && !force) {
             // The sender's color can change under an otherwise identical state (override, palette).
             (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { applySenderColor(retriever.getMemberNameColor(it.event)) }
             return
         }
 
         state = effectiveState
+        renderedPlainOverride = plainOverride
 
         // Only a *revealed* redaction is banded: the band marks content that a redaction took and we are
         // reading anyway, so the plain "Message removed" placeholder carries no mark. Painted by the item

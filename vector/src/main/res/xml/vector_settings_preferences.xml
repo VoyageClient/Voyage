@@ -141,6 +141,12 @@
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
+            android:key="SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
+            android:summary="@string/settings_linkify_msc_references_summary"
+            android:title="@string/settings_linkify_msc_references" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
             android:key="SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
             android:summary="@string/settings_sed_replacement_summary"
             android:title="@string/settings_sed_replacement_title" />

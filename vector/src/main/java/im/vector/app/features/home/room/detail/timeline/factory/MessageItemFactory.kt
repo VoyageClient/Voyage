@@ -1125,7 +1125,11 @@ class MessageItemFactory @Inject constructor(
         // (and ignore the armored formatted_body).
         val pgpCaption = if (translation == null) pgpDecryptor.peekDecryptedBody(body) else null
         val effectiveBody = translation?.text ?: pgpCaption ?: body
-        val effectiveFormatted = if (pgpCaption != null || translation != null) null else formattedBody
+        val effectiveFormatted = when {
+            translation != null -> translation.formatted
+            pgpCaption != null -> null
+            else -> formattedBody
+        }
         val initialBody: CharSequence = if (effectiveFormatted != null) {
             val compressed = htmlCompressor.compress(effectiveFormatted)
             val raw = htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned
@@ -1222,6 +1226,11 @@ class MessageItemFactory @Inject constructor(
             noticeStyle: Boolean = false,
             emotePrefix: String? = null,
     ): MessageTextItem? {
+        val formatted = translation.formatted
+        // Emotes keep the plain path: the "* sender" prefix has no formatted-body counterpart here.
+        if (formatted != null && emotePrefix == null) {
+            return buildFormattedTextItem(formatted, informationData, highlight, callback, attributes, noticeStyle = noticeStyle, translation = translation)
+        }
         return buildMessageTextItem(
                 (emotePrefix.orEmpty()) + translation.text,
                 false,

@@ -317,7 +317,7 @@ class SearchFragment :
             }
             is EventSharedAction.ViewSource -> showJsonDialog(action.content)
             is EventSharedAction.ViewDecryptedSource -> showJsonDialog(action.content)
-            is EventSharedAction.Translate -> messageTranslationStore.translate(action.eventId, action.text)
+            is EventSharedAction.Translate -> messageTranslationStore.translate(action.eventId, action.text, action.formattedBody)
             is EventSharedAction.Untranslate -> messageTranslationStore.untranslate(action.eventId)
             is EventSharedAction.OpenUserProfile -> onAvatarClicked(action.userId)
             is EventSharedAction.ViewReactions ->
