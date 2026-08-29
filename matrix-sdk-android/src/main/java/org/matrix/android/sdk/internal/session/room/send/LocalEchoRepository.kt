@@ -18,10 +18,14 @@ package org.matrix.android.sdk.internal.session.room.send
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -36,13 +40,13 @@ import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
-import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import java.util.UUID
@@ -56,10 +60,10 @@ internal class LocalEchoRepository @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
-        private val taskExecutor: TaskExecutor,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val timelineInput: TimelineInput,
         private val timelineEventMapper: TimelineEventMapper,
+        private val sessionDbPriority: SessionDbPriority,
         private val clock: Clock,
 ) {
 
@@ -70,13 +74,33 @@ internal class LocalEchoRepository @Inject constructor(
     // SENDING write leaves the echo stuck "sending").
     private val deferredDbTasks = Channel<suspend () -> Unit>(Channel.UNLIMITED)
 
+    // Announcing takes no transaction, so it gets its own queue rather than waiting behind every write
+    // already owed on the one above. That wait runs to seconds while a sliding-sync fill holds the
+    // write dispatcher.
+    private val echoAnnouncements = Channel<suspend () -> Unit>(Channel.UNLIMITED)
+
+    // Own scope. Clearing the cache calls TaskExecutor.cancelAll() without stopping the session, and
+    // these consumers start once, so on that scope both queues would be left with no reader.
+    private val echoScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     init {
-        taskExecutor.executorScope.launch {
+        echoScope.launch {
             for (task in deferredDbTasks) {
+                try {
+                    // Marks the send pipeline as work the user is waiting on, so deferrable bulk work
+                    // (a sliding-sync fill, the search indexer) parks instead of queueing ahead of it.
+                    sessionDbPriority.interactive { task() }
+                } catch (failure: Throwable) {
+                    Timber.e(failure, "Deferred echo DB task failed")
+                }
+            }
+        }
+        echoScope.launch {
+            for (task in echoAnnouncements) {
                 try {
                     task()
                 } catch (failure: Throwable) {
-                    Timber.e(failure, "Deferred echo DB task failed")
+                    Timber.e(failure, "Echo announcement failed")
                 }
             }
         }
@@ -97,31 +121,50 @@ internal class LocalEchoRepository @Inject constructor(
 
     fun getRemoteEchoId(localEchoId: String): String? = remoteIdsByLocalEcho[localEchoId]
 
+    /**
+     * The id the server knows this event by. The timeline shows a just-sent message under its local echo
+     * id, which every endpoint keyed on an event id rejects. Null means there is no remote copy yet, so
+     * the server has nothing to answer about it.
+     */
+    fun resolveRemoteId(eventId: String): String? =
+            if (LocalEcho.isLocalEchoId(eventId)) remoteIdsByLocalEcho[eventId] else eventId
+
     fun createLocalEcho(event: Event) {
         val roomId = event.roomId ?: throw IllegalStateException("You should have set a roomId for your event")
         val senderId = event.senderId ?: throw IllegalStateException("You should have set a senderId for your event")
         val eventId = event.eventId ?: throw IllegalStateException("You should have set an eventId for your event")
         val eventType = event.type ?: throw IllegalStateException("You should have set a type for your event")
 
-        enqueueDbTask {
-            // Build and announce the echo BEFORE queueing the DB write: the session DB dispatcher can
-            // run hundreds of ms behind (sync handling, timeline mapping), and the message must show in
-            // the timeline the instant it is sent. WAL lets the member reads run on this pool thread.
-            val eventEntity = event.toEntity(roomId, SendState.UNSENT, clock.epochMillis())
-            val roomMemberHelper = SqlRoomMemberHelper(stores, roomId)
-            val myUser = roomMemberHelper.getLastRoomMember(senderId)
-            val localId = UUID.randomUUID().mostSignificantBits
-            val timelineEventEntity = TimelineEventEntity(localId).also {
-                it.root = eventEntity
-                it.eventId = eventId
-                it.roomId = roomId
-                it.senderName = myUser?.let { u -> u.displayName ?: "" }
-                it.senderAvatar = myUser?.let { u -> u.avatarUrl ?: "" }
-                it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
+        // WAL lets the member reads below run on this pool thread.
+        val announced = CompletableDeferred<Pair<EventEntity, TimelineEventEntity>>()
+        echoAnnouncements.trySend {
+            try {
+                val eventEntity = event.toEntity(roomId, SendState.UNSENT, clock.epochMillis())
+                val roomMemberHelper = SqlRoomMemberHelper(stores, roomId)
+                val myUser = roomMemberHelper.getLastRoomMember(senderId)
+                val localId = UUID.randomUUID().mostSignificantBits
+                val timelineEventEntity = TimelineEventEntity(localId).also {
+                    it.root = eventEntity
+                    it.eventId = eventId
+                    it.roomId = roomId
+                    it.senderName = myUser?.let { u -> u.displayName ?: "" }
+                    it.senderAvatar = myUser?.let { u -> u.avatarUrl ?: "" }
+                    it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
+                }
+                val timelineEvent = timelineEventMapper.map(timelineEventEntity)
+                pendingEchoes[event.eventId] = timelineEvent
+                timelineInput.onLocalEchoCreated(roomId = roomId, timelineEvent = timelineEvent)
+                announced.complete(eventEntity to timelineEventEntity)
+            } catch (failure: Throwable) {
+                // Otherwise the write below waits on it forever, stalling every echo write behind it.
+                announced.completeExceptionally(failure)
+                throw failure
             }
-            val timelineEvent = timelineEventMapper.map(timelineEventEntity)
-            pendingEchoes[event.eventId] = timelineEvent
-            timelineInput.onLocalEchoCreated(roomId = roomId, timelineEvent = timelineEvent)
+        }
+        // Queued now, not once the announcement has run: the slot must be reserved ahead of anything this
+        // send enqueues later (its send-state writes, the sender reading the echo back).
+        enqueueDbTask {
+            val (eventEntity, timelineEventEntity) = announced.await()
             database.awaitDbTransaction(dispatcher) {
                 // This write is queued behind sync handling, so a fast send + sync round-trip can
                 // deliver the remote copy BEFORE the echo row exists — its reconciliation
@@ -187,10 +230,26 @@ internal class LocalEchoRepository @Inject constructor(
         }
         sentEchoesByRemoteId.remove(remoteEventId)
         Timber.v("Remove stuck local echo $localEchoId for synced event $remoteEventId")
+        moveAnnotationsToRemoteId(localEchoId, remoteEventId, roomId)
         stores.timelineEvent.deleteSending(roomId, localEchoId)
         stores.event.deleteByEventIdInRoom(roomId, localEchoId)
         roomSummaryUpdater.updateSendingInformation(stores, roomId)
         return echo.eventId == localEchoId
+    }
+
+    /**
+     * An edit or reaction sent against a still-sending message aggregates under its local echo id, which
+     * dies with the echo row. The remote copies re-aggregate under the real id, but can arrive a sync
+     * later than the message. Skipped when the real id already has a summary, meaning they arrived first.
+     */
+    private fun moveAnnotationsToRemoteId(localEchoId: String, remoteEventId: String, roomId: String) {
+        val summary = stores.annotations.get(localEchoId) ?: return
+        if (stores.annotations.get(remoteEventId) == null) {
+            stores.annotations.upsertSummary(remoteEventId, roomId)
+            stores.annotations.replaceEditions(remoteEventId, summary.editSummary)
+            stores.annotations.replaceReactions(remoteEventId, summary.reactionsSummary)
+        }
+        stores.annotations.delete(localEchoId)
     }
 
     suspend fun updateEcho(eventId: String, block: (EventEntity) -> Unit) {

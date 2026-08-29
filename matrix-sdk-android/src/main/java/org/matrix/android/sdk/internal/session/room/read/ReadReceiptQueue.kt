@@ -9,7 +9,10 @@ package org.matrix.android.sdk.internal.session.room.read
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -26,7 +29,6 @@ import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.RoomAPI
-import org.matrix.android.sdk.internal.task.TaskExecutor
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
@@ -56,8 +58,11 @@ internal class ReadReceiptQueue @Inject constructor(
         @SessionId sessionId: String,
         private val roomApi: RoomAPI,
         private val globalErrorReceiver: GlobalErrorReceiver,
-        private val taskExecutor: TaskExecutor,
 ) : SessionLifecycleObserver {
+
+    // Own scope: a cache clear calls TaskExecutor.cancelAll() without stopping the session, and only
+    // onSessionStarted restarts this loop.
+    private val queueScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val storage = storeFactory.create("ReadReceiptQueue_$sessionId")
     private val adapter = MoshiProvider.providesMoshi().adapter(PendingReadReceipt::class.java)
@@ -90,7 +95,7 @@ internal class ReadReceiptQueue @Inject constructor(
             }
         }
         if (loopJob?.isActive != true) {
-            loopJob = taskExecutor.executorScope.launch {
+            loopJob = queueScope.launch {
                 runLoop()
             }
         }

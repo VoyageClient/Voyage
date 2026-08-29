@@ -38,13 +38,15 @@ internal class DefaultGetContextOfEventTask @Inject constructor(
         private val roomAPI: RoomAPI,
         private val filterRepository: FilterRepository,
         private val tokenChunkEventPersistor: TokenChunkEventPersistor,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
+        private val localEchoRepository: dagger.Lazy<org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository>,
 ) : GetContextOfEventTask {
 
     override suspend fun execute(params: GetContextOfEventTask.Params): TokenChunkEventPersistor.Result {
         val filter = filterRepository.getRoomFilterBody()
+        val eventId = localEchoRepository.get().resolveRemoteId(params.eventId) ?: params.eventId
         val response = executeRequest(globalErrorReceiver) {
-            roomAPI.getContextOfEvent(params.roomId, params.eventId, params.limit, filter)
+            roomAPI.getContextOfEvent(params.roomId, eventId, params.limit, filter)
         }
         return tokenChunkEventPersistor.insertInDb(response, params.roomId, PaginationDirection.FORWARDS)
     }

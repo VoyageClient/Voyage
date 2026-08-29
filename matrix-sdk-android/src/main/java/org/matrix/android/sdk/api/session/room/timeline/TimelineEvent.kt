@@ -162,6 +162,8 @@ fun TimelineEvent.getLastMessageContent(): MessageContent? {
 }
 
 fun TimelineEvent.getLastEditNewContent(): Content? {
+    // A redaction prunes the root but not the edit aggregation, whose new_content still holds the text.
+    if (root.isRedacted()) return null
     val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
             ?.takeUnless { it.isMediaStillUploading() }
     return when {
@@ -189,6 +191,7 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
 
 // A sticker edit has no msgtype to parse the generic content model with.
 private fun TimelineEvent.getLastStickerEditNewContent(): Content? {
+    if (root.isRedacted()) return null
     return annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageStickerContent>()?.newContent
             ?.takeUnless { it.isMediaStillUploading() }
 }
@@ -203,6 +206,7 @@ private fun Content.isMediaStillUploading(): Boolean {
 }
 
 private fun TimelineEvent.getLastPollEditNewContent(): Content? {
+    if (root.isRedacted()) return null
     return annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessagePollContent>()?.newContent
 }
 

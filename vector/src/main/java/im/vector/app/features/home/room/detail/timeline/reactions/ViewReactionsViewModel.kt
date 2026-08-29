@@ -79,11 +79,12 @@ class ViewReactionsViewModel @AssistedInject constructor(
                 .map { annotationsSummary ->
                     annotationsSummary.reactionsSummary
                             .flatMap { reactionsSummary ->
-                                reactionsSummary.sourceEvents.map {
-                                    val event = room.getTimelineEvent(it)
-                                            ?: throw RuntimeException("Your eventId is not valid")
+                                // localEchoEvents too: a reaction sent moments ago has no source event yet.
+                                (reactionsSummary.sourceEvents + reactionsSummary.localEchoEvents).mapNotNull {
+                                    // One unresolvable reaction must not fail the whole sheet.
+                                    val event = room.getTimelineEvent(it) ?: return@mapNotNull null
                                     ReactionInfo(
-                                            event.root.eventId!!,
+                                            event.root.eventId ?: it,
                                             reactionsSummary.key,
                                             event.root.senderId ?: "",
                                             event.senderInfo.disambiguatedDisplayName,

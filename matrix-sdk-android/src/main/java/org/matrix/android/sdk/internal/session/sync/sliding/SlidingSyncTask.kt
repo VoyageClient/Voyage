@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
+import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.TimeOutInterceptor
@@ -65,6 +66,7 @@ internal class SlidingSyncTask @Inject constructor(
         private val session: Session,
         private val clock: Clock,
         private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
+        private val sessionDbPriority: SessionDbPriority,
         @UserId private val userId: String,
 ) {
 
@@ -126,6 +128,12 @@ internal class SlidingSyncTask @Inject constructor(
         // An expired connection is dropped inside executeSync, which clears the stored pos; re-reading it is
         // how this call learns the response is a fresh connection and not a delta.
         val fromToken = syncTokenStore.getSlidingSyncPos()
+
+        if (coverageIncomplete) {
+            // A catch-up pass carries rooms nobody is waiting for and holds the write dispatcher for about
+            // a second, so let whatever the user just did land first.
+            sessionDbPriority.awaitTurn()
+        }
 
         val owesSpaceValidation = reportSubtask(
                 reporter = initialSyncReporter,

@@ -62,10 +62,11 @@ internal class EventEditor @Inject constructor(
             )
             return sendFailedEvent(targetEvent, editedEvent)
         }
-        // Sent or still sending. A still-sending target is safe: the per-room queue is sequential
-        // and rewrites local relation ids at send time, so the replace lands after the original.
+        // Relate to the id of the row we hold, not the remote id, since the aggregation is keyed by it.
+        // The per-room queue is sequential and rewrites local relation ids at send time, so the wire
+        // still carries the real one.
         val event = eventFactory
-                .createReplaceTextEvent(roomId, remoteId ?: targetEvent.eventId, newBodyText, newBodyFormattedText, newBodyAutoMarkdown, msgType, compatibilityBodyText)
+                .createReplaceTextEvent(roomId, targetEvent.eventId, newBodyText, newBodyFormattedText, newBodyAutoMarkdown, msgType, compatibilityBodyText)
         return sendReplaceEvent(event)
     }
 
@@ -109,7 +110,7 @@ internal class EventEditor @Inject constructor(
             return sendFailedEvent(targetEvent, editedEvent)
         }
         val event = eventFactory
-                .createPollReplaceEvent(roomId, pollType, remoteId ?: targetEvent.eventId, question, options)
+                .createPollReplaceEvent(roomId, pollType, targetEvent.eventId, question, options)
         return sendReplaceEvent(event)
     }
 
@@ -157,7 +158,7 @@ internal class EventEditor @Inject constructor(
                 true,
                 MessageType.MSGTYPE_TEXT,
                 compatibilityBodyText,
-                targetEventId = remoteId ?: replyToEdit.eventId
+                targetEventId = replyToEdit.eventId
         )
         return sendReplaceEvent(event)
     }
