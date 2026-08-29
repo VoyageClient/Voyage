@@ -14,7 +14,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
@@ -57,7 +56,11 @@ internal abstract class SqlLiveEntityObserver(
     }
 
     override fun onClearCache(session: Session) {
-        observerScope.coroutineContext.cancelChildren()
+        // Clearing [job] matters as much as cancelling it. onSessionStarted only relaunches when it is
+        // null, and a cache clear leaves the session running, so nothing else would observe again.
+        job?.cancel()
+        job = null
+        onSessionStarted(session)
     }
 
     protected abstract suspend fun onChange()

@@ -156,12 +156,16 @@ internal class DefaultRelationService @AssistedInject constructor(
     }
 
     override suspend fun fetchEditHistory(eventId: String): List<Event> {
-        return fetchEditHistoryTask.execute(FetchEditHistoryTask.Params(roomId, eventId))
+        val remoteId = remoteIdOf(eventId) ?: return emptyList()
+        return fetchEditHistoryTask.execute(FetchEditHistoryTask.Params(roomId, remoteId))
     }
 
     override suspend fun fetchReactions(eventId: String): List<Event> {
-        return fetchReactionsTask.execute(FetchReactionsTask.Params(roomId, eventId))
+        val remoteId = remoteIdOf(eventId) ?: return emptyList()
+        return fetchReactionsTask.execute(FetchReactionsTask.Params(roomId, remoteId))
     }
+
+    private fun remoteIdOf(eventId: String): String? = localEchoRepository.resolveRemoteId(eventId)
 
     override suspend fun clearSendingRedactions() {
         // Remove any stuck local-echo redactions (legacy of the echo-based path) so they stop showing as

@@ -38,10 +38,12 @@ internal class DefaultEventService @Inject constructor(
         private val stores: SessionStores,
         private val roomSummaryEventDecryptor: RoomSummaryEventDecryptor,
         private val decryptionSignal: TimelineDecryptionSignal,
+        private val localEchoRepository: dagger.Lazy<org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository>,
 ) : EventService {
 
     override suspend fun getEvent(roomId: String, eventId: String): Event {
-        val event = getEventTask.execute(GetEventTask.Params(roomId, eventId))
+        val remoteId = localEchoRepository.get().resolveRemoteId(eventId) ?: eventId
+        val event = getEventTask.execute(GetEventTask.Params(roomId, remoteId))
         // Fast lane to the call event processors: try to make the incoming call ring faster
         if (callEventProcessor.shouldProcessFastLane(event.getClearType())) {
             callEventProcessor.processFastLane(event)

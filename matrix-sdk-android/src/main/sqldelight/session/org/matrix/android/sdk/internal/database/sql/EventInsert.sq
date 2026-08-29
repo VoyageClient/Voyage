@@ -12,8 +12,12 @@ CREATE INDEX event_insert_event_id ON event_insert(event_id);
 selectProcessable:
 SELECT * FROM event_insert WHERE can_be_processed = 1;
 
+-- Local echoes first: they are the user's own action (a redaction only takes effect once its echo is
+-- processed) and must not wait behind a sync backlog of thousands of rows.
 selectProcessableLimited:
-SELECT * FROM event_insert WHERE can_be_processed = 1 LIMIT ?;
+SELECT * FROM event_insert WHERE can_be_processed = 1
+ORDER BY insert_type_str = 'LOCAL_ECHO' DESC, id
+LIMIT ?;
 
 selectByEventId:
 SELECT * FROM event_insert WHERE event_id = ?;

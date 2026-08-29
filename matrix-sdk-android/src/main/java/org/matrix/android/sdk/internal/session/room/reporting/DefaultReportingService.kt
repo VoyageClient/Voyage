@@ -20,11 +20,13 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import org.matrix.android.sdk.api.session.room.reporting.ReportingService
+import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 
 internal class DefaultReportingService @AssistedInject constructor(
         @Assisted private val roomId: String,
         private val reportContentTask: ReportContentTask,
         private val reportRoomTask: ReportRoomTask,
+        private val localEchoRepository: LocalEchoRepository,
 ) : ReportingService {
 
     @AssistedFactory
@@ -33,7 +35,7 @@ internal class DefaultReportingService @AssistedInject constructor(
     }
 
     override suspend fun reportContent(eventId: String, reason: String, score: Int?) {
-        val params = ReportContentTask.Params(roomId, eventId, reason, score)
+        val params = ReportContentTask.Params(roomId, localEchoRepository.resolveRemoteId(eventId) ?: eventId, reason, score)
         reportContentTask.execute(params)
     }
 

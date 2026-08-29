@@ -849,11 +849,18 @@ internal class SqlTimeline(
         }
         // A fast remote echo can arrive before any rebuild saw the DB sending row (the conflated flow
         // collapses insert+delete), stranding the in-memory copy — reconcile against synced transaction ids.
-        val syncedTxnIds = if (dbSending.isEmpty() && uiEchoManager.getInMemorySendingEvents().isEmpty()) {
+        // Runs when nothing is sending too. The reacted-on message's echo is already gone by the time its
+        // synced row arrives, and that row is what re-keys any reaction echo filed under the old id.
+        val syncedTxnIds = if (dbSending.isEmpty() && uiEchoManager.getInMemorySendingEvents().isEmpty() &&
+                !uiEchoManager.hasPendingReactionEchoes()) {
             emptySet()
         } else {
-            chunkEvents.mapNotNullTo(HashSet()) { it.root.unsignedData?.transactionId }
-                    .onEach { uiEchoManager.onSyncedEvent(it) }
+            chunkEvents.mapNotNullTo(HashSet()) { event ->
+                event.root.unsignedData?.transactionId?.also { txnId ->
+                    uiEchoManager.onEchoResolved(txnId, event.eventId)
+                    uiEchoManager.onSyncedEvent(txnId)
+                }
+            }
         }
         val sending = if (isThreadTimeline || liveEdge) {
             uiEchoManager.onSentEventsInDatabase(dbSending.map { it.eventId })
@@ -1164,8 +1171,8 @@ internal class SqlTimeline(
     override fun onLocalEchoDeleted(roomId: String, eventId: String) {
         if (roomId != this.roomId || !isStarted.get()) return
         timelineScope.launch(coroutineDispatchers.main) {
-            // Also drops any stranded in-memory copy and its send-state override.
-            uiEchoManager.onSyncedEvent(eventId)
+            // Also drops any stranded in-memory copy, its send-state override and its reaction echo.
+            uiEchoManager.onSyncedEvent(eventId, dropReactionEcho = true)
             val current = builtEvents
             val idx = current.indexOfFirst { it.eventId == eventId }
             if (idx < 0) return@launch

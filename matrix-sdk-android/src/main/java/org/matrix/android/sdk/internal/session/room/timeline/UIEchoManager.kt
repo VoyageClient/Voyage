@@ -59,14 +59,26 @@ internal class UIEchoManager(
                 inMemorySendingEvents.removeAll { eventId == it.eventId }
             }
         }
+        // Reaction echoes are deliberately not dropped here. Leaving the sending table means the reaction
+        // was stored, not that its aggregation reached the timeline, so
+        // [decorateEventWithReactionUiEcho] prunes them once the summary confirms them.
+    }
+
+    fun hasPendingReactionEchoes(): Boolean =
+            synchronized(inMemoryReactions) { inMemoryReactions.values.any { it.isNotEmpty() } }
+
+    /**
+     * The reacted-on message just traded its local echo id for its server id, and the reaction echoes are
+     * filed under the old one. They are needed for a moment longer, because the aggregation that files the
+     * reaction under the new id runs in a later transaction than the sync that inserted the row.
+     */
+    fun onEchoResolved(localEchoId: String, remoteEventId: String) {
+        if (localEchoId == remoteEventId) return
         synchronized(inMemoryReactions) {
-            inMemoryReactions.forEach { (_, uiEchoData) ->
-                uiEchoData.removeAll { data ->
-                    // I remove the uiEcho, when the related event is not anymore in the sending list
-                    // (means that it is synced)!
-                    eventIds.find { it == data.localEchoId } == null
-                }
-            }
+            val pending = inMemoryReactions.remove(localEchoId) ?: return
+            val moved = pending.map { it.copy(reactedOnEventId = remoteEventId) }
+            inMemoryReactions.getOrPut(remoteEventId) { mutableListOf() }
+                    .let { existing -> moved.forEach { m -> if (existing.none { e -> e.localEchoId == m.localEchoId }) existing.add(m) } }
         }
     }
 
@@ -111,8 +123,15 @@ internal class UIEchoManager(
         var existingAnnotationSummary = timelineEvent.annotations ?: EventAnnotationsSummary()
         val updateReactions = existingAnnotationSummary.reactionsSummary.toMutableList()
 
+        val confirmed = mutableListOf<ReactionUiEchoData>()
         contents.forEach { uiEchoReaction ->
             val indexOfExistingReaction = updateReactions.indexOfFirst { it.key == uiEchoReaction.reaction }
+            val existingEntry = updateReactions.getOrNull(indexOfExistingReaction)
+            if (existingEntry != null && existingEntry.addedByMe && uiEchoReaction.localEchoId !in existingEntry.localEchoEvents) {
+                // Counted under its synced id now, so merging the echo again would double it.
+                confirmed.add(uiEchoReaction)
+                return@forEach
+            }
             if (indexOfExistingReaction == -1) {
                 // just add the new key
                 ReactionAggregatedSummary(
@@ -142,6 +161,9 @@ internal class UIEchoManager(
             }
         }
 
+        if (confirmed.isNotEmpty()) {
+            synchronized(inMemoryReactions) { inMemoryReactions[relatedEventID]?.removeAll(confirmed) }
+        }
         existingAnnotationSummary = existingAnnotationSummary.copy(
                 reactionsSummary = updateReactions
         )
@@ -161,17 +183,21 @@ internal class UIEchoManager(
         )
     }
 
-    fun onSyncedEvent(transactionId: String?) {
+    /**
+     * [dropReactionEcho] only for an echo that will never sync (send failed, or cancelled). A reaction
+     * event reaching the chunk is not confirmation, since its aggregation may not be mapped into the
+     * target yet, so that case is left to [decorateEventWithReactionUiEcho].
+     */
+    fun onSyncedEvent(transactionId: String?, dropReactionEcho: Boolean = false) {
         synchronized(inMemorySendingEvents) {
             val sendingEvent = inMemorySendingEvents.find {
                 it.eventId == transactionId
             }
             inMemorySendingEvents.remove(sendingEvent)
         }
-        // Is it too early to clear it? will be done when removed from sending anyway?
-        synchronized(inMemoryReactions) {
-            inMemoryReactions.forEach { (_, u) ->
-                u.filterNot { it.localEchoId == transactionId }
+        if (dropReactionEcho) {
+            synchronized(inMemoryReactions) {
+                inMemoryReactions.forEach { (_, u) -> u.removeAll { it.localEchoId == transactionId } }
             }
         }
         inMemorySendingStates.remove(transactionId)
