@@ -160,12 +160,24 @@ jobs:
           git push -f origin refs/tags/nightly
 
           if gh release view nightly > /dev/null 2>&1; then
-            gh release edit nightly --title 'Nightly' --notes-file release-notes.md --prerelease --draft=false
+            gh release edit nightly --title 'Nightly' --notes-file release-notes.md --prerelease
             gh release view nightly --json assets --jq '.assets[].name' | while read -r asset; do
               gh release delete-asset nightly "$asset" --yes
             done
           else
-            gh release create nightly --title 'Nightly' --notes-file release-notes.md --prerelease
+            gh release create nightly --title 'Nightly' --notes-file release-notes.md --prerelease --draft=false
           fi
 
           gh release upload nightly artifacts/*.apk
+
+          # Moving the tag reads server-side as a delete, which silently reverts the release to a
+          # draft; publishing has to come last, and can lose a race with the tag update.
+          for _ in 1 2 3 4 5; do
+            gh release edit nightly --draft=false
+            if [ "$(gh release view nightly --json isDraft --jq .isDraft)" = 'false' ]; then
+              break
+            fi
+            sleep 10
+          done
+          gh release view nightly --json isDraft,tagName,assets --jq '{isDraft, tagName, assets: [.assets[].name]}'
+          [ "$(gh release view nightly --json isDraft --jq .isDraft)" = 'false' ]
