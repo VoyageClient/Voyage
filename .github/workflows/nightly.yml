@@ -67,7 +67,7 @@ jobs:
       - name: Assemble APKs
         run: |
           ./gradlew :vector-app:assembleRelease --stacktrace -x lintVitalRelease \
-            -Dorg.gradle.jvmargs='-Xmx5g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' \
+            -Dorg.gradle.jvmargs='-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' \
             -Dkotlin.daemon.jvmargs=-Xmx2g \
             --max-workers=2
 
