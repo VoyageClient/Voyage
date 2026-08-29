@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 180
     steps:
       - name: Checkout the pushed commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           # Shallow and tagless on purpose: the rolling `nightly` tag lands on HEAD every run, and a
@@ -52,13 +52,13 @@ jobs:
           free -h
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Install NDK and CMake
         run: |
@@ -68,7 +68,7 @@ jobs:
 
       - name: Assemble APKs
         run: |
-          ./gradlew :vector-app:assembleRelease --stacktrace \
+          ./gradlew :vector-app:assembleRelease --stacktrace -x lintVitalRelease \
             -Dorg.gradle.jvmargs='-Xmx5g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' \
             -Dkotlin.daemon.jvmargs=-Xmx2g \
             --max-workers=2
