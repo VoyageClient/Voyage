@@ -49,6 +49,9 @@ object EventType {
     // MSC4221 room banner. Read both ids, write the unstable one (matches the Haven element-web patchset).
     val STATE_ROOM_BANNER = StableUnstableId(stable = "m.room.banner", unstable = "page.codeberg.everypizza.room.banner")
 
+    // MSC4284 policy server. Read both ids; we never write this event.
+    val STATE_ROOM_POLICY = StableUnstableId(stable = "m.room.policy", unstable = "org.matrix.msc4284.policy")
+
     const val STATE_ROOM_MEMBER = "m.room.member"
     const val STATE_ROOM_THIRD_PARTY_INVITE = "m.room.third_party_invite"
     const val STATE_ROOM_CREATE = "m.room.create"
@@ -180,6 +183,7 @@ object EventType {
                     )
             )
             addAll(STATE_ROOM_BANNER.values)
+            addAll(STATE_ROOM_POLICY.values)
             addAll(STATE_ROOM_PREDECESSOR.values)
             addAll(STATE_ROOM_BEACON_INFO.values)
             addAll(BEACON_LOCATION_DATA.values)

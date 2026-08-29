@@ -42,6 +42,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomNameContent
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
+import org.matrix.android.sdk.api.session.room.model.RoomPolicyContent
 import org.matrix.android.sdk.api.session.room.model.RoomServerAclContent
 import org.matrix.android.sdk.api.session.room.model.RoomThirdPartyInviteContent
 import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
@@ -121,6 +122,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_TOPIC -> formatRoomTopicEvent(event, senderName)
             EventType.STATE_ROOM_AVATAR -> formatRoomAvatarEvent(event, senderName)
             in EventType.STATE_ROOM_BANNER.values -> formatRoomBannerEvent(event, senderName)
+            in EventType.STATE_ROOM_POLICY.values -> formatRoomPolicyEvent(event, senderName)
             EventType.STATE_ROOM_MEMBER -> formatRoomMemberEvent(event, senderName, isDm)
             EventType.STATE_ROOM_THIRD_PARTY_INVITE -> formatRoomThirdPartyInvite(event, senderName, isDm)
             EventType.STATE_ROOM_ALIASES -> formatRoomAliasesEvent(event, senderName)
@@ -240,6 +242,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_TOPIC -> formatRoomTopicEvent(event, senderName)
             EventType.STATE_ROOM_AVATAR -> formatRoomAvatarEvent(event, senderName)
             in EventType.STATE_ROOM_BANNER.values -> formatRoomBannerEvent(event, senderName)
+            in EventType.STATE_ROOM_POLICY.values -> formatRoomPolicyEvent(event, senderName)
             EventType.STATE_ROOM_MEMBER -> formatRoomMemberEvent(event, senderName, isDm)
             EventType.STATE_ROOM_THIRD_PARTY_INVITE -> formatRoomThirdPartyInvite(event, senderName, isDm)
             EventType.STATE_ROOM_HISTORY_VISIBILITY -> formatRoomHistoryVisibilityEvent(event, senderName, isDm)
@@ -416,6 +419,29 @@ class NoticeEventFormatter @Inject constructor(
                 sp.getString(CommonStrings.notice_room_banner_changed_by_you)
             } else {
                 sp.getString(CommonStrings.notice_room_banner_changed, senderName)
+            }
+        }
+    }
+
+    private fun formatRoomPolicyEvent(event: Event, senderName: String?): CharSequence {
+        // Disabling is empty content, so no toModel null-check: {} must still format
+        val via = event.content.toModel<RoomPolicyContent>()?.via
+        val previousVia = event.resolvedPrevContent().toModel<RoomPolicyContent>()?.via
+        return when {
+            via.isNullOrEmpty() -> if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_room_policy_server_removed_by_you)
+            } else {
+                sp.getString(CommonStrings.notice_room_policy_server_removed, senderName)
+            }
+            previousVia.isNullOrEmpty() -> if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_room_policy_server_set_by_you, via)
+            } else {
+                sp.getString(CommonStrings.notice_room_policy_server_set, senderName, via)
+            }
+            else -> if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_room_policy_server_changed_by_you, via)
+            } else {
+                sp.getString(CommonStrings.notice_room_policy_server_changed, senderName, via)
             }
         }
     }
@@ -631,46 +657,50 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     private fun StringBuilder.appendAclDetails(eventContent: RoomServerAclContent, prevEventContent: RoomServerAclContent?) {
+        val lines = ArrayList<String>()
         if (prevEventContent == null) {
-            eventContent.allowList.forEach { appendNl(sp.getString(CommonStrings.notice_room_server_acl_set_allowed, it)) }
-            eventContent.denyList.forEach { appendNl(sp.getString(CommonStrings.notice_room_server_acl_set_banned, it)) }
-            if (eventContent.allowIpLiterals) {
-                appendNl(sp.getString(CommonStrings.notice_room_server_acl_set_ip_literals_allowed))
-            } else {
-                appendNl(sp.getString(CommonStrings.notice_room_server_acl_set_ip_literals_not_allowed))
-            }
+            eventContent.allowList.forEach { lines.add(sp.getString(CommonStrings.notice_room_server_acl_set_allowed, it)) }
+            eventContent.denyList.forEach { lines.add(sp.getString(CommonStrings.notice_room_server_acl_set_banned, it)) }
+            lines.add(
+                    if (eventContent.allowIpLiterals) {
+                        sp.getString(CommonStrings.notice_room_server_acl_set_ip_literals_allowed)
+                    } else {
+                        sp.getString(CommonStrings.notice_room_server_acl_set_ip_literals_not_allowed)
+                    }
+            )
         } else {
             // Display only diff
-            var hasChanged = false
             // New allowed servers
             (eventContent.allowList - prevEventContent.allowList)
-                    .also { hasChanged = hasChanged || it.isNotEmpty() }
-                    .forEach { appendNl(sp.getString(CommonStrings.notice_room_server_acl_updated_allowed, it)) }
+                    .forEach { lines.add(sp.getString(CommonStrings.notice_room_server_acl_updated_allowed, it)) }
             // Removed allowed servers
             (prevEventContent.allowList - eventContent.allowList)
-                    .also { hasChanged = hasChanged || it.isNotEmpty() }
-                    .forEach { appendNl(sp.getString(CommonStrings.notice_room_server_acl_updated_was_allowed, it)) }
+                    .forEach { lines.add(sp.getString(CommonStrings.notice_room_server_acl_updated_was_allowed, it)) }
             // New denied servers
             (eventContent.denyList - prevEventContent.denyList)
-                    .also { hasChanged = hasChanged || it.isNotEmpty() }
-                    .forEach { appendNl(sp.getString(CommonStrings.notice_room_server_acl_updated_banned, it)) }
+                    .forEach { lines.add(sp.getString(CommonStrings.notice_room_server_acl_updated_banned, it)) }
             // Removed denied servers
             (prevEventContent.denyList - eventContent.denyList)
-                    .also { hasChanged = hasChanged || it.isNotEmpty() }
-                    .forEach { appendNl(sp.getString(CommonStrings.notice_room_server_acl_updated_was_banned, it)) }
+                    .forEach { lines.add(sp.getString(CommonStrings.notice_room_server_acl_updated_was_banned, it)) }
 
             if (prevEventContent.allowIpLiterals != eventContent.allowIpLiterals) {
-                hasChanged = true
-                if (eventContent.allowIpLiterals) {
-                    appendNl(sp.getString(CommonStrings.notice_room_server_acl_updated_ip_literals_allowed))
-                } else {
-                    appendNl(sp.getString(CommonStrings.notice_room_server_acl_updated_ip_literals_not_allowed))
-                }
+                lines.add(
+                        if (eventContent.allowIpLiterals) {
+                            sp.getString(CommonStrings.notice_room_server_acl_updated_ip_literals_allowed)
+                        } else {
+                            sp.getString(CommonStrings.notice_room_server_acl_updated_ip_literals_not_allowed)
+                        }
+                )
             }
 
-            if (!hasChanged) {
-                appendNl(sp.getString(CommonStrings.notice_room_server_acl_updated_no_change))
+            if (lines.isEmpty()) {
+                lines.add(sp.getString(CommonStrings.notice_room_server_acl_updated_no_change))
             }
+        }
+        lines.take(MAX_ACL_DETAIL_LINES).forEach { appendNl(it) }
+        val remaining = lines.size - MAX_ACL_DETAIL_LINES
+        if (remaining > 0) {
+            appendNl(sp.getQuantityString(CommonPlurals.notice_room_server_acl_more_changes, remaining, remaining))
         }
     }
 
@@ -1178,5 +1208,6 @@ class NoticeEventFormatter @Inject constructor(
 
     companion object {
         private val MULTILINE_REGEX = Regex("\\s*\\n+\\s*")
+        private const val MAX_ACL_DETAIL_LINES = 20
     }
 }

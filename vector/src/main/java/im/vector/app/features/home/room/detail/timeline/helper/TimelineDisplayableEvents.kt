@@ -49,6 +49,7 @@ object TimelineDisplayableEvents {
             STATE_ROOM_VOICE_BROADCAST_INFO,
     ) +
             EventType.STATE_ROOM_BANNER.values +
+            EventType.STATE_ROOM_POLICY.values +
             EventType.STATE_ROOM_PREDECESSOR.values +
             EventType.POLL_START.values +
             EventType.POLL_END.values +
@@ -68,14 +69,14 @@ fun TimelineEvent.timelineStableId(): String {
 }
 
 /**
- * The type used to decide whether consecutive events merge into one summary. The stable and legacy image
- * pack ids collapse to a single key so a mix of m.room.image_pack / im.ponies.room_emotes events still
- * groups together as one "image pack changes" summary.
+ * The type used to decide whether consecutive events merge into one summary. Each stable/unstable pair
+ * collapses to a single key so a mix of both ids still groups together as one summary.
  */
 fun Event.timelineMergeGroupType(): String = when (getClearType()) {
     EventType.STATE_ROOM_IMAGE_PACK,
     EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> EventType.STATE_ROOM_IMAGE_PACK
     in EventType.STATE_ROOM_BANNER.values -> EventType.STATE_ROOM_BANNER.stable
+    in EventType.STATE_ROOM_POLICY.values -> EventType.STATE_ROOM_POLICY.stable
     else -> getClearType()
 }
 

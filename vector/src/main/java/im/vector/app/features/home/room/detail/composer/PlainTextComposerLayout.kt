@@ -499,8 +499,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // ordinary text here while showing blue everywhere else.
         // An uncaptioned attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
         val isFilenamePreview = messageContent is MessageWithAttachmentContent && messageContent.getCaption() == null
+        // Notice text (membership change, policy server, reaction, …) is never linkified in the timeline,
+        // and a matrix id or server name inside it would otherwise render as a spurious link.
+        val isNoticePreview = messageContent == null
         val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }
-                ?.let { if (isFilenamePreview) it else it.linkify(null) }
+                ?.let { if (isFilenamePreview || isNoticePreview) it else it.linkify(null) }
         val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
             renderedBody.asEmoteBody(event.senderInfo.disambiguatedDisplayName)
         } else {
