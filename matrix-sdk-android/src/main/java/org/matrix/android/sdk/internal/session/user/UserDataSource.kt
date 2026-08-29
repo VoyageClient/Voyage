@@ -20,6 +20,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.user.model.User
@@ -67,6 +68,8 @@ internal class UserDataSource @Inject constructor(
                 // Skip any malformed blank id: User("") fails MatrixItem's @-prefix check, which would
                 // crash the ignored-users list (or drop the whole list) rather than just that one entry.
                 .map { ids -> ids.filter { it.isNotBlank() }.map { getUser(it) ?: User(userId = it) } }
+                // flowOn: the map re-queries every ignored user, so it must not run on the collector's thread.
+                .flowOn(dispatcher)
     }
 
     fun getIgnoredUserIds(): List<String> = database.ignoredUserQueries.selectAll().executeAsList()

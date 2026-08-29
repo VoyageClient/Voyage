@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.pushers
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
 import org.matrix.android.sdk.api.session.pushers.Pusher
@@ -154,7 +155,9 @@ internal class DefaultPushersService @Inject constructor(
 
     override fun getPushersFlow(): Flow<List<Pusher>> {
         return database.pusherQueries.selectAll().asFlow().mapToList(dispatcher)
+                // flowOn: the map re-queries and maps every pusher, so it must not run on the collector's thread.
                 .map { stores.pushers.getAll().map { entity -> entity.asDomain() } }
+                .flowOn(dispatcher)
     }
 
     override fun getPushers(): List<Pusher> {
