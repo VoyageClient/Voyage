@@ -23,6 +23,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -142,7 +143,9 @@ internal class DefaultReadService @AssistedInject constructor(
 
     override fun getEventReadReceiptsFlow(eventId: String): Flow<List<ReadReceipt>> {
         return database.readReceiptQueries.selectReceiptsForEvent(eventId).asFlow().mapToList(dispatcher)
+                // flowOn: the map re-queries the summary and maps every receipt, so it must not run on the collector's thread.
                 .map { stores.readReceipt.getSummary(eventId)?.let { readReceiptsSummaryMapper.map(it) }.orEmpty() }
+                .flowOn(dispatcher)
     }
 
     private fun ReadService.MarkAsReadParams.forceReadMarker(): Boolean {

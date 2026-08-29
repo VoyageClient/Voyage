@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.room
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
@@ -267,7 +268,9 @@ internal class DefaultRoomService @Inject constructor(
 
     override fun getRoomMemberFlow(userId: String, roomId: String): Flow<Optional<RoomMemberSummary>> {
         return database.roomMemberSummaryQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
+                // flowOn: the map re-queries the member row, so it must not run on the collector's thread.
                 .map { stores.roomMember.getByRoomAndUser(roomId, userId)?.asDomain().toOptional() }
+                .flowOn(dispatcher)
     }
 
     override suspend fun getRoomState(roomId: String): List<Event> {

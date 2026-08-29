@@ -20,6 +20,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.util.Optional
@@ -95,5 +96,7 @@ internal class DraftRepository @Inject constructor(
             database.draftQueries.selectByRoom(roomId)
                     .asFlow()
                     .mapToList(dispatcher)
+                    // flowOn: the map re-queries the draft, so it must not run on the collector's thread.
                     .map { getDraft(roomId).toOptional() }
+                    .flowOn(dispatcher)
 }

@@ -11,13 +11,17 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 
 // Flow views of TimelineEventSqlStore's thread queries.
 
 internal fun TimelineEventSqlStore.getRootThreadsForRoomFlow(roomId: String, dispatcher: CoroutineDispatcher): Flow<List<TimelineEventEntity>> =
-        queries.selectRootThreadsForRoom(roomId).asFlow().mapToList(dispatcher).map { rows -> with(this) { rows.toEntities() } }
+        queries.selectRootThreadsForRoom(roomId).asFlow().mapToList(dispatcher)
+                // flowOn: toEntities() re-queries per row, so it must not run on the collector's thread.
+                .map { rows -> with(this) { rows.toEntities() } }.flowOn(dispatcher)
 
 internal fun TimelineEventSqlStore.getLocalThreadNotificationsForRoomFlow(roomId: String, dispatcher: CoroutineDispatcher): Flow<List<TimelineEventEntity>> =
-        queries.selectLocalThreadNotificationsForRoom(roomId).asFlow().mapToList(dispatcher).map { rows -> with(this) { rows.toEntities() } }
+        queries.selectLocalThreadNotificationsForRoom(roomId).asFlow().mapToList(dispatcher)
+                .map { rows -> with(this) { rows.toEntities() } }.flowOn(dispatcher)

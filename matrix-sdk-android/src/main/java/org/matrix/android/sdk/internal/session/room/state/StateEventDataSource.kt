@@ -20,6 +20,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -66,7 +67,9 @@ internal class StateEventDataSource @Inject constructor(
         return database.currentStateEventQueries.selectByRoom(roomId)
                 .asFlow()
                 .mapToList(dispatcher)
+                // flowOn: rootEvent() is a query + JSON parse per state event, so it must not run on the collector's thread.
                 .map { rows -> rows.filter { it.matches(eventTypes, stateKey) }.mapNotNull { it.rootEvent() } }
+                .flowOn(dispatcher)
     }
 
     private fun CurrentStateEventRow.rootEvent(): Event? =
