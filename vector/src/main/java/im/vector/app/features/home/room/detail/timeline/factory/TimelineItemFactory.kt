@@ -16,9 +16,11 @@ import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCA
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
 import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomBannerContent
+import org.matrix.android.sdk.api.session.room.model.RoomPolicyContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -63,9 +65,9 @@ class TimelineItemFactory @Inject constructor(
                 )
             }
 
-            // Only the stable twin of a banner change renders; the unstable one must vanish entirely
+            // Only the stable twin of a doubled-up state change renders; the unstable one must vanish
             // rather than reaching the hidden-event debug fallback below.
-            if (params.isDuplicateBannerEvent() && !params.isHighlighted) {
+            if (params.isDuplicateUnstableStateEvent() && !params.isHighlighted) {
                 return buildEmptyItem(
                         event,
                         params.prevEvent,
@@ -105,7 +107,8 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_POWER_LEVELS -> {
                         noticeItemFactory.create(params)
                     }
-                    in EventType.STATE_ROOM_BANNER.values -> noticeItemFactory.create(params)
+                    in EventType.STATE_ROOM_BANNER.values,
+                    in EventType.STATE_ROOM_POLICY.values -> noticeItemFactory.create(params)
                     EventType.STATE_ROOM_WIDGET_LEGACY,
                     EventType.STATE_ROOM_WIDGET -> widgetItemFactory.create(params)
                     EventType.STATE_ROOM_ENCRYPTION -> encryptionItemFactory.create(params)
@@ -199,18 +202,26 @@ class TimelineItemFactory @Inject constructor(
         }
     }
 
-    // A banner change is sent under both the stable and unstable MSC4221 type, which would otherwise
-    // read as two identical notices. Hide the unstable one when its stable twin sits next to it.
-    private fun TimelineItemFactoryParams.isDuplicateBannerEvent(): Boolean {
+    // A banner (MSC4221) or policy server (MSC4284) change is sent under both the stable and unstable
+    // type, which would otherwise read as two identical notices. Hide the unstable one when its stable
+    // twin sits next to it.
+    private fun TimelineItemFactoryParams.isDuplicateUnstableStateEvent(): Boolean {
         val root = event.root
-        if (root.getClearType() != EventType.STATE_ROOM_BANNER.unstable) return false
-        val url = root.getClearContent().toModel<RoomBannerContent>()?.url.orEmpty()
+        val (stableType, identity) = when (root.getClearType()) {
+            EventType.STATE_ROOM_BANNER.unstable -> EventType.STATE_ROOM_BANNER.stable to ::bannerIdentity
+            EventType.STATE_ROOM_POLICY.unstable -> EventType.STATE_ROOM_POLICY.stable to ::policyIdentity
+            else -> return false
+        }
         return listOfNotNull(prevEvent, nextEvent).any {
-            it.root.getClearType() == EventType.STATE_ROOM_BANNER.stable &&
+            it.root.getClearType() == stableType &&
                     it.root.senderId == root.senderId &&
-                    it.root.getClearContent().toModel<RoomBannerContent>()?.url.orEmpty() == url
+                    identity(it.root) == identity(root)
         }
     }
+
+    private fun bannerIdentity(event: Event): String = event.getClearContent().toModel<RoomBannerContent>()?.url.orEmpty()
+
+    private fun policyIdentity(event: Event): String = event.getClearContent().toModel<RoomPolicyContent>()?.via.orEmpty()
 
     private fun isLocationMessage(event: TimelineEvent): Boolean {
         return event.root.getClearContent().toModel<MessageContent>()?.msgType == MessageType.MSGTYPE_LOCATION

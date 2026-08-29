@@ -116,20 +116,20 @@ class MessageActionsEpoxyController @Inject constructor(
         // Message preview
         val date = state.timelineEvent()?.root?.originServerTs
         val formattedDate = dateFormatter.format(date, DateFormatKind.MESSAGE_DETAIL)
-        // Don't linkify membership notices (their text can contain a raw matrix id, e.g. a knock from
-        // a user with no display name) or unhandled/malformed placeholders (a dotted event-type name
-        // reads as a domain) — both would render spurious clickable links.
+        // Notice text is never linkified in the timeline, and it routinely holds things the linkifier
+        // would claim: a raw matrix id in a membership notice, a server name in a policy-server notice,
+        // a dotted event type in an unhandled/malformed placeholder. Anything without message content
+        // is notice text, so leave it plain.
         val previewType = state.previewEvent?.root?.getClearType()
         val previewContent = state.previewEvent?.getVectorLastMessageContent()
-        val isPlaceholderPreview = previewType == EventType.STATE_ROOM_MEMBER ||
-                (previewType != null && !EventType.isKnownType(previewType)) ||
-                (previewType in listOf(EventType.MESSAGE, EventType.STICKER) && previewContent == null)
+        val isNoticeTextPreview = previewContent == null ||
+                (previewType != null && !EventType.isKnownType(previewType))
         // An attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
         val isFilenamePreview = previewContent is MessageWithAttachmentContent || state.galleryItemIndex != null
         val isLocationPreview = previewContent?.msgType == MessageType.MSGTYPE_LOCATION
         // A whole-gallery sheet previews as the real grid; an item-scoped one as that item's thumbnail.
         val galleryContent = (previewContent as? MessageGalleryContent)?.takeIf { state.galleryItemIndex == null }
-        val body = if (isPlaceholderPreview || isFilenamePreview) {
+        val body = if (isNoticeTextPreview || isFilenamePreview) {
             state.messageBody
         } else {
             state.messageBody.linkify(host.listener)
@@ -145,7 +145,7 @@ class MessageActionsEpoxyController @Inject constructor(
             avatarRenderer(host.avatarRenderer)
             matrixItem(state.informationData.matrixItem)
             senderColor(host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
-            bodyIsNotice(host.isNoticeStylePreview(state) || isPlaceholderPreview || isFilenamePreview || isLocationPreview)
+            bodyIsNotice(host.isNoticeStylePreview(state) || isNoticeTextPreview || isFilenamePreview || isLocationPreview)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             data(

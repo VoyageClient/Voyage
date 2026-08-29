@@ -156,6 +156,14 @@
     <string name="notice_room_banner_removed" translatable="false">%1$s removed the room banner</string>
     <string name="notice_room_banner_removed_by_you" translatable="false">You removed the room banner</string>
 
+    <!-- MSC4284 policy server -->
+    <string name="notice_room_policy_server_set" translatable="false">%1$s set the room policy server to %2$s</string>
+    <string name="notice_room_policy_server_set_by_you" translatable="false">You set the room policy server to %1$s</string>
+    <string name="notice_room_policy_server_changed" translatable="false">%1$s changed the room policy server to %2$s</string>
+    <string name="notice_room_policy_server_changed_by_you" translatable="false">You changed the room policy server to %1$s</string>
+    <string name="notice_room_policy_server_removed" translatable="false">%1$s removed the room policy server</string>
+    <string name="notice_room_policy_server_removed_by_you" translatable="false">You removed the room policy server</string>
+
     <!-- MSC4247 pronouns / MSC4175 time zone profile fields -->
     <string name="settings_pronouns" translatable="false">Pronouns</string>
     <string name="settings_pronouns_not_set" translatable="false">Not set</string>
@@ -339,6 +347,11 @@
     <plurals name="merged_hidden_events">
         <item quantity="one">%d hidden event</item>
         <item quantity="other">%d hidden events</item>
+    </plurals>
+
+    <plurals name="notice_room_server_acl_more_changes" translatable="false">
+        <item quantity="one">…and %d more change</item>
+        <item quantity="other">…and %d more changes</item>
     </plurals>
 
     <plurals name="image_pack_changes" translatable="false">
