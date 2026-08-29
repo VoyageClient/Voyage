@@ -1,10 +1,14 @@
 name: Nightly APKs
 
 on:
-  push:
-    branches:
-      - develop
+  schedule:
+    - cron: '0 4 * * *'
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Build even when no code changed'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -20,14 +24,66 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 jobs:
+  # The nightly tag sits on the last commit that was built, so it marks what has already shipped.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.decide.outputs.build }}
+    steps:
+      - name: Checkout with tags
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Decide whether anything worth building changed
+        id: decide
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.force }}" = 'true' ]; then
+            echo 'Forced from workflow_dispatch.'
+            echo 'build=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          last=$(git rev-parse -q --verify 'refs/tags/nightly^{commit}' || true)
+          if [ -z "$last" ]; then
+            echo 'No nightly tag yet, so nothing has been built.'
+            echo 'build=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Exclude-only pathspecs match everything else, so whatever is not listed counts as code.
+          # glob magic stops * crossing /, keeping these at the root — without it *.md would also
+          # swallow a module's own files, e.g. an asset under src/main/assets.
+          changed=$(git diff --name-only "$last" HEAD -- \
+            ':(exclude,glob)*.md' \
+            ':(exclude)docs' \
+            ':(exclude,glob)*/docs/**' \
+            ':(exclude)resources' \
+            ':(exclude)fastlane' \
+            ':(exclude)changelog.d' \
+            ':(exclude,glob)LICENSE*' \
+            ':(exclude).idea' \
+            ':(exclude).claude')
+          if [ -z "$changed" ]; then
+            echo "No code changes since $last; skipping the build."
+            echo 'build=false' >> "$GITHUB_OUTPUT"
+          else
+            echo "Code changed since $last:"
+            echo "$changed"
+            echo 'build=true' >> "$GITHUB_OUTPUT"
+          fi
+
   nightly:
+    needs: check
+    if: needs.check.outputs.build == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - name: Checkout the pushed commit
+      - name: Checkout the commit to build
         uses: actions/checkout@v7
         with:
           submodules: recursive
+          fetch-tags: false
           # Tagless on purpose: a tag on HEAD switches getVersionCode() off the timestamp scheme,
           # breaking upgrades over older nightlies.
           fetch-depth: 20
