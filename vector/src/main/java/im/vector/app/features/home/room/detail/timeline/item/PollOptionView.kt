@@ -12,6 +12,7 @@ import android.os.Build
 import android.util.AttributeSet
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.core.extensions.setAttributeTintedImageResource
@@ -55,12 +56,18 @@ class PollOptionView @JvmOverloads constructor(
 
     private fun renderPollEnded(state: PollOptionViewState.PollEnded) {
         views.optionCheckImageView.isVisible = false
-        val drawableStart = if (state.isWinner) R.drawable.ic_poll_winner else 0
-        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(drawableStart, 0, 0, 0)
-        views.optionVoteCountTextView.setTextColor(
-                if (state.isWinner) ThemeUtils.getColor(context, com.google.android.material.R.attr.colorPrimary)
-                else ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        )
+        if (state.isWinner) {
+            val winnerColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorPrimary)
+            // ic_poll_winner's fill is a hardcoded Element green, so tint it to the accent instead.
+            val icon = AppCompatResources.getDrawable(context, R.drawable.ic_poll_winner)?.mutate()?.also {
+                DrawableCompat.setTint(it, winnerColor)
+            }
+            views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(icon, null, null, null)
+            views.optionVoteCountTextView.setTextColor(winnerColor)
+        } else {
+            views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(null, null, null, null)
+            views.optionVoteCountTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+        }
         showVotes(state.voteCount, state.votePercentage)
         renderVoteSelection(state.isWinner)
     }
