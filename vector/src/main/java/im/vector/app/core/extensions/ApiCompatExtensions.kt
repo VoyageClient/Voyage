@@ -120,6 +120,10 @@ var View.textAlignmentCompat: Int
 fun TextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(start: Int, top: Int, end: Int, bottom: Int) =
         TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(this, start, top, end, bottom)
 
+// Drawable form, for call sites that need to tint the drawable before setting it.
+fun TextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(start: Drawable?, top: Drawable?, end: Drawable?, bottom: Drawable?) =
+        TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(this, start, top, end, bottom)
+
 // DateFormat.getBestDateTimePattern is API 18+; pre-18 fall back to the skeleton itself.
 fun getBestDateTimePatternCompat(locale: Locale, skeleton: String): String =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
