@@ -1,6 +1,18 @@
-# Voyage
+# <img src="resources/img/voyage-burst.svg" height="25" alt=""> Voyage
 
-Voyage is a [Matrix](https://matrix.org/) client for Android, based on [Element Android](https://github.com/element-hq/element-android). The app can be run on every Android device with Android 4.0 Ice Cream Sandwich and later (API 14).
+[![Voyage Matrix room #voyage:matrix.org](https://img.shields.io/matrix/voyage:matrix.org.svg?label=%23voyage:matrix.org&logo=matrix&server_fqdn=matrix.org)](https://matrix.to/#/#voyage:matrix.org)
+[![Donate Monero](https://img.shields.io/badge/Donate-Monero-FF6600?style=plastic&logo=monero&logoColor=white)](#donations)
+
+Voyage is a [Matrix](https://matrix.org/) client for Android, based on [Element Classic](https://github.com/element-hq/element-android). The app can be run on every Android device with Android 4.0 Ice Cream Sandwich and later (API 14).
+
+<p align="center">
+  <img src="resources/img/screenshots/01-room-list.png" width="45%" alt="Room list">
+  <img src="resources/img/screenshots/02-timeline.png" width="45%" alt="Timeline">
+</p>
+<p align="center">
+  <img src="resources/img/screenshots/03-message-actions.png" width="45%" alt="Message actions">
+  <img src="resources/img/screenshots/04-about.png" width="45%" alt="Help &amp; About">
+</p>
 
 # Installing
 
@@ -24,4 +36,12 @@ and reboot:
 adb shell su
 rm /data/local.prop
 reboot
+```
+
+# Donations
+
+Monero:
+
+```
+85Em2xoemw7AvSrQL417MtLc1ytfT3TzBUiZU67q4tKTKNpwx6TQjKqasrTk1FUvnNdenESV6d4k8fFuoXbLowXT32AtCbb
 ```
