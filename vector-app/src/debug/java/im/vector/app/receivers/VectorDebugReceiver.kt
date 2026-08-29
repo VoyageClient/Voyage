@@ -12,6 +12,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import im.vector.app.core.debug.DebugReceiver
@@ -43,6 +46,7 @@ class VectorDebugReceiver @Inject constructor(
     private val paginating = AtomicBoolean(false)
 
     override fun register(context: Context) {
+        MainThreadWatchdog.start()
         // Exported, or adb-shell broadcasts never arrive on Android 14+ (debug builds only).
         ContextCompat.registerReceiver(
                 context,
@@ -65,6 +69,7 @@ class VectorDebugReceiver @Inject constructor(
                 it.endsWith(DEBUG_ACTION_DUMP_PREFERENCES) -> dumpPreferences()
                 it.endsWith(DEBUG_ACTION_ALTER_SCALAR_TOKEN) -> alterScalarToken()
                 it.endsWith(DEBUG_ACTION_PAGINATE_ROOM) -> paginateRoom(intent)
+                it.endsWith(DEBUG_ACTION_FREEZE_MAIN) -> freezeMain(intent)
             }
         }
     }
@@ -137,6 +142,32 @@ class VectorDebugReceiver @Inject constructor(
         }
     }
 
+    /**
+     * Synthetic main-thread block, to exercise ANR behaviour:
+     * adb shell am broadcast -a <pkg>.DEBUG_ACTION_FREEZE_MAIN [--ei ms 20000] [--ei repeat 10] [--ei gap 400]
+     * Logs under the ANRDBG tag.
+     */
+    private fun freezeMain(intent: Intent) {
+        val ms = intent.getIntExtra("ms", 20_000).toLong()
+        val repeat = intent.getIntExtra("repeat", 1)
+        val gap = intent.getIntExtra("gap", 0).toLong()
+        // Posted rather than slept inline, so this is an app freeze and not a broadcast-dispatch ANR.
+        val handler = Handler(Looper.getMainLooper())
+
+        // Each block is posted only once the previous finished, so `gap` is a real window in which
+        // the looper drains input and the window goes responsive again.
+        fun block(i: Int) {
+            handler.postDelayed({
+                Timber.i("ANRDBG freeze ${i + 1}/$repeat: blocking main thread for ${ms}ms")
+                val start = SystemClock.uptimeMillis()
+                Thread.sleep(ms)
+                Timber.i("ANRDBG freeze ${i + 1}/$repeat: released after ${SystemClock.uptimeMillis() - start}ms")
+                if (i + 1 < repeat) block(i + 1)
+            }, if (i == 0) 500 else gap)
+        }
+        block(0)
+    }
+
     private fun dumpPreferences() {
         logPrefs("DefaultSharedPreferences", sharedPreferences)
     }
@@ -162,12 +193,14 @@ class VectorDebugReceiver @Inject constructor(
         private const val DEBUG_ACTION_DUMP_PREFERENCES = ".DEBUG_ACTION_DUMP_PREFERENCES"
         private const val DEBUG_ACTION_ALTER_SCALAR_TOKEN = ".DEBUG_ACTION_ALTER_SCALAR_TOKEN"
         private const val DEBUG_ACTION_PAGINATE_ROOM = ".DEBUG_ACTION_PAGINATE_ROOM"
+        private const val DEBUG_ACTION_FREEZE_MAIN = ".DEBUG_ACTION_FREEZE_MAIN"
 
         fun getIntentFilter(context: Context) = IntentFilter().apply {
             addAction(context.packageName + DEBUG_ACTION_DUMP_FILESYSTEM)
             addAction(context.packageName + DEBUG_ACTION_DUMP_PREFERENCES)
             addAction(context.packageName + DEBUG_ACTION_ALTER_SCALAR_TOKEN)
             addAction(context.packageName + DEBUG_ACTION_PAGINATE_ROOM)
+            addAction(context.packageName + DEBUG_ACTION_FREEZE_MAIN)
         }
     }
 }
