@@ -95,14 +95,10 @@ jobs:
         run: |
           set -euo pipefail
           {
-            echo "Nightly build of \`develop\` at ${{ github.sha }}."
-            echo
-            echo "R8-shrunk release build, package \`im.voyage.app\`, signed with the checked-in debug key."
-            echo
-            echo "Per-ABI APKs plus a universal one are attached; install the universal APK if unsure."
+            echo "Nightly build of Voyage at [$(git rev-parse --short HEAD)](${{ github.server_url }}/${{ github.repository }}/commit/${GITHUB_SHA})."
             echo
             echo "Recent commits:"
-            git log -10 --pretty='- %h %s'
+            git log -10 --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
           } > release-notes.md
 
           # The release keeps one tag forever; move it to the commit being built.
@@ -110,7 +106,7 @@ jobs:
           git push -f origin refs/tags/nightly
 
           if gh release view nightly > /dev/null 2>&1; then
-            gh release edit nightly --title 'Nightly' --notes-file release-notes.md --prerelease
+            gh release edit nightly --title 'Nightly' --notes-file release-notes.md --prerelease --draft=false
             gh release view nightly --json assets --jq '.assets[].name' | while read -r asset; do
               gh release delete-asset nightly "$asset" --yes
             done
