@@ -14,7 +14,16 @@ Voyage is a [Matrix](https://matrix.org/) client for Android, based on [Element 
   <img src="resources/img/screenshots/04-about.png" width="45%" alt="Help &amp; About">
 </p>
 
+# What's different
+
+[CHANGES.md](CHANGES.md) lists the features, improvements and removals this fork
+adds on top of Element Classic.
+
 # Installing
+
+Grab a nightly APK from the [releases](../../releases) tab.
+
+Alternatively, build and install it yourself:
 
 Debug: `./gradlew installDebug`
 
