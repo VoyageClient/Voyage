@@ -33,14 +33,16 @@ internal interface MembershipAdminTask : Task<MembershipAdminTask.Params, Unit> 
             val type: Type,
             val roomId: String,
             val userId: String,
-            val reason: String?
+            val reason: String?,
+            val redactEvents: Boolean = false
     )
 }
 
 internal class DefaultMembershipAdminTask @Inject constructor(private val roomAPI: RoomAPI) : MembershipAdminTask {
 
     override suspend fun execute(params: MembershipAdminTask.Params) {
-        val userIdAndReason = UserIdAndReason(params.userId, params.reason)
+        val redactEvents = params.redactEvents.takeIf { it && params.type != MembershipAdminTask.Type.UNBAN }
+        val userIdAndReason = UserIdAndReason(params.userId, params.reason, redactEvents, redactEvents)
         executeRequest(null) {
             when (params.type) {
                 MembershipAdminTask.Type.BAN -> roomAPI.ban(params.roomId, userIdAndReason)

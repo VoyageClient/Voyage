@@ -62,6 +62,9 @@ class CommandParserTest {
         test("/kick @foo:bar    a    reason    ", ParsedCommand.KickUser("@foo:bar", "a    reason"))
         // Alias
         test("/remove @foo:bar", ParsedCommand.KickUser("@foo:bar", null))
+        // MSC4293 redact option, with and without a reason
+        test("/kick @foo:bar redact", ParsedCommand.KickUser("@foo:bar", null, true))
+        test("/kick @foo:bar redact a reason", ParsedCommand.KickUser("@foo:bar", "a reason", true))
         // Error
         test("/kick", ParsedCommand.ErrorSyntax(Command.KICK_USER))
     }

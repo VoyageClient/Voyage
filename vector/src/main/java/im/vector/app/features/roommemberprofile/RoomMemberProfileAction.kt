@@ -15,8 +15,8 @@ import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 sealed class RoomMemberProfileAction : VectorViewModelAction {
     object RetryFetchingInfo : RoomMemberProfileAction()
     object IgnoreUser : RoomMemberProfileAction()
-    data class BanOrUnbanUser(val reason: String?) : RoomMemberProfileAction()
-    data class KickUser(val reason: String?) : RoomMemberProfileAction()
+    data class BanOrUnbanUser(val reason: String?, val redactEvents: Boolean = false) : RoomMemberProfileAction()
+    data class KickUser(val reason: String?, val redactEvents: Boolean = false) : RoomMemberProfileAction()
     object RedactAllMessages : RoomMemberProfileAction()
     object InviteUser : RoomMemberProfileAction()
     object VerifyUser : RoomMemberProfileAction()

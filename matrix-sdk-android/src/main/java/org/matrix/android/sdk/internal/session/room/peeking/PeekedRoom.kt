@@ -237,9 +237,9 @@ internal class PeekedRoom(
 
         override suspend fun invite(userId: String, reason: String?) = readOnly()
         override suspend fun invite3pid(threePid: ThreePid) = readOnly()
-        override suspend fun ban(userId: String, reason: String?) = readOnly()
+        override suspend fun ban(userId: String, reason: String?, redactEvents: Boolean) = readOnly()
         override suspend fun unban(userId: String, reason: String?) = readOnly()
-        override suspend fun kick(userId: String, reason: String?) = readOnly()
+        override suspend fun kick(userId: String, reason: String?, redactEvents: Boolean) = readOnly()
     }
 
     private val uploadsService = object : UploadsService {

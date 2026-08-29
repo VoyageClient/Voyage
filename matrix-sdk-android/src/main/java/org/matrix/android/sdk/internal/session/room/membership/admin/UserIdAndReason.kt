@@ -21,5 +21,9 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 internal data class UserIdAndReason(
         @Json(name = "user_id") val userId: String,
-        @Json(name = "reason") val reason: String? = null
+        @Json(name = "reason") val reason: String? = null,
+        // MSC4293. Unmerged, so no server advertises it in /versions and both keys are written blind;
+        // a server without support just drops the unknown field.
+        @Json(name = "redact_events") val redactEvents: Boolean? = null,
+        @Json(name = "org.matrix.msc4293.redact_events") val redactEventsUnstable: Boolean? = null
 )

@@ -263,10 +263,8 @@ class CommandParser @Inject constructor(
                         val userId = messageParts[1]
 
                         if (MatrixPatterns.isUserId(userId)) {
-                            ParsedCommand.KickUser(
-                                    userId,
-                                    trimParts(textMessage, messageParts.take(2))
-                            )
+                            val (reason, redactEvents) = parseModerationTail(textMessage, messageParts)
+                            ParsedCommand.KickUser(userId, reason, redactEvents)
                         } else {
                             ParsedCommand.ErrorSyntax(Command.KICK_USER)
                         }
@@ -287,10 +285,8 @@ class CommandParser @Inject constructor(
                         val userId = messageParts[1]
 
                         if (MatrixPatterns.isUserId(userId)) {
-                            ParsedCommand.BanUser(
-                                    userId,
-                                    trimParts(textMessage, messageParts.take(2))
-                            )
+                            val (reason, redactEvents) = parseModerationTail(textMessage, messageParts)
+                            ParsedCommand.BanUser(userId, reason, redactEvents)
                         } else {
                             ParsedCommand.ErrorSyntax(Command.BAN_USER)
                         }
@@ -709,6 +705,12 @@ class CommandParser @Inject constructor(
         }.getOrNull()
     }
 
+    /** Splits a /ban or /kick tail into its reason and the optional leading `redact` option. */
+    private fun parseModerationTail(textMessage: CharSequence, messageParts: List<String>): Pair<String?, Boolean> {
+        val redactEvents = messageParts.getOrNull(2)?.lowercase() == REDACT_OPTION
+        return trimParts(textMessage, messageParts.take(if (redactEvents) 3 else 2)) to redactEvents
+    }
+
     private fun trimParts(message: CharSequence, messageParts: List<String>): String? {
         val partsSize = messageParts.sumOf { it.length }
         val gapsNumber = messageParts.size - 1
@@ -716,6 +718,8 @@ class CommandParser @Inject constructor(
     }
 
     companion object {
+        private const val REDACT_OPTION = "redact"
+
         // 1e11 ms is 1973; above this an epoch is already in ms, below it is seconds.
         private const val EPOCH_MILLIS_THRESHOLD = 100_000_000_000L
 

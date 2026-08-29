@@ -21,14 +21,15 @@
         tools:text="@string/redact_event_dialog_content" />
 
     <CheckBox
-        android:id="@+id/dialogReasonCheck"
+        android:id="@+id/dialogRedactEventsCheck"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:checked="true"
-        android:text="@string/delete_event_dialog_reason_checkbox"
+        android:text="@string/redact_events_on_moderation_checkbox"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dialogConfirmationText" />
+        app:layout_constraintTop_toBottomOf="@id/dialogConfirmationText"
+        tools:visibility="visible" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/dialogReasonTextInputLayout"
@@ -38,7 +39,8 @@
         app:counterMaxLength="240"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dialogReasonCheck"
+        app:layout_constraintTop_toBottomOf="@id/dialogRedactEventsCheck"
+        app:layout_goneMarginTop="8dp"
         tools:hint="@string/redact_event_dialog_reason_hint">
 
         <com.google.android.material.textfield.TextInputEditText
