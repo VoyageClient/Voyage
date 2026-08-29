@@ -148,7 +148,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Greentext** — quote-style greentext rendering, with an option to send all blockquotes as greentext.
 
-- **Slash commands** — added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/encrypt`, and `/trans`/`/transme` (trans-flag gradient messages), plus the ability to run slash commands on a reply; `/rainbow` now paints nheko's vivid gradient instead of washed-out CIELAB colors.
+- **Slash commands** — added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/encrypt`, and `/trans`/`/transme` (trans-flag gradient messages), plus the ability to run slash commands on a reply or an edit; `/rainbow` now paints nheko's vivid gradient instead of washed-out CIELAB colors.
 
 - **Sed substitutions** — maubot-style `s/typo/fixed/` built into the composer, so no bot has to be in the room: your own messages are corrected as an edit, everyone else's with a notice reply. Replying to a message aims the substitution at it.
 

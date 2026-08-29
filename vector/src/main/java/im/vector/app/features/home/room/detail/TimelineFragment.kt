@@ -424,8 +424,10 @@ class TimelineFragment :
             messageTranslationStore.updates
                     .collectBatched(quietMs = 100, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
                         timelineEventController.invalidateEventCaches(batch)
-                        // Replies quoting a translated event render its translation in their header.
+                        // Replies quoting a translated event render its translation in their header;
+                        // re-deliver their state too, since an unchanged Epoxy model never re-binds.
                         timelineEventController.invalidateReplyEventCaches()
+                        timelineViewModel.replyPreviewRetriever.onRevealChanged(batch)
                     }
         }
         messageTranslationStore.errors
@@ -2335,7 +2337,7 @@ class TimelineFragment :
                 redactedContentRevealManager.setRevealedWithEdits(timelineArgs.roomId, action.eventId, false)
             }
             is EventSharedAction.Translate -> {
-                messageTranslationStore.translate(action.eventId, action.text)
+                messageTranslationStore.translate(action.eventId, action.text, action.formattedBody)
             }
             is EventSharedAction.Untranslate -> {
                 messageTranslationStore.untranslate(action.eventId)

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.translation
 
+import androidx.core.text.HtmlCompat
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +31,8 @@ class MessageTranslationStore @Inject constructor(
         private val client: TranslationClient,
         private val stringProvider: StringProvider,
 ) {
-    data class Translation(val text: String, val sourceLanguage: String?, val targetLanguage: String)
+    /** [formatted] is the translated formatted body (markup/pills preserved), when the message had one. */
+    data class Translation(val text: String, val sourceLanguage: String?, val targetLanguage: String, val formatted: String? = null)
 
     private val translations = ConcurrentHashMap<String, Translation>()
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
@@ -60,12 +62,19 @@ class MessageTranslationStore @Inject constructor(
         if (translations.remove(eventId) != null) _updates.tryEmit(eventId)
     }
 
-    /** Translates [text] (the message's plain body, reply fallback already stripped) for [eventId]. */
-    fun translate(eventId: String, text: String) {
+    /**
+     * Translates [text] (the message's plain body, reply fallback already stripped) for [eventId].
+     * When [formattedBody] is given, it is translated instead — markup, mention pills and line
+     * structure survive — and the plain text is derived from the result.
+     */
+    fun translate(eventId: String, text: String, formattedBody: String? = null) {
         if (!inFlight.add(eventId)) return
         scope.launch {
             try {
-                val exceptions = TranslationExceptions.forReceived(text)
+                // A formatted body whose visible text is all protected markup (e.g. one code block)
+                // falls back to translating the plain body.
+                val htmlExceptions = formattedBody?.let { TranslationExceptions.forReceivedHtml(it) }?.takeIf { it.hasTranslatableText }
+                val exceptions = htmlExceptions ?: TranslationExceptions.forReceived(text)
                 if (!exceptions.hasTranslatableText) {
                     _errors.tryEmit(stringProvider.getString(CommonStrings.translation_nothing_to_translate))
                     return@launch
@@ -73,7 +82,12 @@ class MessageTranslationStore @Inject constructor(
                 when (val result = client.translate(exceptions.text, TranslationLanguages.AUTO, TranslationLanguages.APP)) {
                     is TranslationResult.Failure -> _errors.tryEmit(result.message)
                     is TranslationResult.Success -> {
-                        translations[eventId] = Translation(exceptions.restore(result.text), result.detectedSource, TranslationLanguages.appLanguage())
+                        val restored = exceptions.restore(result.text)
+                        translations[eventId] = if (htmlExceptions != null) {
+                            Translation(htmlToPlain(restored), result.detectedSource, TranslationLanguages.appLanguage(), formatted = restored)
+                        } else {
+                            Translation(restored, result.detectedSource, TranslationLanguages.appLanguage())
+                        }
                         _updates.tryEmit(eventId)
                     }
                 }
@@ -82,4 +96,7 @@ class MessageTranslationStore @Inject constructor(
             }
         }
     }
+
+    private fun htmlToPlain(html: String): String =
+            HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
 }

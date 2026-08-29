@@ -47,15 +47,53 @@ class TranslationExceptions private constructor(
         private val MATRIX_ID = """[@#!][^\s:]+:[A-Za-z0-9.\-]+(?::\d+)?"""
         private val SHORTCODE = """:[A-Za-z0-9_+\-]+:"""
 
-        private val RECEIVED = Regex("$URL|$MATRIX_ID|$SHORTCODE|$EMOJI")
+        // Engines routinely collapse or drop line breaks; carry them through as placeholders.
+        private val NEWLINES = """\n+"""
+
+        private val RECEIVED = Regex("$URL|$MATRIX_ID|$SHORTCODE|$EMOJI|$NEWLINES")
         private val ISOLATED = Regex("(?:$URL|$MATRIX_ID)")
+
+        // Chunks of a formatted body that must survive verbatim: whole code/pre blocks, whole
+        // matrix.to mention pills (their display name included), every other tag, and entities.
+        private val HTML_CHUNK = Regex(
+                """<(code|pre)\b[^>]*>.*?</\1\s*>|<a\b[^>]*matrix\.to[^>]*>.*?</a\s*>|<[^>]+>|&[#A-Za-z0-9]+;""",
+                setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+        )
 
         // Outgoing text is tokenised by word so a leading @/#/:/! keeps the whole word, matching the
         // plugin's wordStart exceptions.
         private val SENT_WORD = Regex("""^(?:[@#:!].+|$URL|$EMOJI)$""")
-        private val SENT_INLINE = Regex("$URL|$EMOJI")
+        private val SENT_INLINE = Regex("$URL|$EMOJI|$NEWLINES")
 
         fun forReceived(text: String): TranslationExceptions = protect(text, RECEIVED, emptyList())
+
+        /**
+         * Protects a formatted (HTML) body: markup and pills come back untouched, only the visible
+         * text between tags is translated.
+         */
+        fun forReceivedHtml(html: String): TranslationExceptions {
+            val protected = mutableListOf<String>()
+            val out = StringBuilder()
+            fun appendText(segment: String) {
+                var last = 0
+                for (match in RECEIVED.findAll(segment)) {
+                    out.append(segment, last, match.range.first)
+                    out.append("{{").append(protected.size).append("}}")
+                    protected.add(match.value)
+                    last = match.range.last + 1
+                }
+                out.append(segment, last, segment.length)
+            }
+            var index = 0
+            for (match in HTML_CHUNK.findAll(html)) {
+                appendText(html.substring(index, match.range.first))
+                out.append("{{").append(protected.size).append("}}")
+                protected.add(match.value)
+                index = match.range.last + 1
+            }
+            appendText(html.substring(index))
+            return TranslationExceptions(out.toString(), protected)
+        }
 
         /**
          * [pills] are pre-extracted placeholder texts (e.g. mention pills) already substituted into

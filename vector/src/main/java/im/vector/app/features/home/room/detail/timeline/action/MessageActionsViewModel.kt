@@ -439,6 +439,17 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
+    // The formatted body to feed HTML-aware translation; null for a PGP body (only its decrypted plaintext is translatable).
+    private suspend fun translatableFormattedBody(timelineEvent: TimelineEvent, messageContent: MessageContent): String? {
+        if (computePgpDecryptedBody(timelineEvent) != null) return null
+        val formatted = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody ?: return null
+        return if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
+            ContentUtils.extractUsefulTextFromHtmlReply(formatted)
+        } else {
+            formatted
+        }
+    }
+
     private suspend fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent, restoredEvent: TimelineEvent? = null) {
         // A revealed redaction shows the recovered content, not the pruned {}; hidden again, it goes
         // back to the redacted form.
@@ -529,7 +540,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (canTranslate(msgType, messageContent)) {
                 when {
                     messageTranslationStore.isTranslated(eventId) -> add(EventSharedAction.Untranslate(eventId))
-                    !messageTranslationStore.isTranslating(eventId) -> add(EventSharedAction.Translate(eventId, pgpCopyBody(timelineEvent, messageContent!!)))
+                    !messageTranslationStore.isTranslating(eventId) ->
+                        add(EventSharedAction.Translate(eventId, pgpCopyBody(timelineEvent, messageContent!!), translatableFormattedBody(timelineEvent, messageContent)))
                 }
             }
 

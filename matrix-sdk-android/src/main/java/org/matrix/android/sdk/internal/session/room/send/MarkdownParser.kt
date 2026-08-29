@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
+import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import org.commonmark.node.HtmlBlock
 import org.commonmark.node.HtmlInline
 import org.commonmark.node.ListBlock
@@ -102,6 +103,7 @@ internal class MarkdownParser @Inject constructor(
      * ad hoc), so they arrive clickable everywhere. The plain body keeps the bare "MSC1234".
      */
     private fun TextContent.linkifyMscReferences(): TextContent {
+        if (StaticScSdkHelper.scSdkPreferenceProvider?.linkifyMscReferencesOnSend() == false) return this
         val html = formattedText
         return if (html != null) {
             val rewritten = linkifyMscInHtml(html)

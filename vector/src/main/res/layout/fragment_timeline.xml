@@ -6,10 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Explicit background: the toolbar's own drawable has been seen turning transparent after the
+         app was backgrounded, letting the timeline show through the top bar. -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?vctr_toolbar_background"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
