@@ -40,7 +40,7 @@ sealed interface ParsedCommand {
     data class SendRainbowEmote(val message: CharSequence) : ParsedCommand
     data class SendTrans(val message: CharSequence) : ParsedCommand
     data class SendTransEmote(val message: CharSequence) : ParsedCommand
-    data class BanUser(val userId: String, val reason: String?) : ParsedCommand
+    data class BanUser(val userId: String, val reason: String?, val redactEvents: Boolean = false) : ParsedCommand
     data class UnbanUser(val userId: String, val reason: String?) : ParsedCommand
     data class IgnoreUser(val userId: String) : ParsedCommand
     data class UnignoreUser(val userId: String) : ParsedCommand
@@ -53,7 +53,7 @@ sealed interface ParsedCommand {
     data class UnwatchRoom(val roomAlias: String) : ParsedCommand
     data class PartRoom(val roomAlias: String?) : ParsedCommand
     data class ChangeTopic(val topic: String) : ParsedCommand
-    data class KickUser(val userId: String, val reason: String?) : ParsedCommand
+    data class KickUser(val userId: String, val reason: String?, val redactEvents: Boolean = false) : ParsedCommand
     data class MassRedact(val userId: String, val delayMs: Long?, val range: MassRedactionRange) : ParsedCommand
     data class ChangeDisplayName(val displayName: String) : ParsedCommand
     data class ChangeDisplayNameForRoom(val displayName: String) : ParsedCommand

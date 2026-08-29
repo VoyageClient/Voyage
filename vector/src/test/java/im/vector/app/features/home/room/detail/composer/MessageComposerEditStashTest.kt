@@ -68,6 +68,7 @@ class MessageComposerEditStashTest {
             outgoingMessageTranslator = mockk(relaxed = true),
             emoteShortcodeProcessor = mockk(relaxed = true),
             downloadMediaUseCase = mockk(relaxed = true),
+            massRedactionManager = mockk(relaxed = true),
     )
 
     private fun MessageComposerViewModel.type(text: String) = handle(MessageComposerAction.OnTextChanged(text))

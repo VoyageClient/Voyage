@@ -31,7 +31,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.query.QueryStringValue
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.model.relation.PagedEventIds
 import timber.log.Timber
@@ -113,6 +116,54 @@ class MassRedactionManager @Inject constructor(
         return StartResult.Started
     }
 
+    /**
+     * Redact everything a just-kicked/banned user sent. With [MSC4293_ENABLED] the server was asked to do
+     * it and this only watches: the MSC is unmerged and nothing advertises it in /versions, so support can
+     * only be observed after the fact — and a server may keep the flag on the member event without acting
+     * on it (continuwuity does). Watch the user's unredacted events drain; the moment a round passes with
+     * no progress, sweep them manually instead. Restarting what the server already finished is cheap: the
+     * sweep skips every event it knows is redacted.
+     */
+    fun startAfterModeration(roomId: String, userId: String, displayName: String) {
+        if (!MSC4293_ENABLED) {
+            sweep(roomId, userId, displayName)
+            return
+        }
+        scope.launch {
+            val session = activeSessionHolder.getSafeActiveSession() ?: return@launch
+            val room = session.getRoom(roomId) ?: return@launch
+            val relations = room.relationService()
+            var remaining = relations.getLocalEventIdsFromUser(userId).size
+            var rounds = MSC4293_ROUNDS
+            while (rounds-- > 0) {
+                delay(MSC4293_GRACE_MS)
+                val now = relations.getLocalEventIdsFromUser(userId).size
+                val progressed = now < remaining
+                remaining = now
+                // Nothing of theirs is left unredacted locally, and the server kept the flag: it honored
+                // it. Without the flag the server dropped the field, so its history still needs sweeping
+                // even when our own copy of the room looks clean.
+                if (now == 0 && serverKeptRedactFlag(room, userId)) return@launch
+                if (!progressed) break
+            }
+            sweep(roomId, userId, displayName)
+        }
+    }
+
+    private fun sweep(roomId: String, userId: String, displayName: String) {
+        if (start(roomId, userId, displayName, delayMs = 0L) == StartResult.AlreadyRunning) {
+            Timber.w("massredact: moderation sweep for $userId skipped, another job is running")
+        }
+    }
+
+    private fun serverKeptRedactFlag(room: Room, userId: String): Boolean {
+        val content = room.stateService()
+                .getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(userId))
+                ?.content
+                ?: return false
+        return content[REDACT_EVENTS_KEY] == true || content[REDACT_EVENTS_KEY_UNSTABLE] == true
+    }
+
     /** Resume a job that was paused (including one restored paused after a process kill). */
     @Synchronized
     fun resume() {
@@ -179,6 +230,11 @@ class MassRedactionManager @Inject constructor(
             // Extra floor between redaction waves on top of the network round-trip, in case one returns instantly.
             val cooldown = delayMs.coerceAtLeast(MIN_COOLDOWN_MS)
 
+            // One redaction event per target is the only option: MSC2244 (a `redacts` array on
+            // m.room.redaction) was accepted in Nov 2019 but never landed in the spec and was never assigned
+            // a room version — v11 dropped it for lack of implementations, and no unstable room version for
+            // it exists. Synapse (issue #9809), tuwunel and continuwuity all handle a single target only.
+            // Successors MSC4084 and MSC4343 (moves it to m.room.redactions) are still open and unimplemented.
             suspend fun sendOne(id: String) {
                 // Redact directly against the server — no local echo. Awaiting each keeps the timeline
                 // clean, self-paces, and never leaves hundreds of echoes stuck in "sending".
@@ -451,5 +507,24 @@ class MassRedactionManager @Inject constructor(
 
         // Sentinel for "no bound" in the persisted record; a real origin_server_ts is never negative.
         private const val NO_TS = -1L
+
+        /**
+         * Whether to ask the server to redact on kick/ban (MSC4293) instead of redacting from here.
+         * Off until the MSC is accepted and servers enable it by default: today it is unmerged, Synapse
+         * hides it behind an experimental config flag, and it redacts by filtering at serve time rather
+         * than by sending redaction events — so nothing at all reaches users whose server lacks it. Real
+         * redactions are the only ones every server honors. The plumbing stays wired: flipping this to
+         * true is the whole change.
+         */
+        private const val MSC4293_ENABLED = false
+
+        /** Whether a requested kick/ban redaction should be handed to the server instead of swept here. */
+        fun askServerToRedact(requested: Boolean) = requested && MSC4293_ENABLED
+
+        // How long to let an MSC4293 server work before deciding it isn't going to.
+        private const val MSC4293_GRACE_MS = 15_000L
+        private const val MSC4293_ROUNDS = 4
+        private const val REDACT_EVENTS_KEY = "redact_events"
+        private const val REDACT_EVENTS_KEY_UNSTABLE = "org.matrix.msc4293.redact_events"
     }
 }

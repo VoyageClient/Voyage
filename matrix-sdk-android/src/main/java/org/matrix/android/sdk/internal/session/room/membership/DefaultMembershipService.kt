@@ -119,8 +119,8 @@ internal class DefaultMembershipService @AssistedInject constructor(
         return SqlRoomMemberHelper(stores, roomId).getNumberOfJoinedMembers()
     }
 
-    override suspend fun ban(userId: String, reason: String?) {
-        val params = MembershipAdminTask.Params(MembershipAdminTask.Type.BAN, roomId, userId, reason)
+    override suspend fun ban(userId: String, reason: String?, redactEvents: Boolean) {
+        val params = MembershipAdminTask.Params(MembershipAdminTask.Type.BAN, roomId, userId, reason, redactEvents)
         membershipAdminTask.execute(params)
     }
 
@@ -129,8 +129,8 @@ internal class DefaultMembershipService @AssistedInject constructor(
         membershipAdminTask.execute(params)
     }
 
-    override suspend fun kick(userId: String, reason: String?) {
-        val params = MembershipAdminTask.Params(MembershipAdminTask.Type.KICK, roomId, userId, reason)
+    override suspend fun kick(userId: String, reason: String?, redactEvents: Boolean) {
+        val params = MembershipAdminTask.Params(MembershipAdminTask.Type.KICK, roomId, userId, reason, redactEvents)
         membershipAdminTask.execute(params)
     }
 

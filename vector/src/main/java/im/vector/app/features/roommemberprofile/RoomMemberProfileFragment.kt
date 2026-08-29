@@ -596,7 +596,7 @@ class RoomMemberProfileFragment :
         }
     }
 
-    override fun onKickClicked(isSpace: Boolean) {
+    override fun onKickClicked(isSpace: Boolean) = withState(viewModel) { state ->
         ConfirmationDialogBuilder
                 .show(
                         activity = requireActivity(),
@@ -605,9 +605,10 @@ class RoomMemberProfileFragment :
                         else CommonStrings.room_participants_kick_prompt_msg,
                         positiveRes = CommonStrings.room_participants_action_kick,
                         reasonHintRes = CommonStrings.room_participants_kick_reason,
-                        titleRes = CommonStrings.room_participants_kick_title
-                ) { reason ->
-                    viewModel.handle(RoomMemberProfileAction.KickUser(reason))
+                        titleRes = CommonStrings.room_participants_kick_title,
+                        offerRedactEvents = state.actionPermissions.canRedact
+                ) { reason, redactEvents ->
+                    viewModel.handle(RoomMemberProfileAction.KickUser(reason, redactEvents))
                 }
     }
 
@@ -626,7 +627,7 @@ class RoomMemberProfileFragment :
         }
     }
 
-    override fun onBanClicked(isSpace: Boolean, isUserBanned: Boolean) {
+    override fun onBanClicked(isSpace: Boolean, isUserBanned: Boolean) = withState(viewModel) { state ->
         val titleRes: Int
         val positiveButtonRes: Int
         val confirmationRes: Int
@@ -648,9 +649,10 @@ class RoomMemberProfileFragment :
                         confirmationRes = confirmationRes,
                         positiveRes = positiveButtonRes,
                         reasonHintRes = CommonStrings.room_participants_ban_reason,
-                        titleRes = titleRes
-                ) { reason ->
-                    viewModel.handle(RoomMemberProfileAction.BanOrUnbanUser(reason))
+                        titleRes = titleRes,
+                        offerRedactEvents = !isUserBanned && state.actionPermissions.canRedact
+                ) { reason, redactEvents ->
+                    viewModel.handle(RoomMemberProfileAction.BanOrUnbanUser(reason, redactEvents))
                 }
     }
 

@@ -32,6 +32,7 @@ import im.vector.app.features.media.domain.usecase.DownloadMediaUseCase
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpRoomEncryptor
+import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.translation.OutgoingMessageTranslator
@@ -117,6 +118,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val outgoingMessageTranslator: OutgoingMessageTranslator,
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
         private val downloadMediaUseCase: DownloadMediaUseCase,
+        private val massRedactionManager: MassRedactionManager,
 ) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialState) {
 
     private val room = session.getRoom(initialState.roomId)
@@ -1653,14 +1655,21 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleKickSlashCommand(room: Room, kickUser: ParsedCommand.KickUser) {
         launchSlashCommandFlowSuspendable(room, kickUser) {
-            room.membershipService().kick(kickUser.userId, kickUser.reason)
+            room.membershipService().kick(kickUser.userId, kickUser.reason, MassRedactionManager.askServerToRedact(kickUser.redactEvents))
+            if (kickUser.redactEvents) redactAfterModeration(room, kickUser.userId)
         }
     }
 
     private fun handleBanSlashCommand(room: Room, ban: ParsedCommand.BanUser) {
         launchSlashCommandFlowSuspendable(room, ban) {
-            room.membershipService().ban(ban.userId, ban.reason)
+            room.membershipService().ban(ban.userId, ban.reason, MassRedactionManager.askServerToRedact(ban.redactEvents))
+            if (ban.redactEvents) redactAfterModeration(room, ban.userId)
         }
+    }
+
+    private fun redactAfterModeration(room: Room, userId: String) {
+        val displayName = room.membershipService().getRoomMember(userId)?.displayName ?: userId
+        massRedactionManager.startAfterModeration(room.roomId, userId, displayName)
     }
 
     private fun handleUnbanSlashCommand(room: Room, unban: ParsedCommand.UnbanUser) {

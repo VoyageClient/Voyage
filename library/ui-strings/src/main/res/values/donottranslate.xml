@@ -360,6 +360,7 @@
 
     <string name="room_participants_action_kick" translatable="false">Kick</string>
     <string name="room_participants_action_redact_all" translatable="false">Redact all messages</string>
+    <string name="redact_events_on_moderation_checkbox" translatable="false">Redact messages</string>
     <string name="mass_redaction_confirmation_title" translatable="false">Redact all messages?</string>
     <string name="mass_redaction_confirmation_message" translatable="false">This will redact every event from %1$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_already_running" translatable="false">A mass redaction is already in progress, wait for it to finish or cancel it first.</string>

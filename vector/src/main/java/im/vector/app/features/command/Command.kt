@@ -30,7 +30,7 @@ enum class Command(
     CRASH_APP("/crash", null, "", CommonStrings.command_description_crash_application, true, true),
     EMOTE("/me", null, "<message>", CommonStrings.command_description_emote, false, true),
     NOTICE("/notice", null, "<message>", CommonStrings.command_description_notice, false, true),
-    BAN_USER("/ban", null, "<user-id> [reason]", CommonStrings.command_description_ban_user, false, false),
+    BAN_USER("/ban", null, "<user-id> [redact] [reason]", CommonStrings.command_description_ban_user, false, false),
     UNBAN_USER("/unban", arrayOf("/pardon"), "<user-id> [reason]", CommonStrings.command_description_unban_user, false, false),
     IGNORE_USER("/ignore", null, "<user-id> [reason]", CommonStrings.command_description_ignore_user, false, true),
     UNIGNORE_USER("/unignore", null, "<user-id>", CommonStrings.command_description_unignore_user, false, true),
@@ -43,7 +43,7 @@ enum class Command(
     UNWATCH_ROOM("/unwatch", null, "<room-address>", CommonStrings.command_description_unwatch_room, false, false),
     PART("/part", null, "[room-address]", CommonStrings.command_description_part_room, false, false),
     TOPIC("/topic", null, "<topic>", CommonStrings.command_description_topic, false, false),
-    KICK_USER("/kick", arrayOf("/remove"), "<user-id> [reason]", CommonStrings.command_description_kick_user, false, false),
+    KICK_USER("/kick", arrayOf("/remove"), "<user-id> [redact] [reason]", CommonStrings.command_description_kick_user, false, false),
     MASS_REDACT(
             "/massredact", null, "<user-id> [cooldownMs] [before|after:<date>] [messagesOnly]",
             CommonStrings.command_description_mass_redact, false, false

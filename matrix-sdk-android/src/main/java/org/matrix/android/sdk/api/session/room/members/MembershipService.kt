@@ -92,9 +92,10 @@ interface MembershipService {
     suspend fun invite3pid(threePid: ThreePid)
 
     /**
-     * Ban a user from the room.
+     * Ban a user from the room. [redactEvents] asks the server to redact everything the user sent here
+     * (MSC4293); it is ignored by servers that do not implement it, so callers must verify and fall back.
      */
-    suspend fun ban(userId: String, reason: String? = null)
+    suspend fun ban(userId: String, reason: String? = null, redactEvents: Boolean = false)
 
     /**
      * Unban a user from the room.
@@ -102,7 +103,7 @@ interface MembershipService {
     suspend fun unban(userId: String, reason: String? = null)
 
     /**
-     * Kick a user from the room.
+     * Kick a user from the room. See [ban] for [redactEvents].
      */
-    suspend fun kick(userId: String, reason: String? = null)
+    suspend fun kick(userId: String, reason: String? = null, redactEvents: Boolean = false)
 }

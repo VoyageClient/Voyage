@@ -26,16 +26,32 @@ object ConfirmationDialogBuilder {
             @StringRes reasonHintRes: Int,
             confirmation: (String?) -> Unit
     ) {
+        show(activity, askForReason, titleRes, confirmationRes, positiveRes, reasonHintRes, offerRedactEvents = false) { reason, _ ->
+            confirmation(reason)
+        }
+    }
+
+    /**
+     * [offerRedactEvents] adds the MSC4293 "redact their messages too" option; the flag it produces is the
+     * one passed to kick/ban.
+     */
+    fun show(
+            activity: Activity,
+            askForReason: Boolean,
+            @StringRes titleRes: Int,
+            @StringRes confirmationRes: Int,
+            @StringRes positiveRes: Int,
+            @StringRes reasonHintRes: Int,
+            offerRedactEvents: Boolean,
+            confirmation: (String?, Boolean) -> Unit
+    ) {
         val layout = activity.layoutInflater.inflate(R.layout.dialog_confirmation_with_reason, null)
         val views = DialogConfirmationWithReasonBinding.bind(layout)
         views.dialogConfirmationText.setText(confirmationRes)
 
-        views.dialogReasonCheck.isVisible = askForReason
         views.dialogReasonTextInputLayout.isVisible = askForReason
+        views.dialogRedactEventsCheck.isVisible = offerRedactEvents
 
-        views.dialogReasonCheck.setOnCheckedChangeListener { _, isChecked ->
-            views.dialogReasonTextInputLayout.isEnabled = isChecked
-        }
         if (askForReason && reasonHintRes != 0) {
             views.dialogReasonInput.setHint(reasonHintRes)
         }
@@ -46,9 +62,8 @@ object ConfirmationDialogBuilder {
                 .setPositiveButton(positiveRes) { _, _ ->
                     val reason = views.dialogReasonInput.text.toString()
                             .takeIf { askForReason }
-                            ?.takeIf { views.dialogReasonCheck.isChecked }
                             ?.takeIf { it.isNotBlank() }
-                    confirmation(reason)
+                    confirmation(reason, offerRedactEvents && views.dialogRedactEventsCheck.isChecked)
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()

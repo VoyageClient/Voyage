@@ -720,14 +720,15 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleKickAction(action: RoomMemberProfileAction.KickUser) {
+    private fun handleKickAction(action: RoomMemberProfileAction.KickUser) = withState { state ->
         if (room == null) {
-            return
+            return@withState
         }
         viewModelScope.launch {
             try {
                 _viewEvents.post(RoomMemberProfileViewEvents.Loading())
-                room.membershipService().kick(initialState.userId, action.reason)
+                room.membershipService().kick(initialState.userId, action.reason, MassRedactionManager.askServerToRedact(action.redactEvents))
+                if (action.redactEvents) redactAfterModeration(state)
                 _viewEvents.post(RoomMemberProfileViewEvents.OnKickActionSuccess)
             } catch (failure: Throwable) {
                 _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
@@ -744,6 +745,12 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
     }
 
+    private fun redactAfterModeration(state: RoomMemberProfileViewState) {
+        val roomId = state.roomId ?: return
+        val displayName = state.userMatrixItem()?.getBestName() ?: state.userId
+        massRedactionManager.startAfterModeration(roomId, state.userId, displayName)
+    }
+
     private fun handleBanOrUnbanAction(action: RoomMemberProfileAction.BanOrUnbanUser) = withState { state ->
         if (room == null) {
             return@withState
@@ -755,7 +762,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 if (membership == Membership.BAN) {
                     room.membershipService().unban(initialState.userId, action.reason)
                 } else {
-                    room.membershipService().ban(initialState.userId, action.reason)
+                    room.membershipService().ban(initialState.userId, action.reason, MassRedactionManager.askServerToRedact(action.redactEvents))
+                    if (action.redactEvents) redactAfterModeration(state)
                 }
                 _viewEvents.post(RoomMemberProfileViewEvents.OnBanActionSuccess)
             } catch (failure: Throwable) {
