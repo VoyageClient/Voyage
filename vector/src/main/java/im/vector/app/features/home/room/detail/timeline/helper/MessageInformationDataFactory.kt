@@ -107,7 +107,9 @@ class MessageInformationDataFactory @Inject constructor(
         val useLiveSenderInfo = vectorPreferences.showLiveSenderInfo()
         val storedName = event.senderInfo.displayName
         val storedAvatar = event.senderInfo.avatarUrl
-        val liveMember = if (useLiveSenderInfo || storedName == null || storedAvatar == null) {
+        // A redaction strips a membership event's own name and avatar: null there means the content is
+        // gone, not unknown, so it falls back to the user id rather than the sender's profile today.
+        val liveMember = if (useLiveSenderInfo || ((storedName == null || storedAvatar == null) && !event.root.isRedacted())) {
             event.root.roomId?.let { session.roomService().getRoom(it)?.membershipService()?.getRoomMember(senderId) }
         } else {
             null

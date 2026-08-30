@@ -138,7 +138,10 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         // Glide's RoundedCorners only applies to Bitmap output, so a blurhash placeholder (Drawable)
         // renders square without the view shaping it.
         holder.imagePreview.setCornerRadius(mediaPreviewCornerRadiusPx(holder.imagePreview.context).toFloat())
-        data?.let {
+        // Preserved metadata outlives the picture, so a redaction with nothing preserved would preview
+        // an empty placeholder above "Message deleted".
+        val previewData = data?.takeUnless { redacted && it.preservedFile == null }
+        previewData?.let {
             // Full image for transparent-capable content (server thumbnails can bake in a background).
             val mode = ImageContentRenderer.previewMode(isSticker = false, mimeType = it.mimeType)
             if (hideMedia) {
@@ -148,8 +151,8 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
                 imageContentRenderer?.render(it, mode, holder.imagePreview, cornerTransformation = null)
             }
         }
-        holder.imagePreview.isVisible = data != null
-        val tiles = galleryTiles.orEmpty()
+        holder.imagePreview.isVisible = previewData != null
+        val tiles = if (redacted) emptyList() else galleryTiles.orEmpty()
         holder.galleryPreview.isVisible = tiles.isNotEmpty()
         val galleryRenderer = imageContentRenderer
         if (tiles.isNotEmpty() && galleryRenderer != null) {

@@ -260,7 +260,7 @@ class InReplyToView @JvmOverloads constructor(
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()
         applySenderColor(retriever.getMemberNameColor(state.event), retriever.isMemberNameColored())
         if (state.event.root.isRedacted()) {
-            renderRedacted()
+            renderRedacted(retriever.formatRedacted(state.event))
         } else {
             views.expandableReplyView.setExpanded(false)
             // Translation / PGP: show the plaintext the timeline shows for the quoted message.
@@ -293,9 +293,9 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.text = text.prepareForDisplay()
     }
 
-    private fun renderRedacted() {
+    private fun renderRedacted(text: CharSequence) {
         views.replyTextView.isVisible = true
-        views.replyTextView.setText(CommonStrings.event_redacted)
+        views.replyTextView.text = text
         views.replyTextView.setRedactedPreviewStyle()
     }
 
