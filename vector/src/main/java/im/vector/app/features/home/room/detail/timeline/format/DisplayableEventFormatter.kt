@@ -70,9 +70,12 @@ class DisplayableEventFormatter @Inject constructor(
     private fun formatReaction(roomId: String?, key: String, reactionSenderId: String?): CharSequence =
             reactionFormatter.format(CommonStrings.sent_a_reaction, roomId, key, reactionSenderId)
 
+    /** Who deleted the message, and why, for every surface that shows a deleted message. */
+    fun formatRedacted(event: Event): String = noticeEventFormatter.formatRedactedEvent(event)
+
     fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean, unhandledFallback: Boolean = false): CharSequence {
         if (timelineEvent.root.isRedacted()) {
-            return noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
+            return formatRedacted(timelineEvent.root)
         }
 
         if (timelineEvent.root.isEncrypted() &&
@@ -212,7 +215,7 @@ class DisplayableEventFormatter @Inject constructor(
 
         // The event have been redacted
         if (event.isRedacted()) {
-            return noticeEventFormatter.formatRedactedEvent(event)
+            return formatRedacted(event)
         }
 
         // The event is encrypted

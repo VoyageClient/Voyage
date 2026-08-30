@@ -377,6 +377,8 @@ class ReplyPreviewRetriever(
         return hideByMode && !mediaContentRevealManager.isRevealed(event.eventId)
     }
 
+    fun formatRedacted(event: TimelineEvent): CharSequence = displayableEventFormatter.formatRedacted(event.root)
+
     fun formatFallbackReply(event: TimelineEvent): CharSequence {
         return displayableEventFormatter.format(
                 event,

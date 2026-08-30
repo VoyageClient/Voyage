@@ -20,7 +20,6 @@ import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.view.View
 import android.widget.ImageView
-import androidx.annotation.StringRes
 import dagger.Lazy
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -176,6 +175,7 @@ class MessageItemFactory @Inject constructor(
         private val sendingMediaGate: SendingMediaGate,
         private val pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor,
         private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
+        private val displayableEventFormatter: im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter,
 ) {
 
     // MapLibre (and the whole location UI) is unavailable pre-Lollipop; never touch the location
@@ -206,12 +206,12 @@ class MessageItemFactory @Inject constructor(
         if (event.root.isRedacted()) {
             // message is redacted
             val attributes = messageItemAttributesFactory.create(null, informationData, callback, params.reactionsSummaryEvents, threadDetails)
-            val redactedTextRes = if (event.root.getClearType() == EventType.REACTION) {
-                CommonStrings.reaction_redacted
+            val redactedText = if (event.root.getClearType() == EventType.REACTION) {
+                stringProvider.getString(CommonStrings.reaction_redacted)
             } else {
-                CommonStrings.event_redacted
+                displayableEventFormatter.formatRedacted(event.root)
             }
-            return buildRedactedItem(attributes, highlight, redactedTextRes)
+            return buildRedactedItem(attributes, highlight, redactedText)
         }
 
         val messageContent = event.getVectorLastMessageContent()
@@ -1376,13 +1376,13 @@ class MessageItemFactory @Inject constructor(
     private fun buildRedactedItem(
             attributes: AbsMessageItem.Attributes,
             highlight: Boolean,
-            @StringRes redactedTextRes: Int,
+            redactedText: CharSequence,
     ): RedactedMessageItem? {
         return RedactedMessageItem_()
                 .layout(attributes.informationData.messageLayout.layoutRes)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .attributes(attributes)
-                .redactedTextRes(redactedTextRes)
+                .redactedText(redactedText)
                 .highlighted(highlight)
     }
 

@@ -307,7 +307,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             return
         }
         // Cross-fade from the blurhash/solid placeholder to the revealed image.
-        views.composerRelatedMessageImage.isVisible = renderRelatedMessageImage(event, crossFade = true)
+        val showsMedia = redactedContentRestorer.restoreEvent(event) != null || !event.root.isRedacted()
+        views.composerRelatedMessageImage.isVisible = showsMedia && renderRelatedMessageImage(event, crossFade = true)
     }
 
     override fun getDraftContent(): CharSequence = serializeMentionPills(text ?: "")
@@ -548,9 +549,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         // Image Event
         relatedMessageEvent = event
-        val isGalleryVisible = renderRelatedMessageGallery(event)
+        // Preserved metadata outlives the picture, so a redaction with nothing restored would preview
+        // an empty placeholder above "Message deleted".
+        val showsMedia = restored != null || !event.root.isRedacted()
+        if (!showsMedia) imageContentRenderer.clear(views.composerRelatedMessageImage)
+        val isGalleryVisible = showsMedia && renderRelatedMessageGallery(event)
         views.composerRelatedMessageGallery.isVisible = isGalleryVisible
-        val isImageVisible = !isGalleryVisible && renderRelatedMessageImage(event)
+        val isImageVisible = showsMedia && !isGalleryVisible && renderRelatedMessageImage(event)
         views.composerRelatedMessageImage.isVisible = isImageVisible
 
         views.composerRelatedMessageActionIcon.setImageDrawable(ContextCompat.getDrawable(context, iconRes))
