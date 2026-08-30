@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.list
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.HapticFeedbackConstants
@@ -128,6 +129,8 @@ class RoomListFragment :
         super.onCreate(savedInstanceState)
     }
 
+    // super.onViewCreated runs inside onViewCreatedBody; lint cannot see through the tracing wrapper.
+    @SuppressLint("MissingSuperCall")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val perfMarker = PerfTrace.mark("roomlist.onViewCreated")
         try {

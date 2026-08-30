@@ -7,6 +7,7 @@
 
 package im.vector.app
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -270,6 +271,7 @@ class VectorApplication :
         Timber.d("----------------------------------------------------------------\n\n\n\n")
     }
 
+    @SuppressLint("LogNotTimber")
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
         if (MultiDexLoader.installOrDelegate(this)) {

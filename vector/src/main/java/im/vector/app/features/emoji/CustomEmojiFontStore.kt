@@ -10,8 +10,10 @@ package im.vector.app.features.emoji
 import android.content.Context
 import android.graphics.Typeface
 import android.net.Uri
+import android.os.Build
 import android.provider.OpenableColumns
 import androidx.emoji2.text.MetadataRepo
+import im.vector.app.core.extensions.useCompat
 import im.vector.app.features.settings.VectorPreferences
 import timber.log.Timber
 import java.io.File
@@ -40,22 +42,28 @@ class CustomEmojiFontStore @Inject constructor(
      * Validate [uri] is an EmojiCompat-compatible font (MetadataRepo can parse its emoji 'meta'
      * table), copy it into place and remember its name. Returns the display name on success.
      */
-    fun import(uri: Uri): Result<String> = runCatching {
-        val name = queryDisplayName(uri)
-        val tmp = File(context.cacheDir, "emoji_font_import.ttf")
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            tmp.outputStream().use { input.copyTo(it) }
-        } ?: error("Cannot open the selected file")
-        try {
-            // Throws if the font isn't a valid emoji2 font (missing/invalid emoji metadata).
-            FileInputStream(tmp).use { MetadataRepo.create(Typeface.createFromFile(tmp), it) }
-            tmp.copyTo(fontFile, overwrite = true)
-            vectorPreferences.setCustomEmojiFontName(name)
-            name
-        } finally {
-            tmp.delete()
+    fun import(uri: Uri): Result<String> {
+        // emoji2 does nothing below KitKat, so the settings row that reaches this is disabled there.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            return Result.failure(UnsupportedOperationException("Custom emoji fonts need KitKat"))
         }
-    }.onFailure { Timber.w(it, "Failed to import custom emoji font") }
+        return runCatching {
+            val name = queryDisplayName(uri)
+            val tmp = File(context.cacheDir, "emoji_font_import.ttf")
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                tmp.outputStream().use { input.copyTo(it) }
+            } ?: error("Cannot open the selected file")
+            try {
+                // Throws if the font isn't a valid emoji2 font (missing/invalid emoji metadata).
+                FileInputStream(tmp).use { MetadataRepo.create(Typeface.createFromFile(tmp), it) }
+                tmp.copyTo(fontFile, overwrite = true)
+                vectorPreferences.setCustomEmojiFontName(name)
+                name
+            } finally {
+                tmp.delete()
+            }
+        }.onFailure { Timber.w(it, "Failed to import custom emoji font") }
+    }
 
     fun reset() {
         fontFile.delete()
@@ -64,7 +72,7 @@ class CustomEmojiFontStore @Inject constructor(
 
     private fun queryDisplayName(uri: Uri): String {
         val name = runCatching {
-            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.useCompat { cursor ->
                 cursor.takeIf { it.moveToFirst() }
                         ?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                         ?.takeIf { it >= 0 }

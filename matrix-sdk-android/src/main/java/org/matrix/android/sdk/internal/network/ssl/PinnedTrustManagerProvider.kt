@@ -32,6 +32,7 @@ internal object PinnedTrustManagerProvider {
             fingerprints: List<Fingerprint>?,
             defaultTrustManager: X509TrustManager?
     ): X509TrustManager {
+        @Suppress("NewApi") // extendedTrustManagerAvailable is the runtime check; lint cannot see it.
         return if (extendedTrustManagerAvailable && defaultTrustManager is X509ExtendedTrustManager) {
             PinnedTrustManagerApi24(
                     fingerprints.orEmpty(),

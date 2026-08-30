@@ -83,8 +83,9 @@ class RoomSectionBottomSheet :
         super.onDestroyView()
     }
 
-    override fun invalidate() = withState(viewModel) {
-        controller.setData(it)
+    override fun invalidate() {
+        super.invalidate()
+        withState(viewModel) { controller.setData(it) }
     }
 
     override fun onMoveToSection(tag: String) {

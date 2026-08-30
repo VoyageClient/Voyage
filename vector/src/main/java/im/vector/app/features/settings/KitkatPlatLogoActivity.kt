@@ -18,6 +18,7 @@ package im.vector.app.features.settings
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
@@ -40,6 +41,7 @@ import im.vector.app.R
  */
 class KitkatPlatLogoActivity : Activity() {
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Immersive from the very first frame — waiting for onWindowFocusChanged lets the

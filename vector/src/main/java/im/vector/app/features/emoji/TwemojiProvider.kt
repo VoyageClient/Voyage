@@ -10,7 +10,6 @@ package im.vector.app.features.emoji
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.util.LruCache
@@ -44,7 +43,7 @@ class TwemojiProvider @Inject constructor(
     private val cache = object : LruCache<String, Bitmap>(
             (Runtime.getRuntime().maxMemory() / 16).coerceAtMost(8L * 1024 * 1024).toInt()
     ) {
-        override fun sizeOf(key: String, value: Bitmap) = value.byteCountCompat()
+        override fun sizeOf(key: String, value: Bitmap) = value.byteCount
     }
 
     private fun loadIndex(): Index {
@@ -180,8 +179,5 @@ class TwemojiProvider @Inject constructor(
         private const val ASSET_DIR = "twemoji"
         private const val SUFFIX = ".png"
         private const val VARIATION_SELECTOR = 0xFE0F
-
-        private fun Bitmap.byteCountCompat(): Int =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) byteCount else rowBytes * height
     }
 }

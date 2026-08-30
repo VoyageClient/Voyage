@@ -79,8 +79,9 @@ class RoomTagBottomSheet :
         super.onDestroyView()
     }
 
-    override fun invalidate() = withState(viewModel) {
-        controller.setData(it)
+    override fun invalidate() {
+        super.invalidate()
+        withState(viewModel) { controller.setData(it) }
     }
 
     override fun onAddTag(tag: String) {

@@ -78,6 +78,7 @@ internal class VideoMetadataStripper @Inject constructor(
 }
 
 /** Where the samples are read from; the muxing itself is identical either way. */
+@RequiresApi(16)
 private sealed interface VideoSource {
     fun applyTo(extractor: MediaExtractor)
     fun applyTo(retriever: MediaMetadataRetriever)

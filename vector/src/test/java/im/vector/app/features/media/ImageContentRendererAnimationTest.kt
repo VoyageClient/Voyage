@@ -27,6 +27,8 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
+// MockK verify blocks record the call; the builder value they return is meaningless.
+@Suppress("CheckResult")
 class ImageContentRendererAnimationTest {
 
     private val imageView = ImageView(RuntimeEnvironment.getApplication())

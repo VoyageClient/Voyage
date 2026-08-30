@@ -9,12 +9,15 @@ package im.vector.lib.multipicker.utils
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.awxkee.jxlcoder.JxlCoder
 
 /**
  * libjxl loads its .so from a static initialiser, so this must only be touched above API 21 — see
  * the caller in [ImageUtils].
  */
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal object JxlSizeReader {
 
     fun read(context: Context, uri: Uri): ImageSize? {

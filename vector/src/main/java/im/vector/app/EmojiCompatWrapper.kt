@@ -11,6 +11,7 @@ import android.content.res.AssetManager
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Process
+import androidx.annotation.RequiresApi
 import androidx.emoji2.text.EmojiCompat
 import androidx.emoji2.text.MetadataRepo
 import im.vector.app.features.emoji.CustomEmojiFontStore
@@ -85,6 +86,7 @@ class EmojiCompatWrapper @Inject constructor(
         }
         if (initialized) {
             try {
+                @Suppress("CheckResult") // Rewrites the Editable in place and returns that same instance.
                 EmojiCompat.get().process(editable)
             } catch (throwable: Throwable) {
                 Timber.e(throwable, "Failed to process editable with EmojiCompat")
@@ -111,6 +113,7 @@ class EmojiCompatWrapper @Inject constructor(
 
     // Like BundledEmojiCompatConfig, but builds the MetadataRepo from our own (newer) bundled font asset,
     // or from a user-imported emoji2 font file when one is set.
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     private class EmojiFontConfig(assets: AssetManager, customFont: File?) :
             EmojiCompat.Config(FontMetadataLoader(assets, customFont)) {
         private class FontMetadataLoader(private val assets: AssetManager, private val customFont: File?) : EmojiCompat.MetadataRepoLoader {

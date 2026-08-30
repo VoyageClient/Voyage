@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -90,6 +91,8 @@ class RoomDetailActivity :
     // Simple filter
     var currentRoomId: String? = null
 
+    // super.onCreate runs inside onCreateBody; lint cannot see through the tracing wrapper.
+    @SuppressLint("MissingSuperCall")
     override fun onCreate(savedInstanceState: Bundle?) = PerfTrace.time("room.activity.onCreate") {
         onCreateBody(savedInstanceState)
     }

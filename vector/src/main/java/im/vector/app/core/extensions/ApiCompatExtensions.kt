@@ -8,6 +8,7 @@
 package im.vector.app.core.extensions
 
 import android.content.res.AssetFileDescriptor
+import android.database.Cursor
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.text.format.DateFormat
@@ -51,6 +52,15 @@ var View.backgroundCompat: Drawable?
 // AssetFileDescriptor implements Closeable only from API 19, so `use` resolves a close() the
 // platform can't dispatch on ICS.
 inline fun <R> AssetFileDescriptor.useCompat(block: (AssetFileDescriptor) -> R): R =
+        try {
+            block(this)
+        } finally {
+            runCatching { close() }
+        }
+
+// Cursor implements Closeable only from API 16, so `use` resolves a close() the platform can't
+// dispatch on ICS.
+inline fun <R> Cursor.useCompat(block: (Cursor) -> R): R =
         try {
             block(this)
         } finally {

@@ -1016,8 +1016,11 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     /** Never releases the surface: it belongs to the SurfaceTexture callbacks, not the player. */
     private fun releasePlayer() {
         handler.removeCallbacks(stopBlipRunnable)
-        playerBoost?.release()
-        audioBoost?.release()
+        // Only ever attached on KitKat+, where LoudnessEnhancer exists.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            playerBoost?.release()
+            audioBoost?.release()
+        }
         playerBoost = null
         audioBoost = null
         player?.let {

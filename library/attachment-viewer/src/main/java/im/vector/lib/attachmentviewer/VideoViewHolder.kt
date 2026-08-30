@@ -509,7 +509,8 @@ class VideoViewHolder constructor(itemView: View) :
     private fun releasePlayer() {
         // Stop the tick timer FIRST so its captured player reference isn't used after release.
         stopTimer()
-        boost?.release()
+        // Only ever attached on KitKat+, where LoudnessEnhancer exists.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) boost?.release()
         boost = null
         isPrepared = false
         lastReportedPositionMs = 0

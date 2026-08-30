@@ -138,6 +138,7 @@ class RoundedCornerImageView @JvmOverloads constructor(
     // Lazily built: ViewOutlineProvider is API 21+, so instantiating it in the constructor would load a
     // missing class on Ice Cream Sandwich. Only the Lollipop+ branch of [applyShape] ever touches it.
     private val shapeOutlineProvider: ViewOutlineProvider by lazy {
+        @Suppress("NewApi") // Only the Lollipop+ branch of applyShape ever reads this.
         object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {
                 // Outline clipping only takes a single radius, which is all any caller here asks for.

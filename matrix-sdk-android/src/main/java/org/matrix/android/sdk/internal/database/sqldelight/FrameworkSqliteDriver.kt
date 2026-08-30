@@ -208,6 +208,8 @@ internal class FrameworkSqliteDriver private constructor(
         }
     }
 
+    // No Timber in the SQL driver's own dependencies.
+    @Suppress("LogNotTimber")
     override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
         synchronized(listeners) {
             queryKeys.forEach {

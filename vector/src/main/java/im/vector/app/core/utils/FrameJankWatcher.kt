@@ -7,12 +7,14 @@
 
 package im.vector.app.core.utils
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.Choreographer
+import androidx.annotation.RequiresApi
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -24,6 +26,8 @@ import java.util.concurrent.atomic.AtomicLong
  * Runs off [Choreographer] (API 16+); below that a self-reposting main-Handler tick measures the
  * same thing (a busy main thread delays the tick).
  */
+// android.util.Log on purpose: release builds plant no Timber tree, and these markers are read via logcat.
+@SuppressLint("LogNotTimber")
 object FrameJankWatcher {
 
     private const val TAG = "VectorPerf"
@@ -114,6 +118,7 @@ object FrameJankWatcher {
 
     // Nested holder so Choreographer.FrameCallback (API 16) is never linked on older devices:
     // referencing it from this object's <clinit> crashes Dalvik on ICS with NoClassDefFoundError.
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     private object ChoreographerWatcher {
 
         private var lastFrameMs = 0L

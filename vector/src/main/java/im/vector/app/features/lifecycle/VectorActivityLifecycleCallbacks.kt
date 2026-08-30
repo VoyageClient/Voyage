@@ -116,7 +116,12 @@ class VectorActivityLifecycleCallbacks constructor(private val popupAlertManager
                 },
                 "com.google.android.permissioncontroller",
                 "com.android.permissioncontroller",
-                tryOrNull { packageManager.getModuleInfo("com.google.android.permission", 1).packageName },
+                // The permission module only exists as a mainline module, from Android 10.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    tryOrNull { packageManager.getModuleInfo("com.google.android.permission", 1).packageName }
+                } else {
+                    null
+                },
         )
         return packageNames.distinct().flatMap { packageName ->
             tryOrNull {
