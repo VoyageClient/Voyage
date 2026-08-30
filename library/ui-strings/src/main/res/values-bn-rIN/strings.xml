@@ -182,13 +182,11 @@
     <string name="action_quote">উদ্ধৃতি</string>
     <string name="action_download">ডাউনলোড</string>
     <string name="action_share">ভাগ</string>
-    <string name="later">পরে</string>
     <string name="permalink">পার্মালিঙ্ক</string>
     <string name="view_source">সোর্স দেখুন</string>
     <string name="view_decrypted_source">ডিক্রিপ্টেড সোর্স দেখুন</string>
     <string name="action_delete">মুছুন</string>
     <string name="action_rename">পুনঃনামকরণ</string>
-    <string name="report_content">কন্টেন্ট রিপোর্ট করুন</string>
 
     <string name="or">বা</string>
     <string name="action_invite">আমন্ত্রণ</string>
@@ -225,13 +223,6 @@
 
     <string name="rooms_header">রুমগুলি</string>
 
-    <string name="send_bug_report_include_logs">লগগুলি পাঠান</string>
-    <string name="send_bug_report_include_crash_logs">ক্র্যাশ লগগুলি পাঠান</string>
-    <string name="send_bug_report_include_screenshot">স্ক্রিনশট পাঠান</string>
-    <string name="send_bug_report_description">বাগ বর্ণনা করুন। আপনি কি করেছিলেন\? আপনি কি ঘটতে আশা করেন\? আসলে কি ঘটেছে\?</string>
-    <string name="send_bug_report_description_in_english">যদি সম্ভব হয়, ইংরেজি বিবরণ লিখুন।</string>
-    <string name="send_bug_report_placeholder">এখানে আপনার সমস্যা বর্ণনা করুন</string>
-    <string name="send_bug_report_logs_description">সমস্যাগুলির নির্ণয়ের জন্য, এই ক্লায়েন্ট থেকে লগগুলি এই বাগ রিপোর্টটি পাঠানো হবে। লগ এবং স্ক্রিনশট সহ এই বাগ রিপোর্টটি সর্বজনীনভাবে দৃশ্যমান হবে না। আপনি যদি শুধুমাত্র উপরের পাঠ্যটি পাঠাতে চান তবে অনুগ্রহ করে আনটিক করুন:</string>
 
 
 
@@ -297,11 +288,7 @@
     <string name="permissions_rationale_popup_title">তথা</string>
 
 
-    <string name="permissions_rationale_msg_record_audio">${app_name} এর প্রয়োজন অনুমতি নিয়ে প্রবেশ করতে আপনার মাইক্রোফোন আর মাধ্যমে শোনার কালএর সঞ্চালনা করতে।</string>
 
-    <string name="permissions_rationale_msg_camera_and_audio">ভিডিও কল সম্পাদনের জন্য ${app_name} আপনার ক্যামেরা এবং আপনার মাইক্রোফোন অ্যাক্সেস করার অনুমতির প্রয়োজন।
-\n
-\nকল করতে সক্ষম হতে পরবর্তী পপ আপ অ্যাক্সেস অনুমতি দিন।</string>
 
 
 
@@ -510,8 +497,6 @@
     <string name="settings_system_preferences_summary">"LED\'র  রং, কম্পন, শব্দ নির্বাচন করুন…"</string>
 
 
-    <string name="settings_containing_my_display_name">আমার প্রদর্শন নাম ধারণকারী বার্তা</string>
-    <string name="settings_containing_my_user_name">আমার ব্যবহারকারী নাম ধারণকারী বার্তা</string>
     <string name="settings_messages_in_one_to_one">এক থেকে এক চ্যাট বার্তা</string>
     <string name="settings_messages_in_group_chat">গ্রুপ চ্যাটে বার্তা</string>
     <string name="settings_invited_to_room">যখন আমি একটি রুম আমন্ত্রিত</string>
@@ -835,9 +820,7 @@
     <string name="notification_silent">নিঃশব্দ</string>
     <string name="notification_noisy">সশব্দ</string>
 
-    <string name="create">সৃষ্টি</string>
 
-    <string name="group_details_home">ঘর</string>
 
     <string name="rooms">ঘরগুলি</string>
     <string name="invited">আমন্ত্রিত</string>
@@ -865,8 +848,6 @@
 
     <string name="error_empty_field_enter_user_name">দয়া করে একটি ব্যবহারকারীর নাম লিখুন।</string>
     <string name="error_empty_field_your_password">আপনার পাসওয়ার্ড দিন।</string>
-    <string name="room_tombstone_versioned_description">এই ঘরটি প্রতিস্থাপন করা হয়েছে এবং এটি আর সক্রিয় নেই</string>
-    <string name="room_tombstone_continuation_link">কথোপকথন এখানে অবিরত</string>
     <string name="room_tombstone_continuation_description">এই ঘরটি অন্য কথোপকথনের একটি ধারাবাহিকতা</string>
     <string name="room_tombstone_predecessor_link">পুরানো বার্তা দেখতে এখানে ক্লিক করুন</string>
 
@@ -887,10 +868,6 @@
     <string name="dialog_title_success">সাফল্য</string>
 
     <string name="bottom_action_notification">বিজ্ঞপ্তিগুলি</string>
-    <string name="sound_device_phone">ফোন</string>
-    <string name="sound_device_speaker">স্পিকার</string>
-    <string name="sound_device_headset">হেডসেট</string>
-    <string name="sound_device_wireless_headset">বেতার হেডসেট</string>
     <string name="login_error_ssl_peer_unverified">এসএসএল ত্রুটি: পিয়ারের পরিচয় যাচাই করা হয়নি।</string>
     <string name="login_error_ssl_other">এসএসএল ত্রুটি।</string>
 

@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_gold">#CFB53B</color>
-    <color name="accent_sc_light_gold_alpha25">#3fCFB53B</color>
     <color name="accent_sc_light_gold_pale">@color/accent_sc_light_gold</color>
-    <color name="accent_sc_light_gold_dark">@color/accent_sc_light_gold_alpha25</color>
     <color name="accent_sc_light_gold_noalpha12">#f9f6e7</color>
 
 

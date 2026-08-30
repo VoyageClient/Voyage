@@ -10,10 +10,8 @@
     <string name="ftue_auth_phone_entry_title">فون نمبر</string>
     <string name="ftue_auth_reset_password_breaker_title">اپنا ای میل چیک کریں۔</string>
     <string name="no">نہیں</string>
-    <string name="group_details_home">گھر</string>
     <string name="ftue_auth_reset_password_email_subtitle">%s آپ کو تصدیقی لنک بھیجے گا</string>
     <string name="ftue_auth_choose_server_title">سرور منتخب کریں</string>
-    <string name="create">تخلیق کریں</string>
     <string name="ftue_auth_create_account_edit_server_selection">ترمیم</string>
     <string name="ftue_auth_welcome_back_title">خوش آمدید!</string>
     <string name="ftue_auth_phone_confirmation_entry_title">تصدیقی کوڈ</string>
@@ -110,7 +108,6 @@
 \nکمرے درآمد کررہا ہے</string>
     <string name="initial_sync_start_importing_account_left_rooms">ابتائی ہموقتسازی:
 \nچھوڑے گئے کمرے درآمد کررہا ہے</string>
-    <string name="initial_sync_request_title">ہموقتسازی کی ابتدائی درخواست</string>
     <string name="notice_voice_broadcast_ended">%1$s نے صوتی نشر ختم کی۔</string>
     <string name="notice_voice_broadcast_ended_by_you">آپنے صوتی نشر ختم کی۔</string>
     <string name="initial_sync_start_importing_account_joined_rooms">ابتائی ہموقتسازی:
@@ -144,7 +141,6 @@
     <string name="notice_crypto_error_unknown_inbound_session_id">ارسال کنندہ کے آلے نے ہمیں اس پیغام کیلئے چابیاں نہیں بھیجیں۔</string>
     <string name="unable_to_send_message">پیغام بھیجنے کے قابل نہیں</string>
     <string name="matrix_error">میٹرکس کا مسئلہ</string>
-    <string name="a11y_collapse_space_children">%s اولاد گرائیں</string>
     <string name="room_error_access_unauthorized">آپ کو اس کمرے میں شامل ہونے کی اجازت نہیں ہے</string>
     <string name="initial_sync_start_server_computing">ابتائی ہموقتسازی:
 \nخادم کے رد عمل کا منتظر…</string>
@@ -159,7 +155,6 @@
 \nکھاتہ کے بیانات درآمد کررہا ہے</string>
     <string name="all_chats">تمام گفتگوئیں</string>
     <string name="medium_email">برقی ڈاک پتہ</string>
-    <string name="a11y_expand_space_children">%s اولاد پھیلائیں</string>
     <string name="initial_sync_start_importing_account_invited_rooms">ابتائی ہموقتسازی:
 \nمدعو کردہ کمرے درآمد کررہا ہے</string>
     <string name="room_displayname_4_members">%1$s، %2$s، %3$s اور %4$s</string>
@@ -171,7 +166,6 @@
         <item quantity="one">%d خادم کے ف۔ت۔ر (ACL) تبدیلی</item>
         <item quantity="other">%d خادم کے ف۔ت۔ر (ACL) تبدیلیاں</item>
     </plurals>
-    <string name="initial_sync_request_reason_unignored_users">- کچھ صارفین کو غیر نظر انداز کردیا ہے</string>
     <string name="event_status_sending_message">پیغام بھیج رہا ہے…</string>
     <string name="notice_room_invite_no_invitee_with_reason_by_you">آپکی دعوت۔ وجہ: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">آپ کمرے سے رخصت ہوئے۔ وجہ: %1$s</string>
@@ -179,11 +173,6 @@
     <string name="notice_room_invite_no_invitee_with_reason">%1$s کی دعوت۔ وجہ: %2$s</string>
     <string name="notice_room_invite_with_reason_by_you">آپنے %1$s کو مدعو کیا۔ وجہ: %2$s</string>
     <string name="notice_room_join_with_reason_by_you">آپ کمرے میں شامل ہوئے۔ وجہ: %1$s</string>
-    <string name="initial_sync_request_content">${app_name} کو صاف کیسہ کرنے کی ضرورت ہے، مندرجہ ذیل وجہ کے سبب:
-\n%s
-\n
-\nغور کریں کہ یہ عمل اطلاقیے کا آغاز نو کریگا اور کچھ وقت لے سکتا ہے۔</string>
-    <string name="event_status_sent_message">پیغام بھیج دیا</string>
     <string name="notice_room_leave_with_reason">%1$s کمرے سے رخصت ہوئے۔ وجہ: %2$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s رخصت ہوئے۔ وجہ: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">آپ نے دعوت مسترد کی۔ وجہ: %1$s</string>
@@ -253,11 +242,8 @@
     <string name="ok">ٹھیک</string>
     <string name="view_decrypted_source">رمز کشا مصدر دیکھیں</string>
     <string name="none">کوئی نہیں</string>
-    <string name="report_content">مواد گزارش کریں</string>
     <string name="action_mark_room_read">بطور پڑھا ہوا نشانزد کریں</string>
     <string name="action_open">کھولیں</string>
-    <string name="action_switch">بدلیں</string>
-    <string name="action_enable">فعال کریں</string>
     <string name="action_remove">ہٹائیں</string>
     <string name="action_decline">انکار کریں</string>
     <string name="action_leave">رخصت ہوں</string>
@@ -279,7 +265,6 @@
     <string name="notice_room_guest_access_can_join_by_you">آپنے مہمانوں کو کمرے میں شامل ہونے کی اجازت دے دی ہے۔</string>
     <string name="notice_room_guest_access_forbidden">%1$s نے مہمانوں کو کمرے میں شامل ہونے سے روک دیا ہے۔</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">آپنے آخر تا آخر مرموزکاری چالو کردی (غیر تسلیم شدہ خوارزمی %1$s)۔</string>
-    <string name="system_theme">نظام طے شدہ</string>
     <string name="sign_out_bottom_sheet_warning_no_backup">اگر آپ ابھی خارج ہوں، تو آپ اپنے مرموز کردہ پیغامات کھو جائیں گے</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">محفوظ پشتارۂ چابی آپکے تمام جلسات پر فعال ہونا چاہئے، آپکے مرموز کردہ پیغامات تک رسائی نہ کھو جانے کی خاطر۔</string>
     <string name="loading">لاد رہا ہے…</string>
@@ -319,7 +304,6 @@
     <string name="home_layout_preferences">ترتیب کی ترجیحات</string>
     <string name="home_layout_preferences_recents">حالیہ دکھائیں</string>
     <string name="home_layout_preferences_sort_activity">سرگرمی</string>
-    <string name="action_stop">ہاں، رکیئے</string>
     <string name="home_layout_preferences_filters">چھنیاں دکھائیں</string>
     <string name="notice_direct_room_guest_access_can_join_by_you">آپنے مہمانوں کو یہاں شامل ہونے کی اجازت دے دی ہے۔</string>
     <string name="light_theme">ہلکا موضوع</string>
@@ -333,9 +317,7 @@
     <string name="notice_end_to_end_ok_by_you">آپنے آخر تا آخر مرموزکاری چالو کردی۔</string>
     <string name="black_theme">کالا موضوع</string>
     <string name="notification_listening_for_events">برائے واقعات سن رہا ہے</string>
-    <string name="later">بعد میں</string>
     <string name="permalink">دائمی ربط</string>
-    <string name="start_chatting">گفتگو شروع کریں</string>
     <string name="spaces">جگہیں</string>
     <string name="or">یا</string>
     <string name="done">ہوگیا</string>
@@ -343,7 +325,6 @@
     <string name="action_sign_out">خارج ہوں</string>
     <string name="action_quick_reply">فوری جواب</string>
     <string name="action_copy">نقل کریں</string>
-    <string name="action_disable">غیر فعال کریں</string>
     <string name="action_change">بدلیں</string>
     <string name="action_join">شامل ہوں</string>
     <string name="action_reject">مسترد کریں</string>
@@ -363,7 +344,6 @@
     <string name="denied_permission_generic">اس کارروائی کو انجام دینے کے لیے کچھ اجازتیں غائب ہیں، برائے مہربانی نظام کی ترتیبات سے اجازتیں دیں۔</string>
     <string name="missing_permissions_title">غائب اجازتیں</string>
     <string name="labs_enable_deferred_dm_summary">صرف پہلے پیغام پر براہِ راست پیغامات تخلیق کریں</string>
-    <string name="labs_enable_rich_text_editor_summary">غنی متن مدون آزمائیے (سادہ متن کی وضع جلد آرہی ہے)</string>
     <string name="space_list_empty_message">جگہیں کمروں اور لوگوں کو اکٹھا کرنے کا ایک نیا طریقہ ہے۔ شروع کرنے کیلئے ایک جگہ تخلیق کریں۔</string>
     <string name="invites_empty_title">کچھ نیا نہیں۔</string>
     <string name="no_more_results">مزید کوئی نتائج نہیں</string>
@@ -375,48 +355,32 @@
     <string name="labs_enable_new_app_layout_summary">ایک آسان کردہ Element (ایلیمنٹ) مع اختیاری جدولات</string>
     <string name="invites_empty_message">یہ ہے جہاں آپکی نئی درخواستیں اور دعوتیں ہونگی۔</string>
     <string name="direct_chats_header">گفتگوئیں</string>
-    <string name="video_meeting">بصری ملاقات شروع کریں</string>
     <string name="space_list_empty_title">ابھی تک کوئی جگہیں نہیں۔</string>
     <string name="denied_permission_camera">اس کارروائی کو انجام دینے کے لیے، برائے مہربانی نظام کی ترتیبات سے تصویرگر کی اجازت دیں۔</string>
-    <string name="audio_video_meeting_description">ملاقاتیں Jitsi (جٹسی) حفاظتی اور اجازتی سیاستوں کو استعمال کرتی ہیں۔ آپ کی ملاقات کے دوران فی الحال کمرے میں موجود تمام لوگوں کو شامل ہونے کی دعوت نظر آئے گا۔</string>
-    <string name="failed_to_add_widget">وجیٹ شامل کرنے میں ناکام</string>
     <string name="action_view_threads">دھاگے ملاحظہ کریں</string>
     <string name="invitations_header">دعوتیں</string>
     <string name="suggested_header">تجویز کردہ کمرے</string>
     <string name="invites_title">دعوتیں</string>
     <string name="failed_to_remove_widget">وجیٹ ہٹانے میں ناکام</string>
     <string name="no_result_placeholder">کوئی نتائج نہیں</string>
-    <string name="audio_meeting">صوتی ملاقات شروع کریں</string>
     <string name="rooms_header">کمرے</string>
     <string name="labs_enable_deferred_dm_title">مؤخر براہِ راست پیغامات فعال کریں</string>
-    <string name="labs_enable_rich_text_editor_title">غنی متن مدون فعال کریں</string>
     <string name="option_send_voice">آواز بھیجیں</string>
-    <string name="send_bug_report_placeholder">اپنا مسئلہ یہاں بیان کریں</string>
-    <string name="send_bug_report_logs_description">مسائل کی تشخیص کے لیے، اس عمیل کے نوشتے اس گذارش خطا کے ساتھ بھیجے جائیں گے۔ یہ گذارش خطا، بشمول نوشتے اور صورتگیری، عوامی طور پر نظر نہیں آئے گی۔ اگر آپ صرف اوپر کا متن بھیجنا پسند کریں گے، تو براہ کرم نشان ہٹا دیں:</string>
-    <string name="send_bug_report_description_in_english">اگر ممکن ہو، برائے مہربانی بیان انگریزی میں لکھیں۔</string>
     <string name="settings_room_directory_show_all_rooms">واضح مواد والے کمرے دکھائیں</string>
     <string name="logout">خارج ہوں</string>
-    <string name="send_bug_report_include_logs">نوشتے بھیجیں</string>
-    <string name="send_bug_report_include_crash_logs">خرابی کے نوشتے بھیجیں</string>
-    <string name="send_bug_report_description">برائے مہربانی خطاء بیان کریں۔ آپنے کیا کیا؟ آپکو کیا ہونے کی توقع تھی؟ دراصل کیا ہوا؟</string>
     <string name="spaces_header">جگہیں</string>
-    <string name="send_bug_report_include_key_share_history">چابیوں کے اشتراک کی سرگزشت بھیجیں</string>
-    <string name="send_bug_report_include_screenshot">پردہ عکس بھیجیں</string>
     <string name="join_room">کمرے میں شامل ہوئیں</string>
     <string name="hs_client_url">منزلی خادم API عنوان</string>
     <string name="search">تلاش کریں</string>
     <string name="hs_url">منزلی خادم عنوان</string>
     <string name="settings_room_directory_show_all_rooms_summary">کمرے کے راہنامچے میں تمام کمرے دکھائیں، بشمول واضح مواد والے کمرے۔</string>
     <string name="username">صارف نام</string>
-    <string name="sound_device_phone">ہاتف</string>
-    <string name="sound_device_wireless_headset">لاسلکی سماعہ</string>
     <string name="option_send_files">مسلیں بھیجیں</string>
     <string name="option_take_photo_video">تصویر یا ویڈیو لیں</string>
     <string name="auth_invalid_email">یہ برقی ڈاک پتہ درست نہیں لگ رہا</string>
     <string name="auth_forgot_password">رمز عبور بھول گئے؟</string>
     <string name="auth_login">داخل ہوں</string>
     <string name="auth_submit">جمع کرائیں</string>
-    <string name="sound_device_headset">سماعہ</string>
     <string name="auth_email_already_defined">یہ برقی ڈاک پتہ پہلے سے ہی معرف ہے۔</string>
     <string name="auth_msisdn_already_defined">یہ رقم ہاتف پہلے سے ہی معرف ہے۔</string>
     <string name="option_send_sticker">برچسب کریں</string>
@@ -428,7 +392,6 @@
     <string name="option_take_video">ویڈیو لیں</string>
     <string name="option_always_ask">ہمیشہ پوچھیں</string>
     <string name="auth_invalid_login_param">غلط صارف نام اور/یا رمز عبور</string>
-    <string name="sound_device_speaker">مکبر صوت</string>
     <string name="auth_login_sso">یکباری دخول سے داخل ہوئیں</string>
     <string name="option_take_photo">تصویر لیں</string>
     <string name="auth_recaptcha_message">یہ منزلی خادم یقینی بنانا چاہے گا کہ آپ روبہ نہیں ہیں</string>

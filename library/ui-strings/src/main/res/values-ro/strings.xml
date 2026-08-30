@@ -85,9 +85,6 @@
     <string name="space_manage_rooms_and_spaces">Administrează camerele și spațiile</string>
     <string name="create_spaces_loading_message">Se creează spațiul…</string>
     <string name="create_spaces_default_public_random_room_name">Aleatoriu</string>
-    <string name="create_spaces_organise_rooms">Un spațiu privat pentru organizarea camerelor</string>
-    <string name="create_spaces_join_info_help">Pentru a vă alătura unui spațiu existent, aveți nevoie de o invitație.</string>
-    <string name="create_spaces_you_can_change_later">Puteți schimba acest lucru mai târziu</string>
     <string name="room_settings_room_access_restricted_title">Spații numai pentru membri</string>
     <string name="send_a_sticker">Autocolant.</string>
     <string name="attachment_type_sticker">Autocolant</string>
@@ -172,7 +169,6 @@
     <string name="space_explore_activity_title">Explorează camerele</string>
     <string name="invite_people_menu">Invită persoane</string>
     <string name="add_space">Adaugă spațiu</string>
-    <string name="group_details_home">Acasă</string>
     <string name="settings_emails_and_phone_numbers_title">E-mailuri și numere de telefon</string>
     <string name="create_spaces_default_public_room_name">Generale</string>
     <string name="settings_general_title">Generale</string>
@@ -251,7 +247,6 @@
     <string name="notice_room_invite_no_invitee_with_reason_by_you">Invitația ta. Motivul: %1$s</string>
     <string name="notice_room_invite_no_invitee_with_reason">Invitația trimisă de %1$s. Motivul: %2$s</string>
     <string name="event_status_sending_message">Mesajul se trimite…</string>
-    <string name="event_status_sent_message">Mesaj trimis</string>
     <string name="initial_sync_start_importing_account_data">Sincronizare inițială:
 \nSe importă datele contului</string>
     <string name="initial_sync_start_importing_account_left_rooms">Sincronizare inițială:
@@ -299,7 +294,6 @@
     <string name="sign_out_bottom_sheet_warning_backup_not_active">Backup-ul cheii de criptare ar trebui să fie activ pe toate dispozitivele tale, pentru a evita pierderea mesajelor tale criptate.</string>
     <string name="sign_out_bottom_sheet_warning_backing_up">Se creează backup-ul cheii de criptare. Daca te deconectezi de la aplicație acum vei pierde accesul la mesajele tale criptate.</string>
     <string name="notification_listening_for_notifications">Se ascultă notificările</string>
-    <string name="system_theme">Setările implicite ale sistemului</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">Tu ai pornit criptarea end-to-end (algoritm nerecunoscut %1$s).</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s a pornit criptarea end-to-end (algoritm nerecunoscut %2$s).</string>
     <string name="notice_end_to_end_ok_by_you">Tu ai pornit criptarea end-to-end.</string>

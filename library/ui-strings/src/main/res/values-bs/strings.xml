@@ -17,13 +17,11 @@
     <string name="action_send">Pošalji</string>
     <string name="action_quote">Citat</string>
     <string name="action_share">Podijeli</string>
-    <string name="later">Poslije</string>
     <string name="permalink">Permalink</string>
     <string name="view_source">Pogledaj Izvor</string>
     <string name="view_decrypted_source">Pogledaj Dekriptovani Izvor</string>
     <string name="action_delete">Izbriši</string>
     <string name="action_rename">Preimenuj</string>
-    <string name="report_content">Prijavi sadržaj</string>
     <string name="or">ili</string>
     <string name="action_invite">Pozovi</string>
     <string name="action_sign_out">Odjavi se</string>
@@ -44,12 +42,6 @@
     <string name="matrix_only_filter">Samo matriks kontakti</string>
     <string name="no_result_placeholder">Nema rezultata</string>
     <string name="rooms_header">Sobe</string>
-    <string name="send_bug_report_include_logs">Pošaljite zapise</string>
-    <string name="send_bug_report_include_crash_logs">Pošaljite keš zapise</string>
-    <string name="send_bug_report_include_screenshot">Pošalji sliku ekrana</string>
-    <string name="send_bug_report_description">Molimo opišite grešku. Šta ste uradili? Šta ste očekivali da će se dogoditi? Što se zapravo dogodilo?</string>
-    <string name="send_bug_report_placeholder">Opišite svoj problem ovde</string>
-    <string name="send_bug_report_logs_description">Da bi dijagnosticirali probleme, zapisi ovog klijenta bit će poslani s ovim izvještajem o greški. Ako želite poslati samo gore navedeni tekst, uklonite oznaku:</string>
     <string name="join_room">Pridruži se u sobu</string>
     <string name="username">Korisničko ime</string>
     <string name="logout">Odjavi se</string>
@@ -80,11 +72,7 @@
     <string name="permissions_rationale_popup_title">Informacije</string>
 
 
-    <string name="permissions_rationale_msg_record_audio">Hepek traži dopuštenje za pristup mikrofonu za obavljanje audio poziva.</string>
 
-    <string name="permissions_rationale_msg_camera_and_audio">Hepek treba dopuštenje za pristup vašoj kemeri i mikrofonu za obavljanje video poziva.
-
-Omogućite pristup sljedećim skočnim prozorima da biste mogli uspostaviti poziv.</string>
 
 
     <string name="yes">DA</string>
@@ -132,8 +120,6 @@ Da li ste sigurani?</string>
     <string name="settings_notification_ringtone">Zvuk notifikacije</string>
     <string name="settings_enable_all_notif">Omogući obavijesti za ovaj račun</string>
     <string name="settings_enable_this_device">Omogući obavijesti za ovaj uređaj</string>
-    <string name="settings_containing_my_display_name">Poruke sadrže moje ime</string>
-    <string name="settings_containing_my_user_name">Poruke sadrže moje koristničko ime</string>
     <string name="settings_messages_in_one_to_one">Poruke u jedan-na-jedan razgovorima</string>
     <string name="settings_messages_in_group_chat">POruke u grupnim razgovorima</string>
     <string name="settings_invited_to_room">Kada sam pozvan u sobu</string>

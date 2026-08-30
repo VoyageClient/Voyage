@@ -187,11 +187,9 @@
     <string name="action_send">ارسال</string>
     <string name="action_quote">نقل قول</string>
     <string name="action_share">هم‌رسانی</string>
-    <string name="later">بعداً</string>
     <string name="view_source">مشاهده منبع</string>
     <string name="action_delete">حذف</string>
     <string name="action_rename">تغییر نام</string>
-    <string name="report_content">گزارش محتوا</string>
     <string name="or">یا</string>
     <string name="action_invite">دعوت</string>
     <string name="action_sign_out">خروج از حساب</string>
@@ -231,13 +229,6 @@
     <string name="system_alerts_header">هشدارهای سیستمی</string>
     <string name="matrix_only_filter">فقط آشنایان ماتریکس</string>
     <string name="no_result_placeholder">نتیجه‌ای نیست</string>
-    <string name="send_bug_report_include_logs">ارسال رخدادنگارها</string>
-    <string name="send_bug_report_include_crash_logs">ارسال رخدادنگارهای خطا</string>
-    <string name="send_bug_report_include_screenshot">ارسال تصویر صفحه</string>
-    <string name="send_bug_report_description">لطفاً اشکال را شرح دهید. چه‌کار کردید؟ انتظار داشتید چه شود؟ چه شد؟</string>
-    <string name="send_bug_report_description_in_english">ترجیحاً توضیحات را به زبان انگلیسی بنویسید.</string>
-    <string name="send_bug_report_placeholder">مشکل خود را اینجا شرح دهید</string>
-    <string name="send_bug_report_logs_description">برای کمک به اشکال‌یابی، رخدادنگارهای مربوط به این دستگاه به همراه گزارش اشکال ارسال خواهند شد. البته گزارش اشکال شما و پیوست‌های آن به صورت عمومی منتشر نمی‌شوند. می‌توانید با برداشتن علامت گزینه‌های زیر، اطلاعات کمتری را ارسال نمایید:</string>
     <string name="hs_url">نشانی کارساز خانگی</string>
     <string name="option_send_voice">ارسال صدا</string>
     <string name="option_send_files">ارسال پرونده‌ها</string>
@@ -408,9 +399,6 @@
     <string name="settings_security_and_privacy">امنیت و محرمانگی</string>
     <string name="preference_voice_and_video">صدا و تصویر</string>
     <string name="preference_root_help_about">راهنما و درباره</string>
-    <string name="send_suggestion_content">لطفا پیشنهادتان را در زیر بنویسید.</string>
-    <string name="send_suggestion_report_placeholder">پیشنهادتان را این‌جا شرح دهید</string>
-    <string name="send_suggestion_failed">فرستادن پیشنهاد شکست خورد (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">نمایش رویدادهای نهفته در خط زمانی</string>
     <string name="bottom_action_people_x">پیام‌های مستقیم</string>
     <string name="send_file_step_idle">منتظر…</string>
@@ -426,16 +414,6 @@
     <string name="room_directory_search_hint">نام یا شناسه (‪#example:matrix.org‬)</string>
     <string name="a11y_create_direct_message">ایجاد یک گفت‌وگوی مستقیم جدید</string>
     <string name="a11y_create_room">ایجاد اتاقی جدید</string>
-    <string name="report_content_spam">هرزنامه است</string>
-    <string name="report_content_inappropriate">نامناسب است</string>
-    <string name="report_content_custom">گزارش سفارشی…</string>
-    <string name="report_content_custom_title">گزارش این محتوا</string>
-    <string name="report_content_custom_hint">دلیل گزارش این محتوا</string>
-    <string name="report_content_custom_submit">گزارش</string>
-    <string name="block_user">نادیده‌گرفتن کاربر</string>
-    <string name="content_reported_title">محتوا گزارش شد</string>
-    <string name="content_reported_as_spam_title">به عنوان هرزنامه گزارش شد</string>
-    <string name="content_reported_as_inappropriate_title">به عنوان نامناسب گزارش شد</string>
     <string name="message_ignore_user">نادیده‌گرفتن کاربر</string>
     <string name="login_server_other_text">تنظیمات پیش‌رفته و سفارشی</string>
     <string name="settings_advanced_settings">تنظیمات پیش‌رفته</string>
@@ -491,15 +469,8 @@
     <string name="dialog_title_success">موفقیت</string>
     <string name="bottom_action_notification">آگاهی‌ها</string>
     <string name="action_dismiss">خاتمه</string>
-    <string name="video_meeting">شروع جلسهٔ ویدیویی</string>
-    <string name="audio_meeting">شروع جلسهٔ صوتی</string>
-    <string name="failed_to_add_widget">شکست در افزودن ابزارک</string>
     <string name="failed_to_remove_widget">شکست در برداشتن ابزارک</string>
     <string name="call_notification_hangup">قطع</string>
-    <string name="sound_device_phone">تلفن</string>
-    <string name="sound_device_speaker">بلندگو</string>
-    <string name="sound_device_headset">هدست</string>
-    <string name="sound_device_wireless_headset">هدست بی‌سیم</string>
     <string name="auth_msisdn_already_defined">این شماره تلفن از پیش تعریف شده.</string>
     <string name="login_error_ssl_other">خطای SSL.</string>
     <plurals name="membership_changes">
@@ -555,8 +526,6 @@
     <string name="settings_troubleshoot_test_battery_quickfix">نادیده‌گرفتن بهینه‌سازی</string>
     <string name="settings_notification_ringtone">صدای آگاهی</string>
     <string name="settings_system_preferences_summary">گزینش رنگ چراغ، لرزش، صدا و…</string>
-    <string name="settings_containing_my_display_name">پیام‌های شامل نام نمایشی</string>
-    <string name="settings_containing_my_user_name">پیام‌های شامل نام کاربری</string>
     <string name="settings_messages_in_one_to_one">پیام‌ها در گپ‌های یک‌به‌یک</string>
     <string name="settings_messages_in_group_chat">پیام‌ها در گپ‌های گروهی</string>
     <string name="settings_invited_to_room">هنگام دعوت شدن به یک اتاق</string>
@@ -701,8 +670,6 @@
     <string name="notification_off">خاموش</string>
     <string name="notification_silent">خموش</string>
     <string name="notification_noisy">پرصدا</string>
-    <string name="create">ایجاد</string>
-    <string name="group_details_home">خانه</string>
     <string name="invited">دعوت شد</string>
     <string name="deactivate_account_title">غیرفعّال‌سازی حساب</string>
     <string name="deactivate_account_submit">غیرفعّال‌سازی حساب</string>
@@ -755,7 +722,6 @@
     <string name="labs_allow_extended_logging">به کار انداختن گزارش‌های پرگو.</string>
     <string name="labs_allow_extended_logging_summary">گزارش‌های پرگو با فراهم کردن گزارش‌های بیش‌تر هنگام تکان دادن محکم گوشی، به توسعه‌دهندگان کمک می‌کند. حتا هنگام به کار افتاده بودن هم برنامه، محتوای پیام یا هیچ دادهٔ خصوصی دیگری را گزارش نمی‌کند.</string>
     <string name="attachment_type_file">پرونده</string>
-    <string name="attachment_type_contact">آشنا</string>
     <string name="attachment_type_camera">دوربین</string>
     <string name="attachment_type_gallery">جُنگ</string>
     <string name="attachment_type_sticker">برچسب</string>
@@ -826,7 +792,6 @@
     <string name="soft_logout_clear_data_title">پاک‌سازی داده‌های شخصی</string>
     <string name="soft_logout_clear_data_submit">پاک‌سازی تمامی داده‌ها</string>
     <string name="soft_logout_clear_data_dialog_title">پاک‌سازی داده</string>
-    <string name="bug_report_error_too_short">شرح بیش از حد کوتاه است</string>
     <string name="notification_initial_sync">همگام‌سازی نخستین…</string>
     <string name="settings_developer_mode_summary">حالت توسعه‌دهنده ویژگی‌های پنهان را فعّال کرده و همچنین ممکن است پایداری برنامه را کاهش دهد. فقط برای توسعه‌دهنگان!</string>
     <string name="devices_current_device">نشست جاری</string>
@@ -917,13 +882,10 @@
     <string name="settings_account_data">داده‌های حساب</string>
     <string name="verification_cannot_access_other_session">استفاده از یک کلید یا عبارت بازیابی</string>
     <string name="verification_use_passphrase">اگر به نشست‌های موجود دسترسی ندارید</string>
-    <string name="share_confirm_room">می‌خواهید این پیوست را به %1$s بفرستید؟</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">فرستادن تصویر با اندازهٔ اصلی</item>
         <item quantity="other">فرستادن تصویرها با اندازهٔ اصلی</item>
     </plurals>
-    <string name="delete_event_dialog_reason_checkbox">آوردن دلیل</string>
-    <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">درخواست‌های کلید</string>
     <string name="e2e_use_keybackup">قفل‌گشایی از تاریخچهٔ پیام‌های رمزشده</string>
     <string name="refresh">نوسازی</string>
@@ -974,8 +936,6 @@
     <string name="choose_locale_other_locales_title">دیگر زبان‌های موجود</string>
     <string name="choose_locale_loading_locales">بار کردن زبان‌های موچود…</string>
     <string name="open_terms_of">گشودن شرایط %s</string>
-    <string name="a11y_stop_camera">توقّف دوربین</string>
-    <string name="a11y_start_camera">شروع دوربین</string>
     <string name="bottom_sheet_setup_secure_backup_title">پشتیبان امن</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">سپرامنیتی در برابر از دست دادن دسترسی به داده‌ها و پیام‌های رمزشده با پشتیبان گیری از کلیدها روی کارسازتان.</string>
     <string name="room_settings_name_hint">نام اتاق</string>
@@ -1016,7 +976,6 @@
     <string name="settings_when_rooms_are_upgraded">هنگام ارتقای اتاق‌ها</string>
     <string name="settings_messages_in_e2e_group_chat">پیام‌های رمزشده در گپ‌های گروهی</string>
     <string name="settings_messages_in_e2e_one_to_one">پیام‌های رمزشده در گپ‌های یک‌به‌یک</string>
-    <string name="settings_messages_at_room">پیام‌های شامل ‪@room‬</string>
     <string name="auth_invalid_login_deactivated_account">این حساب از کار افتاده است.</string>
     <string name="bootstrap_enter_recovery">برای ادامه %sتان را وارد کنید</string>
     <string name="security_prompt_text">خوتان و دیگران را برای امن نگه داشتن گپ‌هایتان تأیید کنید</string>
@@ -1030,9 +989,6 @@
     <string name="crosssigning_verify_session">تأیید ورود</string>
     <string name="unencrypted">رمزنشده</string>
     <string name="identity_server_set_default_submit">استفاده از %1$s</string>
-    <string name="a11y_unmute_microphone">ناخموش کردن میکروفون</string>
-    <string name="a11y_mute_microphone">خموش کردن میکروفون</string>
-    <string name="a11y_open_chat">گشودن گپ</string>
     <string name="power_level_title">نقش</string>
     <string name="power_level_edit_title">تنظیم نقش</string>
     <string name="identity_server_set_alternative_submit">ثبت</string>
@@ -1085,7 +1041,6 @@
     <string name="empty_contact_book">دفترچهٔ آشنایانتان خالیست</string>
     <string name="loading_contact_book">بازیابی کردن آشنایانتان…</string>
     <string name="save_recovery_key_chooser_hint">ذخیرهٔ کلید بازیابی در</string>
-    <string name="audio_video_meeting_description">جلسه‌ها از امنیت و سیاست‌های محرمانگی جیتسی استفاده می‌کنند. همهٔ افرادی که اکنون در اتاق هستند، دعوتی را برای پیوستن خواهند دید.</string>
     <string name="settings_push_rules">قوانین ارسال</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">نمایش تاریخچهٔ کامل در اتاق‌های رمزشده</string>
     <string name="settings_security_application_protection_summary">محافظت از دسترسی با استفاده از پین و زیست‌سنجی‌ها.</string>
@@ -1171,10 +1126,6 @@
     <string name="room_participants_power_level_demote_warning_title">تنزل نقش شما در اتاق؟</string>
     <string name="room_participants_power_level_prompt">شما نمی‌توانید این تغییر را بازگردانید. زیرا در حال ارتقای سطح کاربر دیگر به سطح خودتان هستید.
 \nآیا مطمئن هستید؟</string>
-    <string name="permissions_rationale_msg_camera_and_audio">المنت برای برقراری تماس تصویری نیازمند دسترسی به میکروفون و دوربین است.
-\n
-\nلطفا در پنجره های بعدی دسترسی های لازم را بدهید.</string>
-    <string name="permissions_rationale_msg_record_audio">المنت برای برقراری تماس صوتی نیازمند دسترسی به میکروفون است.</string>
     <string name="login_error_ssl_peer_unverified">خطای SSL: هویت طرف مقابل تأیید نشد.</string>
     <string name="secure_backup_reset_no_history">بعد از راه‌اندازی مجدد، هیچ تاریخچه، پیام، دستگاه تائید شده یا کاربر تائید شده‌ای در حساب شما وجود نخواهد داشت</string>
     <string name="secure_backup_reset_if_you_reset_all">اگر همه چیز را بازنشانی کنید</string>
@@ -1297,8 +1248,6 @@
     <string name="login_terms_title">برای ادامه، شرایط را قبول کنید</string>
     <string name="login_a11y_captcha_container">لطفا کپچا را حل کنید</string>
     <string name="login_a11y_choose_other">گزینش یک کارساز خانگی سفارشی</string>
-    <string name="login_a11y_choose_modular">گزینش خدمات ماتریکس المنت</string>
-    <string name="login_a11y_choose_matrix_org">انتخاب matrix.org</string>
     <string name="login_signup_cancel_confirmation_content">حسابتان هنوز ایجاد نشده. توقّف فرآیند ثبت‌نام؟</string>
     <string name="login_signin_username_hint">نام‌کاربری یا رایانامه</string>
     <string name="login_signup_to">ثبت نام در %1$s</string>
@@ -1350,15 +1299,6 @@
     <string name="command_description_spoiler">ارسال به عنوان پیام تباه‌کننده</string>
     <string name="room_list_quick_actions_low_priority_remove">حذف‌کردن از اولویت پایین</string>
     <string name="room_list_quick_actions_low_priority_add">اضافه‌کردن به اولویت پایین</string>
-    <string name="content_reported_as_inappropriate_content">این محتوا به عنوان محتوای نامناسب گزارش شده‌است.
-\n
-\nاگر نمی‌خواهید محتوای بیشتری از این کاربر مشاهده کنید ، می توانید او را نادیده بگیرید تا پیام‌های او را مشاهده نکنید.</string>
-    <string name="content_reported_as_spam_content">این محتوا به عنوان هرز‌نامه گزارش شده‌است.
-\n
-\nاگر نمی‌خواهید محتوای بیشتری از این کاربر مشاهده کنید ، می توانید او را نادیده بگیرید تا پیام‌های او را مشاهده نکنید.</string>
-    <string name="content_reported_content">این محتوا گزارش شده‌است.
-\n
-\nاگر نمی‌خواهید محتوای بیشتری از این کاربر مشاهده کنید، می توانید او را نادیده بگیرید تا پیام‌های او را مشاهده نکنید.</string>
     <string name="error_handling_incoming_share">نتوانست هم‌رسانی داده را مدیریت کند</string>
     <string name="rotate_and_crop_screen_title">چرخش و برش</string>
     <string name="attachment_type_dialog_title">افزودن تصویر از</string>
@@ -1378,7 +1318,6 @@
     <string name="a11y_create_menu_close">بستن فهرست ایجاد اتاق…</string>
     <string name="a11y_create_menu_open">گشودن فهرست ایجاد اتاق</string>
     <string name="a11y_open_drawer">کشوی پیمایش را باز کنید</string>
-    <string name="send_attachment">ارسال ضمیمه</string>
     <string name="error_network_timeout">به نظر کارساز بیش از حد برای پاسخ وقت می‌گیرد. این امر می‌تواند ناشی از اتّصال ضعیف یا خطایی در کارساز باشد. لطفاً پس از مدتی دوباره تلاش کنید.</string>
     <string name="error_terms_not_accepted">لطفاً پس از پذیرش شرایط و ضوابط کارساز خانگیتان دوباره تلاش کنید.</string>
     <string name="settings_agree_to_terms">برای قابل کشف بودن با نشانی رایانامه یا شماره تلفن با شرایط خدمت کارساز هویت (%s) موافقت کنید.</string>
@@ -1505,8 +1444,6 @@
     <string name="resource_limit_hard_default">این کارساز خانگی از کران یکی از منابعش تجاوز کرده.</string>
     <string name="resource_limit_soft_default">این کارساز خانگی از کران یکی از منابعش تجاوز کرده، پس <b>برخی کاربران قادر به ورود نخواهند بود</b>.</string>
     <string name="room_tombstone_continuation_description">این اتاق ادامه‌ی گفتگوی دیگر است</string>
-    <string name="room_tombstone_continuation_link">گفتگو در اینجا ادامه دارد</string>
-    <string name="room_tombstone_versioned_description">این اتاق جایگزین شده و دیگر فعّال نیست.</string>
     <string name="deactivate_account_delete_checkbox">لطفاً تمام پیام‌های ارسال شده‌ی من را حدف کن (هشدار: این امر باعث می شود کاربران آینده مکالمات را به صورت ناقص ببینند)</string>
     <string name="deactivate_account_content">این کار حسابتان را برای همیشه غیر قابل استفاده خواهد کرد. قادر به ورود نخواهید بود و هیچ‌کس نخواهد توانست دوباره این شناسهٔ کاربری را ثبت کند. این کار موجب ترک حسابتان از تمامی اتاق‌ها شده و جزییات حسابتان را از کارساز هویتتان برخواهد داشت. <b>این عمل بازگشت‌پذیر نیست</b>.
 \n
@@ -1575,7 +1512,6 @@
     <string name="identity_server_error_binding_error">تخصیص شکست خورد.</string>
     <string name="disconnect_identity_server_dialog_content">قطع اتّصال از کارساز هویت %s؟</string>
     <string name="room_member_open_or_create_dm">پیام مستقیم</string>
-    <string name="send_bug_report_include_key_share_history">ارسال تاریخچهٔ درخواست‌های هم‌رسانی کلید</string>
     <string name="no_more_results">نتایج بیش‌تری نیست</string>
     <string name="set_a_security_phrase_notice">عبارت امنیتی‌ای را که تنها خودتان می‌دانید، برای امن کردن رمزها روی کارسازتان وارد کنید.</string>
     <string name="bottom_sheet_save_your_recovery_key_content">کلید امنیتیتان را در جایی امن، مانند مدیر گذرواژه یا گاوصندوق نگه دارید.</string>
@@ -1591,8 +1527,6 @@
     <string name="warning_unsaved_change">تغییرات ذخیره‌نشده‌ای وجود دارد. دور ریختن تغییرات؟</string>
     <string name="warning_room_not_created_yet">اتاق هنوز ایجاد نشده است. لغو ایجاد اتاق؟</string>
     <string name="qr_code_not_scanned">رمز QR پویش نشد!</string>
-    <string name="invalid_qr_code_uri">رمز QR نامعتبر (نشانی نامعتبر)!</string>
-    <string name="cannot_dm_self">نمی‌توانید به خودتان پیام دهید!</string>
     <string name="share_by_text">هم‌رسانی با متن</string>
     <string name="phone_book_perform_lookup">جست‌وجوی آشنایان روی ماتریکس</string>
     <string name="room_settings_set_avatar">تنظیم چهرک</string>
@@ -1606,11 +1540,7 @@
     <string name="identity_server_error_terms_not_signed">لطفاً نخست شرایط کارساز هویت را در تنظیمات بپذیرید.</string>
     <string name="identity_server_error_no_identity_server_configured">لطفاً نخست کارساز هویتی را پیکربندی کنید.</string>
     <string name="identity_server_error_outdated_identity_server">کارساز هویت منقضی شده اسن. المنت تنها نگارش ۲ از API را پشتیبانی می‌کند.</string>
-    <string name="user_code_info_text">این رمز را افراد هم‌رسانی کرده تا بتوانند برای افزودنتان و شروع گپ، بپویندش.</string>
     <string name="user_code_my_code">رمزم</string>
-    <string name="user_code_share">هم‌رسانی رمزم</string>
-    <string name="user_code_scan">پویش یک رمز QR</string>
-    <string name="not_a_valid_qr_code">این یک رمز QR ماتریکس معتبر نیست</string>
     <string name="invite_friends_rich_title">🔐️ پیوستن به من روی المنت</string>
     <string name="invite_friends_text">سلام. روی المنت باهام حرف بزن: %s</string>
     <string name="invite_friends">دعوت دوستان</string>
@@ -1637,8 +1567,6 @@
     <string name="qr_code">رمز QR</string>
     <string name="add_by_qr_code">افزودن با رمز QR</string>
     <string name="permissions_denied_add_contact">دادن اجازهٔ دسترسی به آشنایانتان.</string>
-    <string name="permissions_denied_qr_code">برای پویش یک رمز QR نیاز است دسترسی به دوربین را مجاز کنید.</string>
-    <string name="start_chatting">آغاز به گپ</string>
     <string name="settings_export_trail">برون‌ریزی بازرسی</string>
     <string name="create_room_disable_federation_description">اگر اتاق فقط برای تعامل با گروه‌های داخلی روی کارساز خانگیتان است، این قابلیت را به کار بیندازید. بعداُ قابل تغییر نیست.</string>
     <string name="bottom_sheet_setup_secure_backup_security_key_subtitle">یک کلید امنیتی ایجاد کنید تا در مکانی امن مانند سامانه مدیریت رمز عبور یا گاوصندوق آن را ذخیره کنید.</string>
@@ -1680,9 +1608,6 @@
     <string name="room_alias_publish_to_directory_error">ناتوان در گرفتن نمایانی شاخهٔ اتاق کنونی (%1$s).</string>
     <string name="room_alias_publish_to_directory">انتشار این اتاق برای عموم در شاخهٔ اتاق %1$s؟</string>
     <string name="room_alias_local_address_subtitle">تنظیم نشانی‌ها برای این اتاق تا کاربران بتوانند از طریق کارساز خانگیتان (%1$s) بیابندش</string>
-    <string name="system_theme">پیش‌گزیدهٔ سامانه</string>
-    <string name="settings_chat_effects_title">نمایش جلوه‌های گپ</string>
-    <string name="settings_chat_effects_description">استفاده از دستور ‪/confetti‬ یا فرستادن پیام‌هایی با ❄️ یا 🎉</string>
     <string name="room_participants_leave_private_warning">این اتاق عمومی نیست. نخواهید توانست بدون دعوت، دوباره بپیوندید.</string>
     <string name="room_settings_permissions_title">اجازه‌های اتاق</string>
     <string name="room_settings_permissions_subtitle">دیدن و به‌روز رسانی نقش‌های لازم برای تغییر بخش‌های مختلف اتاق.</string>
@@ -1714,10 +1639,6 @@
     <string name="login_social_signin_with">ورود با %s</string>
     <string name="login_social_sso">ورود یک‌پارچه</string>
     <string name="login_clear_homeserver_history">پاک‌سازی تاریخچه</string>
-    <string name="command_confetti">فرستادن پیام داده با کاغذ رنگی</string>
-    <string name="command_snow">فرستادن پیام داده شده با بارش برف</string>
-    <string name="default_message_emote_confetti">فرستادن کاغذ رنگی 🎉</string>
-    <string name="default_message_emote_snow">فرستادن برف ❄️</string>
     <string name="authentication_error">تأیید هویت شکست خورد</string>
     <string name="re_authentication_default_confirm_text">${app_name} برای انجام این کار، نیاز به ورود گذواژه‌‌تان دارد.</string>
     <string name="re_authentication_activity_title">نیاز به تأیید هویت دوباره است</string>
@@ -1727,7 +1648,6 @@
     <string name="dev_tools_event_content_hint">محتوای رویداد</string>
     <string name="dev_tools_success_state_event">رویداد وضعیت فرستاده شد!</string>
     <string name="dev_tools_success_event">رویداد فرستاده شد!</string>
-    <string name="dev_tools_error_malformed_event">رویداد بدشکل</string>
     <string name="dev_tools_error_no_message_type">بدون گونهٔ پیام</string>
     <string name="dev_tools_error_no_content">بدون محتوا</string>
     <string name="dev_tools_form_hint_event_content">محتوای رویداد</string>
@@ -1760,7 +1680,6 @@
     <string name="a11y_change_avatar">تغییر چهرک</string>
     <string name="a11y_import_key_from_file">درون‌ریزی کلید از پرونده</string>
     <string name="a11y_open_widget">گشودن ابزارک‌ها</string>
-    <string name="a11y_screenshot">نماگرفت</string>
     <plurals name="entries">
         <item quantity="one">%d ورودی</item>
         <item quantity="other">%d ورودی</item>
@@ -1773,7 +1692,6 @@
     <string name="room_list_quick_actions_room_settings">تنظیمات اتاق</string>
     <string name="room_settings_room_version_title">ورژن اتاق</string>
     <string name="dialog_edit_hint">مقدار جدید</string>
-    <string name="action_switch">تعویض</string>
     <string name="notice_room_canonical_alias_no_change_by_you">شما نشانی‌های این اتاق را تغییر دادید.</string>
     <string name="notice_room_canonical_alias_no_change">%1$s نشانی‌های این اتاق را تغییر داد.</string>
     <string name="notice_room_canonical_alias_main_and_alternative_changed_by_you">شما نشانی‌های اصلی و جایگزین این اتاق را تغییر دادید.</string>
@@ -1820,7 +1738,6 @@
     <string name="event_status_delete_all_failed_dialog_message">مطمئنید که می‌خواهید تمام پیام‌های فرستاده نشده در این اتاق را حذف کنید؟</string>
     <string name="event_status_delete_all_failed_dialog_title">حذف پیام‌های فرستاده نشده</string>
     <string name="event_status_failed_messages_warning">فرستادن پیام‌ها شکست خورد</string>
-    <string name="event_status_cancel_sending_dialog_message">می‌خواهید فرستادن پیام را لغو کنید؟</string>
     <string name="event_status_a11y_delete_all">حذف تمام پیام‌های شکست‌خورده</string>
     <string name="event_status_a11y_failed">شکست خورد</string>
     <string name="event_status_a11y_sent">فرستاده شد</string>
@@ -1828,7 +1745,6 @@
     <string name="settings_room_directory_show_all_rooms_summary">نمایش همه‌ی اتاق‌های داخل فهرست.</string>
     <string name="settings_room_directory_show_all_rooms">نمایش‌ها همه‌ی اتاق‌ها</string>
     <string name="settings_category_room_directory">فهرست اتاق‌ها</string>
-    <string name="event_status_sent_message">پیام فرستاده شد</string>
     <string name="you_are_invited">دعوت شده‌اید</string>
     <string name="space_add_existing_rooms">افزودن فضا و اتاق‌های موجود</string>
     <string name="leave_space">ترک</string>
@@ -1864,27 +1780,12 @@
     <string name="create_spaces_room_public_header">موضوع گفتگوها %s یی چیست؟</string>
     <string name="create_space_error_empty_field_space_name">برای ادامه یک اسم برای آن بگذارید.</string>
     <string name="create_spaces_details_private_header">توضیحاتی را برای کمک به افراد در شناسایی آن اضافه کنید. همواره می توانید این توضیحات را تغییر دهید.</string>
-    <string name="create_spaces_details_public_header">توضیحاتی را برای مشخص کردن آن اضافه کنید. همواره می توانید این توضیحات را تغییر دهید.</string>
     <string name="activity_create_space_title">ایجاد یک فضا</string>
-    <string name="space_type_private_desc">فقط با دعوت. بهترین برای خودتان یا گروه‌ها</string>
     <string name="space_type_private">خصوصی</string>
-    <string name="space_type_public_desc">آزاد برای همه. بهترین برای اجتماع‌ها</string>
-    <string name="space_type_public">عمومی</string>
-    <string name="create_spaces_private_teammates">فضایی خصوصی برای شما و همگروهی‌هایتان</string>
-    <string name="create_spaces_me_and_teammates">من و همگروهی‌هایم</string>
-    <string name="create_spaces_organise_rooms">یک فضای خصوصی برای نظم بخشی به اتاق‌هایتان</string>
-    <string name="create_spaces_just_me">فقط من</string>
-    <string name="create_spaces_make_sure_access">مطمئن شوید که افراد درست به %s دسترسی دارند.</string>
     <string name="command_description_create_space">ساخت یک فضا</string>
     <string name="room_settings_room_access_restricted_description">هر کسی در فضای این اتاق، می‌تواند اتاق را یافته و بپیوندد. فقط مدیران این اتاق می توانند به فضایی بیفزایندش.</string>
     <string name="room_settings_room_access_restricted_title">فقط اعضای فضا</string>
     <string name="spaces_header">فضا‌ها</string>
-    <string name="create_spaces_who_are_you_working_with">با چه کسانی کار می‌کنی؟</string>
-    <string name="create_spaces_join_info_help">برای پیوستن به یک فضای موجود، نیاز به دعوت دارید.</string>
-    <string name="create_spaces_you_can_change_later">می‌توانید بعداً این را تغییر دهید</string>
-    <string name="create_spaces_choose_type_label">می‌خواهید چه نوع فضایی ایجاد کنید؟</string>
-    <string name="your_private_space">فضای خصوصیتان</string>
-    <string name="your_public_space">فضا عمومیتان</string>
     <string name="add_space">افزودن فضا</string>
     <string name="command_description_leave_room">ترک اتاق با شناسهٔ داده‌شده (در صورت null بودن، اتاق کنونی)</string>
     <string name="command_description_join_space">پیوستن به فضا با شناسهٔ داده‌شده</string>
@@ -1905,7 +1806,6 @@
     <string name="looking_for_someone_not_in_space">دنبال کسی هستید که در %s نیست؟</string>
     <string name="user_invites_you">%s دعوتتان می‌کند</string>
     <string name="a11y_public_room">اتاق عمومی</string>
-    <string name="send_images_and_video_with_original_size">رسانه را با اندازه اصلی ارسال کن</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">ارسال فیلم با اندازه اصلی</item>
         <item quantity="other">ارسال فیلم‌ها با اندازه اصلی</item>
@@ -1917,9 +1817,6 @@
     <string name="option_always_ask">همواره بپرس</string>
     <string name="invite_to_space">دعوت به %s</string>
     <string name="give_feedback">دادن بازخورد</string>
-    <string name="feedback_failed">فرستادن بازخورد شکست خورد (%s)</string>
-    <string name="send_feedback_space_info">دارید از نگارشی آزمایشی از فضاها استفاده می‌کنید. بازخوردتان در شکل‌دهی به نگارش‌های آتی کمک خواهد کرد. برای کمک به استفادهٔ هرچه بیش‌تر از بازخوردتان، بن‌سازه و نام کاربریتان یادداشت خواهد شد.</string>
-    <string name="feedback">بازخورد</string>
     <string name="directory_add_a_new_server_error_already_added">این کارساز در حال حاضر در فهرست موجود است</string>
     <string name="directory_add_a_new_server_error">نمی‌توانم این کارساز یا فهرست اتاقش را بیابم</string>
     <string name="directory_add_a_new_server_prompt">نام کارسازی جدید که می‌خواهید کشف کنید را وارد کنید.</string>
@@ -1935,8 +1832,6 @@
     <string name="space_leave_prompt_msg_as_admin">شما تنها مدیر این فضایید. ترک این فضا، به معنی واپایش نداشتن هیچ‌کسی رویش است.</string>
     <string name="space_leave_prompt_msg_private">بدون دعوت نخواهید توانست دوباره بپیوندید.</string>
     <string name="space_leave_prompt_msg_only_you">شما تنها فرد حاضرید. اگر خارج شوید، هیچ‌کس از جمله خوتان قادر به پیوستن در آینده نخواهد بود.</string>
-    <string name="you_may_contact_me">اگر پرسش دیگری دارید، می‌توانید با من در تماس باشید</string>
-    <string name="send_feedback_space_title">بازخورد فضاها</string>
     <string name="missing_permissions_title">اجازه‌های نداشته</string>
     <string name="denied_permission_camera">برای این کار، لطفاً اجازهٔ دوربین را از تنظیمات سامانه اعطا کنید.</string>
     <string name="denied_permission_generic">برخی اجازه‌ها برای این کار داده نشده. لطفاً اجازه‌ها را از تنظیمات سامانه اعطا کنید.</string>
@@ -2004,8 +1899,6 @@
     <string name="settings_encrypted_group_messages">پیام‌های گروهی رمزنگاشته</string>
     <string name="settings_group_messages">پیام‌های گروهی</string>
     <string name="settings_messages_direct_messages">پیام‌های مستقیم</string>
-    <string name="settings_messages_containing_username">نام کاربریم</string>
-    <string name="settings_messages_containing_display_name">نام نمایشیم</string>
     <string name="settings_notification_notify_me_for">آگاهم کن از</string>
     <string name="settings_notification_other">دیگر</string>
     <string name="settings_notification_mentions_and_keywords">اشاره‌ها و کلیدواژگان</string>
@@ -2107,9 +2000,6 @@
     <string name="identity_server_consent_dialog_content_question">با فرستادن این اطّلاعات موافقید؟</string>
     <string name="action_not_now">اکنون نه</string>
     <string name="identity_server_consent_dialog_content_3">برای کشف آشنایان موجود، لازم است اطلاعات آشنایان (نشانی‌های رایانامه و شماره‌های تلفن) را به کارساز هویتتان بفرستید. برای محرمانگیتان، داده‌هایتان را پیش از فرستادن، در هم می‌ریزیم.</string>
-    <string name="analytics_opt_in_content">با هم‌رسانی داده‌ّای استفادهٔ ناشناس، در تشخیص مشکل‌ها و بهبود المنت یاریمان کنید. برای درک چگونگی استفادهٔ مردم از چندین افزاره، شناسه‌ای کاتوره‌ای بین افزاره‌هایتان هم‌رسانی خواهیم کرد.
-\n
-\nمی‌توانید از %s قوانینمان را بخوانید.</string>
     <string name="delete_poll_dialog_content">مطمئنید که می خواهید این نظرسنجی را بردارید؟ پس از این کار، قادر به بازگردانیش نیستید.</string>
     <string name="delete_poll_dialog_title">برداشتن نظرسنجی</string>
     <string name="poll_end_room_list_preview">نظرسنجی پایان یافت.</string>
@@ -2145,22 +2035,13 @@
     <string name="legals_identity_server_title">سیاست کارساز هویتتان</string>
     <string name="legals_home_server_title">سیاست کارساز خانگیتان</string>
     <string name="legals_application_title">سیاست ${app_name}</string>
-    <string name="analytics_opt_in_list_item_3">می‌توانید هر زمان، در تنظیمات خاموشش کنید</string>
-    <string name="analytics_opt_in_list_item_2">ما اطّلاعات را با سوم‌شخص‌ها هم‌رسانی <b>نمی‌کنیم</b></string>
-    <string name="analytics_opt_in_list_item_1">ما هیچ دادهٔ حسابی را ذخیره یا نمایه <b>نمی‌کنیم</b></string>
-    <string name="analytics_opt_in_content_link">این‌جا</string>
-    <string name="analytics_opt_in_title">کمک به بهبود المنت</string>
-    <string name="action_enable">به کار انداختن</string>
     <string name="restart_the_application_to_apply_changes">برای اثربخشی تغییر، برنامه را دوباره اجرا کنید.</string>
     <string name="room_error_access_unauthorized">مجاز به پیوستن به این گروه نیستید</string>
     <string name="tooltip_attachment_poll">ایجاد نظرسنجی</string>
-    <string name="tooltip_attachment_contact">گشودن آشنایان</string>
     <string name="tooltip_attachment_sticker">فرستادن عکس‌برگردان</string>
     <string name="tooltip_attachment_file">بارگذاری پرونده</string>
     <string name="tooltip_attachment_gallery">فرستادن تصویرها و ویدیوها</string>
     <string name="tooltip_attachment_photo">گشودن دوربین</string>
-    <string name="labs_auto_report_uisi_desc">سامانه‌تان هنگام‌ مواجهه با خطای ناتوانی در رمزگشایی، گزارش‌ها را به صورت خودکار خواهد فرستاد</string>
-    <string name="labs_auto_report_uisi">گزارش خودکار خطاهای رمزگشایی.</string>
     <string name="login_splash_already_have_account">از پیش حساب دارم</string>
     <string name="ftue_auth_carousel_encrypted_title">پیام‌رسانی امن.</string>
     <string name="ftue_auth_carousel_control_title">شما کنترل می‌کنید.</string>
@@ -2183,7 +2064,6 @@
     <string name="closed_poll_option_description">نتایج تنها هنگامی که نظرسنجی را پایان دهید آشکار می‌شوند</string>
     <string name="open_poll_option_description">رأی دهندگان به محض دادن رأی، نتایج را می‌بینند</string>
     <string name="encryption_misconfigured">رمزنگاری بد پیکربندی شده</string>
-    <string name="room_member_override_nick_color">پایمالی رنگ نام نمایشی</string>
     <string name="contact_admin_to_restore_encryption">لطفاً برای بازگردانی رمزنگاری به یه وضعیتی معتبر، با مدیری تماس بگیرید.</string>
     <string name="encryption_has_been_misconfigured">رمزنگاری بد پیکربندی شده.</string>
     <string name="ftue_auth_carousel_encrypted_body">رمزنگاشتهٔ سرتاسری و بدون نیاز به شماره تلفن. بدون تبلیغات یا داده‌کاوی.</string>
@@ -2191,7 +2071,6 @@
     <string name="ftue_auth_carousel_secure_body">ارتباطات امن و مستقل که به شما همان سطح محرمانگی گفت‌وگوی رودررو در خانهٔ خودتان را می‌دهد.</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">از آن‌جا که رمزنگاری بد پیکربندی شده، نمی‌توانید پیام بفرستید. برای گشودن تنظیمات، بزنید.</string>
     <string name="room_unsupported_e2e_algorithm">از آن‌جا که رمزنگاری بد پیکربندی شده، نمی‌توانید پیام بفرستید. لطفاً برای بازگردانی رمزنگاری به یه وضعیت معتبر، با مدیری تماس بگیرید.</string>
-    <string name="message_bubbles">نمایش حباب‌های پیام</string>
     <string name="location_timeline_failed_to_load_map">شکست در بار کردن نقشه</string>
     <string name="a11y_static_map_image">نقشه</string>
     <string name="ftue_auth_use_case_connect_to_server">وصل شدن به کارساز</string>
@@ -2207,7 +2086,6 @@
     <string name="view_in_room">دیدن در اتاق</string>
     <string name="reply_in_thread">پاسخ در رشته</string>
     <string name="command_not_supported_in_threads">دستور «%s» شناخته شده است ولی در رشته‌ها پشتیبانی نمی‌شود.</string>
-    <string name="search_thread_from_a_thread">از یک رشته</string>
     <string name="thread_list_empty_notice">ایما: روی پیام نگه داشته و از «%s» استفاده کنید.</string>
     <string name="thread_list_empty_subtitle">رشته‌ها در روی موضوع نگه داشت گفت‌وگوها و آسانی ردیابیشان کمک می‌کنند.</string>
     <string name="thread_list_empty_title">ساماندهی شده نگه داشتن گفت‌وگوها با رشته‌ها</string>
@@ -2268,8 +2146,6 @@
     <string name="ftue_account_created_congratulations_title">تبریک!</string>
     <string name="ftue_account_created_take_me_home">مرا به خانه ببر</string>
     <string name="ftue_account_created_personalize">شخصی سازی نمایه</string>
-    <string name="action_disable">از کار انداختن</string>
-    <string name="send_feedback_threads_info">رشته‌ها کاری در حال پیشرفت با ویژگی‌های جذّاب جدید مانند آگاهی‌های بهبودیافته هستند. دوست داریم بازخوردتان را بشنویم!</string>
     <string name="threads_labs_enable_notice_message">کارساز خانگیتان در حال حاضر از رشته‌ها پشتیبانی نمی‌کند؛ بنابراین ممکن است این ویژگی قابل اتّکا نباشد. ممکن است برخی پیام‌های رشته‌ای همواره موجود نباشند. %sدر هر صورت می‌خواهید رشته‌ها را به کار بیندازید؟</string>
     <string name="threads_beta_enable_notice_message">رشته‌ها به روی موضوع نگه داشتن گفت‌وگوها کمک کرده و ردیابیشان را آسان می‌کنند. %sبه کارانداختن رشته‌ها کاره را دوباره آغاز خواهد کرد. ممکن است این کار برای برخی حساب‌ها بیش‌تر طول بکشد.</string>
     <string name="location_share_live_started">بار کردن مکان زنده…</string>
@@ -2284,11 +2160,7 @@
     <string name="a11y_play_audio_message">پخش %1$s</string>
     <string name="a11y_audio_playback_duration">%1$d دقیقه و %2$d ثانیه</string>
     <string name="a11y_audio_message_item">%1$s، %2$s، %3$s</string>
-    <string name="sent_live_location">مکان زنده‌اش را هم‌رساند</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} برای محل کار نیز عالیست. مورد اعتماد امن‌ترین سازمان‌های جهان است.</string>
-    <string name="beta">آزمایشی</string>
-    <string name="send_feedback_threads_title">بازخورد رشته‌های آزمایشی</string>
-    <string name="give_feedback_threads">بازخورد دادن</string>
     <string name="beta_title_bottom_sheet_action">آزمایشی</string>
     <string name="settings_presence_user_always_appears_offline_summary">اگر به کار افتاده باشد، برای دیگر کاربران، همواره برون‌خط ظاهر خواهید شد، حتا هنگام استفاده از برنامه.</string>
     <string name="settings_presence_user_always_appears_offline">حالت برون‌خط</string>
@@ -2297,12 +2169,6 @@
     <string name="threads_beta_enable_notice_title">رشته‌های آزمایشی</string>
     <string name="action_learn_more">بیش تر بدانید</string>
     <string name="action_try_it_out">بیازماییدش</string>
-    <string name="initial_sync_request_content">لازم است به این دلیل، ${app_name} انباره را برای به‌روز بودن خالی کند:
-\n%s
-\n
-\nبه خاطر داشته باشید این عمل، کاره را دوباره شروع خواهد کرد و ممکن است کمی زمان ببرد.</string>
-    <string name="initial_sync_request_reason_unignored_users">- برخی کاربران ناچشم‌پوشی شده‌اند</string>
-    <string name="initial_sync_request_title">درخواست همگام سازی نخستین</string>
     <string name="settings_show_latest_profile_description">نمایش جدیدترین اطَلاعات نمایه (چهرک و نام نمایشی) برای تمامی پیام‌ها.</string>
     <string name="settings_show_latest_profile">نمایش جدیدترین اطّلاعات کاربری</string>
     <string name="a11y_presence_busy">مشغول</string>
@@ -2351,8 +2217,6 @@
     <string name="settings_troubleshoot_test_current_endpoint_success">نقطهٔ پایانی کنونی: %s</string>
     <string name="settings_troubleshoot_test_current_endpoint_title">نقطهٔ پایانی</string>
     <string name="poll_undisclosed_not_ended">هنگام پایان نظرسنجی، نتایج نمایان خواهند شد</string>
-    <string name="labs_enable_msc3061_share_history_desc">هنگام دعوت به اتاقی رمزشده که تاریخچه‌ای هم‌رسانده دارد، تاریخچهٔ رمز شده نمایان خواهد بود.</string>
-    <string name="labs_enable_msc3061_share_history">MSC3061: هم‌رسانی کلیدهای اتاق برای پیام‌های گذشته</string>
     <string name="send_your_first_msg_to_invite">نخستین پیامتان را برای دعوت %s به گپ بفرستید</string>
     <string name="direct_room_encryption_enabled_tile_description_future">پیام‌های این گپ رمزنگاری سرتاسری خواهند شد.</string>
     <string name="create_room_action_go">رفتن</string>
@@ -2409,8 +2273,6 @@
     <string name="font_size_section_manually">گزینش دستی</string>
     <string name="font_size_section_auto">تنظیم خودکار</string>
     <string name="font_size_title">گزینش اندازهٔ قلم</string>
-    <string name="labs_enable_element_call_permission_shortcuts_summary">تأیید خودکار ابزارک‌های تماس و اعطای دسترسی دوربین و میکروفون</string>
-    <string name="labs_enable_element_call_permission_shortcuts">به کار انداخت میان‌برهای اجازهٔ تماس المنت</string>
     <string name="live_location_description">مکان زنده</string>
     <string name="verify_invalid_qr_notice">این رمز QR بدریخت به نظر می‌رسد. لطفاً تأیید با روشی دیگر را بیازمایید.</string>
     <string name="crosssigning_cannot_verify_this_session_desc">نخواهید توانست به تاریخچهٔ پیام رمزشده دست یابید. برای آغاز تازه، کلیدهای تأیید و پشتیبان پیام امنتان را بازنشانی کنید.</string>
@@ -2426,7 +2288,6 @@
     <string name="auth_reset_password_error_unverified">رایانامه تأیید نشده. صندوق ورودیتان را بررسی کنید</string>
     <string name="location_share_loading_map_error">ناتوان در بار کردن نقشه
 \nشاید این کارساز خانگی برای نمایش نقشه‌ها پیکربندی نشده باشد.</string>
-    <string name="a11y_open_settings">گشودن تنظیمات</string>
     <string name="all_chats">تمامی گپ‌ها</string>
     <string name="device_manager_sessions_other_description">برای امنیت بیش‌تر، نشست‌هایتان را تأیید و از هر نشستی که تشخیصش نمی‌دهید یا دیگر استفاده نمی‌کنید خارج شوید.</string>
     <string name="device_manager_sessions_other_title">دیگر نشست‌ها</string>
@@ -2460,9 +2321,6 @@
     <string name="timeline_error_room_not_found">متأسفانه این اتاق پیدا نشد.
 \nلطفاً بعداً دوباره تلاش کنید.%s</string>
     <string name="invites_title">دعوت‌ها</string>
-    <string name="onboarding_new_app_layout_feedback_message">زدن بالا سمت چپ برای دیدن گزینهٔ بازخورد.</string>
-    <string name="onboarding_new_app_layout_spaces_message">دسترسی به فضاهایتان (پایین سمت چپ) سریع‌تر و ساده‌تر از همیشه.</string>
-    <string name="onboarding_new_app_layout_welcome_message">برای ساده‌سازی ${app_name} زبانه‌ها اختیاری شده‌اند. مدیریت با استفاده از فهرست بالا سمت چپ.</string>
     <string name="home_empty_no_unreads_message">این جایی است که پیام‌های ناخوانده‌تان در صورت وجود ظاهر خواهند شد.</string>
     <string name="home_empty_no_rooms_message">کارهٔ گپ امن یکپارچه برای گروه‌ها، دوستان و سازمان‌ها. برای آغاز، گپی ساخته یا به اتاقی بپیوندید.</string>
     <string name="home_empty_space_no_rooms_message">فضاها راهی جدید برای گروه‌بندی اتاق‌ها و افراد است. با استفاده از دکمهٔ پایین سمت چپ فضایی ساخته یا اتاقی را بیفزایید.</string>
@@ -2480,10 +2338,6 @@
     </plurals>
     <string name="invites_empty_message">این جایی است که درخواست‌ها و دعوت‌های جدیدتان خواهند بود.</string>
     <string name="space_list_empty_message">فضاها راهی جدید برای گروه‌بندی اتاق‌ها و افراد است. برای آغاز، فضایی بسازید.</string>
-    <string name="onboarding_new_app_layout_button_try">بیازماییدش</string>
-    <string name="onboarding_new_app_layout_feedback_title">دادن بازخورد</string>
-    <string name="onboarding_new_app_layout_spaces_title">دسترسی به فضاها</string>
-    <string name="onboarding_new_app_layout_welcome_title">به نمایی جدید خوش آمدید!</string>
     <string name="home_empty_no_unreads_title">چیزی برای گزارش نیست.</string>
     <string name="home_empty_no_rooms_title">%s
 \nبه ${app_name} خوش آمدی.</string>
@@ -2492,8 +2346,6 @@
     <string name="device_manager_header_section_security_recommendations_title">توصیه‌های امنیتی</string>
     <string name="invites_empty_title">چیز جدیدی نیست.</string>
     <string name="space_list_empty_title">هنوز فضایی وجود ندارد.</string>
-    <string name="a11y_collapse_space_children">جمع کردن فرزندان %s</string>
-    <string name="a11y_expand_space_children">گسترش فرزندان %s</string>
     <string name="device_manager_session_details_device_ip_address">نشانی آی‌پی</string>
     <string name="device_manager_session_details_session_last_activity">واپسین فعّالیت</string>
     <string name="device_manager_session_details_session_name">نام نشست</string>
@@ -2547,12 +2399,8 @@
     <string name="command_description_devtools">گشودن صفحهٔ ابزارهای توسعه‌دهنده</string>
     <string name="labs_enable_deferred_dm_title">به کار انداختن پیام‌های مستقیم تعویقی</string>
     <string name="action_got_it">گرفتم</string>
-    <string name="tooltip_attachment_voice_broadcast">آغاز یک پخش همگانی صوتی</string>
     <string name="command_description_table_flip">(╯°□°）╯︵ ┻━┻ را به ابتدای پیام متنی خام می‌افزاید</string>
-    <string name="attachment_type_voice_broadcast">پخش همگانی صدا</string>
     <string name="grant_permission">اعطای دسترسی</string>
-    <string name="labs_enable_rich_text_editor_summary">ویرایشگر متن غنی را بیازمایید (حالت متن خام به زودی)</string>
-    <string name="labs_enable_rich_text_editor_title">به کار انداختن ویرایشگر متن غنی</string>
     <string name="device_manager_verification_status_detail_other_session_unknown">برای آشکارسازی وضعیت تأیید نشست کنونیتان، تأییدش کنید.</string>
     <string name="qr_code_login_header_failed_homeserver_is_not_supported_description">کارساز خانگی از ورود با کد QR پشتیبانی نمی‌کند.</string>
     <string name="qr_code_login_header_failed_user_cancelled_description">ورود روی افزارهٔ دیگر لغو شد.</string>
@@ -2564,25 +2412,19 @@
     <string name="qr_code_login_new_device_instruction_2">به تنظیمات -&gt; امنیت و محرمانگی بروید</string>
     <string name="qr_code_login_new_device_instruction_1">کاره را روی افزارهٔ دیگرتان بگشایید</string>
     <string name="qr_code_login_header_failed_device_is_not_supported_description">پیوند دادن با این افزاره پشتیبانی نمی‌شود.</string>
-    <string name="labs_enable_voice_broadcast_title">به کار انداختن پخش صدا</string>
     <string name="qr_code_login_show_qr_code_button">نمایش کد QR روی این افزاره</string>
     <string name="qr_code_login_link_a_device_show_qr_code_instruction_1">آغاز در صفحهٔ ورود</string>
     <string name="qr_code_login_link_a_device_scan_qr_code_instruction_2">گزینش‌«ورود با کد QR»</string>
     <string name="qr_code_login_link_a_device_scan_qr_code_instruction_1">آغاز در صفحهٔ ورود</string>
     <string name="device_manager_push_notifications_description">گرفتن آگاهی‌های ارسالی روی این نشست.</string>
-    <string name="a11y_play_voice_broadcast">پخش یا مکث پخش صدا</string>
     <string name="qr_code_login_header_failed_invalid_qr_code_description">کد QR نامعتبر است.</string>
     <string name="qr_code_login_signing_in_a_mobile_device">وارد شدن در افزاره‌ای همراه؟</string>
     <string name="qr_code_login_header_show_qr_code_title">ورود با کد QR</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">ورود با کد QR</string>
-    <string name="a11y_stop_voice_broadcast_record">توقّف ضبط پخش صدا</string>
-    <string name="a11y_pause_voice_broadcast_record">مکث ضبط پخش صدا</string>
-    <string name="a11y_resume_voice_broadcast_record">از سر گیری ضبط پخش صدا</string>
     <string name="qr_code_login_link_a_device_show_qr_code_instruction_2">گزینش «نمایش کد QR»</string>
     <string name="qr_code_login_new_device_instruction_3">گزینش «نمایش کد QR»</string>
     <string name="labs_enable_client_info_recording_title">به کار انداختن ضبط اطّلاعات کارخواه</string>
     <string name="labs_enable_session_manager_title">به کار انداختن مدیر نشست جدید</string>
-    <string name="a11y_pause_voice_broadcast">مکث پخش صدا</string>
     <string name="qr_code_login_header_failed_other_description">درخواست شکست خورد.</string>
     <string name="qr_code_login_signing_in">وارد کردنتان</string>
     <string name="qr_code_login_connecting_to_device">وصل شدن به افزاره</string>
@@ -2590,13 +2432,8 @@
     <string name="qr_code_login_header_connected_title">اتّصال امن برقرار شده</string>
     <string name="qr_code_login_header_scan_qr_code_title">پویش کد QR</string>
     <string name="login_scan_qr_code">پویش کد QR</string>
-    <string name="rich_text_editor_format_underline">اعمال قالب زیرخط‌دار</string>
-    <string name="rich_text_editor_format_strikethrough">اعمال قالب خط‌خورده</string>
-    <string name="rich_text_editor_format_italic">اعمال قالب کج</string>
-    <string name="rich_text_editor_format_bold">اعمال قالب توپر</string>
     <string name="device_manager_verification_status_unknown">وضعیت تأیید نامعلوم</string>
     <string name="device_manager_other_sessions_select">گزینش نشست‌ها</string>
-    <string name="attachment_type_selector_voice_broadcast">پخش صدا</string>
     <string name="attachment_type_selector_gallery">کتابخانهٔ عکس</string>
     <string name="qr_code_login_try_again">دوباره تلاش کنید</string>
     <string name="qr_code_login_status_no_match">مطابق نیستند؟</string>
@@ -2609,8 +2446,6 @@
     <string name="attachment_type_selector_poll">نظرسنجی‌ها</string>
     <string name="attachment_type_selector_file">پیوست‌ها</string>
     <string name="attachment_type_selector_sticker">برچسب‌ها</string>
-    <string name="voice_broadcast_buffering">میانگیری…</string>
-    <string name="voice_broadcast_live">زنده</string>
     <string name="qr_code_login_confirm_security_code">تأیید</string>
     <string name="three">۳</string>
     <string name="two">۲</string>
@@ -2628,10 +2463,7 @@
         <item quantity="one">۱ گزیده</item>
         <item quantity="other">%1$d گزیده</item>
     </plurals>
-    <string name="error_voice_broadcast_permission_denied_message">اجازه‌های لازم برای آغاز پخش صوتی در این اتاق را ندارید. برای ارتقای اجازه‌هایتان با یک مدیر اتاق تماس بگیرید.</string>
-    <string name="error_voice_broadcast_blocked_by_someone_else_message">فرد دیگری در حال ضبط یک پخش صوتی است. برای آغاز یک پخش جدید، منتظر پایان پخشش بمانید.</string>
     <string name="qr_code_login_header_connected_description">با بررسی افزاره‌های وارد شده‌تان باید کد زیر را ببینید. تأیید کنید که این کد با آن افزاره مطابق است:</string>
-    <string name="error_voice_broadcast_already_in_progress_message">دارید یک پخش صوتی ضبط می‌کنید. لطفاً برای آغاز یک پخش جدید، به پخش کنونی پایان دهید.</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ افزاره‌های تأییدنشده‌ای در این اتاق وجود دارند. آن‌ها قادر به رمزگشایی پیام‌هایی که فرستاده‌اید نیستند.</string>
     <string name="qr_code_login_header_scan_qr_code_description">استفاده از دوربین روی این افزاره برای پویش کد QR نشان داده شده روی افزارهٔ دیگرتان:</string>
     <string name="labs_enable_client_info_recording_summary">ضبط نام کارخواه، نگارش و نشانی برای بازشناسی آسان‌تر نشست‌ها در مدیر نشست.</string>
@@ -2640,23 +2472,17 @@
         <item quantity="one">خارج شدن از نشست‌های قدیمی (۱ روز یا بیش‌تر) که دیگر استفاده نمی‌کنید را در نظر داشته باشید.</item>
         <item quantity="other">خارج شدن از نشست‌های قدیمی (%1$d روز یا بیش‌تر) که دیگر استفاده نمی‌کنید را در نظر داشته باشید.</item>
     </plurals>
-    <string name="labs_enable_voice_broadcast_summary">توانایی ضبط و فرستادن پخش صدا در خط زمانی اتاق.</string>
     <string name="qr_code_login_header_show_qr_code_link_a_device_description">پویش کد QR زیر با افزاره‌ای که خارج شده.</string>
     <string name="qr_code_login_header_show_qr_code_new_device_description">استفاده از افزارهٔ وارد شده‌تان برای پویش کد QR زیر:</string>
     <string name="error_check_network">چیزی اشتباه پیش رفت. لطفاً اتّصال شبکه‌تان را بررسی و دوباره تلاش کنید.</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} برای نمایش آگاهی‌ها نیازمند اجازه است.
 \nلطفاً اجازه را اعطا کنید.</string>
-    <string name="error_voice_broadcast_unauthorized_title">نمی‌توان پخش صدایی جدید را آغاز کرد</string>
-    <string name="rich_text_editor_full_screen_toggle">تغییر حالت تمام‌صفحه</string>
-    <string name="a11y_voice_broadcast_fast_forward">۳۰ ثانیه پیش‌روی</string>
-    <string name="a11y_voice_broadcast_fast_backward">۳۰ ثانیه پس‌روی</string>
     <string name="attachment_type_selector_text_formatting">قالب‌بندی متن</string>
     <string name="device_manager_other_sessions_multi_signout_selection">خروج</string>
     <plurals name="device_manager_other_sessions_multi_signout_all">
         <item quantity="one">خروج از ۱ نشست</item>
         <item quantity="other">خروج از %1$d نشست</item>
     </plurals>
-    <string name="voice_broadcast_recording_time_left">%1$s مانده</string>
     <string name="message_reply_to_sender_sent_voice_message">پیام صوتی‌ای فرستاد.</string>
     <string name="message_reply_to_sender_sent_audio_file">پروندهٔ صوتی‌ای فرستاد.</string>
     <string name="message_reply_to_sender_created_poll">نظرسنجی‌ای ایجاد کرد.</string>
@@ -2667,9 +2493,6 @@
     <string name="message_reply_to_prefix">در پاسخ به</string>
     <string name="device_manager_other_sessions_hide_ip_address">نهفتن نشانی آی‌پی</string>
     <string name="device_manager_other_sessions_show_ip_address">نمایش نشانی آی‌پی</string>
-    <string name="quoting">نقل کردن</string>
-    <string name="replying_to">پاسخ دادن به %s</string>
-    <string name="editing">ویرایش کردن</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">می‌توانید با یک رمز QR از این افزاره برای ورود به افزاره‌ای همراه یا روی وب استفاده کنید. دو راه برای این کار وجود دارد:</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">مشکلی امنیتی در برپایی پیام‌رسانی امن وجود داشت. ممکن است یکی از موارد زیر دستکاری شده باشند: کارساز خانیگیتان؛ اتّصال اینترنتیتان؛ افزاره(های)تان؛</string>
     <string name="qr_code_login_confirm_security_code_description">لطفاً مطمئن شوید که مبدأ این کد را می‌دانید. با پیوند دادن افزاره‌ها، دسترسی کامل را به حسابتان می‌دهید.</string>
@@ -2702,21 +2525,14 @@
     <string name="device_manager_verification_status_detail_session_encryption_not_supported">این نشست از رمزنگاری پشتیبانی نکرده و بنابراین نمی‌تواند تأیید شود.</string>
     <string name="settings_nightly_build_update">رفتن به جدیدترین ساخت (نکته: ممکن است برای ورود به مشکل بخورید)</string>
     <string name="settings_nightly_build">ساخت شبانه</string>
-    <string name="voice_broadcast_live_broadcast">پخش زنده</string>
     <string name="notice_voice_broadcast_ended_by_you">به پخش صوتی پایان دادید.</string>
     <string name="notice_voice_broadcast_ended">%1$s به پخش صوتی پایان داد.</string>
-    <string name="stop_voice_broadcast_content">مطمئنید که می‌خواهید پخش زنده‌تان را قطع کنید؟ این کار پخش را پایان داده و ضبط کامل در اتاق موجود خواهد شد.</string>
-    <string name="stop_voice_broadcast_dialog_title">قطع پخش زنده؟</string>
-    <string name="action_stop">بله، متوقّف شود</string>
     <string name="set_link_edit">ویرایش پیوند</string>
     <string name="set_link_create">ایجاد پیوند</string>
     <string name="set_link_link">پیوند</string>
     <string name="set_link_text">متن</string>
-    <string name="rich_text_editor_link">تنظیم پیوند</string>
     <string name="settings_access_token_summary">ژتون دسترسیتان، دسترسی کامل به حسابتان را می‌دهد. با هیچ‌کس هم‌رسانیش نکنید.</string>
     <string name="settings_access_token">ژتون دسترسی</string>
-    <string name="rich_text_editor_bullet_list">تغییر وضعیت سیاههٔ گلوله‌ای</string>
-    <string name="rich_text_editor_numbered_list">تغییر وضعیت سیاههٔ شماره‌دار</string>
     <string name="room_polls_ended_no_item">هیچ‌ نظرسنجی قدیمی‌ای در این اتاق وجود ندارد</string>
     <string name="room_polls_ended">نظرسنجی‌های گذشته</string>
     <string name="room_polls_active_no_item">هیچ نظرسنجی فعّالی در این اتاق وجود ندارد</string>
@@ -2727,8 +2543,6 @@
     <string name="message_reply_to_sender_ended_poll">به نظرسنجی‌ای پایان داد.</string>
     <string name="ended_poll_indicator">به نظرسنجی پایان داد.</string>
     <string name="thread_list_not_available">کارساز خانگیتان هنوز از سیاهه کردن رشته‌ها پشتیبانی نمی‌کند.</string>
-    <string name="error_voice_broadcast_unable_to_play">ناتوان در پخش این صدا.</string>
-    <string name="started_a_voice_broadcast">پخش صوتی را آغاز کرد</string>
     <string name="unable_to_decrypt_some_events_in_poll">به خاطر خطاهای رمزگشایی، ممکن است برخی رأی‌ها شمرده نشوند</string>
     <string name="room_polls_loading_error">خطا در واکشی نظرسنجی‌ها.</string>
     <string name="room_polls_load_more">بار کردن نظرسنجی‌های بیش‌تر</string>
@@ -2745,17 +2559,8 @@
         <item quantity="other">نظرسنجی فعّالی برای %1$d روز گذشته وجود ندارد.
 \nبرای دیدن نظرسنجی‌های روزهای پیش، نظرسنجی‌های بیش‌تری بار کنید.</item>
     </plurals>
-    <string name="error_voice_message_broadcast_in_progress_message">از آن‌جا که در حال ضبط پخشی زنده‌اید، نمی‌توانید پیامی صوتی را آغاز کنید. لطفاً برای آغاز ضبط یک پیام صوتی، پخش زنده‌تان را پایان دهید</string>
-    <string name="error_voice_message_broadcast_in_progress">نمی‌توان پخش صوتی را آغاز کرد</string>
-    <string name="error_voice_broadcast_no_connection_recording">خطای اتّصال - ضبط مکث شد</string>
-    <string name="rich_text_editor_inline_code">اعمال قالب کد درون‌خط</string>
-    <string name="rich_text_editor_code_block">تغییر حالت بلوک کد</string>
-    <string name="rich_text_editor_quote">تغییر حالت نقل قول</string>
-    <string name="rich_text_editor_unindent">تونرفتگی</string>
-    <string name="rich_text_editor_indent">تورفتگی</string>
     <string name="room_poll_details_go_to_timeline">دیدن نظرسنجی در خط زمانی</string>
     <string name="settings_external_account_management_title">حساب</string>
-    <string name="error_voice_broadcast_unable_to_decrypt">ناتوان در رمزگشایی این پخش صوتی.</string>
     <string name="settings_external_account_management">جزییات حسابتان جداگانه در %1$s مدیریت می‌شود.</string>
     <string name="settings_notification_error_on_update">هنگام به‌روز رسانی ترجیحات آگاهیتان خطایی رخ داد. لطفاً دوباره تلاش کنید.</string>
     <string name="direct_room_encryption_enabled_waiting_users_tile_description">به محض پیوستن کاربران دعوت شده، قادر به گپ خواهید بود و اتاق رمزنگاری سرتاسری می‌شود</string>
@@ -2795,12 +2600,6 @@
     <string name="create_room_unknown_users_dialog_submit">آغاز گپ به هر حال</string>
     <string name="invite_unknown_users_dialog_submit">دعوت به هر حال</string>
     <string name="login_splash_sign_in">ورود</string>
-    <string name="message_report_user">گزارش کاربر</string>
-    <string name="user_reported_as_inappropriate_title">کاربر گزارش شده</string>
-    <string name="user_reported_as_inappropriate_content">کاربر گزارش شد.
-\n
-\nاگر دیگر نمی‌خواهید محتوایی از این کاربر ببینید، می‌توانید برای نهفتن پیام‌هایش نادیده‌اش بگیرید.</string>
     <string name="call_unsupported">تماس پشتیبانی نشده.</string>
     <string name="room_profile_section_more_report">گزارش اتاق</string>
-    <string name="room_profile_section_more_report_success_content">اتاق با موفّقیت گزارش شد.</string>
 </resources>

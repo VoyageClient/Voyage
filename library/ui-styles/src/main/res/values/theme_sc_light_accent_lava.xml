@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_lava">#B20120</color>
-    <color name="accent_sc_light_lava_alpha25">#3fB20120</color>
     <color name="accent_sc_light_lava_pale">@color/accent_sc_light_lava</color>
-    <color name="accent_sc_light_lava_dark">@color/accent_sc_light_lava_alpha25</color>
     <color name="accent_sc_light_lava_noalpha12">#f5e0e4</color>
 
 

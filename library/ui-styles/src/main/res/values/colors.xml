@@ -2,7 +2,6 @@
 <resources>
 
     <!-- Error colors -->
-    <color name="vector_warning_color_2">@color/palette_melon</color>
     <color name="vector_info_color">#2f9edb</color>
 
     <!-- Notification view colors -->
@@ -15,15 +14,12 @@
 
     <!-- Source: https://zpl.io/aBKw9Mk -->
 
-    <color name="bg_call_screen_blur">#99000000</color>
-    <color name="bg_call_screen">#27303A</color>
 
     <color name="vctr_notice_secondary_alpha12">#1E61708B</color>
 
     <!-- Other useful color -->
     <!-- Emoji text has to use a black text color -->
     <color name="emoji_color">@android:color/black</color>
-    <color name="join_conference_animated_color">#0BAC7E</color>
 
     <color name="half_transparent_status_bar">#80000000</color>
 

@@ -236,13 +236,11 @@
     <string name="action_send">Отправить</string>
     <string name="action_quote">Цитировать</string>
     <string name="action_share">Поделиться</string>
-    <string name="later">Позже</string>
     <string name="permalink">Постоянная ссылка</string>
     <string name="view_source">Просмотр исходного кода</string>
     <string name="view_decrypted_source">Просмотр расшифрованного исходного кода</string>
     <string name="action_delete">Удалить</string>
     <string name="action_rename">Переименовать</string>
-    <string name="report_content">Пожаловаться на содержимое</string>
     <string name="or">или</string>
     <string name="action_invite">Пригласить</string>
     <string name="action_sign_out">Выйти из учётной записи</string>
@@ -263,12 +261,6 @@
     <string name="matrix_only_filter">Только Matrix контакты</string>
     <string name="no_result_placeholder">Нет результатов</string>
     <string name="rooms_header">Комнаты</string>
-    <string name="send_bug_report_include_logs">Отправить логи</string>
-    <string name="send_bug_report_include_crash_logs">Отправить журналы ошибок</string>
-    <string name="send_bug_report_include_screenshot">Отправить снимок экрана</string>
-    <string name="send_bug_report_description">Пожалуйста опишите ошибку. Что вы делали\? Что вы хотели получить\? Что на самом деле произошло\?</string>
-    <string name="send_bug_report_placeholder">Опишите проблему здесь</string>
-    <string name="send_bug_report_logs_description">Для диагностики проблемы журналы работы приложения будут приложены к отчету об ошибке. Этот отчет, включая журналы и скриншот, не будет доступен публично. Если вы предпочитаете отправить только текст, то снимите отметку:</string>
     <string name="join_room">Войти в Комнату</string>
     <string name="username">Псевдоним</string>
     <string name="logout">Выйти</string>
@@ -293,10 +285,6 @@
     <string name="compression_opt_list_medium">Средний</string>
     <string name="compression_opt_list_small">Мелкий</string>
     <string name="permissions_rationale_popup_title">Информация</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} необходимы разрешения на доступ к микрофону, чтобы выполнять звонки.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} необходимы разрешения на доступ к камере и микрофону для видеовызовов.
-\n
-\nПожалуйста дайте разрешение в следующем окне для звонка.</string>
     <string name="yes">ДА</string>
     <string name="no">НЕТ</string>
     <string name="_continue">Продолжить</string>
@@ -462,10 +450,8 @@
     <string name="widget_integration_room_not_visible">Комната %s невидима.</string>
     <string name="room_add_matrix_apps">Добавить приложения Matrix</string>
     <string name="notification_listening_for_events">Мониторинг событий</string>
-    <string name="settings_containing_my_user_name">Сообщения, содержащие мое имя пользователя</string>
     <string name="you_added_a_new_device">Вы добавили новою сессию \'%s\', запрашивающую ключи шифрования.</string>
     <string name="your_unverified_device_requesting">Ваш незаверенный сеанс \'%s\' запрашивает ключи шифрования.</string>
-    <string name="settings_containing_my_display_name">Сообщения, содержащие моё отображаемое имя</string>
     <string name="start_verification">Начать проверку</string>
     <string name="notification_noisy_notifications">Звуковые уведомления</string>
     <string name="notification_silent_notifications">Беззвучные уведомления</string>
@@ -483,8 +469,6 @@
     <string name="room_settings_add_homescreen_shortcut">Добавить на главный экран</string>
     <string name="settings_inline_url_preview">Предпросмотр встроенных URL-адресов</string>
     <string name="settings_vibrate_on_mention">Вибрация при упоминании пользователя</string>
-    <string name="create">Создать</string>
-    <string name="group_details_home">Начало</string>
     <string name="rooms">Комнаты</string>
     <string name="invited">Приглашен</string>
     <string name="has_been_banned">Вас заблокировал %2$s в %1$s</string>
@@ -552,7 +536,6 @@
     <string name="option_send_voice">Отправить голосовое сообщение</string>
     <string name="error_no_external_application_found">К сожалению, внешнее приложение для выполнения этого действия не найдено.</string>
     <string name="error_empty_field_your_password">Пожалуйста, введите ваш пароль.</string>
-    <string name="send_bug_report_description_in_english">Если возможно, добавьте описание на английском языке.</string>
     <string name="settings_preview_media_before_sending">Предварительный просмотр медиа перед отправкой</string>
     <string name="command_description_emote">Отображает действие</string>
     <string name="command_description_ban_user">Блокирует пользователя с данным ID</string>
@@ -564,8 +547,6 @@
     <string name="command_description_topic">Задать тему комнаты</string>
     <string name="command_description_nick">Изменить ваше отображаемое имя</string>
     <string name="command_description_markdown">Вкл/выкл markdown</string>
-    <string name="room_tombstone_versioned_description">Эта комната была заменена и больше не активна.</string>
-    <string name="room_tombstone_continuation_link">Беседа продолжается здесь</string>
     <string name="room_tombstone_continuation_description">Эта комната — продолжение другой беседы</string>
     <string name="room_tombstone_predecessor_link">Нажмите здесь для просмотра старых сообщений</string>
     <string name="command_description_join_room">Присоединиться к комнате с указанным адресом</string>
@@ -885,9 +866,6 @@
     <string name="preference_voice_and_video">Голос и видео</string>
     <string name="preference_root_help_about">Помощь и информация</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Регистрационный токен</string>
-    <string name="send_suggestion_content">Пожалуйста, напишите ваше предложение ниже.</string>
-    <string name="send_suggestion_report_placeholder">Опишите ваше предложение здесь</string>
-    <string name="send_suggestion_failed">Не удалось отправить предложение (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Показать скрытые события в ленте сообщений</string>
     <string name="bottom_action_people_x">Личные сообщения</string>
     <string name="send_file_step_idle">Ждите…</string>
@@ -953,7 +931,6 @@
     <string name="settings_discovery_disconnect_with_bound_pid">В настоящее время вы делитесь адресами электронной почты или телефонными номерами на сервере обнаружения %1$s. Вам нужно повторно подключиться к %2$s, чтобы прекратить делиться ими.</string>
     <string name="settings_agree_to_terms">Примите Условия использования сервера обнаружения (%s), чтобы разрешить обнаружение по адресу электронной почты или номеру телефона.</string>
     <string name="labs_allow_extended_logging">Включить подробные логи.</string>
-    <string name="send_attachment">Отправить вложение</string>
     <string name="a11y_open_drawer">Откройте панель навигации</string>
     <string name="a11y_create_menu_open">Откройте меню создания комнаты</string>
     <string name="login_error_no_homeserver_found">Это недействительный адрес сервера Matrix</string>
@@ -987,7 +964,6 @@
     <string name="attachment_type_file">Файл</string>
     <string name="attachment_type_camera">Камера</string>
     <string name="attachment_type_gallery">Галерея</string>
-    <string name="report_content_spam">Это спам</string>
     <string name="message_ignore_user">Игнорировать пользователя</string>
     <string name="room_list_quick_actions_notifications_all">Все сообщения</string>
     <string name="room_list_quick_actions_notifications_mentions">Только упоминания</string>
@@ -998,11 +974,7 @@
     <string name="labs_allow_extended_logging_summary">Подробные логи помогут разработчикам, предоставив больше информации, когда вы отправляете \"Яростное встряхивание\". Даже когда они разрешены, приложение не записывает ваши сообщения и другие приватные данные.</string>
     <string name="a11y_create_menu_close">Закройте меню создание комнаты…</string>
     <string name="a11y_jump_to_bottom">Вниз</string>
-    <string name="attachment_type_contact">Контакт</string>
     <string name="attachment_type_sticker">Наклейка</string>
-    <string name="report_content_custom_hint">Причина жалобы на это содержимое</string>
-    <string name="report_content_custom_submit">ЖАЛОБА</string>
-    <string name="block_user">ИГНОРИРОВАТЬ ПОЛЬЗОВАТЕЛЯ</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Все сообщения (громко)</string>
     <string name="room_list_quick_actions_notifications_mute">Заглушить</string>
     <string name="command_description_spoiler">Отправить данное сообщение под спойлером</string>
@@ -1083,8 +1055,6 @@
     <string name="login_signup_error_user_in_use">Этот псевдоним уже занят</string>
     <string name="login_signup_cancel_confirmation_title">Предупреждение</string>
     <string name="login_signup_cancel_confirmation_content">Ваш аккаунт еще не создан. Остановить процесс регистрации\?</string>
-    <string name="login_a11y_choose_matrix_org">Выбрать matrix.org</string>
-    <string name="login_a11y_choose_modular">Выбрать Element Matrix Services</string>
     <string name="login_a11y_choose_other">Выбрать другой сервер</string>
     <string name="login_a11y_captcha_container">Пожалуйста, пройдите проверку капчей</string>
     <string name="login_terms_title">Примите условия для продолжения</string>
@@ -1124,7 +1094,6 @@
     <string name="soft_logout_sso_not_same_user_error">Текущая сессия предназначена для пользователя %1$s, а вы предоставляете учётные данные для пользователя %2$s. Это не поддерживается в ${app_name}.
 \nПожалуйста, сначала очистите данные, а затем снова войдите под другим аккаунтом.</string>
     <string name="permalink_malformed">Ваша ссылка на matrix.to была испорчена</string>
-    <string name="bug_report_error_too_short">Описание слишком короткое</string>
     <string name="settings_advanced_settings">Дополнительные настройки</string>
     <string name="settings_developer_mode">Режим разработчика</string>
     <string name="settings_developer_mode_summary">Режим разработчика активирует скрытые функции, а также может сделать приложение менее стабильным. Только для разработчиков!</string>
@@ -1154,9 +1123,6 @@
     <string name="uploads_media_no_result">В этой комнате нет медиафайлов</string>
     <string name="uploads_files_title">ФАЙЛЫ</string>
     <string name="uploads_files_no_result">В этой комнате нет файлов</string>
-    <string name="report_content_inappropriate">Это неуместно</string>
-    <string name="report_content_custom">Другая причина…</string>
-    <string name="report_content_custom_title">Пожаловаться на это содержимое</string>
     <string name="room_profile_section_security">Безопасность</string>
     <string name="room_profile_section_more">Ещё</string>
     <string name="a11y_qr_code_for_verification">QR-код</string>
@@ -1191,18 +1157,6 @@
     <string name="three_users_read">%1$s, %2$s и %3$s прочли</string>
     <string name="two_users_read">%1$s и %2$s прочли</string>
     <string name="uploads_files_subtitle">%1$s %2$s</string>
-    <string name="content_reported_title">Жалоба отправлена</string>
-    <string name="content_reported_content">Жалоба на контент отправлена.
-\n
-\nЕсли вы больше не хотите видеть от этого пользователя любого содержимого, вы можете его игнорировать, чтобы скрыть его сообщения.</string>
-    <string name="content_reported_as_spam_title">Отмечено как спам</string>
-    <string name="content_reported_as_spam_content">Это содержимое было отмечен как спам.
-\n
-\nЕсли вы больше не хотите видеть любое содержимое этого пользователя, вы можете его игнорировать, чтобы скрыть его сообщения.</string>
-    <string name="content_reported_as_inappropriate_title">Жалоба на неуместное содержание отправлена</string>
-    <string name="content_reported_as_inappropriate_content">Этот контент был отмечен как неприемлемый.
-\n
-\nЕсли вы больше не хотите видеть от этого пользователя любого содержимого, вы можете его игнорировать, чтобы скрыть его сообщения.</string>
     <string name="verification_sas_match">Они совпадают</string>
     <string name="verification_sas_do_not_match">Они не совпадают</string>
     <string name="a11y_close_keys_backup_banner">Закрыть окно резервного копирования ключей</string>
@@ -1212,10 +1166,6 @@
     <string name="action_copy">Копировать</string>
     <string name="dialog_title_success">Удачно</string>
     <string name="bottom_action_notification">Уведомления</string>
-    <string name="sound_device_phone">Телефон</string>
-    <string name="sound_device_speaker">Динамик</string>
-    <string name="sound_device_headset">Гарнитура</string>
-    <string name="sound_device_wireless_headset">Беспроводная гарнитура</string>
     <string name="login_error_ssl_peer_unverified">Ошибка SSL: не удалось идентифицировать другого абонента.</string>
     <string name="login_error_ssl_other">Ошибка SSL.</string>
     <string name="room_participants_action_cancel_invite">Отменить приглашение</string>
@@ -1384,7 +1334,6 @@
 \nВы также можете настроить безопасное резервное копирование и управлять своими ключами в настройках.</string>
     <string name="encryption_enabled_tile_description">Сообщения в этой комнате зашифрованы сквозным шифрованием. Посмотрите подробности и подтвердите пользователей в их профиле.</string>
     <string name="settings_notification_configuration">Параметры уведомлений</string>
-    <string name="settings_messages_at_room">Сообщения, содержащие @room</string>
     <string name="settings_troubleshoot_title">Отладка</string>
     <string name="use_other_session_content_description">Используйте последнюю версию ${app_name} на других ваших устройствах, веб-клиент ${app_name}, ${app_name} для ПК, ${app_name} для iOS, ${app_name} для Android или другой клиент Matrix, поддерживающий перекрестную подпись</string>
     <string name="use_latest_app">Используйте последнюю версию ${app_name} на других ваших устройствах:</string>
@@ -1409,15 +1358,12 @@
     <string name="qr_code_scanned_by_other_no">Нет</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Активирован режим \"В самолёте\"</string>
     <string name="enter_secret_storage_invalid">Не удалось найти данные в хранилище</string>
-    <string name="share_confirm_room">Вы хотите отправить это вложение в %1$s\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Отправить изображение в оригинальном размере</item>
         <item quantity="few">Отправить изображения в оригинальном размере</item>
         <item quantity="many">Отправить изображения в оригинальном размере</item>
     </plurals>
-    <string name="delete_event_dialog_reason_checkbox">Укажите причину</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Ключи успешно обновлены!</string>
-    <string name="login_default_session_public_name">${app_name} для Android</string>
     <string name="refresh">Обновить</string>
     <string name="new_session">Новый вход в вашу учётную запись. Это были Вы\?</string>
     <string name="verify_new_session_was_not_me">Это был не я</string>
@@ -1527,11 +1473,6 @@
     <string name="identity_server_set_alternative_notice_no_default">Введите URL-адрес сервера идентификации</string>
     <string name="identity_server_set_alternative_submit">Отправить</string>
     <string name="power_level_title">Роль</string>
-    <string name="a11y_open_chat">Открыть чат</string>
-    <string name="a11y_mute_microphone">Заглушить микрофон</string>
-    <string name="a11y_unmute_microphone">Включить звук микрофона</string>
-    <string name="a11y_stop_camera">Отключить камеру</string>
-    <string name="a11y_start_camera">Включить камеру</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">Защитите себя от потери доступа к зашифрованным сообщениям и данным, создав резервные копии ключей шифрования на вашем сервере.</string>
     <string name="bottom_sheet_setup_secure_backup_submit">Настроить</string>
     <string name="bottom_sheet_setup_secure_backup_security_key_title">Используйте ключ безопасности</string>
@@ -1576,10 +1517,6 @@
     <string name="auth_pin_reset_content">Чтобы сбросить свой PIN-код, вам нужно будет повторно войти в аккаунт и создать новый PIN-код.</string>
     <string name="settings_security_pin_code_title">Включить PIN-код</string>
     <string name="settings_security_pin_code_summary">Для сброса PIN-кода нажмите Забыл(а) PIN-код, чтобы выйти из сессии и сбросить его.</string>
-    <string name="video_meeting">Начать видеовстречу</string>
-    <string name="audio_meeting">Начать аудиовстречу</string>
-    <string name="audio_video_meeting_description">На встречах используются политики безопасности и разрешения Jitsi. Все люди, находящиеся в данный момент в комнате, увидят приглашение присоединиться во время вашей встречи.</string>
-    <string name="failed_to_add_widget">Не удалось добавить виджет</string>
     <string name="failed_to_remove_widget">Не удалось удалить виджет</string>
     <plurals name="encryption_import_room_keys_success">
         <item quantity="one">%1$d/%2$d ключ успешно импортирован.</item>
@@ -1698,19 +1635,12 @@
     <string name="settings_discovery_consent_notice_on">Вы дали свое согласие на отправку адресов электронных почт и телефонных номеров на этот сервер идентификации для обнаружения других пользователей из ваших контактов.</string>
     <string name="add_by_qr_code">Добавить по QR-коду</string>
     <string name="permissions_denied_add_contact">Разрешить доступ к вашим контактам.</string>
-    <string name="permissions_denied_qr_code">Чтобы отсканировать QR-код, вам нужно разрешить доступ к камере.</string>
     <string name="qr_code_not_scanned">QR-код не отсканирован!</string>
-    <string name="invalid_qr_code_uri">Недействительный QR-код (недопустимый URI)!</string>
-    <string name="cannot_dm_self">Нельзя отправлять сообщения самому себе!</string>
     <string name="share_by_text">Поделиться по тексту</string>
     <string name="phone_book_perform_lookup">Поиск контактов в Matrix</string>
     <string name="room_settings_set_avatar">Установить аватар</string>
     <string name="identity_server_user_consent_not_provided">Согласие пользователя не предоставлено.</string>
-    <string name="user_code_info_text">Поделитесь этим кодом с людьми, чтобы они могли отсканировать его, добавить вас и начать общение.</string>
     <string name="user_code_my_code">Мой код</string>
-    <string name="user_code_share">Поделиться моим кодом</string>
-    <string name="user_code_scan">Сканировать QR-код</string>
-    <string name="not_a_valid_qr_code">Это недействительный QR-код matrix</string>
     <string name="invite_friends_rich_title">🔐️ Присоединяйтесь ко мне в ${app_name}</string>
     <string name="invite_friends_text">Привет, поговори со мной в ${app_name}: %s</string>
     <string name="invite_friends">Пригласить друзей</string>
@@ -1735,8 +1665,6 @@
     <string name="direct_room_user_list_suggestions_title">Предложения</string>
     <string name="direct_room_user_list_known_title">Известные пользователи</string>
     <string name="qr_code">QR-код</string>
-    <string name="send_bug_report_include_key_share_history">Отправить историю запросов на обмен ключами</string>
-    <string name="start_chatting">Начать беседу</string>
     <string name="room_created_summary_no_topic_creation_text">%s чтобы люди знали, о чём эта комната.</string>
     <string name="this_is_the_beginning_of_dm">Это начало вашей переписки с %s.</string>
     <string name="settings_export_trail">Экспорт аудита</string>
@@ -1772,10 +1700,6 @@
     <string name="room_settings_room_read_history_dialog_subtitle">Изменение того, кто может читать историю, будет применяться только к будущим сообщениям в этой комнате. Видимость существующей истории не изменится.</string>
     <string name="action_unpublish">Отменить публикацию</string>
     <string name="action_add">Добавить</string>
-    <string name="default_message_emote_snow">отправляет снегопад ❄️</string>
-    <string name="default_message_emote_confetti">отправляет конфетти 🎉</string>
-    <string name="command_snow">Отправляет данное сообщение со снегопадом</string>
-    <string name="command_confetti">Отправляет данное сообщение с конфетти</string>
     <string name="login_clear_homeserver_history">Очистить историю</string>
     <string name="login_social_sso">Единая точка входа</string>
     <string name="login_social_signup_with">Зарегистрироваться через %s</string>
@@ -1784,8 +1708,6 @@
     <string name="login_social_continue">Или</string>
     <string name="settings_show_emoji_keyboard_summary">Добавить кнопку в редактор сообщений, чтобы открыть клавиатуру эмодзи</string>
     <string name="settings_show_emoji_keyboard">Показать клавиатуру эмодзи</string>
-    <string name="settings_chat_effects_description">Используйте команду /confetti или отправьте сообщение, содержащее ❄️ или 🎉</string>
-    <string name="settings_chat_effects_title">Эффекты</string>
     <string name="room_permissions_change_topic">Изменить тему</string>
     <string name="room_permissions_upgrade_the_room">Обновить комнату</string>
     <string name="room_permissions_send_m_room_server_acl_events">Отправить событие m.room.server_acl</string>
@@ -1809,7 +1731,6 @@
     <string name="room_permissions_title">Разрешения</string>
     <string name="room_settings_permissions_title">Разрешения комнаты</string>
     <string name="room_participants_leave_private_warning">Эта комната не публичная. Вы не сможете повторно присоединиться без приглашения.</string>
-    <string name="system_theme">Системная тема</string>
     <string name="authentication_error">Не удалось пройти аутентификацию</string>
     <string name="re_authentication_default_confirm_text">${app_name} требует от вас ввести свои учетные данные для выполнения этого действия.</string>
     <string name="re_authentication_activity_title">Требуется повторная аутентификация</string>
@@ -1819,7 +1740,6 @@
     <string name="event_status_delete_all_failed_dialog_message">Вы уверены, что хотите удалить все неотправленные сообщения в этой комнате\?</string>
     <string name="event_status_delete_all_failed_dialog_title">Удалить неотправленные сообщения</string>
     <string name="event_status_failed_messages_warning">Сообщения не удалось отправить</string>
-    <string name="event_status_cancel_sending_dialog_message">Вы хотите отменить отправку сообщения\?</string>
     <string name="event_status_a11y_delete_all">Удалить все неудачные сообщения</string>
     <string name="event_status_a11y_failed">Не удалось</string>
     <string name="event_status_a11y_sent">Отправлено</string>
@@ -1827,7 +1747,6 @@
     <string name="dev_tools_event_content_hint">Содержание события</string>
     <string name="dev_tools_success_state_event">Событие статуса отправлено!</string>
     <string name="dev_tools_success_event">Событие отправлено!</string>
-    <string name="dev_tools_error_malformed_event">Некорректное событие</string>
     <string name="dev_tools_error_no_message_type">Отсутствует тип сообщения</string>
     <string name="dev_tools_error_no_content">Нет содержания</string>
     <string name="dev_tools_form_hint_event_content">Содержание события</string>
@@ -1860,7 +1779,6 @@
     <string name="a11y_image">Изображение</string>
     <string name="a11y_import_key_from_file">Импорт ключа из файла</string>
     <string name="a11y_open_widget">Открытые виджеты</string>
-    <string name="a11y_screenshot">Снимок экрана</string>
     <plurals name="entries">
         <item quantity="one">%d запись</item>
         <item quantity="few">%d записи</item>
@@ -1878,13 +1796,10 @@
     <string name="settings_room_directory_show_all_rooms">Комнаты с непристойным содержанием</string>
     <string name="settings_category_room_directory">Каталог комнат</string>
     <string name="dialog_edit_hint">Новое значение</string>
-    <string name="action_switch">Сменить</string>
     <string name="initial_sync_start_downloading">Начальная синхронизация:
 \nЗагрузка данных…</string>
     <string name="initial_sync_start_server_computing">Начальная синхронизация:
 \nОжидание ответа сервера…</string>
-    <string name="event_status_sent_message">Сообщение отправлено</string>
-    <string name="send_feedback_space_title">Отзыв о пространствах</string>
     <string name="space_settings_alias_title">Адреса пространства</string>
     <string name="error_failed_to_join_room">Извините, при попытке присоединиться произошла ошибка: %s</string>
     <string name="room_upgrade_to_recommended_version">Обновить до рекомендованной версии комнаты</string>
@@ -1957,23 +1872,8 @@
     <string name="create_spaces_room_public_header">Какие обсуждения вы хотите провести в %s\?</string>
     <string name="create_space_error_empty_field_space_name">Дайте ему название, чтобы продолжить.</string>
     <string name="create_spaces_details_private_header">Добавьте некоторые детали, чтобы помочь людям распознать его. Вы сможете изменить их в любой момент.</string>
-    <string name="create_spaces_details_public_header">Добавьте некоторые детали, чтобы помочь ему выделиться. Вы сможете изменить их в любой момент.</string>
     <string name="activity_create_space_title">Создание пространства</string>
-    <string name="space_type_private_desc">Только по приглашениям, лучше для себя или команды</string>
     <string name="space_type_private">Приватное</string>
-    <string name="space_type_public_desc">Открыто для всех, лучше всего подходит для сообществ</string>
-    <string name="space_type_public">Публичное</string>
-    <string name="create_spaces_private_teammates">Приватное пространство для вас и членов команды</string>
-    <string name="create_spaces_organise_rooms">Приватное пространство для организации ваших комнат</string>
-    <string name="create_spaces_me_and_teammates">Я и члены команды</string>
-    <string name="create_spaces_just_me">Только я</string>
-    <string name="create_spaces_make_sure_access">Убедитесь, что нужные люди имеют доступ к %s.</string>
-    <string name="create_spaces_who_are_you_working_with">С кем вы работаете\?</string>
-    <string name="create_spaces_join_info_help">Чтобы присоединиться к существующему пространству, вам необходимо получить приглашение.</string>
-    <string name="create_spaces_you_can_change_later">Вы сможете изменить это позже</string>
-    <string name="create_spaces_choose_type_label">Какой тип пространства вы хотите создать\?</string>
-    <string name="your_private_space">Ваше приватное пространство</string>
-    <string name="your_public_space">Ваше публичное пространство</string>
     <string name="add_space">Добавить пространство</string>
     <string name="private_space">Приватное пространство</string>
     <string name="public_space">Публичное пространство</string>
@@ -1989,7 +1889,6 @@
         <item quantity="many">Отправить видео в исходном размере</item>
         <item quantity="other">Отправить видео в исходном размере</item>
     </plurals>
-    <string name="send_images_and_video_with_original_size">Отправить медиафайлы в исходном размере</string>
     <string name="settings_server_room_version_unstable">нестабильная</string>
     <string name="settings_server_room_version_stable">стабильная</string>
     <string name="settings_server_default_room_version">Версия по умолчанию</string>
@@ -2003,10 +1902,6 @@
     <string name="send_file_step_compressing_video">Сжатие видео %d%%</string>
     <string name="send_file_step_compressing_image">Сжатие изображения…</string>
     <string name="give_feedback">Оставить отзыв</string>
-    <string name="feedback_failed">Не удалось отправить отзыв (%s)</string>
-    <string name="you_may_contact_me">Вы можете связаться со мной, если у вас есть дополнительные вопросы</string>
-    <string name="send_feedback_space_info">Вы используете бета-версию пространств. Ваши отзывы помогут при разработке следующих версий. Ваша платформа и имя пользователя будут отмечены, чтобы мы могли максимально использовать ваш отзыв.</string>
-    <string name="feedback">Отзыв</string>
     <string name="directory_add_a_new_server_error_already_added">Этот сервер уже присутствует в списке</string>
     <string name="directory_add_a_new_server_error">Не удается найти этот сервер или список его комнат</string>
     <string name="directory_add_a_new_server_prompt">Введите имя нового сервера, который вы хотите исследовать.</string>
@@ -2064,8 +1959,6 @@
     <string name="settings_group_messages">Групповых сообщениях</string>
     <string name="settings_encrypted_direct_messages">Зашифрованных диалогах</string>
     <string name="settings_messages_direct_messages">Диалогах</string>
-    <string name="settings_messages_containing_username">Мой псевдоним</string>
-    <string name="settings_messages_containing_display_name">Моё отображаемое имя</string>
     <string name="settings_notification_notify_me_for">Уведомлять меня о</string>
     <string name="settings_notification_other">Другое</string>
     <string name="settings_notification_mentions_and_keywords">Упоминания и ключевые слова</string>
@@ -2145,7 +2038,6 @@
     <string name="a11y_presence_online">В сети</string>
     <string name="tooltip_attachment_location">Поделиться местоположением</string>
     <string name="tooltip_attachment_poll">Создать опрос</string>
-    <string name="tooltip_attachment_contact">Открыть контакты</string>
     <string name="tooltip_attachment_sticker">Отправить наклейку</string>
     <string name="tooltip_attachment_file">Загрузить файл</string>
     <string name="tooltip_attachment_gallery">Отправить изображения и видео</string>
@@ -2210,10 +2102,7 @@
     <string name="attachment_type_poll">Опрос</string>
     <string name="create_poll_title">Создать опрос</string>
     <string name="restart_the_application_to_apply_changes">Перезапустите приложение, чтобы изменения вступили в силу.</string>
-    <string name="labs_auto_report_uisi_desc">Ваша система будет автоматически отправлять журналы при возникновении ошибки невозможности расшифровки</string>
-    <string name="labs_auto_report_uisi">Автоматически сообщать об ошибках расшифровки.</string>
     <string name="encryption_misconfigured">Шифрование неправильно настроено</string>
-    <string name="room_member_override_nick_color">Изменить цвет имени</string>
     <string name="room_profile_section_restore_security">Восстановить шифрование</string>
     <string name="contact_admin_to_restore_encryption">Обратитесь к администратору, чтобы восстановить шифрование до рабочего состояния.</string>
     <string name="encryption_has_been_misconfigured">Шифрование настроено неправильно.</string>
@@ -2242,14 +2131,6 @@
     <string name="legals_identity_server_title">Политика сервера обнаружения</string>
     <string name="legals_home_server_title">Политика домашнего сервера</string>
     <string name="legals_application_title">Политика ${app_name}</string>
-    <string name="analytics_opt_in_list_item_3">Вы можете отключить это в любое время в настройках</string>
-    <string name="analytics_opt_in_list_item_2">Мы <b>не</b> передаем информацию третьим лицам</string>
-    <string name="analytics_opt_in_list_item_1">Мы <b>не</b> записываем и <b>не</b> профилируем любые данные учетной записи</string>
-    <string name="analytics_opt_in_content_link">тут</string>
-    <string name="analytics_opt_in_content">Помогите нам выявить проблемы и улучшить ${app_name}, поделившись анонимными данными об использовании. Чтобы понять, как люди используют несколько устройств, мы сгенерируем случайный идентификатор, общий для всех ваших устройств.
-\n
-\nВы можете ознакомиться со всеми нашими условиями %s.</string>
-    <string name="analytics_opt_in_title">Помогите улучшить ${app_name}</string>
     <string name="shortcut_disabled_reason_sign_out">Сеанс завершён!</string>
     <string name="shortcut_disabled_reason_room_left">Комната покинута!</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">Шифрование неправильно настроено, поэтому вы не можете отправлять сообщения. Нажмите, чтобы открыть настройки.</string>
@@ -2257,7 +2138,6 @@
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Выберите домашний сервер</string>
     <string name="login_error_homeserver_from_url_not_found">Не могу связаться с домашним сервером на URL %s. Пожалуйста, проверьте вашу ссылку или выберите домашний сервер вручную.</string>
     <string name="action_not_now">Не сейчас</string>
-    <string name="action_enable">Включить</string>
     <string name="notification_listening_for_notifications">Ожидание уведомлений</string>
     <string name="room_error_access_unauthorized">Вам не разрешено подключаться к этой комнате</string>
     <string name="thread_list_empty_title">Организуйте обсуждения с помощью обсуждений</string>
@@ -2265,7 +2145,6 @@
     <string name="thread_list_modal_all_threads_title">Все обсуждения</string>
     <string name="action_view_threads">Посмотреть обсуждения</string>
     <string name="action_thread_view_in_room">Посмотреть в комнате</string>
-    <string name="message_bubbles">Сообщения в пузырях</string>
     <string name="location_timeline_failed_to_load_map">Не удалось загрузить карту</string>
     <string name="a11y_static_map_image">Карта</string>
     <string name="ftue_auth_use_case_connect_to_server">Подключиться к серверу</string>
@@ -2281,7 +2160,6 @@
     <string name="view_in_room">Просмотр в Комнате</string>
     <string name="reply_in_thread">Обсудить</string>
     <string name="command_not_supported_in_threads">Команда «%s» распознаётся, но не поддерживается в обсуждениях.</string>
-    <string name="search_thread_from_a_thread">Из обсуждения</string>
     <string name="thread_list_empty_notice">Совет: нажмите и удерживайте сообщение и используйте «%s».</string>
     <string name="thread_list_empty_subtitle">Обсуждения помогают поддерживать и легко отслеживать тематику бесед.</string>
     <string name="thread_list_modal_my_threads_title">Мои обсуждения</string>
@@ -2318,9 +2196,6 @@
     <string name="ftue_account_created_congratulations_title">Поздравляем!</string>
     <string name="ftue_account_created_take_me_home">Домой</string>
     <string name="ftue_account_created_personalize">Персонализировать</string>
-    <string name="beta">БЕТА</string>
-    <string name="send_feedback_threads_title">Отзыв на бета-версию Обсуждений</string>
-    <string name="give_feedback_threads">Оставить отзыв</string>
     <string name="beta_title_bottom_sheet_action">БЕТА</string>
     <string name="settings_presence_user_always_appears_offline_summary">Если включено, для других вы всегда будете выглядеть, как в офлайне, даже при использовании приложения.</string>
     <string name="settings_presence_user_always_appears_offline">Офлайн-режим</string>
@@ -2329,9 +2204,6 @@
     <string name="threads_notice_migration_title">Обсуждения почти в бете 🎉</string>
     <string name="action_learn_more">Узнать больше</string>
     <string name="action_try_it_out">Попробуйте</string>
-    <string name="action_disable">Отключить</string>
-    <string name="initial_sync_request_reason_unignored_users">- Несколько пользователей больше не игнорируются</string>
-    <string name="initial_sync_request_title">Начальный запрос на синхронизацию</string>
     <string name="threads_beta_enable_notice_message">Обсуждения помогают поддерживать и легко отслеживать тематику бесед.%sВключение обсуждений обновит приложение. Может занять продолжительное время.</string>
     <string name="live_location_sharing_notification_description">Идёт отправка местоположения</string>
     <string name="location_share_live_remaining_time">Осталось %1$s</string>
@@ -2345,15 +2217,10 @@
     <string name="location_share_live_started">Загрузка трансляции местоположения…</string>
     <string name="location_share_live_select_duration_title">Поделиться трансляцией местоположения на</string>
     <string name="a11y_location_share_option_user_live_icon">Трансляцией местоположения</string>
-    <string name="sent_live_location">Поделился(лась) трансляцией местоположения</string>
     <string name="location_share_option_user_live">Трансляцией местоположения</string>
     <string name="space_explore_filter_no_result_description">Некоторые результаты могут быть скрыты, поскольку они являются приватными и для их просмотра необходимо приглашение.</string>
     <string name="time_unit_minute_short">мин</string>
     <string name="time_unit_hour_short">ч</string>
-    <string name="initial_sync_request_content">${app_name} нуждается в очистке кэша для обновления по следующей причине:
-\n%s
-\n
-\nОбратите внимание, что это действие приведёт к перезапуску приложения и может занять некоторое время.</string>
     <string name="labs_enable_live_location_summary">Временная реализация: местоположения сохраняются в истории комнат</string>
     <string name="location_share_live_stop">Остановить</string>
     <string name="location_share_live_select_duration_option_3">8 часов</string>
@@ -2378,7 +2245,6 @@
     <string name="settings_autoplay_animated_images_summary">Воспроизводить анимированные изображения, как только они попадают в поле зрения</string>
     <string name="settings_autoplay_animated_images_title">Анимированные изображения</string>
     <string name="time_unit_second_short">сек</string>
-    <string name="send_feedback_threads_info">Обсуждения — это незавершенная работа с новыми интересными функциями, такими как улучшенные уведомления. Мы будем рады услышать ваши отзывы!</string>
     <string name="threads_labs_enable_notice_message">Ваш домашний сервер в настоящее время не поддерживает обсуждения, поэтому эта функция может быть ненадёжной. Некоторые сообщения из обсуждений могут быть недоступны. %sВы хотите включить обсуждения в любом случае\?</string>
     <string name="threads_notice_migration_message">Мы приближаемся к выпуску публичной бета-версии Обсуждений.
 \n
@@ -2430,7 +2296,6 @@
     <string name="settings_troubleshoot_test_current_endpoint_title">Конечная точка</string>
     <string name="space_leave_radio_buttons_title">Вещи в этом пространстве</string>
     <string name="live_location_share_location_item_share">Поделиться местоположением</string>
-    <string name="labs_enable_msc3061_share_history">MSC3061: Предоставление ключей от прошлых сообщений</string>
     <string name="create_room_action_go">Вперёд</string>
     <string name="ftue_auth_new_password_subtitle">Убедитесь, что он состоит из 8 или более символов.</string>
     <string name="font_size_section_manually">Выбрать вручную</string>
@@ -2477,7 +2342,6 @@
     <string name="ftue_auth_create_account_sso_section_header">Или</string>
     <string name="ftue_auth_create_account_title">Создайте учётную запись</string>
     <string name="search_space_two_parents">%1$s и %2$s</string>
-    <string name="a11y_open_settings">Открыть настройки</string>
     <string name="location_share_loading_map_error">Не удалось загрузить карту
 \nВозможно, этот домашний сервер не настроен для отображения карт.</string>
     <string name="all_chats">Все беседы</string>
@@ -2512,7 +2376,6 @@
     <string name="device_manager_inactive_sessions_title">Неактивные сеансы</string>
     <string name="home_empty_no_rooms_title">Добро пожаловать в ${app_name},
 \n%s.</string>
-    <string name="onboarding_new_app_layout_feedback_title">Оставить отзыв</string>
     <string name="device_manager_session_details_session_name">Название сеанса</string>
     <string name="device_manager_filter_option_inactive">Неактивные</string>
     <string name="device_manager_session_details_device_ip_address">IP-адрес</string>
@@ -2536,10 +2399,8 @@
     <string name="home_empty_no_unreads_message">Здесь будут отображаться непрочитанные сообщения, когда таковые будут.</string>
     <string name="font_size_use_system">Как в системе</string>
     <string name="labs_enable_new_app_layout_summary">Упрощённый Element с дополнительными вкладками</string>
-    <string name="onboarding_new_app_layout_welcome_title">Добро пожаловать в новый вид!</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nвыглядит слегка пустовато.</string>
-    <string name="onboarding_new_app_layout_button_try">Попробовать</string>
     <string name="device_manager_session_details_description">Информация о приложении, устройстве и активности.</string>
     <string name="device_manager_verification_status_detail_current_session_unverified">Заверьте текущий сеанс для усиления защиты переписки.</string>
     <string name="space_list_empty_title">Пока нет пространств.</string>
@@ -2585,7 +2446,6 @@
     <string name="device_manager_learn_more_session_rename">Другие пользователи в личных сообщениях и комнатах, к которым вы присоединились, могут просматривать весь перечень ваших сеансов.
 \n
 \nЭто даёт им уверенность в том, что они действительно общаются с вами, но это также означает, что они могут видеть название сеанса, которое вы ввели здесь.</string>
-    <string name="labs_enable_rich_text_editor_title">Наглядный текстовый редактор</string>
     <string name="push_gateway_item_device_id">ID сеанса:</string>
     <string name="device_manager_push_notifications_title">Уведомления</string>
     <string name="device_manager_push_notifications_description">Получать push-уведомления в этой сессии.</string>
@@ -2604,22 +2464,17 @@
         <item quantity="other">Рассмотрите возможность выхода из старых сеансов (%1$d дней или дольше), которые вы более не используете.</item>
     </plurals>
     <string name="poll_undisclosed_not_ended">Результаты будут видны после завершения опроса</string>
-    <string name="onboarding_new_app_layout_spaces_message">Доступ к пространствам (внизу справа) быстрее и проще, чем когда-либо прежде.</string>
-    <string name="onboarding_new_app_layout_spaces_title">Доступ к пространствам</string>
     <plurals name="device_manager_inactive_sessions_description">
         <item quantity="one">Рассмотрите возможность выхода из старых сеансов (%1$d день или дольше), которые вы более не используете.</item>
         <item quantity="few">Рассмотрите возможность выхода из старых сеансов (%1$d дня или дольше), которые вы более не используете.</item>
         <item quantity="many">Рассмотрите возможность выхода из старых сеансов (%1$d дней или дольше), которые вы более не используете.</item>
         <item quantity="other">Рассмотрите возможность выхода из старых сеансов (%1$d дней или дольше), которые вы более не используете.</item>
     </plurals>
-    <string name="attachment_type_voice_broadcast">Голосовая трансляция</string>
-    <string name="labs_enable_voice_broadcast_title">Включить голосовые трансляции</string>
     <string name="labs_enable_client_info_recording_summary">Записывает название клиента, версию и URL-адрес для более лёгкого распознавания сеансов в менеджере сеансов.</string>
     <string name="labs_enable_client_info_recording_title">Записывать информацию о клиенте</string>
     <string name="attachment_type_selector_gallery">Галерея</string>
     <string name="attachment_type_selector_sticker">Наклейки</string>
     <string name="attachment_type_selector_file">Вложения</string>
-    <string name="attachment_type_selector_voice_broadcast">Голосовая трансляция</string>
     <string name="attachment_type_selector_poll">Опрос</string>
     <string name="attachment_type_selector_location">Местоположение</string>
     <string name="attachment_type_selector_camera">Камера</string>
@@ -2636,24 +2491,16 @@
 \nПожалуйста разрешите доступ при следующем всплывающем сообщении, чтобы иметь возможность видеть оповещения.</string>
     <string name="invites_empty_message">Здесь будут появляться новые запросы и приглашения.</string>
     <string name="invites_title">Приглашения</string>
-    <string name="labs_enable_rich_text_editor_summary">Попробуйте расширенный текстовый редактор (режим набора обычного текста скоро появится)</string>
     <string name="labs_enable_deferred_dm_summary">Создавать личные сообщения только при отправке первого сообщения</string>
     <string name="labs_enable_deferred_dm_title">Включить отложенные личные сообщения</string>
     <string name="action_deselect_all">Отменить выбор всего</string>
     <string name="action_select_all">Выбрать всё</string>
-    <string name="a11y_collapse_space_children">Свернуть дочерние элементы %s</string>
-    <string name="a11y_expand_space_children">Развернуть дочерние элементы %s</string>
     <plurals name="x_selected">
         <item quantity="one">Выбрано %1$d</item>
         <item quantity="few">Выбраны %1$d</item>
         <item quantity="many">Выбраны %1$d</item>
         <item quantity="other">Выбраны %1$d</item>
     </plurals>
-    <string name="rich_text_editor_full_screen_toggle">Войти в полноэкранный режим</string>
-    <string name="rich_text_editor_format_underline">Применить форматирование подчёркиванием</string>
-    <string name="rich_text_editor_format_strikethrough">Применить форматирование перечёркиванием</string>
-    <string name="rich_text_editor_format_italic">Применить форматирование курсивом</string>
-    <string name="rich_text_editor_format_bold">Применить форматирование жирным</string>
     <string name="qr_code_login_confirm_security_code_description">Пожалуйста удостоверьтесь в том, что вы знаете откуда этот код. При соединении устройств, вы даёте кому-то полный доступ к вашей учётной записи.</string>
     <string name="qr_code_login_confirm_security_code">Подтвердить</string>
     <string name="qr_code_login_try_again">Попробовать снова</string>
@@ -2691,11 +2538,8 @@
     <string name="three">3</string>
     <string name="two">2</string>
     <string name="one">1</string>
-    <string name="onboarding_new_app_layout_feedback_message">Нажмите слева сверху, чтобы увидеть опцию отзыва.</string>
-    <string name="onboarding_new_app_layout_welcome_message">Чтобы упростить ${app_name}, вкладки теперь опциональные. Управляйте ими при помощи меню справа сверху.</string>
     <string name="home_empty_no_rooms_message">Универсальное безопасное приложение для переписок с командами, друзьями и организациями. Создайте переписку или присоеденитесь к уже существующей, чтобы начать.</string>
     <string name="home_empty_space_no_rooms_message">Пространства — новый способ групировать комнаты и людей. Добавьте существующую комнату или создайте новую, используя кнопку слева снизу.</string>
-    <string name="labs_enable_voice_broadcast_summary">Возможность записывать и отправлять голосовые трансляции в ленту комнаты.</string>
     <string name="labs_enable_session_manager_summary">Получите лучший надзор и контроль над всеми вашими сессиями.</string>
     <string name="device_manager_learn_more_sessions_verified_description">Заверенные сеансы есть везде, где вы используете эту учётную запись после ввода своей мнемонической фразы или подтверждения своей личности с помощью другого заверенного сеанса.
 \n
@@ -2723,26 +2567,9 @@
     </plurals>
     <string name="device_manager_verification_status_detail_other_session_unknown">Подтвердите текущую сессию, чтобы посмотреть её состояние подтверждения.</string>
     <string name="device_manager_verification_status_unknown">Неизвестное состояние проверки</string>
-    <string name="labs_enable_element_call_permission_shortcuts_summary">Автоматически принимать виджеты Element Call и давать доступ к микрофону/камере</string>
-    <string name="labs_enable_element_call_permission_shortcuts">Включить ярлыки разрешений Element Call</string>
     <string name="attachment_type_selector_text_formatting">Форматирование текста</string>
-    <string name="tooltip_attachment_voice_broadcast">Начать новую голосовую трансляцию</string>
     <string name="live_location_not_enough_permission_dialog_description">Вам необходимо иметь нужные разрешения, чтобы делиться местоположением в реальном времени в этой комнате.</string>
     <string name="live_location_not_enough_permission_dialog_title">У вас нет разрешения делиться местоположением в реальном времени</string>
-    <string name="labs_enable_msc3061_share_history_desc">При приглашении кого-то в зашифрованную комнату, которая делится историей, зашифрованная история будет видимой.</string>
-    <string name="error_voice_broadcast_already_in_progress_message">Вы уже записываете голосовую трансляцию. Пожалуйста закончите текущую голосовую трансляцию, чтобы начать новую.</string>
-    <string name="error_voice_broadcast_blocked_by_someone_else_message">Кто-то другой уже записывает голосовую трансляцию. Подождите пока их голосовая трансляция закончится, чтобы начать новую.</string>
-    <string name="error_voice_broadcast_permission_denied_message">У вас нет необходимых разрешений для начала голосовой трансляции в этой комнате. Свяжитесь с администратором комнаты, чтобы получить разрешения.</string>
-    <string name="error_voice_broadcast_unauthorized_title">Не получилось начать новую голосовую трансляцию</string>
-    <string name="a11y_voice_broadcast_fast_forward">Перемотать вперёд на 30 секунд</string>
-    <string name="a11y_voice_broadcast_fast_backward">Перемотать назад на 30 секунд</string>
-    <string name="voice_broadcast_buffering">Буферизация…</string>
-    <string name="a11y_pause_voice_broadcast">Приостановить голосовую трансляцию</string>
-    <string name="a11y_play_voice_broadcast">Проиграть или продолжить голосовую трансляцию</string>
-    <string name="a11y_stop_voice_broadcast_record">Остановить запись голосовой трансляции</string>
-    <string name="a11y_pause_voice_broadcast_record">Приостановить запись голосовой трансляции</string>
-    <string name="a11y_resume_voice_broadcast_record">Продолжить запись голосовой трансляции</string>
-    <string name="voice_broadcast_live">Прямая трансляция</string>
     <string name="key_authenticity_not_guaranteed">Подлинность этого зашифрованного сообщения не может быть гарантирована на этом устройстве.</string>
     <string name="login_scan_qr_code">Сканировать QR-код</string>
     <string name="send_your_first_msg_to_invite">Отправьте ваше первое сообщение, чтобы пригласить %s в переписку</string>
@@ -2764,7 +2591,6 @@
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ В этой комнате есть неподтверждённые устройства, они не смогут расшифровывать сообщения, отправленные вами.</string>
     <string name="grant_permission">Дать разрешение</string>
     <string name="ftue_auth_create_account_username_entry_footer">Другие пользователи могут найти вас по %s</string>
-    <string name="voice_broadcast_recording_time_left">Осталось %1$s</string>
     <string name="message_reply_to_sender_created_poll">создал опрос.</string>
     <string name="message_reply_to_sender_sent_sticker">отправил наклейку.</string>
     <string name="message_reply_to_sender_sent_video">отправил видео.</string>
@@ -2775,9 +2601,6 @@
     <string name="message_reply_to_prefix">В ответ на</string>
     <string name="device_manager_other_sessions_hide_ip_address">Скрыть IP-адрес</string>
     <string name="device_manager_other_sessions_show_ip_address">Показать IP-адрес</string>
-    <string name="quoting">Цитируя</string>
-    <string name="replying_to">В ответ на %s</string>
-    <string name="editing">Редактирование</string>
     <string name="settings_enable_direct_share_summary">Показывать последние беседы в системном меню распостранения</string>
     <string name="settings_enable_direct_share_title">Включить прямое распостранение</string>
     <string name="device_manager_signout_all_other_sessions">Выйти из всех других сеансов</string>
@@ -2820,9 +2643,6 @@
     <string name="set_link_create">Создать ссылку</string>
     <string name="set_link_link">Ссылка</string>
     <string name="set_link_text">Текст</string>
-    <string name="rich_text_editor_bullet_list">Список</string>
-    <string name="rich_text_editor_numbered_list">Пронумерованный список</string>
-    <string name="rich_text_editor_link">Ссылка</string>
     <string name="room_polls_loading_error">Ошибка считывания опросов.</string>
     <string name="room_polls_load_more">Загрузить больше опросов</string>
     <string name="room_polls_wait_for_display">Показываем опросы</string>
@@ -2832,19 +2652,10 @@
     <string name="room_polls_active">Активные опросы</string>
     <string name="unable_to_decrypt_some_events_in_poll">Из-за ошибок расшифровки, некоторые голоса могут быть не засчитаны</string>
     <string name="ended_poll_indicator">Опрос завершён.</string>
-    <string name="stop_voice_broadcast_content">Вы уверены что хотите завершить голосовую трансляцию\? Это завершит трансляцию и полная запись будет доступна в чате.</string>
-    <string name="stop_voice_broadcast_dialog_title">Завершить голосовую трансляцию\?</string>
-    <string name="error_voice_broadcast_no_connection_recording">Ошибка подключения - Запись приостановлена</string>
-    <string name="error_voice_broadcast_unable_to_play">Невозможно прослушать голосовую трансляцию.</string>
-    <string name="voice_broadcast_live_broadcast">Голосовая трансляция</string>
-    <string name="error_voice_message_broadcast_in_progress_message">Вы не можете записать голосовое сообщение, потому-что Вы записываете голосовую трансляцию. Завершите голосовую трансляцию, чтобы записать голосовое сообщение</string>
-    <string name="error_voice_message_broadcast_in_progress">Не удалось записать голосовое сообщение</string>
     <string name="review_unverified_sessions_description">Убедиться что Ваш аккаунт в безопасности</string>
     <string name="settings_nightly_build_update">Получить последнюю сборку (у вас могут быть проблемы со входом)</string>
     <string name="room_profile_section_more_polls">Опросы</string>
-    <string name="started_a_voice_broadcast">Голосовая трансляция начата</string>
     <string name="thread_list_not_available">Ваш домашний сервер не поддерживает список обсуждений.</string>
-    <string name="action_stop">Остановить</string>
     <string name="sign_out_anyway">Всё равно выйти</string>
     <string name="action_proceed_to_reset">Подтвердить сброс</string>
     <string name="avatar_of_space">Аватар пространства %1$s</string>
@@ -2868,29 +2679,18 @@
     <string name="secure_backup_reset_all_no_other_devices_long">Сброс ваших ключей верификации не может быть отменен. После сброса, вы не будете иметь доступа к старым зашифрованным сообщениям, а все ваши контакты, верифицировавшие вас ранее, увидят предупреждение о повторной верификации.</string>
     <string name="encrypted_by_deleted">Зашифровано прерванным сеансом</string>
     <string name="confirm_your_identity_after_update">В последнем обновлении улучшили защищённую переписку. Пожалуйста, перезаверьте свой сеанс.</string>
-    <string name="error_voice_broadcast_unable_to_decrypt">Не удается расшифровать голосовое сообщение.</string>
     <string name="room_poll_details_go_to_timeline">Обзор опроса во времени</string>
     <string name="pill_message_from_unknown_user">Сообщение</string>
     <string name="verification_verify_with_another_device">Сверить с другим сеансом</string>
     <string name="_resume">Возобновить</string>
     <string name="notice_display_name_changed_to">%1$s изменил(а) имя на %2$s</string>
     <string name="verification_not_found">Запрос на верификацию не найден. Возможно, он был отменен или обработан другим сеансом.</string>
-    <string name="rich_text_editor_quote">Цитата</string>
     <string name="settings_crypto_version">Версия шифрования</string>
-    <string name="rich_text_editor_code_block">Блок кода</string>
-    <string name="rich_text_editor_indent">Подпункт</string>
-    <string name="rich_text_editor_unindent">Пункт</string>
     <string name="settings_acceptable_use_policy">Политика пользования</string>
     <string name="settings_external_account_management">Детали вашей учетной записи управляются отдельно на %1$s.</string>
-    <string name="rich_text_editor_inline_code">Применение формата встроенного кода</string>
     <string name="create_room_unknown_users_dialog_content">Не удалось найти профили для перечисленных ниже Matrix ID. Вы всё равно хотите их пригласить\?
 \n
 \n%s</string>
-    <string name="user_reported_as_inappropriate_title">Пользовователь на которого поступила жалоба</string>
-    <string name="user_reported_as_inappropriate_content">Жалоба на пользователя отправлена.
-\n
-\nЕсли вы больше не хотите видеть от этого пользователя ничего, вы можете его игнорировать его чтобы скрыть его сообщения.</string>
-    <string name="message_report_user">Пожаловаться на пользователя</string>
     <string name="login_splash_sign_in">Войти</string>
     <string name="invite_unknown_users_dialog_content">Не удалось найти профили для перечисленных ниже Matrix ID. Вы всё равно хотите их пригласить\?
 \n

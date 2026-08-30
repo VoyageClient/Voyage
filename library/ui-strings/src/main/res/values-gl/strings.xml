@@ -227,14 +227,12 @@
     <string name="action_send">Enviar</string>
     <string name="action_quote">Citar</string>
     <string name="action_share">Compartir</string>
-    <string name="later">Despois</string>
     <string name="permalink">Ligazón permanente</string>
     <string name="view_source">Ver a fonte</string>
     <string name="view_decrypted_source">Ver a fonte descifrada</string>
     <string name="action_delete">Borrar</string>
     <string name="action_rename">Renomear</string>
     <string name="notification_listening_for_events">A escoita de eventos</string>
-    <string name="report_content">Informar sobre contido</string>
 
     <string name="or">ou</string>
     <string name="action_invite">Convidar</string>
@@ -258,12 +256,6 @@
     <string name="rooms_header">Salas</string>
     <string name="title_activity_choose_sticker">Enviar unha icona</string>
     <string name="action_download">Descargar</string>
-    <string name="send_bug_report_include_logs">Enviar informes</string>
-    <string name="send_bug_report_include_crash_logs">Enviar informes de fallos</string>
-    <string name="send_bug_report_include_screenshot">Enviar captura de pantalla</string>
-    <string name="send_bug_report_description">Describa o fallo. Que é o que fixo? Que agardaba que pasase? Que foi o que pasou?</string>
-    <string name="send_bug_report_placeholder">Describa o problema aquí</string>
-    <string name="send_bug_report_logs_description">Coa finalidade de comprender os problemas, hanse de enviar os rexistros que xerou esta aplicación co informe de erros. Se só quixera que se enviase o texto de enriba, desmarque:</string>
     <string name="join_room">Unirse a sala</string>
     <string name="username">Nome de usuario</string>
     <string name="logout">Saír</string>
@@ -410,8 +402,6 @@
     <string name="notification_off">Off</string>
     <string name="notification_noisy">Ruidoso</string>
     <string name="encrypted_message">Mensaxe cifrada</string>
-    <string name="create">Crear</string>
-    <string name="group_details_home">Inicio</string>
     <string name="rooms">Salas</string>
     <string name="invited">Convidada</string>
     <string name="has_been_banned">Foi bloqueado de %1$s por %2$s</string>
@@ -469,8 +459,6 @@
     <string name="error_empty_field_your_password">Introduza o seu contrasinal.</string>
     <string name="title_activity_keys_backup_restore">Usar copia da Chave</string>
     <string name="title_activity_keys_backup_setup">Copia de apoio da chave</string>
-    <string name="system_theme">Por defecto no sistema</string>
-    <string name="start_chatting">Iniciar Chat</string>
     <string name="action_reset">Restablecer</string>
     <string name="action_dismiss">Desbotar</string>
     <string name="action_play">Reproducir</string>
@@ -489,5 +477,4 @@
 \nDescargando datos…</string>
     <string name="initial_sync_start_server_computing">Sincr. inicial:
 \nAgardando resposta do servidor…</string>
-    <string name="event_status_sent_message">Mensaxe enviada</string>
 </resources>

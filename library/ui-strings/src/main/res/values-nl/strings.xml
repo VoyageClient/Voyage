@@ -88,13 +88,11 @@
     <string name="action_send">Versturen</string>
     <string name="action_quote">Citeren</string>
     <string name="action_share">Delen</string>
-    <string name="later">Later</string>
     <string name="permalink">Permalink</string>
     <string name="view_source">Bron weergeven</string>
     <string name="view_decrypted_source">Ontsleutelde bron weergeven</string>
     <string name="action_delete">Verwijderen</string>
     <string name="action_rename">Hernoemen</string>
-    <string name="report_content">Inhoud melden</string>
     <string name="or">of</string>
     <string name="action_invite">Uitnodigen</string>
     <string name="action_sign_out">Afmelden</string>
@@ -115,12 +113,6 @@
     <string name="matrix_only_filter">Alleen Matrix-contacten</string>
     <string name="no_result_placeholder">Geen resultaten</string>
     <string name="rooms_header">Gesprekken</string>
-    <string name="send_bug_report_include_logs">Logboek versturen</string>
-    <string name="send_bug_report_include_crash_logs">Crash-logboek versturen</string>
-    <string name="send_bug_report_include_screenshot">Schermafdruk versturen</string>
-    <string name="send_bug_report_description">Beschrijf de fout. Wat heb je gedaan\? Wat verwachtte je dat er zou gebeuren\? Wat is er echt gebeurd\?</string>
-    <string name="send_bug_report_placeholder">Beschrijf hier jouw probleem</string>
-    <string name="send_bug_report_logs_description">Om het probleem te kunnen onderzoeken worden logboeken van deze cliënt met de foutmelding verstuurd. Deze foutmelding, inclusief de logboeken en schermafdruk, zullen niet openbaar zichtbaar zijn. Indien je liever alleen de bovenstaande tekst verstuurt, haal dan het vinkje weg:</string>
     <string name="join_room">Deelnemen aan kamer</string>
     <string name="username">Inlognaam</string>
     <string name="logout">Afmelden</string>
@@ -145,10 +137,6 @@
     <string name="compression_opt_list_medium">Medium</string>
     <string name="compression_opt_list_small">Klein</string>
     <string name="permissions_rationale_popup_title">Informatie</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} heeft toegang nodig tot je microfoon om spraakoproepen te maken.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} heeft toegang nodig tot je camera en microfoon om video-oproepen te maken.
-\n
-\nVerleen toegang op de volgende pop-ups om de oproep te maken.</string>
     <string name="yes">JA</string>
     <string name="no">NEE</string>
     <string name="_continue">Verdergaan</string>
@@ -318,8 +306,6 @@
     <string name="notification_silent_notifications">Stille meldingen</string>
     <string name="option_take_photo">Foto maken</string>
     <string name="option_take_video">Video maken</string>
-    <string name="settings_containing_my_display_name">Berichten die mijn weergavenaam bevatten</string>
-    <string name="settings_containing_my_user_name">Berichten die mijn inlognaam bevatten</string>
     <string name="settings_labs_native_camera">Systeemcamera gebruiken</string>
     <string name="you_added_a_new_device">Je hebt een nieuwe sessie ‘%s’ toegevoegd, die versleutelingssleutels aanvraagt.</string>
     <string name="your_unverified_device_requesting">Jouw ongeverifieerde sessie ‘%s’ vraagt versleutelingssleutels aan.</string>
@@ -357,8 +343,6 @@
         <item quantity="one">%d actieve widget</item>
         <item quantity="other">%d actieve widgets</item>
     </plurals>
-    <string name="create">Aanmaken</string>
-    <string name="group_details_home">Thuis</string>
     <string name="rooms">Gesprekken</string>
     <string name="invited">Uitgenodigd</string>
     <string name="has_been_banned">%2$s heeft je uit %1$s verbannen</string>
@@ -392,7 +376,6 @@
     <string name="option_send_voice">Spraakbericht versturen</string>
     <string name="error_no_external_application_found">Sorry, er is geen externe toepassing gevonden om deze actie te voltooien.</string>
     <string name="error_empty_field_your_password">Voer je wachtwoord in.</string>
-    <string name="send_bug_report_description_in_english">Beschrijf het probleem in het Engels, indien mogelijk.</string>
     <string name="settings_preview_media_before_sending">Media bekijken vóór het versturen</string>
     <string name="command_description_emote">Geeft activiteit weer</string>
     <string name="command_description_ban_user">Verbant persoon met gegeven ID</string>
@@ -405,8 +388,6 @@
     <string name="command_description_topic">Onderwerp van het gesprek instellen</string>
     <string name="command_description_nick">Wijzig je weergavenaam</string>
     <string name="command_description_markdown">Markdown aan/uit</string>
-    <string name="room_tombstone_versioned_description">Dit gesprek is vervangen en is niet langer actief.</string>
-    <string name="room_tombstone_continuation_link">Het gesprek wordt hier voortgezet</string>
     <string name="room_tombstone_continuation_description">Dit gesprek is een voortzetting van een ander gesprek</string>
     <string name="room_tombstone_predecessor_link">Klik hier om oudere berichten te zien</string>
     <string name="system_alerts_header">Systeemmeldingen</string>
@@ -746,7 +727,6 @@
     <string name="notice_room_canonical_alias_unset_by_you">U heeft het hoofdadres van deze kamer verwijderd.</string>
     <string name="notice_room_invite_with_reason_by_you">Je hebt %1$s uitgenodigd. Reden: %2$s</string>
     <string name="notice_room_invite_no_invitee_with_reason_by_you">Jouw uitnodiging. Reden: %1$s</string>
-    <string name="event_status_sent_message">Bericht verstuurd</string>
     <string name="initial_sync_start_downloading">Initiële synchronisatie:
 \nGegevens aan het downloaden…</string>
     <string name="initial_sync_start_server_computing">Initiële synchronisatie:
@@ -893,7 +873,6 @@
     <string name="set_a_security_phrase_hint">Beveiligingszin</string>
     <string name="bottom_sheet_setup_secure_backup_submit">Instellen</string>
     <string name="bottom_sheet_setup_secure_backup_title">Beveiligde backup</string>
-    <string name="a11y_open_chat">Chat openen</string>
     <string name="power_level_edit_title">Rol instellen</string>
     <string name="identity_server_set_default_submit">%1$s gebruiken</string>
     <string name="choose_locale_current_locale_title">Huidige taal</string>
@@ -950,7 +929,6 @@
     <string name="seen_by">Gezien door</string>
     <string name="login_signin_matrix_id_hint">Matrix-ID</string>
     <string name="login_error_outdated_homeserver_title">Verouderde server</string>
-    <string name="login_a11y_choose_matrix_org">Selecteer matrix.org</string>
     <string name="login_msisdn_confirm_send_again">Opnieuw versturen</string>
     <string name="login_msisdn_confirm_hint">Code invoeren</string>
     <string name="login_set_msisdn_mandatory_hint">Telefoonnummer</string>
@@ -971,13 +949,7 @@
     <string name="settings_server_room_version_stable">stabiel</string>
     <string name="room_list_quick_actions_notifications_all">Alle berichten</string>
     <string name="message_ignore_user">Persoon negeren</string>
-    <string name="content_reported_title">Inhoud gerapporteerd</string>
-    <string name="block_user">PERSOON NEGEREN</string>
-    <string name="report_content_custom">Aangepast rapport…</string>
-    <string name="report_content_inappropriate">Dit is ongepast</string>
-    <string name="report_content_spam">Dit is spam</string>
     <string name="one_user_read">Gelezen door %s</string>
-    <string name="send_attachment">Bijlage versturen</string>
     <string name="identity_server">Identiteitsserver</string>
     <string name="creating_direct_room">Kamer aanmaken…</string>
     <string name="room_filtering_filter_hint">Gesprekken filteren…</string>
@@ -985,7 +957,6 @@
     <string name="send_file_step_encrypting_file">Bestand versleutelen…</string>
     <string name="send_file_step_encrypting_thumbnail">Miniatuur versleutelen…</string>
     <string name="bottom_action_people_x">Directe Berichten</string>
-    <string name="feedback">Feedback</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Token registreren</string>
     <string name="settings_push_rules">Push-regels</string>
     <string name="secure_backup_banner_setup_line1">Beveiligde Backup</string>
@@ -1001,16 +972,13 @@
     <string name="room_participants_power_level_demote_warning_title">Jezelf degraderen\?</string>
     <string name="room_participants_action_cancel_invite">Uitnodiging annuleren</string>
     <string name="login_error_ssl_other">SSL-fout.</string>
-    <string name="sound_device_wireless_headset">Draadloze Koptelefoon</string>
     <string name="spaces_header">Spaces</string>
-    <string name="action_switch">Wisselen</string>
     <string name="upgrade">Opwaarderen</string>
     <string name="space_suggested">Aanbevolen</string>
     <string name="create_space_topic_hint">Beschrijving</string>
     <string name="create_spaces_default_public_random_room_name">Willekeurig</string>
     <string name="create_spaces_default_public_room_name">Algemeen</string>
     <string name="space_type_private">Privé</string>
-    <string name="space_type_public">Publiek</string>
     <string name="event_status_a11y_failed">Mislukt</string>
     <string name="event_status_a11y_sent">Verzonden</string>
     <string name="event_status_a11y_sending">Versturen</string>
@@ -1020,7 +988,6 @@
     <string name="a11y_selected">Geselecteerd</string>
     <string name="a11y_video">Video</string>
     <string name="a11y_image">Afbeelding</string>
-    <string name="a11y_screenshot">Schermafbeelding</string>
     <string name="room_settings_topic_hint">Onderwerp</string>
     <string name="power_level_title">Rol</string>
     <string name="topic_prefix">"Onderwerp: "</string>
@@ -1089,13 +1056,11 @@
     <string name="spoiler">Spoiler</string>
     <string name="room_list_quick_actions_settings">Instellingen</string>
     <string name="room_list_quick_actions_notifications_mute">Dempen</string>
-    <string name="report_content_custom_submit">RAPPORTEREN</string>
     <string name="uploads_files_title">BESTANDEN</string>
     <string name="uploads_media_title">MEDIA</string>
     <string name="attachment_type_sticker">Sticker</string>
     <string name="attachment_type_gallery">Galerij</string>
     <string name="attachment_type_camera">Camera</string>
-    <string name="attachment_type_contact">Contactpersoon</string>
     <string name="attachment_type_file">Bestand</string>
     <string name="edited_suffix">(bewerkt)</string>
     <string name="send_file_step_idle">Wachten…</string>
@@ -1109,19 +1074,14 @@
     <string name="settings_general_title">Algemeen</string>
     <string name="active_widget_view_action">BEKIJKEN</string>
     <string name="room_participants_power_level_demote">Degraderen</string>
-    <string name="sound_device_headset">Headset</string>
-    <string name="sound_device_speaker">Luidspreker</string>
-    <string name="sound_device_phone">Telefoon</string>
     <string name="bottom_action_notification">Meldingen</string>
     <string name="dialog_title_success">Succes</string>
     <string name="action_copy">Kopiëren</string>
     <string name="denied_permission_camera">Geef toestemming om de camera te gebruiken via de systeeminstellingen om deze actie uit te voeren.</string>
     <string name="denied_permission_generic">Sommige rechten ontbreken om deze actie uit te voeren, geeft toestemming via de systeeminstellingen.</string>
     <string name="spaces">Ruimten</string>
-    <string name="start_chatting">Begin met chatten</string>
     <string name="action_reset">Herstellen</string>
     <string name="action_dismiss">Afwijzen</string>
-    <string name="system_theme">Systeemstandaard</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">Je hebt eind-tot-eind-versleuteling ingeschakeld (onbekend algoritme %1$s).</string>
     <string name="notice_end_to_end_ok_by_you">Je hebt eind-tot-eind-versleuteling ingeschakeld.</string>
     <string name="notice_direct_room_guest_access_forbidden_by_you">Je hebt gasten de toegang tot het gesprek verhinderd.</string>
@@ -1166,14 +1126,12 @@
     <string name="room_participants_power_level_demote_warning_prompt">Je kan deze wijziging niet ongedaan maken omdat je jezelf degradeert, als je de laatste persoon met rechten bent in het gesprek zal het onmogelijk zijn om opnieuw rechten te krijgen.</string>
     <string name="room_participants_leave_private_warning">Deze kamer is niet publiek. Je kan niet opnieuw deelnemer worden zonder uitnodiging.</string>
     <string name="permissions_denied_add_contact">Toegang verlenen tot je contactpersonen.</string>
-    <string name="permissions_denied_qr_code">Om de QR-code te scannen moet je toegang verlenen tot de camera.</string>
     <string name="error_unauthorized">Niet geautoriseerd, geldige authenticatiegegevens ontbreken</string>
     <string name="login_error_ssl_peer_unverified">SSL-fout: de identiteit van de ander is niet bevestigd.</string>
     <string name="auth_msisdn_already_defined">Dit telefoonnummer is al gedefinieerd.</string>
     <string name="use_as_default_and_do_not_ask_again">Gebruik als standaard en niet opnieuw vragen</string>
     <string name="option_always_ask">Altijd vragen</string>
     <string name="hs_client_url">Server API URL</string>
-    <string name="send_bug_report_include_key_share_history">Sleutel deelverzoekgeschiedenis versturen</string>
     <string name="settings_room_directory_show_all_rooms_summary">Alle gesprekken in de lijst tonen, waaronder gesprekken met expliciete inhoud.</string>
     <string name="settings_room_directory_show_all_rooms">Gesprekken tonen met expliciete inhoud</string>
     <string name="settings_category_room_directory">Gesprekslijst</string>
@@ -1181,10 +1139,6 @@
     <string name="suggested_header">Aanbevolen Gesprekken</string>
     <string name="dialog_edit_hint">Nieuwe waarde</string>
     <string name="failed_to_remove_widget">Widget verwijderen mislukt</string>
-    <string name="failed_to_add_widget">Widget toevoegen mislukt</string>
-    <string name="audio_video_meeting_description">Vergaderingen gebruiken beveiligings- en toestemmingsbeleid van Jitsi. Alle huidige personen in het gesprek zullen een uitnodiging zien terwijl je vergadering bezig is.</string>
-    <string name="audio_meeting">Geluidsvergadering starten</string>
-    <string name="video_meeting">Videoconferentie starten</string>
     <string name="missing_permissions_title">Ontbrekende rechten</string>
     <string name="secure_backup_reset_all">Alles herstellen</string>
     <string name="direct_room_created_summary_item_by_you">Je bent toegetreden.</string>
@@ -1245,19 +1199,6 @@
     <string name="room_list_quick_actions_favorite_remove">Verwijder van favorieten</string>
     <string name="room_list_quick_actions_favorite_add">Toevoegen aan favorieten</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Alle belangrijke berichten</string>
-    <string name="content_reported_as_inappropriate_content">Deze inhoud is als ongepast gerapporteerd.
-\n
-\nAls je geen inhoud van deze persoon meer wilt zien, kan je deze negeren om hun berichten te verbergen.</string>
-    <string name="content_reported_as_inappropriate_title">Gemeld als ongepast</string>
-    <string name="content_reported_as_spam_content">Deze inhoud is gerapporteerd als spam.
-\n
-\nAls je geen inhoud van deze persoon meer wilt zien, kan je deze negeren om hun berichten te verbergen.</string>
-    <string name="content_reported_as_spam_title">Gerapporteerd als spam</string>
-    <string name="content_reported_content">Deze inhoud is gemeld.
-\n
-\nAls je geen inhoud van deze persoon meer wilt zien, kan je deze negeren om hun berichten te verbergen.</string>
-    <string name="report_content_custom_hint">Reden voor het rapporteren van deze inhoud</string>
-    <string name="report_content_custom_title">Deze inhoud rapporteren</string>
     <string name="uploads_files_no_result">Er zijn geen bestanden in deze kamer</string>
     <string name="uploads_files_subtitle">%1$s op %2$s</string>
     <string name="uploads_media_no_result">Er zijn geen media in deze kamer</string>
@@ -1318,7 +1259,6 @@
     <string name="other_spaces_or_rooms_you_might_not_know">Andere spaces of kamers die je misschien niet kent</string>
     <string name="space_you_know_that_contains_this_room">Space die je kent die deze kamer bevat</string>
     <string name="room_alias_local_address_subtitle">Stel adressen in voor deze kamer zodat personen deze kamer kunnen vinden via jouw server (%1$s)</string>
-    <string name="analytics_opt_in_list_item_3">Je kan dit op elk moment uitschakelen in de instellingen</string>
     <string name="settings_mentions_and_keywords_encryption_notice">Je krijgt geen meldingen voor vermeldingen en trefwoorden in versleutelde kamers op je mobiel.</string>
     <string name="error_threepid_auth_failed">Zorg ervoor dat je op de link hebt geklikt in de e-mail die we je hebben gestuurd.</string>
     <string name="settings_discovery_consent_notice_on">Je hebt toestemming gegeven om e-mails en telefoonnummers naar deze identiteitsserver te sturen om andere personen van je contacten te ontdekken.</string>
@@ -1360,13 +1300,6 @@
     <string name="settings_labs_show_complete_history_in_encrypted_room">Volledige geschiedenis in versleutelde kamers weergeven</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Verborgen gebeurtenissen op de tijdlijn weergeven</string>
     <string name="give_feedback">Geef feedback</string>
-    <string name="feedback_failed">De feedback kan niet worden verzonden (%s)</string>
-    <string name="you_may_contact_me">Je kan contact met mij opnemen als je vervolgvragen hebt</string>
-    <string name="send_feedback_space_info">Je gebruikt een bètaversie van spaces. Jouw feedback zal helpen bij het informeren van de volgende versies. Jouw platform en inlognaam worden genoteerd om ons te helpen jouw feedback zoveel mogelijk te gebruiken.</string>
-    <string name="send_feedback_space_title">Spaces feedback</string>
-    <string name="send_suggestion_failed">De suggestie kan niet worden verzonden (%s)</string>
-    <string name="send_suggestion_report_placeholder">Beschrijf hier jouw suggestie</string>
-    <string name="send_suggestion_content">Schrijf hieronder jouw suggestie.</string>
     <string name="preference_system_settings">Systeeminstellingen</string>
     <string name="preference_versions">Versies</string>
     <string name="preference_help_summary">Hulp bij het gebruik van ${app_name}</string>
@@ -1467,13 +1400,6 @@
     <string name="legals_third_party_notices">Bibliotheken van derden</string>
     <string name="legals_identity_server_title">Jouw identiteitsserverbeleid</string>
     <string name="legals_application_title">${app_name}-beleid</string>
-    <string name="analytics_opt_in_list_item_2">We delen <b>geen</b> informatie met derden</string>
-    <string name="analytics_opt_in_list_item_1">We registreren of profileren <b>geen</b> accountgegevens</string>
-    <string name="analytics_opt_in_content_link">hier</string>
-    <string name="analytics_opt_in_content">Help ons problemen te identificeren en ${app_name} te verbeteren door anonieme gebruiksgegevens te delen. Om inzicht te krijgen in hoe mensen meerdere apparaten gebruiken, genereren we een willekeurige identificatie die door jouw apparaten wordt gedeeld.
-\n
-\nJe kan al onze voorwaarden %s lezen.</string>
-    <string name="analytics_opt_in_title">Help ${app_name} verbeteren</string>
     <string name="reset_secure_backup_warning">Dit zal jouw huidige sleutel of zin vervangen.</string>
     <string name="reset_secure_backup_title">Genereer een nieuwe beveiligingssleutel of stel een nieuwe beveiligingszin in voor je bestaande back-up.</string>
     <string name="settings_secure_backup_section_info">Bescherm jezelf tegen verlies van toegang tot versleutelde berichten en gegevens door een back-up te maken van versleutelingssleutels op je server.</string>
@@ -1482,8 +1408,6 @@
     <string name="settings_secure_backup_setup">Beveiligde back-up instellen</string>
     <string name="settings_show_emoji_keyboard_summary">Voeg een knop toe aan de invoerveld om het emoji-toetsenbord te openen</string>
     <string name="settings_show_emoji_keyboard">Emoji-toetsenbord weergeven</string>
-    <string name="settings_chat_effects_description">Gebruik /confetti commando of stuur een bericht met ❄️ of 🎉</string>
-    <string name="settings_chat_effects_title">Chateffecten weergeven</string>
     <string name="settings_room_upgrades">Kamer upgrades</string>
     <string name="settings_messages_by_bot">Berichten door bot</string>
     <string name="settings_room_invitations">Kameruitnodigingen</string>
@@ -1491,9 +1415,6 @@
     <string name="settings_group_messages">Groepsberichten</string>
     <string name="settings_encrypted_direct_messages">Versleutelde directe berichten</string>
     <string name="settings_messages_direct_messages">Directe berichten</string>
-    <string name="settings_messages_containing_username">Mijn inlognaam</string>
-    <string name="settings_messages_containing_display_name">Mijn weergavenaam</string>
-    <string name="settings_messages_at_room">Berichten bevatten @room</string>
     <string name="settings_when_rooms_are_upgraded">Wanneer kamers worden opgewaardeerd</string>
     <string name="settings_messages_in_e2e_group_chat">Versleutelde berichten in groepsgesprekken</string>
     <string name="settings_messages_in_e2e_one_to_one">Versleutelde berichten in één-op-één gesprekken</string>
@@ -1549,12 +1470,10 @@
     <string name="room_settings_permissions_subtitle">Bekijk en update de rollen die nodig zijn om verschillende delen van de kamer te veranderen.</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Kies server</string>
     <string name="action_not_now">Niet nu</string>
-    <string name="action_enable">Inschakelen</string>
     <string name="notification_listening_for_notifications">Luisteren naar meldingen</string>
     <string name="room_error_access_unauthorized">Je mag niet toetreden tot deze kamer</string>
     <string name="dev_tools_success_state_event">Gebeurtenis status verzonden!</string>
     <string name="dev_tools_success_event">Gebeurtenis verzonden!</string>
-    <string name="dev_tools_error_malformed_event">Misvormde gebeurtenis</string>
     <string name="dev_tools_error_no_message_type">Ontbrekend berichttype</string>
     <string name="dev_tools_error_no_content">Geen content</string>
     <string name="dev_tools_form_hint_event_content">Event inhoud</string>
@@ -1596,8 +1515,6 @@
     <string name="warning_room_not_created_yet">De kamer is nog niet aangemaakt. Het aanmaken van een kamer annuleren\?</string>
     <string name="universal_link_malformed">De link was verkeerd ingedeeld</string>
     <string name="qr_code_not_scanned">QR-code niet gescand!</string>
-    <string name="invalid_qr_code_uri">Ongeldige QR-code (ongeldige URI)!</string>
-    <string name="cannot_dm_self">Je kan jezelf niet DM\'en!</string>
     <string name="share_by_text">Deel via tekst</string>
     <string name="room_error_not_found">Kan deze kamer niet vinden. Zorg ervoor dat het bestaat.</string>
     <string name="error_opening_banned_room">Je kan geen kamer openen waar je uit bent verbannen.</string>
@@ -1661,10 +1578,6 @@
     <string name="bottom_sheet_setup_secure_backup_security_key_subtitle">Genereer een beveiligingssleutel om ergens veilig op te slaan, zoals een wachtwoordbeheerder of een kluis.</string>
     <string name="bottom_sheet_setup_secure_backup_security_key_title">Een beveiligingssleutel gebruiken</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">Bescherm jezelf tegen verlies van toegang tot versleutelde berichten en gegevens door een back-up te maken van versleutelingssleutels op je server.</string>
-    <string name="a11y_start_camera">Start de camera</string>
-    <string name="a11y_stop_camera">Stop de camera</string>
-    <string name="a11y_unmute_microphone">Dempen van de microfoon opheffen</string>
-    <string name="a11y_mute_microphone">De microfoon dempen</string>
     <string name="identity_server_set_alternative_notice_no_default">Voer de URL van een identiteitsserver in</string>
     <string name="identity_server_set_alternative_notice">Je kan ook een andere identiteitsserver URL invoeren</string>
     <string name="identity_server_set_default_notice">Je server (%1$s) stelt voor om %2$s te gebruiken voor jouw identiteitsserver</string>
@@ -1680,16 +1593,12 @@
     <string name="open_terms_of">Open voorwaarden van %s</string>
     <string name="choose_locale_loading_locales">Beschikbare talen laden…</string>
     <string name="choose_locale_other_locales_title">Andere beschikbare talen</string>
-    <string name="user_code_info_text">Deel deze code met mensen zodat ze deze kunnen scannen om je toe te voegen en te beginnen met chatten.</string>
     <string name="user_code_my_code">Mijn code</string>
-    <string name="user_code_share">Mijn code delen</string>
-    <string name="user_code_scan">Een QR-code scannen</string>
     <string name="invite_users_to_room_failure">We kunnen geen personen uitnodigen. Controleer de personen die je wil uitnodigen en probeer het opnieuw.</string>
     <plurals name="invitations_sent_to_one_and_more_users">
         <item quantity="one">Uitnodigingen verzonden naar %1$s en nog één</item>
         <item quantity="other">Uitnodigingen verzonden naar %1$s en %2$d meer</item>
     </plurals>
-    <string name="not_a_valid_qr_code">Het is geen geldige matrix QR-code</string>
     <string name="invitations_sent_to_two_users">Uitnodigingen verzonden naar %1$s en %2$s</string>
     <string name="invitation_sent_to_one_user">Uitnodiging verzonden naar %1$s</string>
     <string name="invite_friends_rich_title">🔐️ Doe mee met ${app_name}</string>
@@ -1710,10 +1619,6 @@
     <string name="cross_signing_verify_by_text">Handmatig verifiëren via tekst</string>
     <string name="verify_this_session">Verifieer de nieuwe login voor toegang tot je account: %1$s</string>
     <string name="encrypted_unverified">Versleuteld door een niet-geverifieerd apparaat</string>
-    <string name="default_message_emote_snow">stuurt sneeuwval ❄️</string>
-    <string name="default_message_emote_confetti">stuurt confetti 🎉</string>
-    <string name="command_snow">Stuurt het gegeven bericht met sneeuwval</string>
-    <string name="command_confetti">Stuurt het gegeven bericht met confetti</string>
     <plurals name="secure_backup_reset_devices_you_can_verify">
         <item quantity="one">Laat het apparaat zien waarmee je nu kan verifiëren</item>
         <item quantity="other">%d apparaten weergeven waarmee je nu kan verifiëren</item>
@@ -1813,10 +1718,7 @@
     <string name="new_session">Nieuwe login. Was jij dit\?</string>
     <string name="e2e_use_keybackup">Ontgrendel de geschiedenis van versleutelde berichten</string>
     <string name="settings_export_trail">Exportcontrole</string>
-    <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Sleutels zijn al up-to-date!</string>
-    <string name="delete_event_dialog_reason_checkbox">Geef een reden op</string>
-    <string name="send_images_and_video_with_original_size">Media versturen in het originele formaat</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">Stuur video in het originele formaat</item>
         <item quantity="other">Stuur video\'s in het originele formaat</item>
@@ -1825,7 +1727,6 @@
         <item quantity="one">Stuur afbeelding in het originele formaat</item>
         <item quantity="other">Stuur afbeeldingen in het originele formaat</item>
     </plurals>
-    <string name="share_confirm_room">Wil je deze bijlage naar %1$s sturen\?</string>
     <string name="enter_secret_storage_invalid">Kan geen geheimen vinden in opslag</string>
     <string name="verification_use_passphrase">Als je geen toegang hebt tot een bestaande sessie</string>
     <string name="verification_cannot_access_other_session">Een herstelwachtwoordzin of -sleutel gebruiken</string>
@@ -1932,7 +1833,6 @@
     <string name="settings_developer_mode_fail_fast_summary">${app_name} kan vaker crashen als er een onverwachte fout optreedt</string>
     <string name="autocomplete_limited_results">Laat alleen de eerste resultaten zien, typ meer letters…</string>
     <string name="settings_developer_mode_summary">De ontwikkelaarsmodus activeert verborgen functies en kan de applicatie ook minder stabiel maken. Alleen voor ontwikkelaars!</string>
-    <string name="bug_report_error_too_short">De beschrijving is te kort</string>
     <string name="permalink_malformed">Jouw matrix.to link is onjuist opgemaakt</string>
     <string name="soft_logout_sso_not_same_user_error">De huidige sessie is voor gebruiker %1$s en je geeft inloggegevens op voor persoon %2$s. Dit wordt niet ondersteund door ${app_name}.
 \nWis eerst de gegevens en meld je vervolgens opnieuw aan met een ander account.</string>
@@ -1974,7 +1874,6 @@
     <string name="login_terms_title">Accepteer de voorwaarden om door te gaan</string>
     <string name="login_a11y_captcha_container">Voer de captcha uitdaging uit</string>
     <string name="login_a11y_choose_other">Selecteer een aangepaste server</string>
-    <string name="login_a11y_choose_modular">Selecteer Element Matrix Services</string>
     <string name="login_signup_cancel_confirmation_content">Jouw account is nog niet aangemaakt. Het registratieproces stoppen\?</string>
     <string name="login_signup_error_user_in_use">Deze inlognaam is in gebruik</string>
     <string name="login_signin_username_hint">Inlognaam of e-mailadres</string>
@@ -2013,11 +1912,8 @@
     <string name="room_alias_preview_not_found">Deze alias is momenteel niet toegankelijk.
 \nProbeer het later opnieuw of vraag een kamerbeheerder om te controleren of je toegang hebt.</string>
     <string name="share_space_link_message">Word lid van mijn kamer %1$s %2$s</string>
-    <string name="create_spaces_join_info_help">Als je lid wil worden van een bestaande kamer, heb je een uitnodiging nodig.</string>
     <string name="event_status_delete_all_failed_dialog_message">Weet je zeker dat je alle niet verzonden berichten in deze kamer wilt verwijderen\?</string>
-    <string name="labs_auto_report_uisi">Automatisch rapport versleutelingsfouten.</string>
     <string name="tooltip_attachment_poll">Poll maken</string>
-    <string name="tooltip_attachment_contact">Contacten openen</string>
     <string name="tooltip_attachment_sticker">Stuur sticker</string>
     <string name="tooltip_attachment_file">Upload bestand</string>
     <string name="tooltip_attachment_gallery">Afbeeldingen en video\'s versturen</string>
@@ -2094,7 +1990,6 @@
     <string name="space_mark_as_not_suggested">Markeren als niet aanbevolen</string>
     <string name="looking_for_someone_not_in_space">Op zoek naar iemand die niet in %s zit\?</string>
     <string name="user_invites_you">%s nodigt je uit</string>
-    <string name="labs_auto_report_uisi_desc">Jouw systeem verzendt automatisch logboeken wanneer er een fout optreedt die niet kan worden ontsleuteld</string>
     <string name="you_are_invited">Je bent uitgenodigd</string>
     <string name="space_add_space_to_any_space_you_manage">Voeg een space toe aan elke space die jij beheert.</string>
     <string name="space_add_existing_spaces">Bestaande spaces toevoegen</string>
@@ -2137,32 +2032,17 @@
     <string name="create_spaces_room_public_header">Wat zijn enkele discussies die je wil voeren in %s\?</string>
     <string name="create_space_error_empty_field_space_name">Geef het een naam om door te gaan.</string>
     <string name="create_spaces_details_private_header">Voeg wat details toe om mensen te helpen het te identificeren. Je kan deze op elk moment wijzigen.</string>
-    <string name="create_spaces_details_public_header">Voeg wat details toe om het te laten opvallen. Je kan deze op elk moment wijzigen.</string>
-    <string name="space_type_private_desc">Alleen op uitnodiging, het beste voor jezelf of teams</string>
-    <string name="space_type_public_desc">Open voor iedereen, het beste voor gemeenschappen</string>
-    <string name="create_spaces_private_teammates">Een privé-ruimte voor jou en jouw teamgenoten</string>
-    <string name="create_spaces_me_and_teammates">Ik en teamgenoten</string>
-    <string name="create_spaces_organise_rooms">Een privé space om je kamers te organiseren</string>
-    <string name="create_spaces_just_me">Alleen ik</string>
-    <string name="create_spaces_make_sure_access">Zorg ervoor dat de juiste mensen toegang hebben tot %s.</string>
-    <string name="create_spaces_who_are_you_working_with">Met wie werk je samen\?</string>
-    <string name="create_spaces_you_can_change_later">Je kan dit later wijzigen</string>
-    <string name="create_spaces_choose_type_label">Wat voor soort ruimte wil je aanmaken\?</string>
-    <string name="your_private_space">Jouw privé-ruimte</string>
-    <string name="your_public_space">Jouw openbare ruimte</string>
     <string name="add_space">Space toevoegen</string>
     <string name="private_space">Privé space</string>
     <string name="public_space">Openbare space</string>
     <string name="event_status_delete_all_failed_dialog_title">Niet verzonden berichten verwijderen</string>
     <string name="event_status_failed_messages_warning">Berichten kunnen niet worden verzonden</string>
-    <string name="event_status_cancel_sending_dialog_message">Wil je het versturen van een bericht annuleren\?</string>
     <string name="event_status_a11y_delete_all">Alle mislukte berichten verwijderen</string>
     <string name="command_description_upgrade_room">Upgrade een kamer naar een nieuwe versie</string>
     <string name="command_description_leave_room">Verlaat kamer met gegeven id (of huidige kamer indien leeg)</string>
     <string name="command_description_join_space">Word lid van de Space met het opgegeven id</string>
     <string name="command_description_add_to_space">Toevoegen aan een Space</string>
     <string name="command_description_create_space">Maak een Space</string>
-    <string name="room_member_override_nick_color">Kleur weergavenaam overschrijven</string>
     <string name="login_splash_already_have_account">Ik heb al een account</string>
     <string name="ftue_auth_carousel_encrypted_title">Veilig berichtenverkeer.</string>
     <string name="ftue_auth_carousel_control_title">Jij hebt de controle.</string>
@@ -2191,7 +2071,6 @@
     <string name="attachment_type_location">Locatie</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">De versleuteling is verkeerd geconfigureerd, zodat je geen berichten kunt versturen. Klik om instellingen te openen.</string>
     <string name="room_unsupported_e2e_algorithm">De versleuteling is verkeerd geconfigureerd, zodat je geen berichten kunt versturen. Neem contact op met een beheerder om de versleuteling in een geldige staat te herstellen.</string>
-    <string name="message_bubbles">Berichtbubbels weergeven</string>
     <string name="location_timeline_failed_to_load_map">Kan kaart niet laden</string>
     <string name="a11y_static_map_image">Kaart</string>
     <string name="ftue_auth_use_case_connect_to_server">Verbinding maken met server</string>
@@ -2207,7 +2086,6 @@
     <string name="view_in_room">Bekijk in kamer</string>
     <string name="reply_in_thread">Reageren in thread</string>
     <string name="command_not_supported_in_threads">Het commando \"%s\" wordt herkend maar niet ondersteund in discussies.</string>
-    <string name="search_thread_from_a_thread">Van een thread</string>
     <string name="thread_list_empty_notice">Tip: Tik lang op een bericht en gebruik \"%s\".</string>
     <string name="thread_list_empty_subtitle">Discussies helpen je gesprekken on-topic te houden en gemakkelijk bij te houden.</string>
     <string name="thread_list_empty_title">Houd discussies georganiseerd met threads</string>
@@ -2264,7 +2142,6 @@
     <string name="threads_notice_migration_title">Threads benaderen bèta 🎉</string>
     <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s en anderen</string>
     <string name="room_notification_two_users_are_typing">%1$s en %2$s</string>
-    <string name="action_disable">Uitzetten</string>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="one">%d server ACL\'s veranderen</item>
         <item quantity="other">%d server ACL\'s wijzigingen</item>
@@ -2281,12 +2158,7 @@
     <string name="a11y_play_audio_message">Luister %1$s</string>
     <string name="a11y_audio_playback_duration">%1$d minuten %2$d seconden</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
-    <string name="sent_live_location">Hun live locatie gedeeld</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} is ook geweldig voor op de werkplek. Het wordt vertrouwd door \'s werelds veiligste organisaties.</string>
-    <string name="beta">BÈTA</string>
-    <string name="send_feedback_threads_info">Threads zijn werk in uitvoering met nieuwe, opwindende aankomende functies, zoals verbeterde meldingen. We horen graag jouw feedback!</string>
-    <string name="send_feedback_threads_title">Discussies Beta-feedback</string>
-    <string name="give_feedback_threads">Geef feedback</string>
     <string name="beta_title_bottom_sheet_action">BÈTA</string>
     <string name="settings_presence_user_always_appears_offline_summary">Indien ingeschakeld, verschijn je altijd offline voor andere personen, zelfs wanneer je de applicatie gebruikt.</string>
     <string name="settings_presence_user_always_appears_offline">Offline modus</string>
@@ -2297,12 +2169,6 @@
     <string name="threads_beta_enable_notice_title">Threads bèta</string>
     <string name="action_learn_more">Leer meer</string>
     <string name="action_try_it_out">Probeer het uit</string>
-    <string name="initial_sync_request_reason_unignored_users">- Sommige personen zijn niet genegeerd</string>
-    <string name="initial_sync_request_content">${app_name} moet de cache wissen om up-to-date te zijn om volgende reden een:
-\n%s
-\n
-\nHoud er rekening mee dat deze actie de app opnieuw zal starten en dat dit enige tijd kan duren.</string>
-    <string name="initial_sync_request_title">Initieel synchronisatieverzoek</string>
     <string name="settings_show_latest_profile_description">Geeft de meest recente gebruikersinfo (avatar en weergavenaam) weer voor alle berichten.</string>
     <string name="settings_show_latest_profile">Meest recente gebruikersinfo weergeven</string>
     <string name="a11y_presence_busy">Bezet</string>
@@ -2355,8 +2221,6 @@
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registratie van eindpunt</string>
     <string name="action_next">Volgende</string>
     <string name="poll_undisclosed_not_ended">Resultaten zijn zichtbaar wanneer de poll is afgelopen</string>
-    <string name="labs_enable_msc3061_share_history_desc">Bij het uitnodigen in een versleutelde ruimte die geschiedenis deelt, is de versleutelde geschiedenis zichtbaar.</string>
-    <string name="labs_enable_msc3061_share_history">MSC3061: Kamersleutels delen voor eerdere berichten</string>
     <string name="send_your_first_msg_to_invite">Stuur je eerste bericht om %s uit te nodigen om te chatten</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Berichten in deze chat worden eind-tot-eind versleuteld.</string>
     <string name="create_room_action_go">Ga</string>
@@ -2409,8 +2273,6 @@
     <string name="font_size_section_manually">Handmatig kiezen</string>
     <string name="font_size_section_auto">Automatisch instellen</string>
     <string name="font_size_title">Kies lettergrootte</string>
-    <string name="labs_enable_element_call_permission_shortcuts_summary">Keur automatisch Element Oproep widgets goed en verleen camera-/microfoontoegang</string>
-    <string name="labs_enable_element_call_permission_shortcuts">Snelkoppelingen voor Element Oproep machtigingen inschakelen</string>
     <string name="live_location_description">Live locatie</string>
     <string name="verify_invalid_qr_notice">Deze QR-code lijkt misvormd. Probeer te verifiëren met een andere methode.</string>
     <string name="crosssigning_cannot_verify_this_session_desc">Je hebt geen toegang tot de gecodeerde berichtgeschiedenis. Reset je Veilige Berichten Back-up en verificatiesleutels om opnieuw te beginnen.</string>
@@ -2426,7 +2288,6 @@
     <string name="auth_reset_password_error_unverified">E-mailadres niet geverifieerd, controleer je inbox</string>
     <string name="location_share_loading_map_error">Kan kaart niet laden
 \nDeze server is mogelijk niet geconfigureerd om kaarten weer te geven.</string>
-    <string name="a11y_open_settings">Open instellingen</string>
     <string name="device_manager_sessions_other_description">Voor de beste beveiliging verifieer je jouw sessies en meld je jezelf af bij elke sessie die je niet meer herkent of gebruikt.</string>
     <string name="device_manager_sessions_other_title">Andere sessies</string>
     <string name="settings_sessions_list">Sessies</string>
@@ -2446,9 +2307,6 @@
     <string name="create_room">Kamer creëren</string>
     <string name="start_chat">Gesprek starten</string>
     <string name="all_chats">Alle gesprekken</string>
-    <string name="onboarding_new_app_layout_feedback_message">Je kan feedback geven via het menu rechtsboven.</string>
-    <string name="onboarding_new_app_layout_spaces_message">Krijg sneller en gemakkelijker toegang tot jouw spaces (rechtsonder).</string>
-    <string name="onboarding_new_app_layout_welcome_message">Om ${app_name} te versimpelen zijn tabbladen nu optioneel. Je kan ze beheren in het menu rechtsboven.</string>
     <string name="home_empty_no_unreads_message">Hier zullen jouw ongelezen berichten verschijnen wanneer je deze hebt.</string>
     <string name="home_empty_no_rooms_message">De allesomvattende beveiligde chat-app voor teams, vrienden en organisaties. Maak een gesprek aan of word deelnemer van een bestaande kamer om te beginnen.</string>
     <string name="home_empty_space_no_rooms_message">Spaces zijn een nieuwe manier om kamers en personen te groeperen. Voeg een bestaande kamer toe, of maak een nieuwe aan via de knop rechtsonder.</string>
@@ -2470,10 +2328,6 @@
     <string name="home_empty_no_rooms_title">Welkom bij ${app_name},
 \n%s.</string>
     <string name="home_empty_no_unreads_title">Niets te melden.</string>
-    <string name="onboarding_new_app_layout_welcome_title">Welkom bij een nieuw uiterlijk!</string>
-    <string name="onboarding_new_app_layout_spaces_title">Toegang tot ruimten</string>
-    <string name="onboarding_new_app_layout_feedback_title">Feedback geven</string>
-    <string name="onboarding_new_app_layout_button_try">Uitproberen</string>
     <string name="device_manager_other_sessions_description_unverified">Niet-geverifieerd · Laatste activiteit %1$s</string>
     <string name="device_manager_other_sessions_description_verified">Geverifieerd · Laatste activiteit %1$s</string>
     <string name="device_manager_other_sessions_view_all">Alle bekijken (%1$d)</string>
@@ -2492,14 +2346,9 @@
     <string name="invites_empty_title">Niets nieuws.</string>
     <string name="invites_title">Uitnodigingen</string>
     <string name="space_list_empty_title">Nog geen spaces.</string>
-    <string name="a11y_collapse_space_children">%s subitems inklappen</string>
-    <string name="a11y_expand_space_children">%s subitems uitvouwen</string>
     <string name="command_description_table_flip">Voeg (╯°□°）╯︵ ┻━┻ toe voor elk platte tekst bericht</string>
-    <string name="attachment_type_voice_broadcast">Spraakuitzending</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} heeft toestemming nodig om notificaties te laten zien.
 \nGeef alsjeblieft toestemming.</string>
-    <string name="labs_enable_rich_text_editor_summary">Probeer de rich-text-editor (platte tekst-modus binnenkort beschikbaar)</string>
-    <string name="labs_enable_rich_text_editor_title">Rich-text-editor inschakelen</string>
     <string name="labs_enable_deferred_dm_title">Uitgestelde privéberichten inschakelen</string>
     <string name="labs_enable_new_app_layout_summary">Een vereenvoudigde Element met optionele tabs</string>
     <string name="labs_enable_new_app_layout_title">Nieuwe layout inschakelen</string>
@@ -2573,8 +2422,6 @@
     <string name="device_manager_verification_status_detail_other_session_verified">Deze sessie is klaar voor veilige communicatie.</string>
     <string name="device_manager_verification_status_detail_current_session_verified">Je huidige sessie is klaar voor veilige communicatie.</string>
     <string name="device_manager_verification_status_unknown">Onbekende verificatiestatus</string>
-    <string name="voice_broadcast_buffering">Bufferen</string>
-    <string name="voice_broadcast_live">Live</string>
     <string name="key_authenticity_not_guaranteed">De authenticiteit van dit versleutelde bericht kan niet worden gegarandeerd op dit apparaat.</string>
     <string name="settings_security_incognito_keyboard_title">Incognito toetsenbord</string>
     <string name="login_scan_qr_code">Scan QR-code</string>
@@ -2588,10 +2435,6 @@
 \n
 \nGeeft toestemming bij de volgende pop-ups om notificaties te kunnen zien.</string>
     <string name="action_got_it">Begrepen</string>
-    <string name="rich_text_editor_format_underline">Onderstreep formaat toepassen</string>
-    <string name="rich_text_editor_format_strikethrough">Doorhaal formaat toepassen</string>
-    <string name="rich_text_editor_format_italic">Cursief formaat toepassen</string>
-    <string name="rich_text_editor_format_bold">Vet formaat toepassen</string>
     <string name="qr_code_login_confirm_security_code_description">Zorg ervoor dat je de herkomst van deze code kent. Door apparaten te koppelen, geef je iemand volledige toegang tot jouw account.</string>
     <string name="qr_code_login_status_no_match">Geen match\?</string>
     <string name="qr_code_login_link_a_device_show_qr_code_instruction_2">Selecteer \'QR-code scannen\'</string>
@@ -2604,8 +2447,6 @@
     <string name="three">3</string>
     <string name="two">2</string>
     <string name="one">1</string>
-    <string name="labs_enable_voice_broadcast_summary">In staat zijn om spraakuitzendingen op te nemen en te verzenden in de tijdlijn van de kamer.</string>
-    <string name="labs_enable_voice_broadcast_title">Spraakuitzending inschakelen</string>
     <string name="labs_enable_client_info_recording_summary">Noteer de naam, versie en url van de applicatie om sessies gemakkelijker te herkennen in sessiebeheer.</string>
     <string name="labs_enable_client_info_recording_title">Opname van applicatie informatie inschakelen</string>
     <string name="labs_enable_session_manager_summary">Meer zichtbaarheid en controle over al je sessies.</string>
@@ -2639,16 +2480,9 @@
     <string name="attachment_type_selector_camera">Camera</string>
     <string name="attachment_type_selector_location">Locatie</string>
     <string name="attachment_type_selector_poll">Peilingen</string>
-    <string name="attachment_type_selector_voice_broadcast">Spraakuitzending</string>
     <string name="attachment_type_selector_file">Bijlagen</string>
     <string name="attachment_type_selector_sticker">Stikkers</string>
     <string name="attachment_type_selector_gallery">Fotobibliotheek</string>
-    <string name="tooltip_attachment_voice_broadcast">Een spraakuitzending starten</string>
-    <string name="a11y_pause_voice_broadcast">Spraakuitzending pauzeren</string>
-    <string name="a11y_play_voice_broadcast">Spraakuitzending afspelen of hervatten</string>
-    <string name="a11y_stop_voice_broadcast_record">Opname van spraakuitzending stoppen</string>
-    <string name="a11y_pause_voice_broadcast_record">Opname van spraakuitzending pauzeren</string>
-    <string name="a11y_resume_voice_broadcast_record">Opname van spraakuitzending hervatten</string>
     <string name="settings_security_incognito_keyboard_summary">Verzoek dat het toetsenbord geen gepersonaliseerde gegevens, zoals typgeschiedenis en woordenboek, bijwerkt op basis van wat je in gesprekken hebt getypt. Opgelet dat sommige toetsenborden deze instelling mogelijk niet respecteren.</string>
     <string name="command_description_devtools">Open het scherm met ontwikkelaarstools</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 Je hebt de codering voor geverifieerde sessies enkel voor alle kamers ingeschakeld in Beveiligingsinstellingen.</string>
@@ -2660,9 +2494,6 @@
         <item quantity="other">%1$d geselecteerd</item>
     </plurals>
     <string name="settings_nightly_build">Nightly-versie</string>
-    <string name="quoting">Quoten</string>
-    <string name="replying_to">Reageren op %s</string>
-    <string name="editing">Bewerking</string>
     <string name="settings_enable_direct_share_summary">Recente gesprekken in het deelmenu van het systeem tonen</string>
     <string name="settings_enable_direct_share_title">Direct delen inschakelen</string>
 </resources>

@@ -83,7 +83,6 @@
 \n
 \nສິ່ງນີ້ຈະເປັນການປ່ຽນແປງຄັ້ງດຽວເນື່ອງຈາກກະທູ້ເປັນສ່ວນໜຶ່ງຂອງຂໍ້ມູນສະເພາະຂອງ Matrix.</string>
     <string name="threads_notice_migration_title">ກະທູ້ໃກ້ຮອດເບຕ້າ 🎉</string>
-    <string name="search_thread_from_a_thread">ຈາກກະທູ້</string>
     <string name="thread_list_empty_notice">ຄຳແນະນຳ: ແຕະໃສ່ຂໍ້ຄວາມດົນໆ ແລະໃຊ້ “%s”.</string>
     <string name="thread_list_empty_subtitle">ກະທູ້ຊ່ວຍໃຫ້ການສົນທະນາຂອງທ່ານຢູ່ໃນຫົວຂໍ້ ແລະ ງ່າຍຕໍ່ການຕິດຕາມ.</string>
     <string name="thread_list_empty_title">ຈັດລະບຽບການສົນທະນາດ້ວຍກະທູ້</string>
@@ -189,11 +188,6 @@
     <string name="no">ບໍ່</string>
     <string name="yes">ແມ່ນແລ້ວ</string>
     <string name="permissions_denied_add_contact">ອະນຸຍາດໃຫ້ເຂົ້າເຖິງລາຍຊື່ຜູ້ຕິດຕໍ່ຂອງທ່ານ.</string>
-    <string name="permissions_denied_qr_code">ເພື່ອສະແກນລະຫັດ QR, ທ່ານຈໍາເປັນຕ້ອງອະນຸຍາດໃຫ້ເຂົ້າເຖິງກ້ອງຖ່າຍຮູບ.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} ຕ້ອງການການອະນຸຍາດເພື່ອເຂົ້າເຖິງກ້ອງຖ່າຍຮູບ ແລະໄມໂຄຣໂຟນຂອງທ່ານເພື່ອໂທວິດີໂອ.
-\n
-\nກະລຸນາອະນຸຍາດໃຫ້ເຂົ້າເຖິງໃນpop-ups ຖັດໄປເພື່ອໃຫ້ສາມາດໂທອອກໄດ້.</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} ຕ້ອງການການອະນຸຍາດເພື່ອເຂົ້າເຖິງໄມໂຄຣໂຟນຂອງທ່ານເພື່ອປະຕິບັດການໂທສຽງ.</string>
     <string name="permissions_rationale_popup_title">ຂໍ້ມູນ</string>
     <string name="compression_opt_list_small">ຂະຫນາດນ້ອຍ</string>
     <string name="compression_opt_list_medium">ຂະຫນາດກາງ</string>
@@ -237,10 +231,6 @@
     <string name="option_take_photo_video">ຖ່າຍຮູບ ຫຼືວິດີໂອ</string>
     <string name="option_send_sticker">ສົ່ງສະຕິກເກີ</string>
     <string name="option_send_files">ສົ່ງໄຟລ໌</string>
-    <string name="sound_device_wireless_headset">ຊຸດຫູຟັງໄຮ້ສາຍ</string>
-    <string name="sound_device_headset">ຊຸດຫູຟັງ</string>
-    <string name="sound_device_speaker">ລໍາໂພງ</string>
-    <string name="sound_device_phone">ໂທລະສັບ</string>
     <string name="option_send_voice">ສົ່ງສຽງ</string>
     <string name="search">ຊອກຫາ</string>
     <string name="hs_client_url">API URL ຂອງສະຖານີ</string>
@@ -248,14 +238,6 @@
     <string name="logout">ອອກຈາກລະບົບ</string>
     <string name="username">ຊື່ຜູ້ໃຊ້</string>
     <string name="join_room">ເຂົ້າຮ່ວມຫ້ອງ</string>
-    <string name="send_bug_report_logs_description">ເພື່ອວິນິດໄສບັນຫາ, ບັນທຶກຈາກລູກຄ້ານີ້ຈະຖືກສົ່ງພ້ອມກັບບົດລາຍງານຂໍ້ຜິດພາດນີ້. ລາຍງານຂໍ້ຜິດພາດນີ້, ລວມທັງບັນທຶກ ແລະພາບໜ້າຈໍ, ຈະບໍ່ປາກົດໃຫ້ສາທາລະນະເຫັນໄດ້. ຖ້າທ່ານຕ້ອງການພຽງແຕ່ສົ່ງຂໍ້ຄວາມຂ້າງເທິງ, ກະລຸນາ ຢາກົດເລືອກ:</string>
-    <string name="send_bug_report_placeholder">ອະທິບາຍບັນຫາຂອງທ່ານຢູ່ບ່ອນນີ້</string>
-    <string name="send_bug_report_description_in_english">ຖ້າເປັນໄປໄດ້, ກະລຸນາຂຽນຄໍາອະທິບາຍເປັນພາສາອັງກິດ.</string>
-    <string name="send_bug_report_description">ກະລຸນາອະທິບາຍຂໍ້ບົກພ່ອງ. ທ່ານເຮັດຫຍັງລົງໄປ\?ທ່ານຄາດວ່າຈະມີຫຍັງເກີດຂຶ້ນ\? ທີ່ຈິງແລ້ວເກີດຫຍັງຂຶ້ນ\?</string>
-    <string name="send_bug_report_include_screenshot">ສົ່ງຮູບໜ້າຈໍ</string>
-    <string name="send_bug_report_include_key_share_history">ສົ່ງປະຫວັດການຮ້ອງຂໍການແບ່ງປັນທີ່ສໍາຄັນ</string>
-    <string name="send_bug_report_include_crash_logs">ສົ່ງບັນທຶກການຂັດຂ້ອງ</string>
-    <string name="send_bug_report_include_logs">ສົ່ງບັນທຶກ</string>
     <string name="spaces_header">ພື້ນທີ່</string>
     <string name="settings_room_directory_show_all_rooms_summary">ສະແດງໃຫ້ເຫັນຫ້ອງທັງຫມົດໃນລະບົບຫ້ອງ, ລວມທັງຫ້ອງທີ່ມີເນື້ອຫາຊັດເຈນ.</string>
     <string name="settings_room_directory_show_all_rooms">ສະແດງຫ້ອງທີ່ມີເນື້ອຫາບໍ່ຈະແຈ້ງ</string>
@@ -307,10 +289,7 @@
     <string name="action_agree">ເຫັນດີ</string>
     <string name="action_try_it_out">ລອງໃຊ້ເບິ່ງ</string>
     <string name="action_not_now">ບໍ່ແມ່ນຕອນນີ້</string>
-    <string name="action_disable">ປິດໃຊ້ງານ</string>
-    <string name="action_enable">ເປີດໃຊ້</string>
     <string name="action_unpublish">ຍົກເລີກການເຜີຍແຜ່</string>
-    <string name="action_switch">ສະຫຼັບ</string>
     <string name="action_add">ເພີ່ມ</string>
     <string name="action_copy">ສຳເນົາ</string>
     <string name="action_close">ປິດ</string>
@@ -325,21 +304,14 @@
     <string name="done">ສຳເລັດແລ້ວ</string>
     <string name="or">ຫຼື</string>
     <string name="failed_to_remove_widget">ລຶບວິດເຈັດບໍ່ສຳເລັດ</string>
-    <string name="failed_to_add_widget">ເພີ່ມວິດເຈັດບໍ່ສຳເລັດ</string>
-    <string name="audio_video_meeting_description">ກອງປະຊຸມໃຊ້ນະໂຍບາຍຄວາມປອດໄພ ແລະອະນຸຍາດ Jitsi. ຄົນທັງໝົດຢູ່ໃນຫ້ອງໃນປັດຈຸບັນຈະເຫັນຄຳເຊີນໃຫ້ເຂົ້າຮ່ວມ ໃນຂະນະທີ່ການປະຊຸມຂອງທ່ານກຳລັງເກີດຂຶ້ນ.</string>
-    <string name="audio_meeting">ເລີ່ມການປະຊຸມສຽງ</string>
-    <string name="video_meeting">ເລີ່ມການປະຊຸມວິດີໂອ</string>
     <string name="missing_permissions_title">ຂາດການອະນຸຍາດ</string>
     <string name="denied_permission_camera">ເພື່ອດໍາເນີນການນີ້, ກະລຸນາອະນຸຍາດກ້ອງຖ່າຍຮູບຈາກການຕັ້ງຄ່າລະບົບ.</string>
     <string name="denied_permission_generic">ຂາດການອະນຸຍາດບາງຢ່າງເພື່ອດໍາເນີນການນີ້, ກະລຸນາໃຫ້ການອະນຸຍາດຈາກການຕັ້ງຄ່າລະບົບ.</string>
     <string name="spaces">ພື້ນທີ່</string>
-    <string name="start_chatting">ເລີ່ມການສົນທະນາ</string>
-    <string name="report_content">ລາຍງານເນື້ອຫາ</string>
     <string name="none">ບໍ່ມີ</string>
     <string name="view_decrypted_source">ເບິ່ງແຫຼ່ງທີ່ຖອດລະຫັດ</string>
     <string name="view_source">ເບິ່ງແຫຼ່ງ</string>
     <string name="permalink">ລິ້ງຖາວອນ</string>
-    <string name="later">ຕໍ່ມາ</string>
     <string name="ok">ຕົກລົງ</string>
     <string name="loading">ກຳລັງໂຫລດ…</string>
     <string name="sign_out_bottom_sheet_will_lose_secure_messages">ທ່ານຈະສູນເສຍການເຂົ້າເຖິງຂໍ້ຄວາມທີ່ເຂົ້າລະຫັດໄວ້ຂອງທ່ານເວັ້ນເສຍແຕ່ທ່ານຈະສໍາຮອງລະຫັດຂອງທ່ານກ່ອນທີ່ຈະອອກຈາກລະບົບ.</string>
@@ -361,7 +333,6 @@
     <string name="black_theme">ຮູບແບບຫົວຂໍ້ສີດໍາ</string>
     <string name="dark_theme">ຮູບແບບສີສັນມືດ</string>
     <string name="light_theme">ຮູບແບບສີສັນແຈ້ງ</string>
-    <string name="system_theme">ຄ່າເລີ່ມຕົ້ນຂອງລະບົບ</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">ທ່ານໄດ້ເປີດການເຂົ້າລະຫັດແບບຕົ້ນທາງຮອດປາຍທາງ (ລະບົບທີ່ບໍ່ສາມາດຮັບຮູ້ໄດ້ %1$s).</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s ເປີດໃຊ້ການເຂົ້າລະຫັດແບບຕົ້ນທາງຮອດປາຍທາງ (ລະບົບທີ່ບໍ່ສາມາດຮັບຮູ້ໄດ້ %2$s).</string>
     <string name="notice_end_to_end_ok_by_you">ທ່ານໄດ້ເປີດການເຂົ້າລະຫັດແບບຕົ້ນທາງຮອດປາຍທາງ.</string>
@@ -434,7 +405,6 @@
     <string name="notice_room_invite_no_invitee_with_reason_by_you">ການເຊື້ອເຊີນຂອງທ່ານ. ເຫດຜົນ: %1$s</string>
     <string name="notice_room_invite_no_invitee_with_reason">ຄຳເຊີນຂອງ %1$s. ເຫດຜົນ: %2$s</string>
     <string name="event_status_sending_message">ກຳລັງສົ່ງຂໍ້ຄວາມ…</string>
-    <string name="event_status_sent_message">ຂໍ້ຄວາມຖືກສົ່ງ</string>
     <string name="initial_sync_start_importing_account_data">ການຊິງຄ໌ເບື້ອງຕົ້ນ:
 \nການນໍາເຂົ້າຂໍ້ມູນບັນຊີ</string>
     <string name="initial_sync_start_importing_account_left_rooms">ການຊິງຄ໌ເບື້ອງຕົ້ນ:
@@ -580,7 +550,6 @@
     <string name="edited_suffix">(ດັດແກ້ແລ້ວ)</string>
     <string name="downloaded_file">ໄຟລ໌ %1$s ຖືກດາວໂຫຼດແລ້ວ!</string>
     <string name="send_file_step_compressing_video">ກຳລັງບີບອັດວິດີໂອ %d%%</string>
-    <string name="send_feedback_threads_info">ກະທູ້ກຳລັງດຳເນີນຢູ່ພ້ອມກັບຄຸນສົມບັດໃໝ່ທີ່ກຳລັງຈະມາຮອດ ເຊັ່ນ: ການແຈ້ງເຕືອນປັບປຸງໃຫ້ດີຂຶ້ນ. ພວກເຮົາຢາກໄດ້ຍິນຄໍາຕິຊົມຂອງທ່ານ!</string>
     <string name="push_gateway_item_app_display_name">app_display_name:</string>
     <string name="send_file_step_compressing_image">ກຳລັງບີບອັດຮູບ…</string>
     <string name="send_file_step_sending_file">ກຳລັງສົ່ງໄຟລ໌ (%1$s / %2$s)</string>
@@ -591,19 +560,8 @@
     <string name="bottom_action_people_x">ຂໍ້ຄວາມໂດຍກົງ</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">ສະແດງປະຫວັດຄົບຖ້ວນຢູ່ໃນຫ້ອງທີ່ເຂົ້າລະຫັດໄວ້</string>
     <string name="settings_labs_show_hidden_events_in_timeline">ສະແດງເຫດການທີ່ເຊື່ອງໄວ້ໃນທາມລາຍ</string>
-    <string name="beta">ເບຕ້າ</string>
-    <string name="send_feedback_threads_title">ຄວາມຄິດເຫັນຂອງກະທູ້ Beta</string>
-    <string name="give_feedback_threads">ໃຫ້ຄໍາຄິດເຫັນ</string>
     <string name="give_feedback" tools:ignore="UnusedResources">ໃຫ້ຄໍາຄິດເຫັນ</string>
-    <string name="feedback_failed">ສົ່ງຄຳຕິຊົມບໍ່ສຳເລັດ (%s)</string>
-    <string name="you_may_contact_me">ທ່ານສາມາດຕິດຕໍ່ຂ້ອຍໄດ້ ຖ້າທ່ານມີຄໍາຖາມຕິດຕາມ</string>
-    <string name="send_feedback_space_info">ທ່ານກຳລັງໃຊ້ພື້ນທີ່ເວີຊັ້ນເບຕ້າ. ຄໍາຕິຊົມຂອງທ່ານຈະຊ່ວຍແຈ້ງໃຫ້ເວີຊັ້ນຕໍ່ໄປຊາບ. ເເພລັດຟອມແລະຊື່ຜູ້ໃຊ້ຂອງທ່ານຈະຖືກບັນທຶກໄວ້ເພື່ອຊ່ວຍໃຫ້ພວກເຮົາໃຊ້ຄໍາຕິຊົມຂອງທ່ານເທົ່າທີ່ພວກເຮົາສາມາດເຮັດໄດ້.</string>
-    <string name="feedback">ຄໍາຕິຊົມ</string>
-    <string name="send_feedback_space_title">ຄຳຕິຊົມຂອງພື້ນທີ່</string>
     <string name="beta_title_bottom_sheet_action">ເບຕ້າ</string>
-    <string name="send_suggestion_failed">ສົ່ງຄຳແນະນຳບໍ່ສຳເລັດ (%s)</string>
-    <string name="send_suggestion_report_placeholder">ອະທິບາຍຄໍາແນະນໍາຂອງທ່ານທີ່ນີ້</string>
-    <string name="send_suggestion_content">ກະລຸນາຂຽນຄໍາແນະນໍາຂອງທ່ານຂ້າງລຸ່ມນີ້.</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">ລົງທະບຽນ token</string>
     <string name="preference_system_settings">ການຕັ້ງຄ່າລະບົບ</string>
     <string name="preference_versions">ເວີຊັ້ນ</string>
@@ -663,8 +621,6 @@
     <string name="settings_show_avatar_display_name_changes_messages_summary">ລວມທັງຮູບແທນຕົວ ແລະ ການປ່ຽນແປງການສະແດງຊື່.</string>
     <string name="settings_show_avatar_display_name_changes_messages">ສະແດງບັນຊີ</string>
     <string name="settings_show_join_leave_messages">ສະແດງການເຂົ້າຮ່ວມ ແລະ ອອກຈາກເຫດການ</string>
-    <string name="settings_chat_effects_description">ໃຊ້ຄໍາສັ່ງ /confetti ຫຼືສົ່ງຂໍ້ຄວາມທີ່ມີ ❄️ ຫຼື 🎉</string>
-    <string name="settings_chat_effects_title">ສະແດງຜົນການສົນທະນາ</string>
     <string name="ssl_unexpected_existing_expl">ໃບຮັບຮອງໄດ້ປ່ຽນຈາກອັນທີ່ເຊື່ອຖືໄດ້. ນີ້ແມ່ນຜິດປົກກະຕິ. ຂໍແນະນຳໃຫ້ທ່ານຢ່າຍອມຮັບໃບຮັບຮອງໃໝ່ນີ້.</string>
     <string name="room_list_catchup_empty_body">ທ່ານບໍ່ມີຂໍ້ຄວາມທີ່ຍັງບໍ່ໄດ້ອ່ານ</string>
     <string name="invited_by">ເຊີນໂດຍ %s</string>
@@ -739,13 +695,6 @@
     <string name="keys_backup_setup_skip_title">ທ່ານແນ່ໃຈບໍ່\?</string>
     <string name="unexpected_error">ຄວາມຜິດພາດທີ່ບໍ່ຄາດຄິດ</string>
     <string name="recovery_key">ລະຫັດການກູ້ຄືນ</string>
-    <string name="analytics_opt_in_list_item_2">ພວກເຮົາ &lt;b&gt;ບໍ່&lt;/b&gt; ແບ່ງປັນຂໍ້ມູນໃຫ້ພາກສ່ວນທີສາມ</string>
-    <string name="analytics_opt_in_list_item_1">ພວກເຮົາ &lt;b&gt;ບໍ່&lt;/b&gt; ບັນທຶກ ຫຼື ບັນທຶກຂໍ້ມູນໜ້າປົກບັນຊີໃດໆ</string>
-    <string name="analytics_opt_in_content_link">ທີ່ນີ້</string>
-    <string name="analytics_opt_in_content">ຊ່ວຍພວກເຮົາລະບຸບັນຫາ ແລະປັບປຸງ ${app_name} ໂດຍການແບ່ງປັນຂໍ້ມູນການນຳໃຊ້ທີ່ບໍ່ເປີດເຜີຍຊື່. ເພື່ອເຂົ້າໃຈວິທີໃຊ້ຫຼາຍອຸປະກອນ, ພວກເຮົາຈະສ້າງຕົວກຳນົດແບບສຸ່ມ, ແບ່ງປັນໂດຍອຸປະກອນຂອງທ່ານ.
-\n
-\nທ່ານສາມາດອ່ານເງື່ອນໄຂທັງໝົດຂອງພວກເຮົາໄດ້ %s.</string>
-    <string name="analytics_opt_in_title">ຊ່ວຍປັບປຸງ ${app_name}</string>
     <string name="settings_discovery_manage">ຈັດການການຕັ້ງຄ່າການຄົ້ນພົບຂອງທ່ານ.</string>
     <string name="settings_discovery_category">ການຄົ້ນພົບ</string>
     <string name="settings_deactivate_my_account">ປິດການນຳໃຊ້ບັນຊີຂອງຂ້ອຍ</string>
@@ -929,7 +878,6 @@
     <string name="devices_details_device_name">ອັບເດດຊື່ສາທາລະນະ</string>
     <string name="devices_details_name_title">ຊື່ສາທາລະນະ</string>
     <string name="devices_details_id_title">ID</string>
-    <string name="analytics_opt_in_list_item_3">ທ່ານສາມາດປິດສິ່ງນີ້ໄດ້ທຸກເວລາໃນການຕັ້ງຄ່າ</string>
     <string name="settings_show_read_receipts_summary">ກົດໃສ່ໃບຕອບຮັບເພື່ອອ່ານລາຍລະອຽດ.</string>
     <string name="settings_show_read_receipts">ສະແດງໃບຕອບຮັບການອ່ານ</string>
     <string name="settings_12_24_timestamps">ສະແດງເວລາໃນຮູບແບບ 12 ຊົ່ວໂມງ</string>
@@ -983,7 +931,6 @@
     <plurals name="seconds">
         <item quantity="other">%d ວິນາທີ</item>
     </plurals>
-    <string name="report_content_spam">ມັນເປັນ spam</string>
     <string name="uploads_files_no_result">ບໍ່ມີໄຟລ໌ຢູ່ໃນຫ້ອງນີ້</string>
     <string name="uploads_files_subtitle">%1$s ທີ່ %2$s</string>
     <string name="uploads_files_title">ໄຟລ໌</string>
@@ -997,7 +944,6 @@
     <string name="attachment_type_sticker">ສະຕິກເກີ</string>
     <string name="attachment_type_gallery">ຄັງຮູບ</string>
     <string name="attachment_type_camera">ກ້ອງຖ່າຍຮູບ</string>
-    <string name="attachment_type_contact">ຕິດຕໍ່</string>
     <string name="attachment_type_file">ໄຟລ໌</string>
     <string name="attachment_type_dialog_title">ເພີ່ມຮູບພາບຈາກ</string>
     <string name="error_file_too_big_simple">ໄຟລ໌ໃຫຍ່ເກີນທີ່ຈະອັບໂຫລດ.</string>
@@ -1017,7 +963,6 @@
     <string name="a11y_create_menu_close">ປິດເມນູສ້າງຫ້ອງ…</string>
     <string name="a11y_create_menu_open">ເປີດເມນູສ້າງຫ້ອງ</string>
     <string name="a11y_open_drawer">ເປີດຕົວນໍາທາງ</string>
-    <string name="send_attachment">ສົ່ງໄຟລ໌ແນບ</string>
     <string name="error_network_timeout">ເບິ່ງຄືວ່າເຊີບເວີໃຊ້ເວລາດົນເກີນໄປໃນການຕອບສະໜອງ, ສິ່ງນີ້ອາດເກີດຈາກການສັນຍານການເຊື່ອມຕໍ່ບໍ່ສະຖຽນ ຫຼື ຂໍ້ຜິດພາດກັບເຊີບເວີ. ກະລຸນາລອງອີກຄັ້ງໃນອີກໄລຍະໜຶ່ງ.</string>
     <string name="error_terms_not_accepted">ກະລຸນາລອງໃໝ່ອີກຄັ້ງເມື່ອທ່ານຍອມຮັບຂໍ້ກຳນົດ ແລະເງື່ອນໄຂຂອງ homeserver ຂອງທ່ານ.</string>
     <string name="labs_allow_extended_logging_summary">ບັນທຶກລະອຽດ ຈະຊ່ວຍໃຫ້ນັກພັດທະນາສະຫນອງບັນທຶກເພີ່ມເຕີມເມື່ອທ່ານສົ່ງ RageShake. ເຖິງແມ່ນວ່າໃນເວລາທີ່ເປີດໃຊ້, ແອັບພລິເຄຊັນຈະບໍ່ບັນທຶກເນື້ອຫາຂໍ້ຄວາມ ຫຼື ຂໍ້ມູນສ່ວນຕົວອື່ນໆກໍ່ຕາມ.</string>
@@ -1100,9 +1045,6 @@
     <string name="settings_group_messages">ຂໍ້ຄວາມກຸ່ມ</string>
     <string name="settings_encrypted_direct_messages">ເຂົ້າລະຫັດຂໍ້ຄວາມໂດຍກົງ</string>
     <string name="settings_messages_direct_messages">ຂໍ້ຄວາມໂດຍກົງ</string>
-    <string name="settings_messages_containing_username">ຊື່ຜູ້ໃຊ້ຂອງຂ້ອຍ</string>
-    <string name="settings_messages_containing_display_name">ຊື່ສະແດງຂອງຂ້ອຍ</string>
-    <string name="settings_messages_at_room">ຂໍ້ຄວາມທີ່ມີ @room</string>
     <string name="settings_messages_sent_by_bot">ຂໍ້ຄວາມທີ່ສົ່ງໂດຍ bot</string>
     <string name="settings_invited_to_room">ເມື່ອຂ້ອຍຖືກເຊີນເຂົ້າຫ້ອງ</string>
     <string name="settings_enable_all_notif">ເປີດໃຊ້ການແຈ້ງເຕືອນສຳລັບບັນຊີນີ້</string>
@@ -1154,8 +1096,6 @@
     <string name="resource_limit_contact_admin">ຕິດຕໍ່ຜູ້ເບິ່ງແຍງການບໍລິການຂອງທ່ານ</string>
     <string name="room_tombstone_predecessor_link">ກົດທີ່ນີ້ເພື່ອເບິ່ງຂໍ້ຄວາມເກົ່າ</string>
     <string name="room_tombstone_continuation_description">ສືບຕໍ່ການສົນທະນາອື່ນໃນຫ້ອງນີ້</string>
-    <string name="room_tombstone_continuation_link">ການສົນທະນາສືບຕໍ່ຢູ່ທີ່ນີ້</string>
-    <string name="room_tombstone_versioned_description">ຫ້ອງນີ້ໄດ້ຖືກປ່ຽນແທນ ແລະບໍ່ມີການເຄື່ອນໄຫວອີກຕໍ່ໄປ.</string>
     <string name="error_empty_field_your_password">ກະລຸນາໃສ່ລະຫັດຜ່ານຂອງທ່ານ.</string>
     <string name="error_empty_field_enter_user_name">ກະລຸນາໃສ່ຊື່ຜູ້ໃຊ້.</string>
     <string name="deactivate_account_submit">ປິດການນຳໃຊ້ບັນຊີ</string>
@@ -1173,8 +1113,6 @@
     <string name="has_been_banned">ທ່ານໄດ້ຖືກຫ້າມຈາກ %1$s ໂດຍ %2$s</string>
     <string name="invited">ເຊີນ</string>
     <string name="rooms">ຫ້ອງ</string>
-    <string name="group_details_home">ຫນ້າທໍາອິ</string>
-    <string name="create">ສ້າງ</string>
     <string name="encrypted_message">ຂໍ້ຄວາມເຂົ້າລະຫັດ</string>
     <string name="notification_noisy">ສຽງດັງ</string>
     <string name="notification_silent">ງຽບ</string>
@@ -1307,8 +1245,6 @@
     <string name="encryption_information_verify_device_warning2">ຖ້າລະຫັດບໍ່ກົງກັນ, ຄວາມປອດໄພຂອງການສື່ສານຂອງທ່ານອາດຈະຖືກທໍາລາຍ.</string>
     <string name="settings_messages_in_group_chat">ຂໍ້ຄວາມໃນກຸ່ມສົນທະນາ</string>
     <string name="settings_messages_in_one_to_one">ຂໍ້ຄວາມການສົນທະນາຫນຶ່ງຕໍ່ຫນຶ່ງ</string>
-    <string name="settings_containing_my_user_name">ຂໍ້ຄວາມທີ່ມີຊື່ຜູ້ໃຊ້ຂອງຂ້ອຍ</string>
-    <string name="settings_containing_my_display_name">ຂໍ້ຄວາມທີ່ມີຊື່ສະແດງຂອງຂ້ອຍ</string>
     <string name="settings_when_rooms_are_upgraded">ເມື່ອມີການຍົກລະດັບຫ້ອງ</string>
     <string name="settings_messages_in_e2e_group_chat">ຂໍ້ຄວາມເຂົ້າລະຫັດໃນການສົນທະນາກຸ່ມ</string>
     <string name="settings_messages_in_e2e_one_to_one">ຂໍ້ຄວາມທີ່ຖືກເຂົ້າລະຫັດໃນການສົນທະນາແບບຫນຶ່ງຕໍ່ຫນຶ່ງ</string>
@@ -1348,8 +1284,6 @@
     <string name="space_settings_manage_rooms">ຈັດການຫ້ອງ</string>
     <string name="looking_for_someone_not_in_space">ຊອກຫາຄົນທີ່ບໍ່ໄດ້ຢູ່ໃນ %s ບໍ\?</string>
     <string name="user_invites_you">%s ເຊີນທ່ານ</string>
-    <string name="labs_auto_report_uisi_desc">ລະບົບຂອງທ່ານຈະສົ່ງບັນທຶກອັດຕະໂນມັດເມື່ອເກີດຄວາມຜິດພາດທີ່ບໍ່ສາມາດຖອດລະຫັດໄດ້</string>
-    <string name="labs_auto_report_uisi">ລາຍງານຄວາມຜິດພາດໃນການຖອດລະຫັດອັດຕະໂນມັດ.</string>
     <string name="you_are_invited">ທ່ານໄດ້ຮັບເຊີນ</string>
     <string name="space_add_space_to_any_space_you_manage">ເພີ່ມພື້ນທີ່ໃສ່ບ່ອນໃດກໍໄດ້ທີ່ທ່ານຈັດການ.</string>
     <string name="space_add_existing_spaces">ເພີ່ມພື້ນທີ່ທີ່ມີຢູ່</string>
@@ -1380,8 +1314,6 @@
     <string name="warning_room_not_created_yet">ບໍ່ທັນໄດ້ສ້າງຫ້ອງ. ຍົກເລີກການສ້າງຫ້ອງບໍ\?</string>
     <string name="universal_link_malformed">ການເຊື່ອມຕໍ່ບໍ່ຖືກຕ້ອງ</string>
     <string name="qr_code_not_scanned">ບໍ່ໄດ້ສະແກນລະຫັດ QR!</string>
-    <string name="invalid_qr_code_uri">ລະຫັດ QR ບໍ່ຖືກຕ້ອງ (URI ບໍ່ຖືກຕ້ອງ)!</string>
-    <string name="cannot_dm_self">DM ຕົວເອງບໍ່ໄດ້!</string>
     <string name="share_by_text">ແບ່ງປັນຂໍ້ຄວາມ</string>
     <string name="room_error_not_found">ບໍ່ພົບຫ້ອງນີ້. ໃຫ້ແນ່ໃຈວ່າມີຢູ່.</string>
     <string name="error_opening_banned_room">ບໍ່ສາມາດເປີດຫ້ອງທີ່ຖືກຫ້າມໄດ້.</string>
@@ -1454,11 +1386,6 @@
     <string name="bottom_sheet_setup_secure_backup_submit">ຕັ້ງຄ່າ</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">ປ້ອງກັນການສູນເສຍການເຂົ້າເຖິງຂໍ້ຄວາມ &amp; ຂໍ້ມູນທີ່ຖືກເຂົ້າລະຫັດໂດຍການສໍາຮອງລະຫັດຢູ່ໃນເຊີບເວີຂອງທ່ານ.</string>
     <string name="bottom_sheet_setup_secure_backup_title">ການສຳຮອງຂໍ້ມູນທີ່ປອດໄພ</string>
-    <string name="a11y_start_camera">ເລີ່ມກ້ອງຖ່າຍຮູບ</string>
-    <string name="a11y_stop_camera">ຢຸດກ້ອງຖ່າຍຮູບ</string>
-    <string name="a11y_unmute_microphone">ເປີດສຽງໄມໂຄຣໂຟນ</string>
-    <string name="a11y_mute_microphone">ປິດສຽງໄມໂຄຣໂຟນ</string>
-    <string name="a11y_open_chat">ເປີດການສົນທະນາ</string>
     <string name="power_level_title">ບົດບາດ</string>
     <string name="power_level_edit_title">ກໍານົດພາລະບົດບາດ</string>
     <string name="identity_server_set_alternative_submit">ສົ່ງ</string>
@@ -1479,16 +1406,12 @@
     <string name="choose_locale_loading_locales">ກຳລັງໂຫຼດພາສາທີ່ມີ…</string>
     <string name="choose_locale_other_locales_title">ພາສາອື່ນໆທີ່ມີຢູ່</string>
     <string name="choose_locale_current_locale_title">ພາສາປັດຈຸບັນ</string>
-    <string name="user_code_info_text">ແບ່ງປັນລະຫັດນີ້ກັບຜູ້ຄົນເພື່ອໃຫ້ເຂົາເຈົ້າສາມາດສະແກນໄດ້ ເພື່ອເພີ່ມທ່ານ ແລະເລີ່ມການສົນທະນາ.</string>
     <string name="user_code_my_code">ລະຫັດຂອງຂ້ອຍ</string>
     <string name="settings_account_data">ຂໍ້ມູນບັນຊີ</string>
-    <string name="user_code_share">ແບ່ງປັນລະຫັດຂອງຂ້ອຍ</string>
-    <string name="user_code_scan">ສະແກນ QR code</string>
     <string name="invite_users_to_room_failure">ພວກເຮົາບໍ່ສາມາດເຊີນຜູ້ໃຊ້ໄດ້. ກະລຸນາກວດເບິ່ງຜູ້ໃຊ້ທີ່ທ່ານຕ້ອງການເຊີນແລ້ວລອງໃໝ່.</string>
     <plurals name="invitations_sent_to_one_and_more_users">
         <item quantity="other">ສົ່ງຄຳເຊີນໄປໃຫ້ %1$s ແລະ ອີກ %2$d ຄົນ</item>
     </plurals>
-    <string name="not_a_valid_qr_code">ບໍ່ແມ່ນລະຫັດ QR matrix ທີ່ຖືກຕ້ອງ</string>
     <string name="invitations_sent_to_two_users">ສົ່ງຄຳເຊີນໄປຫາ %1$s ແລະ %2$s</string>
     <string name="invitation_sent_to_one_user">ສົ່ງຄຳເຊີນໄປໃຫ້ %1$s</string>
     <string name="invite_friends_rich_title">🔐️ ເຂົ້າຮ່ວມກັບຂ້ອຍໃນ ${app_name}</string>
@@ -1516,10 +1439,6 @@
     <string name="verify_this_session">ຢືນຢັນການເຂົ້າສູ່ລະບົບໃໝ່ທີ່ເຂົ້າເຖິງບັນຊີຂອງທ່ານ: %1$s</string>
     <string name="encrypted_unverified">ເຂົ້າລະຫັດໂດຍອຸປະກອນທີ່ບໍ່ໄດ້ຮັບການຢືນຢັນ</string>
     <string name="unencrypted">ບໍ່ໄດ້ເຂົ້າລະຫັດ</string>
-    <string name="default_message_emote_snow">ສົ່ງຫິມະຕົກ ❄️</string>
-    <string name="default_message_emote_confetti">ສົ່ງ confetti 🎉</string>
-    <string name="command_snow">ສົ່ງຂໍ້ຄວາມທີ່ກຳນົດດ້ວຍຫິມະຕົກ</string>
-    <string name="command_confetti">ສົ່ງຂໍ້ຄວາມທີ່ກຳນົດດ້ວຍ confetti</string>
     <plurals name="secure_backup_reset_devices_you_can_verify">
         <item quantity="other">ສະແດງ %d ອຸປະກອນທີ່ທ່ານສາມາດກວດສອບໄດ້ໃນຕອນນີ້</item>
     </plurals>
@@ -1631,7 +1550,6 @@
     <string name="verification_request_you_cancelled">ທ່ານໄດ້ຍົກເລີກ</string>
     <string name="verification_request_other_cancelled">%s ຖືກຍົກເລີກ</string>
     <string name="verification_request_waiting">ກຳລັງລໍຖ້າ…</string>
-    <string name="sent_live_location">ແບ່ງປັນສະຖານທີ່ປັດຈຸບັນຂອງເຂົາເຈົ້າ</string>
     <string name="sent_verification_conclusion">ສະຫຼຸບການຢັ້ງຢືນ.</string>
     <string name="sent_a_reaction">ຕອບສະໜອງດ້ວຍ: %s</string>
     <string name="sent_a_poll">ການສໍາຫຼວດ.</string>
@@ -1678,7 +1596,6 @@
     <string name="settings_developer_mode">ຮູບແບບນັກພັດທະນາ</string>
     <string name="settings_advanced_settings">ຕັ້ງຄ່າຂັ້ນສູງ</string>
     <string name="notification_initial_sync">ການຊິງຄ໌ເບື້ອງຕົ້ນ…</string>
-    <string name="bug_report_error_too_short">ຄຳອະທິບາຍສັ້ນເກີນໄປ</string>
     <string name="permalink_malformed">ລິ້ງ matrix.to ຂອງທ່ານບໍ່ຖືກຕ້ອງ</string>
     <string name="soft_logout_sso_not_same_user_error">ລະບົບປັດຈຸບັນແມ່ນສໍາລັບຜູ້ໃຊ້ %1$s ແລະ ທ່ານໃຫ້ຂໍ້ມູນປະຈໍາຕົວສໍາລັບຜູ້ໃຊ້ %2$s. ອັນນີ້ບໍ່ຮອງຮັບໂດຍ ${app_name}.
 \nກະລຸນາລຶບຂໍ້ມູນກ່ອນ, ຈາກນັ້ນເຂົ້າສູ່ລະບົບອີກຄັ້ງໃນບັນຊີອື່ນ.</string>
@@ -1726,8 +1643,6 @@
     <string name="login_terms_title">ຍອມຮັບເງື່ອນໄຂເພື່ອສືບຕໍ່</string>
     <string name="login_a11y_captcha_container">ກະລຸນາດໍາເນີນການ captcha</string>
     <string name="login_a11y_choose_other">ເລືອກ homeserver ແບບກຳນົດເອງ</string>
-    <string name="login_a11y_choose_modular">ເລືອກບໍລິການ Element Matrix</string>
-    <string name="login_a11y_choose_matrix_org">ເລືອກ matrix.org</string>
     <string name="login_signup_cancel_confirmation_content">ທ່ານຍັງບໍ່ໄດ້ສ້າງບັນຊີເທື່ອ.
 \n
 \nຢຸດຂະບວນການລົງທະບຽນ\?</string>
@@ -1832,30 +1747,14 @@
     <string name="create_spaces_room_public_header">ການສົນທະນາໃດນຶ່ງທີ່ທ່ານຕ້ອງການມີຢູ່ໃນ %s\?</string>
     <string name="create_space_error_empty_field_space_name">ຕັ້ງຊື່ເພື່ອສືບຕໍ່.</string>
     <string name="create_spaces_details_private_header">ເພີ່ມລາຍລະອຽດບາງຢ່າງເພື່ອຊ່ວຍໃຫ້ຜູ້ອຶ່ນລະບຸຕົວຕົນໄດ້. ທ່ານສາມາດປ່ຽນສິ່ງເຫຼົ່ານີ້ໄດ້ທຸກເວລາ.</string>
-    <string name="create_spaces_details_public_header">ເພີ່ມລາຍລະອຽດບາງຢ່າງເພື່ອຊ່ວຍໃຫ້ໂດດເດັ່ນ. ທ່ານສາມາດປ່ຽນສິ່ງເຫຼົ່ານີ້ໄດ້ທຸກເວລາ.</string>
     <string name="activity_create_space_title">ສ້າງພື້ນທີ່</string>
-    <string name="space_type_private_desc">ເຊີນເທົ່ານັ້ນ, ທີ່ດີສຸດສຳລັບຕົວທ່ານເອງ ຫຼື ທີມງານ</string>
     <string name="space_type_private">ສ່ວນຕົວ</string>
-    <string name="space_type_public_desc">ເປີດໃຫ້ທຸກຄົນ, ທີ່ດີສຸດສຳລັບຊຸມຊົນ</string>
-    <string name="space_type_public">ສາທາລະນະ</string>
-    <string name="create_spaces_private_teammates">ພື້ນທີ່ສ່ວນຕົວສຳລັບ ທ່ານ ແລະ ເພື່ອນຮ່ວມທີມ</string>
-    <string name="create_spaces_me_and_teammates">ຂ້ອຍ ແລະ ເພື່ອນຮ່ວມທີມ</string>
-    <string name="create_spaces_organise_rooms">ພື້ນທີ່ສ່ວນຕົວເພື່ອຈັດລະບຽບຫ້ອງຂອງທ່ານ</string>
-    <string name="create_spaces_just_me">ພຽງແຕ່ຂ້ອຍ</string>
-    <string name="create_spaces_make_sure_access">ໃຫ້ແນ່ໃຈວ່າບຸກຄົນທີ່ມີສິດເຂົ້າເຖິງ %s.</string>
-    <string name="create_spaces_who_are_you_working_with">ທ່ານກໍາລັງເຮັດວຽກກັບໃຜ\?</string>
-    <string name="create_spaces_join_info_help">ເພື່ອເຂົ້າຮ່ວມພື້ນທີ່ທີ່ມີຢູ່, ທ່ານຕ້ອງໄດ້ຮັບເຊີນ.</string>
-    <string name="create_spaces_you_can_change_later">ທ່ານສາມາດປ່ຽນສິ່ງນີ້ໃນພາຍຫຼັງ</string>
-    <string name="create_spaces_choose_type_label">ທ່ານຕ້ອງການສ້າງພື້ນທີ່ປະເພດໃດ\?</string>
-    <string name="your_private_space">ພື້ນທີ່ສ່ວນຕົວຂອງທ່ານ</string>
-    <string name="your_public_space">ພື້ນທີ່ສາທາລະນະຂອງທ່ານ</string>
     <string name="add_space">ເພີ່ມພື້ນທີ່</string>
     <string name="private_space">ພື້ນທີ່ສ່ວນຕົວ</string>
     <string name="public_space">ພື້ນທີ່ສາທາລະນະ</string>
     <string name="event_status_delete_all_failed_dialog_message">ທ່ານແນ່ໃຈບໍ່ວ່າທ່ານຕ້ອງການລຶບຂໍ້ຄວາມທີ່ຍັງບໍ່ໄດ້ສົ່ງທັງໝົດຢູ່ໃນຫ້ອງນີ້\?</string>
     <string name="event_status_delete_all_failed_dialog_title">ລຶບຂໍ້ຄວາມທີ່ຍັງບໍ່ໄດ້ສົ່ງອອກ</string>
     <string name="event_status_failed_messages_warning">ບໍ່ສາມາດສົ່ງຂໍ້ຄວາມ</string>
-    <string name="event_status_cancel_sending_dialog_message">ທ່ານຕ້ອງການຍົກເລີກການສົ່ງຂໍ້ຄວາມບໍ\?</string>
     <string name="event_status_a11y_delete_all">ລຶບຂໍ້ຄວາມທີ່ບໍ່ສຳເລັດທັງໝົດອອກ</string>
     <string name="event_status_a11y_failed">ບໍ່ສຳເລັດ</string>
     <string name="event_status_a11y_sent">ສົ່ງແລ້ວ</string>
@@ -1868,7 +1767,6 @@
     <string name="dev_tools_event_content_hint">ເນື້ອໃນຂອງເຫດການ</string>
     <string name="dev_tools_success_state_event">ສົ່ງຖະແຫຼງການຂອງເຫດການ!</string>
     <string name="dev_tools_success_event">ສົ່ງເຫດການແລ້ວ!</string>
-    <string name="dev_tools_error_malformed_event">ເຫດການຜິດປົກກະຕິ</string>
     <string name="dev_tools_error_no_message_type">ບໍ່ມີປະເພດຂໍ້ຄວາມ</string>
     <string name="dev_tools_error_no_content">ບໍ່ມີເນື້ອຫາ</string>
     <string name="dev_tools_form_hint_event_content">ເນື້ອໃນຂອງເຫດການ</string>
@@ -1906,7 +1804,6 @@
     <string name="a11y_image">ຮູບພາບ</string>
     <string name="a11y_import_key_from_file">ນໍາເຂົ້າລະຫັດຈາກໄຟລ໌</string>
     <string name="a11y_open_widget">ເປີດ widget</string>
-    <string name="a11y_screenshot">ພາບໜ້າຈໍ</string>
     <string name="authentication_error">ການຢືນຢັນບໍ່ສຳເລັດ</string>
     <string name="re_authentication_default_confirm_text">${app_name} ຮ້ອງຂໍໃຫ້ທ່ານໃສ່ຂໍ້ມູນປະຈໍາຕົວຂອງທ່ານເພື່ອດໍາເນີນການນີ້.</string>
     <string name="re_authentication_activity_title">ຕ້ອງການພິສູດການຢືນຢັນຄືນໃໝ່</string>
@@ -1979,17 +1876,13 @@
     <string name="e2e_use_keybackup">ປົດລັອກປະຫວັດຂໍ້ຄວາມທີ່ເຂົ້າລະຫັດໄວ້</string>
     <string name="settings_export_trail">ກວດສອບການສົ່ງອອກ</string>
     <string name="settings_key_requests">ການຮ້ອງຂໍທີ່ສຳຄັນ</string>
-    <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">ລະຫັດແມ່ນທັນສະໄຫມແລ້ວ!</string>
-    <string name="delete_event_dialog_reason_checkbox">ລວມທັງເຫດຜົນ</string>
-    <string name="send_images_and_video_with_original_size">ສົ່ງສື່ຕາມຂະຫນາດຕົ້ນສະບັບ</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="other">ສົ່ງວິດີໂອຕາມຂະຫນາດຕົ້ນສະບັບ</item>
     </plurals>
     <plurals name="send_images_with_original_size">
         <item quantity="other">ສົ່ງຮູບພາບຕາມຂະຫນາດຕົ້ນສະບັບ</item>
     </plurals>
-    <string name="share_confirm_room">ທ່ານຕ້ອງການສົ່ງໄຟລ໌ແນບນີ້ໄປຫາ %1$s ບໍ\?</string>
     <string name="enter_secret_storage_invalid">ບໍ່ສາມາດຊອກຫາຄວາມລັບຢູ່ໃນບ່ອນຈັດເກັບ</string>
     <string name="verification_use_passphrase">ຖ້າທ່ານບໍ່ສາມາດເຂົ້າເຖິງລະບົບທີ່ມີຢູ່ແລ້ວ</string>
     <string name="verification_cannot_access_other_session">ໃຊ້ລະຫັດຜ່ານການກູ້ຂໍ້ມູນ ຫຼື ໃຊ້ກະເເຈ</string>
@@ -2074,7 +1967,6 @@
     <string name="room_member_power_level_invites">ເຊີນ</string>
     <string name="room_member_power_level_moderators">ຜູ້ຄວບຄຸມ</string>
     <string name="room_member_power_level_admins">ຜູ້ເບິ່ງແຍງລະບົບ</string>
-    <string name="room_member_override_nick_color">ໂຊທັບສີຂອງຊື່ນີ້</string>
     <string name="room_profile_leaving_room">ກຳລັງອອກຈາກຫ້ອງ…</string>
     <string name="direct_room_profile_section_more_leave">ອອກໄປ</string>
     <string name="room_profile_section_more_leave">ອອກຈາກຫ້ອງ</string>
@@ -2127,35 +2019,11 @@
     <string name="room_list_quick_actions_notifications_all">ຂໍ້ຄວາມທັງໝົດ</string>
     <string name="room_list_quick_actions_notifications_all_noisy">ຂໍ້ຄວາມທັງໝົດ (ສຽງດັງ)</string>
     <string name="message_ignore_user">ບໍ່ສົນໃຈຜູ້ໃຊ້</string>
-    <string name="content_reported_as_inappropriate_content">ເນື້ອຫານີ້ຖືກລາຍງານວ່າບໍ່ເໝາະສົມ.
-\n
-\nຖ້າຫາກວ່າທ່ານບໍ່ຕ້ອງການທີ່ຈະເບິ່ງເນື້ອໃນເພີ່ມເຕີມຈາກຜູ້ໃຊ້ນີ້, ທ່ານສາມາດບໍ່ສົນໃຈໃຫ້ເຂົາເຈົ້າເຊື່ອງຂໍ້ຄວາມຂອງເຂົາເຈົ້າ.</string>
-    <string name="content_reported_as_inappropriate_title">ລາຍງານວ່າບໍ່ເໝາະສົມ</string>
-    <string name="content_reported_as_spam_content">ເນື້ອຫານີ້ຖືກລາຍງານວ່າເປັນສະແປມ.
-\n
-\nຖ້າຫາກວ່າທ່ານບໍ່ຕ້ອງການທີ່ຈະເບິ່ງເນື້ອໃນເພີ່ມເຕີມຈາກຜູ້ໃຊ້ນີ້, ທ່ານສາມາດບໍ່ສົນໃຈໃຫ້ເຂົາເຈົ້າເຊື່ອງຂໍ້ຄວາມຂອງເຂົາເຈົ້າ.</string>
-    <string name="content_reported_as_spam_title">ລາຍງານວ່າເປັນ spam</string>
-    <string name="content_reported_content">ເນື້ອຫານີ້ໄດ້ຖືກລາຍງານ.
-\n
-\nຖ້າຫາກວ່າທ່ານບໍ່ຕ້ອງການທີ່ຈະເບິ່ງເນື້ອໃນເພີ່ມເຕີມຈາກຜູ້ໃຊ້ນີ້, ທ່ານສາມາດບໍ່ສົນໃຈໃຫ້ເຂົາເຈົ້າເຊື່ອງຂໍ້ຄວາມຂອງເຂົາເຈົ້າ.</string>
-    <string name="content_reported_title">ເນື້ອໃນທີ່ໄດ້ລາຍງານ</string>
-    <string name="block_user">ບໍ່ສົນໃຈຜູ້ໃຊ້</string>
-    <string name="report_content_custom_submit">ລາຍງານ</string>
-    <string name="report_content_custom_hint">ເຫດຜົນໃນການລາຍງານເນື້ອຫານີ້</string>
-    <string name="report_content_custom_title">ລາຍງານເນື້ອຫານີ້</string>
-    <string name="report_content_custom">ລາຍງານທີ່ກຳນົດເອງ…</string>
-    <string name="report_content_inappropriate">ບໍ່ເຫມາະສົມ</string>
     <string name="voice_message_n_seconds_warning_toast">ເຫຼືອ %1$ds</string>
     <string name="voice_message_slide_to_cancel">ເລື່ອນເພື່ອຍົກເລີກ</string>
     <string name="a11y_start_voice_message">ບັນທຶກຂໍ້ຄວາມສຽງ</string>
     <string name="error_failed_to_join_room">ຂໍອະໄພ, ເກີດຄວາມຜິດພາດຂຶ້ນໃນຂະນະທີ່ພະຍາຍາມເຂົ້າຮ່ວມ: %s</string>
     <string name="room_upgrade_to_recommended_version">ຍົກລະດັບເປັນເວີຊັນຫ້ອງທີ່ແນະນຳ</string>
-    <string name="initial_sync_request_reason_unignored_users">- ຜູ້ໃຊ້ບາງຄົນໄດ້ຖືກສົນໃຈ</string>
-    <string name="initial_sync_request_content">${app_name} ຕ້ອງດໍາເນີນການ cache ທີ່ຊັດເຈນເພື່ອໃຫ້ທັນສະໄຫມ, ສໍາລັບເຫດຜົນດັ່ງຕໍ່ໄປນີ້:
-\n%s
-\n
-\nກະລຸນາຮັບຊາບວ່າຄຳສັ່ງນີ້ຈະປິດເປີດແອັບຄືນໃໝ່ ແລະ ມັນອາດຈະໃຊ້ເວລາຄາວໜຶ່ງ.</string>
-    <string name="initial_sync_request_title">ການຮ້ອງຂໍການຊິງຄ໌ເບື້ອງຕົ້ນ</string>
     <string name="room_message_autocomplete_notification">ການແຈ້ງເຕືອນຫ້ອງ</string>
     <string name="room_message_autocomplete_users">ຜູ້ໃຊ້</string>
     <string name="room_message_notify_everyone">ແຈ້ງໃຫ້ຫ້ອງໍທັງຫມົດ</string>
@@ -2165,12 +2033,10 @@
     <string name="message_reaction_show_less">ສະແດງໜ້ອຍລົງ</string>
     <string name="tooltip_attachment_location">ແບ່ງປັນສະຖານທີ່</string>
     <string name="tooltip_attachment_poll">ສ້າງແບບສຳຫຼວດ</string>
-    <string name="tooltip_attachment_contact">ເປີດລາຍຊື່ຜູ້ຕິດຕໍ່</string>
     <string name="tooltip_attachment_sticker">ສົ່ງສະຕິກເກີ</string>
     <string name="tooltip_attachment_file">ອັບໂຫຼດໄຟລ໌</string>
     <string name="tooltip_attachment_gallery">ສົ່ງຮູບພາບ ແລະ ວິດີໂອ</string>
     <string name="tooltip_attachment_photo">ເປີດກ້ອງຖ່າຍຮູບ</string>
-    <string name="message_bubbles">ສະແດງຟອງຂໍ້ຄວາມ</string>
     <string name="live_location_sharing_notification_description">ການແບ່ງປັນສະຖານທີ່ກຳລັງດຳເນີນຢູ່</string>
     <string name="live_location_sharing_notification_title">${app_name} ສະຖານທີ່ປັດຈຸບັນ</string>
     <string name="location_share_live_stop">ຢຸດ</string>

@@ -116,8 +116,6 @@
     <string name="all_chats">Soga zote</string>
     <string name="create_room">Unda Chumba</string>
     <string name="explore_rooms">Chunguza Vyumba</string>
-    <string name="a11y_expand_space_children">Panua %s watoto</string>
-    <string name="a11y_collapse_space_children">Kunja %s Matawi</string>
     <string name="room_error_access_unauthorized">Huruhusiwi kujiunga na chumba hiki</string>
     <string name="medium_email">Barua pepe</string>
     <string name="medium_phone_number">Nambari ya simu</string>
@@ -153,15 +151,8 @@
 \nInaingiza vyumba vilivyobaki</string>
     <string name="initial_sync_start_importing_account_data">Usawazishaji wa awali:
 \nInaleta taarifa za akaunti</string>
-    <string name="initial_sync_request_title">Ombi la awali la usawazishaji</string>
     <string name="initial_sync_start_importing_account_invited_rooms">Usawazishaji wa awali:
 \nInaleta vyumba vilivyoalikwa</string>
-    <string name="initial_sync_request_content">${app_name} inahitaji kuondoa kachese ili ziendane na wakati, kwa sababu ifuatayo:
-\n%s
-\n
-\nKumbuka kuwa kitendo hiki kitaanzisha upya programu na inaweza kuchukua muda.</string>
-    <string name="initial_sync_request_reason_unignored_users">- Baadhi ya watumiaji wamepuuzwa</string>
-    <string name="event_status_sent_message">Ujumbe umetumwa</string>
     <string name="notice_room_invite_no_invitee_with_reason">%1$s\'s mwaliko. sababu: %2$s</string>
     <string name="notice_room_invite_with_reason_by_you">Umealika %1$s. Sababu: %2$s</string>
     <string name="notice_room_invite_you_with_reason">%1$s amekualika. Sababu: %2$s</string>
@@ -254,7 +245,6 @@
     <string name="notice_end_to_end_ok_by_you">Umewasha usimbaji fiche kutoka mwanzo hadi mwisho.</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s umewasha usimbaji fiche kutoka mwanzo hadi mwisho (algorithm isiyotambulika %2$s).</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">Umewasha usimbaji fiche kutoka mwanzo hadi mwisho (algorithm isiyotambulika %1$s).</string>
-    <string name="system_theme">Chaguomsingi ya Mfumo</string>
     <string name="light_theme">Mandhari Nyepesi</string>
     <string name="notification_listening_for_events">Kusikiliza matukio</string>
 </resources>

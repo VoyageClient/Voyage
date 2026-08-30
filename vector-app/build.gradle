@@ -256,6 +256,10 @@ android {
     lint {
         lintConfig file("../tools/lint/lint.xml")
 
+        // Records the backlog inherited from upstream so the task gates new issues only. Regenerate
+        // by deleting the file and running lintRelease.
+        baseline file("lint-baseline.xml")
+
         checkDependencies true
         abortOnError true
     }

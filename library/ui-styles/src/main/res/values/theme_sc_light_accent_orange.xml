@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_orange">#ff9800</color>
-    <color name="accent_sc_light_orange_alpha25">#3fff9800</color>
     <color name="accent_sc_light_orange_pale">@color/accent_sc_light_orange</color>
-    <color name="accent_sc_light_orange_dark">@color/accent_sc_light_orange_alpha25</color>
     <color name="accent_sc_light_orange_noalpha12">#fff2e0</color>
 
 

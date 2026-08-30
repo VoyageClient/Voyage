@@ -23,7 +23,6 @@
     <string name="are_you_sure">Моны раслыйсызмы\?</string>
     <string name="loading">Йөкләнә…</string>
     <string name="ok">Ярар</string>
-    <string name="later">Соңрак</string>
     <string name="none">Бернинди дә</string>
     <string name="time_unit_minute_short">мин</string>
     <string name="time_unit_second_short">сек</string>
@@ -32,9 +31,6 @@
     <string name="action_open">Ачу</string>
     <string name="action_close">Ябу</string>
     <string name="action_add">Өстәү</string>
-    <string name="action_switch">Күчү</string>
-    <string name="action_enable">Кабызу</string>
-    <string name="action_disable">Cүндерү</string>
     <string name="action_change">Үзгәртү</string>
     <string name="action_join">Кушылу</string>
     <string name="action_reject">Кире кагу</string>
@@ -66,10 +62,6 @@
     <string name="search">Эзләү</string>
     <string name="logout">Чыгу</string>
     <string name="username">Кулланучы исеме</string>
-    <string name="sound_device_phone">Телефон</string>
-    <string name="sound_device_speaker">Динамик</string>
-    <string name="sound_device_headset">Колакчыннар</string>
-    <string name="sound_device_wireless_headset">Чыбыксыз колакчыннар</string>
     <string name="auth_login">Керү</string>
     <string name="auth_submit">Тапшыру</string>
     <string name="login_error_ssl_other">SSL Хатасы.</string>

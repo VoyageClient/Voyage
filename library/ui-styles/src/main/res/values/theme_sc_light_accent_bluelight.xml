@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_bluelight">#03a9f4</color>
-    <color name="accent_sc_light_bluelight_alpha25">#3f03a9f4</color>
     <color name="accent_sc_light_bluelight_pale">@color/accent_sc_light_bluelight</color>
-    <color name="accent_sc_light_bluelight_dark">@color/accent_sc_light_bluelight_alpha25</color>
     <color name="accent_sc_light_bluelight_noalpha12">#e0f4f3</color>
 
 

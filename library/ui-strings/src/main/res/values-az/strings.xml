@@ -129,7 +129,6 @@
     <string name="notice_room_server_acl_set_allowed">• %s ilə uyğunlaşan serverlərə icazə verildi.</string>
     <string name="notice_room_third_party_revoked_invite_by_you">Siz %1$s üçün otağa qoşulmaq dəvətin ləğv etdiniz</string>
     <string name="notice_direct_room_third_party_invite_by_you">%1$s-ı dəvət etdiniz</string>
-    <string name="rich_text_editor_full_screen_toggle">Tam ekran rejimini dəyiş</string>
     <string name="message_reply_to_prefix">buna cavab olaraq</string>
     <string name="message_reply_to_sender_sent_file">fayl göndərdi.</string>
     <string name="message_reply_to_sender_sent_audio_file">səs faylı göndərdi.</string>
@@ -156,9 +155,6 @@
     <string name="qr_code_login_try_again">Bir daha cəhd et</string>
     <string name="qr_code_login_confirm_security_code">Təsdiqlə</string>
     <string name="qr_code_login_confirm_security_code_description">Bu kodun mənbəyini bildiyinizə əmin olun. Cihazları əlaqələndirməklə siz kiməsə hesabınıza tam giriş imkanı təmin edəcəksiniz.</string>
-    <string name="rich_text_editor_format_bold">Qalın format tətbiq et</string>
-    <string name="rich_text_editor_format_italic">Kursiv formatını tətbiq et</string>
-    <string name="rich_text_editor_format_underline">Alt xətt formatını tətbiq et</string>
     <string name="notice_room_canonical_alias_unset_by_you">Bu otaq üçün əsas ünvanı sildiniz.</string>
     <string name="notice_room_aliases_added_and_removed">%1$s, %2$s əlavə etdi və %3$s-nı bu otaq üçün ünvan kimi sildi.</string>
     <plurals name="notice_room_aliases_removed_by_you">
@@ -190,14 +186,6 @@
     <string name="notice_room_join_with_reason_by_you">Otağa qoşuldunuz. Əsas: %1$s</string>
     <string name="notice_room_invite_with_reason_by_you">%1$s-ı dəvət etdiniz. Əsas: %2$s</string>
     <string name="notice_room_invite_no_invitee_with_reason_by_you">Sizin dəvətiniz. Əsas: %1$s</string>
-    <string name="event_status_sent_message">Mesaj göndərildi</string>
-    <string name="initial_sync_request_reason_unignored_users">- Bəzi istifadəçilər nəzərə alınmayıb</string>
-    <string name="initial_sync_request_content">${app_name} aşağıdakı səbəbə görə:
-\n%s 
-\n
-\nGüncəl olmaq üçün təmiz keşi yerinə yetirməlidir.
-\nNəzərə alın ki, bu əməliyyat tətbiqi yenidən işə salacaq və bir az vaxt apara bilər.</string>
-    <string name="initial_sync_request_title">İlkin sinxronizasiya sorğusu</string>
     <string name="initial_sync_start_downloading">İlkin sinxronizasiya:
 \nMəlumat endirilir…</string>
     <string name="initial_sync_start_server_computing">İlkin sinxronizasiya:
@@ -210,8 +198,6 @@
     <string name="room_displayname_4_members">%1$s, %2$s, %3$s və %4$s</string>
     <string name="room_displayname_3_members">%1$s, %2$s və %3$s</string>
     <string name="room_error_access_unauthorized">Bu otağa qoşulmağa icazəniz yoxdur</string>
-    <string name="a11y_expand_space_children">%s uşağı yay</string>
-    <string name="a11y_collapse_space_children">%s uşağı yığışdır</string>
     <string name="explore_rooms">Otaqları Araşdır</string>
     <string name="create_room">Otaq Yarat</string>
     <string name="start_chat">Söhbət Başlat</string>
@@ -254,8 +240,6 @@
     <string name="set_link_text">Mətn</string>
     <string name="message_reply_to_sender_ended_poll">Anket başa çatıb.</string>
     <string name="notice_display_name_changed_to">%1$s ekran adını %2$s olaraq dəyişdi</string>
-    <string name="rich_text_editor_inline_code">Daxili kod formatın işlət</string>
-    <string name="rich_text_editor_code_block">Kod blokun dəyiş</string>
     <string name="notice_room_canonical_alias_set_by_you">Bu otaq üçün əsas ünvanı %1$s olaraq təyin etdiniz.</string>
     <string name="pill_message_in_room">Mesaj %s</string>
     <string name="notice_room_aliases_added_and_removed_by_you">Bu otaq üçün ünvan kimi %2$s-nı sildiniz və %1$s əlavə etdiniz.</string>

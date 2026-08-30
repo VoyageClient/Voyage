@@ -197,12 +197,10 @@
     <string name="action_send">Изпрати</string>
     <string name="action_quote">Цитирай</string>
     <string name="action_share">Сподели</string>
-    <string name="later">По-късно</string>
     <string name="permalink">Permalink</string>
     <string name="view_source">Виж източника</string>
     <string name="action_delete">Изтрий</string>
     <string name="action_rename">Преименувай</string>
-    <string name="report_content">Докладвай съдържанието</string>
     <string name="notification_listening_for_events">Следене за събития</string>
     <string name="notification_noisy_notifications">Шумни известия</string>
     <string name="notification_silent_notifications">Уведомления без звук</string>
@@ -226,12 +224,6 @@
     <string name="matrix_only_filter">Само потребители на Matrix</string>
     <string name="no_result_placeholder">Няма резултати</string>
     <string name="rooms_header">Стаи</string>
-    <string name="send_bug_report_include_logs">Изпращане на логове</string>
-    <string name="send_bug_report_include_crash_logs">Изпращане на логове за забивания</string>
-    <string name="send_bug_report_include_screenshot">Изпращане на снимка на екрана</string>
-    <string name="send_bug_report_description">Моля, опишете грешката. Какво направихте? Какво очаквахте да стане? Какво стана всъщност?</string>
-    <string name="send_bug_report_placeholder">Опишете своя проблем тук</string>
-    <string name="send_bug_report_logs_description">За да се диагностицират проблемите, логовете от този клиент ще бъдат изпратени с този доклад за грешки. Докладът, заедно с логовете и скрийншота, няма да са видими публично. Ако предпочитате да изпратите само текста по-горе, моля, премахнете отметката:</string>
     <string name="join_room">Влез в стая</string>
     <string name="username">Потребителско име</string>
     <string name="logout">Отписване</string>
@@ -292,8 +284,6 @@
     <string name="settings_add_phone_number">Добави телефонен номер</string>
     <string name="settings_enable_all_notif">Включване на известия за този профил</string>
     <string name="settings_enable_this_device">Включване на известията за това устройство</string>
-    <string name="settings_containing_my_display_name">Съобщения, съдържащи моя псевдоним</string>
-    <string name="settings_containing_my_user_name">Съобщения, съдържащи моето потребителско име</string>
     <string name="settings_messages_in_one_to_one">Съобщения в индивидуални чатове</string>
     <string name="settings_messages_in_group_chat">Съобщения в групови чатове</string>
     <string name="settings_invited_to_room">Когато ме поканят в стая</string>
@@ -404,10 +394,6 @@
     <string name="widget_integration_missing_user_id">Липсва user_id в заявката.</string>
     <string name="widget_integration_room_not_visible">Стая %s не е видима.</string>
     <string name="room_add_matrix_apps">Добави Matrix приложения</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} иска разшерение за достъп до Вашия микрофон, за да се извърши звуков разговор.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} иска разширение за достъп до микрофона и камерата Ви, за да извърши видео разговор.
-\n
-\nМоля, разрешете достъпа от следващия прозорец, който ще се покаже, за да можете да се обадите.</string>
     <string name="yes">ДА</string>
     <string name="no">НЕ</string>
     <string name="_continue">Продължи</string>
@@ -452,8 +438,6 @@
     <string name="unrecognized_command">Неразпозната команда: %s</string>
     <string name="notification_off">Изключено</string>
     <string name="notification_noisy">Шумно</string>
-    <string name="create">Създай</string>
-    <string name="group_details_home">Начало</string>
     <string name="rooms">Стаи</string>
     <string name="invited">Поканени</string>
     <string name="has_been_banned">Бяхте блокиран от %1$s от %2$s</string>
@@ -482,7 +466,6 @@
     <string name="option_send_voice">Изпрати гласово съобщение</string>
     <string name="error_no_external_application_found">Съжаляваме, не е намерено външно приложение, което да извърши това действие.</string>
     <string name="error_empty_field_your_password">Моля, въведете паролата си.</string>
-    <string name="send_bug_report_description_in_english">По възможност, моля въведете описанието на английски.</string>
     <string name="settings_preview_media_before_sending">Преглед на медийни файлове преди изпращане</string>
     <string name="command_description_emote">Показва действие</string>
     <string name="command_description_ban_user">Блокира потребител с даден идентификатор</string>
@@ -496,8 +479,6 @@
     <string name="command_description_nick">Променя името Ви</string>
     <string name="command_description_markdown">Включва/изключва markdown</string>
     <string name="command_description_clear_scalar_token">Поправя управлението на Matrix приспособленията</string>
-    <string name="room_tombstone_versioned_description">Тази стая е била заменена с нова и вече не е активна</string>
-    <string name="room_tombstone_continuation_link">Кореспонденцията продължава тук</string>
     <string name="room_tombstone_continuation_description">Тази стая е продължение от предишна кореспонденция</string>
     <string name="room_tombstone_predecessor_link">Натиснете тук за да видите по-стари съобщения</string>
     <plurals name="room_details_selected">
@@ -806,9 +787,6 @@
     <string name="preference_voice_and_video">Глас и Видео</string>
     <string name="preference_root_help_about">Помощ и Относно</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Регистрирай токен</string>
-    <string name="send_suggestion_content">Напишете предложението си долу.</string>
-    <string name="send_suggestion_report_placeholder">Опишете предложението тук</string>
-    <string name="send_suggestion_failed">Предложението не беше изпратено (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Показвай скрити събития в чата</string>
     <string name="bottom_action_people_x">Директни съобщения</string>
     <string name="send_file_step_idle">Изчакване…</string>
@@ -876,7 +854,6 @@
     <string name="labs_allow_extended_logging_summary">Подробните логове помагат на разработчиците, понеже предоставят повече логове когато изпращате RageShake. Дори включени, приложението не записва съдържанието на съобщенията или други лични данни.</string>
     <string name="error_terms_not_accepted">Опитайте пак след като приемете условията за ползване на сървъра.</string>
     <string name="error_network_timeout">Изглежда сървъра отнема прекалено дълго за да отговори, поради лоша връзка или проблем със сървърите. Опитайте пак по-късно.</string>
-    <string name="send_attachment">Изпрати прикачен файл</string>
     <string name="a11y_open_drawer">Отвори навигационния панел</string>
     <string name="a11y_create_menu_open">Отвори менюто за създаване на стая</string>
     <string name="a11y_create_menu_close">Затвори менюто за създаване на стая…</string>
@@ -892,30 +869,10 @@
         <item quantity="other">%d потребителя прочетоха</item>
     </plurals>
     <string name="attachment_type_file">Файл</string>
-    <string name="attachment_type_contact">Контакт</string>
     <string name="attachment_type_camera">Камера</string>
     <string name="attachment_type_gallery">Галерия</string>
     <string name="attachment_type_sticker">Стикер</string>
     <string name="error_handling_incoming_share">Неуспешна обработка на споделени данни</string>
-    <string name="report_content_spam">Това е спам</string>
-    <string name="report_content_inappropriate">Това е неподходящо</string>
-    <string name="report_content_custom">Собствен доклад…</string>
-    <string name="report_content_custom_title">Докладване на това съдържание</string>
-    <string name="report_content_custom_hint">Причина за докладване на това съдържание</string>
-    <string name="report_content_custom_submit">ДОКЛАДВАЙ</string>
-    <string name="block_user">ИГНОРИРАЙ ПОТРЕБИТЕЛЯ</string>
-    <string name="content_reported_title">Съдържанието беше докладвано</string>
-    <string name="content_reported_content">Съдържанието беше докладвано. 
-\n 
-\nАко не искате да виждате повече съдържание от този потребител, може да ги игнорирате за да скриете съобщенията им.</string>
-    <string name="content_reported_as_spam_title">Докладвано като спам</string>
-    <string name="content_reported_as_spam_content">Съдържанието беше докладвано като спам. 
-\n 
-\nАко не искате да виждате повече съдържание от този потребител, може да ги игнорирате за да скриете съобщенията им.</string>
-    <string name="content_reported_as_inappropriate_title">Докладвано като неподходящо</string>
-    <string name="content_reported_as_inappropriate_content">Съдържанието беше докладвано като неподходящо. 
-\n 
-\nАко не искате да виждате повече съдържание от този потребител, може да ги игнорирате за да скриете съобщенията им.</string>
     <string name="login_error_no_homeserver_found">Това не е валиден адрес на Matrix сървър</string>
     <string name="settings_integrations">Интеграции</string>
     <string name="settings_integrations_summary">Използвайте мениджър на интеграции за да управлявате ботове, връзки с други мрежи, приспособления и стикери.
@@ -1038,8 +995,6 @@
     <string name="login_signup_error_user_in_use">Това потребителско име е заето</string>
     <string name="login_signup_cancel_confirmation_title">Внимание</string>
     <string name="login_signup_cancel_confirmation_content">Профила ви все още не е създаден. Прекратяване на процеса на регистрация\?</string>
-    <string name="login_a11y_choose_matrix_org">Избери matrix.org</string>
-    <string name="login_a11y_choose_modular">Избери Element Matrix Services</string>
     <string name="login_a11y_choose_other">Избери собствен сървър</string>
     <string name="login_a11y_captcha_container">Моля извършете captcha проверката</string>
     <string name="login_terms_title">Приемете условията за да продължите</string>
@@ -1080,7 +1035,6 @@
     <string name="soft_logout_sso_not_same_user_error">Текущата сесия е за потребител %1$s, а вие сте въвели данни за вход за %2$s. ${app_name} не поддържа това.
 \nПърво изчистете данните, след това влезте отново с друг профил.</string>
     <string name="permalink_malformed">matrix.to връзката ви беше невалидна</string>
-    <string name="bug_report_error_too_short">Описанието е прекалено кратко</string>
     <string name="notification_initial_sync">Начална синхронизация…</string>
     <string name="settings_advanced_settings">Разширени настройки</string>
     <string name="settings_developer_mode">Режим за разработчици</string>
@@ -1109,19 +1063,11 @@
     <string name="login_error_ssl_other">SSL грешка.</string>
     <string name="login_error_ssl_peer_unverified">SSL грешка: идентичността на отсрещната страна не е потвърдена.</string>
     <string name="auth_msisdn_already_defined">Телефонният номер вече е въведен.</string>
-    <string name="sound_device_wireless_headset">Безжични слушалки</string>
-    <string name="sound_device_headset">Слушалки</string>
-    <string name="sound_device_speaker">Високоговорител</string>
-    <string name="sound_device_phone">Телефон</string>
     <string name="bottom_action_notification">Уведомления</string>
     <string name="dialog_title_success">Успешно</string>
     <string name="action_copy">Копирай</string>
     <string name="call_notification_hangup">Затвори</string>
     <string name="failed_to_remove_widget">Неуспешно премахване на приспособление</string>
-    <string name="failed_to_add_widget">Неуспешно добавяне на приспособление</string>
-    <string name="audio_video_meeting_description">Разговорите използват политиките за сигурност и достъп на Jitsi. Всички хора в стаята ще видят покана за присъединяване докато разговора тече.</string>
-    <string name="audio_meeting">Започни аудио разговор</string>
-    <string name="video_meeting">Започни видео разговор</string>
     <string name="action_reset">Нулирай</string>
     <string name="action_dismiss">Затвори</string>
     <string name="encryption_information_cross_signing_state">Кръстосано-подписване</string>
@@ -1304,12 +1250,10 @@
     <string name="room_participants_unban_title">Премахване на блокиране</string>
     <string name="room_participants_ban_reason">Причина за блокирането</string>
     <string name="room_participants_ban_title">Блокиране на потребител</string>
-    <string name="delete_event_dialog_reason_checkbox">Укажете причина</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Изпрати снимката с оригинален размер</item>
         <item quantity="other">Изпрати снимките с оригинални размери</item>
     </plurals>
-    <string name="share_confirm_room">Искате ли да изпратите този прикачен файл към %1$s\?</string>
     <string name="enter_secret_storage_invalid">Не могат да бъдат намерени тайни в секретното складиране</string>
     <string name="verification_use_passphrase">Ако не можете да достъпите съществуваща сесия</string>
     <string name="verification_cannot_access_other_session">Използвай парола или ключ за възстановяване</string>
@@ -1442,7 +1386,6 @@
     <string name="settings_when_rooms_are_upgraded">При обновления на стаи</string>
     <string name="settings_messages_in_e2e_group_chat">Шифровани съобщения в групови чатове</string>
     <string name="settings_messages_in_e2e_one_to_one">Шифровани съобщения в 1-на-1 чатове</string>
-    <string name="settings_messages_at_room">Съобщения съдържащи @room</string>
     <string name="settings_notification_configuration">Настройка на уведомленията</string>
     <string name="error_failed_to_import_keys">Неуспешно импортиране на ключове</string>
     <string name="qr_code_scanned_verif_waiting">Изчакване на %s…</string>
@@ -1503,7 +1446,6 @@
     <string name="refresh">Обнови</string>
     <string name="e2e_use_keybackup">Разблокирай шифрованата история на съобщенията</string>
     <string name="settings_key_requests">Заявки за ключове</string>
-    <string name="login_default_session_public_name">${app_name} за Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Ключовете вече са обновени!</string>
     <string name="universal_link_malformed">Връзката беше с грешен формат</string>
     <string name="room_error_not_found">Неуспешно откриване на стаята. Потвърдете, че съществува.</string>
@@ -1571,11 +1513,6 @@
     <string name="bottom_sheet_setup_secure_backup_submit">Настрой</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">Предпазете се от загубата на достъп до шифрованите съобщения и данни, правейки резервно копие на ключовете за шифроване върху сървъра.</string>
     <string name="bottom_sheet_setup_secure_backup_title">Защитено резервно копие</string>
-    <string name="a11y_start_camera">Пусни камерата</string>
-    <string name="a11y_stop_camera">Спри камерата</string>
-    <string name="a11y_unmute_microphone">Включи звука на микрофона</string>
-    <string name="a11y_open_chat">Отвори чата</string>
-    <string name="a11y_mute_microphone">Заглуши микрофона</string>
     <string name="power_level_title">Роля</string>
     <string name="power_level_edit_title">Задай роля</string>
     <string name="identity_server_set_alternative_submit">Изпрати</string>
@@ -1601,9 +1538,7 @@
     <string name="create_room_name_section">Име на стая</string>
     <string name="settings_export_trail">Експортирай одит</string>
     <string name="room_member_open_or_create_dm">Директно съобщение</string>
-    <string name="send_bug_report_include_key_share_history">Изпрати историята на заявките за споделяне на ключове</string>
     <string name="no_more_results">Няма повече резултати</string>
-    <string name="event_status_sent_message">Съобщението беше изпратено</string>
     <string name="initial_sync_start_downloading">Начална синхронизация:
 \nИзтегляне на данни…</string>
     <string name="initial_sync_start_server_computing">Начална синхронизация:
@@ -1631,6 +1566,5 @@
     <string name="notice_room_server_acl_set_banned">• Сървърите съдържащи %s са блокирани.</string>
     <string name="notice_room_server_acl_set_title_by_you">Настроихте сървърните разрешения (ACL) за тази стая.</string>
     <string name="notice_room_server_acl_set_title">%s настрой разрешенията (ACL) за тази стая.</string>
-    <string name="initial_sync_request_title">Първоначална заявка за синхронизация</string>
     <string name="room_error_access_unauthorized">Нямате права да се присъедините към тази стая</string>
 </resources>

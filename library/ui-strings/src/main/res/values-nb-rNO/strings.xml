@@ -15,7 +15,6 @@
     <string name="action_quote">Sitering</string>
     <string name="action_download">Nedlastning</string>
     <string name="action_share">Del</string>
-    <string name="later">Senere</string>
     <string name="permalink">Permalenke</string>
     <string name="view_source">Vis kilden</string>
     <string name="action_delete">Slett</string>
@@ -132,8 +131,6 @@
     <string name="share_without_verifying_short_label">Del</string>
     <string name="ignore_request_short_label">Ignorer</string>
     <string name="notification_off">Av</string>
-    <string name="create">Lag</string>
-    <string name="group_details_home">Hjem</string>
     <string name="invited">Invitert</string>
     <string name="avatar">Profilbilde</string>
     <string name="deactivate_account_title">Deaktiver kontoen</string>
@@ -180,7 +177,6 @@
     <string name="change_identity_server">Bytt ut identitetstjener</string>
     <string name="a11y_create_room">Opprett et nytt rom</string>
     <string name="attachment_type_file">Fil</string>
-    <string name="attachment_type_contact">Kontakt oss</string>
     <string name="attachment_type_camera">Kamera</string>
     <string name="attachment_type_gallery">Galleri</string>
     <string name="room_list_quick_actions_notifications_mute">Demp</string>
@@ -243,7 +239,6 @@
     <string name="room_member_profile_sessions_section_title">Sesjoner</string>
     <string name="qr_code_scanned_by_other_yes">Ja</string>
     <string name="notification_listening_for_events">Lytter etter hendelser</string>
-    <string name="send_bug_report_include_logs">Send loggbøker</string>
     <plurals name="room_title_members">
         <item quantity="one">%d medlem</item>
         <item quantity="other">%d medlemmer</item>
@@ -313,9 +308,7 @@
     <string name="room_filtering_footer_create_new_room">Opprett et nytt rom</string>
     <string name="identity_server">Identitetstjener</string>
     <string name="settings_discovery_enter_identity_server">Skriv inn en ny identitetstjener</string>
-    <string name="send_attachment">Send vedlegg</string>
     <string name="attachment_type_sticker">Klistremerke</string>
-    <string name="report_content_spam">Det er søppelpost</string>
     <string name="room_list_quick_actions_notifications_all">Alle meldinger</string>
     <string name="room_list_quick_actions_notifications_mentions">Kun nevninger</string>
     <string name="room_list_quick_actions_leave">Forlat rommet</string>
@@ -358,7 +351,6 @@
     <string name="backup">Sikkerhetskopi</string>
     <string name="sign_out_bottom_sheet_will_lose_secure_messages">Du kommer til å miste tilgang til dine enkrypterte meldinger med mindre du sikkerhetskopierer nøklene dine før du logger av.</string>
     <string name="view_decrypted_source">Se dekryptert kilde</string>
-    <string name="report_content">Rapporter innhold</string>
     <string name="action_sign_out_confirmation_simple">Er du sikker på at vil logge ut\?</string>
     <string name="action_mark_all_as_read">Marker alle som lest</string>
     <string name="action_quick_reply">Raskt svar</string>
@@ -370,28 +362,14 @@
     <string name="system_alerts_header">Systemadvarsler</string>
     <string name="direct_chats_header">Samtaler</string>
     <string name="matrix_only_filter">Bare matrix-kontakter</string>
-    <string name="send_bug_report_include_crash_logs">Send kjæsjlogg</string>
-    <string name="send_bug_report_include_screenshot">Send skjermbilde</string>
-    <string name="send_bug_report_description">Vennligst forklar feilen. Hva gjorde du\? Hva forventet du at skulle skje\? Hva skjedde i stedet\?</string>
-    <string name="send_bug_report_description_in_english">Om mulig, vennligst beskriv på engelsk.</string>
-    <string name="send_bug_report_placeholder">Forklar problemet ditt her</string>
-    <string name="send_bug_report_logs_description">For å diagnotisere feil, logger fra denne klienten vil bli sendt med denne feilmeldingen. Feilmeldingen, som inkluderer loggene og skjermdumper, blir ikke offentlig synlig. Hvis du foretrekker å bare sende teksten over, vennligst fjern merkene fra boksene:</string>
     <string name="hs_url">Hjemmetjener URL</string>
     <string name="option_send_voice">Send lydopptak</string>
     <string name="action_play">Spill av</string>
     <string name="action_dismiss">Avslå</string>
-    <string name="video_meeting">Start videomøte</string>
-    <string name="audio_meeting">Start lydmøte</string>
-    <string name="audio_video_meeting_description">Møter bruker sikkerhets- og tilgangsregler fra Jitsi. Alle i rommet vil kunne se en invitasjon til møtet mens det pågår.</string>
-    <string name="failed_to_add_widget">Kunne ikke legge til utvidelse</string>
     <string name="failed_to_remove_widget">Kunne ikke fjerne utvidelse</string>
     <string name="action_copy">Kopier</string>
     <string name="dialog_title_success">Suksess</string>
     <string name="bottom_action_notification">Varsler</string>
-    <string name="sound_device_phone">Telefon</string>
-    <string name="sound_device_speaker">Høytaler</string>
-    <string name="sound_device_headset">Hodesett</string>
-    <string name="sound_device_wireless_headset">Trådløst hodesett</string>
     <string name="option_send_files">Send filer</string>
     <string name="option_send_sticker">Send klistremerke</string>
     <string name="option_take_photo_video">Ta bilde eller video</string>
@@ -457,7 +435,6 @@
     <string name="room_manage_integrations">Behandle integreringer</string>
     <string name="room_no_active_widgets">Ingen aktive moduler</string>
     <string name="error_empty_field_your_password">Vennligst skriv inn passordet ditt.</string>
-    <string name="room_tombstone_continuation_link">Samtalen fortsetter her</string>
     <string name="unknown_error">Beklager, det oppstod en feil</string>
     <string name="passphrase_create_passphrase">Opprett en passordfrase</string>
     <string name="passphrase_confirm_passphrase">Bekreft passordfrasen</string>
@@ -482,8 +459,6 @@
     <string name="uploads_media_title">MEDIA</string>
     <string name="uploads_files_title">FILER</string>
     <string name="uploads_files_subtitle">%1$s, kl. %2$s</string>
-    <string name="report_content_inappropriate">Det er upassende</string>
-    <string name="block_user">IGNORER BRUKER</string>
     <string name="message_ignore_user">Ignorer bruker</string>
     <string name="spoiler">Spoiler</string>
     <string name="no_ignored_users">Du ignorerer ikke noen brukere</string>
@@ -509,7 +484,6 @@
     <string name="finish">Avslutt</string>
     <string name="encryption_enabled">Kryptering er skrudd på</string>
     <string name="encryption_not_enabled">Kryptering er ikke skrudd på</string>
-    <string name="settings_messages_at_room">Medlinger som inneholder @room</string>
     <string name="settings_messages_in_e2e_one_to_one">Krypterte meldinger i samtaler under fire øyne</string>
     <string name="settings_messages_in_e2e_group_chat">Krypterte meldinger i gruppesamtaler</string>
     <string name="settings_when_rooms_are_upgraded">Når rom blir oppgradert</string>
@@ -524,10 +498,6 @@
     <string name="identity_server_set_default_submit">Bruk %1$s</string>
     <string name="identity_server_set_alternative_submit">Send</string>
     <string name="power_level_title">Rolle</string>
-    <string name="a11y_mute_microphone">Demp mikrofonen</string>
-    <string name="a11y_unmute_microphone">Opphev demping av mikrofonen</string>
-    <string name="a11y_stop_camera">Stopp kameraet</string>
-    <string name="a11y_start_camera">Start kameraet</string>
     <string name="bottom_sheet_setup_secure_backup_submit">Sett opp</string>
     <string name="room_settings_name_hint">Rommets navn</string>
     <string name="room_settings_topic_hint">Emne</string>
@@ -541,7 +511,6 @@
     <string name="auth_msisdn_already_defined">Dette telefonnummeret er allerede definert.</string>
     <string name="auth_email_already_defined">Denne e-postadressen er allerede definert.</string>
     <string name="auth_invalid_login_param">Feil brukernavn og/eller passord</string>
-    <string name="send_bug_report_include_key_share_history">Send historikk om forespørsel om nøkkelandel</string>
     <string name="no_more_results">Ingen flere resultater</string>
     <string name="call_notification_hangup">Legg på</string>
     <string name="action_reset">Tilbakestill</string>
@@ -595,8 +564,6 @@
     <string name="settings_security_pin_code_change_pin_summary">Endre din nåværende PIN-kode</string>
     <string name="error_opening_banned_room">Kan ikke åpne et rom der du er utestengt.</string>
     <string name="room_error_not_found">Finner ikke dette rommet. Forsikre deg om at den eksisterer.</string>
-    <string name="cannot_dm_self">Kan ikke DM deg selv!</string>
-    <string name="invalid_qr_code_uri">Ugyldig QR-kode (Ugyldig URI)!</string>
     <string name="qr_code_not_scanned">QR-kode ikke skannet!</string>
     <string name="warning_room_not_created_yet">Rommet er ennå ikke opprettet. Avbryte romopprettelsen\?</string>
     <string name="warning_unsaved_change">Det er ikke lagrede endringer. Forkast endringene\?</string>
@@ -670,11 +637,6 @@
     <string name="room_jump_to_first_unread">Gå til første uleste melding.</string>
     <string name="list_members">Liste medlemmer</string>
     <string name="permissions_denied_add_contact">Tillat tillatelse til å få tilgang til kontaktene dine.</string>
-    <string name="permissions_denied_qr_code">For å skanne en QR-kode, må du gi tilgang til kameraet.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} trenger tillatelse for å få tilgang til kameraet og mikrofonen for å utføre videosamtaler.
-\n
-\nTillat tilgang til de neste popup-vinduene for å kunne ringe.</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} trenger tillatelse for å få tilgang til mikrofonen din for å utføre lydanrop.</string>
     <plurals name="membership_changes">
         <item quantity="one">%d medlemskapsendring</item>
         <item quantity="other">%d medlemskapsendringer</item>
@@ -685,7 +647,6 @@
     <string name="login_error_no_homeserver_found">Dette er ikke en gyldig adresse for en Matrix tjener</string>
     <string name="action_unpublish">Fjern publiseringen</string>
     <string name="action_add">Legg til</string>
-    <string name="start_chatting">Begynn å chatte</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nDenne feilen er utenfor kontroll av ${app_name}, og ifølge Google indikerer denne feilen at enheten har for mange apper registrert hos FCM. Feilen oppstår bare i tilfeller der det er ekstremt mange apper, så det bør ikke påvirke gjennomsnittsbrukeren.</string>
     <string name="error_user_already_logged_in">Det ser ut til at du prøver å koble til en annen hjemmeserver. Vil du logge av\?</string>
@@ -704,8 +665,6 @@
     <string name="create_room_settings_section">Rominnstillinger</string>
     <string name="settings_other_third_party_notices">Andre tredjepartsmeldinger</string>
     <string name="navigate_to_room_when_already_in_the_room">Du ser allerede på dette rommet!</string>
-    <string name="send_suggestion_content">Vennligst skriv ditt forslag nedenfor.</string>
-    <string name="send_suggestion_report_placeholder">Beskriv ditt forslag her</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Vis fullstendig historie i krypterte rom</string>
     <string name="send_file_step_encrypting_thumbnail">Krypterer miniatyrbilde…</string>
     <string name="downloaded_file">Filen %1$s er lastet ned!</string>
@@ -748,22 +707,6 @@
     <string name="attachment_viewer_item_x_of_y">%1$d av %2$d</string>
     <string name="uploads_media_no_result">Det er ingen medier i dette rommet</string>
     <string name="uploads_files_no_result">Det er ingen filer i dette rommet</string>
-    <string name="report_content_custom">Tilpasset rapport…</string>
-    <string name="report_content_custom_title">Rapporter dette innholdet</string>
-    <string name="report_content_custom_hint">Årsak til å rapportere dette innholdet</string>
-    <string name="report_content_custom_submit">RAPPORTERE</string>
-    <string name="content_reported_title">Innhold rapportert</string>
-    <string name="content_reported_content">Dette innholdet ble rapportert.
-\n
-\nHvis du ikke vil se mer innhold fra denne brukeren, kan du ignorere dem for å skjule meldingene sine.</string>
-    <string name="content_reported_as_spam_title">Rapportert som spam</string>
-    <string name="content_reported_as_spam_content">Dette innholdet ble rapportert som spam.
-\n
-\nHvis du ikke vil se mer innhold fra denne brukeren, kan du ignorere dem for å skjule meldingene sine.</string>
-    <string name="content_reported_as_inappropriate_title">Rapportert som upassende</string>
-    <string name="content_reported_as_inappropriate_content">Dette innholdet ble rapportert som upassende.
-\n
-\nHvis du ikke vil se mer innhold fra denne brukeren, kan du ignorere dem for å skjule meldingene sine.</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Alle meldinger (støyende)</string>
     <string name="room_list_quick_actions_favorite_add">Legg til i favoritter</string>
     <string name="room_list_quick_actions_favorite_remove">Fjern fra favoritter</string>
@@ -794,7 +737,6 @@
     <string name="soft_logout_signin_e2e_warning_notice">Logg på for å gjenopprette krypteringsnøkler som er lagret eksklusivt på denne enheten. Du trenger dem for å lese alle dine sikre meldinger på hvilken som helst enhet.</string>
     <string name="soft_logout_clear_data_title">Fjern personlige data</string>
     <string name="permalink_malformed">Linken din til matrix.to var feil</string>
-    <string name="bug_report_error_too_short">Beskrivelsen er for kort</string>
     <string name="autocomplete_limited_results">Viser bare de første resultatene, skriv flere bokstaver…</string>
     <string name="hide_advanced">Skjul avansert</string>
     <string name="show_advanced">Vis avansert</string>
@@ -827,8 +769,6 @@
     <string name="login_msisdn_notice">Vennligst bruk det internasjonale formatet (telefonnummeret må starte med \'+\')</string>
     <string name="login_msisdn_error_not_international">Internasjonale telefonnumre må starte med \'+\'</string>
     <string name="login_msisdn_error_other">Telefonnummeret virker ugyldig. Vennligst sjekk det</string>
-    <string name="login_a11y_choose_matrix_org">Velg matrix.org</string>
-    <string name="login_a11y_choose_modular">Velg Element Matrix Services</string>
     <string name="login_connect_using_matrix_id_submit">Logg på med Matrix ID</string>
     <string name="login_signin_matrix_id_notice">Hvis du oppretter en konto på en hjemmeserver, bruker du Matrix-ID (f.eks. @Bruker:domene.com) og passord nedenfor.</string>
     <string name="login_signin_matrix_id_title">Logg på med Matrix ID</string>
@@ -884,9 +824,6 @@
     <string name="no_connectivity_to_the_server_indicator">Tilkoblingen til serveren har gått tapt</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Flymodus er på</string>
     <string name="settings_account_data">Kontodata</string>
-    <string name="share_confirm_room">Vil du sende dette vedlegget til %1$s\?</string>
-    <string name="delete_event_dialog_reason_checkbox">Inkluder en grunn</string>
-    <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="new_session">Ny pålogging. Var dette deg\?</string>
     <string name="verify_new_session_notice">Bruk denne økten til å bekrefte den nye, og gi den tilgang til krypterte meldinger.</string>
     <string name="verify_new_session_was_not_me">Dette var ikke meg</string>
@@ -938,17 +875,12 @@
     <string name="add_people">Legg til personer</string>
     <string name="invite_friends_rich_title">🔐️ Bli med meg på ${app_name}</string>
     <string name="invitation_sent_to_one_user">Invitasjon sendt til %1$s</string>
-    <string name="not_a_valid_qr_code">Det er ikke en gyldig QR-kode for matrix</string>
     <string name="invite_users_to_room_failure">Vi kunne ikke invitere brukere. Kontroller brukerne du vil invitere, og prøv på nytt.</string>
-    <string name="user_code_scan">Skann en QR-kode</string>
-    <string name="user_code_share">Del koden min</string>
     <string name="user_code_my_code">Koden min</string>
-    <string name="user_code_info_text">Del denne koden med folk slik at de kan skanne den for å legge til deg og begynne å chatte.</string>
     <string name="choose_locale_loading_locales">Laster inn tilgjengelige språk…</string>
     <string name="identity_server_error_terms_not_signed">Godta først vilkårene for identitetsserveren i innstillingene.</string>
     <string name="identity_server_error_bulk_sha256_not_supported">For ditt privatliv støtter ${app_name} bare sending av hash-bruker-e-post og telefonnummer.</string>
     <string name="power_level_edit_title">Sett rolle</string>
-    <string name="a11y_open_chat">Åpne chat</string>
     <string name="share_by_text">Del på tekst</string>
     <string name="call_tile_other_declined">%1$s avviste denne samtalen</string>
     <string name="re_authentication_default_confirm_text">${app_name} krever at du oppgir legitimasjonen din for å utføre denne handlingen.</string>
@@ -963,7 +895,6 @@
     <string name="settings_send_message_with_enter_summary">Enter-knappen på det myke tastaturet vil sende melding i stedet for å legge til en linjeskift</string>
     <string name="settings_preview_media_before_sending">Forhåndsvis medier før sending</string>
     <string name="settings_vibrate_on_mention">Vibrer når du nevner en bruker</string>
-    <string name="settings_chat_effects_description">Bruk kommandoen /confetti eller send en melding som inneholder ❄️ eller 🎉</string>
     <string name="settings_show_read_receipts_summary">Klikk på lest kvitteringene for en detaljert liste.</string>
     <string name="settings_always_show_timestamps">Vis tidsstempler for alle meldinger</string>
     <string name="settings_send_markdown_summary">Formater meldinger med markdown-syntaksen før de sendes. Dette gir avansert formatering, for eksempel å bruke stjerner for å vise kursiv tekst.</string>
@@ -1011,13 +942,11 @@
     <string name="room_settings_permissions_title">Romtillatelser</string>
     <string name="room_participants_leave_private_warning">Dette rommet er ikke offentlig. Du vil ikke kunne bli med uten invitasjon.</string>
     <string name="error_unauthorized">Uautorisert, mangler gyldig autentiseringslegitimasjon</string>
-    <string name="system_theme">System standard</string>
     <string name="search_banned_user_hint">Filtrer utestengte brukere</string>
     <string name="room_permissions_modify_widgets">Endre widgets</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Inkluderer avatar- og visningsnavnendringer.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Vis kontohendelser</string>
     <string name="settings_show_join_leave_messages">Vis delta og forlate arrangementer</string>
-    <string name="settings_chat_effects_title">Vis chateffekter</string>
     <string name="settings_12_24_timestamps">Vis tidsstempler i 12-timersformat</string>
     <string name="settings_send_markdown">Markdown formatering</string>
     <string name="settings_inline_url_preview_summary">Forhåndsvis lenker i chatten når hjemmeserveren din støtter denne funksjonen.</string>
@@ -1037,8 +966,6 @@
     <string name="settings_background_fdroid_sync_mode_battery_description">${app_name} synkroniseres i bakgrunnen på en måte som bevarer enhetens begrensede ressurser (batteri).
 \nAvhengig av enhetens ressurstilstand, kan synkroniseringen bli utsatt av operativsystemet.</string>
     <string name="settings_messages_in_group_chat">Msgs i gruppechatter</string>
-    <string name="settings_containing_my_user_name">Msgs som inneholder brukernavnet mitt</string>
-    <string name="settings_containing_my_display_name">Msgs som inneholder visningsnavnet mitt</string>
     <string name="settings_silent_notifications_preferences">Konfigurer stille varsler</string>
     <string name="settings_call_notifications_preferences">Konfigurer anropsvarsler</string>
     <string name="settings_noisy_notifications_preferences">Konfigurer høylytte varsler</string>
@@ -1050,7 +977,6 @@
     <string name="event_status_a11y_sending">Sender</string>
     <string name="event_status_a11y_failed">Mislyktes</string>
     <string name="event_status_a11y_sent">Sendt</string>
-    <string name="event_status_cancel_sending_dialog_message">Vil du avbryte sending av melding\?</string>
     <string name="event_status_a11y_delete_all">Slett alle mislykkede meldinger</string>
     <string name="event_status_delete_all_failed_dialog_title">Slett usendte meldinger</string>
     <string name="event_status_failed_messages_warning">Meldingene kunne ikke sendes</string>

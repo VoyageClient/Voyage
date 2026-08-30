@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_denim">#1560BD</color>
-    <color name="accent_sc_light_denim_alpha25">#3f1560BD</color>
     <color name="accent_sc_light_denim_pale">@color/accent_sc_light_denim</color>
-    <color name="accent_sc_light_denim_dark">@color/accent_sc_light_denim_alpha25</color>
     <color name="accent_sc_light_denim_noalpha12">#e2ebf7</color>
 
 
