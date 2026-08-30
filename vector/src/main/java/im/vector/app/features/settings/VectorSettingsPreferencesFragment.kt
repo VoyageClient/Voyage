@@ -25,6 +25,9 @@ import im.vector.app.core.preference.ColorMatrixListPreferenceDialogFragment
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorSwitchPreference
+import im.vector.app.core.ui.colorpicker.PalettePickerDialogFragment
+import im.vector.app.core.ui.colorpicker.PeopleColorPalette
+import im.vector.app.core.ui.colorpicker.RoomColorPalette
 import im.vector.app.core.utils.toast
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
@@ -188,8 +191,8 @@ class VectorSettingsPreferencesFragment :
             view?.post { matrixItemColorProvider.invalidate() }
             true
         }
-        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_UGLIER_USERNAME_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
+        bindPalettePreferences()
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
             // Update the runtime mirror so new binds pick it up without a restart.
@@ -423,7 +426,50 @@ class VectorSettingsPreferencesFragment :
         }
     }
 
+    private fun bindPalettePreferences() {
+        val peoplePref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_PEOPLE_COLOR_PALETTE_KEY)
+        val roomPref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_ROOM_COLOR_PALETTE_KEY)
+
+        childFragmentManager.setFragmentResultListener(PEOPLE_PALETTE_REQUEST_KEY, this) { _, bundle ->
+            val picked = bundle.getString(PalettePickerDialogFragment.RESULT_PALETTE) ?: return@setFragmentResultListener
+            vectorPreferences.setPeopleColorPalette(PeopleColorPalette.valueOf(picked))
+            matrixItemColorProvider.invalidate()
+        }
+        childFragmentManager.setFragmentResultListener(ROOM_PALETTE_REQUEST_KEY, this) { _, bundle ->
+            val picked = bundle.getString(PalettePickerDialogFragment.RESULT_PALETTE) ?: return@setFragmentResultListener
+            vectorPreferences.setRoomColorPalette(RoomColorPalette.valueOf(picked))
+            matrixItemColorProvider.invalidate()
+        }
+
+        peoplePref?.setOnPreferenceClickListener {
+            showPalettePicker(
+                    PEOPLE_PALETTE_REQUEST_KEY,
+                    getString(CommonStrings.settings_people_color_palette_title),
+                    PalettePickerDialogFragment.Kind.PEOPLE,
+                    vectorPreferences.peopleColorPalette().name,
+            )
+            true
+        }
+        roomPref?.setOnPreferenceClickListener {
+            showPalettePicker(
+                    ROOM_PALETTE_REQUEST_KEY,
+                    getString(CommonStrings.settings_room_color_palette_title),
+                    PalettePickerDialogFragment.Kind.ROOM,
+                    vectorPreferences.roomColorPalette().name,
+            )
+            true
+        }
+    }
+
+    private fun showPalettePicker(requestKey: String, title: String, kind: PalettePickerDialogFragment.Kind, selected: String) {
+        if (childFragmentManager.findFragmentByTag(requestKey) != null) return
+        PalettePickerDialogFragment.newInstance(requestKey, title, kind, selected)
+                .show(childFragmentManager, requestKey)
+    }
+
     companion object {
         private const val COLOR_MATRIX_DIALOG_TAG = "ColorMatrixListPreferenceDialog"
+        private const val PEOPLE_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.peoplePalette"
+        private const val ROOM_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.roomPalette"
     }
 }

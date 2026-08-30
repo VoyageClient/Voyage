@@ -72,6 +72,7 @@ import im.vector.app.core.extensions.restart
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.core.ui.ColorRefreshable
 import im.vector.app.core.utils.AndroidSystemSettingsProvider
 import im.vector.app.core.utils.ToolbarConfig
 import im.vector.app.core.utils.toast
@@ -449,13 +450,14 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 matrixItemColorProvider.changes.collect { generation ->
                     if (generation == seenGeneration) return@collect
                     seenGeneration = generation
-                    rebindRecyclerViews(window.decorView)
+                    rebindColoredViews(window.decorView)
                 }
             }
         }
     }
 
-    private fun rebindRecyclerViews(view: View) {
+    private fun rebindColoredViews(view: View) {
+        if (view is ColorRefreshable) view.refreshColors()
         // ViewPager2's FragmentStateAdapter throws "Design assumption violated" on a manual re-bind;
         // its pages are ordinary fragments, so walk into them instead of rebinding.
         if (view is RecyclerView && view.adapter !is FragmentStateAdapter) {
@@ -471,7 +473,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 if (position != RecyclerView.NO_POSITION && position < adapter.itemCount) adapter.bindViewHolder(holder, position)
             }
         } else if (view is ViewGroup) {
-            for (i in 0 until view.childCount) rebindRecyclerViews(view.getChildAt(i))
+            for (i in 0 until view.childCount) rebindColoredViews(view.getChildAt(i))
         }
     }
 

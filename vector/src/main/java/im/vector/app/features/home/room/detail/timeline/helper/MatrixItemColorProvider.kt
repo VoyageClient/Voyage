@@ -9,10 +9,10 @@ package im.vector.app.features.home.room.detail.timeline.helper
 
 import android.graphics.Color
 import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
-import androidx.annotation.VisibleForTesting
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
+import im.vector.app.core.ui.colorpicker.PeopleColorPalette
+import im.vector.app.core.ui.colorpicker.RoomColorPalette
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.ui.styles.R
@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
-import kotlin.math.abs
 
 @Singleton
 class MatrixItemColorProvider @Inject constructor(
@@ -51,10 +50,10 @@ class MatrixItemColorProvider @Inject constructor(
     // An absent value means "optimistically cleared". Reconciled away once the real data arrives.
     private val optimisticOverrides = ConcurrentHashMap<String, Optional<ColorPreference>>()
 
-    // The element-web palette is theme-dependent and opt-in, so the computed cache is only valid for the
-    // current (uglier?, light?) combination. Drop it when either flips.
+    // Palettes are theme-dependent and user-selectable, so the computed cache is only valid for the
+    // current (people palette, room palette, light?) combination. Drop it when any of them changes.
     @Volatile
-    private var cacheSignature: Pair<Boolean, Boolean>? = null
+    private var cacheSignature: Triple<PeopleColorPalette, RoomColorPalette, Boolean>? = null
 
     // Bumped whenever any resolved color may differ; screens rebind rather than restart. A state flow
     // so a screen that was stopped while it changed catches up when it starts again.
@@ -76,8 +75,27 @@ class MatrixItemColorProvider @Inject constructor(
 
     @ColorInt
     fun resolveColor(matrixItem: MatrixItem, light: Boolean): Int {
+        // Turning names off is a request for no chosen colors at all, so profile colors and per-user
+        // overrides stop applying too; the settings screens still read them through resolveHex.
+        if (namesAreUncolored()) return defaultColor(matrixItem, light)
         return resolveHex(matrixItem, light)?.let { hexToColor(it) } ?: defaultColor(matrixItem, light)
     }
+
+    /**
+     * The color for a display name: the primary content color while names are uncolored, which reads
+     * as a heading over the slightly dimmer message body.
+     */
+    @ColorInt
+    fun getNameColor(matrixItem: MatrixItem, light: Boolean = themeProvider.isLightTheme()): Int {
+        if (namesAreUncolored()) return colorProvider.getColorFromAttribute(R.attr.vctr_content_primary)
+        return resolveColor(matrixItem, light)
+    }
+
+    /** Whether display names get a color of their own, rather than plain text. */
+    fun isNameColored(): Boolean = !namesAreUncolored()
+
+    /** Whether names are uncolored as a rule, so message bodies dim to keep names legible above them. */
+    fun namesAreUncolored(): Boolean = vectorPreferences.peopleColorPalette() == PeopleColorPalette.NONE
 
     /** The explicitly chosen color for this theme, or null when the hash default applies. */
     fun resolveHex(matrixItem: MatrixItem, light: Boolean): String? {
@@ -148,11 +166,17 @@ class MatrixItemColorProvider @Inject constructor(
         return legacyOverrideColors[userId]?.let { ColorPreference.fromHex(toHex(it)) }
     }
 
-    /** The hash color this user/room gets when nothing is set. */
+    /**
+     * The hash color this user/room gets when nothing is set. Users — including the DMs we show as
+     * their avatar — take the people palette; rooms and spaces take the room one. A user still needs
+     * an avatar color when names are uncolored, and the room palettes are as small as three colors,
+     * so [PeopleColorPalette.NONE] borrows the people palette of the chosen room palette's era.
+     */
     @ColorInt
     fun defaultColor(matrixItem: MatrixItem, light: Boolean = themeProvider.isLightTheme()): Int {
-        val uglier = vectorPreferences.useUglierUsernameColors()
-        val signature = uglier to light
+        val peoplePalette = vectorPreferences.peopleColorPalette()
+        val roomPalette = vectorPreferences.roomColorPalette()
+        val signature = Triple(peoplePalette, roomPalette, light)
         if (signature != cacheSignature) {
             cache.clear()
             cacheSignature = signature
@@ -160,10 +184,11 @@ class MatrixItemColorProvider @Inject constructor(
 
         return cache.getOrPut(matrixItem.id) {
             colorProvider.getColor(
-                    when (matrixItem) {
-                        is MatrixItem.UserItem ->
-                            if (uglier) getElementWebColorFromUserId(matrixItem.id, light) else getColorFromUserId(matrixItem.id)
-                        else -> getColorFromRoomId(matrixItem.id)
+                    if (matrixItem is MatrixItem.UserItem) {
+                        val palette = peoplePalette.takeIf { it != PeopleColorPalette.NONE } ?: roomPalette.peopleEquivalent
+                        palette.colorFor(matrixItem.id, light)
+                    } else {
+                        roomPalette.colorFor(matrixItem.id, light)
                     }
             )
         }
@@ -192,7 +217,9 @@ class MatrixItemColorProvider @Inject constructor(
         } else {
             try {
                 if (colorText.length == 1) {
-                    colorProvider.getColor(getUserColorByIndex(colorText.toInt()))
+                    // A bare digit is an index into the legacy palette, which is what this spec predates.
+                    val colors = PeopleColorPalette.LEGACY.colors
+                    colorProvider.getColor(colors[colorText.toInt() % colors.size].onLight)
                 } else {
                     Color.parseColor(colorText)
                 }
@@ -205,68 +232,5 @@ class MatrixItemColorProvider @Inject constructor(
 
     companion object {
         fun toHex(@ColorInt color: Int): String = String.format(Locale.ROOT, "#%06X", color and 0xFFFFFF)
-
-        @ColorRes
-        @VisibleForTesting
-        fun getColorFromUserId(userId: String?): Int {
-            var hash = 0
-
-            userId?.toList()?.map { chr -> hash = (hash shl 5) - hash + chr.code }
-
-            return getUserColorByIndex(abs(hash))
-        }
-
-        @ColorRes
-        private fun getUserColorByIndex(index: Int): Int {
-            return when (index % 8) {
-                1 -> R.color.element_name_02
-                2 -> R.color.element_name_03
-                3 -> R.color.element_name_04
-                4 -> R.color.element_name_05
-                5 -> R.color.element_name_06
-                6 -> R.color.element_name_07
-                7 -> R.color.element_name_08
-                else -> R.color.element_name_01
-            }
-        }
-
-        // element-web's current scheme (Compound's useIdColorHash): sum the char codes, modulo 6.
-        // It replaced the nicer pre-2023 palette/hash that getColorFromUserId still mirrors.
-        @VisibleForTesting
-        fun getElementWebColorIndex(userId: String?): Int {
-            return (userId?.sumOf { it.code } ?: 0) % 6
-        }
-
-        @ColorRes
-        private fun getElementWebColorFromUserId(userId: String?, light: Boolean): Int {
-            return if (light) {
-                when (getElementWebColorIndex(userId)) {
-                    1 -> R.color.element_name_ew_light_02
-                    2 -> R.color.element_name_ew_light_03
-                    3 -> R.color.element_name_ew_light_04
-                    4 -> R.color.element_name_ew_light_05
-                    5 -> R.color.element_name_ew_light_06
-                    else -> R.color.element_name_ew_light_01
-                }
-            } else {
-                when (getElementWebColorIndex(userId)) {
-                    1 -> R.color.element_name_ew_dark_02
-                    2 -> R.color.element_name_ew_dark_03
-                    3 -> R.color.element_name_ew_dark_04
-                    4 -> R.color.element_name_ew_dark_05
-                    5 -> R.color.element_name_ew_dark_06
-                    else -> R.color.element_name_ew_dark_01
-                }
-            }
-        }
-
-        @ColorRes
-        private fun getColorFromRoomId(roomId: String?): Int {
-            return when ((roomId?.toList()?.sumOf { it.code } ?: 0) % 3) {
-                1 -> R.color.element_room_02
-                2 -> R.color.element_room_03
-                else -> R.color.element_room_01
-            }
-        }
     }
 }

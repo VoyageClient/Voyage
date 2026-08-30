@@ -31,6 +31,7 @@ import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.setRedactedPreviewStyle
+import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.databinding.ViewInReplyToBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
@@ -136,7 +137,7 @@ class InReplyToView @JvmOverloads constructor(
 
         if (effectiveState == state && revealed == quotesRevealedRedaction && plainOverride == renderedPlainOverride && !force) {
             // The sender's color can change under an otherwise identical state (override, palette).
-            (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { applySenderColor(retriever.getMemberNameColor(it.event)) }
+            (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { applySenderColor(retriever.getMemberNameColor(it.event), retriever.isMemberNameColored()) }
             return
         }
 
@@ -191,7 +192,7 @@ class InReplyToView @JvmOverloads constructor(
         // recycled view's old text would otherwise re-introduce the fade band over e.g. a thumbnail.
         views.replyTextView.text = null
         // Reset colour in case this recycled view previously rendered a (muted) notice.
-        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
         views.replyTextView.clearDrawables()
         views.replyTextView.movementMethod = null
         // A recycled reply must not keep a previous message's full-width-code stretch.
@@ -237,9 +238,13 @@ class InReplyToView @JvmOverloads constructor(
         views.inReplyToBar.setBackgroundColor(color)
     }
 
-    private fun applySenderColor(color: Int) {
+    // Uncolored names give the bar no sender color to echo, so it falls back to a neutral rule.
+    private fun applySenderColor(color: Int, colored: Boolean) {
         views.replyMemberNameView.setTextColor(color)
-        views.inReplyToBar.setBackgroundColor(color)
+        views.replyMemberNameView.setSenderNameEmphasis(colored)
+        views.inReplyToBar.setBackgroundColor(
+                if (colored) color else ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+        )
     }
 
     private fun renderReplyTo(
@@ -253,7 +258,7 @@ class InReplyToView @JvmOverloads constructor(
         isVisible = true
         views.replyMemberNameView.isVisible = true
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()
-        applySenderColor(retriever.getMemberNameColor(state.event))
+        applySenderColor(retriever.getMemberNameColor(state.event), retriever.isMemberNameColored())
         if (state.event.root.isRedacted()) {
             renderRedacted()
         } else {
@@ -284,7 +289,7 @@ class InReplyToView @JvmOverloads constructor(
 
     private fun renderPgpReplyText(text: String) {
         views.replyTextView.isVisible = true
-        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
         views.replyTextView.text = text.prepareForDisplay()
     }
 
@@ -310,12 +315,13 @@ class InReplyToView @JvmOverloads constructor(
         // Quoted notices/system messages render muted (secondary), matching the timeline. Not italic
         // — this fork removed notice italics.
         val isNotice = content.msgType == MessageType.MSGTYPE_NOTICE
-        val baseColorAttr = if (isNotice) {
-            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
-        } else {
-            im.vector.lib.ui.styles.R.attr.vctr_content_primary
-        }
-        views.replyTextView.setTextColor(ThemeUtils.getColor(context, baseColorAttr))
+        views.replyTextView.setTextColor(
+                if (isNotice) {
+                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                } else {
+                    ThemeUtils.getMessageTextColor(context)
+                }
+        )
 
         // Reuse the reply body pre-rendered (off the main thread) by the retriever; a re-bind during a scroll
         // is a cache hit, so the HTML compress/render/linkify pipeline doesn't run on the UI thread.
@@ -465,7 +471,7 @@ class InReplyToView @JvmOverloads constructor(
     private fun renderCaptionText(caption: String, event: TimelineEvent, retriever: ReplyPreviewRetriever, coroutineScope: CoroutineScope) {
         val text = retriever.renderedReplyBody(event)?.text ?: caption
         views.replyTextView.isVisible = true
-        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
         val markwonPlugins = retriever.htmlRenderer.plugins
         text.findPillsAndProcess(coroutineScope) { it.bind(views.replyTextView) }
         if (text is Spanned) {
@@ -500,7 +506,7 @@ class InReplyToView @JvmOverloads constructor(
             views.replyTextView.isVisible = false
         } else {
             views.replyTextView.isVisible = true
-            views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+            views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
             views.replyTextView.text = caption.prepareForDisplay()
         }
     }
@@ -523,7 +529,7 @@ class InReplyToView @JvmOverloads constructor(
     private fun renderAttachmentPill(iconRes: Int, label: String?) {
         // Use the same inline pill as the composer / long-press preview so all three match.
         views.replyTextView.isVisible = true
-        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
         views.replyTextView.text = attachmentPreviewText(context, iconRes, label.orEmpty())
     }
 }

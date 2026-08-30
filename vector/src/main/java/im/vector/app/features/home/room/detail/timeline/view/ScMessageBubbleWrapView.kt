@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.PorterDuff
@@ -36,6 +37,7 @@ import im.vector.app.core.extensions.marginEndCompat
 import im.vector.app.core.extensions.marginStartCompat
 import im.vector.app.core.extensions.removeRuleCompat
 import im.vector.app.core.extensions.setPaddingRelativeCompat
+import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.core.resources.DefaultLocaleProvider
 import im.vector.app.core.resources.getLayoutDirectionFromCurrentLocale
 import im.vector.app.core.ui.views.BubbleDependentView
@@ -212,6 +214,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         timeView?.text = attributes.informationData.time
         memberNameView?.text = attributes.informationData.memberName?.prepareForDisplay()
         memberNameView?.setTextColor(attributes.getMemberNameColor())
+        memberNameView?.setSenderNameEmphasis(attributes.isMemberNameColored())
         if (avatarImageView != null) {
             attributes.avatarRenderer.render(attributes.informationData.matrixItem, avatarImageView)
             // Tapping the name/avatar mentions the sender, so have the pill's avatar ready by then.
@@ -285,6 +288,9 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         }
     }
 
+    // Absolute gravities, not START/END: the layout direction is already resolved into defaultRtl,
+    // so a relative one would mirror them a second time.
+    @SuppressLint("RtlHardcoded")
     override fun <H : BaseEventItem.BaseHolder> renderMessageLayout(
             messageLayout: TimelineMessageLayout,
             bubbleDependentView: BubbleDependentView<H>,

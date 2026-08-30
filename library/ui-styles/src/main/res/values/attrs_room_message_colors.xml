@@ -4,6 +4,7 @@
     <!-- room message colors -->
     <attr name="vctr_unsent_message_text_color" format="color" />
     <attr name="vctr_message_text_color" format="color" />
+    <attr name="vctr_message_text_dimmed_color" format="color" />
     <attr name="vctr_notice_text_color" format="color" />
     <attr name="vctr_notice_secondary" format="color" />
     <attr name="vctr_encrypting_message_text_color" format="color" />

@@ -11,6 +11,7 @@ import androidx.annotation.ColorInt
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.util.MatrixItem
 import javax.inject.Inject
@@ -23,7 +24,11 @@ class MessageColorProvider @Inject constructor(
 
     @ColorInt
     fun getMemberNameTextColor(matrixItem: MatrixItem): Int {
-        return matrixItemColorProvider.getColor(matrixItem)
+        return matrixItemColorProvider.getNameColor(matrixItem)
+    }
+
+    fun isMemberNameColored(): Boolean {
+        return matrixItemColorProvider.isNameColored()
     }
 
     @ColorInt
@@ -36,13 +41,15 @@ class MessageColorProvider @Inject constructor(
                 SendState.ENCRYPTING -> colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_encrypting_message_text_color)
                 SendState.SENDING -> colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_sending_message_text_color)
                 SendState.SENT,
-                SendState.SYNCED -> colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_message_text_color)
+                SendState.SYNCED -> colorProvider.getColorFromAttribute(bodyTextAttr())
                 SendState.UNDELIVERED,
                 SendState.FAILED_UNKNOWN_DEVICES -> colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_unsent_message_text_color)
             }
         } else {
             // When not in developer mode, we use only one color
-            colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_message_text_color)
+            colorProvider.getColorFromAttribute(bodyTextAttr())
         }
     }
+
+    private fun bodyTextAttr() = ThemeUtils.messageTextAttr(matrixItemColorProvider.namesAreUncolored())
 }

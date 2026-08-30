@@ -330,7 +330,7 @@ class RoomMemberProfileFragment :
                 val bestName = userMatrixItem.getBestName()
                 headerViews.memberProfileNameView.text = bestName.prepareForDisplay()
                 headerViews.memberProfileNameView.setCopySource(bestName)
-                headerViews.memberProfileNameView.setTextColor(matrixItemColorProvider.getColor(userMatrixItem))
+                headerViews.memberProfileNameView.setTextColor(matrixItemColorProvider.getNameColor(userMatrixItem))
                 views.matrixProfileToolbarTitleView.text = bestName.prepareForDisplay()
                 // In rooms that hide avatars, show the default placeholder here, but keep the real avatar
                 // available when the user taps it to open the full-screen viewer (see onAvatarClicked).

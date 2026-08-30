@@ -364,6 +364,8 @@ class ReplyPreviewRetriever(
         return messageColorProvider.getMemberNameTextColor(senderInfo.copy(colorPreference = fresh).toMatrixItem())
     }
 
+    fun isMemberNameColored(): Boolean = messageColorProvider.isMemberNameColored()
+
     val useSolidColorForHiddenMedia: Boolean
         get() = vectorPreferences.useSolidColorForHiddenMedia()
 

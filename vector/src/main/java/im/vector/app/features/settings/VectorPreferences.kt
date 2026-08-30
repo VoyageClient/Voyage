@@ -18,6 +18,8 @@ import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.colorpicker.PeopleColorPalette
+import im.vector.app.core.ui.colorpicker.RoomColorPalette
 import im.vector.app.core.utils.DeviceCapabilities
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
@@ -157,7 +159,8 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_STRIP_MEDIA_METADATA_KEY = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
         private const val SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY = "SETTINGS_STRIP_MEDIA_METADATA_MODE_KEY"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
-        const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
+        const val SETTINGS_PEOPLE_COLOR_PALETTE_KEY = "SETTINGS_PEOPLE_COLOR_PALETTE_KEY"
+        const val SETTINGS_ROOM_COLOR_PALETTE_KEY = "SETTINGS_ROOM_COLOR_PALETTE_KEY"
         const val SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY = "SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
         private const val SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY = "SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY"
         private const val SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX = "SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_"
@@ -465,8 +468,22 @@ class VectorPreferences @Inject constructor(
         return defaultPrefs.getBoolean(SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT, false)
     }
 
-    fun useUglierUsernameColors(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_UGLIER_USERNAME_COLORS_KEY, false)
+    fun peopleColorPalette(): PeopleColorPalette {
+        val stored = defaultPrefs.getString(SETTINGS_PEOPLE_COLOR_PALETTE_KEY, null)
+        return PeopleColorPalette.values().firstOrNull { it.name == stored } ?: PeopleColorPalette.LEGACY
+    }
+
+    fun setPeopleColorPalette(palette: PeopleColorPalette) {
+        defaultPrefs.edit { putString(SETTINGS_PEOPLE_COLOR_PALETTE_KEY, palette.name) }
+    }
+
+    fun roomColorPalette(): RoomColorPalette {
+        val stored = defaultPrefs.getString(SETTINGS_ROOM_COLOR_PALETTE_KEY, null)
+        return RoomColorPalette.values().firstOrNull { it.name == stored } ?: RoomColorPalette.LEGACY
+    }
+
+    fun setRoomColorPalette(palette: RoomColorPalette) {
+        defaultPrefs.edit { putString(SETTINGS_ROOM_COLOR_PALETTE_KEY, palette.name) }
     }
 
     fun showOthersProfileColors(): Boolean {

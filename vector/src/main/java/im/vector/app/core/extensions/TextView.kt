@@ -8,6 +8,7 @@
 package im.vector.app.core.extensions
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.text.Spannable
@@ -204,4 +205,10 @@ fun TextView.hasClickableSpanAt(event: MotionEvent): Boolean {
     if (x < layout.getLineLeft(line) || x > layout.getLineRight(line)) return false
     val offset = layout.getOffsetForHorizontal(line, x.toFloat())
     return spanned.getSpans(offset, offset, ClickableSpan::class.java).isNotEmpty()
+}
+
+/** Sender names are bold when colored; uncolored they stay regular and lead on color alone, sitting
+ *  at the primary content color that the dimmed message body gives up. */
+fun TextView.setSenderNameEmphasis(colored: Boolean) {
+    setTypeface(Typeface.DEFAULT, if (colored) Typeface.BOLD else Typeface.NORMAL)
 }

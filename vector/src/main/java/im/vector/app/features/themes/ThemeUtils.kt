@@ -20,6 +20,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.PreferenceManager
+import im.vector.app.core.ui.colorpicker.PeopleColorPalette
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.ui.styles.R
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
@@ -167,6 +169,20 @@ object ThemeUtils {
         }
 
         mColorByAttr.clear()
+    }
+
+    /** Message bodies drop a notch while display names are uncolored, since those then sit at the
+     *  primary content color and would otherwise be indistinguishable from the body under them. */
+    @AttrRes
+    fun messageTextAttr(uncoloredNames: Boolean) =
+            if (uncoloredNames) R.attr.vctr_message_text_dimmed_color else R.attr.vctr_message_text_color
+
+    /** [messageTextAttr] resolved for callers with no injection point of their own to read the setting. */
+    @ColorInt
+    fun getMessageTextColor(c: Context): Int {
+        val palette = PreferenceManager.getDefaultSharedPreferences(c.applicationContext)
+                .getString(VectorPreferences.SETTINGS_PEOPLE_COLOR_PALETTE_KEY, null)
+        return getColor(c, messageTextAttr(palette == PeopleColorPalette.NONE.name))
     }
 
     @ColorInt

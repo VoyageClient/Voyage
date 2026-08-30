@@ -26,6 +26,7 @@ import com.airbnb.epoxy.EpoxyAttribute
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.core.ui.views.SendStateImageView
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
@@ -117,6 +118,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             holder.memberNameView.isVisible = true
             holder.memberNameView.text = attributes.informationData.memberName?.prepareForDisplay()
             holder.memberNameView.setTextColor(attributes.getMemberNameColor())
+            holder.memberNameView.setSenderNameEmphasis(attributes.isMemberNameColored())
             holder.memberNameView.onClick(attributes.memberClickListener)
             holder.memberNameView.setOnLongClickListener(attributes.itemLongClickListener)
         } else {
@@ -386,6 +388,8 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
     ) : AbsBaseMessageItem.Attributes {
 
         fun getMemberNameColor() = messageColorProvider.getMemberNameTextColor(informationData.matrixItem)
+
+        fun isMemberNameColored() = messageColorProvider.isMemberNameColored()
 
         // Have to override as it's used to diff epoxy items
         override fun equals(other: Any?): Boolean {
