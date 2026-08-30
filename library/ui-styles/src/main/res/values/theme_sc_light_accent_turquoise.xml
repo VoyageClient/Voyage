@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_turquoise">#00C1C1</color>
-    <color name="accent_sc_light_turquoise_alpha25">#3f00C1C1</color>
     <color name="accent_sc_light_turquoise_pale">@color/accent_sc_light_turquoise</color>
-    <color name="accent_sc_light_turquoise_dark">@color/accent_sc_light_turquoise_alpha25</color>
     <color name="accent_sc_light_turquoise_noalpha12">#e0f7f7</color>
 
 

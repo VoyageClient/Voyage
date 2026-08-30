@@ -76,7 +76,6 @@
     <string name="start_chat">დაწყება ჩატის</string>
     <string name="create_room">შექმენით ოთახი</string>
     <string name="explore_rooms">ოთახების შესწავლა</string>
-    <string name="a11y_collapse_space_children">შეკუმშეთ %s შვილობილი</string>
     <string name="room_error_access_unauthorized">თქვენ არ გაქვთ უფლებას, შეუერთდეთ ამ ოთახს</string>
     <string name="medium_phone_number">ტელეფონის ნომერი</string>
     <string name="room_displayname_room_invite">ოთახის მოწვევა</string>
@@ -96,8 +95,6 @@
 \nდატოვებული ოთახების იმპორტი</string>
     <string name="initial_sync_start_importing_account_data">საწყისი სინქრონიზაცია: 
 \nანგარიშის მონაცემების იმპორტი</string>
-    <string name="initial_sync_request_title">საწყისი სინქრონიზაციის მოთხოვნა</string>
-    <string name="initial_sync_request_reason_unignored_users">- ზოგიერთი მომხმარებელი კვლავ გათვალისწინებულია</string>
     <string name="notice_room_invite_no_invitee_with_reason">%1$s-ის მოწვევა. მიზეზი: %2$s</string>
     <string name="notice_room_invite_no_invitee_with_reason_by_you">თქვენი მოწვევა. მიზეზი: %1$s</string>
     <string name="notice_room_invite_with_reason_by_you">თქვენ მოიწვიეთ %1$s. მიზეზი: %2$s</string>
@@ -147,7 +144,6 @@
     <string name="notice_room_withdraw_by_you">თქვენ გააუქმეთ %1$s-ის მიწვევა</string>
     <string name="unable_to_send_message">შეტყობინების გაგზავნა შეუძლებელია</string>
     <string name="notice_display_name_set">%1$s დააყენა თავისი სახელი %2$s-ზე</string>
-    <string name="a11y_expand_space_children">გააფართოვეთ %s შვილობილი</string>
     <string tools:ignore="UnusedResources" name="notice_display_name_changed_from">%1$s შეცვალა სახელი %2$s-დან %3$s-ზე</string>
     <string name="medium_email">ელფოსტის მისამართი</string>
     <string name="notice_display_name_removed_by_you">თქვენ წაშალეთ თქვენი სახელი (ეს იყო %1$s)</string>
@@ -168,12 +164,7 @@
 \nთქვენი საუბრების ჩატვირთვა. 
 \nთუ ბევრი ოთახი გაქვთ, ამას შეიძლება დრო დასჭირდეს</string>
     <string name="notice_made_future_room_visibility">%1$s გახადა სამომავლო ოთახის ისტორია ხილული %2$s-სთვის</string>
-    <string name="initial_sync_request_content">${app_name} საჭიროებს ქეშის გასუფთავებას, რომ იყოს განახლებული, შემდეგი მიზეზის გამო:
-\n%s 
-\n
-\nგაითვალისწინეთ, რომ ეს მოქმედება გადატვირთავს აპლიკაციას და შესაძლოა ამას დრო დასჭირდეს.</string>
     <string name="notice_made_future_room_visibility_by_you">თქვენ გახადეთ სამომავლო ოთახის ისტორია ხილული %1$s-სთვის</string>
-    <string name="event_status_sent_message">შეტყობინება გაიგზავნა</string>
     <string name="notice_made_future_direct_room_visibility_by_you">თქვენ გახადეთ სამომავლო შეტყობინებები ხილული %1$s-სთვის</string>
     <string name="event_status_sending_message">შეტყობინების გაგზავნა…</string>
     <string name="notice_room_invite_with_reason">%1$s-მ მოიწვია %2$s. მიზეზი: %3$s</string>
@@ -232,7 +223,6 @@
     <string name="notice_end_to_end_ok_by_you">თქვენ ჩართეთ დაბოლოებამდე დაშიფვრა.</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s-მ ჩართო დაბოლოებამდე დაშიფვრა (უცნობი ალგორითმი %2$s).</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">თქვენ ჩართეთ დაბოლოებამდე დაშიფვრა (უცნობი ალგორითმი %1$s).</string>
-    <string name="system_theme">სისტემის ნაგულისხმები</string>
     <string name="light_theme">ნათელი თემა</string>
     <string name="dark_theme">ბნელი თემა</string>
     <string name="black_theme">შავი თემა</string>
@@ -251,22 +241,16 @@
     <string name="sign_out_anyway">გამოსვლა მაინც</string>
     <string name="loading">იტვირთება…</string>
     <string name="ok">კარგი</string>
-    <string name="later">გვიან</string>
     <string name="permalink">პერმალინკი</string>
     <string name="view_source">ნახვა წყაროში</string>
     <string name="view_decrypted_source">ნახვა გაშიფრული წყაროს</string>
     <string name="none">არაფერი</string>
-    <string name="report_content">რეპორტის შინაარსი</string>
-    <string name="start_chatting">დაიწყეთ ჩატი</string>
     <string name="spaces">სივრცეები</string>
     <string name="time_unit_hour_short">სთ</string>
     <string name="time_unit_minute_short">წთ</string>
     <string name="time_unit_second_short">წმ</string>
     <string name="denied_permission_generic">რამდენიმე ნებართვა არ არის მინიჭებული ამ მოქმედების შესასრულებლად, გთხოვთ, მიანიჭეთ ნებართვები სისტემის პარამეტრებიდან.</string>
     <string name="missing_permissions_title">ნებართვების ნაკლებობა</string>
-    <string name="video_meeting">დაიწყეთ ვიდეო შეხვედრა</string>
-    <string name="audio_meeting">დაიწყეთ აუდიო შეხვედრა</string>
-    <string name="failed_to_add_widget">ვიჯეტის დამატება ვერ მოხერხდა</string>
     <string name="or">ან</string>
     <string name="done">დასრულდა</string>
     <string name="call_notification_hangup">გათიშვა</string>
@@ -278,9 +262,6 @@
     <string name="action_close">დახურვა</string>
     <string name="action_copy">კოპირება</string>
     <string name="action_add">დამატება</string>
-    <string name="action_switch">გადართვა</string>
-    <string name="action_enable">ჩართვა</string>
-    <string name="action_disable">გამორთვა</string>
     <string name="action_not_now">ახლა არა</string>
     <string name="action_try_it_out">ცადეთ</string>
     <string name="action_agree">დამორჩილება</string>
@@ -307,7 +288,6 @@
     <string name="action_next">შემდეგი</string>
     <string name="action_got_it">მიღებულია</string>
     <string name="action_deselect_all">მონიშვნის მოხსნა ყველა</string>
-    <string name="action_stop">დიახ, შეჩერება</string>
     <string name="action_thread_copy_link_to_thread">ბმულის კოპირება თემაზე</string>
     <string name="dialog_title_warning">გაფრთხილება</string>
     <string name="dialog_title_error">შეცდომა</string>
@@ -337,21 +317,12 @@
     <string name="rooms_header">ოთახები</string>
     <string name="settings_category_room_directory">ოთახების დირექტორია</string>
     <string name="spaces_header">სივრცეები</string>
-    <string name="send_bug_report_include_logs">გაგზავნეთ ლოგები</string>
-    <string name="send_bug_report_include_crash_logs">გაგზავნეთ ავარიის ლოგები</string>
-    <string name="send_bug_report_include_key_share_history">გაგზავნეთ გასაღების გაზიარების მოთხოვნების ისტორია</string>
-    <string name="send_bug_report_include_screenshot">გაგზავნეთ სქრინშოთი</string>
-    <string name="send_bug_report_description_in_english">თუ შესაძლებელია, გთხოვთ დაწეროთ აღწერა ინგლისურად.</string>
     <string name="join_room">შეუერთდით ოთახს</string>
     <string name="username">მომხმარებლის სახელი</string>
     <string name="logout">გამოსვლა</string>
     <string name="hs_client_url">სერვერის API URL</string>
     <string name="search">ძიება</string>
     <string name="option_send_voice">ხმოვანი გაგზავნა</string>
-    <string name="sound_device_phone">ტელეფონი</string>
-    <string name="sound_device_speaker">დინამიკი</string>
-    <string name="sound_device_headset">ყურსასმენი</string>
-    <string name="sound_device_wireless_headset">უსადენო ყურსასმენი</string>
     <string name="option_send_sticker">სტიკერის გაგზავნა</string>
     <string name="option_take_photo">ფოტოს გადაღება</string>
     <string name="option_take_video">ვიდეოს გადაღება</string>
@@ -362,7 +333,6 @@
     <string name="sign_out_bottom_sheet_will_lose_secure_messages">დაკარგავთ დაშიფრული შეტყობინებების წვდომას, თუ არ შეასრულებთ გასაღებების რეზერვირებას.</string>
     <string name="sign_out_failed_dialog_message">ჰომესერვერთან დაკავშირება შეუძლებელია. თუ მაინც გამოხვალთ, ეს მოწყობილობა არ წაიშლება თქვენი მოწყობილობების სიიდან, შესაძლოა დაგჭირდეთ მისი წაშლა სხვა კლიენტის გამოყენებით.</string>
     <string name="denied_permission_camera">ამ მოქმედების შესასრულებლად, გთხოვთ, მიანიჭეთ კამერის ნებართვა სისტემის პარამეტრებიდან.</string>
-    <string name="audio_video_meeting_description">შეხვედრები იყენებს Jitsi უსაფრთხოების და ნებართვის პოლიტიკებს. ამჟამად ოთახში მყოფი ყველა ადამიანი ნახავს მოწვევას, რომ შეუერთდეს, სანამ თქვენი შეხვედრა მიმდინარეობს.</string>
     <string name="failed_to_remove_widget">ვიჯეტის ამოღება ვერ მოხერხდა</string>
     <string name="action_sign_out_confirmation_simple">დარწმუნებული ხართ, რომ გსურთ გამოსვლა\?</string>
     <string name="action_mark_room_read">მონიშნეთ, როგორც წაკითხული</string>
@@ -380,16 +350,11 @@
     <string name="home_layout_preferences">განლაგების პრეფერენციები</string>
     <string name="labs_enable_new_app_layout_title">ახალი განლაგების ჩართვა</string>
     <string name="labs_enable_deferred_dm_title">გადადებული პირადი შეტყობინებების ჩართვა</string>
-    <string name="labs_enable_rich_text_editor_title">სრული ტექსტის რედაქტორის ჩართვა</string>
-    <string name="labs_enable_rich_text_editor_summary">სცადეთ სრული ტექსტის რედაქტორი (მალე გამოჩნდება უბრალო ტექსტის რეჟიმი)</string>
     <string name="space_list_empty_message">სივრცეები არის ახალი გზა ოთახების და ადამიანების დასაჯგუფებლად. შექმენით სივრცე, რომ დაიწყოთ.</string>
     <string name="invites_empty_message">აქ იქნება თქვენი ახალი მოთხოვნები და მოწვევები.</string>
     <string name="matrix_only_filter">მხოლოდ Matrix-ის კონტაქტები</string>
     <string name="settings_room_directory_show_all_rooms">აჩვენეთ ოთახები მავნე შინაარსით</string>
     <string name="settings_room_directory_show_all_rooms_summary">აჩვენეთ ყველა ოთახი ოთახების დირექტორიაში, მათ შორის მავნე შინაარსის მქონე ოთახები.</string>
-    <string name="send_bug_report_description">გთხოვთ აღწეროთ შეცდომა. რა გააკეთეთ\? რა მოელოდით რომ მოხდებოდა\? რა მოხდა სინამდვილეში\?</string>
-    <string name="send_bug_report_placeholder">აღწერეთ თქვენი პრობლემა აქ</string>
-    <string name="send_bug_report_logs_description">პრობლემების დასადგენად, ამ კლიენტიდან ლოგები გაიგზავნება ამ შეცდომის მოხსენებასთან ერთად. ეს შეცდომის მოხსენება, მათ შორის ლოგები და სქრინშოთი, არ იქნება საჯაროდ ხილული. თუ გსურთ მხოლოდ ზემოთ მოცემული ტექსტის გაგზავნა, გთხოვთ მოხსნათ მონიშვნა:</string>
     <string name="hs_url">სერვერის URL</string>
     <string name="option_send_files">ფაილების გაგზავნა</string>
     <string name="option_take_photo_video">გადაიღეთ ფოტო ან ვიდეო</string>
@@ -422,7 +387,6 @@
     <string name="permissions_rationale_msg_notification">${app_name} საჭიროებს ნებართვას შეტყობინებების ჩვენებაზე. შეტყობინებები შეიძლება აჩვენოს თქვენი შეტყობინებები, თქვენი მოწვევები და ა.შ. 
 \n
 \nგთხოვთ, მიაწოდოთ ნებართვა შემდეგ ფანჯრებში, რათა შეტყობინება ნახოთ.</string>
-    <string name="permissions_denied_qr_code">QR კოდის დასკანირებლად, საჭიროა ნებართვა კამერის წვდომაზე.</string>
     <string name="permissions_denied_add_contact">ნებართვის მიცემა თქვენი კონტაქტების წვდომაზე.</string>
     <string name="yes">დიახ</string>
     <string name="no">არა</string>
@@ -493,7 +457,6 @@
     <string name="thread_list_modal_my_threads_subtitle">აჩვენებს ყველა თემას, რომლებშიც მონაწილეობდით</string>
     <string name="thread_list_not_available">თქვენი ჰომესერვერი ჯერ არ უჭერს მხარს თემების ჩამოთვლას.</string>
     <string name="thread_list_empty_notice">რჩევა: დააჭირეთ ხანგრძლივად შეტყობინებას და გამოიყენეთ \"%s\".</string>
-    <string name="search_thread_from_a_thread">თემიდან</string>
     <string name="threads_notice_migration_title">თემები უახლოვდებიან ბეტას 🎉</string>
     <string name="threads_beta_enable_notice_title">თემების ბეტა</string>
     <plurals name="room_title_members">
@@ -507,11 +470,7 @@
     <string name="auth_invalid_login_param">არასწორი მომხმარებლის სახელი და/ან პაროლი</string>
     <string name="auth_email_already_defined">ეს ელფოსტის მისამართი უკვე განსაზღვრულია.</string>
     <string name="auth_recaptcha_message">ეს ჰომესერვერი ცდილობს დარწმუნდეს, რომ არ ხარ რობოტი</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} საჭიროებს ნებართვას მიკროფონის წვდომაზე, რათა შეასრულოს აუდიო ზარები.</string>
     <string name="auth_reset_password_error_unauthorized">ელფოსტის მისამართის ვერიფიკაცია ვერ მოხერხდა: დარწმუნდით, რომ ელფოსტაში ბმული დააწკაპუნეთ</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} საჭიროებს ნებართვას კამერისა და მიკროფონის წვდომაზე, რათა შეასრულოს ვიდეო ზარები. 
-\n
-\nგთხოვთ, ნებართვა მიაწოდოთ შემდეგ ფანჯრებში, რათა ზარი მოხდეს.</string>
     <string name="login_error_no_homeserver_found">ეს არ არის ვალიდური Matrix-ის სერვერის მისამართი</string>
     <string name="room_participants_leave_prompt_title">ოთახის დატოვება</string>
     <string name="login_error_homeserver_from_url_not_found">ვერ ხერხდება ჰომესერვერთან დაკავშირება URL %s-ზე. გთხოვთ, შეამოწმოთ ბმული ან აირჩიოთ ჰომესერვერი ხელით.</string>
@@ -703,7 +662,6 @@
     <string name="markdown_has_been_disabled">მარკდაუნი გამორთულია.</string>
     <string name="notification_silent">ჩუმი</string>
     <string name="encrypted_message">დაშიფრული შეტყობინება</string>
-    <string name="create">შექმნა</string>
     <string name="invited">მოწვეული</string>
     <string name="reason_colon">მიზეზი: %1$s</string>
     <string name="avatar">ავატარი</string>
@@ -712,7 +670,6 @@
     <string name="deactivate_account_submit">ანგარიშის დეაქტივაცია</string>
     <string name="error_empty_field_enter_user_name">გთხოვთ, შეიყვანოთ მომხმარებლის სახელი.</string>
     <string name="error_empty_field_your_password">გთხოვთ, შეიყვანოთ პაროლი.</string>
-    <string name="room_tombstone_versioned_description">ეს ოთახი ჩანაცვლებულია და აღარ არის აქტიური.</string>
     <string name="room_tombstone_continuation_description">ეს ოთახი არის სხვა საუბრის გაგრძელება</string>
     <string name="resource_limit_contact_admin">დაუკავშირდით თქვენს სერვისის ადმინისტრატორს</string>
     <string name="resource_limit_hard_default">ეს ჰომესერვერი გადააჭარბა მის რესურსების ლიმიტს.</string>
@@ -784,7 +741,6 @@
     <string name="notification_noisy">ხმაურიანი</string>
     <string name="command_error">ბრძანების შეცდომა</string>
     <string name="command_problem_with_parameters">ბრძანება \"%s\"-ს სჭირდება მეტი პარამეტრი, ან ზოგიერთი პარამეტრი არასწორია.</string>
-    <string name="group_details_home">მთავარი</string>
     <string name="command_not_supported_in_threads">ბრძანება \"%s\" აღიარებულია, მაგრამ არ არის მხარდაჭერილი თემებში.</string>
     <string name="rooms">ოთახები</string>
     <string name="command_description_ban_user">მომხმარებლის დაბლოკვა მოცემული ID-ით</string>
@@ -803,7 +759,6 @@
 \n
 \nMatrix-ში შეტყობინებების ხილვადობა მსგავსია ელფოსტაზე. ჩვენი მიერ თქვენი შეტყობინებების დავიწყება ნიშნავს, რომ გაგზავნილი შეტყობინებები აღარ იქნება გაზიარებული ახალ ან არარეგისტრირებულ მომხმარებლებთან, მაგრამ რეგისტრირებულ მომხმარებლებს, რომლებმაც უკვე მიიღეს წვდომა ამ შეტყობინებებზე, მაინც ექნებათ წვდომა მათ ასლებზე.</string>
     <string name="deactivate_account_delete_checkbox">გთხოვთ, დაივიწყოთ ყველა შეტყობინება, რომელიც გავგზავნე, როდესაც ჩემი ანგარიში დეაქტივირდება (გაფრთხილება: ეს გამოიწვევს, რომ მომავალი მომხმარებლები დაინახავენ საუბრის არასრული ხედვას)</string>
-    <string name="room_tombstone_continuation_link">საუბარი გრძელდება აქ</string>
     <string name="room_tombstone_predecessor_link">დააწკაპუნეთ აქ ძველი შეტყობინებების სანახავად</string>
     <string name="resource_limit_soft_default">ეს ჰომესერვერი გადააჭარბა მის რესურსების ლიმიტს, ამიტომ &lt;b&gt;ზოგიერთ მომხმარებელს ვერ ექნება შესვლა&lt;/b&gt;.</string>
     <string name="resource_limit_hard_mau">ეს ჰომესერვერი გადააჭარბა მის თვიური აქტიური მომხმარებლის ლიმიტს.</string>
@@ -849,21 +804,16 @@
     <string name="settings_system_preferences_summary">აირჩიეთ LED ფერი, ვიბრაცია, ხმა…</string>
     <string name="settings_messages_in_e2e_group_chat">დაშიფრული შეტყობინებები ჯგუფურ ჩატებში</string>
     <string name="settings_when_rooms_are_upgraded">როდესაც ოთახები განახლებულია</string>
-    <string name="settings_containing_my_user_name">შეტყობინებები, რომლებიც შეიცავს ჩემს მომხმარებლის სახელს</string>
     <string name="settings_messages_in_group_chat">შეტყობინებები ჯგუფურ ჩატებში</string>
     <string name="settings_invited_to_room">როდესაც მოწვეული ვარ ოთახში</string>
-    <string name="settings_messages_containing_display_name">ჩემი ეკრანის სახელი</string>
-    <string name="settings_messages_containing_username">ჩემი მომხმარებლის სახელი</string>
     <string name="settings_encrypted_direct_messages">დაშიფრული პირდაპირი შეტყობინებები</string>
     <string name="settings_group_messages">ჯგუფური შეტყობინებები</string>
     <string name="settings_notification_ringtone">შეტყობინების ხმა</string>
     <string name="settings_enable_all_notif">შეტყობინებების ჩართვა ამ ანგარიშისთვის</string>
     <string name="settings_call_notifications_preferences">ზარის შეტყობინებების კონფიგურაცია</string>
     <string name="settings_messages_in_e2e_one_to_one">დაშიფრული შეტყობინებები ერთ-ერთ ჩატებში</string>
-    <string name="settings_containing_my_display_name">შეტყობინებები, რომლებიც შეიცავს ჩემს ეკრანის სახელს</string>
     <string name="settings_messages_in_one_to_one">შეტყობინებები ერთ-ერთ ჩატებში</string>
     <string name="settings_messages_sent_by_bot">ბოტის მიერ გაგზავნილი შეტყობინებები</string>
-    <string name="settings_messages_at_room">შეტყობინებები, რომლებიც შეიცავს @room</string>
     <string name="settings_messages_direct_messages">პირდაპირი შეტყობინებები</string>
     <string name="settings_encrypted_group_messages">დაშიფრული ჯგუფური შეტყობინებები</string>
     <string name="keys_backup_get_version_error">ბოლო აღდგენილი გასაღებების ვერსიის მიღება ვერ მოხერხდა (%s).</string>
@@ -887,8 +837,6 @@
     <string name="error_user_already_logged_in">როგორც ჩანს, ცდილობთ სხვა ჰომესერვერთან დაკავშირებას. გსურთ გასვლა\?</string>
     <string name="edit">რედაქტირება</string>
     <string name="reply">პასუხი</string>
-    <string name="replying_to">პასუხი %s-სთვის</string>
-    <string name="quoting">ციტირება</string>
     <string name="reply_in_thread">პასუხი თემაში</string>
     <string name="view_in_room">ნახვა ოთახში</string>
     <string name="global_retry">ხელახლა ცდა</string>
@@ -935,13 +883,8 @@
     <string name="preference_root_legals">იურიდიული</string>
     <string name="preference_help">დახმარება</string>
     <string name="preference_versions">ვერსიები</string>
-    <string name="send_suggestion_report_placeholder">აღწერეთ თქვენი შეთავაზება აქ</string>
     <string name="beta_title_bottom_sheet_action">BETA</string>
-    <string name="feedback">უკუკავშირი</string>
     <string name="give_feedback" tools:ignore="UnusedResources">უკუკავშირის მიცემა</string>
-    <string name="give_feedback_threads">უკუკავშირის მიცემა</string>
-    <string name="send_feedback_threads_title">Threads Beta უკუკავშირი</string>
-    <string name="beta">BETA</string>
     <string name="settings_labs_show_hidden_events_in_timeline">დაფარული მოვლენების ჩვენება დროის ხაზზე</string>
     <string name="bottom_action_people_x">პირდაპირი შეტყობინებები</string>
     <string name="send_file_step_idle">ელოდება…</string>
@@ -994,7 +937,6 @@
     <string name="keys_backup_info_keys_all_backup_up">ყველა გასაღები სარეზერვო ასლშია</string>
     <string name="sas_incoming_request_notif_title">ვერიფიკაციის მოთხოვნა</string>
     <string name="identity_server_not_defined">თქვენ არ იყენებთ იდენტობის სერვერს</string>
-    <string name="editing">რედაქტირება მიმდინარეობს</string>
     <string name="message_add_reaction">რეაქციის დამატება</string>
     <string name="message_view_reaction">რეაქციების ნახვა</string>
     <string name="malformed_message">არასწორი მოვლენა, ჩვენება შეუძლებელია</string>
@@ -1026,13 +968,6 @@
     <string name="preference_system_settings">სისტემის პარამეტრები</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">ტოკენის რეგისტრაცია</string>
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">შეტყობინებების მეთოდის გადატვირთვა</string>
-    <string name="send_suggestion_content">გთხოვთ, დაწეროთ თქვენი შეთავაზება ქვემოთ.</string>
-    <string name="send_suggestion_failed">შეთავაზების გაგზავნა ვერ მოხერხდა (%s)</string>
-    <string name="send_feedback_space_title">სივრცეების უკუკავშირი</string>
-    <string name="send_feedback_space_info">თქვენ იყენებთ სივრცეების ბეტა ვერსიას. თქვენი უკუკავშირი დაგვეხმარება შემდეგი ვერსიების გაუმჯობესებაში. თქვენი პლატფორმა და მომხმარებლის სახელი აღინიშნება, რათა მაქსიმალურად გამოვიყენოთ თქვენი უკუკავშირი.</string>
-    <string name="you_may_contact_me">შეგიძლიათ დამიკავშირდეთ, თუ გექნებათ დამატებითი კითხვები</string>
-    <string name="feedback_failed">უკუკავშირი გაგზავნა ვერ მოხერხდა (%s)</string>
-    <string name="send_feedback_threads_info">თემები დამუშავების პროცესშია ახალი, ამაღელვებელი და მოსალოდნელი ფუნქციებით, როგორიცაა გაუმჯობესებული შეტყობინებები. მოხარული ვიქნებით, რომ მოვისმინოთ თქვენი უკუკავშირი!</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">სრული ისტორიის ჩვენება დაშიფრულ ოთახებში</string>
     <string name="send_file_step_encrypting_thumbnail">მინიატურის დაშიფვრა…</string>
     <string name="send_file_step_encrypting_file">ფაილის დაშიფვრა…</string>
@@ -1111,8 +1046,6 @@
     <string name="settings_always_show_timestamps">ყველა შეტყობინების დროის ბეჭდის ჩვენება</string>
     <string name="settings_12_24_timestamps">დროის ბეჭდების ჩვენება 12-საათიან ფორმატში</string>
     <string name="settings_show_read_receipts">წაკითხვის ქვითრების ჩვენება</string>
-    <string name="settings_chat_effects_title">ჩატის ეფექტების ჩვენება</string>
-    <string name="settings_chat_effects_description">გამოიყენეთ /confetti ბრძანება ან გაგზავნეთ შეტყობინება, რომელიც შეიცავს ❄️ ან 🎉</string>
     <string name="settings_enable_direct_share_title">პირდაპირი გაზიარების ჩართვა</string>
     <string name="settings_enable_direct_share_summary">ჩვენების ბოლო ჩატები სისტემის გაზიარების მენიუში</string>
     <string name="settings_show_avatar_display_name_changes_messages">ანგარიშის მოვლენების ჩვენება</string>
@@ -1130,11 +1063,6 @@
     <string name="settings_discovery_category">აღმოჩენა</string>
     <string name="settings_discovery_manage">მართეთ თქვენი აღმოჩენის პარამეტრები.</string>
     <string name="settings_external_account_management_title">ანგარიში</string>
-    <string name="analytics_opt_in_title">დაეხმარეთ ${app_name}-ს გაუმჯობესებაში</string>
-    <string name="analytics_opt_in_content_link">აქ</string>
-    <string name="analytics_opt_in_list_item_1">ჩვენ &lt;b&gt;არ&lt;/b&gt; ვწერთ ან ვქმნით პროფილს ანგარიშის ნებისმიერ მონაცემზე</string>
-    <string name="analytics_opt_in_list_item_2">ჩვენ &lt;b&gt;არ&lt;/b&gt; ვაზიარებთ ინფორმაციას მესამე მხარეებთან</string>
-    <string name="analytics_opt_in_list_item_3">ამას ნებისმიერ დროს შეგიძლიათ გამორთოთ პარამეტრებში</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">საზოგადოებრივი სახელი</string>
     <string name="devices_details_device_name">საზოგადოებრივი სახელის განახლება</string>
@@ -1248,7 +1176,6 @@
     <string name="settings_text_message_sent_hint">კოდი</string>
     <string name="settings_text_message_sent_wrong_code">დამადასტურებელი კოდი არასწორია.</string>
     <string name="labs_allow_extended_logging">გააქტიურეთ ვრცელი ჟურნალები.</string>
-    <string name="send_attachment">ფაილის დამატება</string>
     <string name="a11y_open_drawer">ნავიგაციის ღია მენიუ</string>
     <string name="a11y_create_menu_close">ახალი ოთახის მენიუს დახურვა…</string>
     <string name="a11y_close_keys_backup_banner">გასაღებების სარეზერვო ბანერის დახურვა</string>
@@ -1266,17 +1193,7 @@
     <string name="uploads_files_title">ფაილები</string>
     <string name="uploads_files_subtitle">%1$s %2$s-ზე</string>
     <string name="uploads_files_no_result">ამ ოთახში ფაილები არ არის</string>
-    <string name="report_content_spam">ეს სპამია</string>
-    <string name="report_content_inappropriate">ეს შეუსაბამოა</string>
-    <string name="report_content_custom">მორგებული ანგარიში…</string>
-    <string name="report_content_custom_title">შეატყობინეთ ეს შინაარსი</string>
-    <string name="report_content_custom_submit">განცხადება</string>
-    <string name="block_user">მომხმარებლის იგნორირება</string>
-    <string name="content_reported_as_spam_title">შეტყობინება სპამად</string>
-    <string name="content_reported_as_inappropriate_title">შეტყობინება შეუსაბამოდ</string>
-    <string name="user_reported_as_inappropriate_title">მომხმარებელი შეტყობინებულია</string>
     <string name="message_ignore_user">მომხმარებლის იგნორირება</string>
-    <string name="message_report_user">მომხმარებლის შეტყობინება</string>
     <string name="room_list_quick_actions_notifications_all_noisy">ყველა შეტყობინება (ხმაურიანი)</string>
     <string name="room_list_quick_actions_notifications_all">ყველა შეტყობინება</string>
     <string name="room_list_quick_actions_notifications_mute">დამუნჯება</string>
@@ -1374,7 +1291,6 @@
     <string name="login_signup_password_hint">პაროლი</string>
     <string name="login_signup_submit">შემდეგი</string>
     <string name="login_signup_cancel_confirmation_title">გაფრთხილება</string>
-    <string name="login_a11y_choose_matrix_org">აირჩიეთ matrix.org</string>
     <string name="login_a11y_captcha_container">გთხოვთ, შეასრულოთ captcha-ს დავალება</string>
     <string name="login_terms_title">მიღეთ პირობები გასაგრძელებლად</string>
     <string name="login_validation_code_is_not_correct">შეყვანილი კოდი არასწორია. გთხოვთ, გადაამოწმოთ.</string>
@@ -1393,7 +1309,6 @@
     <string name="soft_logout_clear_data_dialog_title">მონაცემების გასუფთავება</string>
     <string name="permalink_malformed">თქვენი matrix.to ბმული გაუმართავი იყო</string>
     <string name="permalink_unsupported_groups">ვერ გავხსენი ეს ბმული: თემები შეცვლილია სივრცეებით</string>
-    <string name="bug_report_error_too_short">აღწერა ძალიან მოკლეა</string>
     <string name="notification_initial_sync">თავდაპირველი სინქრონიზაცია…</string>
     <string name="settings_advanced_settings">გაფართოებული პარამეტრები</string>
     <string name="settings_developer_mode">დეველოპერის რეჟიმი</string>
@@ -1424,7 +1339,6 @@
     <string name="send_a_sticker">სტიკერი.</string>
     <string name="sent_a_poll">გამოკითხვა.</string>
     <string name="sent_a_reaction">რეაგირება: %s</string>
-    <string name="started_a_voice_broadcast">ხმის ტრანსლაციის დაწყება</string>
     <string name="verification_request_waiting">მოლოდინი…</string>
     <string name="verification_request_other_cancelled">%s გააუქმა</string>
     <string name="verification_request_you_cancelled">თქვენ გააუქმეთ</string>
@@ -1453,7 +1367,6 @@
     </plurals>
     <string name="room_profile_section_more_leave">ოთახის დატოვება</string>
     <string name="direct_room_profile_section_more_leave">დატოვება</string>
-    <string name="room_member_override_nick_color">სახელის ფერის გადალახვა</string>
     <string name="room_member_power_level_admins">ადმინები</string>
     <string name="room_member_power_level_moderators">მოდერატორები</string>
     <string name="room_member_power_level_invites">მოწვევები</string>
@@ -1508,8 +1421,6 @@
     <string name="verification_cannot_access_other_session">გამოიყენეთ აღდგენის პაროლი ან გასაღები</string>
     <string name="verification_use_passphrase">თუ ვერ შეხვალთ არსებულ სესიაში</string>
     <string name="enter_secret_storage_invalid">შეიძლება ვერ იპოვოთ საიდუმლოებები საცავში</string>
-    <string name="send_images_and_video_with_original_size">გაგზავნეთ მედია ორიგინალი ზომით</string>
-    <string name="delete_event_dialog_reason_checkbox">მოიცავს მიზეზს</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">გასაღებები უკვე განახლებულია!</string>
     <string name="settings_key_requests">გასაღებების მოთხოვნები</string>
     <string name="settings_export_trail">ექსპორტის აუდიტი</string>
@@ -1588,9 +1499,6 @@
     <string name="secure_backup_reset_all_no_other_devices">გააკეთეთ ეს მხოლოდ იმ შემთხვევაში, თუ სხვა მოწყობილობა არ გაქვთ, რომლითაც შეგიძლიათ დაადასტუროთ ეს მოწყობილობა.</string>
     <string tools:ignore="UnusedResources" name="secure_backup_reset_if_you_reset_all">თუ ყველაფერს განაახლებთ</string>
     <string tools:ignore="UnusedResources" name="secure_backup_reset_no_history">თქვენ დაიწყებთ თავიდან, არანაირი ისტორია, შეტყობინებები, ნდობით აღჭურვილი მოწყობილობები ან ნდობით აღჭურვილი მომხმარებლები</string>
-    <string name="command_confetti">გაგზავნეთ მითითებული შეტყობინება კონფეტით</string>
-    <string name="command_snow">გაგზავნეთ მითითებული შეტყობინება თოვლის მოყვანილობით</string>
-    <string name="default_message_emote_snow">გაგზავნეთ თოვლის მოყვანილობა ❄️</string>
     <string name="unencrypted">დაუშიფრავი</string>
     <string name="encrypted_unverified">დაშიფრული დაუდასტურებელი მოწყობილობით</string>
     <string name="encrypted_by_deleted">დაშიფრული წაშლილი მოწყობილობით</string>
@@ -1611,12 +1519,8 @@
     <string name="invite_friends_rich_title">🔐️ შემომიერთდი ${app_name}-ზე</string>
     <string name="invitation_sent_to_one_user">მოწვევა გაიგზავნა %1$s</string>
     <string name="invitations_sent_to_two_users">მოწვევა გაიგზავნა %1$s და %2$s</string>
-    <string name="not_a_valid_qr_code">ეს არ არის ვალიდური მატრიქს QR კოდი</string>
     <string name="invite_unknown_users_dialog_submit">მოწვევა ნებისმიერ შემთხვევაში</string>
-    <string name="user_code_scan">QR კოდის დასკანერება</string>
-    <string name="user_code_share">ჩემი კოდის გაზიარება</string>
     <string name="user_code_my_code">ჩემი კოდი</string>
-    <string name="user_code_info_text">გაუზიარეთ ეს კოდი ადამიანებს, რათა მათ დაასკანერონ და დაიწყონ თქვენთან ჩატი.</string>
     <string name="choose_locale_current_locale_title">მიმდინარე ენა</string>
     <string name="choose_locale_other_locales_title">სხვა ხელმისაწვდომი ენები</string>
     <string name="open_terms_of">გახსენით პირობები %s</string>
@@ -1631,10 +1535,6 @@
     <string name="identity_server_set_alternative_submit">გაგზავნა</string>
     <string name="power_level_edit_title">როლის მინიჭება</string>
     <string name="power_level_title">როლი</string>
-    <string name="a11y_open_chat">ჩატის გახსნა</string>
-    <string name="a11y_mute_microphone">მიკროფონის დუმილი</string>
-    <string name="a11y_stop_camera">კამერის გამორთვა</string>
-    <string name="a11y_start_camera">კამერის ჩართვა</string>
     <plurals name="seconds">
         <item quantity="one">%d წამი</item>
         <item quantity="other">%d წამი</item>
@@ -1707,9 +1607,6 @@
     <string name="settings_secure_backup_section_info">დაზღვევა დაშიფრული შეტყობინებებისა და მონაცემების წვდომის დაკარგვისგან დაშიფვრის გასაღებების სარეზერვო ასლის შექმნით თქვენს სერვერზე.</string>
     <string name="reset_secure_backup_title">ახალი უსაფრთხოების გასაღების გენერირება ან ახალი უსაფრთხოების ფრაზის შექმნა თქვენი არსებული სარეზერვო ასლისთვის.</string>
     <string name="settings_external_account_management">თქვენი ანგარიშის დეტალები ცალ-ცალკე იმართება %1$s-ში.</string>
-    <string name="analytics_opt_in_content">დაგვეხმარეთ პრობლემების იდენტიფიცირებასა და ${app_name}-ის გაუმჯობესებაში ანონიმური გამოყენების მონაცემების გაზიარებით. იმის გასაგებად, თუ როგორ იყენებენ ადამიანები მრავალ მოწყობილობას, ჩვენ გენერირებას გავაკეთებთ შემთხვევითი იდენტიფიკატორის, რომელსაც თქვენს მოწყობილობებთან გავაზიარებთ. 
-\n
-\nშეგიძლიათ წაიკითხოთ ჩვენი პირობები სრულად %s.</string>
     <string name="disabled_integration_dialog_content">ინტეგრაციების ნებართვის ჩართვა პარამეტრებში ამის გასაკეთებლად.</string>
     <string name="settings_user_interface">მომხმარებლის ინტერფეისი</string>
     <string name="account_email_validation_message">გთხოვთ, შეამოწმოთ თქვენი ელფოსტა და დააწკაპუნეთ ბმულზე, რომელიც მასშია. ამის შემდეგ დააწკაპუნეთ გაგრძელებაზე.</string>
@@ -1818,25 +1715,9 @@
     <string name="three_users_read">%1$s, %2$s და %3$s წაიკითხეს</string>
     <string name="error_file_too_big_simple">ფაილი ძალიან დიდია ატვირთვისთვის.</string>
     <string name="attachment_type_dialog_title">გამოსახულების დამატება</string>
-    <string name="attachment_type_contact">კონტაქტი</string>
     <string name="attachment_type_poll">გამოკითხვა</string>
-    <string name="attachment_type_voice_broadcast">ხმის მაუწყებლობა</string>
     <string name="rotate_and_crop_screen_title">მობრუნება და დაჭრა</string>
     <string name="uploads_media_no_result">ამ ოთახში მედია არ არის</string>
-    <string name="report_content_custom_hint">შინაარსის მოხსენების მიზეზი</string>
-    <string name="content_reported_title">შეტყობინება გაიგზავნა</string>
-    <string name="content_reported_content">ეს შინაარსი გაიგზავნა. 
-\n
-\nთუ აღარ გსურთ ამ მომხმარებლის შინაარსის ნახვა, შეგიძლიათ იგნორირება მოახდინოთ მათ შეტყობინებებზე.</string>
-    <string name="content_reported_as_spam_content">ეს შინაარსი სპამად განისაზღვრა. 
-\n
-\nთუ აღარ გსურთ ამ მომხმარებლის შინაარსის ნახვა, შეგიძლიათ იგნორირება მოახდინოთ მათ შეტყობინებებზე.</string>
-    <string name="content_reported_as_inappropriate_content">ეს შინაარსი შეუსაბამოდ განისაზღვრა. 
-\n
-\nთუ აღარ გსურთ ამ მომხმარებლის შინაარსის ნახვა, შეგიძლიათ იგნორირება მოახდინოთ მათ შეტყობინებებზე.</string>
-    <string name="user_reported_as_inappropriate_content">მომხმარებელი შეტყობინებულია. 
-\n
-\nთუ აღარ გსურთ ამ მომხმარებლის შინაარსის ნახვა, შეგიძლიათ იგნორირება მოახდინოთ მათ შეტყობინებებზე.</string>
     <string name="room_list_quick_actions_notifications_mentions">მხოლოდ აღნიშვნები</string>
     <string name="room_list_quick_actions_settings">პარამეტრები</string>
     <string name="room_list_quick_actions_low_priority_add">დაბალი პრიორიტეტის დავალება</string>
@@ -1928,7 +1809,6 @@
     <string name="login_signup_username_hint">მომხმარებლის სახელი</string>
     <string name="login_signup_error_user_in_use">ეს სახელი უკვე გამოყენებულია</string>
     <string name="login_signup_cancel_confirmation_content">თქვენი ანგარიში ჯერ არ შექმნილა. გსურთ რეგისტრაციის შეჩერება\?</string>
-    <string name="login_a11y_choose_modular">აირჩიეთ Element Matrix Services</string>
     <string name="login_a11y_choose_other">აირჩიეთ მორგებული ჰოუმსერვერი</string>
     <string name="login_wait_for_email_title">გთხოვთ, შეამოწმოთ თქვენი ელფოსტა</string>
     <string name="login_wait_for_email_notice">ჩვენ ახლახანს გამოგიგზავნეთ ელფოსტა %1$s. 
@@ -1978,7 +1858,6 @@
 \n- თქვენი ან სხვა მომხმარებლის მოწყობილობა</string>
     <string name="sent_a_file">ფაილი.</string>
     <string name="sent_verification_conclusion">ვერიფიკაციის დასრულება.</string>
-    <string name="sent_live_location">მდებარეობის ცოცხლად გაზიარება</string>
     <string name="verification_request_you_accepted">თქვენ დაადასტურეთ</string>
     <string name="verification_verify_device">დადასტურეთ ეს სესია</string>
     <string name="verification_scan_notice">დაასკანერეთ კოდი სხვა მომხმარებლის მოწყობილობით, რომ უსაფრთხოდ დაადასტუროთ ერთმანეთი</string>
@@ -2032,8 +1911,6 @@
     <string name="delete_account_data_warning">წაშალეთ მონაცემები ანგარიშის ტიპისთვის %1$s\? 
 \n
 \nგაფრთხილდით, შეიძლება გამოიწვიოს გაუთვალისწინებელი ქცევა.</string>
-    <string name="share_confirm_room">გსურთ ეს დანართი გაგზავნოთ %1$s\?</string>
-    <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_nightly_build_update">მიიღეთ უახლესი ვერსია (შენიშვნა: შესაძლოა გქონდეთ სირთულეები შესვლასთან დაკავშირებით)</string>
     <string name="new_session">ახალი შესვლა. ეს თქვენ იყავით\?</string>
     <string name="verify_new_session_notice">გამოიყენეთ ეს სესია თქვენი ახალი სესიის ვერიფიკაციისთვის, რაც მიანიჭებს მას დაშიფრული შეტყობინებების წვდომას.</string>
@@ -2087,7 +1964,6 @@
         <item quantity="one">აჩვენეთ მოწყობილობა, რომლის დადასტურებაც ახლა შეგიძლიათ</item>
         <item quantity="other">აჩვენეთ %d მოწყობილობა, რომლის დადასტურებაც ახლა შეგიძლიათ</item>
     </plurals>
-    <string name="default_message_emote_confetti">გაგზავნეთ კონფეტი 🎉</string>
     <string name="key_authenticity_not_guaranteed">“ამ დაშიფრული შეტყობინების ავთენტურობა ვერ დგინდება ამ მოწყობილობაზე.</string>
     <string name="review_unverified_sessions_description">გადახედეთ, რომ დარწმუნდეთ თქვენი ანგარიშის უსაფრთხოებაში</string>
     <string name="verify_this_session">დაადასტურეთ ახალი შესვლა თქვენი ანგარიშის ხელმისაწვდომობაზე: %1$s</string>
@@ -2114,7 +1990,6 @@
     <string name="identity_server_error_bulk_sha256_not_supported">თქვენი კონფიდენციალურობისთვის, ${app_name} მხარს უჭერს მხოლოდ დაშიფრული მომხმარებლის ელფოსტის მისამართების და ტელეფონის ნომრების გაგზავნას.</string>
     <string name="identity_server_set_default_notice">თქვენი სახლის სერვერი (%1$s) გთავაზობთ გამოიყენოთ %2$s თქვენი იდენტობის სერვერისთვის</string>
     <string name="identity_server_set_alternative_notice">თქვენ ასევე შეგიძლიათ შეიყვანოთ სხვა იდენტობის სერვერის URL</string>
-    <string name="a11y_unmute_microphone">მიკროფონის ჩართვა</string>
     <string name="bottom_sheet_setup_secure_backup_title">უსაფრთხო სარეზერვო ასლი</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">დაიცავით დაშიფრული შეტყობინებებისა და მონაცემების წვდომა დაშიფრვის გასაღებების სერვერზე სარეზერვო ასლის შექმნით.</string>
     <string name="bottom_sheet_setup_secure_backup_security_phrase_title">საიდუმლო ფრაზის გამოყენება</string>
@@ -2163,16 +2038,13 @@
     <string name="error_opening_banned_room">ვერ ხსნით ოთახს, საიდანაც დაბლოკილი ხართ.</string>
     <string name="room_error_not_found">ვერ ვპოულობთ ამ ოთახს. დარწმუნდით, რომ არსებობს.</string>
     <string name="share_by_text">ტექსტით გაზიარება</string>
-    <string name="invalid_qr_code_uri">არასწორი QR კოდი (არასწორი URI)!</string>
     <string name="qr_code_not_scanned">QR კოდი არ არის დასკანერებული!</string>
     <string name="universal_link_malformed">ბმული იყო დაზიანებული</string>
     <string name="warning_unsaved_change">არსებობს არასათანადოდ შენახული ცვლილებები. გსურთ მათი გაუქმება\?</string>
     <string name="warning_unsaved_change_discard">ცვლილებების გაუქმება</string>
     <string name="call_tile_other_declined">%1$s-მა უარი თქვა ამ ზარზე</string>
     <string name="authentication_error">ვერ მოხერხდა ავტორიზაცია</string>
-    <string name="a11y_screenshot">სკრინშოტი</string>
     <string name="a11y_open_widget">ვიჯეტების გახსნა</string>
-    <string name="a11y_open_settings">პარამეტრების გახსნა</string>
     <string name="a11y_import_key_from_file">გასაღების იმპორტი ფაილიდან</string>
     <string name="a11y_image">სურათი</string>
     <string name="a11y_change_avatar">ავატარის შეცვლა</string>
@@ -2199,7 +2071,6 @@
     <string name="dev_tools_form_hint_type">ტიპი</string>
     <string name="dev_tools_form_hint_state_key">მდგომარეობის გასაღები</string>
     <string name="dev_tools_error_no_content">შინაარსი არ არის</string>
-    <string name="dev_tools_error_malformed_event">დაზიანებული მოვლენა</string>
     <string name="dev_tools_success_event">მოვლენა გაგზავნილია!</string>
     <string name="dev_tools_event_content_hint">მოვლენის შინაარსი</string>
     <string name="command_description_create_space">შექმენით სივრცე</string>
@@ -2213,15 +2084,6 @@
     <string name="public_space">საჯარო სივრცე</string>
     <string name="private_space">კერძო სივრცე</string>
     <string name="add_space">სივრცის დამატება</string>
-    <string name="your_public_space">თქვენი საჯარო სივრცე</string>
-    <string name="your_private_space">თქვენი კერძო სივრცე</string>
-    <string name="create_spaces_choose_type_label">რა ტიპის სივრცე გსურთ შექმნათ\?</string>
-    <string name="create_spaces_who_are_you_working_with">ვინ მუშაობს თქვენთან ერთად\?</string>
-    <string name="create_spaces_just_me">მხოლოდ მე</string>
-    <string name="create_spaces_organise_rooms">კერძო სივრცე თქვენი ოთახების ორგანიზებისთვის</string>
-    <string name="create_spaces_me_and_teammates">მე და გუნდის წევრები</string>
-    <string name="create_spaces_private_teammates">კერძო სივრცე თქვენთვის და თქვენი გუნდისთვის</string>
-    <string name="space_type_public">საჯარო</string>
     <string name="space_type_private">კერძო</string>
     <string name="activity_create_space_title">სივრცის შექმნა</string>
     <string name="create_spaces_details_private_header">დაამატეთ დეტალები, რათა ხალხმა მარტივად გამოარჩიოს. ეს შეგიძლიათ ნებისმიერ დროს შეცვალოთ.</string>
@@ -2260,7 +2122,6 @@
     <string name="space_add_existing_spaces">არსებული სივრცეების დამატება</string>
     <string name="space_add_space_to_any_space_you_manage">სივრცის დამატება ნებისმიერ სივრცეში, რომელსაც მართავთ.</string>
     <string name="you_are_invited">თქვენ მოწვეული ხართ</string>
-    <string name="labs_auto_report_uisi">ავტომატური დეკრიფციის შეცდომების ანგარიშგება.</string>
     <string name="settings_show_latest_profile">აჩვენეთ ბოლო მომხმარებლის ინფორმაცია</string>
     <string name="user_invites_you">%s გიწვევთ</string>
     <string name="looking_for_someone_not_in_space">ეძებთ ვინმეს, ვინც %s-ში არ არის\?</string>
@@ -2290,7 +2151,6 @@
     <string name="voice_message_n_seconds_warning_toast">%1$ds დარჩა</string>
     <string name="error_voice_message_unable_to_play">ვერ ვთამაშობ ამ ხმოვან შეტყობინებას</string>
     <string name="error_voice_message_unable_to_record">ვერ ჩავწერ ხმოვან შეტყობინებას</string>
-    <string name="error_voice_message_broadcast_in_progress">ვერ ვიწყებ ხმოვან შეტყობინებას</string>
     <string name="voice_message_reply_content">ხმოვანი შეტყობინება (%1$s)</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
     <string name="a11y_play_audio_message">დაკვრა %1$s</string>
@@ -2298,18 +2158,6 @@
     <string name="error_audio_message_unable_to_play">ვერ ვთამაშობ %1$s</string>
     <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
-    <string name="voice_broadcast_live">პირდაპირი</string>
-    <string name="voice_broadcast_buffering">ბუფერული…</string>
-    <string name="a11y_resume_voice_broadcast_record">ხმოვანი გადაცემის ჩანაწერის აღდგენა</string>
-    <string name="a11y_stop_voice_broadcast_record">ხმოვანი გადაცემის ჩანაწერის შეწყვეტა</string>
-    <string name="a11y_pause_voice_broadcast">ხმოვანი გადაცემის პაუზა</string>
-    <string name="a11y_voice_broadcast_fast_backward">გადახვევა 30 წამით უკან</string>
-    <string name="a11y_voice_broadcast_fast_forward">გადახვევა 30 წამით წინ</string>
-    <string name="error_voice_broadcast_already_in_progress_message">თქვენ უკვე ატარებთ ხმოვან გადაცემას. გთხოვთ, დაასრულოთ თქვენი მიმდინარე ხმოვანი გადაცემა, რათა დაიწყოთ ახალი.</string>
-    <string name="error_voice_broadcast_unable_to_play">ვერ ვთამაშობ ამ ხმოვან გადაცემას.</string>
-    <string name="error_voice_broadcast_no_connection_recording">კავშირის შეცდომა - ჩაწერა შეჩერებულია</string>
-    <string name="error_voice_broadcast_unable_to_decrypt">ვერ ვწყვეტ ამ ხმოვან გადაცემას.</string>
-    <string name="stop_voice_broadcast_dialog_title">გსურთ პირდაპირი გადაცემის შეჩერება\?</string>
     <string name="upgrade_room_for_restricted_note">გთხოვთ გაითვალისწინოთ, რომ განახლება შექმნის ოთახის ახალ ვერსიას. ყველა მიმდინარე შეტყობინება დარჩება ამ არქივირებულ ოთახში.</string>
     <string name="this_invite_to_this_room_was_sent">ეს მოწვევა ამ ოთახში გაიგზავნა %s-ში, რომელიც არ არის დაკავშირებული თქვენს ანგარიშთან</string>
     <string name="this_invite_to_this_space_was_sent">ეს მოწვევა ამ სივრცეში გაიგზავნა %s-ში, რომელიც არ არის დაკავშირებული თქვენს ანგარიშთან</string>
@@ -2369,13 +2217,10 @@
     <string name="live_location_not_enough_permission_dialog_title">თქვენ არ გაქვთ ნებართვა ცოცხალი ადგილმდებარეობის გასაზიარებლად</string>
     <string name="live_location_share_location_item_share">ადგილმდებარეობის გაზიარება</string>
     <string name="live_location_description">ცოცხალი ადგილმდებარეობა</string>
-    <string name="message_bubbles">შეტყობინებების ბუშტების ჩვენება</string>
     <string name="tooltip_attachment_photo">კამერის გახსნა</string>
     <string name="tooltip_attachment_file">ფაილის ატვირთვა</string>
     <string name="tooltip_attachment_sticker">სტიკერის გაგზავნა</string>
-    <string name="tooltip_attachment_contact">კონტაქტების გახსნა</string>
     <string name="tooltip_attachment_poll">გამოკითხვის შექმნა</string>
-    <string name="tooltip_attachment_voice_broadcast">ხმოვანი გადაცემის დაწყება</string>
     <string name="attachment_type_selector_gallery">ფოტოების ბიბლიოთეკა</string>
     <string name="attachment_type_selector_sticker">სტიკერები</string>
     <string name="attachment_type_selector_file">დანართები</string>
@@ -2395,7 +2240,6 @@
     <string name="settings_troubleshoot_test_current_distributor">ამჟამად გამოყენებაშია %s.</string>
     <string name="settings_troubleshoot_test_current_endpoint_success">მიმდინარე ბოლო წერტილი: %s</string>
     <string name="settings_troubleshoot_test_current_endpoint_failed">ვერ მოიძებნა ბოლო წერტილი.</string>
-    <string name="labs_enable_element_call_permission_shortcuts">Element Call უფლებების სწრაფი გზების ჩართვა</string>
     <string name="settings_troubleshoot_test_current_gateway_title">კარიბჭე</string>
     <string name="settings_troubleshoot_test_current_gateway">მიმდინარე კარიბჭე: %s</string>
     <string name="live_location_labs_promotion_title">ცოცხალი ადგილმდებარეობის გაზიარება</string>
@@ -2468,8 +2312,6 @@
     <string name="labs_enable_session_manager_summary">მიიღეთ უფრო მეტი ხილვადობა და კონტროლი ყველა თქვენს სესიაზე.</string>
     <string name="labs_enable_client_info_recording_title">კლიენტის ინფორმაციის ჩაწერის გააქტიურება</string>
     <string name="labs_enable_client_info_recording_summary">დაარქივეთ კლიენტის სახელი, ვერსია და URL, რათა სესიების უფრო მარტივად ამოცნობა მოახდინოთ სესიის მენეჯერში.</string>
-    <string name="labs_enable_voice_broadcast_title">ხმოვანი გადაცემის გააქტიურება</string>
-    <string name="labs_enable_voice_broadcast_summary">შეგეძლებათ ხმოვანი გადაცემის ჩაწერა და გაგზავნა ოთახის დროის ხაზში.</string>
     <string name="home_empty_space_no_rooms_title">%s 
 \nგამოიყურება ცოტა ცარიელია.</string>
     <string name="home_empty_no_rooms_title">კეთილი იყოს თქვენი მობრძანება ${app_name}-ში,
@@ -2477,22 +2319,8 @@
     <string name="home_empty_no_rooms_message">ყველა ერთში უსაფრთხო ჩატი აპლიკაცია გუნდებისთვის, მეგობრებისთვის და ორგანიზაციებისთვის. შექმენით ჩატი, ან შეუერთდით არსებულ ოთახს დასაწყებად.</string>
     <string name="home_empty_no_unreads_title">არაფერი მისაწოდებელი.</string>
     <string name="home_empty_no_unreads_message">აქ გამოჩნდება თქვენი წაუკითხავი შეტყობინებები, როცა ისინი გექნებათ.</string>
-    <string name="onboarding_new_app_layout_spaces_title">სივრცეებზე წვდომა</string>
-    <string name="onboarding_new_app_layout_spaces_message">მიიღეთ წვდომა თქვენს სივრცეებზე (ქვედა მარჯვენა) უფრო სწრაფად და მარტივად, ვიდრე ოდესმე.</string>
-    <string name="onboarding_new_app_layout_feedback_title">უკუკავშირის მიწოდება</string>
-    <string name="onboarding_new_app_layout_button_try">სცადეთ</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_link_a_device_scan_qr_code_instruction_2">აირჩიეთ \'QR კოდით შესვლა\'</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_link_a_device_show_qr_code_instruction_1">დაიწყეთ შესვლის ეკრანზე</string>
-    <string name="rich_text_editor_format_bold">გამოიყენეთ თამამი ფორმატი</string>
-    <string name="rich_text_editor_format_italic">გამოიყენეთ დახრილი ფორმატი</string>
-    <string name="rich_text_editor_format_strikethrough">გამოიყენეთ გადახაზული ფორმატი</string>
-    <string name="rich_text_editor_link">ბმულის დაყენება</string>
-    <string name="rich_text_editor_numbered_list">ნუმერაციის სიის ჩართვა</string>
-    <string name="rich_text_editor_indent">ჩაღრმავება</string>
-    <string name="rich_text_editor_unindent">გაღრმავება</string>
-    <string name="rich_text_editor_quote">ციტატის ჩართვა</string>
-    <string name="rich_text_editor_code_block">კოდის ბლოკის ჩართვა</string>
-    <string name="rich_text_editor_full_screen_toggle">სრული ეკრანის რეჟიმის ჩართვა</string>
     <string name="set_link_text">ტექსტი</string>
     <string name="set_link_link">ბმული</string>
     <string name="set_link_create">ბმულის შექმნა</string>
@@ -2580,7 +2408,6 @@
     <string name="settings_security_pin_code_notifications_summary_off">აჩვენეთ მხოლოდ წაუკითხავი შეტყობინებების რაოდენობა მარტივ შეტყობინებაში.</string>
     <string name="settings_security_pin_code_grace_period_summary_on">PIN კოდი საჭიროა ${app_name}-ის 2 წუთის მანძილზე გამოუყენებლობის შემდეგ.</string>
     <string name="settings_security_pin_code_grace_period_summary_off">PIN კოდი საჭიროა ყოველ ჯერზე, როცა გახსნით ${app_name}-ს.</string>
-    <string name="cannot_dm_self">ვერ გაუგზავნით საკუთარ თავს პირად შეტყობინებას!</string>
     <string name="warning_room_not_created_yet">ოთახი ჯერ არ შექმნილა. გსურთ ოთახის შექმნის გაუქმება\?</string>
     <string name="call_tile_you_declined_this_call">თქვენ უარი თქვით ამ ზარზე</string>
     <string name="re_authentication_activity_title">ხელახლა ავტორიზაცია საჭიროა</string>
@@ -2599,15 +2426,8 @@
     <string name="dev_tools_success_state_event">მდგომარეობის მოვლენა გაგზავნილია!</string>
     <string name="command_description_add_to_space">დაამატეთ მოცემულ სივრცეს</string>
     <string name="command_description_leave_room">ოთახიდან გასვლა მოცემული ID-ით (ან მიმდინარე ოთახიდან თუ null-ია)</string>
-    <string name="event_status_cancel_sending_dialog_message">გსურთ გაგზავნის შეტყობინების გაუქმება\?</string>
     <string name="event_status_delete_all_failed_dialog_title">არაგაგზავნილი შეტყობინებების წაშლა</string>
     <string name="event_status_delete_all_failed_dialog_message">დარწმუნებული ხართ, რომ გსურთ წაშალოთ ყველა არაგაგზავნილი შეტყობინება ამ ოთახში\?</string>
-    <string name="create_spaces_you_can_change_later">ეს შეგიძლიათ შემდეგში შეცვალოთ</string>
-    <string name="create_spaces_join_info_help">არსებული სივრცეში გაწევრიანებისთვის გჭირდებათ მოწვევა.</string>
-    <string name="create_spaces_make_sure_access">დარწმუნდით, რომ შესაბამის ადამიანებს აქვთ წვდომა %s-თან.</string>
-    <string name="space_type_public_desc">ღია ყველასთვის, საუკეთესოა საზოგადოებებისთვის</string>
-    <string name="space_type_private_desc">მხოლოდ მოწვევით, საუკეთესოა თქვენთვის ან გუნდებისთვის</string>
-    <string name="create_spaces_details_public_header">დაამატეთ დეტალები, რომ გამოარჩიოთ. ეს შეგიძლიათ ნებისმიერ დროს შეცვალოთ.</string>
     <string name="create_space_error_empty_field_space_name">მიანიჭეთ სახელი გასაგრძელებლად.</string>
     <string name="create_spaces_room_public_header_desc">ჩვენ შევქმნით ოთახებს მათთვის. შეგიძლიათ მოგვიანებით დაამატოთ კიდევ.</string>
     <string name="create_spaces_invite_public_header_desc">დარწმუნდით, რომ შესაბამის ადამიანებს აქვთ წვდომა %s კომპანიასთან. შეგიძლიათ მოგვიანებით მეტი მოწვევა გააკეთოთ.</string>
@@ -2624,7 +2444,6 @@
     <string name="space_leave_prompt_msg_private">ვერ შეუერთდებით ხელახლა, თუ არ იქნებით ხელახლა მოწვეული.</string>
     <string name="space_leave_prompt_msg_as_admin">თქვენ ხართ ერთადერთი ადმინი ამ სივრცის. მისი დატოვება ნიშნავს, რომ მასზე კონტროლი არავის ექნება.</string>
     <string name="space_explore_filter_no_result_description">ზოგიერთი შედეგი შეიძლება დამალული იყოს, რადგან ისინი პირადულია და გჭირდებათ მოწვევა მათთვის.</string>
-    <string name="labs_auto_report_uisi_desc">თქვენი სისტემა ავტომატურად გაგზავნის ლოგებს, როცა ვერ მოხერხდება დეკრიფცია</string>
     <string name="settings_show_latest_profile_description">აჩვენეთ ბოლო პროფილის ინფორმაცია (ავატარი და სახელი) ყველა შეტყობინებისთვის.</string>
     <string name="space_settings_manage_rooms">ოთახების მართვა</string>
     <string name="space_mark_as_suggested">მონიშნეთ როგორც რეკომენდებული</string>
@@ -2644,20 +2463,9 @@
     <string name="a11y_delete_recorded_voice_message">ჩანაწერის წაშლა</string>
     <string name="voice_message_tap_to_stop_toast">დააჭირეთ თქვენს ჩაწერას შეჩერებისთვის ან მოსასმენად</string>
     <string name="error_voice_message_cannot_reply_or_edit">ვერ გიპასუხებთ ან შევასწორებ, სანამ ხმოვანი შეტყობინება აქტიურია</string>
-    <string name="error_voice_message_broadcast_in_progress_message">თქვენ არ შეგიძლიათ ხმოვანი შეტყობინების დაწყება, რადგან ამჟამად ატარებთ პირდაპირ გადაცემას. გთხოვთ, დასრულოთ თქვენი პირდაპირი გადაცემა, რათა დაიწყოთ ხმოვანი შეტყობინების ჩაწერა</string>
     <string name="a11y_audio_playback_duration" tools:ignore="PluralsCandidate">%1$d წუთი %2$d წამი</string>
-    <string name="voice_broadcast_live_broadcast">პირდაპირი გადაცემა</string>
-    <string name="a11y_pause_voice_broadcast_record">ხმოვანი გადაცემის ჩანაწერის პაუზა</string>
-    <string name="a11y_play_voice_broadcast">დაკვრა ან გადაცემის აღდგენა</string>
-    <string name="error_voice_broadcast_unauthorized_title">ვერ ვიწყებ ახალ ხმოვან გადაცემას</string>
-    <string name="error_voice_broadcast_permission_denied_message">თქვენ არ გაქვთ საჭირო უფლებები ამ ოთახში ხმოვანი გადაცემის დასაწყებად. დაუკავშირდით ოთახის ადმინისტრატორს, რათა განაახლოთ თქვენი უფლებები.</string>
-    <string name="error_voice_broadcast_blocked_by_someone_else_message">ვიღაც სხვა უკვე ატარებს ხმოვან გადაცემას. დაელოდეთ მათი ხმოვანი გადაცემის დასრულებას, რათა დაიწყოთ ახალი.</string>
-    <string name="voice_broadcast_recording_time_left">%1$s დარჩა</string>
-    <string name="stop_voice_broadcast_content">დარწმუნებული ხართ, რომ გსურთ თქვენი პირდაპირი გადაცემის შეჩერება\? ეს დაასრულებს გადაცემას და სრული ჩანაწერი ხელმისაწვდომი იქნება ოთახში.</string>
     <string name="upgrade_room_for_restricted">ნებისმიერ %s-ში მყოფ ადამიანს შეეძლება ამ ოთახის პოვნა და შეუერთდეს მას - ყველას ხელით მიწვევის საჭიროება არ არის. ამის შეცვლა ოთახის პარამეტრებში ნებისმიერ დროს შეგიძლიათ.</string>
     <string name="upgrade_room_for_restricted_no_param">მშობელი სივრცის ნებისმიერ წევრს შეეძლება ამ ოთახის პოვნა და შეუერთება – ყველას ხელით მოწვევა საჭირო არ არის. ამის შეცვლა ნებისმიერ დროს შეგიძლიათ ოთახის პარამეტრებში.</string>
-    <string name="labs_enable_msc3061_share_history">MSC3061: ოთახის გასაღებების გაზიარება წარსული შეტყობინებებისთვის</string>
-    <string name="labs_enable_msc3061_share_history_desc">როცა იწვევთ დაშიფრულ ოთახში, რომელიც იზიარებს ისტორიას, დაშიფრული ისტორია ხილული იქნება.</string>
     <plurals name="create_poll_not_enough_options_error">
         <item quantity="one">მინიმუმ %1$s ვარიანტი საჭიროა</item>
         <item quantity="other">მინიმუმ %1$s ვარიანტია საჭირო</item>
@@ -2702,7 +2510,6 @@
     <string name="live_location_not_enough_permission_dialog_description">თქვენ უნდა გქონდეთ შესაბამისი ნებართვები, რათა გააზიაროთ ცოცხალი ადგილმდებარეობა ამ ოთახში.</string>
     <string name="tooltip_attachment_gallery">გამოსახულებებისა და ვიდეოების გაგზავნა</string>
     <string name="tooltip_attachment_location">ადგილმდებარეობის გაზიარება</string>
-    <string name="attachment_type_selector_voice_broadcast">ხმოვანი გადაცემა</string>
     <string name="attachment_type_selector_text_formatting">ტექსტის ფორმატირება</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d მეტი</item>
@@ -2716,7 +2523,6 @@
     </plurals>
     <string name="settings_troubleshoot_test_current_endpoint_title">ბოლო წერტილი</string>
     <string name="live_location_labs_promotion_description">გთხოვთ გაითვალისწინოთ: ეს არის ლაბორატორიული ფუნქცია, რომელიც იყენებს დროებით განხორციელებას. ეს ნიშნავს, რომ თქვენ ვერ შეძლებთ თქვენი ადგილმდებარეობის ისტორიის წაშლას და მოწინავე მომხმარებლები შეძლებენ თქვენი ადგილმდებარეობის ისტორიის ნახვას, თუნდაც ცოცხალი ადგილმდებარეობის გაზიარების შეჩერების შემდეგ.</string>
-    <string name="labs_enable_element_call_permission_shortcuts_summary">Element Call ვიჯეტების ავტომატური დამტკიცება და კამერის/მიკროფონის დაშვება</string>
     <string name="device_manager_sessions_other_description">უმჯობესია, გააუმჯობესოთ თქვენი უსაფრთხოება და გავიდეთ სესიებიდან, რომლებიც თქვენთვის არ არის ცნობილი ან აღარ იყენებთ.</string>
     <string name="device_manager_verification_status_detail_current_session_unverified">გადამოწმეთ თქვენი მიმდინარე სესია, რათა გააუმჯობესოთ უსაფრთხო შეტყობინებები.</string>
     <string name="device_manager_verification_status_detail_other_session_unknown">გადამოწმეთ თქვენი მიმდინარე სესია, რათა გამოავლინოთ ამ სესიის გადამოწმების სტატუსი.</string>
@@ -2759,9 +2565,6 @@
 \n
 \nეს აძლევს მათ რწმენას, რომ ნამდვილად თქვენ ესაუბრებიან, მაგრამ ასევე ნიშნავს, რომ მათ შეუძლიათ ნახონ სესიის სახელი, რომელიც აქ შეიყვანეთ.</string>
     <string name="home_empty_space_no_rooms_message">სივრცეები არის ახალი გზა ოთახებისა და ადამიანების დასაკავშირებლად. დაამატეთ არსებული ოთახი, ან შექმენით ახალი, ქვედა მარჯვენა ღილაკის გამოყენებით.</string>
-    <string name="onboarding_new_app_layout_welcome_title">კეთილი იყოს თქვენი მობრძანება ახალ ხედვაში!</string>
-    <string name="onboarding_new_app_layout_welcome_message">იმისათვის, რომ ${app_name} გამარტივდეს, ახლა ჩანართები არ არის სავალდებულო. მართეთ ისინი მარჯვენა ზედა მენიუს გამოყენებით.</string>
-    <string name="onboarding_new_app_layout_feedback_message">დააჭირეთ მარჯვენა ზედა კუთხეს, რათა ნახოთ უკუკავშირის ვარიანტი.</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_header_scan_qr_code_title">QR კოდის დასკანერება</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_header_scan_qr_code_description">ამ მოწყობილობის კამერის გამოყენება შეგიძლიათ სხვა მოწყობილობაზე ნაჩვენები QR კოდის დასაკონტროლებლად:</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_header_show_qr_code_link_a_device_description">QR კოდი ქვემოთ დაასკანერეთ თქვენი მოწყობილობით, რომელიც გამოსულია.</string>
@@ -2774,9 +2577,6 @@
     <string tools:ignore="UnusedResources" name="qr_code_login_signing_in_a_mobile_device">შედიხართ მობილურ მოწყობილობაში\?</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_confirm_security_code">დადასტურება</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_confirm_security_code_description">გთხოვთ, დარწმუნდეთ, რომ იცით ამ კოდის წარმომავლობა. მოწყობილობების დაკავშირებით, თქვენ ვიღაცას სრულ წვდომას მიანიჭებთ თქვენს ანგარიშზე.</string>
-    <string name="rich_text_editor_format_underline">გამოიყენეთ ხაზგასმული ფორმატი</string>
-    <string name="rich_text_editor_bullet_list">ნიშნის სიის ჩართვა</string>
-    <string name="rich_text_editor_inline_code">შიდა კოდის ფორმატის გამოყენება</string>
     <string name="set_link_edit">ბმულის რედაქტირება</string>
     <string name="message_reply_to_sender_sent_audio_file">გაგზავნა აუდიო ფაილი.</string>
     <string name="message_reply_to_sender_sent_sticker">გაგზავნა სტიკერი.</string>

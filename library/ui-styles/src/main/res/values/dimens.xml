@@ -27,7 +27,6 @@
 
     <dimen name="call_pip_height">128dp</dimen>
     <dimen name="call_pip_width">88dp</dimen>
-    <dimen name="call_pip_radius">8dp</dimen>
 
     <dimen name="item_form_min_height">76dp</dimen>
 
@@ -53,9 +52,6 @@
     <dimen name="composer_classic_button_margin">4dp</dimen>
     <dimen name="composer_classic_plus_padding">7dp</dimen>
     <dimen name="composer_attachment_margin">1dp</dimen>
-    <dimen name="rich_text_composer_corner_radius_single_line">28dp</dimen>
-    <dimen name="rich_text_composer_corner_radius_expanded">14dp</dimen>
-    <dimen name="rich_text_composer_menu_item_size">44dp</dimen>
 
     <dimen name="chat_bubble_margin_start">28dp</dimen>
     <dimen name="chat_bubble_margin_end">6dp</dimen>
@@ -81,8 +77,6 @@
     <dimen name="location_sharing_live_duration_choice_margin_vertical">22dp</dimen>
 
     <!-- Voice Broadcast -->
-    <dimen name="voice_broadcast_recorder_button_size">48dp</dimen>
-    <dimen name="voice_broadcast_player_button_size">36dp</dimen>
 
     <!-- Audio preview / editor. The land variants keep art + waveform + timeline inside a
          landscape screen's height, which the portrait sizes overflow. -->

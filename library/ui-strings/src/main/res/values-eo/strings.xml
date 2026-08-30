@@ -185,13 +185,11 @@
     <string name="action_quote">Citi</string>
     <string name="action_download">Elŝuti</string>
     <string name="action_share">Kunhavigi</string>
-    <string name="later">Poste</string>
     <string name="permalink">Fiksligilo</string>
     <string name="view_source">Vidi fonton</string>
     <string name="view_decrypted_source">Vidi malĉifritan fonton</string>
     <string name="action_delete">Forigi</string>
     <string name="action_rename">Alinomi</string>
-    <string name="report_content">Raporti Enhavon</string>
     <string name="or">aŭ</string>
     <string name="action_invite">Inviti</string>
     <string name="action_quick_reply">Rapida respondo</string>
@@ -235,12 +233,6 @@
     <string name="direct_chats_header">Interparoloj</string>
     <string name="no_result_placeholder">Neniuj rezultoj</string>
     <string name="rooms_header">Ĉambroj</string>
-    <string name="send_bug_report_include_logs">Sendi protokolon</string>
-    <string name="send_bug_report_include_crash_logs">Sendi protokolon pri fiasko</string>
-    <string name="send_bug_report_include_screenshot">Sendi ekrankopion</string>
-    <string name="send_bug_report_description">Bonvolu priskribi la eraron. Kion vi faris\? Kion vi atendis\? Kio tamen vere okazis\?</string>
-    <string name="send_bug_report_description_in_english">Se tio eblas, bonvolu priskribi per la angla lingvo.</string>
-    <string name="send_bug_report_placeholder">Priskribu vian problemon ĉi tie</string>
     <string name="join_room">Aliĝi al ĉambro</string>
     <string name="username">Uzantonomo</string>
     <string name="logout">Elsaluti</string>
@@ -320,8 +312,6 @@
     <string name="notification_silent">Silente</string>
     <string name="notification_noisy">Laŭte</string>
     <string name="encrypted_message">Ĉifrita mesaĝo</string>
-    <string name="create">Krei</string>
-    <string name="group_details_home">Hejmo</string>
     <string name="invited">Invititaj</string>
     <string name="login_signup">Registriĝi</string>
     <string name="login_signin">Saluti</string>
@@ -347,7 +337,6 @@
 \n
 \nĈu vi certe volas daŭrigi\?</string>
     <string name="create_room_dm_failure">Ni ne povis krei vian individuan ĉambron. Bonvolu kontroli la invitotajn uzantojn kaj reprovi.</string>
-    <string name="send_bug_report_logs_description">Por diagnozi problemojn, protokolo de ĉi tiu kliento sendiĝos kune kun ĉi tiu erar-raporto. Ĉi tiu erar-raporto, inkluzive la protokolon kaj la ekrankopion, ne estos publike videbla. Se vi preferus sendi nur la ĉi-supran tekston, bonvolu malmarki:</string>
     <string name="login_error_invalid_home_server">Bonvolu enigi validan URL-on</string>
     <string name="login_error_no_homeserver_found">Ĉi tio ne estas valida adreso de servilo de Matrix</string>
     <string name="login_error_homeserver_not_found">Ne povas atingi hejmservilon je ĉi tiu URL, bonvolu kontroli ĝin</string>
@@ -357,10 +346,6 @@
     <string name="e2e_re_request_encryption_key">Repeti ĉifrajn ŝlosilojn de aliaj viaj salutaĵoj.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Bonvolu ruli ${app_name} sur alia aparato kiu scipovas malĉifri la mesaĝon, por ke ĝi povu sendi la ŝlosilojn al ĉi tiu salutaĵo.</string>
     <string name="permissions_rationale_popup_title">Informoj</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} bezonas permeson aliri vian mikrofonon por fari voĉvokojn.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} bezonas premeson aliri viajn filmilon kaj mikrofonon por fari vidvokojn.
-\n 
-\nBonvolu permesi aliron per la sekva ŝprucpeto, por ebligi la vokon.</string>
     <string name="yes">JES</string>
     <string name="no">NE</string>
     <string name="_continue">Daŭrigi</string>
@@ -400,9 +385,6 @@
     <string name="settings_troubleshoot_test_account_settings_success">Sciigoj estas ŝaltitaj por via konto.</string>
     <string name="action_play">Ludi</string>
     <string name="action_dismiss">Eksigi</string>
-    <string name="video_meeting">Komenci grupan vidvokon</string>
-    <string name="audio_meeting">Komenci grupan voĉvokon</string>
-    <string name="audio_video_meeting_description">Grupaj vokoj uzas la politikon de Jitsi pri permesoj kaj sekureco. Ĉiuj personoj en la ĉambro vidos aliĝilon dum la voko daŭros.</string>
     <string name="command_description_rainbow">Sendas la donitan mesaĝon en ĉielarkaj koloroj</string>
     <string name="verify_cannot_cross_sign">Tiu ĉi salutaĵo ne povas konigi ĉi tiun kontrolon al aliaj viaj salutaĵoj.
 \nLa kontrolo konserviĝos loke kaj estos konigota de venonta versio de la aplikaĵo.</string>
@@ -487,7 +469,6 @@
     <string name="settings_developer_mode">Programista reĝimo</string>
     <string name="settings_advanced_settings">Altnivelaj agordoj</string>
     <string name="notification_initial_sync">Komenca spegulado…</string>
-    <string name="bug_report_error_too_short">La priskribo estas tro mallonga</string>
     <string name="permalink_malformed">Via ligilo al matrix.to estis misformita</string>
     <string name="soft_logout_sso_not_same_user_error">Ĉi tiu salutaĵo estas por uzanto %1$s kaj vi donas salutilojn por uzanto %2$s. ${app_name} ne subtenas tion.
 \nBonvolu unue vakigi datumojn, kaj poste saluti alian konton.</string>
@@ -529,8 +510,6 @@
     <string name="login_terms_title">Akceptu la uzokondiĉojn por pluiĝi</string>
     <string name="login_a11y_captcha_container">Bonvolu fari la teston de homeco</string>
     <string name="login_a11y_choose_other">Elekti propran hejmservilon</string>
-    <string name="login_a11y_choose_modular">Elekti Element Matrix Services</string>
-    <string name="login_a11y_choose_matrix_org">Elekti matrix.org</string>
     <string name="login_signup_cancel_confirmation_content">Via konto ankoraŭ ne estas kreita. Ĉu haltigi la registriĝon\?</string>
     <string name="login_signup_cancel_confirmation_title">Averto</string>
     <string name="login_signup_error_user_in_use">Tiu uzantonomo jam estas prenita</string>
@@ -621,25 +600,6 @@
     <string name="room_list_quick_actions_notifications_all">Ĉiuj mesaĝoj</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Ĉiuj mesaĝoj (laŭte)</string>
     <string name="message_ignore_user">Malatenti uzanton</string>
-    <string name="content_reported_as_inappropriate_content">Ĉi tiu enhavo estis raportita kiel maltaŭga.
-\n
-\nSe vi ne plu volas vidi enhavon de ĉi tiu uzanto, vi povas malatenti ĝin por kaŝi ĝiajn mesaĝojn.</string>
-    <string name="content_reported_as_inappropriate_title">Raportita kiel maltaŭga</string>
-    <string name="content_reported_as_spam_content">Ĉi tiu enhavo estis raportita kiel rubmesaĝo.
-\n
-\nSe vi ne plu volas vidi enhavon de ĉi tiu uzanto, vi povas malatenti ĝin por kaŝi ĝiajn mesaĝojn.</string>
-    <string name="content_reported_as_spam_title">Raportita kiel rubmesaĝo</string>
-    <string name="content_reported_content">Ĉi tiu enhavo raportiĝis.
-\n
-\nSe vi ne plu volas vidi enhavon de tiu ĉi uzanto, vi povas ĝin malatenti por kaŝi ĝiajn mesaĝojn.</string>
-    <string name="content_reported_title">Enhavo raportiĝis</string>
-    <string name="block_user">MALATENTI UZANTON</string>
-    <string name="report_content_custom_submit">RAPORTO</string>
-    <string name="report_content_custom_hint">Kialo por raporto de ĉi tiu enhavo</string>
-    <string name="report_content_custom_title">Raporti tiun ĉi enhavon</string>
-    <string name="report_content_custom">Propra raporto…</string>
-    <string name="report_content_inappropriate">Estas maltaŭge</string>
-    <string name="report_content_spam">Estas rubmesaĝo</string>
     <string name="uploads_files_no_result">Ĉi tiu ĉambro ne havas dosierojn</string>
     <string name="uploads_files_subtitle">%1$s je %2$s</string>
     <string name="uploads_files_title">DOSIEROJ</string>
@@ -648,7 +608,6 @@
     <string name="attachment_type_sticker">Glumarko</string>
     <string name="attachment_type_gallery">Bildaro</string>
     <string name="attachment_type_camera">Filmilo</string>
-    <string name="attachment_type_contact">Kontakto</string>
     <string name="attachment_type_file">Dosiero</string>
     <plurals name="fallback_users_read">
         <item quantity="one">%d uzanto legis</item>
@@ -665,7 +624,6 @@
     <string name="a11y_close_keys_backup_banner">Fermi rubandon pri savkopiado de ŝlosiloj</string>
     <string name="a11y_create_room">Krei novan ĉambron</string>
     <string name="a11y_create_direct_message">Krei novan individuan ĉambron</string>
-    <string name="send_attachment">Kunsendi</string>
     <string name="error_network_timeout">Ŝajnas, ke la servilo longe ne respondas. Tion povus kaŭzi malbona retkonekto aŭ eraro ĉe la servilo. Bonvolu reprovi iom poste.</string>
     <string name="error_terms_not_accepted">Bonvolu reprovi leginte la uzokondiĉojn de via hejmservilo.</string>
     <string name="labs_allow_extended_logging_summary">Babilema protokolo helpas al programistoj per plia amplekso kiam vi sendas raporton. Eĉ kun tio ŝaltita, la aplikaĵo ne protokolas enhavon de mesaĝoj nek aliajn privatajn datumojn.</string>
@@ -716,9 +674,6 @@
     <string name="bottom_action_people_x">Individuaj ĉambroj</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Montri plenan historion en ĉifritaj ĉambroj</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Montri kaŝitajn okazojn en historio</string>
-    <string name="send_suggestion_failed">Malsukcesis sendi la proponon (%s)</string>
-    <string name="send_suggestion_report_placeholder">Priskribu vian proponon ĉi tie</string>
-    <string name="send_suggestion_content">Bonvolu skribi vian proponon sube.</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Registri ĵetonon</string>
     <string name="preference_root_help_about">Helpo ⳤ prio</string>
     <string name="preference_voice_and_video">Voĉo ⳤ vido</string>
@@ -1135,8 +1090,6 @@
     </plurals>
     <string name="settings_messages_in_group_chat">Mesaĝoj en grupaj babiloj</string>
     <string name="settings_messages_in_one_to_one">Mesaĝoj en duopaj babiloj</string>
-    <string name="settings_containing_my_user_name">Mesaĝoj kun mia nomo de uzanto</string>
-    <string name="settings_containing_my_display_name">Mesaĝoj kun mia prezenta nomo</string>
     <string name="settings_system_preferences_summary">Elekti koloron de LED, vibradon, sonon…</string>
     <string name="settings_silent_notifications_preferences">Agordi silentajn sciigojn</string>
     <string name="settings_call_notifications_preferences">Agordi sciigojn pri vokoj</string>
@@ -1167,8 +1120,6 @@
     <string name="resource_limit_contact_admin">kontakti administranton de via servo</string>
     <string name="room_tombstone_predecessor_link">Klaku ĉi tien por vidi pli malnovajn mesaĝojn</string>
     <string name="room_tombstone_continuation_description">Ĉi tiu ĉambro estas la daŭrigo de alia interparolo</string>
-    <string name="room_tombstone_continuation_link">La interparolo daŭras ĉi tie</string>
-    <string name="room_tombstone_versioned_description">Ĉi tiu ĉambro estis anstataŭigita kaj ne plu aktivas.</string>
     <string name="error_empty_field_your_password">Bonvolu enigi vian pasvorton.</string>
     <string name="error_empty_field_enter_user_name">Bonvolu enigi uzantonomon.</string>
     <string name="deactivate_account_submit">Malaktivigi konton</string>
@@ -1267,17 +1218,12 @@
     <string name="login_error_ssl_peer_unverified">Eraro de SSL: la identeco de la samtavolano ne estas kontrolita.</string>
     <string name="auth_msisdn_already_defined">Ĉi tiu telefonnumero jam estas difinita.</string>
     <string name="auth_submit">Sendi</string>
-    <string name="sound_device_wireless_headset">Sendrata kapaŭskultilo</string>
-    <string name="sound_device_headset">Kapaŭskultilo</string>
-    <string name="sound_device_speaker">Laŭtparolilo</string>
-    <string name="sound_device_phone">Telefono</string>
     <string name="matrix_only_filter">Nur kontaktoj de Matrix</string>
     <string name="bottom_action_notification">Sciigoj</string>
     <string name="dialog_title_success">Sukceso</string>
     <string name="action_copy">Kopii</string>
     <string name="call_notification_hangup">Fini vokon</string>
     <string name="failed_to_remove_widget">Malsukcesis forigi fenestraĵon</string>
-    <string name="failed_to_add_widget">Malsukcesis aldoni fenestraĵon</string>
     <string name="action_reset">Restarigi</string>
     <string name="initialize_cross_signing">Pretigi delegajn subskribojn</string>
     <string name="login_server_url_form_modular_notice">Enigu la adreson de tiu servilo aŭ «Modular Element», kiun vi volas uzi</string>
@@ -1357,11 +1303,6 @@
     <string name="bottom_sheet_setup_secure_backup_submit">Agordi</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">Protektas kontraŭ perdo de aliro al ĉifritaj mesaĝoj ⳤ datumoj per savkopiado de ĉifraj ŝlosiloj al via servilo.</string>
     <string name="bottom_sheet_setup_secure_backup_title">Sekura savkopiado</string>
-    <string name="a11y_start_camera">Ekigi la filmilon</string>
-    <string name="a11y_stop_camera">Haltigi la filmilon</string>
-    <string name="a11y_unmute_microphone">Malsilentigi la mikrofonon</string>
-    <string name="a11y_mute_microphone">Silentigi la mikrofonon</string>
-    <string name="a11y_open_chat">Malfermi interparolon</string>
     <string name="power_level_title">Rolo</string>
     <string name="power_level_edit_title">Agordi rolon</string>
     <string name="identity_server_set_alternative_submit">Sendi</string>
@@ -1466,14 +1407,11 @@
     <string name="refresh">Aktualigi</string>
     <string name="e2e_use_keybackup">Malŝlosi historion de ĉifritaj mesĝoj</string>
     <string name="settings_key_requests">Ŝlosilpetoj</string>
-    <string name="login_default_session_public_name">${app_name} por Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Ŝlosiloj jam estas ĝisdataj!</string>
-    <string name="delete_event_dialog_reason_checkbox">Kialigi</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Sendi bildon je la originala grando</item>
         <item quantity="other">Sendi bildojn je la originala grando</item>
     </plurals>
-    <string name="share_confirm_room">Ĉu vi volas ĉi tion kunsendi al %1$s\?</string>
     <string name="enter_secret_storage_invalid">Ne povas trovi sekretojn en deponejo</string>
     <string name="verification_use_passphrase">Se vi ne povas aliri jaman salutaĵon</string>
     <string name="verification_cannot_access_other_session">Uzi rehavan pasfrazon aŭ ŝlosilon</string>
@@ -1541,7 +1479,6 @@
     <string name="settings_when_rooms_are_upgraded">Gradaltigoj de ĉambroj</string>
     <string name="settings_messages_in_e2e_group_chat">Ĉifritaj mesaĝoj en grupaj interparoloj</string>
     <string name="settings_messages_in_e2e_one_to_one">Ĉifritaj mesaĝoj en duopaj interparoloj</string>
-    <string name="settings_messages_at_room">Mesaĝoj kun @room</string>
     <string name="settings_notification_configuration">Agordoj de sciigoj</string>
     <string name="error_failed_to_import_keys">Malsukcesis enporti ŝlosilojn</string>
     <string name="qr_code_scanned_verif_waiting">Atendante je %s…</string>
@@ -1592,13 +1529,9 @@
     <string name="room_settings_permissions_subtitle">Montri kaj ĝisdatigi la rolojn bezonatajn por ŝanĝi diversajn partojn de la ĉambro.</string>
     <string name="room_participants_leave_private_warning">Ĉi tiu ĉambro ne estas publika. Vi ne povos re-aliĝi sen invito.</string>
     <string name="permissions_denied_add_contact">Permesi aliron al viaj kontaktoj.</string>
-    <string name="permissions_denied_qr_code">Por skani rapidrespondan kodon, vi bezonas permesi aliron al filmilo.</string>
-    <string name="send_bug_report_include_key_share_history">Sendi historion de petoj havigi ŝlosilojn</string>
     <string name="no_more_results">Neniu pliaj rezultoj</string>
     <string name="action_unpublish">Malpublikigi</string>
     <string name="action_add">Aldoni</string>
-    <string name="start_chatting">Ekbabili</string>
-    <string name="system_theme">Defaŭlta de sistemo</string>
     <string name="room_settings_room_version_title">Versio de ĉambro</string>
     <string name="room_alias_publish_to_directory_error">Ne povis akiri la nunan videblecon en la katalogo de ĉambroj (%1$s).</string>
     <string name="room_alias_publish_to_directory">Ĉu publikigi ĉi tiun ĉambron per la katalogo de ĉambroj de %1$s\?</string>
@@ -1683,8 +1616,6 @@
     <string name="warning_unsaved_change_discard">Forĵeti ŝanĝojn</string>
     <string name="warning_unsaved_change">Ekzistas nekonservitaj ŝanĝoj. Ĉu ili forĵetiĝu\?</string>
     <string name="qr_code_not_scanned">Rapidresponda kodo ne estas skanita!</string>
-    <string name="invalid_qr_code_uri">Nevalida rapidresponda kodo (nevalida URI)!</string>
-    <string name="cannot_dm_self">Ne eblas kun vi mem!</string>
     <string name="share_by_text">Havigi per telefona mesaĝo</string>
     <string name="settings_security_pin_code_change_pin_summary">Ŝanĝi vian nunan personan identigan numeron</string>
     <string name="settings_security_pin_code_change_pin_title">Ŝanĝi personan identigan numeron</string>
@@ -1695,27 +1626,18 @@
     <string name="phone_book_perform_lookup">Serĉi kontaktojn en Matrix</string>
     <string name="room_settings_set_avatar">Agordi profilbildon</string>
     <string name="identity_server_user_consent_not_provided">Konsento de la uzanto ne estas donita.</string>
-    <string name="user_code_info_text">Havigu ĉi tiun kodon al aliuloj, por ke ili povu ekbabili kun vi, skaninte ĝin.</string>
     <string name="user_code_my_code">Mia kodo</string>
-    <string name="user_code_share">Havigi mian kodon</string>
-    <string name="user_code_scan">Skani rapidrespondan kodon (QR)</string>
-    <string name="not_a_valid_qr_code">Tio ne estas valida rapidresponda kodo (QR) de Matrix</string>
     <string name="invite_friends_rich_title">🔐️ Aliĝu al mi per ${app_name}</string>
     <string name="invite_friends_text">Saluton, parolu kun mi per ${app_name}: %s</string>
     <string name="invite_friends">Inviti amikojn</string>
     <string name="add_people">Aldoni personojn</string>
     <string name="failed_to_initialize_cross_signing">Malsukcesis agordi delegajn subskribojn</string>
-    <string name="default_message_emote_snow">sendas neĝadon ❄️</string>
-    <string name="default_message_emote_confetti">sendas konfetojn 🎉</string>
-    <string name="command_snow">Sendas la donitan mesaĝon kun neĝado</string>
-    <string name="command_confetti">Sendas la donitan mesaĝon kun konfetoj</string>
     <string name="topic_prefix">"Temo: "</string>
     <string name="add_a_topic_link_text">Aldonu temon</string>
     <string name="room_created_summary_no_topic_creation_text">%s por sciigi, pri kio temas la ĉambro.</string>
     <string name="this_is_the_beginning_of_dm">Ĉi tio estas la komenco de via individua ĉambro kun %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Ĉi tio estas la komenco de interparolado.</string>
     <string name="this_is_the_beginning_of_room">Ĉi tio estas la komenco de %s.</string>
-    <string name="send_images_and_video_with_original_size">Sendi vidaŭdaĵojn en originala grandeco</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">Sendi filmon en originala grandeco</item>
         <item quantity="other">Sendi filmojn en originala grandeco</item>
@@ -1745,10 +1667,6 @@
     <string name="attachment_viewer_item_x_of_y">%1$d el %2$d</string>
     <string name="error_handling_incoming_share">Ne povis trakti havigitajn datumojn</string>
     <string name="error_file_too_big_simple">Ĉi tiu dosiero estas tro granda por alŝuto.</string>
-    <string name="you_may_contact_me">Vi povas kontakti min okaze de pliaj demandoj</string>
-    <string name="send_feedback_space_info">Vi uzas provan version de spacoj. Viaj prikomentoj helpos formi la sekvajn versiojn. Via platformo kaj uzantonomo notiĝos, por ke ni povus uzi viajn prikomentojn kiel eble plej bone.</string>
-    <string name="feedback">Prikomentoj</string>
-    <string name="send_feedback_space_title">Prikomentoj pri spacoj</string>
     <string name="room_preview_no_preview_join">Oni ne povas antaŭrigardi ĉi tiun ĉambron. Ĉu vi volas eniri\?</string>
     <string name="room_preview_not_found">Ĉi tiu ĉambro nun ne estas disponebla.
 \nReprovu poste, aŭ petu administranton de ĉambro kontroli, ĉu vi rajtas aliri.</string>
@@ -1764,7 +1682,6 @@
     <string name="send_file_step_compressing_video">Densigante filmon %d%%</string>
     <string name="send_file_step_compressing_image">Densigante bildon…</string>
     <string name="give_feedback">Prikomenti</string>
-    <string name="feedback_failed">Malsukcesis sendi la prikomentojn (%s)</string>
     <string name="room_settings_room_access_restricted_description">Ĉiu ajn en spaco kun ĉi tiu ĉambro povas ĝin trovi kaj aliĝi. Nur administrantoj de ĉi tiu ĉambro povas ĝin spacigi.</string>
     <string name="room_settings_room_access_restricted_title">Nur spacanoj</string>
     <string name="room_settings_room_access_public_description">Ĉiu ajn povas trovi kaj aliĝi la ĉambron</string>
@@ -1791,18 +1708,13 @@
     <string name="room_settings_room_read_history_dialog_subtitle">Ŝanĝoj al legebleco de historio aplikiĝos nur al mesaĝoj venontaj al la ĉambro. Videbleco de jama historio restos senŝanĝa.</string>
     <string name="settings_show_emoji_keyboard_summary">Aldoni butonon por malfermi bildosignan klavaron al la redaktilo de mesaĝoj</string>
     <string name="settings_show_emoji_keyboard">Montri bildosignan klavaron</string>
-    <string name="settings_chat_effects_description">Uzu la ordonon «/confetti» aŭ sendu mesaĝon enhavantan la signojn ❄️ aŭ 🎉</string>
-    <string name="settings_chat_effects_title">Montri efektojn en babilujo</string>
     <string name="room_permissions_notice_read_only">Vi ne rajtas ĝisdatigi la rolojn bezonatajn por ŝanĝi diversajn partojn de la ĉambro</string>
     <string name="use_as_default_and_do_not_ask_again">Uzi implicite kaj ne plu demandi</string>
     <string name="option_always_ask">Ĉiam demandi</string>
     <string name="spaces_header">Spacoj</string>
     <string name="suggested_header">Rekomendataj ĉambroj</string>
-    <string name="action_switch">Baskuli</string>
-    <string name="event_status_sent_message">Mesaĝo sendiĝis</string>
     <string name="a11y_import_key_from_file">Enporti ŝlosilon el dosiero</string>
     <string name="a11y_open_widget">Malfermi fenestraĵojn</string>
-    <string name="a11y_screenshot">Ekrankopio</string>
     <string name="authentication_error">Malsukcesis aŭtentikigi</string>
     <string name="re_authentication_default_confirm_text">${app_name} postulas enigon de viaj salutiloj por tiu ĉi ago.</string>
     <string name="this_space_has_no_rooms_admin">Iuj ĉambroj povas esti kaŝitaj ĉar ili estas privataj kaj vi bezonas inviton.</string>
@@ -1859,28 +1771,12 @@
     <string name="create_spaces_room_public_header">Kiajn diskutojn vi volus havi en %s\?</string>
     <string name="create_space_error_empty_field_space_name">Donu al ĝi nomon kaj pluiĝu.</string>
     <string name="create_spaces_details_private_header">Aldonu kelkajn detalojn por helpi identigi la aron. Vi povos ilin ŝanĝi iam ajn.</string>
-    <string name="create_spaces_details_public_header">Aldonu kelkajn detalojn por elstarigi ĝin. Vi povos ilin ŝanĝi iam ajn.</string>
     <string name="activity_create_space_title">Krei spacon</string>
-    <string name="space_type_private_desc">Nur por invititoj, plej bona por vi mem aŭ skipoj</string>
     <string name="space_type_private">Privata</string>
-    <string name="space_type_public_desc">Malfermita al ĉiuj, plej bona por komunumoj</string>
-    <string name="space_type_public">Publika</string>
-    <string name="create_spaces_private_teammates">Privata spaco por vi ⳤ viaj kolegoj</string>
-    <string name="create_spaces_me_and_teammates">Mi kaj kolegoj</string>
-    <string name="create_spaces_organise_rooms">Privata spaco por organizi viajn ĉambrojn</string>
-    <string name="create_spaces_just_me">Nur mi</string>
-    <string name="create_spaces_make_sure_access">Certigu, ke la ĝustaj personoj povas aliri al %s. Vi povas ŝanĝi ĉi tion pli poste.</string>
-    <string name="create_spaces_who_are_you_working_with">Kun kiu laboras vi\?</string>
-    <string name="create_spaces_join_info_help">Por aliĝi al jam ekzistanta spaco, vi bezonos inviton.</string>
-    <string name="create_spaces_you_can_change_later">Vi povos ŝanĝi ĉi tion poste</string>
-    <string name="create_spaces_choose_type_label">Kian spacon volas vi krei\?</string>
-    <string name="your_private_space">Via privata spaco</string>
-    <string name="your_public_space">Via publika spaco</string>
     <string name="add_space">Aldoni spacon</string>
     <string name="event_status_delete_all_failed_dialog_message">Ĉu vi certe volas forigi ĉiujn nesenditajn mesaĝojn en ĉi tiu ĉambro\?</string>
     <string name="event_status_delete_all_failed_dialog_title">Forigi nesenditajn mesaĝojn</string>
     <string name="event_status_failed_messages_warning">Malsukcesis sendi mesaĝojn</string>
-    <string name="event_status_cancel_sending_dialog_message">Ĉu vi certe volas nuligi sendon de mesaĝo\?</string>
     <string name="event_status_a11y_delete_all">Forigi ĉiujn malsukcesitajn mesaĝoj</string>
     <string name="event_status_a11y_failed">Malsukcesis</string>
     <string name="event_status_a11y_sent">Sendite</string>
@@ -1891,7 +1787,6 @@
     <string name="dev_tools_event_content_hint">Enhavo de okazo</string>
     <string name="dev_tools_success_state_event">Sendiĝis statokazo!</string>
     <string name="dev_tools_success_event">Sendiĝis okazo!</string>
-    <string name="dev_tools_error_malformed_event">Misformita okzao</string>
     <string name="dev_tools_error_no_message_type">Mankas speco de mesaĝo</string>
     <string name="dev_tools_error_no_content">Neniu enhavo</string>
     <string name="dev_tools_form_hint_event_content">Enhavo de okzao</string>
@@ -1989,8 +1884,6 @@
     <string name="settings_group_messages">Grupaj babiloj</string>
     <string name="settings_encrypted_direct_messages">Individuaj babiloj ĉifritaj</string>
     <string name="settings_messages_direct_messages">Individuaj babiloj</string>
-    <string name="settings_messages_containing_username">Mia uzantonomo</string>
-    <string name="settings_messages_containing_display_name">Mia prezenta nomo</string>
     <string name="settings_notification_notify_me_for">Sciigu min pri</string>
     <string name="settings_notification_other">Aliaj</string>
     <string name="settings_notification_mentions_and_keywords">Mencioj kaj ĉefvortoj</string>
@@ -2042,7 +1935,6 @@
     <string name="space_participants_unban_prompt_msg">Malforbaro de uzanto permesos al ĝi re-aliĝi al la spaco.</string>
     <string name="space_participants_ban_prompt_msg">Forbaro forpelos uzanton de tiu ĉi spaco kaj malhelpos ĝian re-aliĝon.</string>
     <string name="spaces">Spacoj</string>
-    <string name="initial_sync_request_reason_unignored_users">- Iom uzantoj reatentita</string>
     <string name="settings_mentions_at_room">\@room</string>
     <string name="all_chats">Ĉiuj Babilejoj</string>
     <plurals name="x_selected">
@@ -2053,13 +1945,11 @@
     <string name="push_gateway_item_enabled">Ebligita:</string>
     <string name="push_gateway_item_device_id">Identigilo de sesio:</string>
     <string name="time_unit_minute_short">min</string>
-    <string name="initial_sync_request_title">Komenca sinkroniga peto</string>
     <string name="notification_listening_for_notifications">Aŭskultante sciigojn</string>
     <string name="push_gateway_item_profile_tag">Etikedo de profila:</string>
     <string name="sign_out_failed_dialog_message">Ne povas atingi la hejmservilon. Se vi elsalutas ĉiuokaze, ĉi tiu aparato ne estos forigita de listo de viaj aparatoj, vi eble volas forigi ĝin per alia kliento.</string>
     <string name="sign_out_anyway">Tamen elsaluti</string>
     <string name="time_unit_second_short">s</string>
-    <string name="a11y_expand_space_children">Etendi %s infanojn</string>
     <string name="start_chat">Komenci Babiladon</string>
     <string name="create_room">Krei Ĉambron</string>
     <string name="explore_rooms">Esplori Ĉambrojn</string>
@@ -2070,11 +1960,6 @@
     <string name="notice_voice_broadcast_ended">%1$s finis voĉan elsendon.</string>
     <string name="notice_voice_broadcast_ended_by_you">Vi finis voĉan elsendon.</string>
     <string name="room_error_access_unauthorized">Vi ne rajtas aliĝi al ĉi tiu ĉambro</string>
-    <string name="a11y_collapse_space_children">Maletendi %s infanojn</string>
-    <string name="initial_sync_request_content">${app_name} devas fari klaran kaŝmemoron por esti ĝisdatigita, pro la sekva kialo:
-\n%s
-\n
-\nNotu, ke ĉi tiu ago rekomencos la apon kaj ĝi eble daŭros iom da tempo.</string>
     <string name="time_unit_hour_short">h</string>
     <string name="threads_notice_migration_title">Fadenoj pliproksimiĝas al beta 🎉</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} bezonas la permeson por montri sciigojn.
@@ -2082,19 +1967,14 @@
     <string name="legals_application_title">${app_name} politiko</string>
     <string name="threads_beta_enable_notice_title">Fadenoj Betao</string>
     <string name="thread_list_not_available">Via hejma servilo ankoraŭ ne subtenas montri la liston de fadenoj.</string>
-    <string name="labs_auto_report_uisi">Aŭtomate Raporti pri Malĉifraj Eraroj.</string>
     <string name="restart_the_application_to_apply_changes">Rekomencu la aplikaĵon por ke la ŝanĝo ekvalidu.</string>
     <string name="device_manager_session_rename_description">Propraj sesiaj nomoj povas helpi vin rekoni viajn aparatojn pli facile.</string>
     <string name="thread_list_empty_title">Restigu diskutojn organizitajn per fadenoj</string>
-    <string name="search_thread_from_a_thread">El Fadeno</string>
     <string name="legals_third_party_notices">Bibliotekoj de ekstera liveranto</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Montri sencimigajn informojn sur la ekrano</string>
     <string name="qr_code_login_new_device_instruction_2">Iru al Agordoj -&gt; Sekureco ⳤ Privateco</string>
-    <string name="onboarding_new_app_layout_spaces_title">Aliri Spacojn</string>
-    <string name="labs_enable_voice_broadcast_summary">Povu registri kaj sendi voĉan elsendon en ĉambra templinio.</string>
     <string name="thread_list_title">Fadenoj</string>
     <string name="preference_root_legals">Leĝaj</string>
-    <string name="send_feedback_threads_info">Fadenoj estas laboro en progreso kun novaj, ekscitaj venontaj funkcioj, kiel ekzemple plibonigitaj sciigoj. Ni ŝatus aŭdi viajn prikomentojn!</string>
     <string name="navigate_to_thread_when_already_in_the_thread">Vi jam rigardas ĉi tiun fadenon!</string>
     <string name="settings_security_incognito_keyboard_summary">Peti, ke la klavaro ne ĝisdatigu iujn ajn personigitajn datumojn kiel tajpa historio kaj vortaro laŭ tio, kion vi tajpis en konversacioj. Rimarku, ke iuj klavaroj eble ne respektas ĉi tiun agordon.</string>
     <string name="auth_biometric_key_invalidated_message">Biometria aŭtentikigo estis malŝaltita ĉar nova biometrika aŭtentikigmetodo ĵus estis aldonita. Vi povas ebligi ĝin denove en Agordoj.</string>
@@ -2105,8 +1985,6 @@
     <string name="settings_show_latest_profile">Montri plej novajn informojn pri uzantoj</string>
     <string name="preference_show_all_rooms_in_home">Montri ĉiujn ĉambrojn en Hejmo</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Ĉiuj ĉambroj, kiujn vi estas ene, estos montritaj en Hejmo.</string>
-    <string name="labs_enable_msc3061_share_history">MSC3061: Kunhavigo de ĉambroŝlosiloj por pasintaj mesaĝoj</string>
-    <string name="labs_enable_msc3061_share_history_desc">Kiam vi invitas en ĉifrita ĉambro, kiu kunhavas historion, ĉifrita historio estos videbla.</string>
     <string name="settings_notification_method">Metodo de sciigo</string>
     <string name="live_location_labs_promotion_description">Bonvolu noti: ĉi tio estas funkcio de laboratorio uzanta provizoran efektivigon. Ĉi tio signifas, ke vi ne povos forigi vian lokhistorion, kaj progresintaj uzantoj povos vidi vian lokhistorion eĉ post kiam vi ĉesos kunhavigi vian tujan lokon kun ĉi tiu ĉambro.</string>
     <string name="labs_enable_session_manager_summary">Havu pli grandan videblecon kaj kontrolon super ĉiuj viaj sesioj.</string>
@@ -2114,25 +1992,16 @@
     <string name="home_empty_space_no_rooms_title">%s
 \n aspektas iom malplena.</string>
     <string name="home_empty_space_no_rooms_message">Spacoj estas nova maniero grupigi ĉambrojn kaj homojn. Aldonu ekzistantan ĉambron aŭ kreu novan per la malsupra dekstra butono.</string>
-    <string name="rich_text_editor_link">Agordi ligilon</string>
-    <string name="rich_text_editor_numbered_list">Baskuligi numeritan liston</string>
-    <string name="rich_text_editor_indent">Indenti</string>
-    <string name="rich_text_editor_full_screen_toggle">Baskuligi plenekranan reĝimon</string>
     <string name="pill_message_unknown_room_or_space">Ĉambro/Spaco</string>
     <string name="settings_autoplay_animated_images_title">Aŭtomate ludi movbildoj</string>
     <string name="settings_enable_direct_share_summary">Montri lastatempajn babilojn en la sistema kunhavigada menuo</string>
     <string name="legals_home_server_title">La politiko de via hejmservilo</string>
-    <string name="labs_enable_element_call_permission_shortcuts_summary">Aŭtomate aprobi Element Call-fenestaĵojn kaj doni aliron al fotilo / mikrofono</string>
     <string name="space_explore_filter_no_result_description">Iuj rezultoj povas esti kaŝitaj ĉar ĝi estas privataj kaj vi bezonas inviton al ĝi.</string>
     <string name="upgrade_room_update_parent_space">Aŭtomate ĝisdatigi gepatron de spaco</string>
     <string name="labs_enable_client_info_recording_title">Ebligi klientinformregistradon</string>
     <string name="avatar_of_space">Avataro de spaco %1$s</string>
     <string name="live_location_labs_promotion_title">Tuja Loko-kunhavigado</string>
-    <string name="labs_enable_voice_broadcast_title">Ebligi voĉan elsendon</string>
-    <string name="rich_text_editor_format_underline">Apliki substrekan formaton</string>
     <string name="settings_acceptable_use_policy">Akceptebla Uzo-Politiko</string>
-    <string name="labs_enable_rich_text_editor_title">Ebligi riĉtekstredaktilon</string>
-    <string name="give_feedback_threads">Prikomenti</string>
     <string name="room_threads_filter">Filtri Fadenojn en la ĉambro</string>
     <string name="thread_timeline_title">Fadeno</string>
     <string name="thread_list_modal_my_threads_title">Miaj Fadenoj</string>
@@ -2140,10 +2009,6 @@
     <string name="settings_developer_mode_show_info_on_screen_summary">Montri kelkajn utilajn informojn por helpi sencimigi la aplikaĵon</string>
     <string name="legals_identity_server_title">La politiko de via identeco-servilo</string>
     <string name="settings_show_latest_profile_description">Montri la plej novajn profilajn informojn (avataro kaj prezenta nomo) por ĉiuj mesaĝoj.</string>
-    <string name="rich_text_editor_format_italic">Apliki kursivan formaton</string>
-    <string name="rich_text_editor_format_bold">Apliki grasan formaton</string>
-    <string name="rich_text_editor_quote">Baskuligi citaĵon</string>
-    <string name="rich_text_editor_code_block">Baskuligi kodblokon</string>
     <string name="settings_access_token_summary">Via alirĵetono donas plenan aliron al via konto. Ne konigi ĝin kun iu ajn.</string>
     <string name="thread_list_modal_all_threads_subtitle">Montras ĉiujn fadenojn de nuna ĉambro</string>
     <string name="settings_autoplay_animated_images_summary">Ludi movbildojn en la templinio tuj kiam ĝi estas videblaj</string>
@@ -2158,16 +2023,11 @@
     <string name="threads_labs_enable_notice_title">Fadenoj Betao</string>
     <string name="live_location_sharing_notification_title">${app_name} Tuja Loko</string>
     <string name="live_location_labs_promotion_switch_title">Ebligi loko-kunhavigado</string>
-    <string name="labs_enable_element_call_permission_shortcuts">Ebligi permesajn ŝparvojojn por Element Voko</string>
-    <string name="rich_text_editor_format_strikethrough">Apliki forstrekitan formaton</string>
     <string name="command_not_supported_in_threads">La komando \"%s\" estas rekonita sed ne subtenata en fadenoj.</string>
     <string name="preference_help_title">Helpo kaj subteno</string>
-    <string name="rich_text_editor_bullet_list">Baskuligi kuglan liston</string>
-    <string name="rich_text_editor_inline_code">Apliki enlinian kodformaton</string>
     <string name="settings_access_token">Alirĵetono</string>
     <string name="permalink_unsupported_groups">Ne povas malfermi ĉi tiun ligon: komunumoj estis anstataŭigitaj per spacoj</string>
     <string name="labs_enable_deferred_dm_title">Ebligi prokrastajn DM-ojn</string>
-    <string name="labs_enable_rich_text_editor_summary">Provu la riĉtekstredaktilon (simplateksta reĝimo baldaŭ aperos)</string>
     <plurals name="search_space_multiple_parents">
         <item quantity="one">%1$s kaj %2$d alia</item>
         <item quantity="other">%1$s kaj %2$d aliaj</item>
@@ -2177,23 +2037,16 @@
 \nDum ni prepariĝas por ĝi, ni devas fari kelkajn ŝanĝojn: fadenoj kreitaj antaŭ ĉi tiu punkto aperos kiel regulaj respondoj.
 \n
 \nĈi tio estos unufoja transiro ĉar Fadenoj nun estas parto de la Matrix-specifo.</string>
-    <string name="analytics_opt_in_content">Helpu nin identigi problemojn kaj plibonigi ${app_name} dividante anonimajn uzdatumojn. Por kompreni kiel homoj uzas plurajn aparatojn, ni generos hazardan identigilon, kunhavitan de viaj aparatoj.
-\n
-\n Vi povas legi ĉiujn niajn kondiĉojn %s.</string>
     <string name="preference_system_settings">Sistemaj agordoj</string>
     <string name="live_location_sharing_notification_description">Loko-kunhavigado estas en progreso</string>
     <string name="device_manager_learn_more_sessions_inactive">Neaktivaj sesioj estas sesioj, kiujn vi ne uzis dum kelka tempo, sed ĝi daŭre ricevas ĉifrajn ŝlosilojn.
 \n
 \nForigi neaktivajn sesiojn plibonigas sekurecon kaj rendimenton, kaj faciligas al vi identigi ĉu nova sesio estas suspektinda.</string>
-    <string name="onboarding_new_app_layout_spaces_message">Aliru viajn Spacojn (malsupre-dekstre) pli rapide kaj pli facile ol iam ajn antaŭe.</string>
-    <string name="rich_text_editor_unindent">Malindenti</string>
-    <string name="send_feedback_threads_title">Prikomenti pri Fadenoj Betao</string>
     <string name="home_layout_preferences_sort_by">Ordigi laŭ</string>
     <string name="home_layout_preferences_sort_activity">Aktiveco</string>
     <string name="a11y_open_spaces">Malfermi la liston de spacoj</string>
     <string name="labs_enable_new_app_layout_title">Ebligi novan aranĝon</string>
     <string name="labs_enable_new_app_layout_summary">Simpligita Elemento kun laŭvolaj langetoj</string>
-    <string name="analytics_opt_in_title">Helpi plibonigi ${app_name}</string>
     <string name="labs_enable_deferred_dm_summary">Krei DM nur ĉe la unua mesaĝo</string>
     <string name="thread_list_modal_title">Filtrilo</string>
     <string name="threads_beta_enable_notice_message">Fadenoj helpas restigi viajn konversaciojn sur-temajn kaj facile spureblajn. %sEbligi fadenojn refreŝigos la aplikaĵon. Ĉi tio povas daŭri pli longe por iuj kontoj.</string>
@@ -2212,18 +2065,14 @@
     <string name="settings_security_incognito_keyboard_title">Inkognita klavaro</string>
     <string name="space_leave_radio_button_none">Eliri neniun</string>
     <string name="space_explore_filter_no_result_title">Neniuj rezultoj trovitaj</string>
-    <string name="labs_auto_report_uisi_desc">Via sistemo aŭtomate sendos protokolojn kiam okazas nekapabla malĉifri eraro</string>
     <string name="upgrade_room_for_restricted_no_param">Ĉiu en gepatra spaco povos trovi kaj aliĝi al ĉi tiu ĉambro - ne necesas permane inviti ĉiujn. Vi povos ŝanĝi ĉi tion en la agordoj de la ĉambro iam ajn.</string>
     <string name="labs_enable_live_location">Ebligi Tujan Loko-kunhavigadon</string>
     <string name="action_proceed_to_reset">Procedi por rekomencigi</string>
-    <string name="action_disable">Malebligi</string>
     <string name="font_size_section_auto">Agordi aŭtomate</string>
     <string name="action_learn_more">Lerni pli</string>
     <string name="action_try_it_out">Provi ĝin</string>
     <string name="action_next">Poste</string>
-    <string name="action_enable">Ebligi</string>
     <string name="action_not_now">Ne nun</string>
-    <string name="action_stop">Jes, Halti</string>
     <string name="action_got_it">Atingis</string>
     <string name="action_select_all">Elekti ĉiujn</string>
     <string name="action_deselect_all">Malelekti ĉiujn</string>

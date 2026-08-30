@@ -51,13 +51,11 @@
     <string name="action_send">Send</string>
     <string name="action_quote">Citér</string>
     <string name="action_share">Del</string>
-    <string name="later">Senere</string>
     <string name="permalink">Permanent link</string>
     <string name="view_source">Se Kilde</string>
     <string name="view_decrypted_source">Se Dekrypteret Kilde</string>
     <string name="action_delete">Slet</string>
     <string name="action_rename">Omdøb</string>
-    <string name="report_content">Rapporter indhold</string>
     <string name="or">eller</string>
     <string name="action_invite">Invitér</string>
     <string name="action_sign_out">Log ud</string>
@@ -78,12 +76,6 @@
     <string name="matrix_only_filter">Kun Matrix kontakter</string>
     <string name="no_result_placeholder">Ingen resultater</string>
     <string name="rooms_header">Rum</string>
-    <string name="send_bug_report_include_logs">Send logfiler</string>
-    <string name="send_bug_report_include_crash_logs">Send crashlogfiler</string>
-    <string name="send_bug_report_include_screenshot">Send screenshot</string>
-    <string name="send_bug_report_description">Beskriv venligst fejlen. Hvad gjorde du? Hvad forventede du ville ske? Hvad skete der rent faktisk?</string>
-    <string name="send_bug_report_placeholder">Beskriv dit problem her</string>
-    <string name="send_bug_report_logs_description">For at diagnosticere problemer vil logs fra denne klient blive sendt sammen med fejlrapporten. Hvis du vil foretrække kun at sende teksten foroven, bedes du fjerne fluebenet:</string>
     <string name="join_room">Forbind til Rum</string>
     <string name="username">Brugernavn</string>
     <string name="logout">Log ud</string>
@@ -112,10 +104,6 @@
     <string name="compression_opt_list_medium">Middel</string>
     <string name="compression_opt_list_small">Lille</string>
     <string name="permissions_rationale_popup_title">Information</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} skal bruge tilladelse til at bruge din mikrofon for at lave lydopkald.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} skal bruge tilladelse til at bruge dit kamera og din mikrofon for at lave videoopkald.
-
-Giv venligst tilladelse ved næste pop-up for at lave opkaldet.</string>
     <string name="yes">JA</string>
     <string name="no">NEJ</string>
     <string name="_continue">Fortsæt</string>
@@ -172,8 +160,6 @@ Er du sikker?</string>
     <string name="settings_display_name">Navn til visning</string>
     <string name="settings_add_email_address">Tilføj emailadresse</string>
     <string name="settings_add_phone_number">Tilføj telefonnummer</string>
-    <string name="settings_containing_my_display_name">Meddelelser med mit navn</string>
-    <string name="settings_containing_my_user_name">Meddelelser med mit brugernavn</string>
     <string name="settings_messages_in_one_to_one">Meddelelser i direkte chats</string>
     <string name="settings_messages_in_group_chat">Meddelelser i gruppechats</string>
     <string name="settings_invited_to_room">Når jeg bliver inviteret til et rum</string>

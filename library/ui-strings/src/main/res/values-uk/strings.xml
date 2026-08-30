@@ -145,13 +145,11 @@
     <string name="action_send">Надіслати</string>
     <string name="action_quote">Цитувати</string>
     <string name="action_share">Поділитися</string>
-    <string name="later">Пізніше</string>
     <string name="permalink">Постійне посилання</string>
     <string name="view_source">Переглянути початковий код</string>
     <string name="view_decrypted_source">Переглянути розшифроване джерело</string>
     <string name="action_delete">Видалити</string>
     <string name="action_rename">Перейменувати</string>
-    <string name="report_content">Поскаржитись на вміст</string>
     <string name="or">або</string>
     <string name="action_invite">Запрошення</string>
     <string name="action_sign_out">Вийти з облікового запису</string>
@@ -172,12 +170,6 @@
     <string name="matrix_only_filter">Лише Matrix-контакти</string>
     <string name="no_result_placeholder">Немає результатів</string>
     <string name="rooms_header">Кімнати</string>
-    <string name="send_bug_report_include_logs">Надіслати журнали</string>
-    <string name="send_bug_report_include_crash_logs">Надіслати журнали помилок</string>
-    <string name="send_bug_report_include_screenshot">Надіслати знімок екрана</string>
-    <string name="send_bug_report_description">Опишіть ваду. Що ви робили\? Виконання якої дії очікували\? Що сталося натомість\?</string>
-    <string name="send_bug_report_placeholder">Опишіть свою проблему</string>
-    <string name="send_bug_report_logs_description">Для визначення проблеми, журнали з цього клієнта буде долучено до звіту про ваду. Цей звіт, включно з журналами та знімком екрана, не буде доступний публічно. Якщо ви не хочете надсилати журнали, приберіть позначку:</string>
     <string name="join_room">Увійти до Кімнати</string>
     <string name="username">Ім\'я користувача</string>
     <string name="logout">Вийти</string>
@@ -202,10 +194,6 @@
     <string name="compression_opt_list_medium">Середній</string>
     <string name="compression_opt_list_small">Малий</string>
     <string name="permissions_rationale_popup_title">Інформація</string>
-    <string name="permissions_rationale_msg_record_audio">Для здійснення аудіовикликів потрібен доступ до мікрофона.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">Для здійснення відеовикликів потрібен доступ до камери та мікрофону.
-\n
-\nНадайте його у наступних спливних вікнах, щоб мати змогу їх здійснити.</string>
     <string name="yes">ТАК</string>
     <string name="no">НІ</string>
     <string name="_continue">Продовжити</string>
@@ -250,8 +238,6 @@
     <string name="settings_notification_ringtone">Тон сповіщення</string>
     <string name="settings_enable_all_notif">Увімкнути сповіщення для цього облікового запису</string>
     <string name="settings_enable_this_device">Увімкнути сповіщення для цього пристрою</string>
-    <string name="settings_containing_my_display_name">Повідомлення з моїм псевдонімом</string>
-    <string name="settings_containing_my_user_name">Повідомлення, що містять моє ім\'я користувача</string>
     <string name="settings_messages_in_one_to_one">В особистих чатах</string>
     <string name="settings_messages_in_group_chat">У групових чатах</string>
     <string name="settings_invited_to_room">Запрошення до кімнат</string>
@@ -420,7 +406,6 @@
     <string name="option_send_voice">Надіслати голосове повідомлення</string>
     <string name="dialog_title_error">Помилка</string>
     <string name="system_alerts_header">Системні сповіщення</string>
-    <string name="send_bug_report_description_in_english">Якщо можливо, будь ласка, напишіть опис англійською.</string>
     <plurals name="room_details_selected">
         <item quantity="one">%d вибрано</item>
         <item quantity="few">%d вибрано</item>
@@ -464,8 +449,6 @@
     <string name="command_description_nick">Змінити псевдонім</string>
     <string name="command_description_markdown">Увімкнути/Вимкнути розмітку Markdown</string>
     <string name="command_description_clear_scalar_token">Для виправлення керування застосунками Matrix</string>
-    <string name="create">Створити</string>
-    <string name="group_details_home">Домівка</string>
     <string name="rooms">Кімнати</string>
     <string name="invited">Запрошено</string>
     <string name="has_been_banned">%2$s блокує вас у %1$s</string>
@@ -482,8 +465,6 @@
     <string name="deactivate_account_delete_checkbox">Будь ласка, після деактивації мого облікового запису видаліть усі надіслані мною повідомлення (Увага: це спричинить неповне відображення розмов для нових користувачів)</string>
     <string name="deactivate_account_submit">Деактивувати обліковий запис</string>
     <string name="error_empty_field_your_password">Будь ласка, введіть Ваш пароль.</string>
-    <string name="room_tombstone_versioned_description">Ця кімната була замінена та більше не активна.</string>
-    <string name="room_tombstone_continuation_link">Продовження розмови тут</string>
     <string name="room_tombstone_continuation_description">Ця кімната є продовженням іншої розмови</string>
     <string name="room_tombstone_predecessor_link">Натисніть сюди, щоб побачити старіші повідомлення</string>
     <string name="resource_limit_contact_admin">зв’яжіться з Вашим адміністратором</string>
@@ -531,10 +512,6 @@
     <string name="login_error_no_homeserver_found">Це недійсна адреса сервера Matrix</string>
     <string name="auth_msisdn_already_defined">Цей номер телефону вже використовується.</string>
     <string name="auth_login_sso">Увійдіть за допомогою єдиного входу</string>
-    <string name="sound_device_wireless_headset">Бездротова гарнітура</string>
-    <string name="sound_device_headset">Гарнітура</string>
-    <string name="sound_device_speaker">Динамік</string>
-    <string name="sound_device_phone">Телефон</string>
     <string name="bottom_action_notification">Повідомлення</string>
     <string name="dialog_title_success">Успіх</string>
     <string name="action_copy">Копіювати</string>
@@ -545,9 +522,6 @@
     <string name="done">Готово</string>
     <string name="action_skip">Пропустити</string>
     <string name="failed_to_remove_widget">Не вдалося видалити віджет</string>
-    <string name="failed_to_add_widget">Не вдалося додати віджет</string>
-    <string name="audio_meeting">Почати аудіо-зустріч</string>
-    <string name="video_meeting">Почати відеозустріч</string>
     <string name="action_reset">Скинути</string>
     <string name="action_dismiss">Відхилити</string>
     <string name="action_play">Грати</string>
@@ -560,7 +534,6 @@
     <string name="attachment_type_gallery">Галерея</string>
     <string name="attachment_type_file">Файл</string>
     <string name="attachment_type_dialog_title">Додати зображення з</string>
-    <string name="attachment_type_contact">Контакт</string>
     <string name="attachment_type_camera">Камера</string>
     <string name="room_filtering_footer_create_new_room">Створити нову кімнату</string>
     <string name="sign_out_bottom_sheet_dont_want_secure_messages">Мені не потрібні мої зашифровані повідомлення</string>
@@ -587,9 +560,6 @@
     <string name="sign_out_bottom_sheet_will_lose_secure_messages">Ви втратите доступ до своїх зашифрованих повідомлень, якщо не зробите резервну копію ключів перед виходом з системи.</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">Безпечне резервне копіювання ключів має бути активним у всіх ваших сеансах, щоб не втратити доступу до ваших зашифрованих повідомлень.</string>
     <string name="sign_out_bottom_sheet_warning_backing_up">Триває резервне копіювання ключів. Якщо вийти зараз, ви втратите доступ до своїх зашифрованих повідомлень.</string>
-    <string name="a11y_unmute_microphone">Увімкнути мікрофон</string>
-    <string name="a11y_mute_microphone">Вимкнути мікрофон</string>
-    <string name="a11y_open_chat">Відерити бесіду</string>
     <string name="power_level_title">Роль</string>
     <string name="power_level_edit_title">Визначити роль</string>
     <string name="identity_server_set_alternative_submit">Надіслати</string>
@@ -600,9 +570,6 @@
     <string name="invite_friends_text">Привіт! Спілкуймося в ${app_name}: %s</string>
     <string name="invite_friends">Запросити друзів</string>
     <string name="settings_general_title">Загальні</string>
-    <string name="send_suggestion_failed">Не вдалось надіслати пропозицію (%s)</string>
-    <string name="send_suggestion_report_placeholder">Опишіть вашу пропозицію тут</string>
-    <string name="send_suggestion_content">Залиште вашу пропозицію внизу.</string>
     <string name="settings_send_message_with_enter_summary">Натискання Enter на програмній клавіатурі надсилатиме повідомлення замість перенесення рядка</string>
     <string name="settings_send_message_with_enter">Надсилати повідомлення натисканням Enter</string>
     <string name="room_profile_section_more_settings">Налаштування кімнати</string>
@@ -616,7 +583,6 @@
     <string name="settings_discovery_consent_title">Надіслати електронні адреси та номери телефонів</string>
     <string name="settings_emails_and_phone_numbers_summary">Керування електронними адресами та номерами телефонів, пов’язаними з вашим обліковим записом Matrix</string>
     <string name="settings_emails_and_phone_numbers_title">Електронні адреси та номери телефонів</string>
-    <string name="send_bug_report_include_key_share_history">Надіслати історію запитів спільного доступу до ключів</string>
     <string name="settings_category_timeline">Стрічка подій</string>
     <string name="timeline_unread_messages">Непрочитані повідомлення</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Показувати приховані події у стрічці подій</string>
@@ -663,8 +629,6 @@
     <string name="no_more_results">Більше немає результатів</string>
     <string name="action_unpublish">Відкликати публікування</string>
     <string name="action_add">Додати</string>
-    <string name="audio_video_meeting_description">Наради використовують політику безпеки та дозволів Jitsi. Усі люди, які зараз перебувають у кімнаті, побачать запрошення приєднатися під час вашої зустрічі.</string>
-    <string name="start_chatting">Почати спілкування</string>
     <string name="labs_show_unread_notifications_as_tab">Додати спеціальну вкладку для непрочитаних сповіщень на головний екран.</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Показувати повну історію зашифрованих кімнат</string>
     <string name="settings_account_data">Дані облікового запису</string>
@@ -930,7 +894,6 @@
     <string name="room_participants_power_level_demote_warning_prompt">Ви не зможете скасувати цю зміну, оскільки зменшуєте свої повноваження, якщо ви останній привілейований користувач у кімнаті, неможливо буде повернути собі повноваження.</string>
     <string name="room_participants_power_level_demote_warning_title">Зменшити свої повноваження\?</string>
     <string name="permissions_denied_add_contact">Дозволити доступ до ваших контактів.</string>
-    <string name="permissions_denied_qr_code">Щоб сканувати QR-код необхідно дозволити доступ до камери.</string>
     <string name="login_error_ssl_peer_unverified">Помилка SSL: особу співрозмовника не підтверджено.</string>
     <string name="login_set_msisdn_optional_hint">Номер телефону (додатковий)</string>
     <string name="login_set_msisdn_mandatory_hint">Номер телефону</string>
@@ -1013,10 +976,7 @@
     <string name="choose_locale_loading_locales">Завантаження інших доступних мов…</string>
     <string name="choose_locale_other_locales_title">Інші доступні мови</string>
     <string name="choose_locale_current_locale_title">Поточна мова</string>
-    <string name="user_code_info_text">Поділіться цим кодом з людьми, щоб вони змогли сканувати його, щоб додати вас і почати спілкуватися в чаті.</string>
     <string name="user_code_my_code">Мій код</string>
-    <string name="user_code_share">Поділитися моїм кодом</string>
-    <string name="user_code_scan">Сканувати QR-код</string>
     <string name="invite_users_to_room_failure">Ми не можемо запросити користувачів. Перевірте користувачів, яких ви хочете запросити та повторіть спробу.</string>
     <plurals name="invitations_sent_to_one_and_more_users">
         <item quantity="one">Запрошення надіслано для %1$s та ще одній особі</item>
@@ -1089,15 +1049,8 @@
     <string name="keys_backup_settings_valid_signature_from_unverified_device">Резервна копія має дійсний підпис з незвіреного сеансу %s</string>
     <string name="keys_backup_settings_valid_signature_from_verified_device">Резервна копія має дійсний підпис зі звіреного сеансу %s.</string>
     <string name="create_room_action_create">СТВОРИТИ</string>
-    <string name="content_reported_title">На вміст надіслано скаргу</string>
-    <string name="content_reported_as_spam_title">Надіслано скаргу, як на спам</string>
-    <string name="content_reported_as_inappropriate_title">Надіслано скаргу, як на неприйнятне</string>
     <string name="too_many_pin_failures">Забагато помилок, вам довелось вийти</string>
     <string name="unencrypted">Незашифроване</string>
-    <string name="default_message_emote_snow">надсилає снігопад ❄️</string>
-    <string name="default_message_emote_confetti">надсилає конфетті 🎉</string>
-    <string name="command_snow">Надсилає вказане повідомлення зі снігопадом</string>
-    <string name="command_confetti">Надсилає вказане повідомлення з конфетті</string>
     <plurals name="secure_backup_reset_devices_you_can_verify">
         <item quantity="one">Показати пристрій, з якого ви можете звірити цей сеанс просто зараз</item>
         <item quantity="few">Показати %d пристрої, з яких ви можете звірити цей сеанс просто зараз</item>
@@ -1183,8 +1136,6 @@
     <string name="contacts_book_title">Контакти</string>
     <string name="loading_contact_book">Отримання контактів…</string>
     <string name="qr_code_not_scanned">QR-код не зіскановано!</string>
-    <string name="invalid_qr_code_uri">QR-код не дійсний (недійсний URI)!</string>
-    <string name="not_a_valid_qr_code">Цей QR-код не дійсний</string>
     <string name="qr_code_scanned_verif_waiting">Чекаємо на %s…</string>
     <string name="qr_code_scanned_verif_waiting_notice">Майже все! Чекаємо на підтвердження…</string>
     <string name="qr_code_scanned_self_verif_notice">Майже все! Чи показує інший пристрій галочку\?</string>
@@ -1203,26 +1154,10 @@
     <string name="disconnect_identity_server_dialog_content">Від\'єднатись від сервера ідентифікації %s\?</string>
     <string name="settings_agree_to_terms">Погодьтесь з умовами використання сервера ідентифікації (%s), щоб дозволити вашу виявність за електронною адресою та номером телефону.</string>
     <string name="no_ignored_users">Ви не нехтуєте жодних користувачів</string>
-    <string name="content_reported_as_inappropriate_content">Скаргу на неприйнятний вміст було надіслано.
-\n
-\nЯкщо ви більше не бажаєте бачити жодного вмісту від цього користувача, ви можете знехтувати його, щоб приховати його повідомлення.</string>
-    <string name="content_reported_as_spam_content">Скаргу на спам було надіслано.
-\n
-\nЯкщо ви більше не бажаєте бачити жодного вмісту від цього користувача, ви можете знехтувати його, щоб приховати його повідомлення.</string>
-    <string name="content_reported_content">Скаргу на вміст було надіслано.
-\n
-\nЯкщо ви більше не бажаєте бачити жодного вмісту від цього користувача, ви можете знехтувати його, щоб приховати його повідомлення.</string>
-    <string name="block_user">ЗНЕХТУВАТИ КОРИСТУВАЧА</string>
     <string name="settings_discovery_disconnect_with_bound_pid">Ви зараз оприлюднюєте електронні адреси та номери телефонів для сервера ідентифікації %1$s. Вам необхідно буде перепід\'єднатись до %2$s, щоб припинити оприлюднення.</string>
     <string name="labs_allow_extended_logging">Увімкнути детальні звіти.</string>
     <string name="keys_backup_unlock_button">Розблокувати історію</string>
     <string name="labs_allow_extended_logging_summary">Надіслані лютострусом детальні звіти допоможуть розробникам отримати більше інформації. Навіть якщо цю функцію увімкнено, застосунок не зберігає ані вмісту повідомлень, ані будь-якої іншої особистої інформації.</string>
-    <string name="report_content_custom">Інша причина…</string>
-    <string name="report_content_inappropriate">Неприйнятний вміст</string>
-    <string name="report_content_spam">Спам</string>
-    <string name="report_content_custom_title">Поскаржитись на цей вміст</string>
-    <string name="report_content_custom_submit">ПОСКАРЖИТИСЬ</string>
-    <string name="report_content_custom_hint">Причина скарги</string>
     <string name="sent_a_reaction">Зреагували: %s</string>
     <string name="message_add_reaction">Зреагувати</string>
     <string name="finish">Завершити</string>
@@ -1301,8 +1236,6 @@
     <string name="secure_backup_setup">Налаштувати безпечне резервне копіювання</string>
     <string name="bottom_sheet_setup_secure_backup_title">Безпечне резервне копіювання</string>
     <string name="give_feedback">Надіслати відгук</string>
-    <string name="you_may_contact_me">Можете зв’язатися зі мною, якщо у вас виникнуть додаткові запитання</string>
-    <string name="space_type_private_desc">Лише запрошені, найкраще для себе та команд</string>
     <string name="login_splash_text1">Спілкуйтеся з людьми безпосередньо або в групах</string>
     <string name="settings_notification_configuration">Налаштування сповіщень</string>
     <string name="keys_backup_settings_checking_backup_state">Перевірка стану резервного копіювання</string>
@@ -1365,10 +1298,8 @@
     <string name="room_settings_room_access_restricted_title">Лише учасники простору</string>
     <string name="room_settings_room_access_public_description">Кожен може знайти кімнату та приєднатися</string>
     <string name="create_room_settings_section">Налаштування кімнати</string>
-    <string name="space_type_public_desc">Відкритий для всіх, найкраще для спільнот</string>
     <string name="fab_menu_create_room">Кімнати</string>
     <string name="create_room_public_title">Загальнодоступна</string>
-    <string name="space_type_public">Загальнодоступний</string>
     <string name="room_settings_room_access_public_title">Загальнодоступна</string>
     <string name="room_settings_room_access_private_description">Лише запрошені люди можуть знайти та приєднатися</string>
     <string name="room_settings_room_access_private_invite_only_title">Приватна (лише за запрошенням)</string>
@@ -1393,12 +1324,9 @@
     <string name="invite_people_to_your_space">Запрошуйте людей до свого простору</string>
     <string name="create_space_topic_hint">Опис</string>
     <string name="create_spaces_loading_message">Створення простору…</string>
-    <string name="your_private_space">Ваш приватний простір</string>
-    <string name="your_public_space">Ваш загальнодоступний простір</string>
     <string name="add_space">Додати простір</string>
     <string name="private_space">Приватний простір</string>
     <string name="event_status_delete_all_failed_dialog_title">Видалити не надіслані повідомлення</string>
-    <string name="event_status_cancel_sending_dialog_message">Бажаєте скасувати надсилання повідомлення\?</string>
     <string name="event_status_a11y_delete_all">Видалити повідомлення, які не вдалося надіслати</string>
     <string name="event_status_a11y_failed">Не вдалося</string>
     <string name="event_status_a11y_sent">Надіслано</string>
@@ -1410,8 +1338,6 @@
     <string name="select_spaces">Вибрати простори</string>
     <string name="settings_show_emoji_keyboard_summary">Додати кнопку до редактора повідомлень, щоб відкрити клавіатуру емоджі</string>
     <string name="settings_show_emoji_keyboard">Показати клавіатуру емоджі</string>
-    <string name="settings_chat_effects_description">Скористайтеся командою /confetti або надсилайте повідомлення, що містить ❄️ або 🎉</string>
-    <string name="settings_chat_effects_title">Показувати ефекти бесіди</string>
     <string name="public_space">Загальнодоступний простір</string>
     <string name="a11y_public_room">Загальнодоступна кімната</string>
     <string name="a11y_rule_notify_off">Не сповіщати</string>
@@ -1430,7 +1356,6 @@
     <string name="a11y_change_avatar">Змінити аватар</string>
     <string name="a11y_image">Зображення</string>
     <string name="a11y_import_key_from_file">Імпортувати ключі з файлу</string>
-    <string name="a11y_screenshot">Знімок екрана</string>
     <string name="settings_mentions_and_keywords_encryption_notice">Ви не отримуватимете сповіщення про згадки та ключові слова в зашифрованих кімнатах на мобільних пристроях.</string>
     <string name="settings_room_upgrades">Оновлення кімнати</string>
     <string name="settings_messages_by_bot">Повідомлення бота</string>
@@ -1439,9 +1364,6 @@
     <string name="settings_mentions_at_room">\@room</string>
     <string name="settings_encrypted_group_messages">Зашифровані групові повідомлення</string>
     <string name="settings_group_messages">Групові повідомлення</string>
-    <string name="settings_messages_containing_username">Моє користувацьке ім\'я</string>
-    <string name="settings_messages_containing_display_name">Мій псевдонім</string>
-    <string name="settings_messages_at_room">Повідомлення, які містять @room</string>
     <string name="settings_when_rooms_are_upgraded">Коли кімнати оновлено</string>
     <string name="settings_messages_in_e2e_group_chat">Зашифровані повідомлення в групових бесідах</string>
     <string name="settings_messages_in_e2e_one_to_one">Зашифровані повідомлення в індивідуальних бесідах</string>
@@ -1471,13 +1393,11 @@
     <string name="settings_category_room_directory">Каталог кімнат</string>
     <string name="suggested_header">Пропоновані кімнати</string>
     <string name="dialog_edit_hint">Нове значення</string>
-    <string name="action_switch">Перемкнути</string>
     <string name="missing_permissions_title">Відсутні дозволи</string>
     <string name="denied_permission_camera">Щоб виконати цю дію, надайте дозвіл камери у налаштуваннях системи.</string>
     <string name="denied_permission_generic">Бракує деяких дозволів для виконання цієї дії. Будь ласка, надайте дозволи у налаштуваннях системи.</string>
     <string name="spaces_header">Простори</string>
     <string name="spaces">Простори</string>
-    <string name="system_theme">Системна</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">Ви увімкнули наскрізне шифрування (нерозпізнаний алгоритм %1$s).</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s вмикає наскрізне шифрування (нерозпізнаний алгоритм %2$s).</string>
     <string name="notice_end_to_end_ok_by_you">Ви увімкнули наскрізне шифрування.</string>
@@ -1549,7 +1469,6 @@
     </plurals>
     <string name="notice_room_withdraw_with_reason_by_you">Ви відкликали запрошення для %1$s. Причина: %2$s</string>
     <string name="notice_room_withdraw_with_reason">%1$s відкликає запрошення для %2$s. Причина: %3$s</string>
-    <string name="event_status_sent_message">Повідомлення надіслано</string>
     <string name="notice_direct_room_third_party_revoked_invite_by_you">Ви відкликали запрошення для %1$s</string>
     <string name="notice_direct_room_third_party_revoked_invite">%1$s відкликає запрошення для %2$s</string>
     <string name="notice_room_third_party_revoked_invite_by_you">Ви відкликали запрошення приєднатися до кімнати для %1$s</string>
@@ -1574,7 +1493,6 @@
     <string name="a11y_create_menu_close">Закрити меню створення кімнати…</string>
     <string name="a11y_create_menu_open">Відкрити меню створення кімнати</string>
     <string name="a11y_open_drawer">Відкрити панель навігації</string>
-    <string name="send_attachment">Надіслати вкладення</string>
     <string name="settings_text_message_sent_wrong_code">Хибний код підтвердження.</string>
     <string name="settings_text_message_sent_hint">Код</string>
     <string name="link_copied_to_clipboard">Посилання скопійовано в буфер обміну</string>
@@ -1584,9 +1502,6 @@
     <string name="send_file_step_sending_thumbnail">Надсилання мініатюри (%1$s / %2$s)</string>
     <string name="send_file_step_encrypting_thumbnail">Шифрування мініатюри…</string>
     <string name="send_file_step_idle">Очікування…</string>
-    <string name="feedback_failed">Не вдалося надіслати відгук (%s)</string>
-    <string name="send_feedback_space_title">Відгук про Простори</string>
-    <string name="feedback">Відгук</string>
     <string name="push_gateway_item_format">Формат:</string>
     <string name="push_gateway_item_url">Url:</string>
     <string name="push_gateway_item_device_name">Показувана назва сеансу:</string>
@@ -1620,7 +1535,6 @@
     <string name="verification_request_you_cancelled">Ви скасували</string>
     <string name="verification_request_other_cancelled">%s скасовано</string>
     <string name="search_hint_room_name">Пошук за назвою</string>
-    <string name="send_feedback_space_info">Ви користуєтеся бета-версією просторів. Ваш відгук допоможе поліпшити наступні версії. Ваша платформа та ім’я користувача будуть зазначені, щоб допомогти нам використати ваш відгук якнайефективніше.</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Зареєструвати токен</string>
     <string name="settings_push_gateway_no_pushers">Немає зареєстрованих push-шлюзів</string>
     <string name="settings_push_rules_no_rules">Правила push-сповіщень не визначені</string>
@@ -1646,7 +1560,6 @@
     </plurals>
     <string name="space_add_existing_rooms">Додати наявну кімнату до простору</string>
     <string name="activity_create_space_title">Створити простір</string>
-    <string name="create_spaces_just_me">Лише я</string>
     <string name="command_description_create_space">Створити простір</string>
     <string name="dev_tools_event_content_hint">Вміст події</string>
     <string name="dev_tools_form_hint_event_content">Вміст події</string>
@@ -1676,7 +1589,6 @@
     <string name="create_room_alias_empty">Вкажіть адресу кімнати</string>
     <string name="create_room_alias_already_in_use">Ця адреса вже використовується</string>
     <string name="create_space_alias_hint">Адреса простору</string>
-    <string name="bug_report_error_too_short">Закороткий опис</string>
     <string name="soft_logout_clear_data_dialog_title">Очистити дані</string>
     <string name="soft_logout_clear_data_submit">Очистити всі дані</string>
     <string name="soft_logout_title">Ви вийшли</string>
@@ -1688,8 +1600,6 @@
     <string name="login_terms_title">Погодьтеся з усіма умовами, щоб продовжити</string>
     <string name="login_a11y_captcha_container">Пройдіть перевірку Captcha</string>
     <string name="login_a11y_choose_other">Вибрати власний домашній сервер</string>
-    <string name="login_a11y_choose_modular">Вибрати Element Matrix Services</string>
-    <string name="login_a11y_choose_matrix_org">Вибрати matrix.org</string>
     <string name="soft_logout_clear_data_title">Очистити особисті дані</string>
     <string name="soft_logout_signin_password_hint">Пароль</string>
     <string name="login_signup_password_hint">Пароль</string>
@@ -1848,9 +1758,6 @@
 \nНатисніть на посилання, яке він містить, щоб продовжити створення облікового запису.</string>
     <string name="login_signup_cancel_confirmation_content">Ваш обліковий запис ще не створено. Зупинити процес реєстрації\?</string>
     <string name="settings_key_requests">Запити ключів</string>
-    <string name="login_default_session_public_name">${app_name} Android</string>
-    <string name="a11y_start_camera">Увімкнути камеру</string>
-    <string name="a11y_stop_camera">Вимкнути камеру</string>
     <string name="add_people">Додати людей</string>
     <string name="add_members_to_room">Додати учасників</string>
     <string name="external_link_confirmation_title">Перевірте це посилання</string>
@@ -1912,8 +1819,6 @@
     <string name="preference_show_all_rooms_in_home">Показувати у Домівці</string>
     <string name="verification_cancelled">Перевірку скасовано</string>
     <string name="verify_cancelled_notice">Перевірку скасовано. Ви можете розпочати її повторно.</string>
-    <string name="delete_event_dialog_reason_checkbox">Вказати причину</string>
-    <string name="send_images_and_video_with_original_size">Надіслати медіа в оригінальному розмірі</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">Надіслати відео в оригінальному розмірі</item>
         <item quantity="few">Надіслати відео в оригінальному розмірі</item>
@@ -1926,7 +1831,6 @@
         <item quantity="many">Надіслати зображення в оригінальному розмірі</item>
         <item quantity="other">Надіслати зображення в оригінальному розмірі</item>
     </plurals>
-    <string name="share_confirm_room">Хочете надіслати це вкладення до %1$s\?</string>
     <string name="enter_secret_storage_invalid">Не вдалося знайти дані у сховищі</string>
     <string name="attachment_type_poll">Опитування</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Вибрати домашній сервер</string>
@@ -1967,19 +1871,12 @@
     <string name="space_add_existing_spaces">Додати наявні простори</string>
     <string name="space_add_existing_rooms_only">Додати наявні кімнати</string>
     <string name="space_leave_prompt_msg_with_name">Ви впевнені, що хочете вийти з %s\?</string>
-    <string name="create_spaces_private_teammates">Приватний простір для вас і учасників вашої команди</string>
-    <string name="create_spaces_me_and_teammates">Я та учасники команди</string>
-    <string name="create_spaces_who_are_you_working_with">З ким ви працюєте\?</string>
-    <string name="create_spaces_join_info_help">Щоб приєднатися до наявного простору, вам потрібне запрошення.</string>
-    <string name="create_spaces_you_can_change_later">Ви можете змінити це пізніше</string>
-    <string name="create_spaces_choose_type_label">Який тип простору ви хочете створити\?</string>
     <string name="event_status_failed_messages_warning">Не вдалося надіслати повідомлення</string>
     <string name="command_description_upgrade_room">Оновлює кімнату до нової версії</string>
     <string name="command_description_leave_room">Вийти з кімнати з цим id (або з поточної кімнати, якщо не вказано)</string>
     <string name="command_description_join_space">Приєднатися до простору з цим id</string>
     <string name="command_description_add_to_space">Додати до цього простору</string>
     <string name="dev_tools_success_state_event">Подію стану надіслано!</string>
-    <string name="dev_tools_error_malformed_event">Недійсна подія</string>
     <string name="dev_tools_error_no_message_type">Відсутній тип повідомлення</string>
     <string name="dev_tools_form_hint_state_key">Ключ стану</string>
     <string name="dev_tools_send_custom_state_event">Надіслати власну подію стану</string>
@@ -1996,7 +1893,6 @@
     <string name="warning_unsaved_change">Є незбережені зміни. Відкинути зміни\?</string>
     <string name="warning_room_not_created_yet">Кімнату ще не створено. Скасувати створення кімнати\?</string>
     <string name="universal_link_malformed">Посилання було неправильним</string>
-    <string name="cannot_dm_self">Не можна надсилати повідомлення самим собі!</string>
     <string name="bootstrap_progress_storing_in_sss">Збереження резервної копії ключа в SSSS</string>
     <string name="bootstrap_progress_generating_ssss_recovery">Генерування ключа SSSS з ключа відновлення</string>
     <string name="bootstrap_progress_generating_ssss_with_info">Генерування ключа SSSS з парольної фрази (%s)</string>
@@ -2034,7 +1930,6 @@
     <string name="create_spaces_room_private_header">Над чим ви працюєте\?</string>
     <string name="create_spaces_invite_public_header">Хто учасники вашої команди\?</string>
     <string name="create_space_error_empty_field_space_name">Назвіть його, щоб продовжити.</string>
-    <string name="create_spaces_organise_rooms">Приватний простір для впорядкування ваших кімнат</string>
     <string name="room_error_not_found">Не вдалося знайти таку кімнату. Переконайтеся, що вона існує.</string>
     <string name="settings_security_pin_code_notifications_title">Показувати вміст у сповіщеннях</string>
     <plurals name="wrong_pin_message_remaining_attempts">
@@ -2150,8 +2045,6 @@
     <string name="create_spaces_room_public_header_desc">Ми створимо по кімнаті для кожної теми. Згодом ви зможете додати ще.</string>
     <string name="create_spaces_room_public_header">Що ви бажаєте обговорювати в %s\?</string>
     <string name="create_spaces_details_private_header">Додайте деталі, щоб люди впізнавали ваш простір. Ви зможете будь-коли редагувати це.</string>
-    <string name="create_spaces_details_public_header">Додайте деталі, щоб ваш простір виділявся. Ви зможете будь-коли редагувати це.</string>
-    <string name="create_spaces_make_sure_access">Надайте потрібним людям доступ до %s.</string>
     <plurals name="entries">
         <item quantity="one">%d елемент</item>
         <item quantity="few">%d елементи</item>
@@ -2226,26 +2119,13 @@
     <string name="legals_identity_server_title">Політика вашого сервера ідентифікації</string>
     <string name="legals_home_server_title">Політика вашого домашнього сервера</string>
     <string name="legals_application_title">Політика ${app_name}</string>
-    <string name="analytics_opt_in_list_item_3">Можете вимкнути це коли завгодно в налаштуваннях</string>
-    <string name="analytics_opt_in_list_item_2">Ми <b>не</b> передаємо даних стороннім особам</string>
-    <string name="analytics_opt_in_list_item_1">Ми <b>не</b> записуємо й <b>не</b> аналізуємо жодних даних облікового запису</string>
-    <string name="analytics_opt_in_content_link">тут</string>
-    <string name="analytics_opt_in_content">Допомагайте нам визначати проблеми й удосконалювати ${app_name}, надсилаючи анонімні дані про використання. Щоб розуміти, як люди використовують кілька пристроїв, ми створимо спільний для ваших пристроїв випадковий ідентифікатор.
-\n
-\nМожете прочитати всі наші умови %s.</string>
-    <string name="analytics_opt_in_title">Допоможіть покращити ${app_name}</string>
-    <string name="action_enable">Увімкнути</string>
     <string name="restart_the_application_to_apply_changes">Перезапустіть застосунок, щоб зміни набули чинності.</string>
     <string name="room_error_access_unauthorized">Вам не дозволено приєднуватися до цієї кімнати</string>
     <string name="tooltip_attachment_poll">Створити опитування</string>
-    <string name="tooltip_attachment_contact">Відкрити контакти</string>
     <string name="tooltip_attachment_sticker">Надіслати наліпку</string>
     <string name="tooltip_attachment_file">Вивантажити файл</string>
     <string name="tooltip_attachment_gallery">Надіслати зображення й відео</string>
     <string name="tooltip_attachment_photo">Відкрити камеру</string>
-    <string name="labs_auto_report_uisi_desc">Ваша система автоматично надсилатиме журнали, коли виникне помилка неможливості розшифрування</string>
-    <string name="labs_auto_report_uisi">Автозвіт про помилки шифрування.</string>
-    <string name="room_member_override_nick_color">Замінити колір псевдоніма</string>
     <string name="login_splash_already_have_account">Я вже маю обліковий запис</string>
     <string name="ftue_auth_carousel_encrypted_title">Захищене спілкування.</string>
     <string name="ftue_auth_carousel_control_title">Ви контролюєте все.</string>
@@ -2275,7 +2155,6 @@
     <string name="attachment_type_location">Місцеперебування</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">Шифрування було налаштовано неправильно, тому ви не можете надсилати повідомлення. Торкніться, щоб відкрити налаштування.</string>
     <string name="room_unsupported_e2e_algorithm">Шифрування було налаштовано неправильно, тому ви не можете надсилати повідомлення. Зверніться до адміністратора, щоб відновити роботу шифрування.</string>
-    <string name="message_bubbles">Показувати повідомлення у бульбашках</string>
     <string name="location_timeline_failed_to_load_map">Не вдалося завантажити карту</string>
     <string name="a11y_static_map_image">Карта</string>
     <string name="ftue_auth_use_case_connect_to_server">Під\'єднатися до сервера</string>
@@ -2291,7 +2170,6 @@
     <string name="view_in_room">Переглянути у кімнаті</string>
     <string name="reply_in_thread">Відповісти в гілці</string>
     <string name="command_not_supported_in_threads">Команду «%s» розпізнано, але вона не підтримується в гілках.</string>
-    <string name="search_thread_from_a_thread">З гілки</string>
     <string name="thread_list_empty_notice">Порада: Торкніться й утримуйте повідомлення і виберіть «%s».</string>
     <string name="thread_list_empty_title">Упорядкуйте обговорення за допомогою гілок</string>
     <string name="thread_list_empty_subtitle">Гілки допомагають підтримувати розмови за темою та за ними легко стежити.</string>
@@ -2356,7 +2234,6 @@
     <string name="ftue_account_created_congratulations_title">Вітаємо!</string>
     <string name="ftue_account_created_take_me_home">На головну</string>
     <string name="ftue_account_created_personalize">Персоналізувати профіль</string>
-    <string name="action_disable">Вимкнути</string>
     <string name="location_share_live_started">Завантаження місцеперебування наживо…</string>
     <string name="location_share_live_select_duration_option_3">8 годин</string>
     <string name="location_share_live_select_duration_option_2">1 годину</string>
@@ -2369,12 +2246,7 @@
     <string name="a11y_play_audio_message">Відтворити %1$s</string>
     <string name="a11y_audio_playback_duration">%1$d хвилин %2$d секунд</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
-    <string name="sent_live_location">Ділиться своїм місцеперебуванням наживо</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} також чудово підходить для роботи. Йому довіряють найтаємніші організації світу.</string>
-    <string name="beta">БЕТА</string>
-    <string name="send_feedback_threads_info">Гілки — це поточна розробка з новими, захопливими майбутніми функціями, як-от удосконалені сповіщення. Ми хотіли б почути ваш відгук!</string>
-    <string name="send_feedback_threads_title">Відгук про Гілки бета</string>
-    <string name="give_feedback_threads">Надіслати відгук</string>
     <string name="beta_title_bottom_sheet_action">БЕТА</string>
     <string name="settings_presence_user_always_appears_offline_summary">Якщо ввімкнено, ви завжди будете видимі в режимі офлайн для інших користувачів, навіть коли користуєтеся застосунком.</string>
     <string name="settings_presence_user_always_appears_offline">Офлайн режим</string>
@@ -2385,12 +2257,6 @@
     <string name="threads_beta_enable_notice_title">Гілки бета</string>
     <string name="action_learn_more">Докладніше</string>
     <string name="action_try_it_out">Спробувати</string>
-    <string name="initial_sync_request_reason_unignored_users">- Деякі користувачі нехтуються</string>
-    <string name="initial_sync_request_content">Щоб оновитися, ${app_name} потребує очищення кешу з такої причини:
-\n%s
-\n
-\nЗауважте, що ця дія перезапустить застосунок, і це може тривати деякий час.</string>
-    <string name="initial_sync_request_title">Початковий запит синхронізації</string>
     <string name="settings_show_latest_profile_description">Показувати найновіші дані профілю (аватар і псевдонім) для всіх повідомлень.</string>
     <string name="settings_show_latest_profile">Показувати найновіші дані користувача</string>
     <string name="a11y_presence_busy">Зайнятий</string>
@@ -2445,8 +2311,6 @@
     <string name="settings_troubleshoot_test_endpoint_registration_title">Реєстрація кінцевої точки</string>
     <string name="action_next">Далі</string>
     <string name="poll_undisclosed_not_ended">Результати будуть видимі після завершення опитування</string>
-    <string name="labs_enable_msc3061_share_history_desc">Коли запросити когось у зашифровану кімнату, яка поширює історію, зашифрована історія буде видимою.</string>
-    <string name="labs_enable_msc3061_share_history">MSC3061: Поширення ключів кімнати для минулих повідомлень</string>
     <string name="send_your_first_msg_to_invite">Надішліть своє перше повідомлення, щоб запросити %s до бесіди</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Повідомлення в цій бесіді будуть захищені наскрізним шифруванням.</string>
     <string name="create_room_action_go">Уперед</string>
@@ -2499,8 +2363,6 @@
     <string name="font_size_section_manually">Вибрати вручну</string>
     <string name="font_size_section_auto">Установити автоматично</string>
     <string name="font_size_title">Виберіть розмір шрифту</string>
-    <string name="labs_enable_element_call_permission_shortcuts_summary">Віджети автосхвалення викликів Element і надання доступу до камери/мікрофона</string>
-    <string name="labs_enable_element_call_permission_shortcuts">Увімкнути ярлики дозволів на виклик елемента</string>
     <string name="live_location_description">Місце перебування наживо</string>
     <string name="verify_invalid_qr_notice">Цей QR-код має неправильний вигляд. Спробуйте звірити іншим методом.</string>
     <string name="crosssigning_cannot_verify_this_session_desc">Ви не зможете отримати доступ до історії зашифрованих повідомлень. Скиньте захищену резервну копію повідомлень і ключі підтвердження, щоб почати заново.</string>
@@ -2518,7 +2380,6 @@
     <string name="auth_reset_password_error_unverified">Електронна пошта не підтверджена, перевірте свою поштову скриньку</string>
     <string name="location_share_loading_map_error">Неможливо завантажити карту
 \nМожливо, цей домашній сервер не налаштовано для показу карт.</string>
-    <string name="a11y_open_settings">Відкрити налаштування</string>
     <string name="all_chats">Усі бесіди</string>
     <string name="device_manager_sessions_other_description">Звірте свої сеанси та вийдіть з усіх сеансів, які ви більше не розпізнаєте або не використовуєте для кращої безпеки.</string>
     <string name="device_manager_sessions_other_title">Інші сеанси</string>
@@ -2552,13 +2413,6 @@
     <string name="timeline_error_room_not_found">Перепрошуємо, цю кімнату не знайдено.
 \nСпробуйте пізніше.%s</string>
     <string name="invites_title">Запрошення</string>
-    <string name="onboarding_new_app_layout_button_try">Спробувати</string>
-    <string name="onboarding_new_app_layout_feedback_message">Клацніть праворуч вгорі, щоб побачити опцію відгуку.</string>
-    <string name="onboarding_new_app_layout_feedback_title">Надіслати відгук</string>
-    <string name="onboarding_new_app_layout_spaces_message">Отримуйте доступ до своїх просторів (унизу праворуч) швидше та легше, ніж раніше.</string>
-    <string name="onboarding_new_app_layout_spaces_title">Доступ до просторів</string>
-    <string name="onboarding_new_app_layout_welcome_message">Щоб спростити ваш ${app_name}, вкладки тепер необов’язкові. Керуйте ними у верхньому правому меню.</string>
-    <string name="onboarding_new_app_layout_welcome_title">Вітаємо в новому вигляді!</string>
     <string name="home_empty_no_unreads_message">Тут з\'являтимуться ваші непрочитані повідомлення, якщо вони є.</string>
     <string name="home_empty_no_unreads_title">Немає про що звітувати.</string>
     <string name="home_empty_no_rooms_message">Універсальний безпечний застосунок для спілкування з командами, друзями й організаціями. Створіть бесіду або приєднайтеся до наявної кімнати, щоб розпочати.</string>
@@ -2588,8 +2442,6 @@
     <string name="invites_empty_title">Нічого нового.</string>
     <string name="space_list_empty_message">Простори – це новий спосіб групувати кімнати та людей. Створіть простір, щоб розпочати.</string>
     <string name="space_list_empty_title">Ще немає просторів.</string>
-    <string name="a11y_collapse_space_children">Згорнути дочірні елементи %s</string>
-    <string name="a11y_expand_space_children">Розгорнути дочірні елементи %s</string>
     <string name="device_manager_session_details_device_ip_address">IP-адреса</string>
     <string name="device_manager_session_details_session_last_activity">Остання активність</string>
     <string name="device_manager_session_details_session_name">Назва сеансу</string>
@@ -2655,21 +2507,15 @@
     <string name="device_manager_session_rename">Перейменувати сеанс</string>
     <string name="device_manager_session_overview_signout">Вийти з цього сеансу</string>
     <string name="device_manager_other_sessions_description_unverified_current_session">Не звірений - Ваш поточний сеанс</string>
-    <string name="tooltip_attachment_voice_broadcast">Розпочати голосову трансляцію</string>
     <string name="key_authenticity_not_guaranteed">Справжність цього зашифрованого повідомлення не може бути гарантована на цьому пристрої.</string>
     <string name="settings_security_incognito_keyboard_summary">Заборонити клавіатурі оновлювати будь-які персоналізовані дані, як-от історію набору тексту та словник, на основі того, що ви набрали в розмовах. Зауважте, що деякі клавіатури можуть не дотримуватися цього налаштування.</string>
     <string name="settings_security_incognito_keyboard_title">Клавіатура інкогніто</string>
     <string name="command_description_table_flip">Надсилає (╯°□°）╯︵ ┻━┻ на початку текстового повідомлення</string>
-    <string name="attachment_type_voice_broadcast">Голосові трансляції</string>
     <string name="command_description_devtools">Відкрийте інструменти розробника</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 Ви увімкнули шифрування лише для перевірених сеансів для всіх кімнат у налаштуваннях безпеки.</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ У цій кімнаті є неперевірені пристрої, вони не зможуть розшифрувати повідомлення, які ви надсилаєте.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">Ніколи не надсилати зашифровані повідомлення на неперевірені сеанси в цій кімнаті.</string>
     <string name="action_got_it">Зрозуміло</string>
-    <string name="rich_text_editor_format_underline">Застосувати форматування підкресленим</string>
-    <string name="rich_text_editor_format_strikethrough">Застосувати форматування перекресленим</string>
-    <string name="rich_text_editor_format_italic">Застосувати форматування курсивом</string>
-    <string name="rich_text_editor_format_bold">Застосувати форматування жирним</string>
     <string name="labs_enable_client_info_recording_summary">Записуйте назву клієнта, версію та URL-адресу, щоб легше розпізнавати сеанси в менеджері сеансів.</string>
     <string name="labs_enable_client_info_recording_title">Увімкнути запис відомостей про клієнт</string>
     <string name="labs_enable_session_manager_summary">Отримайте кращу видимість і контроль над усіма вашими сеансами.</string>
@@ -2694,8 +2540,6 @@
     <string name="permissions_rationale_msg_notification">Для показу сповіщень ${app_name} потрібен дозвіл. Сповіщення можуть показувати ваші повідомлення, запрошення тощо.
 \n
 \nДозвольте доступ до наступних спливних вікон, щоб мати змогу переглядати сповіщення.</string>
-    <string name="labs_enable_rich_text_editor_summary">Спробуйте розширений текстовий редактор (незабаром з\'явиться режим звичайного тексту)</string>
-    <string name="labs_enable_rich_text_editor_title">Увімкнути розширений текстовий редактор</string>
     <string name="qr_code_login_confirm_security_code_description">Переконайтеся, що ви знаєте походження цього коду. Пов\'язавши пристрої, ви надасте будь-кому повний доступ до свого облікового запису.</string>
     <string name="qr_code_login_confirm_security_code">Підтвердити</string>
     <string name="qr_code_login_try_again">Повторити спробу</string>
@@ -2736,20 +2580,10 @@
     <string name="qr_code_login_header_failed_other_device_already_signed_in_description">Вхід з іншого пристрою вже виконано.</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">Під час налаштування захищеного обміну повідомленнями виникла проблема з безпекою. Можливо, порушено одне з таких налаштувань: Ваш домашній сервер; Ваше інтернет-з\'єднання; Ваш пристрій;</string>
     <string name="qr_code_login_header_failed_other_description">Запит не виконаний.</string>
-    <string name="labs_enable_voice_broadcast_summary">Можливість записувати та надсилати голосові трансляції до стрічки кімнати.</string>
-    <string name="labs_enable_voice_broadcast_title">Увімкнути голосові трансляції</string>
-    <string name="voice_broadcast_buffering">Буферизація…</string>
-    <string name="a11y_pause_voice_broadcast">Призупинити голосову трансляцію</string>
-    <string name="a11y_play_voice_broadcast">Відтворити або поновити відтворення голосової трансляції</string>
-    <string name="a11y_stop_voice_broadcast_record">Припинити запис голосової трансляції</string>
-    <string name="a11y_pause_voice_broadcast_record">Призупинити запис голосової трансляції</string>
-    <string name="a11y_resume_voice_broadcast_record">Відновити запис голосової трансляції</string>
-    <string name="voice_broadcast_live">Наживо</string>
     <string name="device_manager_other_sessions_select">Вибрати сеанси</string>
     <string name="attachment_type_selector_camera">Камера</string>
     <string name="attachment_type_selector_location">Місце перебування</string>
     <string name="attachment_type_selector_poll">Опитування</string>
-    <string name="attachment_type_selector_voice_broadcast">Голосові трансляції</string>
     <string name="attachment_type_selector_file">Вкладення</string>
     <string name="attachment_type_selector_sticker">Наліпки</string>
     <string name="attachment_type_selector_gallery">Фотобібліотека</string>
@@ -2761,14 +2595,7 @@
         <item quantity="other">Вибрано %1$d</item>
     </plurals>
     <string name="action_select_all">Вибрати все</string>
-    <string name="rich_text_editor_full_screen_toggle">Перемкнути повноекранний режим</string>
     <string name="attachment_type_selector_text_formatting">Форматування тексту</string>
-    <string name="error_voice_broadcast_already_in_progress_message">Ви вже записуєте голосову трансляцію. Завершіть поточну трансляцію, щоб розпочати нову.</string>
-    <string name="error_voice_broadcast_blocked_by_someone_else_message">Хтось інший вже записує голосову трансляцію. Зачекайте, поки вона завершиться, щоб розпочати нову.</string>
-    <string name="error_voice_broadcast_permission_denied_message">Ви не маєте необхідних дозволів для початку голосової трансляції в цю кімнату. Зверніться до адміністратора кімнати, щоб оновити ваші дозволи.</string>
-    <string name="error_voice_broadcast_unauthorized_title">Не вдалося розпочати нову голосову трансляцію</string>
-    <string name="a11y_voice_broadcast_fast_forward">Перемотати вперед на 30 секунд</string>
-    <string name="a11y_voice_broadcast_fast_backward">Перемотати назад на 30 секунд</string>
     <string name="device_manager_learn_more_sessions_verified_description">Звірені сеанси — це будь-який пристрій, на якому ви використовуєте цей обліковий запис після введення парольної фрази або підтвердження вашої особи за допомогою іншого звіреного сеансу.
 \n
 \nЦе означає, що ви маєте всі ключі, необхідні для розблокування ваших зашифрованих повідомлень і підтвердження іншим користувачам, що ви довіряєте цьому сеансу.</string>
@@ -2779,7 +2606,6 @@
         <item quantity="other">Вийти з %1$d сеансів</item>
     </plurals>
     <string name="device_manager_other_sessions_multi_signout_selection">Вийти</string>
-    <string name="voice_broadcast_recording_time_left">Залишилося %1$s</string>
     <string name="message_reply_to_sender_sent_audio_file">надсилає аудіофайл.</string>
     <string name="message_reply_to_sender_sent_file">надсилає файл.</string>
     <string name="message_reply_to_prefix">У відповідь на</string>
@@ -2790,9 +2616,6 @@
     <string name="message_reply_to_sender_sent_image">надсилає зображення.</string>
     <string name="message_reply_to_sender_sent_voice_message">надсилає голосове повідомлення.</string>
     <string name="device_manager_other_sessions_show_ip_address">Показати IP-адресу</string>
-    <string name="quoting">Цитуючи</string>
-    <string name="replying_to">У відповідь %s</string>
-    <string name="editing">Редагування</string>
     <string name="settings_enable_direct_share_summary">Показувати останні бесіди в системному меню загального доступу</string>
     <string name="settings_enable_direct_share_title">Увімкнути пряме поширення</string>
     <string name="review_unverified_sessions_description">Перегляньте їх, щоб переконатися, що ваш обліковий запис у безпеці</string>
@@ -2806,21 +2629,14 @@
     <string name="device_manager_verification_status_detail_session_encryption_not_supported">Цей сеанс не підтримує шифрування і тому не може бути звірений.</string>
     <string name="settings_nightly_build_update">Отримати найновішу збірку (примітка: у вас можуть виникнути проблеми з входом в систему)</string>
     <string name="settings_nightly_build">Збірка Nightly</string>
-    <string name="voice_broadcast_live_broadcast">Трансляція наживо</string>
     <string name="notice_voice_broadcast_ended_by_you">Ви завершили голосову трансляцію.</string>
     <string name="notice_voice_broadcast_ended">%1$s завершує голосову трансляцію.</string>
-    <string name="stop_voice_broadcast_content">Ви впевнені, що хочете припинити голосову трансляцію\? На цьому трансляція завершиться, і повний запис буде доступний у кімнаті.</string>
-    <string name="stop_voice_broadcast_dialog_title">Припинити голосову трансляцію\?</string>
-    <string name="action_stop">Так, припинити</string>
     <string name="set_link_edit">Змінити посилання</string>
     <string name="set_link_create">Створити посилання</string>
     <string name="set_link_link">Посилання</string>
     <string name="set_link_text">Текст</string>
-    <string name="rich_text_editor_link">Налаштувати посилання</string>
     <string name="settings_access_token_summary">Ваш токен доступу надає повний доступ до вашого облікового запису. Не передавайте його нікому.</string>
     <string name="settings_access_token">Токен доступу</string>
-    <string name="rich_text_editor_bullet_list">Перемкнути на маркований список</string>
-    <string name="rich_text_editor_numbered_list">Перемкнути на нумерований список</string>
     <string name="room_polls_ended_no_item">У цій кімнаті ще не проводилися опитування</string>
     <string name="room_polls_ended">Минулі опитування</string>
     <string name="room_polls_active_no_item">У цій кімнаті немає активних опитувань</string>
@@ -2831,8 +2647,6 @@
     <string name="message_reply_to_sender_ended_poll">завершує опитування.</string>
     <string name="ended_poll_indicator">Опитування завершено.</string>
     <string name="thread_list_not_available">Ваш домашній сервер поки що не підтримує створення списків гілок.</string>
-    <string name="error_voice_broadcast_unable_to_play">Неможливо відтворити цю голосову трансляцію.</string>
-    <string name="started_a_voice_broadcast">Розпочато голосову трансляцію</string>
     <string name="unable_to_decrypt_some_events_in_poll">Через помилки розшифрування деякі голоси можуть бути не враховані</string>
     <plurals name="room_polls_ended_no_item_for_loaded_period">
         <item quantity="one">За %1$d минулий день немає минулих опитувань.
@@ -2857,16 +2671,7 @@
     <string name="room_polls_loading_error">Помилка отримання опитувань.</string>
     <string name="room_polls_load_more">Завантажити більше опитувань</string>
     <string name="room_polls_wait_for_display">Показ опитувань</string>
-    <string name="error_voice_message_broadcast_in_progress_message">Ви не можете розпочати запис голосового повідомлення, оскільки ви записуєте трансляцію наживо. Будь ласка, заверште її, щоб розпочати запис голосового повідомлення</string>
-    <string name="error_voice_message_broadcast_in_progress">Не вдалося розпочати запис голосового повідомлення</string>
-    <string name="error_voice_broadcast_no_connection_recording">Помилка з\'єднання - Запис призупинено</string>
-    <string name="rich_text_editor_inline_code">Застосовувати вбудований формат коду</string>
-    <string name="rich_text_editor_code_block">Перемкнути блок коду</string>
-    <string name="rich_text_editor_quote">Перемкнути цитування</string>
-    <string name="rich_text_editor_unindent">Без відступу</string>
-    <string name="rich_text_editor_indent">Відступ</string>
     <string name="room_poll_details_go_to_timeline">Переглянути опитування у стрічці</string>
-    <string name="error_voice_broadcast_unable_to_decrypt">Неможливо розшифрувати цю голосову трансляцію.</string>
     <string name="settings_external_account_management">Керування подробицями вашого облікового запису відбувається окремо на %1$s.</string>
     <string name="settings_external_account_management_title">Обліковий запис</string>
     <string name="settings_notification_error_on_update">Сталася помилка під час оновлення налаштувань сповіщень. Повторіть спробу.</string>
@@ -2907,10 +2712,5 @@
     <string name="invite_unknown_users_dialog_content">Не вдалося знайти профілі для вказаних нижче Matrix ID. Усе одно запросити їх\?
 \n
 \n%s</string>
-    <string name="user_reported_as_inappropriate_title">Користувач, на якого подано скаргу</string>
-    <string name="message_report_user">Поскаржитися на користувача</string>
-    <string name="user_reported_as_inappropriate_content">Скаргу на користувача надіслано.
-\n
-\nЯкщо ви більше хочете нічого не бачити від нього, ви можете ігнорувати його, щоб сховати його повідомлення.</string>
     <string name="call_unsupported">Непідтримуваний виклик.</string>
 </resources>

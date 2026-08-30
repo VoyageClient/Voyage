@@ -56,13 +56,11 @@
     <string name="action_quote">Siter</string>
     <string name="action_download">Last ned</string>
     <string name="action_share">Del</string>
-    <string name="later">Seinare</string>
     <string name="permalink">Permanent lenkje</string>
     <string name="view_source">Vis kjelde</string>
     <string name="view_decrypted_source">Vis den dekrypterte kjelda</string>
     <string name="action_delete">Slett</string>
     <string name="action_rename">Gje nytt namn</string>
-    <string name="report_content">Rapporter innhaldet</string>
     <string name="or">eller</string>
     <string name="action_invite">Inviter</string>
     <string name="action_sign_out">Logg av</string>
@@ -83,13 +81,6 @@
     <string name="matrix_only_filter">Berre Matrix-kontaktar</string>
     <string name="no_result_placeholder">Ingen treff</string>
     <string name="rooms_header">Rom</string>
-    <string name="send_bug_report_include_logs">Send loggar</string>
-    <string name="send_bug_report_include_crash_logs">Send krasjrapportar</string>
-    <string name="send_bug_report_include_screenshot">Send skjermbilde</string>
-    <string name="send_bug_report_description">Beskriv feilen. Kva gjorde du\? Kva forventa du skulle hende\? Kva hendte\?</string>
-    <string name="send_bug_report_description_in_english">Om mogleg, skriv beskrivelsen på engelsk.</string>
-    <string name="send_bug_report_placeholder">Beskriv problemet ditt her</string>
-    <string name="send_bug_report_logs_description">For å diagnostisere feil, vil loggar frå denne klienten bli sendt med i feilrapporten. Denne feilrapporten inklusiv loggar, skjermbilete vil ikkje vere offentleg. Fjern avkryssinga om du berre vil sende teksten ovanfor:</string>
     <string name="join_room">Gå inn i romet</string>
     <string name="username">Brukarnamn</string>
     <string name="logout">Logg ut</string>
@@ -126,10 +117,6 @@
     <string name="compression_opt_list_medium">Middels</string>
     <string name="compression_opt_list_small">Liten</string>
     <string name="permissions_rationale_popup_title">Info</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} treng tilgang til mikrofonen din for å utføra talesamtalar.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} treng tilgang til kameraet og mikrofonen din for å utføra videosamtalar.
-\n
-\nGjer vel og gjev tilgang på sprettvindauget som kjem for å utføra samtalen.</string>
     <string name="yes">JA</string>
     <string name="no">NEI</string>
     <string name="_continue">Gå fram</string>
@@ -186,8 +173,6 @@
     <string name="settings_notification_ringtone">Varselljod</string>
     <string name="settings_enable_all_notif">Skru på varslingar for denne kontoen</string>
     <string name="settings_enable_this_device">Aktiver varslingar for denne sesjonen</string>
-    <string name="settings_containing_my_display_name">Meldingar som inneheld visingsnamnet mitt</string>
-    <string name="settings_containing_my_user_name">Meldingar som inneheld brukarnamnet mitt</string>
     <string name="settings_messages_in_one_to_one">Meldingar i ein-og-ein-samtalar</string>
     <string name="settings_messages_in_group_chat">Meldingar i gruppesamtalar</string>
     <string name="settings_invited_to_room">Når eg blir invitert til eit rom</string>
@@ -343,8 +328,6 @@
     <string name="notification_off">Av</string>
     <string name="notification_noisy">Bråket</string>
     <string name="encrypted_message">Kryptert melding</string>
-    <string name="create">Laga</string>
-    <string name="group_details_home">Heim</string>
     <string name="rooms">Rom</string>
     <string name="invited">Bodne inn</string>
     <string name="has_been_banned">Du var stengd ute frå %1$s av %2$s</string>
@@ -363,8 +346,6 @@ Meldingssynlegheit på Matrix liknar på epost. At vi gløymer meldingane dine t
     <string name="deactivate_account_delete_checkbox">Ver venleg og gløym alle meldingane eg har send når brukarkontoen min vert deaktivert (Åtvaring: dette gjer at framtidige brukarar ikkje får eit fullstendig oversyn av samtalene)</string>
     <string name="deactivate_account_submit">Deaktiver konto</string>
     <string name="error_empty_field_your_password">Ver venleg og skriv passordet ditt inn.</string>
-    <string name="room_tombstone_versioned_description">Rommet har verta erstatta og er ikkje aktivt lenger</string>
-    <string name="room_tombstone_continuation_link">Samtala går vidare her</string>
     <string name="room_tombstone_continuation_description">Rommet er ein vidareføring av ei anna samtale</string>
     <string name="room_tombstone_predecessor_link">Klikk her for å sjå gamle meldingar</string>
     <string name="system_alerts_header">Systemvarsel</string>
@@ -475,16 +456,10 @@ Meldingssynlegheit på Matrix liknar på epost. At vi gløymer meldingane dine t
     <string name="settings_general_title">Generelt</string>
     <string name="action_play">Spel av</string>
     <string name="auth_msisdn_already_defined">Dette telefonnummeret er allereie definert.</string>
-    <string name="sound_device_wireless_headset">Trådlaus hovudtelefon</string>
-    <string name="sound_device_speaker">Høgtalar</string>
     <string name="no_more_results">Ingen fleire resultat</string>
     <string name="dialog_title_success">Suksess</string>
     <string name="action_add">Legg til</string>
     <string name="call_notification_hangup">Legg på</string>
-    <string name="audio_video_meeting_description">Møter nyttar Jitsi sine sikkerheit- og tilgangsreglar. Alle medlemmar av rommet vil sjå ei invitasjonslenkje så lenge møtet pågår.</string>
-    <string name="audio_meeting">Start møte med lyd</string>
-    <string name="video_meeting">Start møte med video</string>
-    <string name="start_chatting">Start samtale</string>
     <string name="action_reset">Nullstill</string>
     <string name="bottom_action_people_x">Folk</string>
     <string name="fab_menu_create_chat">Folk</string>

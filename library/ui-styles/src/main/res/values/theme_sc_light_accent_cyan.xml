@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_cyan">#00bcd4</color>
-    <color name="accent_sc_light_cyan_alpha25">#3f00bcd4</color>
     <color name="accent_sc_light_cyan_pale">@color/accent_sc_light_cyan</color>
-    <color name="accent_sc_light_cyan_dark">@color/accent_sc_light_cyan_alpha25</color>
     <color name="accent_sc_light_cyan_noalpha12">#e0f6f9</color>
 
 

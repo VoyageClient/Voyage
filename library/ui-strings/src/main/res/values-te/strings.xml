@@ -65,7 +65,6 @@
     <string name="action_leave">వదిలివేయు</string>
     <string name="title_activity_settings">అమరికలు</string>
     <string name="action_cancel">రద్దుచేయి</string>
-    <string name="later">తరువాత</string>
     <string name="view_source">మూలాన్ని వీక్షించండి</string>
     <string name="action_rename">పేరు మార్చండి</string>
     <string name="or">లేదా</string>
@@ -90,15 +89,9 @@
     <string name="rooms_header">గదులు</string>
 
 
-    <string name="send_bug_report_include_logs">లాగ్లను పంపు</string>
-    <string name="send_bug_report_include_crash_logs">క్రాష్ లాగ్లను పంపండి</string>
-    <string name="send_bug_report_include_screenshot">తెరపట్టుని పంపండి</string>
-    <string name="send_bug_report_description">దయచేసి బగ్ను వివరించండి. మీరు ఎం చేసారు? మీరు ఏమి జరిగే అవకాశము ఉందనుకున్నారు? వాస్తవానికి ఏం జరిగింది?</string>
-    <string name="send_bug_report_placeholder">ఇక్కడ మీ సమస్యను వివరించండి</string>
     <string name="action_quote">కోట్</string>
     <string name="permalink">పెర్మాలింక్</string>
     <string name="view_decrypted_source">డెక్రిప్టెడ్ మూలాన్ని చూడండి</string>
-    <string name="report_content">నివేదిక వివరాలు</string>
     <string name="action_sign_out">సైన్ అవుట్ చేయండి</string>
 
     <string name="action_quick_reply">శీఘ్ర ప్రత్యుత్తరం</string>
@@ -133,7 +126,6 @@
 
 
     <string name="permissions_rationale_popup_title">సమాచారం</string>
-    <string name="permissions_rationale_msg_record_audio">ఆడియో కాల్లను చేయడానికి మీ మైక్రోఫోన్ను ప్రాప్యత చేయడానికి ${app_name}కు అనుమతి అవసరం.</string>
 
     <string name="yes">అవును</string>
     <string name="no">కాదు</string>
@@ -270,7 +262,6 @@
     <string name="room_settings_read_history_entry_members_only_invited">సభ్యులు మాత్రమే (ఆహ్వానించినప్పుడ్నించి)</string>
     <string name="room_settings_read_history_entry_members_only_option_time_shared">సభ్యులు మాత్రమే (ఈ ఎంపిక ఎంచుకునప్పుడ్నించి)</string>
 
-    <string name="send_bug_report_logs_description">సమస్యలను నిర్ధారించడానికి, ఈ క్లయింట్ నుండి లాగ్లు మరియు ఈ బగ్ నివేదికతో పంపబడతాయి. మీరు పైన ఉన్న వచనాన్ని మాత్రమే పంపించాలనుకుంటే, దయచేసి అన్టిక్ చెయ్యి:</string>
 
 
 
@@ -278,9 +269,6 @@
 
 
 
-    <string name="permissions_rationale_msg_camera_and_audio">"మీ కెమెరాను మరియు మీ శబ్ద ప్రసారిణి సాంగత్యం చేయడానికి రియోట్కు అనుమతి అవసరం.
-\n
-\nదయచేసి   పిలుపు చేయడానికి వీలుగా తదుపరి పాప్-అప్ల్లో ప్రాప్యతను అనుమతించండి."</string>
 
     <string name="encryption_information_verify_device_warning2">ఇది సరిపోలితే, దిగువ ధృవీకరించు బటన్ను నొక్కండి. అది కాకపోతే, అప్పుడు ఎవరో ఈ పరికరాన్ని అడ్డుకుంటున్నారు మరియు మీరు బహుశా బ్లాక్ బటన్ను నొక్కాలనుకుంటున్నారు.
 \nభవిష్యత్తులో ఈ ధృవీకరణ ప్రక్రియ మరింత అధునాతనంగా ఉంటుంది.</string>

@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_carnation">#fb83b2</color>
-    <color name="accent_sc_light_carnation_alpha25">#3ffb83b2</color>
     <color name="accent_sc_light_carnation_pale">@color/accent_sc_light_carnation</color>
-    <color name="accent_sc_light_carnation_dark">@color/accent_sc_light_carnation_alpha25</color>
     <color name="accent_sc_light_carnation_noalpha12">#fef0f5</color>
 
 

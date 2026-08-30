@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_indigo">#5C6BC0</color>
-    <color name="accent_sc_light_indigo_alpha25">#3f5C6BC0</color>
     <color name="accent_sc_light_indigo_pale">@color/accent_sc_light_indigo</color>
-    <color name="accent_sc_light_indigo_dark">@color/accent_sc_light_indigo_alpha25</color>
     <color name="accent_sc_light_indigo_noalpha12">#ebedf7</color>
 
 

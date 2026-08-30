@@ -2,7 +2,6 @@
 <resources>
     <string name="action_dismiss">Zawrzij</string>
     <string name="action_play">Ôdtwōrz</string>
-    <string name="report_content">Zgłoś zawartość</string>
     <string name="action_disconnect">Rozłōncz</string>
     <string name="action_revoke">Ôdkoż</string>
     <string name="none">Brak</string>
@@ -11,7 +10,6 @@
     <string name="view_decrypted_source">Pokoż ôdszyfrowane zdrzōdło</string>
     <string name="view_source">Pokoż zdrzōdło</string>
     <string name="permalink">Bezpostrzedni link</string>
-    <string name="later">Niyskorzij</string>
     <string name="action_share">Udostympnij</string>
     <string name="action_download">Pobier</string>
     <string name="action_quote">Cytuj</string>

@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_amber">#ffa000</color>
-    <color name="accent_sc_light_amber_alpha25">#3fffa000</color>
     <color name="accent_sc_light_amber_pale">@color/accent_sc_light_amber</color>
-    <color name="accent_sc_light_amber_dark">@color/accent_sc_light_amber_alpha25</color>
     <color name="accent_sc_light_amber_noalpha12">#fff3e0</color>
 
 

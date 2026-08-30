@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_greendark">#4CAF50</color>
-    <color name="accent_sc_light_greendark_alpha25">#3f4CAF50</color>
     <color name="accent_sc_light_greendark_pale">@color/accent_sc_light_greendark</color>
-    <color name="accent_sc_light_greendark_dark">@color/accent_sc_light_greendark_alpha25</color>
     <color name="accent_sc_light_greendark_noalpha12">#e9f5ea</color>
 
 

@@ -27,9 +27,6 @@
     <string name="compression_opt_list_large">Mór</string>
     <string name="compression_opt_list_original">Bunchóip</string>
     <string name="auth_submit">Cuir isteach</string>
-    <string name="sound_device_headset">Gléas cinn</string>
-    <string name="sound_device_speaker">Callaire</string>
-    <string name="sound_device_phone">Guthán</string>
     <string name="search">Cuardaigh</string>
     <string name="username">Ainm úsáideora</string>
     <string name="rooms_header">Seomraí</string>
@@ -44,7 +41,6 @@
     <string name="dialog_title_warning">Rabhadh</string>
     <string name="dialog_title_confirmation">Deimhniú</string>
     <string name="action_unpublish">Neamhfoilsigh</string>
-    <string name="action_switch">Athraigh</string>
     <string name="action_add">Cuir</string>
     <string name="action_copy">Cóipeáil</string>
     <string name="action_close">Dún</string>
@@ -65,7 +61,6 @@
     <string name="action_rename">Athainmnigh</string>
     <string name="action_delete">Bain amach</string>
     <string name="permalink">Nasc buan</string>
-    <string name="later">Níos deireanaí</string>
     <string name="action_share">Roinn le</string>
     <string name="action_download">Íoslódáil</string>
     <string name="action_quote">Luaigh</string>

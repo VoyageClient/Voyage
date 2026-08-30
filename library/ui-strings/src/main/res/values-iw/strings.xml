@@ -23,14 +23,8 @@
     <string name="action_accept">לְקַבֵּל</string>
     <string name="action_invite">להזמין</string>
     <string name="failed_to_remove_widget">הסרת היישומון נכשלה</string>
-    <string name="failed_to_add_widget">הוספת היישומון נכשלה</string>
-    <string name="audio_video_meeting_description">הפגישות משתמשות במדיניות האבטחה וההרשאה של Jitsi. כל האנשים שנמצאים כעת בחדר יראו הזמנה להצטרף בזמן שהפגישה שלך מתרחשת.</string>
-    <string name="audio_meeting">התחל פגישת שמע</string>
-    <string name="video_meeting">התחל פגישת וידאו</string>
-    <string name="start_chatting">התחל לצ\'וטט</string>
     <string name="action_reset">אתחול</string>
     <string name="action_play">לנגן</string>
-    <string name="report_content">דווח על תוכן</string>
     <string name="action_disconnect">התנתק</string>
     <string name="action_revoke">לבטל</string>
     <string name="none">אין</string>
@@ -39,7 +33,6 @@
     <string name="view_decrypted_source">צפה במקור המפוענח</string>
     <string name="view_source">צפה במקור הדף</string>
     <string name="permalink">קישור קבוע</string>
-    <string name="later">מאוחר יותר</string>
     <string name="action_share">שתף</string>
     <string name="action_download">הורדה</string>
     <string name="action_quote">צטט</string>
@@ -87,14 +80,6 @@
     <string name="logout">יציאה</string>
     <string name="username">שם משתמש</string>
     <string name="join_room">הצטרף אל חדר</string>
-    <string name="send_bug_report_logs_description">על מנת לאבחן בעיות, יומני הלקוח יישלחו עם דוח הבאג הזה. דוח באגים זה, כולל היומנים וצילום המסך, לא יהיה גלוי לציבור. אם אתה מעדיף לשלוח רק את הטקסט למעלה, בטל את הסימון:</string>
-    <string name="send_bug_report_placeholder">תאר את הבעיה שלך כאן</string>
-    <string name="send_bug_report_description_in_english">אם אפשר, אנא כתוב את התיאור באנגלית.</string>
-    <string name="send_bug_report_description">אנא תאר את הבאג. מה עשית\? מה ציפית שיקרה\? מה באמת קרה\?</string>
-    <string name="send_bug_report_include_screenshot">שלח צילום מסך</string>
-    <string name="send_bug_report_include_key_share_history">שלח היסטוריית בקשות לשיתוף מפתח</string>
-    <string name="send_bug_report_include_crash_logs">שלח יומני תקלות</string>
-    <string name="send_bug_report_include_logs">שלח יומנים</string>
     <string name="login_error_limit_exceeded">יותר מדי בקשות נשלחו</string>
     <string name="login_error_not_json">לא מכיל JSON חוקי</string>
     <string name="login_error_bad_json">JSON פגום</string>
@@ -123,10 +108,6 @@
     <string name="option_take_photo_video">צלם תמונה או סרטון</string>
     <string name="option_send_sticker">שלח סטיקר</string>
     <string name="option_send_files">שלח קבצים</string>
-    <string name="sound_device_wireless_headset">אוזניות אלחוטיות</string>
-    <string name="sound_device_headset">אוזניות</string>
-    <string name="sound_device_speaker">רמקול</string>
-    <string name="sound_device_phone">טלפון</string>
     <string name="room_jump_to_first_unread">עבור להודעה שלא נקראה</string>
     <string name="list_members">שותפים</string>
     <string name="action_reject">דחייה</string>
@@ -136,11 +117,6 @@
     <string name="no">לא</string>
     <string name="yes">כן</string>
     <string name="permissions_denied_add_contact">אפשר הרשאה לגשת לאנשי הקשר שלך.</string>
-    <string name="permissions_denied_qr_code">כדי לסרוק קוד QR, עליך לאפשר גישה למצלמה.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">אלמנט זקוק להרשאה כדי לגשת למצלמה ולמיקרופון שלך כדי לבצע שיחות וידאו.
-\n
-\nאנא אפשר גישה בחלונות הקופצים הבאים כדי להיות מסוגל לבצע את השיחה.</string>
-    <string name="permissions_rationale_msg_record_audio">אלמנט זקוק להרשאה כדי לגשת למיקרופון שלך כדי לבצע שיחות שמע.</string>
     <string name="permissions_rationale_popup_title">מידע</string>
     <string name="compression_opt_list_small">קטן</string>
     <string name="compression_opt_list_medium">בינוני</string>
@@ -198,8 +174,6 @@
     <string name="settings_invited_to_room">כשאני מוזמן לחדר</string>
     <string name="settings_messages_in_group_chat">הודעות בצ\'אטים קבוצתיים</string>
     <string name="settings_messages_in_one_to_one">הודעות בצ\'אטים אחד-על-אחד</string>
-    <string name="settings_containing_my_user_name">הודעות שמכילות את שם המשתמש שלי</string>
-    <string name="settings_containing_my_display_name">הודעות שמכילות את שם התצוגה שלי</string>
     <string name="settings_system_preferences_summary">בחר צבע LED, רטט, צליל …</string>
     <string name="settings_silent_notifications_preferences">הגדר התראות שקטות</string>
     <string name="settings_call_notifications_preferences">הגדר התראות על שיחות</string>
@@ -595,8 +569,6 @@
     <string name="resource_limit_contact_admin">פנה למנהל השירות שלך</string>
     <string name="room_tombstone_predecessor_link">לחץ כאן לצפייה בהודעות ישנות יותר</string>
     <string name="room_tombstone_continuation_description">החדר הזה הוא המשך לשיחה אחרת</string>
-    <string name="room_tombstone_continuation_link">השיחה נמשכת כאן</string>
-    <string name="room_tombstone_versioned_description">חדר זה הוחלף ואינו פעיל יותר.</string>
     <string name="error_empty_field_your_password">אנא הזינו את סיסמה שלכם.</string>
     <string name="error_empty_field_enter_user_name">אהא הזינו שם משתמש.</string>
     <string name="deactivate_account_submit">השבת חשבון</string>
@@ -614,8 +586,6 @@
     <string name="has_been_banned">חסום על ידי %2$s מ- %1$s</string>
     <string name="invited">הוזמנו</string>
     <string name="rooms">חדרים</string>
-    <string name="group_details_home">בית</string>
-    <string name="create">צור</string>
     <string name="encrypted_message">הודעה מוצפנת</string>
     <string name="notification_noisy">רועש</string>
     <string name="notification_silent">שקט</string>
@@ -755,7 +725,6 @@
     <string name="settings_developer_mode">מצב מפתח</string>
     <string name="settings_advanced_settings">הגדרות מתקדמות</string>
     <string name="notification_initial_sync">סנכרון ראשוני …</string>
-    <string name="bug_report_error_too_short">התיאור קצר מדי</string>
     <string name="permalink_malformed">הקישור שלך ל- matrix.to היה תקין</string>
     <string name="soft_logout_sso_not_same_user_error">ההפעלה הנוכחית מיועדת למשתמש %1$s ואתה מספק אישורי משתמש %2$s. זה אינו נתמך על ידי אלמנט.
 \nראשית נקה נתונים ואז היכנס שוב לחשבון אחר.</string>
@@ -800,8 +769,6 @@
     <string name="login_terms_title">קבל תנאים להמשך</string>
     <string name="login_a11y_captcha_container">אנא בצע את אתגר ה- captcha</string>
     <string name="login_a11y_choose_other">בחר שרת בית מותאם אישית</string>
-    <string name="login_a11y_choose_modular">בחר שירותי מטריקס אלמנט</string>
-    <string name="login_a11y_choose_matrix_org">בחר matrix.org</string>
     <string name="login_signup_cancel_confirmation_content">חשבונך טרם נוצר. להפסיק את תהליך ההרשמה\?</string>
     <string name="login_signup_cancel_confirmation_title">אזהרה</string>
     <string name="login_signup_error_user_in_use">שם המשתמש הזה תפוס</string>
@@ -908,25 +875,6 @@
     <string name="room_list_quick_actions_notifications_all">כל ההודעות</string>
     <string name="room_list_quick_actions_notifications_all_noisy">כל ההודעות (רועשות)</string>
     <string name="message_ignore_user">התעלם ממשתמש זה</string>
-    <string name="content_reported_as_inappropriate_content">תוכן זה דווח כבלתי הולם.
-\n
-\nאם אינך רוצה לראות תוכן נוסף ממשתמש זה, תוכל להתעלם ממנו כדי להסתיר את ההודעות שלו.</string>
-    <string name="content_reported_as_inappropriate_title">דווח כבלתי הולם</string>
-    <string name="content_reported_as_spam_content">תוכן זה דווח כספאם.
-\n
-\nאם אינך רוצה לראות תוכן נוסף ממשתמש זה, תוכל להתעלם ממנו כדי להסתיר את ההודעות שלו.</string>
-    <string name="content_reported_as_spam_title">דווח כספאם</string>
-    <string name="content_reported_content">תוכן זה דווח.
-\n
-\nאם אינך רוצה לראות תוכן נוסף ממשתמש זה, תוכל להתעלם ממנו כדי להסתיר את ההודעות שלו.</string>
-    <string name="content_reported_title">תוכן מדווח</string>
-    <string name="block_user">התעלם ממשתמש</string>
-    <string name="report_content_custom_submit">דיווח</string>
-    <string name="report_content_custom_hint">סיבה לדיווח על תוכן זה</string>
-    <string name="report_content_custom_title">דווח על תוכן זה</string>
-    <string name="report_content_custom">דוח מותאם אישית …</string>
-    <string name="report_content_inappropriate">זה לא הולם</string>
-    <string name="report_content_spam">זה ספאם</string>
     <string name="uploads_files_no_result">אין קבצים בחדר זה</string>
     <string name="uploads_files_subtitle">%1$s ב- %2$s</string>
     <string name="uploads_files_title">קבצים</string>
@@ -938,7 +886,6 @@
     <string name="attachment_type_sticker">מדבקה</string>
     <string name="attachment_type_gallery">גלריה</string>
     <string name="attachment_type_camera">מצלמה</string>
-    <string name="attachment_type_contact">איש קשר</string>
     <string name="attachment_type_file">קובץ</string>
     <string name="attachment_type_dialog_title">הוסף תמונה מ</string>
     <string name="one_user_read">%s נקרא</string>
@@ -951,7 +898,6 @@
     <string name="a11y_create_menu_close">סגור את תפריט החדר ליצור …</string>
     <string name="a11y_create_menu_open">פתח את תפריט יצירת החדר</string>
     <string name="a11y_open_drawer">פתח את מגירת הניווט</string>
-    <string name="send_attachment">שלח קובץ מצורף</string>
     <string name="error_network_timeout">נראה שלוקח יותר מדי זמן להגיב לשרת, זה יכול להיגרם מקישוריות לקויה או משגיאה בשרת. נסה שוב בעוד זמן מה.</string>
     <string name="error_terms_not_accepted">אנא נסה שוב לאחר שתקבל את התנאים וההגבלות של שרת הבית שלך.</string>
     <string name="labs_allow_extended_logging_summary">יומני מילוליות יסייעו למפתחים על ידי אספקת יומנים נוספים כאשר אתה שולח RageShake. גם כאשר הוא מופעל, היישום אינו רושם תוכן הודעה או נתונים פרטיים אחרים.</string>
@@ -1012,9 +958,6 @@
     <string name="bottom_action_people_x">הודעות ישירות</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">הצג היסטוריה מלאה בחדרים מוצפנים</string>
     <string name="settings_labs_show_hidden_events_in_timeline">הצג אירועים מוסתרים בציר הזמן</string>
-    <string name="send_suggestion_failed">ההצעה לא נשלחה (%s)</string>
-    <string name="send_suggestion_report_placeholder">תאר כאן את הצעתך</string>
-    <string name="send_suggestion_content">אנא כתוב את הצעתך למטה.</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">הרשמת אסימון</string>
     <string name="preference_root_help_about">עזרה ואודות</string>
     <string name="preference_voice_and_video">קול ווידאו</string>
@@ -1128,8 +1071,6 @@
     <string name="warning_room_not_created_yet">החדר עדיין לא נוצר. לבטל את יצירת החדר\?</string>
     <string name="universal_link_malformed">הקישור היה לקוי</string>
     <string name="qr_code_not_scanned">קוד QR לא נסרק!</string>
-    <string name="invalid_qr_code_uri">קוד QR לא חוקי (URI לא חוקי)!</string>
-    <string name="cannot_dm_self">לא ניתן לשלוח הודעה ישירה לעצמך!</string>
     <string name="share_by_text">שתף לפי טקסט</string>
     <string name="room_error_not_found">לא יכול למצוא את החדר הזה. וודא שהוא קיים.</string>
     <string name="error_opening_banned_room">לא ניתן לפתוח חדר בו נחסמת.</string>
@@ -1146,8 +1087,6 @@
     <string name="settings_secure_backup_section_title">גיבוי מאובטח</string>
     <string name="settings_show_emoji_keyboard_summary">הוסף לחצן במלחין ההודעות כדי לפתוח מקלדת אימוג\'י</string>
     <string name="settings_show_emoji_keyboard">הצג מקלדת אימוג\'י</string>
-    <string name="settings_chat_effects_description">השתמש בפקודה / confetti או שלח הודעה המכילה ❄️ או 🎉</string>
-    <string name="settings_chat_effects_title">הצג אפקטים של צ\'אט</string>
     <string name="settings_troubleshoot_diagnostic_running_status">פועל … (%1$d מתוך%2$d)</string>
     <string name="room_permissions_change_topic">שנה נושא שיחה</string>
     <string name="room_permissions_upgrade_the_room">שדרג את החדר</string>
@@ -1174,7 +1113,6 @@
     <string name="room_participants_leave_private_warning">חדר זה אינו ציבורי. לא תוכל להצטרף שוב ללא הזמנה.</string>
     <string name="bottom_action_people">אנשים</string>
     <string name="bottom_action_favourites">מועדפים</string>
-    <string name="system_theme">ברירת מחדל מערכת</string>
     <string name="room_member_jump_to_read_receipt">קפצו לקבלת קריאה</string>
     <string name="room_member_open_or_create_dm">הודעה ישירה</string>
     <string name="room_member_power_level_default_in">ברירת מחדל ב-%1$s</string>
@@ -1277,10 +1215,7 @@
     <string name="e2e_use_keybackup">בטל את נעילת היסטוריית ההודעות המוצפנות</string>
     <string name="settings_export_trail">ייצוא ביקורת</string>
     <string name="settings_key_requests">בקשות מפתח</string>
-    <string name="login_default_session_public_name">אלמנט אנדרואיד</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">המפתחות כבר מעודכנים!</string>
-    <string name="delete_event_dialog_reason_checkbox">כלול סיבה</string>
-    <string name="share_confirm_room">האם אתה רוצה לשלוח את הקובץ המצורף ל- %1$s\?</string>
     <string name="enter_secret_storage_invalid">לא ניתן למצוא סודות באחסון</string>
     <string name="verification_use_passphrase">אם אינך יכול לגשת להפעלה קיימת</string>
     <string name="verification_cannot_access_other_session">השתמש בביטוי סיסמה או מפתח שחזור</string>
@@ -1367,7 +1302,6 @@
     <string name="unignore">בטל התעלמות</string>
     <string name="rendering_event_error_exception">אלמנט נתקל בבעיה בעת הצגת תוכן האירוע עם המזהה \'%1$s\'</string>
     <string name="devices_details_last_seen_format">%1$s @ %2$s</string>
-    <string name="command_confetti">שולח את ההודעה הנתונה עם קונפטי</string>
     <string name="secure_backup_reset_no_history">תתחיל מחדש ללא היסטוריה, ללא הודעות, מכשירים מאומתים או משתמשים מאומתים</string>
     <string name="secure_backup_reset_if_you_reset_all">אם תאפס הכל</string>
     <string name="secure_backup_reset_all_no_other_devices">עשה זאת רק אם אין לך מכשיר אחר שאיתו תוכל לאמת מכשיר זה.</string>
@@ -1415,7 +1349,6 @@
     <string name="settings_when_rooms_are_upgraded">כאשר משודרגים חדרים</string>
     <string name="settings_messages_in_e2e_group_chat">הודעות מוצפנות בצ\'אטים קבוצתיים</string>
     <string name="settings_messages_in_e2e_one_to_one">הודעות מוצפנות בצ\'אטים אחד לאחד</string>
-    <string name="settings_messages_at_room">הודעות המכילות @room</string>
     <string name="settings_notification_configuration">תצורת התראות</string>
     <string name="error_failed_to_import_keys">ייבוא המפתחות נכשל</string>
     <string name="qr_code_scanned_verif_waiting">ממתין ל-%s …</string>
@@ -1522,11 +1455,6 @@
     <string name="bottom_sheet_setup_secure_backup_security_phrase_title">השתמש בביטוי אבטחה</string>
     <string name="bottom_sheet_setup_secure_backup_security_key_subtitle">צור מפתח אבטחה כדי לאחסן מקום בטוח כמו מנהל סיסמאות או כספת.</string>
     <string name="bottom_sheet_setup_secure_backup_title">הגדר גיבוי מאובטח</string>
-    <string name="a11y_start_camera">הפעל את המצלמה</string>
-    <string name="a11y_stop_camera">עצור את המצלמה</string>
-    <string name="a11y_unmute_microphone">בטל את ההשתקה של המיקרופון</string>
-    <string name="a11y_mute_microphone">השתק את המיקרופון</string>
-    <string name="a11y_open_chat">פתח צ\'אט</string>
     <string name="power_level_title">תַפְקִיד</string>
     <string name="power_level_edit_title">הגדר תפקיד</string>
     <string name="identity_server_set_alternative_submit">שלח</string>
@@ -1547,9 +1475,7 @@
     <string name="choose_locale_loading_locales">טוען שפות זמינות …</string>
     <string name="choose_locale_other_locales_title">שפות זמינות אחרות</string>
     <string name="choose_locale_current_locale_title">שפה נוכחית</string>
-    <string name="user_code_info_text">שתף את הקוד הזה עם אנשים כדי שיוכלו לסרוק אותו כדי להוסיף אותך ולהתחיל לשוחח.</string>
     <string name="user_code_my_code">הקוד שלי</string>
-    <string name="user_code_scan">סרוק קוד QR</string>
     <string name="invite_users_to_room_failure">לא יכולנו להזמין משתמשים. אנא בדוק את המשתמשים שברצונך להזמין ונסה שוב.</string>
     <plurals name="invitations_sent_to_one_and_more_users">
         <item quantity="one">הזמנות נשלחו אל%1$s ואחד נוסף</item>
@@ -1557,7 +1483,6 @@
         <item quantity="many">הזמנות נשלחו אל%1$s ואחרים</item>
         <item quantity="other">הזמנות נשלחו אל%1$s ואחריםה</item>
     </plurals>
-    <string name="not_a_valid_qr_code">זה לא קוד QR מטריציוני תקף</string>
     <string name="invitations_sent_to_two_users">הזמנות נשלחו אל%1$s ו-%2$s</string>
     <string name="invitation_sent_to_one_user">ההזמנה נשלחה אל%1$s</string>
     <string name="invite_friends_rich_title">🔐️ הצטרפו אלי באלמנט</string>
@@ -1587,9 +1512,6 @@
     <string name="verify_this_session">אמת את הכניסה החדשה שניגשת לחשבונך: %1$s</string>
     <string name="encrypted_unverified">מוצפן על ידי מכשיר לא מאומת</string>
     <string name="unencrypted">לא מוצפן</string>
-    <string name="default_message_emote_snow">שולח שלג ❄️</string>
-    <string name="default_message_emote_confetti">שולח קונפטי 🎉</string>
-    <string name="user_code_share">שתף את הקוד שלי</string>
     <string name="add_members_to_room">הוסף משתמשים</string>
     <string name="confirm_your_identity">אשר את זהותך על ידי אימות התחברות זו מאחד מהפגישות האחרות שלך, והעניק לה גישה להודעות מוצפנות.</string>
     <string name="notice_made_future_room_visibility_by_you">הפכת את היסטוריית החדר העתידית לגלויה ל %1$s</string>
@@ -1668,7 +1590,6 @@
     <string name="notice_room_invite_no_invitee_with_reason_by_you">ההזמנה שלך. סיבה: %1$s</string>
     <string name="notice_room_invite_no_invitee_with_reason">ההזמנה של %1$s. סיבה: %2$s</string>
     <string name="event_status_sending_message">הודעה נשלחת…</string>
-    <string name="event_status_sent_message">הודעה נשלחה</string>
     <string name="initial_sync_start_importing_account_data">סנכרון ראשוני:
 \nייבוא נתוני חשבון</string>
     <string name="initial_sync_start_importing_account_left_rooms">סנכרון ראשוני:
@@ -1766,12 +1687,10 @@
     <string name="poll_response_room_list_preview">נא הצביעו.</string>
     <string name="tooltip_attachment_location">שתף מיקום</string>
     <string name="tooltip_attachment_poll">צור סקר</string>
-    <string name="tooltip_attachment_contact">פתח אנשי קשר</string>
     <string name="tooltip_attachment_sticker">שלח סטיקר</string>
     <string name="tooltip_attachment_file">העלה קובץ</string>
     <string name="tooltip_attachment_gallery">שלח תמונות וסרטונים</string>
     <string name="tooltip_attachment_photo">פתח מצלמה</string>
-    <string name="message_bubbles">הצג בועות הודעה</string>
     <string name="location_timeline_failed_to_load_map">טעינת המפה נכשלה</string>
     <string name="location_share_external">פתח באמצעות</string>
     <string name="location_not_available_dialog_content">${app_name} לא הצליח לגשת למיקום שלך. אנא נסה שוב מאוחר יותר.</string>
@@ -1791,7 +1710,6 @@
     <string name="shortcut_disabled_reason_room_left">החדר הוצא!</string>
     <string name="room_settings_none">אף אחד</string>
     <string name="room_settings_mention_and_keyword_only">אזכורים ומילות מפתח בלבד</string>
-    <string name="search_thread_from_a_thread">מתוך שרשור</string>
     <string name="thread_list_empty_notice">טיפ: הקש ארוכות על הודעה והשתמש ב-\"%s\".</string>
     <string name="thread_list_empty_subtitle">שרשורים עוזרים לשמור על השיחות שלך בנושא וקל למעקב.</string>
     <string name="thread_list_empty_title">שמור על דיונים מאורגנים באמצעות שרשורים</string>
@@ -1831,8 +1749,6 @@
     <string name="action_thread_copy_link_to_thread">העתק קישור לשרשור</string>
     <string name="action_thread_view_in_room">צפיה בחדר</string>
     <string name="action_not_now">לא כעת</string>
-    <string name="action_enable">אפשר</string>
-    <string name="action_switch">החלף</string>
     <string name="action_view_threads">הצג שרשורים</string>
     <string name="missing_permissions_title">חסרות הרשאות</string>
     <string name="denied_permission_camera">כדי לבצע פעולה זו, אנא הענק למצלמה הרשאה מהגדרות המערכת.</string>
@@ -1938,7 +1854,6 @@
     <string name="a11y_image">תמונה</string>
     <string name="a11y_import_key_from_file">ייבוא מפתחות מהקובץ</string>
     <string name="a11y_open_widget">פתח יישומונים</string>
-    <string name="a11y_screenshot">צילום מסך</string>
     <string name="authentication_error">האימות נכשלה</string>
     <string name="re_authentication_default_confirm_text">${app_name} כדי לבצע פעולה זו נדורש להזין את פרטי התחברות שלך.</string>
     <string name="re_authentication_activity_title">יש צורך באימות מחדש</string>
@@ -1968,10 +1883,6 @@
     <string name="send_file_step_compressing_video">דוחס וידאו %d%%</string>
     <string name="send_file_step_compressing_image">דוחס תמונה …</string>
     <string name="give_feedback">תן משוב</string>
-    <string name="feedback_failed">שליחת המשוב נכשלה (%s)</string>
-    <string name="you_may_contact_me">אתה יכול לצור איתי קשר במידה ויהיו לך שאלות המשך</string>
-    <string name="send_feedback_space_info">הינך משתמש בגירסת נסיון של מרחבים. המשוב שלך ישמש לעידכון גהגרסאות הבאות. פרטי המערכת ושם המשתמש ירשמו כדי שנוכל להשתמש במשוב שלך בצורה מיטבית.</string>
-    <string name="feedback">משוב</string>
     <string name="end_poll_confirmation_approve_button">סוף המשאל</string>
     <string name="end_poll_confirmation_description">פעולה זו תעצור את האפשרות להצביע ותציג את תוצאות המשאל.</string>
     <string name="end_poll_confirmation_title">סוף המשאל\?</string>
@@ -1993,8 +1904,6 @@
     <string name="settings_encrypted_group_messages">הודעות קבוצה מוצפנות</string>
     <string name="settings_messages_direct_messages">הודעות ישירות</string>
     <string name="settings_room_upgrades">שידרוגי חדר</string>
-    <string name="settings_messages_containing_display_name">השם המוצג שלי</string>
-    <string name="settings_messages_containing_username">שם המשתמש שלי</string>
     <string name="settings_room_invitations">הזמנות לחדר</string>
     <string name="settings_messages_containing_keywords">מילות מפתח</string>
     <string name="invite_to_space">הזמן אל %s</string>
@@ -2012,30 +1921,14 @@
     <string name="create_spaces_room_public_header">איזה דיונים אתה רוצה לקיים ב-%s\?</string>
     <string name="create_space_error_empty_field_space_name">תן לזה שם כדי להמשיך.</string>
     <string name="create_spaces_details_private_header">הוסף כמה פרטים כדי לשפר לזיהוי. אתה יכול לשנות את זה בכל שלב.</string>
-    <string name="create_spaces_details_public_header">הוסף כמה פרטים כדי לבלוט. אתה יכול לשנות את זה בכל שלב.</string>
     <string name="activity_create_space_title">צור מרחב</string>
-    <string name="space_type_private_desc">הזמן רק, הכי טוב לעצמך או לצוותים שלך</string>
     <string name="space_type_private">פְּרָטִי</string>
-    <string name="space_type_public_desc">פתוח לכל אחד, הכי מתאים לקהילות</string>
-    <string name="space_type_public">צִבּוּרִי</string>
-    <string name="create_spaces_private_teammates">מרחב פרטי עבורך ועבור חברי הצוות שלך</string>
-    <string name="create_spaces_me_and_teammates">אני וחברי הצוות</string>
-    <string name="create_spaces_organise_rooms">מרחב פרטי לארגון החדרים שלך</string>
-    <string name="create_spaces_just_me">רק אני</string>
-    <string name="create_spaces_make_sure_access">ודא שלאנשים הנכונים יש גישה אל %s.</string>
-    <string name="create_spaces_who_are_you_working_with">עם מי אתה עובד\?</string>
-    <string name="create_spaces_join_info_help">כדי להצטרף למרחב קיים, אתה צריך הזמנה.</string>
-    <string name="create_spaces_you_can_change_later">אתה יכול לשנות את זה מאוחר יותר</string>
-    <string name="create_spaces_choose_type_label">איזה סוג מרחב אתה רוצה ליצור\?</string>
-    <string name="your_private_space">המרחב הפרטי שלך</string>
-    <string name="your_public_space">המרחב הציבורי שלך</string>
     <string name="add_space">הוספת מרחב</string>
     <string name="private_space">מרחב אישי</string>
     <string name="public_space">מרחב ציבורי</string>
     <string name="event_status_delete_all_failed_dialog_message">האם אתה בטוח שברצונך למחוק את כל ההודעות שלא נשלחו בחדר הזה\?</string>
     <string name="event_status_delete_all_failed_dialog_title">מחק הודעות שלא נשלחו</string>
     <string name="event_status_failed_messages_warning">שליחת ההודעות נכשלה</string>
-    <string name="event_status_cancel_sending_dialog_message">האם ברצונך לבטל את שליחת ההודעה\?</string>
     <string name="event_status_a11y_delete_all">מחק את כל ההודעות שנכשלו</string>
     <string name="event_status_a11y_failed">נִכשָׁל</string>
     <string name="event_status_a11y_sent">נשלח</string>
@@ -2048,7 +1941,6 @@
     <string name="dev_tools_event_content_hint">תוכן האירוע</string>
     <string name="dev_tools_success_state_event">מצב האירוע נשלח!</string>
     <string name="dev_tools_success_event">האירוע נשלח!</string>
-    <string name="dev_tools_error_malformed_event">אירוע שגוי</string>
     <string name="dev_tools_error_no_message_type">חסר סוג הודעה</string>
     <string name="dev_tools_error_no_content">אין תוכן</string>
     <string name="dev_tools_form_hint_event_content">תוכן האירוע</string>
@@ -2087,8 +1979,6 @@
     <string name="space_mark_as_suggested">סמן כמוצע</string>
     <string name="looking_for_someone_not_in_space">מחפש מישהו שאינו ב-%s\?</string>
     <string name="user_invites_you">%s מזמין אותך</string>
-    <string name="labs_auto_report_uisi_desc">המערכת שלך תשלח אוטומטית יומנים כאשר מתרחשת שגיאה ללא יכולת לפענח</string>
-    <string name="labs_auto_report_uisi">דווח אוטומטית על שגיאות פענוח.</string>
     <string name="you_are_invited">אתם מוזמנים</string>
     <string name="space_add_space_to_any_space_you_manage">הוסף מרחב לכל מרחב שאתה מנהל.</string>
     <string name="space_add_existing_spaces">הוסף מרחבים קיימים</string>
@@ -2155,7 +2045,6 @@
     <string name="settings_discovery_hide_identity_server_policy_title">הסתר מדיניות שרת הזדהות</string>
     <string name="settings_discovery_show_identity_server_policy_title">הראה מדיניות שרת הזדהות</string>
     <string name="open_discovery_settings">פתח את הגדרות גילוי</string>
-    <string name="send_feedback_space_title">משוב על מרחבים</string>
     <string name="preference_system_settings">הגדרות מערכת</string>
     <string name="preference_versions">גרסאות</string>
     <string name="preference_help_summary">קבלת עזרה בשימוש ${app_name}</string>
@@ -2171,9 +2060,6 @@
     <string name="command_description_room_avatar">משנה את האווטר בחדר הנוכחי</string>
     <string name="command_description_nick_for_room">משנה את הכינוי בחדר הנוכחי בלבד</string>
     <string name="command_not_supported_in_threads">הפקודה \"%s\" מזוהה אך אינה נתמכת.</string>
-    <string name="analytics_opt_in_content">עזרו לנו לזהות ולשפר את ${app_name} על ידי שיתוף השימוש בצורה אנונימי. להבנת השימוש של אנשים במכשירים שונים , אנחנו נחולל מזהה אקראי , אשר ישותף על ידי המכשירים שלך .
-\n
-\n ניתן לקרוא את כל התנאים %s.</string>
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="one">התוצאה הסופית מתבססת על הצבעה %1$d</item>
         <item quantity="two">התוצאות הסופיות מתבססות על %1$d הצבעות</item>
@@ -2183,8 +2069,6 @@
     <string name="decide_which_spaces_can_access">החליטו אילו מרחבים יכולים לגשת לחדר זה. אם מרחב נבחר חבריו יוכלו למצוא את שם החדר ולהצטרף אליו.</string>
     <string name="room_create_member_of_space_name_can_join">חברים במרחב %s יכולים למצוא , לצפות ולהצטרף.</string>
     <string name="room_settings_room_access_restricted_description">כל מי שנמצא במרחב עם החדר הזה יכול למצוא אותו ולהצטרף אליו. רק מנהלי חדר זה יכולים להוסיף אותו למרחב.</string>
-    <string name="analytics_opt_in_list_item_2">אנחנו <b> לא </b> משתפים מידע עם חברות צד שלישי</string>
-    <string name="analytics_opt_in_list_item_1">אנחנו <b> לא</b> מקליטים או עושים פרופיל מנתוני החשבון</string>
     <string name="command_description_unignore_user">הפסק להתעלם ממשתמש , אשר הודעותיו נראות</string>
     <string name="command_description_room_name">הגדר את שם החדר</string>
     <string name="command_description_ignore_user">מתעלם ממשתמש, מסתיר ממך את ההודעות שלו</string>
@@ -2221,9 +2105,6 @@
     <string name="legals_identity_server_title">מדיניות שרת הזהות שלך</string>
     <string name="legals_home_server_title">מדיניות שרת הבית שלך</string>
     <string name="legals_application_title">מדיניות ${app_name}</string>
-    <string name="analytics_opt_in_list_item_3">אתה יכול לכבות את זה בכל עת בהגדרות</string>
-    <string name="analytics_opt_in_content_link">כאן</string>
-    <string name="analytics_opt_in_title">עזור לשפר את ${app_name}</string>
     <string name="settings_mentions_and_keywords_encryption_notice">לא תתקבלנה התראות על מילים המוזכרות בחדרים מוצפנים בטלפון הנייד.</string>
     <string name="settings_messages_by_bot">הודעות על ידי בוט</string>
     <string name="settings_mentions_at_room">חדר@</string>
@@ -2266,7 +2147,6 @@
     </plurals>
     <string name="encryption_misconfigured">ההצפנה מוגדרת בצורה שגויה</string>
     <string name="threads_notice_migration_title">שרשורים מתקרבים לגרסת ביטא 🎉</string>
-    <string name="send_images_and_video_with_original_size">שלח את המדיה בגודלה המקורי</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">שלח סרט וידאו בגודל המקורי</item>
         <item quantity="two">שלח שני סרטי וידאו בגודל המקורי</item>
@@ -2282,7 +2162,6 @@
     <string name="settings_server_upload_size_title">מגבלת העלאת קובץ לשרת</string>
     <string name="settings_server_version">גרסת שרת</string>
     <string name="settings_server_name">שם שרת</string>
-    <string name="room_member_override_nick_color">דריסת צבע שם תצוגה</string>
     <string name="room_profile_section_restore_security">שחזור הצפנה</string>
     <string name="contact_admin_to_restore_encryption">אנא צור קשר עם מנהל המערכת לשחזור ההצפנה למצב תקין .</string>
     <string name="unnamed_room">חדר ללא שם</string>

@@ -4,24 +4,17 @@
     <!-- Accent colors -->
     <color name="accent_sc">#8BC34A</color>
     <color name="accent_sc_alpha25">#3F8BC34A</color>
-    <color name="accent_sc_alpha12">#1E8BC34A</color>
     <color name="accent_sc_noalpha12">#edf4e6</color> <!-- same as accent_sc_alpha12 when displayed on #fafafa -->
-    <color name="accent_sc_dark">#689F38</color>
     <color name="accent_sc_50">#F1F8E9</color>
-    <color name="accent_sc_100">#DCEDC8</color>
-    <color name="accent_sc_200">#C5E1A5</color>
     <color name="accent_sc_300">#AED581</color>
     <color name="accent_sc_900">#33691E</color>
     <color name="accent_sc_pale">@color/accent_sc_300</color>
-    <color name="direct_chat_ring_color_sc">@color/accent_sc_dark</color>
 
     <!-- Blue accent for notifications, unread marker, links -->
     <color name="sc_blue">#2196F3</color>
     <color name="sc_blue_alpha25">#402196F3</color>
 
     <!-- Username/avatar colors -->
-    <color name="avatar_fill_sc_1">@color/accent_sc</color>
-    <color name="username_sc_1">@color/accent_sc</color>
 
     <!-- Dark theme text/foreground colors -->
     <color name="text_color_primary_sc">#ffffff</color>
@@ -44,14 +37,12 @@
     <color name="text_color_primary_sc_light">#de000000</color>
     <color name="text_color_secondary_sc_light">#8a000000</color>
     <color name="text_color_tertiary_sc_light">#4c000000</color>
-    <color name="text_color_disabled_sc_light">#4c000000</color>
 
     <!-- Light theme background colors -->
     <color name="background_sc_light_bright">#ffffffff</color>
     <color name="background_sc_light">#fffafafa</color>
     <color name="background_sc_light_secondary">#ffeeeeee</color>
     <color name="background_sc_light_toolbar">#fff5f5f5</color>
-    <color name="background_sc_light_statusbar">#ffe0e0e0</color>
     <color name="background_floating_sc_light">#ffffffff</color>
     <color name="background_touch_guard_sc_light">#61000000</color>
 
@@ -97,13 +88,6 @@
 
     <!-- Exposed Element colors -->
     <!-- This is actually not an SC color, but the one found in element for ic_material_play_circle PNGs -->
-    <color name="element_accent_pale">#76cfa6</color>
-    <color name="user_color_element_pl_100">@color/palette_polly</color>
-    <color name="user_color_element_pl_95">@color/palette_grape</color>
-    <color name="user_color_element_pl_51">@color/palette_azure</color>
-    <color name="user_color_element_pl_50">@color/palette_azure</color>
-    <color name="user_color_element_pl_1">@color/palette_kiwi</color>
-    <color name="user_color_element_pl_0">@color/palette_element_green</color>
 
     <color name="sc_alert">#E53935</color>
     <color name="sc_alert_light">@color/sc_alert</color>

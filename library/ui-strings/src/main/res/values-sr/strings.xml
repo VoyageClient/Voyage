@@ -269,7 +269,6 @@
     <string name="matrix_only_filter">Само Матрикс контакти</string>
     <string name="no_result_placeholder">Нема резултата</string>
     <string name="rooms_header">Собе</string>
-    <string name="send_bug_report_placeholder">Опишите ваш проблем овде</string>
     <string name="join_room">Придружи се соби</string>
     <string name="username">Корисничко име</string>
     <string name="logout">Одјави се</string>
@@ -284,14 +283,11 @@
     <string name="action_delete">Обриши</string>
     <string name="view_decrypted_source">Погледај дешифрован извор</string>
     <string name="view_source">Погледај извор</string>
-    <string name="later">Касније</string>
     <string name="action_download">Преузми</string>
     <string name="action_quote">Цитирај</string>
     <string name="notification_listening_for_events">Ослушкујем догађања</string>
-    <string name="system_theme">системска</string>
     <string name="encrypted_message">Шифрована порука</string>
     <string name="action_play">Пусти</string>
-    <string name="report_content">Пријави садржај</string>
     <string name="action_disconnect">Искључи се</string>
     <string name="action_revoke">Повуци</string>
     <string name="none">Ништа</string>
@@ -299,9 +295,6 @@
     <string name="enter_secret_storage_passphrase_or_key">Употребите %1$s или %2$s да наставите.</string>
     <string name="search">Тражи</string>
     <string name="hs_url">УРЛ домаћег сервера</string>
-    <string name="send_bug_report_include_screenshot">Шаљи снимак екрана</string>
-    <string name="send_bug_report_include_crash_logs">Слање записника грешке</string>
-    <string name="send_bug_report_include_logs">Слање записника</string>
     <string name="no_more_results">Нема више резултата</string>
     <string name="system_alerts_header">Системска упозорења</string>
     <string name="bottom_action_notification">Обавештења</string>
@@ -314,10 +307,6 @@
     <string name="action_invite">Позивница</string>
     <string name="or">или</string>
     <string name="failed_to_remove_widget">Не могу да уклоним виџет</string>
-    <string name="failed_to_add_widget">Не могу да додам виџет</string>
-    <string name="audio_meeting">Почни аудио састанак</string>
-    <string name="video_meeting">Почни видео састанак</string>
-    <string name="start_chatting">Почни ћаскање</string>
     <string name="action_reset">Ресет</string>
     <string name="action_dismiss">Одбаци</string>
     <string name="compression_opt_list_small">Мало</string>
@@ -334,9 +323,6 @@
     <string name="no_sticker_application_dialog_content">Тренутно немате ни један пакет стикера.
 \n
 \nДодати сада неки\?</string>
-    <string name="send_bug_report_description">Опишите грешку. Шта сте урадили\? Шта сте очекивали да се догоди\? Шта се заправо догодило\?</string>
-    <string name="send_bug_report_include_key_share_history">Укључите историју размене кључева</string>
-    <string name="audio_video_meeting_description">Састанци користе Jitsi безбедносне и допунске политике. Сви људи тренутно у соби видеће позив да се придруже састанку.</string>
     <string name="auth_reset_password_error_unauthorized">Није успело верификовати имејл адресу: обавезно кликните на линк из примљеног имејла</string>
     <string name="auth_recaptcha_message">Овај кућни сервер жели да се увери да нисте робот</string>
     <string name="auth_forgot_password">Заборавили сте лозинку\?</string>
@@ -346,18 +332,12 @@
     <string name="auth_invalid_login_param">Нетачно корисничко име и/или лозинка</string>
     <string name="error_no_external_application_found">Нажалост, ни једна спољна апликација није нађена да би испунила ову акцију.</string>
     <string name="option_send_files">Послати датотеке</string>
-    <string name="sound_device_wireless_headset">Бежичне слушалице</string>
-    <string name="sound_device_headset">Слушалице</string>
-    <string name="sound_device_speaker">Звучници</string>
-    <string name="sound_device_phone">Телефон</string>
     <string name="option_send_voice">Пошаљи гласовну поруку</string>
-    <string name="send_bug_report_description_in_english">Ако је могуће, молим вас напишите опис на енглеском језику.</string>
     <string name="settings_room_directory_show_all_rooms_summary">Прикажи све собе у директорију собе, укључујући собе са експлицитним садржајем.</string>
     <string name="settings_room_directory_show_all_rooms">Прикажи собе са експлицитним садржајем</string>
     <string name="settings_category_room_directory">Директоријум собе</string>
     <string name="home_filter_placeholder_home">Филтрирати имена собе</string>
     <string name="dialog_edit_hint">Нова вредност</string>
-    <string name="action_switch">Променити</string>
     <string name="permalink">ТрајнаВеза</string>
     <string name="initial_sync_start_downloading">Почетна синхронизација:
 \nПреузимање података…</string>
@@ -428,7 +408,6 @@
     <string name="no">НЕ</string>
     <string name="yes">ДА</string>
     <string name="permissions_denied_add_contact">Дозволите приступ вашим контактима.</string>
-    <string name="permissions_denied_qr_code">Да бисте скенирали QR кôд, морате дозволити приступ камеру.</string>
 
 
     <string name="permissions_rationale_popup_title">Информација</string>

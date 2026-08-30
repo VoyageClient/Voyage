@@ -88,13 +88,11 @@
     <string name="action_send">Bidali</string>
     <string name="action_quote">Aipua</string>
     <string name="action_share">Partekatu</string>
-    <string name="later">Geroago</string>
     <string name="permalink">Esteka iraunkorra</string>
     <string name="view_source">Ikusi iturburua</string>
     <string name="view_decrypted_source">Ikusi deszifratutako iturburua</string>
     <string name="action_delete">Ezabatu</string>
     <string name="action_rename">Aldatu izena</string>
-    <string name="report_content">Salatu edukia</string>
     <string name="or">edo</string>
     <string name="action_invite">Gonbidatu</string>
     <string name="action_sign_out">Amaitu saioa</string>
@@ -115,12 +113,6 @@
     <string name="matrix_only_filter">Matrixeko kontaktuak besterik ez</string>
     <string name="no_result_placeholder">Emaitzarik ez</string>
     <string name="rooms_header">Gelak</string>
-    <string name="send_bug_report_include_logs">Bidali egunkariak</string>
-    <string name="send_bug_report_include_crash_logs">Bidali kraskatze egunkariak</string>
-    <string name="send_bug_report_include_screenshot">Bidali pantaila-argazkia</string>
-    <string name="send_bug_report_description">Azaldu akatsa. Zer egin duzu? Zer espero zenuen? Zer gertatu da benetan?</string>
-    <string name="send_bug_report_placeholder">Azaldu zure arazoa hemen</string>
-    <string name="send_bug_report_logs_description">Akatsak aztertzeari begira, bezero honen egunkariak arazte-txosten honekin batera bidaliko dira. Arazte-txosten hau, egunkariak eta pantaila-argazkia barne, ez dira publikoki ikusgai egongo. Goiko testua besterik ez baduzu bidali nahi, desmarkatu:</string>
     <string name="join_room">Elkartu gelara</string>
     <string name="username">Erabiltzaile-izena</string>
     <string name="logout">Amaitu saioa</string>
@@ -145,10 +137,6 @@
     <string name="compression_opt_list_medium">Ertaina</string>
     <string name="compression_opt_list_small">Txikia</string>
     <string name="permissions_rationale_popup_title">Informazioa</string>
-    <string name="permissions_rationale_msg_record_audio">Elementek zure mikrofonoa atzitzeko baimena behar du ahots deiak egin ahal izateko.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">Elementek zure kamera eta mikrofonoa atzitzeko baimenak behar ditu bideo deiak egin ahal izateko.
-
-Baimendu sarbidea hurrengo laster-leihoan deia egin ahal izateko.</string>
     <string name="yes">BAI</string>
     <string name="no">EZ</string>
     <string name="_continue">Jarraitu</string>
@@ -318,8 +306,6 @@ Kontuan izan ekintza honek aplikazioa berrabiaraziko duela eta denbora bat behar
     <string name="room_add_matrix_apps">Gehitu Matrix aplikazioak</string>
     <string name="notification_noisy_notifications">Jakinarazpen zaratatsuak</string>
     <string name="notification_silent_notifications">Jakinarazpen isilak</string>
-    <string name="settings_containing_my_display_name">Nire pantaila-izena duten mezuak</string>
-    <string name="settings_containing_my_user_name">Nire erabiltzaile izena duten mezuak</string>
     <string name="settings_labs_native_camera">Erabili kamera natiboa</string>
     <string name="you_added_a_new_device">\'%s\' saio berria gehitu duzu, eta zifratze-gakoak eskatzen ari da.</string>
     <string name="your_unverified_device_requesting">Egiaztatu gabeko zure \'%s\' saioa zifratze-gakoak eskatzen ari da.</string>
@@ -337,8 +323,6 @@ Kontuan izan ekintza honek aplikazioa berrabiaraziko duela eta denbora bat behar
     <string name="room_settings_add_homescreen_shortcut">Gehitu hasiera pantailako laster-bidea</string>
     <string name="settings_inline_url_preview">URL-en aurrebista</string>
     <string name="settings_vibrate_on_mention">Bibratu erabiltzaile bat aipatzean</string>
-    <string name="create">Sortu</string>
-    <string name="group_details_home">Hasiera</string>
     <string name="rooms">Gelak</string>
     <string name="invited">Gonbidatuta</string>
     <string name="has_been_banned">%1$s gelatik debekatu zaitu %2$s erabiltzaileak</string>
@@ -394,7 +378,6 @@ Matrix-eko mezuen ikusgaitasuna e-mail sistemaren antekoa da. Guk zure mezuak ah
     <string name="option_send_voice">Bidali ahotsa</string>
     <string name="error_no_external_application_found">Ez da ekintza hau burutzeko kanpo aplikaziorik aurkitu.</string>
     <string name="error_empty_field_your_password">Sartu zure pasahitza.</string>
-    <string name="send_bug_report_description_in_english">Ahal dela idatzi deskripzioa ingelesez.</string>
     <string name="settings_preview_media_before_sending">Aurreikusi multimedia bidali aurretik</string>
     <string name="command_description_emote">Ekintza bistaratzen du</string>
     <string name="command_description_ban_user">Debekatu id zehatz bat duen erabiltzailea</string>
@@ -407,8 +390,6 @@ Matrix-eko mezuen ikusgaitasuna e-mail sistemaren antekoa da. Guk zure mezuak ah
     <string name="command_description_nick">Zure pantaila-izena aldatzen du</string>
     <string name="command_description_markdown">Markdown bai/ez</string>
     <string name="command_description_clear_scalar_token">Matrix aplikazioen kudeaketa konpontzeko</string>
-    <string name="room_tombstone_versioned_description">Gela hau ordeztu da eta ez dago jada aktibo</string>
-    <string name="room_tombstone_continuation_link">Elkarrizketak hemen darrai</string>
     <string name="room_tombstone_continuation_description">Gela hau aurreko elkarrizketa baten jarraipena da</string>
     <string name="room_tombstone_predecessor_link">Egin klik hemen mezu zaharragoak ikusteko</string>
     <string name="command_description_deop_user">Id zehatz bat duen erabiltzaileari maila jaisten dio</string>
@@ -716,9 +697,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="preference_voice_and_video">Ahotsa eta bideoa</string>
     <string name="preference_root_help_about">Laguntza eta honi buruz</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Erregistratu token-a</string>
-    <string name="send_suggestion_content">Idatzi zure iradokizuna azpian.</string>
-    <string name="send_suggestion_report_placeholder">Deskribatu zure iradokizuna hemen</string>
-    <string name="send_suggestion_failed">Huts egin su iradokizuna bidaltzean (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Erakutsi ezkutatutako gertaerak denbora lerroan</string>
     <string name="push_gateway_item_app_display_name">aplikazio_pantaila_izena:</string>
     <string name="bottom_action_people_x">Mezu zuzenak</string>
@@ -787,7 +765,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="labs_allow_extended_logging_summary">Amorruz astintzean egunkari xehetsuak bidaltzeak garatzaileei laguntzen diete. Gaituta badago ere, aplikazioak ez ditu mezuen edukiak edo beste datu probaturik gordetzen egunkarian.</string>
     <string name="error_terms_not_accepted">Saiatu berriro zure hasiera-zerbitzariaren erabilera baldintzak onartu eta gero.</string>
     <string name="error_network_timeout">Badirudi zerbitzariak luze hartu duela erantzuteko, hau konexio kaxkar baten ondorioz izan daiteke edo zerbitzarian errore bat dagoelako. Saiatu berriro geroago.</string>
-    <string name="send_attachment">Bidali eranskina</string>
     <string name="a11y_open_drawer">Ireki nabigazio-tiradera</string>
     <string name="a11y_create_menu_open">Ireki gela sortzeko menua</string>
     <string name="a11y_create_menu_close">Itxi gela sortzeko menua…</string>
@@ -803,30 +780,10 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
         <item quantity="other">%d erabiltzailek irakurria</item>
     </plurals>
     <string name="attachment_type_file">Fitxategia</string>
-    <string name="attachment_type_contact">Kontaktua</string>
     <string name="attachment_type_camera">Kamera</string>
     <string name="attachment_type_gallery">Galeria</string>
     <string name="attachment_type_sticker">Eranskailua</string>
     <string name="error_handling_incoming_share">Ezin izan dira partekatutako datuak kudeatu</string>
-    <string name="report_content_spam">Spama da</string>
-    <string name="report_content_inappropriate">Desegokia da</string>
-    <string name="report_content_custom">Salaketa pertsonalizatua…</string>
-    <string name="report_content_custom_title">Salatu eduki hau</string>
-    <string name="report_content_custom_hint">Eduki hau salatzeko arrazoia</string>
-    <string name="report_content_custom_submit">SALATU</string>
-    <string name="block_user">BLOKEATU ERABILTZAILEA</string>
-    <string name="content_reported_title">Edukia salatuta</string>
-    <string name="content_reported_content">Eduki hau salatu da.
-\n
-\nEz baduzu erabiltzaile honen eduki gehiago ikusi nahi, bere mezuak ezkutatzeko blokeatu dezakezu</string>
-    <string name="content_reported_as_spam_title">Spam gisa salatua</string>
-    <string name="content_reported_as_spam_content">Eduki hau spam gisa salatu da.
-\n
-\nEz baduzu erabiltzaile honen eduki gehiago ikusi nahi, bere mezuak ezkutatzeko blokeatu dezakezu</string>
-    <string name="content_reported_as_inappropriate_title">Desegoki gisa salatua</string>
-    <string name="content_reported_as_inappropriate_content">Eduki hau desegoki gisa salatu da.
-\n
-\nEz baduzu erabiltzaile honen eduki gehiago ikusi nahi, bere mezuak ezkutatzeko blokeatu dezakezu</string>
     <string name="settings_integrations">Integrazioak</string>
     <string name="settings_integrations_summary">Erabili integrazio kudeatzaileren bat botak, zubiak, trepetak eta eranskailu multzoak kudeatzeko.
 \nIntegrazio kudeatzaileek konfigurazio datuak jasotzen dituzte, eta trepetak aldatu ditzakete, gelarako gonbidapenak bidali, eta botere mailak zure izenean ezarri.</string>
@@ -949,8 +906,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="login_signup_error_user_in_use">Erabiltzaile-izen hori hartuta dago</string>
     <string name="login_signup_cancel_confirmation_title">Abisua</string>
     <string name="login_signup_cancel_confirmation_content">Zure kontua ez da oraindik sortu. Utzi erregistratze prozesua\?</string>
-    <string name="login_a11y_choose_matrix_org">Hautatu matrix.org</string>
-    <string name="login_a11y_choose_modular">Hautatu Element Matrix Services</string>
     <string name="login_a11y_choose_other">Hautatu hasiera-zerbitzari pertsonalizatu bat</string>
     <string name="login_a11y_captcha_container">Bete captcha erronka</string>
     <string name="login_terms_title">Onartu baldintzak jarraitzeko</string>
@@ -992,7 +947,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="soft_logout_sso_not_same_user_error">Oraingo saioa %1$s erabiltzailearena da eta %2$s erabiltzailearen kredentzialak eman dituzu. ${app_name}-k ez du hau onartzen.
 \nAurretik garbitu datuak, gero hasi saioa berriro beste kontu batekin.</string>
     <string name="permalink_malformed">Zure matrix.to esteka gaizki osatua dago</string>
-    <string name="bug_report_error_too_short">Deskripzio hau laburregia da</string>
     <string name="notification_initial_sync">Lehen sinkronizazioa…</string>
     <string name="settings_advanced_settings">Ezarpen aurreratuak</string>
     <string name="settings_developer_mode">Garatzaile modua</string>
@@ -1123,14 +1077,11 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="verification_cannot_access_other_session">Erabili berreskuratze metodo bat</string>
     <string name="verification_use_passphrase">Ezin baduzu badagoen saio bat erabili</string>
     <string name="enter_secret_storage_invalid">Ezin izan da sekreturik aurkitu biltegian</string>
-    <string name="share_confirm_room">Eranskin hau %1$s gelara bidali nahi duzu\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Bidali irudia jatorrizko tamainan</item>
         <item quantity="other">Bidali irudiak jatorrizko tamainan</item>
     </plurals>
-    <string name="delete_event_dialog_reason_checkbox">Eman arrazoi bat</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Gakoak egunean daude jada!</string>
-    <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Gako eskaerak</string>
     <string name="e2e_use_keybackup">Desblokeatu zifratutako mezuen historiala</string>
     <string name="refresh">Freskatu</string>
@@ -1183,7 +1134,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="qr_code_scanned_verif_waiting">%s itxaroten…</string>
     <string name="error_failed_to_import_keys">Ezin izan dira gakoak inportatu</string>
     <string name="settings_notification_configuration">Jakinarazpenen ezarpena</string>
-    <string name="settings_messages_at_room">\@room duten mezuak</string>
     <string name="settings_messages_in_e2e_one_to_one">Zifratutako mezuak bi pertsonen arteko txatetan</string>
     <string name="settings_messages_in_e2e_group_chat">Zifratutako mezuak talde-txatetan</string>
     <string name="settings_when_rooms_are_upgraded">Gelak eguneratzean</string>

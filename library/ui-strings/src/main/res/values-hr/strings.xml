@@ -27,7 +27,6 @@
     <string name="action_quote">Citiraj</string>
     <string name="action_download">Preuzmi</string>
     <string name="action_share">Podijeli</string>
-    <string name="later">Kasnije</string>
     <string name="permalink">Stalna poveznica</string>
     <string name="view_source">Vidi izvor</string>
     <string name="view_decrypted_source">Vidi dešifrirani izvor</string>
@@ -36,7 +35,6 @@
     <string name="none">Nije podešeno</string>
     <string name="action_revoke">Opozovi</string>
     <string name="action_disconnect">Odspoji se</string>
-    <string name="report_content">Prijavi sadržaj</string>
     <string name="or">ili</string>
     <string name="action_invite">Pozovi</string>
     <string name="action_accept">Prihvati</string>
@@ -66,13 +64,6 @@
     <string name="matrix_only_filter">Samo kontakti u Matrixu</string>
     <string name="no_result_placeholder">Nema rezultata</string>
     <string name="rooms_header">Sobe</string>
-    <string name="send_bug_report_include_logs">Pošalji zapise</string>
-    <string name="send_bug_report_include_crash_logs">Pošalji zapise o rušenju</string>
-    <string name="send_bug_report_include_screenshot">Pošalji sliku zaslona</string>
-    <string name="send_bug_report_description">Opišite grešku. Što ste uradili\? Što ste očekivali da će se dogoditi\? Što se zapravo dogodilo\?</string>
-    <string name="send_bug_report_description_in_english">Ako je moguće, opišite na engleskom.</string>
-    <string name="send_bug_report_placeholder">Ovdje opišite Vaš problem</string>
-    <string name="send_bug_report_logs_description">Kako bi se dijagnosticirali problemi, zapisi iz ove aplikacije bit će poslani zajedno s ovom prijavom greške. Prijava greške, zapisi i slika zaslona neće biti javno vidljivi. Ako biste željeli poslati samo tekst, uklonite kvačicu:</string>
     <string name="join_room">Pridruži se u sobu</string>
     <string name="username">Korisničko ime</string>
     <string name="logout">Odjavi se</string>
@@ -115,10 +106,6 @@
     <string name="compression_opt_list_medium">Srednje</string>
     <string name="compression_opt_list_small">Malo</string>
     <string name="permissions_rationale_popup_title">Informacije</string>
-    <string name="permissions_rationale_msg_record_audio">${app_name} treba dozvolu pristupa Vašem mikrofonu za obavljanje zvučnih poziva.</string>
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} treba dozvolu pristupa Vašoj kameri i mikrofonu za obavljanje video poziva.
-\n
-\nOmogućite pristup putem sljedećih skočnih prozora kako biste mogli uspostaviti poziv.</string>
     <string name="yes">DA</string>
     <string name="no">NE</string>
     <string name="_continue">Nastavi</string>
@@ -249,8 +236,6 @@
     <string name="settings_call_notifications_preferences">Podesi obavijesti o pozivima</string>
     <string name="settings_silent_notifications_preferences">Podesi tihe obavijesti</string>
     <string name="settings_system_preferences_summary">Odaberite boju indikatorske lampice, vibriranje, zvuk…</string>
-    <string name="settings_containing_my_display_name">Poruke koje sadrže moje ime za prikaz</string>
-    <string name="settings_containing_my_user_name">Poruke koje sadrže moje korisničko ime</string>
     <string name="settings_messages_in_one_to_one">Poruke u individualnim razgovorima</string>
     <string name="settings_messages_in_group_chat">Poruke u grupnim razgovorima</string>
     <string name="settings_invited_to_room">Kad sam pozvan/a u sobu</string>
@@ -407,7 +392,6 @@
     <string name="notification_silent">Tiho</string>
     <string name="notification_noisy">Bučno</string>
     <string name="encrypted_message">Šifrirana poruka</string>
-    <string name="create">Formiraj</string>
     <string name="rooms">Sobe</string>
     <string name="invited">Pozvan/a</string>
     <string name="has_been_banned">Korisnik %2$s Vam je zabranio pristup sobi %1$s</string>
@@ -420,8 +404,6 @@
     <string name="deactivate_account_submit">Deaktiviraj račun</string>
     <string name="error_empty_field_enter_user_name">Unesite korisničko ime.</string>
     <string name="error_empty_field_your_password">Unesite Vašu lozinku.</string>
-    <string name="room_tombstone_versioned_description">Ova je soba zamijenjena i više nije aktivna</string>
-    <string name="room_tombstone_continuation_link">Razgovor se ovdje nastavlja</string>
     <string name="room_tombstone_continuation_description">Ova je soba nastavak drugog razgovora</string>
     <string name="room_tombstone_predecessor_link">Ovdje kliknite kako biste vidjeli starije poruke</string>
     <string name="resource_limit_contact_admin">obratite se administratoru Vašeg servisa</string>
@@ -506,7 +488,6 @@
     <string name="labs_allow_extended_logging_summary">Opširni zapisi pomažu razvijateljima u vidu detaljnih informacija kada pošaljete Gnjevno drmanje. Čak i kada su omogućeni, aplikacija ne zapisuje sadržaj poruka ili bilo koje druge privatne podatke.</string>
     <string name="error_terms_not_accepted">Pokušajte ponovno nakon što prihvatite uvjete korištenja Vašeg poslužitelja.</string>
     <string name="error_network_timeout">Čini se da poslužitelju treba previše vremena za odgovor. Mogući uzroci su loša povezivost ili greška na poslužitelju. Kasnije pokušajte ponovno.</string>
-    <string name="send_attachment">Pošalji privitak</string>
     <string name="a11y_open_drawer">Otvori navigacijski pretinac</string>
     <string name="a11y_create_menu_open">Otvori izbornik za izradu soba</string>
     <string name="a11y_create_menu_close">Zatvori izbornik za izradu soba…</string>
@@ -614,7 +595,6 @@
     <string name="room_widget_permission_widget_id">Identitet grafičkog elementa</string>
     <string name="room_widget_permission_room_id">Identitet sobe</string>
     <string name="command_description_clear_scalar_token">Za popravak upravljanja aplikacijama unutar Matrixa</string>
-    <string name="group_details_home">Početna</string>
     <string name="keys_backup_setup_step1_title">Nikada ne izgubite šifrirane poruke</string>
     <string name="keys_backup_setup_step1_description">Poruke u šifriranim sobama su osigurane šifriranjem s kraja na kraj. Samo Vi i primatelj(i) imate ključeve za čitanje ovih poruka.
 \n
@@ -692,7 +672,6 @@
     <string name="login_reset_password_cancel_confirmation_content">Vaša lozinka nije promijenjena.
 \n
 \nŽelite li zaustaviti proces promjene lozinke\?</string>
-    <string name="bug_report_error_too_short">Opis je prekratak</string>
     <string name="command_description_shrug">Ubacuje ¯\\_(ツ)_/¯ prije početka tekstualne poruke</string>
     <string name="verification_verified_user">%s potvrđen/a</string>
     <string name="verification_request_waiting_for">Čekanje na %s…</string>

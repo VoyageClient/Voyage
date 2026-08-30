@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_teal">#008577</color>
-    <color name="accent_sc_light_teal_alpha25">#3f008577</color>
     <color name="accent_sc_light_teal_pale">@color/accent_sc_light_teal</color>
-    <color name="accent_sc_light_teal_dark">@color/accent_sc_light_teal_alpha25</color>
     <color name="accent_sc_light_teal_noalpha12">#e0f0ee</color>
 
 

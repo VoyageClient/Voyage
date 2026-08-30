@@ -4,9 +4,7 @@
     <!-- COLORS -->
 
     <color name="accent_sc_light_yellow">#FBC02D</color>
-    <color name="accent_sc_light_yellow_alpha25">#3fFBC02D</color>
     <color name="accent_sc_light_yellow_pale">@color/accent_sc_light_yellow</color>
-    <color name="accent_sc_light_yellow_dark">@color/accent_sc_light_yellow_alpha25</color>
     <color name="accent_sc_light_yellow_noalpha12">#fef7e5</color>
 
 

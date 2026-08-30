@@ -46,13 +46,11 @@
     <string name="action_send">Enviar</string>
     <string name="action_quote">Citar</string>
     <string name="action_share">Partilhar</string>
-    <string name="later">Depois</string>
     <string name="permalink">Link permanente</string>
     <string name="view_source">Ver fonte</string>
     <string name="view_decrypted_source">Ver o original decifrado</string>
     <string name="action_delete">Apagar</string>
     <string name="action_rename">Renomear</string>
-    <string name="report_content">Denunciar conteúdo</string>
     <string name="or">ou</string>
     <string name="action_invite">Convidar</string>
     <string name="action_sign_out">Sair</string>
@@ -74,12 +72,6 @@
     <string name="no_result_placeholder">Sem resultados</string>
     <string name="rooms_header">Salas</string>
 
-    <string name="send_bug_report_include_logs">Enviar logs</string>
-    <string name="send_bug_report_include_crash_logs">Enviar logs da falha</string>
-    <string name="send_bug_report_include_screenshot">Enviar captura de ecrã</string>
-    <string name="send_bug_report_description">Por favor, descreva o erro (bug). O que fez? O que esperava que acontecesse? O que realmente aconteceu?</string>
-    <string name="send_bug_report_placeholder">Descreva aqui o seu problema</string>
-    <string name="send_bug_report_logs_description">A fim de diagnosticar problemas, registos sobre este cliente serão enviados juntamente com o relatório de erro. Este relatório de erro, incluindo os registos e a captura de ecrã, não serão visíveis publicamente. Se preferir enviar apenas o texto acima, por favor desmarque:</string>
     <string name="join_room">Entrar na sala</string>
     <string name="username">Nome de utilizador</string>
     <string name="logout">Sair</string>
@@ -108,11 +100,7 @@
     <string name="permissions_rationale_popup_title">Informação</string>
 
 
-    <string name="permissions_rationale_msg_record_audio">${app_name} necessita de permissão para aceder ao seu microfone para realizar chamadas de áudio.</string>
 
-    <string name="permissions_rationale_msg_camera_and_audio">${app_name} necessita de permissão para aceder à sua câmara e ao seu microfone para realizar chamadas de vídeo.
-
-Por favor, permita o acesso na próxima janela para poder efetuar a chamada.</string>
 
 
     <string name="yes">SIM</string>
@@ -295,7 +283,6 @@ Note que esta acção irá reiniciar a aplicação e poderá levar algum tempo.<
     <string name="action_download">Descarregar</string>
     <string name="dialog_title_error">Erro</string>
     <string name="system_alerts_header">Alertas de Sistema</string>
-    <string name="send_bug_report_description_in_english">Se possível, escrever a descrição em inglês.</string>
     <string name="option_send_voice">Enviar voz</string>
     <string name="option_send_sticker">Enviar autocolante</string>
     <string name="option_take_photo">Tirar foto</string>
@@ -333,8 +320,6 @@ Adicionar alguns agora?</string>
 
     <string name="room_settings_all_messages">Todas as mensagens</string>
     <string name="room_settings_add_homescreen_shortcut">Adicionar atalho no ecrã inicial</string>
-    <string name="settings_containing_my_display_name">Mensagens que contenham o meu nome público</string>
-    <string name="settings_containing_my_user_name">Mensagens que contenham o meu nome de utilizador</string>
     <string name="settings_inline_url_preview">Activar a pré-visualização dos links (URLs) por padrão</string>
     <string name="settings_vibrate_on_mention">Vibrar quando mencionado</string>
     <string name="settings_preview_media_before_sending">Pré-visualizar multimédia antes de enviar</string>
@@ -379,8 +364,6 @@ Adicionar alguns agora?</string>
     <string name="notification_off">Desactivado</string>
     <string name="notification_noisy">Alto</string>
     <string name="encrypted_message">Mensagem cifrada</string>
-    <string name="create">Criar</string>
-    <string name="group_details_home">Início</string>
     <string name="rooms">Salas</string>
     <string name="invited">Foi convidado</string>
 
@@ -399,8 +382,6 @@ A visibilidade das mensagens no Matrix é parecida com a dos emails. O nosso esq
     <string name="deactivate_account_delete_checkbox">Por favor, esqueçam todas as mensagens que enviei quando a minha conta for desactivada (Atenção: isso fará com que futuros utilizadores tenham uma visão incompleta das conversas)</string>
     <string name="deactivate_account_submit">Desactivar a conta</string>
     <string name="error_empty_field_your_password">Por favor, introduza a sua senha.</string>
-    <string name="room_tombstone_versioned_description">Esta sala foi substituída e já não está activa</string>
-    <string name="room_tombstone_continuation_link">A conversa continua aqui</string>
     <string name="room_tombstone_continuation_description">Esta sala é a continuação de outra conversa</string>
     <string name="room_tombstone_predecessor_link">Clique aqui para ver as mensagens anteriores</string>
     <string name="resource_limit_contact_admin">entre em contacto com o administrador do seu serviço</string>

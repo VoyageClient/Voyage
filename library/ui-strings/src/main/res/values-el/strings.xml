@@ -40,16 +40,13 @@
     <string name="action_cancel">Ακύρωση</string>
     <string name="action_close">Κλείσιμο</string>
     <string name="settings_enable_all_notif">Ενεργοποίηση ειδοποιήσεων για τον λογαριασμό</string>
-    <string name="send_bug_report_logs_description">Προκειμένου να διαγνωστούν προβλήματα, τα αρχεία καταγραφής από αυτόν τον πελάτη θα σταλούν με αυτήν την αναφορά σφάλματος. Αν προτιμάτε να στείλετε μόνο το παραπάνω κείμενο, απενεργοποιήστε:</string>
     <string name="action_leave">Αποχώρηση</string>
     <string name="settings_messages_sent_by_bot">Μηνύματα από bots</string>
     <string name="permalink">Μόνιμος σύνδεσμος</string>
-    <string name="send_bug_report_description">Παρακαλούμε περιγράψτε το σφάλμα. Τι κάνατε; Τι περιμένατε να συμβεί; Τι έγινε τελικά;</string>
     <string name="action_quote">Παράθεση</string>
     <string name="action_reject">Απόρριψη</string>
     <string name="action_remove">Αφαίρεση</string>
     <string name="action_send">Αποστολή</string>
-    <string name="send_bug_report_include_logs">Αποστολή πληροφοριών</string>
     <string name="view_decrypted_source">Προβολή αποκρυπτογραφημένου κώδικα</string>
     <string name="view_source">Προβολή κώδικα</string>
     <string name="ok">Εντάξει</string>
@@ -65,10 +62,8 @@
     <string name="dark_theme">Σκουρόχρωμο θέμα</string>
     <string name="black_theme">Μαύρο θέμα</string>
     <string name="title_activity_choose_sticker">Αποστολή αυτοκόλλητου</string>
-    <string name="later">Αργότερα</string>
     <string name="action_delete">Διαγραφή</string>
     <string name="action_rename">Μετονομασία</string>
-    <string name="report_content">Αναφορά περιεχομένου</string>
     <string name="or">ή</string>
     <string name="action_invite">Πρόσκληση</string>
     <string name="action_accept">Αποδοχή</string>
@@ -88,9 +83,6 @@
     <string name="matrix_only_filter">Μόνο οι επαφές Matrix</string>
     <string name="no_result_placeholder">Δεν βρέθηκαν αποτελέσματα</string>
     <string name="rooms_header">Δωμάτια</string>
-    <string name="send_bug_report_include_crash_logs">Αποστολή καταγραφών σφαλμάτων</string>
-    <string name="send_bug_report_description_in_english">Εφόσον είναι δυνατό, παρακαλώ γράψτε την περιγραφή στα αγγλικά.</string>
-    <string name="send_bug_report_placeholder">Περιγράψτε το πρόβλημά σας εδώ</string>
     <string name="username">Όνομα χρήστη</string>
     <string name="logout">Αποσύνδεση</string>
     <string name="search">Αναζήτηση</string>
@@ -98,7 +90,6 @@
     <string name="x_plus">%d+</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="room_tombstone_predecessor_link">Πατήστε εδώ για να δείτε παλαιότερα μηνύματα</string>
-    <string name="room_tombstone_continuation_link">Η συζήτηση συνεχίζεται εδώ</string>
     <string name="room_tombstone_continuation_description">Αυτό το δωμάτιο είναι συνέχεια μιας άλλης συζήτησης</string>
     <string name="compression_opt_list_original">Πρωτότυπο</string>
     <string name="compression_opt_list_large">Μεγάλο</string>
@@ -173,14 +164,12 @@
     </plurals>
     <string name="widget_integration_room_not_visible">Το δωμάτιο %s δεν είναι ορατό.</string>
     <string name="command_error">Σφάλμα εντολής</string>
-    <string name="create">Δημιουργία</string>
     <string name="rooms">Δωμάτια</string>
     <string name="reason_colon">Λόγος: %1$s</string>
     <string name="deactivate_account_title">Απενεργοποίηση λογαριασμού</string>
     <string name="deactivate_account_submit">Απενεργοποίηση λογαριασμού</string>
     <string name="error_empty_field_your_password">Παρακαλώ εισάγετε τον κωδικό σας.</string>
     <string name="settings_home_display">Αρχική σελίδα</string>
-    <string name="group_details_home">Αρχική</string>
     <string name="bottom_action_people">Άτομα</string>
     <string name="notification_listening_for_events">Αναμονή για συμβάντα</string>
     <string name="title_activity_keys_backup_setup">Δημιουργία αντιγράφων ασφαλείας κλειδιών</string>
@@ -202,10 +191,6 @@
     <string name="done">Ολοκληρώθηκε</string>
     <string name="action_skip">Παραλείψτε</string>
     <string name="failed_to_remove_widget">Αποτυχία αφαίρεσης widget</string>
-    <string name="failed_to_add_widget">Αποτυχία προσθήκης widget</string>
-    <string name="audio_video_meeting_description">Οι συσκέψεις χρησιμοποιούν πολιτικές ασφάλειας και αδειών του Jitsi. Όλα τα άτομα που βρίσκονται στην αίθουσα θα δουν μια πρόσκληση για συμμετοχή ενώ πραγματοποιείται η συνάντησή σας.</string>
-    <string name="video_meeting">Ξεκινήστε τη συνάντηση με βίντεο</string>
-    <string name="audio_meeting">Ξεκινήστε τη συνάντηση με ήχο</string>
     <string name="action_reset">Επαναφορά</string>
     <string name="action_dismiss">Απόρριψη</string>
     <string name="action_play">Παίξε</string>
@@ -285,15 +270,9 @@
     <string name="option_take_video">Βίντεο</string>
     <string name="option_take_photo">Φωτογραφία</string>
     <string name="option_send_sticker">Αποστολή αυτοκόλλητου</string>
-    <string name="sound_device_wireless_headset">Ασύρματο Ακουστικό</string>
-    <string name="sound_device_headset">Ακουστικό</string>
-    <string name="sound_device_speaker">Ομιλητής</string>
-    <string name="sound_device_phone">Τηλέφωνο</string>
     <string name="option_send_voice">Αποστολή φωνής</string>
     <string name="hs_url">Διέυθυνση URL Ιδιαίτερου Διακομιστή</string>
     <string name="join_room">Είσοδος στο δωμάτιο</string>
-    <string name="send_bug_report_include_screenshot">Αποστολή στιγμιότυπου οθόνης</string>
-    <string name="send_bug_report_include_key_share_history">Αποστολή ιστορικού αιτήσεων αποστολής κλειδιού</string>
     <string name="no_more_results">Δεν υπάρχουν άλλα αποτελέσματα</string>
     <string name="dialog_title_success">Επιτυχία</string>
     <string name="action_unpublish">Κατάργηση δημοσίευσης</string>
@@ -304,7 +283,6 @@
     <string name="action_add">Πρόσθεση</string>
     <string name="action_mark_room_read">Σημείωσε ως διαβασμένο</string>
     <string name="action_sign_out_confirmation_simple">Είσαστε σίγουροι ότι θέλετε να αποσυνδεθείτε;</string>
-    <string name="start_chatting">Ξεκινήστε συζήτηση</string>
     <string name="error_empty_field_enter_user_name">Παρακαλώ εισάγετε όνομα χρήστη.</string>
     <string name="deactivate_account_delete_checkbox">Παρακαλώ ξεχάστε όλα τα μηνύματα τα οποία έχω στείλει μόλις απενεργοποιηθεί ο λογαριασμός μου (Προειδοποίηση: αυτό σημαίνει οτι μελλοντικοί χρήστες θα έχουν μία ατελή εικόνα των συζητήσεων)</string>
     <string name="deactivate_account_content">Αυτό θα κάνει το λογαριασμό σας μόνιμα άχρηστο. Δε θα μπορέσετε να συνδεθείτε ξανα, και κανείς δεν θα μπορεί να εγγραφεί με το ίδιο όνομα χρήστη. Ο λογαριασμός σας θα αναχωρήσει από όλα τα δωμάτια στα οποία συμμετέχει, και οι πληροφορίες λογαριασμού θα αφαιρεθούν από το διακομιστή ταυτότητας. <b>Αυτή η πράξη είναι μη αναστρέψιμη</b>.
@@ -312,7 +290,6 @@
 \nΜε την απενεργοποίηση του λογαρισμού σας <b>δεν θα ξεχαστούν τα μηνύματά που έχετε στείλει</b>. Εάν θα θέλατε να ξεχαστούν, τότε δηλώστε το στο κουτί πιο κάτω.
 \n
 \nΗ ορατότητα μηνυμάτων δουλεύει σαν το ηλεκτρονικό ταχυδρομείο. Το να ξεχαστούν τα μηνύματα σημαίνει οτι μηνύματα τα οποία έχετε στείλει δεν θα σταλούν σε νέους ή μη-εγγεγραμμένους χρήστες, αλλα εγγεγραμμένοι χρήστες οι οποίοι έχουν ήδη πρόσβαση σε αυτά τα μηνύματα θα μπορούν ακόμα να τα δούν.</string>
-    <string name="room_tombstone_versioned_description">Αυτό το δωμάτιο έχει αντικατασταθεί και δεν είναι πια ενεργό.</string>
     <string name="ssl_remain_offline">Παράβλεψη</string>
     <string name="ssl_logout_account">Αποσύνδεση</string>
     <string name="ssl_do_not_trust">Δεν εμπιστεύομαι</string>
@@ -328,7 +305,6 @@
     <string name="ssl_only_accept">Αποδεκτείτε το πιστοποιητικό εαν ο διαχειριστής του διακομιστή έχει εκδόσει ένα αποτύπωμα που ταιριάζει με το παρά πάνω.</string>
     <string name="ssl_expected_existing_expl">Το πιστοποιτικό έχει αλλάξει από ένα προηγούμενο αξιόπιστο, σε ένα αναξιόπιστο. Ο διακομιστής ενδέχεται να έχει αλλάξει το πιστοποιητικό του. Επικοινωνείστε με το διαχειριστή του διακομιστή για το αναμενόμενο αποτύπωμα.</string>
     <string name="ssl_unexpected_existing_expl">Το πιστοποιητικό έχει αλλάξει από αυτό που εμπιστεύθηκε προηγουμένως η συσκευή σας. Αυτό είναι ΑΚΡΩΣ ΑΣΥΝΗΘΙΣΤΟ. Προτείνεται να ΜΗΝ ΑΠΟΔΕΚΤΕΙΤΕ το νεο πιστοποιητικό.</string>
-    <string name="system_theme">Προεπιλογή Συστήματος</string>
     <string name="auth_invalid_login_param">Λανθασμένο όνομα χρήστη και/ή κωδικού</string>
     <string name="poll_end_action">Τερματισμός δημοσκόπησης</string>
     <string name="edit_poll_title">Επεξεργασία δημοσκόπησης</string>
@@ -387,7 +363,6 @@
     <string name="notice_room_server_acl_updated_title_by_you">Άλλαξες τα ACLs του server γι αυτό το δωμάτιο.</string>
     <string name="soft_logout_signin_password_hint">Κωδικός Πρόσβασης</string>
     <string name="soft_logout_signin_notice">Οι διαχειριστές του server σας (%1$s), σας έχουν αποσυνδέσει από τον λογαριασμό σας %2$s (%3$s).</string>
-    <string name="bug_report_error_too_short">Η πειργραφή είναι πολύ σύντομη</string>
     <string name="soft_logout_title">Έχετε αποσυνδεθεί</string>
     <string name="settings_advanced_settings">Επιπρόσθετες ρυθμίσεις</string>
     <string name="settings_developer_mode">Λειτουργίες Προγραμματιστή</string>
@@ -403,7 +378,6 @@
     <string name="notice_display_name_removed_by_you">Αφαίρεσες το όνομά όπου εμφανιζόταν ο λογαριασμός σου ( προηγουμένως ήταν %1$s)</string>
     <string name="notice_ended_call_by_you">.Τερμάτισες την κλήση.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Έκανες τα μελλοντικά μηνύματα διαθέσιμα στον χρήστη %1$s</string>
-    <string name="rich_text_editor_link">Ορισμός συνδέσμου</string>
     <string name="signed_out_submit">Συνδεθείτε ξανά</string>
     <string name="soft_logout_signin_title">Σύνδεση</string>
     <string name="soft_logout_clear_data_submit">Διαγρφή όλων των δεδομένων</string>
@@ -426,13 +400,11 @@
     <string name="power_level_default">Προεπιλογή</string>
     <string name="notice_room_server_acl_allow_is_empty">🎉Όλοι οι Servers έχουν αποκλειστεί από συμμετέχοντες!Το δωμάτιο αυτό δεν μπορεί πια να χρησιμοποιηθεί.</string>
     <string name="notice_room_third_party_invite_by_you">Έστειλες μια πρόσκληση στο %1$s για να συνδεθείς στο δωμάτιο</string>
-    <string name="event_status_sent_message">Το μήνυμα στάλθηκε</string>
     <string name="create_room">Δημιουργώ ένα δωμάτιο</string>
     <string name="room_error_access_unauthorized">Δεν επιτρέπεται να συνδεθείς σε αυτό το δωμάτιο</string>
     <string name="room_displayname_3_members">%1$s,%2$s και %3$s</string>
     <string name="room_displayname_4_members">%1$s, %2$s, %3$s και %4$s</string>
     <string name="explore_rooms">Ερευνάω τα δωμάτια</string>
-    <string name="initial_sync_request_reason_unignored_users">-Κάποιοι χρήστες έχουν αγνοηθεί</string>
     <plurals name="room_displayname_four_and_more_members">
         <item quantity="one">%1$s, %2$s, %3$s και %4$d άλλος χρήστης</item>
         <item quantity="other">%1$s, %2$s, %3$s και %4$d άλλοι χρήστες</item>

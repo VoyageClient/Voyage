@@ -18,7 +18,6 @@
     <string name="notice_answered_call">%sը պատասխանել է զանգին։</string>
     <string name="notice_room_invite_with_reason_by_you">Դուք հրավիրել եք %1$sին։ Պատճառը` %2$s</string>
     <string name="notice_room_invite_with_reason">%1$sը հրավիրել է %2$sին։ Պատճառը` %3$s</string>
-    <string name="event_status_sent_message">Հաղորդագրությունը ուղարկվել է</string>
     <string name="room_displayname_empty_room">Դատարկ սենյակ</string>
     <plurals name="room_displayname_four_and_more_members">
         <item quantity="one">%1$sը, %2$sը, %3$sը և %4$d ուրիշը</item>
