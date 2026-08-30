@@ -143,7 +143,7 @@ jobs:
           find . -type d -name build -prune -exec rm -rf {} +
           df -h /
 
-      - name: Update the nightly prerelease
+      - name: Replace the nightly prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -155,29 +155,20 @@ jobs:
             git log -10 --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
           } > release-notes.md
 
-          # The release keeps one tag forever; move it to the commit being built.
-          git tag -f nightly "${{ github.sha }}"
-          git push -f origin refs/tags/nightly
+          # A release whose tag moves is un-published server-side, so this one is replaced rather than
+          # updated: create makes the tag, the prerelease and its assets at once, with nothing after
+          # it to race.
+          gh release delete nightly --yes --cleanup-tag || true
+          git push -d origin refs/tags/nightly 2> /dev/null || true
 
-          if gh release view nightly > /dev/null 2>&1; then
-            gh release edit nightly --title 'Nightly' --notes-file release-notes.md --prerelease
-            gh release view nightly --json assets --jq '.assets[].name' | while read -r asset; do
-              gh release delete-asset nightly "$asset" --yes
-            done
-          else
-            gh release create nightly --title 'Nightly' --notes-file release-notes.md --prerelease --draft=false
-          fi
+          gh release create nightly \
+            --title 'Nightly' \
+            --notes-file release-notes.md \
+            --prerelease \
+            --target "${{ github.sha }}" \
+            artifacts/*.apk
 
-          gh release upload nightly artifacts/*.apk
-
-          # Moving the tag reads server-side as a delete, which silently reverts the release to a
-          # draft; publishing has to come last, and can lose a race with the tag update.
-          for _ in 1 2 3 4 5; do
-            gh release edit nightly --draft=false
-            if [ "$(gh release view nightly --json isDraft --jq .isDraft)" = 'false' ]; then
-              break
-            fi
-            sleep 10
-          done
           gh release view nightly --json isDraft,tagName,assets --jq '{isDraft, tagName, assets: [.assets[].name]}'
           [ "$(gh release view nightly --json isDraft --jq .isDraft)" = 'false' ]
+          # A failed delete leaves create reusing the old tag: published, but pointing at yesterday.
+          [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/nightly" --jq .sha)" = "${{ github.sha }}" ]
