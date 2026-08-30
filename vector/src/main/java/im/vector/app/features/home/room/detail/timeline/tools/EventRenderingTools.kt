@@ -163,11 +163,12 @@ fun CharSequence.linkify(callback: TimelineEventController.UrlClickCallback?): C
 }
 
 // Code is verbatim: a URL / matrix permalink inside inline code or a code block must not be linkified
-// (removing the clickable span drops both the tap handling and the link colour).
+// (removing the clickable span drops both the tap handling and the link colour). A spoiler is not a
+// link: dropping it would leave what it wraps in plain sight.
 private fun SpannableStringBuilder.removeLinksOverCode() {
     val codeSpans = getSpans(0, length, HtmlCodeSpan::class.java)
     if (codeSpans.isEmpty()) return
-    getSpans(0, length, ClickableSpan::class.java).forEach { link ->
+    getSpans(0, length, ClickableSpan::class.java).filter { it !is SpoilerSpan }.forEach { link ->
         val ls = getSpanStart(link)
         val le = getSpanEnd(link)
         if (codeSpans.any { ls < getSpanEnd(it) && getSpanStart(it) < le }) {
@@ -177,10 +178,11 @@ private fun SpannableStringBuilder.removeLinksOverCode() {
 }
 
 // Linkify can lay a clickable span over an emote's (invisible) alt text; drop those so tapping the emote is inert.
+// A spoiler over the emote is kept: it is what hides it.
 private fun SpannableStringBuilder.removeLinksOverEmotes() {
     val emotes = getSpans(0, length, EmoteImageSpan::class.java)
     if (emotes.isEmpty()) return
-    getSpans(0, length, ClickableSpan::class.java).forEach { link ->
+    getSpans(0, length, ClickableSpan::class.java).filter { it !is SpoilerSpan }.forEach { link ->
         val ls = getSpanStart(link)
         val le = getSpanEnd(link)
         if (emotes.any { ls < getSpanEnd(it) && getSpanStart(it) < le }) {
