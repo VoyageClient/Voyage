@@ -112,10 +112,22 @@ class RichMessageBodyRenderer @Inject constructor(
                 is BodySegment.Html ->
                     container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback))
                 is BodySegment.Table ->
-                    container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback))
-                is BodySegment.Code -> container.addView(buildCodeBlock(ctx, segment.code, interactive, fullBleed, binding))
+                    container.addView(
+                            buildTable(ctx, segment.rows, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback)
+                                    .coveredIfSpoiler(segment.spoiler, interactive, binding)
+                    )
+                is BodySegment.Code ->
+                    container.addView(
+                            buildCodeBlock(ctx, segment.code, interactive, fullBleed, binding)
+                                    .coveredIfSpoiler(segment.spoiler, interactive, binding)
+                    )
             }
         }
+    }
+
+    private fun View.coveredIfSpoiler(spoiler: Boolean, interactive: Boolean, binding: RichBodyBinding): View {
+        if (!spoiler) return this
+        return SpoilerBlockLayout.cover(this, interactive) { binding.onLongClick(it) }
     }
 
     // Per-container render state: the current click lambdas (read at click time so an unchanged
