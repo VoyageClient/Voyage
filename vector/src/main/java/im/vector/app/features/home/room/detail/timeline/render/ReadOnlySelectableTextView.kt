@@ -34,7 +34,7 @@ import im.vector.app.core.utils.startActionModeGuarded
  * TextView for rich-body segments that may offer read-only selection: [selectable] enables it
  * up front (code blocks), or callers enable it later once the rendered spans are known.
  */
-class ReadOnlySelectableTextView(context: Context, selectable: Boolean = false) :
+class ReadOnlySelectableTextView @JvmOverloads constructor(context: Context, selectable: Boolean = false) :
         AppCompatTextView(context), CodeSelectionBoundsHost, TableSourceProvider, SelectionFocusHost {
 
     init {

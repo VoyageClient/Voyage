@@ -151,6 +151,8 @@ private class ContentMediaProgressUpdater(
         doHandleProgress(CommonStrings.send_file_step_sending_file, state.current, state.total)
     }
 
+    // The item index and count are digits appended to an already-localised string.
+    @SuppressLint("SetTextI18n")
     private fun handleGalleryProgress(state: ContentUploadStateTracker.State.UploadingGalleryItem) {
         progressLayout.visibility = View.VISIBLE
         val percent = if (state.overallTotal > 0) (100L * state.overallCurrent / state.overallTotal).toInt().coerceIn(0, 100) else 0

@@ -7,6 +7,7 @@
 
 package im.vector.app.core.ui.views
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.LinearLayout
@@ -46,6 +47,8 @@ class MassRedactionBannerView @JvmOverloads constructor(
         }
         isVisible = true
         views.massRedactionLabel.text = resources.getString(CommonStrings.mass_redaction_redacting_from, state.targetDisplayName.neutralizeDirectionOverrides())
+        // A digits-only progress counter.
+        @SuppressLint("SetTextI18n")
         views.massRedactionCount.text = "${state.completed}/${state.total}"
         views.massRedactionProgress.isIndeterminate = state.total == 0 && !state.paused
         if (state.total > 0) {

@@ -8,6 +8,8 @@
 package im.vector.app.core.glide
 
 import android.graphics.drawable.Drawable
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
@@ -24,6 +26,7 @@ import java.nio.ByteBuffer
  * closing the viewer, scrolling back — would restart the animation instead of leaving it where the
  * cached, still-running drawable had got to.
  */
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class JxlAnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
 
     override fun handles(source: ByteBuffer, options: Options): Boolean {
@@ -54,6 +57,7 @@ internal class JxlAnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class JxlAnimatedStreamDrawableDecoder : ResourceDecoder<InputStream, Drawable> {
 
     override fun handles(source: InputStream, options: Options): Boolean {

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.annotation.SuppressLint
 import android.text.Spanned
 import android.util.TypedValue
 import android.view.View
@@ -97,6 +98,9 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
+    // super.bind runs inside bindInternal, on both the rich and the plain path; lint cannot see through
+    // the tracing wrapper.
+    @SuppressLint("MissingSuperCall")
     override fun bind(holder: Holder) = im.vector.app.core.utils.PerfTrace.time("timeline.bind.text") {
         bindInternal(holder)
     }

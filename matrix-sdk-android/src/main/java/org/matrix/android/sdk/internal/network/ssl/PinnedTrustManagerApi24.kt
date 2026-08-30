@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.network.ssl
 
+import androidx.annotation.RequiresApi
 import org.matrix.android.sdk.api.network.ssl.Fingerprint
 import java.net.Socket
 import java.security.cert.CertificateException
@@ -33,6 +34,7 @@ import javax.net.ssl.X509ExtendedTrustManager
  */
 // Requires X509ExtendedTrustManager: Android N+ / any desktop JVM. Only constructed behind
 // PinnedTrustManagerProvider's availability check.
+@RequiresApi(24)
 internal class PinnedTrustManagerApi24(
         private val fingerprints: List<Fingerprint>,
         private val defaultTrustManager: X509ExtendedTrustManager?

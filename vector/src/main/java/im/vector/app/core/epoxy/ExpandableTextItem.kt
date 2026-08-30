@@ -134,10 +134,9 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
     private fun TextView.fullLineCount(): Int {
         val available = width - compoundPaddingLeft - compoundPaddingRight
         if (available <= 0) return 0
-        val sdk = android.os.Build.VERSION.SDK_INT
-        val mult = if (sdk >= android.os.Build.VERSION_CODES.JELLY_BEAN) lineSpacingMultiplier else 1f
-        val extra = if (sdk >= android.os.Build.VERSION_CODES.JELLY_BEAN) lineSpacingExtra else 0f
-        val includePad = if (sdk >= android.os.Build.VERSION_CODES.JELLY_BEAN) includeFontPadding else true
+        val mult = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) lineSpacingMultiplier else 1f
+        val extra = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) lineSpacingExtra else 0f
+        val includePad = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) includeFontPadding else true
         @Suppress("DEPRECATION")
         return android.text.StaticLayout(
                 text, paint, available, android.text.Layout.Alignment.ALIGN_NORMAL, mult, extra, includePad

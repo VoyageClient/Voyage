@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.api.util
 
 import android.os.Build
+import androidx.annotation.ChecksSdkIntAtLeast
 
 /**
  * libjxl declares minSdk 21 and loads its .so from a static initialiser, so every call site must be
@@ -16,5 +17,6 @@ import android.os.Build
  */
 object JxlSupport {
 
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.LOLLIPOP)
     val isAvailable: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
 }

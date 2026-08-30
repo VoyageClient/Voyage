@@ -748,7 +748,8 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
 
     override fun onDestroy() {
         handler.removeCallbacks(playbackTicker)
-        boost?.release()
+        // Only ever attached on KitKat+, where LoudnessEnhancer exists.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) boost?.release()
         boost = null
         player?.let {
             runCatching { it.stop() }

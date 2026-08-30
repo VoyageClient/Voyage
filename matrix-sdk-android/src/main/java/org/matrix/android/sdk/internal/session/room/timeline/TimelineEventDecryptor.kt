@@ -74,7 +74,8 @@ internal class TimelineEventDecryptor @Inject constructor(
     }
 
     // Rooms already re-scanned for persisted UTDs this run (dedupes the per-session storm of a bulk import).
-    private val rescannedRooms = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    // Typed as MutableSet so calls land on java.util.Set, not the API 24 KeySetView.
+    private val rescannedRooms: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
 
     private fun rescanRoomForDecryption(roomId: String) {
         val events = runBlocking {

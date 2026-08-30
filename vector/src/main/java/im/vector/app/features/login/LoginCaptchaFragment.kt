@@ -144,11 +144,7 @@ class LoginCaptchaFragment :
                     return
                 }
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    onError(errorResponse.reasonPhrase)
-                } else {
-                    onError(errorResponse.toString())
-                }
+                onError(errorResponse.reasonPhrase)
             }
 
             @Deprecated("Deprecated in Java")

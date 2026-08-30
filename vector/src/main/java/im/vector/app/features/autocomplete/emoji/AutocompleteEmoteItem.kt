@@ -7,6 +7,7 @@
 
 package im.vector.app.features.autocomplete.emoji
 
+import android.annotation.SuppressLint
 import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
@@ -34,6 +35,8 @@ abstract class AutocompleteEmoteItem : VectorEpoxyModel<AutocompleteEmoteItem.Ho
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        // An emote shortcode, which is an identifier rather than prose.
+        @SuppressLint("SetTextI18n")
         holder.name.text = ":${image.shortcode}:"
         // Personal-pack emotes have no pack name; label them like the image-pack settings UI for consistency.
         holder.pack.setTextOrHide(

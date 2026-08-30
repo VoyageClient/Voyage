@@ -33,8 +33,10 @@ internal fun MediaExtractor.sampleFlagsCompat(): Int {
 
 // Keys are not always the type the constant implies — KEY_FRAME_RATE in particular comes back as a
 // float from some extractors, and the typed getter throws rather than converting.
+@RequiresApi(16)
 internal fun MediaFormat.getIntOrNull(key: String): Int? =
         if (containsKey(key)) runCatching { getInteger(key) }.getOrNull() else null
 
+@RequiresApi(16)
 internal fun MediaFormat.getLongOrNull(key: String): Long? =
         if (containsKey(key)) runCatching { getLong(key) }.getOrNull() else null

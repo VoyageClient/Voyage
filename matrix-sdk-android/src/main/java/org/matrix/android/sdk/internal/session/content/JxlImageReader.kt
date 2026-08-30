@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.content
 
 import android.graphics.Bitmap
+import androidx.annotation.RequiresApi
 import com.awxkee.jxlcoder.JxlAnimatedImage
 import com.awxkee.jxlcoder.JxlCoder
 import com.awxkee.jxlcoder.JxlResizeFilter
@@ -22,6 +23,7 @@ import java.io.File
  * Every libjxl entry point the upload path uses. Constructing nothing here is safe below API 21 —
  * the class must only be reached through [org.matrix.android.sdk.api.util.JxlSupport].
  */
+@RequiresApi(21)
 internal object JxlImageReader {
 
     fun readSize(file: File): Pair<Int, Int>? {

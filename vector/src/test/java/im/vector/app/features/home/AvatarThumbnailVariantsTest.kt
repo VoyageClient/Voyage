@@ -42,6 +42,8 @@ private const val ANIMATED_URL = "$STILL_URL&animated=true"
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
+// MockK verify blocks record the call; the builder value they return is meaningless.
+@Suppress("CheckResult")
 class AvatarThumbnailVariantsTest {
 
     private val context = RuntimeEnvironment.getApplication()

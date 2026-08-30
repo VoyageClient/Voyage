@@ -7,6 +7,7 @@
 
 package im.vector.app.core.utils
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.SystemClock
 import android.os.Trace
@@ -25,6 +26,8 @@ import android.util.Log
  *
  * Use [time] for ordinary synchronous work, [timeSuspending] for `suspend` blocks.
  */
+// android.util.Log on purpose: release builds plant no Timber tree, and these markers are read via logcat.
+@SuppressLint("LogNotTimber")
 object PerfTrace {
 
     private const val TAG = "VectorPerf"

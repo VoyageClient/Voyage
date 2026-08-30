@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.render
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
@@ -63,6 +64,8 @@ class CodeBlockLayout @JvmOverloads constructor(
         }
     }
 
+    // Only ever called from onMeasure, so this is the ordinary super call lint expects to see there.
+    @SuppressLint("WrongCall")
     private fun measureWithFullBleed(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         if (!fullBleed) return

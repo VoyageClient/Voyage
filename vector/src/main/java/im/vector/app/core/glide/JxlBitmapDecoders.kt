@@ -10,6 +10,7 @@ package im.vector.app.core.glide
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
+import androidx.annotation.RequiresApi
 import com.awxkee.jxlcoder.JxlAnimatedImage
 import com.awxkee.jxlcoder.JxlCoder
 import com.awxkee.jxlcoder.JxlResizeFilter
@@ -46,6 +47,7 @@ internal const val SNIFF_MARK_BYTES = 5 * 1024 * 1024
  * that upscales through a cubic filter, whose overshoot leaves a bright fringe down the right edge.
  * Nothing here ever scales up.
  */
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal object JxlBitmaps {
 
     /** Decodes to at most [maxPixels] total pixels, preserving aspect. Null if the bytes aren't JXL. */
@@ -163,6 +165,7 @@ internal object JxlHeader {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class JxlByteBufferBitmapDecoder(private val bitmapPool: BitmapPool) : ResourceDecoder<ByteBuffer, Bitmap> {
 
     override fun handles(source: ByteBuffer, options: Options): Boolean {
@@ -180,6 +183,7 @@ internal class JxlByteBufferBitmapDecoder(private val bitmapPool: BitmapPool) : 
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class JxlStreamBitmapDecoder(private val bitmapPool: BitmapPool) : ResourceDecoder<InputStream, Bitmap> {
 
     override fun handles(source: InputStream, options: Options): Boolean {

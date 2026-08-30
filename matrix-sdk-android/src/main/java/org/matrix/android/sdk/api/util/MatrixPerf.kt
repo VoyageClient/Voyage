@@ -16,6 +16,8 @@ import android.util.Log
  *
  * Uses android.util.Log directly (not Timber) so the output reaches logcat in release builds too.
  */
+// android.util.Log on purpose: release builds plant no Timber tree, and these markers are read via logcat.
+@Suppress("LogNotTimber")
 object MatrixPerf {
 
     private const val TAG = "VectorPerf"
