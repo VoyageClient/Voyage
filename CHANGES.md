@@ -96,6 +96,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Profile name colors (MSC4522)** — choose the color your name and avatar are shown in, for your account or per room, from a palette or any custom color; other users' colors are shown too, and can be overridden just for you from their profile's Personalization section.
 
+- **Pick which color palette names and avatars use** — separate choices for people and for rooms, each offering Element's palettes from 2015, 2018, 2020 and today, previewed swatch by swatch. People can also be set to None, which leaves names in plain text and dims message bodies so they still stand apart.
+
 - **Status & biography in profiles (MSC4426 / MSC4440)** — set a status (typed as one line, with any leading emoji stored as its emoji field) and a free-form biography in account settings. The status shows under a user's pronouns and time zone; the biography gets its own expandable section on their profile, rendering markdown, links and custom emoji. Both also appear in the user card from a mention. Written under the standard and unstable field keys as well as the ones other clients already read.
 
 - **Pronouns & time zone in profiles (MSC4247 / MSC4175 / MSC4133)** — set your pronouns (common presets or custom text, multiple allowed) and IANA time zone in account settings; a user's pronouns and current time-zone abbreviation show under their name on profile pages as e.g. `she/her • PST` (DST-aware), and their pronouns gender timeline notices such as "changed **her** avatar". Every profile field is written under both its stable and unstable key and read stable-first, and interoperates with other clients' pronoun schemas.
@@ -210,7 +212,7 @@ New features, improvements, and notable removals in this fork.
 
 ### Branding
 
-- **Rebrand to Voyage** — new app ID, icons, and a configurable logo and app-icon background colour, a Voyage colour scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages.
+- **Rebrand to Voyage** — new app ID, icons, and a configurable logo and app-icon background color, a Voyage color scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages. The app now opens dark with a cyan accent and a black app icon by default.
 
 - **Accent picker** — a swatch picker for the app's accent color, plus an optional "ugly" username color palette. The picker offers thirty colors including monochrome white and black accents.
 

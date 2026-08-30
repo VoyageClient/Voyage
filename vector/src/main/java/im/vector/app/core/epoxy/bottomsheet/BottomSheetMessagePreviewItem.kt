@@ -25,6 +25,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setRedactedTint
+import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.views.GalleryGridLayout
@@ -62,6 +63,9 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
 
     @EpoxyAttribute
     var senderColor: Int? = null
+
+    @EpoxyAttribute
+    var senderIsColored: Boolean = true
 
     // Match the timeline: a notice/state/debug preview uses the secondary colour, a message the primary one.
     @EpoxyAttribute
@@ -130,6 +134,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         holder.sender.onClick(userClicked)
         holder.sender.setTextOrHide(matrixItem.getBestName().prepareForDisplay())
         senderColor?.let { holder.sender.setTextColor(it) }
+        holder.sender.setSenderNameEmphasis(senderIsColored)
         // Glide's RoundedCorners only applies to Bitmap output, so a blurhash placeholder (Drawable)
         // renders square without the view shaping it.
         holder.imagePreview.setCornerRadius(mediaPreviewCornerRadiusPx(holder.imagePreview.context).toFloat())
@@ -174,12 +179,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         if (redacted) {
             holder.body.setRedactedPreviewStyle()
         } else {
-            val bodyColorAttr = if (bodyIsNotice) {
-                im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+            val bodyColor = if (bodyIsNotice) {
+                ThemeUtils.getColor(holder.body.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
             } else {
-                im.vector.lib.ui.styles.R.attr.vctr_content_primary
+                ThemeUtils.getMessageTextColor(holder.body.context)
             }
-            holder.body.setTextColor(ThemeUtils.getColor(holder.body.context, bodyColorAttr))
+            holder.body.setTextColor(bodyColor)
             holder.body.clearDrawables()
         }
         holder.bodyDetails.setTextOrHide(bodyDetails?.charSequence)

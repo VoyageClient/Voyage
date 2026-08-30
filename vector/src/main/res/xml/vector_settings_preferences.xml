@@ -78,11 +78,17 @@
             android:title="@string/settings_avatar_shape_title"
             app:useSimpleSummaryProvider="true" />
 
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="false"
-            android:key="SETTINGS_UGLIER_USERNAME_COLORS_KEY"
-            android:summary="@string/settings_uglier_username_colors_summary"
-            android:title="@string/settings_uglier_username_colors_title" />
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PEOPLE_COLOR_PALETTE_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_people_color_palette_summary"
+            android:title="@string/settings_people_color_palette_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ROOM_COLOR_PALETTE_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_room_color_palette_summary"
+            android:title="@string/settings_room_color_palette_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"

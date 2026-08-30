@@ -33,7 +33,6 @@ import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.EmojiSpanify
 import im.vector.app.R
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.settings.VectorPreferences
@@ -41,16 +40,14 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import javax.inject.Inject
-import im.vector.lib.ui.styles.R as StylesR
 
 /**
- * Grid of the name colors a user can get (the normal palette or the element-web one, starting on
- * whichever the "uglier palette" setting uses), plus a custom swatch that opens the HSV picker on
- * long press.
+ * Grid of the name colors a user can get, from any of the people palettes and starting on the one the
+ * settings use, plus a custom swatch that opens the HSV picker on long press.
  *
  * Result under [ARG_REQUEST_KEY]: [RESULT_HEX] is the color for this dialog's theme, while
  * [RESULT_HEX_LIGHT]/[RESULT_HEX_DARK] carry both theme variants (they only differ for the
- * element-web palette). [RESULT_RESET] is set when the user asked to go back to the default.
+ * modern palette). [RESULT_RESET] is set when the user asked to go back to the default.
  */
 @AndroidEntryPoint
 class ProfileColorPickerDialogFragment : DialogFragment() {
@@ -63,12 +60,11 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
     }
 
     @Inject lateinit var vectorPreferences: VectorPreferences
-    @Inject lateinit var emojiSpanify: EmojiSpanify
 
     private val columnCount = 5
 
     private var light = true
-    private var ugly = false
+    private var palette = PeopleColorPalette.LEGACY
     private var customHex = DEFAULT_CUSTOM
 
     // Selection is an identity, not a hex: a custom color equal to a palette color must still read as
@@ -91,12 +87,12 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         }
         val initial = ColorPreference.normalizeHex(args.getString(ARG_INITIAL_HEX))
         if (savedInstanceState != null) {
-            ugly = savedInstanceState.getBoolean(SAVE_UGLY)
+            palette = paletteOf(savedInstanceState.getString(SAVE_PALETTE))
             customHex = savedInstanceState.getString(SAVE_CUSTOM_HEX) ?: customHex
             selectedHex = savedInstanceState.getString(SAVE_SELECTED_HEX)
             selectedIsCustom = savedInstanceState.getBoolean(SAVE_SELECTED_CUSTOM)
         } else {
-            ugly = vectorPreferences.useUglierUsernameColors()
+            palette = paletteOf(vectorPreferences.peopleColorPalette().name)
             customHex = vectorPreferences.lastCustomProfileColor()
             initFromInitial(initial)
         }
@@ -110,22 +106,28 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         }
     }
 
-    // A set value that matches a palette color (in either palette) selects that swatch; otherwise it is
-    // treated as a custom color. A null value leaves nothing selected (the default).
+    /** The palettes to pick a color from: every people palette except [PeopleColorPalette.NONE]. */
+    private fun paletteOf(name: String?) = PICKABLE_PALETTES.firstOrNull { it.name == name } ?: PeopleColorPalette.LEGACY
+
+    // A set value that matches a color in any palette selects that swatch, switching to the palette it
+    // belongs to; otherwise it is treated as custom. A null value leaves nothing selected (the default).
     private fun initFromInitial(initial: String?) {
         if (initial == null) return
-        val inNormal = NORMAL_PALETTE.any { hexOf(it.second) == initial }
-        val inUgly = UGLY_PALETTE.any { hexOf(if (light) it.second else it.third) == initial }
-        when {
-            inNormal -> { ugly = false; selectedHex = initial }
-            inUgly -> { ugly = true; selectedHex = initial }
-            else -> { customHex = initial; selectedIsCustom = true }
+        val owner = PICKABLE_PALETTES.firstOrNull { candidate ->
+            candidate.colors.any { hexOf(it.forTheme(light)) == initial }
+        }
+        if (owner != null) {
+            palette = owner
+            selectedHex = initial
+        } else {
+            customHex = initial
+            selectedIsCustom = true
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(SAVE_UGLY, ugly)
+        outState.putString(SAVE_PALETTE, palette.name)
         outState.putString(SAVE_CUSTOM_HEX, customHex)
         outState.putString(SAVE_SELECTED_HEX, selectedHex)
         outState.putBoolean(SAVE_SELECTED_CUSTOM, selectedIsCustom)
@@ -187,12 +189,14 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
             setTextColor(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorOnSurface))
         }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT).apply { weight = 1f })
         paletteToggle = TextView(context).apply {
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             gravity = Gravity.CENTER
+            setTextColor(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorPrimary))
             val pad = (8 * density).toInt()
             setPadding(pad, pad, pad, pad)
+            // Only three palettes to choose from, so cycle in place rather than opening a list.
             setOnClickListener {
-                ugly = !ugly
+                palette = PICKABLE_PALETTES[(PICKABLE_PALETTES.indexOf(palette) + 1) % PICKABLE_PALETTES.size]
                 populate(context)
             }
         }
@@ -221,19 +225,15 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
 
     private fun hexOf(@ColorRes res: Int) = MatrixItemColorProvider.toHex(ContextCompat.getColor(requireContext(), res))
 
-    private fun paletteEntries(ugly: Boolean): List<Entry.Palette> {
-        return if (ugly) {
-            UGLY_PALETTE.map { (name, lightRes, darkRes) -> Entry.Palette(name, hexOf(lightRes), hexOf(darkRes)) }
-        } else {
-            NORMAL_PALETTE.map { (name, res) -> Entry.Palette(name, hexOf(res), hexOf(res)) }
-        }
+    private fun paletteEntries(): List<Entry.Palette> {
+        return palette.colors.map { Entry.Palette(it.nameRes, hexOf(it.onLight), hexOf(it.onDark)) }
     }
 
     private fun populate(context: Context) {
         val grid = gridLayout ?: return
         grid.removeAllViews()
-        entries = paletteEntries(ugly) + Entry.Custom(customHex)
-        paletteToggle?.text = emojiSpanify.spanify(getString(if (ugly) CommonStrings.color_picker_normal_palette else CommonStrings.color_picker_ugly_palette))
+        entries = paletteEntries() + Entry.Custom(customHex)
+        paletteToggle?.text = getString(palette.titleRes)
 
         val previewSize = resources.getDimensionPixelSize(R.dimen.color_matrix_list_preview_size)
         val selectionPadding = resources.getDimensionPixelSize(R.dimen.color_matrix_list_selection_padding)
@@ -331,39 +331,20 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         private const val ARG_DEFAULT_HEX = "defaultHex"
         private const val ARG_SHOW_RESET = "showReset"
         private const val ARG_RESET_IS_DELETE = "resetIsDelete"
-        private const val SAVE_UGLY = "ProfileColorPickerDialogFragment.ugly"
+        private const val SAVE_PALETTE = "ProfileColorPickerDialogFragment.palette"
         private const val SAVE_CUSTOM_HEX = "ProfileColorPickerDialogFragment.customHex"
         private const val SAVE_SELECTED_HEX = "ProfileColorPickerDialogFragment.selectedHex"
         private const val SAVE_SELECTED_CUSTOM = "ProfileColorPickerDialogFragment.selectedCustom"
         private const val DEFAULT_CUSTOM = "#000000"
         private const val HSV_REQUEST_KEY = "ProfileColorPickerDialogFragment.hsv"
         private const val HSV_DIALOG_TAG = "HsvColorPickerDialog"
+        private val PICKABLE_PALETTES = PeopleColorPalette.values().filter { it != PeopleColorPalette.NONE }
 
         const val RESULT_HEX = "hex"
         const val RESULT_HEX_LIGHT = "hexLight"
         const val RESULT_HEX_DARK = "hexDark"
         const val RESULT_RESET = "reset"
         const val RESULT_THEME = "theme"
-
-        private val NORMAL_PALETTE = listOf(
-                Pair(CommonStrings.profile_color_name_azure, StylesR.color.element_name_01),
-                Pair(CommonStrings.profile_color_name_grape, StylesR.color.element_name_02),
-                Pair(CommonStrings.profile_color_name_verde, StylesR.color.element_name_03),
-                Pair(CommonStrings.profile_color_name_polly, StylesR.color.element_name_04),
-                Pair(CommonStrings.profile_color_name_melon, StylesR.color.element_name_05),
-                Pair(CommonStrings.profile_color_name_aqua, StylesR.color.element_name_06),
-                Pair(CommonStrings.profile_color_name_prune, StylesR.color.element_name_07),
-                Pair(CommonStrings.profile_color_name_kiwi, StylesR.color.element_name_08),
-        )
-
-        private val UGLY_PALETTE = listOf(
-                Triple(CommonStrings.profile_color_ugly_green, StylesR.color.element_name_ew_light_01, StylesR.color.element_name_ew_dark_01),
-                Triple(CommonStrings.profile_color_ugly_blue, StylesR.color.element_name_ew_light_02, StylesR.color.element_name_ew_dark_02),
-                Triple(CommonStrings.profile_color_ugly_purple, StylesR.color.element_name_ew_light_03, StylesR.color.element_name_ew_dark_03),
-                Triple(CommonStrings.profile_color_ugly_violet, StylesR.color.element_name_ew_light_04, StylesR.color.element_name_ew_dark_04),
-                Triple(CommonStrings.profile_color_ugly_pink, StylesR.color.element_name_ew_light_05, StylesR.color.element_name_ew_dark_05),
-                Triple(CommonStrings.profile_color_ugly_orange, StylesR.color.element_name_ew_light_06, StylesR.color.element_name_ew_dark_06),
-        )
 
         fun newInstance(
                 requestKey: String,
@@ -394,8 +375,9 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
             if (isDefault) return context.getString(CommonStrings.profile_color_summary_default, hex)
             val normalized = ColorPreference.normalizeHex(hex) ?: hex
             fun hexOf(@ColorRes res: Int) = MatrixItemColorProvider.toHex(ContextCompat.getColor(context, res))
-            val name = NORMAL_PALETTE.firstOrNull { hexOf(it.second) == normalized }?.first
-                    ?: UGLY_PALETTE.firstOrNull { hexOf(if (light) it.second else it.third) == normalized }?.first
+            val name = PICKABLE_PALETTES.firstNotNullOfOrNull { palette ->
+                palette.colors.firstOrNull { hexOf(it.forTheme(light)) == normalized }?.nameRes
+            }
             return if (name != null) {
                 context.getString(CommonStrings.profile_color_summary_named, context.getString(name), normalized)
             } else {

@@ -145,6 +145,7 @@ class MessageActionsEpoxyController @Inject constructor(
             avatarRenderer(host.avatarRenderer)
             matrixItem(state.informationData.matrixItem)
             senderColor(host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
+            senderIsColored(host.messageColorProvider.isMemberNameColored())
             bodyIsNotice(host.isNoticeStylePreview(state) || isNoticeTextPreview || isFilenamePreview || isLocationPreview)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)

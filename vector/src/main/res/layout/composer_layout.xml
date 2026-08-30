@@ -91,7 +91,6 @@
                     style="@style/Widget.Vector.TextView.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="?vctr_message_text_color"
                     tools:text="@tools:sample/lorem/random" />
 
                 <!-- Hosts table-containing reply/edit previews, rendered as real tables rather than

@@ -66,6 +66,11 @@
     <color name="element_content_quaternary_dark">@color/palette_gray_400</color>
     <color name="element_content_quinary_dark">@color/palette_gray_450</color>
 
+    <!-- Message bodies sit a notch below the primary content color, so sender names (and other
+         primary-colored text) read as headings above them without needing to be bold. -->
+    <color name="element_message_text_light">#2E3338</color>
+    <color name="element_message_text_dark">#DBDEE1</color>
+
     <attr name="vctr_system" format="color" />
     <color name="element_system_light">@color/palette_gray_25</color>
     <color name="element_system_dark">@color/palette_black_950</color>
@@ -76,31 +81,47 @@
 
     <color name="element_name_01">@color/palette_azure</color>
     <color name="element_name_02">@color/palette_grape</color>
-    <color name="element_name_03">@color/palette_verde</color>
+    <color name="element_name_03">@color/palette_element_green</color>
     <color name="element_name_04">@color/palette_polly</color>
     <color name="element_name_05">@color/palette_melon</color>
     <color name="element_name_06">@color/palette_aqua</color>
     <color name="element_name_07">@color/palette_prune</color>
     <color name="element_name_08">@color/palette_kiwi</color>
 
-    <!-- element-web's current username/avatar palette (Compound decorative 1-6). Distinct light/dark
+    <!-- element-web's first name colors, from 2018. -->
+    <color name="element_name_alpha_01">#1e7ddc</color>
+    <color name="element_name_alpha_02">#a756a8</color>
+    <color name="element_name_alpha_03">#7ac9a1</color>
+    <color name="element_name_alpha_04">#f2809d</color>
+    <color name="element_name_alpha_05">#ffc666</color>
+    <color name="element_name_alpha_06">#76ddd7</color>
+    <color name="element_name_alpha_07">#45529b</color>
+    <color name="element_name_alpha_08">#bfd251</color>
+
+    <!-- element-web's current people/room palette (Compound decorative 1-6). Distinct light/dark
          values; MatrixItemColorProvider picks the set matching the active theme. -->
-    <color name="element_name_ew_light_01">#005f00</color>
-    <color name="element_name_ew_light_02">#00548c</color>
-    <color name="element_name_ew_light_03">#822198</color>
-    <color name="element_name_ew_light_04">#5d26cd</color>
-    <color name="element_name_ew_light_05">#9f0850</color>
-    <color name="element_name_ew_light_06">#9b2200</color>
+    <color name="element_name_modern_light_01">#005f00</color>
+    <color name="element_name_modern_light_02">#00548c</color>
+    <color name="element_name_modern_light_03">#822198</color>
+    <color name="element_name_modern_light_04">#5d26cd</color>
+    <color name="element_name_modern_light_05">#9f0850</color>
+    <color name="element_name_modern_light_06">#9b2200</color>
 
-    <color name="element_name_ew_dark_01">#56c02c</color>
-    <color name="element_name_ew_dark_02">#21bacd</color>
-    <color name="element_name_ew_dark_03">#d991de</color>
-    <color name="element_name_ew_dark_04">#ad9cfe</color>
-    <color name="element_name_ew_dark_05">#fe84a2</color>
-    <color name="element_name_ew_dark_06">#f6913d</color>
+    <color name="element_name_modern_dark_01">#56c02c</color>
+    <color name="element_name_modern_dark_02">#21bacd</color>
+    <color name="element_name_modern_dark_03">#d991de</color>
+    <color name="element_name_modern_dark_04">#ad9cfe</color>
+    <color name="element_name_modern_dark_05">#fe84a2</color>
+    <color name="element_name_modern_dark_06">#f6913d</color>
 
-    <!-- Also create alias for rooms -->
-    <color name="element_room_01">@color/palette_verde</color>
+    <!-- element-web's original room avatar trio, from 2015. -->
+    <color name="element_room_alpha_01">#76cfa6</color>
+    <color name="element_room_alpha_02">#50e2c2</color>
+    <color name="element_room_alpha_03">#f4c371</color>
+
+    <!-- Also create alias for rooms. The green is the one element-web used for default avatars from
+         2020 until it moved to Compound in 2023. -->
+    <color name="element_room_01">@color/palette_element_green</color>
     <color name="element_room_02">@color/palette_azure</color>
     <color name="element_room_03">@color/palette_grape</color>
 </resources>

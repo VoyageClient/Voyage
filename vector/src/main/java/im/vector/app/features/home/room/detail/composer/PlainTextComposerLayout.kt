@@ -31,10 +31,12 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.setRedactedPreviewStyle
+import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.core.extensions.setTextIfDifferent
 import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.core.ui.ColorRefreshable
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.nonScrollingLinkMovementMethod
 import im.vector.app.databinding.ComposerLayoutBinding
@@ -107,7 +109,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr), MessageComposerView {
+) : LinearLayout(context, attrs, defStyleAttr), MessageComposerView, ColorRefreshable {
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
@@ -158,11 +160,19 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     override val attachmentButton: ImageButton
         get() = views.attachmentButton
 
+    /** Match the timeline and the reply preview above it, which dim while names are uncolored. */
+    override fun refreshColors() {
+        views.composerEditText.setTextColor(ThemeUtils.getMessageTextColor(context))
+        // The preview resolves its colors as it renders, so re-render it rather than repainting pieces.
+        lastSpecialMode?.let { renderSpecialMode(it) }
+    }
+
     init {
         inflate(context, if (classic) R.layout.composer_layout_classic else R.layout.composer_layout, this)
         views = ComposerLayoutBinding.bind(this)
 
         views.composerEditText.maxLines = MessageComposerView.MAX_LINES_WHEN_COLLAPSED
+        refreshColors()
         // Draw direction-override chars (e.g. in an edited message) as tofu instead of letting them
         // flip the field; the Editable and the sent text keep the real characters.
         views.composerEditText.transformationMethod = DirectionOverridesTransformation
@@ -211,9 +221,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     }
 
     private var lastSpecialModeKey: Pair<String, String>? = null
+    private var lastSpecialMode: MessageComposerMode.Special? = null
 
     private fun collapse(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
         lastSpecialModeKey = null
+        lastSpecialMode = null
         if (animate) beginClassicTransition()
         views.relatedMessageGroup.isVisible = false
         views.composerTopDivider.isVisible = classic
@@ -392,6 +404,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val modeKey = specialMode.javaClass.name to specialMode.event.eventId
         val isRefresh = views.relatedMessageGroup.isVisible && lastSpecialModeKey == modeKey
         lastSpecialModeKey = modeKey
+        lastSpecialMode = specialMode
         // A revealed redaction previews its restored content here too, matching the timeline.
         val restored = redactedContentRestorer.restoreEvent(specialMode.event)
         val event = restored ?: specialMode.event
@@ -420,7 +433,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // switch to expanded bar
         views.composerRelatedMessageTitle.apply {
             text = event.senderInfo.disambiguatedDisplayName.prepareForDisplay()
-            setTextColor(matrixItemColorProvider.getColor(event.senderInfo.toMatrixItemOrNull() ?: MatrixItem.UserItem("@")))
+            val senderItem = event.senderInfo.toMatrixItemOrNull() ?: MatrixItem.UserItem("@")
+            setTextColor(matrixItemColorProvider.getNameColor(senderItem))
+            setSenderNameEmphasis(matrixItemColorProvider.isNameColored())
         }
 
         val messageContent: MessageContent? = event.getVectorLastMessageContent()
@@ -518,12 +533,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views.composerRelatedMessageContent.movementMethod = null
         // Muted grey for non-message notices, m.notice messages (which render grey in the timeline)
         // and bare attachment names, normal text colour for everything else.
-        val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE || isFilenamePreview) {
-            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
-        } else {
-            im.vector.lib.ui.styles.R.attr.vctr_message_text_color
-        }
-        views.composerRelatedMessageContent.setTextColor(ThemeUtils.getColor(context, contentColorAttr))
+        views.composerRelatedMessageContent.setTextColor(
+                if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE || isFilenamePreview) {
+                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                } else {
+                    ThemeUtils.getMessageTextColor(context)
+                }
+        )
         if (event.root.isRedacted()) {
             views.composerRelatedMessageContent.setRedactedPreviewStyle()
         } else {

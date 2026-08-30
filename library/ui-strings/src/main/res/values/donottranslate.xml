@@ -60,7 +60,6 @@
     <string name="settings_hide_encryption_warning_shield_summary" translatable="false">Don\'t show the red shield on messages sent unencrypted in an encrypted room, or sent from an unverified, unknown or deleted session</string>
     <string name="action_show_media" translatable="false">Show</string>
     <string name="settings_enable_voice_message_button_summary" translatable="false">Show the microphone next to the message box.</string>
-    <string name="no_value_placeholder" translatable="false">–</string>
 
     <!-- Temporary string -->
     <string name="not_implemented" translatable="false">Not implemented yet in ${app_name}</string>
@@ -78,8 +77,16 @@
     <string name="settings_render_blockquotes_as_greentext_title" translatable="false">Replace blockquotes with greentext</string>
     <string name="settings_render_blockquotes_as_greentext_summary" translatable="false">When typing &gt; at the start of a line, send the message as greentext instead of a blockquote.</string>
 
-    <string name="settings_uglier_username_colors_title" translatable="false">Uglier username color palette</string>
-    <string name="settings_uglier_username_colors_summary" translatable="false">Color usernames and default avatars with element-web\'s current palette and hashing, which replaced the nicer one used before 2023.</string>
+    <string name="settings_people_color_palette_title" translatable="false">People color palette</string>
+    <string name="settings_people_color_palette_summary" translatable="false">Colors for display names, and for the default avatars of users and of your DMs with them.</string>
+    <string name="settings_room_color_palette_title" translatable="false">Room color palette</string>
+    <string name="settings_room_color_palette_summary" translatable="false">Colors for the default avatars of rooms and spaces.</string>
+    <string name="color_palette_none" translatable="false">None</string>
+    <!-- Only Riot Alpha differs: names were first colored in 2018, room avatars in 2015. -->
+    <string name="color_palette_people_riot_alpha" translatable="false">Riot Alpha (2018)</string>
+    <string name="color_palette_room_riot_alpha" translatable="false">Riot Alpha (2015)</string>
+    <string name="color_palette_legacy" translatable="false">Legacy (2020)</string>
+    <string name="color_palette_modern" translatable="false">Modern (2024)</string>
 
     <string name="settings_performance_mode_title" translatable="false">Performance mode</string>
     <string name="settings_performance_mode_summary" translatable="false">Drop CPU-heavy effects for smoother performance on slower devices.</string>
@@ -105,7 +112,6 @@
     <string name="command_description_send_state" translatable="false">Open the developer tools form to send a custom state event</string>
     <string name="command_description_jump_to" translatable="false">Jump to the event with the given ID, or to a matrix.to / matrix: link.</string>
     <string name="command_description_jump_to_date" translatable="false">Jump to the event closest to the given date.</string>
-    <string name="command_jump_to_event_not_found" translatable="false">Could not locate event %1$s in this room.</string>
     <string name="command_jump_to_start_unavailable" translatable="false">Could not locate the room\'s first event.</string>
     <string name="command_jump_to_date_no_event" translatable="false">Couldn\'t find an event near %1$s. The server may not support timestamp lookup, or there are no messages in that direction.</string>
 
@@ -236,8 +242,6 @@
     <string name="url_previews_in_encrypted_rooms_summary" translatable="false">Allow URL previews in encrypted rooms. Only enable this if you trust your homeserver, as previews are generated server-side and can leak message content.</string>
     <string name="settings_open_chats_at_first_unread" translatable="false">Open chats at first unread message</string>
     <string name="settings_open_chats_at_first_unread_summary" translatable="false">Open rooms at the first unread message instead of at the bottom of the chat.</string>
-    <string name="settings_hide_call_buttons" translatable="false">Hide call buttons</string>
-    <string name="settings_hide_call_buttons_summary" translatable="false">Hide the start call buttons from the room toolbar.</string>
     <string name="freeform_react_with" translatable="false">React with \"%s\"</string>
     <string name="settings_include_space_members_as_rooms" translatable="false">Show space members as people in spaces</string>
 
@@ -249,8 +253,6 @@
     <string name="color_picker_selected_custom" translatable="false">Selected: Custom (%s)</string>
     <string name="color_picker_selected_default" translatable="false">Selected: Default (%s)</string>
     <string name="color_picker_custom" translatable="false">Custom color</string>
-    <string name="color_picker_ugly_palette" translatable="false">🤮</string>
-    <string name="color_picker_normal_palette" translatable="false">🤩</string>
     <string name="settings_profile_color" translatable="false">Profile Color</string>
     <string name="settings_profile_color_light" translatable="false">Profile Color (light theme)</string>
     <string name="settings_profile_color_dark" translatable="false">Profile Color (dark theme)</string>
@@ -262,18 +264,29 @@
     <string name="settings_show_others_profile_colors_summary" translatable="false">Use the name color a user set in their profile or in a room. Your own color is always shown.</string>
     <string name="profile_color_name_azure" translatable="false">Azure</string>
     <string name="profile_color_name_grape" translatable="false">Grape</string>
-    <string name="profile_color_name_verde" translatable="false">Verde</string>
+    <string name="profile_color_name_element_green" translatable="false">Element Green</string>
     <string name="profile_color_name_polly" translatable="false">Polly</string>
     <string name="profile_color_name_melon" translatable="false">Melon</string>
     <string name="profile_color_name_aqua" translatable="false">Aqua</string>
     <string name="profile_color_name_prune" translatable="false">Prune</string>
     <string name="profile_color_name_kiwi" translatable="false">Kiwi</string>
-    <string name="profile_color_ugly_green" translatable="false">Green</string>
-    <string name="profile_color_ugly_blue" translatable="false">Blue</string>
-    <string name="profile_color_ugly_purple" translatable="false">Purple</string>
-    <string name="profile_color_ugly_violet" translatable="false">Violet</string>
-    <string name="profile_color_ugly_pink" translatable="false">Pink</string>
-    <string name="profile_color_ugly_orange" translatable="false">Orange</string>
+    <string name="profile_color_modern_lime" translatable="false">Lime</string>
+    <string name="profile_color_modern_cyan" translatable="false">Cyan</string>
+    <string name="profile_color_modern_fuchsia" translatable="false">Fuchsia</string>
+    <string name="profile_color_modern_purple" translatable="false">Purple</string>
+    <string name="profile_color_modern_pink" translatable="false">Pink</string>
+    <string name="profile_color_modern_orange" translatable="false">Orange</string>
+    <string name="profile_color_alpha_sky" translatable="false">Sky</string>
+    <string name="profile_color_alpha_orchid" translatable="false">Orchid</string>
+    <string name="profile_color_alpha_mint" translatable="false">Mint</string>
+    <string name="profile_color_alpha_blush" translatable="false">Blush</string>
+    <string name="profile_color_alpha_butter" translatable="false">Butter</string>
+    <string name="profile_color_alpha_seafoam" translatable="false">Seafoam</string>
+    <string name="profile_color_alpha_indigo" translatable="false">Indigo</string>
+    <string name="profile_color_alpha_chartreuse" translatable="false">Chartreuse</string>
+    <string name="profile_color_alpha_moss" translatable="false">Moss</string>
+    <string name="profile_color_alpha_lagoon" translatable="false">Lagoon</string>
+    <string name="profile_color_alpha_sand" translatable="false">Sand</string>
     <string name="notice_member_color_changed" translatable="false">%1$s changed their profile color</string>
     <string name="notice_member_color_changed_by_you" translatable="false">You changed your profile color</string>
     <string name="notice_member_color_removed" translatable="false">%1$s removed their profile color</string>
@@ -316,7 +329,6 @@
 
     <string name="settings_sc_bubble_style_title" translatable="false">Message bubbles</string>
     <string name="settings_sc_bubble_style_none" translatable="false">None</string>
-    <string name="settings_sc_bubble_style_element" translatable="false">Element</string>
     <string name="settings_sc_bubble_style_both" translatable="false">Both sides</string>
     <string name="settings_sc_bubble_style_start" translatable="false">Same side</string>
     <string name="settings_sc_bubble_appearance" translatable="false">Bubble appearance</string>
@@ -447,10 +459,8 @@
     <string name="create_room_version_title" translatable="false">Room version</string>
     <string name="create_room_power_level_title" translatable="false">My power level</string>
     <string name="create_room_power_level_hint" translatable="false">Power level (e.g. 100)</string>
-    <string name="create_room_power_level_summary" translatable="false">Override your own power level in the new room. Leave empty for the default.</string>
     <string name="create_room_initial_state_title" translatable="false">Override initial state</string>
     <string name="create_room_initial_state_hint" translatable="false">[{"type": "…", "state_key": "", "content": {…}}]</string>
-    <string name="create_room_initial_state_summary" translatable="false">Arbitrary state events sent on room creation. Takes precedence over preset, overridden by name and topic.</string>
     <string name="create_room_initial_state_invalid" translatable="false">Invalid JSON: expected an array of state events.</string>
 
     <string name="space_view_timeline" translatable="false">View</string>
@@ -556,10 +566,6 @@
     <string name="pgp_not_in_encrypted_room" translatable="false">PGP is not used in encrypted rooms — this room already uses Matrix encryption</string>
     <string name="pgp_no_recipient_keys" translatable="false">No other member of this room has a PGP key</string>
     <string name="pgp_interaction_required" translatable="false">Complete the OpenKeychain prompt, then send again</string>
-    <string name="pgp_view_source_title" translatable="false">PGP source</string>
-    <string name="pgp_view_decrypted_source_title" translatable="false">Decrypted source</string>
-    <string name="settings_pgp_title" translatable="false">PGP (OpenKeychain)</string>
-    <string name="settings_pgp_summary" translatable="false">Encrypt and decrypt messages with OpenKeychain</string>
     <string name="settings_pgp_category" translatable="false">PGP</string>
     <string name="settings_pgp_enable_title" translatable="false">Enable PGP</string>
     <string name="settings_pgp_enable_summary" translatable="false">Encrypt and decrypt messages via OpenKeychain</string>
@@ -572,7 +578,6 @@
     <string name="settings_pgp_override_user_hint" translatable="false">Matrix user ID (e.g. @alice:matrix.org)</string>
     <string name="settings_pgp_override_address_hint" translatable="false">OpenKeychain address / key email</string>
     <string name="settings_pgp_not_installed" translatable="false">OpenKeychain is not installed. Install it to use PGP.</string>
-    <string name="settings_pgp_remove_override" translatable="false">Remove</string>
 
     <!-- Image packs (MSC2545 custom stickers &amp; emoticons) -->
     <string name="attachment_type_sticker_online" translatable="false">Web Stickers</string>
@@ -582,18 +587,13 @@
     <string name="sticker_picker_frequently_used" translatable="false">Frequently used</string>
     <string name="sticker_picker_empty" translatable="false">No stickers available. Add a sticker pack in settings or in a room\'s image packs.</string>
     <string name="image_pack_settings_title" translatable="false">Image Packs</string>
-    <string name="image_pack_settings_summary" translatable="false">Manage your custom emoticons and stickers</string>
     <string name="image_pack_personal_pack" translatable="false">Personal pack</string>
     <string name="image_pack_your_personal_pack" translatable="false">Your personal pack</string>
-    <string name="image_pack_global_packs_title" translatable="false">Globally enabled packs</string>
     <string name="image_pack_list_empty" translatable="false">No Image Packs</string>
-    <string name="image_pack_create" translatable="false">Create pack</string>
-    <string name="image_pack_create_account" translatable="false">Create personal pack</string>
     <string name="image_pack_create_room" translatable="false">Create Pack</string>
     <string name="image_pack_edit_title" translatable="false">Edit Pack</string>
     <string name="image_pack_create_title" translatable="false">Create Pack</string>
     <string name="image_pack_name_hint" translatable="false">Pack name</string>
-    <string name="image_pack_attribution_hint" translatable="false">Attribution (optional)</string>
     <string name="image_pack_add_image" translatable="false">Add to Pack</string>
     <string name="notice_image_pack_added_by_you" translatable="false">You added an image pack</string>
     <string name="notice_image_pack_added" translatable="false">%1$s added an image pack</string>
@@ -613,7 +613,6 @@
     <string name="image_pack_unsaved_title" translatable="false">Unsaved changes</string>
     <string name="image_pack_unsaved_message" translatable="false">You have unsaved changes to this pack. Apply them?</string>
     <string name="image_pack_unsaved_discard" translatable="false">Discard</string>
-    <string name="image_pack_no_images" translatable="false">No images yet</string>
     <string name="image_pack_image_shortcode_hint" translatable="false">shortcode</string>
     <string name="image_pack_usage_emoticon" translatable="false">Emoticon</string>
     <string name="image_pack_usage_sticker" translatable="false">Sticker</string>
@@ -622,11 +621,8 @@
     <string name="image_pack_usage_emoticons" translatable="false">Emoticons</string>
     <string name="image_pack_usage_stickers" translatable="false">Stickers</string>
     <string name="permalink_open_failed" translatable="false">Couldn\'t open this link. Check your connection and try again.</string>
-    <string name="image_pack_enable_globally" translatable="false">Enable in all rooms</string>
-    <string name="image_pack_uploading" translatable="false">Uploading…</string>
     <string name="image_pack_no_permission_room" translatable="false">You don\'t have permission to edit packs in this room</string>
     <string name="image_pack_duplicate_shortcode" translatable="false">Duplicate shortcode \"%1$s\": each shortcode in a pack must be unique</string>
-    <string name="image_pack_invalid_shortcode" translatable="false">Shortcodes may only contain letters, digits, - and _</string>
     <string name="image_pack_import" translatable="false">Import Pack</string>
     <string name="image_pack_importing" translatable="false">Importing %1$s… (%2$d/%3$d)</string>
     <string name="image_pack_import_done" translatable="false">Imported %1$s</string>
@@ -643,9 +639,7 @@
     <string name="image_pack_source_space" translatable="false">Pack from parent space</string>
     <string name="image_pack_source_global" translatable="false">Pack from another room</string>
     <string name="image_pack_image_count" translatable="false">%1$d images</string>
-    <string name="image_pack_list_room_title" translatable="false">Emoticons &amp; stickers in this room</string>
     <string name="image_pack_view_readonly" translatable="false">You don\'t have permission to edit this pack</string>
-    <string name="image_pack_save" translatable="false">Save</string>
     <string name="notice_voice_broadcast_started" translatable="false">%1$s started a voice broadcast.</string>
     <string name="notice_voice_broadcast_started_by_you" translatable="false">You started a voice broadcast.</string>
     <string name="encryption_export_notice_optional" translatable="false">Optionally create a passphrase to encrypt the exported keys. If you set one, you will need to enter the same passphrase to import the keys; leave it blank to export without encryption.</string>
@@ -731,7 +725,7 @@
     <string name="video_editor_volume_value" translatable="false">%1$d%%</string>
     <string name="video_editor_volume_mute" translatable="false">Mute</string>
     <string name="video_player_volume_boost_unsupported" translatable="false">This device can\'t play louder than 100%</string>
-    <string name="video_editor_volume_preview_capped" translatable="false">The preview can\'t play louder than 100%, but the saved video will</string>
+    <string name="video_editor_volume_preview_capped" formatted="false" translatable="false">The preview can\'t play louder than 100%, but the saved video will</string>
     <string name="video_editor_range" translatable="false">%1$s – %2$s</string>
     <string name="video_editor_range_output" translatable="false">%1$s – %2$s → %3$s</string>
     <string name="video_editor_speed" translatable="false">Speed</string>
@@ -757,7 +751,7 @@
     <string name="audio_editor_too_long_to_reverse" translatable="false">This file is too long to reverse</string>
     <string name="audio_editor_speed_preview_unsupported" translatable="false">This device can\'t preview the new speed, but the saved file will use it</string>
     <string name="audio_editor_reverse_preview_unsupported" translatable="false">The preview plays forwards, but the saved file will be reversed</string>
-    <string name="audio_editor_volume_preview_capped" translatable="false">The preview can\'t play louder than 100%, but the saved file will</string>
+    <string name="audio_editor_volume_preview_capped" formatted="false" translatable="false">The preview can\'t play louder than 100%, but the saved file will</string>
 
     <string name="animated_image_editor_title" translatable="false">Edit animated image</string>
     <string name="animated_image_editor_exporting" translatable="false">Saving animated image…</string>
@@ -857,7 +851,6 @@
     <string name="notice_state_event_redacted_with_reason" translatable="false">%1$s\'s room change was removed, reason: %2$s</string>
 
     <string name="settings_homeserver_info_reloaded" translatable="false">Homeserver info reloaded</string>
-    <string name="settings_server_admin" translatable="false">Admin</string>
     <string name="settings_server_admin_yes" translatable="false">Yes</string>
     <string name="settings_server_admin_no" translatable="false">No</string>
     <string name="settings_server_admin_unknown" translatable="false">Unknown</string>
