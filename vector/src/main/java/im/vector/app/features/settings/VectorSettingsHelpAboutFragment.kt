@@ -77,7 +77,7 @@ class VectorSettingsHelpAboutFragment :
 
         // application version
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_VERSION_PREFERENCE_KEY)!!.let {
-            it.summary = versionProvider.getVersion(longFormat = false)
+            it.summary = versionProvider.getVersion()
 
             it.setOnPreferenceClickListener { pref ->
                 copyToClipboard(requireContext(), pref.summary.orEmpty())

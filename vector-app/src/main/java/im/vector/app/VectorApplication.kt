@@ -258,7 +258,7 @@ class VectorApplication :
     }
 
     private fun logInfo() {
-        val appVersion = versionProvider.getVersion(longFormat = true)
+        val appVersion = versionProvider.getVersion()
         val sdkVersion = Matrix.getSdkVersion()
         val date = SimpleDateFormat("MM-dd HH:mm:ss.SSSZ", Locale.US).format(Date())
 

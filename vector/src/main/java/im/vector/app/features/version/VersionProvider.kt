@@ -16,13 +16,16 @@ class VersionProvider @Inject constructor(
         private val buildMeta: BuildMeta,
 ) {
 
-    fun getVersion(longFormat: Boolean): String {
-        val result = "${buildMeta.versionName} [${versionCodeProvider.getVersionCode()}]"
+    fun getVersion(): String {
+        // gitRevisionDate is git's %ci ("2026-08-30 21:03:11 +0200"); the date alone reads as a build stamp.
+        val buildStamp = buildMeta.gitRevisionDate.take(10).filter { it.isDigit() }
+                .takeIf { it.length == 8 }
+                ?: versionCodeProvider.getVersionCode().toString()
+        val result = "${buildMeta.versionName} [$buildStamp]"
 
         val details = listOfNotNull(
                 buildMeta.flavorShortDescription.takeIf { it.isNotBlank() },
                 buildMeta.gitRevision.takeIf { it.isNotBlank() },
-                buildMeta.gitRevisionDate.takeIf { longFormat && it.isNotBlank() },
         )
 
         return if (details.isEmpty()) result else result + details.joinToString("-", prefix = " (", postfix = ")")
