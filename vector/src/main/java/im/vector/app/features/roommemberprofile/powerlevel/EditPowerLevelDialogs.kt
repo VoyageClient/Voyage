@@ -17,7 +17,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.R
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.databinding.DialogEditPowerLevelBinding
-import im.vector.app.features.powerlevel.isOwner
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
@@ -40,26 +39,23 @@ object EditPowerLevelDialogs {
         views.powerLevelCustomEdit.setText("${currentPowerLevel.value}")
 
         val matchesPreset = when (currentRole) {
-            Role.Creator,
-            Role.SuperAdmin -> currentPowerLevel.value == UserPowerLevel.SuperAdmin.value
+            // Owners hold an infinite power level, which no numeric value can match.
+            Role.Creator -> false
             Role.Admin -> currentPowerLevel.value == UserPowerLevel.Admin.value
             Role.Moderator -> currentPowerLevel.value == UserPowerLevel.Moderator.value
             Role.User -> currentPowerLevel.value == UserPowerLevel.User.value
         }
         when {
             !matchesPreset -> views.powerLevelCustomRadio.isChecked = true
-            currentRole == Role.Creator || currentRole == Role.SuperAdmin -> views.powerLevelOwnerRadio.isChecked = true
             currentRole == Role.Admin -> views.powerLevelAdminRadio.isChecked = true
             currentRole == Role.Moderator -> views.powerLevelModeratorRadio.isChecked = true
             currentRole == Role.User -> views.powerLevelDefaultRadio.isChecked = true
         }
-        views.powerLevelOwnerRadio.isVisible = currentRole.isOwner()
         MaterialAlertDialogBuilder(activity)
                 .setTitle(titleRes)
                 .setView(dialogLayout)
                 .setPositiveButton(CommonStrings.edit) { _, _ ->
                     val newValue = when (views.powerLevelRadioGroup.checkedRadioButtonId) {
-                        R.id.powerLevelOwnerRadio -> UserPowerLevel.SuperAdmin
                         R.id.powerLevelAdminRadio -> UserPowerLevel.Admin
                         R.id.powerLevelModeratorRadio -> UserPowerLevel.Moderator
                         R.id.powerLevelDefaultRadio -> UserPowerLevel.User

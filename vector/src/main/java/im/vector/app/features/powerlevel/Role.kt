@@ -18,8 +18,6 @@ import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.flow.flow
 
-fun Role.isOwner() = this == Role.Creator || this == Role.SuperAdmin
-
 fun Room.membersByRoleFlow(): Flow<Map<Role, List<RoomMemberSummary>>> {
     val roomMembersFlow = flow().liveRoomMembers(roomMemberQueryParams())
     val roomPowerLevelsFlow = flow().liveRoomPowerLevels()
@@ -31,9 +29,8 @@ fun Room.membersByRoleFlow(): Flow<Map<Role, List<RoomMemberSummary>>> {
 fun Room.isLastAdminFlow(userId: String): Flow<Boolean> {
     return membersByRoleFlow().map { membersByRole ->
         val creatorMembers = membersByRole[Role.Creator].orEmpty()
-        val superAdminMembers = membersByRole[Role.SuperAdmin].orEmpty()
         val adminMembers = membersByRole[Role.Admin].orEmpty()
-        val joinedAdmins = (adminMembers + creatorMembers + superAdminMembers).filter { it.membership == Membership.JOIN }
+        val joinedAdmins = (adminMembers + creatorMembers).filter { it.membership == Membership.JOIN }
         if (joinedAdmins.size == 1) {
             joinedAdmins.first().userId == userId
         } else {

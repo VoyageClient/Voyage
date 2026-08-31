@@ -22,7 +22,6 @@ class RoleFormatter @Inject constructor(
             Role.Moderator -> stringProvider.getString(CommonStrings.power_level_moderator)
             Role.User -> stringProvider.getString(CommonStrings.power_level_default)
             Role.Creator -> stringProvider.getString(CommonStrings.power_level_owner)
-            Role.SuperAdmin -> stringProvider.getString(CommonStrings.power_level_owner)
         }
     }
 
@@ -36,7 +35,6 @@ class RoleFormatter @Inject constructor(
                 UserPowerLevel.User.value -> return stringProvider.getString(CommonStrings.power_level_default)
                 UserPowerLevel.Moderator.value -> return stringProvider.getString(CommonStrings.power_level_moderator)
                 UserPowerLevel.Admin.value -> return stringProvider.getString(CommonStrings.power_level_admin)
-                UserPowerLevel.SuperAdmin.value -> return stringProvider.getString(CommonStrings.power_level_owner)
                 else -> return stringProvider.getString(CommonStrings.power_level_custom, powerLevel.value)
             }
         }
