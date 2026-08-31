@@ -19,7 +19,6 @@ package org.matrix.android.sdk.api.session.room.powerlevels
 
 enum class Role {
     Creator,
-    SuperAdmin,
     Admin,
     Moderator,
     User;
@@ -28,7 +27,6 @@ enum class Role {
         fun getSuggestedRole(userPowerLevel: UserPowerLevel): Role {
             return when {
                 userPowerLevel == UserPowerLevel.Infinite -> Creator
-                userPowerLevel >= UserPowerLevel.SuperAdmin -> SuperAdmin
                 userPowerLevel >= UserPowerLevel.Admin -> Admin
                 userPowerLevel >= UserPowerLevel.Moderator -> Moderator
                 else -> User

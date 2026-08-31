@@ -221,8 +221,7 @@ class RoomMemberListViewModel @AssistedInject constructor(
                     when {
                         roomMember.membership == Membership.INVITE -> invites.add(roomMemberWithPowerLevel)
                         // Admins/owners stay under "Admins" even when their power level is a custom value.
-                        userRole == Role.SuperAdmin ||
-                                userRole == Role.Creator ||
+                        userRole == Role.Creator ||
                                 userRole == Role.Admin -> admins.add(roomMemberWithPowerLevel)
                         powerLevel == UserPowerLevel.Moderator -> moderators.add(roomMemberWithPowerLevel)
                         powerLevel == roomDefault -> users.add(roomMemberWithPowerLevel)

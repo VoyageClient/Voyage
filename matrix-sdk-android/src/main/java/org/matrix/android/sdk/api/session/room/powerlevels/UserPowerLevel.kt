@@ -40,6 +40,5 @@ sealed interface UserPowerLevel : Comparable<UserPowerLevel> {
         val User = Value(0)
         val Moderator = Value(50)
         val Admin = Value(100)
-        val SuperAdmin = Value(150)
     }
 }

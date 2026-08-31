@@ -936,7 +936,6 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         // e.g. PL 45 would be shown as "Default in <room>" rather than "Custom (45) in <room>".
         val matchesPreset = userPowerLevel is UserPowerLevel.Value && when (role) {
             Role.Creator -> true
-            Role.SuperAdmin -> userPowerLevel.value == UserPowerLevel.SuperAdmin.value
             Role.Admin -> userPowerLevel.value == UserPowerLevel.Admin.value
             Role.Moderator -> userPowerLevel.value == UserPowerLevel.Moderator.value
             Role.User -> userPowerLevel.value == UserPowerLevel.User.value
@@ -945,7 +944,6 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             stringProvider.getString(CommonStrings.room_member_power_level_custom_in, userPowerLevel.value, roomName)
         } else {
             when (role) {
-                Role.SuperAdmin,
                 Role.Creator -> stringProvider.getString(CommonStrings.room_member_power_level_owner_in, roomName)
                 Role.Admin -> stringProvider.getString(CommonStrings.room_member_power_level_admin_in, roomName)
                 Role.Moderator -> stringProvider.getString(CommonStrings.room_member_power_level_moderator_in, roomName)
