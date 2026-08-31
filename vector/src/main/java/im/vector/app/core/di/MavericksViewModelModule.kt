@@ -568,11 +568,6 @@ interface MiscMavericksViewModelModule {
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.reactions.EmojiSearchResultViewModel")
-    fun vm19(factory: im.vector.app.features.reactions.EmojiSearchResultViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.share.IncomingShareViewModel")
     fun vm20(factory: im.vector.app.features.share.IncomingShareViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 

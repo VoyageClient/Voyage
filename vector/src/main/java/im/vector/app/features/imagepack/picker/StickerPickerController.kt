@@ -28,6 +28,7 @@ class StickerPickerController @Inject constructor(
     data class Data(
             val frequentlyUsed: List<ResolvedImage>,
             val packs: List<ResolvedImagePack>,
+            val searchQuery: String = "",
     )
 
     interface Listener {
@@ -46,13 +47,27 @@ class StickerPickerController @Inject constructor(
     override fun buildModels(data: Data?) {
         val host = this
         val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
-        val packs = data?.packs?.filter { it.images.isNotEmpty() }.orEmpty()
-        val frequent = data?.frequentlyUsed.orEmpty()
+        val query = data?.searchQuery.orEmpty().trim()
+        val allPacks = data?.packs?.filter { it.images.isNotEmpty() }.orEmpty()
+        val allFrequent = data?.frequentlyUsed.orEmpty()
 
-        if (packs.isEmpty() && frequent.isEmpty()) {
+        if (allPacks.isEmpty() && allFrequent.isEmpty()) {
             genericFooterItem {
                 id("empty")
                 text(host.stringProvider.getString(CommonStrings.sticker_picker_empty).toEpoxyCharSequence())
+            }
+            return
+        }
+
+        val packs = if (query.isEmpty()) allPacks else allPacks.mapNotNull { pack ->
+            pack.images.filter { it.matchesQuery(query) }.takeIf { it.isNotEmpty() }?.let { pack.copy(images = it) }
+        }
+        val frequent = if (query.isEmpty()) allFrequent else allFrequent.filter { it.matchesQuery(query) }
+
+        if (packs.isEmpty() && frequent.isEmpty()) {
+            genericFooterItem {
+                id("search_empty")
+                text(host.stringProvider.getString(CommonStrings.search_no_results).toEpoxyCharSequence())
             }
             return
         }
@@ -76,16 +91,17 @@ class StickerPickerController @Inject constructor(
             }
         }
 
-        packs.forEachIndexed { packIndex, pack ->
+        packs.forEach { pack ->
+            val packKey = "${pack.source}_${pack.roomId}_${pack.stateKey}"
             stickerPackHeaderItem {
-                id("header_$packIndex")
+                id("header_$packKey")
                 title(host.packTitle(pack))
                 // Header spans the whole row; stickers take one column each (see spanCount on the grid).
                 spanSizeOverride { totalSpanCount, _, _ -> totalSpanCount }
             }
             pack.images.forEach { image ->
                 stickerItem {
-                    id("${packIndex}_${image.shortcode}")
+                    id("${packKey}_${image.shortcode}")
                     // Full (original) file: it animates, and server thumbnails flatten transparency.
                     resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
                     contentDescription(image.body ?: image.shortcode)
@@ -95,4 +111,10 @@ class StickerPickerController @Inject constructor(
             }
         }
     }
+}
+
+internal fun ResolvedImage.matchesQuery(query: String): Boolean {
+    return shortcode.contains(query, ignoreCase = true) ||
+            body?.contains(query, ignoreCase = true) == true ||
+            packDisplayName?.contains(query, ignoreCase = true) == true
 }

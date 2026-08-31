@@ -12,6 +12,7 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.recyclerview.widget.GridLayoutManager
@@ -52,6 +53,9 @@ class StickerPickerBottomSheet :
 
     override val showExpanded = true
 
+    private var frequent: List<ResolvedImage> = emptyList()
+    private var packs: List<ResolvedImagePack> = emptyList()
+
     // Adapter position of each section header, in order — used to scroll on tab tap and to pick the
     // current tab while scrolling.
     private val sectionHeaderPositions = mutableListOf<Int>()
@@ -84,20 +88,34 @@ class StickerPickerBottomSheet :
         views.stickerPickerRecyclerView.pauseImageAnimationsWhileScrolling()
         controller.listener = this
 
-        val packs = imagePackProvider.sortForDisplay(ImagePackUsageFilter.stickerPacks(imagePackProvider.getEnabledImagePacks(pickerArgs.roomId)))
+        packs = imagePackProvider.sortForDisplay(ImagePackUsageFilter.stickerPacks(imagePackProvider.getEnabledImagePacks(pickerArgs.roomId)))
                 .filter { it.images.isNotEmpty() }
         val packImagesByMxc = packs.flatMap { it.images }.associateBy { it.mxcUrl }
         // Drop deleted stickers from both the displayed list and the remote recent_stickers account data.
         recentStickerDataSource.pruneToValidMxcs(packImagesByMxc.keys)
         // Re-resolve against the packs: the account data doesn't round-trip shortcode/info.
-        val frequent = recentStickerDataSource.getRecentStickersSnapshot()
+        frequent = recentStickerDataSource.getRecentStickersSnapshot()
                 .mapNotNull { packImagesByMxc[it.mxcUrl] }
 
         controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs))
-        setupTabs(frequent, packs, layoutManager)
+        setupTabs(layoutManager)
+        setupSearch()
     }
 
-    private fun setupTabs(frequent: List<ResolvedImage>, packs: List<ResolvedImagePack>, layoutManager: GridLayoutManager) {
+    @Suppress("DEPRECATION")
+    private fun setupSearch() {
+        // Shrink the sheet for the keyboard rather than letting it cover the grid.
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        views.stickerPickerTabRow.onQueryChanged = { query ->
+            controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs, searchQuery = query))
+            views.stickerPickerRecyclerView.scrollToPosition(0)
+        }
+        views.stickerPickerTabRow.onSearchModeChanged = { searching ->
+            if (!searching) views.stickerPickerTabRow.tabs.setSelectedTab(0)
+        }
+    }
+
+    private fun setupTabs(layoutManager: GridLayoutManager) {
         val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
         val sections = mutableListOf<EmojiPickerSection>()
         sectionHeaderPositions.clear()
@@ -120,14 +138,14 @@ class StickerPickerBottomSheet :
         }
 
         // Resolve the accent from the host activity (the bottom-sheet dialog theme would give green).
-        views.stickerPickerTabs.setIndicatorColor(
+        views.stickerPickerTabRow.tabs.setIndicatorColor(
                 im.vector.app.features.themes.ThemeUtils.getColor(requireActivity(), com.google.android.material.R.attr.colorAccent)
         )
-        views.stickerPickerTabs.setTabs(sections)
-        views.stickerPickerTabs.setSelectedTab(0)
-        views.stickerPickerTabs.onTabClicked = { index ->
+        views.stickerPickerTabRow.tabs.setTabs(sections)
+        views.stickerPickerTabRow.tabs.setSelectedTab(0)
+        views.stickerPickerTabRow.tabs.onTabClicked = { index ->
             sectionHeaderPositions.getOrNull(index)?.let { layoutManager.scrollToPositionWithOffset(it, 0) }
-            views.stickerPickerTabs.setSelectedTab(index)
+            views.stickerPickerTabRow.tabs.setSelectedTab(index)
         }
         views.stickerPickerRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             private var userScrolling = false
@@ -139,10 +157,10 @@ class StickerPickerBottomSheet :
             }
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (!userScrolling) return
+                if (!userScrolling || views.stickerPickerTabRow.isSearching) return
                 val first = layoutManager.findFirstVisibleItemPosition()
                 val section = sectionHeaderPositions.indexOfLast { it <= first }.coerceAtLeast(0)
-                views.stickerPickerTabs.setSelectedTab(section)
+                views.stickerPickerTabRow.tabs.setSelectedTab(section)
             }
         })
     }

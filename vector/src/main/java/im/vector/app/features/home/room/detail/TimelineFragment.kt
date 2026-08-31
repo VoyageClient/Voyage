@@ -176,6 +176,7 @@ import im.vector.app.features.permalink.NavigationInterceptor
 import im.vector.app.features.permalink.PermalinkFactory
 import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.poll.PollMode
+import im.vector.app.features.reactions.EmojiPanelHostLayout
 import im.vector.app.features.reactions.EmojiReactionPickerActivity
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
 import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
@@ -306,6 +307,9 @@ class TimelineFragment :
 
     private lateinit var scrollOnNewMessageCallback: ScrollOnNewMessageCallback
     private lateinit var scrollOnHighlightedEventCallback: ScrollOnHighlightedEventCallback
+
+    /** Hosts the strip below the composer that the emoji panel reserves; see EmojiKeyboardController. */
+    val emojiPanelHost: EmojiPanelHostLayout get() = views.root
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentTimelineBinding {
         return FragmentTimelineBinding.inflate(inflater, container, false)

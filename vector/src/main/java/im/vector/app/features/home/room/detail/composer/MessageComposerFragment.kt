@@ -71,6 +71,7 @@ import im.vector.app.features.devtools.RoomDevToolViewState
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.AutoCompleter
 import im.vector.app.features.home.room.detail.RoomDetailAction
+import im.vector.app.features.home.room.detail.TimelineFragment
 import im.vector.app.features.home.room.detail.TimelineViewModel
 import im.vector.app.features.home.room.detail.composer.link.SetLinkFragment
 import im.vector.app.features.home.room.detail.composer.sed.SED_MATCH_TIMEOUT_MS
@@ -156,6 +157,13 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     // Custom inline emoji+emote keyboard, works on all API levels (the old vanniktech popup needed API 21+).
     private var emojiKeyboardController: EmojiKeyboardController? = null
+
+    // Back closes the emoji panel and the keyboard together, straight back to the timeline.
+    private val closeEmojiPanelOnBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            emojiKeyboardController?.close()
+        }
+    }
     private var composerHadFocus = false
 
     private val glideRequests by lazy {
@@ -226,6 +234,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             override fun handleOnBackPressed() = attachmentTypeSelector.hide()
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, closeSelectorOnBack)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, closeEmojiPanelOnBack)
         attachmentTypeSelector.onOpenChanged = { isOpen -> closeSelectorOnBack.isEnabled = isOpen }
         dismissSelectorOnTouchOutside()
 
@@ -728,12 +737,13 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun emojiKeyboard(): EmojiKeyboardController {
         return emojiKeyboardController ?: EmojiKeyboardController(
                 activity = requireActivity(),
-                rootView = views.root,
+                panelHost = (parentFragment as TimelineFragment).emojiPanelHost,
                 editText = composer.editText,
                 roomId = roomId,
                 sectionFactory = emojiPickerSectionFactory,
                 scope = viewLifecycleOwner.lifecycleScope,
                 onVisibilityChanged = { visible ->
+                    closeEmojiPanelOnBack.isEnabled = visible
                     composer.emojiButton?.apply {
                         contentDescription = getString(if (visible) CommonStrings.a11y_close_emoji_picker else CommonStrings.a11y_open_emoji_picker)
                         setImageResource(if (visible) R.drawable.ic_keyboard else R.drawable.ic_insert_emoji)

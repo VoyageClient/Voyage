@@ -7,7 +7,6 @@
 
 package im.vector.app.features.reactions
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -17,12 +16,18 @@ import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import im.vector.app.databinding.ViewEmojiPickerBinding
 import im.vector.app.features.themes.ThemeUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
- * The shared emoji + custom-emote picker surface: a [EmojiPickerTabStrip] (Frequently used, emote packs,
+ * The shared emoji + custom-emote picker surface: a [PickerTabRow] (Frequently used, emote packs,
  * emoji categories) over the picker grid, with the tab/scroll sync wired up. Used by both the reaction
- * picker and the inline composer keyboard; the latter also shows a trailing backspace key.
+ * picker, which adds search and freeform reactions, and the inline composer keyboard, which instead
+ * shows a trailing backspace key.
  */
 class EmojiPickerView @JvmOverloads constructor(
         context: Context,
@@ -36,10 +41,22 @@ class EmojiPickerView @JvmOverloads constructor(
 
     var onEmojiClick: OnEmojiClickListener? = null
 
+    /** Narrows the sections to those matching a query, keeping section (category) grouping. */
+    var sectionFilter: (suspend (List<EmojiPickerSection>, String) -> List<EmojiPickerSection>)? = null
+
+    /** Sends a typed reaction (the reaction picker only); enables the freeform key when non-null. */
+    var onFreeformSubmit: ((String) -> Unit)? = null
+        set(value) {
+            field = value
+            views.emojiPickerTabRow.onFreeformSubmit = value
+            views.emojiPickerTabRow.setFreeformEnabled(value != null)
+        }
+
     private val views: ViewEmojiPickerBinding
     private val adapter = EmojiRecyclerAdapter()
     private val viewScope = MainScope()
     private var sections: List<EmojiPickerSection> = emptyList()
+    private var searchJob: Job? = null
 
     init {
         orientation = VERTICAL
@@ -51,6 +68,8 @@ class EmojiPickerView @JvmOverloads constructor(
         views = ViewEmojiPickerBinding.inflate(LayoutInflater.from(context), this)
 
         views.emojiPickerRecycler.adapter = adapter
+        views.emojiPickerRecycler.setHasFixedSize(true)
+        views.emojiPickerRecycler.setItemViewCacheSize(GRID_VIEW_CACHE)
         views.emojiPickerRecycler.pauseImageAnimationsWhileScrolling()
         adapter.reactionClickListener = object : ReactionClickListener {
             override fun onReactionSelected(reaction: String) = onItemSelected(reaction)
@@ -58,82 +77,53 @@ class EmojiPickerView @JvmOverloads constructor(
         adapter.interactionListener = object : EmojiRecyclerAdapter.InteractionListener {
             override fun getCoroutineScope() = viewScope
             override fun firstVisibleSectionChange(section: Int) {
-                views.emojiPickerTabs.setSelectedTab(section)
+                if (!views.emojiPickerTabRow.isSearching) views.emojiPickerTabRow.tabs.setSelectedTab(section)
             }
         }
-        views.emojiPickerTabs.onTabClicked = { position ->
+        views.emojiPickerTabRow.tabs.onTabClicked = { position ->
             adapter.scrollToSection(position)
-            views.emojiPickerTabs.setSelectedTab(position)
+            views.emojiPickerTabRow.tabs.setSelectedTab(position)
         }
+        views.emojiPickerTabRow.onQueryChanged = { query -> onQuery(query) }
     }
 
     fun setSections(sections: List<EmojiPickerSection>) {
         this.sections = sections
+        views.emojiPickerTabRow.tabs.setTabs(sections)
+        views.emojiPickerTabRow.tabs.setSelectedTab(0)
+        if (views.emojiPickerTabRow.isSearching) return
+        showSections(sections)
+    }
+
+    private fun onQuery(query: String) {
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            showSections(sections)
+            views.emojiPickerRecycler.scrollToPosition(0)
+            return
+        }
+        val filter = sectionFilter ?: return
+        searchJob = viewScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            val filtered = withContext(Dispatchers.Default) { filter(sections, query) }
+            showSections(filtered)
+            views.emojiPickerRecycler.scrollToPosition(0)
+        }
+    }
+
+    private fun showSections(sections: List<EmojiPickerSection>) {
         adapter.update(sections)
-        views.emojiPickerTabs.setTabs(sections)
-        views.emojiPickerTabs.setSelectedTab(0)
+        views.emojiPickerNoResults.isVisible = sections.isEmpty()
     }
 
-    /** Keep the grid's last row above the gesture home bar / nav bar (the panel bg fills behind it). */
-    fun setBottomInset(px: Int) {
-        views.emojiPickerRecycler.setPadding(0, 0, 0, px)
-    }
+    fun setSearchEnabled(enabled: Boolean) = views.emojiPickerTabRow.setSearchEnabled(enabled)
 
-    private val repeatHandler = android.os.Handler(android.os.Looper.getMainLooper())
-
-    /**
-     * Show a trailing action button next to the tabs (the keyboard's backspace). Each press fires
-     * immediately on ACTION_DOWN — no click-detection delay — so rapid tapping deletes as fast as you tap;
-     * holding then repeats like a hardware key. Non-focusable so it never steals focus from the composer.
-     */
-    @SuppressLint("ClickableViewAccessibility")
     fun setTrailingAction(
             @DrawableRes iconRes: Int,
             @StringRes contentDescriptionRes: Int,
             onPressChanged: (pressed: Boolean) -> Unit,
             onClick: () -> Unit,
-    ) {
-        val button = views.emojiPickerTrailing
-        views.emojiPickerTrailingDivider.isVisible = true
-        button.isVisible = true
-        button.setImageResource(iconRes)
-        button.contentDescription = context.getString(contentDescriptionRes)
-        button.isFocusable = false
-        button.isFocusableInTouchMode = false
-        // Accelerating auto-repeat while held, like a hardware key: tapping deletes one per tap, holding
-        // ramps up to a fast delete so you don't have to spam-tap to clear a lot of text.
-        val repeat = object : Runnable {
-            var interval = REPEAT_FIRST_MS
-            override fun run() {
-                onClick()
-                interval = (interval * REPEAT_ACCEL).toLong().coerceAtLeast(REPEAT_MIN_MS)
-                repeatHandler.postDelayed(this, interval)
-            }
-        }
-        button.setOnTouchListener { v, event ->
-            when (event.actionMasked) {
-                android.view.MotionEvent.ACTION_DOWN -> {
-                    v.isPressed = true
-                    // Keep the scrolling tab strip from stealing fast, slightly-imprecise taps mid-gesture.
-                    v.parent?.requestDisallowInterceptTouchEvent(true)
-                    onPressChanged(true)
-                    onClick()
-                    repeatHandler.removeCallbacks(repeat)
-                    repeat.interval = REPEAT_FIRST_MS
-                    repeatHandler.postDelayed(repeat, REPEAT_INITIAL_DELAY_MS)
-                    true
-                }
-                android.view.MotionEvent.ACTION_UP,
-                android.view.MotionEvent.ACTION_CANCEL -> {
-                    v.isPressed = false
-                    repeatHandler.removeCallbacks(repeat)
-                    onPressChanged(false)
-                    true
-                }
-                else -> false
-            }
-        }
-    }
+    ) = views.emojiPickerTabRow.setTrailingAction(iconRes, contentDescriptionRes, onPressChanged, onClick)
 
     private fun onItemSelected(reaction: String) {
         val item = sections.flatMap { it.items }.firstOrNull { itemKey(it) == reaction }
@@ -147,9 +137,7 @@ class EmojiPickerView @JvmOverloads constructor(
     }
 
     companion object {
-        private const val REPEAT_INITIAL_DELAY_MS = 250L
-        private const val REPEAT_FIRST_MS = 110L
-        private const val REPEAT_MIN_MS = 28L
-        private const val REPEAT_ACCEL = 0.82
+        private const val SEARCH_DEBOUNCE_MS = 150L
+        private const val GRID_VIEW_CACHE = 40
     }
 }

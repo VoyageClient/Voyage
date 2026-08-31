@@ -60,11 +60,11 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
         dismiss()
     }
 
-    private fun handleOnGlobalLayout() {
-        val rect = Rect()
-        popupView.getWindowVisibleDisplayFrame(rect)
-        // The popup is 0-width, so its own rootView height is NOT the screen height — use the real
-        // display height, otherwise (screenHeight - rect.bottom) goes negative and is never detected.
+    /**
+     * The full display height, nav bar included. The 0-width popup's own rootView height is NOT it, and
+     * (screenHeight - visibleFrame.bottom) would go negative without the real metrics.
+     */
+    fun screenHeight(): Int {
         val metrics = android.util.DisplayMetrics()
         @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -72,8 +72,13 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
         } else {
             activity.windowManager.defaultDisplay.getMetrics(metrics)
         }
-        val screenHeight = metrics.heightPixels
-        val keyboardHeight = screenHeight - rect.bottom
+        return metrics.heightPixels
+    }
+
+    private fun handleOnGlobalLayout() {
+        val rect = Rect()
+        popupView.getWindowVisibleDisplayFrame(rect)
+        val keyboardHeight = screenHeight() - rect.bottom
         // Keyboard closed: what's left below the visible frame is just the bottom system bar.
         if (keyboardHeight in 0 until KEYBOARD_OPEN_THRESHOLD) {
             navigationBarHeight = keyboardHeight
