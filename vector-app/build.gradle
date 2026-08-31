@@ -129,7 +129,7 @@ android {
 
         versionName "${versionMajor}.${versionMinor}.${versionPatch}${getFdroidVersionSuffix()}"
 
-        buildConfigField "String", "SHORT_FLAVOR_DESCRIPTION", "\"F\""
+        buildConfigField "String", "SHORT_FLAVOR_DESCRIPTION", "\"\""
         buildConfigField "String", "FLAVOR_DESCRIPTION", "\"FDroid\""
 
         // Decoupled from BuildConfig.DEBUG (which is tied to `debuggable`): lets the debug build keep
@@ -181,7 +181,7 @@ android {
                 // See https://issuetracker.google.com/issues/171133218
                 output.versionCodeOverride = baseVariantVersion + baseAbiVersionCode
                 print "ABI " + output.getFilter(OutputFile.ABI) + " \t-> VersionCode = " + output.versionCode + "\n"
-                output.outputFileName = output.outputFileName.replace("vector-app", "vector")
+                output.outputFileName = output.outputFileName.replace("vector-app", "voyage")
             }
         }
 
