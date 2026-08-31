@@ -26,6 +26,8 @@ class EmojiChooserFragment : VectorBaseFragment<EmojiChooserFragmentBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = activityViewModelProvider.get(EmojiChooserViewModel::class.java)
+        views.root.sectionFilter = { sections, query -> viewModel.filterSections(sections, query) }
+        views.root.onFreeformSubmit = { reaction -> viewModel.onReactionSelected(reaction) }
         views.root.onEmojiClick = EmojiPickerView.OnEmojiClickListener { item ->
             viewModel.onReactionSelected(
                     when (item) {

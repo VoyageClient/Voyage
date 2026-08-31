@@ -8,15 +8,14 @@
 package im.vector.app.features.reactions
 
 import android.app.Activity
-import android.graphics.drawable.ColorDrawable
-import android.view.Gravity
+import android.content.Context
 import android.view.KeyEvent
-import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.PopupWindow
+import androidx.core.content.edit
 import androidx.core.content.getSystemService
+import androidx.core.view.isVisible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,13 +23,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Drives the inline emoji + custom-emote keyboard. To occupy the keyboard region without hiding the
- * composer, it keeps the soft keyboard *open* (so the window stays resized and the composer stays
- * visible above) and lays a non-focusable [PopupWindow] over it. Dismissing reveals the keyboard again.
+ * Drives the inline emoji + custom-emote keyboard.
+ *
+ * The panel is a strip of the room screen itself, not a window over the keyboard: while either the panel
+ * or the soft keyboard is up, [EmojiPanelHostLayout] reserves the keyboard's footprint below the composer
+ * and hands back whatever the window has already given the IME. Swapping one for the other, or opening
+ * the panel with no keyboard up, then moves the composer in the same layout pass rather than a beat late.
  */
 class EmojiKeyboardController(
         private val activity: Activity,
-        private val rootView: View,
+        private val panelHost: EmojiPanelHostLayout,
         private val editText: EditText,
         private val roomId: String?,
         private val sectionFactory: EmojiPickerSectionFactory,
@@ -38,124 +40,128 @@ class EmojiKeyboardController(
         private val onVisibilityChanged: (visible: Boolean) -> Unit,
 ) {
 
-    private val keyboardView = EmojiPickerView(activity).apply {
+    private val pickerView = EmojiPickerView(activity).apply {
         onEmojiClick = EmojiPickerView.OnEmojiClickListener { insert(it) }
-    }
-    private val popup = PopupWindow(keyboardView, ViewGroup.LayoutParams.MATCH_PARENT, 0).apply {
-        setBackgroundDrawable(ColorDrawable(0))
-        // Non-focusable + no input method, so the soft keyboard behind stays "open" (window resized,
-        // composer visible) and we just draw over it.
-        inputMethodMode = PopupWindow.INPUT_METHOD_NOT_NEEDED
-        isFocusable = false
-        isOutsideTouchable = false
-        // The keyboard region (and the measured height) includes the nav-bar area; let the panel extend
-        // into it so Gravity.BOTTOM reaches the true screen bottom instead of the app content bottom,
-        // otherwise the panel rides ~nav-bar-height too high (overlapping the composer and exposing the
-        // keyboard's bottom row).
-        isClippingEnabled = false
+        setSearchEnabled(false)
     }
     private val heightProvider = KeyboardHeightProvider(activity)
+    private val prefs = activity.getSharedPreferences("emoji_panel", Context.MODE_PRIVATE)
     private var lastKeyboardHeight = 0
-    private var currentKeyboardHeight = 0
     private var backspaceHeld = false
-    private var pendingShow = false
+    private var stripReserved = false
+    private var panelOpen = false
     private var reloadJob: Job? = null
-    private val closeRunnable = Runnable {
-        lastKeyboardHeight = 0
-        if (popup.isShowing) dismiss()
-    }
 
-    val isShowing: Boolean get() = popup.isShowing
+    val isShowing: Boolean get() = panelOpen
 
     init {
-        keyboardView.setTrailingAction(
+        pickerView.setTrailingAction(
                 im.vector.app.R.drawable.ic_backspace,
                 im.vector.lib.strings.CommonStrings.action_delete,
-                onPressChanged = { pressed ->
-                    backspaceHeld = pressed
-                    if (!pressed) applyKeyboardHeight(currentKeyboardHeight)
-                },
+                onPressChanged = { pressed -> backspaceHeld = pressed },
         ) { backspace() }
+        pickerView.isVisible = false
+        panelHost.strip.addView(pickerView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         heightProvider.onKeyboardHeightChanged = { height ->
-            currentKeyboardHeight = height
             // Every delete restarts the IME, which reports a burst of transient heights (including a
-            // momentary 0) as its window tears down and comes back. Resizing the panel to those pulls it
-            // out from under itself and shows the keyboard through the gap, and a held backspace repeats
-            // faster than any debounce — so freeze the panel while the key is down and re-sync on release.
-            if (!backspaceHeld) applyKeyboardHeight(height)
+            // momentary 0) as its window tears down and comes back; a held backspace repeats faster than
+            // any debounce, so leave the strip alone until the key comes up.
+            if (!backspaceHeld) onKeyboardHeight(height)
         }
-        rootView.post { heightProvider.start() }
+        panelHost.post { heightProvider.start() }
     }
 
-    private fun applyKeyboardHeight(height: Int) {
+    private fun onKeyboardHeight(height: Int) {
         if (height > MIN_KEYBOARD_HEIGHT) {
-            rootView.removeCallbacks(closeRunnable)
+            if (height != lastKeyboardHeight) prefs.edit { putInt(PREF_KEYBOARD_HEIGHT, height) }
             lastKeyboardHeight = height
-            if (pendingShow) {
-                pendingShow = false
-                showPopup(height)
-            } else if (popup.isShowing) {
-                popup.update(ViewGroup.LayoutParams.MATCH_PARENT, height)
-            }
-        } else if (popup.isShowing) {
-            scheduleClose()
-        } else {
-            lastKeyboardHeight = 0
+            if (stripReserved) panelHost.setDesiredStripHeight(stripHeight())
+            // The panel stays drawn until the keyboard is actually over it, so the strip is never a hole.
+            if (!panelOpen) pickerView.isVisible = false
+        } else if (stripReserved && !panelOpen) {
+            // Keyboard gone with no panel to take its place: give the space back to the timeline.
+            pickerView.isVisible = false
+            releaseStrip()
         }
-    }
-
-    // The IME also restarts on ordinary edits, so only treat a sustained dip as a real close (back button).
-    private fun scheduleClose() {
-        rootView.removeCallbacks(closeRunnable)
-        rootView.postDelayed(closeRunnable, KEYBOARD_CLOSE_DEBOUNCE_MS)
     }
 
     fun toggle() {
-        if (popup.isShowing || pendingShow) dismiss() else show()
+        if (isShowing) dismiss() else show()
     }
 
     private fun show() {
         // Rebuild each time so pack enable/disable (and edits) reflect without re-entering the room.
         reload()
-        if (lastKeyboardHeight > MIN_KEYBOARD_HEIGHT) {
-            showPopup(lastKeyboardHeight)
-        } else {
-            // Keyboard not open yet: open it (so the window resizes and the composer floats up), then
-            // show the panel over it once we know its height.
-            pendingShow = true
-            editText.requestFocus()
-            activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
-        }
-    }
-
-    private fun showPopup(height: Int) {
-        keyboardView.setBottomInset(heightProvider.navigationBarHeight)
-        popup.height = height
-        popup.showAtLocation(rootView, Gravity.BOTTOM, 0, 0)
+        panelOpen = true
+        reserveStrip()
+        pickerView.isVisible = true
+        hideKeyboard()
         onVisibilityChanged(true)
     }
 
+    /** Hides the panel and hands the space straight to the keyboard, which draws over the same strip. */
     fun dismiss() {
-        pendingShow = false
-        if (popup.isShowing) {
-            popup.dismiss()
-            onVisibilityChanged(false)
-        }
+        if (!panelOpen) return
+        panelOpen = false
+        // Left drawn until the IME reports in: the keyboard slides in over it instead of over a gap.
+        showKeyboardOnComposer()
+        onVisibilityChanged(false)
     }
 
-    /** Fully close: dismiss the panel and the soft keyboard. */
+    /** Fully close: panel, keyboard, and the space they shared. */
     fun close() {
-        dismiss()
-        activity.getSystemService<InputMethodManager>()?.hideSoftInputFromWindow(editText.windowToken, 0)
+        val wasShowing = panelOpen
+        panelOpen = false
+        pickerView.isVisible = false
+        hideKeyboard()
+        releaseStrip()
+        if (wasShowing) onVisibilityChanged(false)
     }
 
     fun destroy() {
-        rootView.removeCallbacks(closeRunnable)
-        if (popup.isShowing) popup.dismiss()
+        panelOpen = false
+        pickerView.isVisible = false
+        releaseStrip()
+        panelHost.strip.removeView(pickerView)
         heightProvider.close()
     }
 
     fun prewarm() = reload()
+
+    /**
+     * The keyboard's footprint inside the app window (it also covers the system bar, the strip cannot).
+     * What the window has already surrendered to the IME is subtracted by the host at measure time.
+     */
+    private fun stripHeight(): Int {
+        val keyboardHeight = lastKeyboardHeight.takeIf { it > MIN_KEYBOARD_HEIGHT } ?: rememberedKeyboardHeight()
+        return (keyboardHeight - heightProvider.navigationBarHeight).coerceAtLeast(MIN_KEYBOARD_HEIGHT)
+    }
+
+    private fun rememberedKeyboardHeight(): Int {
+        val screenHeight = heightProvider.screenHeight()
+        return prefs.getInt(PREF_KEYBOARD_HEIGHT, (screenHeight * DEFAULT_KEYBOARD_FRACTION).toInt())
+                .coerceIn(MIN_KEYBOARD_HEIGHT, (screenHeight * MAX_KEYBOARD_FRACTION).toInt())
+    }
+
+    private fun reserveStrip() {
+        stripReserved = true
+        panelHost.setDesiredStripHeight(stripHeight())
+    }
+
+    private fun releaseStrip() {
+        if (!stripReserved) return
+        stripReserved = false
+        panelHost.setDesiredStripHeight(0)
+    }
+
+    private fun hideKeyboard() {
+        activity.getSystemService<InputMethodManager>()?.hideSoftInputFromWindow(editText.windowToken, 0)
+    }
+
+    private fun showKeyboardOnComposer() {
+        editText.requestFocus()
+        activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+    }
 
     private fun reload() {
         if (reloadJob?.isActive == true) return
@@ -163,7 +169,7 @@ class EmojiKeyboardController(
             // Off-main: the pack aggregation walks account data + room state + the space hierarchy, and the
             // emoji categories build ~1800 items. Safe there — each SDK read opens its own Realm.
             val sections = withContext(Dispatchers.Default) { sectionFactory.build(roomId) }
-            keyboardView.setSections(sections)
+            pickerView.setSections(sections)
         }
     }
 
@@ -209,6 +215,8 @@ class EmojiKeyboardController(
 
     companion object {
         private const val MIN_KEYBOARD_HEIGHT = 150
-        private const val KEYBOARD_CLOSE_DEBOUNCE_MS = 250L
+        private const val PREF_KEYBOARD_HEIGHT = "keyboard_height"
+        private const val DEFAULT_KEYBOARD_FRACTION = 0.4f
+        private const val MAX_KEYBOARD_FRACTION = 0.6f
     }
 }

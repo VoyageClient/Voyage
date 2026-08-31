@@ -19,8 +19,8 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <im.vector.app.features.reactions.EmojiPickerTabStrip
-        android:id="@+id/stickerPickerTabs"
+    <im.vector.app.features.reactions.PickerTabRow
+        android:id="@+id/stickerPickerTabRow"
         android:layout_width="match_parent"
         android:layout_height="40dp" />
 

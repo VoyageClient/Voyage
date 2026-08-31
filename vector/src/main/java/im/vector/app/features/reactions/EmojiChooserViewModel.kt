@@ -30,6 +30,8 @@ class EmojiChooserViewModel @Inject constructor(
         }
     }
 
+    suspend fun filterSections(sections: List<EmojiPickerSection>, query: String) = sectionFactory.filterSections(sections, query)
+
     fun onReactionSelected(reaction: String) {
         sectionFactory.recordUse(reaction)
         selectedReaction = reaction

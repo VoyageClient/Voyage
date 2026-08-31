@@ -242,7 +242,9 @@
     <string name="url_previews_in_encrypted_rooms_summary" translatable="false">Allow URL previews in encrypted rooms. Only enable this if you trust your homeserver, as previews are generated server-side and can leak message content.</string>
     <string name="settings_open_chats_at_first_unread" translatable="false">Open chats at first unread message</string>
     <string name="settings_open_chats_at_first_unread_summary" translatable="false">Open rooms at the first unread message instead of at the bottom of the chat.</string>
-    <string name="freeform_react_with" translatable="false">React with \"%s\"</string>
+    <string name="picker_clear_search" translatable="false">Clear search</string>
+    <string name="freeform_reaction_button" translatable="false">Aa</string>
+    <string name="freeform_reaction_hint" translatable="false">React with…</string>
     <string name="settings_include_space_members_as_rooms" translatable="false">Show space members as people in spaces</string>
 
     <string name="sc_theme_light" translatable="false">SchildiChat Light</string>

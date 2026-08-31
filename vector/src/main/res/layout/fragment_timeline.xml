@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- The emoji panel is a reserved strip below everything else rather than a window of its own, so the
+     composer moves with it in a single layout pass instead of chasing the keyboard's resize. -->
+<im.vector.app.features.reactions.EmojiPanelHostLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
     <!-- Explicit background: the toolbar's own drawable has been seen turning transparent after the
          app was backgrounded, letting the timeline show through the top bar. -->
@@ -344,4 +352,11 @@
         android:translationZ="10dp"
         android:visibility="visible" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <FrameLayout
+        android:id="@+id/emojiPanelContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" />
+
+</im.vector.app.features.reactions.EmojiPanelHostLayout>

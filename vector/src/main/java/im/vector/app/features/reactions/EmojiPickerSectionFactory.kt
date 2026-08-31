@@ -122,16 +122,23 @@ class EmojiPickerSectionFactory @Inject constructor(
         )
     }
 
-    /** Flat search results (custom emotes by shortcode first, then unicode emojis by name/keyword). */
-    suspend fun search(roomId: String?, query: String): List<EmojiPickerItem> {
-        if (query.isBlank()) return emptyList()
-        val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
-        val emotes = imagePackProvider.getEmoticons(roomId)
-                .filter { it.shortcode.contains(query, ignoreCase = true) }
-                .onEach { mxcToShortcode[it.mxcUrl] = it.shortcode }
-                .map { it.toItem(contentUrlResolver) }
-        val emojis = emojiDataSource.filterWith(query).map { EmojiPickerItem.Unicode(it.emoji) }
-        return emotes + emojis
+    /**
+     * Narrows built sections to what matches [query], keeping the category grouping and dropping the
+     * categories left with nothing. Unicode emojis match on name/keyword, emotes on their shortcode.
+     */
+    suspend fun filterSections(sections: List<EmojiPickerSection>, query: String): List<EmojiPickerSection> {
+        if (query.isBlank()) return sections
+        val matchingGlyphs = emojiDataSource.filterWith(query).mapTo(HashSet()) { it.emoji }
+        return sections.mapNotNull { section ->
+            val items = section.items.filter { item ->
+                when (item) {
+                    is EmojiPickerItem.Unicode -> item.glyph in matchingGlyphs
+                    is EmojiPickerItem.Emote -> item.shortcode.contains(query, ignoreCase = true) ||
+                            item.contentDescription.contains(query, ignoreCase = true)
+                }
+            }
+            if (items.isEmpty()) null else section.copy(items = items)
+        }
     }
 
     /** Records a tap on a reaction/emote key (mxc) or unicode glyph into the relevant recents store. */

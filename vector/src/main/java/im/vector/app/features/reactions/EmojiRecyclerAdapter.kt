@@ -83,6 +83,7 @@ class EmojiRecyclerAdapter @Inject constructor() :
         }
 
         recyclerView.recycledViewPool.setMaxRecycledViews(R.layout.grid_item_emoji, 300)
+        recyclerView.recycledViewPool.setMaxRecycledViews(R.layout.grid_item_emote, 120)
         recyclerView.addOnScrollListener(scrollListener)
     }
 
