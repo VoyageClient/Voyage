@@ -49,6 +49,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.flattenAsScrim
 import im.vector.app.core.extensions.registerStartForActivityResult
+import im.vector.app.core.extensions.removeParagraphLayoutSpans
 import im.vector.app.core.extensions.resourcesFor
 import im.vector.app.core.extensions.thumbCompat
 import im.vector.app.core.platform.VectorBaseFragment
@@ -146,7 +147,10 @@ class AttachmentsPreviewFragment :
                 vectorPreferences.sendMediaGalleries() && fragmentArgs.attachments.size >= 2
         ))
         views.attachmentPreviewerCaption.doAfterTextChanged { text ->
-            if (text != null) twemojiProvider.applyTo(text)
+            if (text != null) {
+                text.removeParagraphLayoutSpans()
+                twemojiProvider.applyTo(text)
+            }
             if (!bindingCaption) viewModel.handle(AttachmentsPreviewAction.SetCaption(text?.toString().orEmpty()))
         }
         val accent = ThemeUtils.getColorFromContextTheme(requireContext(), com.google.android.material.R.attr.colorAccent)

@@ -21,6 +21,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
 import im.vector.app.core.extensions.ooi
+import im.vector.app.core.extensions.removeParagraphLayoutSpans
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.features.home.room.detail.composer.images.UriContentListener
 import im.vector.app.features.html.PillImageSpan
@@ -132,6 +133,9 @@ class ComposerEditText @JvmOverloads constructor(
                                 editableText.replace(start, end, "")
                             }
                             spanToRemove = null
+                        }
+                        if (s.removeParagraphLayoutSpans()) {
+                            Timber.d("Composer: dropped indent/alignment spans carried in by a rich-text paste")
                         }
                         callback?.onTextChanged(s.toString())
                     }
