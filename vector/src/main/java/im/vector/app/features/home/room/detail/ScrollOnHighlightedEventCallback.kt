@@ -136,6 +136,12 @@ class ScrollOnHighlightedEventCallback(
     /** True while a jump is in flight or its target is still pinned (surroundings still loading in). */
     fun isSettling(): Boolean = scheduledEventId.get() != null || pinnedEventId != null
 
+    /** Drop a pending jump and release the landed target, so an explicit scroll elsewhere isn't pulled back. */
+    fun cancel() {
+        scheduledEventId.set(null)
+        pinnedEventId = null
+    }
+
     fun scheduleScrollTo(eventId: String?) {
         scheduledEventId.set(eventId)
         scheduleDeadlineMs = SystemClock.uptimeMillis() + SCHEDULE_TIMEOUT_MS
