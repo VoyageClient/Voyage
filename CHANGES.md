@@ -214,7 +214,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Rebrand to Voyage** — new app ID, icons, and a configurable logo and app-icon background color, a Voyage color scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages. The app now opens dark with a cyan accent and a black app icon by default.
 
-- **Accent picker** — a swatch picker for the app's accent color, plus an optional "ugly" username color palette. The picker offers thirty colors including monochrome white and black accents.
+- **Accent picker** — a swatch picker for the app's accent color. The picker offers thirty colors including monochrome white and black accents.
 
 ## Under the hood
 
