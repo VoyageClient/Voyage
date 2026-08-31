@@ -68,7 +68,9 @@ fun EditText.copyRawSelection(menuId: Int): Boolean {
     val max = maxOf(selectionStart, selectionEnd).coerceAtLeast(0)
     if (min >= max) return false
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText(null, editable.subSequence(min, max)))
+    // toString(): a Spanned here is coerced back to HTML by the receiving app, exporting styling the
+    // composer never showed — including paragraph indents that shift the pasted line.
+    clipboard.setPrimaryClip(ClipData.newPlainText(null, editable.subSequence(min, max).toString()))
     if (menuId == android.R.id.cut) {
         editable.delete(min, max)
     } else {
