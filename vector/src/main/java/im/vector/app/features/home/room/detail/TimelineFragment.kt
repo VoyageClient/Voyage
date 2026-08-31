@@ -941,6 +941,9 @@ class TimelineFragment :
 
     private fun jumpToBottom() {
         clearReplyJumpSource()
+        // A previous jump-to-event may still be pinning its target on screen (released only by a drag),
+        // which would pull the viewport straight back out of the live edge.
+        scrollOnHighlightedEventCallback.cancel()
         timelineEventController.setBuildFocusEventId(null)
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
         views.jumpToBottomView.visibility = View.INVISIBLE
