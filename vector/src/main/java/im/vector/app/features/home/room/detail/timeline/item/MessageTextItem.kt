@@ -163,6 +163,13 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
                 it.bind(messageView)
             }
         }
+        val defaultColorAttr = if (noticeStyle) {
+            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_content_primary
+        }
+        // Set before beforeSetText: the LaTeX plugin tints its cached renders with this color.
+        messageView.setTextColor(resolveThemeColor(messageView, defaultColorAttr))
         im.vector.app.core.utils.PerfTrace.time("bind.text.beforeText") {
             activeMessage.let { charSequence ->
                 markwonPlugins?.forEach { plugin -> plugin.beforeSetText(messageView, charSequence as Spanned) }
@@ -182,12 +189,6 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             messageView.onClick(attributes.itemClickListener)
         }
         messageView.onLongClickIgnoringLinksSelectingCode(attributes.itemLongClickListener)
-        val defaultColorAttr = if (noticeStyle) {
-            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
-        } else {
-            im.vector.lib.ui.styles.R.attr.vctr_content_primary
-        }
-        messageView.setTextColor(resolveThemeColor(messageView, defaultColorAttr))
         im.vector.app.core.utils.PerfTrace.time("bind.text.setText") {
             messageView.setTextWithEmojiSupport(activeMessage, activeOptions)
         }
