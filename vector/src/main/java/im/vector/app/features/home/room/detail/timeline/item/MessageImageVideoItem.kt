@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.graphics.Outline
 import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
+import android.os.SystemClock
 import android.text.format.DateUtils
 import android.text.method.MovementMethod
 import android.view.View
@@ -158,6 +159,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         }
         holder.alphaProbeKey = mediaData.stableId
         holder.alphaProbeCornerPx = cornerPx
+        holder.resetViewerHandover()
         holder.thumbnailBackdrop.backgroundCompat = GradientDrawable().apply {
             setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
             cornerRadius = if (isBubble) {
@@ -272,7 +274,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     override fun unbind(holder: Holder) {
         previewUrlViewUpdater.unbind()
-        holder.stopWatchingBackdrop()
+        holder.resetViewerHandover()
         holder.showDuration(false)
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
@@ -313,15 +315,15 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         var alphaProbeKey: String = ""
         var alphaProbeCornerPx: Int = 0
         private var durationAligner: ViewTreeObserver.OnPreDrawListener? = null
-        private var backdropWatcher: ViewTreeObserver.OnPreDrawListener? = null
         private val drawnThumbnail = RectF()
         private var wantsDuration = false
         private var fitted = false
         private var viewerHandover = ViewerHandover.NONE
+        private var handoverStartedAtMs = 0L
 
         fun showDuration(enabled: Boolean) {
             wantsDuration = enabled
-            viewerHandover = ViewerHandover.NONE
+            endViewerHandover()
             if (!enabled) {
                 durationView.isVisible = false
                 durationView.translationX = 0f
@@ -337,6 +339,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         fun startAligningDuration() {
             if (durationAligner != null) return
             durationAligner = ViewTreeObserver.OnPreDrawListener {
+                advanceViewerHandover()
                 alignDurationToThumbnail()
                 true
             }.also { imageView.viewTreeObserver.addOnPreDrawListener(it) }
@@ -351,8 +354,39 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         /** The thumbnail flies into the viewer while the badge stays behind, and would be drawn over. */
         fun hideDurationForViewer() {
             viewerHandover = ViewerHandover.OPENING
+            handoverStartedAtMs = SystemClock.uptimeMillis()
             if (wantsDuration) durationView.isVisible = false
             showThumbnailBackdrop()
+        }
+
+        /** Nothing of the previous message's handover may ride a recycled row into the next one. */
+        fun resetViewerHandover() {
+            handoverStartedAtMs = 0L
+            endViewerHandover()
+        }
+
+        /**
+         * The badge and the stand-in both come back when the viewer returns the thumbnail, so one
+         * pre-draw pass moves the handover along. Watching for it from two listeners left whichever
+         * ran second with the state already advanced, and so with nothing to put back.
+         */
+        private fun advanceViewerHandover() {
+            if (viewerHandover == ViewerHandover.NONE) return
+            // Only the viewer takes focus off a thumbnail that was just tapped; waiting for it to
+            // come back is what distinguishes that from a bottom sheet opening over the timeline.
+            val focused = imageView.hasWindowFocus()
+            when {
+                viewerHandover == ViewerHandover.OPENING && !focused -> viewerHandover = ViewerHandover.OPEN
+                viewerHandover == ViewerHandover.OPEN && focused -> endViewerHandover()
+                // The viewer may have come and gone while this row was detached, or never have opened
+                // at all. Either way the wait cannot outlast it, or the stand-in is left up for good.
+                focused && SystemClock.uptimeMillis() - handoverStartedAtMs > HANDOVER_TIMEOUT_MS -> endViewerHandover()
+            }
+        }
+
+        private fun endViewerHandover() {
+            viewerHandover = ViewerHandover.NONE
+            thumbnailBackdrop.isVisible = false
         }
 
         /** The rounded corners as a share of a side, over the shorter one so both axes clear. */
@@ -362,36 +396,12 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             return if (shortest > 0) alphaProbeCornerPx.toFloat() / shortest else 0f
         }
 
-        /**
-         * The platform hides the shared element until the viewer gives it back, so watch for the
-         * window regaining focus and drop the stand-in then. Images have no duration badge and so no
-         * per-draw listener of their own, hence one installed just for this.
-         */
+        /** The platform hides the shared element until the viewer gives it back. */
         private fun showThumbnailBackdrop() {
             // A see-through picture would show the stand-in through itself, and the hole it leaves
             // while the viewer holds it reads as timeline anyway.
             if (ImageAlphaProbe.usesAlpha(alphaProbeKey, imageView.drawable, cornerFraction())) return
             thumbnailBackdrop.isVisible = true
-            if (backdropWatcher != null) return
-            val observer = thumbnailBackdrop.viewTreeObserver
-            val watcher = ViewTreeObserver.OnPreDrawListener {
-                if (viewerHandover == ViewerHandover.OPENING && !imageView.hasWindowFocus()) {
-                    viewerHandover = ViewerHandover.OPEN
-                } else if (viewerHandover == ViewerHandover.OPEN && imageView.hasWindowFocus()) {
-                    viewerHandover = ViewerHandover.NONE
-                    thumbnailBackdrop.isVisible = false
-                    stopWatchingBackdrop()
-                }
-                true
-            }
-            backdropWatcher = watcher
-            observer.addOnPreDrawListener(watcher)
-        }
-
-        fun stopWatchingBackdrop() {
-            val watcher = backdropWatcher ?: return
-            backdropWatcher = null
-            thumbnailBackdrop.viewTreeObserver.takeIf { it.isAlive }?.removeOnPreDrawListener(watcher)
         }
 
         /**
@@ -400,14 +410,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
          * because the thumbnail arrives from Glide long after layout.
          */
         private fun alignDurationToThumbnail() {
-            // Only the viewer takes focus off a thumbnail that was just tapped; waiting for it to
-            // come back is what distinguishes that from a bottom sheet opening over the timeline.
-            val focused = imageView.hasWindowFocus()
-            when {
-                viewerHandover == ViewerHandover.OPENING && !focused -> viewerHandover = ViewerHandover.OPEN
-                viewerHandover == ViewerHandover.OPEN && focused -> viewerHandover = ViewerHandover.NONE
-                else -> Unit
-            }
             durationView.isVisible = wantsDuration && viewerHandover == ViewerHandover.NONE
             val drawable = imageView.drawable
             if (drawable == null || drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) return
@@ -460,6 +462,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     companion object {
         private const val SCRIM_FADE_OUT_MS = 200L
+
+        /** How long a handover that the viewer never took over is waited out. */
+        private const val HANDOVER_TIMEOUT_MS = 2_000L
         private val STUB_ID = R.id.messageContentMediaStub
     }
 }
