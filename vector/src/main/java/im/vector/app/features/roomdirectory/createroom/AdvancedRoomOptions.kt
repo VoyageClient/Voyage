@@ -11,6 +11,7 @@ import com.squareup.moshi.Types
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
+import org.matrix.android.sdk.api.session.homeserver.RoomVersionStatus
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomStateEvent
@@ -24,7 +25,7 @@ interface AdvancedRoomOptions {
     val disableFederation: Boolean
     val roomVersion: String?
     val defaultRoomVersion: String?
-    val availableRoomVersions: List<String>
+    val availableRoomVersions: List<CreatableRoomVersion>
     val myPowerLevelOverride: Int?
     val isDeveloperMode: Boolean
     val initialStateJson: String
@@ -38,15 +39,29 @@ interface AdvancedRoomOptions {
 val AdvancedRoomOptions.canOverrideOwnPowerLevel: Boolean
     get() = ((roomVersion ?: defaultRoomVersion)?.toIntOrNull() ?: 0) < 12
 
-/** Every integer version from 1 up to the highest the server supports; never a newer one. */
-fun HomeServerCapabilities.creatableRoomVersions(): List<String> {
-    val maxVersion = roomVersions?.supportedVersion.orEmpty()
+data class CreatableRoomVersion(
+        val version: String,
+        val stable: Boolean
+)
+
+/** Every integer version from 1 up to the highest stable one the server supports, then the unstable ones it advertises. */
+fun HomeServerCapabilities.creatableRoomVersions(): List<CreatableRoomVersion> {
+    val advertised = roomVersions?.supportedVersion.orEmpty()
+    val maxStableVersion = advertised
+            .filter { it.status == RoomVersionStatus.STABLE }
             .mapNotNull { it.version.toIntOrNull() }
             .plusElement(roomVersions?.defaultRoomVersion?.toIntOrNull() ?: 0)
             .maxOrNull()
             ?.coerceAtLeast(1)
             ?: 1
-    return (1..maxVersion).map { it.toString() }
+    val stable = (1..maxStableVersion).map { it.toString() }
+    val unstable = advertised
+            .filter { it.status == RoomVersionStatus.UNSTABLE }
+            .map { it.version }
+            .filterNot { it in stable }
+            .sorted()
+    return stable.map { CreatableRoomVersion(it, stable = true) } +
+            unstable.map { CreatableRoomVersion(it, stable = false) }
 }
 
 fun parseInitialStateJson(json: String): List<CreateRoomStateEvent>? {

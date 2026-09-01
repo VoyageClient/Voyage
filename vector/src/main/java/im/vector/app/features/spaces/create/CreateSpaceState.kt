@@ -12,6 +12,7 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.features.roomdirectory.createroom.AdvancedRoomOptions
+import im.vector.app.features.roomdirectory.createroom.CreatableRoomVersion
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 
 data class CreateSpaceState(
@@ -36,7 +37,7 @@ data class CreateSpaceState(
         override val disableFederation: Boolean = false,
         override val roomVersion: String? = null,
         override val defaultRoomVersion: String? = null,
-        override val availableRoomVersions: List<String> = emptyList(),
+        override val availableRoomVersions: List<CreatableRoomVersion> = emptyList(),
         override val myPowerLevelOverride: Int? = null,
         override val isDeveloperMode: Boolean = false,
         override val initialStateJson: String = "",

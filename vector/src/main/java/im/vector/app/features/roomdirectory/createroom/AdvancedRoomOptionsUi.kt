@@ -60,7 +60,7 @@ fun EpoxyController.buildAdvancedRoomOptions(
         buildProfileAction(
                 id = "roomVersion",
                 title = stringProvider.getString(CommonStrings.create_room_version_title),
-                subtitle = options.roomVersion ?: options.defaultRoomVersion,
+                subtitle = options.selectedRoomVersionLabel(stringProvider),
                 divider = false,
                 editable = true,
                 action = { if (enabled) listener?.selectRoomVersion() }
@@ -95,13 +95,25 @@ fun EpoxyController.buildAdvancedRoomOptions(
     }
 }
 
+private fun AdvancedRoomOptions.selectedRoomVersionLabel(stringProvider: StringProvider): String? {
+    val selected = roomVersion ?: defaultRoomVersion ?: return null
+    return if (availableRoomVersions.any { it.version == selected && !it.stable }) {
+        stringProvider.getString(CommonStrings.create_room_version_unstable, selected)
+    } else {
+        selected
+    }
+}
+
 fun Fragment.showRoomVersionDialog(options: AdvancedRoomOptions, onSelected: (String) -> Unit) {
     val versions = options.availableRoomVersions
-    val checked = versions.indexOf(options.roomVersion ?: options.defaultRoomVersion).coerceAtLeast(0)
+    val labels = versions.map {
+        if (it.stable) it.version else getString(CommonStrings.create_room_version_unstable, it.version)
+    }
+    val checked = versions.indexOfFirst { it.version == (options.roomVersion ?: options.defaultRoomVersion) }.coerceAtLeast(0)
     MaterialAlertDialogBuilder(requireContext())
             .setTitle(CommonStrings.create_room_version_title)
-            .setSingleChoiceItems(versions.toTypedArray(), checked) { dialog, which ->
-                onSelected(versions[which])
+            .setSingleChoiceItems(labels.toTypedArray(), checked) { dialog, which ->
+                onSelected(versions[which].version)
                 dialog.dismiss()
             }
             .setNegativeButton(CommonStrings.action_cancel, null)
