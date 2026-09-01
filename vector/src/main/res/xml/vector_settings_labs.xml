@@ -83,6 +83,12 @@
         android:title="@string/labs_enable_timeline_gap_healing_title" />
 
     <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_LABS_TIMELINE_TIMESTAMP_ORDER_KEY"
+        android:summary="@string/labs_enable_timeline_timestamp_order_summary"
+        android:title="@string/labs_enable_timeline_timestamp_order_title" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="@bool/settings_labs_deferred_dm_default"
         android:key="SETTINGS_LABS_DEFERRED_DM_KEY"
         android:summary="@string/labs_enable_deferred_dm_summary"

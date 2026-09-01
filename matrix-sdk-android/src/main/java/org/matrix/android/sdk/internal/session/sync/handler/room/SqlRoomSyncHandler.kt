@@ -496,6 +496,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                     chunkId, roomId, eventDbId, entity, isLastForward, PaginationDirection.FORWARDS,
                     roomMemberContentsByUser = roomMemberContentsByUser,
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                    keepTimestampOrder = lightweightSettingsStorage.isTimelineTimestampOrderEnabled(),
             )
 
             if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
