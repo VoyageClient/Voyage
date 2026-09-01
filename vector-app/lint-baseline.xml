@@ -24920,17 +24920,6 @@
 
     <issue
         id="UseKtx"
-        message="Use the KTX extension function `Int.toDrawable` instead?"
-        errorLine1="        window.setBackgroundDrawable(ColorDrawable(ThemeUtils.getColor(this, android.R.attr.colorBackground)))"
-        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/im/vector/app/features/media/VectorUCropActivity.kt"
-            line="36"
-            column="38"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
         message="Use the KTX extension property `Menu.size` instead?"
         errorLine1="        for (index in 0 until menu.size()) {"
         errorLine2="                              ~~~~~~~~~~~">

@@ -713,6 +713,16 @@
     <string name="image_editor_censor" translatable="false">Censor</string>
     <string name="image_editor_rotate" translatable="false">Rotate</string>
     <string name="image_editor_reset" translatable="false">Reset</string>
+    <string name="image_editor_snap" translatable="false">Snap to center</string>
+    <string name="image_editor_snap_on" translatable="false">Snapping to the center lines</string>
+    <string name="image_editor_snap_off" translatable="false">Snapping off</string>
+    <string name="aspect_ratio_title" translatable="false">Aspect ratio</string>
+    <string name="aspect_ratio_freeform" translatable="false">Freeform</string>
+    <string name="aspect_ratio_custom" translatable="false">Custom</string>
+    <string name="aspect_ratio_width" translatable="false">W</string>
+    <string name="aspect_ratio_height" translatable="false">H</string>
+    <string name="aspect_ratio_separator" translatable="false">:</string>
+    <string name="aspect_ratio_invalid" translatable="false">Enter a width and a height above zero</string>
     <string name="image_editor_censor_hint" translatable="false">Drag on the image to add a black box</string>
     <string name="image_editor_load_failed" translatable="false">Couldn\'t open this image</string>
     <string name="image_editor_save_failed" translatable="false">Couldn\'t save the edited image</string>

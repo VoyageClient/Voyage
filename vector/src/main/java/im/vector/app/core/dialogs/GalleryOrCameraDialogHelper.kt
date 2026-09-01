@@ -11,37 +11,32 @@ import android.app.Activity
 import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.yalantis.ucrop.UCrop
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper.Listener
-import im.vector.app.core.extensions.insertBeforeLast
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.PERMISSIONS_FOR_TAKING_PHOTO
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
-import im.vector.app.features.media.VectorUCropActivity
-import im.vector.app.features.media.createUCropWithDefaultSettings
-import im.vector.lib.core.utils.timer.Clock
+import im.vector.app.features.attachments.editor.image.ImageEditorActivity
+import im.vector.app.features.attachments.editor.isRestoreOriginal
+import im.vector.app.features.attachments.editor.restoreOriginalUri
 import im.vector.lib.multipicker.MultiPicker
 import im.vector.lib.multipicker.entity.MultiPickerImageType
 import im.vector.lib.strings.CommonStrings
-import java.io.File
 
 /**
  * Use to let the user choose between Camera (with permission handling) and Gallery (with single image selection),
  * then edit the image
- * [Listener.onImageReady] will be called with an uri of a cropped image stored in the cache of the application.
- * It's up to the caller to delete the file.
+ * [Listener.onImageReady] will be called with an uri of the edited image stored in the cache of the application,
+ * or of the picked image itself when nothing was cropped out of it.
  */
 class GalleryOrCameraDialogHelper(
         // must implement GalleryOrCameraDialogHelper.Listener, unless an explicit listener is given
         private val fragment: Fragment,
         private val colorProvider: ColorProvider,
-        private val clock: Clock,
         private val aspect: Aspect = Aspect.SQUARE,
         overrideListener: Listener? = null,
 ) {
@@ -76,7 +71,7 @@ class GalleryOrCameraDialogHelper(
             avatarCameraUri?.let { uri ->
                 MultiPicker.get(MultiPicker.CAMERA)
                         .getTakenPhoto(activity, uri)
-                        ?.let { startUCrop(it) }
+                        ?.let { startImageEditor(it) }
             }
         }
     }
@@ -87,31 +82,31 @@ class GalleryOrCameraDialogHelper(
                     .get(MultiPicker.IMAGE)
                     .getSelectedFiles(activity, activityResult.data)
                     .firstOrNull()
-                    ?.let { startUCrop(it) }
+                    ?.let { startImageEditor(it) }
         }
     }
 
-    private val uCropActivityResultLauncher = fragment.registerStartForActivityResult { activityResult ->
-        if (activityResult.resultCode == Activity.RESULT_OK) {
-            activityResult.data?.let { listener.onImageReady(UCrop.getOutput(it)) }
+    private val imageEditorActivityResultLauncher = fragment.registerStartForActivityResult { activityResult ->
+        if (activityResult.resultCode != Activity.RESULT_OK) return@registerStartForActivityResult
+        // Nothing to crop out: the picked image already has the right shape, so it is used as it is.
+        if (activityResult.data?.isRestoreOriginal() == true) {
+            listener.onImageReady(activityResult.data?.restoreOriginalUri())
+        } else {
+            listener.onImageReady(activityResult.data?.let { ImageEditorActivity.getOutput(it)?.uri })
         }
     }
 
-    private fun startUCrop(image: MultiPickerImageType) {
-        val destinationFile = File(activity.cacheDir, image.displayName.insertBeforeLast("_e_${clock.epochMillis()}"))
-        val uri = image.contentUri
-        createUCropWithDefaultSettings(
-                colorProvider,
-                uri,
-                destinationFile.toUri(),
-                fragment.getString(CommonStrings.rotate_and_crop_screen_title),
-                // A free-style crop frame would defeat the locked banner ratio
-                freeStyleCropEnabled = aspect == Aspect.SQUARE
+    private fun startImageEditor(image: MultiPickerImageType) {
+        imageEditorActivityResultLauncher.launch(
+                ImageEditorActivity.newIntent(
+                        activity,
+                        image.contentUri,
+                        image.displayName,
+                        image.mimeType,
+                        edits = null,
+                        aspectRatio = if (aspect == Aspect.BANNER) BANNER_ASPECT_RATIO else 1f
+                )
         )
-                .withAspectRatio(if (aspect == Aspect.BANNER) 2.8f else 1f, 1f)
-                .getIntent(activity)
-                .apply { setClass(activity, VectorUCropActivity::class.java) }
-                .let { uCropActivityResultLauncher.launch(it) }
     }
 
     private enum class Type {
@@ -169,5 +164,9 @@ class GalleryOrCameraDialogHelper(
     private var avatarCameraUri: Uri? = null
     private fun doOpenCamera() {
         avatarCameraUri = MultiPicker.get(MultiPicker.CAMERA).startWithExpectingFile(activity, takePhotoActivityResultLauncher)
+    }
+
+    companion object {
+        private const val BANNER_ASPECT_RATIO = 2.8f
     }
 }

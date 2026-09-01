@@ -23,6 +23,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
 import im.vector.app.features.attachments.ZoomPanGesture
+import im.vector.app.features.attachments.editor.CropRatio
+import im.vector.app.features.attachments.editor.reduceRatio
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -60,11 +62,30 @@ class ImageEditorView @JvmOverloads constructor(
     /** Raised when the view changes tool on its own, so the host can re-style its buttons. */
     var onToolChanged: ((Tool) -> Unit)? = null
 
+    /** Locked output ratio (width / height) for the crop window, or null to crop freely. */
+    var cropAspectRatio: Float? = null
+        set(value) {
+            field = value
+            applyRatioAroundCenter(crop, value)
+            invalidate()
+        }
+
+    /** Pulls a dragged crop or censor onto the image's center lines when it comes close. */
+    var snapToCenter: Boolean = false
+        set(value) {
+            field = value
+            if (!value) clearSnapGuides()
+            invalidate()
+        }
+
     private var bitmap: Bitmap? = null
     private var userRotation = 0
     private val crop = RectF(0f, 0f, 1f, 1f)
-    private val censors = mutableListOf<RectF>()
+    private val censors = mutableListOf<CensorBox>()
     private var selectedCensor = -1
+
+    /** A censor keeps its own locked ratio, so the aspect tool can act on one box at a time. */
+    private class CensorBox(val rect: RectF, var aspectRatio: Float? = null)
 
     private val imageRect = RectF()
     private val drawMatrix = Matrix()
@@ -96,6 +117,12 @@ class ImageEditorView @JvmOverloads constructor(
         pathEffect = android.graphics.DashPathEffect(floatArrayOf(dp(6f), dp(4f)), 0f)
     }
 
+    private val snapGuidePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF4FC3F7.toInt()
+        style = Paint.Style.STROKE
+        strokeWidth = dp(1.5f)
+    }
+
     private val badgeBackgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFE53935.toInt() }
     private val badgeCrossPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
@@ -103,6 +130,7 @@ class ImageEditorView @JvmOverloads constructor(
         strokeWidth = dp(2f)
     }
 
+    private val snapDistance = dp(14f)
     private val handleRadius = dp(8f)
     private val badgeRadius = dp(12f)
     private val touchSlop = max(dp(24f), ViewConfiguration.get(context).scaledTouchSlop.toFloat())
@@ -125,6 +153,9 @@ class ImageEditorView @JvmOverloads constructor(
     private var createAnchorY = 0f
     private var animatedRotation = 0f
     private var rotationAnimator: ValueAnimator? = null
+    private val unsnappedRect = RectF()
+    private var snappedX = false
+    private var snappedY = false
 
     private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM) { invalidate() }.apply {
         onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
@@ -134,6 +165,7 @@ class ImageEditorView @JvmOverloads constructor(
         // The first finger already staked out a zero-size censor; abandoning the drag here would
         // otherwise strand it in the list, invisible but enough to count as an edit.
         if (dragMode == DragMode.CENSOR_CREATE) discardPendingCensor()
+        clearSnapGuides()
         // A pinch is navigation: leave censor mode so the next one-finger drag pans, not paints.
         if (tool == Tool.CENSOR) {
             tool = Tool.CROP
@@ -153,6 +185,7 @@ class ImageEditorView @JvmOverloads constructor(
 
     fun setBitmap(value: Bitmap) {
         bitmap = value
+        applyRatioAroundCenter(crop, cropAspectRatio)
         requestLayout()
         invalidate()
     }
@@ -160,7 +193,11 @@ class ImageEditorView @JvmOverloads constructor(
     fun rotateClockwise() {
         userRotation = (userRotation + 90) % 360
         rotateNormalised(crop)
-        censors.forEach { rotateNormalised(it) }
+        censors.forEach { rotateNormalised(it.rect) }
+        // The turn swapped every box's own ratio, so a locked one has to be re-derived for the
+        // new orientation.
+        applyRatioAroundCenter(crop, cropAspectRatio)
+        censors.forEach { applyRatioAroundCenter(it.rect, it.aspectRatio) }
         gesture.clampPan()
         animateRotation()
     }
@@ -194,6 +231,8 @@ class ImageEditorView @JvmOverloads constructor(
         censors.clear()
         selectedCensor = -1
         gesture.reset()
+        applyRatioAroundCenter(crop, cropAspectRatio)
+        clearSnapGuides()
         invalidate()
     }
 
@@ -207,14 +246,14 @@ class ImageEditorView @JvmOverloads constructor(
     fun currentEdits() = ImageEditorEdits(
             userRotation = userRotation,
             crop = RectF(crop),
-            censors = censors.map { RectF(it) }
+            censors = censors.map { RectF(it.rect) }
     )
 
     fun restoreEdits(edits: ImageEditorEdits) {
         userRotation = edits.userRotation
         crop.set(edits.crop)
         censors.clear()
-        censors.addAll(edits.censors.map { RectF(it) })
+        censors.addAll(edits.censors.map { CensorBox(RectF(it)) })
         selectedCensor = -1
         invalidate()
     }
@@ -222,6 +261,49 @@ class ImageEditorView @JvmOverloads constructor(
     /** A 90 degree clockwise turn maps (x, y) to (1 - y, x). */
     private fun rotateNormalised(rect: RectF) {
         rect.set(1f - rect.bottom, rect.left, 1f - rect.top, rect.right)
+    }
+
+    /** The size the image is shown at, which the normalised rectangles are measured against. */
+    private fun displayedSize(): Pair<Float, Float>? {
+        val bmp = bitmap ?: return null
+        val sideways = userRotation % 180 != 0
+        val width = (if (sideways) bmp.height else bmp.width).toFloat()
+        val height = (if (sideways) bmp.width else bmp.height).toFloat()
+        return if (width > 0f && height > 0f) width to height else null
+    }
+
+    /** The image's own ratio, reduced, to offer as the starting point for a custom one. */
+    fun displayedAspectRatio(): Pair<Int, Int>? {
+        val (width, height) = displayedSize() ?: return null
+        return reduceRatio(width.toInt(), height.toInt())
+    }
+
+    private fun normalisedRatio(ratio: Float?): Float? {
+        val (width, height) = displayedSize() ?: return null
+        return CropRatio.normalise(ratio, width, height)
+    }
+
+    private fun applyRatioAroundCenter(rect: RectF, ratio: Float?) {
+        CropRatio.fitAroundCenter(rect, normalisedRatio(ratio) ?: return)
+    }
+
+    /** True when the aspect tool would act on a censor rather than on the crop window. */
+    fun isCensorSelected() = tool == Tool.CENSOR && selectedCensor in censors.indices
+
+    /** The locked ratio of whatever the aspect tool acts on right now. */
+    fun selectionAspectRatio(): Float? =
+            if (isCensorSelected()) censors[selectedCensor].aspectRatio else cropAspectRatio
+
+    fun applySelectionAspectRatio(ratio: Float?) {
+        if (isCensorSelected()) {
+            censors[selectedCensor].let {
+                it.aspectRatio = ratio
+                applyRatioAroundCenter(it.rect, ratio)
+            }
+        } else {
+            cropAspectRatio = ratio
+        }
+        invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -238,7 +320,7 @@ class ImageEditorView @JvmOverloads constructor(
 
         canvas.drawBitmap(bmp, drawMatrix, bitmapPaint)
 
-        censors.forEach { canvas.drawRect(it.toScreen(), censorPaint) }
+        censors.forEach { canvas.drawRect(it.rect.toScreen(), censorPaint) }
 
         val cropScreen = crop.toScreen()
         drawDimOutside(canvas, cropScreen)
@@ -250,12 +332,14 @@ class ImageEditorView @JvmOverloads constructor(
         } else {
             canvas.drawRect(cropScreen, gridPaint)
             censors.getOrNull(selectedCensor)?.let { selected ->
-                val r = selected.toScreen()
+                val r = selected.rect.toScreen()
                 canvas.drawRect(r, selectionPaint)
                 drawCornerHandles(canvas, r, skipTopRight = true)
                 drawDeleteBadge(canvas, r)
             }
         }
+
+        drawSnapGuides(canvas)
 
         if (spinning) canvas.restore()
     }
@@ -296,6 +380,12 @@ class ImageEditorView @JvmOverloads constructor(
         canvas.drawRect(imageRect.left, rect.bottom, imageRect.right, imageRect.bottom, dimPaint)
         canvas.drawRect(imageRect.left, rect.top, rect.left, rect.bottom, dimPaint)
         canvas.drawRect(rect.right, rect.top, imageRect.right, rect.bottom, dimPaint)
+    }
+
+    private fun drawSnapGuides(canvas: Canvas) {
+        if (dragMode == DragMode.NONE) return
+        if (snappedX) canvas.drawLine(imageRect.centerX(), imageRect.top, imageRect.centerX(), imageRect.bottom, snapGuidePaint)
+        if (snappedY) canvas.drawLine(imageRect.left, imageRect.centerY(), imageRect.right, imageRect.centerY(), snapGuidePaint)
     }
 
     private fun drawThirds(canvas: Canvas, rect: RectF) {
@@ -361,9 +451,15 @@ class ImageEditorView @JvmOverloads constructor(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 parent?.requestDisallowInterceptTouchEvent(true)
+                clearSnapGuides()
                 lastTouchX = event.x
                 lastTouchY = event.y
                 dragMode = if (tool == Tool.CROP) beginCropDrag(event.x, event.y) else beginCensorDrag(event.x, event.y)
+                when (dragMode) {
+                    DragMode.CROP_MOVE -> unsnappedRect.set(crop)
+                    DragMode.CENSOR_MOVE -> censors.getOrNull(selectedCensor)?.let { unsnappedRect.set(it.rect) }
+                    else -> Unit
+                }
                 invalidate()
                 return true
             }
@@ -377,7 +473,7 @@ class ImageEditorView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (dragMode == DragMode.CENSOR_CREATE) {
-                    val created = censors.getOrNull(selectedCensor)?.toScreen()
+                    val created = censors.getOrNull(selectedCensor)?.rect?.toScreen()
                     if (created != null && created.width() < tapSlop && created.height() < tapSlop) {
                         // A tap rather than a drag: discard it and leave censor mode. Judged on
                         // screen distance, so a deliberately drawn small censor survives.
@@ -387,6 +483,7 @@ class ImageEditorView @JvmOverloads constructor(
                     }
                 }
                 dragMode = DragMode.NONE
+                clearSnapGuides()
                 parent?.requestDisallowInterceptTouchEvent(false)
                 invalidate()
                 return true
@@ -406,7 +503,7 @@ class ImageEditorView @JvmOverloads constructor(
         // Touching an existing censor is a request to go back and adjust it. Crop handles win
         // when both are in range, so the crop is never impossible to grab.
         for (index in censors.indices.reversed()) {
-            if (censors[index].toScreen().contains(x, y)) {
+            if (censors[index].rect.toScreen().contains(x, y)) {
                 // The tool setter clears the selection, so it has to be applied first.
                 tool = Tool.CENSOR
                 onToolChanged?.invoke(Tool.CENSOR)
@@ -414,15 +511,18 @@ class ImageEditorView @JvmOverloads constructor(
                 return DragMode.CENSOR_MOVE
             }
         }
-        // Once zoomed, dragging navigates the image — otherwise a tall image zoomed in would only
-        // be pannable with two fingers. At 1x there is nowhere to pan, so drag moves the crop box.
-        if (gesture.zoom > 1f) return DragMode.PAN
-        return if (rect.contains(x, y)) DragMode.CROP_MOVE else DragMode.NONE
+        // Inside the box moves it; anywhere else navigates the image, so a tall image zoomed in is
+        // not pannable only with two fingers. A box filling the frame has nowhere to move, so it
+        // gives the drag up rather than swallowing it.
+        if (rect.contains(x, y) && cropCanMove()) return DragMode.CROP_MOVE
+        return if (gesture.zoom > 1f) DragMode.PAN else DragMode.NONE
     }
+
+    private fun cropCanMove() = crop.width() < 0.999f || crop.height() < 0.999f
 
     private fun beginCensorDrag(x: Float, y: Float): DragMode {
         censors.getOrNull(selectedCensor)?.let { selected ->
-            val screen = selected.toScreen()
+            val screen = selected.rect.toScreen()
             if (isOnDeleteBadge(screen, x, y)) {
                 deleteSelectedCensor()
                 return DragMode.NONE
@@ -435,15 +535,15 @@ class ImageEditorView @JvmOverloads constructor(
             }
         }
         for (index in censors.indices.reversed()) {
-            if (censors[index].toScreen().contains(x, y)) {
+            if (censors[index].rect.toScreen().contains(x, y)) {
                 selectedCensor = index
                 return DragMode.CENSOR_MOVE
             }
         }
         if (!imageRect.contains(x, y)) return DragMode.NONE
-        val nx = ((x - imageRect.left) / imageRect.width()).coerceIn(0f, 1f)
-        val ny = ((y - imageRect.top) / imageRect.height()).coerceIn(0f, 1f)
-        censors.add(RectF(nx, ny, nx, ny))
+        val nx = snapX(normalisedX(x))
+        val ny = snapY(normalisedY(y))
+        censors.add(CensorBox(RectF(nx, ny, nx, ny)))
         selectedCensor = censors.lastIndex
         createAnchorX = nx
         createAnchorY = ny
@@ -473,22 +573,78 @@ class ImageEditorView @JvmOverloads constructor(
     private fun applyDrag(x: Float, y: Float) {
         val dx = (x - lastTouchX) / imageRect.width()
         val dy = (y - lastTouchY) / imageRect.height()
-        val nx = ((x - imageRect.left) / imageRect.width()).coerceIn(0f, 1f)
-        val ny = ((y - imageRect.top) / imageRect.height()).coerceIn(0f, 1f)
+        clearSnapGuides()
 
         when (dragMode) {
             DragMode.PAN -> gesture.panBy(x - lastTouchX, y - lastTouchY)
-            DragMode.CROP_MOVE -> translateWithinBounds(crop, dx, dy)
-            DragMode.CROP_RESIZE -> resizeCorner(crop, nx, ny)
-            DragMode.CENSOR_MOVE -> censors.getOrNull(selectedCensor)?.let { translateWithinBounds(it, dx, dy) }
-            DragMode.CENSOR_RESIZE -> censors.getOrNull(selectedCensor)?.let {
-                resizeCorner(it, nx, ny, minCensorNormalisedWidth(), minCensorNormalisedHeight())
+            DragMode.CROP_MOVE -> moveWithSnap(crop, dx, dy)
+            DragMode.CROP_RESIZE -> {
+                val nx = snapX(normalisedX(x))
+                val ny = snapY(normalisedY(y))
+                val k = normalisedRatio(cropAspectRatio)
+                if (k != null) {
+                    CropRatio.resize(crop, k, nx, ny, dragCornerX, dragCornerY, minNormalisedSize, minNormalisedSize)
+                } else {
+                    resizeCorner(crop, nx, ny)
+                }
             }
-            DragMode.CENSOR_CREATE -> censors.getOrNull(selectedCensor)?.set(
-                    min(createAnchorX, nx), min(createAnchorY, ny), max(createAnchorX, nx), max(createAnchorY, ny)
-            )
+            DragMode.CENSOR_MOVE -> censors.getOrNull(selectedCensor)?.let { moveWithSnap(it.rect, dx, dy) }
+            DragMode.CENSOR_RESIZE -> censors.getOrNull(selectedCensor)?.let {
+                val nx = snapX(normalisedX(x))
+                val ny = snapY(normalisedY(y))
+                val k = normalisedRatio(it.aspectRatio)
+                if (k != null) {
+                    CropRatio.resize(it.rect, k, nx, ny, dragCornerX, dragCornerY, minCensorNormalisedWidth(), minCensorNormalisedHeight())
+                } else {
+                    resizeCorner(it.rect, nx, ny, minCensorNormalisedWidth(), minCensorNormalisedHeight())
+                }
+            }
+            DragMode.CENSOR_CREATE -> {
+                val nx = snapX(normalisedX(x))
+                val ny = snapY(normalisedY(y))
+                censors.getOrNull(selectedCensor)?.rect?.set(
+                        min(createAnchorX, nx), min(createAnchorY, ny), max(createAnchorX, nx), max(createAnchorY, ny)
+                )
+            }
             DragMode.NONE -> Unit
         }
+    }
+
+    private fun normalisedX(x: Float) = ((x - imageRect.left) / imageRect.width()).coerceIn(0f, 1f)
+
+    private fun normalisedY(y: Float) = ((y - imageRect.top) / imageRect.height()).coerceIn(0f, 1f)
+
+    private fun clearSnapGuides() {
+        snappedX = false
+        snappedY = false
+    }
+
+    /** Snapping is judged on screen distance, so it stays a fixed grab distance at any zoom. */
+    private fun snapX(nx: Float): Float {
+        if (!snapToCenter || imageRect.width() <= 0f) return nx
+        val snapped = abs(nx - 0.5f) * imageRect.width() <= snapDistance
+        if (snapped) snappedX = true
+        return if (snapped) 0.5f else nx
+    }
+
+    private fun snapY(ny: Float): Float {
+        if (!snapToCenter || imageRect.height() <= 0f) return ny
+        val snapped = abs(ny - 0.5f) * imageRect.height() <= snapDistance
+        if (snapped) snappedY = true
+        return if (snapped) 0.5f else ny
+    }
+
+    /**
+     * The finger moves [unsnappedRect]; the visible rect only follows it onto a center line while it
+     * is close to one. Snapping the visible rect instead would re-snap it on every event of a slow
+     * drag, since each event's own delta stays inside the snap distance, and it could never be pulled off.
+     */
+    private fun moveWithSnap(rect: RectF, dx: Float, dy: Float) {
+        translateWithinBounds(unsnappedRect, dx, dy)
+        rect.set(unsnappedRect)
+        if (!snapToCenter) return
+        if (snapX(rect.centerX()) == 0.5f) rect.offset(0.5f - rect.centerX(), 0f)
+        if (snapY(rect.centerY()) == 0.5f) rect.offset(0f, 0.5f - rect.centerY())
     }
 
     private fun translateWithinBounds(rect: RectF, dx: Float, dy: Float) {

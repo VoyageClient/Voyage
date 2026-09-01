@@ -223,8 +223,8 @@ class ImagePackEditFragment :
 
     override fun onImageReady(uri: Uri?) {
         uri ?: return
-        // contentResolver.getType() is null for uCrop's file:// output; without a mime the server stores it
-        // as octet-stream and can't thumbnail it (blank avatar). Derive one from the extension instead.
+        // Without a mime the server stores the avatar as octet-stream and can't thumbnail it (blank
+        // avatar), so fall back to the extension when the resolver has no type for the uri.
         val mimeType = requireContext().contentResolver.getType(uri)
                 ?: android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(
                         android.webkit.MimeTypeMap.getFileExtensionFromUrl(uri.toString()))
