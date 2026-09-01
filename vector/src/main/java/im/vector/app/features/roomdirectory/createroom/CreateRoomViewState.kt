@@ -25,7 +25,7 @@ data class CreateRoomViewState(
         override val disableFederation: Boolean = false,
         override val roomVersion: String? = null,
         override val defaultRoomVersion: String? = null,
-        override val availableRoomVersions: List<String> = emptyList(),
+        override val availableRoomVersions: List<CreatableRoomVersion> = emptyList(),
         override val myPowerLevelOverride: Int? = null,
         override val isDeveloperMode: Boolean = false,
         override val initialStateJson: String = "",
