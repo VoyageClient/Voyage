@@ -1228,12 +1228,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="settings_security_prevent_screenshots_title">Az alkalmazásról képernyőkép készítésének megakadályozása</string>
     <string name="settings_security_prevent_screenshots_summary">A beállítással minden \"Activiti\" megkapja a \"FLAG_SECURE\" flaget. Indítsd újra az alkalmazást, hogy a változás életbe léphessen.</string>
     <string name="change_password_summary">Új fiók jelszó beállítása…</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">"vagy más eszközök közötti hitelesítést támogató  Matrix-klienst"</string>
-    <string name="use_latest_app">Az ${app_name} legújabb kliensét használd a többi eszközödön:</string>
     <string name="command_description_discard_session">A jelenlegi csoport munkamenet törlését kikényszeríti a titkosított szobában</string>
     <string name="command_description_discard_session_not_handled">Csak a titkosított szobákban támogatott</string>
     <string name="enter_secret_storage_passphrase_or_key">Használd ezt: %1$s vagy ezt: %2$s a továbblépéshez.</string>
@@ -1250,7 +1244,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="error_empty_field_choose_password">Kérlek válassz jelszót.</string>
     <string name="external_link_confirmation_title">Ezt a hivatkozást ellenőrizd le még egyszer</string>
     <string name="create_room_dm_failure">A közvetlen beszélgetést nem sikerült létrehozni. Ellenőrizd azokat a felhasználókat akiket meg szeretnél hívni és próbáld újra.</string>
-    <string name="use_other_session_content_description">"Használd a legújabb ${app_name}et a többi eszközödön, azaz az ${app_name} Webet, az ${app_name} Desktopot, az ${app_name} for Androidot vagy más eszközök közötti hitelesítést támogató  Matrix-klienst"</string>
     <string name="confirm_your_identity">Erősítsd meg ebben a bejelentkezésben a személyazonosságodat egy másik munkamenetből, hogy hozzáférhess a titkosított üzenetekhez.</string>
     <string name="external_link_confirmation_message">%1$s hivatkozás egy másik oldalra visz: %2$s.
 \n

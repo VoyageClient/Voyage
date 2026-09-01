@@ -1313,13 +1313,6 @@
     <string name="enter_secret_storage_passphrase_or_key">השתמש ב- %1$s שלך או השתמש ב- %2$s שלך כדי להמשיך.</string>
     <string name="command_description_discard_session_not_handled">נתמך רק בחדרים מוצפנים</string>
     <string name="command_description_discard_session">מכריח את ההפעלה הקבוצתית החוצה הנוכחית בחדר מוצפן להיזרק</string>
-    <string name="use_latest_app">השתמש באלמנט האחרון במכשירים האחרים שלך:</string>
-    <string name="or_other_mx_capable_client">או לקוח מטריקס אחר עם יכולת חתימה צולבת</string>
-    <string name="app_ios_android">אלמנט iOS
-\nאלמנט אנדרואיד</string>
-    <string name="app_desktop_web">רשת האינטרנט
-\nשולחן העבודה של אלמנט</string>
-    <string name="use_other_session_content_description">השתמש באלמנט העדכני ביותר במכשירים האחרים שלך, Element Web, Element Desktop, Element iOS, Element for Android, או לקוח מטריקס אחר עם יכולת חתימה צולבת</string>
     <string name="change_password_summary">הגדר סיסמת חשבון חדשה …</string>
     <string name="error_saving_media_file">לא ניתן היה לשמור את קובץ המדיה</string>
     <string name="settings_security_prevent_screenshots_summary">הפעלת הגדרה זו מוסיפה את FLAG_SECURE לכל הפעילויות. הפעל מחדש את היישום כדי שהשינוי ייכנס לתוקף.</string>

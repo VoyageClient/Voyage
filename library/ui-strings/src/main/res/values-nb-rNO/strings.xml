@@ -859,7 +859,6 @@
     <string name="upgrade_security">Krypteringsoppgradering tilgjengelig</string>
     <string name="security_prompt_text">Bekreft deg selv og andre for å sikre chattene dine</string>
     <string name="settings_security_prevent_screenshots_title">Forhindre skjermbilder av applikasjonen</string>
-    <string name="use_latest_app">Bruk det nyeste ${app_name} på de andre enhetene dine:</string>
     <string name="bad_passphrase_key_reset_all_action">Har du glemt eller mistet alle gjenopprettingsalternativene\? Tilbakestill alt</string>
     <string name="secure_backup_reset_all">Tilbakestill alt</string>
     <string name="secure_backup_reset_all_no_other_devices">Gjør dette bare hvis du ikke har noen annen enhet du kan bekrefte denne enheten med.</string>

@@ -1292,13 +1292,6 @@
     <string name="enter_secret_storage_passphrase_or_key">Dùng %1$s của bạn hoặc dùng %2$s của bạn để tiếp tục.</string>
     <string name="command_description_discard_session_not_handled">Chỉ được hỗ trợ trong các phòng được mã hóa</string>
     <string name="command_description_discard_session">Buộc nhóm phiên hướng ra hiện tại trong một phòng được mã hóa phải bị loại bỏ</string>
-    <string name="use_latest_app">Sử dụng ${app_name mới nhất} trên các thiết bị khác của bạn:</string>
-    <string name="or_other_mx_capable_client">hoặc một máy khách Matrix khác có khả năng xác thực chéo</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="use_other_session_content_description">Sử dụng ${app_name} mới nhất trên các thiết bị khác của bạn, Web ${app_name}, Máy tính để bàn ${app_name}, iOS ${app_name}, Android ${app_name} hoặc một máy khách Matrix khác có khả năng xác thực chéo</string>
     <string name="change_password_summary">Đặt mật khẩu tài khoản mới…</string>
     <string name="error_saving_media_file">Không thể lưu tập tin đa phương tiện</string>
     <string name="settings_security_prevent_screenshots_summary">Bật thiết đặt này thêm FLAG_SECURE cho tất cả các Hoạt động. Khởi động lại ứng dụng để thay đổi có hiệu lực.</string>

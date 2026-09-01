@@ -1267,13 +1267,6 @@
     <string name="settings_security_prevent_screenshots_title">避免對應用程式進行螢幕截圖</string>
     <string name="settings_security_prevent_screenshots_summary">開啟此設定後，會新增 FLAG_SECURE 到所有畫面。請重新啟動應用程式以讓變動生效。</string>
     <string name="change_password_summary">設定新的帳號密碼…</string>
-    <string name="use_other_session_content_description">在您的其他裝置上使用最新的 ${app_name}、${app_name} 網頁版、${app_name} 桌面版、${app_name} iOS、${app_name} for Android 或其他有交叉簽署功能的 Matrix 客戶端</string>
-    <string name="app_desktop_web">${app_name} 網頁版
-\n${app_name} 桌面版</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">或其他有交叉簽署功能的 Matrix 客戶端</string>
-    <string name="use_latest_app">在您的其他裝置上使用最新的 ${app_name}：</string>
     <string name="command_description_discard_session">強制丟棄目前在加密聊天室中的外發群組工作階段</string>
     <string name="command_description_discard_session_not_handled">僅在加密聊天室中支援</string>
     <string name="enter_secret_storage_passphrase_or_key">使用您的 %1$s 或使用您的 %2$s 以繼續。</string>

@@ -1182,15 +1182,10 @@
     <string name="auth_invalid_login_param_space_in_password">Usuari i/o contrasenya incorrectes. La contrasenya introduïda comença o acaba amb espais, comprova-la.</string>
     <string name="auth_invalid_login_deactivated_account">Aquest compte ha estat desactivat.</string>
     <string name="attachment_viewer_item_x_of_y">%1$d de %2$d</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} per a escriptori</string>
     <string name="add_people">Afegeix gent</string>
     <string name="add_members_to_room">Afegeix membres</string>
     <string name="a11y_qr_code_for_verification">Codi QR</string>
     <string name="settings_security_pin_code_use_biometrics_summary_off">El codi PIN és l\'única manera de desbloquejar ${app_name}.</string>
-    <string name="or_other_mx_capable_client">o un altre client Matrix compatible amb la signatura creuada</string>
     <string name="encryption_information_dg_xsigning_disabled">La signatura creuada no està activada</string>
     <string name="encryption_information_dg_xsigning_not_trusted">La signatura creuada està activada
 \nClaus no fiables</string>
@@ -1291,7 +1286,6 @@
     <string name="action_unpublish">Anul·la la publicació</string>
     <string name="action_add">Afegeix</string>
     <string name="enter_secret_storage_passphrase_or_key">Utilitza la %1$s o la %2$s per a continuar.</string>
-    <string name="use_latest_app">Utilitza l\'última versió d\'${app_name} als teus altres dispositius:</string>
     <string name="soft_logout_signin_notice">L\'administrador del servidor local (%1$s) ha tancat la teva sessió del compte %2$s (%3$s).</string>
     <plurals name="fallback_users_read">
         <item quantity="one">%d usuari ho ha llegit</item>
@@ -1622,7 +1616,6 @@
 \n
 \nSegur que vols continuar\?</string>
     <string name="external_link_confirmation_title">Comprova aquest enllaç</string>
-    <string name="use_other_session_content_description">Utilitza l\'última versió d\'${app_name} als teus altres dispositius, ${app_name} Web, ${app_name} per escriptori, ${app_name} iOS, ${app_name} per Android, o algun altre client de Matrix que admeti signatura creuada</string>
     <string name="bootstrap_progress_storing_in_sss">Desant secret de clau de còpia de seguretat a SSSS</string>
     <string name="security_prompt_text">Verifica\'t a tu i als altres per mantenir els teus xats segurs</string>
     <string name="command_description_plain">Envia un missatge com a text pla, sense tenir en compte la formatació markdown</string>

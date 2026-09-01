@@ -1484,12 +1484,6 @@
     <string name="settings_security_incognito_keyboard_title">ინკოგნიტო კლავიატურა</string>
     <string name="error_saving_media_file">მედია ფაილის შენახვა ვერ მოხერხდა</string>
     <string name="change_password_summary">შექმენით ახალი ანგარიშის პაროლი…</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">ან სხვა ჯვარედინი ხელმოწერის ფუნქციონალური Matrix კლიენტი</string>
-    <string name="use_latest_app">გამოიყენეთ უახლესი ${app_name} თქვენს სხვა მოწყობილობებზე:</string>
     <string name="command_description_discard_session">აიძულეთ მიმდინარე ჯგუფური სესიის გაგზავნის განახლება დაშიფრულ ოთახში, რომელიც გაუქმდება</string>
     <string name="command_description_discard_session_not_handled">მხარდაჭერილია მხოლოდ დაშიფრულ ოთახებში</string>
     <string name="use_recovery_key">გამოიყენეთ აღდგენის გასაღები</string>
@@ -1955,7 +1949,6 @@
     <string name="bootstrap_migration_with_passphrase_helper_with_link">არ იცით თქვენი გასაღების სარეზერვო პაროლი, შეგიძლიათ %s.</string>
     <string name="settings_security_prevent_screenshots_summary">ამ პარამეტრის ჩართვა დაამატებს FLAG_SECURE ყველა აქტივობას. აპლიკაციის გადატვირთვა აუცილებელია ცვლილების ძალაში შესვლისთვის.</string>
     <string name="settings_security_incognito_keyboard_summary">მოითხოვეთ, რომ კლავიატურამ არ განაახლოს პერსონალიზებული მონაცემები, როგორიცაა აკრეფის ისტორია და ლექსიკონი იმაზე დაყრდნობით, რაც აკრიფეთ საუბრებში. გაითვალისწინეთ, რომ ზოგიერთი კლავიატურა შეიძლება არ პატივს სცემდეს ამ პარამეტრს.</string>
-    <string name="use_other_session_content_description">გამოიყენეთ უახლესი ${app_name} თქვენს სხვა მოწყობილობებზე, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} Android, ან სხვა ჯვარედინი ხელმოწერის ფუნქციონალური Matrix კლიენტი</string>
     <string name="enter_secret_storage_passphrase_or_key">გამოიყენეთ თქვენი %1$s ან გამოიყენეთ თქვენი %2$s გასაგრძელებლად.</string>
     <string name="bad_passphrase_key_reset_all_action">დაივიწყეთ ან დაკარგეთ ყველა აღდგენის ვარიანტი\? ყველაფერი განაახლეთ</string>
     <string name="secure_backup_reset_all_no_other_devices_long">თქვენი დამადასტურებელი გასაღებების გადაყენება შეუძლებელია. გადატვირთვის შემდეგ, თქვენ არ გექნებათ წვდომა ძველ დაშიფრულ შეტყობინებებზე და ყველა მეგობარი, ვინც ადრე დაგიდასტურდათ, დაინახავს უსაფრთხოების გაფრთხილებებს, სანამ მათთან ხელახლა გადაამოწმებთ.</string>

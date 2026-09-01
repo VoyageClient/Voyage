@@ -1524,10 +1524,6 @@
     <string name="add_members_to_room">Bæta við meðlimum</string>
     <string name="cross_signing_verify_by_text">Sannreyna handvirkt með textaskilaboðum</string>
     <string name="encrypted_unverified">Dulritað meðf ósannreyndu tæki</string>
-    <string name="app_ios_android">${app_name} fyrir iOS
-\n${app_name} fyrir Android</string>
-    <string name="app_desktop_web">${app_name} fyrir vefinn
-\n${app_name} fyrir vinnutölvur</string>
     <string name="use_file">Nota skrá</string>
     <string name="direct_room_created_summary_item_by_you">Þú gekkst í hópinn.</string>
     <string name="room_created_summary_item_by_you">Þú bjóst til og stilltir spjallrásina.</string>

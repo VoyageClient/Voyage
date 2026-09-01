@@ -961,9 +961,6 @@
     <string name="bootstrap_migration_backup_recovery_key">Återställningsnyckel för säkerhetskopiering</string>
     <string name="settings_security_prevent_screenshots_title">Förhindra skärmdumpar av appen</string>
     <string name="settings_security_prevent_screenshots_summary">Att aktivera den här inställningen lägger till FLAG_SECURE till alla aktiviteter. Starta om appen för att inställningen ska få effekt.</string>
-    <string name="use_other_session_content_description">Använd senaste ${app_name} på dina andra enheter; ${app_name} Web, ${app_name} iOS, ${app_name} för Android, eller annan Matrixklient som stöder korssignering</string>
-    <string name="or_other_mx_capable_client">eller en annan Matrixklient som städer korssignering</string>
-    <string name="use_latest_app">Använd senaste ${app_name} på dina andra enheter:</string>
     <string name="command_description_discard_session">Tvingar den nuvarande utgående gruppsessionen i ett krypterat rum att kasseras</string>
     <string name="bottom_sheet_setup_secure_backup_title">Säker säkerhetskopiering</string>
     <string name="bottom_sheet_setup_secure_backup_submit">Sätt upp</string>
@@ -1420,10 +1417,6 @@
     <string name="bootstrap_progress_generating_ssss_with_info">Generar SSSS-nyckel baserat på lösenfras (%s)</string>
     <string name="bootstrap_progress_generating_ssss_recovery">Generar SSSS-nyckel baserat på återställningsnyckel</string>
     <string name="bootstrap_progress_storing_in_sss">Lagrar hemlighet för nyckelsäkerhetskopiering i SSSS</string>
-    <string name="app_desktop_web">${app_name} Webb
-\n${app_name} Skrivbord</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
     <string name="enter_secret_storage_passphrase_or_key">Använd din %1$s eller %2$s för att fortsätta.</string>
     <string name="use_recovery_key">Använd återställningsnyckel</string>
     <string name="enter_secret_storage_input_key">Välj din återställningsnyckel eller mata in den manuellt genom att skriva den eller klistra in från klippbordet</string>

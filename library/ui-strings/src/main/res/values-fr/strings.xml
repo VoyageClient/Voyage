@@ -1270,13 +1270,6 @@
     <string name="settings_security_prevent_screenshots_title">Empêcher les captures d’écran de l’application</string>
     <string name="settings_security_prevent_screenshots_summary">L’activation de ce paramètre ajoute FLAG_SECURE à toutes les activités. Redémarrez l’application pour que la modification soit prise en compte.</string>
     <string name="change_password_summary">Définir un nouveau mot de passe de compte…</string>
-    <string name="use_other_session_content_description">Utilisez la dernière version de ${app_name} sur vos autres appareils : ${app_name} Web, ${app_name} pour Bureau, ${app_name} iOS, ${app_name} pour Android, ou un autre client Matrix qui prend en charge la signature croisée</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} pour Bureau</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">ou un autre client Matrix qui prend en charge la signature croisée</string>
-    <string name="use_latest_app">Utilisez la dernière version de ${app_name} sur vos autres appareils :</string>
     <string name="command_description_discard_session">Force la session de groupe sortante actuelle dans un salon chiffré à être abandonnée</string>
     <string name="command_description_discard_session_not_handled">Seulement pris en charge dans les salons chiffrés</string>
     <string name="enter_secret_storage_passphrase_or_key">Utilisez votre %1$s ou votre %2$s pour continuer.</string>
