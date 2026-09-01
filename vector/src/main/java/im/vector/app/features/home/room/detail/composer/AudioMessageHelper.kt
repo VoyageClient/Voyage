@@ -11,6 +11,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import androidx.core.content.FileProvider
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.MediaPlayerCompat
@@ -54,6 +55,7 @@ class AudioMessageHelper @Inject constructor(
 
     private var amplitudeTicker: CountUpTimer? = null
     private var playbackTicker: CountUpTimer? = null
+    private var lastCompletionAtMs = 0L
 
     fun initializeRecorder(roomId: String, attachmentData: ContentAttachmentData) {
         voiceRecorder.initializeRecord(roomId, attachmentData)
@@ -143,7 +145,7 @@ class AudioMessageHelper @Inject constructor(
 
     fun startOrPausePlayback(id: String, file: File) {
         val playbackState = playbackTracker.getPlaybackState(id)
-        mediaPlayer?.stop()
+        releasePlayer()
         stopPlaybackTicker()
         stopRecordingAmplitudes()
         currentPlayingId = null
@@ -158,6 +160,7 @@ class AudioMessageHelper @Inject constructor(
     private fun startPlayback(id: String, file: File) {
         val currentPlaybackTime = playbackTracker.getPlaybackTime(id) ?: 0
         val playableFile = resolvePlayableFile(file)
+        lastCompletionAtMs = 0L
 
         try {
             FileInputStream(playableFile).use { fis ->
@@ -165,6 +168,7 @@ class AudioMessageHelper @Inject constructor(
                     MediaPlayerCompat.setMediaAudioAttributes(this)
                     setDataSource(fis.fd)
                     prepare()
+                    setOnCompletionListener { onPlaybackCompleted(id) }
                     // Sought before it is started, and precisely: starting first plays the opening
                     // of the file, and the plain seek lands on the previous sync frame — which on
                     // a sparsely framed one is the beginning, so resuming restarts the whole clip.
@@ -230,20 +234,59 @@ class AudioMessageHelper @Inject constructor(
 
     fun stopPlayback() {
         playbackTracker.pausePlayback(AudioMessagePlaybackTracker.RECORDING_ID)
-        mediaPlayer?.stop()
+        releasePlayer()
         stopPlaybackTicker()
         currentPlayingId = null
     }
 
+    private fun releasePlayer() {
+        val player = mediaPlayer ?: return
+        mediaPlayer = null
+        tryOrNull { player.stop() }
+        tryOrNull { player.release() }
+    }
+
+    /**
+     * Reached the end of the file. Left to the ticker to notice, a player whose last reported position
+     * falls short of its stated duration reads as paused a moment before the end, and every later tap
+     * on play replays that last moment.
+     */
+    private fun onPlaybackCompleted(id: String) {
+        // The ticker can see the end a moment before the player reports it, and both go through here.
+        val now = SystemClock.uptimeMillis()
+        if (now - lastCompletionAtMs < COMPLETION_DEBOUNCE_MS) return
+        lastCompletionAtMs = now
+        stopPlaybackTicker()
+        val player = mediaPlayer
+        // The same setting media loops under, applied to sound: play it again from the top.
+        if (player != null && vectorPreferences.loopVideos() && runCatching { player.seekToPrecise(0); player.start() }.isSuccess) {
+            playbackTracker.updatePlayingAtPlaybackTime(id, 0, 0f)
+            startPlaybackTicker(id)
+            return
+        }
+        // Nothing is playing any more: leave no player behind for a scrub to be aimed at, and no
+        // position for the next tap on play to resume from — it starts the message again.
+        releasePlayer()
+        currentPlayingId = null
+        playbackTracker.stopPlaybackOrRecorder(id)
+    }
+
     fun movePlaybackTo(id: String, percentage: Float, totalDuration: Int) {
-        val toMillisecond = (totalDuration * percentage).toInt()
         playbackTracker.pauseAllPlaybacks()
 
-        if (currentPlayingId == id) {
-            mediaPlayer?.seekToPrecise(toMillisecond)
+        val playing = mediaPlayer?.takeIf { currentPlayingId == id && tryOrNull { it.isPlaying }.orFalse() }
+        // What the sender declared and what the file actually holds can differ, and the bar is drawn
+        // against the file: seeking by the declared length lands somewhere other than the touch.
+        val duration = playing?.let { tryOrNull { it.duration } }?.takeIf { it > 0 } ?: totalDuration
+        val toMillisecond = (duration * percentage).toInt()
+
+        if (playing != null) {
+            playing.seekToPrecise(toMillisecond)
             playbackTracker.updatePlayingAtPlaybackTime(id, toMillisecond, percentage)
         } else {
-            mediaPlayer?.pause()
+            // Seeking a player that is not running leaves it silent, so say the playback is paused
+            // rather than reporting one that stands still: the next tap on play resumes from here.
+            tryOrNull { mediaPlayer?.pause() }
             playbackTracker.updatePausedAtPlaybackTime(id, toMillisecond, percentage)
             stopPlaybackTicker()
         }
@@ -297,21 +340,16 @@ class AudioMessageHelper @Inject constructor(
         val duration = tryOrNull { player.duration } ?: 0
         val position = tryOrNull { player.currentPosition } ?: 0
         if (!playing) {
-            // A player that has run out is finished and starts again from the top; one that is
-            // merely between states — mid-seek, or a sink spinning up — keeps where it had got to,
-            // and going idle there is what makes the next play restart the whole file.
+            // The end of the file arrives through the completion listener. Anything else that stops
+            // the player — a seek, a sink spinning up, an error — keeps where it had got to, since
+            // going idle there is what makes the next tap on play restart the whole message.
             val finished = duration > 0 && position >= duration - PLAYBACK_END_WINDOW_MS
-            if (finished && vectorPreferences.loopVideos()) {
-                // The same setting media loops under, applied to sound: play it again from the top.
-                runCatching {
-                    player.seekToPrecise(0)
-                    player.start()
-                }
-                playbackTracker.updatePlayingAtPlaybackTime(id, 0, 0f)
-                return
+            if (finished) {
+                onPlaybackCompleted(id)
+            } else {
+                playbackTracker.pausePlayback(id)
+                stopPlaybackTicker()
             }
-            if (finished) playbackTracker.stopPlaybackOrRecorder(id) else playbackTracker.pausePlayback(id)
-            stopPlaybackTicker()
             return
         }
         if (duration <= 0) return
@@ -371,3 +409,6 @@ private const val PLAYBACK_END_WINDOW_MS = 250
 
 /** How far behind the recorded position a report can be and still be a stale one. */
 private const val STALE_REPORT_MS = 1_500
+
+/** Long enough that the ticker and the player cannot both report one end of a file. */
+private const val COMPLETION_DEBOUNCE_MS = 500
