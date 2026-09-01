@@ -1131,11 +1131,6 @@
     <string name="identity_server_set_default_submit">Użyj %1$s</string>
     <string name="enter_secret_storage_passphrase_or_key">Użyj %1$s albo %2$s aby kontynuować.</string>
     <string name="command_description_discard_session_not_handled">Dostępne tylko w pokojach szyfrowanych</string>
-    <string name="use_latest_app">Skorzystaj z najnowszych aplikacji ${app_name} na innych urządzeniach:</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
     <string name="change_password_summary">Ustaw nowe hasło do konta…</string>
     <string name="error_saving_media_file">Nie można zapisać pliku multimediów</string>
     <string name="settings_security_prevent_screenshots_summary">Włączenie tej opcji spowoduje dodanie flagi FLAG_SECURE do wszystkich Aktywności. Zrestartuj aplikację żeby zastosować zmiany.</string>
@@ -1886,7 +1881,6 @@
     <string name="a11y_delete_recorded_voice_message">Usuń nagranie</string>
     <string name="bootstrap_crosssigning_progress_save_ssk">Synchronizacja klucza samopodpisującego (Self Signing key)</string>
     <string name="cross_signing_verify_by_text">Zweryfikuj ręcznie za pomocą tekstu</string>
-    <string name="or_other_mx_capable_client">lub innego klienta Matrix z krzyżową weryfikacją nowych sesji logowania</string>
     <string name="upgrade_room_no_power_to_manage">Nie masz uprawnień do zmiany poziomu pokoju</string>
     <string name="notice_crypto_unable_to_decrypt_merged">Oczekiwanie na historię szyfrowania</string>
     <string name="room_using_unstable_room_version">Ten pokój działa na wersji pokoju %s, którą serwer domowy oznaczył jako niestabilną.</string>
@@ -1928,7 +1922,6 @@
     <string name="bottom_sheet_setup_secure_backup_title">Bezpieczna kopia zapasowa</string>
     <string name="enter_secret_storage_input_key">Wybierz swój klucz odzyskiwania, wpisz go ręcznie lub wklej ze schowka</string>
     <string name="use_recovery_key">Użyj Klucza Odzyskiwania</string>
-    <string name="use_other_session_content_description">Użyj najnowszej wersji ${app_name} na innych urządzeniach, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} dla Androida, oraz innych wspieranych klientów protokołu Matrix</string>
     <string name="bootstrap_migration_use_recovery_key">użyj swojego klucza odzyskiwania Klucza Kopii Zapasowej</string>
     <string name="bootstrap_progress_storing_in_sss">Zapisywanie sekretu klucza kopii zapasowej w SSSS</string>
     <string name="bootstrap_progress_generating_ssss">Generowania klucza SSSS z hasła</string>

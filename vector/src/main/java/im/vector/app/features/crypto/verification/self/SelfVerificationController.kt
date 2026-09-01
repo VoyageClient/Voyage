@@ -17,7 +17,6 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.ItemStyle
 import im.vector.app.core.ui.list.genericFooterItem
-import im.vector.app.features.crypto.verification.epoxy.bottomSheetSelfWaitItem
 import im.vector.app.features.crypto.verification.epoxy.bottomSheetVerificationActionItem
 import im.vector.app.features.crypto.verification.epoxy.bottomSheetVerificationNoticeItem
 import im.vector.app.features.crypto.verification.epoxy.bottomSheetVerificationWaitingItem
@@ -173,13 +172,10 @@ class SelfVerificationController @Inject constructor(
                 }
             }
             is Loading -> {
-                bottomSheetSelfWaitItem {
+                bottomSheetVerificationWaitingItem {
                     id("waiting")
+                    title(host.stringProvider.getString(CommonStrings.please_wait))
                 }
-//                bottomSheetVerificationWaitingItem {
-//                    id("waiting_pr_loading")
-//                    // title(host.stringProvider.getString(CommonStrings.verification_request_waiting_for, state.otherUserMxItem.getBestName()))
-//                }
             }
             is Success -> {
                 val pendingRequest = state.pendingRequest.invoke()
@@ -194,8 +190,9 @@ class SelfVerificationController @Inject constructor(
                             textColor(host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary))
                         }
 
-                        bottomSheetSelfWaitItem {
+                        bottomSheetVerificationWaitingItem {
                             id("waiting")
+                            title(host.stringProvider.getString(CommonStrings.verification_request_waiting))
                         }
                     }
                     EVerificationState.Requested -> {

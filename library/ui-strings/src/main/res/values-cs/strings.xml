@@ -1334,13 +1334,6 @@
     <string name="login_signin_matrix_id_error_invalid_matrix_id">To není platný identifikátor uživatele. Platný formát: \'@uživatel:homeserver.org\'</string>
     <string name="autodiscover_well_known_error">Nemohu najít platný domovský server. Prosím, zkontrolujte svůj identifikátor</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Režim letadlo je zapnut</string>
-    <string name="use_other_session_content_description">Použijte na svých zařízeních nejnovější ${app_name}, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} pro Android nebo jiný Matrix klient schopný křížového podepisování</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">nebo jiný Matrix klient schopný křížového podepisování</string>
-    <string name="use_latest_app">Použijte na svých zařízeních nejnovější ${app_name}:</string>
     <string name="command_description_discard_session">Vynutí zahození probíhající skupinové relace v šifrované místnosti</string>
     <string name="command_description_discard_session_not_handled">Podporováno jen v šifrovaných místnostech</string>
     <string name="enter_secret_storage_passphrase_or_key">Použijte své %1$s nebo použijte svůj %2$s a pokračujte.</string>

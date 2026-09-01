@@ -1304,13 +1304,6 @@
     <string name="settings_security_prevent_screenshots_summary">启用此设置会将 FLAG_SECURE 添加到所有活动项。重新启动应用程序以使更改生效。</string>
     <string name="error_saving_media_file">无法保存媒体文件</string>
     <string name="change_password_summary">设置新账户密码……</string>
-    <string name="use_other_session_content_description">在你的其它设备上使用最新的 ${app_name}、${app_name} Web、${app_name} Desktop、${app_name} iOS、${app_name} for Android 或其他支持交叉签名的 Matrix 客户端</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">或其它支持交叉签名的 Matrix 客户端</string>
-    <string name="use_latest_app">在你的其它设备上使用最新的 ${app_name}：</string>
     <string name="command_description_discard_session">强制丢弃加密房间中的当前出站群组会话</string>
     <string name="command_description_discard_session_not_handled">仅在加密房间中支持</string>
     <string name="enter_secret_storage_passphrase_or_key">使用你的 %1$s 或使用你的 %2$s 继续。</string>

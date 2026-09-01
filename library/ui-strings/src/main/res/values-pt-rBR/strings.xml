@@ -1371,13 +1371,6 @@
     <string name="settings_security_prevent_screenshots_summary">Habilitar esta configuração adiciona FLAG_SECURE a todas as Atividades. Recomece o aplicativo para que a mudança tenha efeito.</string>
     <string name="error_saving_media_file">Não foi possível salvar arquivo de mídia</string>
     <string name="change_password_summary">Definir uma nova senha de conta…</string>
-    <string name="use_other_session_content_description">Use o ${app_name} mais recente em seus outros dispositivos, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} para Android, ou um outro cliente Matrix capaz de assinatura cruzada</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">ou um outro cliente Matrix capaz de assinatura cruzada</string>
-    <string name="use_latest_app">Use o ${app_name} mais recente em seus outros dispositivos:</string>
     <string name="command_description_discard_session">Força a atual sessão de grupo de saída em uma sala encriptada a ser descartada</string>
     <string name="command_description_discard_session_not_handled">Somente suportado em salas encriptadas</string>
     <string name="enter_secret_storage_passphrase_or_key">Use sua %1$s ou %2$s para continuar.</string>

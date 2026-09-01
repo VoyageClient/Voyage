@@ -1293,13 +1293,6 @@
     <string name="settings_security_prevent_screenshots_title">Bildschirmfotos der Anwendung verhindern</string>
     <string name="settings_security_prevent_screenshots_summary">Das Aktivieren dieser Einstellung setzt FLAG_SECURE in allen Aktivitäten. Starte die Anwendung neu, damit die Änderung wirksam wird.</string>
     <string name="change_password_summary">Lege ein neues Kontopasswort fest …</string>
-    <string name="use_other_session_content_description">Nutze die neueste Version von ${app_name} auf deinen anderen Geräten, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} für Android oder eine andere Matrix-Anwendung, die Quersignierung unterstützt</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">oder eine andere Matrix-Anwendung, die Quersignierung unterstützt</string>
-    <string name="use_latest_app">Nutze die neueste Version von ${app_name} auf deinen anderen Geräten:</string>
     <string name="command_description_discard_session">Erzwingt das Verwerfen der aktuell ausgehende Gruppensitzung in einem verschlüsseltem Raum</string>
     <string name="command_description_discard_session_not_handled">Wird nur in verschlüsselten Räumen unterstützt</string>
     <string name="enter_secret_storage_passphrase_or_key">Benutze deine %1$s oder deinen %2$s um fortzufahren.</string>

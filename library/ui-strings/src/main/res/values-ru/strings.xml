@@ -1335,8 +1335,6 @@
     <string name="encryption_enabled_tile_description">Сообщения в этой комнате зашифрованы сквозным шифрованием. Посмотрите подробности и подтвердите пользователей в их профиле.</string>
     <string name="settings_notification_configuration">Параметры уведомлений</string>
     <string name="settings_troubleshoot_title">Отладка</string>
-    <string name="use_other_session_content_description">Используйте последнюю версию ${app_name} на других ваших устройствах, веб-клиент ${app_name}, ${app_name} для ПК, ${app_name} для iOS, ${app_name} для Android или другой клиент Matrix, поддерживающий перекрестную подпись</string>
-    <string name="use_latest_app">Используйте последнюю версию ${app_name} на других ваших устройствах:</string>
     <string name="verify_this_session">Подтвердите новую сессию вашей учетной записи: %1$s</string>
     <string name="bottom_sheet_setup_secure_backup_title">Безопасное резервное копирование</string>
     <string name="settings_active_sessions_verified_device_desc">Эта сессия является надежной для безопасного обмена сообщениями, поскольку вы подтвердили ее:</string>
@@ -1425,11 +1423,6 @@
     <string name="settings_security_prevent_screenshots_title">Блокировать скриншоты в приложении</string>
     <string name="settings_security_prevent_screenshots_summary">Включение этого параметра добавляет FLAG_SECURE ко всем действиям. Перезапустите приложение, чтобы изменения вступили в силу.</string>
     <string name="error_saving_media_file">Не удалось сохранить медиафайл</string>
-    <string name="app_desktop_web">Веб-${app_name}
-\n${app_name} для ПК</string>
-    <string name="app_ios_android">${app_name} для iOS
-\n${app_name} для Android</string>
-    <string name="or_other_mx_capable_client">или другой клиент Matrix поддерживающий перекрестную подпись</string>
     <string name="command_description_discard_session">Принудительно отбрасывает текущую групповую сессию для отправки сообщений в зашифрованную комнату</string>
     <string name="enter_secret_storage_passphrase_or_key">Чтобы продолжить, используйте %1$s или %2$s.</string>
     <string name="use_recovery_key">Используйте бумажный ключ</string>

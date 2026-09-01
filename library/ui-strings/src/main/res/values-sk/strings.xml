@@ -1699,8 +1699,6 @@
 \nZastaviť proces zmeny hesla\?</string>
     <string name="bad_passphrase_key_reset_all_action">Zabudli ste alebo ste stratili všetky možnosti obnovy\? Obnovte všetko</string>
     <string name="verification_cannot_access_other_session">Použite prístupovú frázu na obnovenie alebo kľúč</string>
-    <string name="use_latest_app">Použite najnovšiu aplikáciu ${app_name} na svojich ostatných zariadeniach:</string>
-    <string name="use_other_session_content_description">Použite najnovšiu aplikáciu ${app_name} na svojich ostatných zariadeniach, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} pre Android alebo iného klienta Matrix podporujúceho krížové podpisovanie</string>
     <string name="verification_use_passphrase">Ak nemáte prístup k existujúcej relácii</string>
     <string name="verification_open_other_to_verify">Použite existujúcu reláciu na overenie tejto relácie, čím jej udelíte prístup k zašifrovaným správam.</string>
     <string name="error_voice_message_unable_to_record">Nemožno nahrať hlasovú správu</string>
@@ -1773,11 +1771,6 @@
     <string name="use_recovery_key">Použite kľúč na obnovu</string>
     <string name="command_description_discard_session_not_handled">Podporované len v zašifrovaných miestnostiach</string>
     <string name="command_description_discard_session">Vynúti zrušenie aktuálnej relácie odchádzajúcej skupiny v zašifrovanej miestnosti</string>
-    <string name="or_other_mx_capable_client">alebo iného klienta Matrix, ktorý dokáže krížovo podpisovať</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
     <string name="error_saving_media_file">Nepodarilo sa uložiť mediálny súbor</string>
     <string name="bootstrap_progress_checking_backup_with_info">Kontrola kľúča na zálohovanie (%s)</string>
     <string name="bootstrap_progress_checking_backup">Kontrola kľúča na zálohovanie</string>

@@ -1739,8 +1739,6 @@
     <string name="a11y_trust_level_default">Oletusluottamustaso</string>
     <string name="error_opening_banned_room">Huonetta, johon olet saanut porttikiellon ei voi avata.</string>
     <string name="loading_contact_book">Noudetaan yhteystietojasi…</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
     <string name="command_description_plain">Lähettää viestin pelkkänä tekstinä, tulkitsematta sitä markdowniksi</string>
     <string name="contact_admin_to_restore_encryption">Ota yhteyttä ylläpitäjään salauksen palauttamiseksi kelvolliseen tilaan.</string>
     <string name="verification_scan_self_notice">Lue koodi toisella laitteellasi tai vaihda ja lue tällä laitteella</string>
@@ -1805,7 +1803,6 @@
     <string name="location_share_option_user_current">Jaa nykyinen sijaintini</string>
     <string name="restart_the_application_to_apply_changes">Käynnistä sovellus uudelleen, jotta muutos tulee voimaan.</string>
     <string name="space_add_existing_rooms">Lisää olemassa olevia huoneita ja avaruuksia</string>
-    <string name="use_latest_app">Käytä ${app_name}in uusinta versiota muilla laitteillasi:</string>
     <string name="ftue_personalize_skip_this_step">Ohita tämä vaihe</string>
     <string name="ftue_personalize_submit">Tallenna ja jatka</string>
     <string name="ftue_personalize_complete_subtitle">Asetukset on tallennettu.</string>

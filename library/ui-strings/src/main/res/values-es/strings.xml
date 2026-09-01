@@ -1428,13 +1428,6 @@
     <string name="bootstrap_migration_backup_recovery_key">Clave de recuperación de copia de seguridad</string>
     <string name="settings_security_prevent_screenshots_title">Evitar capturas de pantalla de la aplicación</string>
     <string name="settings_security_prevent_screenshots_summary">Al habilitar esta configuración, se agrega FLAG_SECURE a todas las actividades. Reinicie la aplicación para que el cambio surta efecto.</string>
-    <string name="use_other_session_content_description">Utilice la última versión de ${app_name} en sus otros dispositivos, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} para Android u otro cliente Matrix con capacidad de firma cruzada</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} de escritorio</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">u otro cliente Matrix con capacidad de firma cruzada</string>
-    <string name="use_latest_app">Utilice la última versión de ${app_name} en sus otros dispositivos:</string>
     <string name="command_description_discard_session">Obliga a descartar la sesión de grupo saliente actual en una sala cifrada</string>
     <string name="command_description_discard_session_not_handled">Solo se admite en salas cifradas</string>
     <string name="enter_secret_storage_passphrase_or_key">Use su %1$s o use su %2$s para continuar.</string>

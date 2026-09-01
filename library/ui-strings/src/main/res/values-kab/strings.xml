@@ -556,7 +556,6 @@
     <string name="verification_conclusion_ok_self_notice">Tiɣimit-ik·im tamaynut dayen tettwasenqed tura. Ɣur-s anekcum ɣer yiznan yettwawgelhen, iseqdac-nniḍen daɣen ad asen-d-tban tettwattkal.</string>
     <string name="settings_hs_admin_e2e_disabled">Anedbal-ik·im n uqeddac issens awgelhen seg yixef ɣer yixef s wudem amezwer deg texxamin tusligin &amp; yiznan usriden.</string>
     <string name="room_member_profile_sessions_section_title">Tiɣimiyin</string>
-    <string name="or_other_mx_capable_client">neɣ amsaɣ-nniḍen n Matrix yemṣadan d uzmul amdigan</string>
     <string name="command_description_discard_session">Ḥettem tiɣimit n ugraw ara d-yeffɣen akka tura deg texxamt tawgelhant ad tettwakkes</string>
     <string name="confirm_your_identity">Sentem timagit-ik·im s usenqed n yinekcam-a seg yiwet gar tɣimiyin-inek·inem-nniḍen, serreḥ-as ad tekcem ɣer yiznan yettwawgelhen.</string>
     <string name="create_room_dm_failure">D awezɣi ad ternuḍ izen-inek·inem uslig. Ttxil-k·m senqed iseqdacen i tebɣiḍ ad d-tnecdeḍ syen ɛreḍ tikkelt-nniḍen.</string>
@@ -733,11 +732,6 @@
     <string name="bootstrap_progress_generating_ssss_recovery">Asirew n tsarut SSSS seg tsarut n tririt</string>
     <string name="error_saving_media_file">Ur yezmir ara ad isekles afaylu n umidya</string>
     <string name="change_password_summary">Sbadu awal uffir amaynut n umiḍan…</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="use_latest_app">Seqdec aferdis aneggaru ɣef yibenkan-nniḍen:</string>
     <string name="command_description_discard_session_not_handled">Yettusefrak kan deg texxamin yettwawgelhen</string>
     <string name="enter_secret_storage_passphrase_or_key">Seqdec %1$s-inek·inem neɣ seqdec %2$s-inek.inem i wakken ad tkemmleḍ.</string>
     <string name="failed_to_access_secure_storage">Anekcum ɣer uklas aɣelsan ur yeddi ara</string>
@@ -1404,7 +1398,6 @@
     <string name="bootstrap_migration_backup_recovery_key">Tasarut n tririt n uḥraz n tsarut</string>
     <string name="settings_security_prevent_screenshots_title">Sewḥel tuṭṭfiwin n ugdil n usnas</string>
     <string name="settings_security_prevent_screenshots_summary">Armad n uɣewwar-a ad yernu FLAG_SECURE ɣer meṛṛa irmad. Ales asenker n usnas i wakken ad yemmed usnifel.</string>
-    <string name="use_other_session_content_description">Seqdec lqem akk aneggaru n ${app_name} ɣef yibenkan-inek·inem-nniḍen: ${app_name} Web, ${app_name} n tnarit, ${app_name} iOS, ${app_name} i Android neɣ amsaɣ-nniḍen n Matrix yessefraken azmul anmidag</string>
     <string name="enter_secret_storage_input_key">Fren tasarut-ik·im n tririt, neɣ err-itt s ufus s tira-ines s uasiw neɣ s usenteḍ-ines seg ɣefafus-inek·inem</string>
     <string name="cross_signing_verify_by_emoji">Senqed amyigew s yimujit</string>
     <string name="confirm_your_identity_quad_s">Sentem timagit-inek·inem s usenqed n yinekcam-a, anef-as ad yekcem ɣer yiznan yettwawgelhen.</string>

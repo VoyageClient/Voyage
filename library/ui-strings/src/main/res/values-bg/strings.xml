@@ -1350,13 +1350,6 @@
     <string name="enter_secret_storage_passphrase_or_key">За да продължите, използвайте %1$s или %2$s.</string>
     <string name="command_description_discard_session_not_handled">Поддържа се само в шифровани стаи</string>
     <string name="command_description_discard_session">Принудително премахва текущата изходяща групова сесия от шифрованата стая</string>
-    <string name="use_latest_app">Използвайте последната версия на ${app_name} за устройствата си:</string>
-    <string name="or_other_mx_capable_client">или друг Matrix клиент поддържаш кръстосано-подписване</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="use_other_session_content_description">Използвайте последната версия на ${app_name} за устройствата си (${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} за Android) или друг Matrix клиент поддържаш кръстосано-подписване</string>
     <string name="change_password_summary">Промяна на паролата за профила…</string>
     <string name="error_saving_media_file">Неуспешно съхраняване на медиен файл</string>
     <string name="settings_security_prevent_screenshots_summary">Включването на тази настройка добавя FLAG_SECURE към всички активности на приложението. Рестартирайте приложението за да влезе промяната в действие.</string>

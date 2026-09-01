@@ -1477,13 +1477,6 @@
     <string name="settings_security_prevent_screenshots_summary">Selle seadistusega määratakse FLAG_SECURE märge kõikidele tegevustele. Muutuse jõustamiseks vajab rakendus uuesti käivitamist.</string>
     <string name="error_saving_media_file">Meediafaili salvestamine ei õnnestunud</string>
     <string name="change_password_summary">Määra kontole uus salasõna…</string>
-    <string name="use_other_session_content_description">Kasuta kõige uuemat ${app_name}\'i versioon mõnes muus seadmes, nagu näiteks ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} Android. Samuti sobib mõni muu Matrix\'i klient, mis oskab risttunnustamist</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="or_other_mx_capable_client">või mõnda teist Matrix\'i klienti, mis oskab risttunnustamist</string>
-    <string name="use_latest_app">Kasuta oma muus seadmes kõige uuemat ${app_name}\'i versiooni:</string>
     <string name="command_description_discard_session">Sunnib loobuma praeguse krüptitud jututoa rühmavestluse seansist</string>
     <string name="command_description_discard_session_not_handled">Funktsionaalsus on toetatud ainult krüptitud jututubades</string>
     <string name="enter_secret_storage_passphrase_or_key">Jätkamiseks kasuta kas oma %1$s või %2$s.</string>

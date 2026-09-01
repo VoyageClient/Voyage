@@ -1633,13 +1633,6 @@
     <string name="enter_secret_storage_passphrase_or_key">Gebruik je %1$s of gebruik je %2$s om door te gaan.</string>
     <string name="command_description_discard_session_not_handled">Alleen ondersteund in versleutelde kamers</string>
     <string name="command_description_discard_session">Dwingt dat de huidige uitgaande groepssessie in een versleutelde kamer wordt weggegooid</string>
-    <string name="use_latest_app">Gebruik de nieuwste ${app_name} op je andere apparaten:</string>
-    <string name="or_other_mx_capable_client">of een andere Matrix client die kruislingsondetekenen ondersteunt</string>
-    <string name="app_ios_android">${app_name} iOS
-\n${app_name} Android</string>
-    <string name="app_desktop_web">${app_name} Web
-\n${app_name} Desktop</string>
-    <string name="use_other_session_content_description">Gebruik de nieuwste ${app_name} op je andere apparaten, ${app_name} Web, ${app_name} Desktop, ${app_name} iOS, ${app_name} voor Android of een andere Matrix-client die geschikt is voor kruislings ondertekenen</string>
     <string name="change_password_summary">Stel een nieuw accountwachtwoord in…</string>
     <string name="error_saving_media_file">Kan mediabestand niet opslaan</string>
     <string name="settings_security_prevent_screenshots_summary">Als je deze instelling inschakelt, wordt de FLAG_SECURE aan alle activiteiten toegevoegd. Start de applicatie opnieuw om de wijziging door te voeren.</string>
