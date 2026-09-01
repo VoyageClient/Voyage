@@ -146,6 +146,11 @@ class EventHtmlRenderer @Inject constructor(
             JLatexMathPlugin.create(44F) { builder ->
                 builder.inlinesEnabled(true)
                 builder.theme().inlinePadding(JLatexMathTheme.Padding.symmetric(24, 8))
+            },
+            object : AbstractMarkwonPlugin() {
+                override fun beforeSetText(textView: TextView, markdown: Spanned) {
+                    LatexRenderCache.applyTo(textView, markdown)
+                }
             }
     )
 
@@ -338,6 +343,11 @@ class EventHtmlRenderer @Inject constructor(
         markwonPlugins.forEach { it.afterSetText(textView) }
     }
 
+    // Runs outside renderLock, where a slow formula would hold up every other caller.
+    private fun prewarmLatex(rendered: CharSequence) {
+        if (vectorPreferences.latexMathsIsEnabled()) LatexRenderCache.prewarm(rendered)
+    }
+
     fun parse(text: String): Node = synchronized(renderLock) {
         im.vector.app.core.utils.PerfTrace.time("html.markwonParse") { markwon.parse(text) }
     }
@@ -349,7 +359,7 @@ class EventHtmlRenderer @Inject constructor(
     fun render(text: String, vararg postProcessors: PostProcessor): CharSequence = im.vector.app.core.utils.PerfTrace.time("html.render") {
         try {
             val parsed = parse(text)
-            renderAndProcess(parsed, postProcessors)
+            renderAndProcess(parsed, postProcessors).also { prewarmLatex(it) }
         } catch (failure: Throwable) {
             Timber.v("Fail to render $text to html")
             text
@@ -362,7 +372,7 @@ class EventHtmlRenderer @Inject constructor(
      */
     fun render(node: Node, vararg postProcessors: PostProcessor): CharSequence? = im.vector.app.core.utils.PerfTrace.time("html.renderNode") {
         try {
-            renderAndProcess(node, postProcessors)
+            renderAndProcess(node, postProcessors).also { prewarmLatex(it) }
         } catch (failure: Throwable) {
             Timber.v("Fail to render $node to html")
             null

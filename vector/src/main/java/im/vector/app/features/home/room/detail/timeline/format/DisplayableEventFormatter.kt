@@ -347,7 +347,10 @@ class DisplayableEventFormatter @Inject constructor(
                 // Paragraph vertical padding renders as a blank line above/below in the one-line preview.
                 spanned.getSpans(0, spanned.length, me.gujun.android.span.style.VerticalPaddingSpan::class.java).toList() +
                 // A heading scales the text and reserves its own line height, growing the whole row.
-                spanned.getSpans(0, spanned.length, io.noties.markwon.core.spans.HeadingSpan::class.java).toList()
+                spanned.getSpans(0, spanned.length, io.noties.markwon.core.spans.HeadingSpan::class.java).toList() +
+                // A formula is one atomic ReplacementSpan: an ellipsized preview too narrow to fit it
+                // whole drops it and shows only "…". Without the span its LaTeX source stays as text.
+                spanned.getSpans(0, spanned.length, io.noties.markwon.ext.latex.JLatexAsyncDrawableSpan::class.java).toList()
         if (blocks.isEmpty()) return this
         val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
         blocks.forEach { builder.removeSpan(it) }
