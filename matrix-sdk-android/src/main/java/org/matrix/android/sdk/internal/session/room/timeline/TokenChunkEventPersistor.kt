@@ -298,6 +298,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
                     targetChunkId, roomId, dbId, entity, isLastForward = false, direction,
                     roomMemberContentsByUser = roomMemberContentsByUser,
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                    keepTimestampOrder = lightweightSettingsStorage.isTimelineTimestampOrderEnabled(),
             )
         }
     }

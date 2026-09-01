@@ -92,6 +92,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 redactionSignal = timelineRedactionSignal,
                 decryptionSignal = timelineDecryptionSignal,
                 loadRoomMembersTask = loadRoomMembersTask,
+                lightweightSettingsStorage = lightweightSettingsStorage,
         )
     }
 

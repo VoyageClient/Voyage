@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -75,6 +76,7 @@ internal class SqlTimeline(
         private val redactionSignal: TimelineRedactionSignal,
         private val decryptionSignal: TimelineDecryptionSignal,
         private val loadRoomMembersTask: LoadRoomMembersTask,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
 ) : Timeline, TimelineInput.Listener, UIEchoManager.Listener {
 
     override val timelineID = UUID.randomUUID().toString()
@@ -227,6 +229,9 @@ internal class SqlTimeline(
                     healCorruptChunkGraph()
                     healOrphanedIslands()
                     sweepDuplicateRows()
+                    if (lightweightSettingsStorage.isTimelineTimestampOrderEnabled()) {
+                        stores.timelineOrder.sweepRoom(roomId)
+                    }
                 }
             }
             if (!isThreadTimeline) {
@@ -807,6 +812,10 @@ internal class SqlTimeline(
                 if (next == from) break
                 from = next
                 origin = follow.id
+            }
+            // The fetched history may be the region a late-delivered event was waiting for.
+            if (newRows > 0 && lightweightSettingsStorage.isTimelineTimestampOrderEnabled()) {
+                database.awaitDbTransaction(sessionDispatcher) { stores.timelineOrder.retryUnplaced(roomId) }
             }
         } catch (failure: Throwable) {
             if (failure is CancellationException) throw failure

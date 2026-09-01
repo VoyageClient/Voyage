@@ -90,6 +90,27 @@ internal class TimelineEventSqlStore(
     fun maxDisplayIndexAtOrBeforeTs(chunkId: Long, ts: Long): Long? =
             queries.selectMaxDisplayIndexAtOrBeforeTs(chunkId, ts).executeAsOne().idx
 
+    /** Timestamp of the chunk's newest-positioned row, ignoring [excludedRowId]. */
+    fun tsAtNewestRow(chunkId: Long, excludedRowId: Long): Long? =
+            queries.selectTsAtNewestRowExcluding(chunkId, excludedRowId).executeAsOneOrNull()?.ts
+
+    /** Timestamp of the chunk's oldest-positioned row, ignoring [excludedRowId]. */
+    fun tsAtOldestRow(chunkId: Long, excludedRowId: Long): Long? =
+            queries.selectTsAtOldestRowExcluding(chunkId, excludedRowId).executeAsOneOrNull()?.ts
+
+    fun maxDisplayIndexAtOrBeforeTsExcluding(chunkId: Long, ts: Long, excludedRowId: Long): Long? =
+            queries.selectMaxDisplayIndexAtOrBeforeTsExcluding(chunkId, ts, excludedRowId).executeAsOne().idx
+
+    /** Every timestamped row of a chunk, in display order. */
+    fun getChunkRowsWithTs(chunkId: Long): List<ChunkRowTs> =
+            queries.selectChunkRowsWithTs(chunkId).executeAsList().mapNotNull { row ->
+                row.ts?.let { ChunkRowTs(row.id, row.event_id, row.display_index, it) }
+            }
+
+    fun getPlacement(roomId: String, eventId: String): Placement? =
+            queries.selectPlacementByRoomAndEventId(roomId, eventId).executeAsOneOrNull()
+                    ?.let { Placement(it.id, it.chunk_id, it.display_index) }
+
     fun shiftDisplayIndicesUpAfter(chunkId: Long, afterDisplayIndex: Long) =
             queries.shiftDisplayIndicesUpAfter(chunkId, afterDisplayIndex)
 
@@ -109,6 +130,10 @@ internal class TimelineEventSqlStore(
     }
 
     data class LoneEventRow(val id: Long, val eventId: String, val chunkId: Long)
+
+    data class ChunkRowTs(val id: Long, val eventId: String, val displayIndex: Long, val ts: Long)
+
+    data class Placement(val id: Long, val chunkId: Long, val displayIndex: Long)
 
     fun maxDisplayIndex(chunkId: Long): Long? = queries.maxDisplayIndexForChunk(chunkId).executeAsOne().max
 

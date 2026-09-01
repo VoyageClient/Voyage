@@ -33,6 +33,12 @@ interface LightweightSettingsStorage {
     fun isTimelineGapHealingEnabled(): Boolean
 
     /**
+     * Whether events a slow-federating or recovering homeserver delivered out of chronological order
+     * are moved back to their timestamp position in the timeline.
+     */
+    fun isTimelineTimestampOrderEnabled(): Boolean
+
+    /**
      * Whether those previews are generated on the device rather than by the homeserver, in the given room.
      * The room's own override wins over the account-wide mode.
      */

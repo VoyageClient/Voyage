@@ -35,6 +35,7 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
             // invalidate every row it fed. Absent for callers that don't track it; those rows simply
             // keep their cached profile.
             roomMemberEventIdsByUser: Map<String, String?>? = null,
+            keepTimestampOrder: Boolean = false,
     ): Long? {
         val eventId = event.eventId
         if (stores.timelineEvent.getInChunkByEventId(chunkId, eventId) != null) return null
@@ -64,7 +65,12 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
                 senderMembershipEventId = roomMemberEventIdsByUser?.get(senderId),
                 ownedByThreadChunk = ownedByThreadChunk,
         )
-        return stores.timelineEvent.insert(entity, chunkId, eventDbId)
+        val rowId = stores.timelineEvent.insert(entity, chunkId, eventDbId)
+        val ts = event.originServerTs
+        if (keepTimestampOrder && ts != null) {
+            stores.timelineOrder.placeInserted(roomId, chunkId, rowId, eventId, ts, direction)
+        }
+        return rowId
     }
 
     fun nextDisplayIndex(chunkId: Long, direction: PaginationDirection): Int = when (direction) {

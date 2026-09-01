@@ -51,5 +51,6 @@ internal class SessionStores @Inject constructor(
     val threePid = ThreePidSqlStore(database)
     val pollHistory = PollHistorySqlStore(database)
     val syncFilterParams = SyncFilterParamsSqlStore(database)
+    val timelineOrder = TimelineOrderRepairer(this)
     val timelineWriter = TimelineSqlWriter(this)
 }
