@@ -37,6 +37,10 @@ object ImageAlphaProbe {
     /** @return null when there is nothing to look at yet, which is not an answer to remember. */
     private fun probe(drawable: Drawable?, cornerFraction: Float): Boolean? {
         drawable ?: return null
+        // Stand-ins for a picture that has not arrived, and opaque ones: answering from those would
+        // record the message as not see-through for the rest of the session.
+        if (drawable is MediaPlaceholderDrawable || drawable is BlurHashDrawable) return null
+        if (drawable is BlurFadeOutDrawable && drawable.isFading) return null
         val bitmap = (drawable as? BitmapDrawable)?.bitmap
         if (bitmap != null && !bitmap.isRecycled) {
             // The flag alone is not the question — plenty of pictures carry a channel they never

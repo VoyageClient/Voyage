@@ -29,6 +29,9 @@ class BlurFadeOutDrawable(
 ) : Drawable(), Drawable.Callback, Runnable {
 
     private val startMs = SystemClock.uptimeMillis()
+
+    /** While true the blur is still painted over the picture, so what is drawn is not the picture. */
+    val isFading: Boolean get() = SystemClock.uptimeMillis() - startMs < durationMs
     private val blurPaint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val handler = Handler(Looper.getMainLooper())
     private var scheduled = false
