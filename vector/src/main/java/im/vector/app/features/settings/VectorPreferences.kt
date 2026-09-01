@@ -167,6 +167,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_PERFORMANCE_MODE_KEY = "SETTINGS_PERFORMANCE_MODE_KEY"
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
         const val SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY = "SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY"
+        private const val SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY = "SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY"
         const val SETTINGS_CUSTOM_EMOJI_FONT_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_KEY"
         private const val SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
@@ -558,6 +559,16 @@ class VectorPreferences @Inject constructor(
     fun setUseSystemEmojiFont(enabled: Boolean) {
         defaultPrefs.edit(commit = true) {
             putBoolean(SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY, enabled)
+        }
+    }
+
+    fun imageEditorSnapToCenter(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY, false)
+    }
+
+    fun setImageEditorSnapToCenter(enabled: Boolean) {
+        defaultPrefs.edit {
+            putBoolean(SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY, enabled)
         }
     }
 

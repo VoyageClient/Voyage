@@ -48,6 +48,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.thumbCompat
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityVideoEditorBinding
+import im.vector.app.features.attachments.editor.AspectRatioPicker
 import im.vector.app.features.attachments.editor.restoreOriginalResult
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
@@ -101,6 +102,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var pendingAudioUs: Long? = null
     private var volume = PlaybackVolume()
     private var reversed = false
+    private var lastCustomAspectRatio: Pair<Int, Int>? = null
     private var playerBoost: LoudnessBoost? = null
     private var audioBoost: LoudnessBoost? = null
     private var playbackSpeed = PlaybackSpeed()
@@ -159,6 +161,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             views.videoEditorTextureView.setTransform(it)
             views.videoEditorTextureView.invalidate()
         }
+        views.videoEditorCropOverlay.snapToCenter = vectorPreferences.imageEditorSnapToCenter()
         setupPlaybackControls(accent)
 
         views.videoEditorTimeline.listener = VideoTimelineStripView.Listener { start, end, dragging ->
@@ -246,6 +249,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             setIcon(volumeIcon())
         }
         menu.findItem(R.id.videoEditorReverseAction)?.isChecked = reversed
+        menu.findItem(R.id.videoEditorSnapAction)?.isChecked = views.videoEditorCropOverlay.snapToCenter
         // Changing an edit while it is being written would export something nobody asked for.
         for (index in 0 until menu.size()) {
             menu.getItem(index).isEnabled = !exporting
@@ -271,11 +275,33 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 setReversed(!reversed)
                 true
             }
+            R.id.videoEditorAspectAction -> {
+                showAspectRatioPicker()
+                true
+            }
+            R.id.videoEditorSnapAction -> {
+                val enabled = !views.videoEditorCropOverlay.snapToCenter
+                views.videoEditorCropOverlay.snapToCenter = enabled
+                vectorPreferences.setImageEditorSnapToCenter(enabled)
+                invalidateOptionsMenu()
+                true
+            }
             R.id.videoEditorSpeedAction -> {
                 showSpeedDialog()
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showAspectRatioPicker() {
+        AspectRatioPicker.show(
+                context = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+                current = views.videoEditorCropOverlay.aspectRatio,
+                suggested = lastCustomAspectRatio ?: views.videoEditorCropOverlay.displayedAspectRatio(),
+        ) { ratio, custom ->
+            custom?.let { lastCustomAspectRatio = it }
+            views.videoEditorCropOverlay.aspectRatio = ratio
         }
     }
 

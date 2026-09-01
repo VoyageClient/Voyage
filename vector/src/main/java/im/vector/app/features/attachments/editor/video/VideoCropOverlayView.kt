@@ -18,6 +18,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import im.vector.app.features.attachments.ZoomPanGesture
+import im.vector.app.features.attachments.editor.CropRatio
+import im.vector.app.features.attachments.editor.reduceRatio
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -49,6 +51,22 @@ class VideoCropOverlayView @JvmOverloads constructor(
     var rotationDegrees = 0
         private set
 
+    /** Locked output ratio (width / height) for the crop window, or null to crop freely. */
+    var aspectRatio: Float? = null
+        set(value) {
+            field = value
+            applyRatioAroundCenter()
+            invalidate()
+        }
+
+    /** Pulls the dragged crop onto the frame's center lines when it comes close. */
+    var snapToCenter: Boolean = false
+        set(value) {
+            field = value
+            if (!value) clearSnapGuides()
+            invalidate()
+        }
+
     private var videoWidth = 0
     private var videoHeight = 0
     private val crop = RectF(0f, 0f, 1f, 1f)
@@ -58,6 +76,8 @@ class VideoCropOverlayView @JvmOverloads constructor(
         set(value) {
             if (field == value) return
             field = value
+            // The shape it is measured against moved, so a locked ratio has to be re-derived.
+            applyRatioAroundCenter()
             invalidate()
         }
 
@@ -82,7 +102,13 @@ class VideoCropOverlayView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
     }
     private val edgeHandleLength = dp(16f)
+    private val snapGuidePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF4FC3F7.toInt()
+        style = Paint.Style.STROKE
+        strokeWidth = dp(1.5f)
+    }
 
+    private val snapDistance = dp(14f)
     private val handleRadius = dp(8f)
     private val touchSlop = max(dp(24f), ViewConfiguration.get(context).scaledTouchSlop.toFloat())
     private val minNormalisedSize = 0.05f
@@ -94,6 +120,9 @@ class VideoCropOverlayView @JvmOverloads constructor(
     private var dragCornerY = 0
     private var lastTouchX = 0f
     private var lastTouchY = 0f
+    private val unsnappedCrop = RectF()
+    private var snappedX = false
+    private var snappedY = false
 
     private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM) { invalidate() }.apply {
         onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
@@ -110,6 +139,8 @@ class VideoCropOverlayView @JvmOverloads constructor(
     fun rotateClockwise() {
         rotationDegrees = (rotationDegrees + 90) % 360
         rotateNormalised(crop)
+        // The turn swapped the crop's own ratio, so it has to be re-derived for the new orientation.
+        applyRatioAroundCenter()
         gesture.clampPan()
         invalidate()
     }
@@ -118,7 +149,34 @@ class VideoCropOverlayView @JvmOverloads constructor(
         rotationDegrees = 0
         crop.set(0f, 0f, 1f, 1f)
         gesture.reset()
+        applyRatioAroundCenter()
+        clearSnapGuides()
         invalidate()
+    }
+
+    /** The size the frame is shown at, which the normalised crop is measured against. */
+    private fun displayedSize(): Pair<Float, Float>? {
+        val sideways = rotationDegrees % 180 != 0
+        val sourceWidth = (if (sideways) videoHeight else videoWidth).toFloat()
+        val sourceHeight = (if (sideways) videoWidth else videoHeight).toFloat()
+        val width = contentSizeOverride?.first?.toFloat() ?: sourceWidth
+        val height = contentSizeOverride?.second?.toFloat() ?: sourceHeight
+        return if (width > 0f && height > 0f) width to height else null
+    }
+
+    /** The frame's own ratio, reduced, to offer as the starting point for a custom one. */
+    fun displayedAspectRatio(): Pair<Int, Int>? {
+        val (width, height) = displayedSize() ?: return null
+        return reduceRatio(width.toInt(), height.toInt())
+    }
+
+    private fun normalisedRatio(): Float? {
+        val (width, height) = displayedSize() ?: return null
+        return CropRatio.normalise(aspectRatio, width, height)
+    }
+
+    private fun applyRatioAroundCenter() {
+        CropRatio.fitAroundCenter(crop, normalisedRatio() ?: return)
     }
 
     /** The kept region of the displayed frame, or null when the whole of it is kept. */
@@ -147,6 +205,13 @@ class VideoCropOverlayView @JvmOverloads constructor(
         canvas.drawRect(cropScreen, borderPaint)
         drawThirds(canvas, cropScreen)
         drawCornerHandles(canvas, cropScreen)
+        drawSnapGuides(canvas)
+    }
+
+    private fun drawSnapGuides(canvas: Canvas) {
+        if (dragMode == DragMode.NONE) return
+        if (snappedX) canvas.drawLine(imageRect.centerX(), imageRect.top, imageRect.centerX(), imageRect.bottom, snapGuidePaint)
+        if (snappedY) canvas.drawLine(imageRect.left, imageRect.centerY(), imageRect.right, imageRect.centerY(), snapGuidePaint)
     }
 
     private fun computeGeometry(): Boolean {
@@ -248,9 +313,11 @@ class VideoCropOverlayView @JvmOverloads constructor(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 parent?.requestDisallowInterceptTouchEvent(true)
+                clearSnapGuides()
                 lastTouchX = event.x
                 lastTouchY = event.y
                 dragMode = beginDrag(event.x, event.y)
+                if (dragMode == DragMode.CROP_MOVE) unsnappedCrop.set(crop)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -263,6 +330,7 @@ class VideoCropOverlayView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 dragMode = DragMode.NONE
+                clearSnapGuides()
                 parent?.requestDisallowInterceptTouchEvent(false)
                 invalidate()
                 return true
@@ -279,11 +347,14 @@ class VideoCropOverlayView @JvmOverloads constructor(
             dragCornerY = handle.second
             return DragMode.CROP_RESIZE
         }
-        // Once zoomed, dragging navigates the video — otherwise a tall clip zoomed in would only be
-        // pannable with two fingers. At 1x there is nowhere to pan, so drag moves the crop box.
-        if (gesture.zoom > 1f) return DragMode.PAN
-        return if (rect.contains(x, y)) DragMode.CROP_MOVE else DragMode.NONE
+        // Inside the box moves it; anywhere else navigates the video, so a tall clip zoomed in is
+        // not pannable only with two fingers. A box filling the frame has nowhere to move, so it
+        // gives the drag up rather than swallowing it.
+        if (rect.contains(x, y) && cropCanMove()) return DragMode.CROP_MOVE
+        return if (gesture.zoom > 1f) DragMode.PAN else DragMode.NONE
     }
+
+    private fun cropCanMove() = crop.width() < 0.999f || crop.height() < 0.999f
 
     /** Corner or side handle at (x, y): 0 = left/top edge, 1 = right/bottom, -1 = axis left alone. */
     private fun nearestHandle(rect: RectF, x: Float, y: Float): Pair<Int, Int>? {
@@ -308,19 +379,63 @@ class VideoCropOverlayView @JvmOverloads constructor(
     private fun applyDrag(x: Float, y: Float) {
         val dx = (x - lastTouchX) / imageRect.width()
         val dy = (y - lastTouchY) / imageRect.height()
-        val nx = ((x - imageRect.left) / imageRect.width()).coerceIn(0f, 1f)
-        val ny = ((y - imageRect.top) / imageRect.height()).coerceIn(0f, 1f)
+        clearSnapGuides()
 
         when (dragMode) {
             DragMode.PAN -> gesture.panBy(x - lastTouchX, y - lastTouchY)
-            DragMode.CROP_MOVE -> {
-                val clampedDx = dx.coerceIn(-crop.left, 1f - crop.right)
-                val clampedDy = dy.coerceIn(-crop.top, 1f - crop.bottom)
-                crop.offset(clampedDx, clampedDy)
+            DragMode.CROP_MOVE -> moveWithSnap(dx, dy)
+            DragMode.CROP_RESIZE -> {
+                val nx = snapX(normalisedX(x))
+                val ny = snapY(normalisedY(y))
+                val k = normalisedRatio()
+                if (k != null) {
+                    CropRatio.resize(crop, k, nx, ny, dragCornerX, dragCornerY, minNormalisedSize, minNormalisedSize)
+                } else {
+                    resizeCorner(nx, ny)
+                }
             }
-            DragMode.CROP_RESIZE -> resizeCorner(nx, ny)
             DragMode.NONE -> Unit
         }
+    }
+
+    private fun normalisedX(x: Float) = ((x - imageRect.left) / imageRect.width()).coerceIn(0f, 1f)
+
+    private fun normalisedY(y: Float) = ((y - imageRect.top) / imageRect.height()).coerceIn(0f, 1f)
+
+    private fun clearSnapGuides() {
+        snappedX = false
+        snappedY = false
+    }
+
+    /** Snapping is judged on screen distance, so it stays a fixed grab distance at any zoom. */
+    private fun snapX(nx: Float): Float {
+        if (!snapToCenter || imageRect.width() <= 0f) return nx
+        val snapped = abs(nx - 0.5f) * imageRect.width() <= snapDistance
+        if (snapped) snappedX = true
+        return if (snapped) 0.5f else nx
+    }
+
+    private fun snapY(ny: Float): Float {
+        if (!snapToCenter || imageRect.height() <= 0f) return ny
+        val snapped = abs(ny - 0.5f) * imageRect.height() <= snapDistance
+        if (snapped) snappedY = true
+        return if (snapped) 0.5f else ny
+    }
+
+    /**
+     * The finger moves [unsnappedCrop]; the visible box only follows it onto a center line while it
+     * is close to one. Snapping the visible box instead would re-snap it on every event of a slow
+     * drag, since each event's own delta stays inside the snap distance, and it could never be pulled off.
+     */
+    private fun moveWithSnap(dx: Float, dy: Float) {
+        unsnappedCrop.offset(
+                dx.coerceIn(-unsnappedCrop.left, 1f - unsnappedCrop.right),
+                dy.coerceIn(-unsnappedCrop.top, 1f - unsnappedCrop.bottom)
+        )
+        crop.set(unsnappedCrop)
+        if (!snapToCenter) return
+        if (snapX(crop.centerX()) == 0.5f) crop.offset(0.5f - crop.centerX(), 0f)
+        if (snapY(crop.centerY()) == 0.5f) crop.offset(0f, 0.5f - crop.centerY())
     }
 
     private fun resizeCorner(nx: Float, ny: Float) {

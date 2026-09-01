@@ -32,6 +32,17 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/videoEditorSnapAction"
+        android:checkable="true"
+        android:title="@string/image_editor_snap"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/videoEditorAspectAction"
+        android:title="@string/aspect_ratio_title"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/videoEditorResetAction"
         android:icon="@drawable/ic_refresh_cw"
         android:title="@string/video_editor_reset"

@@ -277,12 +277,6 @@
         <activity android:name=".features.qrcode.QrCodeScannerActivity" />
         <activity android:name=".features.crypto.quads.SharedSecureStorageActivity" />
         <activity
-            android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".features.media.VectorUCropActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".features.attachments.preview.AttachmentsPreviewActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:label="@string/app_name"

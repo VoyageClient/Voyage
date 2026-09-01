@@ -9,7 +9,6 @@ package im.vector.app.core.dialogs
 
 import androidx.fragment.app.Fragment
 import im.vector.app.core.resources.ColorProvider
-import im.vector.lib.core.utils.timer.Clock
 import javax.inject.Inject
 
 /**
@@ -17,13 +16,12 @@ import javax.inject.Inject
  */
 class GalleryOrCameraDialogHelperFactory @Inject constructor(
         private val colorProvider: ColorProvider,
-        private val clock: Clock,
 ) {
     fun create(
             fragment: Fragment,
             aspect: GalleryOrCameraDialogHelper.Aspect = GalleryOrCameraDialogHelper.Aspect.SQUARE,
             listener: GalleryOrCameraDialogHelper.Listener? = null,
     ): GalleryOrCameraDialogHelper {
-        return GalleryOrCameraDialogHelper(fragment, colorProvider, clock, aspect, listener)
+        return GalleryOrCameraDialogHelper(fragment, colorProvider, aspect, listener)
     }
 }

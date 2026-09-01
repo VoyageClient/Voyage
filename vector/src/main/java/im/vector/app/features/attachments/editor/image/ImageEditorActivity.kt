@@ -12,17 +12,20 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.net.Uri
+import android.view.ContextThemeWrapper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityImageEditorBinding
+import im.vector.app.features.attachments.editor.AspectRatioPicker
 import im.vector.app.features.attachments.editor.restoreOriginalResult
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
@@ -40,6 +43,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     private var displayName: String? = null
     private var sourceMimeType: String? = null
     private var initialEdits: ImageEditorEdits? = null
+    private var lastCustomAspectRatio: Pair<Int, Int>? = null
     private var activeToolFill: Int = Color.WHITE
     private var activeToolContent: Int = Color.WHITE
 
@@ -68,12 +72,56 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         views.imageEditorSaveButton.setOnClickListener { save() }
         views.imageEditorCensorButton.setOnClickListener { toggleCensorTool() }
         views.imageEditorRotateButton.setOnClickListener { views.imageEditorView.rotateClockwise() }
+        views.imageEditorSnapButton.setOnClickListener { toggleSnapToCenter() }
+        views.imageEditorAspectButton.setOnClickListener { showAspectRatioPicker() }
+        views.imageEditorAspectButton.backgroundTintList = ColorStateList.valueOf(INACTIVE_FAB_COLOR)
 
         views.imageEditorView.onToolChanged = { applyTool(it) }
         applyTool(ImageEditorView.Tool.CROP)
+        applySnapToCenter(vectorPreferences.imageEditorSnapToCenter())
+        intent.getFloatExtra(EXTRA_ASPECT_RATIO, 0f).takeIf { it > 0f }?.let {
+            views.imageEditorView.cropAspectRatio = it
+            // The caller needs this exact shape, so the ratio is not the user's to change.
+            views.imageEditorAspectButton.isVisible = false
+        }
         initialEdits = intent.getParcelableExtraCompat(EXTRA_EDITS)
         initialEdits?.let { views.imageEditorView.restoreEdits(it) }
         loadBitmap()
+    }
+
+    private fun showAspectRatioPicker() {
+        val censor = views.imageEditorView.isCensorSelected()
+        AspectRatioPicker.show(
+                // The editor's own theme is a black full-bleed one, which a dialog cannot use.
+                context = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+                current = views.imageEditorView.selectionAspectRatio(),
+                // A censor is a box over a detail; the image's own ratio says nothing about it.
+                suggested = lastCustomAspectRatio ?: views.imageEditorView.displayedAspectRatio().takeUnless { censor },
+        ) { ratio, custom ->
+            custom?.let { lastCustomAspectRatio = it }
+            views.imageEditorView.applySelectionAspectRatio(ratio)
+        }
+    }
+
+    private fun toggleSnapToCenter() {
+        val enabled = !views.imageEditorView.snapToCenter
+        vectorPreferences.setImageEditorSnapToCenter(enabled)
+        applySnapToCenter(enabled)
+        Toast.makeText(
+                this,
+                getString(if (enabled) CommonStrings.image_editor_snap_on else CommonStrings.image_editor_snap_off),
+                Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun applySnapToCenter(enabled: Boolean) {
+        views.imageEditorView.snapToCenter = enabled
+        views.imageEditorSnapButton.backgroundTintList =
+                ColorStateList.valueOf(if (enabled) activeToolFill else INACTIVE_FAB_COLOR)
+        ImageViewCompat.setImageTintList(
+                views.imageEditorSnapButton,
+                ColorStateList.valueOf(if (enabled) activeToolContent else Color.WHITE)
+        )
     }
 
     private fun toggleCensorTool() {
@@ -136,7 +184,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
             return
         }
         if (!edits.hasChanges) {
-            setResult(RESULT_OK, restoreOriginalResult())
+            setResult(RESULT_OK, restoreOriginalResult(sourceUri))
             finish()
             return
         }
@@ -185,13 +233,22 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         private const val EXTRA_RESULT_MIME_TYPE = "EXTRA_RESULT_MIME_TYPE"
         private const val EXTRA_EDITS = "EXTRA_EDITS"
         private const val EXTRA_RESULT_EDITS = "EXTRA_RESULT_EDITS"
+        private const val EXTRA_ASPECT_RATIO = "EXTRA_ASPECT_RATIO"
 
-        fun newIntent(context: Context, source: Uri, displayName: String?, mimeType: String?, edits: ImageEditorEdits?): Intent {
+        fun newIntent(
+                context: Context,
+                source: Uri,
+                displayName: String?,
+                mimeType: String?,
+                edits: ImageEditorEdits?,
+                aspectRatio: Float? = null,
+        ): Intent {
             return Intent(context, ImageEditorActivity::class.java).apply {
                 putExtra(EXTRA_SOURCE_URI, source.toString())
                 putExtra(EXTRA_DISPLAY_NAME, displayName)
                 putExtra(EXTRA_MIME_TYPE, mimeType)
                 putExtra(EXTRA_EDITS, edits)
+                aspectRatio?.let { putExtra(EXTRA_ASPECT_RATIO, it) }
             }
         }
 

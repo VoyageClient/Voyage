@@ -12,7 +12,6 @@ ext.groups = [
                         'com.github.matrix-org',
                         'com.github.tapadoo',
                         'com.github.UnifiedPush',
-                        'com.github.yalantis',
                         'com.github.Zhuinden',
                 ]
         ],
