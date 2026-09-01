@@ -32,6 +32,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
 import im.vector.app.R
+import im.vector.app.core.extensions.useCompat
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.themes.ThemeUtils
@@ -50,9 +51,6 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Open a url in the internet browser of the system.
@@ -240,14 +238,30 @@ fun Context.safeStartActivity(intent: Intent) {
     }
 }
 
-private fun appendTimeToFilename(name: String): String {
-    val dateExtension = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-    if (!name.contains(".")) return name + "_" + dateExtension
+private fun uniqueDisplayName(context: Context, collectionUri: Uri, name: String): String {
+    val dotPos = name.lastIndexOf('.')
+    val base = if (dotPos > 0) name.substring(0, dotPos) else name
+    val extension = if (dotPos > 0) name.substring(dotPos) else ""
 
-    val filename = name.substringBeforeLast(".")
-    val fileExtension = name.substringAfterLast(".")
+    var candidate = name
+    var counter = 1
+    while (displayNameExists(context, collectionUri, candidate)) {
+        candidate = "$base ($counter)$extension"
+        counter++
+    }
+    return candidate
+}
 
-    return """${filename}_$dateExtension.$fileExtension"""
+private fun displayNameExists(context: Context, collectionUri: Uri, name: String): Boolean {
+    return tryOrNull {
+        context.contentResolver.query(
+                collectionUri,
+                arrayOf(MediaStore.MediaColumns._ID),
+                "${MediaStore.MediaColumns.DISPLAY_NAME} = ?",
+                arrayOf(name),
+                null
+        )?.useCompat { it.count > 0 }
+    } == true
 }
 
 @SuppressLint("Recycle")
@@ -262,7 +276,13 @@ suspend fun saveMedia(
     withContext(Dispatchers.IO) {
         val resolvedTitle = ensureExtension(title, mediaMimeType)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val filename = appendTimeToFilename(resolvedTitle)
+            val externalContentUri = when {
+                mediaMimeType?.isMimeTypeImage() == true -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                mediaMimeType?.isMimeTypeVideo() == true -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                mediaMimeType?.isMimeTypeAudio() == true -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                else -> MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            }
+            val filename = uniqueDisplayName(context, externalContentUri, resolvedTitle)
 
             val values = ContentValues().apply {
                 put(MediaStore.Images.Media.TITLE, filename)
@@ -270,12 +290,6 @@ suspend fun saveMedia(
                 put(MediaStore.Images.Media.MIME_TYPE, mediaMimeType)
                 put(MediaStore.Images.Media.DATE_ADDED, currentTimeMillis)
                 put(MediaStore.Images.Media.DATE_TAKEN, currentTimeMillis)
-            }
-            val externalContentUri = when {
-                mediaMimeType?.isMimeTypeImage() == true -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                mediaMimeType?.isMimeTypeVideo() == true -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                mediaMimeType?.isMimeTypeAudio() == true -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                else -> MediaStore.Downloads.EXTERNAL_CONTENT_URI
             }
 
             val uri = context.contentResolver.insert(externalContentUri, values)
@@ -474,7 +488,7 @@ fun saveFileIntoLegacy(sourceFile: File, dstDirPath: File, outputFilename: Strin
         }
         var counter = 1
         while (dstFile.exists()) {
-            dstFile = File(dstDirPath, "$baseFileName($counter)$fileExt")
+            dstFile = File(dstDirPath, "$baseFileName ($counter)$fileExt")
             counter++
         }
     }
