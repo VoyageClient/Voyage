@@ -41,10 +41,13 @@ class RoomMessageTouchHelperCallback(
         fun canSwipeModel(model: EpoxyModel<*>): Boolean
     }
 
-    private var swipeBack: Boolean = false
-    private var dX = 0f
+    private var activeDx = 0f
     private var startTracking = false
     private var isVibrate = false
+
+    private var swipedModel: EpoxyModel<*>? = null
+    private var swipeTriggered = false
+    private var touchListenerAttached = false
 
     private var replyButtonProgress: Float = 0F
     private var lastReplyButtonAnimationTime: Long = 0
@@ -63,6 +66,7 @@ class RoomMessageTouchHelperCallback(
     private val triggerDistance = convertToPx(100)
     private val minShowDistance = convertToPx(20)
     private val triggerDelta = convertToPx(20)
+    private val maxTranslation = triggerDistance + triggerDelta
 
     override fun onSwiped(viewHolder: EpoxyViewHolder, direction: Int) {
     }
@@ -79,13 +83,17 @@ class RoomMessageTouchHelperCallback(
         }
     }
 
-    // We never let items completely go out
-    override fun convertToAbsoluteDirection(flags: Int, layoutDirection: Int): Int {
-        if (swipeBack) {
-            swipeBack = false
-            return 0
-        }
-        return super.convertToAbsoluteDirection(flags, layoutDirection)
+    // Unreachable thresholds: a released item must always animate back, never fly out.
+    override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float = Float.MAX_VALUE
+
+    override fun getSwipeEscapeVelocity(defaultValue: Float): Float = Float.MAX_VALUE
+
+    override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+        super.clearView(recyclerView, viewHolder)
+        endSwipe()
+        startTracking = false
+        isVibrate = false
+        replyButtonProgress = 0f
     }
 
     override fun onChildDraw(
@@ -98,43 +106,49 @@ class RoomMessageTouchHelperCallback(
             isCurrentlyActive: Boolean
     ) {
         if (actionState == ACTION_STATE_SWIPE) {
-            setTouchListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            attachTouchListener(recyclerView)
+            if (isCurrentlyActive) {
+                swipedModel = try {
+                    viewHolder.model
+                } catch (e: IllegalStateException) {
+                    Timber.e(e)
+                    null
+                }
+                swipeTriggered = abs(dX) >= triggerDistance
+            }
         }
-        val size = triggerDistance
-        if (abs(viewHolder.itemView.translationX) < size || dX > this.dX /*going back*/) {
-            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-            this.dX = dX
+        val drawDx = if (isCurrentlyActive) {
+            activeDx = dX
             startTracking = true
+            dX.coerceIn(-maxTranslation, maxTranslation)
+        } else {
+            // Scale the release animation down to the clamped position the item was left at.
+            val overshoot = abs(activeDx)
+            if (overshoot > maxTranslation) dX * (maxTranslation / overshoot) else dX
         }
+        super.onChildDraw(c, recyclerView, viewHolder, drawDx, dY, actionState, isCurrentlyActive)
         drawReplyButton(c, viewHolder.itemView)
     }
 
-    @Suppress("UNUSED_PARAMETER")
     @SuppressLint("ClickableViewAccessibility")
-    private fun setTouchListener(
-            c: Canvas,
-            recyclerView: RecyclerView,
-            viewHolder: EpoxyViewHolder,
-            dX: Float,
-            dY: Float,
-            actionState: Int,
-            isCurrentlyActive: Boolean
-    ) {
-        recyclerView.setOnTouchListener { rv, event ->
-            swipeBack = event.action == MotionEvent.ACTION_CANCEL || event.action == MotionEvent.ACTION_UP
-            if (swipeBack) {
-                if (abs(dX) >= triggerDistance) {
-                    try {
-                        viewHolder.model?.let { handler.performQuickReplyOnHolder(it) }
-                    } catch (e: IllegalStateException) {
-                        Timber.e(e)
-                    }
+    private fun attachTouchListener(recyclerView: RecyclerView) {
+        if (touchListenerAttached) return
+        touchListenerAttached = true
+        recyclerView.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_UP -> {
+                    swipedModel?.takeIf { swipeTriggered }?.let { handler.performQuickReplyOnHolder(it) }
+                    endSwipe()
                 }
-                // Without detach, captured dX re-fires quick-reply on later scroll ACTION_UPs.
-                rv.setOnTouchListener(null)
+                MotionEvent.ACTION_CANCEL -> endSwipe()
             }
             false
         }
+    }
+
+    private fun endSwipe() {
+        swipedModel = null
+        swipeTriggered = false
     }
 
     private fun drawReplyButton(canvas: Canvas, itemView: View) {
