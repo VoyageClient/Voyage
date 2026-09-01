@@ -115,4 +115,4 @@ The full per-commit changelog lives only in the commit message: a concise impera
 - Include new **features**, user-facing **improvements**, notable **feature removals**, and **significant bugfixes** (crashes, freezes, data loss, can't-log-in / can't-send). Do NOT list routine bugfixes, and do NOT list a fix for a regression we introduced ourselves (fixing our own not-yet-released breakage is not a changelog-worthy bugfix).
 - Group related entries by area and place your new entry next to similar ones; within that, lead with the most impactful. User-facing entries come first (under `## Features & improvements`, with `### Removals` / `### Branding` subsections), then technical/under-the-hood changes (`## Under the hood`), then `## Significant bugfixes`.
 - Do not mention specific app version numbers or upstream-sync versions.
-- One `- ` bullet per entry with a short bold lead-in, e.g. `- **Message pinning** — …`.
+- One `- ` bullet per entry with a short bold lead-in followed by a colon, e.g. `- **Message pinning**: …`. Never an em dash, there or anywhere else in the file.

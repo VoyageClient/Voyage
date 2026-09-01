@@ -1,275 +1,247 @@
-# Voyage — Changelog
+# Voyage Changelog
 
 New features, improvements, and notable removals in this fork.
 
 ## Features & improvements
 
-- **Runs on very old Android, down to Ice Cream Sandwich (API 14)** — brings a modern Matrix client to devices nothing else supports: automatic disabling of pre-KitKat's Dalvik bytecode verifier, an R8-shrunk release build that fits the old LinearAlloc ceiling, and many old-Android UI fixes. Versions of Android that do not support Emoji fall back to bundled Twemoji.
+- **Faster, freeze-free app**: media uploads no longer block the UI, tab-switching and message-sending are quicker, syncs on launch and idle-return are faster, and timelines and the room list are cached.
 
-- **Snappier, freeze-free app** — async media uploads that no longer block the UI, faster tab-switching and message-sending, quicker syncs on launch and idle-return, deep timeline/room-list caching, and a dedicated Performance Mode plus performance/logging toggles.
+- **Background-sync battery fix**: polling is gated on permissions and runs off a single alarm chain with a bounded retry loop, instead of draining the battery overnight.
 
-- **Background-sync battery fix** — permission-gated polling and a single alarm chain with a bounded retry loop, replacing overnight battery drain.
+- **Room previews**: a public room's timeline opens before you join it, from the room directory or a link. You can scroll back through history, search it, and browse the room's profile, members and media gallery, all read-only with a join bar at the bottom. Nothing is stored locally until you join.
 
-- **Custom emoticons & stickers (MSC2545 image packs)** — send custom emoji and stickers, pickers for both, author your own packs, import and export packs as Misskey-style zip archives, react with emoticons, and put them in your profile biography.
+- **Invite previews**: an invite to a world-readable room shows the actual conversation with Accept/Decline underneath instead of a blank invite screen, and an invite back to a room you were kicked or banned from previews your retained copy of the history the same way.
 
-- **Web sticker packs without an integration manager** — a sticker picker you have set up yourself opens straight from your account's widgets, with no integration server involved and none required to be enabled.
+- **Watch rooms without joining**: `/watch` follows any world-readable room from a "Watching" entry in the sidebar drawer, as a live read-only preview your account never enters. The watch list lives in account data, so it follows you across devices. `/unwatch` or a long-press stops watching.
 
-- **Keep deleted messages (MSC2815)** — see what a deleted message said. Room moderators and homeserver admins can fetch the original content back from a Synapse server that supports it. Each deleted message can be revealed or re-hidden from its long-press menu. Configurable account-wide under Settings → Security & privacy → Redactions and per room under Personalization: whether to preserve media, how large a download to accept, whether to restrict it to Wi-Fi, and whether the kept content survives clearing the app cache. Preserved media has its own clear actions, account-wide under Settings → General and per room under Personalization.
+- **Historical rooms**: being kicked or banned no longer wipes the conversation. The room stays open read-only with a banner saying who removed you and why, and moves to a "Historical" entry in the sidebar drawer instead of vanishing from All Chats. History stays readable and searchable up to the moment you were removed, survives re-login, and can be forgotten for good with a long-press.
 
-- **Per-room media visibility** — the media-visibility settings can now be overridden per room from Personalization, so a single room can show or hide media regardless of the account-wide choice.
+- **Upgraded rooms stay in your list**: when a room is upgraded to a new version, the old room is no longer hidden. It keeps the history that never moved across, and stays reachable from the room list.
 
-- **Personal room and user overrides (MSC3015, MSC4529)** — rename any room or change its avatar just for yourself, from the room's Personalization screen (MSC3015). A Personalization section on every user's profile likewise lets you override their display name and avatar, replacing them everywhere they appear. User overrides are end-to-end encrypted (MSC4483) by default.
+- **Room knocking**: request access to rooms that require it, including rooms that combine both rules (MSC3787), where members of a chosen space join directly and everyone else asks to join. Room settings offer it and the room preview shows the right action. Join-rule changes also read correctly in the timeline for knock and restricted rooms, which previously showed nothing at all.
 
-- **Profile notes (MSC4441)** — keep a private note on any user's profile, edited inline with markdown support, visible only to you and synced across your devices. Notes are end-to-end encrypted (MSC4483) by default.
+- **Room creation**: an overhauled room-creation wizard, with a per-room Personalization page alongside it.
 
-- **Encrypted account data (MSC4483)** — account data encrypted with a key from secure storage is shown decrypted in the developer account-data browser (with a Raw toggle for the ciphertext), can be edited in decrypted form, and new entries can be created encrypted.
+- **Space creation like room creation**: creating a space no longer starts with an opaque public/private choice. It is one form with the same controls a room gets: a space-access setting (invite only, ask to join, or public), encryption, and an advanced section for room version, your own power level, custom initial state and blocking other servers.
 
-- **Live room previews** — a public world-readable room now opens as a real, live-updating timeline before you join it, from the room directory or a link, the way Element Web previews rooms. You can scroll back through history, search it, and browse the room's profile, members and media gallery, all read-only, with a join bar at the bottom; nothing is stored locally until you actually join.
+- **Tombstoning**: an overhauled room-tombstoning flow, driven by `/tombstone`.
 
-- **Historical rooms** — being kicked or banned no longer wipes the conversation. The room stays open read-only if you're in it, with a banner saying who removed you and why (and a Rejoin button after a kick), and it moves to a new "Historical" entry in the sidebar drawer instead of vanishing from All Chats. You can still scroll and search the history up to the moment you were removed, browse the room's profile and members, and load older messages from the server. Historical rooms survive re-login, and a long-press lets you forget one for good. Leaving a room voluntarily still removes it immediately. Rejoining stitches the timeline back together, recovering whatever the room's history-visibility rules let you see of what happened while you were out — always including your own invite.
+- **Spaces improvements**: view a space's own timeline, show all rooms in Home by default, and a spaces drawer replacing the new UI's custom spaces view.
 
-- **Upgraded rooms stay in your list** — when a room is upgraded to a new version, the old room is no longer hidden from you. It keeps the history that never moved across, and stays reachable from the room list.
+- **Custom room-list sections**: group rooms into named sections of your own, which appear in the room list and can be created, renamed, reordered and removed in place. They are the same sections Element Web offers, and stay in sync with it.
 
-- **Watch rooms without joining** — a new `/watch` command follows any previewable (world-readable) room from a "Watching" entry in the sidebar drawer: it opens as a live read-only preview without your account ever entering the room. The watch list is stored in account data, so it follows you across devices. `/unwatch` or a long-press stops watching.
+- **Room tags**: tag support for rooms.
 
-- **Invite previews** — an invite to a world-readable room now shows the actual conversation with Accept/Decline underneath instead of a blank invite screen, and an invite back to a room you were kicked or banned from previews your retained copy of the history the same way.
+- **Filter the room directory by type (MSC3827)**: search rooms only, spaces only, or both, from the directory's overflow menu.
 
-- **Local message search, including encrypted rooms** — a local event index with its own database, plus advanced filters: `from:`, `mentions:`, `has:(image|video|audio|file|sticker|poll|link)`, `before:`/`after:` dates, and quoted exact-substring matching. The search bar suggests the filters as you type, completing `from:`/`mentions:` from the room's members as mention pills, and results support the same long-press actions as the timeline.
+- **"Kick", not "remove"**: the action to remove a member from a room is labeled "kick" rather than the vaguer "remove".
 
-- **Share encrypted history on invite (MSC4268)** — when you invite someone to an encrypted room whose history is visible to members, they can now read the messages sent before they joined. The keys go over as a single encrypted bundle rather than one message per session, so it works on rooms with a long history, and they are only sent to devices the invitee has cross-signed. Messages decrypted this way say who shared the keys, since only that person vouches for who really sent them.
+- **Local message search, including encrypted rooms**: a local event index with its own database, plus filters for `from:`, `mentions:`, `has:(image|video|audio|file|sticker|poll|link)`, `before:`/`after:` dates, and quoted exact-substring matching. The search bar suggests filters as you type, completes `from:`/`mentions:` from the room's members as mention pills, and results carry the same long-press actions as the timeline.
 
-- **PGP encryption** — opt-in PGP encrypt/decrypt over otherwise-unencrypted rooms via OpenKeychain, with an `/encrypt` command.
+- **Message translation**: translate any received message (and untranslate it again), and translate outgoing messages with `/translate`, a `$lang` message prefix, or a per-room auto-translate mode. Translation runs on-device by default (Meta's NLLB-200 model, [downloaded once from RTranslator's releases](https://github.com/niedev/RTranslator/releases/tag/2.0.0), ~1 GB, Android 7+), with Google, Microsoft, DeepL, DeepSeek and OpenAI-compatible web engines as alternatives.
 
-- **Message translation** — translate any received message (and untranslate it again), and translate outgoing messages with `/translate`, a `$lang` message prefix, or a per-room auto-translate mode. Translation runs fully on-device by default (Meta's NLLB-200 model, [downloaded once from RTranslator's releases](https://github.com/niedev/RTranslator/releases/tag/2.0.0), ~1 GB, Android 7+), with Google, Microsoft, DeepL, DeepSeek and OpenAI-compatible web engines available as alternatives or fallbacks.
+- **Message forwarding**: forward messages, using their most recent edit. Pick as many rooms as you like from the room picker and send to all of them at once; the same picker handles content shared into the app from other apps. Forwards carry metadata about the message they came from (MSC2723), so they are labeled in the timeline with the original sender and date, and tapping the label opens the original, offering to join the room if you are not in it. Forwarding out of a DM omits that metadata, and long-pressing the send button omits it from anywhere.
 
-- **Stealth mode** — keep this fork's own client-specific settings on your device instead of in account data, so a homeserver administrator can't tell which client you use. Opt-in per account.
+- **Message pinning**: pin and unpin messages, sorted by most recent, with a pinned-messages banner you can turn off.
 
-- **Multi-account switcher** — switch between multiple logged-in accounts.
+- **Mass redactions**: bulk redaction via `/massredact`, with a cooldown and an optional `from:`/`until:` time range. Redacting a message also redacts its edits and reactions and applies live to open timelines, "remove" is renamed to "redact", and the confirmation dialog can be skipped.
 
-- **VPN protection** — opt-in warnings when your VPN is off: a full-screen warning that blocks all network activity until you confirm, and a confirmation before switching accounts, with a per-account list of which accounts to protect.
+- **Redact on kick/ban**: kicking or banning someone offers to redact everything they sent in the room, from the member's profile or as `/kick @user:server redact`.
 
-- **Token sign in** — a "Token Sign In" option alongside Create account and Sign in takes an access token you already hold instead of a password. The token is adopted as-is, so no new device or session is created.
+- **Consistent deleted-message previews**: a deleted message reads as deleted everywhere it is previewed, not only in the timeline. Reply headers, the composer's reply preview, the room list, the pinned-messages banner and list, and the long-press menu all show it grayed out with a trash icon rather than as ordinary text, and thread summaries gray it out too. The wording is unified on "Message redacted".
 
-- **Local sign out** — long-press Sign out, in the sidebar drawer, in Settings → General, or on an account switcher row, to remove an account from the app without telling the homeserver. The session stays active server-side until you remove it yourself.
+- **Classic composer**: the message composer goes back to the flat layout it had before 2020. No rounded input box, a divider above it, accent-colored glyphs, a bare `+` for the share options, the emoji toggle outside the text box, and a plain paper-plane send button. On by default; turn it off under Settings → Preferences for the boxed composer.
 
-- **SchildiChat themes & message bubbles** — SchildiChat Light/Dark/Black themes and opt-in message bubbles (None / Both sides / Same side) with configurable corner roundness, an optional tail, and accent tinting of your own bubbles; timestamps shown inline in the bubble and overlaid on images/videos.
+- **Slash commands**: added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/encrypt`, and `/trans`/`/transme` for trans-flag gradient messages, plus the ability to run slash commands on a reply or an edit. `/rainbow` paints nheko's vivid gradient instead of washed-out CIELAB colors.
 
-- **SchildiChat layout & behaviour options** — a combined people+rooms Overview list, mark chats as read/unread (MSC2867) synced with compatible clients, URL previews in encrypted rooms, opening a room at its first unread message, jump-to-bottom when sending, remembered collapsed list sections, and showing/hiding space members as people.
+- **Sed substitutions**: maubot-style `s/typo/fixed/` built into the composer, so no bot has to be in the room. Your own messages are corrected as an edit, everyone else's with a notice reply. Replying to a message aims the substitution at it.
 
-- **Classic composer** — the message composer goes back to the flat layout it had before 2020: no rounded input box, a divider above it, and accent-coloured glyphs — a bare `+` for the share options, the emoji/keyboard toggle moved out of the text box, and a plain paper-plane send button instead of a white glyph on a filled circle. The encryption shield returns beside the input, the voice-message mic gets its own slot rather than sharing the send button's, and the composer sits on the toolbar colour so it reads as separate from the timeline. The share-options popout matches it, down to the `+` rotating into the close X. The reply/edit preview slides open and shut again rather than appearing instantly. On by default; turn it off under Settings → Preferences to get the boxed composer back.
+- **Intentional Mentions (MSC3952)**: proper support, plus mention-rendering improvements, with mentions backed by a single character rather than the full display name.
 
-- **Steadier share-options toolbar** — the attachment picker is now part of the composer's own layout instead of a floating window placed at fixed screen coordinates, so it can no longer drift out of alignment or be left stranded over the timeline when the keyboard opens or a reply preview appears. It also closes when you start typing or reply to a message.
+- **Frecency-ranked @-mentions**: the `@`-autocomplete lists the people you mention most often in a room first, instead of alphabetically. The per-room counts are backed up to account data, so the ranking follows you across devices.
 
-- **Media galleries (MSC4274)** — send several photos, videos, files and audio as a single message that renders as a grid of thumbnails, with a caption underneath. Each tile opens, saves, shares and forwards on its own, the whole message can be saved at once, and every item appears individually in the room's media viewer and Uploads tab. Galleries from other clients always display; sending them is opt-in under Settings → Labs.
+- **Selectable message & topic text**: select text directly from timeline messages. Double-tap starts a selection anywhere, long-press on a code block or inline code starts one locked to that code (Select all expands it to the whole message), links and plain text keep their long-press actions, and the selection menu is trimmed to Copy, Share and Select all. The room profile topic is selectable the same way, replacing long-press-to-copy.
 
-- **Link previews that work in encrypted rooms (MSC4095)** — messages you send carry the preview of their links with them, so nobody's homeserver ever sees what you linked. The page is read by your own device rather than by any server; where that happens is configurable per account and per room under Security & privacy, down to letting your homeserver generate previews the old way. Previews received this way are displayed in encrypted rooms too, with no setting to turn on.
+- **Rich room topics (MSC3765)**: room and space topics support formatted content. Their HTML body renders like timeline messages, falling back to markdown when a topic is plain text only, and editing a topic publishes the HTML rendering alongside the plain text so other clients can show it too. Room IDs, aliases and user IDs in a topic show as tappable pills, where previously only the homeserver part of an alias was a link, and in the room profile a matrix link opens the room or user in-app while other links open in the browser.
 
-- **Edit the media in a message** — replace the photo, video, file or sticker you sent, or give a message media it never had. Every version stays in the message's edit history, where each can be opened and saved.
+- **Link previews that work in encrypted rooms (MSC4095)**: messages you send carry the preview of their links with them, so nobody's homeserver ever sees what you linked. Your own device reads the page, and where that happens is configurable per account and per room, down to letting your homeserver generate previews the old way. Previews received this way display in encrypted rooms with no setting to turn on.
 
-- **Captions in the attachment preview** — write a caption for what you are sending from the preview screen itself, one per attachment, or a single caption for the ones going out as a gallery.
+- **Read receipts**: private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms, so they no longer desync from what the server holds.
 
-- **Link previews on captions** — a link in the caption of a photo, video, file, voice message or gallery gets the same preview card a text message does, and links in captions you send carry their preview with them (MSC4095) like text messages do.
+- **Auto-dismiss "Jump to unread"**: an optional mode where reaching the end of the timeline, by opening the room at the bottom or scrolling down to it, dismisses the banner and marks the room read instead of leaving it up.
 
-- **Image editor before sending** — crop, rotate and black out parts of a photo from the attachment preview, with pinch-zoom and panning for precise work. Censor boxes are drawn straight onto the image, so nothing recoverable is left behind, and can be as small as a few pixels of a zoomed-in image. Crop and censor boxes resize from their sides as well as their corners. Edits are remembered per attachment, so reopening the editor lets you adjust what you did rather than starting again from the flattened result.
+- **Media galleries (MSC4274)**: send several photos, videos, files and audio as a single message that renders as a grid of thumbnails with a caption underneath. Each tile opens, saves, shares and forwards on its own, the whole message can be saved at once, and every item appears individually in the room's media viewer and Uploads tab. Galleries from other clients always display; sending them is opt-in under Settings → Labs.
 
-- **Video editor before sending** — trim a video to the part you want from the attachment preview, on a filmstrip timeline with draggable handles, and crop, rotate, reverse it, or set its volume anywhere from silent to 500%. Cropping works exactly like the image editor's — drag the corner or side handles, pinch and pan — and re-encodes through a GL stage so the result is a genuinely smaller frame. Playback has its own play/pause button and seek bar under the video. Holding a handle zooms the timeline to a per-frame ruler for exact cuts, with a haptic tick on every frame. Trimming is lossless wherever it can be — the video is re-wrapped rather than re-encoded, which is near-instant and costs no quality — and only falls back to re-encoding when the cut has to land between keyframes. Like the image editor, edits are remembered per attachment and replayed against the original. Playback speed can be set anywhere from 0.1x to 3x on a slider that is finest around normal speed, with the audio either following the speed as tape does or holding its original pitch. Sound an mp4 cannot carry — Opus or Vorbis from a downloaded webm, for instance — is re-encoded to AAC rather than dropped, so an edited clip keeps its audio.
+- **Attachments send before the upload finishes (MSC2246)**: a photo or video counts as sent as soon as the message itself reaches the server, with the bytes following behind, so a large video no longer holds the message mid-send. Recipients see the message straight away and the media fills in. Falls back to upload-then-send on servers without support.
 
-- **Audio preview & editor before sending** — sound files now stop at the attachment preview instead of uploading straight away: a SoundCloud-style waveform you can swipe through, the file's cover art blurred behind the screen and its title and artist above it. The editor trims on a waveform timeline and can change the speed, set the volume anywhere from silent to 500%, or play the whole thing backwards; a plain trim is copied rather than re-encoded, so it is near-instant and costs no quality.
+- **Media captions & replies**: add, edit and remove captions on media, reply to or comment alongside media, rich reply previews with embedded image, video and sticker thumbnails, and replies to and redactions of non-message events such as reactions, joins, leaves and redactions.
 
-- **Music in the timeline** — an audio message shows what it is: its embedded cover art blurred behind the message, with the track title and artist in place of the file name. Read from the file itself and kept, so it appears at once the next time.
+- **Captions in the attachment preview**: write a caption for what you are sending from the preview screen itself, one per attachment, or a single caption for the ones going out as a gallery.
 
-- **Animated image editor** — GIF, APNG and animated WebP can go through the video editor before sending, to trim, crop, rotate or change the speed of them frame by frame. The result is always written as an animated WebP, the one animated format the app can both write and display everywhere.
+- **Edit the media in a message**: replace the photo, video, file or sticker you sent, or give a message media it never had. Every version stays in the message's edit history, where each can be opened and saved.
 
-- **Compression controls before sending** — set the quality and the exact output resolution of a photo or video from the attachment preview, with width and height linked to the source aspect ratio until you break the link. The preview reshapes to what will actually be sent, and the editor opens on that same shape, so what you see before sending is what arrives.
+- **Image editor before sending**: crop, rotate and black out parts of a photo from the attachment preview, with pinch-zoom and panning. Censor boxes are drawn onto the image itself, so nothing recoverable is left behind. Edits are remembered per attachment, so reopening the editor adjusts what you did rather than starting again from the flattened result.
 
-- **Video playback controls** — Telegram-style playback in the full-screen viewer and the attachment preview: an on-video play/pause button, controls that hide themselves during playback, double-tap on either side to jump 10 seconds back or forward, a frame preview while scrubbing, and a smooth millisecond seekbar with elapsed and total time. Videos loop when they finish unless the new "Loop videos" setting is off, and the length of a video is shown on its thumbnail in the timeline. Photos and videos can be pinch-zoomed and panned before sending. The full-screen viewer's overflow menu can set playback anywhere from 0.1x to 3x on the same slider the editor uses, with the pitch either following the speed or holding, and the volume from silent to 500% — above its own loudness the sound is boosted rather than merely scaled. Both belong to that video and go back to normal when you swipe away.
+- **Video editor before sending**: trim a video on a filmstrip timeline with draggable handles, and crop, rotate, reverse it, or set its volume anywhere from silent to 500%. Holding a handle zooms the timeline to a per-frame ruler for exact cuts. Trimming is lossless wherever it can be, re-wrapping rather than re-encoding, and falls back to re-encoding only when the cut lands between keyframes. Playback speed runs from 0.1x to 3x, with the audio either following the speed as tape does or holding its original pitch. Sound an mp4 can't carry, such as Opus or Vorbis from a downloaded webm, is re-encoded to AAC rather than dropped.
 
-- **Per-room upload privacy** — "Strip media metadata" and "Randomize uploaded file names" are now three-way choices under Security & Privacy — always, never, or only in public rooms — and each room can override either of them under its own Security & Privacy section.
+- **Animated image editor**: GIF, APNG and animated WebP can go through the video editor before sending, to trim, crop, rotate or change their speed frame by frame. The result is always written as an animated WebP, the one animated format the app can both write and display everywhere.
 
-- **Metadata stripping keeps what is useful** — only the identifying parts of an upload are removed now: where it was taken, what took it, and when. A song keeps its title, artist, album and cover art, and a video that carries none of the identifying atoms is uploaded untouched rather than rebuilt.
+- **Audio preview & editor before sending**: sound files stop at the attachment preview instead of uploading straight away, showing a SoundCloud-style waveform you can swipe through, with the file's cover art blurred behind it and its title and artist above. The editor trims on that waveform and can change the speed, set the volume from silent to 500%, or play the whole thing backwards. A plain trim is copied rather than re-encoded, so it is near-instant and costs no quality.
 
-- **Media captions & replies** — add/edit/remove captions on media, reply to or comment alongside media, rich reply previews with embedded image/video/sticker thumbnails, and the ability to reply to and redact non-message events (reactions, joins, leaves, redactions).
+- **Compression controls before sending**: set the quality and the exact output resolution of a photo or video from the attachment preview, with width and height linked to the source aspect ratio until you break the link. The preview reshapes to what will be sent, and the editor opens on that same shape.
 
-- **Room & profile banners (MSC4221 / MSC4427)** — Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings; banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
+- **Video playback controls**: Telegram-style playback in the full-screen viewer and the attachment preview, with an on-video play/pause button, controls that hide themselves during playback, double-tap on either side to jump 10 seconds, a frame preview while scrubbing, and a millisecond seekbar with elapsed and total time. Videos loop unless the new "Loop videos" setting is off, and a video's length shows on its timeline thumbnail. The overflow menu sets playback from 0.1x to 3x with the pitch either following or holding, and the volume from silent to 500%, boosting the sound above its own loudness rather than scaling it. Speed and volume belong to that video and reset when you swipe away.
 
-- **Mutual Rooms in profiles** — a user's profile has a Mutual Rooms button opening a compact list of the rooms you share, grouped under their spaces (with rounded-square space avatars) and DMs included; tap a room to open it, or tap a space to filter the room list to it.
+- **Media viewer with pinch-to-zoom**: a reworked image and video viewer with pinch-to-zoom on still images, animated images and videos, an overhauled compression pipeline that compresses by the shorter side so long media isn't squished, and correct thumbnail stubs during upload.
 
-- **Profile name colors (MSC4522)** — choose the color your name and avatar are shown in, for your account or per room, from a palette or any custom color; other users' colors are shown too, and can be overridden just for you from their profile's Personalization section.
+- **Voice messages overhaul**: an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.
 
-- **Pick which color palette names and avatars use** — separate choices for people and for rooms, each offering Element's palettes from 2015, 2018, 2020 and today, previewed swatch by swatch. People can also be set to None, which leaves names in plain text and dims message bodies so they still stand apart.
+- **Music in the timeline**: an audio message shows its embedded cover art blurred behind the message, with the track title and artist in place of the file name. Read from the file itself and kept, so it appears at once the next time.
 
-- **Status & biography in profiles (MSC4426 / MSC4440)** — set a status (typed as one line, with any leading emoji stored as its emoji field) and a free-form biography in account settings. The status shows under a user's pronouns and time zone; the biography gets its own expandable section on their profile, rendering markdown, links and custom emoji. Both also appear in the user card from a mention. Written under the standard and unstable field keys as well as the ones other clients already read.
+- **JPEG XL images**: `.jxl` images sent by other clients display in the timeline and the media viewer, and you can send them yourself. They are recognized as images rather than plain files, so they get a preview, a blurhash and correct dimensions, and can go through the image editor. Sending at original size keeps the file byte-for-byte; compressing re-encodes to WebP like any other format. Needs Android 5.0 or later; below that a `.jxl` still sends fine as a file attachment, it just can't be displayed.
 
-- **Pronouns & time zone in profiles (MSC4247 / MSC4175 / MSC4133)** — set your pronouns (common presets or custom text, multiple allowed) and IANA time zone in account settings; a user's pronouns and current time-zone abbreviation show under their name on profile pages as e.g. `she/her • PST` (DST-aware), and their pronouns gender timeline notices such as "changed **her** avatar". Every profile field is written under both its stable and unstable key and read stable-first, and interoperates with other clients' pronoun schemas.
+- **Blurhash placeholders**: images and videos show a compact blurred preview while they load, and as the placeholder for hidden media, instead of a blank box.
 
-- **Message pinning** — pin and unpin messages, sorted by most recent, with a pinned-messages banner (toggleable).
+- **Animated images are marked as such (MSC4230)**: a sent image records whether it actually animates instead of leaving clients to guess from the file type, so animated WebP and APNG get the play badge that only GIFs used to.
 
-- **Message forwarding** — forward messages (using their most recent edit), with a custom Forward icon. Pick as many rooms as you like from the room picker, each with its own checkbox, and send to all of them at once from the button in the toolbar. The same picker handles content shared into the app from other apps. Forwards carry metadata about the message they came from (MSC2723): they are labelled in the timeline with the original sender and date, and tapping the label opens the original — offering to join the room if you are not in it. Forwarding out of a DM omits that metadata for privacy, and long-pressing the send button forwards without it from anywhere.
+- **Faster sending for large videos**: a video sent at original size is rewritten in a single pass straight from the source instead of being copied and then rewritten in full.
 
-- **Mass redactions** — bulk redaction via a `/massredact` command (with cooldown, and an optional `from:`/`until:` time range); redacting a message also redacts its edits and reactions and is applied live to open timelines, "remove" is renamed to "redact", and there's a toggle to skip the confirmation dialog.
+- **Custom emoticons & stickers (MSC2545 image packs)**: send custom emoji and stickers, author your own packs, import and export them as Misskey-style zip archives, react with emoticons, and use them in your profile biography.
 
-- **Redact on kick/ban** — kicking or banning someone offers to redact everything they sent in the room, from the member's profile or as `/kick @user:server redact`.
+- **SchildiChat themes & message bubbles**: SchildiChat Light/Dark/Black themes and opt-in message bubbles (None / Both sides / Same side) with configurable corner roundness, an optional tail, and accent tinting of your own bubbles. Timestamps sit inline in the bubble and overlay images and videos.
 
-- **Homeserver mirrors** — the homeserver entry in settings is now an editable, reorderable list. Add mirrors of your homeserver (alternate domains, a reverse proxy, an onion address) and the app falls back to the next one whenever the current one can't be reached or answers with a gateway error. Your ordering is never rewritten: the mirrors above the one in use are rechecked every few minutes while the app is open (or on demand from the recheck button), and the app moves back up as soon as one is reachable again.
+- **SchildiChat layout & behavior options**: a combined people+rooms Overview list, mark chats as read/unread (MSC2867) synced with compatible clients, URL previews in encrypted rooms, opening a room at its first unread message, jump-to-bottom when sending, remembered collapsed list sections, and showing or hiding space members as people.
 
-- **Read receipts** — private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms.
+- **Markdown & HTML rendering overhaul**: added or improved tables (with a no-wrap option), blockquotes, spoilers, greentext, code blocks, underline (`__x__`), strikethrough (`~~x~~`), subscript (`~x~`) and superscript (`^x^`). Links and pills no longer render inside code blocks.
 
-- **Ignored users fully silenced** — read receipts and presence from ignored users are now dropped during sync, alongside the typing notifications already filtered.
+- **Greentext**: quote-style greentext rendering, with an option to send all blockquotes as greentext.
 
-- **Auto-dismiss "Jump to unread"** — optional: whenever the timeline is at its end (opening a room at the bottom, or scrolling down to it), the Jump to unread banner is dismissed and the room marked as read instead of the banner appearing.
+- **Emoji font options**: render emoji with bundled Twemoji, the system emoji font, or a custom emoji font you supply. Emoji autocomplete can be turned off.
 
-- **Intentional Mentions (MSC3952)** — proper support, plus mention-rendering improvements (mentions backed by a single character rather than the full display name).
+- **Configurable reactions**: quick reactions that sync across your devices, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions by typing any text.
 
-- **Frecency-ranked @-mentions** — the `@`-autocomplete now lists the people you mention most often in a room first, instead of plain alphabetical order; these per-room counts are backed up to account data so the ranking follows you across devices.
+- **Configurable avatars**: configurable avatar shapes, avatar-hiding options in the timeline and on invites, avatar removal, an empty-display-name fallback, and full-screen avatar zoom through the media viewer.
 
-- **Selectable message & topic text** — select text directly from timeline messages: double-tap starts a selection anywhere, long-press on a code block or inline code starts one locked to that code (Select all expands it to the whole message), links and plain text keep their long-press actions, and the selection menu is trimmed to Copy, Share and Select all; the room profile topic is selectable the same way, replacing long-press-to-copy.
+- **Pick which color palette names and avatars use**: separate choices for people and for rooms, each offering Element's palettes from 2015, 2018, 2020 and today, previewed swatch by swatch. People can also be set to None, which leaves names in plain text and dims message bodies so they still stand apart.
 
-- **Rich room topics (MSC3765)** — room and space topics now support formatted content: their HTML body is rendered like timeline messages (falling back to markdown when a topic is plain text only), and editing a topic publishes the HTML rendering alongside the plain text so other clients can show it too. The room IDs, aliases and user IDs in a topic show as tappable pills (previously only the homeserver part of an alias was a link), and in the room profile tapping a matrix link opens the room/user in-app while other links open in the browser.
+- **Room & profile banners (MSC4221 / MSC4427)**: Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings. Banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
 
-- **matrix: links (MSC2312)** — `matrix:` URIs to users, rooms and events open in the app, both from other apps and when tapped in a message. `/jumpto` also takes a link now, so it can jump to an event in another room, not just one in the room you're in.
+- **Status & biography in profiles (MSC4426 / MSC4440)**: set a status (one line, with any leading emoji stored as its emoji field) and a free-form biography in account settings. The status shows under a user's pronouns and time zone; the biography gets its own expandable section on their profile, rendering markdown, links and custom emoji. Both also appear in the user card from a mention. Written under the standard and unstable field keys as well as the ones other clients already read.
 
-- **Timeline polish** — consecutive hidden events collapse into a single "N hidden events" tile, overhauled state-change notices, room-list previews that reflect message edits, an always-show-timestamps option, and a jump-to-present button that returns to the message you jumped from.
+- **Pronouns & time zone in profiles (MSC4247 / MSC4175 / MSC4133)**: set your pronouns (common presets or custom text, multiple allowed) and IANA time zone in account settings. A user's pronouns and current time-zone abbreviation show under their name as e.g. `she/her • PST`, DST-aware, and their pronouns gender timeline notices such as "changed **her** avatar". Every profile field is written under both its stable and unstable key and read stable-first, and interoperates with other clients' pronoun schemas.
 
-- **Direction-override (RLO) spoofing protection** — hostile Unicode direction-override characters in display names, messages, mention pills, and room names no longer flip the surrounding text backwards (a trick used to spoof user IDs and file extensions); they now show as a visible placeholder box instead. Genuine right-to-left text is unaffected.
+- **Profile notes (MSC4441)**: keep a private note on any user's profile, written in markdown, visible only to you and synced across your devices. Notes are end-to-end encrypted (MSC4483) by default.
 
-- **Metadata stripping on upload** — sent photos and videos no longer leak embedded metadata (GPS location, capture timestamps, camera make/model & serial numbers, and the hidden EXIF thumbnail). JPEG, PNG and WebP are scrubbed losslessly while keeping display orientation; formats that can't be scrubbed in place (e.g. HEIC) are re-encoded; videos are re-muxed to drop their location atoms without re-encoding; and images sent through the file picker, as well as profile/room avatars and banners, are covered too. Controlled by a new "Remove metadata from sent media" toggle in Settings → Security & Privacy → Visual (on by default).
+- **Personal room and user overrides (MSC3015, MSC4529)**: rename a room or change its avatar just for yourself, and override any user's display name and avatar everywhere they appear. User overrides are end-to-end encrypted (MSC4483) by default.
 
-- **Media hiding** — hide media, and inline images/emoji, in the timeline until tapped.
+- **Profile name colors (MSC4522)**: choose the color your name and avatar are shown in, for your account or per room, from a palette or any custom color. Other users' colors are shown too, and can be overridden just for you from their profile.
 
-- **Hideable message shields** — toggles in Settings → Security & Privacy → Visual to hide the grey key-backup shield (messages decrypted with a key restored from secure backup) and the red encryption-warning shield (unencrypted messages in encrypted rooms, or messages from unverified/unknown/deleted sessions); reactions and redactions, which are always sent unencrypted, no longer get a red shield in encrypted rooms.
+- **Force display name & avatar**: override display name and avatar per room and per group DM.
 
-- **Identity-change banner** — backported from Element Web: a banner at the top of an encrypted room warns when a member's cross-signing identity changes, shown in red for someone you had previously verified. Dismissing it (or "Withdraw verification" for the verified case) pins their current identity, so it only reappears if their identity resets again. Identity pinning is tracked in the crypto store, and a Settings → Security & Privacy → Visual toggle can hide the banner outright while still accepting any current changes.
+- **Mutual Rooms in profiles**: a user's profile has a Mutual Rooms button opening a compact list of the rooms you share, grouped under their spaces and with DMs included. Tap a room to open it, or a space to filter the room list to it.
 
-- **Voice messages overhaul** — an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.
+- **Stealth mode**: keep this fork's own client-specific settings on your device instead of in account data, so a homeserver administrator can't use your choice of client to de-anonymize you. Opt-in per account.
 
-- **Media viewer with pinch-to-zoom** — a reworked image/video viewer that supports pinch-to-zoom on still images, animated images (GIFs / animated WebP), and videos, an overhauled compression pipeline (compress by the shorter side so long media isn't squished), and correct thumbnail stubs during upload.
+- **VPN protection**: opt-in warnings when your VPN is off. A full-screen warning blocks all network activity until you confirm, switching accounts asks first, and a per-account list decides which accounts are protected.
 
-- **JPEG XL images** — `.jxl` images sent by other clients now display in the timeline and the media viewer, and you can send them yourself: they are recognised as images rather than plain files, so they get a preview, a blurhash and correct dimensions, and can go through the image editor. Sending at original size keeps the file byte-for-byte; compressing re-encodes to WebP like any other format. Needs Android 5.0 or later — below that a `.jxl` still sends fine as a file attachment, it just can't be displayed.
+- **Metadata stripping on upload**: sent photos and videos no longer leak embedded metadata, including GPS location, capture timestamps, camera make, model and serial numbers, and the hidden EXIF thumbnail. JPEG, PNG and WebP are scrubbed losslessly while keeping display orientation, formats that can't be scrubbed in place such as HEIC are re-encoded, and videos are re-muxed to drop their location atoms without re-encoding. Images sent through the file picker, plus profile and room avatars and banners, are covered too. Stripping metadata and randomizing uploaded file names are each a three-way choice of always, never, or only in public rooms, and each room can override either of them.
 
-- **Blurhash placeholders** — images and videos show a compact blurred preview while they load, and as the placeholder for hidden media, instead of a blank box.
+- **Direction-override (RLO) spoofing protection**: hostile Unicode direction-override characters in display names, messages, mention pills and room names no longer flip the surrounding text backwards, a trick used to spoof user IDs and file extensions. They show as a visible placeholder box instead. Genuine right-to-left text is unaffected.
 
-- **Markdown & HTML rendering overhaul** — add/improve tables (with a no-wrap option), blockquotes, spoilers, greentext, code blocks, underline (`__x__`), strikethrough (`~~x~~`), subscript (`~x~`), and superscript (`^x^`) tags; links and pills no longer render inside code blocks.
+- **PGP encryption**: opt-in PGP encrypt/decrypt over otherwise-unencrypted rooms via OpenKeychain, with an `/encrypt` command. If you want that. For *some* reason.
 
-- **Greentext** — quote-style greentext rendering, with an option to send all blockquotes as greentext.
+- **Share encrypted history on invite (MSC4268)**: invite someone to an encrypted room whose history is visible to members, and they can read the messages sent before they joined.
 
-- **Slash commands** — added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/encrypt`, and `/trans`/`/transme` (trans-flag gradient messages), plus the ability to run slash commands on a reply or an edit; `/rainbow` now paints nheko's vivid gradient instead of washed-out CIELAB colors.
+- **Encrypted account data (MSC4483)**: the developer account-data browser shows encrypted entries decrypted, edits them in decrypted form, and creates new ones encrypted, with a Raw toggle for the ciphertext.
 
-- **Sed substitutions** — maubot-style `s/typo/fixed/` built into the composer, so no bot has to be in the room: your own messages are corrected as an edit, everyone else's with a notice reply. Replying to a message aims the substitution at it.
+- **Block all room invites (MSC4380)**: one switch has your homeserver reject every invite sent to you, on all your devices at once. Requires server support.
 
-- **Emoji font options** — render emoji with bundled Twemoji, the system emoji font, or a custom emoji font you supply; emoji autocomplete is toggleable.
+- **Hideable message shields**: toggles to hide the gray key-backup shield, on messages decrypted with a key restored from secure backup, and the red encryption-warning shield, on unencrypted messages in encrypted rooms or messages from unverified, unknown or deleted sessions. Reactions and redactions, which are always sent unencrypted, no longer get a red shield in encrypted rooms.
 
-- **Configurable reactions** — configurable quick reactions that sync across your devices, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions by typing any text.
+- **Identity-change banner**: backported from Element Web. A banner at the top of an encrypted room warns when a member's cross-signing identity changes, in red for someone you had previously verified. Dismissing it, or "Withdraw verification" for the verified case, pins their current identity, so it only reappears if their identity resets again. Identity pinning is tracked in the crypto store, and a toggle can hide the banner outright while still accepting any current changes.
 
-- **Room knocking** — request access to rooms that require it.
+- **Media hiding**: hide media, and inline images and emoji, in the timeline until tapped. The media-preview and invite-avatar settings live on your account rather than only on the device that set them (MSC4278), so a new sign-in keeps the choices you already made and Element Web and Element X read the same setting, and either can be overridden per room.
 
-- **Room creation & tombstoning** — an overhauled room-creation wizard, a per-room Personalization page, and a tombstoning overhaul driven by `/tombstone`.
+- **Ignored users fully silenced**: read receipts and presence from ignored users are dropped during sync, alongside the typing notifications already filtered.
 
-- **Room tags** — tag support for rooms.
+- **Multi-account switcher**: switch between multiple logged-in accounts.
 
-- **Custom room-list sections** — group rooms into named sections of your own, which appear in the room list and can be created, renamed, reordered and removed in place. The sections are the same ones Element Web offers, and stay in sync with it.
+- **Token sign in**: a "Token Sign In" option alongside Create account and Sign in takes an access token you already hold instead of a password.
 
-- **"Kick", not "remove"** — the action to remove a member from a room is now labelled "kick" rather than the vaguer "remove".
+- **Local sign out**: long-press Sign out to remove an account from the app without telling the homeserver. The session stays active server-side until you remove it yourself.
 
-- **Spaces improvements** — view a space's own timeline, show all rooms in Home by default, and a spaces drawer replacing the new UI's custom spaces view.
+- **Homeserver mirrors**: the homeserver entry in settings is an editable, reorderable list. Add mirrors of your homeserver (alternate domains, a reverse proxy, an onion address) and the app falls back to the next one whenever the current one can't be reached or answers with a gateway error. Your ordering is never rewritten. Mirrors above the one in use are rechecked every few minutes while the app is open, or on demand, and the app moves back up as soon as one is reachable.
 
-- **Space creation like room creation** — creating a space no longer starts with an opaque public/private choice. It is one form with the same controls a room gets: a space-access setting (invite only, ask to join, or public), encryption, and an advanced section for room version, your own power level, custom initial state and blocking other servers.
-
-- **Force display name & avatar** — override display name and avatar per room and per group DM.
-
-- **Configurable avatars** — configurable avatar shapes, avatar-hiding options (in the timeline and on invites), avatar removal, an empty-display-name fallback, and full-screen avatar zoom through the media viewer with a smooth open/close animation.
-
-- **Consistent deleted-message previews** — a deleted message now reads as deleted everywhere it is previewed, not just in the timeline: reply headers, the composer's reply preview, the room list, the pinned-messages banner and list, and the long-press menu all show it greyed out with a trash icon rather than as ordinary text, and thread summaries grey it out too. The wording is unified on "Message redacted".
-
-- **Attachments send before the upload finishes (MSC2246)** — a photo or video counts as sent as soon as the message itself reaches the server, with the bytes following behind, so a large video no longer holds the message mid-send. Recipients see the message straight away and the media fills in. Falls back to upload-then-send on servers without support.
-
-- **Faster sending for large videos** — a video sent at original size is now rewritten in a single pass straight from the source instead of being copied and then rewritten in full, and shows real progress while it works.
-
-- **Animated images are marked as such (MSC4230)** — a sent image now records whether it actually animates instead of leaving clients to guess from the file type, so animated WebP and APNG get the play badge that previously only GIFs could.
-
-- **Block all room invites (MSC4380)** — one switch under Settings → Security & privacy has your homeserver reject every invite sent to you, on all your devices at once. Requires server support.
-
-- **Media visibility follows your account (MSC4278)** — the media-preview and invite-avatar settings are stored on your account rather than only on the device that set them, so a new sign-in keeps the choices you already made and Element Web and Element X read the same setting.
-
-- **Key backup choice follows your account (MSC4287)** — turning key backup on or off is remembered account-wide, so a new device stops prompting you to set up a backup you declined elsewhere.
-
-- **Knocking on restricted rooms (MSC3787)** — a room can now combine both rules: members of a chosen space join directly, everyone else asks to join. Room settings offer it and the room preview shows the right action. Join-rule changes also read correctly in the timeline for knock and restricted rooms, which previously showed nothing at all.
-
-- **Filter the room directory by type (MSC3827)** — search rooms only, spaces only, or both, from the directory's overflow menu.
-
-- **Disclosure sections in messages (MSC2184)** — a `<details>` section renders as a titled, indented block with its summary in bold instead of running title and body together. It is always shown rather than folded away, since a collapsed state can't be held safely per message in a scrolling timeline.
-
-- **Misc improvements** — long room-topic changes shortened to a single timeline notice, View Profile Source alongside View Membership Source on user profiles in developer mode, randomizable upload filenames, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, a "Show in chat" action in the media viewer that jumps back to the message an attachment came from, an "Info" action there listing an attachment's size, resolution, duration, codecs and embedded metadata, room-list preview polish, settings rows no longer reserving an empty icon column so their text sits as far from the left edge as it does from the right, a direct message's room settings showing the other person's avatar as the room list does, MSC references like “MSC1234” in messages tappable as links to the spec proposal, and links no longer drawn underlined anywhere they were left inconsistent — room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
+- **Misc improvements**: long room-topic changes shortened to a single timeline notice, View Profile Source alongside View Membership Source on user profiles in developer mode, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, and MSC references like "MSC1234" in messages tappable as links to the spec proposal. The media viewer gains a "Show in chat" action that jumps back to the message an attachment came from, and an "Info" action listing its size, resolution, duration, codecs and embedded metadata. Settings rows no longer reserve an empty icon column, so their text sits as far from the left edge as from the right, and a direct message's room settings show the other person's avatar the way the room list does. Links are no longer drawn underlined where they were left inconsistent, in room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
 
 ### Removals
 
-- **Removed calling support (Element Call / Jitsi / WebRTC)** — the entire voice/video calling and Jitsi conferencing stack was dropped (it blocked old devices and pulled in heavy native deps); call events are now rendered inline in the timeline instead.
+- **Removed calling support (Element Call / Jitsi / WebRTC)**: the entire voice and video calling and Jitsi conferencing stack was dropped, since it blocked old devices and pulled in heavy native dependencies. Call events render inline in the timeline instead.
 
-- **Removed telemetry & reporting** — dropped telemetry, analytics, bug reporting, Sentry, the content-reporting system, sunsetting banners, and the "push notifications are disabled" banner.
+- **Removed telemetry & reporting**: dropped telemetry, analytics, bug reporting, Sentry, the content-reporting system, sunsetting banners, and the "push notifications are disabled" banner.
 
-- **Removed voice broadcast** — the upstream voice-broadcast feature was dropped.
+- **Removed voice broadcast**: the upstream voice-broadcast feature was dropped.
 
-- **Removed legacy mention matching** — only an explicit mention notifies you. Your display name, your username or the word "@room" appearing in someone's message no longer counts as one, and the mention settings are now a single "Messages that mention me" toggle alongside @room and your keywords.
+- **Removed legacy mention matching**: only an explicit mention notifies you. Your display name, your username or the word "@room" in someone's message no longer counts as one, and the mention settings are a single "Messages that mention me" toggle alongside @room and your keywords.
 
 ### Branding
 
-- **Rebrand to Voyage** — new app ID, icons, and a configurable logo and app-icon background color, a Voyage color scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages. The app now opens dark with a cyan accent and a black app icon by default.
+- **Rebrand to Voyage**: new app ID, icons, and a configurable logo and app-icon background color, a Voyage color scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages. The app opens dark with a cyan accent and a black app icon by default.
 
-- **Accent picker** — a swatch picker for the app's accent color. The picker offers thirty colors including monochrome white and black accents.
+- **Accent picker**: a swatch picker for the app's accent color, offering thirty colors including monochrome white and black.
 
 ## Under the hood
 
-- **Persistence rewrite: Realm → SQLDelight** — replaced Realm with a custom framework-SQLite driver (unblocking older Android and desktop), alongside an overhaul of the ignore system.
+- **Persistence rewrite, Realm → SQLDelight**: replaced Realm with a custom framework-SQLite driver, which unblocks older Android and desktop, alongside an overhaul of the ignore system.
 
-- **New crypto backend: libce** — replaced vodozemac with the libce submodule, enabling builds for old devices.
+- **New crypto backend, libce**: replaced vodozemac with the libce submodule, enabling builds for old devices.
 
-- **Reads off the database write thread** — the timeline and the room list each read on their own thread, so opening a room or refreshing the list no longer waits for a sync response to finish being written.
+- **Performance internals**: SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, and a memoized event mapper are what the faster, freeze-free app is built on.
 
-- **ExoPlayer in the media viewer** — full-screen video plays through ExoPlayer where the platform reaches it (API 16+), so a looping video runs through the seam without a gap and playback speed is no longer capped near 2x. Ice Cream Sandwich keeps the platform player. The audio route is also held open while the app is in the foreground on Bluetooth, where an idle sink otherwise costs a second of stalled playback.
+- **Next-generation sync (MSC4525 paginated sync, MSC4186 simplified sliding sync)**: when the homeserver offers either, syncing moves onto it, preferring paginated sync. Responses arrive bounded and room by room instead of in one huge batch, so the app becomes usable sooner on accounts with many rooms. Falls back to the standard sync when the server has neither, and can be turned off under Labs.
 
-- **Performance internals** — SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, and a memoized event mapper underpin the user-facing speedups above.
+- **Modern sync and spec endpoints**: sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap. A thread's edits and reactions arrive in one request (MSC3981), and reporting (MSC4277), room forgetting (MSC4267), recent emoji, relations and the room directory moved onto their stable identifiers and endpoints. A room upgraded after the fact can also declare what it continues from (MSC3946).
 
-- **Next-generation sync (MSC4525 paginated sync, MSC4186 simplified sliding sync)** — when the homeserver offers either, syncing moves onto it, preferring paginated sync. Responses arrive bounded and room by room instead of in one huge batch, so the app becomes usable sooner on accounts with many rooms. Falls back to the standard sync when the server has neither, and can be turned off under Labs.
+- **Profile updates over sync (MSC4429, MSC4262)**: when the homeserver supports it, other people's status, pronouns, time zone and bio arrive with your sync instead of being fetched one user at a time, so they stay current without the extra requests.
 
-- **Profile updates over sync (MSC4429, MSC4262)** — when the homeserver supports it, other people's status, pronouns, time zone and bio arrive with your sync instead of being fetched one user at a time, so they stay current without the extra requests.
+- **ExoPlayer in the media viewer**: full-screen video plays through ExoPlayer where the platform reaches it (API 16+), so a looping video runs through the seam without a gap and playback speed is no longer capped near 2x. Ice Cream Sandwich keeps the platform player. The audio route is also held open while the app is in the foreground on Bluetooth, where an idle sink otherwise costs a second of stalled playback.
 
-- **Modern sync and spec endpoints** — sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap; a thread's edits and reactions arrive in one request (MSC3981); and reporting (MSC4277), room forgetting (MSC4267), recent emoji, relations and the room directory moved onto their stable identifiers and endpoints. A room upgraded after the fact can also declare what it continues from (MSC3946).
-
-- **Dependency & build slimming** — dropped the WYSIWYG composer, Sentry, and the unused JNA dependency; vendored markwon-html; bumped conscrypt; and enabled optimization for libopus.
+- **Dependency & build slimming**: dropped the WYSIWYG composer, Sentry, and the unused JNA dependency; vendored markwon-html; bumped conscrypt; and enabled optimization for libopus.
 
 ## Significant bugfixes
 
-- Fixed scrolling back in rooms damaged by the Synapse depth exploit jumping over months or years of history as if it didn't exist. Suspicious jumps are now verified against the local search index or the server, and the skipped span is fetched and stitched back into the timeline automatically (labs toggle, on by default).
+- Fixed scrollback in rooms damaged by the Synapse depth exploit, where scrolling back jumped over months or years of history as if it had never existed. Suspicious jumps are now verified against the local search index or the server, and the skipped span is fetched and stitched back into the timeline (labs toggle, on by default).
 
 - Fixed messages from a slow or recovering server showing under the wrong date. A message delivered long after it was sent now sits where it was sent, even when that part of the history has to be loaded first (labs toggle, on by default).
 
+- Fixed rooms that stopped loading history. A fetched page whose boundary token didn't match the one stored was saved unreachable, so the timeline stayed at the handful of messages the last sync had cached until the room was reopened.
+
+- Fixed the app showing stale rooms after being backgrounded, with no sign it was catching up. Returning to the foreground now always starts an immediate sync and shows progress while it runs.
+
+- Fixed logging into a plain-`http://` homeserver, whether self-hosted, a LAN IP or Tor, failing with a cleartext-not-permitted error on Android 6+.
+
 - Fixed attachment sends sticking at "Waiting…" forever when the network dropped or the system reclaimed the upload task, which was treated as a cancellation and killed the send permanently instead of retrying it.
 
-- Fixed media uploads failing with a permission error when the app restarts mid-send — attachments are now copied into app storage before upload, so a resumed upload no longer depends on the picker's expired access grant.
-
-- Fixed editing a just-sent message silently doing nothing if it was still sending.
-
-- Fixed link previews, images, GIFs and reply previews flashing or reloading at the moment a sent message is confirmed by the server (and blurhash fades replaying while sending).
+- Fixed media uploads failing with a permission error when the app restarts mid-send. Attachments are copied into app storage before upload, so a resumed upload no longer depends on the picker's expired access grant.
 
 - Fixed message sending growing sluggish the longer the app stays open, with messages queueing up and batching out.
 
-- Fixed rooms that stopped loading history: a fetched page whose boundary token didn't match the one stored was saved unreachable, so the timeline stayed at the handful of messages the last sync had cached until the room was reopened.
+- Fixed editing a just-sent message silently doing nothing if it was still sending.
 
-- **Plain-http homeservers** — logging into an `http://` homeserver (self-hosted, LAN IP, Tor) no longer fails with a cleartext-not-permitted error on Android 6+.
+- Fixed link previews, images, GIFs and reply previews flashing or reloading at the moment a sent message is confirmed by the server, and blurhash fades replaying while sending.
 
-- Fixed the app showing stale rooms after being backgrounded, with no sign it was catching up — returning to the foreground now always starts an immediate sync and shows progress while it runs.
+- Fixed a blank timeline after screen rotation.
+
+- Fixed reaction counts drifting: a single reaction showing 2+, or reactions becoming un-clickable, from duplicated local echoes.
+
+- Fixed replies getting scrambled.
+
+- Fixed room v12 support regressions.
+
+- Fixed a client freeze triggered by fast uploads.
 
 - Fixed a space-hierarchy recursion that could crash the app with a stack overflow.
 
 - Fixed a crash on Lollipop.
 
-- Fixed a client freeze triggered by fast uploads.
-
-- Fixed room v12 support regressions.
-
-- Fixed replies getting scrambled.
-
-- Fixed reaction counts drifting — a single reaction showing 2+, or reactions becoming un-clickable, from duplicated local echoes.
-
 - Fixed a storage-fill bug.
-
-- Fixed a blank timeline after screen rotation.
