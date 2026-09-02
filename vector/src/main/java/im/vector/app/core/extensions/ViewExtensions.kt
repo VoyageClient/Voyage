@@ -9,8 +9,10 @@ package im.vector.app.core.extensions
 
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.StateListDrawable
 import android.os.Build
 import android.text.InputType
+import android.util.StateSet
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
@@ -81,6 +83,22 @@ fun ImageView.setAttributeTintedImageResource(@DrawableRes drawableRes: Int, @At
 fun View.applyThemeShapeColorCompat(@AttrRes colorAttr: Int) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) return
     (background?.mutate() as? GradientDrawable)?.setColor(ThemeUtils.getColor(context, colorAttr))
+}
+
+// Same pre-21 limitation as above, except a selector of shapes can't be patched after inflation, so the
+// whole thing is built against the live theme here rather than in XML.
+fun View.applyOptionCardBackground() {
+    val density = resources.displayMetrics.density
+    val strokeWidth = (density * 1.2f).toInt().coerceAtLeast(1)
+    fun card(@AttrRes strokeAttr: Int) = GradientDrawable().apply {
+        cornerRadius = density * 4
+        setColor(ThemeUtils.getColor(context, android.R.attr.colorBackground))
+        setStroke(strokeWidth, ThemeUtils.getColor(context, strokeAttr))
+    }
+    backgroundCompat = StateListDrawable().apply {
+        addState(intArrayOf(android.R.attr.state_pressed), card(com.google.android.material.R.attr.colorPrimary))
+        addState(StateSet.WILD_CARD, card(im.vector.lib.ui.styles.R.attr.vctr_content_quinary))
+    }
 }
 
 fun View.setAttributeBackground(@AttrRes attributeId: Int) {

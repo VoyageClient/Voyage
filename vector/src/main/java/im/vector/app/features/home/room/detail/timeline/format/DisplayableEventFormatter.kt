@@ -425,14 +425,13 @@ class DisplayableEventFormatter @Inject constructor(
         return builder
     }
 
-    // An emote keeps its "* Sender " prefix even where the author is otherwise omitted — its body reads
-    // as an action attributed to the sender.
+    // An emote keeps its sender prefix even where the author is otherwise omitted — its body reads as an
+    // action attributed to the sender, italicized the way the timeline renders it.
     private fun simpleFormat(senderName: String, body: CharSequence, appendAuthor: Boolean, isEmote: Boolean = false): CharSequence {
         val emojiBody = body.prepareForDisplay()
         if (!appendAuthor && !isEmote) return emojiBody
         // SpannableStringBuilder (not the gujun span DSL) so [body]'s emote ReplacementSpans are preserved.
         return android.text.SpannableStringBuilder().apply {
-            if (isEmote) append("* ")
             val start = length
             // Isolate the sender name so an RTL name doesn't flip the whole "Name: message" line to RTL.
             // Neutralize BEFORE wrapping and emoji-spanify only afterwards: unicodeWrap's own embedding
@@ -445,6 +444,12 @@ class DisplayableEventFormatter @Inject constructor(
             )
             append(if (isEmote) " " else ": ")
             append(emojiBody)
+            if (isEmote) {
+                setSpan(
+                        android.text.style.StyleSpan(android.graphics.Typeface.ITALIC),
+                        0, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
         }
     }
 }

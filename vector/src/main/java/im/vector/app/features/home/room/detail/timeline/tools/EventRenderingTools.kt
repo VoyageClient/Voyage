@@ -8,9 +8,11 @@
 package im.vector.app.features.home.room.detail.timeline.tools
 
 import android.content.Context
+import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ClickableSpan
+import android.text.style.StyleSpan
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
@@ -116,14 +118,15 @@ fun attachmentPreviewText(context: Context, @DrawableRes iconRes: Int, label: Ch
 }
 
 /**
- * Prefix an m.emote body with "* Sender ", the way the timeline renders it: the body reads as an
- * action attributed to its sender, so a preview without the prefix is left dangling.
+ * Prefix an m.emote body with its sender and italicize the whole line, the way the timeline renders it:
+ * the body reads as an action attributed to its sender, so a preview without the name is left dangling.
  */
 fun CharSequence.asEmoteBody(senderName: CharSequence): CharSequence {
-    return SpannableStringBuilder("* ")
-            .append(messageEmojiSpanify?.spanify(senderName) ?: senderName)
+    return SpannableStringBuilder()
+            .append(senderName)
             .append(" ")
             .append(this)
+            .apply { setSpan(StyleSpan(Typeface.ITALIC), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
 }
 
 fun CharSequence.findPillsAndProcess(scope: CoroutineScope, processBlock: (PillImageSpan) -> Unit) {

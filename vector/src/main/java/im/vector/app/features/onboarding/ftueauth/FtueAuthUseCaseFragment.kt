@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.applyOptionCardBackground
 import im.vector.app.core.extensions.getResTintedDrawable
 import im.vector.app.core.extensions.getTintedDrawable
 import im.vector.app.core.extensions.setLeftDrawable
@@ -95,6 +96,7 @@ class FtueAuthUseCaseFragment :
     }
 
     private fun TextView.renderUseCase(useCase: FtueUseCase, @StringRes label: Int, @DrawableRes icon: Int, @ColorRes tint: Int) {
+        applyOptionCardBackground()
         setLeftDrawable(createIcon(tint, icon, isLightMode = themeProvider.isLightTheme()))
         setText(label)
         debouncedClicks {

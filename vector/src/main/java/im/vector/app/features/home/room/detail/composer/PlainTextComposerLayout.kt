@@ -613,6 +613,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 // touch processing settles; targeting the EditText directly (not the parent
                 // layout) ensures the IME input connection is fully established.
                 views.composerEditText.post {
+                    callback?.onSoftKeyboardRequested()
                     views.composerEditText.showKeyboard(andRequestFocus = true)
                 }
             }

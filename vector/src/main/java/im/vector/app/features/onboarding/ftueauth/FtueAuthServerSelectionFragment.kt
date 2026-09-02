@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.extensions.applyOptionCardBackground
 import im.vector.app.databinding.FragmentLoginServerSelectionBinding
 import im.vector.app.features.login.ServerType
 import im.vector.app.features.login.SignMode
@@ -33,6 +34,8 @@ class FtueAuthServerSelectionFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        views.loginServerChoiceMatrixId.applyOptionCardBackground()
+        views.loginServerChoiceOther.applyOptionCardBackground()
         views.loginServerChoiceMatrixId.setOnClickListener { loginWithMatrixId() }
         views.loginServerChoiceOther.setOnClickListener { selectOther() }
         // Per-account settings that must be set before the first request reaches a homeserver (UA spoof, stealth).
