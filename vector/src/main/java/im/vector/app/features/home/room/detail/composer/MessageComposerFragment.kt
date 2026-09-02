@@ -220,6 +220,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (vectorPreferences.useClassicComposer()) {
             val background = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
             views.root.setBackgroundColor(background)
+            // The layout defaults to the timeline color for the modern composer; classic is toolbar-colored
+            // all the way up to its separator, so the two must not differ or the seam shows as a band.
+            views.composerLayout.setBackgroundColor(background)
             vectorBaseActivity.tintNavigationBarStrip(background)
             attachmentTypeSelector.applyClassicComposerStyle()
         }
@@ -532,7 +535,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 autoCompleterFactory.create(roomId, isThreadTimeLine())
                         .also {
                             it.isEmojiAutocompleteSuppressed = { emojiKeyboardController?.isShowing == true }
-                            it.setup(editText)
+                            it.onSuggestionsVisibilityChanged = { shown -> views.composerLayout.suppressTopDivider(shown) }
+                            it.setup(editText, popupAnchor = views.composerLayout.popupAnchor)
                         }
     }
 
@@ -896,12 +900,18 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val format = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
         val from = range.fromTs?.let { format.format(Date(it)) }
         val to = range.toTs?.let { format.format(Date(it)) }
-        return when {
+        val message = when {
             from != null && to != null -> getString(CommonStrings.mass_redaction_confirmation_message_between, target, from, to)
             from != null -> getString(CommonStrings.mass_redaction_confirmation_message_after, target, from)
             to != null -> getString(CommonStrings.mass_redaction_confirmation_message_before, target, to)
             else -> getString(CommonStrings.mass_redaction_confirmation_message, target)
         }
+        val scope = if (range.messagesOnly) {
+            CommonStrings.mass_redaction_confirmation_scope_messages
+        } else {
+            CommonStrings.mass_redaction_confirmation_scope_all
+        }
+        return "$message\n\n${getString(scope)}"
     }
 
     private fun openRoomMemberProfile(userId: String) {

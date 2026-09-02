@@ -774,6 +774,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/timeline/TimelineRedactionSignal.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/TimelineSendEventWorkCommon.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/UIEchoManager.kt',
+        'org/matrix/android/sdk/api/util/DateArgumentParser.kt',
         'org/matrix/android/sdk/internal/session/search/SearchQueryParser.kt',
         'org/matrix/android/sdk/internal/session/sync/Extensions.kt',
         'org/matrix/android/sdk/internal/session/sync/InitialSyncStatusRepository.kt',

@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -52,7 +53,7 @@ class SearchSuggestionAdapter(
             avatarRenderer.preloadAvatar(GlideApp.with(holder.itemView), avatar)
         } else {
             avatarRenderer.clear(holder.icon)
-            holder.icon.setImageResource(suggestion.icon)
+            holder.icon.setImageDrawable(AppCompatResources.getDrawable(holder.icon.context, suggestion.icon))
             val tint = ThemeUtils.getColor(holder.icon.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
             ImageViewCompat.setImageTintList(holder.icon, ColorStateList.valueOf(tint))
         }

@@ -111,7 +111,7 @@
     <string name="command_description_send_event" translatable="false">Open the developer tools form to send a custom event</string>
     <string name="command_description_send_state" translatable="false">Open the developer tools form to send a custom state event</string>
     <string name="command_description_jump_to" translatable="false">Jump to the event with the given ID, or to a matrix.to / matrix: link.</string>
-    <string name="command_description_jump_to_date" translatable="false">Jump to the event closest to the given date.</string>
+    <string name="command_description_jump_to_date" translatable="false">Jump to the event closest to the given date, e.g. 2026-01-02, 20260102, 2026-01, yesterday or 7d</string>
     <string name="command_jump_to_start_unavailable" translatable="false">Could not locate the room\'s first event.</string>
     <string name="command_jump_to_date_no_event" translatable="false">Couldn\'t find an event near %1$s. The server may not support timestamp lookup, or there are no messages in that direction.</string>
 
@@ -387,7 +387,7 @@
 
     <string name="room_participants_action_kick" translatable="false">Kick</string>
     <string name="room_participants_action_redact_all" translatable="false">Redact all messages</string>
-    <string name="redact_events_on_moderation_checkbox" translatable="false">Redact messages</string>
+    <string name="redact_events_on_moderation_checkbox" translatable="false">Redact all their events</string>
     <string name="mass_redaction_confirmation_title" translatable="false">Redact all messages?</string>
     <string name="mass_redaction_confirmation_message" translatable="false">This will redact every event from %1$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_already_running" translatable="false">A mass redaction is already in progress, wait for it to finish or cancel it first.</string>
@@ -404,7 +404,9 @@
     <string name="mass_redaction_confirmation_message_between" translatable="false">This will redact every event from %1$s sent between %2$s and %3$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_confirmation_message_after" translatable="false">This will redact every event from %1$s sent after %2$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_confirmation_message_before" translatable="false">This will redact every event from %1$s sent before %2$s. It can take a long time and cannot be reversed.</string>
-    <string name="command_description_mass_redact" translatable="false">Redact all events from the given user in this room</string>
+    <string name="mass_redaction_confirmation_scope_messages" translatable="false">Only messages will be redacted.</string>
+    <string name="mass_redaction_confirmation_scope_all" translatable="false">All events, including membership changes, will be redacted.</string>
+    <string name="command_description_mass_redact" translatable="false">Redact messages from the given user in this room; type:all also redacts their other events</string>
     <string name="command_description_download" translatable="false">Download the file at the given mxc:// URL</string>
     <string name="file_has_been_downloaded" translatable="false">File has been downloaded!</string>
     <string name="steps_away_from_kitkat" translatable="false">You are now %1$d steps away from GNU/KitKat.</string>

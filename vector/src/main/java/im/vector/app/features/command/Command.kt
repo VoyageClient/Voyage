@@ -30,7 +30,7 @@ enum class Command(
     CRASH_APP("/crash", null, "", CommonStrings.command_description_crash_application, true, true),
     EMOTE("/me", null, "<message>", CommonStrings.command_description_emote, false, true),
     NOTICE("/notice", null, "<message>", CommonStrings.command_description_notice, false, true),
-    BAN_USER("/ban", null, "<user-id> [redact] [reason]", CommonStrings.command_description_ban_user, false, false),
+    BAN_USER("/ban", null, "<user-id> [reason] [massredact]", CommonStrings.command_description_ban_user, false, false),
     UNBAN_USER("/unban", arrayOf("/pardon"), "<user-id> [reason]", CommonStrings.command_description_unban_user, false, false),
     IGNORE_USER("/ignore", null, "<user-id> [reason]", CommonStrings.command_description_ignore_user, false, true),
     UNIGNORE_USER("/unignore", null, "<user-id>", CommonStrings.command_description_unignore_user, false, true),
@@ -43,16 +43,16 @@ enum class Command(
     UNWATCH_ROOM("/unwatch", null, "<room-address>", CommonStrings.command_description_unwatch_room, false, false),
     PART("/part", null, "[room-address]", CommonStrings.command_description_part_room, false, false),
     TOPIC("/topic", null, "<topic>", CommonStrings.command_description_topic, false, false),
-    KICK_USER("/kick", arrayOf("/remove"), "<user-id> [redact] [reason]", CommonStrings.command_description_kick_user, false, false),
+    KICK_USER("/kick", arrayOf("/remove"), "<user-id> [reason] [massredact]", CommonStrings.command_description_kick_user, false, false),
     MASS_REDACT(
-            "/massredact", null, "<user-id> [cooldownMs] [before|after:<date>] [messagesOnly]",
+            "/massredact", null, "<user-id> [delay:<ms>] [before|after:<date>] [type:<all|messages>]",
             CommonStrings.command_description_mass_redact, false, false
     ),
     CHANGE_DISPLAY_NAME("/nick", null, "<display-name>", CommonStrings.command_description_nick, false, false),
     CHANGE_DISPLAY_NAME_FOR_ROOM("/myroomnick", arrayOf("/roomnick"), "<display-name>", CommonStrings.command_description_nick_for_room, false, false),
-    ROOM_AVATAR("/roomavatar", null, "<mxc_url>", CommonStrings.command_description_room_avatar, true /* User has to know the mxc url */, false),
+    ROOM_AVATAR("/roomavatar", null, "<mxc-url>", CommonStrings.command_description_room_avatar, true /* User has to know the mxc url */, false),
     CHANGE_AVATAR_FOR_ROOM(
-            "/myroomavatar", null, "<mxc_url>",
+            "/myroomavatar", null, "<mxc-url>",
             CommonStrings.command_description_avatar_for_room, true /* User has to know the mxc url */, false
     ),
     MARKDOWN("/markdown", null, "<on|off>", CommonStrings.command_description_markdown, false, false),
@@ -80,7 +80,7 @@ enum class Command(
     TABLE_FLIP("/tableflip", null, "<message>", CommonStrings.command_description_table_flip, false, true),
     JUMP_TO_START("/jumptostart", null, "", CommonStrings.command_description_jump_to_start, false, false),
     JUMP_TO("/jumpto", null, "<event-id|link>", CommonStrings.command_description_jump_to, false, false),
-    JUMP_TO_DATE("/jumptodate", null, "<YYYY-MM-DD>", CommonStrings.command_description_jump_to_date, false, false),
+    JUMP_TO_DATE("/jumptodate", null, "<date>", CommonStrings.command_description_jump_to_date, false, false),
     ENCRYPT("/encrypt", null, "[message]", CommonStrings.command_description_encrypt, false, true),
     TRANSLATE("/translate", null, "[\$lang] [message]", CommonStrings.command_description_translate, false, true),
     DOWNLOAD("/download", null, "<mxc-url>", CommonStrings.command_description_download, false, true);

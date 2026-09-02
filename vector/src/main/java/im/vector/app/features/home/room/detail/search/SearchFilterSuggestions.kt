@@ -85,7 +85,7 @@ object SearchFilterSuggestions {
     private fun keyHint(key: String) = when (key) {
         in SearchFilters.userKeys -> "@user:server"
         SearchFilters.HAS -> SearchFilters.hasOptions.joinToString(", ")
-        else -> "YYYY-MM-DD"
+        else -> "2026-01-02, 2026, today, 7d"
     }
 
     @DrawableRes

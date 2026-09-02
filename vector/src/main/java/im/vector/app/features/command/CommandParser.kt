@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
+import org.matrix.android.sdk.api.util.DateArgumentParser
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -529,8 +530,9 @@ class CommandParser @Inject constructor(
                 }
                 Command.JUMP_TO_DATE.matches(slashCommand) -> {
                     val raw = message.toString().trim()
-                    if (raw.matches(Regex("""\d{4}-\d{1,2}-\d{1,2}"""))) {
-                        ParsedCommand.JumpToDate(date = raw)
+                    val timestamp = DateArgumentParser.parse(raw)
+                    if (timestamp != null) {
+                        ParsedCommand.JumpToDate(date = raw, timestamp = timestamp)
                     } else {
                         ParsedCommand.ErrorSyntax(Command.JUMP_TO_DATE)
                     }
@@ -652,63 +654,48 @@ class CommandParser @Inject constructor(
         return looksLikeLink && PermalinkParser.parse(candidate) is PermalinkData.RoomLink
     }
 
-    // [options] are the tokens after the user id: an optional bare cooldown in ms, plus optional
-    // after:/before: date bounds (in any order), matching the search tool.
+    // [options] are the key:value tokens after the user id, in any order. Redaction is irreversible, so
+    // an unrecognised or repeated option is an error rather than something silently ignored.
     private fun parseMassRedactOptions(userId: String, options: List<String>): ParsedCommand {
-        var cooldown: Long? = null
+        var delayMs: Long? = null
         var fromTs: Long? = null
         var toTs: Long? = null
-        var messagesOnly = false
+        var messagesOnly: Boolean? = null
         for (option in options) {
             val separator = option.indexOf(':')
-            val key = if (separator == -1) null else option.substring(0, separator).lowercase()
-            val rawValue = if (separator == -1) option else option.substring(separator + 1)
-            when (key) {
-                // A bare token is either the "messagesOnly" flag or the cooldown in ms.
-                null -> if (rawValue.equals("messagesOnly", ignoreCase = true)) {
-                    messagesOnly = true
-                } else {
-                    val value = rawValue.toLongOrNull()?.takeIf { it >= 0 } ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-                    if (cooldown == null) cooldown = value else return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+            if (separator == -1) return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+            val key = option.substring(0, separator).lowercase()
+            val rawValue = option.substring(separator + 1)
+            when {
+                key == "delay" && delayMs == null ->
+                    delayMs = rawValue.toLongOrNull()?.takeIf { it >= 0 } ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                key == "after" && fromTs == null ->
+                    fromTs = DateArgumentParser.parse(rawValue) ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                key == "before" && toTs == null ->
+                    toTs = DateArgumentParser.parse(rawValue) ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                key == "type" && messagesOnly == null -> messagesOnly = when (rawValue.lowercase()) {
+                    "all" -> false
+                    "messages" -> true
+                    else -> return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
                 }
-                "after" -> fromTs = parseDate(rawValue) ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-                "before" -> toTs = parseDate(rawValue) ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-                "messagesonly" -> messagesOnly = rawValue.toBooleanStrictOrNull() ?: return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
                 else -> return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
             }
         }
         if (fromTs != null && toTs != null && fromTs > toTs) return ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
-        return ParsedCommand.MassRedact(userId, cooldown, MassRedactionRange(fromTs, toTs, messagesOnly))
+        return ParsedCommand.MassRedact(userId, delayMs, MassRedactionRange(fromTs, toTs, messagesOnly ?: true))
     }
 
-    // Mirrors search's after:/before: parsing: a unix epoch (seconds or ms, told apart by magnitude)
-    // or a YYYY-MM-DD date (start of that day, local time). Returns ms, or null if unparseable.
-    private fun parseDate(value: String): Long? {
-        value.toLongOrNull()?.let { epoch ->
-            // Reject implausibly small epochs (e.g. a bare year "2026" would otherwise read as 1970).
-            if (epoch < EPOCH_MIN_SECONDS) return null
-            return if (epoch < EPOCH_MILLIS_THRESHOLD) epoch * 1000 else epoch
-        }
-        val parts = value.split('-')
-        if (parts.size != 3) return null
-        val year = parts[0].toIntOrNull() ?: return null
-        val month = parts[1].toIntOrNull() ?: return null
-        val day = parts[2].toIntOrNull() ?: return null
-        if (year < 1970 || month !in 1..12 || day !in 1..31) return null
-        // Non-lenient so an impossible date (e.g. 2026-02-31) is rejected rather than rolled over.
-        return runCatching {
-            java.util.Calendar.getInstance().apply {
-                isLenient = false
-                clear()
-                set(year, month - 1, day)
-            }.timeInMillis
-        }.getOrNull()
-    }
-
-    /** Splits a /ban or /kick tail into its reason and the optional leading `redact` option. */
+    /** Splits a /ban or /kick tail into its reason and the `massredact` flag, which may sit on either side. */
     private fun parseModerationTail(textMessage: CharSequence, messageParts: List<String>): Pair<String?, Boolean> {
-        val redactEvents = messageParts.getOrNull(2)?.lowercase() == REDACT_OPTION
-        return trimParts(textMessage, messageParts.take(if (redactEvents) 3 else 2)) to redactEvents
+        val isFlag = { part: String? -> part?.lowercase() == REDACT_OPTION }
+        if (isFlag(messageParts.getOrNull(2))) {
+            return trimParts(textMessage, messageParts.take(3)) to true
+        }
+        val tail = trimParts(textMessage, messageParts.take(2))
+        if (messageParts.size > 2 && isFlag(messageParts.last())) {
+            return tail?.dropLast(REDACT_OPTION.length)?.trim()?.takeIf { it.isNotEmpty() } to true
+        }
+        return tail to false
     }
 
     private fun trimParts(message: CharSequence, messageParts: List<String>): String? {
@@ -718,12 +705,6 @@ class CommandParser @Inject constructor(
     }
 
     companion object {
-        private const val REDACT_OPTION = "redact"
-
-        // 1e11 ms is 1973; above this an epoch is already in ms, below it is seconds.
-        private const val EPOCH_MILLIS_THRESHOLD = 100_000_000_000L
-
-        // 1e8 s ≈ March 1973; anything smaller is more likely a typo'd date than a real timestamp.
-        private const val EPOCH_MIN_SECONDS = 100_000_000L
+        private const val REDACT_OPTION = "massredact"
     }
 }

@@ -15,7 +15,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryConte
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.search.SearchFilters
 import org.matrix.android.sdk.api.util.ContentUtils
-import java.util.Calendar
+import org.matrix.android.sdk.api.util.DateArgumentParser
 
 internal data class ParsedSearchQuery(
         /** Lowercased text tokens: bare words and quoted verbatim phrases. All must match. */
@@ -68,7 +68,7 @@ internal data class ParsedSearchQuery(
  * Shared query semantics for both search backends: `foo bar` matches messages containing both
  * "foo" and "bar" anywhere; `"foo bar"` matches that exact substring, space included.
  *
- * Unquoted `after:`/`before:` (unix epoch in s or ms, or YYYY-MM-DD), `has:` (image, video,
+ * Unquoted `after:`/`before:` (any [DateArgumentParser] form), `has:` (image, video,
  * audio, file, sticker, poll, link), `from:`/`mentions:` (@user:server) words become filters; quoting them
  * keeps them as literal text, and an unrecognised or malformed filter stays literal text too.
  */
@@ -91,8 +91,8 @@ internal object SearchQueryParser {
             if (colon <= 0 || colon == word.length - 1) return false
             val value = word.substring(colon + 1)
             when (word.substring(0, colon)) {
-                SearchFilters.AFTER -> afterTs = parseDate(value) ?: return false
-                SearchFilters.BEFORE -> beforeTs = parseDate(value) ?: return false
+                SearchFilters.AFTER -> afterTs = DateArgumentParser.parse(value) ?: return false
+                SearchFilters.BEFORE -> beforeTs = DateArgumentParser.parse(value) ?: return false
                 SearchFilters.HAS -> if (value == SearchFilters.HAS_LINK) {
                     requiresLink = true
                 } else {
@@ -136,34 +136,6 @@ internal object SearchQueryParser {
                 beforeTs = beforeTs,
         )
     }
-
-    /**
-     * @return a timestamp in ms from a unix epoch (seconds or ms, told apart by magnitude) or a
-     * YYYY-MM-DD date (start of that day, local time), or null if unparseable.
-     */
-    private fun parseDate(value: String): Long? {
-        value.toLongOrNull()?.let { epoch ->
-            // Reject implausibly small epochs (e.g. a bare year like "2026" would read as 1970).
-            if (epoch < EPOCH_MIN_SECONDS) return null
-            return if (epoch < EPOCH_MS_THRESHOLD) epoch * 1000 else epoch
-        }
-        val parts = value.split('-')
-        if (parts.size != 3) return null
-        val year = parts[0].toIntOrNull() ?: return null
-        val month = parts[1].toIntOrNull() ?: return null
-        val day = parts[2].toIntOrNull() ?: return null
-        if (year < 1970 || month !in 1..12 || day !in 1..31) return null
-        return Calendar.getInstance().apply {
-            clear()
-            set(year, month - 1, day)
-        }.timeInMillis
-    }
-
-    // Below this an epoch is seconds (1e11 ms is 1973; 1e11 s is year 5138).
-    private const val EPOCH_MS_THRESHOLD = 100_000_000_000L
-
-    // 1e8 s ≈ March 1973; anything below is more likely a typo'd date than a real timestamp.
-    private const val EPOCH_MIN_SECONDS = 100_000_000L
 }
 
 /**

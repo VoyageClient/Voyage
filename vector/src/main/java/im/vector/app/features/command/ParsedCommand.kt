@@ -79,7 +79,7 @@ sealed interface ParsedCommand {
     object JumpToStart : ParsedCommand
     data class JumpToEvent(val eventId: String) : ParsedCommand
     data class JumpToPermalink(val link: String) : ParsedCommand
-    data class JumpToDate(val date: String) : ParsedCommand
+    data class JumpToDate(val date: String, val timestamp: Long) : ParsedCommand
     object TogglePgpMode : ParsedCommand
     data class SendPgpEncrypted(val message: CharSequence) : ParsedCommand
     data class ToggleAutoTranslate(val targetLanguage: String?) : ParsedCommand

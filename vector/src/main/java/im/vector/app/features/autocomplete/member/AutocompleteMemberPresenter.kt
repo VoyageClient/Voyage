@@ -14,7 +14,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.features.autocomplete.AutocompleteClickListener
 import im.vector.app.features.autocomplete.RecyclerViewPresenter
-import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -84,6 +83,19 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
         return controller.adapter
     }
 
+    override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_MEMBERS)
+
+    override fun onViewShown() = slideContentUpOnShow()
+
+    override fun onViewHidden() {
+        super.onViewHidden()
+        queryJob?.cancel()
+    }
+
+    override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
+
+    override fun getPopupDimensions() = fullWidthPopupDimensions()
+
     override fun onItemClick(t: AutocompleteMemberItem) {
         dispatchClick(t)
     }
@@ -101,19 +113,16 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
                     val queryParams = createQueryParams(queryString)
                     val members = createMemberItems(queryParams)
                     val everyone = createEveryoneItem(queryString)
-                    // Headers are only shown when the user can notify everyone.
-                    val canAddHeaders = canNotifyEveryone()
                     buildList {
-                        if (members.isNotEmpty()) {
-                            if (canAddHeaders) add(createMembersHeader())
-                            addAll(members)
-                        }
-                        everyone?.let {
-                            add(createEveryoneHeader())
-                            add(it)
-                        }
+                        addAll(members)
+                        everyone?.let { add(it) }
                     }
                 }
+            }
+            // Keep the current rows on screen so they are what animates away, rather than collapsing first.
+            if (items.isEmpty()) {
+                requestDismiss()
+                return@launch
             }
             controller.setData(items)
         }
@@ -134,12 +143,6 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
         excludeSelf = false
     }
 
-    private fun createMembersHeader() =
-            AutocompleteMemberItem.Header(
-                    ID_HEADER_MEMBERS,
-                    context.getString(CommonStrings.room_message_autocomplete_users)
-            )
-
     private fun createMemberItems(queryParams: RoomMemberQueryParams): List<AutocompleteMemberItem.RoomMember> {
         // Most-mentioned first, alphabetical for members with no mention history.
         val frequencies = mentionFrequencyDataSource.frequencies(roomId)
@@ -154,12 +157,6 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
                 .map { AutocompleteMemberItem.RoomMember(it) }
                 .toList()
     }
-
-    private fun createEveryoneHeader() =
-            AutocompleteMemberItem.Header(
-                    ID_HEADER_EVERYONE,
-                    context.getString(CommonStrings.room_message_autocomplete_notification)
-            )
 
     private fun createEveryoneItem(query: CharSequence?) =
             room.roomSummary()
@@ -187,9 +184,8 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
      * ========================================================================================== */
 
     companion object {
-        private const val ID_HEADER_MEMBERS = "ID_HEADER_MEMBERS"
-        private const val ID_HEADER_EVERYONE = "ID_HEADER_EVERYONE"
         private const val QUERY_DEBOUNCE_MS = 100L
+        private const val MAX_VISIBLE_MEMBERS = 3
         private val SUGGEST_ROOM_KEYWORDS = setOf(MatrixItem.NOTIFY_EVERYONE, "@channel", "@everyone", "@here")
     }
 }

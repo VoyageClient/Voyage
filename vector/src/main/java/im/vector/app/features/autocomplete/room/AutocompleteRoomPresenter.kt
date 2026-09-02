@@ -11,6 +11,14 @@ import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.features.autocomplete.AutocompleteClickListener
 import im.vector.app.features.autocomplete.RecyclerViewPresenter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -23,6 +31,9 @@ class AutocompleteRoomPresenter @Inject constructor(
         private val session: Session
 ) : RecyclerViewPresenter<RoomSummary>(context), AutocompleteClickListener<RoomSummary> {
 
+    private val queryScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var queryJob: Job? = null
+
     init {
         controller.listener = this
     }
@@ -31,25 +42,58 @@ class AutocompleteRoomPresenter @Inject constructor(
         return controller.adapter
     }
 
+    override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_ROOMS)
+
+    override fun getPopupDimensions() = fullWidthPopupDimensions()
+
+    override fun onViewShown() = slideContentUpOnShow()
+
+    override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
+
     override fun onItemClick(t: RoomSummary) {
         dispatchClick(t)
     }
 
     override fun onQuery(query: CharSequence?) {
-        val queryParams = roomSummaryQueryParams {
-            canonicalAlias = if (query.isNullOrBlank()) {
-                QueryStringValue.IsNotNull
-            } else {
-                QueryStringValue.Contains(query.toString(), QueryStringValue.Case.INSENSITIVE)
+        // Every keystroke is a room-summary query; without this, holding a key down floods the main thread.
+        queryJob?.cancel()
+        queryJob = queryScope.launch {
+            delay(QUERY_DEBOUNCE_MS)
+            val queryParams = roomSummaryQueryParams {
+                canonicalAlias = if (query.isNullOrBlank()) {
+                    QueryStringValue.IsNotNull
+                } else {
+                    QueryStringValue.Contains(query.toString(), QueryStringValue.Case.INSENSITIVE)
+                }
             }
+            val rooms = withContext(Dispatchers.Default) {
+                session.roomService().getRoomSummaries(queryParams)
+                        .asSequence()
+                        .sortedBy { it.displayName }
+                        .toList()
+            }
+            // Keep the current rows on screen so they are what animates away, rather than collapsing first.
+            if (rooms.isEmpty()) {
+                requestDismiss()
+                return@launch
+            }
+            controller.setData(rooms)
         }
-        val rooms = session.roomService().getRoomSummaries(queryParams)
-                .asSequence()
-                .sortedBy { it.displayName }
-        controller.setData(rooms.toList())
+    }
+
+    override fun onViewHidden() {
+        super.onViewHidden()
+        queryJob?.cancel()
     }
 
     fun clear() {
         controller.listener = null
+        queryJob?.cancel()
+        queryScope.coroutineContext.cancelChildren()
+    }
+
+    companion object {
+        private const val MAX_VISIBLE_ROOMS = 3
+        private const val QUERY_DEBOUNCE_MS = 100L
     }
 }

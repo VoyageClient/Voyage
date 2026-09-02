@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:colorBackground"
     android:foreground="?attr/selectableItemBackground"
     android:orientation="vertical"
     android:paddingStart="8dp"
@@ -37,9 +36,9 @@
             android:layout_weight="1"
             android:layout_marginStart="5dp"
             android:layout_marginLeft="5dp"
-            android:maxLines="2"
+            android:maxLines="3"
             android:textColor="?vctr_content_secondary"
-            tools:text="&lt;user-id&gt; [cooldownMs] [before|after:&lt;date&gt;] [messagesOnly]" />
+            tools:text="&lt;user-id&gt; [delay:&lt;ms&gt;] [before|after:&lt;date&gt;] [type:&lt;all|messages&gt;]" />
 
     </LinearLayout>
 

@@ -62,11 +62,38 @@ class CommandParserTest {
         test("/kick @foo:bar    a    reason    ", ParsedCommand.KickUser("@foo:bar", "a    reason"))
         // Alias
         test("/remove @foo:bar", ParsedCommand.KickUser("@foo:bar", null))
-        // MSC4293 redact option, with and without a reason
-        test("/kick @foo:bar redact", ParsedCommand.KickUser("@foo:bar", null, true))
-        test("/kick @foo:bar redact a reason", ParsedCommand.KickUser("@foo:bar", "a reason", true))
+        // Mass-redaction flag, with and without a reason, on either side of it
+        test("/kick @foo:bar massredact", ParsedCommand.KickUser("@foo:bar", null, true))
+        test("/kick @foo:bar massredact a reason", ParsedCommand.KickUser("@foo:bar", "a reason", true))
+        test("/kick @foo:bar a reason massredact", ParsedCommand.KickUser("@foo:bar", "a reason", true))
+        test("/kick @foo:bar MassRedact a reason", ParsedCommand.KickUser("@foo:bar", "a reason", true))
+        // The old token is now ordinary reason text
+        test("/kick @foo:bar redact", ParsedCommand.KickUser("@foo:bar", "redact"))
+        // Only a leading or trailing occurrence is the flag
+        test("/kick @foo:bar a massredact reason", ParsedCommand.KickUser("@foo:bar", "a massredact reason"))
         // Error
         test("/kick", ParsedCommand.ErrorSyntax(Command.KICK_USER))
+    }
+
+    @Test
+    fun parseSlashCommandBan() {
+        test("/ban @foo:bar", ParsedCommand.BanUser("@foo:bar", null))
+        test("/ban @foo:bar a reason", ParsedCommand.BanUser("@foo:bar", "a reason"))
+        test("/ban @foo:bar massredact", ParsedCommand.BanUser("@foo:bar", null, true))
+        test("/ban @foo:bar massredact a reason", ParsedCommand.BanUser("@foo:bar", "a reason", true))
+        test("/ban @foo:bar a reason massredact", ParsedCommand.BanUser("@foo:bar", "a reason", true))
+        test("/ban @foo:bar redact", ParsedCommand.BanUser("@foo:bar", "redact"))
+        test("/ban", ParsedCommand.ErrorSyntax(Command.BAN_USER))
+        test("/ban not-a-user", ParsedCommand.ErrorSyntax(Command.BAN_USER))
+    }
+
+    @Test
+    fun parseSlashCommandJumpToDate() {
+        test("/jumptodate 2026-01-02", ParsedCommand.JumpToDate("2026-01-02", ymd(2026, 1, 2)))
+        test("/jumptodate 20260102", ParsedCommand.JumpToDate("20260102", ymd(2026, 1, 2)))
+        test("/jumptodate 2026/01/02", ParsedCommand.JumpToDate("2026/01/02", ymd(2026, 1, 2)))
+        test("/jumptodate not-a-date", ParsedCommand.ErrorSyntax(Command.JUMP_TO_DATE))
+        test("/jumptodate", ParsedCommand.ErrorSyntax(Command.JUMP_TO_DATE))
     }
 
     @Test
@@ -86,39 +113,64 @@ class CommandParserTest {
     }
 
     @Test
+    fun parseMassRedactDefaultsToMessagesOnly() {
+        test("/massredact $A_USER_ID", ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(messagesOnly = true)))
+    }
+
+    @Test
     fun parseMassRedactEpochBounds() {
         // Seconds and milliseconds are both accepted and normalised to ms.
         test("/massredact $A_USER_ID after:1700000000 before:1700003600000",
-                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(1700000000_000L, 1700003600000L)))
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(1700000000_000L, 1700003600000L, messagesOnly = true)))
     }
 
     @Test
-    fun parseMassRedactCooldownAndSingleBound() {
-        test("/massredact $A_USER_ID 500 before:1700000000",
-                ParsedCommand.MassRedact(A_USER_ID, 500L, MassRedactionRange(null, 1700000000_000L)))
+    fun parseMassRedactDelayAndSingleBound() {
+        test("/massredact $A_USER_ID delay:500 before:1700000000",
+                ParsedCommand.MassRedact(A_USER_ID, 500L, MassRedactionRange(null, 1700000000_000L, messagesOnly = true)))
     }
 
     @Test
-    fun parseMassRedactYmdBounds() {
+    fun parseMassRedactOptionsAreOrderIndependent() {
+        test("/massredact $A_USER_ID type:all before:1700000000 delay:500",
+                ParsedCommand.MassRedact(A_USER_ID, 500L, MassRedactionRange(null, 1700000000_000L, messagesOnly = false)))
+    }
+
+    @Test
+    fun parseMassRedactDateBounds() {
         test("/massredact $A_USER_ID after:2026-01-02 before:2026-03-04",
-                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(ymd(2026, 1, 2), ymd(2026, 3, 4))))
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(ymd(2026, 1, 2), ymd(2026, 3, 4), messagesOnly = true)))
+        test("/massredact $A_USER_ID after:20260102 before:2026/03/04",
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(ymd(2026, 1, 2), ymd(2026, 3, 4), messagesOnly = true)))
+        // A bare year or year-month means the start of it.
+        test("/massredact $A_USER_ID after:2026 before:2026-03",
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(ymd(2026, 1, 1), ymd(2026, 3, 1), messagesOnly = true)))
     }
 
     @Test
-    fun parseMassRedactMessagesOnly() {
-        test("/massredact $A_USER_ID messagesOnly",
+    fun parseMassRedactType() {
+        test("/massredact $A_USER_ID type:messages",
                 ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(messagesOnly = true)))
-        test("/massredact $A_USER_ID 200 before:1700000000 messagesOnly:true",
-                ParsedCommand.MassRedact(A_USER_ID, 200L, MassRedactionRange(null, 1700000000_000L, messagesOnly = true)))
+        test("/massredact $A_USER_ID type:ALL",
+                ParsedCommand.MassRedact(A_USER_ID, null, MassRedactionRange(messagesOnly = false)))
+        test("/massredact $A_USER_ID type:state", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+    }
+
+    @Test
+    fun parseMassRedactRejectsPositionalOptions() {
+        // The cooldown and the messages-only flag are now named options only.
+        test("/massredact $A_USER_ID 500", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+        test("/massredact $A_USER_ID messagesOnly", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+        test("/massredact $A_USER_ID messagesOnly:true", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
     }
 
     @Test
     fun parseMassRedactRejectsBadBounds() {
-        // Bare year reads as an implausibly small epoch, unparseable date, and after > before.
-        test("/massredact $A_USER_ID after:2026", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
         test("/massredact $A_USER_ID before:not-a-date", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
         test("/massredact $A_USER_ID after:2026-02-31", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
         test("/massredact $A_USER_ID after:1700003600 before:1700000000", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+        test("/massredact $A_USER_ID delay:500 delay:600", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
+        test("/massredact $A_USER_ID delay:-1", ParsedCommand.ErrorSyntax(Command.MASS_REDACT))
     }
 
     private fun ymd(year: Int, month: Int, day: Int): Long =
