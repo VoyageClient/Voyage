@@ -4,6 +4,11 @@
   "text": "secret code",
   "spans": [
     {
+      "start": 0,
+      "end": 11,
+      "kind": "spoiler"
+    },
+    {
       "start": 7,
       "end": 11,
       "kind": "code"
