@@ -70,6 +70,7 @@ import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriev
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -1224,15 +1225,15 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
             noticeStyle: Boolean = false,
-            emotePrefix: String? = null,
+            emoteSender: CharSequence? = null,
     ): MessageTextItem? {
         val formatted = translation.formatted
-        // Emotes keep the plain path: the "* sender" prefix has no formatted-body counterpart here.
-        if (formatted != null && emotePrefix == null) {
+        // Emotes keep the plain path: the sender prefix has no formatted-body counterpart here.
+        if (formatted != null && emoteSender == null) {
             return buildFormattedTextItem(formatted, informationData, highlight, callback, attributes, noticeStyle = noticeStyle, translation = translation)
         }
         return buildMessageTextItem(
-                (emotePrefix.orEmpty()) + translation.text,
+                if (emoteSender != null) translation.text.asEmoteBody(emoteSender) else translation.text,
                 false,
                 informationData,
                 highlight,
@@ -1336,12 +1337,11 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): MessageTextItem? {
+        val senderName = informationData.memberName ?: ""
         messageTranslationStore.get(informationData.eventId)?.let { translation ->
-            return buildTranslatedItem(translation, informationData, highlight, callback, attributes, emotePrefix = "* ${informationData.memberName} ")
+            return buildTranslatedItem(translation, informationData, highlight, callback, attributes, emoteSender = senderName)
         }
-        val formattedBody = SpannableStringBuilder()
-        formattedBody.append("* ${informationData.memberName} ")
-        formattedBody.append(messageContent.getHtmlBody())
+        val formattedBody = SpannableStringBuilder(messageContent.getHtmlBody().asEmoteBody(senderName))
         val bindingOptions = spanUtils.getBindingOptions(formattedBody)
         val message = formattedBody.linkify(callback)
 

@@ -19,14 +19,21 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.annotation.CallSuper
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.otaliastudios.autocomplete.AutocompletePresenter
 import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.core.extensions.isAttachedToWindowCompat
+import im.vector.app.features.themes.ThemeUtils
 import kotlin.math.abs
 
 abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePresenter<T>(context) {
+
+    // The presenter is built with the application context, whose theme carries none of the vctr_*
+    // attributes the row layouts reference — and pre-21 an unresolved ?attr in android:textColor throws.
+    private val themedContext: Context = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context))
 
     private var recyclerView: RecyclerView? = null
     private var clicks: ClickProvider<T>? = null
@@ -70,7 +77,7 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
      * Provides the recycler hosting the popup's items.
      * This should be a fresh instance every time this is called.
      */
-    protected open fun instantiateRecyclerView(): RecyclerView = RecyclerView(context)
+    protected open fun instantiateRecyclerView(): RecyclerView = RecyclerView(themedContext)
 
     /**
      * A recycler showing at most [maxVisibleItems] rows, the rest scrolling, with a divider above the
@@ -82,7 +89,7 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
         val thickness = (context.resources.displayMetrics.density + 0.5f).toInt().coerceAtLeast(1)
         val background = popupBackgroundColor()
         val divider = popupDividerColor()
-        return MaxVisibleItemsRecyclerView(context, maxVisibleItems).apply {
+        return MaxVisibleItemsRecyclerView(themedContext, maxVisibleItems).apply {
             backgroundCompat = LayerDrawable(
                     arrayOf(
                             ColorDrawable(divider),
@@ -90,7 +97,7 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
                     )
             )
             addItemDecoration(
-                    MaterialDividerItemDecoration(context, MaterialDividerItemDecoration.VERTICAL).apply {
+                    MaterialDividerItemDecoration(themedContext, MaterialDividerItemDecoration.VERTICAL).apply {
                         isLastItemDecorated = false
                         dividerColor = divider
                         dividerThickness = thickness
@@ -151,7 +158,7 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
      */
     private fun isSettledAbove(view: View): Boolean {
         val anchor = popupAnchor() ?: return true
-        if (!anchor.isAttachedToWindow || !view.isAttachedToWindow) return false
+        if (!anchor.isAttachedToWindowCompat || !view.isAttachedToWindowCompat) return false
         val viewLocation = IntArray(2)
         val anchorLocation = IntArray(2)
         view.getLocationOnScreen(viewLocation)
@@ -236,7 +243,7 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
      * @return a new layout manager.
      */
     protected fun instantiateLayoutManager(): RecyclerView.LayoutManager {
-        return LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        return LinearLayoutManager(themedContext, LinearLayoutManager.VERTICAL, false)
     }
 
     private class Observer constructor(private val root: DataSetObserver) : RecyclerView.AdapterDataObserver() {

@@ -72,6 +72,7 @@ import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
 import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.launchIn
@@ -230,9 +231,8 @@ class VectorSettingsGeneralFragment :
         updateProfileFieldSummaries()
         lifecycleScope.launch {
             tryOrNull { session.profileService().getProfile(session.myUserId) }
-            if (isAdded) {
-                updateProfileFieldSummaries()
-            }
+            ensureActive()
+            updateProfileFieldSummaries()
         }
     }
 
@@ -316,10 +316,12 @@ class VectorSettingsGeneralFragment :
         currentBannerUrl = session.profileService().getCachedBannerUrl(session.myUserId)
         mUserBannerPreference.refreshBanner(currentBannerUrl)
         lifecycleScope.launch {
-            currentBannerUrl = tryOrNull { session.profileService().getBannerUrl(session.myUserId).getOrNull() }
-            if (isAdded) {
-                mUserBannerPreference.refreshBanner(currentBannerUrl)
-            }
+            val url = tryOrNull { session.profileService().getBannerUrl(session.myUserId).getOrNull() }
+            // tryOrNull also swallows the cancellation, so a torn-down fragment would otherwise resume
+            // here and hand Glide a destroyed activity.
+            ensureActive()
+            currentBannerUrl = url
+            mUserBannerPreference.refreshBanner(url)
         }
     }
 

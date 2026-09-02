@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.extensions.applyOptionCardBackground
 import im.vector.app.databinding.FragmentLoginServerSelectionBinding
 
 /**
@@ -28,6 +29,8 @@ class LoginServerSelectionFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        views.loginServerChoiceMatrixId.applyOptionCardBackground()
+        views.loginServerChoiceOther.applyOptionCardBackground()
         views.loginServerChoiceMatrixId.debouncedClicks { loginWithMatrixId() }
         views.loginServerChoiceOther.debouncedClicks { selectOther() }
     }

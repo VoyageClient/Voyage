@@ -61,7 +61,6 @@ class TimelineMessageLayoutFactory @Inject constructor(
         // than overlaid on the media.
         private val MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT = setOf(
                 MessageType.MSGTYPE_STICKER_LOCAL,
-                MessageType.MSGTYPE_EMOTE,
                 MessageType.MSGTYPE_BEACON_INFO,
                 MessageType.MSGTYPE_LOCATION,
                 MessageType.MSGTYPE_BEACON_LOCATION_DATA,

@@ -146,3 +146,10 @@
 -keep class com.awxkee.jxlcoder.InvalidImageSizeException
 -keep class com.awxkee.jxlcoder.JXLCoderCompressionException
 -keep class com.awxkee.jxlcoder.LockPixelsException
+
+# KeyFrames' static initializer reflects a constructor out of each <KeyPosition>/<KeyAttribute>/… class,
+# so nothing references them and the shrinker drops the constructors. It fails silently (logged and
+# swallowed), leaving a transition with none of its keyframes.
+-keepclassmembers class * extends androidx.constraintlayout.motion.widget.Key {
+    <init>();
+}

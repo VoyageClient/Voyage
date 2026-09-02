@@ -525,6 +525,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             override fun onSetLink(isTextSupported: Boolean, initialLink: String?) {
                 SetLinkFragment.show(isTextSupported, initialLink, childFragmentManager)
             }
+
+            override fun onSoftKeyboardRequested() {
+                emojiKeyboardController?.dismiss()
+            }
         }
     }
 

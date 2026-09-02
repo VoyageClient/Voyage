@@ -156,8 +156,7 @@ jobs:
           } > release-notes.md
 
           # A release whose tag moves is un-published server-side, so this one is replaced rather than
-          # updated: create makes the tag, the prerelease and its assets at once, with nothing after
-          # it to race.
+          # updated: create makes the tag and the prerelease at once, with nothing after it to race.
           gh release delete nightly --yes --cleanup-tag || true
           git push -d origin refs/tags/nightly 2> /dev/null || true
 
@@ -165,10 +164,12 @@ jobs:
             --title 'Nightly' \
             --notes-file release-notes.md \
             --prerelease \
-            --target "${{ github.sha }}" \
-            artifacts/*.apk
+            --target "${{ github.sha }}"
 
-          gh release view nightly --json isDraft,tagName,assets --jq '{isDraft, tagName, assets: [.assets[].name]}'
+          gh release upload nightly artifacts/*.apk --clobber
+
+          gh release view nightly --json isDraft,isPrerelease,tagName,assets --jq '{isDraft, isPrerelease, tagName, assets: [.assets[].name]}'
+          [ "$(gh release view nightly --json isPrerelease --jq .isPrerelease)" = 'true' ]
           [ "$(gh release view nightly --json isDraft --jq .isDraft)" = 'false' ]
           # A failed delete leaves create reusing the old tag: published, but pointing at yesterday.
           [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/nightly" --jq .sha)" = "${{ github.sha }}" ]
