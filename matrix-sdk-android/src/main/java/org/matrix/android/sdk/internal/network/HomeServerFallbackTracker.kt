@@ -10,6 +10,7 @@ package org.matrix.android.sdk.internal.network
 import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.util.ensureTrailingSlash
+import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -35,6 +36,8 @@ internal class HomeServerFallbackTracker @Inject constructor(sessionParams: Sess
 
     private val downUntil = ConcurrentHashMap<String, Long>()
 
+    private val outages = ConcurrentHashMap<String, Int>()
+
     /**
      * All mirrors in the order the user configured them.
      */
@@ -52,43 +55,58 @@ internal class HomeServerFallbackTracker @Inject constructor(sessionParams: Sess
     fun active(): String = active
 
     /**
-     * All mirrors to try, the one that last answered first, and the ones known to be down last.
+     * All mirrors to try, in the order the user configured them, the ones known to be down last. The order
+     * is deliberately not anchored on [active]: a request is what discovers that a higher-ranked mirror is
+     * back, so pinning it to the one that took over would make a fallback permanent between probes.
      */
     fun candidates(): List<String> {
-        val all = candidates
-        val ordered = listOf(active) + all.filter { it != active }
         val now = System.nanoTime()
-        return ordered.sortedBy { if ((downUntil[it] ?: 0L) > now) 1 else 0 }
+        return candidates.sortedBy { if (isDown(it, now)) 1 else 0 }
     }
 
     fun onReached(base: String) {
         downUntil.remove(base)
+        outages.remove(base)
         val all = candidates
         val baseRank = all.indexOf(base)
         if (baseRank < 0) return
         // A response that was in flight on a lower-ranked mirror must not demote a healthy
         // higher-ranked one — the probe's switch back would be undone by every completing long-poll.
         val currentRank = all.indexOf(active)
-        if (currentRank in 0 until baseRank && (downUntil[active] ?: 0L) <= System.nanoTime()) return
+        if (currentRank in 0 until baseRank && !isDown(active, System.nanoTime())) return
+        if (active != base) Timber.i("Homeserver mirror in use is now $base")
         active = base
     }
 
+    /**
+     * Each successive outage doubles how long the mirror is skipped, up to four minutes, so one that stays
+     * down does not cost a request a connect timeout every half minute. Failures piling up inside a single
+     * outage count once.
+     */
+    @Synchronized
     fun markDown(base: String) {
-        downUntil[base] = System.nanoTime() + DOWN_TTL_NANOS
+        val now = System.nanoTime()
+        val outage = if (isDown(base, now)) (outages[base] ?: 1) else (outages[base] ?: 0) + 1
+        outages[base] = outage
+        downUntil[base] = now + (DOWN_TTL_NANOS shl (outage - 1).coerceAtMost(MAX_BACKOFF_DOUBLINGS))
     }
 
     fun update(urls: List<String>) {
         val newCandidates = normalize(urls)
         candidates = newCandidates
         downUntil.clear()
+        outages.clear()
         if (active !in newCandidates) {
             active = newCandidates.first()
         }
     }
 
+    private fun isDown(base: String, now: Long) = (downUntil[base] ?: 0L) > now
+
     private fun normalize(urls: List<String>) = urls.map { it.ensureTrailingSlash() }.distinct()
 
     companion object {
         private val DOWN_TTL_NANOS = TimeUnit.SECONDS.toNanos(30)
+        private const val MAX_BACKOFF_DOUBLINGS = 3
     }
 }

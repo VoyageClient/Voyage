@@ -16,6 +16,7 @@ import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificate
 import org.matrix.android.sdk.internal.session.SessionScope
 import timber.log.Timber
 import java.io.IOException
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -43,7 +44,7 @@ internal class HomeServerMirrorProbe @Inject constructor(
                 .connectTimeout(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .readTimeout(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .build()
-        configured.take(preferred).firstOrNull { client.isUp(it) }
+        configured.take(preferred).firstOrNull { client.check(it) }
                 ?.also {
                     Timber.i("Homeserver mirror $it is back up, switching to it")
                     tracker.onReached(it)
@@ -51,14 +52,24 @@ internal class HomeServerMirrorProbe @Inject constructor(
                 ?: active
     }
 
-    private fun OkHttpClient.isUp(base: String): Boolean {
+    /**
+     * Probing off the request path is free, so a mirror found still down is marked as such here rather
+     * than leaving the next request to rediscover it at the cost of a connect timeout.
+     */
+    private fun OkHttpClient.check(base: String): Boolean {
         val request = Request.Builder()
                 .url(base + "_matrix/client/versions")
                 .header(HomeServerFallbackInterceptor.PROBE_HEADER, "1")
                 .build()
         return try {
-            newCall(request).execute().use { it.isSuccessful }
+            val reachable = newCall(request).execute().use { it.isSuccessful }
+            if (!reachable) tracker.markDown(base)
+            reachable
+        } catch (failure: UnknownHostException) {
+            // The device being offline, not this mirror being down.
+            false
         } catch (failure: IOException) {
+            tracker.markDown(base)
             false
         }
     }
