@@ -262,6 +262,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
                 roomMemberEventIdsByUser[stateKey] = stateEvent.eventId
             }
         }
+        val threadCandidateIds = ArrayList<String>(receivedChunk.events.size)
         for ((index, event) in receivedChunk.events.withIndex()) {
             val targetChunkId = if (splitIdx != null && splitChunkId != null && index >= splitIdx) splitChunkId else currentChunkId
             val eventId = event.eventId
@@ -300,6 +301,13 @@ internal class TokenChunkEventPersistor @Inject constructor(
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                     keepTimestampOrder = lightweightSettingsStorage.isTimelineTimestampOrderEnabled(),
             )
+            threadCandidateIds.add(eventId)
+            entity.rootThreadEventId?.let { threadCandidateIds.add(it) }
+        }
+        // Threaded replies come back through /messages like any other event, so a cleared cache rebuilds a
+        // root's thread badge only here — sync never sees those replies again.
+        if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
+            stores.markThreadRoots(roomId, threadCandidateIds)
         }
     }
 

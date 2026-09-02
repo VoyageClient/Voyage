@@ -1011,6 +1011,11 @@ internal class SqlTimeline(
             }
         }
         liveEdgeLoaded = nowAtLiveEdge
+        if (loadedChunkIds.isEmpty() && !isThreadTimeline) {
+            // Not inline: seedFrom cancels the observer job this rebuild usually runs in. This pass still
+            // posts its (empty) snapshot — a room that genuinely has no chunk yet must keep doing that.
+            timelineScope.launch { if (recoverLostSeed()) rebuildSnapshot() }
+        }
         val all = computeLoadedEvents(reuseLiveChunk)
         MatrixPerf.end(perfStart) { "timeline.computeLoadedEvents reuse=$reuseLiveChunk chunks=${loadedChunkIds.size} events=${all.size}" }
         val events = applyWindow(all)
@@ -1212,6 +1217,26 @@ internal class SqlTimeline(
             } ?: return@launch
             reseedAtLiveEdge(liveChunkId)
         }
+    }
+
+    /**
+     * Re-seed after the chunk we were watching was deleted underneath us: a jump-to-event seeds on a
+     * lone-event island, and a page still in flight from an earlier jump absorbs any island it re-covers.
+     * The rows move into the absorbing chunk rather than disappearing, so follow the anchor event there —
+     * without this the timeline stays empty until the room is reopened.
+     */
+    private suspend fun recoverLostSeed(): Boolean {
+        if (isThreadTimeline || loadedChunkIds.isNotEmpty()) return false
+        val anchor = pendingShowEventId ?: newestShownEventId ?: oldestShownEventId
+        val chunkId = anchor?.let { stores.chunk.findChunkIdIncludingEvent(roomId, it) }
+                ?: stores.chunk.lastForward(roomId)?.id
+                ?: return false
+        Timber.w("SqlTimeline $roomId lost its seed chunk, re-seeding on $chunkId at $anchor")
+        pendingShowEventId = anchor
+        oldestShownEventId = null
+        newestShownEventId = null
+        seedFrom(chunkId)
+        return true
     }
 
     private suspend fun reseedAtLiveEdge(chunkId: Long) {

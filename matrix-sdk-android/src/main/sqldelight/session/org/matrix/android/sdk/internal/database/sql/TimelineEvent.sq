@@ -102,11 +102,18 @@ SELECT * FROM timeline_event WHERE chunk_id = ? AND event_id = ? LIMIT 1;
 
 -- most recent thread reply for a root, used for the root tile's preview. By timestamp, not display_index:
 -- that is only comparable within a chunk and this scans every chunk of the room.
+-- A reply is duplicated into the thread chunk while that thread is open and into a sending row while its
+-- echo is pending, and both are deleted routinely (opening a thread recreates its chunk) while the id
+-- stored on the root has no foreign key to follow. So prefer the durable main-chunk row among rows tied
+-- on timestamp, and break any remaining tie on id so the choice can't vary with the query plan.
 selectLatestThreadReplyId:
 SELECT timeline_event.id FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.room_id = ? AND event.root_thread_event_id = ?
-ORDER BY event.origin_server_ts DESC LIMIT 1;
+ORDER BY event.origin_server_ts DESC,
+CASE WHEN timeline_event.chunk_id IS NULL THEN 2 WHEN timeline_event.owned_by_thread_chunk != 0 THEN 1 ELSE 0 END ASC,
+timeline_event.id ASC
+LIMIT 1;
 
 selectByEventId:
 SELECT * FROM timeline_event WHERE event_id = ? LIMIT 1;

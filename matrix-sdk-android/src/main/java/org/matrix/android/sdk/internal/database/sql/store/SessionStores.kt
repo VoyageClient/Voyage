@@ -53,4 +53,17 @@ internal class SessionStores @Inject constructor(
     val syncFilterParams = SyncFilterParamsSqlStore(database)
     val timelineOrder = TimelineOrderRepairer(this)
     val timelineWriter = TimelineSqlWriter(this)
+
+    /**
+     * Give any thread root among [eventIds] its reply count and latest-reply preview. Pass the batch's own
+     * events as well as the root ids its replies point at — a root and its replies arrive in either order.
+     */
+    fun markThreadRoots(roomId: String, eventIds: Collection<String>) {
+        event.getThreadRootsAmong(roomId, eventIds).forEach { rootId ->
+            val count = event.countThreadReplies(roomId, rootId)
+            if (count <= 0) return@forEach
+            val rootDbId = event.getDbId(roomId, rootId) ?: return@forEach
+            event.markEventAsRoot(rootDbId, count, timelineEvent.latestThreadReplyId(roomId, rootId))
+        }
+    }
 }
