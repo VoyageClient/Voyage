@@ -44,9 +44,6 @@ class AutocompleteCommandPresenter @AssistedInject constructor(
 
     override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
 
-    // Full width so a long usage line like /massredact's fits without being clipped.
-    override fun getPopupDimensions() = fullWidthPopupDimensions()
-
     override fun onItemClick(t: Command) {
         dispatchClick(t)
     }

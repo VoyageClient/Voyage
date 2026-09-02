@@ -534,13 +534,15 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun initAutoCompleter(editText: EditText) {
         if (autoCompleters.containsKey(editText)) return
+        // Hosted by the timeline, not this fragment: the lists sit above the composer rather than inside it.
+        val suggestions = parentFragment?.view?.findViewById<ViewGroup>(R.id.autocompleteContainer) ?: return
 
         autoCompleters[editText] =
                 autoCompleterFactory.create(roomId, isThreadTimeLine())
                         .also {
                             it.isEmojiAutocompleteSuppressed = { emojiKeyboardController?.isShowing == true }
                             it.onSuggestionsVisibilityChanged = { shown -> views.composerLayout.suppressTopDivider(shown) }
-                            it.setup(editText, popupAnchor = views.composerLayout.popupAnchor)
+                            it.setup(editText, suggestions, composerSurface = views.composerLayout.composerSurface)
                         }
     }
 

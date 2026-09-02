@@ -25,9 +25,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.otaliastudios.autocomplete.AutocompletePresenter
 import im.vector.app.core.extensions.backgroundCompat
-import im.vector.app.core.extensions.isAttachedToWindowCompat
 import im.vector.app.features.themes.ThemeUtils
-import kotlin.math.abs
 
 abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePresenter<T>(context) {
 
@@ -44,9 +42,6 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
     // runtime, so the only reliable source of "the composer's color" is the composer view.
     var popupBackgroundColor: () -> Int = { Color.TRANSPARENT }
     var popupDividerColor: () -> Int = { Color.TRANSPARENT }
-
-    /** The view the popup sits on top of, used to tell a settled position from the first-show one. */
-    var popupAnchor: () -> View? = { null }
 
     /** Raised when the rows actually become visible, and again as they start animating away. */
     var onContentVisibilityChanged: (Boolean) -> Unit = {}
@@ -108,31 +103,22 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
         }
     }
 
-    /** Spans the anchor rather than hugging its content, so long rows are not clipped. */
-    protected fun fullWidthPopupDimensions() = PopupDimensions().apply {
-        width = ViewGroup.LayoutParams.MATCH_PARENT
-    }
-
     override fun hasContent(): Boolean = (recyclerView?.adapter?.itemCount ?: 0) > 0
 
     override fun onViewShown() {}
 
     /**
-     * Slides the content up from the bottom edge of the popup. The popup sits directly on top of the
-     * composer and clips its content, so the rows appear to come out from behind it — unlike the window
-     * animation, which draws over everything in front of the anchor.
+     * Slides the rows up from the bottom edge of their container, which sits directly on top of the
+     * composer and clips them, so they appear to come out from behind it.
      */
     protected fun slideContentUpOnShow() {
         val view = recyclerView ?: return
-        // Hidden until the rows are laid out at a position that actually sits on the composer, so the
-        // slide never runs against a stale placement. No wait beyond that: the popup is only shown once
-        // it has content, so the first qualifying layout is already the final one.
         val minRowHeight = MIN_ANIMATABLE_HEIGHT_DP * context.resources.displayMetrics.density
         view.alpha = 0f
         var listener: View.OnLayoutChangeListener? = null
         listener = View.OnLayoutChangeListener { v, _, t, _, b, _, _, _, _ ->
             val height = b - t
-            if (v.alpha == 0f && height >= minRowHeight && isSettledAbove(v)) {
+            if (v.alpha == 0f && height >= minRowHeight) {
                 v.removeOnLayoutChangeListener(listener)
                 reveal(v, height)
             }
@@ -149,25 +135,6 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
                 .setDuration(SLIDE_DURATION_MS)
                 .setInterpolator(DecelerateInterpolator())
                 .start()
-    }
-
-    /**
-     * The popup's first show is positioned before the window has settled around the keyboard, so it can
-     * briefly sit over the composer before being moved above it. Treat a position that still overlaps the
-     * anchor as not ready, and let the next layout decide.
-     */
-    private fun isSettledAbove(view: View): Boolean {
-        val anchor = popupAnchor() ?: return true
-        if (!anchor.isAttachedToWindowCompat || !view.isAttachedToWindowCompat) return false
-        val viewLocation = IntArray(2)
-        val anchorLocation = IntArray(2)
-        view.getLocationOnScreen(viewLocation)
-        anchor.getLocationOnScreen(anchorLocation)
-        // An unpositioned window reports 0, which any "is above" test passes trivially. Require the popup's
-        // bottom edge to actually meet the anchor's top edge, so only a placed popup qualifies.
-        if (viewLocation[1] <= 0 || anchorLocation[1] <= 0) return false
-        val tolerance = SETTLE_SLACK_DP * view.resources.displayMetrics.density
-        return abs((viewLocation[1] + view.height) - anchorLocation[1]) <= tolerance
     }
 
     /** Mirror of [slideContentUpOnShow], sliding back down behind the composer before the popup goes. */
@@ -269,12 +236,9 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
     }
 
     companion object {
-        private const val SLIDE_DURATION_MS = 90L
+        private const val SLIDE_DURATION_MS = 130L
 
         // Above the empty-list sliver (just the top divider), below any real row.
         private const val MIN_ANIMATABLE_HEIGHT_DP = 8
-
-        // Covers the deliberate overlap the popup keeps with the anchor to avoid a seam, and rounding.
-        private const val SETTLE_SLACK_DP = 4
     }
 }
