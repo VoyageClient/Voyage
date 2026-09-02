@@ -379,7 +379,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             override val readReceiptsCallback: TimelineEventController.ReadReceiptsCallback? = null,
             val emojiTypeFace: Typeface? = null,
             val decryptionErrorMessage: String? = null,
-            val threadSummaryFormatted: String? = null,
+            val threadSummaryFormatted: CharSequence? = null,
             val threadSummaryRedacted: Boolean = false,
             val threadDetails: ThreadDetails? = null,
             val areThreadMessagesEnabled: Boolean = false,

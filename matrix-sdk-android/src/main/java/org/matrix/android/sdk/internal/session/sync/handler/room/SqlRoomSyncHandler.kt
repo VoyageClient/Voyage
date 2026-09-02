@@ -534,18 +534,11 @@ internal class SqlRoomSyncHandler @Inject constructor(
             }
             stores.timelineEvent.deleteSending(roomId, eventId)
         }
-        // Mark root events of any thread we received replies for with their reply count + latest reply, so
-        // the thread badge, thread list, and inline latest-message preview pick them up.
+        // Mark root events of any thread this batch touched with their reply count + latest reply, so the
+        // thread badge, thread list, and inline latest-message preview pick them up. The batch's own events
+        // are candidates too: a root can arrive after the replies that point at it.
         if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
-            rootThreadEventIds.forEach { rootId ->
-                val count = stores.event.countThreadReplies(roomId, rootId)
-                if (count > 0) {
-                    stores.event.getDbId(roomId, rootId)?.let { rootDbId ->
-                        val latestTimelineId = stores.timelineEvent.latestThreadReplyId(roomId, rootId)
-                        stores.event.markEventAsRoot(rootDbId, count, latestTimelineId)
-                    }
-                }
-            }
+            stores.markThreadRoots(roomId, rootThreadEventIds + eventIds)
         }
         timelineInput.onNewTimelineEvents(roomId = roomId, eventIds = eventIds)
     }

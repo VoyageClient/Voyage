@@ -25,6 +25,7 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -36,8 +37,8 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
     @EpoxyAttribute lateinit var matrixItem: MatrixItem
     @EpoxyAttribute lateinit var title: String
     @EpoxyAttribute lateinit var date: String
-    @EpoxyAttribute lateinit var rootMessage: String
-    @EpoxyAttribute lateinit var lastMessage: String
+    @EpoxyAttribute lateinit var rootMessage: EpoxyCharSequence
+    @EpoxyAttribute lateinit var lastMessage: EpoxyCharSequence
     @EpoxyAttribute var threadNotificationState: ThreadNotificationState = ThreadNotificationState.NO_NEW_MESSAGE
     @EpoxyAttribute lateinit var lastMessageCounter: String
     @EpoxyAttribute var rootMessageDeleted: Boolean = false
@@ -56,7 +57,7 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
             holder.rootMessageTextView.setRedactedPreviewStyle()
         } else {
             holder.rootMessageTextView.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-            holder.rootMessageTextView.text = rootMessage.prepareForDisplay()
+            holder.rootMessageTextView.text = rootMessage.charSequence.prepareForDisplay()
             holder.rootMessageTextView.clearDrawables()
         }
         // Last message summary
@@ -64,7 +65,7 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
             avatarRenderer.render(it, holder.lastMessageAvatarImageView)
         }
         holder.lastMessageAvatarImageView.contentDescription = lastMessageMatrixItem?.getBestName()
-        holder.lastMessageTextView.text = lastMessage.prepareForDisplay()
+        holder.lastMessageTextView.text = lastMessage.charSequence.prepareForDisplay()
         holder.lastMessageCounterTextView.text = lastMessageCounter
         renderNotificationState(holder)
     }

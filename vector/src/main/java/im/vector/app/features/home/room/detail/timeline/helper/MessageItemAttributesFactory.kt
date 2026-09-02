@@ -58,7 +58,8 @@ class MessageItemAttributesFactory @Inject constructor(
                 readReceiptsCallback = callback,
                 emojiTypeFace = emojiCompatFontProvider.typeface,
                 decryptionErrorMessage = stringProvider.getString(CommonStrings.encrypted_message),
-                threadSummaryFormatted = displayableEventFormatter.formatThreadSummary(threadDetails?.threadSummaryLatestEvent).toString(),
+                // Keep the spans: toString() would leave each pill as the bare placeholder char it draws over.
+                threadSummaryFormatted = displayableEventFormatter.formatThreadSummary(threadDetails?.threadSummaryLatestEvent),
                 threadSummaryRedacted = threadDetails?.threadSummaryLatestEvent?.isRedacted() == true,
                 threadDetails = threadDetails,
                 reactionsSummaryEvents = reactionsSummaryEvents,

@@ -111,6 +111,11 @@ WHERE sender IN ? AND type = ? AND decryption_result_json IS NOT NULL;
 selectThreadRepliesForRoot:
 SELECT event_id, unsigned_data FROM event WHERE room_id = ? AND root_thread_event_id = ? GROUP BY event_id;
 
+-- Which of the given event ids are thread roots we hold replies for. One query narrows a whole sync
+-- batch or pagination page down to the roots worth re-counting.
+selectThreadRootsAmong:
+SELECT DISTINCT root_thread_event_id FROM event WHERE room_id = ? AND root_thread_event_id IN ?;
+
 selectThreadParticipation:
 SELECT event_id FROM event WHERE room_id = ? AND root_thread_event_id = ? AND sender = ? LIMIT 1;
 
@@ -133,8 +138,11 @@ SELECT event_id, type, state_key, unsigned_data, origin_server_ts FROM event WHE
 selectRedactionTargetsInRoom:
 SELECT DISTINCT redacts FROM event WHERE room_id = ? AND type = ? AND redacts IS NOT NULL;
 
+-- COALESCE: a re-mark that cannot resolve a preview row (replies stored without a timeline row) must
+-- not blank out a preview that already works. unmarkEventAsRoot is the only intentional clear.
 markEventAsRoot:
-UPDATE event SET is_root_thread = 1, number_of_threads = ?, thread_summary_latest_timeline_id = ? WHERE id = ?;
+UPDATE event SET is_root_thread = 1, number_of_threads = ?,
+thread_summary_latest_timeline_id = COALESCE(?, thread_summary_latest_timeline_id) WHERE id = ?;
 
 unmarkEventAsRoot:
 UPDATE event SET is_root_thread = 0, number_of_threads = 0, thread_summary_latest_timeline_id = NULL WHERE id = ?;

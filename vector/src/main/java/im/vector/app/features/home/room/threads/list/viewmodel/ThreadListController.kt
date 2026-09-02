@@ -13,6 +13,7 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.threads.list.model.threadListItem
+import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -49,17 +50,14 @@ class ThreadListController @Inject constructor(
                 ?.forEach { timelineEvent ->
                     val date = dateFormatter.format(timelineEvent.root.threadDetails?.lastMessageTimestamp, DateFormatKind.ROOM_LIST)
                     val lastRootThreadEdition = timelineEvent.root.threadDetails?.lastRootThreadEdition
-                    val lastMessageFormatted = timelineEvent.root.threadDetails?.threadSummaryLatestEvent.let {
-                        displayableEventFormatter.formatThreadSummary(
-                                event = it,
-                        ).toString()
-                    }
-                    val rootMessageFormatted = timelineEvent.root.let {
-                        displayableEventFormatter.formatThreadSummary(
-                                event = it,
-                                latestEdition = lastRootThreadEdition
-                        ).toString()
-                    }
+                    // Keep the spans: a pill is a placeholder char PillImageSpan draws over, so toString()
+                    // would leave a bare tofu where the mention should be.
+                    val lastMessageFormatted = displayableEventFormatter
+                            .formatThreadSummary(timelineEvent.root.threadDetails?.threadSummaryLatestEvent)
+                    val rootMessageFormatted = displayableEventFormatter.formatThreadSummary(
+                            event = timelineEvent.root,
+                            latestEdition = lastRootThreadEdition
+                    )
                     threadListItem {
                         id(timelineEvent.eventId)
                         avatarRenderer(host.avatarRenderer)
@@ -68,8 +66,8 @@ class ThreadListController @Inject constructor(
                         date(date)
                         rootMessageDeleted(timelineEvent.root.isRedacted())
                         threadNotificationState(timelineEvent.root.threadDetails?.threadNotificationState ?: ThreadNotificationState.NO_NEW_MESSAGE)
-                        rootMessage(rootMessageFormatted)
-                        lastMessage(lastMessageFormatted)
+                        rootMessage(rootMessageFormatted.toEpoxyCharSequence())
+                        lastMessage(lastMessageFormatted.toEpoxyCharSequence())
                         lastMessageCounter(timelineEvent.root.threadDetails?.numberOfThreads.toString())
                         lastMessageMatrixItem(timelineEvent.root.threadDetails?.threadSummarySenderInfo?.toMatrixItem())
                         itemClickListener {

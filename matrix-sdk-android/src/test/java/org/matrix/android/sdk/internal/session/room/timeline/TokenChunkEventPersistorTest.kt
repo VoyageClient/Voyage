@@ -160,6 +160,22 @@ internal class TokenChunkEventPersistorTest {
     }
 
     @Test
+    fun `absorbing a jump-to-event island moves its event into the absorbing chunk`() = runTest {
+        // A jump-to-event island: one event, its own chunk. A timeline seeded on a jump watches exactly this.
+        persistor.insertInDb(aChunk("i1", "i2", listOf(anEvent("\$T"))), A_ROOM_ID, PaginationDirection.FORWARDS)
+        val islandId = db.stores.chunk.getByRoom(A_ROOM_ID).single().id
+
+        // A page re-covering the island's region absorbs it — SqlTimeline's recovery then has to find the
+        // event again by chunk, so the absorber must own it and the island must be gone.
+        persistor.insertInDb(aChunk("p1", "p2", listOf(anEvent("\$U"), anEvent("\$T"), anEvent("\$S"))), A_ROOM_ID, PaginationDirection.BACKWARDS)
+
+        assertNull("the absorbed island must be deleted", db.stores.chunk.getById(islandId))
+        val owner = db.stores.chunk.findChunkIdIncludingEvent(A_ROOM_ID, "\$T")
+        assertNotNull("the jumped-to event must still resolve to a chunk", owner)
+        assertNotEquals("it must resolve to the absorbing chunk, not the retired island", islandId, owner)
+    }
+
+    @Test
     fun `non-overlapping pagination keeps all events`() = runTest {
         persistor.insertInDb(aChunk("t1", "t2", listOf(anEvent("\$C"), anEvent("\$B"))), A_ROOM_ID, PaginationDirection.BACKWARDS)
         persistor.insertInDb(aChunk("t2", "t5", listOf(anEvent("\$A"))), A_ROOM_ID, PaginationDirection.BACKWARDS)

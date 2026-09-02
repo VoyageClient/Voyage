@@ -163,6 +163,7 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun updateSendState(roomId: String, eventId: String, sendState: org.matrix.android.sdk.api.session.room.send.SendState, details: String?) =
             queries.updateSendStateInRoom(sendState.name, details, roomId, eventId)
 
+    /** A null [latestTimelineId] keeps whatever preview row the root already points at. */
     fun markEventAsRoot(id: Long, numberOfThreads: Int, latestTimelineId: Long?) =
             queries.markEventAsRoot(numberOfThreads.toLong(), latestTimelineId, id)
 
@@ -170,6 +171,11 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
 
     fun updateThreadNotificationState(eventId: String, state: ThreadNotificationState) =
             queries.updateThreadNotificationStateByEventId(state.name, eventId)
+
+    /** Of [eventIds], those that are thread roots we hold at least one reply for. */
+    fun getThreadRootsAmong(roomId: String, eventIds: Collection<String>): List<String> =
+            eventIds.flatMapInChunks { queries.selectThreadRootsAmong(roomId, it).executeAsList() }
+                    .mapNotNull { it.root_thread_event_id }
 
     /** Distinct, non-redacted thread replies for the given root (matches the Realm helper's count). */
     fun countThreadReplies(roomId: String, rootThreadEventId: String): Int =
