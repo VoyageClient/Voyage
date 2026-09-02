@@ -94,8 +94,6 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
 
     override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
 
-    override fun getPopupDimensions() = fullWidthPopupDimensions()
-
     override fun onItemClick(t: AutocompleteMemberItem) {
         dispatchClick(t)
     }

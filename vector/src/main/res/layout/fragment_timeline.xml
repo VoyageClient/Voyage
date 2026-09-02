@@ -352,6 +352,17 @@
         android:translationZ="10dp"
         android:visibility="visible" />
 
+    <!-- Composer suggestions. A real view rather than a popup window, so it resizes and moves in the
+         same layout pass as the composer instead of a frame behind it. Its bottom margin tracks the
+         composer's height. -->
+    <FrameLayout
+        android:id="@+id/autocompleteContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:translationZ="10dp"
+        android:visibility="gone" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <FrameLayout

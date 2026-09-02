@@ -13,7 +13,6 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -57,8 +56,7 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
         private AutocompleteCallback<T> callback;
         private Drawable backgroundDrawable;
         private float elevationDp = 6;
-        private View anchor;
-        private boolean windowAnimation = true;
+        private ViewGroup host;
 
         private Builder(EditText source) {
             this.source = source;
@@ -123,25 +121,14 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
         }
 
         /**
-         * Anchors the popup to a view other than the source EditText, so it can be placed clear of
-         * the whole composer rather than just the text field. Defaults to the source.
+         * Renders into a container in your own layout rather than a popup window. See
+         * {@link AutocompletePopup#setHostContainer(ViewGroup)}.
          *
-         * @param anchor view to anchor the popup to
+         * @param host the container to render into
          * @return this for chaining
          */
-        public Builder<T> withAnchor(View anchor) {
-            this.anchor = anchor;
-            return this;
-        }
-
-        /**
-         * Drops the window slide animation, which draws over anything in front of the anchor.
-         * The presenter is then free to animate its own content, clipped to the popup bounds.
-         *
-         * @return this for chaining
-         */
-        public Builder<T> withoutWindowAnimation() {
-            this.windowAnimation = false;
+        public Builder<T> withHostContainer(ViewGroup host) {
+            this.host = host;
             return this;
         }
 
@@ -167,8 +154,7 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
             policy = null;
             backgroundDrawable = null;
             elevationDp = 6;
-            anchor = null;
-            windowAnimation = true;
+            host = null;
         }
     }
 
@@ -216,10 +202,8 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
                 });
             }
         });
-        popup.setAnchorView(builder.anchor != null ? builder.anchor : source);
-        // An explicit anchor means "sit on top of this", not "drop down from it".
-        popup.setShowAboveAnchor(builder.anchor != null);
-        if (!builder.windowAnimation) popup.setAnimationStyle(0);
+        popup.setHostContainer(builder.host);
+        popup.setAnchorView(source);
         popup.setGravity(Gravity.START);
         popup.setModal(false);
         popup.setBackgroundDrawable(builder.backgroundDrawable);

@@ -169,10 +169,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     }
 
     /**
-     * The inflated input row. This view fills only what the composer actually occupies, whereas the
-     * layout itself is match_parent, so a popup meant to sit on top of the composer must anchor here.
+     * The inflated input row, which carries the composer's own background. The layout around it is
+     * match_parent and painted differently, so anything matching the composer's color reads it here.
      */
-    val popupAnchor: View get() = getChildAt(0) ?: this
+    val composerSurface: View get() = getChildAt(0) ?: this
 
     init {
         inflate(context, if (classic) R.layout.composer_layout_classic else R.layout.composer_layout, this)
@@ -241,26 +241,30 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         callback?.onExpandOrCompactChange()
     }
 
-    /** Hidden while a suggestion popup sits on top of the composer, which draws its own edge there. */
+    /** Hidden while a suggestion list sits on top of the composer, which draws its own edge there. */
     fun suppressTopDivider(suppress: Boolean) {
         topDividerSuppressed = suppress
-        if (!views.relatedMessageGroup.isVisible) refreshTopDivider()
+        refreshTopDivider()
     }
 
     private fun refreshTopDivider() {
         views.composerTopDivider.visibility = when {
             !classic -> View.GONE
+            // The preview brings its own top separator.
+            views.relatedMessageGroup.isVisible -> View.GONE
             // Invisible, not gone: dropping its 1dp would resize the composer and shift the timeline.
             topDividerSuppressed -> View.INVISIBLE
             else -> View.VISIBLE
         }
+        // Whichever separator is topmost has to go, and the preview's is when it is open.
+        views.relatedMessageBackgroundTopSeparator.visibility =
+                if (topDividerSuppressed) View.INVISIBLE else View.VISIBLE
     }
 
     private fun expand(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
         if (animate) beginClassicTransition()
         views.relatedMessageGroup.isVisible = true
-        // The preview brings its own top separator.
-        views.composerTopDivider.isVisible = false
+        refreshTopDivider()
         transitionComplete?.invoke()
         callback?.onExpandOrCompactChange()
     }

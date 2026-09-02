@@ -43,27 +43,9 @@ class AutocompletePopup {
     private View mAnchorView;
     private final Rect mTempRect = new Rect();
     private boolean mModal;
-    private boolean mShowAboveAnchor;
+    private ViewGroup mHost;
+    private PopupWindow.OnDismissListener mDismissListener;
     private PopupWindow mPopup;
-
-    /**
-     * A PopupWindow does not follow its anchor once shown. The composer moves while the keyboard animates
-     * in, so without this the first popup of a session stays where the composer used to be, near the
-     * bottom of the screen, and only snaps into place on the next content change.
-     */
-    private final View.OnLayoutChangeListener mAnchorLayoutListener = new View.OnLayoutChangeListener() {
-        @Override
-        public void onLayoutChange(View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) {
-            if (t == ot && b == ob) return;
-            v.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (isShowing()) show();
-                }
-            });
-        }
-    };
-
 
     /**
      * Create a new, empty popup window capable of displaying items from a ListAdapter.
@@ -242,31 +224,6 @@ class AutocompletePopup {
     }
 
     /**
-     * Forces the popup to sit directly on top of the anchor. A plain drop-down only flips above when
-     * there is no room below, which is not the case when the anchor is a composer at the bottom of a
-     * full-height window: the space the keyboard occupies still counts as room.
-     *
-     * @param showAbove whether to place the popup above the anchor
-     */
-    void setShowAboveAnchor(boolean showAbove) {
-        mShowAboveAnchor = showAbove;
-    }
-
-    /**
-     * Turns a "below the anchor" drop-down offset into an "above the anchor" one, overlapping the anchor
-     * by a hair. Landing exactly on its top edge leaves a sub-pixel seam that shows whatever is behind the
-     * popup; the overlap hides it, and costs nothing when popup and anchor share a background color.
-     *
-     * @param heightSpec the popup's measured height
-     * @return the vertical offset to pass to the drop-down
-     */
-    private int verticalOffsetFor(int heightSpec) {
-        if (!mShowAboveAnchor || heightSpec <= 0) return mVerticalOffset;
-        final int overlap = Math.round(2 * mContext.getResources().getDisplayMetrics().density);
-        return mVerticalOffset - getAnchorView().getHeight() - heightSpec + overlap;
-    }
-
-    /**
      * @return The width of the popup window in pixels.
      */
     @SuppressWarnings("unused")
@@ -342,7 +299,20 @@ class AutocompletePopup {
     }
 
     void setOnDismissListener(PopupWindow.OnDismissListener listener) {
+        mDismissListener = listener;
         mPopup.setOnDismissListener(listener);
+    }
+
+    /**
+     * Renders into a container in the host's own layout instead of a popup window. A window is a
+     * separate surface: it is moved and resized a frame apart from the content it wraps, which shows as
+     * a seam whenever the list grows or shrinks, and it has to be positioned against an anchor by hand.
+     * A container is laid out with everything else, so it stays in step for free.
+     *
+     * @param host the container to render into, or null for a popup window
+     */
+    void setHostContainer(ViewGroup host) {
+        mHost = host;
     }
 
     /**
@@ -350,9 +320,16 @@ class AutocompletePopup {
      * will recalculate the popup's size and position.
      */
     void show() {
+        if (mHost != null) {
+            if (mView != null && mView.getParent() != mHost) {
+                mHost.removeAllViews();
+                mHost.addView(mView, new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            }
+            mHost.setVisibility(View.VISIBLE);
+            return;
+        }
         if (!ViewCompat.isAttachedToWindow(getAnchorView())) return;
-        getAnchorView().removeOnLayoutChangeListener(mAnchorLayoutListener);
-        getAnchorView().addOnLayoutChangeListener(mAnchorLayoutListener);
 
         int height = buildDropDown();
         final boolean noInputMethod = isInputMethodNotNeeded();
@@ -404,7 +381,7 @@ class AutocompletePopup {
             if (heightSpec == 0) {
                 dismiss();
             } else {
-                mPopup.update(getAnchorView(), mHorizontalOffset, verticalOffsetFor(heightSpec), widthSpec, heightSpec);
+                mPopup.update(getAnchorView(), mHorizontalOffset, mVerticalOffset, widthSpec, heightSpec);
             }
 
         } else {
@@ -436,7 +413,7 @@ class AutocompletePopup {
             // use outside touchable to dismiss drop down when touching outside of it, so
             // only set this if the dropdown is not always visible
             mPopup.setOutsideTouchable(isOutsideTouchable());
-            PopupWindowCompat.showAsDropDown(mPopup, getAnchorView(), mHorizontalOffset, verticalOffsetFor(heightSpec), mGravity);
+            PopupWindowCompat.showAsDropDown(mPopup, getAnchorView(), mHorizontalOffset, mVerticalOffset, mGravity);
         }
     }
 
@@ -444,7 +421,14 @@ class AutocompletePopup {
      * Dismiss the popup window.
      */
     void dismiss() {
-        if (mAnchorView != null) mAnchorView.removeOnLayoutChangeListener(mAnchorLayoutListener);
+        if (mHost != null) {
+            if (mView != null && mView.getParent() == mHost) mHost.removeView(mView);
+            if (mHost.getChildCount() == 0) mHost.setVisibility(View.GONE);
+            mView = null;
+            // No window to raise it for us.
+            if (mDismissListener != null) mDismissListener.onDismiss();
+            return;
+        }
         mPopup.dismiss();
         mPopup.setContentView(null);
         mView = null;
@@ -470,6 +454,10 @@ class AutocompletePopup {
      * @return {@code true} if the popup is currently showing, {@code false} otherwise.
      */
     boolean isShowing() {
+        // Per instance, not "is the container occupied": several Autocompletes share one host, and each
+        // must only report its own view. Otherwise every other one believes it is showing, and dismisses
+        // the container out from under whichever list actually owns it.
+        if (mHost != null) return mView != null && mView.getParent() == mHost && mHost.getVisibility() == View.VISIBLE;
         return mPopup.isShowing();
     }
 
@@ -491,8 +479,8 @@ class AutocompletePopup {
         mView = view;
         mView.setFocusable(true);
         mView.setFocusableInTouchMode(true);
-        ViewGroup dropDownView = mView;
-        mPopup.setContentView(dropDownView);
+        if (mHost != null) return;
+        mPopup.setContentView(mView);
         ViewGroup.LayoutParams params = mView.getLayoutParams();
         if (params != null) {
             if (params.height > 0) setHeight(params.height);

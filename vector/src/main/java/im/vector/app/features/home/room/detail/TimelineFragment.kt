@@ -546,6 +546,15 @@ class TimelineFragment :
             recorder.layoutParams = recorderParams
         }
 
+        // Sits directly on top of the composer, whatever height it currently is.
+        val suggestions = views.autocompleteContainer
+        (suggestions.layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
+            if (params.bottomMargin != composerHeight) {
+                params.bottomMargin = composerHeight
+                suggestions.layoutParams = params
+            }
+        }
+
         val recorderVisible = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
         val timelinePadding = if (state.isVoiceRecording) recorderVisible else 0
         if (views.timelineRecyclerView.paddingBottom != timelinePadding) {

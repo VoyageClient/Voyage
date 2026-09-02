@@ -44,8 +44,6 @@ class AutocompleteRoomPresenter @Inject constructor(
 
     override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_ROOMS)
 
-    override fun getPopupDimensions() = fullWidthPopupDimensions()
-
     override fun onViewShown() = slideContentUpOnShow()
 
     override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
