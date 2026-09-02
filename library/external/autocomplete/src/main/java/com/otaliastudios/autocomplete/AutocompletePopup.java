@@ -43,7 +43,26 @@ class AutocompletePopup {
     private View mAnchorView;
     private final Rect mTempRect = new Rect();
     private boolean mModal;
+    private boolean mShowAboveAnchor;
     private PopupWindow mPopup;
+
+    /**
+     * A PopupWindow does not follow its anchor once shown. The composer moves while the keyboard animates
+     * in, so without this the first popup of a session stays where the composer used to be, near the
+     * bottom of the screen, and only snaps into place on the next content change.
+     */
+    private final View.OnLayoutChangeListener mAnchorLayoutListener = new View.OnLayoutChangeListener() {
+        @Override
+        public void onLayoutChange(View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) {
+            if (t == ot && b == ob) return;
+            v.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (isShowing()) show();
+                }
+            });
+        }
+    };
 
 
     /**
@@ -223,6 +242,31 @@ class AutocompletePopup {
     }
 
     /**
+     * Forces the popup to sit directly on top of the anchor. A plain drop-down only flips above when
+     * there is no room below, which is not the case when the anchor is a composer at the bottom of a
+     * full-height window: the space the keyboard occupies still counts as room.
+     *
+     * @param showAbove whether to place the popup above the anchor
+     */
+    void setShowAboveAnchor(boolean showAbove) {
+        mShowAboveAnchor = showAbove;
+    }
+
+    /**
+     * Turns a "below the anchor" drop-down offset into an "above the anchor" one, overlapping the anchor
+     * by a hair. Landing exactly on its top edge leaves a sub-pixel seam that shows whatever is behind the
+     * popup; the overlap hides it, and costs nothing when popup and anchor share a background color.
+     *
+     * @param heightSpec the popup's measured height
+     * @return the vertical offset to pass to the drop-down
+     */
+    private int verticalOffsetFor(int heightSpec) {
+        if (!mShowAboveAnchor || heightSpec <= 0) return mVerticalOffset;
+        final int overlap = Math.round(2 * mContext.getResources().getDisplayMetrics().density);
+        return mVerticalOffset - getAnchorView().getHeight() - heightSpec + overlap;
+    }
+
+    /**
      * @return The width of the popup window in pixels.
      */
     @SuppressWarnings("unused")
@@ -307,6 +351,8 @@ class AutocompletePopup {
      */
     void show() {
         if (!ViewCompat.isAttachedToWindow(getAnchorView())) return;
+        getAnchorView().removeOnLayoutChangeListener(mAnchorLayoutListener);
+        getAnchorView().addOnLayoutChangeListener(mAnchorLayoutListener);
 
         int height = buildDropDown();
         final boolean noInputMethod = isInputMethodNotNeeded();
@@ -358,7 +404,7 @@ class AutocompletePopup {
             if (heightSpec == 0) {
                 dismiss();
             } else {
-                mPopup.update(getAnchorView(), mHorizontalOffset, mVerticalOffset, widthSpec, heightSpec);
+                mPopup.update(getAnchorView(), mHorizontalOffset, verticalOffsetFor(heightSpec), widthSpec, heightSpec);
             }
 
         } else {
@@ -390,7 +436,7 @@ class AutocompletePopup {
             // use outside touchable to dismiss drop down when touching outside of it, so
             // only set this if the dropdown is not always visible
             mPopup.setOutsideTouchable(isOutsideTouchable());
-            PopupWindowCompat.showAsDropDown(mPopup, getAnchorView(), mHorizontalOffset, mVerticalOffset, mGravity);
+            PopupWindowCompat.showAsDropDown(mPopup, getAnchorView(), mHorizontalOffset, verticalOffsetFor(heightSpec), mGravity);
         }
     }
 
@@ -398,6 +444,7 @@ class AutocompletePopup {
      * Dismiss the popup window.
      */
     void dismiss() {
+        if (mAnchorView != null) mAnchorView.removeOnLayoutChangeListener(mAnchorLayoutListener);
         mPopup.dismiss();
         mPopup.setContentView(null);
         mView = null;
@@ -435,6 +482,10 @@ class AutocompletePopup {
         return mPopup.getInputMethodMode() == PopupWindow.INPUT_METHOD_NOT_NEEDED;
     }
 
+
+    ViewGroup getView() {
+        return mView;
+    }
 
     void setView(ViewGroup view) {
         mView = view;

@@ -38,6 +38,15 @@ class AutocompleteCommandPresenter @AssistedInject constructor(
         return controller.adapter
     }
 
+    override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_COMMANDS)
+
+    override fun onViewShown() = slideContentUpOnShow()
+
+    override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
+
+    // Full width so a long usage line like /massredact's fits without being clipped.
+    override fun getPopupDimensions() = fullWidthPopupDimensions()
+
     override fun onItemClick(t: Command) {
         dispatchClick(t)
     }
@@ -61,10 +70,19 @@ class AutocompleteCommandPresenter @AssistedInject constructor(
                         it.startsWith(query)
                     }
                 }
+        // Keep the current rows on screen so they are what animates away, rather than collapsing first.
+        if (data.isEmpty()) {
+            requestDismiss()
+            return
+        }
         controller.setData(data)
     }
 
     fun clear() {
         controller.listener = null
+    }
+
+    companion object {
+        private const val MAX_VISIBLE_COMMANDS = 3
     }
 }

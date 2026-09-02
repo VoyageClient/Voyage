@@ -3,52 +3,49 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:colorBackground"
     android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
     android:orientation="horizontal"
-    android:padding="8dp"
+    android:paddingStart="16dp"
+    android:paddingLeft="16dp"
+    android:paddingEnd="16dp"
+    android:paddingRight="16dp"
     tools:viewBindingIgnore="true">
 
     <ImageView
         android:id="@+id/matrixItemAutocompleteAvatar"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_gravity="center_vertical"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
         tools:src="@sample/user_round_avatars" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/matrixItemAutocompleteName"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:orientation="vertical">
+        android:layout_marginStart="12dp"
+        android:layout_marginLeft="12dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textAppearance="@style/TextAppearance.Vector.Body"
+        android:textColor="?vctr_content_primary"
+        tools:text="Alice" />
 
-        <TextView
-            android:id="@+id/matrixItemAutocompleteName"
-            style="@style/Widget.Vector.TextView.Caption"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:maxLines="1"
-            android:textColor="?vctr_content_primary"
-            android:textStyle="bold"
-            tools:text="name" />
-
-        <TextView
-            android:id="@+id/matrixItemAutocompleteSubname"
-            style="@style/Widget.Vector.TextView.Caption"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginTop="2dp"
-            android:maxLines="1"
-            android:textColor="?vctr_content_secondary"
-            android:visibility="gone"
-            tools:text="name"
-            tools:visibility="visible" />
-
-    </LinearLayout>
+    <TextView
+        android:id="@+id/matrixItemAutocompleteSubname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginLeft="12dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textAppearance="@style/TextAppearance.Vector.Caption"
+        android:textColor="?vctr_content_secondary"
+        android:visibility="gone"
+        tools:text="\@alice:matrix.org"
+        tools:visibility="visible" />
 
 </LinearLayout>

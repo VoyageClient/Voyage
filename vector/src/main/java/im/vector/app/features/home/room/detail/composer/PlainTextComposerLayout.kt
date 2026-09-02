@@ -13,6 +13,7 @@ import android.text.Editable
 import android.text.SpannableStringBuilder
 import android.text.format.DateUtils
 import android.util.AttributeSet
+import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -167,6 +168,12 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         lastSpecialMode?.let { renderSpecialMode(it) }
     }
 
+    /**
+     * The inflated input row. This view fills only what the composer actually occupies, whereas the
+     * layout itself is match_parent, so a popup meant to sit on top of the composer must anchor here.
+     */
+    val popupAnchor: View get() = getChildAt(0) ?: this
+
     init {
         inflate(context, if (classic) R.layout.composer_layout_classic else R.layout.composer_layout, this)
         views = ComposerLayoutBinding.bind(this)
@@ -222,15 +229,31 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     private var lastSpecialModeKey: Pair<String, String>? = null
     private var lastSpecialMode: MessageComposerMode.Special? = null
+    private var topDividerSuppressed = false
 
     private fun collapse(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
         lastSpecialModeKey = null
         lastSpecialMode = null
         if (animate) beginClassicTransition()
         views.relatedMessageGroup.isVisible = false
-        views.composerTopDivider.isVisible = classic
+        refreshTopDivider()
         transitionComplete?.invoke()
         callback?.onExpandOrCompactChange()
+    }
+
+    /** Hidden while a suggestion popup sits on top of the composer, which draws its own edge there. */
+    fun suppressTopDivider(suppress: Boolean) {
+        topDividerSuppressed = suppress
+        if (!views.relatedMessageGroup.isVisible) refreshTopDivider()
+    }
+
+    private fun refreshTopDivider() {
+        views.composerTopDivider.visibility = when {
+            !classic -> View.GONE
+            // Invisible, not gone: dropping its 1dp would resize the composer and shift the timeline.
+            topDividerSuppressed -> View.INVISIBLE
+            else -> View.VISIBLE
+        }
     }
 
     private fun expand(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
@@ -411,7 +434,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val event = restored ?: specialMode.event
         val defaultContent = specialMode.defaultContent
 
-        val surfaceColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface)
+        // The classic composer's bar is the toolbar color, and the preview sits flush on it; colorSurface
+        // matches that only in some themes.
+        val surfaceColor = if (classic) {
+            ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+        } else {
+            ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface)
+        }
         views.relatedMessageBackground.setBackgroundColor(
                 // Only recovered content is marked; the bare "Message removed" placeholder isn't.
                 if (restored != null) {

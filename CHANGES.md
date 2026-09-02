@@ -44,7 +44,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Message pinning**: pin and unpin messages, sorted by most recent, with a pinned-messages banner you can turn off.
 
-- **Mass redactions**: bulk redaction via `/massredact`, with a cooldown and an optional `from:`/`until:` time range. Redacting a message also redacts its edits and reactions and applies live to open timelines, "remove" is renamed to "redact", and the confirmation dialog can be skipped.
+- **Mass redactions**: bulk redaction via `/massredact`, with an optional delay and `after:`/`before:` time range, redacting only messages unless you ask for everything. Redacting a message also redacts its edits and reactions and applies live to open timelines, "remove" is renamed to "redact", and the confirmation dialog can be skipped.
 
 - **Redact on kick/ban**: kicking or banning someone offers to redact everything they sent in the room, from the member's profile or as `/kick @user:server redact`.
 
@@ -53,6 +53,8 @@ New features, improvements, and notable removals in this fork.
 - **Classic composer**: the message composer goes back to the flat layout it had before 2020. No rounded input box, a divider above it, accent-colored glyphs, a bare `+` for the share options, the emoji toggle outside the text box, and a plain paper-plane send button. On by default; turn it off under Settings → Preferences for the boxed composer.
 
 - **Slash commands**: added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/encrypt`, and `/trans`/`/transme` for trans-flag gradient messages, plus the ability to run slash commands on a reply or an edit. `/rainbow` paints nheko's vivid gradient instead of washed-out CIELAB colors.
+
+- **Composer suggestions**: the `/`, `@`, `#` and `:` suggestion lists span the full width above the composer and slide out from behind it, showing three separated entries at a time.
 
 - **Sed substitutions**: maubot-style `s/typo/fixed/` built into the composer, so no bot has to be in the room. Your own messages are corrected as an edit, everyone else's with a notice reply. Replying to a message aims the substitution at it.
 

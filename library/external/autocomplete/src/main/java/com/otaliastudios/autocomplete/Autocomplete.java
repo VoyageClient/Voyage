@@ -13,6 +13,8 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.PopupWindow;
@@ -55,6 +57,8 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
         private AutocompleteCallback<T> callback;
         private Drawable backgroundDrawable;
         private float elevationDp = 6;
+        private View anchor;
+        private boolean windowAnimation = true;
 
         private Builder(EditText source) {
             this.source = source;
@@ -119,6 +123,29 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
         }
 
         /**
+         * Anchors the popup to a view other than the source EditText, so it can be placed clear of
+         * the whole composer rather than just the text field. Defaults to the source.
+         *
+         * @param anchor view to anchor the popup to
+         * @return this for chaining
+         */
+        public Builder<T> withAnchor(View anchor) {
+            this.anchor = anchor;
+            return this;
+        }
+
+        /**
+         * Drops the window slide animation, which draws over anything in front of the anchor.
+         * The presenter is then free to animate its own content, clipped to the popup bounds.
+         *
+         * @return this for chaining
+         */
+        public Builder<T> withoutWindowAnimation() {
+            this.windowAnimation = false;
+            return this;
+        }
+
+        /**
          * Builds an Autocomplete instance. This is enough for autocomplete to be set up,
          * but you can hold a reference to the object and call its public methods.
          *
@@ -140,6 +167,8 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
             policy = null;
             backgroundDrawable = null;
             elevationDp = 6;
+            anchor = null;
+            windowAnimation = true;
         }
     }
 
@@ -160,6 +189,8 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
     private EditText source;
 
     private boolean block;
+    private boolean dismissing;
+    private boolean pendingShow;
     private boolean disabled;
     private boolean openBefore;
     private String lastQuery = "null";
@@ -172,7 +203,23 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
 
         // Set up popup
         popup = new AutocompletePopup(source.getContext());
-        popup.setAnchorView(source);
+        presenter.registerDismissRequest(new Runnable() {
+            @Override
+            public void run() {
+                // Posted: this is raised from inside the presenter's own data pipeline, and dismissing
+                // re-enters its lifecycle (hideView/onViewHidden) synchronously if run inline.
+                source.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dismissPopup();
+                    }
+                });
+            }
+        });
+        popup.setAnchorView(builder.anchor != null ? builder.anchor : source);
+        // An explicit anchor means "sit on top of this", not "drop down from it".
+        popup.setShowAboveAnchor(builder.anchor != null);
+        if (!builder.windowAnimation) popup.setAnimationStyle(0);
         popup.setGravity(Gravity.START);
         popup.setModal(false);
         popup.setBackgroundDrawable(builder.backgroundDrawable);
@@ -190,6 +237,8 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
         popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
+                dismissing = false;
+                pendingShow = false;
                 lastQuery = "null";
                 if (callback != null) callback.onPopupVisibilityChanged(false);
                 boolean saved = block;
@@ -251,20 +300,35 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
      * @param query query text.
      */
     public void showPopup(@NonNull CharSequence query) {
-        if (isPopupShowing() && lastQuery.equals(query.toString())) return;
+        if ((isPopupShowing() || pendingShow) && lastQuery.equals(query.toString())) return;
         lastQuery = query.toString();
 
         log("showPopup: called with filter "+query);
-        if (!isPopupShowing()) {
+        if (!isPopupShowing() && !pendingShow) {
             log("showPopup: showing");
             presenter.registerDataSetObserver(new Observer()); // Calling new to avoid leaking... maybe...
             popup.setView(presenter.getView());
             presenter.showView();
-            popup.show();
-            if (callback != null) callback.onPopupVisibilityChanged(true);
+            // Deliberately not shown yet: the window would be created and placed for an empty list, with
+            // the presenter's full-size view already inside it, drawing across the anchor until the query
+            // returns and moves it. Wait for the first data instead, then show at the right size and place.
+            pendingShow = true;
         }
-        log("showPopup: popup should be showing... "+isPopupShowing());
         presenter.onQuery(query);
+        // The observer only fires when the data actually changes. Re-opening with the same suggestions
+        // produces no callback, so pendingShow would stick and block every later trigger.
+        if (pendingShow) {
+            source.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (pendingShow && presenter.hasContent()) {
+                        pendingShow = false;
+                        popup.show();
+                        if (callback != null) callback.onPopupVisibilityChanged(true);
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -273,9 +337,41 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
      * To control when this is called, provide a good implementation of {@link AutocompletePolicy}.
      */
     public void dismissPopup() {
-        if (isPopupShowing()) {
-            popup.dismiss();
+        if (pendingShow) {
+            // Never made it on screen, so the popup's OnDismissListener will not run. Do its work here:
+            // without policy.onDismiss the policy keeps its marker span on the text, and those accumulate
+            // until every keystroke copies thousands of spans and the main thread wedges.
+            pendingShow = false;
+            lastQuery = "null";
+            boolean saved = block;
+            block = true;
+            policy.onDismiss(source.getText());
+            block = saved;
+            presenter.hideView();
+            return;
         }
+        if (isPopupShowing()) {
+            if (dismissing) return;
+            dismissing = true;
+            presenter.animateViewOut(new Runnable() {
+                @Override
+                public void run() {
+                    dismissing = false;
+                    if (isPopupShowing()) popup.dismiss();
+                }
+            });
+        }
+    }
+
+    /**
+     * Showing, or shown as soon as the presenter publishes data. The policy adds a marker span every time
+     * it is asked whether to show, so a "not showing" answer during the pending window would have it add
+     * one per keystroke until copying them stalls the main thread.
+     *
+     * @return whether the popup is on screen or about to be
+     */
+    private boolean isPopupActive() {
+        return isPopupShowing() || pendingShow;
     }
 
     /**
@@ -352,10 +448,10 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
 
         boolean b = block;
         block = true; // policy might add spans or other stuff.
-        if (isPopupShowing() && policy.shouldDismissPopup(sp, cursor)) {
+        if (isPopupActive() && policy.shouldDismissPopup(sp, cursor)) {
             log("onTextChanged: dismissing");
             dismissPopup();
-        } else if (isPopupShowing() || policy.shouldShowPopup(sp, cursor)) {
+        } else if (isPopupActive() || policy.shouldShowPopup(sp, cursor)) {
             // LOG.now("onTextChanged: updating with filter "+policy.getQuery(sp));
             showPopup(policy.getQuery(sp));
         }
@@ -380,7 +476,7 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
             log("onSpanChanged: block is "+block);
             boolean b = block;
             block = true;
-            if (!isPopupShowing() && policy.shouldShowPopup(text, nstart)) {
+            if (!isPopupActive() && policy.shouldShowPopup(text, nstart)) {
                 showPopup(policy.getQuery(text));
             }
             block = b;
@@ -392,13 +488,25 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
 
         @Override
         public void onChanged() {
-            // ??? Not sure this is needed...
-            ui.post(this);
+            // Resize in the same frame as the content changed. Posting leaves the window at its old
+            // geometry for a frame, which shows as empty space where a row used to be when the list
+            // shrinks, and as a jump when it grows. Fall back to posting if we are inside a layout pass,
+            // where measuring the popup's view is not allowed.
+            ViewGroup content = popup.getView();
+            if (!pendingShow && isPopupShowing() && content != null && !content.isInLayout()) {
+                popup.show();
+            } else {
+                ui.post(this);
+            }
         }
 
         @Override
         public void run() {
-            if (isPopupShowing()) {
+            if (pendingShow) {
+                pendingShow = false;
+                popup.show();
+                if (callback != null) callback.onPopupVisibilityChanged(true);
+            } else if (isPopupShowing()) {
                 // Call show again to revisit width and height.
                 popup.show();
             }

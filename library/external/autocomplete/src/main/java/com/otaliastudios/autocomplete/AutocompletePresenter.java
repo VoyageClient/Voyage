@@ -16,6 +16,7 @@ public abstract class AutocompletePresenter<T> {
 
     private Context context;
     private boolean isShowing;
+    private Runnable dismissRequest;
 
     @SuppressWarnings("WeakerAccess")
     public AutocompletePresenter(@NonNull Context context) {
@@ -84,6 +85,37 @@ public abstract class AutocompletePresenter<T> {
      * Called when the popup is hidden, to release resources.
      */
     protected abstract void onViewHidden();
+
+    /**
+     * @return whether this presenter currently has something to display. Used to show a popup whose data
+     * did not change since last time, where no data-set callback is raised to trigger it.
+     */
+    public boolean hasContent() {
+        return true;
+    }
+
+    /**
+     * Asks for the popup to be dismissed, going through the same animated path as any other dismissal.
+     * Call this instead of publishing an empty result set: emptying the list first collapses the popup to
+     * a sliver, and what animates away is then a bare strip rather than the items the user was looking at.
+     */
+    protected final void requestDismiss() {
+        if (dismissRequest != null) dismissRequest.run();
+    }
+
+    final void registerDismissRequest(@NonNull Runnable request) {
+        dismissRequest = request;
+    }
+
+    /**
+     * Called just before the popup is dismissed, so the presenter can animate its content out.
+     * Implementations must invoke {@code onEnd} when done. The default dismisses immediately.
+     *
+     * @param onEnd run this to let the dismissal proceed
+     */
+    protected void animateViewOut(@NonNull Runnable onEnd) {
+        onEnd.run();
+    }
 
     /**
      * @return this presenter context

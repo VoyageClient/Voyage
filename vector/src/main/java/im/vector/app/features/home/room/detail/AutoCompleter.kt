@@ -7,10 +7,12 @@
 
 package im.vector.app.features.home.room.detail
 
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.Spannable
+import android.view.View
 import android.widget.EditText
 import com.otaliastudios.autocomplete.Autocomplete
 import com.otaliastudios.autocomplete.AutocompleteCallback
@@ -38,6 +40,7 @@ import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.ui.styles.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -96,6 +99,9 @@ class AutoCompleter @AssistedInject constructor(
      */
     var isEmojiAutocompleteSuppressed: () -> Boolean = { false }
 
+    /** Raised while a suggestion popup covers the top of the composer. */
+    var onSuggestionsVisibilityChanged: (Boolean) -> Unit = {}
+
     // needSpaceBefore = true: only trigger when `:` starts a word, so things like `https://`, `host:port`
     // and `12:30` don't pop the emoji picker per keystroke.
     private val emojiCharPolicy = object : AutocompletePolicy {
@@ -118,14 +124,37 @@ class AutoCompleter @AssistedInject constructor(
         emojiAutocomplete?.dismissPopup()
     }
 
-    fun setup(editText: EditText) {
+    /** [popupAnchor] is what the suggestion popups sit clear of; defaults to the text field itself. */
+    fun setup(editText: EditText, popupAnchor: View? = null) {
         this.editText = editText
         glideRequests = GlideApp.with(editText)
-        val backgroundDrawable = ColorDrawable(ThemeUtils.getColor(editText.context, android.R.attr.colorBackground))
-        setupCommands(backgroundDrawable, editText)
-        setupMembers(backgroundDrawable, editText)
-        setupEmojis(backgroundDrawable, editText)
-        setupRooms(backgroundDrawable, editText)
+        val anchor = popupAnchor ?: editText
+        autocompleteMemberPresenter = autocompleteMemberPresenterFactory.create(roomId)
+        // Copy whatever the composer actually paints rather than re-resolving a theme attribute: the
+        // classic composer sets part of its background at runtime, so the view is the only source of truth.
+        val popupBackground = {
+            (anchor.background as? ColorDrawable)?.color
+                    ?: ThemeUtils.getColor(editText.context, R.attr.vctr_toolbar_background)
+        }
+        val popupDivider = { ThemeUtils.getColor(editText.context, R.attr.vctr_list_separator) }
+        listOf(
+                autocompleteCommandPresenter,
+                autocompleteMemberPresenter,
+                autocompleteRoomPresenter,
+                autocompleteEmojiPresenter,
+        ).forEach {
+            it.popupBackgroundColor = popupBackground
+            it.popupDividerColor = popupDivider
+            it.popupAnchor = { anchor }
+            it.onContentVisibilityChanged = { shown -> onSuggestionsVisibilityChanged(shown) }
+        }
+        // Transparent so the window reserves no visible region: only the sliding content is painted, and
+        // the area it has not covered yet stays clear instead of flashing a block of composer color.
+        val transparent = ColorDrawable(Color.TRANSPARENT)
+        setupCommands(transparent, editText, anchor)
+        setupMembers(transparent, editText, anchor)
+        setupRooms(transparent, editText, anchor)
+        setupEmojis(transparent, editText, anchor)
     }
 
     fun setEnabled(isEnabled: Boolean) =
@@ -149,12 +178,14 @@ class AutoCompleter @AssistedInject constructor(
         emojiAutocomplete = null
     }
 
-    private fun setupCommands(backgroundDrawable: Drawable, editText: EditText) {
+    private fun setupCommands(backgroundDrawable: Drawable, editText: EditText, anchor: View) {
         autocompletes += Autocomplete.on<Command>(editText)
                 .with(commandAutocompletePolicy)
                 .with(autocompleteCommandPresenter)
-                .with(ELEVATION_DP)
+                .with(NO_ELEVATION_DP)
                 .with(backgroundDrawable)
+                .withAnchor(anchor)
+                .withoutWindowAnimation()
                 .with(object : AutocompleteCallback<Command> {
                     override fun onPopupItemClicked(editable: Editable, item: Command): Boolean {
                         editable.clear()
@@ -170,21 +201,21 @@ class AutoCompleter @AssistedInject constructor(
                 .build()
     }
 
-    private fun setupMembers(backgroundDrawable: ColorDrawable, editText: EditText) {
-        autocompleteMemberPresenter = autocompleteMemberPresenterFactory.create(roomId)
+    private fun setupMembers(backgroundDrawable: Drawable, editText: EditText, anchor: View) {
         autocompletes += Autocomplete.on<AutocompleteMemberItem>(editText)
                 .with(CharPolicy(TRIGGER_AUTO_COMPLETE_MEMBERS, true))
                 .with(autocompleteMemberPresenter)
-                .with(ELEVATION_DP)
+                .with(NO_ELEVATION_DP)
                 .with(backgroundDrawable)
+                .withAnchor(anchor)
+                .withoutWindowAnimation()
                 .with(object : AutocompleteCallback<AutocompleteMemberItem> {
                     override fun onPopupItemClicked(editable: Editable, item: AutocompleteMemberItem): Boolean {
                         val matrixItem = when (item) {
-                            is AutocompleteMemberItem.Header -> null // do nothing header is not clickable
                             is AutocompleteMemberItem.RoomMember -> item.roomMemberSummary.toMatrixItem()
                                     .also { mentionFrequencyDataSource.record(roomId, item.roomMemberSummary.userId) }
                             is AutocompleteMemberItem.Everyone -> item.roomSummary.toEveryoneInRoomMatrixItem()
-                        } ?: return false
+                        }
                         val bodyName = (item as? AutocompleteMemberItem.RoomMember)?.roomMemberSummary?.bodyName()
 
                         insertMatrixItem(editText, editable, TRIGGER_AUTO_COMPLETE_MEMBERS, matrixItem, bodyName)
@@ -198,12 +229,14 @@ class AutoCompleter @AssistedInject constructor(
                 .build()
     }
 
-    private fun setupRooms(backgroundDrawable: ColorDrawable, editText: EditText) {
+    private fun setupRooms(backgroundDrawable: Drawable, editText: EditText, anchor: View) {
         autocompletes += Autocomplete.on<RoomSummary>(editText)
                 .with(CharPolicy(TRIGGER_AUTO_COMPLETE_ROOMS, true))
                 .with(autocompleteRoomPresenter)
-                .with(ELEVATION_DP)
+                .with(NO_ELEVATION_DP)
                 .with(backgroundDrawable)
+                .withAnchor(anchor)
+                .withoutWindowAnimation()
                 .with(object : AutocompleteCallback<RoomSummary> {
                     override fun onPopupItemClicked(editable: Editable, item: RoomSummary): Boolean {
                         insertMatrixItem(editText, editable, TRIGGER_AUTO_COMPLETE_ROOMS, item.toRoomAliasMatrixItem())
@@ -216,7 +249,7 @@ class AutoCompleter @AssistedInject constructor(
                 .build()
     }
 
-    private fun setupEmojis(backgroundDrawable: Drawable, editText: EditText) {
+    private fun setupEmojis(backgroundDrawable: Drawable, editText: EditText, anchor: View) {
         if (!vectorPreferences.isEmojiAutocompleteEnabled()) return
 
         // Emotes load asynchronously; if they arrive after the popup was dismissed for lack of matches, re-show it.
@@ -232,8 +265,10 @@ class AutoCompleter @AssistedInject constructor(
         emojiAutocomplete = Autocomplete.on<AutocompleteEmojiData>(editText)
                 .with(emojiCharPolicy)
                 .with(autocompleteEmojiPresenter)
-                .with(ELEVATION_DP)
+                .with(NO_ELEVATION_DP)
                 .with(backgroundDrawable)
+                .withAnchor(anchor)
+                .withoutWindowAnimation()
                 .with(object : AutocompleteCallback<AutocompleteEmojiData> {
                     override fun onPopupItemClicked(editable: Editable, item: AutocompleteEmojiData): Boolean {
                         // Infer that the last ":" before the current cursor position is the original popup trigger
@@ -314,7 +349,8 @@ class AutoCompleter @AssistedInject constructor(
     }
 
     companion object {
-        private const val ELEVATION_DP = 6f
+        // The popups sit flush on the composer; an elevation shadow would show as a gap between them.
+        private const val NO_ELEVATION_DP = 0f
         private const val TRIGGER_AUTO_COMPLETE_MEMBERS = '@'
         private const val TRIGGER_AUTO_COMPLETE_ROOMS = '#'
         private const val TRIGGER_AUTO_COMPLETE_EMOJIS = ':'

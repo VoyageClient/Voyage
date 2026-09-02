@@ -62,6 +62,7 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomType
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.user.model.User
@@ -739,7 +740,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     private fun handleRedactAllMessages() = withState { state ->
         val roomId = state.roomId ?: return@withState
         val displayName = state.userMatrixItem()?.getBestName() ?: state.userId
-        val result = massRedactionManager.start(roomId, state.userId, displayName, delayMs = 0L)
+        val result = massRedactionManager.start(roomId, state.userId, displayName, delayMs = 0L, range = MassRedactionRange(messagesOnly = true))
         if (result == MassRedactionManager.StartResult.AlreadyRunning) {
             _viewEvents.post(RoomMemberProfileViewEvents.MassRedactionAlreadyRunning)
         }

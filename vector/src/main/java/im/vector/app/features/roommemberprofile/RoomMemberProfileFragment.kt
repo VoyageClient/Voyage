@@ -618,7 +618,10 @@ class RoomMemberProfileFragment :
             val target = if (bestName != null && bestName != state.userId) "$bestName (${state.userId})" else state.userId
             MaterialAlertDialogBuilder(requireActivity())
                     .setTitle(CommonStrings.mass_redaction_confirmation_title)
-                    .setMessage(getString(CommonStrings.mass_redaction_confirmation_message, target))
+                    .setMessage(
+                            getString(CommonStrings.mass_redaction_confirmation_message, target) +
+                                    "\n\n" + getString(CommonStrings.mass_redaction_confirmation_scope_messages)
+                    )
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         viewModel.handle(RoomMemberProfileAction.RedactAllMessages)
                     }

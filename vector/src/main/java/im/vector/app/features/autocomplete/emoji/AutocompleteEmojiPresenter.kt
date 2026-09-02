@@ -60,6 +60,14 @@ class AutocompleteEmojiPresenter @Inject constructor(
         return controller.adapter
     }
 
+    override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_EMOJIS)
+
+    override fun getPopupDimensions() = fullWidthPopupDimensions()
+
+    override fun onViewShown() = slideContentUpOnShow()
+
+    override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
+
     override fun onItemClick(t: AutocompleteEmojiData) {
         dispatchClick(t)
     }
@@ -85,7 +93,9 @@ class AutocompleteEmojiPresenter @Inject constructor(
                 }
             }.map { AutocompleteEmojiData.Emoji(it) }
             // Custom emotes first (MSC2545 suggestion priority over unicode emojis).
-            controller.setData(emotes + emojis)
+            val data = emotes + emojis
+            // Keep the current rows on screen so they are what animates away, rather than collapsing first.
+            if (data.isEmpty()) requestDismiss() else controller.setData(data)
             if (signalArrival && emotes.isNotEmpty()) {
                 onEmotesArrived?.invoke()
             }
@@ -100,5 +110,6 @@ class AutocompleteEmojiPresenter @Inject constructor(
 
     companion object {
         private const val QUERY_DEBOUNCE_MS = 80L
+        private const val MAX_VISIBLE_EMOJIS = 3
     }
 }
