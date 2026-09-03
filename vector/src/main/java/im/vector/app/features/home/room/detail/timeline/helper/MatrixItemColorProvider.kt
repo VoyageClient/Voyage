@@ -188,10 +188,18 @@ class MatrixItemColorProvider @Inject constructor(
                         val palette = peoplePalette.takeIf { it != PeopleColorPalette.NONE } ?: roomPalette.peopleEquivalent
                         palette.colorFor(matrixItem.id, light)
                     } else {
-                        roomPalette.colorFor(matrixItem.id, light)
+                        roomPalette.colorFor(colorKeyOf(matrixItem), light)
                     }
             )
         }
+    }
+
+    // A room pill is built from an alias, everything else from the room id; hash the room id either
+    // way, or the pill's letter placeholder is a different color from the room's avatar elsewhere.
+    private fun colorKeyOf(matrixItem: MatrixItem): String {
+        if (matrixItem !is MatrixItem.RoomAliasItem) return matrixItem.id
+        val session = activeSessionHolder.get().getSafeActiveSession() ?: return matrixItem.id
+        return session.roomService().getRoomSummary(matrixItem.id)?.roomId ?: matrixItem.id
     }
 
     fun defaultColorHex(userId: String, light: Boolean = themeProvider.isLightTheme()): String =

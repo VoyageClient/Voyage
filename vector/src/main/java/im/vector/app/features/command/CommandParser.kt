@@ -93,7 +93,9 @@ class CommandParser @Inject constructor(
                             val trimmedPlainTextMessage = extractMessage(textMessage)?.second?.toString().orEmpty()
                             ParsedCommand.SendFormattedText(message = trimmedPlainTextMessage, formattedMessage = message.toString())
                         } else {
-                            ParsedCommand.SendPlainText(message = message)
+                            // toString(): /plain sends what the composer literally reads as, so the
+                            // mention pills go the same way as the markdown.
+                            ParsedCommand.SendPlainText(message = message.toString())
                         }
                     } else {
                         ParsedCommand.ErrorSyntax(Command.PLAIN)

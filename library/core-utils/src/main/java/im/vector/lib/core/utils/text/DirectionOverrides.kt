@@ -59,18 +59,22 @@ object DirectionOverridesTransformation : ReplacementTransformationMethod() {
 
 /** TextView's built-in copy/cut put the TRANSFORMED text on the clipboard, which would leak the
  *  substitute glyph instead of the real characters. EditTexts using [DirectionOverridesTransformation]
- *  call this from onTextContextMenuItem so the clipboard receives the raw Editable slice. */
-fun EditText.copyRawSelection(menuId: Int): Boolean {
+ *  call this from onTextContextMenuItem so the clipboard receives the raw Editable slice.
+ *  [expandSpans] lets a caller rewrite spans that stand in for text (mention pills) into what should
+ *  actually be copied; returning the input unchanged means there was nothing to expand. */
+fun EditText.copyRawSelection(menuId: Int, expandSpans: (CharSequence) -> CharSequence = { it }): Boolean {
     if (menuId != android.R.id.copy && menuId != android.R.id.cut) return false
-    if (transformationMethod !is DirectionOverridesTransformation) return false
     val editable = text ?: return false
     val min = minOf(selectionStart, selectionEnd).coerceAtLeast(0)
     val max = maxOf(selectionStart, selectionEnd).coerceAtLeast(0)
     if (min >= max) return false
+    val selection = editable.subSequence(min, max)
+    val expanded = expandSpans(selection)
+    if (transformationMethod !is DirectionOverridesTransformation && expanded === selection) return false
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     // toString(): a Spanned here is coerced back to HTML by the receiving app, exporting styling the
     // composer never showed — including paragraph indents that shift the pasted line.
-    clipboard.setPrimaryClip(ClipData.newPlainText(null, editable.subSequence(min, max).toString()))
+    clipboard.setPrimaryClip(ClipData.newPlainText(null, expanded.toString()))
     if (menuId == android.R.id.cut) {
         editable.delete(min, max)
     } else {
