@@ -34,6 +34,8 @@ import im.vector.app.features.autocomplete.room.AutocompleteRoomPresenter
 import im.vector.app.features.command.Command
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.composer.ComposerEditText
+import im.vector.app.features.home.room.detail.composer.findMentions
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.imagepack.ImagePackProvider
@@ -46,11 +48,19 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.pushrules.SenderNotificationPermissionCondition
+import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toEveryoneInRoomMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.api.util.toRoomAliasMatrixItem
+import java.util.concurrent.ConcurrentHashMap
 
 class AutoCompleter @AssistedInject constructor(
         @Assisted val roomId: String,
@@ -64,6 +74,7 @@ class AutoCompleter @AssistedInject constructor(
         private val vectorPreferences: VectorPreferences,
         private val imagePackProvider: ImagePackProvider,
         private val mentionFrequencyDataSource: MentionFrequencyDataSource,
+        private val session: Session,
 ) {
 
     private lateinit var autocompleteMemberPresenter: AutocompleteMemberPresenter
@@ -79,6 +90,12 @@ class AutoCompleter @AssistedInject constructor(
     }
 
     private var editText: EditText? = null
+
+    // What a mention needs to pill, resolved once: a lookup the pill waits on shows as a lag, then a
+    // flicker as the text is replaced under the writer. Published to the composer thread by the flag.
+    @Volatile private var everyoneResolved = false
+    private var everyoneItem: MatrixItem? = null
+    private val knownAliases = ConcurrentHashMap<String, MatrixItem>()
 
     fun enterSpecialMode(allowCommands: Boolean = false) {
         commandAutocompletePolicy.enabled = allowCommands
@@ -148,6 +165,8 @@ class AutoCompleter @AssistedInject constructor(
             it.popupDividerColor = divider
             it.onContentVisibilityChanged = { shown -> onSuggestionsVisibilityChanged(shown) }
         }
+        (editText as? ComposerEditText)?.onMentionCompleted = ::pillifyMention
+        emoteScope.launch(Dispatchers.IO) { everyoneItem() }
         setupCommands(editText, suggestionsContainer)
         setupMembers(editText, suggestionsContainer)
         setupRooms(editText, suggestionsContainer)
@@ -161,6 +180,7 @@ class AutoCompleter @AssistedInject constructor(
         }
 
     fun clear() {
+        (this.editText as? ComposerEditText)?.onMentionCompleted = null
         this.editText = null
         emoteScope.coroutineContext.cancelChildren()
         autocompleteEmojiPresenter.clear()
@@ -301,6 +321,96 @@ class AutoCompleter @AssistedInject constructor(
             autocomplete.showPopup(emojiCharPolicy.getQuery(text))
         }
     }
+
+    /**
+     * Shows a mention written out in the composer as a pill, so it sends as a real mention. A room
+     * mention only pills where it will actually notify, and an alias only where it names a room we
+     * know, so those two wait on their lookup the first time rather than pilling and taking it back.
+     */
+    private fun pillifyMention(editable: Editable, start: Int, end: Int) {
+        val mention = editable.substring(start, end)
+        when {
+            mention == MatrixItem.NOTIFY_EVERYONE -> {
+                if (everyoneResolved) {
+                    everyoneItem?.let { insertPill(editable, it, start, mention.length, bodyText = mention) }
+                } else {
+                    pillifyResolved(editable, mention, start, bodyText = mention) { everyoneItem() }
+                }
+            }
+            mention.startsWith(TRIGGER_AUTO_COMPLETE_ROOMS) -> {
+                // The body carries the room's name, as an autocompleted room pill does.
+                knownAliases[mention]
+                        ?.let { insertPill(editable, it, start, mention.length, bodyText = null) }
+                        ?: pillifyResolved(editable, mention, start, bodyText = null) { aliasItem(mention) }
+            }
+            else -> {
+                // Drawn from the id alone; the member (name, avatar) is looked up off the main thread below.
+                insertPill(editable, MatrixItem.UserItem(mention), start, mention.length, bodyText = mention)
+                        ?.let { resolveUserPill(editable, it, mention) }
+            }
+        }
+    }
+
+    private fun insertPill(editable: Editable, matrixItem: MatrixItem, start: Int, length: Int, bodyText: String?): PillImageSpan? {
+        val editText = editText ?: return null
+        val span = PillImageSpan(glideRequests, avatarRenderer, editText.context, matrixItem, bodyText = bodyText)
+        span.bind(editText)
+        editable.setPillSpan(span, start, start + length)
+        return span
+    }
+
+    private fun everyoneItem(): MatrixItem? {
+        if (!everyoneResolved) {
+            everyoneItem = room()?.roomSummary()?.takeIf { canNotifyEveryone() }?.toEveryoneInRoomMatrixItem()
+            everyoneResolved = true
+        }
+        return everyoneItem
+    }
+
+    private fun aliasItem(alias: String): MatrixItem? =
+            session.roomService().getRoomSummary(alias)?.toRoomAliasMatrixItem()?.also { knownAliases[alias] = it }
+
+    // Once the member is known the pill carries their name, exactly as an autocompleted one does: the
+    // id is only what an unknown user falls back to.
+    private fun resolveUserPill(editable: Editable, placeholder: PillImageSpan, userId: String) {
+        emoteScope.launch {
+            val member = withContext(Dispatchers.IO) { room()?.membershipService()?.getRoomMember(userId) } ?: return@launch
+            val editText = editText ?: return@launch
+            val start = editable.getSpanStart(placeholder)
+            val end = editable.getSpanEnd(placeholder)
+            if (start < 0 || end <= start) return@launch
+            editable.removeSpan(placeholder)
+            val resolved = PillImageSpan(
+                    glideRequests, avatarRenderer, editText.context, member.toMatrixItem(), bodyText = member.bodyName()
+            )
+            resolved.bind(editText)
+            editable.setSpan(resolved, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+    }
+
+    /**
+     * Pills [mention] once [resolve] says what it points at, leaving it as plain text if nothing does.
+     * The text may have moved (or gone) while the lookup ran, so the range is located afresh.
+     */
+    private fun pillifyResolved(editable: Editable, mention: String, start: Int, bodyText: String?, resolve: () -> MatrixItem?) {
+        emoteScope.launch {
+            val matrixItem = withContext(Dispatchers.IO) { resolve() } ?: return@launch
+            val end = start + mention.length
+            val at = if (editable.length >= end && editable.substring(start, end) == mention) {
+                start
+            } else {
+                findMentions(editable).firstOrNull { editable.substring(it.first, it.last + 1) == mention }?.first ?: return@launch
+            }
+            insertPill(editable, matrixItem, at, mention.length, bodyText)
+        }
+    }
+
+    private fun room() = session.getRoom(roomId)
+
+    private fun canNotifyEveryone() = session.pushRuleService().resolveSenderNotificationPermissionCondition(
+            Event(senderId = session.myUserId, roomId = roomId),
+            SenderNotificationPermissionCondition(PowerLevelsContent.NOTIFICATIONS_ROOM_KEY)
+    )
 
     private fun insertMatrixItem(editText: EditText, editable: Editable, firstChar: Char, matrixItem: MatrixItem, bodyName: String? = null) {
         // Detect last firstChar and remove it

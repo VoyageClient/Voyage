@@ -2351,6 +2351,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private val mentionIdCommands = setOf(
+            Command.MASS_REDACT,
             Command.KICK_USER,
             Command.CONVERT_TO_DM,
             Command.BAN_USER,

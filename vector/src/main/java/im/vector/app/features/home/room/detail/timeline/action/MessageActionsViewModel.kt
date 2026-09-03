@@ -25,6 +25,7 @@ import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
+import im.vector.app.features.home.room.detail.composer.spliceMentionIds
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
@@ -429,14 +430,17 @@ class MessageActionsViewModel @AssistedInject constructor(
     // real message with any legacy reply fallback stripped — so a (plaintext or encrypted) reply
     // copies what's shown, not the quoted "> <@user> …" original (which for a reply to an encrypted
     // message is a whole armored PGP block).
-    private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent): String {
+    private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent, mentionsAsIds: Boolean = false): String {
         computePgpDecryptedBody(timelineEvent)?.let { return it.toString() }
-        val body = messageContent.body
-        return if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
-            ContentUtils.extractUsefulTextFromReply(body, (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody)
+        val formatted = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
+        val body = if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
+            ContentUtils.extractUsefulTextFromReply(messageContent.body, formatted)
         } else {
-            body
+            messageContent.body
         }
+        // Mentions read as names in the body; the clipboard carries the ids instead, which a composer
+        // pills back into real mentions.
+        return if (mentionsAsIds) spliceMentionIds(body, formatted?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }) else body
     }
 
     // The formatted body to feed HTML-aware translation; null for a PGP body (only its decrypted plaintext is translatable).
@@ -534,7 +538,7 @@ class MessageActionsViewModel @AssistedInject constructor(
 
             if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard
-                add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!)))
+                add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!, mentionsAsIds = true)))
             }
 
             if (canTranslate(msgType, messageContent)) {

@@ -120,6 +120,7 @@ import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.api.util.toRoomAliasMatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
 import reactivecircus.flowbinding.android.widget.textChanges
 import timber.log.Timber
@@ -546,7 +547,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         }
     }
 
-    private fun sendTextMessage(text: CharSequence, formattedText: String? = null) {
+    private fun sendTextMessage(rawText: CharSequence, formattedText: String? = null) {
+        // A mention the composer had no terminator to pill (one typed at the very end) still sends as one.
+        val text = rawText.pillifyRemainingMentions { session.roomService().getRoomSummary(it)?.toRoomAliasMatrixItem() }
         if (lockSendButton) {
             Timber.w("Send button is locked")
             return

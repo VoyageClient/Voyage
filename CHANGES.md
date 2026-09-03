@@ -60,6 +60,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Intentional Mentions (MSC3952)**: proper support, plus mention-rendering improvements, with mentions backed by a single character rather than the full display name.
 
+- **Typed-out mentions become pills**: writing or pasting `@user:server.org`, `#room:server.org` or `@room` in the composer turns it into a mention pill, so a copied message can be pasted straight back and still mention the same people. Copying a mention puts its id on the clipboard, backspacing into a pill turns it back into editable text, and `/plain`, code blocks or a leading `\` keep one as literal text.
+
 - **Frecency-ranked @-mentions**: the `@`-autocomplete lists the people you mention most often in a room first, instead of alphabetically. The per-room counts are backed up to account data, so the ranking follows you across devices.
 
 - **Selectable message & topic text**: select text directly from timeline messages. Double-tap starts a selection anywhere, long-press on a code block or inline code starts one locked to that code (Select all expands it to the whole message), links and plain text keep their long-press actions, and the selection menu is trimmed to Copy, Share and Select all. The room profile topic is selectable the same way, replacing long-press-to-copy.

@@ -85,6 +85,15 @@ class PillImageSpan(
     // Display-only; the outgoing body built by [expandPillSpans] uses [bodyText].
     private val displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
 
+    // What a copy of the pill puts on the clipboard, and what backspacing into it restores: an id the
+    // composer pills again. "@room" and a room known only by its id have none, so they use the name.
+    val copyText: String
+        get() = when (matrixItem) {
+            is MatrixItem.UserItem,
+            is MatrixItem.RoomAliasItem -> matrixItem.id
+            else -> bodyText ?: matrixItem.getBestName()
+        }
+
     // Set by createChipDrawable when it picks a generic icon over an avatar; the async avatar render is
     // then skipped, so an unresolved permalink keeps the link icon instead of a letter placeholder.
     private var useGenericIcon = false
@@ -404,6 +413,21 @@ fun CharSequence.expandPillSpans(): CharSequence {
             builder.replace(start, end, name)
             builder.setSpan(span, start, start + name.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
+    }
+    return builder
+}
+
+// Copy/cut of a composer selection: the pill's backing text is a bare placeholder char, so hand the
+// clipboard each pill's [copyText] instead of an unreadable U+FFFC.
+fun CharSequence.pillsToCopyText(): CharSequence {
+    if (this !is Spanned) return this
+    val spans = getSpans(0, length, PillImageSpan::class.java)
+    if (spans.isEmpty()) return this
+    val builder = SpannableStringBuilder(this)
+    spans.sortedByDescending { builder.getSpanStart(it) }.forEach { span ->
+        val start = builder.getSpanStart(span)
+        val end = builder.getSpanEnd(span)
+        if (start in 0 until end) builder.replace(start, end, span.copyText)
     }
     return builder
 }
