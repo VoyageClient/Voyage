@@ -1192,6 +1192,8 @@ private fun handleSelectStickerAttachment() {
                 .map { it.copy(stripMetadata = stripMetadata) }
                 .let { sendMediaMaterializer.materialize(it) }
         val autoMarkdown = if (captionText === action.captionText) action.autoMarkdown else false
+        // Which attachment [captionFormattedText] describes: the last one written for.
+        val mainCaptionIndex = perAttachmentCaptions?.indexOfLast { !it.isNullOrBlank() } ?: -1
         // Re-resolve the edited event: it may have finished sending since the picker was opened.
         val editedEvent = action.editedEventId?.let { room.getTimelineEvent(it) }
         if (editedEvent != null) {
@@ -1200,8 +1202,9 @@ private fun handleSelectStickerAttachment() {
                         targetEvent = editedEvent,
                         attachment = replacement,
                         compressBeforeSending = action.compressBeforeSending,
-                        captionText = captionText,
-                        captionFormattedText = captionFormattedText,
+                        // The edited message keeps the caption written against it, not the batch's.
+                        captionText = perAttachmentCaptions?.firstOrNull() ?: captionText,
+                        captionFormattedText = captionFormattedText.takeIf { perAttachmentCaptions == null || mainCaptionIndex == 0 },
                         autoMarkdown = autoMarkdown,
                 )
             }
@@ -1232,10 +1235,10 @@ private fun handleSelectStickerAttachment() {
                         compressBeforeSending = action.compressBeforeSending,
                         roomIds = emptySet(),
                         rootThreadEventId = initialState.rootThreadEventId,
-                        // Reply target and rich caption belong to the first event only, as sendMedias does.
+                        // The reply target belongs to the first event only, as sendMedias does.
                         replyToEvent = action.replyToEvent.takeIf { index == 0 },
                         captionText = perAttachmentCaptions.getOrNull(index + captionOffset),
-                        captionFormattedText = remainingFormattedCaption?.takeIf { index == 0 },
+                        captionFormattedText = remainingFormattedCaption?.takeIf { index + captionOffset == mainCaptionIndex },
                         autoMarkdown = autoMarkdown,
                 )
             }

@@ -338,10 +338,11 @@ internal class DefaultSendService @AssistedInject constructor(
                     compressBeforeSending = compressBeforeSending,
                     roomIds = roomIds,
                     rootThreadEventId = rootThreadEventId,
-                    // Reply target + caption attach only to the first event; subsequent ones are standalone.
+                    // The reply target attaches to the first event, the caption to the last so it
+                    // reads below the whole batch; the rest are standalone.
                     replyToEvent = if (index == 0) replyToEvent else null,
-                    captionText = if (index == 0) captionText else null,
-                    captionFormattedText = if (index == 0) captionFormattedText else null,
+                    captionText = if (index == attachments.lastIndex) captionText else null,
+                    captionFormattedText = if (index == attachments.lastIndex) captionFormattedText else null,
                     autoMarkdown = autoMarkdown,
             )
         }
