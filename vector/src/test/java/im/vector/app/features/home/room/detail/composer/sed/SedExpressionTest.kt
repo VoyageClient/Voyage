@@ -82,6 +82,14 @@ class SedExpressionTest {
     }
 
     @Test
+    fun `a deletion highlights the word it happened in`() {
+        highlightDiff("great tung's lineage devolve to a cat", "great tung's lineage evolve to a cat") shouldBeEqualTo
+                "great tung&#39;s lineage <u>evolve</u> to a cat"
+        highlightDiff("hello worlds", "hello world") shouldBeEqualTo "hello <u>world</u>"
+        highlightDiff("one two three", "one three") shouldBeEqualTo "one <u>three</u>"
+    }
+
+    @Test
     fun `the u flag disables highlighting`() {
         parsed("s/a/b/").highlight shouldBe true
         parsed("s/a/b/u").highlight shouldBe false

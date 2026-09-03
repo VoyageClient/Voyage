@@ -95,11 +95,17 @@ fun highlightDiff(old: String, new: String): String {
     val maxSuffix = maxPrefix - prefix
     while (suffix < maxSuffix && old[old.length - 1 - suffix] == new[new.length - 1 - suffix]) suffix++
 
-    val changed = new.substring(prefix, new.length - suffix)
-    if (changed.isEmpty()) return escapeHtml(new)
-    return escapeHtml(new.substring(0, prefix)) +
-            "<u>" + escapeHtml(changed) + "</u>" +
-            escapeHtml(new.substring(new.length - suffix))
+    var start = prefix
+    var end = new.length - suffix
+    if (start == end && old != new) {
+        // A deletion leaves nothing new to mark, so mark the word it happened in.
+        while (start > 0 && !new[start - 1].isWhitespace()) start--
+        while (end < new.length && !new[end].isWhitespace()) end++
+    }
+    if (start == end) return escapeHtml(new)
+    return escapeHtml(new.substring(0, start)) +
+            "<u>" + escapeHtml(new.substring(start, end)) + "</u>" +
+            escapeHtml(new.substring(end))
 }
 
 private class Segment(val value: String, val end: Int)
