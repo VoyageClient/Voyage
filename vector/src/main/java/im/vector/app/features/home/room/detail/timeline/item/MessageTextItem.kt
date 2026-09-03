@@ -178,7 +178,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         im.vector.app.core.utils.PerfTrace.time("bind.text.super") { super.bind(holder) }
         messageView.setReadOnlySelectable(true)
         messageView.movementMethod = movementMethod
-        renderSendState(messageView, messageView)
+        // No text view: the send-state color would paint over the notice/body color set above.
+        renderSendState(messageView, null)
         if (showBlocked) {
             // Tap any blocked inline image to reveal all of this message's images, then re-bind.
             messageView.onClick {
