@@ -16,8 +16,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
+import com.bumptech.glide.integration.webp.decoder.WebpDownsampler
 import com.bumptech.glide.load.engine.executor.GlideExecutor
 import com.bumptech.glide.module.AppGlideModule
+import com.bumptech.glide.request.RequestOptions
 import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.util.JxlSupport
 import java.io.InputStream
@@ -28,6 +30,9 @@ class MyAppGlideModule : AppGlideModule() {
 
     override fun applyOptions(context: Context, builder: GlideBuilder) {
         builder.setLogLevel(Log.ERROR)
+        // zjupure claims only animated WebP; a still one falls to the platform decoder, which ignores
+        // the ALPH chunk of an extended (VP8X) lossy WebP and paints its color plane as a black square.
+        builder.setDefaultRequestOptions(RequestOptions().set(WebpDownsampler.USE_SYSTEM_DECODER, false))
         // Every request that consults the disk cache — which is all timeline thumbnails and all
         // remote loads — runs on this executor, and Glide's default gives it a single thread. One
         // slow or wedged decode there stalls media app-wide until the process restarts.
