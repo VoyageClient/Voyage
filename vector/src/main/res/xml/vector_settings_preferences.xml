@@ -90,6 +90,16 @@
             android:summary="@string/settings_room_color_palette_summary"
             android:title="@string/settings_room_color_palette_title" />
 
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PEOPLE_AVATAR_STYLE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_people_avatar_style_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ROOM_AVATAR_STYLE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_room_avatar_style_title" />
+
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
             android:key="SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"

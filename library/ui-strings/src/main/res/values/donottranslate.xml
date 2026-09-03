@@ -88,6 +88,13 @@
     <string name="color_palette_legacy" translatable="false">Legacy (2020)</string>
     <string name="color_palette_modern" translatable="false">Modern (2024)</string>
 
+    <string name="settings_people_avatar_style_title" translatable="false">Default people avatar</string>
+    <string name="settings_room_avatar_style_title" translatable="false">Default room avatar</string>
+    <string name="avatar_style_element" translatable="false">Element</string>
+    <string name="avatar_style_generic" translatable="false">Generic</string>
+    <string name="avatar_style_twitter_egg" translatable="false">Twitter Egg (2014)</string>
+    <string name="avatar_style_hashtag" translatable="false">Hashtag</string>
+
     <string name="settings_performance_mode_title" translatable="false">Performance mode</string>
     <string name="settings_performance_mode_summary" translatable="false">Drop CPU-heavy effects for smoother performance on slower devices.</string>
 

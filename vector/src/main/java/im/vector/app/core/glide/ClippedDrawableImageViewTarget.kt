@@ -17,6 +17,7 @@ import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import com.amulyakhare.textdrawable.TextDrawable
 import com.bumptech.glide.request.transition.Transition
+import im.vector.app.features.home.avatar.ShapedAvatarDrawable
 
 /**
  * A Glide target that clips its drawable to a rounded rectangle / circle for any content that
@@ -39,11 +40,10 @@ class ClippedDrawableImageViewTarget(
 
     private fun clip(drawable: Drawable?): Drawable? {
         // Already-shaped content passes through untouched: BitmapDrawables are shaped by Glide's
-        // transforms, and TextDrawable placeholders shape themselves. Only animated drawables
+        // transforms, and default-avatar placeholders shape themselves. Only animated drawables
         // (GIF / WebP / APNG) actually need runtime clipping here. A square avatar has nothing to
         // shape either, and masking costs a saveLayer on every frame.
-        val shapeNeeded = drawable != null && drawable !is BitmapDrawable && drawable !is TextDrawable &&
-                (oval || cornerPercent > 0f)
+        val shapeNeeded = drawable != null && !drawable.isSelfShaped() && (oval || cornerPercent > 0f)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             clipViewToShape(shapeNeeded)
             return drawable
@@ -70,7 +70,7 @@ class ClippedDrawableImageViewTarget(
     // The transition path bypasses setResource, where the clip is applied — drop the transition for
     // content that needs runtime clipping so animated avatars never draw unshaped mid-fade.
     override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-        val needsClip = resource !is BitmapDrawable && resource !is TextDrawable && (oval || cornerPercent > 0f)
+        val needsClip = !resource.isSelfShaped() && (oval || cornerPercent > 0f)
         super.onResourceReady(resource, if (needsClip) null else transition)
     }
 
@@ -81,4 +81,6 @@ class ClippedDrawableImageViewTarget(
     override fun onLoadFailed(errorDrawable: Drawable?) = super.onLoadFailed(clip(errorDrawable))
 
     override fun onLoadCleared(placeholder: Drawable?) = super.onLoadCleared(clip(placeholder))
+
+    private fun Drawable.isSelfShaped() = this is BitmapDrawable || this is TextDrawable || this is ShapedAvatarDrawable
 }

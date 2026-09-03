@@ -10,10 +10,8 @@ package im.vector.app.features.home
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorFilter
-import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
@@ -27,7 +25,6 @@ import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.Companion.PRIVATE
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
-import com.amulyakhare.textdrawable.TextDrawable
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.Transformation
@@ -57,7 +54,7 @@ import im.vector.app.core.glide.thumbnailAttempts
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
-import im.vector.app.features.emoji.TwemojiProvider
+import im.vector.app.features.home.avatar.DefaultAvatarFactory
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
@@ -78,7 +75,7 @@ class AvatarRenderer @Inject constructor(
         private val dimensionConverter: DimensionConverter,
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
-        private val twemojiProvider: TwemojiProvider,
+        private val defaultAvatarFactory: DefaultAvatarFactory,
         private val thumbnailVariants: ThumbnailVariants,
 ) {
 
@@ -309,7 +306,7 @@ class AvatarRenderer @Inject constructor(
                 .asBitmap()
                 .avatarOrText(matrixItem, iconSize)
                 .transform(CenterCrop(), AdaptiveIconTransformation(adaptiveIconSize, adaptiveIconOuterSides))
-                .signature(ObjectKey("adaptive-icon"))
+                .signature(ObjectKey("adaptive-icon-${defaultAvatarFactory.styleFor(matrixItem).name}"))
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .submit(iconSize, iconSize)
                 .get()
@@ -323,13 +320,7 @@ class AvatarRenderer @Inject constructor(
                 it.load(resolvedUrl)
             } else {
                 val avatarColor = matrixItemColorProvider.getColor(matrixItem)
-                val letter = matrixItem.firstLetterOfDisplayName()
-                val placeholder = twemojiLetterDrawable(letter, avatarColor, AvatarShape.SQUARE)
-                        ?: TextDrawable.builder()
-                                .beginConfig()
-                                .bold()
-                                .endConfig()
-                                .buildRect(letter, avatarColor)
+                val placeholder = defaultAvatarFactory.create(matrixItem, avatarColor, AvatarShape.SQUARE)
                 it.load(placeholder.toBitmap(width = iconSize, height = iconSize))
             }
         }
@@ -368,29 +359,8 @@ class AvatarRenderer @Inject constructor(
     @AnyThread
     fun getPlaceholderDrawable(matrixItem: MatrixItem, forceCircle: Boolean = false): Drawable {
         val avatarColor = matrixItemColorProvider.getColor(matrixItem)
-        val letter = matrixItem.firstLetterOfDisplayName()
         val shape = if (forceCircle) AvatarShape.CIRCLE else shapeFor(matrixItem)
-        twemojiLetterDrawable(letter, avatarColor, shape)?.let { return it }
-        // Self-shape the letter avatar (proportional corners) so it matches photo avatars at any size.
-        return TextDrawable.builder()
-                .beginConfig()
-                .bold()
-                .endConfig()
-                .let {
-                    when (shape) {
-                        AvatarShape.CIRCLE -> it.buildRound(letter, avatarColor)
-                        AvatarShape.ROUNDED -> it.buildRoundRectPercent(letter, avatarColor, ROUNDED_CORNER_PERCENT)
-                        AvatarShape.SQUARE -> it.buildRect(letter, avatarColor)
-                    }
-                }
-    }
-
-    // A name can start with an emoji, making the "initial" an emoji cluster; TextDrawable renders it
-    // via Paint.drawText, which has no glyph under Twemoji — draw the sprite over the coloured shape.
-    private fun twemojiLetterDrawable(letter: String, avatarColor: Int, shape: AvatarShape): Drawable? {
-        if (!twemojiProvider.enabled) return null
-        val sprite = twemojiProvider.bitmapForEmoji(letter) ?: return null
-        return TwemojiLetterDrawable(sprite, avatarColor, shape)
+        return defaultAvatarFactory.create(matrixItem, avatarColor, shape)
     }
 
     // PRIVATE API *********************************************************************************
@@ -468,51 +438,5 @@ class AvatarRenderer @Inject constructor(
                 // NA
             }
         }
-    }
-}
-
-private class TwemojiLetterDrawable(
-        private val sprite: Bitmap,
-        color: Int,
-        private val shape: AvatarShape,
-) : Drawable() {
-
-    private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
-    private val spritePaint = Paint(Paint.FILTER_BITMAP_FLAG)
-    private val boundsF = RectF()
-    private val spriteDst = RectF()
-
-    override fun draw(canvas: Canvas) {
-        boundsF.set(bounds)
-        when (shape) {
-            AvatarShape.CIRCLE -> canvas.drawOval(boundsF, backgroundPaint)
-            AvatarShape.ROUNDED -> {
-                val radius = minOf(boundsF.width(), boundsF.height()) * AvatarRenderer.ROUNDED_CORNER_PERCENT
-                canvas.drawRoundRect(boundsF, radius, radius, backgroundPaint)
-            }
-            AvatarShape.SQUARE -> canvas.drawRect(boundsF, backgroundPaint)
-        }
-        // Match TextDrawable's letter proportions (~half the shorter side).
-        val size = minOf(boundsF.width(), boundsF.height()) * SPRITE_RATIO
-        spriteDst.set(0f, 0f, size, size)
-        spriteDst.offset(boundsF.centerX() - size / 2, boundsF.centerY() - size / 2)
-        canvas.drawBitmap(sprite, null, spriteDst, spritePaint)
-    }
-
-    override fun setAlpha(alpha: Int) {
-        backgroundPaint.alpha = alpha
-        spritePaint.alpha = alpha
-    }
-
-    override fun setColorFilter(colorFilter: ColorFilter?) {
-        backgroundPaint.colorFilter = colorFilter
-        spritePaint.colorFilter = colorFilter
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
-
-    companion object {
-        private const val SPRITE_RATIO = 0.55f
     }
 }

@@ -132,6 +132,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Pick which color palette names and avatars use**: separate choices for people and for rooms, each offering Element's palettes from 2015, 2018, 2020 and today, previewed swatch by swatch. People can also be set to None, which leaves names in plain text and dims message bodies so they still stand apart.
 
+- **Pick what a missing avatar shows**: users without an avatar can get a generic person, Twitter's 2014 egg or the old Matrix Console silhouette instead of the letter tile, and rooms without one can get a hashtag.
+
 - **Room & profile banners (MSC4221 / MSC4427)**: Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings. Banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
 
 - **Status & biography in profiles (MSC4426 / MSC4440)**: set a status (one line, with any leading emoji stored as its emoji field) and a free-form biography in account settings. The status shows under a user's pronouns and time zone; the biography gets its own expandable section on their profile, rendering markdown, links and custom emoji. Both also appear in the user card from a mention. Written under the standard and unstable field keys as well as the ones other clients already read.

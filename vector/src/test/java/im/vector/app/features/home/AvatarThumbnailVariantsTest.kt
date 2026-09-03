@@ -70,7 +70,7 @@ class AvatarThumbnailVariantsTest {
             dimensionConverter = mockk(relaxed = true),
             stringProvider = mockk(relaxed = true),
             vectorPreferences = vectorPreferences,
-            twemojiProvider = mockk(relaxed = true),
+            defaultAvatarFactory = mockk(relaxed = true),
             thumbnailVariants = thumbnailVariants,
     )
 
