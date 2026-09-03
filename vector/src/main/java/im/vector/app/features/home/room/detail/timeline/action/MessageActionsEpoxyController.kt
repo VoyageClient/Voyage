@@ -265,6 +265,7 @@ class MessageActionsEpoxyController @Inject constructor(
             // Separator
             bottomSheetDividerItem {
                 id("reaction_separator")
+                subtle(true)
             }
 
             bottomSheetQuickReactionsItem {
@@ -291,6 +292,7 @@ class MessageActionsEpoxyController @Inject constructor(
             // Separator
             bottomSheetDividerItem {
                 id("actions_separator")
+                subtle(true)
             }
         }
 
@@ -299,6 +301,7 @@ class MessageActionsEpoxyController @Inject constructor(
             if (action is EventSharedAction.Separator) {
                 bottomSheetDividerItem {
                     id("separator_$index")
+                    subtle(true)
                 }
             } else {
                 val showBetaLabel = action.shouldShowBetaLabel()
