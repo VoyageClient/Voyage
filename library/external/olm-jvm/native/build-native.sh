@@ -18,6 +18,7 @@ SOURCES=(
     "$LIBCE_ROOT"/src/base64.c
     "$LIBCE_ROOT"/src/cipher.c
     "$LIBCE_ROOT"/src/crypto.c
+    "$LIBCE_ROOT"/src/dehydrated_device.c
     "$LIBCE_ROOT"/src/memory.c
     "$LIBCE_ROOT"/src/message.c
     "$LIBCE_ROOT"/src/olm.c

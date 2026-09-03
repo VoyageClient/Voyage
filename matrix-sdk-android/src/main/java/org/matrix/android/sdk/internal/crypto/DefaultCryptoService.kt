@@ -47,6 +47,7 @@ import org.matrix.android.sdk.api.session.crypto.crosssigning.KEYBACKUP_SECRET_S
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MASTER_KEY_SSSS_NAME
 import org.matrix.android.sdk.api.session.crypto.crosssigning.SELF_SIGNING_KEY_SSSS_NAME
 import org.matrix.android.sdk.api.session.crypto.crosssigning.USER_SIGNING_KEY_SSSS_NAME
+import org.matrix.android.sdk.api.session.crypto.dehydration.DehydratedDeviceService
 import org.matrix.android.sdk.api.session.crypto.keyshare.GossipingRequestListener
 import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
@@ -83,6 +84,7 @@ import org.matrix.android.sdk.internal.crypto.algorithms.megolm.MXMegolmEncrypti
 import org.matrix.android.sdk.internal.crypto.algorithms.megolm.UnRequestedForwardManager
 import org.matrix.android.sdk.internal.crypto.algorithms.olm.MXOlmEncryptionFactory
 import org.matrix.android.sdk.internal.crypto.crosssigning.DefaultCrossSigningService
+import org.matrix.android.sdk.internal.crypto.dehydration.DefaultDehydratedDeviceService
 import org.matrix.android.sdk.internal.crypto.keysbackup.DefaultKeysBackupService
 import org.matrix.android.sdk.internal.crypto.model.MXKey.Companion.KEY_SIGNED_CURVE_25519_TYPE
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysUploadBody
@@ -149,6 +151,8 @@ internal class DefaultCryptoService @Inject constructor(
         private val deviceListManager: DeviceListManager,
         // The key backup service.
         private val keysBackupService: DefaultKeysBackupService,
+        // Lazy: it dispatches the events it recovers back through us.
+        private val dehydratedDeviceService: Lazy<DefaultDehydratedDeviceService>,
         //
         private val objectSigner: ObjectSigner,
         //
@@ -424,6 +428,8 @@ internal class DefaultCryptoService @Inject constructor(
     override fun verificationService() = verificationService
 
     override fun crossSigningService() = crossSigningService
+
+    override fun dehydratedDeviceService(): DehydratedDeviceService = dehydratedDeviceService.get()
 
     /**
      * A sync response has been received.

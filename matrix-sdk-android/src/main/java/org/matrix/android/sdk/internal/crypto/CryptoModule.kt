@@ -24,10 +24,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
+import org.matrix.android.sdk.api.session.crypto.dehydration.DehydratedDeviceService
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupService
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationService
 import org.matrix.android.sdk.internal.crypto.api.CryptoApi
 import org.matrix.android.sdk.internal.crypto.crosssigning.DefaultCrossSigningService
+import org.matrix.android.sdk.internal.crypto.dehydration.DefaultDehydratedDeviceService
+import org.matrix.android.sdk.internal.crypto.dehydration.DehydratedDeviceApi
 import org.matrix.android.sdk.internal.crypto.keysbackup.DefaultKeysBackupService
 import org.matrix.android.sdk.internal.crypto.keysbackup.api.RoomKeysApi
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.CreateKeysBackupVersionTask
@@ -162,10 +165,20 @@ internal abstract class CryptoModule {
         fun providesRoomKeysAPI(retrofit: Retrofit): RoomKeysApi {
             return retrofit.create(RoomKeysApi::class.java)
         }
+
+        @JvmStatic
+        @Provides
+        @SessionScope
+        fun providesDehydratedDeviceAPI(retrofit: Retrofit): DehydratedDeviceApi {
+            return retrofit.create(DehydratedDeviceApi::class.java)
+        }
     }
 
     @Binds
     abstract fun bindKeysBackupService(service: DefaultKeysBackupService): KeysBackupService
+
+    @Binds
+    abstract fun bindDehydratedDeviceService(service: DefaultDehydratedDeviceService): DehydratedDeviceService
 
     @Binds
     abstract fun bindDeleteDeviceTask(task: DefaultDeleteDeviceTask): DeleteDeviceTask
