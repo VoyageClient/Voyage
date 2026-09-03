@@ -20,6 +20,11 @@ data class RoomDevToolViewState(
         val stateEvents: Async<List<Event>> = Uninitialized,
         val roomAccountData: Async<List<RoomAccountDataEvent>> = Uninitialized,
         val currentStateType: String? = null,
+        val searchQuery: String = "",
+        /** Filters the JSON tree of the open event; kept apart from the list query above. */
+        val detailSearchQuery: String = "",
+        /** True when the open detail was reached from search results, so back returns to them. */
+        val detailFromSearch: Boolean = false,
         val selectedEvent: Event? = null,
         val selectedAccountData: RoomAccountDataEvent? = null,
         val selectedEventJson: String? = null,

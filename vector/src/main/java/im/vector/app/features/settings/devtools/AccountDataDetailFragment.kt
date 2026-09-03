@@ -17,6 +17,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import com.airbnb.mvrx.Success
 import com.airbnb.mvrx.args
@@ -26,6 +28,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.hideKeyboard
+import im.vector.app.core.extensions.padActionsFromScreenEdge
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
@@ -63,7 +66,15 @@ class AccountDataDetailFragment :
     private var showRaw = false
     private var currentJson: String? = null
     private var ensureAdkAttempted = false
+    private var searchMenuItem: MenuItem? = null
+    private var searchQuery = ""
     private var pendingUpdate: AccountDataAction.UpdateAccountData? = null
+
+    private val searchBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            searchMenuItem?.collapseActionView()
+        }
+    }
 
     private val adkActivityResultLauncher = registerStartForActivityResult { activityResult ->
         val update = pendingUpdate
@@ -95,6 +106,7 @@ class AccountDataDetailFragment :
         currentJson = null
         applyEditingMode()
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, searchBackCallback)
         viewModel.observeViewEvents {
             when (it) {
                 is AccountDataViewEvents.Failure -> showFailure(it.throwable)
@@ -125,6 +137,51 @@ class AccountDataDetailFragment :
     override fun onResume() {
         super.onResume()
         (activity as? AppCompatActivity)?.supportActionBar?.title = fragmentArgs.type.neutralizeDirectionOverrides()
+        settingsToolbar()?.padActionsFromScreenEdge()
+    }
+
+    override fun onDestroyView() {
+        searchMenuItem = null
+        settingsToolbar()?.padActionsFromScreenEdge(false)
+        super.onDestroyView()
+    }
+
+    // Shared with every other settings screen, so the padding is undone in onDestroyView.
+    private fun settingsToolbar() = activity?.findViewById<Toolbar>(R.id.settingsToolbar)
+
+    override fun handlePostCreateMenu(menu: Menu) {
+        val searchItem = menu.findItem(R.id.menuItemSearch) ?: return
+        searchMenuItem = searchItem
+        (searchItem.actionView as? SearchView)?.let { searchView ->
+            searchView.queryHint = getString(CommonStrings.dev_tools_search_hint_json)
+            searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?) = true
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    searchQuery = newText.orEmpty()
+                    applySearchQuery()
+                    return true
+                }
+            })
+        }
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = true
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                searchBackCallback.isEnabled = false
+                searchQuery = ""
+                applySearchQuery()
+                return true
+            }
+        })
+    }
+
+    private fun applySearchQuery() {
+        (childFragmentManager.findFragmentById(views.jsonViewerContainer.id) as? JSonViewerFragment)
+                ?.setSearchQuery(searchQuery)
     }
 
     // Encrypted content is displayed decrypted whenever the ADK allows it, unless "Raw" is checked.
@@ -159,6 +216,8 @@ class AccountDataDetailFragment :
                             )
                     )
                     .commit()
+            // The viewer is re-created with an empty query, so re-apply the one being searched.
+            if (searchQuery.isNotEmpty()) views.jsonViewerContainer.post { applySearchQuery() }
         }
     }
 
@@ -166,6 +225,7 @@ class AccountDataDetailFragment :
         val event = state.accountData.invoke()?.find { it.type == fragmentArgs.type }
         val encrypted = event != null && viewModel.isEncrypted(event)
         val adkCached = viewModel.adkCached()
+        menu.findItem(R.id.menuItemSearch).isVisible = !editing
         menu.findItem(R.id.menuItemEdit).isVisible = !editing
         menu.findItem(R.id.menuItemDelete).isVisible = !editing
         menu.findItem(R.id.menuItemSend).isVisible = editing
@@ -229,6 +289,7 @@ class AccountDataDetailFragment :
     }
 
     private fun applyEditingMode() {
+        if (editing) searchMenuItem?.collapseActionView()
         views.editorScrollView.isVisible = editing
         views.jsonViewerContainer.isVisible = !editing
         backCallback.isEnabled = editing

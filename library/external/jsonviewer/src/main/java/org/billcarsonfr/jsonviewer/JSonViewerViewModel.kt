@@ -19,11 +19,16 @@ import com.airbnb.mvrx.ViewModelContext
 import kotlinx.coroutines.launch
 
 internal data class JSonViewerState(
-        val root: Async<JSonViewerObject> = Uninitialized
+        val root: Async<JSonViewerObject> = Uninitialized,
+        val searchQuery: String = ""
 ) : MavericksState
 
 internal class JSonViewerViewModel(initialState: JSonViewerState) :
         MavericksViewModel<JSonViewerState>(initialState) {
+
+    fun setSearchQuery(query: String) {
+        setState { copy(searchQuery = query) }
+    }
 
     fun setJsonSource(json: String, initialOpenDepth: Int) {
         setState {

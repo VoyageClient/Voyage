@@ -98,7 +98,8 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 setState {
                     copy(
                             displayMode = RoomDevToolViewState.Mode.StateEventList,
-                            selectedEvent = null
+                            selectedEvent = null,
+                            searchQuery = ""
                     )
                 }
             }
@@ -106,12 +107,13 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 setState {
                     copy(
                             displayMode = RoomDevToolViewState.Mode.AccountDataList,
-                            selectedAccountData = null
+                            selectedAccountData = null,
+                            searchQuery = ""
                     )
                 }
             }
             is RoomDevToolAction.ShowStateEvent -> {
-                showStateEventDetail(action.event)
+                showStateEventDetail(action.event, action.fromSearch)
             }
             is RoomDevToolAction.ShowAccountDataEvent -> {
                 val sanitized = action.event.copy(content = coerceContent(action.event.content).orEmpty())
@@ -121,6 +123,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 setState {
                     copy(
                             displayMode = RoomDevToolViewState.Mode.AccountDataDetail,
+                            detailSearchQuery = "",
                             selectedAccountData = sanitized,
                             selectedEvent = null,
                             selectedEventJson = jsonString
@@ -148,6 +151,16 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     }
                 }
             }
+            is RoomDevToolAction.UpdateSearchQuery -> {
+                setState {
+                    if (displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
+                            displayMode == RoomDevToolViewState.Mode.AccountDataDetail) {
+                        copy(detailSearchQuery = action.query)
+                    } else {
+                        copy(searchQuery = action.query)
+                    }
+                }
+            }
             is RoomDevToolAction.ShowStateEventType -> withState { state ->
                 // A type with a single empty-state-key event has no per-key list worth showing — open its
                 // detail directly. Multiple keys (or a non-empty key) still get the intermediate list.
@@ -159,7 +172,8 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     setState {
                         copy(
                                 displayMode = RoomDevToolViewState.Mode.StateEventListByType,
-                                currentStateType = action.stateEventType
+                                currentStateType = action.stateEventType,
+                                searchQuery = ""
                         )
                     }
                 }
@@ -270,7 +284,11 @@ class RoomDevToolViewModel @AssistedInject constructor(
                             modalLoading = Success(Unit),
                             selectedEventJson = null,
                             editedContent = null,
-                            displayMode = RoomDevToolViewState.Mode.StateEventListByType
+                            displayMode = if (detailFromSearch) {
+                                RoomDevToolViewState.Mode.StateEventList
+                            } else {
+                                RoomDevToolViewState.Mode.StateEventListByType
+                            }
                     )
                 }
             } catch (failure: Throwable) {
@@ -339,7 +357,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
         }
     }
 
-    private fun showStateEventDetail(event: Event) {
+    private fun showStateEventDetail(event: Event, fromSearch: Boolean = false) {
         // Coerce up front so the source we show (and copy to clipboard) is already correct JSON —
         // integers, not "size":15394.0 floats from Moshi's Any adapter.
         val sanitizedEvent = event.copy(
@@ -352,6 +370,8 @@ class RoomDevToolViewModel @AssistedInject constructor(
         setState {
             copy(
                     displayMode = RoomDevToolViewState.Mode.StateEventDetail,
+                    detailFromSearch = fromSearch,
+                    detailSearchQuery = "",
                     selectedEvent = sanitizedEvent,
                     selectedAccountData = null,
                     selectedEventJson = jsonString
@@ -376,6 +396,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     copy(
                             selectedEvent = null,
                             selectedEventJson = null,
+                            searchQuery = "",
                             displayMode = RoomDevToolViewState.Mode.Root
                     )
                 }
@@ -385,6 +406,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     copy(
                             selectedAccountData = null,
                             selectedEventJson = null,
+                            searchQuery = "",
                             displayMode = RoomDevToolViewState.Mode.Root
                     )
                 }
@@ -399,13 +421,14 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 }
             }
             RoomDevToolViewState.Mode.StateEventDetail -> {
-                // Mirror the forward skip: if we jumped straight here (single empty-key event), skip the
-                // intermediate list on the way back too.
-                val skipList = singleEmptyKeyEvent(it, it.currentStateType) != null
+                // Mirror the forward skip: if we jumped straight here (search result, or a single
+                // empty-key event), skip the intermediate list on the way back too.
+                val skipList = it.detailFromSearch || singleEmptyKeyEvent(it, it.currentStateType) != null
                 setState {
                     copy(
                             selectedEvent = null,
                             selectedEventJson = null,
+                            detailFromSearch = false,
                             currentStateType = if (skipList) null else currentStateType,
                             displayMode = if (skipList) RoomDevToolViewState.Mode.StateEventList else RoomDevToolViewState.Mode.StateEventListByType
                     )
@@ -426,6 +449,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 setState {
                     copy(
                             currentStateType = null,
+                            searchQuery = "",
                             displayMode = RoomDevToolViewState.Mode.StateEventList
                     )
                 }

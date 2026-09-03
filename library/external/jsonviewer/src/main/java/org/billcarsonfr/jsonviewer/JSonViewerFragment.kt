@@ -61,6 +61,11 @@ class JSonViewerFragment : Fragment(), MavericksView {
         return inflate
     }
 
+    /** Filters the tree down to the nodes matching [query] (and their ancestors); empty shows everything. */
+    fun setSearchQuery(query: String) {
+        viewModel.setSearchQuery(query)
+    }
+
     fun showJson(jsonString: String, initialOpenDepth: Int) {
         viewModel.setJsonSource(jsonString, initialOpenDepth)
     }

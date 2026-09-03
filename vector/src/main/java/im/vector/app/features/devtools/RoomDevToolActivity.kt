@@ -13,6 +13,7 @@ import android.os.Parcelable
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.addCallback
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
@@ -24,6 +25,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.padActionsFromScreenEdge
 import im.vector.app.core.platform.SimpleFragmentActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
@@ -49,6 +51,8 @@ class RoomDevToolActivity :
 
     private var currentDisplayMode: RoomDevToolViewState.Mode? = null
 
+    private var searchMenuItem: MenuItem? = null
+
     @Parcelize
     data class Args(
             val roomId: String,
@@ -57,10 +61,16 @@ class RoomDevToolActivity :
 
     override fun initUiAndData() {
         super.initUiAndData()
+        views.toolbar.padActionsFromScreenEdge()
         // Route back (gesture, button and toolbar up) through the ViewModel, which owns the navigation
         // history. Always enabled; at Root it emits Dismiss, which finishes the activity.
         onBackPressedDispatcher.addCallback(this) {
-            viewModel.handle(RoomDevToolAction.OnBackPressed)
+            val expandedSearch = searchMenuItem?.takeIf { it.isActionViewExpanded }
+            if (expandedSearch != null) {
+                expandedSearch.collapseActionView()
+            } else {
+                viewModel.handle(RoomDevToolAction.OnBackPressed)
+            }
         }
         viewModel.onEach {
             renderState(it)
@@ -110,6 +120,12 @@ class RoomDevToolActivity :
             invalidateOptionsMenu()
         }
 
+        if (it.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
+                it.displayMode == RoomDevToolViewState.Mode.AccountDataDetail) {
+            (supportFragmentManager.findFragmentById(views.container.id) as? JSonViewerFragment)
+                    ?.setSearchQuery(it.detailSearchQuery)
+        }
+
         when (it.modalLoading) {
             is Loading -> showWaitingView()
             is Success -> hideWaitingView()
@@ -137,11 +153,51 @@ class RoomDevToolActivity :
 
     override fun onDestroy() {
         currentDisplayMode = null
+        searchMenuItem = null
         super.onDestroy()
+    }
+
+    override fun handlePostCreateMenu(menu: Menu) {
+        val searchItem = menu.findItem(R.id.menuItemSearch) ?: return
+        searchMenuItem = searchItem
+        (searchItem.actionView as? SearchView)?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = true
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.handle(RoomDevToolAction.UpdateSearchQuery(newText.orEmpty()))
+                return true
+            }
+        })
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem) = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                viewModel.handle(RoomDevToolAction.UpdateSearchQuery(""))
+                return true
+            }
+        })
     }
 
     override fun handlePrepareMenu(menu: Menu) {
         withState(viewModel) { state ->
+            menu.findItem(R.id.menuItemSearch)?.let { searchItem ->
+                val isDetail = state.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
+                        state.displayMode == RoomDevToolViewState.Mode.AccountDataDetail
+                searchItem.isVisible = isDetail ||
+                        state.displayMode == RoomDevToolViewState.Mode.StateEventList ||
+                        state.displayMode == RoomDevToolViewState.Mode.StateEventListByType ||
+                        state.displayMode == RoomDevToolViewState.Mode.AccountDataList
+                (searchItem.actionView as? SearchView)?.queryHint = getString(
+                        if (isDetail) CommonStrings.dev_tools_search_hint_json else CommonStrings.dev_tools_search_hint
+                )
+                // The menu is re-created on every mode change; re-open it on the query we still hold, so
+                // coming back from an event opened out of the results keeps them.
+                val activeQuery = if (isDetail) state.detailSearchQuery else state.searchQuery
+                if (searchItem.isVisible && activeQuery.isNotEmpty() && !searchItem.isActionViewExpanded) {
+                    searchItem.expandActionView()
+                    (searchItem.actionView as? SearchView)?.setQuery(activeQuery, false)
+                }
+            }
             menu.findItem(R.id.menuItemEdit).isVisible = state.canEditState &&
                     (state.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
                             state.displayMode == RoomDevToolViewState.Mode.AccountDataDetail)
