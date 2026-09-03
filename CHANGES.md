@@ -130,9 +130,9 @@ New features, improvements, and notable removals in this fork.
 
 - **Configurable avatars**: configurable avatar shapes, avatar-hiding options in the timeline and on invites, avatar removal, an empty-display-name fallback, and full-screen avatar zoom through the media viewer.
 
-- **Pick which color palette names and avatars use**: separate choices for people and for rooms, each offering Element's palettes from 2015, 2018, 2020 and today, previewed swatch by swatch. People can also be set to None, which leaves names in plain text and dims message bodies so they still stand apart.
+- **Pick which color palette names and avatars use**: separate choices for people and for rooms, each offering the same set, previewed swatch by swatch: Element's palettes from 2015, 2018, 2020 and today, both eras of Twitter's default-avatar egg, and Discord's before and after its 2021 rebrand. People can also be set to None, which leaves names in plain text and dims message bodies so they still stand apart.
 
-- **Pick what a missing avatar shows**: users without an avatar can get a generic person, Twitter's 2014 egg or the old Matrix Console silhouette instead of the letter tile, and rooms without one can get a hashtag.
+- **Pick what a missing avatar shows**: users without an avatar can get a generic person, Twitter's 2014 egg or the Matrix logo instead of the letter tile, and rooms without one can get a hashtag.
 
 - **Room & profile banners (MSC4221 / MSC4427)**: Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings. Banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
 

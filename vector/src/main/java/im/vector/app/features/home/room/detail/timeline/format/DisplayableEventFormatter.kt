@@ -48,6 +48,7 @@ class DisplayableEventFormatter @Inject constructor(
         private val reactionFormatter: ReactionFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val pgpDecryptor: PgpDecryptor,
+        private val matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider,
         private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         private val pillsPostProcessorFactory: im.vector.app.features.html.PillsPostProcessor.Factory,
         private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
@@ -57,8 +58,9 @@ class DisplayableEventFormatter @Inject constructor(
     // on each update, and parsing the same HTML again cost hundreds of ms on the main thread.
     private val previewCache = android.util.LruCache<String, CharSequence>(256)
 
-    // textColorLink is stamped into the spans at render time, so a theme change invalidates the cache.
-    private var previewCacheThemeGeneration = ThemeUtils.themeGeneration
+    // textColorLink is stamped into the spans at render time, and a pill bakes in the avatar it was
+    // built with, so a theme, palette or avatar-style change invalidates the cache.
+    private var previewCacheGeneration = ThemeUtils.themeGeneration to matrixItemColorProvider.changes.value
 
     // Per-room pill processors, cached so the room list doesn't rebuild them on every summary render.
     private val pillProcessors = java.util.concurrent.ConcurrentHashMap<String, Pair<im.vector.app.features.html.PillsPostProcessor, im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer>>()
@@ -315,9 +317,9 @@ class DisplayableEventFormatter @Inject constructor(
     // Render a formatted preview the way the timeline does: mentions/rooms become pills (pillsPostProcessor),
     // matrix.to message links become "Message in Room" pills (EventTextRenderer), then bare links get coloured.
     private fun renderFormattedPreview(roomId: String?, formattedBody: String): CharSequence {
-        val generation = ThemeUtils.themeGeneration
-        if (generation != previewCacheThemeGeneration) {
-            previewCacheThemeGeneration = generation
+        val generation = ThemeUtils.themeGeneration to matrixItemColorProvider.changes.value
+        if (generation != previewCacheGeneration) {
+            previewCacheGeneration = generation
             previewCache.evictAll()
         }
         val key = "${roomId.orEmpty()}\u0000$formattedBody"

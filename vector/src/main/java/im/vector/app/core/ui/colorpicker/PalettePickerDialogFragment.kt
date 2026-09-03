@@ -23,7 +23,6 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
@@ -119,7 +118,7 @@ class PalettePickerDialogFragment : DialogFragment() {
             text = label.toString()
             gravity = Gravity.CENTER
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-            setTextColor(if (ColorUtils.calculateLuminance(color) > 0.5) Color.BLACK else Color.WHITE)
+            setTextColor(Color.WHITE)
             backgroundCompat = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 setColor(color)
@@ -138,11 +137,10 @@ class PalettePickerDialogFragment : DialogFragment() {
 
         const val RESULT_PALETTE = "palette"
 
-        /** The palettes a [Kind] offers. Both enums share entry names, so the kind picks the enum. */
-        private fun optionsOf(kind: Kind): List<PaletteChoice> = when (kind) {
-            Kind.PEOPLE -> PeopleColorPalette.values().map { PaletteChoice(it.name, it.titleRes, it.colors) }
-            Kind.ROOM -> RoomColorPalette.values().map { PaletteChoice(it.name, it.titleRes, it.colors) }
-        }
+        /** Every palette, except that a room avatar always has a color, so it cannot be [ColorPalette.NONE]. */
+        private fun optionsOf(kind: Kind): List<PaletteChoice> = ColorPalette.values()
+                .filter { kind == Kind.PEOPLE || it != ColorPalette.NONE }
+                .map { PaletteChoice(it.name, it.titleRes, it.colors) }
 
         fun newInstance(requestKey: String, title: String, kind: Kind, selected: String) =
                 PalettePickerDialogFragment().apply {

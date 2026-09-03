@@ -58,6 +58,7 @@ import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -89,6 +90,7 @@ class RoomListFragment :
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
+    @Inject lateinit var matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var footerController: RoomListFooterController
     @Inject lateinit var userPreferencesProvider: UserPreferencesProvider
@@ -190,6 +192,13 @@ class RoomListFragment :
 
         // Flip the room-list PGP lock the moment the global/per-room toggle changes.
         pgpKeyStore.changes
+                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // A preview's pills are built when the model is, so a recolor needs the models rebuilt and
+        // not merely re-bound like the rest of the list.
+        matrixItemColorProvider.changes
+                .drop(1)
                 .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 

@@ -64,7 +64,7 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
     private val columnCount = 5
 
     private var light = true
-    private var palette = PeopleColorPalette.LEGACY
+    private var palette = ColorPalette.LEGACY
     private var customHex = DEFAULT_CUSTOM
 
     // Selection is an identity, not a hex: a custom color equal to a palette color must still read as
@@ -106,8 +106,8 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         }
     }
 
-    /** The palettes to pick a color from: every people palette except [PeopleColorPalette.NONE]. */
-    private fun paletteOf(name: String?) = PICKABLE_PALETTES.firstOrNull { it.name == name } ?: PeopleColorPalette.LEGACY
+    /** The palettes to pick a color from: every palette except [ColorPalette.NONE]. */
+    private fun paletteOf(name: String?) = PICKABLE_PALETTES.firstOrNull { it.name == name } ?: ColorPalette.LEGACY
 
     // A set value that matches a color in any palette selects that swatch, switching to the palette it
     // belongs to; otherwise it is treated as custom. A null value leaves nothing selected (the default).
@@ -338,7 +338,7 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
         private const val DEFAULT_CUSTOM = "#000000"
         private const val HSV_REQUEST_KEY = "ProfileColorPickerDialogFragment.hsv"
         private const val HSV_DIALOG_TAG = "HsvColorPickerDialog"
-        private val PICKABLE_PALETTES = PeopleColorPalette.values().filter { it != PeopleColorPalette.NONE }
+        private val PICKABLE_PALETTES = ColorPalette.values().filter { it != ColorPalette.NONE }
 
         const val RESULT_HEX = "hex"
         const val RESULT_HEX_LIGHT = "hexLight"

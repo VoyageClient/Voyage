@@ -12,8 +12,7 @@ import android.text.Spanned
 import android.text.TextPaint
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
-import im.vector.app.core.ui.colorpicker.PeopleColorPalette
-import im.vector.app.core.ui.colorpicker.RoomColorPalette
+import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
@@ -40,11 +39,11 @@ class SenderNameSpanTest {
 
     private val alice = MatrixItem.UserItem("@alice:example.org", "Alice")
 
-    private var palette = PeopleColorPalette.MODERN
+    private var palette = ColorPalette.MODERN
 
     private val vectorPreferences = mockk<VectorPreferences>(relaxed = true).also {
         every { it.peopleColorPalette() } answers { palette }
-        every { it.roomColorPalette() } returns RoomColorPalette.MODERN
+        every { it.roomColorPalette() } returns ColorPalette.MODERN
         every { it.showOthersProfileColors() } returns true
     }
 
@@ -83,7 +82,7 @@ class SenderNameSpanTest {
 
     @Test
     fun `an uncolored name stays regular weight`() {
-        palette = PeopleColorPalette.NONE
+        palette = ColorPalette.NONE
         val paint = paintOf()
         span().updateDrawState(paint)
         assertEquals(colorProvider.getNameColor(alice), paint.color)
@@ -105,7 +104,7 @@ class SenderNameSpanTest {
         span.updateDrawState(paint)
         val colored = paint.color
 
-        palette = PeopleColorPalette.NONE
+        palette = ColorPalette.NONE
         colorProvider.invalidate()
         span.updateDrawState(paint)
         assertNotEquals(colored, paint.color)

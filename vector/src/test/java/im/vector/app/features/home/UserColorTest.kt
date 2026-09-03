@@ -7,15 +7,14 @@
 
 package im.vector.app.features.home
 
-import im.vector.app.core.ui.colorpicker.PeopleColorPalette
-import im.vector.app.core.ui.colorpicker.RoomColorPalette
+import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.lib.ui.styles.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class UserColorTest {
 
-    private fun legacyName(userId: String?) = PeopleColorPalette.LEGACY.colorFor(userId, true)
+    private fun legacyName(userId: String?) = ColorPalette.LEGACY.colorFor(userId, true)
 
     @Test
     fun testNull() {
@@ -39,14 +38,13 @@ class UserColorTest {
     fun testModernMatchesElementWebHash() {
         // element-web's useIdColorHash: sum of char codes, modulo 6.
         val userId = "@alice:example.org"
-        assertEquals(userId.sumOf { it.code } % 6, PeopleColorPalette.MODERN.indexOf(userId))
-        assertEquals(PeopleColorPalette.MODERN.indexOf(userId), RoomColorPalette.MODERN.indexOf(userId))
+        assertEquals(userId.sumOf { it.code } % 6, ColorPalette.MODERN.indexOf(userId))
     }
 
     @Test
     fun testRoomPalettesUseCharCodeSum() {
         val roomId = "!AbCdEf:matrix.org"
-        assertEquals(roomId.sumOf { it.code } % 3, RoomColorPalette.LEGACY.indexOf(roomId))
-        assertEquals(roomId.sumOf { it.code } % 3, RoomColorPalette.RIOT_ALPHA.indexOf(roomId))
+        assertEquals(roomId.sumOf { it.code } % 3, ColorPalette.LEGACY_ROOMS.indexOf(roomId))
+        assertEquals(roomId.sumOf { it.code } % 3, ColorPalette.RIOT_ALPHA_ROOMS.indexOf(roomId))
     }
 }

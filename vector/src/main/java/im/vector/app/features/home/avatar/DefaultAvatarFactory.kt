@@ -39,6 +39,7 @@ class DefaultAvatarFactory @Inject constructor(
             DefaultAvatarStyle.ELEMENT -> letterDrawable(letter, color, shape)
             DefaultAvatarStyle.GENERIC -> GlyphAvatarDrawable(shape, color, AvatarGlyph.PERSON, TINTED_WHITE)
             DefaultAvatarStyle.TWITTER_EGG -> GlyphAvatarDrawable(shape, color, AvatarGlyph.EGG, EGG_WHITE)
+            DefaultAvatarStyle.MATRIX -> GlyphAvatarDrawable(shape, color, AvatarGlyph.MATRIX, Color.WHITE)
             // Not TextDrawable: it centers on the baseline, which leaves a '#' visibly high.
             DefaultAvatarStyle.HASHTAG -> TextAvatarDrawable(shape, color, "#", TINTED_WHITE)
         }

@@ -25,10 +25,9 @@ import im.vector.app.core.preference.ColorMatrixListPreferenceDialogFragment
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorSwitchPreference
+import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.core.ui.colorpicker.DefaultAvatarPickerDialogFragment
 import im.vector.app.core.ui.colorpicker.PalettePickerDialogFragment
-import im.vector.app.core.ui.colorpicker.PeopleColorPalette
-import im.vector.app.core.ui.colorpicker.RoomColorPalette
 import im.vector.app.core.utils.toast
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
@@ -435,12 +434,12 @@ class VectorSettingsPreferencesFragment :
 
         childFragmentManager.setFragmentResultListener(PEOPLE_PALETTE_REQUEST_KEY, this) { _, bundle ->
             val picked = bundle.getString(PalettePickerDialogFragment.RESULT_PALETTE) ?: return@setFragmentResultListener
-            vectorPreferences.setPeopleColorPalette(PeopleColorPalette.valueOf(picked))
+            vectorPreferences.setPeopleColorPalette(ColorPalette.valueOf(picked))
             matrixItemColorProvider.invalidate()
         }
         childFragmentManager.setFragmentResultListener(ROOM_PALETTE_REQUEST_KEY, this) { _, bundle ->
             val picked = bundle.getString(PalettePickerDialogFragment.RESULT_PALETTE) ?: return@setFragmentResultListener
-            vectorPreferences.setRoomColorPalette(RoomColorPalette.valueOf(picked))
+            vectorPreferences.setRoomColorPalette(ColorPalette.valueOf(picked))
             matrixItemColorProvider.invalidate()
         }
 

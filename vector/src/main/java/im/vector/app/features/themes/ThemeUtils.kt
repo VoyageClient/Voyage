@@ -20,7 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.PreferenceManager
-import im.vector.app.core.ui.colorpicker.PeopleColorPalette
+import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.ui.styles.R
 import timber.log.Timber
@@ -182,7 +182,7 @@ object ThemeUtils {
     fun getMessageTextColor(c: Context): Int {
         val palette = PreferenceManager.getDefaultSharedPreferences(c.applicationContext)
                 .getString(VectorPreferences.SETTINGS_PEOPLE_COLOR_PALETTE_KEY, null)
-        return getColor(c, messageTextAttr(palette == PeopleColorPalette.NONE.name))
+        return getColor(c, messageTextAttr(palette == ColorPalette.NONE.name))
     }
 
     @ColorInt

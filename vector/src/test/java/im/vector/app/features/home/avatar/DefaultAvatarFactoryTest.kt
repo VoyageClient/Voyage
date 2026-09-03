@@ -87,6 +87,15 @@ class DefaultAvatarFactoryTest {
     }
 
     @Test
+    fun `the matrix logo is pure white on the palette colour`() {
+        val bitmap = render(DefaultAvatarStyle.MATRIX)
+
+        val pixels = (0 until SIZE).flatMap { x -> (0 until SIZE).map { y -> bitmap.getPixel(x, y) } }
+        pixels.any { it == Color.WHITE } shouldBeEqualTo true
+        bitmap.getPixel(1, 1) shouldBeEqualTo Color.BLUE
+    }
+
+    @Test
     fun `the hashtag glyph replaces the letter`() {
         render(DefaultAvatarStyle.HASHTAG).sameAs(render(DefaultAvatarStyle.ELEMENT)) shouldBeEqualTo false
     }

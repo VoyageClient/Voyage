@@ -82,17 +82,23 @@
     <string name="settings_room_color_palette_title" translatable="false">Room color palette</string>
     <string name="settings_room_color_palette_summary" translatable="false">Colors for the default avatars of rooms and spaces.</string>
     <string name="color_palette_none" translatable="false">None</string>
-    <!-- Only Riot Alpha differs: names were first colored in 2018, room avatars in 2015. -->
-    <string name="color_palette_people_riot_alpha" translatable="false">Riot Alpha (2018)</string>
-    <string name="color_palette_room_riot_alpha" translatable="false">Riot Alpha (2015)</string>
+    <!-- The trios keep the "rooms" tag they were built for: names were first colored in 2018, room avatars in 2015. -->
+    <string name="color_palette_riot_alpha" translatable="false">Riot Alpha (2018)</string>
+    <string name="color_palette_riot_alpha_rooms" translatable="false">Riot Alpha (2015, rooms)</string>
     <string name="color_palette_legacy" translatable="false">Legacy (2020)</string>
+    <string name="color_palette_legacy_rooms" translatable="false">Legacy (2020, rooms)</string>
     <string name="color_palette_modern" translatable="false">Modern (2024)</string>
+    <string name="color_palette_twitter_egg_2010" translatable="false">Twitter Egg (2010)</string>
+    <string name="color_palette_twitter_egg_2014" translatable="false">Twitter Egg (2014)</string>
+    <string name="color_palette_discord_2015" translatable="false">Discord (2015)</string>
+    <string name="color_palette_discord_2021" translatable="false">Discord (2021)</string>
 
     <string name="settings_people_avatar_style_title" translatable="false">Default people avatar</string>
     <string name="settings_room_avatar_style_title" translatable="false">Default room avatar</string>
     <string name="avatar_style_element" translatable="false">Element</string>
     <string name="avatar_style_generic" translatable="false">Generic</string>
-    <string name="avatar_style_twitter_egg" translatable="false">Twitter Egg (2014)</string>
+    <string name="avatar_style_twitter_egg" translatable="false">Twitter Egg</string>
+    <string name="avatar_style_matrix" translatable="false">Matrix</string>
     <string name="avatar_style_hashtag" translatable="false">Hashtag</string>
 
     <string name="settings_performance_mode_title" translatable="false">Performance mode</string>
@@ -293,6 +299,26 @@
     <string name="profile_color_alpha_seafoam" translatable="false">Seafoam</string>
     <string name="profile_color_alpha_indigo" translatable="false">Indigo</string>
     <string name="profile_color_alpha_chartreuse" translatable="false">Chartreuse</string>
+    <string name="profile_color_egg_harbor" translatable="false">Harbor</string>
+    <string name="profile_color_egg_sprout" translatable="false">Sprout</string>
+    <string name="profile_color_egg_pine" translatable="false">Pine</string>
+    <string name="profile_color_egg_apricot" translatable="false">Apricot</string>
+    <string name="profile_color_egg_powder" translatable="false">Powder</string>
+    <string name="profile_color_egg_plum" translatable="false">Plum</string>
+    <string name="profile_color_egg_cherry" translatable="false">Cherry</string>
+    <string name="profile_color_egg_bluebird" translatable="false">Bluebird</string>
+    <string name="profile_color_egg_tangerine" translatable="false">Tangerine</string>
+    <string name="profile_color_egg_fern" translatable="false">Fern</string>
+    <string name="profile_color_egg_amber" translatable="false">Amber</string>
+    <string name="profile_color_egg_ash" translatable="false">Ash</string>
+    <string name="profile_color_egg_violet" translatable="false">Violet</string>
+    <string name="profile_color_egg_crimson" translatable="false">Crimson</string>
+    <string name="profile_color_discord_blurple" translatable="false">Blurple</string>
+    <string name="profile_color_discord_gray" translatable="false">Gray</string>
+    <string name="profile_color_discord_green" translatable="false">Green</string>
+    <string name="profile_color_discord_yellow" translatable="false">Yellow</string>
+    <string name="profile_color_discord_red" translatable="false">Red</string>
+    <string name="profile_color_discord_fuchsia" translatable="false">Fuchsia</string>
     <string name="profile_color_alpha_moss" translatable="false">Moss</string>
     <string name="profile_color_alpha_lagoon" translatable="false">Lagoon</string>
     <string name="profile_color_alpha_sand" translatable="false">Sand</string>
