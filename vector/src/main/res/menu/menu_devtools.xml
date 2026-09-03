@@ -4,6 +4,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menuItemSearch"
+        android:visible="false"
+        tools:visible="true"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:iconTint="?vctr_content_secondary"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom|collapseActionView" />
+
+    <item
         android:id="@+id/menuItemEdit"
         android:visible="false"
         tools:visible="true"

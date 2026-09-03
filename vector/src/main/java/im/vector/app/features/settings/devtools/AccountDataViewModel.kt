@@ -37,6 +37,7 @@ import org.matrix.android.sdk.flow.flow
 data class AccountDataViewState(
         val accountData: Async<List<UserAccountDataEvent>> = Uninitialized,
         val draft: Draft = Draft(),
+        val searchQuery: String = "",
         // Bumped when the cached ADK changes so open screens re-render decrypted content.
         val adkGeneration: Long = 0
 ) : MavericksState {
@@ -81,6 +82,7 @@ class AccountDataViewModel @AssistedInject constructor(
             is AccountDataAction.DraftTypeChange -> setState { copy(draft = draft.copy(type = action.type)) }
             is AccountDataAction.DraftContentChange -> setState { copy(draft = draft.copy(content = action.content)) }
             is AccountDataAction.DraftEncryptChange -> setState { copy(draft = draft.copy(encrypt = action.encrypt)) }
+            is AccountDataAction.UpdateSearchQuery -> setState { copy(searchQuery = action.query) }
             is AccountDataAction.GotAdkFromSsss -> handleGotAdkFromSsss(action)
             AccountDataAction.EnsureAdk -> handleEnsureAdk()
         }
@@ -144,6 +146,9 @@ class AccountDataViewModel @AssistedInject constructor(
     fun adkCached(): Boolean = session.encryptedAccountDataService().hasAccountDataKey()
 
     fun isEncrypted(event: UserAccountDataEvent): Boolean = session.encryptedAccountDataService().isEncrypted(event.content)
+
+    /** MSC4483 content is opaque ciphertext, so searching only makes sense on the decrypted payload. */
+    fun searchableContent(event: UserAccountDataEvent): JsonDict = decryptedContent(event) ?: event.content
 
     private fun decryptedContent(event: UserAccountDataEvent): JsonDict? {
         if (!isEncrypted(event) || !adkCached()) return null

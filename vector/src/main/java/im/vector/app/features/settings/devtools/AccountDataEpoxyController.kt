@@ -15,6 +15,7 @@ import im.vector.app.core.epoxy.loadingItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.core.ui.list.genericWithValueItem
+import im.vector.app.features.devtools.DevToolsSearchQuery
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
@@ -30,6 +31,9 @@ class AccountDataEpoxyController @Inject constructor(
     }
 
     var interactionListener: InteractionListener? = null
+
+    /** Supplies the content to search, decrypted when the event is encrypted and the key is available. */
+    var searchableContentProvider: ((UserAccountDataEvent) -> Map<String, Any?>)? = null
 
     override fun buildModels(data: AccountDataViewState?) {
         if (data == null) return
@@ -48,7 +52,10 @@ class AccountDataEpoxyController @Inject constructor(
                 }
             }
             is Success -> {
-                val dataList = data.accountData.invoke()
+                val query = DevToolsSearchQuery.parse(data.searchQuery)
+                val dataList = data.accountData.invoke().filter {
+                    query.matches(it.type, null, host.searchableContentProvider?.invoke(it) ?: it.content)
+                }
                 if (dataList.isEmpty()) {
                     genericFooterItem {
                         id("noResults")

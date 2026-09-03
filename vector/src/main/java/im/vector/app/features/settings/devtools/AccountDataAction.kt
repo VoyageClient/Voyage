@@ -15,6 +15,7 @@ sealed class AccountDataAction : VectorViewModelAction {
     data class DraftTypeChange(val type: String) : AccountDataAction()
     data class DraftContentChange(val content: String) : AccountDataAction()
     data class DraftEncryptChange(val encrypt: Boolean) : AccountDataAction()
+    data class UpdateSearchQuery(val query: String) : AccountDataAction()
 
     /**
      * The 4S flow handed back its result cipher: extract the ADK from it, cache it, and when

@@ -37,6 +37,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
     }
 
     override fun buildModels(data: JSonViewerState?) {
+        val host = this
         val async = data?.root ?: return
 
         when (async) {
@@ -47,10 +48,56 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                 }
             }
             else -> {
-                async.invoke()?.let {
-                    buildRec(it, 0, "")
+                async.invoke()?.let { root ->
+                    val query = data.searchQuery.trim()
+                    if (query.isEmpty()) {
+                        buildRec(root, 0, "")
+                    } else if (!buildFiltered(root, 0, "", query)) {
+                        valueItem {
+                            id("no_search_result")
+                            text(host.context.getString(R.string.jv_no_search_result).toEpoxyCharSequence())
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    /**
+     * Renders only the nodes matching [query] and the containers leading to them, which are opened
+     * whatever their expanded state. A matching node is rendered as usual, so a matched object can
+     * still be folded away by hand. Returns false when nothing under [model] matches.
+     */
+    private fun buildFiltered(model: JSonViewerModel, depth: Int, idBase: String, query: String): Boolean {
+        if (model.matches(query)) {
+            buildRec(model, depth, idBase)
+            return true
+        }
+        val id = "$idBase/${model.key ?: model.index}_${model.isExpanded}}"
+        val children = when (model) {
+            is JSonViewerObject -> model.keys.values.toList()
+            is JSonViewerArray -> model.items.toList()
+            else -> return false
+        }
+        if (children.none { it.subtreeMatches(query) }) return false
+        val isObject = model is JSonViewerObject
+        open(id, model.key, model.index, depth, isObject, model)
+        children.forEach { buildFiltered(it, depth + 1, id, query) }
+        close(id, depth, isObject)
+        return true
+    }
+
+    private fun JSonViewerModel.matches(query: String): Boolean {
+        return key?.contains(query, ignoreCase = true) == true ||
+                (this is JSonViewerLeaf && stringRes.contains(query, ignoreCase = true))
+    }
+
+    private fun JSonViewerModel.subtreeMatches(query: String): Boolean {
+        if (matches(query)) return true
+        return when (this) {
+            is JSonViewerObject -> keys.values.any { it.subtreeMatches(query) }
+            is JSonViewerArray -> items.any { it.subtreeMatches(query) }
+            else -> false
         }
     }
 
