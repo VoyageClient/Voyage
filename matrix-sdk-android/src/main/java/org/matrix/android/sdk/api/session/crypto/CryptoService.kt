@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustLevel
+import org.matrix.android.sdk.api.session.crypto.dehydration.DehydratedDeviceService
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupService
 import org.matrix.android.sdk.api.session.crypto.keyshare.GossipingRequestListener
 import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
@@ -50,6 +51,8 @@ interface CryptoService {
     fun crossSigningService(): CrossSigningService
 
     fun keysBackupService(): KeysBackupService
+
+    fun dehydratedDeviceService(): DehydratedDeviceService
 
     suspend fun setDeviceName(deviceId: String, deviceName: String)
 

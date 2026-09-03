@@ -265,6 +265,13 @@ class BootstrapCrossSigningTask @Inject constructor(
             Timber.e("## BootstrapCrossSigningTask: Failed to init keybackup")
         }
 
+        // 4S now holds a key we can reach, which is what dehydration was waiting for.
+        try {
+            session.cryptoService().dehydratedDeviceService().startDehydration()
+        } catch (failure: Throwable) {
+            Timber.w(failure, "## BootstrapCrossSigningTask: could not set up a dehydrated device")
+        }
+
         Timber.d("## BootstrapCrossSigningTask: mode:${params.setupMode} Finished")
         return BootstrapResult.Success(keyInfo)
     }
