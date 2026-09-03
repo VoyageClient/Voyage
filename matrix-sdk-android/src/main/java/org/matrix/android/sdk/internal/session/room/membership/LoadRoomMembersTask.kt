@@ -24,6 +24,8 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.crypto.CryptoService
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
@@ -164,7 +166,13 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
     }
 
     private suspend fun insertInDb(response: RoomMembersResponse, roomId: String) {
-        val chunks = response.roomMemberEvents.chunked(500)
+        // A room with thousands of members needs many chunks and closing it cancels the load mid-way, so
+        // without skipping what is already stored every reopen rewrites the same rows and never advances.
+        val (knownMemberEventIds, receiptUserIds) = database.awaitDbTransaction(dispatcher) {
+            stores.currentStateEvent.getEventIdsByStateKey(roomId, EventType.STATE_ROOM_MEMBER) to
+                    stores.readReceipt.getReceiptsInRoom(roomId).keys.mapTo(HashSet()) { it.first }
+        }
+        val chunks = response.roomMemberEvents.receiptHoldersFirst(receiptUserIds).chunked(500)
         chunks.forEach { roomMemberEvents ->
             database.awaitDbTransaction(dispatcher) {
                 Timber.v("Insert ${roomMemberEvents.size} member events in room $roomId")
@@ -175,6 +183,9 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                     val memberStateKey = roomMemberEvent.stateKey
                     val memberType = roomMemberEvent.type
                     if (memberEventId == null || memberStateKey == null || memberType == null) {
+                        continue
+                    }
+                    if (memberType == EventType.STATE_ROOM_MEMBER && knownMemberEventIds[memberStateKey] == memberEventId) {
                         continue
                     }
                     val ageLocalTs = now - (roomMemberEvent.unsignedData?.age ?: 0)
@@ -210,3 +221,7 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
         }
     }
 }
+
+/** Stable partition putting members holding a read receipt in the room first, so they land in the first chunk. */
+internal fun List<Event>.receiptHoldersFirst(receiptUserIds: Set<String>): List<Event> =
+        if (receiptUserIds.isEmpty()) this else sortedByDescending { it.stateKey in receiptUserIds }
