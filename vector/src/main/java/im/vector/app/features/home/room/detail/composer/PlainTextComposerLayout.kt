@@ -52,6 +52,7 @@ import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
+import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
@@ -464,10 +465,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val pillsPostProcessor = pillsPostProcessorFactory.create(event.roomId)
         val textRenderer = textRendererFactory.create(event.roomId)
 
+        val senderItem = event.senderInfo.toMatrixItemOrNull() ?: MatrixItem.UserItem("@")
+
         // switch to expanded bar
         views.composerRelatedMessageTitle.apply {
             text = event.senderInfo.disambiguatedDisplayName.prepareForDisplay()
-            val senderItem = event.senderInfo.toMatrixItemOrNull() ?: MatrixItem.UserItem("@")
             setTextColor(matrixItemColorProvider.getNameColor(senderItem))
             setSenderNameEmphasis(matrixItemColorProvider.isNameColored())
         }
@@ -554,7 +556,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }
                 ?.let { if (isFilenamePreview || isNoticePreview) it else it.linkify(null) }
         val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
-            renderedBody.asEmoteBody(event.senderInfo.disambiguatedDisplayName)
+            renderedBody.asEmoteBody(
+                    event.senderInfo.disambiguatedDisplayName,
+                    SenderNameSpan(senderItem, matrixItemColorProvider),
+            )
         } else {
             renderedBody
         }

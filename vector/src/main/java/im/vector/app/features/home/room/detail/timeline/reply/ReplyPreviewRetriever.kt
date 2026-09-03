@@ -52,6 +52,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import java.util.UUID
@@ -357,11 +358,15 @@ class ReplyPreviewRetriever(
     private val roomForColors by lazy { session.getRoom(roomId) }
 
     fun getMemberNameColor(event: TimelineEvent): Int {
-        // The cached event's senderInfo snapshots the color at retrieval time; resolve the current
-        // per-room color instead so the header follows changes like the rest of the timeline.
+        return messageColorProvider.getMemberNameTextColor(senderMatrixItem(event))
+    }
+
+    // The cached event's senderInfo snapshots the color at retrieval time; resolve the current
+    // per-room color instead so the header follows changes like the rest of the timeline.
+    private fun senderMatrixItem(event: TimelineEvent): MatrixItem {
         val senderInfo = event.senderInfo
         val fresh = roomForColors?.membershipService()?.getRoomMemberColorPreference(senderInfo.userId)
-        return messageColorProvider.getMemberNameTextColor(senderInfo.copy(colorPreference = fresh).toMatrixItem())
+        return senderInfo.copy(colorPreference = fresh).toMatrixItem()
     }
 
     fun isMemberNameColored(): Boolean = messageColorProvider.isMemberNameColored()
@@ -395,7 +400,7 @@ class ReplyPreviewRetriever(
         val content = event.getLastMessageContent() as? MessageContentWithFormattedBody ?: return null
         val key = "${event.eventId}:${event.getCacheId()}"
         synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
-        val built = buildReplyBody(content, event.senderInfo.disambiguatedDisplayName)
+        val built = buildReplyBody(content, event)
         synchronized(replyBodyCache) {
             if (replyBodyCache.size > REPLY_BODY_CACHE_MAX) replyBodyCache.clear()
             replyBodyCache[key] = built
@@ -403,7 +408,7 @@ class ReplyPreviewRetriever(
         return built
     }
 
-    private fun buildReplyBody(content: MessageContentWithFormattedBody, senderName: String): RenderedReplyBody {
+    private fun buildReplyBody(content: MessageContentWithFormattedBody, event: TimelineEvent): RenderedReplyBody {
         // If the replied-to event is itself a reply, strip its quoted portion so only its own message shows.
         val formattedBody = content.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
         val compressed = formattedBody?.let { htmlCompressor.compress(it) }
@@ -412,7 +417,15 @@ class ReplyPreviewRetriever(
         } else {
             textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body))
         }).linkify(null)
-        return RenderedReplyBody(compressed, if (content.msgType == MessageType.MSGTYPE_EMOTE) text.asEmoteBody(senderName) else text)
+        val emoteBody = if (content.msgType == MessageType.MSGTYPE_EMOTE) {
+            text.asEmoteBody(
+                    event.senderInfo.disambiguatedDisplayName,
+                    messageColorProvider.senderNameSpan(senderMatrixItem(event)),
+            )
+        } else {
+            text
+        }
+        return RenderedReplyBody(compressed, emoteBody)
     }
 
     private fun warmReplyBodyCache(event: TimelineEvent) {

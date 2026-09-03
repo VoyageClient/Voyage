@@ -120,6 +120,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Greentext**: quote-style greentext rendering, with an option to send all blockquotes as greentext.
 
+- **Emote rendering**: a `/me` reads as an italic *Alice waves*, with the sender's name emphasized the way it is above a message.
+
 - **Emoji font options**: render emoji with bundled Twemoji, the system emoji font, or a custom emoji font you supply. Emoji autocomplete can be turned off.
 
 - **Configurable reactions**: quick reactions that sync across your devices, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions by typing any text.

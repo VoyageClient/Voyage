@@ -101,6 +101,7 @@ import org.matrix.android.sdk.api.session.room.timeline.isPoll
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
 import org.matrix.android.sdk.api.session.room.timeline.isSticker
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -135,6 +136,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val serverAdminStatusDataSource: ServerAdminStatusDataSource,
         private val messageTranslationStore: MessageTranslationStore,
         private val translationSettings: im.vector.app.features.translation.TranslationSettings,
+        private val messageColorProvider: im.vector.app.features.home.room.detail.timeline.MessageColorProvider,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -352,7 +354,14 @@ class MessageActionsViewModel @AssistedInject constructor(
                                     .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
                                     .let { textRenderer.render(it) }
                         }
-                        if (isEmote) body.asEmoteBody(timelineEvent.senderInfo.disambiguatedDisplayName) else body
+                        if (isEmote) {
+                            body.asEmoteBody(
+                                    timelineEvent.senderInfo.disambiguatedDisplayName,
+                                    messageColorProvider.senderNameSpan(timelineEvent.senderInfo.toMatrixItem()),
+                            )
+                        } else {
+                            body
+                        }
                     }
                     EventType.STATE_ROOM_NAME,
                     EventType.STATE_ROOM_TOPIC,
