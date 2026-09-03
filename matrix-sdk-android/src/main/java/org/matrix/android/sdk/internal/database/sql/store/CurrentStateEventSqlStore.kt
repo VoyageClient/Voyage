@@ -24,6 +24,12 @@ internal class CurrentStateEventSqlStore(
     fun getByRoomAndType(roomId: String, type: String): List<CurrentStateEventEntity> =
             queries.selectByRoomAndType(roomId, type).executeAsList().map { it.toEntity() }
 
+    /** State key to event id for a whole state type, without resolving each root event. */
+    fun getEventIdsByStateKey(roomId: String, type: String): Map<String, String> =
+            queries.selectEventIdsByRoomAndType(roomId, type) { stateKey, eventId -> stateKey to eventId }
+                    .executeAsList()
+                    .toMap()
+
     fun getOne(roomId: String, type: String, stateKey: String): CurrentStateEventEntity? =
             queries.selectOne(roomId, type, stateKey).executeAsOneOrNull()?.toEntity()
 

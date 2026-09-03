@@ -18,6 +18,9 @@ SELECT * FROM current_state_event WHERE room_id = ?;
 selectByRoomAndType:
 SELECT * FROM current_state_event WHERE room_id = ? AND type = ?;
 
+selectEventIdsByRoomAndType:
+SELECT state_key, event_id FROM current_state_event WHERE room_id = ? AND type = ?;
+
 selectOne:
 SELECT * FROM current_state_event WHERE room_id = ? AND type = ? AND state_key = ?;
 
