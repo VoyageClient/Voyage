@@ -11,8 +11,7 @@ import android.graphics.Color
 import androidx.annotation.ColorInt
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
-import im.vector.app.core.ui.colorpicker.PeopleColorPalette
-import im.vector.app.core.ui.colorpicker.RoomColorPalette
+import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.ui.styles.R
@@ -53,7 +52,7 @@ class MatrixItemColorProvider @Inject constructor(
     // Palettes are theme-dependent and user-selectable, so the computed cache is only valid for the
     // current (people palette, room palette, light?) combination. Drop it when any of them changes.
     @Volatile
-    private var cacheSignature: Triple<PeopleColorPalette, RoomColorPalette, Boolean>? = null
+    private var cacheSignature: Triple<ColorPalette, ColorPalette, Boolean>? = null
 
     // Bumped whenever any resolved color may differ; screens rebind rather than restart. A state flow
     // so a screen that was stopped while it changed catches up when it starts again.
@@ -95,7 +94,7 @@ class MatrixItemColorProvider @Inject constructor(
     fun isNameColored(): Boolean = !namesAreUncolored()
 
     /** Whether names are uncolored as a rule, so message bodies dim to keep names legible above them. */
-    fun namesAreUncolored(): Boolean = vectorPreferences.peopleColorPalette() == PeopleColorPalette.NONE
+    fun namesAreUncolored(): Boolean = vectorPreferences.peopleColorPalette() == ColorPalette.NONE
 
     /** The explicitly chosen color for this theme, or null when the hash default applies. */
     fun resolveHex(matrixItem: MatrixItem, light: Boolean): String? {
@@ -169,8 +168,7 @@ class MatrixItemColorProvider @Inject constructor(
     /**
      * The hash color this user/room gets when nothing is set. Users — including the DMs we show as
      * their avatar — take the people palette; rooms and spaces take the room one. A user still needs
-     * an avatar color when names are uncolored, and the room palettes are as small as three colors,
-     * so [PeopleColorPalette.NONE] borrows the people palette of the chosen room palette's era.
+     * an avatar color when names are uncolored, so [ColorPalette.NONE] borrows the room palette.
      */
     @ColorInt
     fun defaultColor(matrixItem: MatrixItem, light: Boolean = themeProvider.isLightTheme()): Int {
@@ -185,7 +183,7 @@ class MatrixItemColorProvider @Inject constructor(
         return cache.getOrPut(matrixItem.id) {
             colorProvider.getColor(
                     if (matrixItem is MatrixItem.UserItem) {
-                        val palette = peoplePalette.takeIf { it != PeopleColorPalette.NONE } ?: roomPalette.peopleEquivalent
+                        val palette = peoplePalette.takeIf { it != ColorPalette.NONE } ?: roomPalette
                         palette.colorFor(matrixItem.id, light)
                     } else {
                         roomPalette.colorFor(colorKeyOf(matrixItem), light)
@@ -226,7 +224,7 @@ class MatrixItemColorProvider @Inject constructor(
             try {
                 if (colorText.length == 1) {
                     // A bare digit is an index into the legacy palette, which is what this spec predates.
-                    val colors = PeopleColorPalette.LEGACY.colors
+                    val colors = ColorPalette.LEGACY.colors
                     colorProvider.getColor(colors[colorText.toInt() % colors.size].onLight)
                 } else {
                     Color.parseColor(colorText)

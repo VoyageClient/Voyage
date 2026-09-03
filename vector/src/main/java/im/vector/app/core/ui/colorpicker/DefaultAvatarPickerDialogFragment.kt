@@ -123,9 +123,9 @@ class DefaultAvatarPickerDialogFragment : DialogFragment() {
         val light = ThemeUtils.isLightTheme(context)
         val palette = when (kind) {
             Kind.PEOPLE -> vectorPreferences.peopleColorPalette()
-                    .takeIf { it != PeopleColorPalette.NONE }
+                    .takeIf { it != ColorPalette.NONE }
                     ?.colors
-                    ?: vectorPreferences.roomColorPalette().peopleEquivalent.colors
+                    ?: vectorPreferences.roomColorPalette().colors
             Kind.ROOM -> vectorPreferences.roomColorPalette().colors
         }
         return palette.map { ContextCompat.getColor(context, it.forTheme(light)) }

@@ -114,6 +114,39 @@
     <color name="element_name_modern_dark_05">#fe84a2</color>
     <color name="element_name_modern_dark_06">#f6913d</color>
 
+    <!-- The seven backgrounds of Twitter's shaded default-avatar egg, 2010-2014. -->
+    <color name="twitter_egg_2010_01">#346a85</color>
+    <color name="twitter_egg_2010_02">#afe356</color>
+    <color name="twitter_egg_2010_03">#348569</color>
+    <color name="twitter_egg_2010_04">#f6a43d</color>
+    <color name="twitter_egg_2010_05">#aad3e6</color>
+    <color name="twitter_egg_2010_06">#7f3485</color>
+    <color name="twitter_egg_2010_07">#992b41</color>
+
+    <!-- And of the flat egg that replaced it, 2014-2017. -->
+    <color name="twitter_egg_2014_01">#3b94d9</color>
+    <color name="twitter_egg_2014_02">#e95f28</color>
+    <color name="twitter_egg_2014_03">#4a913c</color>
+    <color name="twitter_egg_2014_04">#ffac33</color>
+    <color name="twitter_egg_2014_05">#8899a6</color>
+    <color name="twitter_egg_2014_06">#744eaa</color>
+    <color name="twitter_egg_2014_07">#be1931</color>
+
+    <!-- Discord's default avatar backgrounds on the old blurple, picked by discriminator. -->
+    <color name="discord_2015_01">#7289da</color>
+    <color name="discord_2015_02">#747f8d</color>
+    <color name="discord_2015_03">#43b581</color>
+    <color name="discord_2015_04">#faa61a</color>
+    <color name="discord_2015_05">#f04747</color>
+
+    <!-- And after the 2021 rebrand, which added a sixth. -->
+    <color name="discord_2021_01">#5865f2</color>
+    <color name="discord_2021_02">#757e8a</color>
+    <color name="discord_2021_03">#3ba55c</color>
+    <color name="discord_2021_04">#faa61a</color>
+    <color name="discord_2021_05">#ed4245</color>
+    <color name="discord_2021_06">#eb459f</color>
+
     <!-- element-web's original room avatar trio, from 2015. -->
     <color name="element_room_alpha_01">#76cfa6</color>
     <color name="element_room_alpha_02">#50e2c2</color>

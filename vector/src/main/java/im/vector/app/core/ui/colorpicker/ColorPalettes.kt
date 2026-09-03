@@ -26,40 +26,30 @@ data class PaletteColor(
 }
 
 /**
- * Colors for display names, and for the default avatars of users and of the DMs they are in.
- * Each entry is a palette element-web actually shipped, with the hash it shipped alongside.
+ * Colors for display names, and for the default avatars of users, rooms and spaces alike. Every
+ * entry is offered for both, apart from [NONE], which only makes sense for names.
+ *
+ * The element-web entries carry the hash that palette shipped alongside: the room trios were
+ * indexed by the sum of the id's characters, the name palettes by a rolling hash, until element-web
+ * settled on the character sum for both in 2024.
  */
-enum class PeopleColorPalette(@StringRes val titleRes: Int, val colors: List<PaletteColor>) {
+enum class ColorPalette(@StringRes val titleRes: Int, val colors: List<PaletteColor>) {
     NONE(CommonStrings.color_palette_none, emptyList()),
-    RIOT_ALPHA(CommonStrings.color_palette_people_riot_alpha, ALPHA_PEOPLE_COLORS),
+    RIOT_ALPHA_ROOMS(CommonStrings.color_palette_riot_alpha_rooms, ALPHA_ROOM_COLORS),
+    LEGACY_ROOMS(CommonStrings.color_palette_legacy_rooms, LEGACY_ROOM_COLORS),
+    RIOT_ALPHA(CommonStrings.color_palette_riot_alpha, ALPHA_PEOPLE_COLORS),
     LEGACY(CommonStrings.color_palette_legacy, LEGACY_PEOPLE_COLORS),
-    MODERN(CommonStrings.color_palette_modern, MODERN_COLORS);
+    MODERN(CommonStrings.color_palette_modern, MODERN_COLORS),
+    TWITTER_EGG_2010(CommonStrings.color_palette_twitter_egg_2010, TWITTER_EGG_2010_COLORS),
+    TWITTER_EGG_2014(CommonStrings.color_palette_twitter_egg_2014, TWITTER_EGG_2014_COLORS),
+    DISCORD_2015(CommonStrings.color_palette_discord_2015, DISCORD_2015_COLORS),
+    DISCORD_2021(CommonStrings.color_palette_discord_2021, DISCORD_2021_COLORS);
 
     fun indexOf(id: String?): Int = when (this) {
         NONE -> -1
-        MODERN -> sumIndex(id, colors.size)
+        RIOT_ALPHA_ROOMS, LEGACY_ROOMS, MODERN -> sumIndex(id, colors.size)
         else -> rollingHashIndex(id, colors.size)
     }
-
-    @ColorRes
-    fun colorFor(id: String?, light: Boolean) = colors[indexOf(id)].forTheme(light)
-}
-
-/** Colors for the default avatars of rooms and spaces. */
-enum class RoomColorPalette(@StringRes val titleRes: Int, val colors: List<PaletteColor>) {
-    RIOT_ALPHA(CommonStrings.color_palette_room_riot_alpha, ALPHA_ROOM_COLORS),
-    LEGACY(CommonStrings.color_palette_legacy, LEGACY_ROOM_COLORS),
-    MODERN(CommonStrings.color_palette_modern, MODERN_COLORS);
-
-    /** The people palette from the same era, for users when names are uncolored. */
-    val peopleEquivalent: PeopleColorPalette
-        get() = when (this) {
-            RIOT_ALPHA -> PeopleColorPalette.RIOT_ALPHA
-            LEGACY -> PeopleColorPalette.LEGACY
-            MODERN -> PeopleColorPalette.MODERN
-        }
-
-    fun indexOf(id: String?): Int = sumIndex(id, colors.size)
 
     @ColorRes
     fun colorFor(id: String?, light: Boolean) = colors[indexOf(id)].forTheme(light)
@@ -106,6 +96,47 @@ private val MODERN_COLORS = listOf(
         PaletteColor(CommonStrings.profile_color_modern_purple, StylesR.color.element_name_modern_light_04, StylesR.color.element_name_modern_dark_04),
         PaletteColor(CommonStrings.profile_color_modern_pink, StylesR.color.element_name_modern_light_05, StylesR.color.element_name_modern_dark_05),
         PaletteColor(CommonStrings.profile_color_modern_orange, StylesR.color.element_name_modern_light_06, StylesR.color.element_name_modern_dark_06),
+)
+
+// The backgrounds Twitter's shaded default-avatar egg came on, default_profile_0..6.
+private val TWITTER_EGG_2010_COLORS = listOf(
+        PaletteColor(CommonStrings.profile_color_egg_harbor, StylesR.color.twitter_egg_2010_01),
+        PaletteColor(CommonStrings.profile_color_egg_sprout, StylesR.color.twitter_egg_2010_02),
+        PaletteColor(CommonStrings.profile_color_egg_pine, StylesR.color.twitter_egg_2010_03),
+        PaletteColor(CommonStrings.profile_color_egg_apricot, StylesR.color.twitter_egg_2010_04),
+        PaletteColor(CommonStrings.profile_color_egg_powder, StylesR.color.twitter_egg_2010_05),
+        PaletteColor(CommonStrings.profile_color_egg_plum, StylesR.color.twitter_egg_2010_06),
+        PaletteColor(CommonStrings.profile_color_egg_cherry, StylesR.color.twitter_egg_2010_07),
+)
+
+// And of the flat egg that replaced it in 2014, keeping the same numbering.
+private val TWITTER_EGG_2014_COLORS = listOf(
+        PaletteColor(CommonStrings.profile_color_egg_bluebird, StylesR.color.twitter_egg_2014_01),
+        PaletteColor(CommonStrings.profile_color_egg_tangerine, StylesR.color.twitter_egg_2014_02),
+        PaletteColor(CommonStrings.profile_color_egg_fern, StylesR.color.twitter_egg_2014_03),
+        PaletteColor(CommonStrings.profile_color_egg_amber, StylesR.color.twitter_egg_2014_04),
+        PaletteColor(CommonStrings.profile_color_egg_ash, StylesR.color.twitter_egg_2014_05),
+        PaletteColor(CommonStrings.profile_color_egg_violet, StylesR.color.twitter_egg_2014_06),
+        PaletteColor(CommonStrings.profile_color_egg_crimson, StylesR.color.twitter_egg_2014_07),
+)
+
+// The backgrounds of Discord's default avatar before the 2021 rebrand.
+private val DISCORD_2015_COLORS = listOf(
+        PaletteColor(CommonStrings.profile_color_discord_blurple, StylesR.color.discord_2015_01),
+        PaletteColor(CommonStrings.profile_color_discord_gray, StylesR.color.discord_2015_02),
+        PaletteColor(CommonStrings.profile_color_discord_green, StylesR.color.discord_2015_03),
+        PaletteColor(CommonStrings.profile_color_discord_yellow, StylesR.color.discord_2015_04),
+        PaletteColor(CommonStrings.profile_color_discord_red, StylesR.color.discord_2015_05),
+)
+
+// And after it, on the new blurple and with a fuchsia added.
+private val DISCORD_2021_COLORS = listOf(
+        PaletteColor(CommonStrings.profile_color_discord_blurple, StylesR.color.discord_2021_01),
+        PaletteColor(CommonStrings.profile_color_discord_gray, StylesR.color.discord_2021_02),
+        PaletteColor(CommonStrings.profile_color_discord_green, StylesR.color.discord_2021_03),
+        PaletteColor(CommonStrings.profile_color_discord_yellow, StylesR.color.discord_2021_04),
+        PaletteColor(CommonStrings.profile_color_discord_red, StylesR.color.discord_2021_05),
+        PaletteColor(CommonStrings.profile_color_discord_fuchsia, StylesR.color.discord_2021_06),
 )
 
 // element-web's original room avatar trio, from October 2015.

@@ -40,6 +40,7 @@ import im.vector.app.features.home.room.list.home.invites.InvitesActivity
 import im.vector.app.features.home.room.list.sections.RoomSectionDialogs
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
@@ -60,6 +61,7 @@ class HomeRoomListFragment :
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
+    @Inject lateinit var matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 
     private val roomListViewModel: HomeRoomListViewModel by fragmentViewModel()
     private lateinit var sharedQuickActionsViewModel: RoomListQuickActionsSharedActionViewModel
@@ -114,6 +116,13 @@ class HomeRoomListFragment :
 
         // Flip the room-list PGP lock the moment the global/per-room toggle changes.
         pgpKeyStore.changes
+                .onEach { roomsController.requestForcedModelBuild() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // A preview's pills are built when the model is, so a recolor needs the models rebuilt and
+        // not merely re-bound like the rest of the list.
+        matrixItemColorProvider.changes
+                .drop(1)
                 .onEach { roomsController.requestForcedModelBuild() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 

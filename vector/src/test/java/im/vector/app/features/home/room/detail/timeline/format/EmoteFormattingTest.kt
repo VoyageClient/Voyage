@@ -49,6 +49,9 @@ class EmoteFormattingTest {
             reactionFormatter = mockk(relaxed = true),
             htmlRenderer = { mockk(relaxed = true) },
             pgpDecryptor = mockk(relaxed = true),
+            matrixItemColorProvider = mockk<im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider>(relaxed = true).also {
+                every { it.changes } returns kotlinx.coroutines.flow.MutableStateFlow(0L)
+            },
             messageTranslationStore = mockk<im.vector.app.features.translation.MessageTranslationStore>(relaxed = true).also {
                 every { it.get(any()) } returns null
             },

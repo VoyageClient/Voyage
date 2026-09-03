@@ -130,7 +130,8 @@ class TwemojiLetterDrawable(
 /** The silhouettes drawn over a colored shape, in a normalized 0..1 box. */
 enum class AvatarGlyph(val overflows: Boolean) {
     PERSON(overflows = true),
-    EGG(overflows = false);
+    EGG(overflows = false),
+    MATRIX(overflows = false);
 
     fun path(): Path = Path().apply {
         when (this@AvatarGlyph) {
@@ -148,11 +149,76 @@ enum class AvatarGlyph(val overflows: Boolean) {
                 cubicTo(0.2525f, 0.3475f, 0.38f, 0.16f, 0.5f, 0.16f)
                 close()
             }
+            MATRIX -> addMatrixLogo()
         }
     }
 }
 
-/** A silhouette over a colored shape: the Generic person and the Twitter egg. */
+// matrix.org's brand icon (matrix-icon.svg, a 520-unit square), scaled into the box the egg occupies.
+private fun Path.addMatrixLogo() {
+    moveTo(0.1779f, 0.1756f)
+    lineTo(0.1779f, 0.8244f)
+    lineTo(0.2246f, 0.8244f)
+    lineTo(0.2246f, 0.84f)
+    lineTo(0.16f, 0.84f)
+    lineTo(0.16f, 0.16f)
+    lineTo(0.2246f, 0.16f)
+    lineTo(0.2246f, 0.1756f)
+    lineTo(0.1779f, 0.1756f)
+    close()
+    moveTo(0.3775f, 0.3813f)
+    lineTo(0.3775f, 0.4141f)
+    lineTo(0.3784f, 0.4141f)
+    cubicTo(0.3871f, 0.4015f, 0.3977f, 0.3919f, 0.41f, 0.3851f)
+    cubicTo(0.4223f, 0.3781f, 0.4366f, 0.3747f, 0.4525f, 0.3747f)
+    cubicTo(0.4678f, 0.3747f, 0.4818f, 0.3777f, 0.4945f, 0.3836f)
+    cubicTo(0.5072f, 0.3895f, 0.5167f, 0.4001f, 0.5234f, 0.415f)
+    cubicTo(0.5306f, 0.4044f, 0.5404f, 0.395f, 0.5527f, 0.3869f)
+    cubicTo(0.565f, 0.3788f, 0.5796f, 0.3747f, 0.5965f, 0.3747f)
+    cubicTo(0.6093f, 0.3747f, 0.6212f, 0.3763f, 0.6322f, 0.3794f)
+    cubicTo(0.6432f, 0.3826f, 0.6525f, 0.3875f, 0.6603f, 0.3945f)
+    cubicTo(0.6682f, 0.4014f, 0.6742f, 0.4103f, 0.6786f, 0.4214f)
+    cubicTo(0.6829f, 0.4325f, 0.6852f, 0.4459f, 0.6852f, 0.4616f)
+    lineTo(0.6852f, 0.6238f)
+    lineTo(0.6186f, 0.6238f)
+    lineTo(0.6186f, 0.4864f)
+    cubicTo(0.6186f, 0.4783f, 0.6183f, 0.4706f, 0.6177f, 0.4634f)
+    cubicTo(0.617f, 0.4562f, 0.6153f, 0.4499f, 0.6126f, 0.4447f)
+    cubicTo(0.6097f, 0.4393f, 0.6057f, 0.4351f, 0.6002f, 0.432f)
+    cubicTo(0.5947f, 0.4289f, 0.5872f, 0.4273f, 0.5779f, 0.4273f)
+    cubicTo(0.5685f, 0.4273f, 0.5609f, 0.4291f, 0.5552f, 0.4327f)
+    cubicTo(0.5494f, 0.4363f, 0.5449f, 0.4409f, 0.5416f, 0.4468f)
+    cubicTo(0.5383f, 0.4525f, 0.5361f, 0.4591f, 0.535f, 0.4665f)
+    cubicTo(0.534f, 0.4738f, 0.5333f, 0.4813f, 0.5333f, 0.4888f)
+    lineTo(0.5333f, 0.6238f)
+    lineTo(0.4668f, 0.6238f)
+    lineTo(0.4668f, 0.4878f)
+    cubicTo(0.4668f, 0.4806f, 0.4667f, 0.4736f, 0.4663f, 0.4665f)
+    cubicTo(0.466f, 0.4595f, 0.4646f, 0.4531f, 0.4622f, 0.447f)
+    cubicTo(0.4599f, 0.4412f, 0.4559f, 0.4363f, 0.4504f, 0.4328f)
+    cubicTo(0.4449f, 0.4293f, 0.437f, 0.4274f, 0.4262f, 0.4274f)
+    cubicTo(0.4231f, 0.4274f, 0.4189f, 0.4281f, 0.4138f, 0.4295f)
+    cubicTo(0.4087f, 0.431f, 0.4036f, 0.4336f, 0.3988f, 0.4375f)
+    cubicTo(0.3939f, 0.4414f, 0.3898f, 0.447f, 0.3864f, 0.4544f)
+    cubicTo(0.383f, 0.4617f, 0.3813f, 0.4714f, 0.3813f, 0.4833f)
+    lineTo(0.3813f, 0.624f)
+    lineTo(0.3147f, 0.624f)
+    lineTo(0.3147f, 0.3813f)
+    lineTo(0.3775f, 0.3813f)
+    close()
+    moveTo(0.8221f, 0.8244f)
+    lineTo(0.8221f, 0.1756f)
+    lineTo(0.7754f, 0.1756f)
+    lineTo(0.7754f, 0.16f)
+    lineTo(0.84f, 0.16f)
+    lineTo(0.84f, 0.84f)
+    lineTo(0.7754f, 0.84f)
+    lineTo(0.7754f, 0.8244f)
+    lineTo(0.8221f, 0.8244f)
+    close()
+}
+
+/** A silhouette over a colored shape: the Generic person, the Twitter egg and the Matrix logo. */
 class GlyphAvatarDrawable(
         shape: AvatarShape,
         backgroundColor: Int,

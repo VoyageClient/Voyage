@@ -18,8 +18,7 @@ import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.core.ui.colorpicker.PeopleColorPalette
-import im.vector.app.core.ui.colorpicker.RoomColorPalette
+import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.core.utils.DeviceCapabilities
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
@@ -472,21 +471,21 @@ class VectorPreferences @Inject constructor(
         return defaultPrefs.getBoolean(SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT, false)
     }
 
-    fun peopleColorPalette(): PeopleColorPalette {
+    fun peopleColorPalette(): ColorPalette {
         val stored = defaultPrefs.getString(SETTINGS_PEOPLE_COLOR_PALETTE_KEY, null)
-        return PeopleColorPalette.values().firstOrNull { it.name == stored } ?: PeopleColorPalette.LEGACY
+        return ColorPalette.values().firstOrNull { it.name == stored } ?: ColorPalette.LEGACY
     }
 
-    fun setPeopleColorPalette(palette: PeopleColorPalette) {
+    fun setPeopleColorPalette(palette: ColorPalette) {
         defaultPrefs.edit { putString(SETTINGS_PEOPLE_COLOR_PALETTE_KEY, palette.name) }
     }
 
-    fun roomColorPalette(): RoomColorPalette {
+    fun roomColorPalette(): ColorPalette {
         val stored = defaultPrefs.getString(SETTINGS_ROOM_COLOR_PALETTE_KEY, null)
-        return RoomColorPalette.values().firstOrNull { it.name == stored } ?: RoomColorPalette.LEGACY
+        return ColorPalette.values().firstOrNull { it.name == stored && it != ColorPalette.NONE } ?: ColorPalette.LEGACY
     }
 
-    fun setRoomColorPalette(palette: RoomColorPalette) {
+    fun setRoomColorPalette(palette: ColorPalette) {
         defaultPrefs.edit { putString(SETTINGS_ROOM_COLOR_PALETTE_KEY, palette.name) }
     }
 
