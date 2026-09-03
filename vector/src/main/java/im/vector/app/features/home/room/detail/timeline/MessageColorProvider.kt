@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline
 import androidx.annotation.ColorInt
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -30,6 +31,9 @@ class MessageColorProvider @Inject constructor(
     fun isMemberNameColored(): Boolean {
         return matrixItemColorProvider.isNameColored()
     }
+
+    /** Emphasis for a sender name rendered inline in an emote body, matching the name header above it. */
+    fun senderNameSpan(matrixItem: MatrixItem) = SenderNameSpan(matrixItem, matrixItemColorProvider)
 
     @ColorInt
     fun getMessageTextColor(sendState: SendState): Int {

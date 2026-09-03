@@ -1233,7 +1233,11 @@ class MessageItemFactory @Inject constructor(
             return buildFormattedTextItem(formatted, informationData, highlight, callback, attributes, noticeStyle = noticeStyle, translation = translation)
         }
         return buildMessageTextItem(
-                if (emoteSender != null) translation.text.asEmoteBody(emoteSender) else translation.text,
+                if (emoteSender != null) {
+                    translation.text.asEmoteBody(emoteSender, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
+                } else {
+                    translation.text
+                },
                 false,
                 informationData,
                 highlight,
@@ -1341,7 +1345,9 @@ class MessageItemFactory @Inject constructor(
         messageTranslationStore.get(informationData.eventId)?.let { translation ->
             return buildTranslatedItem(translation, informationData, highlight, callback, attributes, emoteSender = senderName)
         }
-        val formattedBody = SpannableStringBuilder(messageContent.getHtmlBody().asEmoteBody(senderName))
+        val formattedBody = SpannableStringBuilder(
+                messageContent.getHtmlBody().asEmoteBody(senderName, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
+        )
         val bindingOptions = spanUtils.getBindingOptions(formattedBody)
         val message = formattedBody.linkify(callback)
 
