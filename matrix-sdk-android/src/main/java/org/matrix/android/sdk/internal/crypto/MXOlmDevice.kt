@@ -636,45 +636,40 @@ internal class MXOlmDevice @Inject constructor(
 
         val existingSessionHolder = tryOrNull { getInboundGroupSession(sessionId, senderKey, roomId) }
         val existingSession = existingSessionHolder?.wrapper
+        var mergedTrusted = trusted
         // If we have an existing one we should check if the new one is not better
         if (existingSession != null) {
             Timber.tag(loggerTag.value).d("## addInboundGroupSession() check if known session is better than candidate session")
             try {
-                val existingFirstKnown = tryOrNull { existingSession.session.firstKnownIndex } ?: return AddSessionResult.NotImported.also {
-                    // This is quite unexpected, could throw if native was released?
-                    Timber.tag(loggerTag.value).e("## addInboundGroupSession() null firstKnownIndex on existing session")
-                    candidateSession.releaseSession()
-                    // Probably should discard it?
-                }
-                val newKnownFirstIndex = tryOrNull("Failed to get candidate first known index") { candidateSession.firstKnownIndex }
+                val ordering = existingSession.session.compareWith(candidateSession)
                         ?: return AddSessionResult.NotImported.also {
+                            Timber.tag(loggerTag.value).e("## addInboundGroupSession() : Failed to compare with known session $senderKey/$sessionId")
                             candidateSession.releaseSession()
-                            Timber.tag(loggerTag.value).d("## addInboundGroupSession() : Failed to get new session index")
                         }
 
-                val keyConnects = existingSession.session.connects(candidateSession)
-                if (!keyConnects) {
-                    Timber.tag(loggerTag.value)
-                            .e("## addInboundGroupSession() Unconnected key")
-                    if (!trusted) {
-                        // Ignore the not connecting unsafe, keep existing
-                        Timber.tag(loggerTag.value)
-                                .e("## addInboundGroupSession() Received unsafe unconnected key")
+                val resolution = resolveMegolmSession(
+                        ordering = ordering,
+                        existingTrusted = existingSession.sessionData.trusted == true,
+                        candidateTrusted = trusted
+                )
+                when (resolution) {
+                    MegolmSessionResolution.Reject -> {
+                        Timber.tag(loggerTag.value).e("## addInboundGroupSession() Received unsafe unconnected key $senderKey/$sessionId")
+                        candidateSession.releaseSession()
                         return AddSessionResult.NotImported
                     }
-                    // else if the new one is safe and does not connect with existing, import the new one
-                } else {
-                    // If our existing session is better we keep it
-                    if (existingFirstKnown <= newKnownFirstIndex) {
-                        val shouldUpdateTrust = trusted && (existingSession.sessionData.trusted != true)
-                        Timber.tag(loggerTag.value).d("## addInboundGroupSession() : updateTrust for $sessionId")
-                        if (shouldUpdateTrust) {
-                            // the existing as a better index but the new one is trusted so update trust
+                    is MegolmSessionResolution.KeepExisting -> {
+                        if (resolution.upgradeTrust) {
+                            Timber.tag(loggerTag.value).d("## addInboundGroupSession() : updateTrust for $sessionId")
                             inboundGroupSessionStore.updateToSafe(existingSessionHolder, sessionId, senderKey)
                         }
-                        Timber.tag(loggerTag.value).d("## addInboundGroupSession() : ignore session our is better $senderKey/$sessionId")
+                        Timber.tag(loggerTag.value).d("## addInboundGroupSession() : keep existing session $senderKey/$sessionId")
+                        val newKnownFirstIndex = candidateSession.firstKnownIndex
                         candidateSession.releaseSession()
                         return AddSessionResult.NotImportedHigherIndex(newKnownFirstIndex.toInt())
+                    }
+                    is MegolmSessionResolution.UseCandidate -> {
+                        mergedTrusted = resolution.trusted
                     }
                 }
             } catch (failure: Throwable) {
@@ -704,7 +699,7 @@ internal class MXOlmDevice @Inject constructor(
                 keysClaimed = keysClaimed,
                 forwardingCurve25519KeyChain = forwardingCurve25519KeyChain,
                 sharedHistory = sharedHistory,
-                trusted = trusted
+                trusted = mergedTrusted
         )
 
         val wrapper = MXInboundMegolmSessionWrapper(
@@ -718,16 +713,6 @@ internal class MXOlmDevice @Inject constructor(
         }
 
         return AddSessionResult.Imported(candidateSession.firstKnownIndex.toInt())
-    }
-
-    fun OlmInboundGroupSession.connects(other: OlmInboundGroupSession): Boolean {
-        return try {
-            val lowestCommonIndex = this.firstKnownIndex.coerceAtLeast(other.firstKnownIndex)
-            this.export(lowestCommonIndex) == other.export(lowestCommonIndex)
-        } catch (failure: Throwable) {
-            // native error? key disposed?
-            false
-        }
     }
 
     /**
@@ -771,27 +756,44 @@ internal class MXOlmDevice @Inject constructor(
                 // Session does not already exist, add it
                 sessions.add(candidateSessionToImport)
             } else {
-                val existingFirstKnown = tryOrNull { existingSession.session.firstKnownIndex }
-                val candidateFirstKnownIndex = tryOrNull { candidateSessionToImport.session.firstKnownIndex }
+                val ordering = existingSession.session.compareWith(candidateOlmInboundGroupSession)
 
-                if (existingFirstKnown == null || candidateFirstKnownIndex == null) {
-                    // should not happen?
-                    candidateSessionToImport.session.releaseSession()
-                    Timber.tag(loggerTag.value)
-                            .w("## importInboundGroupSession() : Can't check session null index $existingFirstKnown/$candidateFirstKnownIndex")
+                if (ordering == null) {
+                    candidateOlmInboundGroupSession.releaseSession()
+                    Timber.tag(loggerTag.value).w("## importInboundGroupSession() : Can't compare with known session $sessionId")
                 } else {
-                    if (existingFirstKnown <= candidateFirstKnownIndex) {
-                        // Ignore this, keep existing
-                        candidateOlmInboundGroupSession.releaseSession()
-                    } else {
-                        // update cache with better session
-                        inboundGroupSessionStore.replaceGroupSession(
-                                existingSessionHolder,
-                                InboundGroupSessionHolder(candidateSessionToImport),
-                                sessionId,
-                                senderKey
-                        )
-                        sessions.add(candidateSessionToImport)
+                    val resolution = resolveMegolmSession(
+                            ordering = ordering,
+                            existingTrusted = existingSession.sessionData.trusted == true,
+                            candidateTrusted = candidateSessionToImport.sessionData.trusted == true
+                    )
+                    when (resolution) {
+                        MegolmSessionResolution.Reject -> {
+                            Timber.tag(loggerTag.value).w("## importInboundGroupSession() : Unsafe unconnected key $sessionId")
+                            candidateOlmInboundGroupSession.releaseSession()
+                        }
+                        is MegolmSessionResolution.KeepExisting -> {
+                            if (resolution.upgradeTrust) {
+                                inboundGroupSessionStore.updateToSafe(existingSessionHolder, sessionId, senderKey)
+                            }
+                            candidateOlmInboundGroupSession.releaseSession()
+                        }
+                        is MegolmSessionResolution.UseCandidate -> {
+                            val merged = if (resolution.trusted) {
+                                candidateSessionToImport.copy(
+                                        sessionData = candidateSessionToImport.sessionData.copy(trusted = true)
+                                )
+                            } else {
+                                candidateSessionToImport
+                            }
+                            inboundGroupSessionStore.replaceGroupSession(
+                                    existingSessionHolder,
+                                    InboundGroupSessionHolder(merged),
+                                    sessionId,
+                                    senderKey
+                            )
+                            sessions.add(merged)
+                        }
                     }
                 }
             }
