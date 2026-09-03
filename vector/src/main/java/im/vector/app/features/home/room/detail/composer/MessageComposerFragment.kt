@@ -1005,13 +1005,16 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val perAttachment = previewCaptions?.map { caption ->
             caption.takeIf { it.isNotBlank() }?.let { SpannableString(emoteShortcodeProcessor.process(roomId, it)) }
         }
+        // The batch's caption is the last one written, so it reads below every attachment it was sent with.
         val captionText: CharSequence? = if (perAttachment != null) {
-            perAttachment.firstOrNull()
+            perAttachment.lastOrNull { it != null }
         } else {
             rawCaption.toString().takeIf { it.isNotBlank() }?.let { SpannableString(emoteShortcodeProcessor.process(roomId, rawCaption)) }
         }
         // The rich body only still describes the caption while the previewer left it as the composer wrote it.
-        val richHtml = composer.formattedText?.takeIf { previewCaptions == null || previewCaptions.firstOrNull() == rawCaption.toString() }
+        val richHtml = composer.formattedText?.takeIf {
+            previewCaptions == null || previewCaptions.lastOrNull { caption -> caption.isNotBlank() } == rawCaption.toString()
+        }
         val captionFormattedText = richHtml?.takeIf { captionText != null }
         val autoMarkdown = captionText != null && captionFormattedText == null && vectorPreferences.isMarkdownEnabled()
         val resolved = resolveCaptionCommand(state, captionText, captionFormattedText, autoMarkdown)

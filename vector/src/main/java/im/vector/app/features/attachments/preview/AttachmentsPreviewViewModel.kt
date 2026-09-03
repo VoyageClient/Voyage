@@ -22,8 +22,17 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             is AttachmentsPreviewAction.SetCompression -> handleSetCompression(action)
             is AttachmentsPreviewAction.SetKeepOriginalSize -> handleSetKeepOriginalSize(action)
             is AttachmentsPreviewAction.SetCaption -> handleSetCaption(action)
-            is AttachmentsPreviewAction.SetSharesOneCaption -> setState { copy(sharesOneCaption = action.shared) }
+            is AttachmentsPreviewAction.SetSharesOneCaption -> handleSetSharesOneCaption(action)
         }
+    }
+
+    private fun handleSetSharesOneCaption(action: AttachmentsPreviewAction.SetSharesOneCaption) = setState {
+        if (!action.shared) return@setState copy(sharesOneCaption = false)
+        val shared = attachments.firstNotNullOfOrNull { captions[stableIdOf(it)]?.takeIf { caption -> caption.isNotBlank() } }
+        copy(
+                sharesOneCaption = true,
+                captions = if (shared == null) captions else attachments.associate { stableIdOf(it) to shared },
+        )
     }
 
     private fun handleSetCaption(action: AttachmentsPreviewAction.SetCaption) = withState {

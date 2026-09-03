@@ -38,7 +38,10 @@ data class AttachmentsPreviewViewState(
 
     constructor(args: AttachmentsPreviewArgs) : this(
             attachments = args.attachments,
-            captions = args.attachments.associate { it.queryUri to args.caption.orEmpty() },
+            // The last one carries it, so the caption reads below the whole batch once sent.
+            captions = args.attachments.lastOrNull()
+                    ?.let { mapOf(it.queryUri to args.caption.orEmpty()) }
+                    .orEmpty(),
     )
 
     fun captionOf(attachment: ContentAttachmentData): String = captions[stableIdOf(attachment)].orEmpty()
