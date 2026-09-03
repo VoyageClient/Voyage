@@ -9,38 +9,39 @@ package im.vector.app.core.ui.colorpicker
 
 import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.ScrollView
-import android.widget.TextView
-import androidx.annotation.ColorInt
-import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.features.home.avatar.DefaultAvatarFactory
+import im.vector.app.features.home.avatar.DefaultAvatarStyle
+import im.vector.app.features.settings.AvatarShape
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
+import javax.inject.Inject
 
 /**
- * Picks one palette out of a list, previewing every color it contains with its index drawn on it.
+ * Picks what an avatar shows when there is none to load, previewing every style against the colors
+ * the palette in use would give it.
  *
- * Result under [ARG_REQUEST_KEY]: [RESULT_PALETTE] is the chosen entry's name.
+ * Result under [ARG_REQUEST_KEY]: [RESULT_STYLE] is the chosen style's name.
  */
-class PalettePickerDialogFragment : DialogFragment() {
+@AndroidEntryPoint
+class DefaultAvatarPickerDialogFragment : DialogFragment() {
 
     enum class Kind { PEOPLE, ROOM }
 
-    private class PaletteChoice(val name: String, @StringRes val titleRes: Int, val colors: List<PaletteColor>)
+    @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var defaultAvatarFactory: DefaultAvatarFactory
 
     private var selected: String? = null
 
@@ -60,7 +61,7 @@ class PalettePickerDialogFragment : DialogFragment() {
                 .setTitle(requireArguments().getString(ARG_TITLE))
                 .setView(buildContent(context))
                 .setPositiveButton(android.R.string.ok) { _, _ ->
-                    setFragmentResult(requireArguments().getString(ARG_REQUEST_KEY)!!, bundleOf(RESULT_PALETTE to selected))
+                    setFragmentResult(requireArguments().getString(ARG_REQUEST_KEY)!!, bundleOf(RESULT_STYLE to selected))
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .create()
@@ -68,34 +69,32 @@ class PalettePickerDialogFragment : DialogFragment() {
 
     private fun buildContent(context: Context): View {
         val density = resources.displayMetrics.density
-        val options = optionsOf(kind())
-        val light = ThemeUtils.isLightTheme(context)
+        val kind = kind()
+        val styles = if (kind == Kind.PEOPLE) DefaultAvatarStyle.PEOPLE else DefaultAvatarStyle.ROOM
+        val colors = previewColors(context, kind)
         val rows = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             val pad = (8 * density).toInt()
             setPadding(pad, pad, pad, pad)
         }
         val buttons = mutableListOf<RadioButton>()
-        options.forEachIndexed { position, option ->
-            val colors = option.colors.map { ContextCompat.getColor(context, it.forTheme(light)) }
+        styles.forEachIndexed { position, style ->
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 val pad = (12 * density).toInt()
                 setPadding(pad, pad, pad, pad)
             }
             val button = RadioButton(context).apply {
-                text = getString(option.titleRes)
-                isChecked = option.name == selected
+                text = getString(style.titleRes)
+                isChecked = style.name == selected
             }
             buttons.add(button)
             row.addView(button)
-            if (colors.isNotEmpty()) {
-                row.addView(swatchStrip(context, colors), LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply { topMargin = (4 * density).toInt(); leftMargin = (32 * density).toInt() })
-            }
+            row.addView(previewStrip(context, style, colors), LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = (4 * density).toInt(); leftMargin = (32 * density).toInt() })
             row.setOnClickListener {
-                selected = option.name
+                selected = style.name
                 buttons.forEachIndexed { index, other -> other.isChecked = index == position }
             }
             button.setOnClickListener { row.performClick() }
@@ -104,27 +103,32 @@ class PalettePickerDialogFragment : DialogFragment() {
         return ScrollView(context).apply { addView(rows) }
     }
 
-    // One unbroken bar of square swatches, shrinking as the palette grows.
-    private fun swatchStrip(context: Context, colors: List<Int>): View {
+    // One unbroken bar of square tiles, like the palette picker's swatches.
+    private fun previewStrip(context: Context, style: DefaultAvatarStyle, colors: List<Int>): View {
         val maxCell = (32 * resources.displayMetrics.density).toInt()
         return SquareCellStrip(context, maxCell).apply {
             colors.forEachIndexed { index, color ->
-                addView(swatch(context, color, index + 1), SquareCellStrip.cellParams())
+                val preview = View(context).apply {
+                    backgroundCompat = defaultAvatarFactory.create(style, letterAt(index), color, AvatarShape.SQUARE)
+                }
+                addView(preview, SquareCellStrip.cellParams())
             }
         }
     }
 
-    private fun swatch(context: Context, @ColorInt color: Int, label: Int): View {
-        return TextView(context).apply {
-            text = label.toString()
-            gravity = Gravity.CENTER
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-            setTextColor(if (ColorUtils.calculateLuminance(color) > 0.5) Color.BLACK else Color.WHITE)
-            backgroundCompat = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                setColor(color)
-            }
+    private fun letterAt(index: Int) = ('A' + index).toString()
+
+    // The colors this kind of avatar can get right now, so a preview matches what the app will draw.
+    private fun previewColors(context: Context, kind: Kind): List<Int> {
+        val light = ThemeUtils.isLightTheme(context)
+        val palette = when (kind) {
+            Kind.PEOPLE -> vectorPreferences.peopleColorPalette()
+                    .takeIf { it != PeopleColorPalette.NONE }
+                    ?.colors
+                    ?: vectorPreferences.roomColorPalette().peopleEquivalent.colors
+            Kind.ROOM -> vectorPreferences.roomColorPalette().colors
         }
+        return palette.map { ContextCompat.getColor(context, it.forTheme(light)) }
     }
 
     private fun kind() = Kind.valueOf(requireArguments().getString(ARG_KIND)!!)
@@ -134,18 +138,12 @@ class PalettePickerDialogFragment : DialogFragment() {
         private const val ARG_TITLE = "title"
         private const val ARG_KIND = "kind"
         private const val ARG_SELECTED = "selected"
-        private const val SAVE_SELECTED = "PalettePickerDialogFragment.selected"
+        private const val SAVE_SELECTED = "DefaultAvatarPickerDialogFragment.selected"
 
-        const val RESULT_PALETTE = "palette"
-
-        /** The palettes a [Kind] offers. Both enums share entry names, so the kind picks the enum. */
-        private fun optionsOf(kind: Kind): List<PaletteChoice> = when (kind) {
-            Kind.PEOPLE -> PeopleColorPalette.values().map { PaletteChoice(it.name, it.titleRes, it.colors) }
-            Kind.ROOM -> RoomColorPalette.values().map { PaletteChoice(it.name, it.titleRes, it.colors) }
-        }
+        const val RESULT_STYLE = "style"
 
         fun newInstance(requestKey: String, title: String, kind: Kind, selected: String) =
-                PalettePickerDialogFragment().apply {
+                DefaultAvatarPickerDialogFragment().apply {
                     arguments = bundleOf(
                             ARG_REQUEST_KEY to requestKey,
                             ARG_TITLE to title,

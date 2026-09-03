@@ -23,6 +23,7 @@ import im.vector.app.core.ui.colorpicker.RoomColorPalette
 import im.vector.app.core.utils.DeviceCapabilities
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
+import im.vector.app.features.home.avatar.DefaultAvatarStyle
 import im.vector.app.features.homeserver.ServerUrlsRepository
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.settings.useragent.UserAgentSettings
@@ -162,6 +163,8 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_PEOPLE_COLOR_PALETTE_KEY = "SETTINGS_PEOPLE_COLOR_PALETTE_KEY"
         const val SETTINGS_ROOM_COLOR_PALETTE_KEY = "SETTINGS_ROOM_COLOR_PALETTE_KEY"
         const val SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY = "SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
+        const val SETTINGS_PEOPLE_AVATAR_STYLE_KEY = "SETTINGS_PEOPLE_AVATAR_STYLE_KEY"
+        const val SETTINGS_ROOM_AVATAR_STYLE_KEY = "SETTINGS_ROOM_AVATAR_STYLE_KEY"
         private const val SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY = "SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY"
         private const val SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX = "SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_"
         const val SETTINGS_PERFORMANCE_MODE_KEY = "SETTINGS_PERFORMANCE_MODE_KEY"
@@ -485,6 +488,22 @@ class VectorPreferences @Inject constructor(
 
     fun setRoomColorPalette(palette: RoomColorPalette) {
         defaultPrefs.edit { putString(SETTINGS_ROOM_COLOR_PALETTE_KEY, palette.name) }
+    }
+
+    fun peopleAvatarStyle(): DefaultAvatarStyle {
+        return DefaultAvatarStyle.of(defaultPrefs.getString(SETTINGS_PEOPLE_AVATAR_STYLE_KEY, null), DefaultAvatarStyle.PEOPLE)
+    }
+
+    fun setPeopleAvatarStyle(style: DefaultAvatarStyle) {
+        defaultPrefs.edit { putString(SETTINGS_PEOPLE_AVATAR_STYLE_KEY, style.name) }
+    }
+
+    fun roomAvatarStyle(): DefaultAvatarStyle {
+        return DefaultAvatarStyle.of(defaultPrefs.getString(SETTINGS_ROOM_AVATAR_STYLE_KEY, null), DefaultAvatarStyle.ROOM)
+    }
+
+    fun setRoomAvatarStyle(style: DefaultAvatarStyle) {
+        defaultPrefs.edit { putString(SETTINGS_ROOM_AVATAR_STYLE_KEY, style.name) }
     }
 
     fun showOthersProfileColors(): Boolean {

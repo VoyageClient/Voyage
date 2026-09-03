@@ -25,6 +25,7 @@ import im.vector.app.core.preference.ColorMatrixListPreferenceDialogFragment
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorSwitchPreference
+import im.vector.app.core.ui.colorpicker.DefaultAvatarPickerDialogFragment
 import im.vector.app.core.ui.colorpicker.PalettePickerDialogFragment
 import im.vector.app.core.ui.colorpicker.PeopleColorPalette
 import im.vector.app.core.ui.colorpicker.RoomColorPalette
@@ -34,6 +35,7 @@ import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.emoji.CustomEmojiFontStore
 import im.vector.app.features.home.ShortcutsHandler
+import im.vector.app.features.home.avatar.DefaultAvatarStyle
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.settings.font.FontScaleSettingActivity
 import im.vector.app.features.settings.reactions.QuickReactionsSettingsActivity
@@ -193,6 +195,7 @@ class VectorSettingsPreferencesFragment :
         }
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
         bindPalettePreferences()
+        bindDefaultAvatarPreferences()
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
             // Update the runtime mirror so new binds pick it up without a restart.
@@ -461,6 +464,55 @@ class VectorSettingsPreferencesFragment :
         }
     }
 
+    private fun bindDefaultAvatarPreferences() {
+        val peoplePref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_PEOPLE_AVATAR_STYLE_KEY)
+        val roomPref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_ROOM_AVATAR_STYLE_KEY)
+
+        fun refreshSummaries() {
+            peoplePref?.summary = getString(vectorPreferences.peopleAvatarStyle().titleRes)
+            roomPref?.summary = getString(vectorPreferences.roomAvatarStyle().titleRes)
+        }
+        refreshSummaries()
+
+        childFragmentManager.setFragmentResultListener(PEOPLE_AVATAR_STYLE_REQUEST_KEY, this) { _, bundle ->
+            val picked = bundle.getString(DefaultAvatarPickerDialogFragment.RESULT_STYLE) ?: return@setFragmentResultListener
+            vectorPreferences.setPeopleAvatarStyle(DefaultAvatarStyle.of(picked, DefaultAvatarStyle.PEOPLE))
+            refreshSummaries()
+            matrixItemColorProvider.invalidate()
+        }
+        childFragmentManager.setFragmentResultListener(ROOM_AVATAR_STYLE_REQUEST_KEY, this) { _, bundle ->
+            val picked = bundle.getString(DefaultAvatarPickerDialogFragment.RESULT_STYLE) ?: return@setFragmentResultListener
+            vectorPreferences.setRoomAvatarStyle(DefaultAvatarStyle.of(picked, DefaultAvatarStyle.ROOM))
+            refreshSummaries()
+            matrixItemColorProvider.invalidate()
+        }
+
+        peoplePref?.setOnPreferenceClickListener {
+            showAvatarStylePicker(
+                    PEOPLE_AVATAR_STYLE_REQUEST_KEY,
+                    getString(CommonStrings.settings_people_avatar_style_title),
+                    DefaultAvatarPickerDialogFragment.Kind.PEOPLE,
+                    vectorPreferences.peopleAvatarStyle().name,
+            )
+            true
+        }
+        roomPref?.setOnPreferenceClickListener {
+            showAvatarStylePicker(
+                    ROOM_AVATAR_STYLE_REQUEST_KEY,
+                    getString(CommonStrings.settings_room_avatar_style_title),
+                    DefaultAvatarPickerDialogFragment.Kind.ROOM,
+                    vectorPreferences.roomAvatarStyle().name,
+            )
+            true
+        }
+    }
+
+    private fun showAvatarStylePicker(requestKey: String, title: String, kind: DefaultAvatarPickerDialogFragment.Kind, selected: String) {
+        if (childFragmentManager.findFragmentByTag(requestKey) != null) return
+        DefaultAvatarPickerDialogFragment.newInstance(requestKey, title, kind, selected)
+                .show(childFragmentManager, requestKey)
+    }
+
     private fun showPalettePicker(requestKey: String, title: String, kind: PalettePickerDialogFragment.Kind, selected: String) {
         if (childFragmentManager.findFragmentByTag(requestKey) != null) return
         PalettePickerDialogFragment.newInstance(requestKey, title, kind, selected)
@@ -471,5 +523,7 @@ class VectorSettingsPreferencesFragment :
         private const val COLOR_MATRIX_DIALOG_TAG = "ColorMatrixListPreferenceDialog"
         private const val PEOPLE_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.peoplePalette"
         private const val ROOM_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.roomPalette"
+        private const val PEOPLE_AVATAR_STYLE_REQUEST_KEY = "VectorSettingsPreferencesFragment.peopleAvatarStyle"
+        private const val ROOM_AVATAR_STYLE_REQUEST_KEY = "VectorSettingsPreferencesFragment.roomAvatarStyle"
     }
 }
