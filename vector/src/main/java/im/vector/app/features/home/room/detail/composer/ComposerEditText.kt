@@ -52,6 +52,7 @@ class ComposerEditText @JvmOverloads constructor(
     // handling below doesn't act on a change it made itself.
     private var rewriting = false
     private var pasting = false
+    private var insertingPill = false
     private var pillToRestore: PillImageSpan? = null
     private var pillRestorePosition = -1
 
@@ -148,7 +149,7 @@ class ComposerEditText @JvmOverloads constructor(
                         if (rewriting) return
                         rewriting = true
                         try {
-                            if (!restorePillText(s)) pillifyCompletedMentions(s)
+                            if (!restorePillText(s) && !insertingPill) pillifyCompletedMentions(s)
                         } finally {
                             rewriting = false
                         }
@@ -159,6 +160,17 @@ class ComposerEditText @JvmOverloads constructor(
                     }
                 }
         )
+    }
+
+    // The autocomplete writes a name that may itself read as a mention (a user with no display name
+    // is inserted as their id); pilling that under it would move the text it is about to span.
+    fun insertingPill(block: () -> Unit) {
+        insertingPill = true
+        try {
+            block()
+        } finally {
+            insertingPill = false
+        }
     }
 
     private fun restorePillText(editable: Editable): Boolean {

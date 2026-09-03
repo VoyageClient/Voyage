@@ -428,7 +428,8 @@ class AutoCompleter @AssistedInject constructor(
         // The pill draws over this text, so it is only what the plain-text body will carry.
         val displayName = bodyName ?: matrixItem.getBestName()
 
-        editable.replace(startIndex, endIndex, "$displayName ")
+        val insert: () -> Unit = { editable.replace(startIndex, endIndex, "$displayName ") }
+        (editText as? ComposerEditText)?.insertingPill(insert) ?: insert()
 
         // Add the span
         val span = PillImageSpan(

@@ -389,6 +389,7 @@ internal fun createChipLabelPaint(context: Context): TextPaint {
 const val PILL_PLACEHOLDER = "￼"
 
 fun Spannable.setPillSpan(span: PillImageSpan, start: Int, end: Int) {
+    if (start < 0 || end > length || end < start) return
     if (this is Editable && end > start) {
         replace(start, end, PILL_PLACEHOLDER)
         setSpan(span, start, start + PILL_PLACEHOLDER.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
