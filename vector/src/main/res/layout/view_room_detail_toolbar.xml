@@ -50,11 +50,11 @@
 
     <im.vector.app.core.ui.views.ShieldImageView
         android:id="@+id/roomToolbarAvatarShield"
-        android:layout_width="11dp"
-        android:layout_height="13dp"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
         app:layout_constraintCircle="@id/roomToolbarAvatarImageView"
         app:layout_constraintCircleAngle="120"
-        app:layout_constraintCircleRadius="18dp"
+        app:layout_constraintCircleRadius="17dp"
         android:visibility="gone"
         tools:visibility="gone"
         tools:ignore="MissingConstraints" />
@@ -68,8 +68,8 @@
 
     <im.vector.app.core.ui.views.ShieldImageView
         android:id="@+id/roomToolbarTitleShield"
-        android:layout_width="11dp"
-        android:layout_height="13dp"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
         android:layout_marginStart="2dp"
         android:layout_marginLeft="2dp"
         android:layout_marginTop="2dp"

@@ -13,7 +13,7 @@
         style="@style/Widget.Vector.Button.Positive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
+        android:layout_gravity="center_horizontal"
         android:textAllCaps="false"
         app:iconGravity="textStart"
         tools:text="Action Name" />
