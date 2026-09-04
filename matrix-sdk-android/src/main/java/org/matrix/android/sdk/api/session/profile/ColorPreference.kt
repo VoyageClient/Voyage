@@ -33,6 +33,24 @@ data class ColorPreference(
             return ColorPreference(normalizeHex(map[ON_LIGHT]), normalizeHex(map[ON_DARK])).takeIf { !it.isEmpty() }
         }
 
+        /**
+         * The color a set of profile (or member event) fields asks for: MSC4522 first, then the
+         * read-only shapes other clients write — Sable's per-theme hex strings, its theme-less one,
+         * then Commet's scheme object.
+         */
+        fun fromProfileFields(fields: Map<*, *>): ColorPreference? {
+            parse(fields[ProfileKeys.COLOR_PREFERENCE])?.let { return it }
+            parse(fields[ProfileKeys.COLOR_PREFERENCE_UNSTABLE])?.let { return it }
+            val sableBoth = normalizeHex(fields[ProfileKeys.COLOR_SABLE])
+            val sable = ColorPreference(
+                    onLight = normalizeHex(fields[ProfileKeys.COLOR_SABLE_ON_LIGHT]) ?: sableBoth,
+                    onDark = normalizeHex(fields[ProfileKeys.COLOR_SABLE_ON_DARK]) ?: sableBoth,
+            )
+            if (!sable.isEmpty()) return sable
+            val commet = (fields[ProfileKeys.COLOR_COMMET] as? Map<*, *>)?.get("color")
+            return normalizeHex(commet)?.let { fromHex(it) }
+        }
+
         /** Accepts #RGB / #RRGGBB (tuwunel wraps the value in quotes) and returns uppercase #RRGGBB. */
         fun normalizeHex(raw: Any?): String? {
             val text = (raw as? String)?.replace("\"", "")?.replace("'", "")?.trim() ?: return null

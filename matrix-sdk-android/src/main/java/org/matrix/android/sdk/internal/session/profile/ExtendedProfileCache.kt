@@ -17,6 +17,7 @@ import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.profile.UserStatus
+import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.Optional
@@ -56,10 +57,7 @@ internal fun JsonDict.profilePronouns(): List<Pronoun>? {
     }
 }
 
-internal fun JsonDict.profileColorPreference(): ColorPreference? {
-    return ColorPreference.parse(this[ProfileKeys.COLOR_PREFERENCE])
-            ?: ColorPreference.parse(this[ProfileKeys.COLOR_PREFERENCE_UNSTABLE])
-}
+internal fun JsonDict.profileColorPreference(): ColorPreference? = ColorPreference.fromProfileFields(this)
 
 internal fun JsonDict.profileStatus(): UserStatus? {
     val fromObject = (this[ProfileKeys.STATUS] as? Map<*, *>)
@@ -84,8 +82,13 @@ internal fun JsonDict.profileBio(): UserBio? {
         // A bio carrying only HTML still has to render, so fall back to it as the plain body.
         return UserBio(body = plain ?: html.orEmpty(), formattedBody = html).takeIf { !it.isEmpty() }
     }
-    val commet = (this[ProfileKeys.BIOGRAPHY_COMMET] as? Map<*, *>)?.get("body") as? String ?: return null
-    return UserBio(body = commet).takeIf { !it.isEmpty() }
+    (this[ProfileKeys.BIOGRAPHY_SABLE] as? String)?.let { sable ->
+        UserBio(body = sable).takeIf { !it.isEmpty() }?.let { return it }
+    }
+    val commet = this[ProfileKeys.BIOGRAPHY_COMMET] as? Map<*, *> ?: return null
+    val html = (commet["formatted_body"] as? String)?.takeIf { commet["format"] == MessageFormat.FORMAT_MATRIX_HTML }
+    val body = commet["body"] as? String
+    return UserBio(body = body ?: html.orEmpty(), formattedBody = html).takeIf { !it.isEmpty() }
 }
 
 /** Serialize a status into the per-key JSON shapes each profile field expects. */
@@ -256,10 +259,10 @@ internal class ExtendedProfileCache @Inject constructor(
             if (ProfileKeys.STATUS in keys || ProfileKeys.STATUS_UNSTABLE in keys || ProfileKeys.STATUS_COMMET in keys) {
                 cacheStatus(userId, merged.profileStatus())
             }
-            if (ProfileKeys.BIOGRAPHY in keys || ProfileKeys.BIOGRAPHY_UNSTABLE in keys || ProfileKeys.BIOGRAPHY_COMMET in keys) {
+            if (keys.any { it in ProfileKeys.ALL_BIOGRAPHY_KEYS }) {
                 cacheBio(userId, merged.profileBio())
             }
-            if (ProfileKeys.COLOR_PREFERENCE in keys || ProfileKeys.COLOR_PREFERENCE_UNSTABLE in keys) {
+            if (keys.any { it in ProfileKeys.COLOR_KEYS }) {
                 cacheColorPreference(userId, merged.profileColorPreference())
             }
             profileUpdates.tryEmit(userId)

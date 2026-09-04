@@ -159,10 +159,11 @@ internal class DefaultProfileService @Inject constructor(
     override suspend fun setBio(userId: String, bio: UserBio?) {
         val cleared = bio?.takeIf { !it.isEmpty() }
         if (cleared == null) {
-            deleteProfileFieldKeys(userId, BIOGRAPHY_KEYS)
+            deleteProfileFieldKeys(userId, ProfileKeys.BIOGRAPHY_KEYS)
         } else {
             setProfileFieldKeys(userId, cleared.toProfileValues())
         }
+        deleteStaleForeignKeys(userId, FOREIGN_BIOGRAPHY_KEYS)
         extendedProfileCache.cacheBio(userId, cleared)
     }
 
@@ -170,6 +171,7 @@ internal class DefaultProfileService @Inject constructor(
         val cleared = color?.takeIf { !it.isEmpty() }
         val value: Map<String, String> = cleared?.toJson()?.filterValues { it != null }?.mapValues { it.value!! }.orEmpty()
         setProfileFieldBothKeys(userId, ProfileKeys.COLOR_PREFERENCE, ProfileKeys.COLOR_PREFERENCE_UNSTABLE, value)
+        deleteStaleForeignKeys(userId, FOREIGN_COLOR_KEYS)
         extendedProfileCache.cacheColorPreference(userId, cleared)
     }
 
@@ -198,6 +200,13 @@ internal class DefaultProfileService @Inject constructor(
 
     private suspend fun deleteProfileFieldBothKeys(userId: String, stableKey: String, unstableKey: String) {
         deleteProfileFieldKeys(userId, setOf(stableKey, unstableKey))
+    }
+
+    // Keys other clients write are read-only fallbacks for us, but one left behind would keep winning
+    // once the keys we do write are cleared, so drop any the profile still carries.
+    private suspend fun deleteStaleForeignKeys(userId: String, foreignKeys: Set<String>) {
+        val stale = extendedProfileCache.getCachedProfile(userId)?.keys.orEmpty().filterTo(mutableSetOf()) { it in foreignKeys }
+        if (stale.isNotEmpty()) deleteProfileFieldKeys(userId, stale)
     }
 
     private suspend fun deleteProfileFieldKeys(userId: String, keys: Set<String>) {
@@ -303,7 +312,8 @@ internal class DefaultProfileService @Inject constructor(
 
     companion object {
         private val STATUS_KEYS = setOf(ProfileKeys.STATUS, ProfileKeys.STATUS_UNSTABLE, ProfileKeys.STATUS_COMMET)
-        private val BIOGRAPHY_KEYS = setOf(ProfileKeys.BIOGRAPHY, ProfileKeys.BIOGRAPHY_UNSTABLE, ProfileKeys.BIOGRAPHY_COMMET)
+        private val FOREIGN_COLOR_KEYS = ProfileKeys.COLOR_KEYS - ProfileKeys.COLOR_PREFERENCE - ProfileKeys.COLOR_PREFERENCE_UNSTABLE
+        private val FOREIGN_BIOGRAPHY_KEYS = ProfileKeys.ALL_BIOGRAPHY_KEYS - ProfileKeys.BIOGRAPHY_KEYS
     }
 }
 

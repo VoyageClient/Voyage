@@ -252,11 +252,15 @@ internal class DefaultStateService @AssistedInject constructor(
 
     override suspend fun updateMyRoomColorPreference(color: ColorPreference?) {
         val json = color?.takeIf { !it.isEmpty() }?.toJson()?.filterValues { it != null }
-        sendMyRoomMemberContent { copy(colorPreference = json, colorPreferenceUnstable = json) }
+        // Other clients' color keys are read-only fallbacks for us, so one left behind would win
+        // again the moment ours are cleared.
+        sendMyRoomMemberContent { copy(colorPreference = json, colorPreferenceUnstable = json).withoutForeignColors() }
     }
 
     override suspend fun resetMyRoomProfile() {
-        sendMyRoomMemberContent { copy(displayName = null, avatarUrl = null, colorPreference = null, colorPreferenceUnstable = null) }
+        sendMyRoomMemberContent {
+            copy(displayName = null, avatarUrl = null, colorPreference = null, colorPreferenceUnstable = null).withoutForeignColors()
+        }
     }
 
     private suspend fun sendMyRoomMemberContent(transform: RoomMemberContent.() -> RoomMemberContent) {
@@ -314,3 +318,6 @@ internal class DefaultStateService @AssistedInject constructor(
         updateJoinRule(RoomJoinRules.KNOCK_RESTRICTED, null, allowEntries)
     }
 }
+
+private fun RoomMemberContent.withoutForeignColors() =
+        copy(colorSableOnLight = null, colorSableOnDark = null, colorSable = null, colorCommet = null)
