@@ -59,6 +59,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.events.model.Content
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
@@ -510,15 +513,35 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     }
 
     override fun onForward() {
-        val timelineEvent = currentSourceProvider?.getTimelineEventAtPosition(currentPosition) ?: return
-        val baseContent = timelineEvent.getLastEditNewContent() ?: timelineEvent.root.getClearContent().orEmpty()
+        val timelineEvent = currentSourceProvider?.getTimelineEventAtPosition(currentPosition)
+        if (timelineEvent != null) {
+            forward(timelineEvent.root, timelineEvent.getLastEditNewContent())
+            return
+        }
+        // An uploads or search listing comes from /messages, so its events are usually not in the
+        // local store and the one to copy has to be fetched first.
+        val roomId = args()?.roomId ?: return
+        val eventId = attachmentDataAt(currentPosition)?.eventId ?: args()?.eventId ?: return
+        val session = activeSessionHolder.getSafeActiveSession() ?: return
+        lifecycleScope.launch {
+            val event = tryOrNull { session.eventService().getEvent(roomId, eventId) }
+            if (event == null) {
+                rootView.showOptimizedSnackbar(getString(CommonStrings.unknown_error))
+            } else {
+                forward(event.copy(roomId = event.roomId ?: roomId), null)
+            }
+        }
+    }
+
+    private fun forward(event: Event, editedContent: Content?) {
+        val baseContent = editedContent ?: event.getClearContent().orEmpty()
         // A DM's room id and sender are private to its members; a forwarded copy must not carry them.
-        val isDmSource = activeSessionHolder.getSafeActiveSession()?.getRoomSummary(timelineEvent.roomId)?.isDirect == true
+        val isDmSource = event.roomId?.let { activeSessionHolder.getSafeActiveSession()?.getRoomSummary(it)?.isDirect } == true
         @Suppress("UNCHECKED_CAST")
         val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
-                (if (isDmSource) emptyMap() else timelineEvent.toForwardedInfoContent())
+                (if (isDmSource) emptyMap() else event.toForwardedInfoContent())
         val payloadId = ForwardPayloadHolder.put(forwardContent)
-        startActivity(IncomingShareActivity.forwardIntent(this, timelineEvent.root.getClearType(), payloadId))
+        startActivity(IncomingShareActivity.forwardIntent(this, event.getClearType(), payloadId))
     }
 
     override fun onShowInChat() {
@@ -537,14 +560,19 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         finish()
     }
 
-    override fun onShowInfo() {
-        val provider = currentSourceProvider ?: return
-        val position = currentPosition
-        val data = when (val attachment = provider.getAttachmentInfoAt(position)) {
+    private fun attachmentDataAt(position: Int): AttachmentData? {
+        val provider = currentSourceProvider ?: return null
+        return when (val attachment = provider.getAttachmentInfoAt(position)) {
             is AttachmentInfo.Image -> attachment.data
             is AttachmentInfo.AnimatedImage -> attachment.data
             is AttachmentInfo.Video -> attachment.data
-        } as? AttachmentData ?: return
+        } as? AttachmentData
+    }
+
+    override fun onShowInfo() {
+        val provider = currentSourceProvider ?: return
+        val position = currentPosition
+        val data = attachmentDataAt(position) ?: return
 
         val dialog = MediaInfoDialog(
                 // The viewer's own theme is a bare fullscreen one, so the sheet takes the app's.
