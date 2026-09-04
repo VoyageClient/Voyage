@@ -56,6 +56,11 @@ SELECT event_json FROM indexed_event WHERE event_id = ? LIMIT 1;
 updateEventJson:
 UPDATE indexed_event SET event_json = ? WHERE event_id = ?;
 
+-- A redaction with no preserved copy: the row stays, so filter-only searches still list the
+-- deletion, but everything the content contributed to it goes.
+stripEvent:
+UPDATE indexed_event SET content_text = '', msgtype = NULL, mentions = NULL, event_json = ? WHERE event_id = ?;
+
 upsertEvent:
 INSERT OR REPLACE INTO indexed_event(event_id, room_id, sender, origin_server_ts, content_text, event_json, msgtype, mentions)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);

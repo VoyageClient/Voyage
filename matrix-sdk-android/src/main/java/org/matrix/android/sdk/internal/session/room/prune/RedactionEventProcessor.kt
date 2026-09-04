@@ -75,7 +75,7 @@ internal class RedactionEventProcessor @Inject constructor(
         Timber.v("Redact event for $redacts localEcho=$isLocalEcho")
 
         // The target may exist only in the search index (crawled history), so don't gate on the DB row.
-        eventIndexer.onEventRedacted(redacts)
+        eventIndexer.onEventRedacted(redacts, redactionEvent)
 
         val pruneDbId = stores.event.getDbId(roomId, redacts) ?: return
         val eventToPrune = stores.event.getById(pruneDbId) ?: return
