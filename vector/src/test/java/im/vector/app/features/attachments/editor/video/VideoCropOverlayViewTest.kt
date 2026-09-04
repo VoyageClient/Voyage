@@ -85,4 +85,19 @@ class VideoCropOverlayViewTest {
 
         (cropCenterX() > 0.5f) shouldBeEqualTo true
     }
+
+    @Test
+    fun `a crop can be dragged far below a twentieth of the frame`() {
+        givenVideo()
+
+        // The bottom right handle, pulled onto the corner it is anchored on.
+        dragBySteps(720f, 720f, listOf(285f to 285f))
+
+        view.currentCrop()!!.run {
+            (width() < 0.02f) shouldBeEqualTo true
+            (height() < 0.03f) shouldBeEqualTo true
+            (width() > 0f) shouldBeEqualTo true
+            (height() > 0f) shouldBeEqualTo true
+        }
+    }
 }
