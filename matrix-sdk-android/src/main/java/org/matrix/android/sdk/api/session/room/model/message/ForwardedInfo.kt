@@ -10,6 +10,8 @@ package org.matrix.android.sdk.api.session.room.model.message
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.events.model.Content
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
@@ -35,13 +37,15 @@ fun Content?.getForwardedInfo(): ForwardedInfo? {
     return (raw as? Map<String, Any>).toModel<ForwardedInfo>()
 }
 
+fun TimelineEvent.toForwardedInfoContent(): Map<String, Any> = root.toForwardedInfoContent()
+
 /**
  * MSC2723 metadata to add to a copy of this event forwarded elsewhere. Empty for an event with no
  * server-side identity to point back to.
  */
-fun TimelineEvent.toForwardedInfoContent(): Map<String, Any> {
+fun Event.toForwardedInfoContent(): Map<String, Any> {
     // Forwarding a forward keeps pointing at the message the chain started from.
-    val info = root.getClearContent().getForwardedInfo()?.toContentMap() ?: ownForwardedInfoContentMap() ?: return emptyMap()
+    val info = getClearContent().getForwardedInfo()?.toContentMap() ?: ownForwardedInfoContentMap() ?: return emptyMap()
     return mapOf(
             ForwardedInfo.STABLE_KEY to info,
             ForwardedInfo.UNSTABLE_KEY to info
@@ -57,14 +61,15 @@ private fun ForwardedInfo.toContentMap(): Map<String, Any>? {
     ).toMap().takeIf { it.isNotEmpty() }
 }
 
-private fun TimelineEvent.ownForwardedInfoContentMap(): Map<String, Any>? {
-    val roomId = root.roomId
-    val senderId = root.senderId
-    if (roomId == null || senderId == null || !root.sendState.isSent()) return null
+private fun Event.ownForwardedInfoContentMap(): Map<String, Any>? {
+    // A message still being sent has only a local id, which resolves to nothing for a reader.
+    val eventId = eventId?.takeUnless { LocalEcho.isLocalEchoId(it) } ?: return null
+    val roomId = roomId ?: return null
+    val senderId = senderId ?: return null
     return mapOf(
             "event_id" to eventId,
             "room_id" to roomId,
             "sender" to senderId,
-            "origin_server_ts" to (root.originServerTs ?: 0L)
+            "origin_server_ts" to (originServerTs ?: 0L)
     )
 }
