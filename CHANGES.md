@@ -130,6 +130,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Configurable avatars**: configurable avatar shapes, avatar-hiding options in the timeline and on invites, avatar removal, an empty-display-name fallback, and full-screen avatar zoom through the media viewer.
 
+- **Avatar shapes, including animated ones**: thirteen static shapes, among them triangles, semicircles, rhombi and every polygon up to a decagon. Thirty-five more are animated, mirroring [3dgifmaker.com](https://www.3dgifmaker.com/): tumbling cubes, dodecahedra and tetrahedra, spinning spheres, pyramids and donuts, waves, swirls and shockwaves.
+
 - **Pick which color palette names and avatars use**: separate choices for people and for rooms, each offering the same set, previewed swatch by swatch: Element's palettes from 2015, 2018, 2020 and today, both eras of Twitter's default-avatar egg, and Discord's before and after its 2021 rebrand. People can also be set to None, which leaves names in plain text and dims message bodies so they still stand apart.
 
 - **Pick what a missing avatar shows**: users without an avatar can get a generic person, Twitter's 2014 egg or the Matrix logo instead of the letter tile, and rooms without one can get a hashtag.

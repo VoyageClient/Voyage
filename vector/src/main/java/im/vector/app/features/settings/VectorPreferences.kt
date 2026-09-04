@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.BoolRes
+import androidx.annotation.StringRes
 import androidx.core.content.edit
 import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
@@ -23,6 +24,7 @@ import im.vector.app.core.utils.DeviceCapabilities
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.home.avatar.DefaultAvatarStyle
+import im.vector.app.features.home.avatar.effect.AvatarEffect
 import im.vector.app.features.homeserver.ServerUrlsRepository
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.settings.useragent.UserAgentSettings
@@ -35,10 +37,76 @@ import org.matrix.android.sdk.api.settings.LinkPreviewMode
 import timber.log.Timber
 import javax.inject.Inject
 
-enum class AvatarShape {
-    CIRCLE,
-    ROUNDED,
-    SQUARE,
+/**
+ * Shape an avatar is drawn in. [storageKey] is what lands in the preference, so entries may be
+ * reordered or renamed freely; the first three keys predate the rest and must not change.
+ */
+enum class AvatarShape(val storageKey: String, @StringRes val titleRes: Int, val effect: AvatarEffect? = null) {
+    CIRCLE("circle", CommonStrings.settings_avatar_shape_circle),
+    ROUNDED("rounded", CommonStrings.settings_avatar_shape_rounded),
+    SQUARE("square", CommonStrings.settings_avatar_shape_square),
+    TRIANGLE("triangle", CommonStrings.settings_avatar_shape_triangle),
+    SEMICIRCLE("semicircle", CommonStrings.settings_avatar_shape_semicircle),
+    OVAL("oval", CommonStrings.settings_avatar_shape_oval),
+    RHOMBUS("rhombus", CommonStrings.settings_avatar_shape_rhombus),
+    PENTAGON("pentagon", CommonStrings.settings_avatar_shape_pentagon),
+    HEXAGON("hexagon", CommonStrings.settings_avatar_shape_hexagon),
+    HEPTAGON("heptagon", CommonStrings.settings_avatar_shape_heptagon),
+    OCTAGON("octagon", CommonStrings.settings_avatar_shape_octagon),
+    NONAGON("nonagon", CommonStrings.settings_avatar_shape_nonagon),
+    DECAGON("decagon", CommonStrings.settings_avatar_shape_decagon),
+
+    SPIN_360("spin360", CommonStrings.avatar_effect_spin_360, AvatarEffect.SPIN_360),
+    SPIN_360_THICK("spin360thick", CommonStrings.avatar_effect_spin_360_thick, AvatarEffect.SPIN_360_THICK),
+    SPIN_180("spin180", CommonStrings.avatar_effect_spin_180, AvatarEffect.SPIN_180),
+    SPIN_CW("spincw", CommonStrings.avatar_effect_spin_cw, AvatarEffect.SPIN_CW),
+    SPIN_CCW("spinccw", CommonStrings.avatar_effect_spin_ccw, AvatarEffect.SPIN_CCW),
+    FRONT_FLIP("frontflip", CommonStrings.avatar_effect_front_flip, AvatarEffect.FRONT_FLIP),
+    ROCKING("rocking", CommonStrings.avatar_effect_rocking, AvatarEffect.ROCKING),
+    FIGURE_EIGHT("figureeight", CommonStrings.avatar_effect_figure_eight, AvatarEffect.FIGURE_EIGHT),
+    RANDOM_ROTATIONS("randomrotations", CommonStrings.avatar_effect_random_rotations, AvatarEffect.RANDOM_ROTATIONS),
+
+    CUBE("cube", CommonStrings.avatar_effect_cube, AvatarEffect.CUBE),
+    CUBE_WOBBLY("cubewobbly", CommonStrings.avatar_effect_cube_wobbly, AvatarEffect.CUBE_WOBBLY),
+    CUBE_DIAGONAL("cubediagonal", CommonStrings.avatar_effect_cube_diagonal, AvatarEffect.CUBE_DIAGONAL),
+    PHOTO_CUBE("photocube", CommonStrings.avatar_effect_photo_cube, AvatarEffect.PHOTO_CUBE),
+    SPHERE("sphere", CommonStrings.avatar_effect_sphere, AvatarEffect.SPHERE),
+    SPHERE_LOW_POLY("spherelowpoly", CommonStrings.avatar_effect_sphere_low_poly, AvatarEffect.SPHERE_LOW_POLY),
+    SPHERE_INSIDE("sphereinside", CommonStrings.avatar_effect_sphere_inside, AvatarEffect.SPHERE_INSIDE),
+    PYRAMID("pyramid", CommonStrings.avatar_effect_pyramid, AvatarEffect.PYRAMID),
+    DONUT("donut", CommonStrings.avatar_effect_donut, AvatarEffect.DONUT),
+    DODECAHEDRON("dodecahedron", CommonStrings.avatar_effect_dodecahedron, AvatarEffect.DODECAHEDRON),
+    TETRAHEDRON("tetrahedron", CommonStrings.avatar_effect_tetrahedron, AvatarEffect.TETRAHEDRON),
+
+    WAVE_VERTICAL("wavevertical", CommonStrings.avatar_effect_wave_vertical, AvatarEffect.WAVE_VERTICAL),
+    WAVE_HORIZONTAL("wavehorizontal", CommonStrings.avatar_effect_wave_horizontal, AvatarEffect.WAVE_HORIZONTAL),
+    SWIRL("swirl", CommonStrings.avatar_effect_swirl, AvatarEffect.SWIRL),
+    WOBBLE("wobble", CommonStrings.avatar_effect_wobble, AvatarEffect.WOBBLE),
+    TREMBLE("tremble", CommonStrings.avatar_effect_tremble, AvatarEffect.TREMBLE),
+    SQUISHY("squishy", CommonStrings.avatar_effect_squishy, AvatarEffect.SQUISHY),
+    LENS_DISTORT("lensdistort", CommonStrings.avatar_effect_lens_distort, AvatarEffect.LENS_DISTORT),
+    SHOCKWAVE("shockwave", CommonStrings.avatar_effect_shockwave, AvatarEffect.SHOCKWAVE),
+    BALLOON("balloon", CommonStrings.avatar_effect_balloon, AvatarEffect.BALLOON),
+    HEARTBEAT("heartbeat", CommonStrings.avatar_effect_heartbeat, AvatarEffect.HEARTBEAT),
+    FLOAT("float", CommonStrings.avatar_effect_float, AvatarEffect.FLOAT),
+    ZOOM("zoom", CommonStrings.avatar_effect_zoom, AvatarEffect.ZOOM),
+    ZOOM_TILTED("zoomtilted", CommonStrings.avatar_effect_zoom_tilted, AvatarEffect.ZOOM_TILTED),
+    DVD_BOUNCE("dvdbounce", CommonStrings.avatar_effect_dvd_bounce, AvatarEffect.DVD_BOUNCE),
+    BLINK("blink", CommonStrings.avatar_effect_blink, AvatarEffect.BLINK);
+
+    val isAnimated: Boolean get() = effect != null
+
+    companion object {
+        val STATIC = values().filter { !it.isAnimated }
+
+        /**
+         * Empty on hardware that cannot afford to rasterise a shape per avatar per frame, where the
+         * animated shapes are not offered at all rather than offered and disappointing.
+         */
+        val ANIMATED = if (DeviceCapabilities.isLowPerformanceHardware) emptyList() else values().filter { it.isAnimated }
+
+        fun of(storageKey: String?) = values().firstOrNull { it.storageKey == storageKey } ?: CIRCLE
+    }
 }
 
 class VectorPreferences @Inject constructor(
@@ -1048,11 +1116,13 @@ class VectorPreferences @Inject constructor(
      * Shape applied to room/user/account avatars. Spaces always stay rounded squares.
      */
     fun avatarShape(): AvatarShape {
-        return when (defaultPrefs.getString(SETTINGS_AVATAR_SHAPE_KEY, "circle")) {
-            "rounded" -> AvatarShape.ROUNDED
-            "square" -> AvatarShape.SQUARE
-            else -> AvatarShape.CIRCLE
-        }
+        val shape = AvatarShape.of(defaultPrefs.getString(SETTINGS_AVATAR_SHAPE_KEY, AvatarShape.CIRCLE.storageKey))
+        // A setting can outlive the device it was chosen on, through a backup or a restore.
+        return if (shape.isAnimated && shape !in AvatarShape.ANIMATED) AvatarShape.CIRCLE else shape
+    }
+
+    fun setAvatarShape(shape: AvatarShape) {
+        defaultPrefs.edit { putString(SETTINGS_AVATAR_SHAPE_KEY, shape.storageKey) }
     }
 
     /**

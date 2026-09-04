@@ -25,6 +25,7 @@ import im.vector.app.core.preference.ColorMatrixListPreferenceDialogFragment
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorSwitchPreference
+import im.vector.app.core.ui.colorpicker.AvatarShapePickerDialogFragment
 import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.core.ui.colorpicker.DefaultAvatarPickerDialogFragment
 import im.vector.app.core.ui.colorpicker.PalettePickerDialogFragment
@@ -161,13 +162,7 @@ class VectorSettingsPreferencesFragment :
             }
         }
 
-        findPreference<VectorListPreference>(VectorPreferences.SETTINGS_AVATAR_SHAPE_KEY)!!.let { pref ->
-            pref.setOnPreferenceChangeListener { _, _ ->
-                // Restart so every already-bound avatar picks up the new shape.
-                MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = false))
-                true
-            }
-        }
+        bindAvatarShapePreference()
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_AUTOPLAY_ANIMATED_IMAGES)!!.let { pref ->
             pref.setOnPreferenceChangeListener { _, _ ->
@@ -463,6 +458,30 @@ class VectorSettingsPreferencesFragment :
         }
     }
 
+    private fun bindAvatarShapePreference() {
+        val pref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_AVATAR_SHAPE_KEY) ?: return
+        pref.summary = getString(vectorPreferences.avatarShape().titleRes)
+
+        childFragmentManager.setFragmentResultListener(AVATAR_SHAPE_REQUEST_KEY, this) { _, bundle ->
+            val picked = bundle.getString(AvatarShapePickerDialogFragment.RESULT_SHAPE) ?: return@setFragmentResultListener
+            vectorPreferences.setAvatarShape(AvatarShape.of(picked))
+            // Restart so every already-bound avatar picks up the new shape: Glide's cache keys bake
+            // the transform in.
+            MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = false))
+        }
+
+        pref.setOnPreferenceClickListener {
+            if (childFragmentManager.findFragmentByTag(AVATAR_SHAPE_REQUEST_KEY) == null) {
+                AvatarShapePickerDialogFragment.newInstance(
+                        AVATAR_SHAPE_REQUEST_KEY,
+                        getString(CommonStrings.settings_avatar_shape_title),
+                        vectorPreferences.avatarShape().storageKey,
+                ).show(childFragmentManager, AVATAR_SHAPE_REQUEST_KEY)
+            }
+            true
+        }
+    }
+
     private fun bindDefaultAvatarPreferences() {
         val peoplePref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_PEOPLE_AVATAR_STYLE_KEY)
         val roomPref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_ROOM_AVATAR_STYLE_KEY)
@@ -524,5 +543,6 @@ class VectorSettingsPreferencesFragment :
         private const val ROOM_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.roomPalette"
         private const val PEOPLE_AVATAR_STYLE_REQUEST_KEY = "VectorSettingsPreferencesFragment.peopleAvatarStyle"
         private const val ROOM_AVATAR_STYLE_REQUEST_KEY = "VectorSettingsPreferencesFragment.roomAvatarStyle"
+        private const val AVATAR_SHAPE_REQUEST_KEY = "VectorSettingsPreferencesFragment.avatarShape"
     }
 }

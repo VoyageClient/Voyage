@@ -34,6 +34,7 @@ abstract class ShapedAvatarDrawable(private val shape: AvatarShape) : Drawable()
         Paint(Paint.ANTI_ALIAS_FLAG).apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT) }
     }
     private val maskPath by lazy { Path() }
+    private val shapePath by lazy { Path() }
     private var maskedBounds: RectF? = null
 
     protected fun drawShape(canvas: Canvas, paint: Paint) {
@@ -44,6 +45,7 @@ abstract class ShapedAvatarDrawable(private val shape: AvatarShape) : Drawable()
                 canvas.drawRoundRect(boundsF, radius, radius, paint)
             }
             AvatarShape.SQUARE -> canvas.drawRect(boundsF, paint)
+            else -> canvas.drawPath(AvatarShapes.path(shape, boundsF, shapePath), paint)
         }
     }
 
@@ -65,15 +67,9 @@ abstract class ShapedAvatarDrawable(private val shape: AvatarShape) : Drawable()
 
     private fun maskPath(): Path {
         if (maskedBounds == boundsF) return maskPath
-        maskPath.reset()
-        // reset() drops the fill type, so set it after.
+        AvatarShapes.path(shape, boundsF, maskPath)
+        // reset() inside the builder drops the fill type, so set it after.
         maskPath.fillType = Path.FillType.INVERSE_WINDING
-        if (shape == AvatarShape.CIRCLE) {
-            maskPath.addOval(boundsF, Path.Direction.CW)
-        } else {
-            val radius = minOf(boundsF.width(), boundsF.height()) * AvatarRenderer.ROUNDED_CORNER_PERCENT
-            maskPath.addRoundRect(boundsF, radius, radius, Path.Direction.CW)
-        }
         maskedBounds = RectF(boundsF)
         return maskPath
     }
