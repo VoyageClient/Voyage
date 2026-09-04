@@ -36,11 +36,24 @@ data class RoomMemberContent(
         @Json(name = "unsigned") val unsignedData: UnsignedData? = null,
         @Json(name = ProfileKeys.COLOR_PREFERENCE) val colorPreference: Map<String, Any?>? = null,
         @Json(name = ProfileKeys.COLOR_PREFERENCE_UNSTABLE) val colorPreferenceUnstable: Map<String, Any?>? = null,
+        @Json(name = ProfileKeys.COLOR_SABLE_ON_LIGHT) val colorSableOnLight: String? = null,
+        @Json(name = ProfileKeys.COLOR_SABLE_ON_DARK) val colorSableOnDark: String? = null,
+        @Json(name = ProfileKeys.COLOR_SABLE) val colorSable: String? = null,
+        @Json(name = ProfileKeys.COLOR_COMMET) val colorCommet: Map<String, Any?>? = null,
 ) {
     val safeReason
         get() = reason?.takeIf { it.isNotBlank() }
 
     fun effectiveColorPreference(): ColorPreference? {
-        return ColorPreference.parse(colorPreference) ?: ColorPreference.parse(colorPreferenceUnstable)
+        return ColorPreference.fromProfileFields(
+                buildMap {
+                    colorPreference?.let { put(ProfileKeys.COLOR_PREFERENCE, it) }
+                    colorPreferenceUnstable?.let { put(ProfileKeys.COLOR_PREFERENCE_UNSTABLE, it) }
+                    colorSableOnLight?.let { put(ProfileKeys.COLOR_SABLE_ON_LIGHT, it) }
+                    colorSableOnDark?.let { put(ProfileKeys.COLOR_SABLE_ON_DARK, it) }
+                    colorSable?.let { put(ProfileKeys.COLOR_SABLE, it) }
+                    colorCommet?.let { put(ProfileKeys.COLOR_COMMET, it) }
+                }
+        )
     }
 }

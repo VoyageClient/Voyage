@@ -138,7 +138,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Room & profile banners (MSC4221 / MSC4427)**: Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings. Banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
 
-- **Status & biography in profiles (MSC4426 / MSC4440)**: set a status (one line, with any leading emoji stored as its emoji field) and a free-form biography in account settings. The status shows under a user's pronouns and time zone; the biography gets its own expandable section on their profile, rendering markdown, links and custom emoji. Both also appear in the user card from a mention. Written under the standard and unstable field keys as well as the ones other clients already read.
+- **Status & biography in profiles (MSC4426 / MSC4440)**: set a status (one line, with any leading emoji stored as its emoji field) and a free-form biography in account settings. The status shows under a user's pronouns and time zone; the biography gets its own expandable section on their profile, rendering markdown, links and custom emoji. Both also appear in the user card from a mention. Written under the standard and unstable field keys as well as the ones other clients already read, and biographies set in Sable or Commet are read back.
 
 - **Pronouns & time zone in profiles (MSC4247 / MSC4175 / MSC4133)**: set your pronouns (common presets or custom text, multiple allowed) and IANA time zone in account settings. A user's pronouns and current time-zone abbreviation show under their name as e.g. `she/her • PST`, DST-aware, and their pronouns gender timeline notices such as "changed **her** avatar". Every profile field is written under both its stable and unstable key and read stable-first, and interoperates with other clients' pronoun schemas.
 
@@ -146,7 +146,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Personal room and user overrides (MSC3015, MSC4529)**: rename a room or change its avatar just for yourself, and override any user's display name and avatar everywhere they appear. User overrides are end-to-end encrypted (MSC4483) by default.
 
-- **Profile name colors (MSC4522)**: choose the color your name and avatar are shown in, for your account or per room, from a palette or any custom color. Other users' colors are shown too, and can be overridden just for you from their profile.
+- **Profile name colors (MSC4522)**: choose the color your name and avatar are shown in, for your account or per room, from a palette or any custom color. Other users' colors are shown too, including ones set in Sable or Commet, and can be overridden just for you from their profile.
 
 - **Force display name & avatar**: override display name and avatar per room and per group DM.
 

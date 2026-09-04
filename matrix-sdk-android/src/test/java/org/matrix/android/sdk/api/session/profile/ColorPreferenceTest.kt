@@ -48,4 +48,40 @@ class ColorPreferenceTest {
         ColorPreference(onDark = "#FFD9F5").forTheme(light = true) shouldBeEqualTo "#FFD9F5"
         ColorPreference(onLight = "#440000", onDark = "#FFD9F5").forTheme(light = true) shouldBeEqualTo "#440000"
     }
+
+    @Test
+    fun `fromProfileFields prefers MSC4522 over the other clients' keys`() {
+        val fields = mapOf(
+                ProfileKeys.COLOR_PREFERENCE to mapOf("on_light" to "#400"),
+                ProfileKeys.COLOR_SABLE to "#ff00ff",
+                ProfileKeys.COLOR_COMMET to mapOf("color" to "#00ff00"),
+        )
+        ColorPreference.fromProfileFields(fields) shouldBeEqualTo ColorPreference(onLight = "#440000")
+    }
+
+    @Test
+    fun `fromProfileFields reads the Sable per-theme keys`() {
+        val fields = mapOf(
+                ProfileKeys.COLOR_SABLE_ON_LIGHT to "#ff00ff",
+                ProfileKeys.COLOR_SABLE_ON_DARK to "#00ffff",
+        )
+        ColorPreference.fromProfileFields(fields) shouldBeEqualTo ColorPreference(onLight = "#FF00FF", onDark = "#00FFFF")
+    }
+
+    @Test
+    fun `fromProfileFields fills the missing theme from the theme-less Sable key`() {
+        val fields = mapOf(
+                ProfileKeys.COLOR_SABLE_ON_DARK to "#00ffff",
+                ProfileKeys.COLOR_SABLE to "#ff00ff",
+        )
+        ColorPreference.fromProfileFields(fields) shouldBeEqualTo ColorPreference(onLight = "#FF00FF", onDark = "#00FFFF")
+    }
+
+    @Test
+    fun `fromProfileFields falls back to the Commet scheme`() {
+        ColorPreference.fromProfileFields(mapOf(ProfileKeys.COLOR_COMMET to mapOf("color" to "#ff00ff"))) shouldBeEqualTo
+                ColorPreference(onLight = "#FF00FF", onDark = "#FF00FF")
+        ColorPreference.fromProfileFields(mapOf(ProfileKeys.COLOR_COMMET to mapOf("color" to "nope"))).shouldBeNull()
+        ColorPreference.fromProfileFields(emptyMap<String, Any>()).shouldBeNull()
+    }
 }
