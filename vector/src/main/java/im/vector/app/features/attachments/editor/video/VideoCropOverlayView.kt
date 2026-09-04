@@ -111,7 +111,17 @@ class VideoCropOverlayView @JvmOverloads constructor(
     private val snapDistance = dp(14f)
     private val handleRadius = dp(8f)
     private val touchSlop = max(dp(24f), ViewConfiguration.get(context).scaledTouchSlop.toFloat())
-    private val minNormalisedSize = 0.05f
+
+    // Screen-based, not normalised: a crop on a small detail can legitimately be a few pixels of a
+    // large frame, reached by zooming in.
+    private val minCropScreenSize = dp(12f)
+    private val minSizeCeiling = 0.05f
+
+    private fun minNormalisedWidth() = minNormalised(imageRect.width())
+    private fun minNormalisedHeight() = minNormalised(imageRect.height())
+
+    private fun minNormalised(extent: Float) =
+            if (extent <= 0f) minSizeCeiling else (minCropScreenSize / extent).coerceAtMost(minSizeCeiling)
 
     private enum class DragMode { NONE, PAN, CROP_MOVE, CROP_RESIZE }
 
@@ -389,7 +399,7 @@ class VideoCropOverlayView @JvmOverloads constructor(
                 val ny = snapY(normalisedY(y))
                 val k = normalisedRatio()
                 if (k != null) {
-                    CropRatio.resize(crop, k, nx, ny, dragCornerX, dragCornerY, minNormalisedSize, minNormalisedSize)
+                    CropRatio.resize(crop, k, nx, ny, dragCornerX, dragCornerY, minNormalisedWidth(), minNormalisedHeight())
                 } else {
                     resizeCorner(nx, ny)
                 }
@@ -440,12 +450,12 @@ class VideoCropOverlayView @JvmOverloads constructor(
 
     private fun resizeCorner(nx: Float, ny: Float) {
         when (dragCornerX) {
-            0 -> crop.left = nx.coerceAtMost(crop.right - minNormalisedSize)
-            1 -> crop.right = nx.coerceAtLeast(crop.left + minNormalisedSize)
+            0 -> crop.left = nx.coerceAtMost(crop.right - minNormalisedWidth())
+            1 -> crop.right = nx.coerceAtLeast(crop.left + minNormalisedWidth())
         }
         when (dragCornerY) {
-            0 -> crop.top = ny.coerceAtMost(crop.bottom - minNormalisedSize)
-            1 -> crop.bottom = ny.coerceAtLeast(crop.top + minNormalisedSize)
+            0 -> crop.top = ny.coerceAtMost(crop.bottom - minNormalisedHeight())
+            1 -> crop.bottom = ny.coerceAtLeast(crop.top + minNormalisedHeight())
         }
     }
 

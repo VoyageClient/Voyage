@@ -46,6 +46,31 @@ import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import timber.log.Timber
 import java.util.concurrent.Executors
+import kotlin.math.min
+
+/** How often a playing attachment reports its position, which the seek bar glides between. */
+const val VIDEO_PROGRESS_INTERVAL_MS = 100
+
+/** Turns the positions MediaPlayer reports into ones a progress bar can follow. */
+object PlaybackPosition {
+
+    private const val HOLD_MS = 1500
+
+    /**
+     * How far back the position may walk and still be a stall rather than a restart. An audio sink
+     * spinning up (Bluetooth especially) walks it backwards briefly; steady playback never does.
+     * Half the clip at most, or a short one's loop restart reads as a stall.
+     */
+    private fun regressionWindow(durationMs: Int) = if (durationMs > 0) min(HOLD_MS, durationMs / 2) else HOLD_MS
+
+    fun smooth(rawMs: Int, lastMs: Int, durationMs: Int, playing: Boolean): Int {
+        if (!playing || rawMs >= lastMs) return rawMs
+        if (lastMs - rawMs <= regressionWindow(durationMs)) return lastMs
+        // The clip looped, caught a tick late; reporting the start it went back to rather than that
+        // tick's own offset restarts the bar at zero.
+        return if (durationMs > 0) 0 else rawMs
+    }
+}
 
 abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRes layoutId: Int) : VectorEpoxyModel<H>(layoutId) {
 
@@ -586,28 +611,23 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
         private fun onTick() {
             reportProgress()
-            if (mediaPlayer?.isPlayingSafe() == true) videoView.postDelayed(ticker, PROGRESS_INTERVAL_MS)
+            if (mediaPlayer?.isPlayingSafe() == true) videoView.postDelayed(ticker, VIDEO_PROGRESS_INTERVAL_MS.toLong())
         }
 
         private fun reportProgress() {
             val raw = mediaPlayer?.takeIf { isPrepared }?.let { runCatching { it.currentPosition }.getOrDefault(0) }
                     ?: resumePositionMs
             val playing = mediaPlayer?.isPlayingSafe() == true
-            // An audio sink spinning up (Bluetooth especially) briefly walks the reported position
-            // backwards; steady playback never does, so hold through small regressions.
-            val position = if (playing && raw < lastReportedPositionMs && lastReportedPositionMs - raw < 1500) {
-                lastReportedPositionMs
-            } else {
-                raw
-            }
+            val duration = durationMs()
+            val position = PlaybackPosition.smooth(raw, lastReportedPositionMs, duration, playing)
             lastReportedPositionMs = position
             if (audioUri == null) {
                 playPauseButton.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play_arrow)
             } else {
-                waveformView.durationMs = durationMs()
+                waveformView.durationMs = duration
                 waveformView.setPosition(position, playing)
             }
-            listener?.onVideoProgress(position, durationMs(), playing)
+            listener?.onVideoProgress(position, duration, playing)
         }
 
         override fun togglePlayback() {
@@ -849,7 +869,6 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         companion object {
-            private const val PROGRESS_INTERVAL_MS = 100L
             private const val END_SEEK_WINDOW_MS = 250
         }
     }

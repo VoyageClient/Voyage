@@ -230,11 +230,14 @@ class AttachmentsPreviewFragment :
             return
         }
         val target = positionMs.coerceIn(0, durationMs)
-        // Same glide between the 100ms reports as the media viewer's scrubber; jumps snap.
+        // Glides between the reports the way the media viewer's scrubber does; jumps snap. It aims
+        // at where the clip will be when the next report lands, or the bar trails playback by a
+        // whole report and a short clip's never reaches either end.
         val delta = target - bar.progress
-        if (isPlaying && delta in 0..1200) {
-            seekBarAnimator = ObjectAnimator.ofInt(bar, "progress", target).apply {
-                duration = 120L
+        if (isPlaying && delta in -VIDEO_PROGRESS_INTERVAL_MS..1200) {
+            val lead = (target + VIDEO_PROGRESS_INTERVAL_MS).coerceAtMost(durationMs)
+            seekBarAnimator = ObjectAnimator.ofInt(bar, "progress", lead).apply {
+                duration = VIDEO_PROGRESS_INTERVAL_MS.toLong()
                 interpolator = LinearInterpolator()
                 start()
             }

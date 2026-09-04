@@ -134,15 +134,21 @@ class ImageEditorView @JvmOverloads constructor(
     private val handleRadius = dp(8f)
     private val badgeRadius = dp(12f)
     private val touchSlop = max(dp(24f), ViewConfiguration.get(context).scaledTouchSlop.toFloat())
-    private val minNormalisedSize = 0.05f
     private val tapSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
 
-    // Censor minimums are screen-based, unlike the crop's normalised one: a censor over a small
-    // detail can legitimately be a few pixels of a large image, reached by zooming in.
+    // Minimums are screen-based, not normalised: a crop or censor over a small detail can
+    // legitimately be a few pixels of a large image, reached by zooming in.
+    private val minCropScreenSize = dp(12f)
     private val minCensorScreenSize = dp(4f)
+    private val minSizeCeiling = 0.05f
 
-    private fun minCensorNormalisedWidth() = (minCensorScreenSize / imageRect.width()).coerceAtMost(minNormalisedSize)
-    private fun minCensorNormalisedHeight() = (minCensorScreenSize / imageRect.height()).coerceAtMost(minNormalisedSize)
+    private fun minNormalised(screenSize: Float, extent: Float) =
+            if (extent <= 0f) minSizeCeiling else (screenSize / extent).coerceAtMost(minSizeCeiling)
+
+    private fun minCropNormalisedWidth() = minNormalised(minCropScreenSize, imageRect.width())
+    private fun minCropNormalisedHeight() = minNormalised(minCropScreenSize, imageRect.height())
+    private fun minCensorNormalisedWidth() = minNormalised(minCensorScreenSize, imageRect.width())
+    private fun minCensorNormalisedHeight() = minNormalised(minCensorScreenSize, imageRect.height())
 
     private var dragMode = DragMode.NONE
     private var dragCornerX = 0
@@ -583,9 +589,9 @@ class ImageEditorView @JvmOverloads constructor(
                 val ny = snapY(normalisedY(y))
                 val k = normalisedRatio(cropAspectRatio)
                 if (k != null) {
-                    CropRatio.resize(crop, k, nx, ny, dragCornerX, dragCornerY, minNormalisedSize, minNormalisedSize)
+                    CropRatio.resize(crop, k, nx, ny, dragCornerX, dragCornerY, minCropNormalisedWidth(), minCropNormalisedHeight())
                 } else {
-                    resizeCorner(crop, nx, ny)
+                    resizeCorner(crop, nx, ny, minCropNormalisedWidth(), minCropNormalisedHeight())
                 }
             }
             DragMode.CENSOR_MOVE -> censors.getOrNull(selectedCensor)?.let { moveWithSnap(it.rect, dx, dy) }
@@ -657,8 +663,8 @@ class ImageEditorView @JvmOverloads constructor(
             rect: RectF,
             nx: Float,
             ny: Float,
-            minWidth: Float = minNormalisedSize,
-            minHeight: Float = minNormalisedSize,
+            minWidth: Float,
+            minHeight: Float,
     ) {
         when (dragCornerX) {
             0 -> rect.left = nx.coerceAtMost(rect.right - minWidth)

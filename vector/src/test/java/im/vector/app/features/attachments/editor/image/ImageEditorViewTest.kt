@@ -187,6 +187,33 @@ class ImageEditorViewTest {
     }
 
     @Test
+    fun `a crop can be dragged far below a twentieth of the image`() {
+        givenImage()
+
+        // The bottom right handle, pulled almost onto the opposite corner.
+        drag(940f, 720f, 62f, 282f)
+
+        view.currentEdits().crop.run {
+            (width() < 0.02f) shouldBeEqualTo true
+            (height() < 0.03f) shouldBeEqualTo true
+            (width() > 0f) shouldBeEqualTo true
+            (height() > 0f) shouldBeEqualTo true
+        }
+    }
+
+    @Test
+    fun `a locked ratio crop can also be dragged below a twentieth of the image`() {
+        view.cropAspectRatio = 1f
+        givenImage()
+
+        // The locked crop's bottom right handle, pulled onto the corner it is anchored on.
+        drag(720f, 720f, 285f, 285f)
+
+        (abs(croppedRatio() - 1f) < 0.01f) shouldBeEqualTo true
+        (view.currentEdits().crop.height() < 0.05f) shouldBeEqualTo true
+    }
+
+    @Test
     fun `without snapping a drawn censor edge stays where it was released`() {
         givenImage()
         view.tool = ImageEditorView.Tool.CENSOR
