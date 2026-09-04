@@ -481,6 +481,55 @@
     <string name="settings_avatar_shape_circle" translatable="false">Circle</string>
     <string name="settings_avatar_shape_rounded" translatable="false">Square (Rounded)</string>
     <string name="settings_avatar_shape_square" translatable="false">Square</string>
+    <string name="settings_avatar_shape_triangle" translatable="false">Triangle</string>
+    <string name="settings_avatar_shape_semicircle" translatable="false">Semicircle</string>
+    <string name="settings_avatar_shape_oval" translatable="false">Oval</string>
+    <string name="settings_avatar_shape_rhombus" translatable="false">Rhombus</string>
+    <string name="settings_avatar_shape_pentagon" translatable="false">Pentagon</string>
+    <string name="settings_avatar_shape_hexagon" translatable="false">Hexagon</string>
+    <string name="settings_avatar_shape_heptagon" translatable="false">Heptagon</string>
+    <string name="settings_avatar_shape_octagon" translatable="false">Octagon</string>
+    <string name="settings_avatar_shape_nonagon" translatable="false">Nonagon</string>
+    <string name="settings_avatar_shape_decagon" translatable="false">Decagon</string>
+    <string name="settings_avatar_shape_section_static" translatable="false">Shapes</string>
+    <string name="settings_avatar_shape_section_spins" translatable="false">Spins</string>
+    <string name="settings_avatar_shape_section_solids" translatable="false">3D Shapes</string>
+    <string name="settings_avatar_shape_section_effects" translatable="false">Effects</string>
+    <string name="avatar_effect_spin_360" translatable="false">360 Spin</string>
+    <string name="avatar_effect_spin_360_thick" translatable="false">Thick 360 Spin</string>
+    <string name="avatar_effect_spin_180" translatable="false">180 Spin</string>
+    <string name="avatar_effect_spin_cw" translatable="false">Clockwise Spin</string>
+    <string name="avatar_effect_spin_ccw" translatable="false">Counter Clockwise Spin</string>
+    <string name="avatar_effect_front_flip" translatable="false">Front Flip</string>
+    <string name="avatar_effect_rocking" translatable="false">Rocking</string>
+    <string name="avatar_effect_figure_eight" translatable="false">Figure Eight</string>
+    <string name="avatar_effect_random_rotations" translatable="false">Random Rotations</string>
+    <string name="avatar_effect_cube" translatable="false">Rotating Cube</string>
+    <string name="avatar_effect_cube_wobbly" translatable="false">Wobbly Cube</string>
+    <string name="avatar_effect_cube_diagonal" translatable="false">Diagonal Cube</string>
+    <string name="avatar_effect_photo_cube" translatable="false">Photo Cube</string>
+    <string name="avatar_effect_sphere" translatable="false">Rotating Sphere</string>
+    <string name="avatar_effect_sphere_low_poly" translatable="false">Low Poly Sphere</string>
+    <string name="avatar_effect_sphere_inside" translatable="false">Inside Sphere</string>
+    <string name="avatar_effect_pyramid" translatable="false">Pyramid</string>
+    <string name="avatar_effect_donut" translatable="false">Rotating Donut</string>
+    <string name="avatar_effect_dodecahedron" translatable="false">Dodecahedron</string>
+    <string name="avatar_effect_tetrahedron" translatable="false">Tetrahedron</string>
+    <string name="avatar_effect_wave_vertical" translatable="false">Vertical Wave</string>
+    <string name="avatar_effect_wave_horizontal" translatable="false">Horizontal Wave</string>
+    <string name="avatar_effect_swirl" translatable="false">Swirl</string>
+    <string name="avatar_effect_wobble" translatable="false">Wobble</string>
+    <string name="avatar_effect_tremble" translatable="false">Tremble</string>
+    <string name="avatar_effect_squishy" translatable="false">Squishy</string>
+    <string name="avatar_effect_lens_distort" translatable="false">Lens Distort</string>
+    <string name="avatar_effect_shockwave" translatable="false">Shockwave</string>
+    <string name="avatar_effect_balloon" translatable="false">Expanding Balloon</string>
+    <string name="avatar_effect_heartbeat" translatable="false">Heartbeat</string>
+    <string name="avatar_effect_float" translatable="false">Float</string>
+    <string name="avatar_effect_zoom" translatable="false">Zoom</string>
+    <string name="avatar_effect_zoom_tilted" translatable="false">Tilted Zoom</string>
+    <string name="avatar_effect_dvd_bounce" translatable="false">DVD Bounce</string>
+    <string name="avatar_effect_blink" translatable="false">Blink</string>
 
     <string name="settings_override_dm_display_title" translatable="false">Force display name and avatar for group DMs</string>
     <string name="settings_override_dm_display_summary" translatable="false">When a direct message has several people, show the name and avatar of the contact it is a DM with.</string>

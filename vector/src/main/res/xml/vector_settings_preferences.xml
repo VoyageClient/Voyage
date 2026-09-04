@@ -70,13 +70,10 @@
             android:title="@string/settings_sc_bubble_appearance"
             app:fragment="im.vector.app.features.settings.VectorSettingsBubbleAppearanceFragment" />
 
-        <im.vector.app.core.preference.VectorListPreference
-            android:defaultValue="circle"
-            android:entries="@array/avatar_shape_entries"
-            android:entryValues="@array/avatar_shape_values"
+        <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_AVATAR_SHAPE_KEY"
-            android:title="@string/settings_avatar_shape_title"
-            app:useSimpleSummaryProvider="true" />
+            android:persistent="false"
+            android:title="@string/settings_avatar_shape_title" />
 
         <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_PEOPLE_COLOR_PALETTE_KEY"

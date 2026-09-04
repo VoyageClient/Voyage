@@ -59,6 +59,8 @@ class DefaultAvatarFactory @Inject constructor(
                         AvatarShape.CIRCLE -> it.buildRound(letter, color)
                         AvatarShape.ROUNDED -> it.buildRoundRectPercent(letter, color, AvatarRenderer.ROUNDED_CORNER_PERCENT)
                         AvatarShape.SQUARE -> it.buildRect(letter, color)
+                        // TextDrawable only knows rects and ovals; the rest bring their own path.
+                        else -> it.buildShape(letter, color, AvatarPathShape(shape))
                     }
                 }
     }

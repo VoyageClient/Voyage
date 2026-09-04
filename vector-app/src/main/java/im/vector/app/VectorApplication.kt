@@ -42,6 +42,8 @@ import im.vector.app.core.session.HomeserverMirrorRefresher
 import im.vector.app.core.vpn.VpnGate
 import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.configuration.VectorConfiguration
+import im.vector.app.features.home.avatar.effect.AvatarEffectRenderer
+import im.vector.app.features.home.avatar.effect.AvatarFrameClock
 import im.vector.app.features.invite.InvitesAcceptor
 import im.vector.app.features.lifecycle.VectorActivityLifecycleCallbacks
 import im.vector.app.features.notifications.NotificationDrawerManager
@@ -200,6 +202,8 @@ class VectorApplication :
                 AudioRouteKeepAlive.release(this@VectorApplication)
                 fcmHelper.onEnterBackground(activeSessionHolder)
                 GlideMemoryTrimmer.onAppBackgrounded(this@VectorApplication)
+                AvatarFrameClock.pause()
+                AvatarEffectRenderer.releaseMemory()
             }
         })
         ProcessLifecycleOwner.get().lifecycle.addObserver(spaceStateHandler)

@@ -18,23 +18,21 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
+import im.vector.app.features.home.avatar.AvatarShapes
+import im.vector.app.features.settings.AvatarShape
 
 /**
- * Wraps a [Drawable] and clips it to a rounded rectangle (or circle) — a cross-version replacement
- * for `View.clipToOutline`, which is API 21+ only. Works for any content, including animated
- * drawables (animated WebP / APNG / GIF), by masking each frame.
+ * Wraps a [Drawable] and clips it to an avatar shape — a cross-version replacement for
+ * `View.clipToOutline`, which is API 21+ only and cannot express a polygon at all before API 30.
+ * Works for any content, including animated drawables (animated WebP / APNG / GIF), by masking each
+ * frame.
  *
- * Masking is done with an anti-aliased [PorterDuff.Mode.DST_IN] pass inside a layer, so the edges
+ * Masking is done with an anti-aliased [PorterDuff.Mode.DST_OUT] pass inside a layer, so the edges
  * stay smooth on KitKat too.
- *
- * @param cornerPercent corner radius as a fraction of the shorter side, so the rounding looks the
- *   same at any avatar size; ignored when [oval] is true.
- * @param oval when true the content is clipped to an oval/circle filling the bounds.
  */
-class RoundedClipDrawable(
+class ShapeClipDrawable(
         private val wrapped: Drawable,
-        private val cornerPercent: Float,
-        private val oval: Boolean,
+        private val shape: AvatarShape,
 ) : Drawable(), Drawable.Callback, Animatable {
 
     // DST_OUT over the *inverse* shape: a PorterDuff mode only blends the pixels the source geometry
@@ -51,21 +49,19 @@ class RoundedClipDrawable(
     }
 
     private fun rebuildMask() {
-        maskPath.reset()
-        // reset() drops the fill type, so set it after.
+        AvatarShapes.path(shape, RectF(bounds), maskPath)
+        // The builder's reset() drops the fill type, so set it after.
         maskPath.fillType = Path.FillType.INVERSE_WINDING
-        val rectF = RectF(bounds)
-        if (oval) {
-            maskPath.addOval(rectF, Path.Direction.CW)
-        } else {
-            val radius = minOf(rectF.width(), rectF.height()) * cornerPercent
-            maskPath.addRoundRect(rectF, radius, radius, Path.Direction.CW)
-        }
         maskDirty = false
     }
 
     override fun draw(canvas: Canvas) {
         if (bounds.isEmpty) return
+        // A square fills its bounds, so there is nothing to erase and no reason to pay for a layer.
+        if (shape == AvatarShape.SQUARE) {
+            wrapped.draw(canvas)
+            return
+        }
         if (maskDirty) rebuildMask()
         // The 2-arg saveLayer is API 21+; the flagged overload works on KitKat.
         @Suppress("DEPRECATION")

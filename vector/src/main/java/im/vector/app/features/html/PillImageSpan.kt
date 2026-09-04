@@ -39,13 +39,14 @@ import com.google.android.material.chip.ChipDrawable
 import im.vector.app.R
 import im.vector.app.core.extensions.isMatrixId
 import im.vector.app.core.glide.GlideRequests
-import im.vector.app.core.glide.RoundedClipDrawable
+import im.vector.app.core.glide.ShapeClipDrawable
 import im.vector.app.core.glide.restartAnimation
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.emoji.TwemojiSpan
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.ContentHashedSpan
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
@@ -273,9 +274,10 @@ class PillImageSpan(
     }
 
     // Glide's bitmap transforms can't shape animated content, so it arrives square; mask it to the
-    // circle every pill avatar is drawn as, whatever avatar shape the rest of the app uses.
+    // circle every pill avatar is drawn as, whatever avatar shape the rest of the app uses. A pill is
+    // an icon the height of a line of text, sitting in a span that repaints as a whole.
     private fun circular(drawable: Drawable): Drawable =
-            if (drawable is BitmapDrawable || drawable is TextDrawable) drawable else RoundedClipDrawable(drawable, 0f, oval = true)
+            if (drawable is BitmapDrawable || drawable is TextDrawable) drawable else ShapeClipDrawable(drawable, AvatarShape.CIRCLE)
 
     private val chipCallback = object : Drawable.Callback {
         override fun invalidateDrawable(who: Drawable) {
@@ -324,7 +326,8 @@ class PillImageSpan(
             }
             else -> {
                 try {
-                    prepareIcon(avatarRenderer.getCachedDrawable(glideRequests, matrixItem, forceCircle = true)).also { hasCachedAvatar = true }
+                    prepareIcon(avatarRenderer.getCachedDrawable(glideRequests, matrixItem, forceCircle = true))
+                            .also { hasCachedAvatar = true }
                 } catch (exception: Exception) {
                     avatarRenderer.getPlaceholderDrawable(matrixItem, forceCircle = true)
                 }

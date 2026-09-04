@@ -10,6 +10,7 @@ package im.vector.app.core.glide
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.widget.ImageView
+import im.vector.app.features.settings.AvatarShape
 import im.vector.app.test.fakes.FakeAnimatedDrawable
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
@@ -27,7 +28,7 @@ class ClippedDrawableImageViewTargetTest {
 
     @Test
     fun `a round avatar clips animated content, which no bitmap transformation can shape`() {
-        val target = ClippedDrawableImageViewTarget(imageView, cornerPercent = 0f, oval = true)
+        val target = ClippedDrawableImageViewTarget(imageView, AvatarShape.CIRCLE)
         val drawable = FakeAnimatedDrawable()
 
         target.onResourceReady(drawable, null)
@@ -38,7 +39,7 @@ class ClippedDrawableImageViewTargetTest {
 
     @Test
     fun `a rounded square avatar clips animated content too`() {
-        val target = ClippedDrawableImageViewTarget(imageView, cornerPercent = 0.2f, oval = false)
+        val target = ClippedDrawableImageViewTarget(imageView, AvatarShape.ROUNDED)
 
         target.onResourceReady(FakeAnimatedDrawable(), null)
 
@@ -47,7 +48,7 @@ class ClippedDrawableImageViewTargetTest {
 
     @Test
     fun `a square avatar has nothing to clip`() {
-        val target = ClippedDrawableImageViewTarget(imageView, cornerPercent = 0f, oval = false)
+        val target = ClippedDrawableImageViewTarget(imageView, AvatarShape.SQUARE)
         val drawable = FakeAnimatedDrawable()
 
         target.onResourceReady(drawable, null)
@@ -59,17 +60,17 @@ class ClippedDrawableImageViewTargetTest {
     @Test
     fun `a recycled view stops clipping once it holds a shaped bitmap again`() {
         val drawable = BitmapDrawable(context.resources, Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
-        ClippedDrawableImageViewTarget(imageView, cornerPercent = 0f, oval = true)
+        ClippedDrawableImageViewTarget(imageView, AvatarShape.CIRCLE)
                 .onResourceReady(FakeAnimatedDrawable(), null)
 
-        ClippedDrawableImageViewTarget(imageView, cornerPercent = 0f, oval = true).onResourceReady(drawable, null)
+        ClippedDrawableImageViewTarget(imageView, AvatarShape.CIRCLE).onResourceReady(drawable, null)
 
         imageView.clipToOutline shouldBeEqualTo false
     }
 
     @Test
     fun `content Glide already shaped passes through`() {
-        val target = ClippedDrawableImageViewTarget(imageView, cornerPercent = 0.2f, oval = false)
+        val target = ClippedDrawableImageViewTarget(imageView, AvatarShape.ROUNDED)
         val drawable = BitmapDrawable(context.resources, Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
 
         target.onResourceReady(drawable, null)
@@ -79,7 +80,7 @@ class ClippedDrawableImageViewTargetTest {
 
     @Test
     fun `a cached animated avatar is held on its first frame once autoplay is off, and still shown`() {
-        val target = ClippedDrawableImageViewTarget(imageView, cornerPercent = 0.2f, oval = false, animate = false)
+        val target = ClippedDrawableImageViewTarget(imageView, AvatarShape.ROUNDED, animate = false)
         val drawable = FakeAnimatedDrawable()
 
         target.onResourceReady(drawable, null)

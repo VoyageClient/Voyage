@@ -47,6 +47,7 @@ import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.glide.RememberServedVariant
 import im.vector.app.core.glide.RestartAnimationListener
 import im.vector.app.core.glide.RoundedCornersPercent
+import im.vector.app.core.glide.ShapeMaskTransformation
 import im.vector.app.core.glide.ThumbnailAttempt
 import im.vector.app.core.glide.ThumbnailVariants
 import im.vector.app.core.glide.chainAttempts
@@ -55,6 +56,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.avatar.DefaultAvatarFactory
+import im.vector.app.features.home.avatar.effect.AvatarEffectDrawables
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
@@ -166,32 +168,39 @@ class AvatarRenderer @Inject constructor(
     fun render(matrixItem: MatrixItem, imageView: ImageView, @DimenRes decodeSize: Int? = null, crossfade: Boolean = false) {
         imageView.setContentDescription(matrixItem)
         GlideApp.with(imageView)
-                .loadAvatar(matrixItem, decodeSizePx = decodeSize?.let { imageView.resources.getDimensionPixelSize(it) }, crossfade = crossfade)
-                .into(avatarTarget(imageView, matrixItem))
+                .loadAvatar(matrixItem, decodeSizePx = decodeSizePx(imageView, decodeSize), crossfade = crossfade)
+                .into(avatarTarget(imageView, matrixItem, decodeSizePx(imageView, decodeSize)))
     }
 
     // Clips avatars to the configured shape (circle / rounded square / square) for animated drawables
     // and placeholders too — a cross-version replacement for clipToOutline (API 21+). Static images are
     // already shaped by the Glide transforms below and pass through untouched.
     @VisibleForTesting(otherwise = PRIVATE)
-    internal fun avatarTarget(imageView: ImageView, matrixItem: MatrixItem): DrawableImageViewTarget {
-        val oval = shapeFor(matrixItem) == AvatarShape.CIRCLE
+    internal fun avatarTarget(
+            imageView: ImageView,
+            matrixItem: MatrixItem,
+            decodeSizePx: Int? = null,
+    ): DrawableImageViewTarget {
         return ClippedDrawableImageViewTarget(
-                imageView, cornerPercent(matrixItem), oval = oval, animate = vectorPreferences.autoplayAnimatedImages()
+                imageView, shapeFor(matrixItem), animate = vectorPreferences.autoplayAnimatedImages(), renderSizePx = decodeSizePx
         )
     }
+
+    private fun decodeSizePx(imageView: ImageView, @DimenRes decodeSize: Int?) =
+            decodeSize?.let { imageView.resources.getDimensionPixelSize(it) }
 
     // Spaces always render as rounded squares, regardless of the avatar-shape setting.
     private fun shapeFor(matrixItem: MatrixItem): AvatarShape =
             if (matrixItem is MatrixItem.SpaceItem) AvatarShape.ROUNDED else vectorPreferences.avatarShape()
 
-    private fun cornerPercent(matrixItem: MatrixItem): Float =
-            if (shapeFor(matrixItem) == AvatarShape.ROUNDED) ROUNDED_CORNER_PERCENT else 0f
-
-    private fun avatarTransform(matrixItem: MatrixItem): Transformation<Bitmap> = when (shapeFor(matrixItem)) {
+    private fun avatarTransform(matrixItem: MatrixItem): Transformation<Bitmap> = when (val shape = shapeFor(matrixItem)) {
+        // Glide's own transforms for the shapes it can express, so nothing already cached under them
+        // has to be redecoded.
         AvatarShape.CIRCLE -> CircleCrop()
         AvatarShape.ROUNDED -> MultiTransformation(CenterCrop(), RoundedCornersPercent(ROUNDED_CORNER_PERCENT))
         AvatarShape.SQUARE -> CenterCrop()
+        // An animated shape needs an unshaped square to texture itself with.
+        else -> if (shape.isAnimated) CenterCrop() else MultiTransformation(CenterCrop(), ShapeMaskTransformation(shape))
     }
 
 //    fun renderSpace(matrixItem: MatrixItem, imageView: ImageView) {
@@ -292,6 +301,13 @@ class AvatarRenderer @Inject constructor(
                 .apply(RequestOptions.centerCropTransform())
                 .submit(iconSize, iconSize)
                 .get()
+                .withShapeEffect(matrixItem, iconSize)
+    }
+
+    // A launcher icon can't animate, so an animated shape contributes its still frame.
+    private fun Bitmap.withShapeEffect(matrixItem: MatrixItem, sizePx: Int): Bitmap {
+        val effect = shapeFor(matrixItem).effect ?: return this
+        return AvatarEffectDrawables.still(this, effect, sizePx)
     }
 
     @AnyThread
@@ -385,7 +401,16 @@ class AvatarRenderer @Inject constructor(
                 .placeholder(placeholder)
                 .onlyRetrieveFromCache(retrieveFromCacheOnly)
                 .let { if (decodeSizePx != null) it.override(decodeSizePx) else it }
-                .let { if (autoplay) it.addListener(RestartAnimationListener) else it.dontAnimate() }
+                .let {
+                    when {
+                        !autoplay -> it.dontAnimate()
+                        // An animated shape shows the picture as a texture on a solid that is turning
+                        // on its own; playing it from the first frame every time the avatar is bound
+                        // would jump the picture while the shape carried on.
+                        shapeFor(matrixItem).isAnimated -> it
+                        else -> it.addListener(RestartAnimationListener)
+                    }
+                }
                 .let { if (crossfade) it.transition(DrawableTransitionOptions.with(FadeOutPlaceholderFactory(FADE_MS, placeholder))) else it }
 
         // Once every attempt is cache-only the two still ones are the same request.

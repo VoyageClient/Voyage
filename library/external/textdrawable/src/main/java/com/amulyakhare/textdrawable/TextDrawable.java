@@ -292,6 +292,12 @@ public class TextDrawable extends ShapeDrawable {
         }
 
         @Override
+        public TextDrawable buildShape(String text, int color, RectShape shape) {
+            this.shape = shape;
+            return build(text, color);
+        }
+
+        @Override
         public TextDrawable build(String text, int color) {
             this.color = color;
             this.text = text;
@@ -341,6 +347,8 @@ public class TextDrawable extends ShapeDrawable {
         public TextDrawable buildRoundRectPercent(String text, int color, float percent);
 
         public TextDrawable buildRound(String text, int color);
+
+        public TextDrawable buildShape(String text, int color, RectShape shape);
     }
 
     /**

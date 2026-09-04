@@ -101,12 +101,23 @@ class DefaultAvatarFactoryTest {
     }
 
     @Test
-    fun `every style honours the circle shape`() {
+    fun `every style honours every shape that cuts its corners`() {
+        val shapes = AvatarShape.STATIC.filter { it != AvatarShape.SQUARE }
         DefaultAvatarStyle.values().forEach { style ->
-            val bitmap = render(style, shape = AvatarShape.CIRCLE)
+            shapes.forEach { shape ->
+                val bitmap = render(style, shape = shape)
 
-            withClue(style) { bitmap.getPixel(0, 0) shouldBeEqualTo Color.TRANSPARENT }
-            withClue(style) { bitmap.getPixel(HALF, HALF) shouldNotBeEqualTo Color.TRANSPARENT }
+                withClue(style, shape) { bitmap.getPixel(0, 0) shouldBeEqualTo Color.TRANSPARENT }
+                withClue(style, shape) { bitmap.getPixel(HALF, HALF) shouldNotBeEqualTo Color.TRANSPARENT }
+            }
+        }
+    }
+
+    private fun withClue(style: DefaultAvatarStyle, shape: AvatarShape, assertion: () -> Unit) {
+        try {
+            assertion()
+        } catch (error: AssertionError) {
+            throw AssertionError("$style / $shape: ${error.message}", error)
         }
     }
 
