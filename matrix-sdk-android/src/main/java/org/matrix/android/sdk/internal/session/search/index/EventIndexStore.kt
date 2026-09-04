@@ -118,6 +118,11 @@ internal class EventIndexStore @Inject constructor(
         queries.updateEventJson(json, eventId)
     }
 
+    /** Keeps the row, drops everything the (now redacted) content contributed to it. */
+    suspend fun stripEvent(eventId: String, json: String) = withContext(dispatcher) {
+        queries.stripEvent(json, eventId)
+    }
+
     suspend fun deleteEvent(eventId: String) = withContext(dispatcher) {
         queries.deleteEvent(eventId)
     }

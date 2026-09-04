@@ -195,23 +195,24 @@ internal class EventIndexer @Inject constructor(
     }
 
     /**
-     * Called when a redaction is applied. The content normally leaves the index with the event, but
-     * a preserved copy is kept searchable — flagged as redacted, so a hit renders like the timeline
-     * does: a deleted placeholder until the user reveals it.
+     * Called when a redaction is applied. A preserved copy stays searchable, flagged as redacted so a
+     * hit renders like the timeline does: a deleted placeholder until the user reveals it. Without one
+     * the row keeps only what the content didn't give it, so the deletion still shows up in searches
+     * that match on sender or date but nothing of what was said stays searchable or on disk.
      */
-    fun onEventRedacted(redactedEventId: String) {
+    fun onEventRedacted(redactedEventId: String, redactionEvent: Event? = null) {
         scope?.launch {
             val preserved = redactedContentStore.get(redactedEventId)
             if (preserved == null) {
-                indexStore.deleteEvent(redactedEventId)
+                stripIndexedEvent(redactedEventId, redactionEvent)
             } else {
                 val json = indexStore.eventJson(redactedEventId)
                 if (json == null) {
-                    indexPreservedContent(preserved, knownRedacted = true)
+                    indexPreservedContent(preserved, knownRedacted = true, redactionEvent = redactionEvent)
                     return@launch
                 }
                 val event = tryOrNull { eventAdapter.fromJson(json) } ?: return@launch
-                indexStore.updateEventJson(redactedEventId, eventAdapter.toJson(event.markRedacted()))
+                indexStore.updateEventJson(redactedEventId, eventAdapter.toJson(event.markRedacted(redactionEvent)))
             }
         }
     }
@@ -221,13 +222,13 @@ internal class EventIndexer @Inject constructor(
      * (MSC2815), or captured before a redaction that raced the capture write and dropped the row.
      * Idempotent, and a no-op while the event is still live: the ordinary feeds own those.
      */
-    suspend fun indexPreservedContent(preserved: PreservedContent, knownRedacted: Boolean = false) {
+    suspend fun indexPreservedContent(preserved: PreservedContent, knownRedacted: Boolean = false, redactionEvent: Event? = null) {
         if (!enabled.get()) return
         // Cheap index read first: an event still indexed under its own row needs nothing from here, so
         // only a missing row is worth the session-DB lookup that follows. The redaction path skips even
         // that, since it runs before the prune writes the row it would read.
         if (indexStore.eventJson(preserved.eventId) != null) return
-        if (!knownRedacted && !isRedactedLocally(preserved.roomId, preserved.eventId)) return
+        val localUnsigned = if (knownRedacted) null else (localRedactionOf(preserved.roomId, preserved.eventId) ?: return)
         val event = Event(
                 type = preserved.clearType?.takeIf { it.isNotEmpty() } ?: EventType.MESSAGE,
                 eventId = preserved.eventId,
@@ -237,17 +238,20 @@ internal class EventIndexer @Inject constructor(
                 roomId = preserved.roomId,
         )
         val indexable = toIndexable(event) ?: return
-        indexStore.putEvent(indexable.copy(eventJson = eventAdapter.toJson(event.markRedacted())))
+        val redactedBy = redactionEvent ?: localUnsigned?.redactedEvent
+        indexStore.putEvent(indexable.copy(eventJson = eventAdapter.toJson(event.markRedacted(redactedBy))))
     }
 
-    private suspend fun isRedactedLocally(roomId: String, eventId: String): Boolean =
+    /** The local copy's unsigned data, or null when that copy isn't redacted. */
+    private suspend fun localRedactionOf(roomId: String, eventId: String): UnsignedData? =
             database.awaitDbTransaction(dbDispatcher) {
                 stores.timelineEvent.getByRoomAndEventId(roomId, eventId)?.root
-                        ?.let { EventMapper.map(it).isRedacted() } == true
+                        ?.let { EventMapper.map(it).unsignedData }
+                        ?.takeIf { it.redactedEvent != null || it.redactedBy != null }
             }
 
     /**
-     * Drops the index rows of preserved events whose copy has just been deleted. Without this the
+     * Strips the index rows of preserved events whose copy has just been deleted. Without this the
      * pre-redaction text stays searchable — and on disk — after the user clears preserved content.
      */
     suspend fun dropIndexedRedactions(eventIds: Collection<String>) {
@@ -256,14 +260,34 @@ internal class EventIndexer @Inject constructor(
             val json = indexStore.eventJson(eventId) ?: return@forEach
             val event = tryOrNull { eventAdapter.fromJson(json) } ?: return@forEach
             // Only the rows kept *because* content was preserved; an unredacted event's row is its own.
-            if (event.isRedacted()) indexStore.deleteEvent(eventId)
+            if (event.isRedacted()) indexStore.stripEvent(eventId, eventAdapter.toJson(event.redactedStub(null)))
         }
     }
 
-    // The redaction event's own id isn't reachable from every caller, and nothing downstream reads
-    // it: isRedacted() only tests the field for null.
-    private fun Event.markRedacted() = copy(
-            unsignedData = (unsignedData ?: UnsignedData(null, null)).copy(redactedBy = eventId)
+    private suspend fun stripIndexedEvent(eventId: String, redactionEvent: Event?) {
+        val json = indexStore.eventJson(eventId) ?: return
+        val event = tryOrNull { eventAdapter.fromJson(json) }
+        if (event == null) {
+            indexStore.deleteEvent(eventId)
+            return
+        }
+        indexStore.stripEvent(eventId, eventAdapter.toJson(event.redactedStub(redactionEvent)))
+    }
+
+    /** The event as the index keeps it once redacted: flagged, with nothing of its content left. */
+    private fun Event.redactedStub(redactionEvent: Event?) = copy(
+            content = emptyMap(),
+            prevContent = null,
+    ).markRedacted(redactionEvent)
+
+    // The redaction is optional: when it isn't reachable, redactedBy still flags the event as redacted
+    // and the UI falls back to wording that doesn't name a redacter.
+    private fun Event.markRedacted(redactionEvent: Event?) = copy(
+            unsignedData = (unsignedData ?: UnsignedData(null, null)).copy(
+                    redactedBy = redactionEvent?.eventId ?: unsignedData?.redactedBy ?: eventId,
+                    redactedEvent = redactionEvent ?: unsignedData?.redactedEvent,
+                    prevContent = null,
+            )
     )
 
     // EventInsertLiveProcessor: live-indexes events that arrive already clear (unencrypted rooms,
@@ -295,7 +319,7 @@ internal class EventIndexer @Inject constructor(
         // Local echoes carry a fake event id; the remote echo is indexed instead (the sweep would
         // otherwise index sent messages twice — once per id).
         if (LocalEcho.isLocalEchoId(eventId)) return null
-        if (event.isRedacted()) return null
+        if (event.isRedacted()) return redactedStubOf(event, eventId, roomId, clearType)
         val msgtypes = searchMsgTypes(clearType, clearContent)
         val text = when {
             clearType == EventType.MESSAGE -> {
@@ -331,6 +355,21 @@ internal class EventIndexer @Inject constructor(
                 eventJson = eventAdapter.toJson(clearEvent),
                 msgtype = msgtypes.joinToString(" ").takeIf { it.isNotEmpty() },
                 mentions = mentions.takeIf { it.isNotEmpty() }?.joinToString(" ") { it.lowercase() },
+        )
+    }
+
+    /** An event already redacted when the sweep or the crawler reached it: a row with nothing to match. */
+    private fun redactedStubOf(event: Event, eventId: String, roomId: String, clearType: String): IndexableEvent? {
+        if (clearType != EventType.MESSAGE && clearType != EventType.STICKER && clearType !in EventType.POLL_START.values) return null
+        return IndexableEvent(
+                eventId = eventId,
+                roomId = roomId,
+                sender = event.senderId,
+                originServerTs = event.originServerTs ?: 0L,
+                contentText = "",
+                eventJson = eventAdapter.toJson(event.redactedStub(null)),
+                msgtype = null,
+                mentions = null,
         )
     }
 

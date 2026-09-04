@@ -1190,17 +1190,20 @@ class NoticeEventFormatter @Inject constructor(
                 ?.get("reason") as? String)
                 ?.takeIf { it.isNotBlank() }
                 .let { reason ->
+                    // No redacting event means the redacter is unknown (search-index rows), not that it
+                    // was someone else.
+                    val byOther = event.unsignedData?.redactedEvent?.senderId?.let { it != event.senderId } == true
                     if (reason == null) {
-                        if (event.isRedactedBySameUser()) {
-                            sp.getString(CommonStrings.event_redacted)
-                        } else {
+                        if (byOther) {
                             sp.getString(CommonStrings.event_redacted_by_admin)
+                        } else {
+                            sp.getString(CommonStrings.event_redacted)
                         }
                     } else {
-                        if (event.isRedactedBySameUser()) {
-                            sp.getString(CommonStrings.event_redacted_with_reason, reason.neutralizeDirectionOverrides())
-                        } else {
+                        if (byOther) {
                             sp.getString(CommonStrings.event_redacted_by_admin_with_reason, reason.neutralizeDirectionOverrides())
+                        } else {
+                            sp.getString(CommonStrings.event_redacted_with_reason, reason.neutralizeDirectionOverrides())
                         }
                     }
                 }
