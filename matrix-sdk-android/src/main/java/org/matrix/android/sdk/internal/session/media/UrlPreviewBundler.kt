@@ -26,7 +26,6 @@ import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.session.content.FileUploader
-import org.matrix.android.sdk.internal.session.media.UrlsExtractor.Companion.previewableText
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -91,8 +90,7 @@ internal class UrlPreviewBundler @Inject constructor(
         val previewedContent = newContent ?: content
         val messageContent = previewedContent.toModel<MessageContent>() ?: return event
         // Stripping a reply fallback is a no-op on a body that has none, so no need to check the relation.
-        val text = messageContent.previewableText(isReply = true) ?: return event
-        val urls = previewableUrls(text)
+        val urls = previewableUrls(messageContent)
         if (urls.isEmpty()) return event
 
         val onDevice = generatesOnDevice(roomId, encrypt)
@@ -130,13 +128,16 @@ internal class UrlPreviewBundler @Inject constructor(
      */
     override suspend fun prefetch(roomId: String, text: CharSequence, encrypt: Boolean) {
         val onDevice = generatesOnDevice(roomId, encrypt)
-        previewableUrls(ContentUtils.extractUsefulTextFromReply(text.toString())).forEach { url ->
-            val key = UrlPreviewBundleCache.Key(url = url, onDevice = onDevice, encrypted = encrypt)
-            bundleCache.getOrBuild(key) { fetchAndUpload(url, onDevice, encrypt) }
-        }
+        urlsExtractor.extractMarkdown(ContentUtils.extractUsefulTextFromReply(text.toString()))
+                .filterNot { isNotPreviewable(it) }
+                .take(MAX_PREVIEWS)
+                .forEach { url ->
+                    val key = UrlPreviewBundleCache.Key(url = url, onDevice = onDevice, encrypted = encrypt)
+                    bundleCache.getOrBuild(key) { fetchAndUpload(url, onDevice, encrypt) }
+                }
     }
 
-    private fun previewableUrls(text: String) = urlsExtractor.extract(text)
+    private fun previewableUrls(content: MessageContent) = urlsExtractor.extract(content, isReply = true)
             .filterNot { isNotPreviewable(it) }
             .take(MAX_PREVIEWS)
 

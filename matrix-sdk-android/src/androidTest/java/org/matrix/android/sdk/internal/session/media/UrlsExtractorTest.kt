@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.media
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.amshove.kluent.shouldBeEqualTo
+import org.commonmark.parser.Parser
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.InstrumentedTest
@@ -32,7 +33,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 @RunWith(AndroidJUnit4::class)
 internal class UrlsExtractorTest : InstrumentedTest {
 
-    private val urlsExtractor = UrlsExtractor()
+    private val urlsExtractor = UrlsExtractor(AndroidWebUrlPattern(), Parser.builder().build())
 
     @Test
     fun wrongEventTypeTest() {
