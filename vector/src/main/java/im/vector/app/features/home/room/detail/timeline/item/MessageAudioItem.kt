@@ -188,7 +188,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
      * A music file usually knows more about itself than its name: the tags and the cover come off
      * the file once it is downloaded, and until then it reads as it always did.
      */
-    private fun bindFileDetails(holder: Holder) {
+    private fun bindFileDetails(holder: Holder, onlyIfSourceChanged: Boolean = false) {
         // Playing is what fetches a file that was never downloaded, so the provider is asked again
         // rather than trusting what was known when the row was built.
         val source = localSource ?: localSourceProvider?.invoke()
@@ -198,17 +198,30 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val id = attributes.informationData.stableId
         val changed = holder.mainLayout.tag != id
         holder.mainLayout.tag = id
+        if (changed) {
+            holder.detailsSource = null
+            holder.loadingDetailsSource = null
+        }
+        if (onlyIfSourceChanged && (holder.detailsSource == source || holder.loadingDetailsSource == source)) return
         val known = source?.let { AudioDetails.cached(it) }
         showFileDetails(holder, known, reset = changed)
-        if (source == null || known != null) return
+        if (source == null) return
+        if (known != null) {
+            holder.detailsSource = source
+            return
+        }
         val uri = source
+        holder.loadingDetailsSource = uri
         val context = holder.view.context.applicationContext
         detailsLoader.execute {
             val details = AudioDetails.load(context, uri)
-            if (details.isEmpty) return@execute
             holder.mainLayout.post {
                 // The row may have been recycled onto another message by now.
-                if (holder.mainLayout.tag == id) showFileDetails(holder, details, reset = true)
+                if (holder.mainLayout.tag == id && holder.loadingDetailsSource == uri) {
+                    holder.loadingDetailsSource = null
+                    holder.detailsSource = uri
+                    if (!details.isEmpty) showFileDetails(holder, details, reset = true)
+                }
             }
         }
     }
@@ -363,6 +376,10 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
     private fun renderStateBasedOnAudioPlayback(holder: Holder) {
         playbackTrackerListener = AudioMessagePlaybackTracker.Listener { state ->
+            if (state is AudioMessagePlaybackTracker.Listener.State.Playing ||
+                    state is AudioMessagePlaybackTracker.Listener.State.Paused) {
+                bindFileDetails(holder, onlyIfSourceChanged = true)
+            }
             when (state) {
                 is AudioMessagePlaybackTracker.Listener.State.Error,
                 is AudioMessagePlaybackTracker.Listener.State.Idle -> renderIdleState(holder)
@@ -440,7 +457,10 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     override fun unbind(holder: Holder) {
         previewUrlViewUpdater.unbind()
         holder.cancelProgressAnimation()
+        holder.mainLayout.tag = null
         holder.backdropKey = null
+        holder.detailsSource = null
+        holder.loadingDetailsSource = null
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
@@ -467,6 +487,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val audioSeekBar by bind<SeekBar>(R.id.audioSeekBar)
         var progressAnimator: ObjectAnimator? = null
         var backdropKey: String? = null
+        var detailsSource: Uri? = null
+        var loadingDetailsSource: Uri? = null
 
         fun cancelProgressAnimation() {
             progressAnimator?.cancel()
