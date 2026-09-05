@@ -21,6 +21,7 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeNull
 import org.amshove.kluent.shouldNotBeEqualTo
+import org.commonmark.parser.Parser
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -72,7 +73,7 @@ internal class UrlPreviewBundlerTest {
     private val echoUpdate = slot<(EventEntity) -> Unit>()
 
     private val bundler = UrlPreviewBundler(
-            urlsExtractor = UrlsExtractor(AndroidWebUrlPattern()),
+            urlsExtractor = UrlsExtractor(AndroidWebUrlPattern(), Parser.builder().build()),
             urlPreviewFetcher = urlPreviewFetcher,
             homeServerUrlPreviewFetcher = homeServerUrlPreviewFetcher,
             fileUploader = fileUploader,
@@ -224,6 +225,44 @@ internal class UrlPreviewBundlerTest {
         val event = textEvent("no link here")
 
         bundler.bundleUrlPreviews(event, encrypt = false) shouldBeEqualTo event
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
+    }
+
+    @Test
+    fun `links in formatted code are not previewed`() = runTest {
+        val event = textEvent(
+                body = "look at $URL",
+                extra = mapOf(
+                        "format" to "org.matrix.custom.html",
+                        "formatted_body" to "look at <code>$URL</code>"
+                )
+        )
+
+        bundler.bundleUrlPreviews(event, encrypt = false) shouldBeEqualTo event
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
+    }
+
+    @Test
+    fun `a link outside formatted code is still previewed`() = runTest {
+        val outside = "https://example.org"
+        val event = textEvent(
+                body = "$URL $outside",
+                extra = mapOf(
+                        "format" to "org.matrix.custom.html",
+                        "formatted_body" to "<pre><code>$URL</code></pre><p>$outside</p>"
+                )
+        )
+
+        val previews = bundler.bundleUrlPreviews(event, encrypt = false).previews()!!
+
+        previews.map { it["matrix:matched_url"] } shouldBeEqualTo listOf(outside)
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(URL) }
+    }
+
+    @Test
+    fun `links in markdown code are not prefetched`() = runTest {
+        bundler.prefetch(A_ROOM_ID, "`$URL`\n\n```\nhttps://example.org\n```", encrypt = false)
+
         coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
     }
 

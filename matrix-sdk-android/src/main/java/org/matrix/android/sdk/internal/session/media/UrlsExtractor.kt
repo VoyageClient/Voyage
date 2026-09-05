@@ -16,8 +16,21 @@
 
 package org.matrix.android.sdk.internal.session.media
 
+import org.commonmark.node.AbstractVisitor
+import org.commonmark.node.Code
+import org.commonmark.node.FencedCodeBlock
+import org.commonmark.node.HtmlInline
+import org.commonmark.node.IndentedCodeBlock
+import org.commonmark.node.Link
+import org.commonmark.node.Text
+import org.commonmark.parser.Parser
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.TextNode
+import org.jsoup.select.NodeTraversor
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
@@ -27,10 +40,12 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.internal.session.room.AdvancedCommonmarkParser
 import javax.inject.Inject
 
 internal class UrlsExtractor @Inject constructor(
         webUrlPattern: WebUrlPattern,
+        @AdvancedCommonmarkParser private val markdownParser: Parser,
 ) {
     // Sadly Patterns.WEB_URL_WITH_PROTOCOL is not public so filter the protocol later
     private val urlRegex = webUrlPattern.regex
@@ -38,9 +53,54 @@ internal class UrlsExtractor @Inject constructor(
     fun extract(event: TimelineEvent): List<String> {
         return event.takeIf { it.root.getClearType() == EventType.MESSAGE }
                 ?.getLastMessageContent()
-                ?.previewableText(event.isReply())
-                ?.let { extract(it) }
+                ?.let { extract(it, event.isReply()) }
                 .orEmpty()
+    }
+
+    fun extract(content: MessageContent, isReply: Boolean): List<String> {
+        val text = content.previewableText(isReply) ?: return emptyList()
+        val formattedBody = (content as? MessageContentWithFormattedBody)?.matrixFormattedBody ?: return extract(text)
+        val body = Jsoup.parseBodyFragment(formattedBody).body()
+        body.select("mx-reply, pre, code").remove()
+        val urls = mutableListOf<String>()
+        NodeTraversor.traverse({ node, _ ->
+            when (node) {
+                is Element -> if (node.tagName() == "a") urls += extract(node.attr("href"))
+                is TextNode -> urls += extract(node.text())
+            }
+        }, body)
+        return urls.distinct()
+    }
+
+    fun extractMarkdown(text: String): List<String> {
+        val urls = mutableListOf<String>()
+        markdownParser.parse(text).accept(object : AbstractVisitor() {
+            var htmlCodeDepth = 0
+
+            override fun visit(text: Text) {
+                if (htmlCodeDepth == 0) urls += extract(text.literal)
+            }
+
+            override fun visit(link: Link) {
+                if (htmlCodeDepth == 0) urls += extract(link.destination)
+                visitChildren(link)
+            }
+
+            override fun visit(htmlInline: HtmlInline) {
+                CODE_TAG.findAll(htmlInline.literal).forEach { match ->
+                    htmlCodeDepth = if (match.value.startsWith("</")) {
+                        (htmlCodeDepth - 1).coerceAtLeast(0)
+                    } else {
+                        htmlCodeDepth + 1
+                    }
+                }
+            }
+
+            override fun visit(code: Code) = Unit
+            override fun visit(fencedCodeBlock: FencedCodeBlock) = Unit
+            override fun visit(indentedCodeBlock: IndentedCodeBlock) = Unit
+        })
+        return urls.distinct()
     }
 
     fun extract(text: String): List<String> {
@@ -74,6 +134,8 @@ internal class UrlsExtractor @Inject constructor(
     }
 
     companion object {
+        private val CODE_TAG = Regex("</?(?:pre|code)\\b[^>]*>", RegexOption.IGNORE_CASE)
+
         /** The user-typed text of a message that may carry links: a text body or a media caption (MSC2530 / MSC4274). */
         fun MessageContent.previewableText(isReply: Boolean): String? {
             return when {
