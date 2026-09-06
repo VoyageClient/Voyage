@@ -43,6 +43,12 @@ class CodeBlockLayout @JvmOverloads constructor(
         codeView = code
     }
 
+    override fun requestChildFocus(child: View?, focused: View?) {
+        // Propagating double-tap selection focus scrolls the timeline before the gesture ends.
+        if (focused is ReadOnlySelectableTextView && focused.isTextSelectable) return
+        super.requestChildFocus(child, focused)
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         measureWithFullBleed(widthMeasureSpec, heightMeasureSpec)
         val gutter = gutterView ?: return
