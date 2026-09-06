@@ -750,7 +750,7 @@ class MessageItemFactory @Inject constructor(
                             val imageView = view as? ImageView
                             when {
                                 imageView != null && imageContentRenderer.isRetrying(imageView) -> Unit
-                                imageContentRenderer.isFailed(data) -> imageView?.let { imageContentRenderer.retry(it) }
+                                imageView != null && imageContentRenderer.isFailed(imageView, data) -> imageContentRenderer.retry(imageView)
                                 else -> callback?.onImageMessageClicked(messageContent, data, view, emptyList())
                             }
                         }
@@ -940,7 +940,7 @@ class MessageItemFactory @Inject constructor(
                                     val thumb = tiles.getOrNull(index)?.mediaData ?: thumbnailDataFor(item, index)
                                     when {
                                         imageView != null && imageContentRenderer.isRetrying(imageView) -> Unit
-                                        imageContentRenderer.isFailed(thumb) -> imageView?.let { imageContentRenderer.retry(it) }
+                                        imageView != null && imageContentRenderer.isFailed(imageView, thumb) -> imageContentRenderer.retry(imageView)
                                         else -> callback?.onVideoMessageClicked(item, videoDataFor(item, index), view, inMemory)
                                     }
                                 }
@@ -948,7 +948,7 @@ class MessageItemFactory @Inject constructor(
                                     val data = tiles.getOrNull(index)?.mediaData ?: thumbnailDataFor(item, index)
                                     when {
                                         imageView != null && imageContentRenderer.isRetrying(imageView) -> Unit
-                                        imageContentRenderer.isFailed(data) -> imageView?.let { imageContentRenderer.retry(it) }
+                                        imageView != null && imageContentRenderer.isFailed(imageView, data) -> imageContentRenderer.retry(imageView)
                                         else -> callback?.onImageMessageClicked(item, data, view, inMemory)
                                     }
                                 }
