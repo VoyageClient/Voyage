@@ -52,26 +52,15 @@ def gitOutput(String cmd) {
     }
 }
 
-def generateVersionCodeFromTimestamp() {
-    return ((sourceDateEpoch() - 1_538_524_800) / 100).toInteger() + 20_000_000
-}
-
-def sourceDateEpoch() {
-    def epoch = System.getenv("SOURCE_DATE_EPOCH")
-    if (epoch?.isLong()) {
-        return epoch.toLong()
-    }
-
-    def commitEpoch = gitOutput("git show -s --format=%ct HEAD^{commit}")
-    if (commitEpoch?.isLong()) {
-        return commitEpoch.toLong()
-    }
-
-    throw new GradleException("SOURCE_DATE_EPOCH must be set when building outside a Git checkout")
-}
-
 def getVersionCode() {
-    return generateVersionCodeFromTimestamp()
+    return releaseDate().toInteger() + 20_000_000
+}
+
+def utcDateFromEpoch(String epoch) {
+    if (!epoch?.isLong()) {
+        return null
+    }
+    return new Date(epoch.toLong() * 1_000L).format("yyyyMMdd", TimeZone.getTimeZone("UTC"))
 }
 
 def releaseDate() {
@@ -80,7 +69,7 @@ def releaseDate() {
         date = gitTag()
     }
     if (date == null) {
-        date = gitOutput("git show -s --format=%cd --date=format:%Y%m%d HEAD^{commit}")
+        date = utcDateFromEpoch(System.getenv("SOURCE_DATE_EPOCH")) ?: utcDateFromEpoch(gitOutput("git show -s --format=%ct HEAD^{commit}"))
     }
     if (!(date ==~ /[0-9]{8}/)) {
         throw new GradleException("Set voyage.releaseDate or VOYAGE_RELEASE_DATE to an eight-digit UTC date (YYYYMMDD).")
@@ -126,8 +115,7 @@ android {
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled true
 
-        // Source-time version codes remain reproducible and monotonically increase independently of
-        // the date-based user-visible version name.
+        // The date-derived code lets F-Droid generate matching build metadata from a dated tag.
         versionCode project.getVersionCode()
 
         versionName project.releaseDate()

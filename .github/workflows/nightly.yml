@@ -87,8 +87,6 @@ jobs:
         with:
           submodules: recursive
           fetch-tags: false
-          # Tagless on purpose: a tag on HEAD switches getVersionCode() off the timestamp scheme,
-          # breaking upgrades over older nightlies.
           fetch-depth: 0
 
       - name: Set the nightly release date
