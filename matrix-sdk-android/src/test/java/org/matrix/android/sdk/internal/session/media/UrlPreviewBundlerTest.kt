@@ -260,6 +260,34 @@ internal class UrlPreviewBundlerTest {
     }
 
     @Test
+    fun `markdown links are not previewed`() = runTest {
+        val event = textEvent(
+                body = "[Matrix](https://matrix.org)",
+                extra = mapOf(
+                        "format" to "org.matrix.custom.html",
+                        "formatted_body" to "<a href=\"https://matrix.org\">Matrix</a>"
+                )
+        )
+
+        bundler.bundleUrlPreviews(event, encrypt = false) shouldBeEqualTo event
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
+    }
+
+    @Test
+    fun `generated MSC links are not previewed`() = runTest {
+        val event = textEvent(
+                body = "MSC1234",
+                extra = mapOf(
+                        "format" to "org.matrix.custom.html",
+                        "formatted_body" to "<a href=\"https://github.com/matrix-org/matrix-spec-proposals/pull/1234\">MSC1234</a>"
+                )
+        )
+
+        bundler.bundleUrlPreviews(event, encrypt = false) shouldBeEqualTo event
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
+    }
+
+    @Test
     fun `links in markdown code are not prefetched`() = runTest {
         bundler.prefetch(A_ROOM_ID, "`$URL`\n\n```\nhttps://example.org\n```", encrypt = false)
 

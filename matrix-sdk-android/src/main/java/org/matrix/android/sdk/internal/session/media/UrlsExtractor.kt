@@ -25,7 +25,6 @@ import org.commonmark.node.Link
 import org.commonmark.node.Text
 import org.commonmark.parser.Parser
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import org.jsoup.select.NodeTraversor
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -65,7 +64,6 @@ internal class UrlsExtractor @Inject constructor(
         val urls = mutableListOf<String>()
         NodeTraversor.traverse({ node, _ ->
             when (node) {
-                is Element -> if (node.tagName() == "a") urls += extract(node.attr("href"))
                 is TextNode -> urls += extract(node.text())
             }
         }, body)
@@ -82,8 +80,9 @@ internal class UrlsExtractor @Inject constructor(
             }
 
             override fun visit(link: Link) {
-                if (htmlCodeDepth == 0) urls += extract(link.destination)
-                visitChildren(link)
+                // A markdown link is already an intentional clickable link. Its destination must
+                // not be fetched as an inline preview, and neither should its label be treated as
+                // an independently typed URL.
             }
 
             override fun visit(htmlInline: HtmlInline) {
