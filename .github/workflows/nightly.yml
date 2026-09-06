@@ -89,7 +89,7 @@ jobs:
           fetch-tags: false
           # Tagless on purpose: a tag on HEAD switches getVersionCode() off the timestamp scheme,
           # breaking upgrades over older nightlies.
-          fetch-depth: 20
+          fetch-depth: 0
 
       - name: Free up disk space and add swap
         run: |
@@ -160,8 +160,16 @@ jobs:
           {
             echo "Nightly build of Voyage at [$(git rev-parse --short HEAD)](${{ github.server_url }}/${{ github.repository }}/commit/${GITHUB_SHA})."
             echo
-            echo "Recent commits:"
-            git log -10 --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
+            previous_tag=$(git ls-remote --tags --refs origin | grep -E 'refs/tags/[0-9]{8}$' | sed 's#.*refs/tags/##' | sort -r | head -n 1 || true)
+            if [ -n "$previous_tag" ]; then
+              previous_commit=$(git ls-remote --tags origin "refs/tags/$previous_tag^{}" | awk 'NR == 1 { print $1 }')
+              previous_commit=${previous_commit:-$(git ls-remote --tags --refs origin "refs/tags/$previous_tag" | awk 'NR == 1 { print $1 }')}
+              echo "Changes since nightly $previous_tag:"
+              git log "$previous_commit..HEAD" --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
+            else
+              echo "Commits in this first dated nightly:"
+              git log --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
+            fi
           } > release-notes.md
 
           gh release create "$release_tag" \
