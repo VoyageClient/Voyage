@@ -58,6 +58,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Composer suggestions**: the `/`, `@`, `#` and `:` suggestion lists span the full width above the composer and slide out from behind it, showing three separated entries at a time.
 
+- **In-room bot commands (MSC4391)**: when a bot supports MSC4391, its commands appear in slash-command suggestions with its usage.
+
 - **Sed substitutions**: maubot-style `s/typo/fixed/` built into the composer, so no bot has to be in the room. Your own messages are corrected as an edit, everyone else's with a notice reply. Replying to a message aims the substitution at it.
 
 - **Intentional Mentions (MSC3952)**: proper support, plus mention-rendering improvements, with mentions backed by a single character rather than the full display name.

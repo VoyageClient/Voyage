@@ -12,6 +12,7 @@ import im.vector.app.core.profile.PronounHelper
 import im.vector.app.core.profile.forViewerLanguage
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.autocomplete.command.toMsc4391AutocompleteCommand
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.roomprofile.permissions.RoleFormatter
 import im.vector.app.features.settings.VectorPreferences
@@ -138,6 +139,9 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
             EventType.STATE_ROOM_IMAGE_PACK,
             EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> formatImagePackEvent(event, senderName)
+            "org.matrix.msc4391.command_description" -> event.toMsc4391AutocompleteCommand()?.let {
+                sp.getString(CommonStrings.msc4391_command_description, it.command)
+            }
             EventType.CALL_INVITE,
             EventType.CALL_CANDIDATES,
             EventType.CALL_HANGUP,

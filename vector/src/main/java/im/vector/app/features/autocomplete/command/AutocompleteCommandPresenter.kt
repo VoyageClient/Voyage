@@ -23,7 +23,7 @@ class AutocompleteCommandPresenter @AssistedInject constructor(
         private val controller: AutocompleteCommandController,
         private val vectorPreferences: VectorPreferences
 ) :
-        RecyclerViewPresenter<Command>(context), AutocompleteClickListener<Command> {
+        RecyclerViewPresenter<AutocompleteCommand>(context), AutocompleteClickListener<AutocompleteCommand> {
 
     @AssistedFactory
     interface Factory {
@@ -44,12 +44,25 @@ class AutocompleteCommandPresenter @AssistedInject constructor(
 
     override fun animateViewOut(onEnd: Runnable) = slideContentDownOnHide(onEnd)
 
-    override fun onItemClick(t: Command) {
+    private var roomCommands: List<AutocompleteCommand> = emptyList()
+    private var lastQuery: CharSequence? = null
+
+    override fun onItemClick(t: AutocompleteCommand) {
         dispatchClick(t)
     }
 
     override fun onQuery(query: CharSequence?) {
-        val data = Command.values()
+        lastQuery = query
+        refresh(query)
+    }
+
+    fun updateRoomCommands(commands: List<AutocompleteCommand>) {
+        roomCommands = commands
+        refresh(lastQuery)
+    }
+
+    private fun refresh(query: CharSequence?) {
+        val builtInCommands = Command.values()
                 .filter {
                     !it.isDevCommand || vectorPreferences.developerMode()
                 }
@@ -60,13 +73,22 @@ class AutocompleteCommandPresenter @AssistedInject constructor(
                         true
                     }
                 }
-                .filter {
-                    if (query.isNullOrEmpty()) {
-                        true
-                    } else {
-                        it.startsWith(query)
-                    }
+                .map {
+                    AutocompleteCommand(
+                            id = it.command,
+                            command = it.command,
+                            aliases = it.aliases.orEmpty().map(CharSequence::toString),
+                            parameters = it.parameters,
+                            description = context.getString(it.description),
+                    )
                 }
+        val builtInNames = builtInCommands.flatMap { it.names() }.map { it.lowercase() }.toSet()
+        val availableRoomCommands = disambiguateConflictingCommands(roomCommands, builtInNames)
+        val data = (builtInCommands + availableRoomCommands).filter {
+            query.isNullOrEmpty() || (listOf(it.command) + it.aliases).any { name ->
+                name.startsWith("/$query", ignoreCase = true)
+            }
+        }
         // Keep the current rows on screen so they are what animates away, rather than collapsing first.
         if (data.isEmpty()) {
             requestDismiss()
@@ -77,6 +99,23 @@ class AutocompleteCommandPresenter @AssistedInject constructor(
 
     fun clear() {
         controller.listener = null
+    }
+
+    private fun AutocompleteCommand.names(): List<String> = listOf(command) + aliases
+
+    private fun disambiguateConflictingCommands(
+            commands: List<AutocompleteCommand>,
+            builtInNames: Set<String>,
+    ): List<AutocompleteCommand> {
+        return commands.map { command ->
+            val conflictsWithBuiltIn = command.names().any { it.lowercase() in builtInNames }
+            val conflictsWithBot = commands.any { other ->
+                other.id != command.id && command.names().any { name -> other.names().any { it.equals(name, ignoreCase = true) } }
+            }
+            if (!conflictsWithBuiltIn && !conflictsWithBot) command else command.copy(
+                    insertionCommand = command.sourceUserId?.let { "${command.command}@$it" } ?: command.command
+            )
+        }
     }
 
     companion object {

@@ -21,6 +21,8 @@ import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.attachments.toContentAttachmentData
+import im.vector.app.features.autocomplete.command.MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE
+import im.vector.app.features.autocomplete.command.msc4391CommandContent
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.CommandParser
 import im.vector.app.features.command.ParsedCommand
@@ -820,7 +822,24 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknown("/"))
                         }
                         is ParsedCommand.ErrorUnknownSlashCommand -> {
-                            _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknown(parsedCommand.slashCommand))
+                            val commandContent = room.msc4391CommandContent(parsedCommand.slashCommand, action.text.toString())
+                            if (commandContent != null) {
+                                offloadSend {
+                                    if (state.rootThreadEventId != null) {
+                                        room.relationService().replyInThread(
+                                                rootThreadEventId = state.rootThreadEventId,
+                                                replyInThreadText = action.text,
+                                                autoMarkdown = action.autoMarkdown,
+                                        )
+                                    } else {
+                                        room.sendService().sendTextMessage(action.text, autoMarkdown = false, additionalContent = commandContent)
+                                    }
+                                }
+                                _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                                popDraft(room, state.sendMode)
+                            } else {
+                                _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknown(parsedCommand.slashCommand))
+                            }
                         }
                         is ParsedCommand.ErrorCommandNotSupportedInThreads -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandNotSupportedInThreads(parsedCommand.command))
@@ -2710,6 +2729,15 @@ class MessageComposerViewModel @AssistedInject constructor(
             }
             _viewEvents.post(event)
         }
+    }
+
+    private fun Room.msc4391CommandContent(command: String, argumentsText: String): Map<String, Any>? {
+        return stateService().getStateEvents(setOf(MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE), QueryStringValue.IsNotNull)
+                .firstNotNullOfOrNull { event ->
+                    event.senderId
+                            ?.takeIf { membershipService().getRoomMember(it)?.membership == Membership.JOIN }
+                            ?.let { event.msc4391CommandContent(command, argumentsText) }
+                }
     }
 
     private fun onRoomError() = setState {

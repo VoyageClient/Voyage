@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:foreground="?attr/selectableItemBackground"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:paddingStart="8dp"
     android:paddingLeft="8dp"
     android:paddingTop="6dp"
@@ -13,42 +13,59 @@
     android:paddingBottom="6dp"
     tools:viewBindingIgnore="true">
 
+    <ImageView
+        android:id="@+id/commandAvatar"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:contentDescription="@null"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/commandName"
+                style="@style/Widget.Vector.TextView.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="?vctr_content_primary"
+                android:textStyle="bold"
+                tools:text="/invite" />
+
+            <TextView
+                android:id="@+id/commandParameter"
+                style="@style/Widget.Vector.TextView.Caption"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:layout_marginLeft="5dp"
+                android:maxLines="3"
+                android:textColor="?vctr_content_secondary"
+                tools:text="&lt;user-id&gt; [delay:&lt;ms&gt;] [before|after:&lt;date&gt;] [type:&lt;all|messages&gt;]" />
+
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/commandName"
+            android:id="@+id/commandDescription"
             style="@style/Widget.Vector.TextView.Caption"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="?vctr_content_primary"
-            android:textStyle="bold"
-            tools:text="/invite" />
-
-        <TextView
-            android:id="@+id/commandParameter"
-            style="@style/Widget.Vector.TextView.Caption"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="5dp"
-            android:layout_marginLeft="5dp"
-            android:maxLines="3"
+            android:maxLines="2"
             android:textColor="?vctr_content_secondary"
-            tools:text="&lt;user-id&gt; [delay:&lt;ms&gt;] [before|after:&lt;date&gt;] [type:&lt;all|messages&gt;]" />
+            tools:text="@string/command_description_invite_user" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/commandDescription"
-        style="@style/Widget.Vector.TextView.Caption"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxLines="2"
-        android:textColor="?vctr_content_secondary"
-        tools:text="@string/command_description_invite_user" />
-
 </LinearLayout>

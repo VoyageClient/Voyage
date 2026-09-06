@@ -8,26 +8,29 @@
 package im.vector.app.features.autocomplete.command
 
 import com.airbnb.epoxy.TypedEpoxyController
-import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.autocomplete.AutocompleteClickListener
-import im.vector.app.features.command.Command
+import im.vector.app.features.home.AvatarRenderer
 import javax.inject.Inject
 
-class AutocompleteCommandController @Inject constructor(private val stringProvider: StringProvider) : TypedEpoxyController<List<Command>>() {
+class AutocompleteCommandController @Inject constructor(
+        private val avatarRenderer: AvatarRenderer,
+) : TypedEpoxyController<List<AutocompleteCommand>>() {
 
-    var listener: AutocompleteClickListener<Command>? = null
+    var listener: AutocompleteClickListener<AutocompleteCommand>? = null
 
-    override fun buildModels(data: List<Command>?) {
+    override fun buildModels(data: List<AutocompleteCommand>?) {
         if (data.isNullOrEmpty()) {
             return
         }
         val host = this
         data.forEach { command ->
             autocompleteCommandItem {
-                id(command.command)
+                id(command.id)
                 name(command.command)
                 parameters(command.parameters)
-                description(host.stringProvider.getString(command.description))
+                description(command.description)
+                source(command.source)
+                avatarRenderer(this@AutocompleteCommandController.avatarRenderer)
                 clickListener { host.listener?.onItemClick(command) }
             }
         }

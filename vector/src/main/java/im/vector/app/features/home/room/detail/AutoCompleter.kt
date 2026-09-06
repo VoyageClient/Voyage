@@ -23,15 +23,17 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.extensions.bodyName
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequests
+import im.vector.app.features.autocomplete.command.AutocompleteCommand
 import im.vector.app.features.autocomplete.command.AutocompleteCommandPresenter
 import im.vector.app.features.autocomplete.command.CommandAutocompletePolicy
+import im.vector.app.features.autocomplete.command.MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE
+import im.vector.app.features.autocomplete.command.toMsc4391AutocompleteCommand
 import im.vector.app.features.autocomplete.emoji.AutocompleteEmojiData
 import im.vector.app.features.autocomplete.emoji.AutocompleteEmojiPresenter
 import im.vector.app.features.autocomplete.member.AutocompleteMemberItem
 import im.vector.app.features.autocomplete.member.AutocompleteMemberPresenter
 import im.vector.app.features.autocomplete.member.MentionFrequencyDataSource
 import im.vector.app.features.autocomplete.room.AutocompleteRoomPresenter
-import im.vector.app.features.command.Command
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.composer.ComposerEditText
@@ -50,10 +52,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.pushrules.SenderNotificationPermissionCondition
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -196,17 +200,27 @@ class AutoCompleter @AssistedInject constructor(
     }
 
     private fun setupCommands(editText: EditText, host: ViewGroup) {
-        autocompletes += Autocomplete.on<Command>(editText)
+        session.getRoom(roomId)?.stateService()
+                ?.getStateEventsFlow(setOf(MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE), QueryStringValue.IsNotNull)
+                ?.onEach { events ->
+                    val membershipService = session.getRoom(roomId)?.membershipService()
+                    autocompleteCommandPresenter.updateRoomCommands(events.mapNotNull { event ->
+                        val command = event.toMsc4391AutocompleteCommand() ?: return@mapNotNull null
+                        val member = command.sourceUserId?.let { membershipService?.getRoomMember(it) }
+                        if (member?.membership != Membership.JOIN) return@mapNotNull null
+                        command.copy(source = MatrixItem.UserItem(member.userId, member.displayName, member.avatarUrl))
+                    })
+                }
+                ?.launchIn(emoteScope)
+        autocompletes += Autocomplete.on<AutocompleteCommand>(editText)
                 .with(commandAutocompletePolicy)
                 .with(autocompleteCommandPresenter)
                 .withHostContainer(host)
-                .with(object : AutocompleteCallback<Command> {
-                    override fun onPopupItemClicked(editable: Editable, item: Command): Boolean {
+                .with(object : AutocompleteCallback<AutocompleteCommand> {
+                    override fun onPopupItemClicked(editable: Editable, item: AutocompleteCommand): Boolean {
                         editable.clear()
-                        editable
-                                .append(item.command)
-                                .append(" ")
-                        return true
+                        editable.append(item.insertionCommand)
+                        return false
                     }
 
                     override fun onPopupVisibilityChanged(shown: Boolean) {

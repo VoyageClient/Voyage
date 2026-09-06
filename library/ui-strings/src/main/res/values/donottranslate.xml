@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="msc4391_command_description" translatable="false">Added command: %s</string>
+
     <string name="ellipsis" translatable="false">…</string>
 
     <string name="action_forward" translatable="false">Forward</string>

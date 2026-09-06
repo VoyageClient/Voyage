@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.helper
 
+import im.vector.app.features.autocomplete.command.MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -30,6 +31,7 @@ object TimelineDisplayableEvents {
             EventType.STATE_ROOM_HISTORY_VISIBILITY,
             EventType.STATE_ROOM_SERVER_ACL,
             EventType.STATE_ROOM_POWER_LEVELS,
+            MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE,
             EventType.STATE_ROOM_IMAGE_PACK,
             EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
             EventType.CALL_INVITE,

@@ -12,6 +12,7 @@ import im.vector.app.core.epoxy.TimelineEmptyItem
 import im.vector.app.core.epoxy.TimelineEmptyItem_
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.resources.UserPreferencesProvider
+import im.vector.app.features.autocomplete.command.MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
 import im.vector.app.features.media.SendingMediaGate
@@ -104,7 +105,8 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_PINNED_EVENT,
                     EventType.STATE_ROOM_IMAGE_PACK,
                     EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
-                    EventType.STATE_ROOM_POWER_LEVELS -> {
+                    EventType.STATE_ROOM_POWER_LEVELS,
+                    MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE -> {
                         noticeItemFactory.create(params)
                     }
                     in EventType.STATE_ROOM_BANNER.values,

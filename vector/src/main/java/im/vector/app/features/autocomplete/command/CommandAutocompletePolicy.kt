@@ -16,8 +16,8 @@ class CommandAutocompletePolicy @Inject constructor() : AutocompletePolicy {
     var enabled: Boolean = true
 
     override fun getQuery(text: Spannable): CharSequence {
-        if (text.length > 0) {
-            return text.substring(1, text.length)
+        if (text.length > 1) {
+            return text.substring(1, text.length).takeWhile { !it.isWhitespace() }
         }
         // Should not happen
         return ""
@@ -26,9 +26,9 @@ class CommandAutocompletePolicy @Inject constructor() : AutocompletePolicy {
     override fun onDismiss(text: Spannable) {
     }
 
-    // Only if text which starts with '/' and without space
     override fun shouldShowPopup(text: Spannable, cursorPos: Int): Boolean {
-        return enabled && text.startsWith("/") && !text.contains(" ")
+        val currentWord = text.subSequence(0, cursorPos).toString().substringAfterLast(' ')
+        return enabled && text.startsWith("/") && !currentWord.startsWith('@')
     }
 
     override fun shouldDismissPopup(text: Spannable, cursorPos: Int): Boolean {
