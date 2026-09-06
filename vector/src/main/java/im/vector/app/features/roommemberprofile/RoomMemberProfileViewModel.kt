@@ -805,11 +805,23 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
     }
 
-    /** Room member, then the cached global profile, then the bare mxid so the profile never opens empty. */
+    /** Cached global profile, then the room member, then the bare mxid so the profile never opens empty. */
     private fun bestKnownMatrixItem(): MatrixItem {
-        return room?.membershipService()?.getRoomMember(initialState.userId)?.toMatrixItem()
-                ?: session.userService().getUser(initialState.userId)?.toMatrixItem()
+        return session.userService().getUser(initialState.userId)?.toMatrixItem()
+                ?: room?.membershipService()?.getRoomMember(initialState.userId)?.toMatrixItem()
                 ?: MatrixItem.UserItem(initialState.userId)
+    }
+
+    private fun globalProfileMatrixItem(profile: JsonDict, fallback: MatrixItem?): MatrixItem {
+        val globalProfile = User.fromJson(initialState.userId, profile)
+        val fallbackUser = fallback as? MatrixItem.UserItem
+        return MatrixItem.UserItem(
+                id = initialState.userId,
+                displayName = globalProfile.displayName ?: fallback?.displayName,
+                avatarUrl = globalProfile.avatarUrl ?: fallback?.avatarUrl,
+                userDisplayName = fallbackUser?.userDisplayName,
+                colorPreference = ColorPreference.fromProfileFields(profile) ?: fallbackUser?.colorPreference,
+        )
     }
 
     private suspend fun fetchProfileInfo() {
@@ -822,7 +834,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         } catch (throwable: Throwable) {
             null
         }
-        val item = profile?.let { User.fromJson(initialState.userId, it).toMatrixItem() }
+        val item = profile?.let { globalProfileMatrixItem(it, bestKnownMatrixItem()) }
                 ?: bestKnownMatrixItem()
         setState {
             copy(
@@ -847,9 +859,12 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 .filter { it == initialState.userId }
                 .onEach {
                     setState {
+                        val profile = session.profileService().getCachedProfile(initialState.userId)
                         copy(
+                                userMatrixItem = profile?.let { Success(globalProfileMatrixItem(it, userMatrixItem())) }
+                                        ?: userMatrixItem,
                                 globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId) ?: globalBannerUrl,
-                                profileJson = session.profileService().getCachedProfile(initialState.userId) ?: profileJson,
+                                profileJson = profile ?: profileJson,
                                 status = session.profileService().getCachedStatus(initialState.userId),
                                 bio = session.profileService().getCachedBio(initialState.userId),
                                 profileFieldsLine = cachedProfileFieldsLine(),
@@ -865,6 +880,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             val profile = tryOrNull { session.profileService().getProfile(initialState.userId) } ?: return@launch
             setState {
                 copy(
+                        userMatrixItem = Success(globalProfileMatrixItem(profile, userMatrixItem())),
                         globalBannerUrl = profile.bannerUrl(),
                         profileJson = profile,
                         status = session.profileService().getCachedStatus(initialState.userId),
