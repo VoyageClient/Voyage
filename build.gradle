@@ -199,6 +199,13 @@ allprojects {
     }
 }
 
+allprojects {
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

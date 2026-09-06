@@ -54,11 +54,22 @@ def gitOutput(String cmd) {
     }
 }
 
-static def generateVersionCodeFromTimestamp() {
-    // Use the wall-clock build time rather than the HEAD commit time so checking out an older
-    // commit and reinstalling still produces a higher versionCode than the previously installed
-    // build, avoiding INSTALL_FAILED_VERSION_DOWNGRADE.
-    return ((System.currentTimeMillis() / 1000 - 1_538_524_800) / 100).toInteger() + 20_000_000
+def generateVersionCodeFromTimestamp() {
+    return ((sourceDateEpoch() - 1_538_524_800) / 100).toInteger() + 20_000_000
+}
+
+def sourceDateEpoch() {
+    def epoch = System.getenv("SOURCE_DATE_EPOCH")
+    if (epoch?.isLong()) {
+        return epoch.toLong()
+    }
+
+    def commitEpoch = gitOutput("git show -s --format=%ct HEAD^{commit}")
+    if (commitEpoch?.isLong()) {
+        return commitEpoch.toLong()
+    }
+
+    throw new GradleException("SOURCE_DATE_EPOCH must be set when building outside a Git checkout")
 }
 
 def generateVersionCodeFromVersionName() {
@@ -68,8 +79,7 @@ def generateVersionCodeFromVersionName() {
 }
 
 def getVersionCode() {
-    // Any untagged (development) build uses the monotonic timestamp scheme so reinstalling over a
-    // previous dev build — from develop or any feature branch — never triggers a version downgrade.
+    // Untagged builds use their source date so identical sources always produce the same APK.
     if (gitTag() == "") {
         return generateVersionCodeFromTimestamp()
     } else {
@@ -83,10 +93,6 @@ def gitRevision() {
 
 def gitRevisionDate() {
     return gitOutput("git show -s --format=%ci HEAD^{commit}")
-}
-
-def gitBranchName() {
-    return gitOutput("git rev-parse --abbrev-ref HEAD")
 }
 
 def gitTag() {
@@ -112,6 +118,11 @@ android {
 
     compileSdk versions.compileSdk
 
+    dependenciesInfo {
+        includeInApk false
+        includeInBundle false
+    }
+
     defaultConfig {
         applicationId "im.voyage.app"
         // Set to API 21: see #405
@@ -123,8 +134,7 @@ android {
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled true
 
-        // `develop` branch will have version code from timestamp, to ensure each build from CI has a incremented versionCode.
-        // Other branches (main, features, etc.) will have version code based on application version.
+        // Untagged builds use the source date; tagged builds use the application version.
         versionCode project.getVersionCode()
 
         versionName "${versionMajor}.${versionMinor}.${versionPatch}${getFdroidVersionSuffix()}"
@@ -142,7 +152,7 @@ android {
 
         buildConfigField "String", "GIT_REVISION", "\"${gitRevision()}\""
         buildConfigField "String", "GIT_REVISION_DATE", "\"${gitRevisionDate()}\""
-        buildConfigField "String", "GIT_BRANCH_NAME", "\"${gitBranchName()}\""
+        buildConfigField "String", "GIT_BRANCH_NAME", "\"\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
