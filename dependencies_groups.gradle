@@ -15,15 +15,6 @@ ext.groups = [
                         'com.github.Zhuinden',
                 ]
         ],
-        jitsi         : [
-                regex: [
-                ],
-                group: [
-                        'com.facebook.react',
-                        'org.jitsi.react',
-                        'org.webkit',
-                ]
-        ],
         google        : [
                 regex: [
                         'androidx\\..*',
@@ -67,7 +58,6 @@ ext.groups = [
                         'com.facebook.fbjni',
                         'com.facebook.fresco',
                         'com.facebook.infer.annotation',
-                        'com.facebook.react',
                         'com.facebook.soloader',
                         'com.facebook.stetho',
                         'com.facebook.yoga',
@@ -206,7 +196,6 @@ ext.groups = [
                         'org.jetbrains.kotlin',
                         'org.jetbrains.kotlinx',
                         'org.jetbrains.trove4j',
-                        'org.jitsi',
                         'org.json',
                         'org.jsoup',
                         'org.jspecify',

@@ -56,9 +56,6 @@
 ### OLM JNI ###
 -keep class org.matrix.olm.** { *; }
 
-### Webrtc
--keep class org.webrtc.** { *; }
-
 ### Serializable persisted classes
 # https://www.guardsquare.com/en/products/proguard/manual/examples#serializable
 -keepnames class * implements java.io.Serializable

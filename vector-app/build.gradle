@@ -308,8 +308,7 @@ dependencies {
     // Debug-only (never runs on the ICS/Dalvik release path, so its LinearAlloc weight doesn't matter).
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
     implementation libs.dagger.hilt
-    // Needed on the compile classpath to instantiate MatrixConfiguration (okhttp ConnectionSpec);
-    // previously reached vector-app transitively via the Jitsi SDK.
+    // Needed on the compile classpath to instantiate MatrixConfiguration (okhttp ConnectionSpec).
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     // CoordinatorLayout (used by the debug activities) previously leaked in via the vanniktech emoji
     // library's api dependency on material; declare it directly now that vanniktech emoji is removed.

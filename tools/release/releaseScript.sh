@@ -170,7 +170,6 @@ adb -e uninstall im.vector.app.debug.test
 #
 #printf "\n================================================================================\n"
 ## TODO could build and deploy the APK to any emulator
-#read -p "Create an account on matrix.org and do some smoke tests that the sanity test does not cover like: 1-1 call, 1-1 video call, Jitsi call for instance. Press enter when it's done."
 
 printf "\n================================================================================\n"
 printf "Running towncrier...\n"
