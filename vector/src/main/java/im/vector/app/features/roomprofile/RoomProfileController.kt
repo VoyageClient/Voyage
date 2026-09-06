@@ -79,6 +79,7 @@ class RoomProfileController @Inject constructor(
         fun onLeaveRoomClicked()
         fun onRoomAliasesClicked()
         fun onRoomPermissionsClicked()
+        fun onRoomAclClicked()
         fun onRoomIdClicked()
         fun onRoomDevToolsClicked()
         fun onUrlInTopicClicked(url: String): Boolean
@@ -381,6 +382,15 @@ class RoomProfileController @Inject constructor(
                 divider = vectorPreferences.developerMode(),
                 editable = true,
                 action = { callback?.onRoomPermissionsClicked() }
+        )
+
+        buildProfileAction(
+                id = "acl",
+                title = stringProvider.getString(CommonStrings.room_acl_title),
+                subtitle = stringProvider.getString(CommonStrings.room_acl_subtitle),
+                divider = vectorPreferences.developerMode(),
+                editable = true,
+                action = { callback?.onRoomAclClicked() }
         )
 
         if (vectorPreferences.developerMode()) {

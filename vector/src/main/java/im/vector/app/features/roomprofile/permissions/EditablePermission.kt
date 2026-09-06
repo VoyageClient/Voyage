@@ -64,7 +64,7 @@ sealed class EditablePermission(@StringRes val labelResId: Int, @StringRes val s
 
     class SendRoomServerAclEvents : EventTypeEditablePermission(
             EventType.STATE_ROOM_SERVER_ACL,
-            CommonStrings.room_permissions_send_m_room_server_acl_events
+            CommonStrings.room_permissions_send_room_acl_events
     )
 
     class UpgradeTheRoom : EventTypeEditablePermission(

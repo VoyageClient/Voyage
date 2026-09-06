@@ -433,6 +433,11 @@ interface RoomProfileMavericksViewModelModule {
 
     @Binds
     @IntoMap
+    @MavericksViewModelKey("im.vector.app.features.roomprofile.acl.RoomAclViewModel")
+    fun roomAclViewModel(factory: im.vector.app.features.roomprofile.acl.RoomAclViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.roomprofile.pinned.RoomPinnedMessagesViewModel")
     fun vm10(factory: im.vector.app.features.roomprofile.pinned.RoomPinnedMessagesViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 

@@ -1,0 +1,11 @@
+<!--
+  Copyright 2026 Voyage Client
+
+  SPDX-License-Identifier: AGPL-3.0-only
+  Please see LICENSE files in the repository root for full details.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="56dp" android:background="?vctr_header_background" android:gravity="bottom|center_vertical" android:orientation="horizontal" android:paddingLeft="16dp" android:paddingRight="8dp">
+    <TextView android:id="@+id/roomAclSectionTitle" style="@style/Widget.Vector.TextView.Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingBottom="8dp" android:textColor="?vctr_content_primary" android:textStyle="bold" />
+    <ImageButton android:id="@+id/roomAclSectionAdd" android:layout_width="40dp" android:layout_height="40dp" android:background="@null" android:contentDescription="@string/room_acl_add_allow" app:srcCompat="@drawable/ic_plus" app:tint="?vctr_content_secondary" />
+    <ImageButton android:id="@+id/roomAclSectionExpand" android:layout_width="40dp" android:layout_height="40dp" android:background="@null" android:contentDescription="@string/room_acl_collapse_servers" app:srcCompat="@drawable/ic_expand_less" app:tint="?vctr_content_secondary" />
+</LinearLayout>

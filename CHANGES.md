@@ -22,6 +22,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Room creation**: an overhauled room-creation wizard, with a per-room Personalization page alongside it.
 
+- **Room server ACLs**: view and edit the room's server ACL list from the room settings.
+
 - **Space creation like room creation**: creating a space no longer starts with an opaque public/private choice. It is one form with the same controls a room gets: a space-access setting (invite only, ask to join, or public), encryption, and an advanced section for room version, your own power level, custom initial state and blocking other servers.
 
 - **Tombstoning**: an overhauled room-tombstoning flow, driven by `/tombstone`.

@@ -1150,4 +1150,22 @@
 
     <!-- Space creation -->
     <string name="create_space_encryption_description" translatable="false">Spaces hold no messages of their own, so this only encrypts what little is sent in the space room itself. Once enabled, it cannot be disabled.</string>
+    <string name="room_acl_title" translatable="false">Room ACLs</string>
+    <string name="room_acl_subtitle" translatable="false">Control which servers can participate in the room.</string>
+    <string name="room_acl_allow_ip_literals" translatable="false">Allow IP literal server names</string>
+    <string name="room_acl_add_allow" translatable="false">Add allowed server</string>
+    <string name="room_acl_add_deny" translatable="false">Add denied server</string>
+    <string name="room_acl_allow" translatable="false">Allow</string>
+    <string name="room_acl_deny" translatable="false">Deny</string>
+    <string name="room_acl_server_hint" translatable="false">Server name or wildcard</string>
+    <string name="room_acl_delete" translatable="false">Remove server</string>
+    <string name="room_acl_search_hint" translatable="false">Search servers</string>
+    <string name="room_acl_allowed_servers" translatable="false">Allowed servers</string>
+    <string name="room_acl_denied_servers" translatable="false">Denied servers</string>
+    <string name="room_acl_expand_servers" translatable="false">Expand servers</string>
+    <string name="room_acl_collapse_servers" translatable="false">Collapse servers</string>
+    <string name="room_permissions_send_room_acl_events" translatable="false">Send server ACL events</string>
+    <string name="room_acl_unsaved_title" translatable="false">Unsaved changes</string>
+    <string name="room_acl_unsaved_message" translatable="false">You have unsaved room ACL changes. Apply them?</string>
+    <string name="room_acl_unsaved_discard" translatable="false">Discard</string>
 </resources>

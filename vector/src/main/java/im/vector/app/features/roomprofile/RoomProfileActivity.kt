@@ -22,6 +22,7 @@ import im.vector.app.databinding.ActivitySimpleBinding
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.room.RequireActiveMembershipViewEvents
 import im.vector.app.features.room.RequireActiveMembershipViewModel
+import im.vector.app.features.roomprofile.acl.RoomAclFragment
 import im.vector.app.features.roomprofile.alias.RoomAliasFragment
 import im.vector.app.features.roomprofile.banned.RoomBannedMemberListFragment
 import im.vector.app.features.roomprofile.knock.RoomKnockRequestsFragment
@@ -111,6 +112,7 @@ class RoomProfileActivity :
                         RoomProfileSharedAction.OpenRoomSettings -> openRoomSettings()
                         RoomProfileSharedAction.OpenRoomAliasesSettings -> openRoomAlias()
                         RoomProfileSharedAction.OpenRoomPermissionsSettings -> openRoomPermissions()
+                        RoomProfileSharedAction.OpenRoomAclSettings -> openRoomAcl()
                         RoomProfileSharedAction.OpenRoomPolls -> openRoomPolls()
                         RoomProfileSharedAction.OpenPinnedMessages -> openPinnedMessages()
                         RoomProfileSharedAction.OpenRoomUploads -> openRoomUploads()
@@ -169,6 +171,10 @@ class RoomProfileActivity :
 
     private fun openRoomPermissions() {
         addFragmentToBackstack(views.simpleFragmentContainer, RoomPermissionsFragment::class.java, roomProfileArgs)
+    }
+
+    private fun openRoomAcl() {
+        addFragmentToBackstack(views.simpleFragmentContainer, RoomAclFragment::class.java, roomProfileArgs)
     }
 
     private fun openRoomMembers() {

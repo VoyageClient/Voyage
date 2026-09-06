@@ -401,6 +401,10 @@ class RoomProfileFragment :
         roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomPermissionsSettings)
     }
 
+    override fun onRoomAclClicked() {
+        roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomAclSettings)
+    }
+
     override fun restoreEncryptionState() {
         roomProfileViewModel.handle(RoomProfileAction.RestoreEncryptionState)
     }
