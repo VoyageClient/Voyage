@@ -73,14 +73,15 @@ class MassRedactionManager @Inject constructor(
     init {
         // The job belongs to the account that started it. Re-evaluate whenever the active session changes
         // (login/logout/switch) so it never shows or runs against a different account.
-        activeSessionDataSource.stream().onEach { onActiveSessionChanged() }.launchIn(scope)
+        activeSessionDataSource.stream().onEach { session ->
+            onActiveSessionChanged(session.orNull()?.myUserId)
+        }.launchIn(scope)
     }
 
     private fun currentUserId(): String? = activeSessionHolder.getSafeActiveSession()?.myUserId
 
     @Synchronized
-    private fun onActiveSessionChanged() {
-        val current = currentUserId()
+    private fun onActiveSessionChanged(current: String?) {
         // Only react to an actual account change; a re-post of the same session must not disturb a running job.
         if (current == shownOwner) return
         // Park the previous account's loop (its record stays persisted) and surface the new account's own
