@@ -230,6 +230,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     private var lastSpecialModeKey: Pair<String, String>? = null
     private var lastSpecialMode: MessageComposerMode.Special? = null
+    private var editSelectionToRestore: Int? = null
     private var topDividerSuppressed = false
 
     private fun collapse(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
@@ -268,6 +269,20 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         refreshTopDivider()
         transitionComplete?.invoke()
         callback?.onExpandOrCompactChange()
+    }
+
+    private fun requestEditKeyboard() {
+        val editText = views.composerEditText
+        callback?.onSoftKeyboardRequested()
+        editText.post {
+            if (lastSpecialMode !is MessageComposerMode.Edit) return@post
+            editText.showKeyboard(andRequestFocus = true)
+            editText.postDelayed({
+                if (lastSpecialMode is MessageComposerMode.Edit && editText.hasFocus()) {
+                    editText.showKeyboard()
+                }
+            }, EDIT_KEYBOARD_RETRY_DELAY)
+        }
     }
 
     private fun beginClassicTransition() {
@@ -405,6 +420,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         if (specialMode != null) {
             renderSpecialMode(specialMode)
         } else if (mode is MessageComposerMode.Normal) {
+            val selectionToRestore = editSelectionToRestore
             collapse()
             // Reconstruct mention pills from a restored draft's matrix.to markdown links. For live
             // content (already-spanned, no markdown), this is a no-op and the existing pills are kept.
@@ -412,6 +428,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             if (editText.text?.toString() != content.toString()) {
                 editText.setTextIfDifferent(content)
             }
+            selectionToRestore?.let { editText.setSelection(it.coerceIn(0, editText.length())) }
+            editSelectionToRestore = null
         }
 
         views.sendButton.apply {
@@ -432,6 +450,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // expand animation or pull the keyboard back up.
         val modeKey = specialMode.javaClass.name to specialMode.event.eventId
         val isRefresh = views.relatedMessageGroup.isVisible && lastSpecialModeKey == modeKey
+        if (!isRefresh && specialMode is MessageComposerMode.Edit && lastSpecialMode !is MessageComposerMode.Edit) {
+            editSelectionToRestore = views.composerEditText.selectionStart
+        }
         lastSpecialModeKey = modeKey
         lastSpecialMode = specialMode
         // A revealed redaction previews its restored content here too, matching the timeline.
@@ -614,17 +635,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         if (!isRefresh && views.composerEditText.text?.toString() != content.toString()) {
             views.composerEditText.setText(content)
         }
+        if (!isRefresh && specialMode is MessageComposerMode.Edit) {
+            views.composerEditText.setSelection(views.composerEditText.length())
+        }
 
         expand(animate = !isRefresh) {
-            // need to do it here also when not using quick reply
-            if (isVisible && !isRefresh) {
-                // Post so the focus request runs after the RecyclerView's swipe-gesture
-                // touch processing settles; targeting the EditText directly (not the parent
-                // layout) ensures the IME input connection is fully established.
-                views.composerEditText.post {
-                    callback?.onSoftKeyboardRequested()
-                    views.composerEditText.showKeyboard(andRequestFocus = true)
-                }
+            if (!isRefresh && specialMode is MessageComposerMode.Edit) {
+                views.composerEditText.post(::requestEditKeyboard)
             }
             views.composerRelatedMessageImage.isVisible = isImageVisible
         }
@@ -666,5 +683,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     companion object {
         private const val RELATED_MESSAGE_ANIMATION_DURATION = 100L
+        private const val EDIT_KEYBOARD_RETRY_DELAY = 150L
     }
 }

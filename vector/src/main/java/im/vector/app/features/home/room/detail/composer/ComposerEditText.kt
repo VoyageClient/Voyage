@@ -156,7 +156,7 @@ class ComposerEditText @JvmOverloads constructor(
                         if (s.removeParagraphLayoutSpans()) {
                             Timber.d("Composer: dropped indent/alignment spans carried in by a rich-text paste")
                         }
-                        callback?.onTextChanged(s.toString())
+                        callback?.onTextChanged(s)
                     }
                 }
         )
