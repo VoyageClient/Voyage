@@ -29,12 +29,10 @@ knit {
     }
 }
 
-// Note: 2 digits max for each value
+// Upstream release this fork is based on. This is intentionally distinct from Voyage's date-based
+// app version and remains visible as the Matrix SDK version in Help & About.
 ext.versionMajor = 1
 ext.versionMinor = 6
-// Note: even values are reserved for regular release, odd values for hotfix release.
-// When creating a hotfix, you should decrease the value, since the current value
-// is the value for the next regular release.
 ext.versionPatch = 62
 
 // The Gradle daemon inherits an empty GIT_DIR, which fails every git call with "not a git repository",
@@ -72,19 +70,22 @@ def sourceDateEpoch() {
     throw new GradleException("SOURCE_DATE_EPOCH must be set when building outside a Git checkout")
 }
 
-def generateVersionCodeFromVersionName() {
-    // plus 4_000_000 for compatibility reason with the previous way the Version Code was computed
-    // Note that the result will be multiplied by 10 when adding the digit for the arch
-    return (versionMajor * 1_00_00 + versionMinor * 1_00 + versionPatch) + 4_000_000
+def getVersionCode() {
+    return generateVersionCodeFromTimestamp()
 }
 
-def getVersionCode() {
-    // Untagged builds use their source date so identical sources always produce the same APK.
-    if (gitTag() == "") {
-        return generateVersionCodeFromTimestamp()
-    } else {
-        return generateVersionCodeFromVersionName()
+def releaseDate() {
+    def date = project.findProperty("voyage.releaseDate") ?: System.getenv("VOYAGE_RELEASE_DATE")
+    if (date == null && gitTag() ==~ /[0-9]{8}/) {
+        date = gitTag()
     }
+    if (date == null) {
+        date = gitOutput("git show -s --format=%cd --date=format:%Y%m%d HEAD^{commit}")
+    }
+    if (!(date ==~ /[0-9]{8}/)) {
+        throw new GradleException("Set voyage.releaseDate or VOYAGE_RELEASE_DATE to an eight-digit UTC date (YYYYMMDD).")
+    }
+    return date
 }
 
 def gitRevision() {
@@ -97,15 +98,6 @@ def gitRevisionDate() {
 
 def gitTag() {
     return gitOutput("git describe --exact-match --tags")
-}
-
-// For F-Droid build, build on a not tagged commit will have a "-dev" suffix
-def getFdroidVersionSuffix() {
-    if (gitTag() == "") {
-        return "-dev"
-    } else {
-        return ""
-    }
 }
 
 // map for the version codes last digit
@@ -134,10 +126,11 @@ android {
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled true
 
-        // Untagged builds use the source date; tagged builds use the application version.
+        // Source-time version codes remain reproducible and monotonically increase independently of
+        // the date-based user-visible version name.
         versionCode project.getVersionCode()
 
-        versionName "${versionMajor}.${versionMinor}.${versionPatch}${getFdroidVersionSuffix()}"
+        versionName project.releaseDate()
 
         buildConfigField "String", "SHORT_FLAVOR_DESCRIPTION", "\"\""
         buildConfigField "String", "FLAVOR_DESCRIPTION", "\"FDroid\""

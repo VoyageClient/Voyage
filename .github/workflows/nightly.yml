@@ -91,6 +91,9 @@ jobs:
           # breaking upgrades over older nightlies.
           fetch-depth: 0
 
+      - name: Set the nightly release date
+        run: echo "VOYAGE_RELEASE_DATE=$(date --utc +%Y%m%d)" >> "$GITHUB_ENV"
+
       - name: Free up disk space and add swap
         run: |
           sudo rm -rf /usr/share/dotnet &
@@ -151,7 +154,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          release_tag=$(date --utc +%Y%m%d)
+          release_tag="$VOYAGE_RELEASE_DATE"
           if gh release view "$release_tag" > /dev/null 2>&1; then
             echo "The nightly release $release_tag already exists; keeping it unchanged."
             exit 0
