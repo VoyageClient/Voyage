@@ -464,7 +464,11 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             // Epoxy forbids notify*() calls, so re-bind the attached holders in place instead. Drive
             // the outer adapter with the absolute position so ConcatAdapter routes to the right child
             // and keeps its holder bookkeeping intact.
-            if (view.isComputingLayout) return
+            if (view.isComputingLayout) {
+                // A resumed timeline can still be laying out when profile data arrives.
+                view.post { rebindColoredViews(view) }
+                return
+            }
             @Suppress("UNCHECKED_CAST")
             val adapter = view.adapter as? RecyclerView.Adapter<RecyclerView.ViewHolder> ?: return
             for (i in 0 until view.childCount) {
