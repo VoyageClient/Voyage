@@ -24,7 +24,7 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 jobs:
-  # The nightly tag sits on the last commit that was built, so it marks what has already shipped.
+  # The most recent dated nightly tag marks what has already shipped.
   check:
     runs-on: ubuntu-latest
     outputs:
@@ -45,7 +45,10 @@ jobs:
             echo 'build=true' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          last=$(git rev-parse -q --verify 'refs/tags/nightly^{commit}' || true)
+          last_tag=$(git tag --list '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' --sort=-version:refname | head -n 1)
+          # Keep the previous moving tag as the baseline during the migration to dated releases.
+          last=${last_tag:+$(git rev-parse -q --verify "refs/tags/$last_tag^{commit}")}
+          last=${last:-$(git rev-parse -q --verify 'refs/tags/nightly^{commit}' || true)}
           if [ -z "$last" ]; then
             echo 'No nightly tag yet, so nothing has been built.'
             echo 'build=true' >> "$GITHUB_OUTPUT"
@@ -143,11 +146,17 @@ jobs:
           find . -type d -name build -prune -exec rm -rf {} +
           df -h /
 
-      - name: Replace the nightly prerelease
+      - name: Create the dated nightly release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          release_tag=$(date --utc +%Y%m%d)
+          if gh release view "$release_tag" > /dev/null 2>&1; then
+            echo "The nightly release $release_tag already exists; keeping it unchanged."
+            exit 0
+          fi
+
           {
             echo "Nightly build of Voyage at [$(git rev-parse --short HEAD)](${{ github.server_url }}/${{ github.repository }}/commit/${GITHUB_SHA})."
             echo
@@ -155,21 +164,14 @@ jobs:
             git log -10 --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
           } > release-notes.md
 
-          # A release whose tag moves is un-published server-side, so this one is replaced rather than
-          # updated: create makes the tag and the prerelease at once, with nothing after it to race.
-          gh release delete nightly --yes --cleanup-tag || true
-          git push -d origin refs/tags/nightly 2> /dev/null || true
-
-          gh release create nightly \
-            --title 'Nightly' \
+          gh release create "$release_tag" \
+            --title "Nightly $release_tag" \
             --notes-file release-notes.md \
-            --prerelease \
             --target "${{ github.sha }}"
 
-          gh release upload nightly artifacts/*.apk --clobber
+          gh release upload "$release_tag" artifacts/*.apk --clobber
 
-          gh release view nightly --json isDraft,isPrerelease,tagName,assets --jq '{isDraft, isPrerelease, tagName, assets: [.assets[].name]}'
-          [ "$(gh release view nightly --json isPrerelease --jq .isPrerelease)" = 'true' ]
-          [ "$(gh release view nightly --json isDraft --jq .isDraft)" = 'false' ]
-          # A failed delete leaves create reusing the old tag: published, but pointing at yesterday.
-          [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/nightly" --jq .sha)" = "${{ github.sha }}" ]
+          gh release view "$release_tag" --json isDraft,isPrerelease,tagName,assets --jq '{isDraft, isPrerelease, tagName, assets: [.assets[].name]}'
+          [ "$(gh release view "$release_tag" --json isPrerelease --jq .isPrerelease)" = 'false' ]
+          [ "$(gh release view "$release_tag" --json isDraft --jq .isDraft)" = 'false' ]
+          [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$release_tag" --jq .sha)" = "${{ github.sha }}" ]
