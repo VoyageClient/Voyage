@@ -22,6 +22,7 @@ sealed class SharedData : Parcelable {
             val attachmentData: List<ContentAttachmentData>,
             /** One caption per attachment, in the same order; empty until the previewer has been through. */
             val captions: List<String> = emptyList(),
+            val spoilers: List<Boolean> = emptyList(),
     ) : SharedData()
 
     @Parcelize

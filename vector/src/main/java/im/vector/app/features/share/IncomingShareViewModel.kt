@@ -18,6 +18,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.attachments.SendMediaMaterializer
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.home.room.list.BreadcrumbsRoomComparator
+import im.vector.app.features.media.MSC4193_SPOILER_KEY
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -126,6 +127,7 @@ class IncomingShareViewModel @AssistedInject constructor(
                     shareAttachments(
                             attachmentData = sharedData.attachmentData,
                             captions = sharedData.captions,
+                            spoilers = sharedData.spoilers,
                             selectedRoomIds = state.selectedRoomIds,
                             proposeMediaEdition = true,
                             compressMediaBeforeSending = false,
@@ -165,6 +167,7 @@ class IncomingShareViewModel @AssistedInject constructor(
             shareAttachments(
                     attachmentData = it.attachmentData,
                     captions = it.captions,
+                    spoilers = it.spoilers,
                     selectedRoomIds = state.selectedRoomIds,
                     proposeMediaEdition = false,
                     compressMediaBeforeSending = !action.keepOriginalSize,
@@ -175,6 +178,7 @@ class IncomingShareViewModel @AssistedInject constructor(
     private fun shareAttachments(
             attachmentData: List<ContentAttachmentData>,
             captions: List<String> = emptyList(),
+            spoilers: List<Boolean> = emptyList(),
             selectedRoomIds: Set<String>,
             proposeMediaEdition: Boolean,
             compressMediaBeforeSending: Boolean
@@ -214,7 +218,7 @@ class IncomingShareViewModel @AssistedInject constructor(
                     ?.let { sendService ->
                         viewModelScope.launch(Dispatchers.IO) {
                             val materialized = sendMediaMaterializer.materialize(attachmentData)
-                            if (captions.any { it.isNotBlank() }) {
+                            if (captions.any { it.isNotBlank() } || spoilers.any { it }) {
                                 // Each was captioned for itself in the previewer, so each goes out on its own.
                                 materialized.forEachIndexed { index, attachment ->
                                     sendService.sendMedia(
@@ -222,6 +226,9 @@ class IncomingShareViewModel @AssistedInject constructor(
                                             compressBeforeSending = compressMediaBeforeSending,
                                             roomIds = selectedRoomIds,
                                             captionText = captions.getOrNull(index)?.takeIf { it.isNotBlank() },
+                                            additionalContent = spoilers.getOrNull(index)
+                                                    ?.takeIf { it }
+                                                    ?.let { mapOf(MSC4193_SPOILER_KEY to true) },
                                     )
                                 }
                             } else {

@@ -188,7 +188,8 @@ class IncomingShareFragment :
         if (it.resultCode == Activity.RESULT_OK) {
             val sendData = AttachmentsPreviewActivity.getOutput(data)
             val captions = AttachmentsPreviewActivity.getCaptionsOutput(data)
-            viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Attachments(sendData, captions)))
+            val spoilers = AttachmentsPreviewActivity.getSpoilersOutput(data)
+            viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Attachments(sendData, captions, spoilers)))
             // Whichever attachments the sender wanted untouched say so themselves.
             viewModel.handle(IncomingShareAction.ShareMedia(keepOriginalSize = false))
         }

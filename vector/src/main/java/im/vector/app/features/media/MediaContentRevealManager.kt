@@ -15,8 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Tracks which hidden media events the user has chosen to reveal for the current session.
- * Reveals intentionally do not persist across restarts, matching Element Web/X behaviour.
+ * Tracks which hidden media events the user has chosen to reveal while a room view is open.
  */
 @Singleton
 class MediaContentRevealManager @Inject constructor() {

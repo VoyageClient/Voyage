@@ -34,6 +34,7 @@ import im.vector.app.core.utils.BehaviorDataSource
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.VectorOverrides
 import im.vector.app.features.attachments.SendMediaMaterializer
+import im.vector.app.features.media.MSC4193_SPOILER_KEY
 import im.vector.app.features.attachments.withRandomizedFilename
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
@@ -1214,7 +1215,7 @@ private fun handleSelectStickerAttachment() {
         if (attachments.isEmpty()) return
         val remainingCaption = captionText.takeIf { editedEvent == null }
         val remainingFormattedCaption = captionFormattedText.takeIf { editedEvent == null }
-        if (vectorPreferences.sendMediaGalleries() && attachments.size >= 2) {
+        if (vectorPreferences.sendMediaGalleries() && attachments.size >= 2 && action.spoilers?.any { it } != true) {
             room.sendService().sendGallery(
                     attachments = attachments,
                     compressBeforeSending = action.compressBeforeSending,
@@ -1226,7 +1227,7 @@ private fun handleSelectStickerAttachment() {
             )
             return
         }
-        if (perAttachmentCaptions != null) {
+        if (perAttachmentCaptions != null || action.spoilers?.any { it } == true) {
             // Going out as messages of their own, so each carries the caption written for it.
             val captionOffset = if (editedEvent == null) 0 else 1
             attachments.forEachIndexed { index, attachment ->
@@ -1237,9 +1238,12 @@ private fun handleSelectStickerAttachment() {
                         rootThreadEventId = initialState.rootThreadEventId,
                         // The reply target belongs to the first event only, as sendMedias does.
                         replyToEvent = action.replyToEvent.takeIf { index == 0 },
-                        captionText = perAttachmentCaptions.getOrNull(index + captionOffset),
+                        captionText = perAttachmentCaptions?.getOrNull(index + captionOffset),
                         captionFormattedText = remainingFormattedCaption?.takeIf { index + captionOffset == mainCaptionIndex },
                         autoMarkdown = autoMarkdown,
+                        additionalContent = action.spoilers?.getOrNull(index + captionOffset)
+                                ?.takeIf { it }
+                                ?.let { mapOf(MSC4193_SPOILER_KEY to true) },
                 )
             }
             return

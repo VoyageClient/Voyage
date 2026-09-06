@@ -959,6 +959,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     attachments = AttachmentsPreviewActivity.getOutput(data),
                     compressBeforeSending = true,
                     previewCaptions = AttachmentsPreviewActivity.getCaptionsOutput(data),
+                    previewSpoilers = AttachmentsPreviewActivity.getSpoilersOutput(data),
             )
         }
     }
@@ -994,6 +995,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             attachments: List<ContentAttachmentData>,
             compressBeforeSending: Boolean,
             previewCaptions: List<String>? = null,
+            previewSpoilers: List<Boolean>? = null,
     ) = withState(messageComposerViewModel) { state ->
         val replyToEvent = (state.sendMode as? SendMode.Reply)?.timelineEvent
         // Picking media while editing puts it in place of what the message held, caption and all.
@@ -1028,6 +1030,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         autoMarkdown = resolved.autoMarkdown,
                         editedEventId = editedEvent?.eventId,
                         captions = perAttachment,
+                        spoilers = previewSpoilers,
                 )
         )
         if (editedEvent != null || replyToEvent != null || captionText != null || rawCaption.isNotBlank()) {

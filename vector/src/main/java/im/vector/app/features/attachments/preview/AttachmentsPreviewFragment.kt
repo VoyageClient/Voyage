@@ -343,6 +343,10 @@ class AttachmentsPreviewFragment :
                 showCompressionSheet()
                 true
             }
+            R.id.attachmentsPreviewSendAsSpoilerAction -> {
+                viewModel.handle(AttachmentsPreviewAction.SetSendAsSpoiler(!item.isChecked))
+                true
+            }
             else -> false
         }
     }
@@ -353,6 +357,10 @@ class AttachmentsPreviewFragment :
             val editable = current?.isEditable(animated = animatedFormatOf(current) != null)
             menu.findItem(R.id.attachmentsPreviewEditAction).setVisible(editable.orFalse())
             menu.findItem(R.id.attachmentsPreviewCompressionAction).setVisible(current?.isCompressible().orFalse())
+            menu.findItem(R.id.attachmentsPreviewSendAsSpoilerAction).apply {
+                isVisible = current?.isMediaSpoilerable().orFalse()
+                isChecked = current != null && state.sendAsSpoiler.contains(state.stableIdOf(current))
+            }
         }
     }
 
@@ -632,7 +640,11 @@ class AttachmentsPreviewFragment :
             )
         }
         (requireActivity() as? AttachmentsPreviewActivity)
-                ?.setResultAndFinish(attachments, state.attachments.map { state.captionOf(it) })
+                ?.setResultAndFinish(
+                        attachments,
+                        state.attachments.map { state.captionOf(it) },
+                        state.attachments.map { state.sendAsSpoiler.contains(state.stableIdOf(it)) }
+                )
     }
 
     /** The preview already read the file's peaks, so a voice message can be sent carrying them. */
@@ -642,6 +654,13 @@ class AttachmentsPreviewFragment :
         val levels = WaveformCache.get(queryUriAndroid) ?: return this
         return copy(waveform = WaveformCache.asMessageWaveform(levels))
     }
+
+    private fun ContentAttachmentData.isMediaSpoilerable() = type in setOf(
+            ContentAttachmentData.Type.IMAGE,
+            ContentAttachmentData.Type.VIDEO,
+            ContentAttachmentData.Type.AUDIO,
+            ContentAttachmentData.Type.VOICE_MESSAGE,
+    )
 
     /** The activity lays this screen out under the system bars; only the controls inset themselves. */
     private fun applyInsets() {

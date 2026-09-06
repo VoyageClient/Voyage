@@ -25,4 +25,10 @@
         app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/attachmentsPreviewSendAsSpoilerAction"
+        android:checkable="true"
+        android:title="@string/send_as_spoiler"
+        app:showAsAction="never" />
+
 </menu>

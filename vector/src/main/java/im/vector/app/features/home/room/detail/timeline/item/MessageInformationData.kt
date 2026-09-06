@@ -40,6 +40,7 @@ data class MessageInformationData(
         // True when the room's media-preview setting hides media: custom image-emoji reactions are
         // then blocked (shown as a ❓) instead of fetched.
         val hideMediaReactions: Boolean = false,
+        val isMediaSpoiler: Boolean = false,
         // True when the room hides media and the "hide avatars" toggle is on: the sender avatar is
         // forced to the default placeholder.
         val hideAvatars: Boolean = false,

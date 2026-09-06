@@ -32,6 +32,7 @@ import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.isMediaHiddenInRoom
+import im.vector.app.features.media.isMediaSpoiler
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
@@ -377,9 +378,10 @@ class ReplyPreviewRetriever(
     /** Whether a media thumbnail in a reply preview should be hidden (blurhash / solid) per the
      *  room's media-preview setting, mirroring the main timeline. Honours a prior in-timeline reveal. */
     fun shouldHideMediaPreview(event: TimelineEvent): Boolean {
+        if (event.isMediaSpoiler()) return !mediaContentRevealManager.isRevealed(event.timelineStableId())
         if (event.senderInfo.userId == session.myUserId) return false
         val hideByMode = isMediaHiddenInRoom(session.roomService().getRoomSummary(roomId), vectorPreferences)
-        return hideByMode && !mediaContentRevealManager.isRevealed(event.eventId)
+        return hideByMode && !mediaContentRevealManager.isRevealed(event.timelineStableId())
     }
 
     fun formatRedacted(event: TimelineEvent): CharSequence = displayableEventFormatter.formatRedacted(event.root)

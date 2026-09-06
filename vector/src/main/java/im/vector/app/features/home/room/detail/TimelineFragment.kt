@@ -168,6 +168,7 @@ import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.media.hasPoster
 import im.vector.app.features.notifications.NotificationDrawerManager
@@ -271,6 +272,7 @@ class TimelineFragment :
     @Inject lateinit var notificationUtils: NotificationUtils
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
+    @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
     @Inject lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
     @Inject lateinit var shareIntentHandler: ShareIntentHandler
@@ -806,6 +808,7 @@ class TimelineFragment :
     }
 
     override fun onDestroyView() {
+        mediaContentRevealManager.clearAll()
         voiceRecorderStackLayoutListener?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 views.composerContainer.viewTreeObserver.removeOnGlobalLayoutListener(it)

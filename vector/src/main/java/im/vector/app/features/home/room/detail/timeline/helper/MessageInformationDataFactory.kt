@@ -20,6 +20,7 @@ import im.vector.app.features.home.room.detail.timeline.item.ReferencesInfoData
 import im.vector.app.features.home.room.detail.timeline.item.SendStateDecoration
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayoutFactory
 import im.vector.app.features.media.isMediaHiddenInRoom
+import im.vector.app.features.media.isMediaSpoiler
 import im.vector.app.features.permalink.PermalinkFactory
 import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpUtils
@@ -192,6 +193,7 @@ class MessageInformationDataFactory @Inject constructor(
                 isDirect = isEffectivelyDirect,
                 dmChatPartnerId = dmOtherMemberId,
                 hideMediaReactions = hideMediaReactions,
+                isMediaSpoiler = event.isMediaSpoiler(),
                 hideAvatars = hideAvatars,
                 isFirstFromThisSender = isFirstFromThisSender,
                 isLastFromThisSender = isLastFromThisSender,

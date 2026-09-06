@@ -21,6 +21,7 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             AttachmentsPreviewAction.RestoreOriginalAttachment -> handleRestoreOriginalAttachment()
             is AttachmentsPreviewAction.SetCompression -> handleSetCompression(action)
             is AttachmentsPreviewAction.SetKeepOriginalSize -> handleSetKeepOriginalSize(action)
+            is AttachmentsPreviewAction.SetSendAsSpoiler -> handleSetSendAsSpoiler(action)
             is AttachmentsPreviewAction.SetCaption -> handleSetCaption(action)
             is AttachmentsPreviewAction.SetSharesOneCaption -> handleSetSharesOneCaption(action)
         }
@@ -65,6 +66,12 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
         val key = it.stableIdOf(current)
         setState { copy(keepOriginalSize = if (action.keep) keepOriginalSize + key else keepOriginalSize - key) }
+    }
+
+    private fun handleSetSendAsSpoiler(action: AttachmentsPreviewAction.SetSendAsSpoiler) = withState {
+        val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
+        val key = it.stableIdOf(current)
+        setState { copy(sendAsSpoiler = if (action.sendAsSpoiler) sendAsSpoiler + key else sendAsSpoiler - key) }
     }
 
     private fun handleSetCompression(action: AttachmentsPreviewAction.SetCompression) = withState {

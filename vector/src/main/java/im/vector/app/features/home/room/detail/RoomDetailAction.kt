@@ -28,6 +28,7 @@ sealed class RoomDetailAction : VectorViewModelAction {
             val editedEventId: String? = null,
             // A caption per attachment, in the same order; [captionText] is the one a gallery sends.
             val captions: List<CharSequence?>? = null,
+            val spoilers: List<Boolean>? = null,
     ) : RoomDetailAction()
     data class TimelineEventTurnsVisible(val event: TimelineEvent) : RoomDetailAction()
     data class TimelineEventTurnsInvisible(val event: TimelineEvent) : RoomDetailAction()

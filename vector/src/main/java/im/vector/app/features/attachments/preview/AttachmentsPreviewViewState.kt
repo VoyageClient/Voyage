@@ -24,6 +24,7 @@ data class AttachmentsPreviewViewState(
         val currentAttachmentIndex: Int = 0,
         /** Keyed by [stableIdOf]: sending untouched is a choice per attachment, not per send. */
         val keepOriginalSize: Set<String> = emptySet(),
+        val sendAsSpoiler: Set<String> = emptySet(),
         /** Keyed by the attachment's current queryUri. */
         val editRecords: Map<String, EditRecord> = emptyMap(),
         /** Keyed by [stableIdOf], so editing an attachment does not lose its compression choice. */

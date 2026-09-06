@@ -631,6 +631,7 @@ class MessageItemFactory @Inject constructor(
     }
 
     private fun shouldHideMedia(informationData: MessageInformationData): Boolean {
+        if (informationData.isMediaSpoiler) return true
         if (informationData.sentByMe) return false
         return isMediaHiddenInRoom(session.roomService().getRoomSummary(roomId), vectorPreferences)
     }
@@ -644,10 +645,10 @@ class MessageItemFactory @Inject constructor(
             data: ImageContentRenderer.Data,
             mode: ImageContentRenderer.Mode,
             informationData: MessageInformationData,
-            hideMedia: Boolean,
     ): Boolean {
-        // Hidden media draws no thumbnail at all, and a preserved copy is not a send.
-        if (hideMedia || data.preservedFile != null) return true
+        // A spoiler's placeholder does not need a thumbnail, but waiting for its decode keeps a
+        // mixed send batch in the selected order instead of letting hidden items leapfrog it.
+        if (data.preservedFile != null) return true
         if (!informationData.sendState.isSending() || !data.url.isLocalMediaUri()) return true
         return sendingMediaGate.canShow(data, mode, informationData.messageLayout)
     }
@@ -719,7 +720,7 @@ class MessageItemFactory @Inject constructor(
             maybeAnimated && autoplay -> ImageContentRenderer.Mode.ANIMATED_THUMBNAIL
             else -> ImageContentRenderer.Mode.THUMBNAIL
         }
-        if (!readyToShowMedia(data, itemMode, informationData, hideMedia)) return null
+        if (!readyToShowMedia(data, itemMode, informationData)) return null
 
         return MessageImageVideoItem_()
                 .attributes(attributes)
@@ -806,7 +807,7 @@ class MessageItemFactory @Inject constructor(
         )
 
         val hideMedia = shouldHideMedia(informationData)
-        if (!readyToShowMedia(thumbnailData, ImageContentRenderer.Mode.THUMBNAIL, informationData, hideMedia)) return null
+        if (!readyToShowMedia(thumbnailData, ImageContentRenderer.Mode.THUMBNAIL, informationData)) return null
 
         return MessageImageVideoItem_()
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -889,7 +890,7 @@ class MessageItemFactory @Inject constructor(
                     tile.mediaData?.let {
                         // The mode a tile is actually rendered in, or the gate warms a cache entry
                         // the bind never asks for and holds the row back for nothing.
-                        !readyToShowMedia(it, ImageContentRenderer.previewMode(isSticker = false, mimeType = it.mimeType), informationData, hideMedia)
+                        !readyToShowMedia(it, ImageContentRenderer.previewMode(isSticker = false, mimeType = it.mimeType), informationData)
                     } == true
                 }) {
             return null

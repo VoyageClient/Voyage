@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="send_as_spoiler" translatable="false">Send as spoiler</string>
 
     <string name="msc4391_command_description" translatable="false">Added command: %s</string>
 
