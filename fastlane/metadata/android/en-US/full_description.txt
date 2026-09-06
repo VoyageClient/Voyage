@@ -1,1 +1,1 @@
-Voyage is a Matrix client for Android.
+Voyage is a Matrix client for Android, based on Element Classic.
