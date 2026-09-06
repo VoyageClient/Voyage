@@ -113,7 +113,7 @@ class MassRedactionManager @Inject constructor(
         // banner is the only way to cancel it.
         progress.post(initial)
         saveRecord(owner, initial, delayMs = delayMs, token = null, remoteDone = false, range = range)
-        launchLoop(owner, roomId, userId, displayName, delayMs, range, startCompleted = 0, startToken = null, remoteDone = false)
+        launchLoop(owner, roomId, userId, displayName, delayMs, range, startCompleted = 0, startTotal = 0, startToken = null, remoteDone = false, retryEventIds = emptySet())
         return StartResult.Started
     }
 
@@ -176,7 +176,7 @@ class MassRedactionManager @Inject constructor(
         progress.post(state.copy(paused = false))
         saveState(owner, state.copy(paused = false))
         launchLoop(owner, state.roomId, state.targetUserId, state.targetDisplayName, record.delayMs, record.range,
-                startCompleted = state.completed, startToken = record.token, remoteDone = record.remoteDone)
+                startCompleted = state.completed, startTotal = state.total, startToken = record.token, remoteDone = record.remoteDone, retryEventIds = record.failedEventIds)
     }
 
     @Synchronized
@@ -208,7 +208,7 @@ class MassRedactionManager @Inject constructor(
 
     private fun launchLoop(
             owner: String, roomId: String, userId: String, displayName: String, delayMs: Long, range: MassRedactionRange,
-            startCompleted: Int, startToken: String?, remoteDone: Boolean,
+            startCompleted: Int, startTotal: Int, startToken: String?, remoteDone: Boolean, retryEventIds: Set<String>,
     ) {
         job?.cancel()
         job = scope.launch {
@@ -226,8 +226,9 @@ class MassRedactionManager @Inject constructor(
                 Timber.w(t, "massredact: failed to preseed known redaction targets")
             }
             var completed = startCompleted
-            var total = startCompleted
+            var total = startTotal
             var lastPersisted = startCompleted
+            val failedEventIds = retryEventIds.toMutableSet()
             // Extra floor between redaction waves on top of the network round-trip, in case one returns instantly.
             val cooldown = delayMs.coerceAtLeast(MIN_COOLDOWN_MS)
 
@@ -236,26 +237,34 @@ class MassRedactionManager @Inject constructor(
             // a room version — v11 dropped it for lack of implementations, and no unstable room version for
             // it exists. Synapse (issue #9809), tuwunel and continuwuity all handle a single target only.
             // Successors MSC4084 and MSC4343 (moves it to m.room.redactions) are still open and unimplemented.
-            suspend fun sendOne(id: String) {
+            suspend fun sendOne(id: String): Boolean {
                 // Redact directly against the server — no local echo. Awaiting each keeps the timeline
                 // clean, self-paces, and never leaves hundreds of echoes stuck in "sending".
-                try {
-                    relations.redactEventNoEcho(id, null)
-                } catch (e: CancellationException) {
-                    // Swallowing this would fall through to post() and resurrect the banner cancel() just cleared.
-                    throw e
-                } catch (t: Throwable) {
-                    Timber.w(t, "massredact: failed to redact $id")
+                repeat(REDACTION_ATTEMPTS) { attempt ->
+                    try {
+                        relations.redactEventNoEcho(id, null)
+                        return true
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (t: Throwable) {
+                        if (attempt + 1 == REDACTION_ATTEMPTS) {
+                            Timber.w(t, "massredact: failed to redact $id")
+                        } else {
+                            delay(RETRY_DELAY_MS)
+                        }
+                    }
                 }
+                return false
             }
 
-            suspend fun redactBatch(ids: List<String>) {
+            suspend fun redactBatch(ids: Collection<String>, countInTotal: Boolean = true) {
                 // A candidate with a known redaction targeting it is already redacted, no matter how the
                 // server serves the event itself — never redact it twice.
+                failedEventIds.removeAll(ids.filter { it in knownRedactionTargets })
                 val batch = ids.filter { seen.add(it) && it !in knownRedactionTargets }
                 if (batch.isEmpty()) return
                 // Count the whole batch up front so the banner shows the real backlog, not a moving n/n+1.
-                total += batch.size
+                if (countInTotal) total += batch.size
                 post(owner, roomId, userId, displayName, completed, total)
                 // With no user-chosen delay, run a small parallel window — the HTTP round-trip dominates,
                 // and a few in flight multiply throughput without hammering the server. An explicit delay
@@ -263,12 +272,16 @@ class MassRedactionManager @Inject constructor(
                 val wave = if (delayMs <= MIN_COOLDOWN_MS) REDACT_PARALLELISM else 1
                 for (chunk in batch.chunked(wave)) {
                     if (!isActive) return
-                    coroutineScope {
-                        chunk.map { id -> async { sendOne(id) } }.awaitAll()
+                    val results = coroutineScope {
+                        val results = chunk.map { id -> async { id to sendOne(id) } }.awaitAll()
+                        results.forEach { (id, sent) ->
+                            if (sent) failedEventIds.remove(id) else failedEventIds.add(id)
+                        }
+                        results
                     }
-                    completed += chunk.size
+                    completed += results.count { it.second }
                     if (completed - lastPersisted >= PERSIST_EVERY) {
-                        saveProgress(owner, completed, total)
+                        saveProgress(owner, completed, total, failedEventIds)
                         lastPersisted = completed
                     }
                     post(owner, roomId, userId, displayName, completed, total)
@@ -276,7 +289,7 @@ class MassRedactionManager @Inject constructor(
                 }
                 // Persist at batch end too, so a crash mid-run restores accurate counts instead of the
                 // last PERSIST_EVERY multiple (or 0/0 for a short run).
-                saveProgress(owner, completed, total)
+                saveProgress(owner, completed, total, failedEventIds)
                 lastPersisted = completed
             }
 
@@ -316,16 +329,19 @@ class MassRedactionManager @Inject constructor(
             // The sweep excludes events known-redacted locally (unsigned markers or a stored redaction
             // event); a stale row it can't know about just costs one no-op redaction, which also marks
             // the row so it never repeats.
+            redactBatch(retryEventIds, countInTotal = false)
             redactBatch(relations.getLocalEventIdsFromUser(userId, range))
 
             // Phase 2: walk the server's history for the user's events — forwards from their join when
             // the floor anchor resolved, else backwards from the live edge. Server history is
             // authoritative — a bulk redaction makes sync gappy, so the local DB misses most of the
             // room; [seen] keeps the two phases from redacting the same event twice.
+            var remoteIncomplete = false
             while (!done && isActive && pages++ < MAX_REMOTE_PAGES) {
                 val page = prefetch!!.await().getOrElse { t ->
                     if (t is CancellationException) throw t
-                    Timber.w(t, "massredact: server paging failed, stopping remote phase")
+                    Timber.w(t, "massredact: server paging failed; pausing for retry")
+                    remoteIncomplete = true
                     null
                 } ?: break
                 token = page.nextToken
@@ -344,16 +360,45 @@ class MassRedactionManager @Inject constructor(
                     Timber.w(t, "massredact: reconciling local rows failed")
                 }
                 redactBatch(page.eventIds)
-                saveRemote(owner, completed, total, token, done)
+                saveRemote(owner, completed, total, token, done, failedEventIds)
             }
             prefetch?.cancel()
 
-            // The loop only exits by finishing (reached the start/floor), erroring, or hitting the cap —
-            // in every non-paused/cancelled case the job is complete, so clear it. Pause/cancel cancel the
-            // job (isActive == false) and keep the record for resume.
-            if (isActive) {
+            // Failed sends and an unfinished server walk stay resumable; only a completed walk with no
+            // outstanding targets is allowed to clear its record.
+            if (!done) remoteIncomplete = true
+            if (isActive && (remoteIncomplete || failedEventIds.isNotEmpty())) {
+                pauseIncomplete(owner, roomId, userId, displayName, completed, total, token, done, failedEventIds)
+            } else if (isActive) {
                 finish(owner, roomId, displayName, completed)
             }
+        }
+    }
+
+    @Synchronized
+    private fun pauseIncomplete(
+            owner: String,
+            roomId: String,
+            userId: String,
+            displayName: String,
+            completed: Int,
+            total: Int,
+            token: String?,
+            remoteDone: Boolean,
+            failedEventIds: Set<String>,
+    ) {
+        if (owner != shownOwner || progress.currentValue?.roomId != roomId) return
+        paused = true
+        job = null
+        val state = MassRedactionState(roomId, userId, displayName, completed, total, paused = true)
+        progress.post(state)
+        preferences.edit(commit = true) {
+            putInt(key(owner, COMPLETED), completed)
+            putInt(key(owner, TOTAL), total)
+            putBoolean(key(owner, PAUSED), true)
+            putString(key(owner, TOKEN), token)
+            putBoolean(key(owner, REMOTE_DONE), remoteDone)
+            putStringSet(key(owner, FAILED_EVENT_IDS), failedEventIds)
         }
     }
 
@@ -390,7 +435,13 @@ class MassRedactionManager @Inject constructor(
     }
 
     // region persistence
-    private data class RawRecord(val delayMs: Long, val token: String?, val remoteDone: Boolean, val range: MassRedactionRange)
+    private data class RawRecord(
+            val delayMs: Long,
+            val token: String?,
+            val remoteDone: Boolean,
+            val range: MassRedactionRange,
+            val failedEventIds: Set<String>,
+    )
 
     // Keys are namespaced by owner (account userId) so each account keeps its own independent batch.
     private fun key(owner: String, suffix: String) = "massredact_${owner}_$suffix"
@@ -419,6 +470,7 @@ class MassRedactionManager @Inject constructor(
             putLong(key(owner, FROM_TS), range.fromTs ?: NO_TS)
             putLong(key(owner, TO_TS), range.toTs ?: NO_TS)
             putBoolean(key(owner, MESSAGES_ONLY), range.messagesOnly)
+            putStringSet(key(owner, FAILED_EVENT_IDS), emptySet())
         }
     }
 
@@ -430,16 +482,21 @@ class MassRedactionManager @Inject constructor(
         }
     }
 
-    private fun saveProgress(owner: String, completed: Int, total: Int) {
-        preferences.edit { putInt(key(owner, COMPLETED), completed); putInt(key(owner, TOTAL), total) }
+    private fun saveProgress(owner: String, completed: Int, total: Int, failedEventIds: Set<String>) {
+        preferences.edit {
+            putInt(key(owner, COMPLETED), completed)
+            putInt(key(owner, TOTAL), total)
+            putStringSet(key(owner, FAILED_EVENT_IDS), failedEventIds)
+        }
     }
 
-    private fun saveRemote(owner: String, completed: Int, total: Int, token: String?, remoteDone: Boolean) {
+    private fun saveRemote(owner: String, completed: Int, total: Int, token: String?, remoteDone: Boolean, failedEventIds: Set<String>) {
         preferences.edit(commit = true) {
             putInt(key(owner, COMPLETED), completed)
             putInt(key(owner, TOTAL), total)
             putString(key(owner, TOKEN), token)
             putBoolean(key(owner, REMOTE_DONE), remoteDone)
+            putStringSet(key(owner, FAILED_EVENT_IDS), failedEventIds)
         }
     }
 
@@ -469,6 +526,7 @@ class MassRedactionManager @Inject constructor(
                         toTs = preferences.getLong(key(owner, TO_TS), NO_TS).takeIf { it != NO_TS },
                         messagesOnly = preferences.getBoolean(key(owner, MESSAGES_ONLY), false),
                 ),
+                failedEventIds = preferences.getStringSet(key(owner, FAILED_EVENT_IDS), emptySet()).orEmpty(),
         )
     }
 
@@ -478,6 +536,7 @@ class MassRedactionManager @Inject constructor(
             remove(key(owner, COMPLETED)); remove(key(owner, TOTAL)); remove(key(owner, PAUSED))
             remove(key(owner, DELAY)); remove(key(owner, TOKEN)); remove(key(owner, REMOTE_DONE))
             remove(key(owner, FROM_TS)); remove(key(owner, TO_TS)); remove(key(owner, MESSAGES_ONLY))
+            remove(key(owner, FAILED_EVENT_IDS))
         }
     }
     // endregion
@@ -505,6 +564,9 @@ class MassRedactionManager @Inject constructor(
         private const val FROM_TS = "from_ts"
         private const val TO_TS = "to_ts"
         private const val MESSAGES_ONLY = "messages_only"
+        private const val FAILED_EVENT_IDS = "failed_event_ids"
+        private const val REDACTION_ATTEMPTS = 3
+        private const val RETRY_DELAY_MS = 1_000L
 
         // Sentinel for "no bound" in the persisted record; a real origin_server_ts is never negative.
         private const val NO_TS = -1L

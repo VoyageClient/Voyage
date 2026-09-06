@@ -50,17 +50,31 @@ internal class DefaultFetchUserEventsTask @Inject constructor(
 
     override suspend fun execute(params: FetchUserEventsTask.Params): FetchUserEventsTask.Result {
         val forwards = params.anchorToken != null
+        val localToken = stores.chunk.lastForward(params.roomId)?.prev_token
+        val liveAnchor = if (params.from == null && !forwards && localToken == null) {
+            executeRequest(globalErrorReceiver, canRetry = true) {
+                val event = roomAPI.getEventForTimestamp(params.roomId, System.currentTimeMillis(), PaginationDirection.BACKWARDS.value)
+                roomAPI.getContextOfEvent(params.roomId, event.eventId, 0)
+            }
+        } else {
+            null
+        }
         val fromToken = params.from
-                ?: (if (forwards) params.anchorToken else stores.chunk.lastForward(params.roomId)?.prev_token)
-                ?: return FetchUserEventsTask.Result(emptyList(), null)
+                ?: (if (forwards) params.anchorToken else localToken ?: liveAnchor?.start)
+        val initialEvents = liveAnchor?.let { listOf(it.event) }.orEmpty()
+        if (fromToken == null && initialEvents.isEmpty()) {
+            return FetchUserEventsTask.Result(emptyList(), null)
+        }
         val direction = if (forwards) PaginationDirection.FORWARDS else PaginationDirection.BACKWARDS
 
         // Server-side sender filter so pages carry only this user's events.
         val filter = RoomEventFilter(senders = listOf(params.senderId)).toJSONString()
-        val response = executeRequest(globalErrorReceiver, canRetry = true) {
-            roomAPI.getRoomMessagesFromForMassRedaction(params.roomId, fromToken, direction.value, PAGE_SIZE, filter)
+        val response = fromToken?.let {
+            executeRequest(globalErrorReceiver, canRetry = true) {
+                roomAPI.getRoomMessagesFromForMassRedaction(params.roomId, it, direction.value, PAGE_SIZE, filter)
+            }
         }
-        val chunk = response.chunk.orEmpty()
+        val chunk = initialEvents + response?.chunk.orEmpty()
         val bySender = chunk.filter { it.senderId == params.senderId }
         val eventIds = bySender
                 // Skip redaction events themselves (redacting a redaction is pointless and leaves a
@@ -92,7 +106,7 @@ internal class DefaultFetchUserEventsTask @Inject constructor(
         val passedCeiling = forwards && params.range.toTs?.let { ceiling ->
             chunk.any { event -> event.originServerTs?.let { it > ceiling } == true }
         } == true
-        val nextToken = if (reachedFloor || passedCeiling) null else response.end?.takeIf { it != fromToken }
+        val nextToken = if (reachedFloor || passedCeiling) null else response?.end?.takeIf { it != fromToken }
         return FetchUserEventsTask.Result(eventIds, nextToken, redactionTargets, alreadyRedactedIds)
     }
 
