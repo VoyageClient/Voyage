@@ -282,6 +282,9 @@ class TimelineEventController @Inject constructor(
     // Volatile: replaced wholesale on the background thread, read (never mutated) from main-thread
     // position lookups under positionsLock only.
     @Volatile private var currentSnapshot: List<TimelineEvent> = emptyList()
+    private var diagnosticSnapshotSequence = 0
+    private var diagnosticPreviousSnapshot: List<TimelineEvent> = emptyList()
+    private var diagnosticCurrentSnapshotSequence = 0
     private var inSubmitList: Boolean = false
     private var hasReachedInvite: Boolean = false
     private var hasUTD: Boolean = false
@@ -303,6 +306,7 @@ class TimelineEventController @Inject constructor(
                         "listUpdateCallback.onChanged(position: $position, count: $count). " +
                                 "\ncurrentSnapshot has size of ${currentSnapshot.size} items"
                 )
+                Timber.tag("TimelineFlicker").i("TLFDB controller diff #$diagnosticCurrentSnapshotSequence changed position=$position count=$count")
                 (position until position + count).forEach {
                     // Invalidate cache
                     invalidateAt(it)
@@ -322,6 +326,7 @@ class TimelineEventController @Inject constructor(
                         "listUpdateCallback.onMoved(fromPosition: $fromPosition, toPosition: $toPosition). " +
                                 "\ncurrentSnapshot has size of ${currentSnapshot.size} items"
                 )
+                Timber.tag("TimelineFlicker").i("TLFDB controller diff #$diagnosticCurrentSnapshotSequence moved from=$fromPosition to=$toPosition")
                 val model = modelCache.removeAt(fromPosition)
                 modelCache.add(toPosition, model)
                 requestModelBuild()
@@ -335,6 +340,7 @@ class TimelineEventController @Inject constructor(
                         "listUpdateCallback.onInserted(position: $position, count: $count). " +
                                 "\ncurrentSnapshot has size of ${currentSnapshot.size} items"
                 )
+                Timber.tag("TimelineFlicker").i("TLFDB controller diff #$diagnosticCurrentSnapshotSequence inserted position=$position count=$count")
                 repeat(count) {
                     modelCache.add(position, null)
                 }
@@ -349,6 +355,7 @@ class TimelineEventController @Inject constructor(
                         "listUpdateCallback.onRemoved(position: $position, count: $count). " +
                                 "\ncurrentSnapshot has size of ${currentSnapshot.size} items"
                 )
+                Timber.tag("TimelineFlicker").i("TLFDB controller diff #$diagnosticCurrentSnapshotSequence removed position=$position count=$count")
                 repeat(count) {
                     modelCache.removeAt(position)
                 }
@@ -586,6 +593,20 @@ class TimelineEventController @Inject constructor(
                 .addWhenLoading(Timeline.Direction.BACKWARDS)
     }
 
+    private fun logRenderedModels(models: List<EpoxyModel<*>>, renderCount: Int) {
+        val visibleEvents = modelCache.take(renderCount).asReversed().mapNotNull { cache ->
+            cache?.takeUnless { mergedHeaderItemFactory.isCollapsed(it.localId) }?.eventId
+        }
+        Timber.tag("TimelineFlicker").i(
+                "TLFDB controller rendered #$diagnosticCurrentSnapshotSequence modelCount=${models.size} " +
+                        "visibleEvents=${visibleEvents.debugEventIdSummary()} rendered=$renderCount/${modelCache.size} unbuilt=$hasUnbuiltEvents"
+        )
+    }
+
+    private fun List<String>.debugEventIdSummary(): String = take(12).joinToString(",").let { summary ->
+        if (size > 12) "$summary,…" else summary
+    }
+
 // Timeline.LISTENER ***************************************************************************
 
     // A backstacked room keeps its RecyclerView attached, so its controller keeps receiving snapshots
@@ -617,6 +638,10 @@ class TimelineEventController @Inject constructor(
         backgroundHandler.post {
             inSubmitList = true
             val diffCallback = TimelineEventDiffUtilCallback(currentSnapshot, newSnapshot)
+            diagnosticSnapshotSequence += 1
+            diagnosticCurrentSnapshotSequence = diagnosticSnapshotSequence
+            logSnapshotReceived(diagnosticCurrentSnapshotSequence, diagnosticPreviousSnapshot, newSnapshot)
+            diagnosticPreviousSnapshot = newSnapshot
             currentSnapshot = newSnapshot
             Timber.v("Submit a new snapshot of ${currentSnapshot.size} items.")
             val diffResult = PerfTrace.time("timeline.snapshotDiff") { DiffUtil.calculateDiff(diffCallback) }
@@ -625,6 +650,21 @@ class TimelineEventController @Inject constructor(
             inSubmitList = false
         }
     }
+
+    private fun logSnapshotReceived(sequence: Int, oldSnapshot: List<TimelineEvent>, newSnapshot: List<TimelineEvent>) {
+        val oldIds = oldSnapshot.mapTo(HashSet()) { it.eventId }
+        val newIds = newSnapshot.mapTo(HashSet()) { it.eventId }
+        val inserted = newSnapshot.filter { it.eventId !in oldIds }.debugEventSummary()
+        val removed = oldSnapshot.filter { it.eventId !in newIds }.debugEventSummary()
+        Timber.tag("TimelineFlicker").i(
+                "TLFDB controller received #$sequence room=${newSnapshot.firstOrNull()?.root?.roomId} " +
+                        "count=${newSnapshot.size} inserted=$inserted removed=$removed all=${newSnapshot.debugEventSummary()}"
+        )
+    }
+
+    private fun List<TimelineEvent>.debugEventSummary(): String = take(12).joinToString(",") { event ->
+        "${event.eventId}:${event.root.getClearType()}"
+    }.let { summary -> if (size > 12) "$summary,…" else summary }
 
     /** Invalidate the model at [index], keeping the built one on screen until the rebuild replaces it. */
     private fun invalidateAt(index: Int) {
@@ -638,6 +678,7 @@ class TimelineEventController @Inject constructor(
     private fun getModels(): List<EpoxyModel<*>> {
         buildCacheItemsIfNeeded()
         val models = ArrayList<EpoxyModel<*>>(modelCache.size)
+        val renderCount = renderCount()
         // Newest first, so the first receipts of a collapsed run are the ones that belong at its
         // bottom edge. They move onto the run's header rather than vanishing with the events.
         var collapsedReceipts: ReadReceiptsItem? = null
@@ -645,7 +686,8 @@ class TimelineEventController @Inject constructor(
         // group taller than the screen, drop a matching "collapse" footer at the newest member = bottom
         // edge, so it stays reachable. Iteration is newest-first, so the newest member is seen first.
         var footerRunAnchor: Long? = null
-        modelCache.forEach { cacheItemData ->
+        for (position in 0 until renderCount) {
+            val cacheItemData = modelCache[position]
             val collapsed = cacheItemData != null && mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)
             val eventModel = cacheItemData?.eventModel?.takeUnless { collapsed }
             if (collapsed) {
@@ -674,7 +716,14 @@ class TimelineEventController @Inject constructor(
                     ?.takeIf { eventModel != null || cacheItemData.mergedHeaderModel != null }
                     ?.let { models.add(it) }
         }
+        logRenderedModels(models, renderCount)
         return models
+    }
+
+    private fun renderCount(): Int {
+        if (!hasUnbuiltEvents || partialState.highlightedEventId != null || buildFocusEventId != null) return modelCache.size
+        // Merged-run anchors may be built beyond the budget; they must not appear across an unbuilt live-edge gap.
+        return modelCache.indexOfFirst { it == null }.takeIf { it >= 0 } ?: modelCache.size
     }
 
     // True when [event] is the oldest event of ANY merged run (redacted, hidden, membership/ACL/image-pack,
@@ -716,6 +765,7 @@ class TimelineEventController @Inject constructor(
             // collapsed members) and the build loop (which reads isCollapsed / isMergedAnchor). Reuse the
             // per-position "shown" flags it computes so neighbours don't re-run shouldShowEvent.
             val shown = mergedHeaderItemFactory.updateRuns(currentSnapshot, partialState, forcedVisibleEditIds)
+            logCollapsedRuns(diagnosticCurrentSnapshotSequence)
             val runsMs = lap()
             cachedReceiptsByEvent = readReceiptsCache.receiptsByEvent()
             val receiptsMs = lap()
@@ -877,6 +927,29 @@ class TimelineEventController @Inject constructor(
                     buildNanos / 1_000_000,
             )
         }
+    }
+
+    private fun logCollapsedRuns(sequence: Int) {
+        val runs = ArrayList<String>()
+        var start = -1
+        currentSnapshot.forEachIndexed { index, event ->
+            if (mergedHeaderItemFactory.isCollapsed(event.localId)) {
+                if (start == -1) start = index
+            } else if (start != -1) {
+                runs.add(debugCollapsedRun(start, index))
+                start = -1
+            }
+        }
+        if (start != -1) runs.add(debugCollapsedRun(start, currentSnapshot.size))
+        Timber.tag("TimelineFlicker").i(
+                "TLFDB controller processed #$sequence room=${currentSnapshot.firstOrNull()?.root?.roomId} " +
+                        "collapsedRuns=${runs.size} ${runs.joinToString(" | ")}"
+        )
+    }
+
+    private fun debugCollapsedRun(start: Int, endExclusive: Int): String {
+        val events = currentSnapshot.subList(start, endExclusive)
+        return "[$start..${endExclusive - 1} size=${events.size} ${events.debugEventSummary()}]"
     }
 
     // A media "edit" that swaps the file/thumbnail/metadata (anything but the caption) is refused as an
