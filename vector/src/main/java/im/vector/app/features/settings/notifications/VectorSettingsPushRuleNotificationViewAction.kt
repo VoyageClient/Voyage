@@ -11,4 +11,5 @@ import im.vector.app.core.platform.VectorViewModelAction
 
 sealed interface VectorSettingsPushRuleNotificationViewAction : VectorViewModelAction {
     data class UpdatePushRule(val ruleId: String, val checked: Boolean) : VectorSettingsPushRuleNotificationViewAction
+    data class UpdatePushRules(val ruleIds: List<String>, val checked: Boolean) : VectorSettingsPushRuleNotificationViewAction
 }

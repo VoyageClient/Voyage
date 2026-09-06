@@ -19,6 +19,8 @@ sealed interface VectorSettingsPushRuleNotificationViewEvent : VectorViewEvents 
      */
     data class PushRuleUpdated(val ruleId: String, val checked: Boolean, val failure: Throwable? = null) : VectorSettingsPushRuleNotificationViewEvent
 
+    data class PushRulesUpdated(val ruleIds: List<String>, val checked: Boolean, val failure: Throwable? = null) : VectorSettingsPushRuleNotificationViewEvent
+
     /**
      * A failure has occurred.
      *

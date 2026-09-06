@@ -16,6 +16,7 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationViewEvent.Failure
 import im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationViewEvent.PushRuleUpdated
+import im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationViewEvent.PushRulesUpdated
 import im.vector.app.features.settings.notifications.usecase.GetPushRulesOnInvalidStateUseCase
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.Failure.ServerError
@@ -64,6 +65,7 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
     override fun handle(action: VectorSettingsPushRuleNotificationViewAction) {
         when (action) {
             is VectorSettingsPushRuleNotificationViewAction.UpdatePushRule -> handleUpdatePushRule(action.ruleId, action.checked)
+            is VectorSettingsPushRuleNotificationViewAction.UpdatePushRules -> handleUpdatePushRules(action.ruleIds, action.checked)
         }
     }
 
@@ -77,19 +79,32 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
     }
 
     private fun handleUpdatePushRule(ruleId: String, checked: Boolean) {
-        val kind = getPushRuleAndKind(ruleId)?.kind ?: return
-        val newIndex = if (checked) NotificationIndex.NOISY else NotificationIndex.OFF
-        val standardAction = getStandardAction(ruleId, newIndex) ?: return
-        val enabled = standardAction != StandardActions.Disabled
-        val newActions = standardAction.actions
+        handleUpdatePushRules(listOf(ruleId), checked)
+    }
+
+    private fun handleUpdatePushRules(ruleIds: List<String>, checked: Boolean) {
+        val rulesToUpdate = ruleIds
+                .flatMap { listOf(it) + RuleIds.getSyncedRules(it) }
+                .distinct()
+                .mapNotNull { ruleId ->
+                    val ruleAndKind = getPushRuleAndKind(ruleId) ?: return@mapNotNull null
+                    val standardAction = getStandardAction(ruleId, if (checked) NotificationIndex.NOISY else NotificationIndex.OFF)
+                            ?: return@mapNotNull null
+                    RuleUpdate(ruleId, ruleAndKind.kind, standardAction)
+                }
+        if (rulesToUpdate.isEmpty()) return
 
         setState { copy(isLoading = true) }
 
         viewModelScope.launch {
-            val rulesToUpdate = listOf(ruleId) + RuleIds.getSyncedRules(ruleId)
-            val results = rulesToUpdate.map { ruleId ->
+            val results = rulesToUpdate.map { ruleUpdate ->
                 runCatching {
-                    updatePushRule(kind, ruleId, enabled, newActions)
+                    updatePushRule(
+                            ruleUpdate.kind,
+                            ruleUpdate.ruleId,
+                            ruleUpdate.standardAction != StandardActions.Disabled,
+                            ruleUpdate.standardAction.actions
+                    )
                 }
             }
 
@@ -103,23 +118,33 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
             // Any rule has been checked or some rules have not been unchecked
             val newChecked = (checked && hasSuccess) || (!checked && hasFailures)
             if (hasSuccess) {
-                _viewEvents.post(PushRuleUpdated(ruleId, newChecked, failures.firstOrNull()))
+                if (ruleIds.size == 1) {
+                    _viewEvents.post(PushRuleUpdated(ruleIds.first(), newChecked, failures.firstOrNull()))
+                } else {
+                    _viewEvents.post(PushRulesUpdated(ruleIds, newChecked, failures.firstOrNull()))
+                }
             } else {
-                _viewEvents.post(Failure(ruleId, failures.firstOrNull()))
+                _viewEvents.post(Failure(ruleIds.first(), failures.firstOrNull()))
             }
 
             setState {
                 copy(
                         isLoading = false,
                         rulesOnError = when {
-                            hasSuccess && hasFailures -> rulesOnError.plus(ruleId) // some failed
-                            hasSuccess -> rulesOnError.minus(ruleId) // all succeed
-                            else -> rulesOnError // all failed
+                            hasSuccess && hasFailures -> rulesOnError.union(ruleIds)
+                            hasSuccess -> rulesOnError.minus(ruleIds.toSet())
+                            else -> rulesOnError
                         }
                 )
             }
         }
     }
+
+    private data class RuleUpdate(
+            val ruleId: String,
+            val kind: RuleKind,
+            val standardAction: StandardActions
+    )
 
     private suspend fun updatePushRule(kind: RuleKind, ruleId: String, enable: Boolean, newActions: List<Action>?) {
         session.pushRuleService().updatePushRuleActions(

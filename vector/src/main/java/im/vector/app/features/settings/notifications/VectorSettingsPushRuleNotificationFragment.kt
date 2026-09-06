@@ -42,6 +42,7 @@ abstract class VectorSettingsPushRuleNotificationFragment :
                         onFailure(it.ruleId)
                     }
                 }
+                is VectorSettingsPushRuleNotificationViewEvent.PushRulesUpdated -> onPushRulesUpdated(it.ruleIds, it.checked, it.failure)
             }
         }
     }
@@ -100,4 +101,6 @@ abstract class VectorSettingsPushRuleNotificationFragment :
     protected open fun onFailure(ruleId: String) {
         refreshDisplay()
     }
+
+    protected open fun onPushRulesUpdated(ruleIds: List<String>, checked: Boolean, failure: Throwable?) = Unit
 }

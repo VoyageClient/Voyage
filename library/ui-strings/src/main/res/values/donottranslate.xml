@@ -758,6 +758,14 @@
         <item>spark</item>
         <item>element</item>
     </string-array>
+    <string-array name="notification_default_level_entries" translatable="false">
+        <item>@string/room_settings_all_messages</item>
+        <item>@string/room_settings_mention_and_keyword_only</item>
+    </string-array>
+    <string-array name="notification_default_level_values" translatable="false">
+        <item>all_messages</item>
+        <item>mentions_only</item>
+    </string-array>
     <string name="settings_search_encrypted_rooms_title" translatable="false">Search encrypted rooms</string>
     <string name="settings_search_encrypted_rooms_summary" translatable="false">Securely cache decrypted messages on this device so encrypted rooms can be searched. Room history is downloaded and indexed in the background.</string>
     <string name="settings_search_unencrypted_on_server_title" translatable="false">Server search in unencrypted rooms</string>

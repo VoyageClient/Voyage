@@ -29,6 +29,7 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -36,7 +37,6 @@ import androidx.core.app.RemoteInput
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import im.vector.app.R
 import im.vector.app.core.extensions.createIgnoredUri
@@ -758,7 +758,7 @@ class NotificationUtils @Inject constructor(
                             .setContentTitle(buildMeta.applicationName)
                             .setContentText(stringProvider.getString(CommonStrings.settings_troubleshoot_test_push_notification_content))
                             .setSmallIcon(R.drawable.ic_notification)
-                            .setLargeIcon(getBitmap(context, im.vector.lib.ui.styles.R.drawable.element_logo_green))
+                            .setLargeIcon(getBitmap(context, R.drawable.app_logo_burst))
                             .setColor(ContextCompat.getColor(context, im.vector.lib.ui.styles.R.color.notification_accent_color))
                             .setPriority(NotificationCompat.PRIORITY_MAX)
                             .setCategory(NotificationCompat.CATEGORY_STATUS)
@@ -770,7 +770,7 @@ class NotificationUtils @Inject constructor(
     }
 
     private fun getBitmap(context: Context, @DrawableRes drawableRes: Int): Bitmap? {
-        val drawable = ResourcesCompat.getDrawable(context.resources, drawableRes, null) ?: return null
+        val drawable = AppCompatResources.getDrawable(context, drawableRes) ?: return null
         val canvas = Canvas()
         val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
         canvas.setBitmap(bitmap)

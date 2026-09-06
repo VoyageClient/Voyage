@@ -24,9 +24,13 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.session.pushrules.Action
+import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
+import org.matrix.android.sdk.api.session.pushrules.getActions
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.api.session.room.notification.RoomPushRuleService
+import org.matrix.android.sdk.internal.database.mapper.PushRulesMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.SessionDatabase
@@ -46,7 +50,7 @@ internal class DefaultRoomPushRuleService @AssistedInject constructor(
 
     override fun getRoomNotificationStateFlow(): Flow<RoomNotificationState> {
         return getPushRuleForRoom().map {
-            it?.toRoomNotificationState() ?: RoomNotificationState.ALL_MESSAGES
+            it?.toRoomNotificationState() ?: defaultRoomNotificationState()
         }
     }
 
@@ -61,5 +65,32 @@ internal class DefaultRoomPushRuleService @AssistedInject constructor(
                 .map { _ ->
                     stores.pushRules.findRule(RuleScope.GLOBAL, roomId)?.let { (kind, entity) -> entity.toRoomPushRule(kind) }
                 }
+    }
+
+    private fun defaultRoomNotificationState(): RoomNotificationState {
+        val summary = stores.roomSummary.get(roomId)
+        val ruleIds = when {
+            summary?.isDirect == true && summary.isEncrypted -> listOf(
+                    RuleIds.RULE_ID_ONE_TO_ONE_ENCRYPTED_ROOM,
+                    RuleIds.RULE_ID_ONE_TO_ONE_ROOM
+            )
+            summary?.isDirect == true -> listOf(RuleIds.RULE_ID_ONE_TO_ONE_ROOM)
+            summary?.isEncrypted == true -> listOf(
+                    RuleIds.RULE_ID_ENCRYPTED,
+                    RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS
+            )
+            else -> listOf(RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS)
+        }
+        val actions = ruleIds.mapNotNull { ruleId ->
+            val (_, entity) = stores.pushRules.findRule(RuleScope.GLOBAL, ruleId) ?: return@mapNotNull null
+            PushRulesMapper.map(entity).getActions().takeIf { entity.enabled && Action.Notify in it }
+        }
+        return if (actions.any { ruleActions -> ruleActions.any { it is Action.Sound } }) {
+            RoomNotificationState.ALL_MESSAGES_NOISY
+        } else if (actions.isNotEmpty()) {
+            RoomNotificationState.ALL_MESSAGES
+        } else {
+            RoomNotificationState.MENTIONS_ONLY
+        }
     }
 }

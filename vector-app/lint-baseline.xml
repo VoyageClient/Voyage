@@ -8342,17 +8342,6 @@
     <issue
         id="UnusedAttribute"
         message="Attribute `importantForAccessibility` is only used in API level 16 and higher (current min is 14)"
-        errorLine1="        android:importantForAccessibility=&quot;no&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_loading.xml"
-            line="12"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `importantForAccessibility` is only used in API level 16 and higher (current min is 14)"
         errorLine1="                android:importantForAccessibility=&quot;no&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
