@@ -216,6 +216,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views.composerRelatedMessageCloseButton.setOnClickListener {
             collapse()
             callback?.onCloseRelatedMessage()
+            views.composerEditText.post {
+                if (lastSpecialMode == null) {
+                    requestRegularModeKeyboard()
+                }
+            }
         }
 
         views.sendButton.setOnClickListener {
@@ -271,17 +276,28 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         callback?.onExpandOrCompactChange()
     }
 
-    private fun requestEditKeyboard() {
+    private fun requestRegularModeKeyboard() {
+        val editText = views.composerEditText
+        callback?.onSoftKeyboardRequested()
+        editText.showKeyboard(andRequestFocus = true)
+        editText.postDelayed({
+            if (lastSpecialMode == null && editText.hasFocus()) {
+                editText.showKeyboard()
+            }
+        }, SPECIAL_KEYBOARD_RETRY_DELAY)
+    }
+
+    private fun requestSpecialModeKeyboard() {
         val editText = views.composerEditText
         callback?.onSoftKeyboardRequested()
         editText.post {
-            if (lastSpecialMode !is MessageComposerMode.Edit) return@post
+            if (lastSpecialMode == null) return@post
             editText.showKeyboard(andRequestFocus = true)
             editText.postDelayed({
-                if (lastSpecialMode is MessageComposerMode.Edit && editText.hasFocus()) {
+                if (lastSpecialMode != null && editText.hasFocus()) {
                     editText.showKeyboard()
                 }
-            }, EDIT_KEYBOARD_RETRY_DELAY)
+            }, SPECIAL_KEYBOARD_RETRY_DELAY)
         }
     }
 
@@ -640,8 +656,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
 
         expand(animate = !isRefresh) {
-            if (!isRefresh && specialMode is MessageComposerMode.Edit) {
-                views.composerEditText.post(::requestEditKeyboard)
+            if (!isRefresh) {
+                views.composerEditText.post(::requestSpecialModeKeyboard)
             }
             views.composerRelatedMessageImage.isVisible = isImageVisible
         }
@@ -683,6 +699,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     companion object {
         private const val RELATED_MESSAGE_ANIMATION_DURATION = 100L
-        private const val EDIT_KEYBOARD_RETRY_DELAY = 150L
+        private const val SPECIAL_KEYBOARD_RETRY_DELAY = 150L
     }
 }
