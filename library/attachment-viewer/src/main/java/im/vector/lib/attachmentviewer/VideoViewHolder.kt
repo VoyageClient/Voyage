@@ -63,8 +63,8 @@ class VideoViewHolder constructor(itemView: View) :
     private var surface: Surface? = null
     private var isPrepared = false
     private var waitingForFirstFrame = false
-    private var videoWidth = 0
-    private var videoHeight = 0
+    private var videoWidth = 0f
+    private var videoHeight = 0f
     private var playbackSpeed = 1f
     private var pitchFollowsSpeed = true
     private var rebuiltForSpeed = false
@@ -449,9 +449,9 @@ class VideoViewHolder constructor(itemView: View) :
                 }
             }
 
-            override fun onVideoSizeChanged(width: Int, height: Int) {
-                videoWidth = width
-                videoHeight = height
+            override fun onVideoSizeChanged(width: Int, height: Int, pixelWidthHeightRatio: Float) {
+                videoWidth = width * (pixelWidthHeightRatio.takeIf { it > 0f } ?: 1f)
+                videoHeight = height.toFloat()
                 applyAspectMatrix()
             }
 
@@ -658,8 +658,8 @@ class VideoViewHolder constructor(itemView: View) :
         views.videoThumbnailImage.isVisible = true
         waitingForFirstFrame = false
         itemView.removeCallbacks(revealFallback)
-        videoWidth = 0
-        videoHeight = 0
+        videoWidth = 0f
+        videoHeight = 0f
         progress = 0
         wasPaused = false
         endedNaturally = false

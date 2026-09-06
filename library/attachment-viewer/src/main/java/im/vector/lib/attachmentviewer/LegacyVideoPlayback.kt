@@ -43,7 +43,7 @@ internal class LegacyVideoPlayback : VideoPlayback {
                     setDataSource(source)
                 }
                 isLooping = looping
-                setOnVideoSizeChangedListener { _, width, height -> listener.onVideoSizeChanged(width, height) }
+                setOnVideoSizeChangedListener { _, width, height -> listener.onVideoSizeChanged(width, height, 1f) }
                 setOnPreparedListener {
                     prepared = true
                     listener.onReady()

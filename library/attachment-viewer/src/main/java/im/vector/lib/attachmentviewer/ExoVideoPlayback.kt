@@ -65,7 +65,7 @@ internal class ExoVideoPlayback : VideoPlayback {
             }
 
             override fun onVideoSizeChanged(videoSize: VideoSize) {
-                listener.onVideoSizeChanged(videoSize.width, videoSize.height)
+                listener.onVideoSizeChanged(videoSize.width, videoSize.height, videoSize.pixelWidthHeightRatio)
             }
 
             override fun onPlayerError(error: PlaybackException) {

@@ -19,7 +19,7 @@ internal interface VideoPlayback {
 
     interface Listener {
         fun onReady()
-        fun onVideoSizeChanged(width: Int, height: Int)
+        fun onVideoSizeChanged(width: Int, height: Int, pixelWidthHeightRatio: Float)
         fun onCompletion()
         fun onError()
     }
