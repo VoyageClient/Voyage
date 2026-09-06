@@ -218,6 +218,8 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY = "SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY"
         private const val SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY = "SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY"
         private const val SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY = "SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY"
+        private const val SETTINGS_SHOW_ACL_EVENTS_KEY = "SETTINGS_SHOW_ACL_EVENTS_KEY"
+        private const val SETTINGS_SHOW_REACTIONS_KEY = "SETTINGS_SHOW_REACTIONS_KEY"
         private const val SETTINGS_VIBRATE_ON_MENTION_KEY = "SETTINGS_VIBRATE_ON_MENTION_KEY"
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
@@ -398,6 +400,8 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY,
                 SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY,
                 SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY,
+                SETTINGS_SHOW_ACL_EVENTS_KEY,
+                SETTINGS_SHOW_REACTIONS_KEY,
                 SETTINGS_MEDIA_SAVING_PERIOD_KEY,
                 SETTINGS_MEDIA_SAVING_PERIOD_SELECTED_KEY,
                 SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY,
@@ -736,6 +740,14 @@ class VectorPreferences @Inject constructor(
      */
     fun showAvatarDisplayNameChangeMessages(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY, true)
+    }
+
+    fun showAclEvents(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SHOW_ACL_EVENTS_KEY, false)
+    }
+
+    fun showReactions(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SHOW_REACTIONS_KEY, false)
     }
 
     /**

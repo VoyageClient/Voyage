@@ -456,6 +456,10 @@
     <string name="notice_room_kick_with_reason_by_you" translatable="false">You kicked %1$s. Reason: %2$s</string>
     <string name="has_been_kicked" translatable="false">You have been kicked from %1$s by %2$s</string>
     <string name="settings_show_join_leave_messages_summary" translatable="false">Invites, kicks, and bans are unaffected.</string>
+    <string name="settings_show_acl_events" translatable="false">Show ACL events</string>
+    <string name="settings_show_acl_events_summary" translatable="false">Show ACL list changes in the timeline.</string>
+    <string name="settings_show_reactions" translatable="false">Show reactions</string>
+    <string name="settings_show_reactions_summary" translatable="false">Show reactions in the timeline.</string>
     <string name="crash_report_copy_prompt" translatable="false">The application has crashed last time. Would you like to copy the crash report?</string>
 
     <string name="action_redact" translatable="false">Redact</string>

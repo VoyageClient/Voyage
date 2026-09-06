@@ -287,6 +287,18 @@
             android:title="@string/settings_show_avatar_display_name_changes_messages" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SHOW_ACL_EVENTS_KEY"
+            android:summary="@string/settings_show_acl_events_summary"
+            android:title="@string/settings_show_acl_events" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SHOW_REACTIONS_KEY"
+            android:summary="@string/settings_show_reactions_summary"
+            android:title="@string/settings_show_reactions" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
             android:key="SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
             android:summary="@string/settings_autoplay_animated_images_summary"

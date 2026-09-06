@@ -35,6 +35,10 @@ class TimelineEventVisibilityHelper @Inject constructor(
             rootThreadEventId: String?,
             isFromThreadTimeline: Boolean
     ): Boolean {
+        if (timelineEvent.root.getClearType() == EventType.REACTION ||
+                timelineEvent.root.getClearType() == EventType.STATE_ROOM_SERVER_ACL) {
+            return false
+        }
         if (isFromThreadTimeline || !userPreferencesProvider.shouldShowHiddenEvents()) {
             return false
         }
@@ -55,6 +59,12 @@ class TimelineEventVisibilityHelper @Inject constructor(
             rootThreadEventId: String?,
             forcedVisibleEventIds: Set<String> = emptySet()
     ): Boolean {
+        if (timelineEvent.root.getClearType() == EventType.REACTION && !userPreferencesProvider.shouldShowReactions()) {
+            return false
+        }
+        if (timelineEvent.root.getClearType() == EventType.STATE_ROOM_SERVER_ACL && !userPreferencesProvider.shouldShowAclEvents()) {
+            return false
+        }
         // A media "edit" that changed the media itself is rejected as an edit and shown as its own
         // message, so it must not be hidden by the replace-relation rule below.
         if (timelineEvent.eventId in forcedVisibleEventIds) {
@@ -77,7 +87,8 @@ class TimelineEventVisibilityHelper @Inject constructor(
     }
 
     private fun TimelineEvent.isDisplayable(): Boolean {
-        return TimelineDisplayableEvents.DISPLAYABLE_TYPES.contains(root.getClearType())
+        return (root.getClearType() == EventType.REACTION && userPreferencesProvider.shouldShowReactions()) ||
+                TimelineDisplayableEvents.DISPLAYABLE_TYPES.contains(root.getClearType())
     }
 
     private fun TimelineEvent.shouldBeHidden(rootThreadEventId: String?, isFromThreadTimeline: Boolean): Boolean {

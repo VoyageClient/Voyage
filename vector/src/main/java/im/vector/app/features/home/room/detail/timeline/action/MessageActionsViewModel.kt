@@ -63,6 +63,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
@@ -666,9 +667,9 @@ class MessageActionsViewModel @AssistedInject constructor(
         add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, forwardContent))
     }
 
-    // Redactions and reactions only surface in the timeline with hidden events shown, itself a developer-mode
-    // setting, so the jump to the event they act on lives with the other developer actions.
+    // Relation navigation is developer-only, except for pin changes.
     private fun relatedEventId(timelineEvent: TimelineEvent): String? {
+        timelineEvent.root.getRootThreadEventId()?.let { return it }
         return when (timelineEvent.root.getClearType()) {
             // Room v11 (MSC2174) moved `redacts` from the event into its content.
             EventType.REDACTION -> timelineEvent.root.redacts ?: timelineEvent.root.content?.get("redacts") as? String
