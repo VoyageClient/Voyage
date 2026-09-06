@@ -170,8 +170,7 @@ jobs:
               echo "Changes since nightly $previous_tag:"
               git log "$previous_commit..HEAD" --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
             else
-              echo "Commits in this first dated nightly:"
-              git log --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
+              echo "Initial release."
             fi
           } > release-notes.md
 
