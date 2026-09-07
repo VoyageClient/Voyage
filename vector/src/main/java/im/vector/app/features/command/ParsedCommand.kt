@@ -85,4 +85,5 @@ sealed interface ParsedCommand {
     data class ToggleAutoTranslate(val targetLanguage: String?) : ParsedCommand
     data class SendTranslated(val message: CharSequence, val targetLanguage: String?) : ParsedCommand
     data class DownloadFile(val mxcUrl: String) : ParsedCommand
+    data class ViewFile(val mxcUrl: String) : ParsedCommand
 }

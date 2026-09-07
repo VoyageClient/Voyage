@@ -50,6 +50,10 @@ abstract class BaseAttachmentProvider<Type>(
     // and a "1 of 1" counter over the message it came from is just noise.
     var showOverlayInfo = true
 
+    var showInChat = true
+
+    var showForward = true
+
     private var overlayView: AttachmentOverlayView? = null
 
     /** Resolved local sources per attachment uid, feeding the overlay's scrub preview. */
@@ -73,6 +77,8 @@ abstract class BaseAttachmentProvider<Type>(
             overlayView = AttachmentOverlayView(context)
             overlayView?.interactionListener = interactionListener
         }
+        overlayView?.showInChat = showInChat
+        overlayView?.showForward = showForward
 
         val counter = if (showOverlayInfo) {
             stringProvider.getString(CommonStrings.attachment_viewer_item_x_of_y, position + 1, getItemCount())

@@ -169,6 +169,7 @@ interface Navigator {
             pageOverRoomMedia: Boolean = true,
             // Off to cross-fade instead of morphing out of [view], as avatars do.
             morphFromView: Boolean = true,
+            hideShowInChat: Boolean = false,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     )
 

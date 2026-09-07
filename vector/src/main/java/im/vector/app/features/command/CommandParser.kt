@@ -577,6 +577,14 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.DOWNLOAD)
                     }
                 }
+                Command.VIEW.matches(slashCommand) -> {
+                    val url = message.toString().trim()
+                    if (url.isMxcUrl() && url.none { it.isWhitespace() }) {
+                        ParsedCommand.ViewFile(mxcUrl = url)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.VIEW)
+                    }
+                }
                 Command.CRASH_APP.matches(slashCommand) && vectorPreferences.developerMode() -> {
                     throw RuntimeException("Application crashed from user demand")
                 }

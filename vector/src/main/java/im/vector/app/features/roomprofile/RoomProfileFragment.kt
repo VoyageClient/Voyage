@@ -149,9 +149,11 @@ class RoomProfileFragment :
         )
         bannerAppBarStateChangeListener = object : AppBarStateChangeListener() {
             override fun onStateChanged(appBarLayout: AppBarLayout, state: State) {
+                views.matrixProfileToolbarAvatarImageView.isClickable = state == State.COLLAPSED
                 bannerUiHelper?.update(currentBannerUrl != null, state == State.COLLAPSED)
             }
         }
+        views.matrixProfileToolbarAvatarImageView.isClickable = false
         views.matrixProfileAppBarLayout.addOnOffsetChangedListener(bannerAppBarStateChangeListener)
         roomProfileViewModel.observeViewEvents {
             when (it) {

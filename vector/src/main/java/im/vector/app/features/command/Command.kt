@@ -83,7 +83,8 @@ enum class Command(
     JUMP_TO_DATE("/jumptodate", null, "<date>", CommonStrings.command_description_jump_to_date, false, false),
     ENCRYPT("/encrypt", null, "[message]", CommonStrings.command_description_encrypt, false, true),
     TRANSLATE("/translate", null, "[\$lang] [message]", CommonStrings.command_description_translate, false, true),
-    DOWNLOAD("/download", null, "<mxc-url>", CommonStrings.command_description_download, false, true);
+    DOWNLOAD("/download", null, "<mxc-url>", CommonStrings.command_description_download, false, true),
+    VIEW("/view", null, "<mxc-url>", CommonStrings.command_description_view, false, true);
 
     val allAliases = arrayOf(command, *aliases.orEmpty())
 

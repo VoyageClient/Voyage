@@ -68,6 +68,7 @@ import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.message.toForwardedInfoContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
+import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -86,6 +87,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             val standalonePreview: Boolean = false,
             // Opened from the room's own timeline, so "Show in chat" returns to it instead of stacking a copy.
             val openedFromTimeline: Boolean = false,
+            val hideShowInChat: Boolean = false,
+            val hideForward: Boolean = false,
     ) : Parcelable
 
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
@@ -260,6 +263,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>) {
         sourceProvider.interactionListener = this
+        sourceProvider.showInChat = args()?.hideShowInChat != true
+        sourceProvider.showForward = args()?.hideForward != true
         sourceProvider.imageSettledListener = { uid ->
             if (uid == awaitedImageUid) {
                 awaitedImageUid = null
@@ -513,6 +518,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     }
 
     override fun onForward() {
+        if (args()?.standalonePreview == true) {
+            forwardAsMedia()
+            return
+        }
         val timelineEvent = currentSourceProvider?.getTimelineEventAtPosition(currentPosition)
         if (timelineEvent != null) {
             forward(timelineEvent.root, timelineEvent.getLastEditNewContent())
@@ -531,6 +540,30 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 forward(event.copy(roomId = event.roomId ?: roomId), null)
             }
         }
+    }
+
+    private fun forwardAsMedia() {
+        val data = attachmentDataAt(currentPosition) ?: return
+        val session = activeSessionHolder.getSafeActiveSession() ?: return
+        val uri = session.fileService().getTemporarySharableURI(
+                mxcUrl = data.url,
+                fileName = data.filename,
+                mimeType = data.mimeType,
+                elementToDecrypt = data.elementToDecrypt,
+        ) ?: run {
+            rootView.showOptimizedSnackbar(getString(CommonStrings.unknown_error))
+            return
+        }
+        val shareType = when (data) {
+            is VideoContentRenderer.Data -> data.mimeType ?: "video/*"
+            else -> data.mimeType ?: MimeTypes.Images
+        }
+        startActivity(Intent(this, IncomingShareActivity::class.java).apply {
+            action = Intent.ACTION_SEND
+            type = shareType
+            putExtra(Intent.EXTRA_STREAM, uri.toUri())
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        })
     }
 
     private fun forward(event: Event, editedContent: Content?) {
@@ -649,8 +682,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 transitionCornerRadiusPx: Int = 0,
                 standalonePreview: Boolean = false,
                 openedFromTimeline: Boolean = false,
+                hideShowInChat: Boolean = false,
+                hideForward: Boolean = false,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
-            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview, openedFromTimeline))
+            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview, openedFromTimeline, hideShowInChat, hideForward))
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
                 it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))

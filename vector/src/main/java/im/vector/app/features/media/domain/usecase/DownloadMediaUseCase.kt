@@ -34,7 +34,7 @@ class DownloadMediaUseCase @Inject constructor(
         runCatching {
             // Fall back to sniffing the file's content when the type can't be derived from its name
             // (e.g. downloaded avatars have no extension), so it's saved with a proper extension.
-            val mimeType = getMimeTypeFromUri(appContext, input.toUri()) ?: sniffMimeType(input)
+            val mimeType = mimeTypeOf(input)
             saveMedia(
                     context = appContext,
                     file = input,
@@ -44,6 +44,10 @@ class DownloadMediaUseCase @Inject constructor(
                     currentTimeMillis = clock.epochMillis()
             )
         }
+    }
+
+    suspend fun mimeTypeOf(input: File): String? = withContext(session.coroutineDispatchers.io) {
+        getMimeTypeFromUri(appContext, input.toUri()) ?: sniffMimeType(input)
     }
 
     private fun sniffMimeType(file: File): String? {

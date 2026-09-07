@@ -423,6 +423,8 @@ class DefaultNavigator @Inject constructor(
                 inMemoryData = listOf(imageData),
                 sharedTransitionName = sharedElement?.let { ViewCompat.getTransitionName(it) },
                 standalonePreview = true,
+                hideShowInChat = true,
+                hideForward = true,
         )
         val options = if (sharedElement != null) {
             ActivityOptionsCompat.makeSceneTransitionAnimation(activity, sharedElement, ViewCompat.getTransitionName(sharedElement) ?: "")
@@ -494,6 +496,7 @@ class DefaultNavigator @Inject constructor(
             standalonePreview: Boolean,
             pageOverRoomMedia: Boolean,
             morphFromView: Boolean,
+            hideShowInChat: Boolean,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     ) {
         val cornerRadiusPx = (view.tag as? Float)?.toInt()?.takeIf { it > 0 } ?: 0
@@ -507,6 +510,7 @@ class DefaultNavigator @Inject constructor(
                 transitionCornerRadiusPx = cornerRadiusPx,
                 standalonePreview = standalonePreview,
                 openedFromTimeline = pageOverRoomMedia && activity is RoomDetailActivity,
+                hideShowInChat = hideShowInChat,
         ).let { intent ->
             if (!morphFromView) {
                 // Cross-fade, like an avatar: the message it came from stands in for the media instead.

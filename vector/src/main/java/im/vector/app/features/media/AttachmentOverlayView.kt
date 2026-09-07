@@ -47,6 +47,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), AttachmentEventListener {
 
     var interactionListener: AttachmentInteractionListener? = null
+    var showInChat = true
+    var showForward = true
     val views: MergeImageAttachmentOverlayBinding
 
     private var isPlaying = false
@@ -330,6 +332,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
         val themed = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context))
         val popup = PopupMenu(themed, views.overlayMoreButton)
         popup.inflate(R.menu.menu_attachment_viewer_overlay)
+        popup.menu.findItem(R.id.attachmentViewerShowInChat).isVisible = showInChat
+        popup.menu.findItem(R.id.attachmentViewerForward).isVisible = showForward
         popup.menu.findItem(R.id.attachmentViewerVolume).isVisible = isVideo
         val speedItem = popup.menu.findItem(R.id.attachmentViewerPlaybackSpeed)
         // MediaPlayer only takes a speed from API 23, and nothing below it can stand in.

@@ -31,6 +31,12 @@ class CommandParserTest {
     }
 
     @Test
+    fun parseViewCommand() {
+        test("/view mxc://example.org/media", ParsedCommand.ViewFile("mxc://example.org/media"))
+        test("/view https://example.org/media", ParsedCommand.ErrorSyntax(Command.VIEW))
+    }
+
+    @Test
     fun parseSlashAddToSpaceCommand() {
         test("/addToSpace $A_SPACE_ID", ParsedCommand.AddToSpace(A_SPACE_ID))
     }

@@ -100,6 +100,8 @@ import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
+import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -770,6 +772,9 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.DownloadFile -> {
                             handleDownloadSlashCommand(room, parsedCommand)
+                        }
+                        is ParsedCommand.ViewFile -> {
+                            handleViewSlashCommand(room, parsedCommand)
                         }
                         is ParsedCommand.ToggleAutoTranslate -> {
                             popDraft(room, state.sendMode)
@@ -2713,6 +2718,29 @@ class MessageComposerViewModel @AssistedInject constructor(
             downloadMediaUseCase.execute(file, title = title).getOrThrow()
             // The notification can be suppressed (no notification permission) — confirm in-app too.
             _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.file_has_been_downloaded)))
+        }
+    }
+
+    private fun handleViewSlashCommand(room: Room, parsedCommand: ParsedCommand.ViewFile) {
+        launchSlashCommandFlowSuspendable(room, parsedCommand) {
+            val file = session.fileService().downloadFile(
+                    fileName = parsedCommand.mxcUrl.substringAfterLast('/'),
+                    mimeType = null,
+                    url = parsedCommand.mxcUrl,
+                    elementToDecrypt = null,
+            )
+            val mimeType = downloadMediaUseCase.mimeTypeOf(file)
+            val externalUri = if (mimeType.isMimeTypeImage() || mimeType.isMimeTypeVideo()) {
+                null
+            } else {
+                requireNotNull(session.fileService().getTemporarySharableURI(
+                        mxcUrl = parsedCommand.mxcUrl,
+                        fileName = parsedCommand.mxcUrl.substringAfterLast('/'),
+                        mimeType = null,
+                        elementToDecrypt = null,
+                ))
+            }
+            _viewEvents.post(MessageComposerViewEvents.OpenMedia(parsedCommand.mxcUrl, file, mimeType, externalUri))
         }
     }
 

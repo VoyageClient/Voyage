@@ -53,6 +53,7 @@ import im.vector.app.core.utils.ExpandingBottomSheetBehavior
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
+import im.vector.app.core.utils.safeStartActivity
 import im.vector.app.databinding.FragmentComposerBinding
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.attachments.AttachmentType
@@ -89,6 +90,8 @@ import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.permalink.NavigationInterceptor
 import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.poll.PollMode
@@ -120,6 +123,9 @@ import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.api.util.MimeTypes
+import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
+import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import org.matrix.android.sdk.api.util.toRoomAliasMatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
 import reactivecircus.flowbinding.android.widget.textChanges
@@ -257,6 +263,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
                 is MessageComposerViewEvents.AnimateSendButtonVisibility -> handleSendButtonVisibilityChanged(it)
                 is MessageComposerViewEvents.OpenRoomMemberProfile -> openRoomMemberProfile(it.userId)
+                is MessageComposerViewEvents.OpenMedia -> openMedia(it)
                 is MessageComposerViewEvents.ShowMassRedactConfirmation -> handleMassRedactConfirmation(it)
                 is MessageComposerViewEvents.OpenRoomLink -> handleOpenRoomLink(it)
                 is MessageComposerViewEvents.VoicePlaybackOrRecordingFailure -> {
@@ -863,6 +870,57 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 showSnackWithMessage(getString(if (parsedCommand.enable) CommonStrings.markdown_has_been_enabled else CommonStrings.markdown_has_been_disabled))
             }
             else -> Unit
+        }
+    }
+
+    private fun openMedia(action: MessageComposerViewEvents.OpenMedia) {
+        val activity = requireActivity()
+        val imageData = ImageContentRenderer.Data(
+                eventId = action.mxcUrl,
+                filename = action.file.name,
+                mimeType = action.mimeType,
+                url = action.mxcUrl,
+                elementToDecrypt = null,
+                height = null,
+                maxHeight = 1024,
+                width = null,
+                maxWidth = 2048,
+        )
+        when {
+            action.mimeType.isMimeTypeImage() -> navigator.openMediaViewer(
+                    activity = activity,
+                    roomId = roomId,
+                    mediaData = imageData,
+                    view = views.root,
+                    standalonePreview = true,
+                    hideShowInChat = true,
+                    morphFromView = false,
+                    options = null,
+            )
+            action.mimeType.isMimeTypeVideo() -> navigator.openMediaViewer(
+                    activity = activity,
+                    roomId = roomId,
+                    mediaData = VideoContentRenderer.Data(
+                            eventId = action.mxcUrl,
+                            filename = action.file.name,
+                            mimeType = action.mimeType,
+                            url = action.mxcUrl,
+                            elementToDecrypt = null,
+                            thumbnailMediaData = imageData,
+                    ),
+                    view = views.root,
+                    standalonePreview = true,
+                    hideShowInChat = true,
+                    morphFromView = false,
+                    options = null,
+            )
+            else -> {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(Uri.parse(requireNotNull(action.externalUri)), action.mimeType ?: MimeTypes.Any)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                requireContext().safeStartActivity(Intent.createChooser(intent, null))
+            }
         }
     }
 
