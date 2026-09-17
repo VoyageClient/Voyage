@@ -27,6 +27,17 @@ class ZoomPanGesture(
         private val minZoom: Float,
         private val maxZoom: Float,
         private val springBackBelowFit: Boolean = false,
+        /**
+         * How far past the content's edges panning may go, as a fraction of the viewport. Zero pins the
+         * content to its own bounds, which is what a viewer wants; an editor needs the slack to put a
+         * region of the picture where the crop or the frame is, including while zoomed out.
+         */
+        private val panSlackFraction: Float = 0f,
+        /**
+         * Whether two fingers pan as well as zoom. An editor needs it: one finger there is editing —
+         * dragging a crop edge — so a pinch is the only gesture left for moving the view.
+         */
+        private val panWithPinch: Boolean = false,
         private val onChanged: () -> Unit,
 ) {
 
@@ -53,6 +64,8 @@ class ZoomPanGesture(
     var onTap: (() -> Unit)? = null
 
     private var lastSpan = 0f
+    private var lastFocusX = 0f
+    private var lastFocusY = 0f
     private var panning = false
     private var lastTouchX = 0f
     private var lastTouchY = 0f
@@ -72,6 +85,8 @@ class ZoomPanGesture(
         isPinching = true
         panning = false
         lastSpan = max(spanOf(event), MIN_PINCH_SPAN_PX)
+        lastFocusX = focusXOf(event)
+        lastFocusY = focusYOf(event)
     }
 
     fun applyPinch(event: MotionEvent) {
@@ -84,14 +99,21 @@ class ZoomPanGesture(
         lastSpan = span
 
         val factor = zoom / previousZoom
-        val focusX = (event.getX(0) + event.getX(1)) / 2f
-        val focusY = (event.getY(0) + event.getY(1)) / 2f
-        // Scale about the focus point only: following it as well turns a pinch into a pan, since
-        // holding one finger still drags the midpoint toward it as the other moves.
+        val focusX = focusXOf(event)
+        val focusY = focusYOf(event)
         val centreX = viewportWidth / 2f + panX
         val centreY = viewportHeight / 2f + panY
         panX = focusX - factor * (focusX - centreX) - viewportWidth / 2f
         panY = focusY - factor * (focusY - centreY) - viewportHeight / 2f
+        // Following the focus as it travels is what makes two fingers pan. Without it a pinch only
+        // scales about wherever the fingers happen to be — which is all a viewer needs, since one
+        // finger pans there, but leaves an editor no way to move the view at all.
+        if (panWithPinch) {
+            panX += focusX - lastFocusX
+            panY += focusY - lastFocusY
+        }
+        lastFocusX = focusX
+        lastFocusY = focusY
         clampPan()
         onChanged()
     }
@@ -105,13 +127,17 @@ class ZoomPanGesture(
 
     /** Once the content is no larger than the viewport it is forced back to centre. */
     fun clampPan() {
+        val slackX = panSlackFraction * viewportWidth
+        val slackY = panSlackFraction * viewportHeight
         if (zoom <= 1f) {
-            panX = 0f
-            panY = 0f
+            // Zoomed out there is nothing to pan *within*, so without slack the content is pinned dead
+            // centre and cannot be moved at all.
+            panX = panX.coerceIn(-slackX, slackX)
+            panY = panY.coerceIn(-slackY, slackY)
             return
         }
-        val maxX = max(0f, (contentWidth * zoom - viewportWidth) / 2f)
-        val maxY = max(0f, (contentHeight * zoom - viewportHeight) / 2f)
+        val maxX = max(0f, (contentWidth * zoom - viewportWidth) / 2f) + slackX
+        val maxY = max(0f, (contentHeight * zoom - viewportHeight) / 2f) + slackY
         panX = panX.coerceIn(-maxX, maxX)
         panY = panY.coerceIn(-maxY, maxY)
     }
@@ -193,6 +219,10 @@ class ZoomPanGesture(
         }
         return false
     }
+
+    private fun focusXOf(event: MotionEvent) = (event.getX(0) + event.getX(1)) / 2f
+
+    private fun focusYOf(event: MotionEvent) = (event.getY(0) + event.getY(1)) / 2f
 
     private fun spanOf(event: MotionEvent): Float {
         if (event.pointerCount < 2) return 0f

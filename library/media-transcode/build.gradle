@@ -26,6 +26,11 @@ android {
         }
     }
 
+    // For BuildConfig.DEBUG: this module cannot see the SDK's DebugLog, so its own diagnostics gate on this.
+    buildFeatures {
+        buildConfig true
+    }
+
     compileOptions {
         sourceCompatibility versions.sourceCompat
         targetCompatibility versions.targetCompat

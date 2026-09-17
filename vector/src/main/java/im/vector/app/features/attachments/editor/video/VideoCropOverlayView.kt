@@ -19,6 +19,7 @@ import android.view.View
 import android.view.ViewConfiguration
 import im.vector.app.features.attachments.ZoomPanGesture
 import im.vector.app.features.attachments.editor.CropRatio
+import im.vector.app.features.attachments.editor.CropRotationAnchor
 import im.vector.app.features.attachments.editor.reduceRatio
 import kotlin.math.abs
 import kotlin.math.max
@@ -27,6 +28,10 @@ import kotlin.math.min
 /** Below 1x, so the video can be shrunk to leave room around handles that sit on its edge. */
 private const val MIN_ZOOM = 0.15f
 private const val MAX_ZOOM = 20f
+
+// Panning may run half a viewport past the content's edges, so a region can be put wherever the crop
+// or the frame is instead of only where the content's own bounds allow.
+private const val PAN_SLACK_FRACTION = 0.5f
 
 private const val EDGE_INSET_FRACTION = 0.06f
 
@@ -56,6 +61,8 @@ class VideoCropOverlayView @JvmOverloads constructor(
         set(value) {
             field = value
             applyRatioAroundCenter()
+            // A ratio the user picked is a crop they chose, so this orientation is what to return to.
+            anchorCropToCurrentOrientation()
             invalidate()
         }
 
@@ -134,7 +141,7 @@ class VideoCropOverlayView @JvmOverloads constructor(
     private var snappedX = false
     private var snappedY = false
 
-    private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM) { invalidate() }.apply {
+    private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM, panSlackFraction = PAN_SLACK_FRACTION, panWithPinch = true) { invalidate() }.apply {
         onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
     }
 
@@ -151,13 +158,23 @@ class VideoCropOverlayView @JvmOverloads constructor(
         rotateNormalised(crop)
         // The turn swapped the crop's own ratio, so it has to be re-derived for the new orientation.
         applyRatioAroundCenter()
+        restoreCropIfBackToItsOwnOrientation()
         gesture.clampPan()
         invalidate()
     }
 
+    private fun restoreCropIfBackToItsOwnOrientation() {
+        cropAnchor.cropFor(rotationDegrees)?.let { crop.set(it) }
+    }
+
+    private val cropAnchor = CropRotationAnchor()
+
+    private fun anchorCropToCurrentOrientation() = cropAnchor.anchor(crop, rotationDegrees)
+
     fun resetEdits() {
         rotationDegrees = 0
         crop.set(0f, 0f, 1f, 1f)
+        cropAnchor.clear()
         gesture.reset()
         applyRatioAroundCenter()
         clearSnapGuides()
@@ -198,6 +215,8 @@ class VideoCropOverlayView @JvmOverloads constructor(
     fun restoreEdits(rotation: Int, savedCrop: RectF?) {
         rotationDegrees = ((rotation % 360) + 360) % 360
         crop.set(savedCrop ?: RectF(0f, 0f, 1f, 1f))
+        // Whatever was restored is the crop for this orientation, so turning away and back keeps it.
+        anchorCropToCurrentOrientation()
         invalidate()
     }
 
@@ -339,6 +358,7 @@ class VideoCropOverlayView @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (dragMode == DragMode.CROP_MOVE || dragMode == DragMode.CROP_RESIZE) anchorCropToCurrentOrientation()
                 dragMode = DragMode.NONE
                 clearSnapGuides()
                 parent?.requestDisallowInterceptTouchEvent(false)

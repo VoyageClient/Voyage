@@ -24,6 +24,7 @@ import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
 import im.vector.app.features.attachments.ZoomPanGesture
 import im.vector.app.features.attachments.editor.CropRatio
+import im.vector.app.features.attachments.editor.CropRotationAnchor
 import im.vector.app.features.attachments.editor.reduceRatio
 import kotlin.math.abs
 import kotlin.math.max
@@ -36,6 +37,10 @@ private const val MIN_ZOOM = 0.15f
 
 /** Deliberately deeper than the media viewer's 6x, so small details can be censored precisely. */
 private const val MAX_ZOOM = 20f
+
+// Panning may run half a viewport past the content's edges, so a region can be put wherever the crop
+// or the frame is instead of only where the content's own bounds allow.
+private const val PAN_SLACK_FRACTION = 0.5f
 
 private const val EDGE_INSET_FRACTION = 0.06f
 
@@ -163,7 +168,7 @@ class ImageEditorView @JvmOverloads constructor(
     private var snappedX = false
     private var snappedY = false
 
-    private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM) { invalidate() }.apply {
+    private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM, panSlackFraction = PAN_SLACK_FRACTION, panWithPinch = true) { invalidate() }.apply {
         onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
     }
 
@@ -204,9 +209,18 @@ class ImageEditorView @JvmOverloads constructor(
         // new orientation.
         applyRatioAroundCenter(crop, cropAspectRatio)
         censors.forEach { applyRatioAroundCenter(it.rect, it.aspectRatio) }
+        restoreCropIfBackToItsOwnOrientation()
         gesture.clampPan()
         animateRotation()
     }
+
+    private fun restoreCropIfBackToItsOwnOrientation() {
+        cropAnchor.cropFor(userRotation)?.let { crop.set(it) }
+    }
+
+    private val cropAnchor = CropRotationAnchor()
+
+    private fun anchorCropToCurrentOrientation() = cropAnchor.anchor(crop, userRotation)
 
     /**
      * The geometry snaps to the new orientation immediately; this just spins the last quarter turn
@@ -234,6 +248,7 @@ class ImageEditorView @JvmOverloads constructor(
     fun resetEdits() {
         userRotation = 0
         crop.set(0f, 0f, 1f, 1f)
+        cropAnchor.clear()
         censors.clear()
         selectedCensor = -1
         gesture.reset()
@@ -258,6 +273,8 @@ class ImageEditorView @JvmOverloads constructor(
     fun restoreEdits(edits: ImageEditorEdits) {
         userRotation = edits.userRotation
         crop.set(edits.crop)
+        // Whatever was restored is the crop for this orientation, so turning away and back keeps it.
+        anchorCropToCurrentOrientation()
         censors.clear()
         censors.addAll(edits.censors.map { CensorBox(RectF(it)) })
         selectedCensor = -1
@@ -307,7 +324,9 @@ class ImageEditorView @JvmOverloads constructor(
                 applyRatioAroundCenter(it.rect, ratio)
             }
         } else {
+            // The setter reshapes the crop, so the anchor is taken after it.
             cropAspectRatio = ratio
+            anchorCropToCurrentOrientation()
         }
         invalidate()
     }
@@ -487,6 +506,9 @@ class ImageEditorView @JvmOverloads constructor(
                         tool = Tool.CROP
                         onToolChanged?.invoke(Tool.CROP)
                     }
+                }
+                if (dragMode == DragMode.CROP_MOVE || dragMode == DragMode.CROP_RESIZE) {
+                    anchorCropToCurrentOrientation()
                 }
                 dragMode = DragMode.NONE
                 clearSnapGuides()

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.attachments.editor.video
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -30,6 +31,7 @@ import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -50,6 +52,8 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityVideoEditorBinding
 import im.vector.app.features.attachments.editor.AspectRatioPicker
 import im.vector.app.features.attachments.editor.restoreOriginalResult
+import im.vector.app.features.attachments.preview.PlaybackPosition
+import im.vector.app.features.attachments.preview.VIDEO_PROGRESS_INTERVAL_MS
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.animatedimage.AnimatedImageFormat
@@ -64,6 +68,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
 import java.io.File
 import java.util.Locale
@@ -81,7 +86,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var displayName: String? = null
     private var initialEdits: VideoEditorEdits? = null
 
-    private var player: MediaPlayer? = null
+    private var player: EditorPreviewPlayer? = null
     private var audioPlayer: MediaPlayer? = null
     private var audioReady = false
     private var surface: Surface? = null
@@ -95,6 +100,16 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var exportJob: Job? = null
     private var fineMode = false
     private var scrubbing = false
+    private var playheadAnimator: ValueAnimator? = null
+    private var playheadUs = 0L
+    private var lastReportedPositionUs = 0L
+
+    // How much clip the player got through per millisecond of wall time, against what was asked for.
+    private var observedMediaUs = 0L
+    private var observedWallMs = 0L
+    private var lastTickAt = 0L
+    private var draggingScrubber = false
+    private var restartingUntilMs = 0L
     private var resumeAfterScrub = false
     private var lastSeekAt = 0L
     private var pendingEditedUs: Long? = null
@@ -171,9 +186,11 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 end != endUs -> end
                 else -> null
             }
+            DebugLog.i { "MEDIADBG VEXP trim start=$start end=$end dragging=$dragging fine=$fineMode edited=$edited" }
             startUs = start
             endUs = end
             applyTrimToAnimatedPlayer()
+            updateScrubberRange()
             updateDurationLabel()
             if (dragging) {
                 beginScrubbing()
@@ -187,7 +204,17 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 pendingEditedUs = null
             }
         }
+        views.videoEditorTimeline.onHandleHeld = { positionUs, held ->
+            if (held) {
+                beginScrubbing()
+                seekTo(positionUs)
+            } else {
+                // Left where the handle was: the frame it cuts on is what the user was looking at.
+                endScrubbing(positionUs, resume = false)
+            }
+        }
         views.videoEditorTimeline.onFineModeChanged = { fine, positionUs ->
+            DebugLog.i { "MEDIADBG VEXP fineMode=$fine at ${positionUs}us startUs=$startUs endUs=$endUs" }
             fineMode = fine
             // Zooming in is the edit gesture starting, so park playback now, not on first movement.
             if (fine) {
@@ -329,38 +356,33 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             return
         }
         val player = player ?: return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        if (!player.enforcesRange && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             if (!playbackSpeed.isDefault && !warnedAboutSpeedPreview) {
                 warnedAboutSpeedPreview = true
                 Toast.makeText(this, getString(CommonStrings.video_editor_speed_preview_unsupported), Toast.LENGTH_LONG).show()
             }
             return
         }
-        // Setting the parameters on a paused player starts it, and the sound it gets out before it
-        // can be paused again is a click — one per step of the speed dialog, which is a crackle.
-        // The speed only means anything while playing anyway, so it waits for that.
-        if (!player.isPlaying) {
+        // MediaPlayer starts on being given parameters, and the sound it gets out before it can be
+        // paused again is a click — one per step of the speed dialog, which is a crackle. So on that
+        // player the speed waits for playback, which is the only time it means anything anyway.
+        if (!player.enforcesRange && !player.isPlaying) {
             speedAwaitingPlayback = true
             return
         }
         pushPlaybackSpeed(player)
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    private fun pushPlaybackSpeed(player: MediaPlayer) {
+    private fun pushPlaybackSpeed(player: EditorPreviewPlayer) {
         speedAwaitingPlayback = false
-        runCatching {
-            player.playbackParams = player.playbackParams
-                    .setSpeed(playbackSpeed.speed)
-                    // Tape behaviour is pitch riding along with the speed; the alternative holds it.
-                    .setPitch(if (playbackSpeed.changePitch) playbackSpeed.speed else 1f)
-        }.onFailure { Timber.w(it, "VideoEditor: cannot preview speed ${playbackSpeed.speed}") }
+        player.setSpeed(playbackSpeed.speed, playbackSpeed.changePitch)
     }
 
     private fun resetEdits() {
         if (durationUs <= 0) return
         startUs = 0
         endUs = durationUs
+        updateScrubberRange()
         setVolume(PlaybackVolume())
         setReversed(false, announce = false)
         playbackSpeed = PlaybackSpeed()
@@ -394,7 +416,6 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             durationUs = info.durationUs
             frameRate = info.frameRate
-            views.videoEditorSeekBar.max = (durationUs / 1000).toInt().coerceAtLeast(1)
             views.videoEditorTimeline.durationUs = durationUs
             views.videoEditorTimeline.frameRate = info.frameRate
             val edits = initialEdits
@@ -410,6 +431,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             applyTargetSizeOverride()
             views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop)
             views.videoEditorTimeline.setTrim(startUs, endUs)
+            updateScrubberRange()
             updateDurationLabel()
             extractThumbnails()
         }
@@ -436,7 +458,6 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             animatedSource = file
             durationUs = source.durationUs
             frameRate = source.frameRate
-            views.videoEditorSeekBar.max = (durationUs / 1000).toInt().coerceAtLeast(1)
             views.videoEditorTimeline.durationUs = durationUs
             views.videoEditorTimeline.frameRate = frameRate
             val edits = initialEdits
@@ -448,6 +469,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             applyTargetSizeOverride()
             views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop)
             views.videoEditorTimeline.setTrim(startUs, endUs)
+            updateScrubberRange()
             updateDurationLabel()
             addAnimatedThumbnails(source)
             animatedPlayer = AnimatedFramePlayer(source, views.videoEditorTextureView, handler) { positionUs ->
@@ -548,7 +570,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             // a player still preparing throws on both reads.
             player?.let {
                 runCatching {
-                    resumePositionUs = it.currentPosition * 1000L
+                    resumePositionUs = it.positionUs
                     resumePlaying = it.isPlaying
                 }
             }
@@ -598,33 +620,36 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private fun preparePlayer() {
         releasePlayer()
-        player = MediaPlayer().apply {
-            setSurface(this@VideoEditorActivity.surface)
-            setOnPreparedListener {
-                applyVolume()
-                applyPlaybackSpeed()
-                seekTo(resumePositionUs.takeIf { position -> position > startUs } ?: startUs)
-                // A seek before playback starts does not reliably render a frame, so an idle
-                // editor would show nothing at all: play either way, and stop on the first frame
-                // when playback was not running when we left — or when preparation outlived the
-                // activity being on screen, which must not start sound in the background.
-                pauseOnFirstFrame = activityPaused || (resumePositionUs > 0 && !resumePlaying)
-                startPlayback()
-            }
-            // Reaching the end of the file bypasses the ticker's own check, and nothing else
-            // would notice playback had stopped.
-            setOnCompletionListener { stopAtEnd() }
-            setOnErrorListener { _, what, extra ->
-                Timber.w("VideoEditor: player error $what/$extra")
-                Toast.makeText(
-                        this@VideoEditorActivity, getString(CommonStrings.video_editor_load_failed), Toast.LENGTH_SHORT
-                ).show()
-                true
-            }
-            runCatching {
-                setDataSource(this@VideoEditorActivity, sourceUri)
-                prepareAsync()
-            }.onFailure { Timber.w(it, "VideoEditor: cannot open $sourceUri") }
+        val surface = surface ?: return
+        player = EditorPreviewPlayer.create().also { preview ->
+            preview.open(
+                    context = this,
+                    uri = sourceUri,
+                    surface = surface,
+                    startPositionUs = resumePositionUs.takeIf { it > startUs } ?: startUs,
+                    // A seek before playback starts does not reliably render a frame, so an idle editor
+                    // would show nothing at all: play either way, and stop on the first frame when
+                    // playback was not running when we left — or when preparation outlived the activity
+                    // being on screen, which must not start sound in the background.
+                    playWhenReady = true,
+                    listener = previewListener,
+            )
+        }
+    }
+
+    private val previewListener = object : EditorPreviewPlayer.Listener {
+        override fun onReady() {
+            applyVolume()
+            applyPlaybackSpeed()
+            pauseOnFirstFrame = activityPaused || (resumePositionUs > 0 && !resumePlaying)
+            startPlayback()
+        }
+
+        override fun onEnded() = stopAtEnd()
+
+        override fun onError(message: String) {
+            Timber.w("VideoEditor: player error $message")
+            Toast.makeText(this@VideoEditorActivity, getString(CommonStrings.video_editor_load_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -667,7 +692,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private fun applyVolume() {
         // MediaPlayer's own scalar tops out at 1; anything above it comes from the boost.
         val scalar = volume.effectiveGain.coerceIn(0f, 1f)
-        runCatching { player?.setVolume(scalar, scalar) }
+        player?.setVolume(scalar)
         runCatching { audioPlayer?.setVolume(scalar, scalar) }
         applyBoost()
     }
@@ -675,13 +700,13 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     /** Anything above 100% is out of MediaPlayer's reach, and only KitKat has the effect for it. */
     private fun applyBoost() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return
-        playerBoost = tuneBoost(playerBoost, player)
-        audioBoost = tuneBoost(audioBoost, audioPlayer)
+        playerBoost = tuneBoost(playerBoost, player?.audioSessionId)
+        audioBoost = tuneBoost(audioBoost, audioPlayer?.audioSessionId)
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
-    private fun tuneBoost(existing: LoudnessBoost?, target: MediaPlayer?): LoudnessBoost? {
-        val boost = existing ?: target?.let { LoudnessBoost.attachTo(it.audioSessionId) } ?: return null
+    private fun tuneBoost(existing: LoudnessBoost?, sessionId: Int?): LoudnessBoost? {
+        val boost = existing ?: sessionId?.takeIf { it != 0 }?.let { LoudnessBoost.attachTo(it) } ?: return null
         boost.setGain(volume.effectiveGain)
         return boost
     }
@@ -696,28 +721,85 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         views.videoEditorPlayPause.setOnClickListener { togglePlayback() }
         views.videoEditorSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (fromUser) seekThrottled(progress * 1000L)
+                if (fromUser) seekThrottled(scrubberPositionUs(progress))
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
+                draggingScrubber = true
                 beginScrubbing()
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                endScrubbing(seekBar.progress * 1000L)
+                draggingScrubber = false
+                endScrubbing(scrubberPositionUs(seekBar.progress))
             }
         })
     }
 
-    /** Everything that moves the playhead goes through here so the strip, bar and label agree. */
+    /**
+     * Whether there is nothing left to play before the cut. Not a plain `>= endUs`: the player reports
+     * milliseconds while the cut is in microseconds, so a playhead parked exactly on it reads as a
+     * fraction short and playback would resume only to stop on its very next tick.
+     */
+    private fun isAtCut(positionUs: Long): Boolean =
+            TrimmedScrubber.isAtCut(positionUs, endUs, VIDEO_PROGRESS_INTERVAL_MS * 1000L)
+
+    private fun keptRangeUs(): Long = TrimmedScrubber.rangeUs(startUs, endUs, durationUs)
+
+    private fun scrubberPositionUs(progress: Int): Long = TrimmedScrubber.positionUs(startUs, progress)
+
+    private fun updateScrubberRange() {
+        val max = TrimmedScrubber.maxMs(startUs, endUs, durationUs)
+        if (views.videoEditorSeekBar.max == max) return
+        // A glide in flight is aimed at a position on the old scale.
+        cancelScrubberGlide()
+        views.videoEditorSeekBar.max = max
+    }
+
+    /**
+     * Everything that moves the playhead goes through here so the strip, bar and label agree — and all
+     * three are carried between reports rather than stepping on them, which is what made the bar read
+     * as smooth while the strip's playhead stuttered beside it.
+     */
     private fun setPlayhead(us: Long) {
+        cancelScrubberGlide()
+        val glides = !scrubbing && isPlaying() &&
+                PlayheadGlide.glides(playheadUs, us, VIDEO_PROGRESS_INTERVAL_MS.toLong(), playbackSpeed.speed, SCRUBBER_GLIDE_MAX_STEP_US)
+        if (!glides) {
+            applyPlayhead(us)
+            return
+        }
+        val aim = PlayheadGlide.aimUs(us, endUs, VIDEO_PROGRESS_INTERVAL_MS.toLong(), playbackSpeed.speed, notBeforeUs = playheadUs)
+        // From where the playhead already is, not from the report: an audio sink that stalls (Bluetooth
+        // spinning up) repeats a position, and starting each glide at it walked the playhead back a
+        // report's worth every time — the same sliver of clip covered over and over in place.
+        playheadAnimator = ValueAnimator.ofFloat(playheadUs.toFloat(), aim.toFloat()).apply {
+            duration = VIDEO_PROGRESS_INTERVAL_MS.toLong()
+            interpolator = LinearInterpolator()
+            addUpdateListener { applyPlayhead((it.animatedValue as Float).toLong()) }
+            start()
+        }
+    }
+
+    private fun applyPlayhead(us: Long) {
+        playheadUs = us
         views.videoEditorTimeline.playheadUs = us
-        views.videoEditorSeekBar.progress = (us / 1000).toInt()
+        // The finger owns the bar while it is on it — but only a finger on the bar itself. Trimming
+        // scrubs too, and the bar has to follow the cut there, pinned to whichever end is being moved.
+        if (!draggingScrubber) {
+            val bar = views.videoEditorSeekBar
+            bar.progress = TrimmedScrubber.progressMs(us, startUs).coerceIn(0, bar.max)
+        }
         views.videoEditorPlaybackTime.text = getString(
                 CommonStrings.video_position_of_duration,
-                DateUtils.formatElapsedTime(us / 1_000_000),
-                DateUtils.formatElapsedTime(durationUs / 1_000_000)
+                DateUtils.formatElapsedTime((us - startUs).coerceAtLeast(0) / 1_000_000),
+                DateUtils.formatElapsedTime(keptRangeUs() / 1_000_000)
         )
+    }
+
+    private fun cancelScrubberGlide() {
+        playheadAnimator?.cancel()
+        playheadAnimator = null
     }
 
     private fun updatePlayPauseIcon() {
@@ -737,21 +819,33 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             return
         }
         val player = player ?: return
-        if (endUs > 0 && player.currentPosition * 1000L >= endUs) seekTo(startUs)
-        player.start()
-        if (speedAwaitingPlayback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) pushPlaybackSpeed(player)
+        if (isAtCut(player.positionUs)) {
+            // Seeking is asynchronous, so the first ticks after this can still report a position past
+            // the cut — which used to stop playback again immediately, taking a second press to start.
+            restartingUntilMs = SystemClock.uptimeMillis() + RESTART_SEEK_GRACE_MS
+            seekTo(startUs)
+        }
+        // Restores what stopping at the cut silenced (the players that need silencing).
+        applyVolume()
+        // The trim is the player's own business from here: where it can, it plays the clip and stops at
+        // its end, picture and sound together, rather than being watched and paused from the outside.
+        player.setPlaybackRange(startUs, endUs.takeIf { it > startUs } ?: durationUs)
+        player.play()
+        if (speedAwaitingPlayback) pushPlaybackSpeed(player)
         handler.post(playbackTicker)
         updatePlayPauseIcon()
     }
 
     private fun pausePlayback() {
+        restartingUntilMs = 0L
+        cancelScrubberGlide()
         animatedPlayer?.let {
             it.pause()
             updatePlayPauseIcon()
             return
         }
         handler.removeCallbacks(playbackTicker)
-        player?.takeIf { it.isPlaying }?.pause()
+        player?.pause()
         updatePlayPauseIcon()
     }
 
@@ -759,22 +853,117 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private val playbackTicker = object : Runnable {
         override fun run() {
             val player = player ?: return
-            val positionUs = player.currentPosition * 1000L
+            // MediaPlayer's position walks backwards between reports; taken as read it stutters the bar.
+            // Same smoothing, on the same cadence, as the upload previewer's scrubber.
+            val positionUs = PlaybackPosition.smooth(
+                    rawMs = (player.positionUs / 1000).toInt(),
+                    lastMs = (lastReportedPositionUs / 1000).toInt(),
+                    durationMs = (durationUs / 1000).toInt(),
+                    playing = true,
+                    loopRestartMs = (startUs / 1000).toInt(),
+            ) * 1000L
+            val tickAt = SystemClock.uptimeMillis()
+            if (lastTickAt > 0 && positionUs > lastReportedPositionUs) {
+                val wallMs = tickAt - lastTickAt
+                if (wallMs > 0) {
+                    observedMediaUs += positionUs - lastReportedPositionUs
+                    observedWallMs += wallMs
+                }
+            }
+            lastTickAt = tickAt
+            lastReportedPositionUs = positionUs
             setPlayhead(positionUs)
+            if (player.enforcesRange) {
+                // The clip's end is the player's, so the ticker only moves the playhead; stopAtEnd()
+                // arrives from the player itself, on the frame it actually finished on.
+                handler.postDelayed(this, VIDEO_PROGRESS_INTERVAL_MS.toLong())
+                return
+            }
             // endUs is zero until the metadata probe lands, and stopping against it then would
             // park playback at the start every tick.
-            if (endUs > 0 && positionUs >= endUs) {
+            if (endUs > 0 && positionUs >= stopThresholdUs()) {
+                // Still waiting for a restart's seek to land; stopping here would park playback at the
+                // cut it is trying to leave.
+                if (SystemClock.uptimeMillis() < restartingUntilMs) {
+                    handler.postDelayed(this, VIDEO_PROGRESS_INTERVAL_MS.toLong())
+                    return
+                }
                 stopAtEnd()
                 return
             }
-            handler.postDelayed(this, PLAYHEAD_INTERVAL_MS)
+            restartingUntilMs = 0L
+            handler.postDelayed(this, nextTickDelayMs(positionUs))
         }
+    }
+
+    /**
+     * A tick lands on the cut rather than after it. Checking every 100ms of wall time means the media
+     * advances 100ms times the playback speed between checks, so playback ran that far past the cut
+     * before anything noticed — the per-frame view and the export stop exactly there, and the sped-up
+     * preview showed a sliver of the clip that would never be exported.
+     */
+    private fun nextTickDelayMs(positionUs: Long): Long {
+        val interval = VIDEO_PROGRESS_INTERVAL_MS.toLong()
+        if (endUs <= 0) return interval
+        // Near the cut, look every frame rather than working out when to look from the speed that was
+        // asked for. What a player actually does with a playback speed is its own business — a device
+        // that runs a little fast turns any such arithmetic into an overrun, and that grows with speed.
+        val remainingUs = stopThresholdUs() - positionUs
+        return if (remainingUs <= NEAR_CUT_US) MIN_TICK_MS else interval
     }
 
     /** The cut is where this clip ends; playing again starts it over from the other cut. */
     private fun stopAtEnd() {
+        DebugLog.i { "MEDIADBG VEXP preview stopped at ${player?.positionUs}us endUs=$endUs startUs=$startUs" +
+                        " speed=${playbackSpeed.speed} ranged=${player?.enforcesRange}" +
+                        " observedRate=${if (observedWallMs > 0) (observedMediaUs / 1000.0 / observedWallMs) else -1.0}" }
+        observedMediaUs = 0
+        observedWallMs = 0
+        lastTickAt = 0
+        if (player?.enforcesRange == true) {
+            // Playback already ran out at the cut, picture and sound on the same frame, so there is
+            // nothing to silence and nothing to seek back to.
+            pausePlayback()
+            setPlayhead(endUs)
+            return
+        }
+        // Silence first: sound already handed to the audio sink is heard after pause() whatever the
+        // picture does, so the clip could be seen to end on the cut and still be heard past it.
+        // The user's volume comes back when playback next starts.
+        player?.setVolume(0f)
         pausePlayback()
-        setPlayhead(endUs)
+        // Pausing does not stop the picture where the decision was made: frames already in flight keep
+        // being drawn, and at 3x a few milliseconds of that is a tenth of a second of clip past the cut.
+        // Landing on the cut leaves exactly the frame the per-frame view and the export end on.
+        if (endUs > 0 && canSeekPrecisely()) seekTo(endUs) else setPlayhead(endUs)
+    }
+
+    /**
+     * Plain seekTo lands on the previous sync frame, which can be seconds earlier — worse than the
+     * overrun it would be correcting. SEEK_CLOSEST is API 26+.
+     */
+    private fun canSeekPrecisely() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O || animatedPlayer != null
+
+    /** One frame of the clip, the granularity the cut and the export are accurate to. */
+    private fun frameDurationUs(): Long =
+            if (frameRate > 0f) (1_000_000f / frameRate).toLong().coerceAtLeast(1) else DEFAULT_FRAME_DURATION_US
+
+    /**
+     * Where the ticker calls it a day, which is before the cut rather than at it. The frames between
+     * there and the cut are the ones already on their way to the screen when pause is issued — and each
+     * of those is worth a frame times the playback speed in clip time, which is how a tenth of a second
+     * of picture ran past the cut at 3x. Stopping early costs nothing: [stopAtEnd] then seeks to the cut,
+     * so the frame left on screen is the one the per-frame view and the export end on either way.
+     */
+    private fun stopThresholdUs(): Long {
+        val speed = playbackSpeed.speed.coerceAtLeast(1f)
+        // Two parts, both in clip time and both proportional to the speed: the tick that notices can be
+        // a whole tick late, and the frames already queued for the screen keep being drawn after pause()
+        // — which is the picture running past the cut. Stopping this far ahead costs nothing visible,
+        // since the seek below lands the final frame on the cut either way.
+        val queuedFrames = frameDurationUs() * QUEUED_FRAMES * speed
+        val tickLag = MIN_TICK_MS * 1000f * speed
+        return (endUs - (queuedFrames + tickLag).toLong()).coerceAtLeast(startUs)
     }
 
     /**
@@ -782,6 +971,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
      * playhead. Pause for the duration of the gesture and resume afterwards if we were playing.
      */
     private fun beginScrubbing() {
+        cancelScrubberGlide()
         if (scrubbing) return
         scrubbing = true
         resumeAfterScrub = isPlaying()
@@ -850,32 +1040,33 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    /** Seeks are expensive enough that one per touch-move event stutters. */
+    /** Seeks are expensive enough that one per touch-move event stutters, on a player that lets them. */
     private fun seekThrottled(us: Long) {
         setPlayhead(us)
         blipAudio(us)
+        if (player?.coalescesSeeks == true) {
+            // Mid-drag the keyframe is enough and it keeps up with the finger; letting go lands the frame.
+            seekTo(us, precise = fineMode)
+            return
+        }
         val now = SystemClock.uptimeMillis()
         if (now - lastSeekAt < SEEK_THROTTLE_MS) return
         lastSeekAt = now
         seekTo(us)
     }
 
-    private fun seekTo(us: Long) {
+    private fun seekTo(us: Long, precise: Boolean = true) {
+        lastReportedPositionUs = us
         setPlayhead(us)
         animatedPlayer?.let {
             it.seekTo(us)
             return
         }
         val player = player ?: return
-        runCatching {
-            // Plain seekTo() lands on the previous sync frame, which on a sparsely keyframed video
-            // can be seconds earlier — that reads as the playhead jumping backwards.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                player.seekTo(us / 1000, MediaPlayer.SEEK_CLOSEST)
-            } else {
-                player.seekTo((us / 1000).toInt())
-            }
-        }
+        // Any frame of the source has to be reachable while scrubbing or stepping, which a clipped
+        // player cannot do — so the bounds come off until playback starts again.
+        player.clearPlaybackRange()
+        player.seekTo(us, precise)
     }
 
     private fun updateDurationLabel() {
@@ -1028,6 +1219,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     override fun onDestroy() {
+        cancelScrubberGlide()
         handler.removeCallbacks(playbackTicker)
         releasePlayer()
         animatedPlayer?.release()
@@ -1049,10 +1241,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
         playerBoost = null
         audioBoost = null
-        player?.let {
-            runCatching { it.stop() }
-            it.release()
-        }
+        player?.release()
         player = null
         audioPlayer?.let {
             runCatching { it.stop() }
@@ -1077,7 +1266,26 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         private const val QUIET_GAIN = 0.5f
 
         private const val THUMBNAIL_COUNT = 10
-        private const val PLAYHEAD_INTERVAL_MS = 60L
+
+        // Past this the playhead has some catching up to do — a seek, a loop or a stall — and snapping
+        // reads better than gliding there.
+        private const val SCRUBBER_GLIDE_MAX_STEP_US = 1_200_000L
+
+        // How long a restart's seek is given to land before the end of the clip counts again.
+        private const val RESTART_SEEK_GRACE_MS = 1_000L
+
+        // A floor for the shortened final tick — a frame — so a player whose position momentarily
+        // stops advancing cannot spin the handler.
+        private const val MIN_TICK_MS = 16L
+
+        /** Frames a paused pipeline can still paint, each worth a frame times the speed in clip time. */
+        private const val QUEUED_FRAMES = 3
+
+        /** Within this much of the cut, every frame is checked rather than scheduled for. */
+        private const val NEAR_CUT_US = 400_000L
+
+        /** Frame duration assumed where the probe gave no frame rate: 30fps. */
+        private const val DEFAULT_FRAME_DURATION_US = 33_333L
         private const val SEEK_THROTTLE_MS = 40L
         private const val AUDIO_BLIP_MS = 120L
 

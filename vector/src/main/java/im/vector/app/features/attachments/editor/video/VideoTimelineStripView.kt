@@ -60,6 +60,9 @@ class VideoTimelineStripView @JvmOverloads constructor(
      */
     var onFineModeChanged: ((fine: Boolean, positionUs: Long) -> Unit)? = null
 
+    /** A trim handle taken hold of, and let go of, so the preview can show that edge's frame meanwhile. */
+    var onHandleHeld: ((positionUs: Long, held: Boolean) -> Unit)? = null
+
     var durationUs: Long = 0
         set(value) {
             field = value
@@ -389,7 +392,9 @@ class VideoTimelineStripView @JvmOverloads constructor(
                 }
                 if (dragging == Drag.PLAYHEAD && abs(event.x - playheadX) > touchSlop) pressOffset = 0f
                 if (dragging == Drag.START || dragging == Drag.END) {
-                    // Taking hold of a handle is not an edit; wait for movement.
+                    // Taking hold of a handle is not an edit; wait for movement. The preview still goes
+                    // to the edge being held, so the frame that edge cuts on is visible before it moves.
+                    onHandleHeld?.invoke(handleUs(), true)
                     postDelayed(longPressRunnable, ViewConfiguration.getLongPressTimeout().toLong())
                 } else {
                     handleDrag(event.x)
@@ -405,7 +410,10 @@ class VideoTimelineStripView @JvmOverloads constructor(
                 parent?.requestDisallowInterceptTouchEvent(false)
                 removeCallbacks(longPressRunnable)
                 when (dragging) {
-                    Drag.START, Drag.END -> if (trimChanged) listener?.onTrimChanged(startUs, endUs, false)
+                    Drag.START, Drag.END -> {
+                        if (trimChanged) listener?.onTrimChanged(startUs, endUs, false)
+                        onHandleHeld?.invoke(handleUs(), false)
+                    }
                     Drag.PLAYHEAD -> onScrub?.invoke(playheadUs, false)
                     Drag.NONE -> Unit
                 }
@@ -416,14 +424,17 @@ class VideoTimelineStripView @JvmOverloads constructor(
         return true
     }
 
+    /** Which edge the current gesture holds. */
+    private fun handleUs(): Long = if (dragging == Drag.START) startUs else endUs
+
     private fun enterFineMode() {
         fineMode = true
         fineFingerX = lastTouchX
-        fineBaseFrame = (if (dragging == Drag.START) startUs else endUs) / frameDurationUs
+        fineBaseFrame = handleUs() / frameDurationUs
         fineRepeatSteps = 0L
         fineAccumulator = 0f
         fineRate = 0f
-        fineCentreUs = if (dragging == Drag.START) startUs else endUs
+        fineCentreUs = handleUs()
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         onFineModeChanged?.invoke(true, fineCentreUs)
         animateFineProgress(1f)
@@ -433,7 +444,7 @@ class VideoTimelineStripView @JvmOverloads constructor(
     private fun exitFineMode() {
         fineMode = false
         removeCallbacks(fineTicker)
-        onFineModeChanged?.invoke(false, if (dragging == Drag.START) startUs else endUs)
+        onFineModeChanged?.invoke(false, handleUs())
         animateFineProgress(0f)
     }
 

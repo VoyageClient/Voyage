@@ -270,7 +270,13 @@ internal class TranscodeExporter(private val context: Context) {
         }
 
         if (!muxer.isStarted) throw VideoEditException.EmptyRange()
-        Timber.d("VideoEdit: re-encoded ${spec.startUs}us..${spec.endUs}us exactly")
+        if (BuildConfig.DEBUG) {
+            Timber.i(
+                    "MEDIADBG VEXP re-encoded ${spec.startUs}us..${spec.endUs}us rate=${timeMap.rate}" +
+                            " lastRenderedSource=${lastRenderedUs}us lastWrittenOutput=${lastWrittenUs}us" +
+                            " expectedOutput=${rangeUs}us"
+            )
+        }
         return lastWrittenUs
     }
 
