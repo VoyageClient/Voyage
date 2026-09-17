@@ -23,6 +23,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.home.room.list.VisibleRoomTracker
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilterTab
 import im.vector.app.features.home.room.list.sections.RoomSections
@@ -32,6 +33,8 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -68,6 +71,8 @@ import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.api.util.toOption
 import org.matrix.android.sdk.flow.flow
 
+private const val VISIBLE_ROOMS_DEBOUNCE_MS = 300L
+
 class HomeRoomListViewModel @AssistedInject constructor(
         @Assisted initialState: HomeRoomListViewState,
         private val session: Session,
@@ -78,6 +83,10 @@ class HomeRoomListViewModel @AssistedInject constructor(
         private val drawableProvider: DrawableProvider,
         private val vectorPreferences: VectorPreferences,
 ) : VectorViewModel<HomeRoomListViewState, HomeRoomListAction, HomeRoomListViewEvents>(initialState) {
+
+    private val visibleRooms = VisibleRoomTracker()
+    private var subscribedRoomIds = emptySet<String>()
+    private var visibleRoomsUpdateJob: Job? = null
 
     @AssistedFactory
     interface Factory : MavericksAssistedViewModelFactory<HomeRoomListViewModel, HomeRoomListViewState> {
@@ -129,6 +138,8 @@ class HomeRoomListViewModel @AssistedInject constructor(
     }
 
     override fun onCleared() {
+        visibleRoomsUpdateJob?.cancel()
+        session.roomService().updateVisibleRoomListRooms(emptySet(), subscribedRoomIds)
         vectorPreferences.unsubscribeToChanges(overrideDisplayPrefListener)
         super.onCleared()
     }
@@ -406,6 +417,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
 
     override fun handle(action: HomeRoomListAction) {
         when (action) {
+            is HomeRoomListAction.RoomVisibilityChanged -> handleRoomVisibilityChanged(action.roomId, action.visible)
             is HomeRoomListAction.SelectRoom -> handleSelectRoom(action)
             is HomeRoomListAction.LeaveRoom -> handleLeaveRoom(action)
             is HomeRoomListAction.ForgetRoom -> handleForgetRoom(action)
@@ -420,6 +432,17 @@ class HomeRoomListViewModel @AssistedInject constructor(
             is HomeRoomListAction.RequestDeleteSection -> handleRequestDeleteSection(action)
             is HomeRoomListAction.DeleteSection -> handleDeleteSection(action)
             HomeRoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
+        }
+    }
+
+    private fun handleRoomVisibilityChanged(roomId: String, visible: Boolean) {
+        if (!visibleRooms.update(roomId, visible)) return
+        visibleRoomsUpdateJob?.cancel()
+        visibleRoomsUpdateJob = viewModelScope.launch {
+            delay(VISIBLE_ROOMS_DEBOUNCE_MS)
+            val target = visibleRooms.roomIds()
+            session.roomService().updateVisibleRoomListRooms(target - subscribedRoomIds, subscribedRoomIds - target)
+            subscribedRoomIds = target
         }
     }
 

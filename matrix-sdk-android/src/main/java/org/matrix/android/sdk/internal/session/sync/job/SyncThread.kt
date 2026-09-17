@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.debug.SyncDebugFlags
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.isTokenError
@@ -39,10 +40,9 @@ import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.internal.network.NetworkConnectivityChecker
 import org.matrix.android.sdk.internal.session.call.ActiveCallHandler
 import org.matrix.android.sdk.internal.session.sync.SyncTask
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRoomSubscriptions
 import org.matrix.android.sdk.internal.settings.DefaultLightweightSettingsStorage
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
-import org.matrix.android.sdk.internal.util.Debouncer
-import org.matrix.android.sdk.internal.util.createUIHandler
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import java.util.Timer
@@ -54,6 +54,9 @@ private const val RETRY_WAIT_TIME_MS = 10_000L
 
 private const val MIN_AGE_TO_CANCEL_SYNC_MS = 5_000L
 
+// How long a resume may keep requesting without a long poll before it is treated as ordinary traffic.
+private const val MAX_CATCH_UP_MS = 60_000L
+
 private val loggerTag = LoggerTag("SyncThread", LoggerTag.SYNC)
 
 internal class SyncThread @Inject constructor(
@@ -63,13 +66,14 @@ internal class SyncThread @Inject constructor(
         private val activeCallHandler: ActiveCallHandler,
         private val lightweightSettingsStorage: DefaultLightweightSettingsStorage,
         private val matrixConfiguration: MatrixConfiguration,
+        private val syncImportState: org.matrix.android.sdk.internal.session.sync.SyncImportState,
+        private val syncStateHolder: org.matrix.android.sdk.internal.session.sync.SyncStateHolder,
+        private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
 ) : Thread("Matrix-SyncThread"), NetworkConnectivityChecker.Listener, BackgroundDetectionObserver.Listener {
 
     private var state: SyncState = SyncState.Idle
-    private val liveState = kotlinx.coroutines.flow.MutableStateFlow(state)
     private val lock = Object()
     private val syncScope = CoroutineScope(SupervisorJob())
-    private val debouncer = Debouncer(createUIHandler())
 
     private var canReachServer = true
     private var isStarted = false
@@ -102,7 +106,16 @@ internal class SyncThread @Inject constructor(
     @Volatile
     private var forceImmediateSync = false
 
+    // Same "don't long poll, ask now" effect, but without claiming a catch-up: opening a room changes the
+    // sliding-sync subscriptions several times, and routing that through forceImmediateSync relit the
+    // progress bar on every one of them.
+    @Volatile
+    private var forceQuietImmediateSync = false
+
+    private var catchUpStartedAt = 0L
+
     private var activeCallsJob: Job? = null
+    private val roomSubscriptionsListener: () -> Unit = { requestImmediateSyncIfRunning() }
 
     private val _syncFlow = MutableSharedFlow<SyncResponse>()
 
@@ -134,13 +147,18 @@ internal class SyncThread @Inject constructor(
 
     fun pause() = synchronized(lock) {
         if (isStarted) {
-            Timber.tag(loggerTag.value).d("Pause sync... Not cancelling incremental sync")
+            Timber.tag(loggerTag.value).d("Pause sync...")
             isStarted = false
+            forceImmediateSync = true
             retryNoNetworkTask?.cancel()
-            // Do not cancel the current incremental sync.
-            // Incremental sync can be long and it requires the user to wait for the treatment to end,
-            // else all is restarted from the beginning each time the user moves the app to foreground.
+            cancelInflightSync("backgrounded", force = true)
         }
+    }
+
+    private fun requestImmediateSyncIfRunning() = synchronized(lock) {
+        if (!isStarted) return@synchronized
+        forceQuietImmediateSync = true
+        cancelInflightSync("room-subscriptions-changed", force = true)
     }
 
     fun kill() = synchronized(lock) {
@@ -149,12 +167,6 @@ internal class SyncThread @Inject constructor(
         retryNoNetworkTask?.cancel()
         syncScope.coroutineContext.cancelChildren()
         lock.notify()
-    }
-
-    fun currentState() = state
-
-    fun syncStateFlow(): kotlinx.coroutines.flow.Flow<SyncState> {
-        return liveState
     }
 
     fun syncFlow(): SharedFlow<SyncResponse> = _syncFlow
@@ -174,15 +186,20 @@ internal class SyncThread @Inject constructor(
         cancelInflightSync("connectivity-changed")
     }
 
-    private fun cancelInflightSync(reason: String) {
+    private fun cancelInflightSync(reason: String, force: Boolean = false) {
         val job = inflightSyncJob ?: return
         val generation = inflightSyncGeneration
         if (!job.isActive || generation == cancelledSyncGeneration) return
         // Only a request old enough to have been stranded by the event is worth kicking. The connectivity
         // checker reports the network once at startup, milliseconds after the first request goes out —
         // cancelling that one just throws away a healthy sync and re-issues it.
-        if (SystemClock.elapsedRealtime() - inflightSyncStartedAt < MIN_AGE_TO_CANCEL_SYNC_MS) {
+        if (!force && SystemClock.elapsedRealtime() - inflightSyncStartedAt < MIN_AGE_TO_CANCEL_SYNC_MS) {
             Timber.tag(loggerTag.value).d("Not cancelling a just-issued sync ($reason)")
+            return
+        }
+        // Cancelling during import would discard work and replay the same delta.
+        if (syncImportState.isImporting) {
+            Timber.tag(loggerTag.value).d("Not cancelling a sync that is importing its response ($reason)")
             return
         }
         cancelledSyncGeneration = generation
@@ -196,6 +213,7 @@ internal class SyncThread @Inject constructor(
         isStarted = true
         networkConnectivityChecker.register(this)
         backgroundDetectionObserver.register(this)
+        slidingSyncRoomSubscriptions.addListener(roomSubscriptionsListener)
         registerActiveCallsObserver()
         while (state != SyncState.Killing) {
             Timber.tag(loggerTag.value).d("Entering loop, state: $state")
@@ -227,12 +245,17 @@ internal class SyncThread @Inject constructor(
             } else {
                 if (forceImmediateSync || state !is SyncState.Running) {
                     forceImmediateSync = false
+                    if (state.let { it !is SyncState.Running || !it.afterPause }) {
+                        catchUpStartedAt = SystemClock.elapsedRealtime()
+                    }
                     updateStateTo(SyncState.Running(afterPause = true))
                 }
+                val quietImmediate = forceQuietImmediateSync
+                forceQuietImmediateSync = false
                 val afterPause = state.let { it is SyncState.Running && it.afterPause }
                 val timeout = when {
                     previousSyncResponseHasToDevice -> 0L /* Force timeout to 0 */
-                    afterPause -> 0L /* No timeout after a pause */
+                    afterPause || quietImmediate -> 0L /* No timeout after a pause */
                     else -> matrixConfiguration.syncConfig.longPollTimeout
                 }
                 Timber.tag(loggerTag.value).d("Execute sync request with timeout $timeout")
@@ -256,6 +279,7 @@ internal class SyncThread @Inject constructor(
         Timber.tag(loggerTag.value).d("Sync killed")
         updateStateTo(SyncState.Killed)
         backgroundDetectionObserver.unregister(this)
+        slidingSyncRoomSubscriptions.removeListener(roomSubscriptionsListener)
         networkConnectivityChecker.unregister(this)
         unregisterActiveCallsObserver()
     }
@@ -263,7 +287,7 @@ internal class SyncThread @Inject constructor(
     private fun registerActiveCallsObserver() {
         activeCallsJob = syncScope.launch(Dispatchers.Main) {
             activeCallHandler.getActiveCallsFlow().collect { activeCalls ->
-                if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground) {
+                if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground && !SyncDebugFlags.keepSyncingInBackground) {
                     pause()
                 }
             }
@@ -282,6 +306,17 @@ internal class SyncThread @Inject constructor(
         return try {
             val syncResponse = syncTask.execute(params)
             _syncFlow.emit(syncResponse)
+            state.let {
+                // A catch-up is not one request: the server hands back the backlog a response at a time, so
+                // dropping out after the first one hid the progress bar for the rest of it — the case the
+                // user sees as "it synced for 20s without a bar". Stay in catch-up until a response brings
+                // nothing more, with a time bound so a busy account cannot hold it open indefinitely.
+                val stillCatchingUp = syncResponse.hasRoomUpdates() &&
+                        SystemClock.elapsedRealtime() - catchUpStartedAt < MAX_CATCH_UP_MS
+                if (it is SyncState.Running && it.afterPause && !syncImportState.catchUpPending && !stillCatchingUp) {
+                    updateStateTo(SyncState.Running(afterPause = false))
+                }
+            }
             syncResponse.toDevice?.events?.isNotEmpty().orFalse()
         } catch (failure: Throwable) {
             if (failure is Failure.NetworkConnection) {
@@ -306,12 +341,6 @@ internal class SyncThread @Inject constructor(
                 }
             }
             false
-        } finally {
-            state.let {
-                if (it is SyncState.Running && it.afterPause) {
-                    updateStateTo(SyncState.Running(afterPause = false))
-                }
-            }
         }
     }
 
@@ -321,9 +350,10 @@ internal class SyncThread @Inject constructor(
             return
         }
         state = newState
-        debouncer.debounce("post_state", {
-            liveState.value = newState
-        }, 150)
+        // Publishing straight from the sync thread: hopping through a main-thread Handler meant a sync
+        // shorter than the debounce window never published its Running(afterPause = true) at all (the
+        // following state cancelled it), and a congested main thread published it seconds late.
+        syncStateHolder.state.value = newState
     }
 
     override fun onMoveToForeground() {
@@ -331,8 +361,15 @@ internal class SyncThread @Inject constructor(
     }
 
     override fun onMoveToBackground() {
+        if (SyncDebugFlags.keepSyncingInBackground) {
+            Timber.tag(loggerTag.value).i("Backgrounded, but debug background sync is on: staying live")
+            return
+        }
         if (activeCallHandler.getActiveCallsFlow().value.isEmpty()) {
             pause()
         }
     }
 }
+
+private fun SyncResponse.hasRoomUpdates(): Boolean =
+        rooms?.let { it.join.isNotEmpty() || it.invite.isNotEmpty() || it.leave.isNotEmpty() || it.knock.isNotEmpty() }.orFalse()

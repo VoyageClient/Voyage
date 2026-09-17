@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.list
 
+import com.airbnb.epoxy.VisibilityState
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
@@ -63,7 +64,9 @@ class RoomSummaryItemFactory @Inject constructor(
                     createInvitationItem(roomSummary, changeMembershipState, listener)
                 }
                 else -> createRoomItem(
-                        roomSummary, selectedRoomIds, displayMode, singleLineLastEvent, listener?.let { it::onRoomClicked }, listener?.let { it::onRoomLongClicked }
+                        roomSummary, selectedRoomIds, displayMode, singleLineLastEvent,
+                        listener?.let { it::onRoomClicked }, listener?.let { it::onRoomLongClicked },
+                        listener?.let { callback -> { roomId, visible -> callback.onRoomVisibilityChanged(roomId, visible) } }
                 )
             }
         }
@@ -129,6 +132,7 @@ class RoomSummaryItemFactory @Inject constructor(
             singleLineLastEvent: Boolean,
             onClick: ((RoomSummary) -> Unit)?,
             onLongClick: ((RoomSummary) -> Boolean)?,
+            onVisibilityChanged: ((String, Boolean) -> Unit)? = null,
             showCheckbox: Boolean = false,
     ): VectorEpoxyModel<*> {
         val subtitle = getSearchResultSubtitle(roomSummary)
@@ -152,12 +156,14 @@ class RoomSummaryItemFactory @Inject constructor(
                 .orEmpty()
 
         return if (subtitle.isBlank() && displayMode == RoomListDisplayMode.FILTERED) {
-            createCenteredRoomSummaryItem(roomSummary, displayMode, showSelected, showCheckbox, unreadCount, onClick, onLongClick)
+            createCenteredRoomSummaryItem(
+                    roomSummary, displayMode, showSelected, showCheckbox, unreadCount, onClick, onLongClick, onVisibilityChanged
+            )
         } else {
             createRoomSummaryItem(
                     roomSummary, displayMode, subtitle, latestEventTime, typingMessage, latestFormattedEvent,
                     latestEvent?.root?.isRedacted() == true, showHighlighted, showSelected, showCheckbox, unreadCount,
-                    singleLineLastEvent, onClick, onLongClick
+                    singleLineLastEvent, onClick, onLongClick, onVisibilityChanged
             )
         }
     }
@@ -176,7 +182,8 @@ class RoomSummaryItemFactory @Inject constructor(
             unreadCount: Int,
             singleLineLastEvent: Boolean,
             onClick: ((RoomSummary) -> Unit)?,
-            onLongClick: ((RoomSummary) -> Boolean)?
+            onLongClick: ((RoomSummary) -> Boolean)?,
+            onVisibilityChanged: ((String, Boolean) -> Unit)?,
     ) = RoomSummaryItem_()
             .id(roomSummary.roomId)
             .avatarRenderer(avatarRenderer)
@@ -204,6 +211,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .useSingleLineForLastEvent(singleLineLastEvent)
             .itemLongClickListener { _ -> onLongClick?.invoke(roomSummary) ?: false }
             .itemClickListener { onClick?.invoke(roomSummary) }
+            .setOnVisibilityStateChanged(roomVisibilityListener(roomSummary.roomId, onVisibilityChanged))
 
     private fun createCenteredRoomSummaryItem(
             roomSummary: RoomSummary,
@@ -212,7 +220,8 @@ class RoomSummaryItemFactory @Inject constructor(
             showCheckbox: Boolean,
             unreadCount: Int,
             onClick: ((RoomSummary) -> Unit)?,
-            onLongClick: ((RoomSummary) -> Boolean)?
+            onLongClick: ((RoomSummary) -> Boolean)?,
+            onVisibilityChanged: ((String, Boolean) -> Unit)?,
     ) = RoomSummaryCenteredItem_()
             .id(roomSummary.roomId)
             .avatarRenderer(avatarRenderer)
@@ -232,6 +241,20 @@ class RoomSummaryItemFactory @Inject constructor(
             .hasDraft(roomSummary.userDrafts.isNotEmpty())
             .itemLongClickListener { _ -> onLongClick?.invoke(roomSummary) ?: false }
             .itemClickListener { onClick?.invoke(roomSummary) }
+            .setOnVisibilityStateChanged(roomVisibilityListener(roomSummary.roomId, onVisibilityChanged))
+
+    private fun roomVisibilityListener(
+            roomId: String,
+            callback: ((String, Boolean) -> Unit)?,
+    ) = object : VectorEpoxyModel.OnVisibilityStateChangedListener {
+        override fun onVisibilityStateChanged(visibilityState: Int) {
+            when (visibilityState) {
+                VisibilityState.VISIBLE -> callback?.invoke(roomId, true)
+                VisibilityState.INVISIBLE -> callback?.invoke(roomId, false)
+                else -> return
+            }
+        }
+    }
 
     private fun getSearchResultSubtitle(roomSummary: RoomSummary): String {
         val userId = roomSummary.directUserId

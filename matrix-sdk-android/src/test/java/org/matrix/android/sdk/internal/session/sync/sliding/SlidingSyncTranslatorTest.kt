@@ -68,6 +68,25 @@ class SlidingSyncTranslatorTest {
     }
 
     @Test
+    fun `simplified sync serializes active room subscriptions`() {
+        val requestAdapter = MoshiProvider.providesMoshi().adapter(SlidingSyncRequest::class.java)
+
+        val json = requestAdapter.toJson(
+                SlidingSyncRequest(
+                        roomSubscriptions = mapOf(
+                                "!room:example.org" to SlidingSyncRoomSubscription(
+                                        requiredState = listOf(listOf("m.room.member", "\$LAZY")),
+                                        timelineLimit = 50,
+                                )
+                        )
+                )
+        )
+
+        json shouldBeEqualTo
+                """{"room_subscriptions":{"!room:example.org":{"required_state":[["m.room.member","${'$'}LAZY"]],"timeline_limit":50}}}"""
+    }
+
+    @Test
     fun `unread counts are read whether flattened or nested`() {
         val flattened = translate(
                 """{ "pos": "s1", "rooms": { "!r:example.org": { "membership": "join", "notification_count": 3, "highlight_count": 1 } } }"""

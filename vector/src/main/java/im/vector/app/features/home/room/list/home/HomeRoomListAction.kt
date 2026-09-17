@@ -13,6 +13,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 
 sealed class HomeRoomListAction : VectorViewModelAction {
+    data class RoomVisibilityChanged(val roomId: String, val visible: Boolean) : HomeRoomListAction()
     data class SelectRoom(val roomSummary: RoomSummary) : HomeRoomListAction()
     data class ChangeRoomNotificationState(val roomId: String, val notificationState: RoomNotificationState) : HomeRoomListAction()
     data class ToggleTag(val roomId: String, val tag: String) : HomeRoomListAction()

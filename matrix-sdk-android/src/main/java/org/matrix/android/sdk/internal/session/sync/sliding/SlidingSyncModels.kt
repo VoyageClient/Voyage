@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.session.sync.model.RoomSyncUnreadNotifications
 internal data class SlidingSyncRequest(
         // MSC4186
         @Json(name = "lists") val lists: Map<String, SlidingSyncListRequest>? = null,
+        @Json(name = "room_subscriptions") val roomSubscriptions: Map<String, SlidingSyncRoomSubscription>? = null,
         // MSC4525: required_state is stated once and applies to every room in the response.
         @Json(name = "required_state") val requiredState: List<List<String>>? = null,
         @Json(name = "page_size") val pageSize: Int? = null,
@@ -35,6 +36,12 @@ internal data class SlidingSyncRequest(
         // Both
         @Json(name = "extensions") val extensions: SlidingSyncExtensionsRequest? = null,
         @Json(name = "set_presence") val setPresence: String? = null,
+)
+
+@JsonClass(generateAdapter = true)
+internal data class SlidingSyncRoomSubscription(
+        @Json(name = "required_state") val requiredState: List<List<String>>,
+        @Json(name = "timeline_limit") val timelineLimit: Int,
 )
 
 @JsonClass(generateAdapter = true)

@@ -11,6 +11,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
 
 interface RoomListListener {
+    fun onRoomVisibilityChanged(roomId: String, visible: Boolean) = Unit
     fun onRoomClicked(room: RoomSummary)
     fun onRoomLongClicked(room: RoomSummary): Boolean
     fun onRejectRoomInvitation(room: RoomSummary)

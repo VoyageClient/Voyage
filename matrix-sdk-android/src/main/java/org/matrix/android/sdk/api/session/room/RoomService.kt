@@ -329,6 +329,12 @@ interface RoomService {
     fun getRoomCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int>
 
     /**
+     * How many rooms match [queryParams]. Prefer this to `getRoomSummaries(queryParams).size`, which
+     * maps every matching room into a [RoomSummary] only to count them.
+     */
+    fun getRoomSummariesCount(queryParams: RoomSummaryQueryParams): Int
+
+    /**
      * TODO Doc.
      */
     fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount
@@ -342,6 +348,9 @@ interface RoomService {
      * This is useful for refreshing summary content with encrypted messages after receiving new room keys.
      */
     fun refreshJoinedRoomSummaryPreviews(roomId: String?)
+
+    /** Updates the room-list viewport used to prefetch room data. */
+    fun updateVisibleRoomListRooms(added: Set<String>, removed: Set<String>)
 
     /**
      * Recompute the RoomSummary display name and avatar for the given @param roomId.

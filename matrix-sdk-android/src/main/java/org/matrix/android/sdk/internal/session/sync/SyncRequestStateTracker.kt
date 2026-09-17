@@ -26,10 +26,13 @@ import javax.inject.Inject
 @SessionScope
 internal class SyncRequestStateTracker @Inject constructor() : ProgressReporter {
 
-    // Buffered, and emitted from the caller's thread: emitting into a rendezvous flow from launched
-    // coroutines delivers progress out of order, stranding the overlay on a step the sync is past.
+    // Latest-wins, like a StateFlow: progress is emitted from the caller's thread, so a rendezvous flow
+    // delivers it out of order and strands the overlay on a step the sync is past — but a deep buffer is
+    // just as wrong, since a collector that could not keep up then replays the whole initial sync after it
+    // has finished. Replaying one state also covers the subscriber that arrives mid-sync (the home screen
+    // is built after the session starts, and with no replay it never learns a sync is in progress).
     val syncRequestState = MutableSharedFlow<SyncRequestState>(
-            extraBufferCapacity = 64,
+            replay = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 

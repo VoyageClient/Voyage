@@ -12,15 +12,18 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
@@ -28,11 +31,13 @@ import org.matrix.android.sdk.internal.network.TimeOutInterceptor
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
+import org.matrix.android.sdk.internal.session.sync.SyncImportState
 import org.matrix.android.sdk.internal.session.sync.SyncPresence
 import org.matrix.android.sdk.internal.session.sync.SyncRequestStateTracker
 import org.matrix.android.sdk.internal.session.sync.SyncResponseHandler
 import org.matrix.android.sdk.internal.session.sync.SyncTask
 import org.matrix.android.sdk.internal.session.sync.SyncTokenStore
+import org.matrix.android.sdk.internal.session.sync.handler.ShieldSummaryUpdater
 import org.matrix.android.sdk.internal.session.sync.reportSubtask
 import org.matrix.android.sdk.internal.session.user.UserStore
 import org.matrix.android.sdk.internal.util.time.Clock
@@ -67,13 +72,12 @@ internal class SlidingSyncTask @Inject constructor(
         private val clock: Clock,
         private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
         private val sessionDbPriority: SessionDbPriority,
+        private val shieldSummaryUpdater: ShieldSummaryUpdater,
+        private val syncImportState: SyncImportState,
+        private val roomSubscriptions: SlidingSyncRoomSubscriptions,
         @UserId private val userId: String,
 ) {
-
-    // How far MSC4186's single list currently reaches. It starts narrow so the room list paints fast and
-    // widens a step per response until it spans every room. Persisted with the connection: re-narrowing it
-    // on every launch would spend a round trip per step walking back up to a coverage the server already
-    // has, for rooms that are all long since stored.
+    // Persist coverage per connection. Start with visible rooms, then widen in large batches.
     private var listRangeEnd = INITIAL_RANGE_SIZE - 1
 
     // Whether the server still has rooms this connection has not been given. While true the next sync must
@@ -88,7 +92,7 @@ internal class SlidingSyncTask @Inject constructor(
         // required_state to be identical for its whole life. So when this build asks for something
         // different from the one that opened the connection, the connection has to start over — otherwise
         // rooms keep whatever state the old list happened to cover.
-        val stateVersion = SlidingSyncRequiredState.VERSION
+        val stateVersion = "${SlidingSyncRequiredState.VERSION}:$CONNECTION_CONFIG_VERSION"
         if (syncTokenStore.getSlidingSyncStateVersion() != stateVersion) {
             Timber.tag(loggerTag.value).i("required_state changed, restarting the sliding sync connection")
             syncTokenStore.setSlidingSyncPos(null)
@@ -124,7 +128,14 @@ internal class SlidingSyncTask @Inject constructor(
             executeSync(mode, pos, timeout, params.presence)
         }
         logResponse(mode, slidingResponse, clock.epochMillis() - requestedAt)
-        val syncResponse = translator.toSyncResponse(slidingResponse)
+        val syncResponse = MatrixPerf.time("resp.translate") { translator.toSyncResponse(slidingResponse) }
+        syncResponse.accountData?.list.orEmpty().firstOrNull { it.type == "m.push_rules" }?.let { event ->
+            val mention = (((event.content["global"] as? Map<*, *>)?.get("override") as? List<*>)
+                    ?.firstOrNull { (it as? Map<*, *>)?.get("rule_id") == ".m.rule.is_user_mention" } as? Map<*, *>)
+                    ?.get("enabled")
+            DebugLog.i { "NOTIFDBG sliding sync carried m.push_rules for $userId: is_user_mention enabled=$mention " +
+                            "pos=$pos -> ${slidingResponse.pos} initial=$isInitialSync coverageIncomplete=$coverageIncomplete" }
+        }
         // An expired connection is dropped inside executeSync, which clears the stored pos; re-reading it is
         // how this call learns the response is a fresh connection and not a delta.
         val fromToken = syncTokenStore.getSlidingSyncPos()
@@ -132,28 +143,38 @@ internal class SlidingSyncTask @Inject constructor(
         if (coverageIncomplete) {
             // A catch-up pass carries rooms nobody is waiting for and holds the write dispatcher for about
             // a second, so let whatever the user just did land first.
-            sessionDbPriority.awaitTurn()
+            MatrixPerf.timeSuspending("resp.awaitDbTurn") { sessionDbPriority.awaitTurn() }
         }
+        if (isInitialSync || coverageIncomplete) shieldSummaryUpdater.holdRefreshes()
 
-        val owesSpaceValidation = reportSubtask(
-                reporter = initialSyncReporter,
-                initialSyncStep = InitialSyncStep.ImportingAccount,
-                totalProgress = 1,
-                parentWeight = 0.7f
-        ) {
-            syncResponseHandler.handleResponse(
-                    syncResponse = syncResponse,
-                    fromToken = fromToken,
-                    afterPause = params.afterPause,
-                    reporter = initialSyncReporter,
-                    // The pos is not a v2 since-token; storing it in that slot would corrupt a later fallback
-                    // to sync v2. It is persisted separately below.
-                    persistToken = false,
-                    // Revalidating the space graph costs ~2s and every response of a fill brings new rooms,
-                    // so doing it each time would spend most of a first sync on it. Run it once the fill
-                    // settles.
-                    deferSpaceValidation = true,
-            )
+        val owesSpaceValidation = try {
+            syncImportState.importing {
+                reportSubtask(
+                        reporter = initialSyncReporter,
+                        initialSyncStep = InitialSyncStep.ImportingAccount,
+                        totalProgress = 1,
+                        parentWeight = 0.7f
+                ) {
+                    syncResponseHandler.handleResponse(
+                            syncResponse = syncResponse,
+                            fromToken = fromToken,
+                            afterPause = params.afterPause,
+                            reporter = initialSyncReporter,
+                            // The pos is not a v2 since-token; storing it in that slot would corrupt a later fallback
+                            // to sync v2. It is persisted separately below.
+                            persistToken = false,
+                            // Revalidating the space graph costs ~2s and every response of a fill brings new rooms,
+                            // so doing it each time would spend most of a first sync on it. Run it once the fill
+                            // settles.
+                            deferSpaceValidation = true,
+                    )
+                }
+            }
+        } catch (failure: Throwable) {
+            // The release below is never reached otherwise, and a hold outliving this response leaves every
+            // room's shield stale for the session.
+            shieldSummaryUpdater.releaseRefreshes()
+            throw failure
         }
 
         syncTokenStore.setSlidingSyncPos(slidingResponse.pos)
@@ -168,21 +189,25 @@ internal class SlidingSyncTask @Inject constructor(
             // avatar from here, so waiting for the whole account to arrive leaves it blank.
             val user = tryOrNull { session.profileService().getProfileAsUser(userId) }
             userStore.createOrUpdate(userId = userId, displayName = user?.displayName, avatarUrl = user?.avatarUrl)
-        } else {
-            syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncDone)
         }
 
+        // Rooms are summarized before m.direct is stored, so reclassify first deliveries when it changes.
+        val directsChanged = syncResponse.accountData?.list.orEmpty()
+                .any { it.type == UserAccountDataTypes.TYPE_DIRECT_MESSAGES }
         val initialRoomIds = syncResponse.rooms?.join?.filterValues { it.isInitialDelivery }?.keys
-        if (!initialRoomIds.isNullOrEmpty()) {
-            // Account data arrives with the first response but rooms keep coming after it, so rooms handed
-            // over later were not in the database when m.direct was applied and would never be seen as DMs.
-            // Scoped to this response's rooms: the full re-application costs seconds and a fill calls this
-            // once per response.
-            syncResponseHandler.refreshDirectChatRooms(initialRoomIds)
+        if (directsChanged && !initialRoomIds.isNullOrEmpty()) {
+            MatrixPerf.timeSuspending("resp.refreshDirect") { syncResponseHandler.refreshDirectChatRooms(initialRoomIds) }
         }
 
         spaceValidationOwed = spaceValidationOwed || owesSpaceValidation
         coverageIncomplete = advanceCoverage(mode, slidingResponse)
+        syncImportState.catchUpPending = coverageIncomplete
+        if (!coverageIncomplete) {
+            shieldSummaryUpdater.releaseRefreshes()
+            if (!isInitialSync) {
+                syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncDone)
+            }
+        }
         if (spaceValidationOwed && !coverageIncomplete) {
             spaceValidationOwed = false
             syncResponseHandler.validateSpaceHierarchy()
@@ -216,7 +241,8 @@ internal class SlidingSyncTask @Inject constructor(
                         "state=${rooms.values.sumOf { it.requiredState.orEmpty().size }} " +
                         "timeline=${rooms.values.sumOf { it.timeline.orEmpty().size }} " +
                         "toDevice=${response.extensions?.toDevice?.events.orEmpty().size} " +
-                        "coverage=0..$listRangeEnd of ${response.lists?.get(ALL_ROOMS_LIST)?.count} pending=${response.pending}"
+                        "coverage=0..$listRangeEnd of ${response.lists?.get(ALL_ROOMS_LIST)?.count} " +
+                        "limit=$FIRST_DELIVERY_TIMELINE_LIMIT pending=${response.pending}"
         )
     }
 
@@ -226,7 +252,10 @@ internal class SlidingSyncTask @Inject constructor(
             SlidingSyncMode.PAGINATED -> (response.pending ?: 0) > 0
             SlidingSyncMode.SIMPLIFIED -> {
                 val count = response.lists?.get(ALL_ROOMS_LIST)?.count ?: 0
-                if (count <= listRangeEnd + 1) return false
+                if (count <= listRangeEnd + 1) {
+                    return false
+                }
+                // Large coverage steps amortize network, crypto and transaction overhead.
                 listRangeEnd = minOf(listRangeEnd + RANGE_STEP, count - 1)
                 syncTokenStore.setSlidingSyncCoverage(listRangeEnd)
                 true
@@ -291,8 +320,6 @@ internal class SlidingSyncTask @Inject constructor(
                 unstableProfiles = profiles,
         )
         return when (mode) {
-            // MSC4186 has only the one limit, and it governs first delivery for every room the range
-            // reaches, so it has to be the cheap one.
             // The server orders by recent activity, so a single list hands over the busiest rooms first and
             // leaves DMs and invites until whenever their turn comes. These extra lists are priority
             // requests for the two the user actually looks for first; the room list itself does not care
@@ -308,6 +335,17 @@ internal class SlidingSyncTask @Inject constructor(
                                     timelineLimit = FIRST_DELIVERY_TIMELINE_LIMIT,
                             )
                     ),
+                    roomSubscriptions = roomSubscriptions.snapshot()
+                            .mapValues { (_, depth) ->
+                                SlidingSyncRoomSubscription(
+                                        requiredState = SlidingSyncRequiredState.EVENTS,
+                                        timelineLimit = when (depth) {
+                                            SlidingSyncRoomSubscriptions.Depth.OPEN -> OPEN_ROOM_TIMELINE_LIMIT
+                                            SlidingSyncRoomSubscriptions.Depth.VISIBLE -> INCREMENTAL_TIMELINE_LIMIT
+                                        },
+                                )
+                            }
+                            .takeIf { it.isNotEmpty() },
                     extensions = extensions,
                     setPresence = presence?.value,
             )
@@ -344,16 +382,14 @@ internal class SlidingSyncTask @Inject constructor(
         // of the right rooms on screen at once, not to cover the account.
         private const val PRIORITY_LIST_SIZE = 10
 
-        // The first window is small so the app opens on it, and the rest arrives in modest batches after
-        // the user is already looking at their rooms — each batch is a database transaction competing with
-        // the UI, so widening in huge steps would trade a fast start for a janky one.
+        // Fetch visible rooms first so the home screen can open before full coverage.
         private const val INITIAL_RANGE_SIZE = 10
 
-        // Each pass is written in one transaction, and everything else the user does — opening a room,
-        // sending a message — queues behind it. At ~90ms of database work per room, 50 rooms is a
-        // five-second block on the whole app; this keeps each one near a second so the background fill
-        // stays out of the way of whatever the user is actually doing.
-        private const val RANGE_STEP = 12
+        // Each response costs about a second before a single room is written — the round trip, the crypto
+        // pass over device lists, the aggregators — so a narrow step spends most of a cold fill on that
+        // fixed cost (traced: 35 responses, 33s of the 116s). The import commits in ROOM_IMPORT_BATCH_SIZE
+        // chunks, so a wider step does not lengthen any single write lock.
+        private const val RANGE_STEP = 30
 
         private const val PAGE_SIZE = 100
 
@@ -370,6 +406,16 @@ internal class SlidingSyncTask @Inject constructor(
         // are all joins, reactions or redactions otherwise shows a blank last message and sorts to the
         // bottom until it is opened. Opening a room back-paginates from `prev_batch` for the rest.
         private const val FIRST_DELIVERY_TIMELINE_LIMIT = 8
+
+        // What a room the user has on screen delivers per response. Deep enough that an ordinary burst of
+        // messages arrives whole instead of as a gap. Only subscribed rooms get it: raising the list's own
+        // limit makes the server re-deliver that much timeline for every room in range at once (traced:
+        // 408 rooms, 7904 events, a 10s response and 145s of crypto to import).
+        private const val INCREMENTAL_TIMELINE_LIMIT = 20
+
+        // The room the user is reading: enough to open on without a /messages round trip.
+        private const val OPEN_ROOM_TIMELINE_LIMIT = 50
+        private const val CONNECTION_CONFIG_VERSION = 3
 
         private const val TIMEOUT_MARGIN: Long = 10_000
     }

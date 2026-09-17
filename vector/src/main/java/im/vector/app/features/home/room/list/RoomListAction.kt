@@ -12,6 +12,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 
 sealed class RoomListAction : VectorViewModelAction {
+    data class RoomVisibilityChanged(val roomId: String, val visible: Boolean) : RoomListAction()
     data class SelectRoom(val roomSummary: RoomSummary) : RoomListAction()
     data class ToggleSection(val section: RoomsSection, val persist: Boolean = true) : RoomListAction()
     data class AcceptInvitation(val roomSummary: RoomSummary) : RoomListAction()

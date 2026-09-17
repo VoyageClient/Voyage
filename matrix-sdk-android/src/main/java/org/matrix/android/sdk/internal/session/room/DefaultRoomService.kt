@@ -63,6 +63,7 @@ import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSourc
 import org.matrix.android.sdk.internal.session.room.summary.SyncWatchedRoomSummariesTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
 import org.matrix.android.sdk.internal.session.sync.SyncRemovedRoomsTask
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRoomSubscriptions
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateBreadcrumbsTask
 import javax.inject.Inject
 
@@ -92,6 +93,7 @@ internal class DefaultRoomService @Inject constructor(
         private val forgetRoomTask: ForgetRoomTask,
         private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
         private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater,
+        private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
         private val localEchoEventFactory: org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory,
 ) : RoomService {
 
@@ -158,6 +160,10 @@ internal class DefaultRoomService @Inject constructor(
         }
     }
 
+    override fun updateVisibleRoomListRooms(added: Set<String>, removed: Set<String>) {
+        slidingSyncRoomSubscriptions.update(added, removed)
+    }
+
     override fun refreshJoinedRoomSummaryDisplay(roomId: String?) {
         val roomSummaries = if (roomId == null) {
             getRoomSummaries(roomSummaryQueryParams {
@@ -191,6 +197,10 @@ internal class DefaultRoomService @Inject constructor(
 
     override fun getRoomCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int> {
         return roomSummaryDataSource.getCountFlow(queryParams)
+    }
+
+    override fun getRoomSummariesCount(queryParams: RoomSummaryQueryParams): Int {
+        return roomSummaryDataSource.getRoomSummariesCount(queryParams)
     }
 
     override fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount {

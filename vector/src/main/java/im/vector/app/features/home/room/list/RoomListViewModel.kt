@@ -35,6 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
@@ -61,6 +62,8 @@ import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import timber.log.Timber
 
+private const val VISIBLE_ROOMS_DEBOUNCE_MS = 300L
+
 class RoomListViewModel @AssistedInject constructor(
         @Assisted initialState: RoomListViewState,
         private val session: Session,
@@ -78,6 +81,9 @@ class RoomListViewModel @AssistedInject constructor(
     }
 
     private var updatableQuery: UpdatableLivePageResult? = null
+    private val visibleRooms = VisibleRoomTracker()
+    private var subscribedRoomIds = emptySet<String>()
+    private var visibleRoomsUpdateJob: Job? = null
 
     private val suggestedRoomJoiningState: MutableLiveData<Map<String, Async<Unit>>> = MutableLiveData(emptyMap())
 
@@ -227,6 +233,8 @@ class RoomListViewModel @AssistedInject constructor(
     }
 
     override fun onCleared() {
+        visibleRoomsUpdateJob?.cancel()
+        session.roomService().updateVisibleRoomListRooms(emptySet(), subscribedRoomIds)
         vectorPreferences.unsubscribeToChanges(overrideDisplayPrefListener)
         super.onCleared()
     }
@@ -242,6 +250,7 @@ class RoomListViewModel @AssistedInject constructor(
 
     override fun handle(action: RoomListAction) {
         when (action) {
+            is RoomListAction.RoomVisibilityChanged -> handleRoomVisibilityChanged(action.roomId, action.visible)
             is RoomListAction.SelectRoom -> handleSelectRoom(action)
             is RoomListAction.AcceptInvitation -> handleAcceptInvitation(action)
             is RoomListAction.RejectInvitation -> handleRejectInvitation(action)
@@ -260,6 +269,17 @@ class RoomListViewModel @AssistedInject constructor(
             is RoomListAction.JoinSuggestedRoom -> handleJoinSuggestedRoom(action)
             is RoomListAction.ShowRoomDetails -> handleShowRoomDetails(action)
             RoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
+        }
+    }
+
+    private fun handleRoomVisibilityChanged(roomId: String, visible: Boolean) {
+        if (!visibleRooms.update(roomId, visible)) return
+        visibleRoomsUpdateJob?.cancel()
+        visibleRoomsUpdateJob = viewModelScope.launch {
+            delay(VISIBLE_ROOMS_DEBOUNCE_MS)
+            val target = visibleRooms.roomIds()
+            session.roomService().updateVisibleRoomListRooms(target - subscribedRoomIds, subscribedRoomIds - target)
+            subscribedRoomIds = target
         }
     }
 

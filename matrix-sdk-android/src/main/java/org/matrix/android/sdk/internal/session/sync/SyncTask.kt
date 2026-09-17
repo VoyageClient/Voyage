@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.sync
 
 import kotlinx.coroutines.CancellationException
 import okhttp3.ResponseBody
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.Session
@@ -25,6 +26,7 @@ import org.matrix.android.sdk.api.session.statistics.StatisticEvent
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.InitialSyncStrategy
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
+import org.matrix.android.sdk.api.session.sync.SyncState
 import org.matrix.android.sdk.api.session.sync.initialSyncStrategy
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
@@ -86,6 +88,7 @@ internal class DefaultSyncTask @Inject constructor(
         private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val slidingSyncTask: SlidingSyncTask,
+        private val syncStateHolder: SyncStateHolder,
 ) : SyncTask {
 
     private val workingDir = File(fileDirectory, "is")
@@ -93,7 +96,22 @@ internal class DefaultSyncTask @Inject constructor(
 
     override suspend fun execute(params: SyncTask.Params): SyncResponse {
         return syncTaskSequencer.post {
-            doSync(params)
+            // Every sync funnels through here, whoever started it: the sync thread, the foreground sync
+            // service, the background worker. Only the thread runs a state machine of its own (it owns the
+            // afterPause and Paused transitions), so it keeps the state it already holds; a sync started by
+            // anything else used to run with nothing reporting it at all — most visibly the seconds of
+            // catch-up right after an account switch, which the thread only takes over once it is done.
+            val ownedState = SyncState.Running(afterPause = true)
+                    .takeIf { syncStateHolder.state.value !is SyncState.Running }
+            ownedState?.let { syncStateHolder.state.value = it }
+            try {
+                doSync(params)
+            } finally {
+                // Identity rather than equality: never clear a state the sync thread has since taken over.
+                if (ownedState != null && syncStateHolder.state.value === ownedState) {
+                    syncStateHolder.state.value = SyncState.Idle
+                }
+            }
         }
     }
 
@@ -203,6 +221,9 @@ internal class DefaultSyncTask @Inject constructor(
             Timber.tag(loggerTag.value).d(
                     "Incremental sync request parsing, $nbRooms room(s) $nbToDevice toDevice(s). Got nextBatch: $nextBatch"
             )
+            if (syncResponse.accountData?.list.orEmpty().any { it.type == "m.push_rules" }) {
+                DebugLog.i { "NOTIFDBG sync carried m.push_rules: since=$token nextBatch=$nextBatch thread=${Thread.currentThread().name}" }
+            }
             syncRequestStateTracker.setSyncRequestState(
                     SyncRequestState.IncrementalSyncParsing(
                             rooms = nbRooms,

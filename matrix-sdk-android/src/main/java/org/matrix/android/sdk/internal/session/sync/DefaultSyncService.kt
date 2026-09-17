@@ -34,6 +34,7 @@ internal class DefaultSyncService @Inject constructor(
         private val syncTokenStore: SyncTokenStore,
         private val syncRequestStateTracker: SyncRequestStateTracker,
         private val sessionState: SessionState,
+        private val syncStateHolder: SyncStateHolder,
 ) : SyncService {
     // Guards the lazy create/start/kill of [syncThread]: startSync() is reached from the main thread
     // (activity startup) and from background threads (foreground hook, session init) at the same time, and
@@ -89,11 +90,13 @@ internal class DefaultSyncService @Inject constructor(
         syncThread = null
     }
 
-    override fun getSyncStateFlow() = getSyncThread().syncStateFlow()
+    // Deliberately not via the sync thread: observing must neither create one nor bind the observer to
+    // the instance that happens to exist now.
+    override fun getSyncStateFlow() = syncStateHolder.state
 
     override fun syncFlow() = getSyncThread().syncFlow()
 
-    override fun getSyncState() = getSyncThread().currentState()
+    override fun getSyncState() = syncStateHolder.state.value
 
     override fun isSyncThreadAlive() = getSyncThread().isAlive
 

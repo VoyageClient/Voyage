@@ -1,8 +1,9 @@
 -- SyncEntity: the next_batch token lives in row 0. Row 1 is a marker recording that the one-shot
 -- removed-rooms recovery sync ran, sharing this table so it is wiped exactly when the store is.
--- Rows 2-5 belong to sliding sync: the `pos`, its to-device extension `since`, a fingerprint of the
--- required_state the connection was opened with, and how far its room list currently reaches. The `pos` is
--- kept apart from row 0 because it is not interchangeable with a sync v2 `since`.
+-- Rows 2-6 belong to sliding sync: the `pos`, its to-device extension `since`, a fingerprint of the
+-- required_state the connection was opened with, how far its room list currently reaches, and whether that
+-- list has reached every room. The `pos` is kept apart from row 0 because it is not interchangeable with a
+-- sync v2 `since`.
 CREATE TABLE sync (
     id INTEGER NOT NULL PRIMARY KEY,
     next_batch TEXT

@@ -319,6 +319,10 @@ class HomeRoomListFragment :
 
     // region RoomListListener
 
+    override fun onRoomVisibilityChanged(roomId: String, visible: Boolean) {
+        roomListViewModel.handle(HomeRoomListAction.RoomVisibilityChanged(roomId, visible))
+    }
+
     override fun onRoomClicked(room: RoomSummary) {
         roomListViewModel.handle(HomeRoomListAction.SelectRoom(room))
     }

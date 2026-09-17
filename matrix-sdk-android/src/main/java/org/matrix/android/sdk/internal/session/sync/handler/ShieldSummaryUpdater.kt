@@ -35,7 +35,33 @@ internal class ShieldSummaryUpdater @Inject constructor(
         private val updateTrustWorkerDataRepository: UpdateTrustWorkerDataRepository,
 ) {
 
+    private val held = LinkedHashSet<String>()
+
+    @Volatile
+    private var holding = false
+
+    /** Defer trust refreshes until initial room coverage finishes to avoid repeated full membership scans. */
+    fun holdRefreshes() {
+        synchronized(held) { holding = true }
+    }
+
+    fun releaseRefreshes() {
+        val pending = synchronized(held) {
+            holding = false
+            held.toSet().also { held.clear() }
+        }
+        if (pending.isNotEmpty()) refreshShieldsForRoomIds(pending)
+    }
+
     fun refreshShieldsForRoomIds(roomIds: Set<String>) {
+        if (holding) {
+            synchronized(held) {
+                if (holding) {
+                    held.addAll(roomIds)
+                    return
+                }
+            }
+        }
         Timber.d("## CrossSigning - checkAffectedRoomShields for roomIds: ${roomIds.logLimit()}")
         val workerParams = UpdateTrustWorkerParams(
                 sessionId = sessionId,

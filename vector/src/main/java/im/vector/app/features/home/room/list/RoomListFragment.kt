@@ -871,6 +871,10 @@ class RoomListFragment :
 
     // RoomSummaryController.Callback **************************************************************
 
+    override fun onRoomVisibilityChanged(roomId: String, visible: Boolean) {
+        roomListViewModel.handle(RoomListAction.RoomVisibilityChanged(roomId, visible))
+    }
+
     override fun onRoomClicked(room: RoomSummary) {
         roomListViewModel.handle(RoomListAction.SelectRoom(room))
     }

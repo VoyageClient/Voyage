@@ -16,7 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.sync
 
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.measureSpan
 import org.matrix.android.sdk.api.extensions.measureSpannableMetric
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -64,6 +67,7 @@ internal class SyncResponseHandler @Inject constructor(
         private val processEventForPushTask: ProcessEventForPushTask,
         private val pushRuleService: PushRuleService,
         private val clock: Clock,
+        private val coroutineDispatchers: MatrixCoroutineDispatchers,
         matrixConfiguration: MatrixConfiguration,
 ) {
 
@@ -85,43 +89,44 @@ internal class SyncResponseHandler @Inject constructor(
 
         relevantPlugins.filter { it.shouldReport(isInitialSync, afterPause) }.measureSpannableMetric {
             reportSubtask(reporter, InitialSyncStep.ImportingAccountCrypto, 1, 0.1f) {
-                startCryptoService(isInitialSync)
+                MatrixPerf.time("resp.startCrypto") { startCryptoService(isInitialSync) }
 
                 // Handle the to device events before the room ones
                 // to ensure to decrypt them properly
-                handleToDevice(syncResponse, isInitialSync)
+                MatrixPerf.timeSuspending("resp.toDevice") { handleToDevice(syncResponse, isInitialSync) }
 
                 val syncLocalTimestampMillis = clock.epochMillis()
 
-                // pass live state/crypto related event to crypto
-
-                measureSpan("task", "crypto_session_event_handling") {
-                    syncResponse.rooms?.invite?.entries?.map { (roomId, roomSync) ->
-                        roomSync.inviteState
-                                ?.events
-                                ?.filter { it.isStateEvent() }
-                                ?.forEach {
+                // Enter IO once for the crypto pass to avoid dispatcher hops for every state event.
+                MatrixPerf.timeSuspending("resp.cryptoStateEvents") {
+                    withContext(coroutineDispatchers.io) {
+                        measureSpan("task", "crypto_session_event_handling") {
+                            syncResponse.rooms?.invite?.forEach { (roomId, roomSync) ->
+                                roomSync.inviteState?.events?.filter { it.isStateEvent() }?.forEach {
                                     cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator)
                                 }
-                    }
-
-                    syncResponse.rooms?.join?.entries?.map { (roomId, roomSync) ->
-                        // MSC4222 replaces `state` with `state_after`; crypto still needs to see
-                        // m.room.encryption either way or the room isn't recognised as encrypted.
-                        val isGappySync = roomSync.timeline?.limited.orFalse()
-                        (roomSync.stateAfter ?: roomSync.state)
-                                ?.events
-                                ?.filter { it.isStateEvent() }
-                                ?.forEach {
-                                    cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator, isGappySync)
-                                }
-
-                        roomSync.timeline?.events?.forEach {
-                            if (it.isEncrypted() && !isInitialSync) {
-                                decryptIfNeeded(it, roomId)
                             }
-                            it.ageLocalTs = syncLocalTimestampMillis - (it.unsignedData?.age ?: 0)
-                            cryptoService.onLiveEvent(roomId, it, isInitialSync, aggregator.cryptoStoreAggregator)
+                            syncResponse.rooms?.join?.forEach { (roomId, roomSync) ->
+                                // MSC4222 replaces state with state_after; crypto needs either form.
+                                val isGappySync = roomSync.timeline?.limited.orFalse()
+                                (roomSync.stateAfter ?: roomSync.state)?.events?.filter { it.isStateEvent() }?.forEach {
+                                    MatrixPerf.timeSuspending("crypto.onStateEvent") {
+                                        cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator, isGappySync)
+                                    }
+                                }
+                                roomSync.timeline?.events?.forEach {
+                                    // First deliveries are history; timeline and summary decryptors handle them later.
+                                    if (it.isEncrypted() && !isInitialSync && !roomSync.isInitialDelivery) {
+                                        MatrixPerf.timeSuspending("crypto.decryptIfNeeded") { decryptIfNeeded(it, roomId) }
+                                    }
+                                    it.ageLocalTs = syncLocalTimestampMillis - (it.unsignedData?.age ?: 0)
+                                    MatrixPerf.timeSuspending("crypto.onLiveEvent") {
+                                        cryptoService.onLiveEvent(
+                                                roomId, it, isInitialSync || roomSync.isInitialDelivery, aggregator.cryptoStoreAggregator
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -133,21 +138,23 @@ internal class SyncResponseHandler @Inject constructor(
             //            threadsAwarenessHandler.fetchRootThreadEventsIfNeeded(syncResponse)
             //        }
 
-            startMonarchyTransaction(syncResponse, isInitialSync, reporter, aggregator, persistToken)
+            MatrixPerf.timeSuspending("resp.dbTransaction") {
+                startMonarchyTransaction(syncResponse, isInitialSync, reporter, aggregator, persistToken)
+            }
 
             // Purely in-memory, so it stays outside the DB transaction above.
-            profileSyncHandler.handle(syncResponse.profileUpdates)
+            MatrixPerf.time("resp.profiles") { profileSyncHandler.handle(syncResponse.profileUpdates) }
 
-            aggregateSyncResponse(aggregator)
+            MatrixPerf.timeSuspending("resp.aggregate") { aggregateSyncResponse(aggregator) }
 
-            postTreatmentSyncResponse(syncResponse, isInitialSync, suppressPush)
+            MatrixPerf.timeSuspending("resp.postTreatment") { postTreatmentSyncResponse(syncResponse, isInitialSync, suppressPush) }
 
-            markCryptoSyncCompleted(syncResponse, aggregator.cryptoStoreAggregator)
+            MatrixPerf.timeSuspending("resp.markCryptoDone") { markCryptoSyncCompleted(syncResponse, aggregator.cryptoStoreAggregator) }
 
             val directChanged = syncResponse.accountData?.list?.any { it.type == UserAccountDataTypes.TYPE_DIRECT_MESSAGES } == true
             val shouldValidate = isInitialSync || aggregator.spaceHierarchyChanged || directChanged
             spaceValidationDeferred = deferSpaceValidation && shouldValidate
-            handlePostSync(shouldValidateSpaceHierarchy = shouldValidate && !deferSpaceValidation)
+            MatrixPerf.timeSuspending("resp.postSync") { handlePostSync(shouldValidateSpaceHierarchy = shouldValidate && !deferSpaceValidation) }
 
             Timber.v("On sync completed")
         }
@@ -232,29 +239,70 @@ internal class SyncResponseHandler @Inject constructor(
             aggregator: SyncResponsePostTreatmentAggregator,
             persistToken: Boolean,
     ) {
-        // Start one big transaction on the session DB dispatcher.
+        val rooms = syncResponse.rooms
+        val roomBatches = rooms?.splitForImport().orEmpty()
+
         measureSpan("task", "sql_session_transaction") {
-            MatrixPerf.timeSuspending("sync.transaction rooms=${syncResponse.rooms?.join?.size ?: 0}j/${syncResponse.rooms?.invite?.size ?: 0}i presence=${syncResponse.presence?.events?.size ?: 0}") {
-                database.awaitDbTransaction(sessionDbDispatcher) {
-                    val rooms = syncResponse.rooms
-                    if (rooms != null) {
-                        reportSubtask(reporter, InitialSyncStep.ImportingAccountRoom, 1, 0.8f) {
-                            MatrixPerf.time("sync.roomSyncHandler") {
-                                roomSyncHandler.handle(stores, rooms, isInitialSync, aggregator, reporter)
-                            }
+            // Opening a transaction is not free — it queues behind every other database user and commits —
+            // and a sliding-sync fill is dozens of responses that carry account data once, at the start.
+            if (!syncResponse.accountData?.list.isNullOrEmpty()) {
+                MatrixPerf.timeSuspending("sync.transaction accountData") {
+                    database.awaitDbTransaction(sessionDbDispatcher) {
+                        reportSubtask(reporter, InitialSyncStep.ImportingAccountData, 1, 0.1f) {
+                            userAccountDataSyncHandler.handle(syncResponse.accountData, aggregator)
                         }
-                    }
-                    reportSubtask(reporter, InitialSyncStep.ImportingAccountData, 1, 0.1f) {
-                        userAccountDataSyncHandler.handle(syncResponse.accountData, aggregator)
-                    }
-                    MatrixPerf.time("sync.presenceHandler") {
-                        presenceSyncHandler.handle(stores, syncResponse.presence)
-                    }
-                    if (persistToken) {
-                        stores.syncToken.setNextBatch(syncResponse.nextBatch)
                     }
                 }
             }
+
+            // One task for the whole import, not one per batch: each batch would otherwise open a fresh
+            // 0.8-weighted child whose offset is the progress the previous batch finished at, so the steps
+            // replayed and the percentage ran past 100. The per-room steps inside only make sense for a
+            // single batch; past that the batch index is the progress.
+            val batched = roomBatches.size > 1
+            reportSubtask(reporter, InitialSyncStep.ImportingAccountRoom, roomBatches.size, 0.8f) {
+                roomBatches.forEachIndexed { index, batch ->
+                    MatrixPerf.timeSuspending("sync.transaction rooms=${batch.join.size}j/${batch.invite.size}i presence=0") {
+                        database.awaitDbTransaction(sessionDbDispatcher) {
+                            MatrixPerf.time("sync.roomSyncHandler") {
+                                roomSyncHandler.handle(stores, batch, isInitialSync, aggregator, reporter.takeUnless { batched })
+                            }
+                        }
+                    }
+                    if (batched) {
+                        reporter?.reportProgress((index + 1).toFloat())
+                        // Room-list observers share the database dispatcher. Give them a turn between
+                        // commits so already visible rooms remain live while a cold response is hydrated.
+                        yield()
+                    }
+                }
+            }
+
+            val presenceEvents = syncResponse.presence?.events.orEmpty()
+            if (presenceEvents.isNotEmpty() || persistToken) {
+                MatrixPerf.timeSuspending("sync.transaction metadata presence=${presenceEvents.size}") {
+                    database.awaitDbTransaction(sessionDbDispatcher) {
+                        MatrixPerf.time("sync.presenceHandler") {
+                            presenceSyncHandler.handle(stores, syncResponse.presence)
+                        }
+                        if (persistToken) {
+                            stores.syncToken.setNextBatch(syncResponse.nextBatch)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun RoomsSyncResponse.splitForImport(): List<RoomsSyncResponse> {
+        val roomCount = join.size + invite.size + leave.size + knock.size
+        if (roomCount <= ROOM_IMPORT_BATCH_SIZE || join.values.none { it.isInitialDelivery }) return listOf(this)
+
+        return buildList {
+            join.entries.chunked(ROOM_IMPORT_BATCH_SIZE).forEach { add(RoomsSyncResponse(join = it.associate { entry -> entry.toPair() })) }
+            invite.entries.chunked(ROOM_IMPORT_BATCH_SIZE).forEach { add(RoomsSyncResponse(invite = it.associate { entry -> entry.toPair() })) }
+            leave.entries.chunked(ROOM_IMPORT_BATCH_SIZE).forEach { add(RoomsSyncResponse(leave = it.associate { entry -> entry.toPair() })) }
+            knock.entries.chunked(ROOM_IMPORT_BATCH_SIZE).forEach { add(RoomsSyncResponse(knock = it.associate { entry -> entry.toPair() })) }
         }
     }
 
@@ -326,5 +374,11 @@ internal class SyncResponseHandler @Inject constructor(
         val notifiable = roomsSyncResponse.copy(join = roomsSyncResponse.join.filterValues { !it.isInitialDelivery })
         processEventForPushTask.execute(ProcessEventForPushTask.Params(notifiable, rules))
         Timber.v("[PushRules] <-- Push task scheduled")
+    }
+
+    private companion object {
+        // One commit's worth of rooms. Sized so a batch holds the write lock for about as long as a
+        // single sliding-sync response used to, now that a response can carry more rooms than that.
+        const val ROOM_IMPORT_BATCH_SIZE = 12
     }
 }
