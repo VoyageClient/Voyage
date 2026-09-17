@@ -10,6 +10,7 @@ package org.matrix.android.sdk.internal.database.sql.store
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
+import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.pushrules.Action
 import org.matrix.android.sdk.api.session.pushrules.EventMatchCondition
@@ -35,31 +36,22 @@ import org.matrix.android.sdk.internal.session.room.notification.toRoomPushRule
 
 internal fun SessionStores.latestSyncedEventId(roomId: String): String? =
         chunk.lastForward(roomId)?.id?.let { chunkId ->
-            timelineEvent.getByChunk(chunkId).maxByOrNull { it.displayIndex }?.eventId
+            timelineEvent.getByChunkNewest(chunkId, limit = 1).firstOrNull()?.eventId
         }
 
-// Mirrors the Realm ReadQueries semantics: local echoes and own events are read by definition, an
-// event outside the live chunk is older than the sync window (so read), and otherwise the receipt
-// must sit at or past the event within the live chunk — displayIndex is per-chunk, so comparing it
-// across chunks (e.g. after a gappy sync started a fresh chunk) would be meaningless.
-internal fun SessionStores.isEventRead(userId: String, roomId: String, eventId: String): Boolean {
+// Local echoes and own events are read by definition. Otherwise the receipt must sit at or past the
+// event in the room's order, which is (ts, event_id).
+internal fun SessionStores.isEventRead(userId: String, roomId: String, eventId: String, threadId: String? = null): Boolean {
     if (LocalEcho.isLocalEchoId(eventId)) return true
-    val liveChunkId = chunk.lastForward(roomId)?.id ?: return false
-    val eventToCheck = timelineEvent.getInChunkByEventId(liveChunkId, eventId)
+    val eventToCheck = timelineEvent.getByRoomAndEventId(roomId, eventId) ?: return false
+    if (eventToCheck.root?.sender == userId) return true
+    val receipt = readReceipt.getReceipt(roomId, userId, threadId ?: ReadService.THREAD_ID_MAIN) ?: return false
+    val receiptRow = timelineEvent.getByRoomAndEventId(roomId, receipt.eventId)
     return when {
-        eventToCheck == null -> true
-        eventToCheck.root?.sender == userId -> true
-        else -> {
-            val receipt = readReceipt.getReceipt(roomId, userId, ReadService.THREAD_ID_MAIN) ?: return false
-            val rrIndex = timelineEvent.getInChunkByEventId(liveChunkId, receipt.eventId)?.displayIndex
-            when {
-                rrIndex != null -> eventToCheck.displayIndex <= rrIndex
-                // The receipt points at an event we were never sent — sliding sync delivers only the newest
-                // few per room — so there is no index to compare against. Falling through to "unread" there
-                // marks rooms the user has plainly read as unread, so compare when each happened instead.
-                else -> (eventToCheck.root?.originServerTs ?: 0L) <= receipt.originServerTs.toLong()
-            }
-        }
+        receiptRow != null -> eventToCheck.ts < receiptRow.ts ||
+                (eventToCheck.ts == receiptRow.ts && eventToCheck.eventId <= receiptRow.eventId)
+        // Sliding sync may omit the receipt event; use its timestamp when no stored row can be compared.
+        else -> (eventToCheck.root?.originServerTs ?: 0L) <= receipt.originServerTs.toLong()
     }
 }
 
@@ -86,33 +78,41 @@ internal data class LocalUnreadCounts(val notificationCount: Int, val highlightC
  * while enabled — so a muted room stays silent and a mentions-only room counts just what would have
  * notified. Only the locally held timeline is visible here, so a room with a long unseen backlog reads
  * low rather than wrong.
+ *
+ * With threads on, a reply inside a thread is not shown in the room, so it does not make the room
+ * unread by itself — but one that mentions us or hits a keyword still notifies, and so still counts.
  */
-internal fun SessionStores.localUnreadCounts(userId: String, roomId: String): LocalUnreadCounts {
-    val notificationState = roomNotificationState(roomId) ?: return LocalUnreadCounts(0, 0)
+internal fun SessionStores.localUnreadCounts(userId: String, roomId: String, threadsEnabled: Boolean): LocalUnreadCounts {
+    val facts = accountPushFacts()
+    val notificationState = roomNotificationState(roomId, facts) ?: return LocalUnreadCounts(0, 0)
     val window = unreadWindow(userId, roomId) ?: return LocalUnreadCounts(0, 0)
 
     // Highlighted events, and those that only notify (a keyword rule whose actions carry no highlight).
     val highlighted = mutableSetOf<String>()
     val notified = mutableSetOf<String>()
+    // Matched events the message count leaves out, so they are added back to it below.
+    val matchedInThread = mutableSetOf<String>()
     val powerLevels by lazy { roomPowerLevels(roomId) }
-    val userMentions = EventPropertyContainsCondition(MENTIONS_USER_IDS_PATH, userId)
-            .takeIf { isRuleEnabled(RuleIds.RULE_ID_IS_USER_MENTION) }
-    val roomMentions = EventPropertyIsCondition(MENTIONS_ROOM_PATH, true)
-            .takeIf { isRuleEnabled(RuleIds.RULE_ID_IS_ROOM_MENTION) }
+    val userMentions = EventPropertyContainsCondition(MENTIONS_USER_IDS_PATH, userId).takeIf { facts.userMentionEnabled }
+    val roomMentions = EventPropertyIsCondition(MENTIONS_ROOM_PATH, true).takeIf { facts.roomMentionEnabled }
 
     window.mentionCandidates().forEach { event ->
         val mentioned = userMentions?.isSatisfied(event) == true ||
                 (roomMentions?.isSatisfied(event) == true &&
                         event.senderId?.let { powerLevels.isUserAbleToTriggerNotification(it, PowerLevelsContent.NOTIFICATIONS_ROOM_KEY) } == true)
-        if (mentioned) highlighted.add(event.eventId.orEmpty())
+        if (mentioned) {
+            highlighted.add(event.eventId.orEmpty())
+            if (event.getRootThreadEventId() != null) matchedInThread.add(event.eventId.orEmpty())
+        }
     }
 
-    keywordRules().forEach { keyword ->
+    facts.keywordRules.forEach { keyword ->
         window.keywordCandidates(keyword.pattern)
                 .filter { keyword.condition.isSatisfied(it) }
                 .forEach { event ->
                     val eventId = event.eventId.orEmpty()
                     if (keyword.highlights) highlighted.add(eventId) else notified.add(eventId)
+                    if (event.getRootThreadEventId() != null) matchedInThread.add(eventId)
                 }
     }
 
@@ -120,66 +120,86 @@ internal fun SessionStores.localUnreadCounts(userId: String, roomId: String): Lo
     val notifying = if (notificationState == RoomNotificationState.MENTIONS_ONLY) {
         (highlighted + notified).size
     } else {
-        window.messageCount()
+        window.messageCount(countThreads = !threadsEnabled) + if (threadsEnabled) matchedInThread.size else 0
     }
     return LocalUnreadCounts(notificationCount = notifying, highlightCount = highlighted.size)
 }
 
 /**
- * The slice of the live chunk past our read receipt. No receipt at all means nothing in the room has
- * been read, so everything it holds counts; a receipt on an event this chunk never received has no
- * index to compare against, so that falls back to time as isEventRead does.
+ * The slice of the live chunk past our read receipt, bounded by the order itself — `(ts, event_id)`. No
+ * receipt at all means nothing in the room has been read, so everything the chunk holds counts.
  */
 private class UnreadWindow(
         private val queries: TimelineEventQueries,
         private val chunkId: Long,
         /** Us, plus everyone we ignore: their stored messages are hidden, so they must not count. */
         private val excludedSenders: Collection<String>,
-        private val displayIndex: Long?,
-        private val timestamp: Long,
+        private val readTs: Long,
+        private val readEventId: String,
 ) {
 
-    fun messageCount(): Int = if (displayIndex != null) {
-        queries.countUnreadInChunkAfterIndex(chunkId, displayIndex, excludedSenders, UNREAD_COUNTABLE_TYPES)
-    } else {
-        queries.countUnreadInChunkAfterTs(chunkId, timestamp, excludedSenders, UNREAD_COUNTABLE_TYPES)
-    }.executeAsOne().toInt()
+    fun messageCount(countThreads: Boolean): Int = queries
+            .countUnreadInChunkAfterTs(
+                    chunkId, readTs, readTs, readEventId, excludedSenders, UNREAD_COUNTABLE_TYPES, if (countThreads) 1L else 0L
+            )
+            .executeAsOne().toInt()
 
-    fun mentionCandidates(): List<Event> = if (displayIndex != null) {
-        queries.selectMentionCandidatesInChunkAfterIndex(chunkId, displayIndex, excludedSenders, UNREAD_COUNTABLE_TYPES)
-    } else {
-        queries.selectMentionCandidatesInChunkAfterTs(chunkId, timestamp, excludedSenders, UNREAD_COUNTABLE_TYPES)
-    }.executeAsList().map { it.toEntity().asDomain() }
+    fun mentionCandidates(): List<Event> = queries
+            .selectMentionCandidatesInChunkAfterTs(chunkId, readTs, readTs, readEventId, excludedSenders, UNREAD_COUNTABLE_TYPES)
+            .executeAsList().map { it.toEntity().asDomain() }
 
     /** Narrowed by a substring of the keyword; the rule's own matcher has the final say. */
     fun keywordCandidates(keyword: String): List<Event> {
         val pattern = "%${keyword.globToSqlLike()}%"
-        return if (displayIndex != null) {
-            queries.selectKeywordCandidatesInChunkAfterIndex(chunkId, displayIndex, excludedSenders, UNREAD_COUNTABLE_TYPES, pattern, pattern)
-        } else {
-            queries.selectKeywordCandidatesInChunkAfterTs(chunkId, timestamp, excludedSenders, UNREAD_COUNTABLE_TYPES, pattern, pattern)
-        }.executeAsList().map { it.toEntity().asDomain() }
+        return queries
+                .selectKeywordCandidatesInChunkAfterTs(
+                        chunkId, readTs, readTs, readEventId, excludedSenders, UNREAD_COUNTABLE_TYPES, pattern, pattern
+                )
+                .executeAsList().map { it.toEntity().asDomain() }
     }
 }
 
 private fun SessionStores.unreadWindow(userId: String, roomId: String): UnreadWindow? {
     val liveChunkId = chunk.lastForward(roomId)?.id ?: return null
     val receipt = readReceipt.getReceipt(roomId, userId, ReadService.THREAD_ID_MAIN)
-    val rrIndex = receipt?.let { timelineEvent.getInChunkByEventId(liveChunkId, it.eventId)?.displayIndex }
     return UnreadWindow(
             queries = database.timelineEventQueries,
             chunkId = liveChunkId,
             excludedSenders = user.getIgnoredUserIds() + userId,
-            displayIndex = when {
-                receipt == null -> Long.MIN_VALUE
-                else -> rrIndex?.toLong()
-            },
-            timestamp = receipt?.originServerTs?.toLong() ?: 0L,
+            // No receipt means nothing in the room has been read, so everything it holds counts.
+            readTs = receipt?.originServerTs?.toLong() ?: Long.MIN_VALUE,
+            readEventId = receipt?.eventId.orEmpty(),
     )
 }
 
 private class KeywordRule(val pattern: String, val highlights: Boolean) {
     val condition = EventMatchCondition("content.body", pattern)
+}
+
+/** Cache room-independent push facts across rooms until the ruleset version changes. */
+private class AccountPushFacts(
+        val version: Long,
+        val notificationsDisabled: Boolean,
+        val keywordRules: List<KeywordRule>,
+        val userMentionEnabled: Boolean,
+        val roomMentionEnabled: Boolean,
+)
+
+// Weak keys: a signed-out session's store must not be kept alive by its cached facts.
+private val accountPushFacts = java.util.Collections.synchronizedMap(java.util.WeakHashMap<PushRulesSqlStore, AccountPushFacts>())
+
+private fun SessionStores.accountPushFacts(): AccountPushFacts {
+    val version = pushRules.version
+    accountPushFacts[pushRules]?.takeIf { it.version == version }?.let { return it }
+    val facts = AccountPushFacts(
+            version = version,
+            notificationsDisabled = pushRules.findRule(RuleScope.GLOBAL, RuleIds.RULE_ID_DISABLE_ALL)?.second?.enabled == true,
+            keywordRules = keywordRules(),
+            userMentionEnabled = isRuleEnabled(RuleIds.RULE_ID_IS_USER_MENTION),
+            roomMentionEnabled = isRuleEnabled(RuleIds.RULE_ID_IS_ROOM_MENTION),
+    )
+    accountPushFacts[pushRules] = facts
+    return facts
 }
 
 /** The user's own keyword rules, which live in the content ruleset and match the message body. */
@@ -206,9 +226,8 @@ private fun SessionStores.roomPowerLevels(roomId: String): RoomPowerLevels = Roo
 
 // Null where the account would never have notified at all: notifications off for the account (the
 // master rule is enabled when they are), or a muted room.
-private fun SessionStores.roomNotificationState(roomId: String): RoomNotificationState? {
-    val masterRule = pushRules.findRule(RuleScope.GLOBAL, RuleIds.RULE_ID_DISABLE_ALL)?.second
-    if (masterRule?.enabled == true) return null
+private fun SessionStores.roomNotificationState(roomId: String, facts: AccountPushFacts): RoomNotificationState? {
+    if (facts.notificationsDisabled) return null
     val state = pushRules.findRule(RuleScope.GLOBAL, roomId)
             ?.let { (kind, entity) -> entity.toRoomPushRule(kind) }
             ?.toRoomNotificationState()
@@ -218,7 +237,9 @@ private fun SessionStores.roomNotificationState(roomId: String): RoomNotificatio
 
 internal fun SessionStores.isReadMarkerMoreRecent(roomId: String, eventId: String): Boolean {
     val currentMarker = readMarker.get(roomId) ?: return false
-    val markerTimelineEvent = timelineEvent.getByRoomAndEventId(roomId, currentMarker)
-    val targetTimelineEvent = timelineEvent.getByRoomAndEventId(roomId, eventId)
-    return markerTimelineEvent != null && targetTimelineEvent != null && markerTimelineEvent.displayIndex >= targetTimelineEvent.displayIndex
+    if (currentMarker == eventId) return true
+    val marker = timelineEvent.getByRoomAndEventId(roomId, currentMarker) ?: return false
+    val target = timelineEvent.getByRoomAndEventId(roomId, eventId) ?: return false
+
+    return if (marker.ts != target.ts) marker.ts > target.ts else marker.eventId >= target.eventId
 }

@@ -153,7 +153,7 @@ class SessionSqlStoresTest {
         val dbId = stores.event.insert(EventEntity(
                 eventId = eventId, roomId = "!room:hs", type = type, sender = "@a:hs", originServerTs = ts))
         stores.timelineEvent.insert(
-                TimelineEventEntity(eventId = eventId, roomId = "!room:hs", displayIndex = 0),
+                TimelineEventEntity(eventId = eventId, roomId = "!room:hs"),
                 chunkId = 1L,
                 rootEventDbId = dbId,
         )

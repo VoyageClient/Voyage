@@ -237,7 +237,6 @@ class ViewEditHistoryEpoxyController @Inject constructor(
                 root = root,
                 localId = eventId.hashCode().toLong(),
                 eventId = eventId,
-                displayIndex = 0,
                 senderInfo = SenderInfo(
                         userId = senderId.orEmpty(),
                         displayName = member?.displayName,

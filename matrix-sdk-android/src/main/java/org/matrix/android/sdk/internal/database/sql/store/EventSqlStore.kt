@@ -105,6 +105,10 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun getUndecryptedEncryptedEvents(roomId: String, type: String): List<Event> =
             queries.selectUndecryptedEncryptedInRoom(roomId, type).executeAsList().map { it.toEntity().asDomain() }
 
+    /** Rooms still holding undecryptable events, for a key import that names no room of its own. */
+    fun getRoomsWithUndecryptedEvents(type: String): List<String> =
+            queries.selectRoomsWithUndecryptedEncrypted(type).executeAsList()
+
     /** Batched ascending scan above a watermark row id, for the local event-index sweep. */
     fun getForIndexAfterId(afterId: Long, limit: Int): List<Pair<Long, Event>> =
             queries.selectForIndexAfterId(afterId, limit.toLong()).executeAsList()
@@ -121,7 +125,7 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
                 localId = te.local_id,
                 eventId = te.event_id,
                 roomId = te.room_id,
-                displayIndex = te.display_index.toInt(),
+                ts = te.ts,
                 // file-level toEntity (no further preview resolution) — the latest in-thread message is a
                 // reply, never itself a thread root, so this can't recurse.
                 root = te.root_event_db_id?.let { queries.selectById(it).executeAsOneOrNull()?.toEntity() },

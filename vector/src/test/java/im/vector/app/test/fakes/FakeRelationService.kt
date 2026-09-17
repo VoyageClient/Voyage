@@ -7,7 +7,9 @@
 
 package im.vector.app.test.fakes
 
+import io.mockk.every
 import io.mockk.mockk
+import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.relation.RelationService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -18,4 +20,8 @@ class FakeRelationService : RelationService by mockk() {
     private val cancelable = mockk<Cancelable>()
 
     override fun editPoll(targetEvent: TimelineEvent, pollType: PollType, question: String, options: List<String>): Cancelable = cancelable
+
+    fun givenGetEventAnnotationsSummaryReturns(summary: EventAnnotationsSummary?) {
+        every { getEventAnnotationsSummary(any()) } returns summary
+    }
 }

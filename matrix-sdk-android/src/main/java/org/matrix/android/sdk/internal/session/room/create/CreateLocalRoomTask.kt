@@ -44,7 +44,6 @@ import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberEventHandler
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
-import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.task.Task
 import org.matrix.android.sdk.internal.util.time.Clock
 import java.util.concurrent.TimeUnit
@@ -93,7 +92,7 @@ internal class DefaultCreateLocalRoomTask @Inject constructor(
      */
     private fun createLocalRoomEntity(roomId: String, localStateEventList: List<Event>) {
         val chunkId = stores.chunk.insert(
-                roomId = roomId, prevToken = null, nextToken = null, prevChunkId = null, nextChunkId = null,
+                roomId = roomId, prevToken = null, nextToken = null,
                 isLastForward = true, isLastBackward = true, rootThreadEventId = null, isLastForwardThread = false,
         )
         addLocalRoomEvents(chunkId, roomId, localStateEventList)
@@ -193,7 +192,6 @@ internal class DefaultCreateLocalRoomTask @Inject constructor(
                     eventDbId = eventDbId,
                     event = entity,
                     isLastForward = true,
-                    direction = PaginationDirection.FORWARDS,
                     roomMemberContentsByUser = roomMemberContentsByUser,
             )
         }

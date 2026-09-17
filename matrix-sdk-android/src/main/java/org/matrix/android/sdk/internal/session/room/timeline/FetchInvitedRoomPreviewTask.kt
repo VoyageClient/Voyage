@@ -59,7 +59,7 @@ internal class DefaultFetchInvitedRoomPreviewTask @Inject constructor(
         }
         val chunkId = database.awaitDbTransaction(sessionDbDispatcher) {
             stores.chunk.lastForward(params.roomId)?.id
-                    ?: stores.chunk.insert(params.roomId, liveToken, null, null, null, isLastForward = true, isLastBackward = false, null, false)
+                    ?: stores.chunk.insert(params.roomId, liveToken, null, isLastForward = true, isLastBackward = false, null, false)
         }
         paginationTask.execute(PaginationTask.Params(params.roomId, liveToken, PaginationDirection.BACKWARDS, PREVIEW_EVENT_COUNT, chunkId))
         return true

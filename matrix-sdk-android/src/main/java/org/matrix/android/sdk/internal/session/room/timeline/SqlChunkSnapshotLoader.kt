@@ -31,7 +31,7 @@ internal class SqlChunkSnapshotLoader(
         private val timelineEventMapper: TimelineEventMapper,
 ) {
 
-    /** One-shot snapshot of a chunk's timeline events, most-recent first (display_index DESC). */
+    /** One-shot snapshot of a range's timeline events, most-recent first. */
     fun chunkSnapshot(chunkId: Long): List<TimelineEvent> {
         val perfStart = MatrixPerf.now()
         val entities = stores.timelineEvent.getByChunk(chunkId)
@@ -56,13 +56,9 @@ internal class SqlChunkSnapshotLoader(
     fun reloadEvent(roomId: String, eventId: String): TimelineEvent? =
             stores.timelineEvent.getByRoomAndEventId(roomId, eventId)?.let { timelineEventMapper.map(it) }
 
-    /** Paginated window of a chunk by display-index range (for loadMore). */
-    fun eventsInRange(chunkId: Long, from: Long, to: Long): List<TimelineEvent> =
-            stores.timelineEvent.getByChunkRange(chunkId, from, to).map { timelineEventMapper.map(it) }
-
-    /** The chunk's events strictly newer than [afterDisplayIndex], most-recent first. */
-    fun chunkSnapshotAfter(chunkId: Long, afterDisplayIndex: Long): List<TimelineEvent> =
-            stores.timelineEvent.getByChunkAfterIndex(chunkId, afterDisplayIndex).map { timelineEventMapper.map(it) }
+    /** The chunk's events strictly newer than the given row, most-recent first. */
+    fun chunkSnapshotAfter(chunkId: Long, afterTs: Long, afterEventId: String): List<TimelineEvent> =
+            stores.timelineEvent.getByChunkNewerThan(chunkId, afterTs, afterEventId).map { timelineEventMapper.map(it) }
 
     /** The [limit] newest rows of a chunk, most-recent first — used to bound the live-chunk mapping. */
     fun chunkSnapshotNewest(chunkId: Long, limit: Long): List<TimelineEvent> {
@@ -72,12 +68,16 @@ internal class SqlChunkSnapshotLoader(
         return entities.map { timelineEventMapper.map(it) }
     }
 
-    /** The [limit] rows just older than [beforeDisplayIndex], most-recent first — appends to a bounded slice
-     *  as the window grows, so widening it costs O(step) instead of re-mapping the whole slice. */
-    fun chunkSnapshotOlderThan(chunkId: Long, beforeDisplayIndex: Long, limit: Long): List<TimelineEvent> =
-            stores.timelineEvent.getByChunkBeforeIndex(chunkId, beforeDisplayIndex, limit).map { timelineEventMapper.map(it) }
+    /** The [limit] rows just older than the given one, most-recent first — appends to a bounded slice as the
+     *  window grows, so widening it costs O(step) instead of re-mapping the whole slice. */
+    fun chunkSnapshotOlderThan(chunkId: Long, beforeTs: Long, beforeEventId: String, limit: Long): List<TimelineEvent> =
+            stores.timelineEvent.getByChunkOlderThan(chunkId, beforeTs, beforeEventId, limit).map { timelineEventMapper.map(it) }
 
     fun chunkEventCount(chunkId: Long): Long = stores.timelineEvent.countByChunk(chunkId)
+
+    /** The chunk's row count from a cursor upward, for checking a cached slice is still whole. */
+    fun chunkEventCountFrom(chunkId: Long, ts: Long, eventId: String): Long =
+            stores.timelineEvent.countByChunkFrom(chunkId, ts, eventId)
 
     /** The room's sending (local-echo) events — timeline_event rows with chunk_id NULL — newest first. */
     fun sendingEvents(roomId: String): List<TimelineEvent> =

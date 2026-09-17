@@ -42,7 +42,6 @@ class DefaultMediaServiceTest {
             root = Event(type = EventType.MESSAGE, eventId = AN_EVENT_ID, roomId = A_ROOM_ID, content = content),
             localId = 1L,
             eventId = AN_EVENT_ID,
-            displayIndex = 0,
             senderInfo = SenderInfo("@alice:example.org", null, true, null),
             annotations = latestEdit?.let {
                 EventAnnotationsSummary(editSummary = EditAggregatedSummary(latestEdit = it, sourceEvents = emptyList(), localEchos = emptyList()))

@@ -25,7 +25,6 @@ import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
-import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.di.SessionDatabase
@@ -36,6 +35,7 @@ import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTa
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRoomSubscriptions
 import org.matrix.android.sdk.internal.util.time.Clock
 
 internal class DefaultTimelineService @AssistedInject constructor(
@@ -49,7 +49,6 @@ internal class DefaultTimelineService @AssistedInject constructor(
         private val fetchThreadTimelineTask: FetchThreadTimelineTask,
         private val timelineEventMapper: TimelineEventMapper,
         private val loadRoomMembersTask: LoadRoomMembersTask,
-        private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val timelineEventDataSource: SqlTimelineEventDataSource,
         private val clock: Clock,
@@ -63,6 +62,8 @@ internal class DefaultTimelineService @AssistedInject constructor(
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val timelineRedactionSignal: TimelineRedactionSignal,
         private val timelineDecryptionSignal: TimelineDecryptionSignal,
+        private val gapHealer: TimelineGapHealer,
+        private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
 ) : TimelineService {
 
     @AssistedFactory
@@ -92,7 +93,8 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 redactionSignal = timelineRedactionSignal,
                 decryptionSignal = timelineDecryptionSignal,
                 loadRoomMembersTask = loadRoomMembersTask,
-                lightweightSettingsStorage = lightweightSettingsStorage,
+                gapHealer = gapHealer,
+                slidingSyncRoomSubscriptions = slidingSyncRoomSubscriptions,
         )
     }
 
@@ -123,5 +125,95 @@ internal class DefaultTimelineService @AssistedInject constructor(
 
     override fun getTimelineEventsRelatedTo(relationType: String, eventId: String): List<TimelineEvent> {
         return timelineEventDataSource.getTimelineEventsRelatedTo(roomId, relationType, eventId)
+    }
+
+    override fun debugCheckTimeline(): String {
+        val chunks = stores.chunk.getByRoom(roomId).filter { it.root_thread_event_id == null }
+        val live = chunks.filter { it.is_last_forward == 1L }
+        val rowsByChunk = chunks.associate { it.id to stores.timelineEvent.getByChunk(it.id) }
+        val failures = mutableListOf<String>()
+
+        if (live.size != 1) failures.add("live ranges: ${live.size} (want 1)")
+
+        // No reachability rule to check: ranges carry no links, so every stored event is addressable by
+        // definition. What can still be wrong is two ranges claiming the same history.
+        rowsByChunk.filterValues { it.isEmpty() }.keys
+                .filterNot { id -> chunks.firstOrNull { it.id == id }?.is_last_forward == 1L }
+                .takeIf { it.isNotEmpty() }
+                ?.let { failures.add("empty ranges: $it") }
+        val sharedEvents = rowsByChunk.entries
+                .flatMap { (id, rows) -> rows.map { it.eventId to id } }
+                .groupBy({ it.first }, { it.second })
+                .filterValues { it.distinct().size > 1 }
+        if (sharedEvents.isNotEmpty()) {
+            failures.add("${sharedEvents.size} event(s) in more than one range, e.g. ${sharedEvents.entries.take(3)}")
+        }
+
+        rowsByChunk.forEach { (chunkId, rows) ->
+            rows.groupBy { it.eventId }.filterValues { it.size > 1 }.keys.takeIf { it.isNotEmpty() }?.let {
+                failures.add("duplicate events in #$chunkId: ${it.take(5)}")
+            }
+            // Read back in the order the timeline renders them; anything out of order here is stored wrong,
+            // not sorted wrong, since the query is what defines the order.
+            val descending = rows.zipWithNext().none { (newer, older) ->
+                newer.ts < older.ts || (newer.ts == older.ts && newer.eventId < older.eventId)
+            }
+            if (!descending) failures.add("#$chunkId does not read back newest first")
+            rows.count { it.ts == 0L }.takeIf { it > 0 }?.let { failures.add("$it events with no timestamp in #$chunkId") }
+        }
+
+        // Overlapping main ranges can hide history because a timeline binds to one range.
+        val spans = rowsByChunk.filterValues { it.isNotEmpty() }
+                .mapValues { (_, rows) -> rows.minOf { it.ts } to rows.maxOf { it.ts } }
+        spans.entries.sortedBy { it.value.first }.zipWithNext().forEach { (a, b) ->
+            if (a.value.first < b.value.second && b.value.first < a.value.second) {
+                failures.add("#${a.key} and #${b.key} cover the same period: ${a.value} vs ${b.value}")
+            }
+        }
+
+        // Timestamp gaps are diagnostic notes: quiet periods and unfillable holes are valid.
+        val notes = mutableListOf<String>()
+        rowsByChunk.forEach { (chunkId, rows) ->
+            rows.zipWithNext()
+                    .filter { (newer, older) -> newer.ts - older.ts > INTERNAL_GAP_THRESHOLD_MS }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { gaps ->
+                        val worst = gaps.maxBy { (newer, older) -> newer.ts - older.ts }
+                        notes.add(
+                                "#$chunkId spans ${gaps.size} internal gap(s), worst " +
+                                        "${(worst.first.ts - worst.second.ts) / 86_400_000}d between" +
+                                        " ${worst.second.eventId} and ${worst.first.eventId}"
+                        )
+                    }
+        }
+
+        val events = rowsByChunk.values.sumOf { it.size }
+        return buildString {
+            append("ranges=${chunks.size} events=$events ")
+            append(if (failures.isEmpty()) "VERDICT PASS" else "VERDICT FAIL")
+            failures.forEach { append("\n  FAIL $it") }
+            notes.forEach { append("\n  NOTE $it") }
+        }
+    }
+
+    override fun debugDumpChunks(): String {
+        val chunks = stores.chunk.getByRoom(roomId)
+        val live = chunks.firstOrNull { it.is_last_forward == 1L }
+        return buildString {
+            append("ranges=${chunks.size} live=${live?.id}\n")
+            chunks.sortedByDescending { stores.timelineEvent.maxTsForChunk(it.id) ?: 0 }.forEach { chunk ->
+                append("  #${chunk.id}")
+                append(" events=${stores.timelineEvent.countByChunk(chunk.id)}")
+                append(" ts=${stores.timelineEvent.minTsForChunk(chunk.id)}..${stores.timelineEvent.maxTsForChunk(chunk.id)}")
+                append(" live=${chunk.is_last_forward == 1L} reachedStart=${chunk.is_last_backward == 1L}")
+                append(" prevToken=${chunk.prev_token?.take(12)} nextToken=${chunk.next_token?.take(12)}")
+                append("\n")
+            }
+        }
+    }
+
+    private companion object {
+        // Same day threshold the gap healer works to.
+        private const val INTERNAL_GAP_THRESHOLD_MS = 24 * 3600 * 1000L
     }
 }

@@ -96,7 +96,6 @@ class PreservedAttachmentResolverTest {
                 root = root,
                 localId = 1L,
                 eventId = eventId,
-                displayIndex = 0,
                 senderInfo = SenderInfo(SOMEONE_ELSE, null, true, null),
         )
     }

@@ -148,6 +148,13 @@ internal class EventIndexStore @Inject constructor(
                 }
             }
 
+    /** Indexed events inside (olderTs, newerTs), closest to [targetTs] first. */
+    suspend fun eventsNearestTsInRange(roomId: String, olderTs: Long, newerTs: Long, targetTs: Long, limit: Int): List<Pair<String, Long>> =
+            withContext(dispatcher) {
+                queries.eventsNearestTsInRange(roomId, olderTs, newerTs, targetTs, limit.toLong()).executeAsList()
+                        .map { it.event_id to it.origin_server_ts }
+            }
+
     suspend fun oldestTsInRoom(roomId: String): Long? = withContext(dispatcher) {
         queries.oldestTsInRoom(roomId).executeAsOneOrNull()
     }

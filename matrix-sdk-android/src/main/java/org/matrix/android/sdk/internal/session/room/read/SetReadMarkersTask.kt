@@ -69,6 +69,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
         private val readReceiptQueue: ReadReceiptQueue,
         private val clock: Clock,
         private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
+        private val lightweightSettingsStorage: org.matrix.android.sdk.api.settings.LightweightSettingsStorage,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
 ) : SetReadMarkersTask {
 
@@ -147,7 +148,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
             } else if (readReceiptId != null && stores.syncToken.getSlidingSyncPos() != null) {
                 // Our own counts are what stand in for the server's under sliding sync, so reading part of a
                 // room has to bring them down now — the next sync for the room could be a long way off.
-                val local = stores.localUnreadCounts(userId, roomId)
+                val local = stores.localUnreadCounts(userId, roomId, lightweightSettingsStorage.areThreadMessagesEnabled())
                 stores.roomSummary.setUnreadCounters(roomId, local.notificationCount, local.highlightCount)
             }
         }

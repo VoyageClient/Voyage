@@ -64,7 +64,6 @@ class RedactedContentRestorerTest {
                 root = root,
                 localId = 1L,
                 eventId = AN_EVENT_ID,
-                displayIndex = 0,
                 senderInfo = SenderInfo(senderId, null, true, null),
         )
     }

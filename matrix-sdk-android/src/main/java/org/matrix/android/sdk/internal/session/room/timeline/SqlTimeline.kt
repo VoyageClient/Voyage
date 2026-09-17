@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -31,7 +32,6 @@ import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
-import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -39,6 +39,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.DefaultFetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRoomSubscriptions
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import java.util.UUID
@@ -47,14 +48,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * SQLDelight [Timeline] replacing DefaultTimeline+LoadTimelineStrategy+TimelineChunk's Realm
- * incremental-changeset model with snapshot rebuild. The snapshot is the loaded chunks' events
- * (newest-first), plus — when the live edge is loaded — the room's sending (local-echo) events on top.
- *
- * Seeding: a thread timeline seeds from the thread chunk; a permalink ([initialEventId]) seeds from the
- * chunk containing that event; otherwise the room's forward chunk (live). Backward pagination walks
- * prev_chunk_id then prev_token (server fetch); forward pagination (for a permalink scrolling toward
- * live) walks next_chunk_id then next_token.
+ * A timeline binds to one timestamp-ordered range and grows it through pagination and merging.
+ * Local echoes appear above it when the live edge is loaded.
  */
 internal class SqlTimeline(
         private val roomId: String,
@@ -76,13 +71,15 @@ internal class SqlTimeline(
         private val redactionSignal: TimelineRedactionSignal,
         private val decryptionSignal: TimelineDecryptionSignal,
         private val loadRoomMembersTask: LoadRoomMembersTask,
-        private val lightweightSettingsStorage: LightweightSettingsStorage,
+        private val gapHealer: TimelineGapHealer,
+        private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
 ) : Timeline, TimelineInput.Listener, UIEchoManager.Listener {
 
     override val timelineID = UUID.randomUUID().toString()
 
     private val listeners = CopyOnWriteArrayList<Timeline.Listener>()
     private val isStarted = AtomicBoolean(false)
+    private val hasRoomSubscription = AtomicBoolean(false)
     private val forwardState = AtomicReference(Timeline.PaginationState(hasMoreToLoad = false))
     private val backwardState = AtomicReference(Timeline.PaginationState(hasMoreToLoad = true))
 
@@ -96,6 +93,7 @@ internal class SqlTimeline(
     // (hidden/redacted) events it stays on screen, so serialize the requests to avoid piling up fetches.
     private val backwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
     private val forwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
+    private val healsInFlight = java.util.Collections.synchronizedSet(HashSet<String>())
     private var observeJob: Job? = null
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
@@ -158,10 +156,6 @@ internal class SqlTimeline(
     private val liveChunkRowStep = 400
     @Volatile private var liveChunkRowCap = liveChunkRowStep
 
-    // Max history chunks pulled into the loaded set per backward pagination (each is mapped on the next
-    // rebuild, so this bounds per-pass mapping cost). The reveal loop keeps calling back to walk older.
-    private val maxBackwardChunks = 3
-
     // True once the mapped slice covers the whole live chunk; while false there are older rows we haven't
     // mapped yet, so the timeline must still offer a backward-reveal affordance.
     @Volatile private var liveChunkFullyMapped = false
@@ -183,7 +177,8 @@ internal class SqlTimeline(
     private val isWindowed: Boolean get() = !isThreadTimeline
     private fun initialWindowCount() = settings.initialSize.coerceAtLeast(1)
 
-    override val isLive: Boolean get() = !forwardState.get().hasMoreToLoad
+    // A context range without a forward token may still be far from the live edge.
+    override val isLive: Boolean get() = liveEdgeLoaded && !forwardState.get().hasMoreToLoad
 
     override fun addListener(listener: Timeline.Listener): Boolean {
         listeners.add(listener)
@@ -199,6 +194,7 @@ internal class SqlTimeline(
 
     override fun start(rootThreadEventId: String?) {
         if (!isStarted.compareAndSet(false, true)) return
+        updateRoomSubscription(true)
         threadRootId = rootThreadEventId ?: settings.rootThreadEventId
         timelineInput.listeners.add(this)
         eventDecryptor.start()
@@ -219,41 +215,30 @@ internal class SqlTimeline(
         decryptionSignalJob = timelineScope.launch {
             decryptionSignal.rooms.collect { if (it == roomId) decryptedSignal.trySend(Unit) }
         }
-        timelineScope.launch { loadRoomMembers() }
         timelineScope.launch {
-            if (!isThreadTimeline && timelineInput.dedupSweptRooms.add(roomId)) {
-                // Heal chunk-graph corruption left by the earlier link-and-stop pagination bug, then
-                // clear any leftover cross-chunk duplicate rows (once per room per session, before the
-                // first snapshot).
-                database.awaitDbTransaction(sessionDispatcher) {
-                    healCorruptChunkGraph()
-                    healOrphanedIslands()
-                    sweepDuplicateRows()
-                    if (lightweightSettingsStorage.isTimelineTimestampOrderEnabled()) {
-                        stores.timelineOrder.sweepRoom(roomId)
-                    }
-                }
-            }
+            delay(ROOM_MEMBER_LOAD_DELAY_MS)
+            loadRoomMembers()
+        }
+        timelineScope.launch {
             if (!isThreadTimeline) {
                 val membership = withContext(sessionDispatcher) { stores.room.get(roomId)?.membership }
                 if (membership == Membership.LEAVE || membership == Membership.BAN) {
                     // A boundary marked by an earlier 403 isn't authoritative — the server's
                     // departed-access policy varies per room — so a removed room re-probes once per
                     // open; a genuine room start just re-marks.
-                    database.awaitDbTransaction(sessionDispatcher) {
-                        stores.chunk.clearLastBackward(roomId)
-                        // A frozen room's stored order can predate the batch it belongs after (see handleLeftRoom).
-                        stores.chunk.lastForward(roomId)?.id?.let { stores.timelineEvent.resequenceChunkByTimestamp(it) }
-                    }
+                    database.awaitDbTransaction(sessionDispatcher) { stores.chunk.clearLastBackward(roomId) }
                 }
             }
             // A thread timeline gets a fresh (empty) thread chunk that the fetch task + sync then populate.
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
             seedFrom(seed)
             rebuildSnapshot()
-            // The UI only asks for older events once its loading item is on screen, and that waits for
-            // the first models to build — seconds in a room whose cache holds no more than the last sync
-            // page. Fetch that page here instead, so the request overlaps the render rather than following it.
+            // The UI only asks for older events once its loading item is on screen, which waits for the
+            // first models to build — seconds in a room whose cache holds little. Fetch that page here
+            // instead. Unconditionally: this runs only when the seed range is short of a screenful, and a
+            // limited sync leaves exactly that — a new live range holding a handful of events, with the
+            // room's stored history behind the gap it opened. Waiting for a sliding-sync subscription to
+            // fill it costs the same round trip and shows one message meanwhile.
             if (!isThreadTimeline && initialEventId == null && builtEvents.size < initialWindowCount()) {
                 loadMore(settings.initialSize, Timeline.Direction.BACKWARDS)
             }
@@ -268,9 +253,7 @@ internal class SqlTimeline(
         val params = LoadRoomMembersTask.Params(roomId, excludeMembership = Membership.LEAVE)
         while (true) {
             try {
-                Timber.i("RRDBG loadRoomMembers start $roomId rows=${memberRowCount()}")
                 loadRoomMembersTask.execute(params)
-                Timber.i("RRDBG loadRoomMembers done $roomId rows=${memberRowCount()}")
                 // Receipts already mapped against the members we had render as bare user ids.
                 chunkSnapshotCache.clear()
                 rebuildSnapshot()
@@ -285,90 +268,9 @@ internal class SqlTimeline(
         }
     }
 
-    private suspend fun memberRowCount(): Int = withContext(sessionDispatcher) { stores.roomMember.getByRoom(roomId).size }
-
-    /**
-     * Heal a corrupt chunk graph left by the earlier link-and-stop pagination bug. That bug could
-     * link chunks into cycles and, worse, drop whole backward pages (stopping at the first
-     * already-known boundary event) leaving empty chunks — some wrongly flagged is_last_backward, so
-     * the timeline believed the room had no history and stopped fetching.
-     *
-     * Detection: a cycle in the prev-walk from the live edge, or a chunk whose prev and next point at
-     * the same neighbour. Recovery: drop every non-live chunk and reset the live chunk (clear links
-     * and is_last_backward, keep its prev_token) so pagination re-fetches history cleanly — now that
-     * the persistor skips overlaps per-event instead of dropping the page. Caller is in a transaction.
-     */
-    private fun healCorruptChunkGraph() {
-        val chunks = stores.chunk.getByRoom(roomId)
-        val byId = chunks.associateBy { it.id }
-        val liveId = chunks.firstOrNull { it.is_last_forward != 0L }?.id ?: return
-
-        val visited = mutableSetOf<Long>()
-        var cursor: Long? = liveId
-        var corrupt = false
-        while (cursor != null) {
-            val chunk = byId[cursor]
-            if (chunk != null && chunk.prev_chunk_id != null && chunk.prev_chunk_id == chunk.next_chunk_id) {
-                corrupt = true
-                break
-            }
-            if (!visited.add(cursor)) {
-                corrupt = true
-                break
-            }
-            cursor = chunk?.prev_chunk_id
-        }
-        if (!corrupt) return
-
-        Timber.w("SqlTimeline $roomId: corrupt chunk graph (${chunks.size} chunks), collapsing to live chunk $liveId to re-paginate")
-        chunks.filter { it.id != liveId }.forEach { chunk ->
-            stores.timelineEvent.deleteByChunk(chunk.id)
-            stores.chunk.deleteById(chunk.id)
-        }
-        stores.chunk.updatePrevChunkId(liveId, null)
-        stores.chunk.updateNextChunkId(liveId, null)
-        stores.chunk.setLastBackward(liveId, false)
-    }
-
-    /**
-     * Splice orphaned jump-to-event islands back into the timeline. A /context island whose region a
-     * later pagination page re-covered had its event dropped from the covering chunk as a duplicate,
-     * leaving it reachable only by jumping to it (the island is never two-sidedly linked into the
-     * walk). The persistor now absorbs islands at persist time; this repairs damage already in the
-     * DB, where the region will never be re-fetched. Detection: the island event's timestamp falls
-     * strictly inside another chunk's span. Recovery: move the row there in timestamp order and
-     * retire the island. Caller is in a transaction.
-     */
-    private fun healOrphanedIslands() {
-        for (row in stores.timelineEvent.getLoneEventRows(roomId)) {
-            val island = stores.chunk.getById(row.chunkId) ?: continue
-            if (island.is_last_forward != 0L || island.is_last_backward != 0L ||
-                    island.is_last_forward_thread != 0L || island.root_thread_event_id != null) {
-                continue
-            }
-            val ts = stores.event.getByEventIdInRoom(roomId, row.eventId)?.originServerTs ?: continue
-            val coveringChunkId = stores.chunk.findChunkCoveringTs(roomId, row.chunkId, ts) ?: continue
-            val predecessorIndex = stores.timelineEvent.maxDisplayIndexAtOrBeforeTs(coveringChunkId, ts) ?: continue
-            stores.timelineEvent.shiftDisplayIndicesUpAfter(coveringChunkId, predecessorIndex)
-            stores.timelineEvent.moveToChunkAtIndex(row.id, coveringChunkId, predecessorIndex + 1)
-            stores.chunk.retireChunkInto(roomId, island, coveringChunkId)
-            Timber.i("SqlTimeline $roomId: spliced orphaned lone-event chunk ${row.chunkId} into $coveringChunkId")
-        }
-    }
-
-    private fun sweepDuplicateRows() {
-        val chain = LinkedHashSet<Long>()
-        var cursor = stores.chunk.lastForward(roomId)?.id
-        while (cursor != null && chain.add(cursor)) {
-            cursor = stores.chunk.getById(cursor)?.prev_chunk_id
-        }
-        if (chain.isNotEmpty()) {
-            stores.timelineEvent.deleteDuplicatesInChunks(roomId, chain)
-        }
-    }
-
     override fun dispose() {
         isStarted.set(false)
+        updateRoomSubscription(false)
         timelineInput.listeners.remove(this)
         eventDecryptor.removeOnDecryptedListener(decryptedListener)
         eventDecryptor.destroy()
@@ -442,36 +344,47 @@ internal class SqlTimeline(
         anchor
     }
 
-    /** The oldest chunk reachable by walking prev_chunk_id back from the live edge — the oldest event we can
-     *  show without a server round-trip. Stops at is_last_backward (true room start) or a broken/absent link. */
+    /** The range holding the room's oldest locally stored history — where a jump to the room start lands
+     *  without a server round-trip. The one that reached the start if there is one, else the oldest by span. */
     private fun oldestLoadedChunkId(): Long? {
-        var chunk = stores.chunk.lastForward(roomId) ?: return null
-        while (chunk.is_last_backward == 0L) {
-            val prevId = chunk.prev_chunk_id ?: break
-            chunk = stores.chunk.getById(prevId) ?: break
-        }
-        return chunk.id
+        val ranges = stores.chunk.getByRoom(roomId).filter { it.root_thread_event_id == null }
+        ranges.firstOrNull { it.is_last_backward != 0L }?.let { return it.id }
+        return ranges.minByOrNull { stores.timelineEvent.minTsForChunk(it.id) ?: Long.MAX_VALUE }?.id
     }
 
-    // Newest event has the largest display_index (the window sorts DESC), so the oldest is the minimum.
+    // Rows are read newest-first, so the oldest is the minimum timestamp.
     private fun oldestEventIdInChunk(chunkId: Long): String? =
-            stores.timelineEvent.getByChunk(chunkId).minByOrNull { it.displayIndex }?.eventId
+            stores.timelineEvent.getByChunk(chunkId).minByOrNull { it.ts }?.eventId
 
     override fun setViewAtLiveEdge(atLiveEdge: Boolean) {
         viewAtLiveEdge = atLiveEdge
     }
+
+    // A reseed is asynchronous and the rebuilds that trigger it keep coming; without this they pile up
+    // and cancel one another (see rebuildSnapshot).
+    private val reseeding = java.util.concurrent.atomic.AtomicBoolean(false)
 
     @Volatile private var rebuildsPaused = false
     @Volatile private var rebuildPendingWhilePaused = false
 
     override fun setPaused(paused: Boolean) {
         rebuildsPaused = paused
+        updateRoomSubscription(!paused)
         if (!paused && rebuildPendingWhilePaused) {
             rebuildPendingWhilePaused = false
             timelineScope.launch {
                 chunkSnapshotCache.clear()
                 rebuildSnapshot()
             }
+        }
+    }
+
+    private fun updateRoomSubscription(active: Boolean) {
+        val shouldSubscribe = active && isStarted.get()
+        if (shouldSubscribe && hasRoomSubscription.compareAndSet(false, true)) {
+            slidingSyncRoomSubscriptions.acquire(roomId)
+        } else if (!shouldSubscribe && hasRoomSubscription.compareAndSet(true, false)) {
+            slidingSyncRoomSubscriptions.release(roomId)
         }
     }
 
@@ -516,7 +429,7 @@ internal class SqlTimeline(
     private suspend fun recreateThreadChunk(rootId: String): Long =
             database.awaitDbTransaction(sessionDispatcher) {
                 deleteThreadChunk(rootId)
-                stores.chunk.insert(roomId, null, null, null, null, isLastForward = false, isLastBackward = false, rootThreadEventId = rootId, isLastForwardThread = true)
+                stores.chunk.insert(roomId, null, null, isLastForward = false, isLastBackward = false, rootThreadEventId = rootId, isLastForwardThread = true)
             }
 
     private fun deleteThreadChunk(rootId: String) {
@@ -542,9 +455,8 @@ internal class SqlTimeline(
         // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
         observeJob = timelineScope.launch {
             snapshotLoader.chunkChangesFlow(seedChunkId).conflate().collect {
-                // A redaction's prune rewrote the event table underneath the cached static-chunk
-                // mappings (and its timeline_event touch is what re-fired this flow, post-commit) —
-                // drop them so the rebuild re-reads the pruned content.
+                // A redaction rewrites older event content in place; nothing else can invalidate a
+                // cached slice, since nothing else moves a row.
                 if (consumeRedactionStamp()) chunkSnapshotCache.clear()
                 rebuildSnapshot()
             }
@@ -578,15 +490,7 @@ internal class SqlTimeline(
                 // to do for every chunk) forces a full reload+re-map of the whole live chunk, which at the
                 // live edge — where there is only one loaded chunk — means re-mapping the entire timeline
                 // for a single reaction.
-                var remapped = 0
-                for (chunkId in chunkSnapshotCache.keys.toList()) {
-                    val events = chunkSnapshotCache[chunkId] ?: continue
-                    if (events.none { it.eventId in changed }) continue
-                    chunkSnapshotCache[chunkId] = events.map { event ->
-                        if (event.eventId !in changed) event
-                        else snapshotLoader.reloadEvent(roomId, event.eventId)?.also { remapped++ } ?: event
-                    }
-                }
+                val remapped = remapCachedEvents(changed)
                 rebuildSnapshot()
                 MatrixPerf.end(perfStart) { "timeline.annotationsPropagate changed=${changed.size} remapped=$remapped" }
             }
@@ -597,11 +501,42 @@ internal class SqlTimeline(
         // and the first query running yields two identical fingerprints, and de-duplicating first would
         // collapse them into the initial emission that drop(1) discards.
         receiptsJob = timelineScope.launch {
-            snapshotLoader.readReceiptChangesFlow(roomId).drop(1).distinctUntilChanged().conflate().collect {
-                chunkSnapshotCache.clear()
+            var previous: List<String>? = null
+            snapshotLoader.readReceiptChangesFlow(roomId).drop(1).distinctUntilChanged().conflate().collect { current ->
+                val before = previous
+                previous = current
+                // Rows are "eventId|userId|ts|profile"; a receipt that moved appears on both sides of the
+                // difference, so this names the event it left and the one it landed on. Re-mapping just
+                // those beats dropping the cache: that re-maps every loaded row for one receipt, which in a
+                // scrolled-back room is thousands of events and about a second of work.
+                val changed = if (before == null) {
+                    current.mapTo(HashSet()) { it.substringBefore('|') }
+                } else {
+                    val beforeRows = before.toSet()
+                    val currentRows = current.toSet()
+                    (beforeRows - currentRows).plus(currentRows - beforeRows).mapTo(HashSet()) { it.substringBefore('|') }
+                }
+                if (changed.isEmpty()) return@collect
+                val perfStart = MatrixPerf.now()
+                val remapped = remapCachedEvents(changed)
                 rebuildSnapshot()
+                MatrixPerf.end(perfStart) { "timeline.receiptsPropagate changed=${changed.size} remapped=$remapped" }
             }
         }
+    }
+
+    /** Re-map the given events in place, leaving every other cached mapping alone. @return how many moved. */
+    private fun remapCachedEvents(changed: Set<String>): Int {
+        var remapped = 0
+        for (chunkId in chunkSnapshotCache.keys.toList()) {
+            val events = chunkSnapshotCache[chunkId] ?: continue
+            if (events.none { it.eventId in changed }) continue
+            chunkSnapshotCache[chunkId] = events.map { event ->
+                if (event.eventId !in changed) event
+                else snapshotLoader.reloadEvent(roomId, event.eventId)?.also { remapped++ } ?: event
+            }
+        }
+        return remapped
     }
 
     private suspend fun loadMore(count: Int, direction: Timeline.Direction) {
@@ -640,21 +575,46 @@ internal class SqlTimeline(
                 }
                 val oldestPrevToken = oldest.prev_token
                 when {
-                    // is_last_backward is the room start: nothing older, whatever a stale prev link says.
+                    // is_last_backward is the room start: there is nothing older to ask for.
                     oldest.is_last_backward != 0L -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
-                    oldest.prev_chunk_id != null -> {
-                        extendLoadedChunks(Timeline.Direction.BACKWARDS)
-                        revealAfterBackwardFetch()
-                    }
                     oldestPrevToken != null -> {
-                        paginate(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
-                        invalidateAfterServerPage()
-                        // The server page is persisted as a new chunk linked into our chain; walk the whole
-                        // prev_chunk_id chain so a page that bridges to an existing older chunk is fully picked up.
-                        extendLoadedChunks(Timeline.Direction.BACKWARDS)
+                        val page = paginate(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
+                        val gapped = page.gapDetected
+                        invalidateAfterServerPage(rowsMoved = page.rowsMoved)
+                        // Wait for healing before allowing the loading row to request the same refused page again.
+                        if (gapped && !healBoundary(oldest.id) && !frontierStalled(oldest.id)) {
+                            DebugLog.i { "GAPDBG $roomId: nothing more reachable below range ${oldest.id}, stopping the backward load" }
+                            stalledFrontier = withContext(sessionDispatcher) { boundaryKey(oldest.id) }
+                            updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                        }
+                        // The page is written into this range, and any range it turned out to overlap has
+                        // been folded into it, so the older history is simply part of the range now.
                         revealAfterBackwardFetch()
                     }
-                    else -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                    // A split has no token into its gap. If timestamp healing fails, include the older range
+                    // so its history remains reachable despite the visible timestamp jump.
+                    else -> {
+                        val healed = healBoundary(oldest.id)
+                        if (!healed) {
+                            val below = withContext(sessionDispatcher) { stores.chunk.rangeBelow(roomId, oldest.id) }
+                            if (below != null) {
+                                DebugLog.w { "GAPDBG $roomId: cannot fill the hole under range ${oldest.id}, taking #$below in so its history is reachable" }
+                                withContext(sessionDispatcher) {
+                                    database.awaitDbTransaction(sessionDispatcher) {
+                                        // Remember it, or the next room open splits the same gap straight
+                                        // back out and strands that history again.
+                                        stores.timelineEvent.maxTsForChunk(below)?.let { stores.chunk.markGapUnfillable(roomId, it) }
+                                        stores.chunk.mergeInto(oldest.id, below)
+                                    }
+                                    invalidateAfterServerPage()
+                                }
+                                revealAfterBackwardFetch()
+                                return
+                            }
+                            updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                        }
+                        if (isWindowed) rebuildSnapshot(reuseLiveChunk = true)
+                    }
                 }
             } finally {
                 backwardPaginating.set(false)
@@ -684,14 +644,9 @@ internal class SqlTimeline(
                 val newestNextToken = newest.next_token
                 when {
                     newest.is_last_forward != 0L -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
-                    newest.next_chunk_id != null -> {
-                        extendLoadedChunks(Timeline.Direction.FORWARDS)
-                        rebuildSnapshot()
-                    }
                     newestNextToken != null -> {
-                        paginate(newestNextToken, Timeline.Direction.FORWARDS, count, newest.id)
-                        invalidateAfterServerPage()
-                        extendLoadedChunks(Timeline.Direction.FORWARDS)
+                        val page = paginate(newestNextToken, Timeline.Direction.FORWARDS, count, newest.id)
+                        invalidateAfterServerPage(rowsMoved = page.rowsMoved)
                         rebuildSnapshot()
                     }
                     else -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
@@ -702,55 +657,34 @@ internal class SqlTimeline(
         }
     }
 
+    private fun boundaryKey(chunkId: Long): String? {
+        val ourOldest = stores.timelineEvent.minTsForChunk(chunkId) ?: return null
+        return "$chunkId|$ourOldest"
+    }
+
+    // The frontier a refused backward page gave up on, keyed like a boundary: anything that later fills
+    // in under that chunk moves its oldest timestamp, which lifts the stall and lets loading resume.
+    private var stalledFrontier: String? = null
+
+    private suspend fun frontierStalled(chunkId: Long): Boolean =
+            stalledFrontier != null && stalledFrontier == withContext(sessionDispatcher) { boundaryKey(chunkId) }
+
     // A page can extend the chunk it was fetched from, or make the persistor absorb one chunk into
     // another, so the cached mappings (and the ids we hold) can describe rows that have moved or a
     // chunk that is gone.
-    private fun invalidateAfterServerPage() {
-        chunkSnapshotCache.clear()
+    //
+    // [rowsMoved] false means the page only appended history below what is mapped, which the cached slices
+    // still describe correctly — dropping them there costs a full re-map of the whole window per page, the
+    // single largest cost of a long backward scroll.
+    private fun invalidateAfterServerPage(rowsMoved: Boolean = true) {
+        // A page can land under a boundary and move it, which invalidates what a walk concluded about it.
+        stores.chunk.forgetUnhealableBoundaries(roomId)
+        if (rowsMoved) chunkSnapshotCache.clear()
         liveChunkFullyMapped = false
         val alive = loadedChunkIds.filterTo(LinkedHashSet()) { stores.chunk.getById(it) != null }
         if (alive.size != loadedChunkIds.size) {
             loadedChunkIds.clear()
             loadedChunkIds.addAll(alive)
-        }
-    }
-
-    /** Walk the prev_chunk_id (backwards) / next_chunk_id (forwards) links from the current edge, adding
-     *  transitively-linked chunks — so server pages that bridge or merge chunks are picked up. Backwards is
-     *  capped at [maxBackwardChunks] per call: each newly-loaded chunk is mapped in full on the next rebuild,
-     *  so pulling the whole chain at once (dozens of chunks in a redaction-heavy room) froze the open for
-     *  seconds. Adding a few at a time spreads that mapping across passes; the reveal loop re-invokes us to
-     *  keep walking older. */
-    private fun extendLoadedChunks(direction: Timeline.Direction) {
-        if (direction == Timeline.Direction.BACKWARDS) {
-            var tail = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) }
-            var added = 0
-            while (added < maxBackwardChunks) {
-                // The room start has nothing older: never follow a (possibly corrupt) prev link off an
-                // is_last_backward chunk, or the walk wraps around into the live edge and pulls the whole
-                // history in as "older than the first event".
-                if (tail == null || tail.is_last_backward != 0L) break
-                val prevId = tail.prev_chunk_id ?: break
-                if (prevId in loadedChunkIds) break
-                loadedChunkIds.add(prevId)
-                added++
-                tail = stores.chunk.getById(prevId)
-            }
-        } else {
-            var head = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }
-            var added = 0
-            // Same per-call cap as backwards: once a deep jump's chain has been bridged to the live
-            // edge (by earlier catch-up pagination), the full next-chain is dozens of chunks — walking
-            // it all at once maps thousands of events in one rebuild and stalls the jump for seconds.
-            while (added < maxBackwardChunks) {
-                // Symmetrically, the live edge has nothing newer.
-                if (head == null || head.is_last_forward != 0L) break
-                val nextId = head.next_chunk_id ?: break
-                if (nextId in loadedChunkIds) break
-                loadedChunkIds.add(0, nextId)
-                added++
-                head = stores.chunk.getById(nextId)
-            }
         }
     }
 
@@ -776,7 +710,12 @@ internal class SqlTimeline(
         }
     }
 
-    private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null) {
+    /** What a round of paging did, beyond the rows it wrote. */
+    private class PageOutcome(val gapDetected: Boolean, val rowsMoved: Boolean)
+
+    private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null): PageOutcome {
+        var gapDetected = false
+        var rowsMoved = false
         updateState(direction) { it.copy(loading = true) }
         try {
             // Keep fetching within one user-visible round until real progress is made:
@@ -795,9 +734,16 @@ internal class SqlTimeline(
                         PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, origin, stats, serverGapProbe = true)
                 )
                 newRows += stats.written
+                rowsMoved = rowsMoved || stats.rowsMoved
+                // Folding in a range this page proved we already hold reveals history without writing a
+                // row: real progress, and the round must end or the walk re-fetches the same page.
+                if (stats.folded > 0) break
                 if (result == TokenChunkEventPersistor.Result.REACHED_END) break
                 // A detected gap ends the round: its recovery decides how the walk continues.
-                if (stats.gapDetected) break
+                if (stats.gapDetected) {
+                    gapDetected = true
+                    break
+                }
                 val followChunkId = if (result == TokenChunkEventPersistor.Result.SHOULD_FETCH_MORE) origin else {
                     if (newRows >= minOf(count, MIN_NEW_ROWS_PER_LOAD)) break
                     stats.landedChunkId
@@ -805,17 +751,10 @@ internal class SqlTimeline(
                 val follow = followChunkId?.let { withContext(sessionDispatcher) { stores.chunk.getById(it) } } ?: break
                 if (direction == Timeline.Direction.BACKWARDS && follow.is_last_backward != 0L) break
                 if (direction == Timeline.Direction.FORWARDS && follow.is_last_forward != 0L) break
-                // The landed chunk already links onward: the walk continues locally, no fetch needed.
-                val alreadyLinked = if (direction == Timeline.Direction.BACKWARDS) follow.prev_chunk_id else follow.next_chunk_id
-                if (result == TokenChunkEventPersistor.Result.SUCCESS && alreadyLinked != null) break
                 val next = (if (direction == Timeline.Direction.BACKWARDS) follow.prev_token else follow.next_token) ?: break
                 if (next == from) break
                 from = next
                 origin = follow.id
-            }
-            // The fetched history may be the region a late-delivered event was waiting for.
-            if (newRows > 0 && lightweightSettingsStorage.isTimelineTimestampOrderEnabled()) {
-                database.awaitDbTransaction(sessionDispatcher) { stores.timelineOrder.retryUnplaced(roomId) }
             }
         } catch (failure: Throwable) {
             if (failure is CancellationException) throw failure
@@ -831,6 +770,61 @@ internal class SqlTimeline(
             Timber.w(failure, "SqlTimeline $roomId pagination failed")
         }
         updateState(direction) { it.copy(loading = false) }
+        return PageOutcome(gapDetected = gapDetected, rowsMoved = rowsMoved)
+    }
+
+    // Keep visible event anchors while healing moves stored history.
+    private val windowPinCount = java.util.concurrent.atomic.AtomicInteger(0)
+    private val windowPinned: Boolean get() = windowPinCount.get() > 0
+
+    /** Prevent automatic window expansion during healing while preserving explicit user navigation. */
+    private suspend fun <T> withPinnedWindow(block: suspend () -> T): T {
+        windowPinCount.incrementAndGet()
+        return try {
+            block()
+        } finally {
+            windowPinCount.decrementAndGet()
+        }
+    }
+
+    /** Returns whether timestamp healing recovered history below the boundary. */
+    private suspend fun healBoundary(strandedChunkId: Long): Boolean {
+        val changed = withPinnedWindow { healBoundaryPinned(strandedChunkId) }
+        // Rebuild against the healed ranges after releasing this window pin.
+        rebuildSnapshot()
+        return changed
+    }
+
+    private suspend fun healBoundaryPinned(strandedChunkId: Long): Boolean {
+        if (isThreadTimeline) return false
+        // Per boundary, not one lock for the room: a jump heals the boundary above the target and the one
+        // below it, and making them queue behind each other left whichever lost the race unhealed.
+        val key = withContext(sessionDispatcher) { boundaryKey(strandedChunkId) } ?: return false
+        // Asked and answered this session: the walk's two round trips would only delay the reveal again.
+        if (withContext(sessionDispatcher) { stores.chunk.isBoundaryUnhealable(roomId, key) }) {
+            DebugLog.i { "GAPDBG $roomId: boundary under $strandedChunkId already known unhealable, not walking again" }
+            return false
+        }
+        if (!healsInFlight.add(key)) return false
+        try {
+            DebugLog.i { "GAPDBG $roomId: healing the boundary under chunk $strandedChunkId" }
+            val filled = gapHealer.fillBackwardByTimestamp(roomId, strandedChunkId)
+            if (filled > 0) {
+                withContext(sessionDispatcher) { invalidateAfterServerPage() }
+                rebuildSnapshot()
+                return true
+            }
+
+            DebugLog.i { "GAPDBG $roomId: timestamp walk filled nothing under $strandedChunkId" }
+            withContext(sessionDispatcher) { stores.chunk.markBoundaryUnhealable(roomId, key) }
+            return false
+        } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
+            Timber.w(failure, "SqlTimeline $roomId boundary heal failed")
+            return false
+        } finally {
+            healsInFlight.remove(key)
+        }
     }
 
     private fun toPaginationDirection(direction: Timeline.Direction) =
@@ -892,7 +886,7 @@ internal class SqlTimeline(
                 .map { uiEchoManager.decorateEventWithReactionUiEcho(it) }
     }
 
-    // Index 0 is newest (display_index DESC). Keep newest down to [oldestShownEventId], growing the anchor
+    // Index 0 is newest. Keep newest down to [oldestShownEventId], growing the anchor
     // to include a pending navigation target. Grows on reveal; only capped at the live edge (see
     // windowLiveEdgeCap) so nothing moves under a scrolled-up reader.
     private fun applyWindow(all: List<TimelineEvent>): List<TimelineEvent> {
@@ -914,6 +908,9 @@ internal class SqlTimeline(
             }
         }
         val anchorIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
+        // Keep unresolved anchors during healing to avoid moving the visible window.
+        // A null anchor still means the live window and should render normally.
+        if (windowPinned && oldestShownEventId != null && (anchorIdx == null || anchorIdx < 0)) return builtEvents
         var oldestIdx = (anchorIdx?.takeIf { it >= 0 } ?: (initialWindowCount() - 1)).coerceIn(0, all.lastIndex)
         // Cap the live-edge window by the count of *message* events, not raw events: a flood of redactions
         // or state changes (e.g. a mass redaction) collapses to a single merged item, so a raw cap would
@@ -928,7 +925,12 @@ internal class SqlTimeline(
         // yet) must be KEPT — nulling it would re-expand the window over every event the next page
         // brings in. Only an id that vanished from the loaded set clears the bound.
         val newestIdx = boundIdx.coerceAtMost(oldestIdx).coerceAtLeast(0)
-        newestShownEventId = if (boundIdx < 0) null else all[newestIdx].eventId
+        // Keep missing bounds while pinned so healing cannot expand the visible window.
+        newestShownEventId = when {
+            boundIdx >= 0 -> all[newestIdx].eventId
+            windowPinned -> newestShownEventId
+            else -> null
+        }
         return ArrayList(all.subList(newestIdx, oldestIdx + 1))
     }
 
@@ -1005,12 +1007,33 @@ internal class SqlTimeline(
         if (liveEdgeLoaded && !nowAtLiveEdge && !isThreadTimeline) {
             val newLive = stores.chunk.lastForward(roomId)?.id
             if (newLive != null && newLive != loadedChunkIds.firstOrNull()) {
-                // Not inline: seedFrom cancels the observer job this rebuild usually runs in.
-                timelineScope.launch { reseedAtLiveEdge(newLive) }
+                // Only one reseed may run; another launch would cancel the observer still seeding the first.
+                if (reseeding.compareAndSet(false, true)) {
+                    // Not inline: seedFrom cancels the observer job this rebuild usually runs in.
+                    timelineScope.launch {
+                        try {
+                            reseedAtLiveEdge(newLive)
+                        } finally {
+                            reseeding.set(false)
+                        }
+                    }
+                }
                 return
             }
         }
         liveEdgeLoaded = nowAtLiveEdge
+        // A merge retires the range it folds away, moving its rows to the survivor. Drop ids that no longer
+        // exist so the recovery below re-seeds where that history went — reading a dead range renders
+        // nothing, and nothing else would ever reseed.
+        if (!isThreadTimeline && loadedChunkIds.isNotEmpty()) {
+            val alive = loadedChunkIds.filterTo(LinkedHashSet()) { stores.chunk.getById(it) != null }
+            if (alive.size != loadedChunkIds.size) {
+                Timber.w("SqlTimeline $roomId: range(s) ${loadedChunkIds - alive} were merged away, re-seeding")
+                loadedChunkIds.clear()
+                loadedChunkIds.addAll(alive)
+                chunkSnapshotCache.clear()
+            }
+        }
         if (loadedChunkIds.isEmpty() && !isThreadTimeline) {
             // Not inline: seedFrom cancels the observer job this rebuild usually runs in. This pass still
             // posts its (empty) snapshot — a room that genuinely has no chunk yet must keep doing that.
@@ -1057,28 +1080,21 @@ internal class SqlTimeline(
         if (requests.isNotEmpty()) eventDecryptor.requestDecryption(requests)
     }
 
-    /**
-     * The live chunk grows with every sync, and re-loading + re-mapping it in full made each incoming
-     * message cost O(chunk size) — the "app gets slower the longer it runs" mechanism. Its rows are
-     * append-only in practice, so load only the rows above the cached max display index and prepend.
-     * Fall back to a full reload when the count doesn't add up (rows were removed / chunk rebuilt) or a
-     * new event is a redaction (it prunes an OLDER root in place, which the cached mapping would miss).
-     * In-place edits/reactions/decryptions are covered by the annotation/decrypt jobs, which refresh the
-     * affected entries (or drop the cache) before rebuilding.
-     */
+    /** Append rows after the cached timestamp cursor; content mutations invalidate the cache separately. */
     private fun refreshLiveChunkSnapshot(chunkId: Long): List<TimelineEvent> {
         val cached = chunkSnapshotCache[chunkId]
         if (cached.isNullOrEmpty()) {
             return loadLiveChunkNewest(chunkId).also { chunkSnapshotCache[chunkId] = it }
         }
-        val newEvents = snapshotLoader.chunkSnapshotAfter(chunkId, cached.first().displayIndex.toLong())
-        // A redaction prunes an OLDER root in place (its display_index is unchanged, so the append query above
-        // never re-maps it) — reload the bounded slice so the redacted content drops out. The redaction event
-        // lands in the live chunk, but its target can sit in any loaded chunk, so also drop the cached history
-        // mappings; they re-map with the pruned content on this same rebuild (the live chunk is index 0, so
-        // this runs before the flatMap reaches them). During a mass redaction history usually isn't loaded, so
-        // there is normally nothing to drop.
-        if (newEvents.any { it.root.getClearType() == EventType.REDACTION }) {
+        val newest = cached.first()
+        val oldest = cached.last()
+        val newEvents = snapshotLoader.chunkSnapshotAfter(chunkId, newest.root.originServerTs ?: 0L, newest.eventId)
+        // Counted from the slice's own oldest row rather than over the whole chunk: an event that landed
+        // inside the mapped window (or was removed from it) shows up as a count that no longer matches, while
+        // a backward page — which only ever appends BELOW that row — leaves the slice intact and cheap.
+        val countFromOldest = snapshotLoader.chunkEventCountFrom(chunkId, oldest.root.originServerTs ?: 0L, oldest.eventId)
+        if (countFromOldest != (cached.size + newEvents.size).toLong() ||
+                newEvents.any { it.root.getClearType() == EventType.REDACTION }) {
             loadedChunkIds.forEach { if (it != chunkId) chunkSnapshotCache.remove(it) }
             return loadLiveChunkNewest(chunkId).also { chunkSnapshotCache[chunkId] = it }
         }
@@ -1089,6 +1105,7 @@ internal class SqlTimeline(
     // Map only the newest [liveChunkRowCap] rows of the live chunk (unless a permalink target is pending —
     // that event may sit deep in the chunk, so map it whole to be sure it's reachable).
     private fun loadLiveChunkNewest(chunkId: Long): List<TimelineEvent> {
+        val storedCount = snapshotLoader.chunkEventCount(chunkId)
         // Threads aren't windowed (they page from the server), and a permalink target may sit deep in the
         // chunk — map the whole chunk in both cases so nothing is unreachable.
         if (isThreadTimeline || pendingShowEventId != null) {
@@ -1096,7 +1113,7 @@ internal class SqlTimeline(
             return snapshotLoader.chunkSnapshot(chunkId)
         }
         val slice = snapshotLoader.chunkSnapshotNewest(chunkId, liveChunkRowCap.toLong())
-        liveChunkFullyMapped = slice.size >= snapshotLoader.chunkEventCount(chunkId).toInt()
+        liveChunkFullyMapped = slice.size >= storedCount
         return slice
     }
 
@@ -1111,7 +1128,10 @@ internal class SqlTimeline(
             liveChunkRowCap += liveChunkRowStep
             return true
         }
-        val older = snapshotLoader.chunkSnapshotOlderThan(liveChunkId, cached.last().displayIndex.toLong(), liveChunkRowStep.toLong())
+        val oldest = cached.last()
+        val older = snapshotLoader.chunkSnapshotOlderThan(
+                liveChunkId, oldest.root.originServerTs ?: 0L, oldest.eventId, liveChunkRowStep.toLong()
+        )
         liveChunkRowCap += liveChunkRowStep
         if (older.isEmpty()) {
             liveChunkFullyMapped = true
@@ -1130,20 +1150,24 @@ internal class SqlTimeline(
         return true
     }
 
+    // A thread chunk carries its live edge in is_last_forward_thread; is_last_forward is the room's.
     private fun isLiveEdgeLoaded(): Boolean =
-            loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }?.is_last_forward == 1L
+            loadedChunkIds.firstOrNull()
+                    ?.let { stores.chunk.getById(it) }
+                    ?.let { if (isThreadTimeline) it.is_last_forward_thread else it.is_last_forward } == 1L
 
     private fun refreshPaginationStates() {
         // Thread pagination state is driven directly by fetchThreadTimelineTask results in loadMoreThread.
         if (isThreadTimeline) return
         val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) }
         val moreBackward = windowHasMoreOlder ||
-                (oldest != null && oldest.is_last_backward == 0L && (oldest.prev_chunk_id != null || oldest.prev_token != null))
+                (oldest != null && oldest.is_last_backward == 0L &&
+                        // A split range can have older stored history even without a pagination token.
+                        (oldest.prev_token != null || stores.chunk.rangeBelow(roomId, oldest.id) != null))
         updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = moreBackward) }
 
         val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }
-        val moreForward = windowHasMoreNewer || (newest != null && newest.is_last_forward == 0L &&
-                (newest.next_chunk_id != null || newest.next_token != null))
+        val moreForward = windowHasMoreNewer || (newest != null && newest.is_last_forward == 0L && newest.next_token != null)
         updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = moreForward) }
     }
 
@@ -1228,7 +1252,8 @@ internal class SqlTimeline(
     private suspend fun recoverLostSeed(): Boolean {
         if (isThreadTimeline || loadedChunkIds.isNotEmpty()) return false
         val anchor = pendingShowEventId ?: newestShownEventId ?: oldestShownEventId
-        val chunkId = anchor?.let { stores.chunk.findChunkIdIncludingEvent(roomId, it) }
+        // Main ranges only: a thread range holds copies of the same events and is not a timeline seed.
+        val chunkId = anchor?.let { stores.chunk.findMainChunkIdIncludingEvent(roomId, it) }
                 ?: stores.chunk.lastForward(roomId)?.id
                 ?: return false
         Timber.w("SqlTimeline $roomId lost its seed chunk, re-seeding on $chunkId at $anchor")
@@ -1279,6 +1304,7 @@ internal class SqlTimeline(
 
     companion object {
         private const val DECRYPT_REBUILD_DEBOUNCE_MS = 150L
+        private const val ROOM_MEMBER_LOAD_DELAY_MS = 5_000L
         private const val LOAD_MEMBERS_RETRY_DELAY_MS = 10_000L
 
         // Bounds the immediate follow-ups after token-progress-only pages; the UI's loading item

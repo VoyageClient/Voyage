@@ -17,7 +17,6 @@ internal class SqlClearCacheTask(private val database: SessionSqlDatabase) : Cle
             with(database.sessionDeleteAllQueries) {
                 deleteAllBreadcrumbs()
                 deleteAllChunk()
-                deleteAllChunkStateEvent()
                 deleteAllCurrentStateEvent()
                 deleteAllDraft()
                 deleteAllEditionOfEvent()

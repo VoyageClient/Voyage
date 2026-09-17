@@ -39,7 +39,6 @@ class RoomEventsAttachmentProviderTest {
                 ),
                 localId = 0,
                 eventId = eventId,
-                displayIndex = 0,
                 senderInfo = SenderInfo("@alice:example.org", "alice", true, null),
         )
     }

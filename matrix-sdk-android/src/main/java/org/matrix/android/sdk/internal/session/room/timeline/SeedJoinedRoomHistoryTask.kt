@@ -54,7 +54,7 @@ internal class DefaultSeedJoinedRoomHistoryTask @Inject constructor(
         val chunkId = chunk?.id ?: database.awaitDbTransaction(sessionDbDispatcher) {
             // Re-read inside the transaction: a sync may have anchored the live chunk since.
             stores.chunk.lastForward(roomId)?.id
-                    ?: stores.chunk.insert(roomId, from, null, null, null, isLastForward = true, isLastBackward = false, null, false)
+                    ?: stores.chunk.insert(roomId, from, null, isLastForward = true, isLastBackward = false, null, false)
         }
 
         paginationTask.execute(PaginationTask.Params(roomId, from, PaginationDirection.BACKWARDS, HISTORY_EVENT_COUNT, chunkId))

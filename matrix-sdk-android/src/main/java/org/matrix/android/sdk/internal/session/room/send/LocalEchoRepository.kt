@@ -147,6 +147,7 @@ internal class LocalEchoRepository @Inject constructor(
                     it.root = eventEntity
                     it.eventId = eventId
                     it.roomId = roomId
+                    it.ts = eventEntity.originServerTs ?: 0L
                     it.senderName = myUser?.let { u -> u.displayName ?: "" }
                     it.senderAvatar = myUser?.let { u -> u.avatarUrl ?: "" }
                     it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
@@ -378,7 +379,8 @@ internal class LocalEchoRepository @Inject constructor(
     fun getAllEventsWithStates(roomId: String, states: List<SendState>): List<TimelineEvent> {
         return stores.timelineEvent.getByRoom(roomId)
                 .filter { it.root?.sendState in states }
-                .sortedByDescending { it.displayIndex }
+                // Newest first, by insertion order: unsent rows have no server timestamp to sort by.
+                .sortedByDescending { it.localId }
                 .map { timelineEventMapper.map(it) }
     }
 

@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.sync.handler.room
 
 import dagger.Lazy
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
@@ -19,7 +20,6 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTagContent
 import org.matrix.android.sdk.api.session.room.send.SendState
-import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummaryUpdateType
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.model.InvitedRoomSync
@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.crypto.algorithms.megolm.UnRequestedForwardManager
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.mapper.overriddenSenderInfo
 import org.matrix.android.sdk.internal.database.mapper.toEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomEntity
@@ -50,7 +51,6 @@ import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelp
 import org.matrix.android.sdk.internal.session.room.read.FullyReadContent
 import org.matrix.android.sdk.internal.session.room.read.MarkedUnreadContent
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
-import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
 import org.matrix.android.sdk.internal.session.sync.ProgressReporter
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
@@ -90,6 +90,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
     ) {
         val insertType = if (isInitialSync) EventInsertType.INITIAL_SYNC else EventInsertType.INCREMENTAL_SYNC
         val ts = clock.epochMillis()
+
         // Reported per room rather than per batch: importing is the long pole of a first sync, and a bar
         // that only moves once it is over reads as a hang.
         roomsSyncResponse.join.mapWithProgress(reporter, InitialSyncStep.ImportingAccountJoinedRooms, 0.7f) {
@@ -110,10 +111,6 @@ internal class SqlRoomSyncHandler @Inject constructor(
             insertType: EventInsertType, syncTs: Long, aggregator: SyncResponsePostTreatmentAggregator,
     ) {
         val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
-        (roomSync.ephemeral as? LazyRoomSyncEphemeral.Parsed)?.roomSyncEphemeral?.events
-                ?.takeIf { it.isNotEmpty() }
-                ?.let { handleEphemeral(stores, roomId, it, isInitialSync, aggregator) }
-
         val roomEntity = stores.room.get(roomId) ?: RoomEntity(roomId = roomId)
         val previousMembership = roomEntity.membership
         if (previousMembership != Membership.JOIN) aggregator.spaceHierarchyChanged = true
@@ -128,10 +125,10 @@ internal class SqlRoomSyncHandler @Inject constructor(
             stores.chunk.clearLastBackward(roomId)
             aggregator.rejoinedRoomsToReanchor.add(roomId)
         }
-        // An accepted invite typically arrives with nothing but membership events, leaving the room with
-        // no message to preview or sort by until it is opened; seed its history after the sync instead.
-        // Not on the initial sync, where that would mean one request per quiet room in the account.
-        if (previousMembership != Membership.JOIN && !isInitialSync) aggregator.newlyJoinedRooms.add(roomId)
+        // Seed newly joined rooms for previews, but skip first deliveries during sliding-sync account coverage.
+        if (previousMembership != Membership.JOIN && !isInitialSync && !roomSync.isInitialDelivery) {
+            aggregator.newlyJoinedRooms.add(roomId)
+        }
         roomEntity.membership = Membership.JOIN
         stores.room.upsert(roomEntity)
 
@@ -150,6 +147,11 @@ internal class SqlRoomSyncHandler @Inject constructor(
                     insertType, syncTs, isInitialSync, aggregator
             )
         }
+        applyHeroProfiles(stores, roomId, roomSync.heroProfiles)
+        // After the member state of this batch, so a typing user who just joined isn't rendered as a bare id.
+        (roomSync.ephemeral as? LazyRoomSyncEphemeral.Parsed)?.roomSyncEphemeral?.events
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { MatrixPerf.time("sync.room.ephemeral") { handleEphemeral(stores, roomId, it, isInitialSync, aggregator) } }
         val timeline = roomSync.timeline
         val syncTimelineEvents = timeline?.events
         if (syncTimelineEvents?.isNotEmpty() == true) {
@@ -214,8 +216,6 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val hasRoomMember = (stateAfter?.events ?: roomSync.state?.events).orEmpty()
                 .plus(roomSync.timeline?.events.orEmpty())
                 .any { it.type == EventType.STATE_ROOM_MEMBER }
-
-        applyHeroProfiles(stores, roomId, roomSync.heroProfiles)
 
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.JOIN)
         MatrixPerf.time("sync.room.summaryUpdate members=$hasRoomMember") {
@@ -387,9 +387,6 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 // destroy cached history for good. Append instead; the gap's middle is lost either way.
                 val limited = timeline.limited && removalMembership != Membership.BAN
                 handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, limited, insertType, syncTs, aggregator)
-                // A ban's leave sync is stripped down to the ban itself, so a fuller batch delivered later
-                // is *older* than the chunk already holds and appending it strands the ban at the top.
-                stores.chunk.lastForward(roomId)?.id?.let { stores.timelineEvent.resequenceChunkByTimestamp(it) }
             }
         } else {
             clearRoomTimeline(stores, roomId)
@@ -438,31 +435,38 @@ internal class SqlRoomSyncHandler @Inject constructor(
             forceNewChunk: Boolean = false,
             absorbOnOverlap: Boolean = true,
     ) {
-        val lastChunkId = stores.chunk.lastForward(roomId)?.id
+        val lastChunkId = MatrixPerf.time("tl.lastForward") { stores.chunk.lastForward(roomId)?.id }
+        val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
+        var demotedLiveRange: Long? = null
         // A batch sharing an event with the live chunk connects to it: the batch is a contiguous newest
         // slice, so everything past the shared event fills in without a gap. Absorb it there even when
         // flagged limited/initial — a forced new chunk would orphan an open timeline seeded on the old
         // one, and a limited sync would wipe stored history it actually joins up with.
-        val overlapsLastChunk = absorbOnOverlap && (forceNewChunk || isLimited) && lastChunkId != null && eventList.any { event ->
-            event.eventId?.let { stores.timelineEvent.getInChunkByEventId(lastChunkId, it) } != null
+        val overlapsLastChunk = MatrixPerf.time("tl.overlapScan") {
+            absorbOnOverlap && (forceNewChunk || isLimited) && lastChunkId != null && eventList.any { event ->
+                event.eventId?.let { stores.timelineEvent.getInChunkByEventId(lastChunkId, it) } != null
+            }
         }
         val chunkId = when {
             overlapsLastChunk -> lastChunkId!!
-            forceNewChunk && lastChunkId != null -> {
+            // Limited incremental sync starts a new live range while retaining history behind the gap.
+            (forceNewChunk || isLimited) && lastChunkId != null && !isInitialSync -> {
                 stores.chunk.setLastForward(lastChunkId, false)
-                stores.chunk.insert(roomId, prevToken, null, null, null, isLastForward = true, isLastBackward = false, null, false)
+                stores.chunk.insert(roomId, prevToken, null, isLastForward = true, isLastBackward = false, null, false)
+                        .also { demotedLiveRange = lastChunkId }
             }
             !isLimited && lastChunkId != null -> lastChunkId
             else -> {
-                clearRoomTimeline(stores, roomId)
-                stores.chunk.insert(roomId, prevToken, null, null, null, isLastForward = true, isLastBackward = false, null, false)
+                MatrixPerf.time("tl.clearRoomTimeline") { clearRoomTimeline(stores, roomId) }
+                MatrixPerf.time("tl.chunkInsert") {
+                    stores.chunk.insert(roomId, prevToken, null, isLastForward = true, isLastBackward = false, null, false)
+                }
             }
         }
         val isLastForward = true
         val eventIds = ArrayList<String>(eventList.size)
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
         val roomMemberEventIdsByUser = HashMap<String, String?>()
-        val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
         val rootThreadEventIds = LinkedHashSet<String>()
 
         for (rawEvent in eventList) {
@@ -476,28 +480,38 @@ internal class SqlRoomSyncHandler @Inject constructor(
             if (!isInitialSync) liveEventService.get().dispatchLiveEventReceived(event, roomId)
 
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
-            val eventDbId = insertEventOrIgnore(stores, entity, insertType)
+            val eventDbId = MatrixPerf.time("sync.timeline.insertEvent") { insertEventOrIgnore(stores, entity, insertType) }
             val stateKey = event.stateKey
             if (stateKey != null) {
-                stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
+                MatrixPerf.time("tl.currentStateUpsert") { stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId) }
                 if (type in SPACE_RELATION_TYPES) aggregator.spaceHierarchyChanged = true
                 if (type == EventType.STATE_ROOM_MEMBER) {
                     roomMemberContentsByUser[stateKey] = event.getFixedRoomMemberContent()
                     roomMemberEventIdsByUser[stateKey] = eventId
-                    roomMemberEventHandler.handle(stores, roomId, event, isInitialSync)
+                    MatrixPerf.time("tl.memberEventHandler") { roomMemberEventHandler.handle(stores, roomId, event, isInitialSync) }
                 }
             }
             if (!roomMemberContentsByUser.containsKey(senderId)) {
-                val currentMemberEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)?.root?.asDomain()
-                roomMemberContentsByUser[senderId] = currentMemberEvent?.getFixedRoomMemberContent()
-                roomMemberEventIdsByUser[senderId] = currentMemberEvent?.eventId
+                MatrixPerf.time("tl.senderMemberLookup") {
+                    val currentMemberEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)?.root?.asDomain()
+                    roomMemberContentsByUser[senderId] = currentMemberEvent?.getFixedRoomMemberContent()
+                            ?: stores.roomMember.getByRoomAndUser(roomId, senderId)?.let { member ->
+                                RoomMemberContent(
+                                        membership = member.membership,
+                                        displayName = member.displayName,
+                                        avatarUrl = member.avatarUrl,
+                                )
+                            }
+                    roomMemberEventIdsByUser[senderId] = currentMemberEvent?.eventId
+                }
             }
-            stores.timelineWriter.addTimelineEvent(
-                    chunkId, roomId, eventDbId, entity, isLastForward, PaginationDirection.FORWARDS,
-                    roomMemberContentsByUser = roomMemberContentsByUser,
-                    roomMemberEventIdsByUser = roomMemberEventIdsByUser,
-                    keepTimestampOrder = lightweightSettingsStorage.isTimelineTimestampOrderEnabled(),
-            )
+            MatrixPerf.time("sync.timeline.addRow") {
+                stores.timelineWriter.addTimelineEvent(
+                        chunkId, roomId, eventDbId, entity, isLastForward,
+                        roomMemberContentsByUser = roomMemberContentsByUser,
+                        roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                )
+            }
 
             if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
                 entity.rootThreadEventId?.let { rootId ->
@@ -507,7 +521,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                         if (stores.timelineEvent.getInChunkByEventId(threadChunkId, entity.eventId) == null) {
                             stores.timelineWriter.addTimelineEvent(
                                     chunkId = threadChunkId, roomId = roomId, eventDbId = eventDbId, event = entity,
-                                    isLastForward = true, direction = PaginationDirection.FORWARDS, ownedByThreadChunk = true,
+                                    isLastForward = true, ownedByThreadChunk = true,
                                     roomMemberContentsByUser = roomMemberContentsByUser,
                                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                             )
@@ -528,19 +542,27 @@ internal class SqlRoomSyncHandler @Inject constructor(
             }
 
             // Remove local echo if this is the remote copy.
-            event.unsignedData?.transactionId?.let { txId ->
-                stores.timelineEvent.deleteSending(roomId, txId)
-                fixUpEditLocalEcho(stores, event, txId)
+            MatrixPerf.time("tl.deleteSending") {
+                event.unsignedData?.transactionId?.let { txId ->
+                    stores.timelineEvent.deleteSending(roomId, txId)
+                    fixUpEditLocalEcho(stores, event, txId)
+                }
+                stores.timelineEvent.deleteSending(roomId, eventId)
             }
-            stores.timelineEvent.deleteSending(roomId, eventId)
         }
         // Mark root events of any thread this batch touched with their reply count + latest reply, so the
         // thread badge, thread list, and inline latest-message preview pick them up. The batch's own events
         // are candidates too: a root can arrive after the replies that point at it.
         if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
-            stores.markThreadRoots(roomId, rootThreadEventIds + eventIds)
+            MatrixPerf.time("sync.timeline.threadRoots") { stores.markThreadRoots(roomId, rootThreadEventIds + eventIds) }
         }
-        timelineInput.onNewTimelineEvents(roomId = roomId, eventIds = eventIds)
+        // Normalize after insertion, when both spans are final, so an open timeline can see retained history.
+        if (demotedLiveRange != null) {
+            stores.chunk.normaliseRanges(roomId, GAP_NORMALISE_THRESHOLD_MS, writtenRangeId = chunkId).let {
+                if (it > 0) DebugLog.w { "GAPDBG $roomId: limited sync left $it range(s) covering one period, merged" }
+            }
+        }
+        MatrixPerf.time("tl.onNewTimelineEvents") { timelineInput.onNewTimelineEvents(roomId = roomId, eventIds = eventIds) }
     }
 
     private fun handleEphemeral(
@@ -572,7 +594,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val memberHelper = SqlRoomMemberHelper(stores, roomId)
         val senderInfo = typingUserIds.filter { it !in excluded }.map { typingUser ->
             val member = memberHelper.getLastRoomMember(typingUser)
-            SenderInfo(
+            overriddenSenderInfo(
                     userId = typingUser,
                     displayName = member?.displayName,
                     isUniqueDisplayName = memberHelper.isUniqueDisplayName(member?.displayName),
@@ -605,5 +627,8 @@ internal class SqlRoomSyncHandler @Inject constructor(
         // Adding or removing a space child/parent reshapes the graph the room list filters on, so the
         // flattened parent ids have to be recomputed after this sync.
         private val SPACE_RELATION_TYPES = setOf(EventType.STATE_SPACE_CHILD, EventType.STATE_SPACE_PARENT)
+
+        // The same day the timeline and the gap healer treat as a hole rather than a quiet spell.
+        private const val GAP_NORMALISE_THRESHOLD_MS = 24 * 3600 * 1000L
     }
 }

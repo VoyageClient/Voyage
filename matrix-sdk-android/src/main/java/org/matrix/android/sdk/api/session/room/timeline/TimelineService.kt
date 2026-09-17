@@ -68,4 +68,10 @@ interface TimelineService {
      * Returns a snapshot list of TimelineEvent with a content relation of the given type to the given eventId.
      */
     fun getTimelineEventsRelatedTo(relationType: String, eventId: String): List<TimelineEvent>
+
+    /** Returns diagnostic counts, timestamps and pagination tokens for the room's stored ranges. */
+    fun debugDumpChunks(): String
+
+    /** Checks stored timeline invariants and returns diagnostic PASS/FAIL results. */
+    fun debugCheckTimeline(): String
 }

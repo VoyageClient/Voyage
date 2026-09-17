@@ -68,10 +68,10 @@ class ThreadSummaryPreviewSqlTest {
             )
 
     private fun mainChunk() = stores.chunk.insert(
-            roomId, null, null, null, null, isLastForward = true, isLastBackward = true, rootThreadEventId = null, isLastForwardThread = false)
+            roomId, null, null, isLastForward = true, isLastBackward = true, rootThreadEventId = null, isLastForwardThread = false)
 
     private fun threadChunk() = stores.chunk.insert(
-            roomId, null, null, null, null, isLastForward = false, isLastBackward = false,
+            roomId, null, null, isLastForward = false, isLastBackward = false,
             rootThreadEventId = rootEventId, isLastForwardThread = true)
 
     @Test

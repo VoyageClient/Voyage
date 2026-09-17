@@ -96,6 +96,9 @@ class ProcessBodyOfReplyToEventUseCaseTest {
         mockkStatic("org.matrix.android.sdk.api.session.events.model.EventKt")
         mockkStatic("org.matrix.android.sdk.api.session.room.timeline.TimelineEventKt")
         fakeStringProvider.given(CommonStrings.message_reply_to_prefix, A_PREFIX)
+        fakeActiveSessionHolder.fakeSession.fakeRoomService.givenGetRoomMemberReturns(null)
+        fakeActiveSessionHolder.fakeSession.fakeRoomService.getRoom(A_ROOM_ID)
+                .relationService().givenGetEventAnnotationsSummaryReturns(null)
 
         fakeRepliedEvent = mockk {
             every { eventId } returns AN_EVENT_ID
@@ -103,6 +106,7 @@ class ProcessBodyOfReplyToEventUseCaseTest {
             every { senderId } returns A_SENDER_ID
             every { isRedacted() } returns false
             every { getClearType() } returns EventType.MESSAGE
+            every { getClearContent() } returns null
             every { isFileMessage() } returns false
             every { isVoiceMessage() } returns false
             every { isAudioMessage() } returns false

@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.room.membership.AmbiguousDisplayNameCache
 import org.matrix.android.sdk.internal.session.room.membership.RoomMemberColorCache
 import javax.inject.Inject
 
@@ -30,6 +31,7 @@ import javax.inject.Inject
 internal class TimelineEventMapper @Inject constructor(
         private val readReceiptsSummaryMapper: ReadReceiptsSummaryMapper,
         private val roomMemberColorCache: RoomMemberColorCache,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
 ) {
 
     // Parsing an event's JSON (2-3 Moshi passes) dominates timeline snapshot mapping (~1.5ms/event on
@@ -77,11 +79,16 @@ internal class TimelineEventMapper @Inject constructor(
                 eventId = timelineEventEntity.eventId,
                 annotations = timelineEventEntity.annotations?.asDomain(),
                 localId = timelineEventEntity.localId,
-                displayIndex = timelineEventEntity.displayIndex,
                 senderInfo = overriddenSenderInfo(
                         userId = timelineEventEntity.root?.sender ?: "",
                         displayName = timelineEventEntity.senderName,
-                        isUniqueDisplayName = timelineEventEntity.isUniqueDisplayName,
+                        // From the members as they are now, not as they were when the row was written:
+                        // a name the row called unique may since have gained a namesake, and two rows
+                        // for one sender that disagree render differently and break their grouping.
+                        isUniqueDisplayName = ambiguousDisplayNameCache
+                                .isAmbiguous(timelineEventEntity.roomId, timelineEventEntity.senderName)
+                                ?.not()
+                                ?: timelineEventEntity.isUniqueDisplayName,
                         avatarUrl = timelineEventEntity.senderAvatar,
                         colorPreference = timelineEventEntity.root?.sender?.let { roomMemberColorCache.get(timelineEventEntity.roomId, it) },
                 ),
@@ -98,9 +105,9 @@ internal class TimelineEventMapper @Inject constructor(
         }
         add(ProfileOverrides.generation)
         add(roomMemberColorCache.generation)
+        add(ambiguousDisplayNameCache.generation)
         add(e.eventId)
         add(e.localId)
-        add(e.displayIndex)
         add(e.senderName)
         add(e.senderAvatar)
         add(e.isUniqueDisplayName)

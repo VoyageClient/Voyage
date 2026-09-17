@@ -66,7 +66,6 @@ object FakeCreatePollViewStates {
             root = A_POLL_START_EVENT,
             localId = 12345,
             eventId = A_FAKE_EVENT_ID,
-            displayIndex = 1,
             senderInfo = SenderInfo(A_FAKE_USER_ID, isUniqueDisplayName = true, avatarUrl = "", displayName = "")
     )
 

@@ -37,7 +37,6 @@ import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.relation.RelationsResponse
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
-import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.task.Task
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
@@ -150,7 +149,6 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                         eventDbId = eventDbId,
                         event = entity,
                         isLastForward = true,
-                        direction = PaginationDirection.BACKWARDS,
                         ownedByThreadChunk = true,
                         roomMemberContentsByUser = roomMemberContentsByUser,
                         roomMemberEventIdsByUser = roomMemberEventIdsByUser,
@@ -166,7 +164,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                             rootEntity.sender?.let { addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, it) }
                             stores.timelineWriter.addTimelineEvent(
                                     chunkId = threadChunkId, roomId = params.roomId, eventDbId = existingRootDbId, event = rootEntity,
-                                    isLastForward = true, direction = PaginationDirection.BACKWARDS, ownedByThreadChunk = true,
+                                    isLastForward = true, ownedByThreadChunk = true,
                                     roomMemberContentsByUser = roomMemberContentsByUser,
                                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                             )
@@ -177,7 +175,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                         addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, threadRootEvent.senderId!!)
                         stores.timelineWriter.addTimelineEvent(
                                 chunkId = threadChunkId, roomId = params.roomId, eventDbId = rootDbId, event = rootEntity,
-                                isLastForward = true, direction = PaginationDirection.BACKWARDS, ownedByThreadChunk = true,
+                                isLastForward = true, ownedByThreadChunk = true,
                                 roomMemberContentsByUser = roomMemberContentsByUser,
                                 roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                         )

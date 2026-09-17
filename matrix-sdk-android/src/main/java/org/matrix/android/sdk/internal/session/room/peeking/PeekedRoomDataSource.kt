@@ -115,7 +115,6 @@ internal class PeekedRoomDataSource(
                 root = aux,
                 localId = eventId.hashCode().toLong(),
                 eventId = eventId,
-                displayIndex = 0,
                 senderInfo = senderInfo(aux.senderId),
         )
     }
@@ -276,7 +275,6 @@ internal class PeekedRoomDataSource(
                     root = event,
                     localId = event.eventId.hashCode().toLong(),
                     eventId = event.eventId.orEmpty(),
-                    displayIndex = 0,
                     senderInfo = SenderInfo(
                             userId = event.senderId.orEmpty(),
                             displayName = member?.displayName,

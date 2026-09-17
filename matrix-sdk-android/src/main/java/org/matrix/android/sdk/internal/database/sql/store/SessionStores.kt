@@ -10,6 +10,7 @@ package org.matrix.android.sdk.internal.database.sql.store
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import javax.inject.Inject
 
 /**
@@ -20,6 +21,9 @@ import javax.inject.Inject
 @SessionScope
 internal class SessionStores @Inject constructor(
         @SessionDatabase val database: SessionSqlDatabase,
+        // Defaulted for the store tests, which build SessionStores directly; Dagger always injects the
+        // session-scoped instance the room list listens to.
+        summaryInvalidation: RoomSummaryPreviewInvalidation = RoomSummaryPreviewInvalidation(),
 ) {
     val event = EventSqlStore(database)
     val user = UserSqlStore(database)
@@ -33,7 +37,7 @@ internal class SessionStores @Inject constructor(
     val timelineEvent = TimelineEventSqlStore(database, event, annotations, readReceipt)
     val chunk = ChunkSqlStore(database)
     val space = SpaceSqlStore(database)
-    val roomSummary = RoomSummarySqlStore(database, space, roomTag, draft, timelineEvent, user)
+    val roomSummary = RoomSummarySqlStore(database, space, roomTag, draft, timelineEvent, user, summaryInvalidation)
     val eventInsert = EventInsertSqlStore(database)
     val currentStateEvent = CurrentStateEventSqlStore(database, event)
     val threadSummary = ThreadSummarySqlStore(database, event)
@@ -51,7 +55,6 @@ internal class SessionStores @Inject constructor(
     val threePid = ThreePidSqlStore(database)
     val pollHistory = PollHistorySqlStore(database)
     val syncFilterParams = SyncFilterParamsSqlStore(database)
-    val timelineOrder = TimelineOrderRepairer(this)
     val timelineWriter = TimelineSqlWriter(this)
 
     /**

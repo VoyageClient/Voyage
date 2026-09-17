@@ -70,13 +70,13 @@ internal class SeedJoinedRoomHistoryTaskTest {
     }
 
     private fun givenALiveChunk(prevToken: String?, reachedRoomStart: Boolean = false) =
-            stores.chunk.insert(A_ROOM_ID, prevToken, null, null, null, isLastForward = true, isLastBackward = reachedRoomStart, null, false)
+            stores.chunk.insert(A_ROOM_ID, prevToken, null, isLastForward = true, isLastBackward = reachedRoomStart, null, false)
 
     private fun givenAMessageIsAlreadyKnown() {
         val dbId = stores.event.insert(
                 EventEntity(eventId = "\$message", roomId = A_ROOM_ID, type = EventType.MESSAGE, sender = "@bob:example.org", originServerTs = 1L)
         )
-        stores.timelineEvent.insert(TimelineEventEntity(eventId = "\$message", roomId = A_ROOM_ID, displayIndex = 0), chunkId = 1L, rootEventDbId = dbId)
+        stores.timelineEvent.insert(TimelineEventEntity(eventId = "\$message", roomId = A_ROOM_ID), chunkId = 1L, rootEventDbId = dbId)
         val summary = stores.roomSummary.get(A_ROOM_ID) ?: RoomSummaryEntity(roomId = A_ROOM_ID)
         summary.latestPreviewableEvent = stores.timelineEvent.getByRoomAndEventId(A_ROOM_ID, "\$message")
         stores.roomSummary.upsert(summary)

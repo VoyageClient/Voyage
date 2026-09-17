@@ -31,14 +31,13 @@ internal class TimelineEventSqlStore(
     fun getByChunkNewest(chunkId: Long, limit: Long): List<TimelineEventEntity> =
             queries.selectByChunkNewest(chunkId, limit).executeAsList().toEntities()
 
-    fun getByChunkRange(chunkId: Long, from: Long, to: Long): List<TimelineEventEntity> =
-            queries.selectByChunkRange(chunkId, from, to).executeAsList().toEntities()
+    /** Everything the chunk has gained above a known row — what a live append adds to an open timeline. */
+    fun getByChunkNewerThan(chunkId: Long, ts: Long, eventId: String): List<TimelineEventEntity> =
+            queries.selectByChunkNewerThan(chunkId, ts, ts, eventId).executeAsList().toEntities()
 
-    fun getByChunkAfterIndex(chunkId: Long, afterDisplayIndex: Long): List<TimelineEventEntity> =
-            queries.selectByChunkAfterIndex(chunkId, afterDisplayIndex).executeAsList().toEntities()
-
-    fun getByChunkBeforeIndex(chunkId: Long, beforeDisplayIndex: Long, limit: Long): List<TimelineEventEntity> =
-            queries.selectByChunkBeforeIndex(chunkId, beforeDisplayIndex, limit).executeAsList().toEntities()
+    /** The rows immediately below a known one, newest first. Keyset, so it stays an index-only scan. */
+    fun getByChunkOlderThan(chunkId: Long, ts: Long, eventId: String, limit: Long): List<TimelineEventEntity> =
+            queries.selectByChunkOlderThan(chunkId, ts, ts, eventId, limit).executeAsList().toEntities()
 
     fun getInChunkByEventId(chunkId: Long, eventId: String): TimelineEventEntity? =
             queries.selectInChunkByEventId(chunkId, eventId).executeAsOneOrNull()?.toEntity()
@@ -62,6 +61,9 @@ internal class TimelineEventSqlStore(
                     .filter { it.chunk_id != null }
                     .toEntities()
 
+    fun getLatestUnreadEvent(roomId: String, types: Collection<String>, excludedSenders: Collection<String>): TimelineEventEntity? =
+            queries.selectLatestUnreadEvent(roomId, types, excludedSenders).executeAsOneOrNull()?.toEntity()
+
     fun getSendingByRoom(roomId: String): List<TimelineEventEntity> =
             queries.selectSendingByRoom(roomId).executeAsList().toEntities()
 
@@ -80,15 +82,15 @@ internal class TimelineEventSqlStore(
 
     fun countByChunk(chunkId: Long): Long = queries.countByChunk(chunkId).executeAsOne()
 
-    /** Rows that are the sole timeline event of their chunk (i.e. jump-to-event /context islands). */
-    fun getLoneEventRows(roomId: String): List<LoneEventRow> =
-            queries.selectLoneEventRows(roomId).executeAsList().map { LoneEventRow(it.id, it.event_id, it.chunk_id) }
+    /** Rows at or newer than a (ts, event_id) cursor. */
+    fun countByChunkFrom(chunkId: Long, ts: Long, eventId: String): Long =
+            queries.countByChunkFrom(chunkId, ts, ts, eventId).executeAsOne()
 
     fun minTsForChunk(chunkId: Long): Long? =
             queries.selectMinTsForChunk(chunkId).executeAsOneOrNull()?.ts
 
-    fun maxDisplayIndexAtOrBeforeTs(chunkId: Long, ts: Long): Long? =
-            queries.selectMaxDisplayIndexAtOrBeforeTs(chunkId, ts).executeAsOne().idx
+    fun maxTsForChunk(chunkId: Long): Long? =
+            queries.selectMaxTsForChunk(chunkId).executeAsOneOrNull()?.ts
 
     /** Timestamp of the chunk's newest-positioned row, ignoring [excludedRowId]. */
     fun tsAtNewestRow(chunkId: Long, excludedRowId: Long): Long? =
@@ -98,54 +100,13 @@ internal class TimelineEventSqlStore(
     fun tsAtOldestRow(chunkId: Long, excludedRowId: Long): Long? =
             queries.selectTsAtOldestRowExcluding(chunkId, excludedRowId).executeAsOneOrNull()?.ts
 
-    fun maxDisplayIndexAtOrBeforeTsExcluding(chunkId: Long, ts: Long, excludedRowId: Long): Long? =
-            queries.selectMaxDisplayIndexAtOrBeforeTsExcluding(chunkId, ts, excludedRowId).executeAsOne().idx
-
-    /** Every timestamped row of a chunk, in display order. */
-    fun getChunkRowsWithTs(chunkId: Long): List<ChunkRowTs> =
-            queries.selectChunkRowsWithTs(chunkId).executeAsList().mapNotNull { row ->
-                row.ts?.let { ChunkRowTs(row.id, row.event_id, row.display_index, it) }
-            }
-
-    fun getPlacement(roomId: String, eventId: String): Placement? =
-            queries.selectPlacementByRoomAndEventId(roomId, eventId).executeAsOneOrNull()
-                    ?.let { Placement(it.id, it.chunk_id, it.display_index) }
-
-    fun shiftDisplayIndicesUpAfter(chunkId: Long, afterDisplayIndex: Long) =
-            queries.shiftDisplayIndicesUpAfter(chunkId, afterDisplayIndex)
-
-    fun moveToChunkAtIndex(id: Long, chunkId: Long, displayIndex: Long) =
-            queries.moveToChunkAtIndex(chunkId, displayIndex, id)
-
-    /**
-     * Permute the chunk's rows into timestamp order, reusing the display indices already in the chunk so
-     * its index range — and the negative convention of a backward-paginated chunk — is preserved.
-     */
-    fun resequenceChunkByTimestamp(chunkId: Long): Boolean {
-        val rows = queries.selectChunkRowsByTimestamp(chunkId).executeAsList()
-        val indices = rows.map { it.display_index }.sorted()
-        if (rows.map { it.display_index } == indices) return false
-        rows.forEachIndexed { position, row -> queries.updateDisplayIndex(indices[position], row.id) }
-        return true
-    }
-
-    data class LoneEventRow(val id: Long, val eventId: String, val chunkId: Long)
-
-    data class ChunkRowTs(val id: Long, val eventId: String, val displayIndex: Long, val ts: Long)
-
-    data class Placement(val id: Long, val chunkId: Long, val displayIndex: Long)
-
-    fun maxDisplayIndex(chunkId: Long): Long? = queries.maxDisplayIndexForChunk(chunkId).executeAsOne().max
-
-    fun minDisplayIndex(chunkId: Long): Long? = queries.minDisplayIndexForChunk(chunkId).executeAsOne().min
-
     fun insert(entity: TimelineEventEntity, chunkId: Long?, rootEventDbId: Long?): Long {
         queries.insert(
                 local_id = entity.localId,
                 event_id = entity.eventId,
                 room_id = entity.roomId,
                 chunk_id = chunkId,
-                display_index = entity.displayIndex.toLong(),
+                ts = entity.ts,
                 root_event_db_id = rootEventDbId,
                 sender_name = entity.senderName,
                 is_unique_display_name = if (entity.isUniqueDisplayName) 1L else 0L,
@@ -154,6 +115,13 @@ internal class TimelineEventSqlStore(
                 owned_by_thread_chunk = if (entity.ownedByThreadChunk) 1L else 0L,
         )
         return queries.lastInsertRowId().executeAsOne()
+    }
+
+    /** Moves rows at or newer than [fromTs] into [targetChunkId]; returns how many moved. */
+    fun moveRowsFromTs(sourceChunkId: Long, targetChunkId: Long, fromTs: Long): Int {
+        val moving = queries.selectByChunk(sourceChunkId).executeAsList().count { it.ts >= fromTs }
+        if (moving > 0) queries.moveRowsFromTs(targetChunkId, sourceChunkId, fromTs)
+        return moving
     }
 
     fun setChunk(id: Long, chunkId: Long?) = queries.updateChunkId(chunkId, id)
@@ -189,7 +157,7 @@ internal class TimelineEventSqlStore(
                     localId = row.local_id,
                     eventId = row.event_id,
                     roomId = row.room_id,
-                    displayIndex = row.display_index.toInt(),
+                    ts = row.ts,
                     root = row.root_event_db_id?.let { roots[it] },
                     annotations = annotations[row.event_id],
                     senderName = row.sender_name,
@@ -206,7 +174,7 @@ internal class TimelineEventSqlStore(
             localId = local_id,
             eventId = event_id,
             roomId = room_id,
-            displayIndex = display_index.toInt(),
+            ts = ts,
             root = root_event_db_id?.let { eventStore.getById(it) },
             annotations = annotationsStore.get(event_id),
             senderName = sender_name,

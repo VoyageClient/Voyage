@@ -7,9 +7,6 @@ DELETE FROM breadcrumbs;
 deleteAllChunk:
 DELETE FROM chunk;
 
-deleteAllChunkStateEvent:
-DELETE FROM chunk_state_event;
-
 deleteAllCurrentStateEvent:
 DELETE FROM current_state_event;
 

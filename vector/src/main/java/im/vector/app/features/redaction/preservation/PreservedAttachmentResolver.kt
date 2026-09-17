@@ -51,7 +51,6 @@ class PreservedAttachmentResolver @Inject constructor(
                     root = event,
                     localId = event.eventId.orEmpty().hashCode().toLong(),
                     eventId = event.eventId.orEmpty(),
-                    displayIndex = 0,
                     senderInfo = sender,
             )
         }

@@ -22,7 +22,7 @@ internal open class TimelineEventEntity(
         var localId: Long = 0,
         var eventId: String = "",
         var roomId: String = "",
-        var displayIndex: Int = 0,
+        var ts: Long = 0,
         var root: EventEntity? = null,
         var annotations: EventAnnotationsSummaryEntity? = null,
         var senderName: String? = null,

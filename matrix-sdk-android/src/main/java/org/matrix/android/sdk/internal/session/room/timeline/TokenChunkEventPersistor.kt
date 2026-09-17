@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.room.timeline
 
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
@@ -32,6 +33,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.StreamEventsManager
+import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
@@ -64,6 +66,12 @@ internal class TokenChunkEventPersistor @Inject constructor(
         var written = 0
         var landedChunkId: Long? = null
         var gapDetected = false
+
+        /** Ranges this page proved already hold its history, and which were folded in as a result. */
+        var folded = 0
+
+        /** Whether writing the page moved rows between ranges, which invalidates any mapping of them. */
+        var rowsMoved = false
     }
 
     suspend fun insertInDb(
@@ -100,88 +108,46 @@ internal class TokenChunkEventPersistor @Inject constructor(
                 stats?.landedChunkId = originChunkId
                 return@awaitDbTransaction
             }
-            val existingChunk = stores.chunk.findByTokens(roomId, prevToken, nextToken)
-            if (existingChunk != null) {
-                // The page is already stored (e.g. as an island from a jump-to-event). Link the chunk
-                // we paginated from to it so its history becomes reachable — homeserver boundary tokens
-                // don't reliably match ours (Synapse appends a stream suffix), so link by the known
-                // origin rather than tokens.
-                linkOriginToChunk(direction, originChunkId, existingChunk.id)
-                split?.let { it.newerChunkId = originChunkId; it.olderChunkId = existingChunk.id }
-                stats?.landedChunkId = existingChunk.id
-                return@awaitDbTransaction
-            }
-            // Every event of the page is already stored elsewhere: the region is known, just under
-            // tokens that don't match ours. Storing it anyway drops every event to the per-event
-            // overlap guard below and leaves an EMPTY chunk linked into the walk — history then
-            // jumps clean over everything the overlapped chunk holds, which is the "skipped to much
-            // earlier stuff" symptom. Link to the chunk that already has it instead.
-            val pageEvents = receivedChunk.events.filter { it.eventId != null && it.senderId != null && it.type != null }
-            if (pageEvents.isNotEmpty()) {
-                val owners = pageEvents.map { stores.chunk.findMainChunkIdIncludingEvent(roomId, it.eventId.orEmpty()) }
-                if (owners.all { it != null }) {
-                    if (originChunkId != null && owners.all { it == originChunkId }) {
-                        // The page only re-returned the origin chunk's own boundary events (the
-                        // server token landed inside it): linking would no-op and the walk would
-                        // re-request the same token forever, so advance the origin past the page.
-                        if (direction == PaginationDirection.BACKWARDS) {
-                            stores.chunk.updatePrevToken(originChunkId, prevToken)
-                        } else {
-                            stores.chunk.updateNextToken(originChunkId, nextToken)
-                        }
-                        tokenSlideOnly = true
-                        stats?.landedChunkId = originChunkId
-                        return@awaitDbTransaction
-                    }
-                    // The first event is the one nearest the origin, so its chunk is where the walk continues.
-                    owners.first()?.let {
-                        linkOriginToChunk(direction, originChunkId, it)
-                        split?.let { s -> s.newerChunkId = originChunkId; s.olderChunkId = it }
-                        stats?.landedChunkId = it
-                    }
-                    return@awaitDbTransaction
-                }
-            }
-            val prevChunk = stores.chunk.findByNextToken(roomId, prevToken)
-            val nextChunk = stores.chunk.findByPrevToken(roomId, nextToken)
+            // Prefer the origin range, then matching boundary tokens. Merge shared history after insertion.
             val splitBeforeEventId = split?.beforeEventId
             val splitIdx = if (splitBeforeEventId != null && direction == PaginationDirection.BACKWARDS) {
                 receivedChunk.events.indexOfFirst { it.eventId == splitBeforeEventId }.takeIf { it > 0 }
             } else null
+
+            val target = originChunkId?.let { stores.chunk.getById(it) }
+                    ?: stores.chunk.findByTokens(roomId, prevToken, nextToken)
+                    ?: stores.chunk.findByNextToken(roomId, prevToken)
+                    ?: stores.chunk.findByPrevToken(roomId, nextToken)
             val currentChunkId: Long
             val splitChunkId: Long?
             if (splitIdx != null) {
-                // The page bridges the detected gap: keep the two sides in separate chunks — still
-                // linked, so nothing regresses if recovery fails — for the healer to splice recovered
-                // history between. The newer side gets no prev token: its true past is the gap, which
-                // the server cannot serve from any token of this walk.
-                currentChunkId = stores.chunk.insert(
-                        roomId, null, nextToken, null, nextChunk?.id,
-                        isLastForward = false, isLastBackward = false, rootThreadEventId = null, isLastForwardThread = false,
+                currentChunkId = target?.id ?: stores.chunk.insert(
+                        roomId, null, nextToken, isLastForward = false, isLastBackward = false,
+                        rootThreadEventId = null, isLastForwardThread = false,
                 )
+                stores.chunk.updatePrevToken(currentChunkId, null)
                 splitChunkId = stores.chunk.insert(
-                        roomId, prevToken, null, prevChunk?.id, currentChunkId,
+                        roomId, prevToken, null,
                         isLastForward = false, isLastBackward = false, rootThreadEventId = null, isLastForwardThread = false,
                 )
-                stores.chunk.updatePrevChunkId(currentChunkId, splitChunkId)
                 split?.newerChunkId = currentChunkId
                 split?.olderChunkId = splitChunkId
             } else {
-                currentChunkId = stores.chunk.insert(
-                        roomId, prevToken, nextToken, prevChunk?.id, nextChunk?.id,
+                splitChunkId = null
+                currentChunkId = target?.id ?: stores.chunk.insert(
+                        roomId, prevToken, nextToken,
                         isLastForward = false, isLastBackward = false, rootThreadEventId = null, isLastForwardThread = false,
                 )
-                splitChunkId = null
+                // Advance the frontier we just fetched past, or the next page re-requests this one.
+                if (target != null) {
+                    if (direction == PaginationDirection.BACKWARDS) {
+                        stores.chunk.updatePrevToken(currentChunkId, prevToken)
+                    } else if (target.is_last_forward == 0L) {
+                        stores.chunk.updateNextToken(currentChunkId, nextToken)
+                    }
+                }
                 split?.let { it.newerChunkId = originChunkId; it.olderChunkId = currentChunkId }
             }
-            nextChunk?.let { stores.chunk.updatePrevChunkId(it.id, currentChunkId) }
-            prevChunk?.let { stores.chunk.updateNextChunkId(it.id, splitChunkId ?: currentChunkId) }
-            // Those token lookups are the only thing that just linked the new chunk into the graph, and
-            // boundary tokens don't reliably match ours (Synapse appends a stream suffix) — so a page
-            // fetched from a known origin could be stored unreachable from it, leaving the timeline
-            // stuck at what it held before the fetch. Link by the origin we paginated from, as the
-            // branches above do for a page that resolved to an existing chunk.
-            linkOriginToChunk(direction, originChunkId, currentChunkId)
 
             stats?.landedChunkId = currentChunkId
             if (receivedChunk.events.isEmpty() && !receivedChunk.hasMore()) {
@@ -189,6 +155,17 @@ internal class TokenChunkEventPersistor @Inject constructor(
             } else {
                 handlePagination(roomId, direction, receivedChunk, currentChunkId, originChunkId, splitIdx, splitChunkId, stats)
             }
+            val folded = stores.chunk.mergeRangesSharingEvents(roomId, currentChunkId)
+            val overlapping = stores.chunk.mergeOverlappingRanges(roomId)
+            if (folded != null || overlapping > 0) {
+                stats?.rowsMoved = true
+                DebugLog.i { "GAPDBG $roomId: page into range $currentChunkId folded shared/overlapping ranges into ${folded ?: currentChunkId}" }
+            }
+            // Any of those merges can retire the range the page was written to, so the walk continues from
+            // wherever the page's own events ended up rather than from an id that may no longer exist.
+            receivedChunk.events.firstNotNullOfOrNull { it.eventId }
+                    ?.let { stores.chunk.findMainChunkIdIncludingEvent(roomId, it) }
+                    ?.let { stats?.landedChunkId = it }
         }
         return when {
             tokenSlideOnly -> Result.SHOULD_FETCH_MORE
@@ -197,41 +174,32 @@ internal class TokenChunkEventPersistor @Inject constructor(
         }
     }
 
-    // Link the chunk we paginated from (origin) to the chunk the page resolved to (target), in the
-    // pagination direction. Cycle-safe: never link a chunk to itself, and never create a 2-cycle where
-    // both chunks point at each other along the same walk (the pagination-hang signature).
-    private fun linkOriginToChunk(direction: PaginationDirection, originChunkId: Long?, targetChunkId: Long) {
-        if (originChunkId == null || originChunkId == targetChunkId) return
-        val origin = stores.chunk.getById(originChunkId) ?: return
-        val target = stores.chunk.getById(targetChunkId) ?: return
-        if (direction == PaginationDirection.BACKWARDS) {
-            // origin is newer, target is older: origin.prev = target, target.next = origin.
-            if (origin.next_chunk_id == targetChunkId || target.prev_chunk_id == originChunkId) return
-            stores.chunk.updatePrevChunkId(originChunkId, targetChunkId)
-            // Only when free: the target is usually already part of the main walk, and overwriting
-            // its link would strand everything newer than it.
-            if (target.next_chunk_id == null) stores.chunk.updateNextChunkId(targetChunkId, originChunkId)
-        } else {
-            // origin is older, target is newer: origin.next = target, target.prev = origin.
-            if (origin.prev_chunk_id == targetChunkId || target.next_chunk_id == originChunkId) return
-            stores.chunk.updateNextChunkId(originChunkId, targetChunkId)
-            if (target.prev_chunk_id == null) stores.chunk.updatePrevChunkId(targetChunkId, originChunkId)
-        }
-    }
-
-    // Splice a recovered /context chunk between the two sides of a detected artificial gap
-    // (see TimelineGapHealer): the newer side's backward walk continues into the recovered history
-    // instead of jumping to the far side of the gap.
-    suspend fun spliceBackward(newerChunkId: Long, olderChunkId: Long) {
-        database.awaitDbTransaction(dispatcher) {
-            linkOriginToChunk(PaginationDirection.BACKWARDS, newerChunkId, olderChunkId)
+    /** Joins ranges after the server proves that the older range immediately follows the newer one. */
+    suspend fun spliceBackward(newerChunkId: Long, olderChunkId: Long): Boolean {
+        return database.awaitDbTransaction(dispatcher) {
+            val newer = stores.chunk.getById(newerChunkId) ?: return@awaitDbTransaction false
+            stores.chunk.getById(olderChunkId) ?: return@awaitDbTransaction false
+            val roomId = newer.room_id
+            // That pass folds whatever shares an event with the newer range, which need not be this older
+            // one. The two are joined only when one of them ended up inside the other.
+            val survivor = stores.chunk.mergeRangesSharingEvents(roomId, newerChunkId)
+            if (survivor != null) {
+                if (stores.chunk.getById(olderChunkId) == null || survivor == olderChunkId) return@awaitDbTransaction true
+                if (stores.chunk.getById(newerChunkId) == null) return@awaitDbTransaction false
+            }
+            // The join spans a timestamp jump with no events in it, which is what the splitter cuts on —
+            // so record that this one is not a hole, or the next open strands that history again.
+            stores.timelineEvent.maxTsForChunk(olderChunkId)?.let { stores.chunk.markGapUnfillable(roomId, it) }
+            stores.chunk.mergeInto(newerChunkId, olderChunkId)
+            stores.chunk.getById(olderChunkId) == null
         }
     }
 
     private fun handleReachEnd(roomId: String, direction: PaginationDirection, currentChunkId: Long) {
         Timber.v("Reach end of $roomId in $direction")
         if (direction == PaginationDirection.FORWARDS) {
-            stores.chunk.updateNextChunkId(currentChunkId, stores.chunk.lastForward(roomId)?.id)
+            // Nothing newer left to fetch, so this range runs up to the live edge: they are one range.
+            stores.chunk.lastForward(roomId)?.id?.let { stores.chunk.mergeInto(it, currentChunkId) }
         } else {
             stores.chunk.setLastBackward(currentChunkId, true)
         }
@@ -254,8 +222,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
         receivedChunk.stateEvents?.forEach { stateEvent ->
             val ageLocalTs = now - (stateEvent.unsignedData?.age ?: 0)
             val entity = stateEvent.toEntity(roomId, SendState.SYNCED, ageLocalTs)
-            val dbId = insertEventOrIgnore(entity, EventInsertType.PAGINATION)
-            if (direction == PaginationDirection.FORWARDS) stores.chunk.addStateEvent(currentChunkId, dbId)
+            insertEventOrIgnore(entity, EventInsertType.PAGINATION)
             val stateKey = stateEvent.stateKey
             if (stateEvent.type == EventType.STATE_ROOM_MEMBER && stateKey != null) {
                 roomMemberContentsByUser[stateKey] = stateEvent.content.toModel<RoomMemberContent>()
@@ -263,6 +230,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             }
         }
         val threadCandidateIds = ArrayList<String>(receivedChunk.events.size)
+        val sharedWithOtherRanges = LinkedHashSet<Long>()
         for ((index, event) in receivedChunk.events.withIndex()) {
             val targetChunkId = if (splitIdx != null && splitChunkId != null && index >= splitIdx) splitChunkId else currentChunkId
             val eventId = event.eventId
@@ -281,6 +249,8 @@ internal class TokenChunkEventPersistor @Inject constructor(
                 // on it) still holds its id.
                 if (ownerChunkId == originChunkId || ownerChunkId == currentChunkId ||
                         !absorbIslandChunk(roomId, ownerChunkId, targetChunkId)) {
+                    // Remember duplicate ownership because no inserted row remains for overlap detection.
+                    if (ownerChunkId != currentChunkId) sharedWithOtherRanges.add(ownerChunkId)
                     continue
                 }
             }
@@ -288,21 +258,37 @@ internal class TokenChunkEventPersistor @Inject constructor(
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
             val dbId = insertEventOrIgnore(entity, EventInsertType.PAGINATION)
             val stateKey = event.stateKey
-            if (event.type == EventType.STATE_ROOM_MEMBER && stateKey != null) {
-                val contentToUse = if (direction == PaginationDirection.BACKWARDS) event.prevContent else event.content
-                roomMemberContentsByUser[stateKey] = contentToUse.toModel<RoomMemberContent>()
+            // A membership row uses its own profile; older rows on a backward page use prev_content.
+            // Keep the current profile when prev_content is missing rather than falling back to live state.
+            var profileForOlderEvents: RoomMemberContent? = null
+            val isOwnMemberEvent = event.type == EventType.STATE_ROOM_MEMBER && stateKey != null
+            if (isOwnMemberEvent) {
+                roomMemberContentsByUser[stateKey!!] = event.getFixedRoomMemberContent()
                 roomMemberEventIdsByUser[stateKey] = eventId
+                profileForOlderEvents = event.prevContent.toModel<RoomMemberContent>()
             }
             liveEventManager.get().dispatchPaginatedEventReceived(event, roomId)
             stats?.let { it.written++ }
             stores.timelineWriter.addTimelineEvent(
-                    targetChunkId, roomId, dbId, entity, isLastForward = false, direction,
+                    targetChunkId, roomId, dbId, entity, isLastForward = false,
                     roomMemberContentsByUser = roomMemberContentsByUser,
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
-                    keepTimestampOrder = lightweightSettingsStorage.isTimelineTimestampOrderEnabled(),
             )
+            if (isOwnMemberEvent && direction == PaginationDirection.BACKWARDS && profileForOlderEvents != null) {
+                roomMemberContentsByUser[stateKey!!] = profileForOlderEvents
+            }
             threadCandidateIds.add(eventId)
             entity.rootThreadEventId?.let { threadCandidateIds.add(it) }
+        }
+        var landedChunkId = currentChunkId
+        sharedWithOtherRanges.forEach { other ->
+            if (stores.chunk.getById(other) == null || stores.chunk.getById(landedChunkId) == null) return@forEach
+            // Keep the larger of the two, not this page's range: the other one can be a long history an
+            // open timeline is reading, and folding it away leaves that timeline bound to a dead range.
+            val survivor = stores.chunk.mergeKeepingLarger(landedChunkId, other)
+            stats?.let { it.folded++; it.rowsMoved = true }
+            DebugLog.i { "GAPDBG $roomId: page it already held merged ranges $landedChunkId and $other into $survivor" }
+            landedChunkId = survivor
         }
         // Threaded replies come back through /messages like any other event, so a cleared cache rebuilds a
         // root's thread badge only here — sync never sees those replies again.
@@ -321,8 +307,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             return false
         }
         if (stores.timelineEvent.countByChunk(islandId) != 1L) return false
-        stores.timelineEvent.deleteByChunk(islandId)
-        stores.chunk.retireChunkInto(roomId, island, absorberId)
+        stores.chunk.mergeInto(absorberId, islandId)
         Timber.i("Absorbed lone-event chunk $islandId into $absorberId in $roomId")
         return true
     }

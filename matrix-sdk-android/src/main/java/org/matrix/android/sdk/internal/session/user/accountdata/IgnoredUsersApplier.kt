@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.localUnreadCounts
 import org.matrix.android.sdk.internal.di.UserId
@@ -24,6 +25,7 @@ internal class IgnoredUsersApplier @Inject constructor(
         @UserId private val userId: String,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val reactionSummaryRefresher: ReactionSummaryRefresher,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
 ) {
 
     fun apply(stores: SessionStores, newIgnoredUserIds: Collection<String>): List<String> {
@@ -52,7 +54,7 @@ internal class IgnoredUsersApplier @Inject constructor(
         roomsToRefresh.forEach { roomId ->
             roomSummaryUpdater.refreshLatestPreviewableEvent(stores, roomId, clearIfNone = true)
             if (recountUnread) {
-                val local = stores.localUnreadCounts(userId, roomId)
+                val local = stores.localUnreadCounts(userId, roomId, lightweightSettingsStorage.areThreadMessagesEnabled())
                 stores.roomSummary.setUnreadCounters(roomId, local.notificationCount, local.highlightCount)
             }
         }

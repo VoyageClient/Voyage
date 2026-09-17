@@ -67,7 +67,6 @@ class EmoteFormattingTest {
                 root = event,
                 localId = 1L,
                 eventId = "\$event",
-                displayIndex = 0,
                 senderInfo = SenderInfo("@alice:example.org", "Alice", true, null),
         )
         return formatter.format(timelineEvent, isDm = false, appendAuthor = false)

@@ -10,6 +10,7 @@ package im.vector.app.features.reactions
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.imagepack.ImagePackProvider
+import im.vector.app.features.reactions.data.EmojiCatalogCache
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.reactions.data.EmojiItem
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
@@ -29,6 +30,7 @@ class EmojiPickerSectionFilterTest {
             activeSessionHolder = mockk<ActiveSessionHolder>(),
             recentEmojiDataSource = mockk<RecentEmojiDataSource>(),
             recentEmoteDataSource = mockk<RecentEmoteDataSource>(),
+            catalogCache = mockk<EmojiCatalogCache>(),
             stringProvider = mockk<StringProvider>(),
     )
 

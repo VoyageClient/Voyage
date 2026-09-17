@@ -12,7 +12,6 @@ import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.ReadReceiptEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
-import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 
 /**
  * Write-path port of `ChunkEntityHelper.addTimelineEvent` & friends. Inserts a [TimelineEventEntity]
@@ -28,19 +27,17 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
             eventDbId: Long,
             event: EventEntity,
             isLastForward: Boolean,
-            direction: PaginationDirection,
             ownedByThreadChunk: Boolean = false,
             roomMemberContentsByUser: Map<String, RoomMemberContent?>? = null,
             // Which m.room.member event supplied the cached sender profile, so redacting that event can
             // invalidate every row it fed. Absent for callers that don't track it; those rows simply
             // keep their cached profile.
             roomMemberEventIdsByUser: Map<String, String?>? = null,
-            keepTimestampOrder: Boolean = false,
     ): Long? {
         val eventId = event.eventId
         if (stores.timelineEvent.getInChunkByEventId(chunkId, eventId) != null) return null
 
-        val displayIndex = nextDisplayIndex(chunkId, direction)
+        val ts = event.originServerTs ?: 0L
         val localId = stores.timelineEvent.nextLocalId()
         val senderId = event.sender ?: ""
         handleReadReceiptsOfSender(roomId, event, senderId)
@@ -56,7 +53,7 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
                 localId = localId,
                 eventId = eventId,
                 roomId = roomId,
-                displayIndex = displayIndex,
+                ts = ts,
                 // "" (vs null) means the member state was known at write time and the field was
                 // genuinely empty, so readers must not fall back to the live profile for it.
                 senderName = roomMemberContent?.let { it.displayName ?: "" },
@@ -65,17 +62,7 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
                 senderMembershipEventId = roomMemberEventIdsByUser?.get(senderId),
                 ownedByThreadChunk = ownedByThreadChunk,
         )
-        val rowId = stores.timelineEvent.insert(entity, chunkId, eventDbId)
-        val ts = event.originServerTs
-        if (keepTimestampOrder && ts != null) {
-            stores.timelineOrder.placeInserted(roomId, chunkId, rowId, eventId, ts, direction)
-        }
-        return rowId
-    }
-
-    fun nextDisplayIndex(chunkId: Long, direction: PaginationDirection): Int = when (direction) {
-        PaginationDirection.FORWARDS -> (stores.timelineEvent.maxDisplayIndex(chunkId)?.toInt() ?: 0) + 1
-        PaginationDirection.BACKWARDS -> (stores.timelineEvent.minDisplayIndex(chunkId)?.toInt() ?: 0) - 1
+        return stores.timelineEvent.insert(entity, chunkId, eventDbId)
     }
 
     private fun handleReadReceiptsOfSender(roomId: String, event: EventEntity, senderId: String) {

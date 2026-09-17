@@ -122,7 +122,6 @@ internal class UrlsExtractorTest : InstrumentedTest {
                 root = this,
                 localId = 0L,
                 eventId = eventId!!,
-                displayIndex = 0,
                 senderInfo = SenderInfo(
                         userId = "",
                         displayName = null,

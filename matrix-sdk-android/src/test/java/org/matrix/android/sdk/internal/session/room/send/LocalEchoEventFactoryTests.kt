@@ -298,7 +298,6 @@ class LocalEchoEventFactoryTests {
                 ),
                 localId = 1234,
                 eventId = AN_EVENT_ID,
-                displayIndex = 0,
                 senderInfo = SenderInfo(A_USER_ID_1, A_USER_ID_1, true, null),
         )
     }

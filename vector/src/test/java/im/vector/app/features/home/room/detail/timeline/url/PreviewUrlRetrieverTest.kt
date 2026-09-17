@@ -87,7 +87,6 @@ class PreviewUrlRetrieverTest {
             ).also { it.sendState = if (sending) SendState.SENDING else SendState.SYNCED },
             localId = 1L,
             eventId = eventId,
-            displayIndex = 0,
             senderInfo = SenderInfo("@alice:example.org", null, true, null)
     )
 

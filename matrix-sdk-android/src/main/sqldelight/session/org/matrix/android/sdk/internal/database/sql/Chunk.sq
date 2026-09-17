@@ -1,13 +1,10 @@
--- ChunkEntity: a contiguous window of a room timeline. room_id is the owning RoomEntity (LinkingObjects
--- "chunks"). prev_chunk_id/next_chunk_id form the chunk linked-list. stateEvents (RealmList<EventEntity>)
--- live in the chunk_state_event join table.
+-- Independent contiguous history ranges. Events provide their order; gaps are represented by separate ranges.
+-- is_last_forward marks the sync target, and is_last_backward marks a range that reached the room start.
 CREATE TABLE chunk (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     room_id TEXT NOT NULL DEFAULT '',
     prev_token TEXT,
     next_token TEXT,
-    prev_chunk_id INTEGER,
-    next_chunk_id INTEGER,
     is_last_forward INTEGER NOT NULL DEFAULT 0,
     is_last_backward INTEGER NOT NULL DEFAULT 0,
     root_thread_event_id TEXT,
@@ -21,12 +18,6 @@ CREATE INDEX chunk_is_last_forward ON chunk(is_last_forward);
 CREATE INDEX chunk_is_last_backward ON chunk(is_last_backward);
 CREATE INDEX chunk_root_thread ON chunk(root_thread_event_id);
 CREATE INDEX chunk_is_last_forward_thread ON chunk(is_last_forward_thread);
-
-CREATE TABLE chunk_state_event (
-    chunk_id INTEGER NOT NULL,
-    event_db_id INTEGER NOT NULL,
-    PRIMARY KEY (chunk_id, event_db_id)
-);
 
 selectById:
 SELECT * FROM chunk WHERE id = ?;
@@ -46,15 +37,12 @@ SELECT * FROM chunk WHERE room_id = ? AND prev_token IS ? AND root_thread_event_
 selectLastForward:
 SELECT * FROM chunk WHERE room_id = ? AND is_last_forward = 1 AND root_thread_event_id IS NULL LIMIT 1;
 
-selectLastBackward:
-SELECT * FROM chunk WHERE room_id = ? AND is_last_backward = 1 AND root_thread_event_id IS NULL LIMIT 1;
-
 selectLastForwardThread:
 SELECT * FROM chunk WHERE room_id = ? AND root_thread_event_id = ? AND is_last_forward_thread = 1 LIMIT 1;
 
 insert:
-INSERT INTO chunk(room_id, prev_token, next_token, prev_chunk_id, next_chunk_id, is_last_forward, is_last_backward, root_thread_event_id, is_last_forward_thread)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO chunk(room_id, prev_token, next_token, is_last_forward, is_last_backward, root_thread_event_id, is_last_forward_thread)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 lastInsertRowId:
 SELECT last_insert_rowid();
@@ -77,26 +65,30 @@ JOIN chunk c ON c.id = te.chunk_id
 WHERE te.room_id = ? AND te.event_id = ? AND c.root_thread_event_id IS NULL
 LIMIT 1;
 
-selectChunkCoveringTs:
-SELECT te.chunk_id AS chunk_id FROM timeline_event te
+-- The nearest main range strictly below rangeId.
+selectRangeBelow:
+SELECT te.chunk_id AS chunk_id, MAX(te.ts) AS max_ts FROM timeline_event te
+JOIN chunk c ON c.id = te.chunk_id
+WHERE te.room_id = :roomId AND te.chunk_id != :rangeId AND c.root_thread_event_id IS NULL
+GROUP BY te.chunk_id
+HAVING MAX(te.ts) < (SELECT MIN(ts) FROM timeline_event WHERE chunk_id = :rangeId)
+ORDER BY max_ts DESC LIMIT 1;
+
+-- Timestamp spans used to place ranges relative to each other.
+selectChunkTsSpans:
+SELECT te.chunk_id AS chunk_id, MIN(e.origin_server_ts) AS min_ts, MAX(e.origin_server_ts) AS max_ts
+FROM timeline_event te
 JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
+WHERE te.room_id = ? AND te.chunk_id IS NOT NULL
+GROUP BY te.chunk_id;
+
+-- A main range sharing an event with excludeChunkId.
+selectRangeSharingEvent:
+SELECT te.chunk_id AS chunk_id FROM timeline_event te
 JOIN chunk c ON c.id = te.chunk_id
 WHERE te.room_id = :roomId AND te.chunk_id != :excludeChunkId AND c.root_thread_event_id IS NULL
-GROUP BY te.chunk_id
-HAVING MIN(e.origin_server_ts) < :ts AND MAX(e.origin_server_ts) > :ts
-ORDER BY COUNT(*) DESC LIMIT 1;
-
-selectReferencingChunk:
-SELECT * FROM chunk WHERE room_id = ? AND (prev_chunk_id = ? OR next_chunk_id = ?);
-
-updateLinks:
-UPDATE chunk SET prev_chunk_id = ?, next_chunk_id = ? WHERE id = ?;
-
-updatePrevChunkId:
-UPDATE chunk SET prev_chunk_id = ? WHERE id = ?;
-
-updateNextChunkId:
-UPDATE chunk SET next_chunk_id = ? WHERE id = ?;
+  AND te.event_id IN (SELECT event_id FROM timeline_event WHERE chunk_id = :excludeChunkId)
+GROUP BY te.chunk_id ORDER BY COUNT(*) DESC LIMIT 1;
 
 updateLastForward:
 UPDATE chunk SET is_last_forward = ? WHERE id = ?;
@@ -110,20 +102,8 @@ UPDATE chunk SET is_last_backward = 0 WHERE room_id = ?;
 deleteById:
 DELETE FROM chunk WHERE id = ?;
 
-deleteStateEventsForChunk:
-DELETE FROM chunk_state_event WHERE chunk_id = ?;
-
-insertStateEvent:
-INSERT OR REPLACE INTO chunk_state_event(chunk_id, event_db_id) VALUES (?, ?);
-
-selectStateEventDbIds:
-SELECT event_db_id FROM chunk_state_event WHERE chunk_id = ?;
-
 deleteByRoom:
 DELETE FROM chunk WHERE room_id = ?;
 
 deleteAll:
 DELETE FROM chunk;
-
-deleteAllStateEvents:
-DELETE FROM chunk_state_event;

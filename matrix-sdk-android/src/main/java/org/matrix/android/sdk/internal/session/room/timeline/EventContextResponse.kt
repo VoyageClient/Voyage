@@ -48,9 +48,7 @@ internal data class EventContextResponse(
         @Json(name = "state") override val stateEvents: List<Event>? = null
 ) : TokenChunkEvent {
 
-    // Chronological (oldest-first): the persistor inserts context with PaginationDirection.FORWARDS, which
-    // assigns display_index = max+1 per event in list order — so feeding it newest-first would invert the
-    // timeline (the target's oldest neighbours would sort as the newest events).
+    // Chronological (oldest-first), matching how a /context response reads.
     override val events: List<Event> by lazy {
         eventsBefore.orEmpty().reversed() + event + eventsAfter.orEmpty()
     }

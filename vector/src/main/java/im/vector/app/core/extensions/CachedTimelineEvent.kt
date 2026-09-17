@@ -27,7 +27,6 @@ fun Session.toCachedTimelineEvent(roomId: String, event: Event): TimelineEvent? 
             root = event,
             localId = eventId.hashCode().toLong(),
             eventId = eventId,
-            displayIndex = 0,
             senderInfo = SenderInfo(senderId, member?.displayName, isUniqueDisplayName = true, member?.avatarUrl),
             annotations = getRoom(roomId)?.relationService()?.getEventAnnotationsSummary(eventId),
     )

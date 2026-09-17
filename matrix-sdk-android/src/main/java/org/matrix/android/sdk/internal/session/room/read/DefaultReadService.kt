@@ -127,6 +127,10 @@ internal class DefaultReadService @AssistedInject constructor(
         return stores.isEventRead(userId, roomId, eventId)
     }
 
+    override fun isEventRead(eventId: String, threadId: String?): Boolean {
+        return stores.isEventRead(userId, roomId, eventId, threadId)
+    }
+
     override fun getReadMarkerFlow(): Flow<Optional<String>> {
         return database.readMarkerQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.event_id.toOptional() }

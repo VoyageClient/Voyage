@@ -141,6 +141,10 @@ internal class PeekedRoom(
         override fun getAttachmentMessages(): List<TimelineEvent> = emptyList()
 
         override fun getTimelineEventsRelatedTo(relationType: String, eventId: String): List<TimelineEvent> = emptyList()
+
+        override fun debugDumpChunks(): String = "Unavailable for peeked rooms"
+
+        override fun debugCheckTimeline(): String = "Unavailable for peeked rooms"
     }
 
     private val stateService = object : StateService {
@@ -302,6 +306,7 @@ internal class PeekedRoom(
 
     private val roomPushRuleService = object : RoomPushRuleService {
         override fun getRoomNotificationStateFlow(): Flow<RoomNotificationState> = flowOf(RoomNotificationState.MENTIONS_ONLY)
+        override fun getExplicitRoomNotificationStateFlow(): Flow<RoomNotificationState?> = flowOf(null)
         override suspend fun setRoomNotificationState(roomNotificationState: RoomNotificationState) = Unit
     }
 

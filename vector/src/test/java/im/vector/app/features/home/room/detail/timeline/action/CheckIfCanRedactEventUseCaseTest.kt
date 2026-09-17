@@ -101,7 +101,6 @@ class CheckIfCanRedactEventUseCaseTest {
                 ),
                 localId = 123L,
                 eventId = eventId,
-                displayIndex = 1,
                 ownedByThreadChunk = false,
                 senderInfo = mockk()
         )
