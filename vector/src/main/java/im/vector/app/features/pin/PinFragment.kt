@@ -163,7 +163,7 @@ class PinFragment :
 
     private fun launchResetPinFlow() {
         MainActivity.restartApp(
-                activity = requireActivity(),
+                context = requireActivity(),
                 args = MainActivityArgs(
                         clearCredentials = true,
                         ignoreLogoutServerError = true,

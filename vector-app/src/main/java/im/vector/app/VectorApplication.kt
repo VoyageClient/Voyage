@@ -27,6 +27,7 @@ import com.airbnb.epoxy.Carousel
 import com.airbnb.epoxy.EpoxyAsyncUtil
 import com.airbnb.epoxy.EpoxyController
 import com.airbnb.mvrx.Mavericks
+import com.airbnb.mvrx.MavericksViewModelConfigFactory
 import com.gabrielittner.threetenbp.LazyThreeTen
 import com.github.rubensousa.gravitysnaphelper.GravitySnapHelper
 import dagger.hilt.android.HiltAndroidApp
@@ -50,7 +51,7 @@ import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.pin.PinLocker
 import im.vector.app.features.popup.PopupAlertManager
-import im.vector.app.features.rageshake.ReadReceiptDebugLogger
+import im.vector.app.features.rageshake.DebugTagFileLogger
 import im.vector.app.features.rageshake.VectorFileLogger
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.settings.VectorLocale
@@ -59,9 +60,11 @@ import im.vector.app.features.settings.useragent.UaAutoUpgradeManager
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.version.VersionProvider
 import im.vector.lib.core.utils.audio.AudioRouteKeepAlive
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.maplibre.android.MapLibre
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
+import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -95,7 +98,7 @@ class VectorApplication :
     @Inject lateinit var homeserverMirrorRefresher: HomeserverMirrorRefresher
     @Inject lateinit var invitesAcceptor: InvitesAcceptor
     @Inject lateinit var vectorFileLogger: VectorFileLogger
-    @Inject lateinit var readReceiptDebugLogger: ReadReceiptDebugLogger
+    @Inject lateinit var debugTagFileLogger: DebugTagFileLogger
     @Inject lateinit var matrix: Matrix
     @Inject lateinit var fcmHelper: FcmHelper
     @Inject lateinit var buildMeta: BuildMeta
@@ -103,6 +106,7 @@ class VectorApplication :
     @Inject lateinit var vpnGateState: VpnGateState
     @Inject lateinit var uaAutoUpgradeManager: UaAutoUpgradeManager
     @Inject lateinit var leakDetector: LeakDetector
+    @Inject lateinit var debugReceiver: im.vector.app.core.debug.DebugReceiver
     @Inject lateinit var vectorLocale: VectorLocale
 
     private val powerKeyReceiver = object : BroadcastReceiver() {
@@ -112,6 +116,11 @@ class VectorApplication :
                 pinLocker.screenIsOff()
             }
         }
+    }
+
+    // Single-threaded: the reducers must run in order, and one thread is plenty for copying state.
+    private val mavericksStateStoreDispatcher by lazy {
+        Executors.newSingleThreadExecutor { runnable -> Thread(runnable, "mavericks-state") }.asCoroutineDispatcher()
     }
 
     override fun onCreate() {
@@ -141,13 +150,29 @@ class VectorApplication :
 
         if (buildMeta.isDebug) {
             Timber.plant(Timber.DebugTree())
+            // Also registered per-activity (onResume), but the adb debug actions are for driving the app
+            // with nothing on screen — where no activity is ever resumed to register it.
+            debugReceiver.register(this)
+            // The `*DBG` traces and the per-tag files they are collected into: diagnostics for a build
+            // someone is investigating with, never something a release writes to a user's device.
+            DebugLog.enabled = true
+            Timber.plant(debugTagFileLogger)
         }
         Timber.plant(vectorFileLogger)
-        Timber.plant(readReceiptDebugLogger)
 
         logInfo()
         LazyThreeTen.init(this)
-        Mavericks.initialize(debugMode = false)
+        // A thread of its own for the state reducers. They are pure copies of a data class, but the
+        // default store runs them on Dispatchers.Default alongside sync handling, DB mapping and image
+        // decodes — and behind a saturated Default a local UI change (ticking a room in the share sheet)
+        // takes seconds to come back, looking for all the world like a network round trip.
+        Mavericks.initialize(
+                context = this,
+                viewModelConfigFactory = MavericksViewModelConfigFactory(
+                        debugMode = false,
+                        storeContextOverride = mavericksStateStoreDispatcher,
+                )
+        )
 
         configureEpoxy()
 

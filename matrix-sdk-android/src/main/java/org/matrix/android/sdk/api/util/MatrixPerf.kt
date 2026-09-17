@@ -21,7 +21,11 @@ import android.util.Log
 object MatrixPerf {
 
     private const val TAG = "VectorPerf"
-    private const val LOG_THRESHOLD_MS = 5L
+
+    /** Anything faster than this is not logged; lower it to see sub-millisecond steps. */
+    @Volatile
+    @JvmStatic
+    var logThresholdMs: Long = 5L
 
     @PublishedApi
     internal fun elapsedMillis(): Long = System.nanoTime() / 1_000_000
@@ -54,15 +58,42 @@ object MatrixPerf {
 
     /** End of a [now]-based span; logs if over threshold. Pass a lazily-built name for cheap disable. */
     fun end(startMs: Long, name: () -> String) {
-        if (!isEnabled) return
+        // startMs == 0 means [now] ran while measurement was off, so there is no span to report — only a
+        // number the size of the process uptime.
+        if (!isEnabled || startMs == 0L) return
         report(name(), elapsedMillis() - startMs)
     }
 
     @PublishedApi
     internal fun report(name: String, elapsedMs: Long) {
-        if (elapsedMs >= LOG_THRESHOLD_MS) {
+        if (isAggregating) {
+            val bucket = totals.getOrPut(name) { longArrayOf(0, 0) }
+            synchronized(bucket) {
+                bucket[0] += elapsedMs
+                bucket[1]++
+            }
+            return
+        }
+        if (elapsedMs >= logThresholdMs) {
             Log.i(TAG, "$name ${elapsedMs}ms")
         }
+    }
+
+    /** Aggregate cheap calls so instrumentation does not dominate their combined cost. */
+    @Volatile
+    @JvmStatic
+    var isAggregating: Boolean = false
+
+    private val totals = java.util.concurrent.ConcurrentHashMap<String, LongArray>()
+
+    fun resetTotals() = totals.clear()
+
+    /** Slowest first, one line each: `<total>ms calls=<n> <name>`. */
+    fun dumpTotals() {
+        totals.entries
+                .sortedByDescending { it.value[0] }
+                .forEach { Log.i(TAG, "TOTAL ${it.value[0]}ms calls=${it.value[1]} ${it.key}") }
+        Log.i(TAG, "TOTAL end (${totals.size} names)")
     }
 
     /** Log unconditionally (no threshold) — for counters/occurrence events rather than durations. */

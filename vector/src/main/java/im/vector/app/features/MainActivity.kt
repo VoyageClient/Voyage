@@ -98,12 +98,13 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         private const val RESTART_REQUEST_CODE = 0
 
         // Special action to clear cache and/or clear credentials
-        fun restartApp(activity: Activity, args: MainActivityArgs) {
-            val intent = Intent(activity, MainActivity::class.java)
+        // Context rather than Activity: the debug receiver restarts the app the same way settings does.
+        fun restartApp(context: Context, args: MainActivityArgs) {
+            val intent = Intent(context, MainActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 
             intent.putExtra(EXTRA_ARGS, args)
-            activity.startActivity(intent)
+            context.startActivity(intent)
         }
 
         // Full process restart: schedule a fresh launch then kill the process, so Application.onCreate
