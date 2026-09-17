@@ -18,6 +18,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -63,15 +64,18 @@ class RequireActiveMembershipViewModel @AssistedInject constructor(
         roomIdFlow
                 .unwrap()
                 .flatMapLatest { roomId ->
-                    val room = session.getRoom(roomId) ?: return@flatMapLatest flow {
-                        val emptyResult = Optional.empty<RequireActiveMembershipViewEvents.RoomLeft>()
-                        emit(emptyResult)
-                    }
-                    room.flow()
-                            .liveRoomSummary()
-                            .unwrap()
-                            .map { mapToLeftViewEvent(room, it) }
-                            .flowOn(Dispatchers.Default)
+                    // The whole transform off the main thread, not just the summary flow: flatMapLatest
+                    // starts it undispatched on whichever thread emitted — this view model's scope starts
+                    // on the main one — and getRoom() is a database query. On a busy session that query
+                    // alone held the main thread long enough for the share screen to be declared frozen.
+                    flow {
+                        val room = session.getRoom(roomId)
+                        if (room == null) {
+                            emit(Optional.empty<RequireActiveMembershipViewEvents.RoomLeft>())
+                        } else {
+                            emitAll(room.flow().liveRoomSummary().unwrap().map { mapToLeftViewEvent(room, it) })
+                        }
+                    }.flowOn(Dispatchers.Default)
                 }
                 .unwrap()
                 .onEach { event ->

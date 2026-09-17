@@ -16,6 +16,11 @@
 package org.matrix.android.sdk.internal.session.sync.handler
 
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
@@ -66,17 +71,23 @@ internal class UpdateUserTaskBody @Inject constructor(
                 ?.saveLocally()
     }
 
-    private suspend fun fetchUsers(userIdsToFetch: Collection<String>): List<User> {
-        return userIdsToFetch.mapNotNull { userId ->
-            tryOrNull {
-                val profileJson = getProfileInfoTask.execute(GetProfileInfoTask.Params(
-                        userId = userId,
-                        // Bulk insert later, so tell the task not to store the User.
-                        storeInDatabase = false,
-                ))
-                User.fromJson(userId, profileJson)
+    /** Bound concurrent federated profile requests so bulk refreshes do not serialize hundreds of round trips. */
+    private suspend fun fetchUsers(userIdsToFetch: Collection<String>): List<User> = coroutineScope {
+        val inFlight = Semaphore(MAX_CONCURRENT_PROFILE_FETCHES)
+        userIdsToFetch.map { userId ->
+            async {
+                inFlight.withPermit {
+                    tryOrNull {
+                        val profileJson = getProfileInfoTask.execute(GetProfileInfoTask.Params(
+                                userId = userId,
+                                // Bulk insert later, so tell the task not to store the User.
+                                storeInDatabase = false,
+                        ))
+                        User.fromJson(userId, profileJson)
+                    }
+                }
             }
-        }
+        }.awaitAll().filterNotNull()
     }
 
     private suspend fun List<User>.saveLocally() {
@@ -92,5 +103,9 @@ internal class UpdateUserTaskBody @Inject constructor(
     private fun cleanup(params: UpdateTrustWorkerParams) {
         params.filename
                 ?.let { updateTrustWorkerDataRepository.delete(it) }
+    }
+
+    private companion object {
+        private const val MAX_CONCURRENT_PROFILE_FETCHES = 8
     }
 }

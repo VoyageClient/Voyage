@@ -76,8 +76,10 @@ import org.commonmark.node.Node
 import org.commonmark.parser.Parser
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import timber.log.Timber
+import java.util.concurrent.locks.ReentrantLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.concurrent.withLock
 
 @Singleton
 class EventHtmlRenderer @Inject constructor(
@@ -313,14 +315,23 @@ class EventHtmlRenderer @Inject constructor(
 
     private var markwonBackingField = buildMarkwon()
 
-    // The Markwon instance holds a single shared, mutable HTML parser (MarkwonHtmlParserImpl). The
-    // timeline renders on a background thread while previews render on the main thread, so serialise
-    // all parse/render access to keep that parser's state consistent across concurrent callers.
-    private val renderLock = Any()
+    /**
+     * The Markwon instance holds a single shared, mutable HTML parser (MarkwonHtmlParserImpl). The
+     * timeline renders on a background thread while previews render on the main thread, so all
+     * parse/render access is serialised to keep that parser's state consistent across callers.
+     *
+     * Fair, and deliberately so: `synchronized` hands the monitor to whoever asks next, so a thread
+     * rendering message after message — the timeline building its models — can keep reacquiring it
+     * while another waits. That starved the main thread for over a minute with a screenful of room
+     * previews to format, and the share sheet was declared frozen.
+     */
+    private val renderLock = ReentrantLock(true)
+
+    private inline fun <T> locked(block: () -> T): T = renderLock.withLock(block)
 
     // Rebuild when the active theme changed the code-block colour (singleton survives Activity recreate).
     private val markwon: Markwon
-        get() = synchronized(renderLock) {
+        get() = locked {
             val newCodeBlockBackground = resolveCodeBlockBackground()
             if (newCodeBlockBackground != codeBlockBackground) {
                 codeBlockBackground = newCodeBlockBackground
@@ -348,7 +359,7 @@ class EventHtmlRenderer @Inject constructor(
         if (vectorPreferences.latexMathsIsEnabled()) LatexRenderCache.prewarm(rendered)
     }
 
-    fun parse(text: String): Node = synchronized(renderLock) {
+    fun parse(text: String): Node = locked {
         im.vector.app.core.utils.PerfTrace.time("html.markwonParse") { markwon.parse(text) }
     }
 
@@ -379,7 +390,7 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
-    private fun renderAndProcess(node: Node, postProcessors: Array<out PostProcessor>): CharSequence = synchronized(renderLock) {
+    private fun renderAndProcess(node: Node, postProcessors: Array<out PostProcessor>): CharSequence = locked {
         // Editable so post-processors can collapse pill backing text to a placeholder (see setPillSpan).
         val renderedText = im.vector.app.core.utils.PerfTrace.time("html.markwonRender") { SpannableStringBuilder(markwon.render(node)) }
         collapseBlockQuotePadding(renderedText)

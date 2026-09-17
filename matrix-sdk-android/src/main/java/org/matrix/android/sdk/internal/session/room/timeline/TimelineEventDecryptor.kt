@@ -17,6 +17,7 @@ package org.matrix.android.sdk.internal.session.room.timeline
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
@@ -57,25 +58,31 @@ internal class TimelineEventDecryptor @Inject constructor(
             }
             // Just removed from unknownSessionsFailure above, so skip the (O(n)) re-scan of that map.
             if (retry.isNotEmpty()) requestDecryption(retry, alreadyClearedFromUnknown = true)
-            // The map above only holds events that failed IN THIS app run. A key import (exported/backup
-            // keys) needs to also re-decrypt events that failed in a previous run and were persisted as
-            // UTD — decryption otherwise only runs at sync/insert time. Re-scan the room's stored UTDs
-            // once (per run) so old encrypted rooms decrypt after import.
-            if (roomId != null && rescannedRooms.add(roomId)) {
-                executor?.execute {
-                    try {
-                        rescanRoomForDecryption(roomId)
-                    } catch (e: InterruptedException) {
-                        Timber.i("Room rescan for decryption got interrupted")
-                    }
-                }
-            }
+            // Key imports must also retry persisted failures and events skipped during initial sync.
+            // Coalesce each burst, but allow subsequent imports to trigger another scan.
+            scheduleRescan(roomId)
         }
     }
 
-    // Rooms already re-scanned for persisted UTDs this run (dedupes the per-session storm of a bulk import).
-    // Typed as MutableSet so calls land on java.util.Set, not the API 24 KeySetView.
-    private val rescannedRooms: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+    // Type as Set so calls do not target the API 24 KeySetView implementation.
+    private val pendingRescans: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+    /** A room-less key import scans every room with stored undecrypted events. */
+    private fun scheduleRescan(roomId: String?) {
+        val target = roomId ?: ALL_ROOMS
+        if (!pendingRescans.add(target)) return
+        // Let the rest of the import land before reading the backlog.
+        rescanScheduler?.schedule({
+            pendingRescans.remove(target)
+            executor?.execute {
+                try {
+                    if (target == ALL_ROOMS) rescanAllRoomsForDecryption() else rescanRoomForDecryption(target)
+                } catch (e: InterruptedException) {
+                    Timber.i("Room rescan for decryption got interrupted")
+                }
+            }
+        }, RESCAN_DEBOUNCE_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+    }
 
     private fun rescanRoomForDecryption(roomId: String) {
         val events = runBlocking {
@@ -83,10 +90,25 @@ internal class TimelineEventDecryptor @Inject constructor(
                 stores.event.getUndecryptedEncryptedEvents(roomId, EventType.ENCRYPTED)
             }
         }
-        requestDecryption(events.map { DecryptionRequest(it, "") })
+        DebugLog.i { "UTDDBG rescan of $roomId found ${events.size} stored undecrypted event(s)" }
+        // Imported keys may satisfy requests recorded as failed earlier in this session.
+        requestDecryption(events.map { DecryptionRequest(it, "") }, retryFailed = true)
+    }
+
+    private fun rescanAllRoomsForDecryption() {
+        val rooms = runBlocking {
+            database.awaitDbTransaction(dispatcher) {
+                stores.event.getRoomsWithUndecryptedEvents(EventType.ENCRYPTED)
+            }
+        }
+        DebugLog.i { "UTDDBG room-less key import, sweeping ${rooms.size} room(s) still holding undecrypted events" }
+        rooms.forEach { rescanRoomForDecryption(it) }
     }
 
     private var executor: ExecutorService? = null
+
+    // Separate from [executor]: the debounce must not park the single thread that does the decrypting.
+    private var rescanScheduler: java.util.concurrent.ScheduledExecutorService? = null
 
     // Notified after an event is successfully decrypted, so the owning timeline can rebuild its snapshot
     // (a decryption result is written to the event table, which the timeline_event flow doesn't observe).
@@ -103,11 +125,14 @@ internal class TimelineEventDecryptor @Inject constructor(
 
     fun start() {
         executor = Executors.newSingleThreadExecutor()
+        rescanScheduler = Executors.newSingleThreadScheduledExecutor()
         cryptoService.addNewSessionListener(newSessionListener)
     }
 
     fun destroy() {
         cryptoService.removeSessionListener(newSessionListener)
+        rescanScheduler?.shutdownNow()
+        rescanScheduler = null
         executor?.shutdownNow()
         executor = null
         synchronized(unknownSessionsFailure) {
@@ -116,16 +141,21 @@ internal class TimelineEventDecryptor @Inject constructor(
         synchronized(existingRequests) {
             existingRequests.clear()
         }
-        rescannedRooms.clear()
+        pendingRescans.clear()
     }
 
     fun requestDecryption(request: DecryptionRequest, alreadyClearedFromUnknown: Boolean = false) =
             requestDecryption(listOf(request), alreadyClearedFromUnknown)
 
-    fun requestDecryption(requests: List<DecryptionRequest>, alreadyClearedFromUnknown: Boolean = false) {
+    /** retryFailed bypasses remembered failures when imported keys may now satisfy them. */
+    fun requestDecryption(requests: List<DecryptionRequest>, alreadyClearedFromUnknown: Boolean = false, retryFailed: Boolean = false) {
         val toProcess = ArrayList<DecryptionRequest>(requests.size)
         for (request in requests) {
-            if (!alreadyClearedFromUnknown) {
+            if (retryFailed) {
+                synchronized(unknownSessionsFailure) {
+                    unknownSessionsFailure.values.forEach { it.remove(request) }
+                }
+            } else if (!alreadyClearedFromUnknown) {
                 val knownUnknownSession = synchronized(unknownSessionsFailure) {
                     unknownSessionsFailure.values.any { request in it }
                 }
@@ -222,5 +252,11 @@ internal class TimelineEventDecryptor @Inject constructor(
 
     companion object {
         private const val DECRYPT_BATCH_SIZE = 100
+
+        // Sentinel for "the import named no room, sweep everything that is still undecryptable".
+        private const val ALL_ROOMS = ""
+
+        // Coalesce bulk key imports without delaying rescans until the entire restore finishes.
+        private const val RESCAN_DEBOUNCE_MS = 2_000L
     }
 }

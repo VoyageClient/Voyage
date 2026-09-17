@@ -75,6 +75,7 @@ import org.matrix.android.sdk.api.session.sync.model.DeviceListResponse
 import org.matrix.android.sdk.api.session.sync.model.DeviceOneTimeKeysCountSyncResponse
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.session.sync.model.ToDeviceSyncResponse
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.crypto.actions.MegolmSessionDataImporter
 import org.matrix.android.sdk.internal.crypto.actions.SetDeviceVerificationAction
@@ -209,9 +210,13 @@ internal class DefaultCryptoService @Inject constructor(
 
     override suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?, isGappySync: Boolean) {
         when (event.type) {
-            EventType.STATE_ROOM_ENCRYPTION -> onRoomEncryptionEvent(roomId, event)
-            EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event, isGappySync)
-            EventType.STATE_ROOM_HISTORY_VISIBILITY -> onRoomHistoryVisibilityEvent(roomId, event, cryptoStoreAggregator)
+            EventType.STATE_ROOM_ENCRYPTION -> MatrixPerf.timeSuspending("crypto.encryptionEvent") { onRoomEncryptionEvent(roomId, event) }
+            EventType.STATE_ROOM_MEMBER -> MatrixPerf.timeSuspending("crypto.memberEvent") {
+                onRoomMembershipEvent(roomId, event, isGappySync, cryptoStoreAggregator)
+            }
+            EventType.STATE_ROOM_HISTORY_VISIBILITY -> MatrixPerf.timeSuspending("crypto.histVisEvent") {
+                onRoomHistoryVisibilityEvent(roomId, event, cryptoStoreAggregator)
+            }
         }
     }
 
@@ -220,7 +225,7 @@ internal class DefaultCryptoService @Inject constructor(
         if (event.isStateEvent()) {
             when (event.type) {
                 EventType.STATE_ROOM_ENCRYPTION -> onRoomEncryptionEvent(roomId, event)
-                EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event)
+                EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event, cryptoStoreAggregator = cryptoStoreAggregator)
                 EventType.STATE_ROOM_HISTORY_VISIBILITY -> onRoomHistoryVisibilityEvent(roomId, event, cryptoStoreAggregator)
             }
         }
@@ -354,26 +359,26 @@ internal class DefaultCryptoService @Inject constructor(
     }
 
     override suspend fun onSyncWillProcess(isInitialSync: Boolean) {
+        // Avoid queuing a no-op behind device-list downloads on the crypto dispatcher.
+        if (!isInitialSync) return
         withContext(coroutineDispatchers.crypto) {
-            if (isInitialSync) {
-                try {
-                    // On initial sync, we start all our tracking from
-                    // scratch, so mark everything as untracked. onCryptoEvent will
-                    // be called for all e2e rooms during the processing of the sync,
-                    // at which point we'll start tracking all the users of that room.
-                    deviceListManager.invalidateAllDeviceLists()
-                    // always track my devices?
-                    deviceListManager.startTrackingDeviceList(listOf(userId))
-                    // Not awaited: this downloads and cross-signs the device list of every user we track —
-                    // hundreds of them, several seconds of requests — and the first sync response cannot be
-                    // shown to the user until this method returns. The lists are already marked outdated,
-                    // so anything that needs them fetches them on demand in the meantime.
-                    cryptoCoroutineScope.launch(coroutineDispatchers.crypto) {
-                        tryOrNull { deviceListManager.refreshOutdatedDeviceLists() }
-                    }
-                } catch (failure: Throwable) {
-                    Timber.tag(loggerTag.value).e(failure, "onSyncWillProcess ")
+            try {
+                // On initial sync, we start all our tracking from
+                // scratch, so mark everything as untracked. onCryptoEvent will
+                // be called for all e2e rooms during the processing of the sync,
+                // at which point we'll start tracking all the users of that room.
+                deviceListManager.invalidateAllDeviceLists()
+                // always track my devices?
+                deviceListManager.startTrackingDeviceList(listOf(userId))
+                // Not awaited: this downloads and cross-signs the device list of every user we track —
+                // hundreds of them, several seconds of requests — and the first sync response cannot be
+                // shown to the user until this method returns. The lists are already marked outdated,
+                // so anything that needs them fetches them on demand in the meantime.
+                cryptoCoroutineScope.launch(coroutineDispatchers.crypto) {
+                    tryOrNull { deviceListManager.refreshOutdatedDeviceLists() }
                 }
+            } catch (failure: Throwable) {
+                Timber.tag(loggerTag.value).e(failure, "onSyncWillProcess ")
             }
         }
     }
@@ -445,6 +450,9 @@ internal class DefaultCryptoService @Inject constructor(
 //                    val currentCount = syncResponse.deviceOneTimeKeysCount.signedCurve25519 ?: 0
 //                    oneTimeKeysUploader.updateOneTimeKeyCount(currentCount)
 //                }
+        cryptoStoreAggregator.usersToStartTrackingDevices
+                .takeIf { it.isNotEmpty() }
+                ?.let { deviceListManager.startTrackingDeviceList(it.toList()) }
         cryptoStore.storeData(cryptoStoreAggregator)
         // unwedge if needed
         try {
@@ -988,7 +996,12 @@ internal class DefaultCryptoService @Inject constructor(
      * @param roomId the room Id
      * @param event the membership event causing the change
      */
-    private suspend fun onRoomMembershipEvent(roomId: String, event: Event, isGappySync: Boolean = false) {
+    private suspend fun onRoomMembershipEvent(
+            roomId: String,
+            event: Event,
+            isGappySync: Boolean = false,
+            cryptoStoreAggregator: CryptoStoreAggregator? = null,
+    ) {
         // because the encryption event can be after the join/invite in the same batch
         event.stateKey?.let { _ ->
             val roomMember: RoomMemberContent? = event.content.toModel()
@@ -997,32 +1010,42 @@ internal class DefaultCryptoService @Inject constructor(
                 unrequestedForwardManager.onInviteReceived(roomId, event.senderId.orEmpty(), clock.epochMillis())
             }
         }
-        roomEncryptorsStore.get(roomId) ?: /* No encrypting in this room */ return
-        withContext(coroutineDispatchers.io) {
-            event.stateKey?.let { userId ->
-                val roomMember: RoomMemberContent? = event.content.toModel()
-                val membership = roomMember?.membership
-                // MSC4268: a departed user may hold the current session via a key bundle even if we never sent them
-                // a key directly, so "was it ever shared with them" is no longer a safe rotation test. Across a gap
-                // any non-join membership may be hiding a join+leave we never saw.
-                val userMayHaveLeft = if (isGappySync) membership != Membership.JOIN else membership in DEPARTED_MEMBERSHIPS
-                if (userMayHaveLeft) {
-                    discardOutboundSession(roomId)
-                }
-                if (membership == Membership.JOIN) {
-                    // make sure we are tracking the deviceList for this user.
-                    deviceListManager.startTrackingDeviceList(listOf(userId))
-                } else if (membership == Membership.INVITE &&
-                        shouldEncryptForInvitedMembers(roomId) &&
-                        isEncryptionEnabledForInvitedUser()) {
-                    // track the deviceList for this invited user.
-                    // Caution: there's a big edge case here in that federated servers do not
-                    // know what other servers are in the room at the time they've been invited.
-                    // They therefore will not send device updates if a user logs in whilst
-                    // their state is invite.
-                    deviceListManager.startTrackingDeviceList(listOf(userId))
+        MatrixPerf.time("crypto.member.encryptorLookup") { roomEncryptorsStore.get(roomId) } ?: /* No encrypting in this room */ return
+        MatrixPerf.timeSuspending("crypto.member.ioHop") {
+            withContext(coroutineDispatchers.io) {
+                event.stateKey?.let { userId ->
+                    val roomMember: RoomMemberContent? = event.content.toModel()
+                    val membership = roomMember?.membership
+                    // MSC4268: a departed user may hold the current session via a key bundle even if we never sent them
+                    // a key directly, so "was it ever shared with them" is no longer a safe rotation test. Across a gap
+                    // any non-join membership may be hiding a join+leave we never saw.
+                    val userMayHaveLeft = if (isGappySync) membership != Membership.JOIN else membership in DEPARTED_MEMBERSHIPS
+                    if (userMayHaveLeft) {
+                        discardOutboundSession(roomId)
+                    }
+                    if (membership == Membership.JOIN) {
+                        // make sure we are tracking the deviceList for this user.
+                        trackDeviceList(userId, cryptoStoreAggregator)
+                    } else if (membership == Membership.INVITE &&
+                            shouldEncryptForInvitedMembers(roomId) &&
+                            isEncryptionEnabledForInvitedUser()) {
+                        // track the deviceList for this invited user.
+                        // Caution: there's a big edge case here in that federated servers do not
+                        // know what other servers are in the room at the time they've been invited.
+                        // They therefore will not send device updates if a user logs in whilst
+                        // their state is invite.
+                        trackDeviceList(userId, cryptoStoreAggregator)
+                    }
                 }
             }
+        }
+    }
+
+    private fun trackDeviceList(userId: String, cryptoStoreAggregator: CryptoStoreAggregator?) {
+        if (cryptoStoreAggregator != null) {
+            cryptoStoreAggregator.usersToStartTrackingDevices.add(userId)
+        } else {
+            deviceListManager.startTrackingDeviceList(listOf(userId))
         }
     }
 
@@ -1082,14 +1105,25 @@ internal class DefaultCryptoService @Inject constructor(
             keyCounts: DeviceOneTimeKeysCountSyncResponse?,
             deviceUnusedFallbackKeyTypes: List<String>?
     ) {
-        withContext(coroutineDispatchers.crypto) {
-            deviceListManager.handleDeviceListsChanges(deviceChanges?.changed.orEmpty(), deviceChanges?.left.orEmpty())
-            if (keyCounts != null) {
-                val currentCount = keyCounts.signedCurve25519 ?: 0
-                oneTimeKeysUploader.updateOneTimeKeyCount(currentCount)
+        if (keyCounts != null) {
+            oneTimeKeysUploader.updateOneTimeKeyCount(keyCounts.signedCurve25519 ?: 0)
+        }
+        val changed = deviceChanges?.changed.orEmpty()
+        val left = deviceChanges?.left.orEmpty()
+        val events = toDevice?.events.orEmpty()
+        // The crypto dispatcher is one thread, and a cache clear keeps it busy for seconds at a time. Only
+        // the to-device events are worth waiting for — they carry the room keys the events in this same
+        // response need. Marking device lists stale is bookkeeping for a later download, so handing it over
+        // is enough; awaiting it parked a whole sliding-sync response behind the queue (traced: 11s for one
+        // departed user).
+        if (changed.isNotEmpty() || left.isNotEmpty()) {
+            cryptoCoroutineScope.launch(coroutineDispatchers.crypto) {
+                deviceListManager.handleDeviceListsChanges(changed, left)
             }
-
-            cryptoSyncHandler.handleToDevice(toDevice?.events.orEmpty())
+        }
+        if (events.isEmpty()) return
+        withContext(coroutineDispatchers.crypto) {
+            cryptoSyncHandler.handleToDevice(events)
         }
     }
 

@@ -19,9 +19,13 @@ package org.matrix.android.sdk.internal.crypto.store.db
 data class CryptoStoreAggregator(
         val setShouldShareHistoryData: MutableMap<String, Boolean> = mutableMapOf(),
         val setShouldEncryptForInvitedMembersData: MutableMap<String, Boolean> = mutableMapOf(),
+        // Collected rather than applied per event: each apply reads and rewrites the whole device-tracking
+        // table, so a sync carrying a few thousand membership events did that a few thousand times.
+        val usersToStartTrackingDevices: MutableSet<String> = mutableSetOf(),
 ) {
     fun isEmpty(): Boolean {
         return setShouldShareHistoryData.isEmpty() &&
-                setShouldEncryptForInvitedMembersData.isEmpty()
+                setShouldEncryptForInvitedMembersData.isEmpty() &&
+                usersToStartTrackingDevices.isEmpty()
     }
 }

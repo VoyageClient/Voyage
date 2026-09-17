@@ -56,6 +56,10 @@ SELECT * FROM event WHERE room_id = ? AND event_id = ? LIMIT 1;
 selectUndecryptedEncryptedInRoom:
 SELECT * FROM event WHERE room_id = ? AND type = ? AND decryption_result_json IS NULL;
 
+-- Which rooms still hold undecryptable events, for a key import that names no room of its own.
+selectRoomsWithUndecryptedEncrypted:
+SELECT DISTINCT room_id FROM event WHERE type = ? AND decryption_result_json IS NULL;
+
 selectIdByEventIdInRoom:
 SELECT id FROM event WHERE room_id = ? AND event_id = ? LIMIT 1;
 

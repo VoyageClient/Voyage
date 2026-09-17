@@ -48,7 +48,12 @@ class AudioMessageHelper @Inject constructor(
 ) {
     private var mediaPlayer: MediaPlayer? = null
     private var currentPlayingId: String? = null
-    private val voiceRecorder: VoiceRecorder by lazy { voiceRecorderProvider.provideVoiceRecorder() }
+
+    // Held as the Lazy itself so the stop paths can tell "no recorder was ever needed" from "stop it":
+    // building one enumerates the platform codec list, which class-initialises MediaCodec and loads a
+    // native library — on the main thread, and the first time that can block for tens of seconds.
+    private val voiceRecorderLazy = lazy { voiceRecorderProvider.provideVoiceRecorder() }
+    private val voiceRecorder: VoiceRecorder by voiceRecorderLazy
     private val opusDecoder: OggOpusDecoder by lazy { OggOpusDecoder.create() }
 
     private val amplitudeList = mutableListOf<Int>()
@@ -81,6 +86,9 @@ class AudioMessageHelper @Inject constructor(
     }
 
     fun stopRecording(): MultiPickerAudioType? {
+        // Nothing has recorded anything if the recorder was never built, and building one here only to
+        // stop it is what froze the composer on its way to the background.
+        if (!voiceRecorderLazy.isInitialized()) return null
         val voiceMessageFile = tryOrNull("Cannot stop media recorder!") {
             voiceRecorder.stopRecord()
             voiceRecorder.getVoiceMessageFile()
@@ -132,6 +140,7 @@ class AudioMessageHelper @Inject constructor(
         tryOrNull("Cannot stop media recording amplitude") {
             stopRecordingAmplitudes()
         }
+        if (!voiceRecorderLazy.isInitialized()) return
         tryOrNull("Cannot stop media recorder!") {
             voiceRecorder.cancelRecord()
         }
@@ -369,7 +378,7 @@ class AudioMessageHelper @Inject constructor(
         playbackTracker.resetAllPlaybackStates()
     }
 
-    fun getCurrentVoiceFile(): File? = voiceRecorder.getVoiceMessageFile()
+    fun getCurrentVoiceFile(): File? = voiceRecorderLazy.takeIf { it.isInitialized() }?.value?.getVoiceMessageFile()
 
     // Lets the in-flight local-echo of an audio/voice message be played before its mxc:// URL
     // arrives — by streaming the picker's content:// (or local file://) URI into a cache file.

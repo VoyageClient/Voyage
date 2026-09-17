@@ -29,6 +29,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
@@ -49,6 +50,8 @@ import org.matrix.android.sdk.internal.util.writeToFile
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
 internal class DefaultFileService @Inject constructor(
@@ -123,14 +126,14 @@ internal class DefaultFileService @Inject constructor(
     ): File {
         url ?: throw IllegalArgumentException("url is null")
 
-        Timber.i("MEDIADBG download request url=$url")
+        DebugLog.i { "MEDIADBG download request url=$url" }
 
         val deferred: CompletableDeferred<File>
         val isOwner: Boolean
         synchronized(ongoing) {
             val existing = ongoing[url]
             if (existing != null) {
-                Timber.i("MEDIADBG download attach to ongoing url=$url (${ongoing.size} in flight)")
+                DebugLog.i { "MEDIADBG download attach to ongoing url=$url (${ongoing.size} in flight)" }
                 deferred = existing
                 isOwner = false
             } else {
@@ -151,7 +154,7 @@ internal class DefaultFileService @Inject constructor(
                         performDownload(fileName, mimeType, url, elementToDecrypt)
                     }
                 }
-                Timber.i("MEDIADBG download settled url=$url ok=${result.isSuccess} err=${result.exceptionOrNull()}")
+                DebugLog.i { "MEDIADBG download settled url=$url ok=${result.isSuccess} err=${result.exceptionOrNull()}" }
                 // Remove before completing, so a caller arriving right after a failure starts a
                 // fresh download instead of attaching to the stale failed deferred.
                 synchronized(ongoing) { ongoing.remove(url) }
@@ -302,6 +305,7 @@ internal class DefaultFileService @Inject constructor(
             atomicFileDownload?.cancel()
             atomicFileDecrypt?.cancel()
         }
+        result.onSuccess { invalidateLocalFileCache() }
 
         return result.getOrThrow()
     }
@@ -347,12 +351,32 @@ internal class DefaultFileService @Inject constructor(
             // Just copy the original file
             originalFile.copyTo(files.file, overwrite = true)
         }
+        invalidateLocalFileCache()
     }
 
     override fun getLocalFileFor(mxcUrl: String?, fileName: String?, mimeType: String?, isEncrypted: Boolean): File? {
         mxcUrl ?: return null
         pendingMediaUploadRegistry.getLocalFile(mxcUrl)?.let { return it }
-        return getFiles(mxcUrl, fileName, mimeType, isEncrypted).getClearFile().takeIf { it.exists() }
+        // Every bind of a media message asks this, and a timeline scroll binds hundreds — each one a stat
+        // on a disk the session database is already hammering, which stalled the main thread for over a
+        // second. The answer only changes when something is written or cleared, which bumps [cacheEpoch].
+        val key = "$mxcUrl|$fileName|$mimeType|$isEncrypted"
+        val epoch = cacheEpoch.get()
+        localFileCache[key]?.takeIf { it.epoch == epoch }?.let { return it.file }
+        val file = getFiles(mxcUrl, fileName, mimeType, isEncrypted).getClearFile().takeIf { it.exists() }
+        localFileCache[key] = LocalFileLookup(epoch, file)
+        return file
+    }
+
+    private data class LocalFileLookup(val epoch: Long, val file: File?)
+
+    private val localFileCache = ConcurrentHashMap<String, LocalFileLookup>()
+    private val cacheEpoch = AtomicLong(0)
+
+    /** Anything that writes or removes a cached file makes every remembered answer suspect. */
+    private fun invalidateLocalFileCache() {
+        cacheEpoch.incrementAndGet()
+        localFileCache.clear()
     }
 
     override fun isUploadPending(mxcUrl: String?): Boolean {
@@ -449,10 +473,12 @@ internal class DefaultFileService @Inject constructor(
 
     override fun clearCache() {
         downloadFolder.deleteRecursively()
+        invalidateLocalFileCache()
     }
 
     override fun clearDecryptedCache() {
         decryptedFolder.deleteRecursively()
+        invalidateLocalFileCache()
     }
 
     companion object {

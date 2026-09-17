@@ -48,6 +48,9 @@ internal class OneTimeKeysUploader @Inject constructor(
 
     // last OTK check timestamp
     private var lastOneTimeKeyCheck: Long = 0
+
+    // Written from the sync thread (the count arrives with every response), read on the crypto one.
+    @Volatile
     private var oneTimeKeyCount: Int? = null
 
     // Simple storage to remember when was uploaded the last fallback key

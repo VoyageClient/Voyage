@@ -189,8 +189,12 @@ internal class FrameworkSqliteDriver private constructor(
 
         var perfHoldStart = 0L
 
+        /** Nested transactions pass these keys to their parent for notification at commit. */
+        val pendingNotifications = linkedSetOf<String>()
+
         override fun endTransaction(successful: Boolean): QueryResult<Unit> {
             if (enclosingTransaction == null) {
+                val notify = if (successful) pendingNotifications.toTypedArray() else emptyArray()
                 try {
                     if (successful) {
                         database.setTransactionSuccessful()
@@ -201,8 +205,10 @@ internal class FrameworkSqliteDriver private constructor(
                     transactions.set(enclosingTransaction as Transaction?)
                     transactionLock.unlock()
                 }
+                if (notify.isNotEmpty()) notifyListeners(*notify)
             } else {
-                transactions.set(enclosingTransaction as Transaction?)
+                (enclosingTransaction as Transaction).pendingNotifications.addAll(pendingNotifications)
+                transactions.set(enclosingTransaction)
             }
             return QueryResult.Value(Unit)
         }
@@ -230,6 +236,11 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     override fun notifyListeners(vararg queryKeys: String) {
+        // Batch notifications until commit so observers read committed rows and rebuild only once.
+        transactions.get()?.let { transaction ->
+            transaction.pendingNotifications.addAll(queryKeys)
+            return
+        }
         val toNotify = synchronized(listeners) {
             queryKeys.flatMapTo(linkedSetOf()) { listeners[it].orEmpty() }
         }
