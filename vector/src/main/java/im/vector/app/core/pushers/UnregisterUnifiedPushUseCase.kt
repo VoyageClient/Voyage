@@ -20,11 +20,14 @@ class UnregisterUnifiedPushUseCase @Inject constructor(
         private val vectorPreferences: VectorPreferences,
         private val unifiedPushStore: UnifiedPushStore,
         private val unifiedPushHelper: UnifiedPushHelper,
+        private val pushHealthCheckScheduler: PushHealthCheckScheduler,
 ) {
 
     suspend fun execute(pushersManager: PushersManager?) {
         val mode = BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_REALTIME
         vectorPreferences.setFdroidSyncBackgroundMode(mode)
+        pushHealthCheckScheduler.cancel()
+        val instance = unifiedPushHelper.getCurrentInstance()
         try {
             unifiedPushHelper.getEndpointOrToken()?.let {
                 Timber.d("Removing $it")
@@ -33,8 +36,10 @@ class UnregisterUnifiedPushUseCase @Inject constructor(
         } catch (e: Exception) {
             Timber.d(e, "Probably unregistering a non existing pusher")
         }
-        unifiedPushStore.storeUpEndpoint(null)
-        unifiedPushStore.storePushGateway(null)
-        UnifiedPush.unregisterApp(context)
+        instance?.let {
+            unifiedPushStore.storeUpEndpoint(it, null)
+            unifiedPushStore.storePushGateway(it, null)
+            UnifiedPush.unregister(context, it)
+        }
     }
 }

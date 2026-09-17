@@ -12,10 +12,9 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.AppNameProvider
 import im.vector.app.core.resources.LocaleProvider
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.features.mdm.MdmData
-import im.vector.app.features.mdm.MdmService
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
 import org.matrix.android.sdk.api.session.pushers.Pusher
+import org.matrix.android.sdk.api.session.pushers.PusherState
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.abs
@@ -29,7 +28,6 @@ class PushersManager @Inject constructor(
         private val stringProvider: StringProvider,
         private val appNameProvider: AppNameProvider,
         private val getDeviceInfoUseCase: GetDeviceInfoUseCase,
-        private val mdmService: MdmService,
 ) {
     suspend fun testPush() {
         val currentSession = activeSessionHolder.getActiveSession()
@@ -42,11 +40,14 @@ class PushersManager @Inject constructor(
         )
     }
 
-    suspend fun enqueueRegisterPusherWithFcmKey(pushKey: String): UUID {
-        return enqueueRegisterPusher(
-                pushKey = pushKey,
-                gateway = mdmService.getData(MdmData.DefaultPushGatewayUrl, stringProvider.getString(im.vector.app.config.R.string.pusher_http_url))
-        )
+    /**
+     * Register the pusher and wait for the homeserver to take it, so the caller can tell whether the
+     * endpoint it holds is actually live.
+     */
+    suspend fun registerPusher(pushKey: String, gateway: String): Result<Unit> {
+        return runCatching {
+            activeSessionHolder.getActiveSession().pushersService().addHttpPusher(createHttpPusher(pushKey, gateway))
+        }
     }
 
     suspend fun enqueueRegisterPusher(
@@ -85,6 +86,13 @@ class PushersManager @Inject constructor(
                 appDisplayName = appName,
                 deviceDisplayName = currentSession.sessionParams.deviceId
         )
+    }
+
+    fun isPusherRegisteredFor(pushKey: String): Boolean {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return false
+        return session.pushersService().getPushers().any {
+            it.pushKey == pushKey && it.state in setOf(PusherState.REGISTERED, PusherState.REGISTERING)
+        }
     }
 
     fun getPusherForCurrentSession(): Pusher? {

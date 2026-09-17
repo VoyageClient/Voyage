@@ -19,7 +19,9 @@ import im.vector.app.core.pushers.UnregisterUnifiedPushUseCase
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.session.coroutineScope
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.pushers.PusherState
 import javax.inject.Inject
 
@@ -81,13 +83,20 @@ class TestEndpointAsTokenRegistration @Inject constructor(
             is RegisterUnifiedPushUseCase.RegisterUnifiedPushResult.NeedToAskUserForDistributor ->
                 askUserForDistributor(testParameters, pushKey)
             RegisterUnifiedPushUseCase.RegisterUnifiedPushResult.Success -> {
-                val workId = pushersManager.enqueueRegisterPusherWithFcmKey(pushKey)
-                WorkManager.getInstance(context).getWorkInfoByIdLiveData(workId).observe(context) { workInfo ->
-                    if (workInfo != null) {
-                        if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                            manager?.retry(testParameters)
-                        } else if (workInfo.state == WorkInfo.State.FAILED) {
-                            manager?.retry(testParameters)
+                // Registering against the FCM gateway here would silently break every UnifiedPush user:
+                // the pusher is created, the test passes, and no push ever arrives.
+                val gateway = unifiedPushHelper.getPushGateway()
+                        ?: unifiedPushHelper.getCurrentInstance()?.let { unifiedPushHelper.storeGatewayForEndpoint(it, pushKey) }
+                        ?: return
+                val workId = pushersManager.enqueueRegisterPusher(pushKey, gateway)
+                withContext(Dispatchers.Main) {
+                    WorkManager.getInstance(context).getWorkInfoByIdLiveData(workId).observe(context) { workInfo ->
+                        if (workInfo != null) {
+                            if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                                manager?.retry(testParameters)
+                            } else if (workInfo.state == WorkInfo.State.FAILED) {
+                                manager?.retry(testParameters)
+                            }
                         }
                     }
                 }
@@ -95,12 +104,12 @@ class TestEndpointAsTokenRegistration @Inject constructor(
         }
     }
 
-    private fun askUserForDistributor(
+    private suspend fun askUserForDistributor(
             testParameters: TestParameters,
             pushKey: String,
-    ) {
+    ) = withContext(Dispatchers.Main) {
         unifiedPushHelper.showSelectDistributorDialog(context) { selection ->
-            context.lifecycleScope.launch {
+            context.lifecycleScope.launch(activeSessionHolder.getActiveSession().coroutineDispatchers.io) {
                 registerUnifiedPush(distributor = selection, testParameters, pushKey)
             }
         }

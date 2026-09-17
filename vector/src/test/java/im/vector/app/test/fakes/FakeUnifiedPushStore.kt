@@ -16,19 +16,19 @@ class FakeUnifiedPushStore {
 
     val instance = mockk<UnifiedPushStore>()
 
-    fun givenStoreUpEndpoint(endpoint: String?) {
-        justRun { instance.storeUpEndpoint(endpoint) }
+    fun givenStoreUpEndpoint(upInstance: String, endpoint: String?) {
+        justRun { instance.storeUpEndpoint(upInstance, endpoint) }
     }
 
-    fun verifyStoreUpEndpoint(endpoint: String?) {
-        verify { instance.storeUpEndpoint(endpoint) }
+    fun verifyStoreUpEndpoint(upInstance: String, endpoint: String?) {
+        verify { instance.storeUpEndpoint(upInstance, endpoint) }
     }
 
-    fun givenStorePushGateway(gateway: String?) {
-        justRun { instance.storePushGateway(gateway) }
+    fun givenStorePushGateway(upInstance: String, gateway: String?) {
+        justRun { instance.storePushGateway(upInstance, gateway) }
     }
 
-    fun verifyStorePushGateway(gateway: String?) {
-        verify { instance.storePushGateway(gateway) }
+    fun verifyStorePushGateway(upInstance: String, gateway: String?) {
+        verify { instance.storePushGateway(upInstance, gateway) }
     }
 }

@@ -32,6 +32,9 @@
     <!-- For LocationSharingAndroidService -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
+    <!-- For FetchPushForegroundService -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE" />
+
     <!-- Adding CAMERA permission prevents Chromebooks to see the application on the PlayStore -->
     <!-- Tell that the Camera is not mandatory to install the application -->
     <uses-feature
@@ -371,6 +374,11 @@
             android:exported="false"
             android:foregroundServiceType="dataSync"
             tools:ignore="Instantiatable" />
+
+        <service
+            android:name=".core.pushers.FetchPushForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
 
         <service
             android:name=".features.location.live.tracking.LocationSharingAndroidService"

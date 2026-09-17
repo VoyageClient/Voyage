@@ -26,4 +26,8 @@ class FakeUnifiedPushHelper {
     fun givenIsBackgroundSyncReturns(enabled: Boolean) {
         every { instance.isBackgroundSync() } returns enabled
     }
+
+    fun givenGetCurrentInstanceReturns(upInstance: String?) {
+        every { instance.getCurrentInstance() } returns upInstance
+    }
 }

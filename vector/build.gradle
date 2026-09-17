@@ -211,6 +211,11 @@ dependencies {
     implementation project(":library:media-transcode")
     implementation project(":library:animated-image")
 
+    // The video editor's preview: a clipped source ends playback exactly at the trim, where
+    // MediaPlayer can only be watched and paused — and its audio carries on past the cut.
+    // minSdk 16, so API 14/15 stays on MediaPlayer (see EditorPreviewPlayer).
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
+
     implementation libs.jetbrains.coroutinesCore
     implementation libs.jetbrains.coroutinesAndroid
 
@@ -349,7 +354,7 @@ dependencies {
     kapt libs.dagger.hiltCompiler
 
     // UnifiedPush
-    implementation 'com.github.UnifiedPush:android-connector:2.1.1'
+    implementation 'org.unifiedpush.android:connector:3.0.10'
 
     // emoji2 CORE only, pinned to 1.3.0 (last reliably minSdk-14 line). We skip emoji2-bundled (newer
     // releases bump minSdk to 21/23) and instead bundle our own newer font under assets/emoji2/ loaded via

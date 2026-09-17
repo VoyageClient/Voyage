@@ -13,9 +13,11 @@ package im.vector.app.core.pushers.model
  * @property eventId The Event ID. If not null, it will not be empty, and will have a valid format.
  * @property roomId The Room ID. If not null, it will not be empty, and will have a valid format.
  * @property unread Number of unread message.
+ * @property clientSecret The UnifiedPush instance the push arrived on, which tells us the account it is for.
  */
 data class PushData(
         val eventId: String?,
         val roomId: String?,
         val unread: Int?,
+        val clientSecret: String? = null,
 )

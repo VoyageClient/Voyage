@@ -90,7 +90,10 @@ class VectorSyncAndroidService : SyncAndroidService() {
             CommonStrings.notification_listening_for_notifications
         }
         val notification = notificationUtils.buildForegroundServiceNotification(notificationSubtitleRes, false)
-        startForegroundCompat(NotificationUtils.NOTIFICATION_ID_FOREGROUND_SERVICE, notification)
+        if (!startForegroundCompat(NotificationUtils.NOTIFICATION_ID_FOREGROUND_SERVICE, notification)) {
+            // Stop this attempt if foreground startup is refused; foreground app sync remains available.
+            stopSelf()
+        }
     }
 
     override fun onRescheduleAsked(

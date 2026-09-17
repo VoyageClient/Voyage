@@ -141,7 +141,7 @@
     <string name="settings_enable_emoji_autocomplete_summary">Show the emoji picker when typing a :shortcode:</string>
 
     <string name="settings_perf_logging_title">Log performance traces</string>
-    <string name="settings_perf_logging_summary">Emit timings for slow operations (room open, send, autocomplete, etc.) to logcat under the VectorPerf tag. Off by default — turn on when debugging slowness.</string>
+    <string name="settings_perf_logging_summary">Logs how long room opens, sends and autocomplete take, to logcat under the VectorPerf tag.</string>
 
     <string name="power_level_custom">Custom (%1$d)</string>
     <string name="power_level_custom_no_value">Custom</string>
@@ -276,8 +276,10 @@
     <string name="settings_profile_color_dark" translatable="false">Profile Color (dark theme)</string>
     <string name="settings_profile_color_per_theme" translatable="false">Per-theme colors</string>
     <string name="profile_color_summary_default" translatable="false">Default (%s)</string>
+    <string name="profile_color_summary_default_named" translatable="false">Default (%1$s, %2$s)</string>
     <string name="profile_color_summary_named" translatable="false">%1$s (%2$s)</string>
     <string name="profile_color_summary_custom" translatable="false">Custom (%s)</string>
+    <string name="profile_color_summary_custom_named" translatable="false">Custom (%1$s, %2$s)</string>
     <string name="settings_show_others_profile_colors_title" translatable="false">Show other users\' profile colors</string>
     <string name="settings_show_others_profile_colors_summary" translatable="false">Use the name color a user set in their profile or in a room. Your own color is always shown.</string>
     <string name="profile_color_name_azure" translatable="false">Azure</string>
@@ -1029,10 +1031,6 @@
 
     <string name="labs_enable_sliding_sync_title" translatable="false">Use next-generation sync</string>
     <string name="labs_enable_sliding_sync_summary" translatable="false">Sync over paginated sync or simplified sliding sync when your homeserver supports them, falling back to the standard sync otherwise</string>
-    <string name="labs_enable_timeline_gap_healing_title" translatable="false">Heal broken history gaps</string>
-    <string name="labs_enable_timeline_gap_healing_summary" translatable="false">Detect when scrolling back jumps over history the server still has (e.g. rooms damaged by the depth exploit) and automatically recover the skipped messages</string>
-    <string name="labs_enable_timeline_timestamp_order_title" translatable="false">Fix late messages\' position</string>
-    <string name="labs_enable_timeline_timestamp_order_summary" translatable="false">Put messages a slow or recovering server delivered late back where they were sent, instead of leaving them under a later date</string>
 
     <string name="settings_security_stealth_mode_title" translatable="false">Stealth mode</string>
     <string name="settings_security_stealth_mode_summary" translatable="false">Keep client-specific settings local, so server administrators cannot identify which client you use. These settings will not follow you to other devices.</string>
@@ -1178,4 +1176,39 @@
     <string name="room_acl_unsaved_title" translatable="false">Unsaved changes</string>
     <string name="room_acl_unsaved_message" translatable="false">You have unsaved room ACL changes. Apply them?</string>
     <string name="room_acl_unsaved_discard" translatable="false">Discard</string>
+    <string name="room_settings_follow_account_default" translatable="false">Match default</string>
+    <string name="settings_show_unread_counter" translatable="false">Show unread counters</string>
+    <string name="settings_show_unread_counter_summary" translatable="false">Badges on rooms, tabs and spaces. Turning this off does not affect notifications</string>
+    <string name="settings_reset_room_notification_overrides" translatable="false">Reset per-room notification settings</string>
+    <string name="settings_reset_room_notification_overrides_summary" translatable="false">Make every room follow these account settings again</string>
+    <plurals name="settings_reset_room_notification_overrides_prompt" translatable="false">
+        <item quantity="one">%d room notification override is set. Clear it to follow your account settings?</item>
+        <item quantity="other">%d room notification overrides are set. Clear them to follow your account settings?</item>
+    </plurals>
+    <string name="settings_troubleshoot_test_bing_settings_failed_detail" translatable="false">These are set not to notify in your custom settings: %s.</string>
+    <string name="settings_troubleshoot_rule_mentions" translatable="false">mentions</string>
+    <string name="settings_troubleshoot_rule_direct_messages" translatable="false">direct messages</string>
+    <string name="settings_troubleshoot_rule_group_messages" translatable="false">group messages</string>
+    <string name="settings_troubleshoot_test_distributor_battery_title" translatable="false">Distributor battery optimization</string>
+    <string name="settings_troubleshoot_test_distributor_battery_success" translatable="false">%s is exempt from battery optimization.</string>
+    <string name="settings_troubleshoot_test_distributor_battery_failed" translatable="false">%s is subject to battery optimization, so the system may cut the connection your pushes arrive on. Exempt it in its own settings.</string>
+    <string name="settings_push_history" translatable="false">Push history</string>
+    <string name="settings_push_history_summary" translatable="false">What arrived, and what became of it</string>
+    <string name="settings_push_history_empty" translatable="false">No push has been received yet.</string>
+    <string name="settings_push_history_clear" translatable="false">Clear</string>
+    <string name="notification_fetching_title" translatable="false">Checking for new messages</string>
+    <string name="notification_fallback_title" translatable="false">New message</string>
+    <string name="notification_fallback_content" translatable="false">Open the app to see it.</string>
+    <string name="unifiedpush_registration_reason" translatable="false">Receiving messages while the app is closed</string>
+    <string name="settings_push_gateway" translatable="false">Push gateway</string>
+    <string name="settings_push_gateway_automatic" translatable="false">Automatic (%s)</string>
+    <string name="settings_push_gateway_dialog_message" translatable="false">The server your homeserver sends notifications to. Leave empty to use the one your notification method advertises, or set %s to keep your rooms away from it.</string>
+    <string name="settings_push_gateway_invalid" translatable="false">That is not a valid address. Enter a host or a full https:// URL, or leave it empty.</string>
+    <string name="settings_push_gateway_unreachable" translatable="false">%s could not be reached, so it was not saved.</string>
+    <string name="settings_push_gateway_not_a_gateway" translatable="false">%s answered, but it is not a Matrix push gateway, so it was not saved.</string>
+    <string name="settings_reset_room_notification_overrides_none" translatable="false">No room has its own notification setting.</string>
+    <plurals name="settings_reset_room_notification_overrides_done" translatable="false">
+        <item quantity="one">Cleared %d room notification override.</item>
+        <item quantity="other">Cleared %d room notification overrides.</item>
+    </plurals>
 </resources>

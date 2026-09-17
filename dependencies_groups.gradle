@@ -197,6 +197,7 @@ ext.groups = [
                         'org.jetbrains.kotlinx',
                         'org.jetbrains.trove4j',
                         'org.json',
+                        'org.unifiedpush.android',
                         'org.jsoup',
                         'org.jspecify',
                         'org.junit',

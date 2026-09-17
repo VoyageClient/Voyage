@@ -10,6 +10,7 @@ package im.vector.app.features.settings.notifications
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
@@ -22,6 +23,7 @@ import androidx.lifecycle.map
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
 import com.airbnb.mvrx.fragmentViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
@@ -32,7 +34,12 @@ import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.core.pushers.EnsureFcmTokenIsRetrievedUseCase
 import im.vector.app.core.pushers.FcmHelper
+import im.vector.app.core.pushers.PushRequest
+import im.vector.app.core.pushers.PushRequestStatus
+import im.vector.app.core.pushers.PushRequestStore
 import im.vector.app.core.pushers.PushersManager
+import im.vector.app.core.pushers.UnifiedPushGatewayResolver
+import im.vector.app.core.pushers.UnifiedPushGatewayResolverResult
 import im.vector.app.core.pushers.UnifiedPushHelper
 import im.vector.app.core.services.GuardServiceStarter
 import im.vector.app.core.utils.combineLatest
@@ -40,6 +47,7 @@ import im.vector.app.core.utils.isIgnoringBatteryOptimizations
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.requestDisablingBatteryOptimization
 import im.vector.app.core.utils.startNotificationSettingsIntent
+import im.vector.app.core.utils.toast
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.NotificationPermissionManager
 import im.vector.app.features.notifications.NotificationUtils
@@ -52,7 +60,10 @@ import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.identity.ThreePid
@@ -61,7 +72,12 @@ import org.matrix.android.sdk.api.session.pushers.Pusher
 import org.matrix.android.sdk.api.session.pushers.getPushersLive
 import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
+import java.net.URL
+import java.text.DateFormat
+import java.util.Date
 import javax.inject.Inject
+
+private const val PUSH_HISTORY_SIZE = 50
 
 // Referenced in vector_settings_preferences_root.xml
 @AndroidEntryPoint
@@ -78,6 +94,8 @@ class VectorSettingsNotificationFragment :
     @Inject lateinit var vectorFeatures: VectorFeatures
     @Inject lateinit var notificationPermissionManager: NotificationPermissionManager
     @Inject lateinit var ensureFcmTokenIsRetrievedUseCase: EnsureFcmTokenIsRetrievedUseCase
+    @Inject lateinit var unifiedPushGatewayResolver: UnifiedPushGatewayResolver
+    @Inject lateinit var pushRequestStore: PushRequestStore
 
     override var titleRes: Int = CommonStrings.settings_notifications
     override val preferenceXmlRes = R.xml.vector_settings_notifications
@@ -117,7 +135,53 @@ class VectorSettingsNotificationFragment :
         }
     }
 
+    private fun bindResetRoomOverridesPref() {
+        findPreference<VectorPreference>("SETTINGS_RESET_ROOM_NOTIFICATION_OVERRIDES_KEY")?.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener {
+                    lifecycleScope.launch {
+                        // Reading the rule set rebuilds every rule and its conditions, so keep it off
+                        // the main thread even for a one-off tap.
+                        val overrides = withContext(Dispatchers.Default) { roomNotificationOverrides() }
+                        if (!isAdded) return@launch
+                        if (overrides.isEmpty()) {
+                            activity?.toast(CommonStrings.settings_reset_room_notification_overrides_none)
+                        } else {
+                            MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle(CommonStrings.settings_reset_room_notification_overrides)
+                                    .setMessage(resources.getQuantityString(CommonPlurals.settings_reset_room_notification_overrides_prompt, overrides.size, overrides.size))
+                                    .setNegativeButton(CommonStrings.action_cancel, null)
+                                    .setPositiveButton(CommonStrings.ok) { _, _ -> clearRoomNotificationOverrides(overrides) }
+                                    .show()
+                        }
+                    }
+                    true
+                }
+    }
+
+    /** Per-room rules use room IDs; muting stores an override-kind rule with that same ID. */
+    private fun roomNotificationOverrides(): List<Pair<RuleKind, String>> {
+        val ruleSet = session.pushRuleService().getPushRules()
+        return ruleSet.room.orEmpty().map { RuleKind.ROOM to it.ruleId } +
+                ruleSet.override.orEmpty().filter { it.ruleId.startsWith("!") }.map { RuleKind.OVERRIDE to it.ruleId }
+    }
+
+    private fun clearRoomNotificationOverrides(overrides: List<Pair<RuleKind, String>>) {
+        displayLoadingView()
+        lifecycleScope.launch {
+            var cleared = 0
+            overrides.forEach { (kind, ruleId) ->
+                runCatching { session.pushRuleService().removePushRule(kind, ruleId) }
+                        .onSuccess { cleared++ }
+                        .onFailure { DebugLog.w(it) { "NOTIFDBG failed to clear the room override $ruleId" } }
+            }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            activity?.toast(resources.getQuantityString(CommonPlurals.settings_reset_room_notification_overrides_done, cleared, cleared))
+        }
+    }
+
     override fun bindPref() {
+        bindResetRoomOverridesPref()
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_ENABLE_ALL_NOTIF_PREFERENCE_KEY)!!.let { pref ->
             val pushRuleService = session.pushRuleService()
             val mRuleMaster = pushRuleService.getPushRules().getAllRules()
@@ -195,6 +259,9 @@ class VectorSettingsNotificationFragment :
             }
         }
 
+        bindPushGatewayPref()
+        bindPushHistoryPref()
+
         bindEmailNotifications()
         refreshBackgroundSyncPrefs()
 
@@ -211,7 +278,9 @@ class VectorSettingsNotificationFragment :
                 requireActivity(),
                 postPermissionLauncher,
                 showRationale = false,
-                ignorePreference = true
+                ignorePreference = true,
+                // Turning the toggle on is the user asking for it, whatever they answered before.
+                askOnlyOnce = false,
         )
     }
 
@@ -233,8 +302,125 @@ class VectorSettingsNotificationFragment :
 
     private fun onNotificationMethodChanged() {
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_NOTIFICATION_METHOD_KEY)?.summary = unifiedPushHelper.getCurrentDistributorName()
+        findPreference<VectorEditTextPreference>(VectorPreferences.SETTINGS_PUSH_GATEWAY_KEY)?.let { refreshPushGatewayPref(it) }
         session.pushersService().refreshPushers()
         refreshBackgroundSyncPrefs()
+    }
+
+    private fun bindPushHistoryPref() {
+        findPreference<VectorPreference>("SETTINGS_PUSH_HISTORY_KEY")?.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener {
+                    lifecycleScope.launch {
+                        val entries = withContext(Dispatchers.IO) { pushRequestStore.getRecent(PUSH_HISTORY_SIZE) }
+                        if (!isAdded) return@launch
+                        MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(CommonStrings.settings_push_history)
+                                .setMessage(
+                                        entries.takeIf { it.isNotEmpty() }
+                                                ?.joinToString("\n\n") { it.describe() }
+                                                ?: getString(CommonStrings.settings_push_history_empty)
+                                )
+                                .setNegativeButton(CommonStrings.settings_push_history_clear) { _, _ ->
+                                    lifecycleScope.launch(Dispatchers.IO) { pushRequestStore.clear() }
+                                }
+                                .setPositiveButton(CommonStrings.ok, null)
+                                .show()
+                    }
+                    true
+                }
+    }
+
+    private fun PushRequest.describe(): String {
+        val date = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(Date(pushDate))
+        val outcome = when (status) {
+            PushRequestStatus.SUCCESS -> "delivered"
+            PushRequestStatus.PENDING -> "pending, $retries retr${if (retries == 1) "y" else "ies"}"
+            PushRequestStatus.FAILED -> "failed${failureReason?.let { ": $it" }.orEmpty()}"
+        }
+        return "$date\n${roomId.ifEmpty { "(no room)" }}\n$providerInfo\n$outcome"
+    }
+
+    private fun bindPushGatewayPref() {
+        val pref = findPreference<VectorEditTextPreference>(VectorPreferences.SETTINGS_PUSH_GATEWAY_KEY) ?: return
+        if (!vectorFeatures.allowExternalUnifiedPushDistributors()) {
+            pref.isVisible = false
+            return
+        }
+        pref.dialogMessage = getString(CommonStrings.settings_push_gateway_dialog_message, unifiedPushHelper.getDefaultPushGateway())
+        pref.setOnBindEditTextListener { it.hint = unifiedPushHelper.getDefaultPushGateway() }
+        refreshPushGatewayPref(pref)
+        pref.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            onPushGatewayEntered(pref, (newValue as? String).orEmpty().trim())
+            // Never persisted by the preference itself: the value only counts once it has been probed.
+            false
+        }
+    }
+
+    private fun onPushGatewayEntered(pref: VectorEditTextPreference, gateway: String) {
+        if (gateway.isEmpty()) {
+            applyPushGateway(pref, null)
+            return
+        }
+        val normalized = normalizePushGateway(gateway)
+        if (normalized == null) {
+            showPushGatewayError(getString(CommonStrings.settings_push_gateway_invalid))
+            return
+        }
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = unifiedPushGatewayResolver.probeGateway(normalized)
+            if (!isAdded) return@launch
+            hideLoadingView()
+            when (result) {
+                is UnifiedPushGatewayResolverResult.Success -> applyPushGateway(pref, normalized)
+                is UnifiedPushGatewayResolverResult.Error ->
+                    showPushGatewayError(getString(CommonStrings.settings_push_gateway_unreachable, normalized))
+                UnifiedPushGatewayResolverResult.NoMatrixGateway ->
+                    showPushGatewayError(getString(CommonStrings.settings_push_gateway_not_a_gateway, normalized))
+                UnifiedPushGatewayResolverResult.ErrorInvalidUrl ->
+                    showPushGatewayError(getString(CommonStrings.settings_push_gateway_invalid))
+            }
+        }
+    }
+
+    private fun applyPushGateway(pref: VectorEditTextPreference, gateway: String?) {
+        vectorPreferences.setCustomPushGateway(gateway)
+        refreshPushGatewayPref(pref)
+        // The gateway is part of the pusher, so it only takes effect by registering a new one.
+        unifiedPushHelper.getCurrentDistributor()
+                .takeIf { it.isNotEmpty() && !unifiedPushHelper.isBackgroundSync() }
+                ?.let { viewModel.handle(VectorSettingsNotificationViewAction.RegisterPushDistributor(it)) }
+    }
+
+    private fun showPushGatewayError(message: String) {
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.settings_push_gateway)
+                .setMessage(message)
+                .setPositiveButton(CommonStrings.ok, null)
+                .show()
+    }
+
+    private fun refreshPushGatewayPref(pref: VectorEditTextPreference) {
+        val custom = vectorPreferences.customPushGateway()
+        pref.text = custom.orEmpty()
+        pref.summary = custom ?: getString(
+                CommonStrings.settings_push_gateway_automatic,
+                unifiedPushHelper.getPushGateway() ?: unifiedPushHelper.getDefaultPushGateway()
+        )
+    }
+
+    /** Accepts a bare host as well as a full URL, since the path is always the same. */
+    private fun normalizePushGateway(gateway: String): String? {
+        val withScheme = if (gateway.contains("://")) gateway else "https://$gateway"
+        val url = tryOrNull { URL(withScheme) } ?: return null
+        if (url.protocol != "https" && url.protocol != "http") return null
+        if (url.host.isNullOrEmpty()) return null
+        val port = if (url.port != -1) ":${url.port}" else ""
+        return if (url.path.trimEnd('/').endsWith(UnifiedPushGatewayResolver.NOTIFY_PATH)) {
+            withScheme.trimEnd('/')
+        } else {
+            "${url.protocol}://${url.host}$port${UnifiedPushGatewayResolver.NOTIFY_PATH}"
+        }
     }
 
     private fun bindEmailNotifications() {
@@ -389,9 +575,25 @@ class VectorSettingsNotificationFragment :
         }
     }
 
+    /**
+     * The gateway is only known once the distributor has answered with an endpoint and that endpoint
+     * has been probed, which happens well after the method itself changes.
+     */
+    private val pushGatewayListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key.orEmpty().startsWith("PUSH_GATEWAY") || key.orEmpty().startsWith("UP_ENDPOINT_OR_TOKEN")) {
+            view?.post {
+                if (isAdded) {
+                    findPreference<VectorEditTextPreference>(VectorPreferences.SETTINGS_PUSH_GATEWAY_KEY)
+                            ?.let { refreshPushGatewayPref(it) }
+                }
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         activeSessionHolder.getSafeActiveSession()?.pushersService()?.refreshPushers()
+        vectorPreferences.subscribeToChanges(pushGatewayListener)
 
         interactionListener?.requestedKeyToHighlight()?.let { key ->
             interactionListener?.requestHighlightPreferenceKeyOnResume(null)
@@ -402,12 +604,18 @@ class VectorSettingsNotificationFragment :
         refreshPref()
     }
 
+    override fun onPause() {
+        vectorPreferences.unsubscribeToChanges(pushGatewayListener)
+        super.onPause()
+    }
+
     private fun refreshPref() {
         // This pref may have change from troubleshoot pref fragment
         if (unifiedPushHelper.isBackgroundSync()) {
             findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_START_ON_BOOT_PREFERENCE_KEY)
                     ?.isChecked = vectorPreferences.autoStartOnBoot()
         }
+        findPreference<VectorEditTextPreference>(VectorPreferences.SETTINGS_PUSH_GATEWAY_KEY)?.let { refreshPushGatewayPref(it) }
     }
 
     override fun onAttach(context: Context) {

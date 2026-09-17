@@ -9,13 +9,18 @@ package im.vector.app.core.pushers
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.VectorFeatures
+import im.vector.lib.strings.CommonStrings
 import org.unifiedpush.android.connector.UnifiedPush
 import javax.inject.Inject
 
 class RegisterUnifiedPushUseCase @Inject constructor(
         @ApplicationContext private val context: Context,
         private val vectorFeatures: VectorFeatures,
+        private val unifiedPushHelper: UnifiedPushHelper,
+        private val stringProvider: StringProvider,
+        private val pushHealthCheckScheduler: PushHealthCheckScheduler,
 ) {
 
     sealed interface RegisterUnifiedPushResult {
@@ -34,7 +39,7 @@ class RegisterUnifiedPushUseCase @Inject constructor(
             return RegisterUnifiedPushResult.Success
         }
 
-        if (UnifiedPush.getDistributor(context).isNotEmpty()) {
+        if (unifiedPushHelper.getCurrentDistributor().isNotEmpty()) {
             registerApp()
             return RegisterUnifiedPushResult.Success
         }
@@ -55,6 +60,15 @@ class RegisterUnifiedPushUseCase @Inject constructor(
     }
 
     private fun registerApp() {
-        UnifiedPush.registerApp(context)
+        // Covers installations that already had a working registration when the check was introduced.
+        if (!unifiedPushHelper.isBackgroundSync()) {
+            pushHealthCheckScheduler.schedule()
+        }
+        val instance = unifiedPushHelper.getCurrentInstance() ?: UnifiedPushStore.DEFAULT_INSTANCE
+        UnifiedPush.register(
+                context = context,
+                instance = instance,
+                messageForDistributor = stringProvider.getString(CommonStrings.unifiedpush_registration_reason),
+        )
     }
 }

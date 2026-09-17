@@ -14,6 +14,7 @@ import im.vector.app.test.fakes.FakeUnifiedPushHelper
 import im.vector.app.test.fakes.FakeUnifiedPushStore
 import im.vector.app.test.fakes.FakeVectorPreferences
 import io.mockk.justRun
+import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verifyAll
@@ -29,12 +30,14 @@ class UnregisterUnifiedPushUseCaseTest {
     private val fakeVectorPreferences = FakeVectorPreferences()
     private val fakeUnifiedPushStore = FakeUnifiedPushStore()
     private val fakeUnifiedPushHelper = FakeUnifiedPushHelper()
+    private val pushHealthCheckScheduler = mockk<PushHealthCheckScheduler>(relaxed = true)
 
     private val unregisterUnifiedPushUseCase = UnregisterUnifiedPushUseCase(
             context = fakeContext.instance,
             vectorPreferences = fakeVectorPreferences.instance,
             unifiedPushStore = fakeUnifiedPushStore.instance,
             unifiedPushHelper = fakeUnifiedPushHelper.instance,
+            pushHealthCheckScheduler = pushHealthCheckScheduler,
     )
 
     @Before
@@ -51,13 +54,15 @@ class UnregisterUnifiedPushUseCaseTest {
     fun `given pushersManager when execute then unregister and clean everything which is needed`() = runTest {
         // Given
         val aEndpoint = "endpoint"
+        val anInstance = "an-instance"
         fakeUnifiedPushHelper.givenGetEndpointOrTokenReturns(aEndpoint)
+        fakeUnifiedPushHelper.givenGetCurrentInstanceReturns(anInstance)
         val aPushersManager = FakePushersManager()
         aPushersManager.givenUnregisterPusher(aEndpoint)
-        justRun { UnifiedPush.unregisterApp(any()) }
+        justRun { UnifiedPush.unregister(any(), any()) }
         fakeVectorPreferences.givenSetFdroidSyncBackgroundMode(BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_REALTIME)
-        fakeUnifiedPushStore.givenStorePushGateway(null)
-        fakeUnifiedPushStore.givenStoreUpEndpoint(null)
+        fakeUnifiedPushStore.givenStorePushGateway(anInstance, null)
+        fakeUnifiedPushStore.givenStoreUpEndpoint(anInstance, null)
 
         // When
         unregisterUnifiedPushUseCase.execute(aPushersManager.instance)
@@ -66,9 +71,9 @@ class UnregisterUnifiedPushUseCaseTest {
         fakeVectorPreferences.verifySetFdroidSyncBackgroundMode(BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_REALTIME)
         aPushersManager.verifyUnregisterPusher(aEndpoint)
         verifyAll {
-            UnifiedPush.unregisterApp(fakeContext.instance)
+            UnifiedPush.unregister(fakeContext.instance, anInstance)
         }
-        fakeUnifiedPushStore.verifyStorePushGateway(null)
-        fakeUnifiedPushStore.verifyStoreUpEndpoint(null)
+        fakeUnifiedPushStore.verifyStorePushGateway(anInstance, null)
+        fakeUnifiedPushStore.verifyStoreUpEndpoint(anInstance, null)
     }
 }

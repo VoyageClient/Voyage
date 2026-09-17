@@ -18,6 +18,7 @@ import im.vector.app.features.settings.troubleshoot.TestAccountSettings
 import im.vector.app.features.settings.troubleshoot.TestAvailableUnifiedPushDistributors
 import im.vector.app.features.settings.troubleshoot.TestCurrentUnifiedPushDistributor
 import im.vector.app.features.settings.troubleshoot.TestDeviceSettings
+import im.vector.app.features.settings.troubleshoot.TestDistributorBatteryOptimization
 import im.vector.app.features.settings.troubleshoot.TestEndpointAsTokenRegistration
 import im.vector.app.features.settings.troubleshoot.TestNotification
 import im.vector.app.features.settings.troubleshoot.TestPushFromPushGateway
@@ -38,6 +39,7 @@ class FdroidNotificationTroubleshootTestManagerFactory @Inject constructor(
         private val testUnifiedPushEndpoint: TestUnifiedPushEndpoint,
         private val testAvailableUnifiedPushDistributors: TestAvailableUnifiedPushDistributors,
         private val testEndpointAsTokenRegistration: TestEndpointAsTokenRegistration,
+        private val testDistributorBatteryOptimization: TestDistributorBatteryOptimization,
         private val testPushFromPushGateway: TestPushFromPushGateway,
         private val testAutoStartBoot: TestAutoStartBoot,
         private val testBackgroundRestrictions: TestBackgroundRestrictions,
@@ -58,14 +60,17 @@ class FdroidNotificationTroubleshootTestManagerFactory @Inject constructor(
         }
         if (unifiedPushHelper.isBackgroundSync()) {
             mgr.addTest(testAutoStartBoot)
-            mgr.addTest(testBackgroundRestrictions)
-            mgr.addTest(testBatteryOptimization)
         } else {
             mgr.addTest(testUnifiedPushGateway)
             mgr.addTest(testUnifiedPushEndpoint)
             mgr.addTest(testEndpointAsTokenRegistration)
             mgr.addTest(testPushFromPushGateway)
+            mgr.addTest(testDistributorBatteryOptimization)
         }
+        // Doze and background restrictions delay the fetch a push triggers just as much as they
+        // delay a poll, so these matter whichever way messages arrive.
+        mgr.addTest(testBackgroundRestrictions)
+        mgr.addTest(testBatteryOptimization)
         mgr.addTest(testNotification)
         return mgr
     }

@@ -234,7 +234,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY = "SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
         const val SETTINGS_PEOPLE_AVATAR_STYLE_KEY = "SETTINGS_PEOPLE_AVATAR_STYLE_KEY"
         const val SETTINGS_ROOM_AVATAR_STYLE_KEY = "SETTINGS_ROOM_AVATAR_STYLE_KEY"
-        private const val SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY = "SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY"
         private const val SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_PREFIX = "SETTINGS_LAST_CROSS_SIGNING_STATE_KEY_"
         const val SETTINGS_PERFORMANCE_MODE_KEY = "SETTINGS_PERFORMANCE_MODE_KEY"
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
@@ -275,6 +274,8 @@ class VectorPreferences @Inject constructor(
         // notifications
         const val SETTINGS_ENABLE_ALL_NOTIF_PREFERENCE_KEY = "SETTINGS_ENABLE_ALL_NOTIF_PREFERENCE_KEY"
         const val SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY = "SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY"
+        const val SETTINGS_SHOW_UNREAD_COUNTER_KEY = "SETTINGS_SHOW_UNREAD_COUNTER_KEY"
+        private const val SETTINGS_NOTIFICATION_PERMISSION_ASKED_KEY = "SETTINGS_NOTIFICATION_PERMISSION_ASKED_KEY"
         const val SETTINGS_EMAIL_NOTIFICATION_CATEGORY_PREFERENCE_KEY = "SETTINGS_EMAIL_NOTIFICATION_CATEGORY_PREFERENCE_KEY"
 
         //    public static final String SETTINGS_TURN_SCREEN_ON_PREFERENCE_KEY = "SETTINGS_TURN_SCREEN_ON_PREFERENCE_KEY";
@@ -297,6 +298,7 @@ class VectorPreferences @Inject constructor(
 
         // notification method
         const val SETTINGS_NOTIFICATION_METHOD_KEY = "SETTINGS_NOTIFICATION_METHOD_KEY"
+        const val SETTINGS_PUSH_GATEWAY_KEY = "SETTINGS_PUSH_GATEWAY_KEY"
 
         // labs
         const val SETTINGS_LAZY_LOADING_PREFERENCE_KEY = "SETTINGS_LAZY_LOADING_PREFERENCE_KEY"
@@ -489,8 +491,22 @@ class VectorPreferences @Inject constructor(
 
     private fun getDefault(@BoolRes resId: Int) = context.resources.getBoolean(resId)
 
+    /** A display-only preference; notification delivery and read state are unaffected. */
+    fun showUnreadCounter(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SHOW_UNREAD_COUNTER_KEY, true)
+    }
+
     fun areNotificationEnabledForDevice(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY, true)
+    }
+
+    /** Whether the POST_NOTIFICATIONS prompt has been put to the user since the permission was last held. */
+    fun hasAskedForNotificationPermission(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_NOTIFICATION_PERMISSION_ASKED_KEY, false)
+    }
+
+    fun setNotificationPermissionAsked(asked: Boolean) {
+        defaultPrefs.edit { putBoolean(SETTINGS_NOTIFICATION_PERMISSION_ASKED_KEY, asked) }
     }
 
     fun setNotificationEnabledForDevice(enabled: Boolean) {
@@ -579,14 +595,6 @@ class VectorPreferences @Inject constructor(
 
     fun showOthersProfileColors(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY, true)
-    }
-
-    fun lastCustomProfileColor(): String {
-        return defaultPrefs.getString(SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY, null) ?: "#000000"
-    }
-
-    fun setLastCustomProfileColor(hex: String) {
-        defaultPrefs.edit { putString(SETTINGS_LAST_CUSTOM_PROFILE_COLOR_KEY, hex) }
     }
 
     // The cross-signing state the security settings resolved last time, per account: reading it from the
@@ -1587,6 +1595,17 @@ class VectorPreferences @Inject constructor(
             BackgroundSyncMode.values().firstOrNull { it.name == strPref } ?: BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_BATTERY
         } catch (e: Throwable) {
             BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_BATTERY
+        }
+    }
+
+    /** The push gateway the user pinned, or null to accept whatever the distributor advertises. */
+    fun customPushGateway(): String? {
+        return defaultPrefs.getString(SETTINGS_PUSH_GATEWAY_KEY, null)?.takeIf { it.isNotBlank() }
+    }
+
+    fun setCustomPushGateway(gateway: String?) {
+        defaultPrefs.edit {
+            putString(SETTINGS_PUSH_GATEWAY_KEY, gateway?.takeIf { it.isNotBlank() })
         }
     }
 

@@ -10,30 +10,29 @@ package im.vector.app.core.pushers
 import android.content.Context
 import androidx.annotation.MainThread
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.getApplicationLabel
 import im.vector.app.features.mdm.MdmData
 import im.vector.app.features.mdm.MdmService
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.Matrix
-import org.matrix.android.sdk.api.cache.CacheStrategy
-import org.matrix.android.sdk.api.failure.Failure
-import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.unifiedpush.android.connector.UnifiedPush
 import timber.log.Timber
 import java.net.URL
 import javax.inject.Inject
-import javax.net.ssl.SSLHandshakeException
+import javax.inject.Provider
 
 class UnifiedPushHelper @Inject constructor(
         private val context: Context,
         private val unifiedPushStore: UnifiedPushStore,
         private val stringProvider: StringProvider,
-        private val matrix: Matrix,
+        private val gatewayResolver: UnifiedPushGatewayResolver,
         private val fcmHelper: FcmHelper,
         private val mdmService: MdmService,
+        private val vectorPreferences: VectorPreferences,
+        // ActiveSessionHolder reaches back here through UnregisterUnifiedPushUseCase.
+        private val activeSessionHolder: Provider<ActiveSessionHolder>,
 ) {
 
     @MainThread
@@ -66,7 +65,7 @@ class UnifiedPushHelper @Inject constructor(
                 }
                 .setOnCancelListener {
                     // we do not want to change the distributor on behalf of the user
-                    if (UnifiedPush.getDistributor(context).isEmpty()) {
+                    if (getCurrentDistributor().isEmpty()) {
                         // By default, use internal solution (fcm/background sync)
                         onDistributorSelected(context.packageName)
                     }
@@ -75,66 +74,38 @@ class UnifiedPushHelper @Inject constructor(
                 .show()
     }
 
-    @JsonClass(generateAdapter = true)
-    internal data class DiscoveryResponse(
-            @Json(name = "unifiedpush") val unifiedpush: DiscoveryUnifiedPush = DiscoveryUnifiedPush()
-    )
-
-    @JsonClass(generateAdapter = true)
-    internal data class DiscoveryUnifiedPush(
-            @Json(name = "gateway") val gateway: String = ""
-    )
-
-    suspend fun storeCustomOrDefaultGateway(
-            endpoint: String,
-            onDoneRunnable: Runnable? = null
-    ) {
-        // if we use the embedded distributor,
-        // register app_id type upfcm on sygnal
-        // the pushkey if FCM key
-        if (UnifiedPush.getDistributor(context) == context.packageName) {
-            unifiedPushStore.storePushGateway(
-                    gateway = mdmService.getData(
-                            mdmData = MdmData.DefaultPushGatewayUrl,
-                            defaultValue = stringProvider.getString(im.vector.app.config.R.string.pusher_http_url),
-                    )
+    /**
+     * Work out which gateway [endpoint] should be pushed through and store it for [instance].
+     *
+     * A probe that fails outright leaves the previous gateway in place: it tells us nothing about
+     * the host, and replacing a working gateway on the strength of one lost request would silently
+     * redirect every later push.
+     */
+    suspend fun storeGatewayForEndpoint(instance: String, endpoint: String): String {
+        // The embedded distributor pushes through the app's own gateway, the pushkey being an FCM token.
+        if (isInternalDistributor()) {
+            val gateway = mdmService.getData(
+                    mdmData = MdmData.DefaultPushGatewayUrl,
+                    defaultValue = stringProvider.getString(im.vector.app.config.R.string.pusher_http_url),
             )
-            onDoneRunnable?.run()
-            return
+            unifiedPushStore.storePushGateway(instance, gateway)
+            return gateway
         }
-        // else, unifiedpush, and pushkey is an endpoint
-        val gateway = stringProvider.getString(im.vector.app.config.R.string.default_push_gateway_http_url)
-        val parsed = URL(endpoint)
-        val port = if (parsed.port != -1) {
-            ":${parsed.port}"
-        } else {
-            ""
+
+        vectorPreferences.customPushGateway()?.let {
+            Timber.i("Using the gateway the user pinned")
+            unifiedPushStore.storePushGateway(instance, it)
+            return it
         }
-        val custom = "${parsed.protocol}://${parsed.host}${port}/_matrix/push/v1/notify"
-        Timber.i("Testing $custom")
-        try {
-            val response = matrix.rawService().getUrl(custom, CacheStrategy.NoCache)
-            val moshi = MatrixJsonParser.getMoshi()
-            moshi.adapter(DiscoveryResponse::class.java).fromJson(response)
-                    ?.let { discoveryResponse ->
-                        if (discoveryResponse.unifiedpush.gateway == "matrix") {
-                            Timber.d("Using custom gateway")
-                            unifiedPushStore.storePushGateway(custom)
-                            onDoneRunnable?.run()
-                            return
-                        }
-                    }
-        } catch (e: Throwable) {
-            Timber.e(e, "Cannot try custom gateway")
-            if (e is Failure.NetworkConnection && e.ioException is SSLHandshakeException) {
-                Timber.w(e, "SSLHandshakeException, ignore this error")
-                unifiedPushStore.storePushGateway(custom)
-                onDoneRunnable?.run()
-                return
-            }
+
+        val gateway = when (val result = gatewayResolver.getGateway(endpoint)) {
+            is UnifiedPushGatewayResolverResult.Success -> result.gateway
+            is UnifiedPushGatewayResolverResult.Error -> unifiedPushStore.getPushGateway(instance) ?: getDefaultPushGateway()
+            UnifiedPushGatewayResolverResult.NoMatrixGateway,
+            UnifiedPushGatewayResolverResult.ErrorInvalidUrl -> getDefaultPushGateway()
         }
-        unifiedPushStore.storePushGateway(gateway)
-        onDoneRunnable?.run()
+        unifiedPushStore.storePushGateway(instance, gateway)
+        return gateway
     }
 
     fun getExternalDistributors(): List<String> {
@@ -146,9 +117,11 @@ class UnifiedPushHelper @Inject constructor(
         return when {
             isEmbeddedDistributor() -> stringProvider.getString(CommonStrings.unifiedpush_distributor_fcm_fallback)
             isBackgroundSync() -> stringProvider.getString(CommonStrings.unifiedpush_distributor_background_sync)
-            else -> context.getApplicationLabel(UnifiedPush.getDistributor(context))
+            else -> context.getApplicationLabel(getCurrentDistributor())
         }
     }
+
+    fun getCurrentDistributor(): String = UnifiedPush.getSavedDistributor(context).orEmpty()
 
     fun isEmbeddedDistributor(): Boolean {
         return isInternalDistributor() && fcmHelper.isFirebaseAvailable()
@@ -159,8 +132,8 @@ class UnifiedPushHelper @Inject constructor(
     }
 
     private fun isInternalDistributor(): Boolean {
-        return UnifiedPush.getDistributor(context).isEmpty() ||
-                UnifiedPush.getDistributor(context) == context.packageName
+        val distributor = getCurrentDistributor()
+        return distributor.isEmpty() || distributor == context.packageName
     }
 
     fun getPrivacyFriendlyUpEndpoint(): String? {
@@ -178,19 +151,30 @@ class UnifiedPushHelper @Inject constructor(
         }
     }
 
+    /** The instance the current session registers with the distributor, or null without a session. */
+    fun getCurrentInstance(): String? {
+        val sessionId = activeSessionHolder.get().getSafeActiveSession()?.sessionId ?: return null
+        return unifiedPushStore.getOrCreateInstance(sessionId)
+    }
+
     fun getEndpointOrToken(): String? {
-        return if (isEmbeddedDistributor()) fcmHelper.getFcmToken()
-        else unifiedPushStore.getEndpoint()
+        if (isEmbeddedDistributor()) return fcmHelper.getFcmToken()
+        return getCurrentInstance()?.let { unifiedPushStore.getEndpoint(it) }
     }
 
     fun getPushGateway(): String? {
-        return if (isEmbeddedDistributor()) {
-            mdmService.getData(
+        if (isEmbeddedDistributor()) {
+            return mdmService.getData(
                     mdmData = MdmData.DefaultPushGatewayUrl,
                     defaultValue = stringProvider.getString(im.vector.app.config.R.string.pusher_http_url),
             )
-        } else {
-            unifiedPushStore.getPushGateway()
         }
+        vectorPreferences.customPushGateway()?.let { return it }
+        return getCurrentInstance()?.let { unifiedPushStore.getPushGateway(it) }
+    }
+
+    /** The gateway used when the user pins none and the distributor advertises none. */
+    fun getDefaultPushGateway(): String {
+        return stringProvider.getString(im.vector.app.config.R.string.default_push_gateway_http_url)
     }
 }

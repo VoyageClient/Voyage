@@ -31,9 +31,9 @@ import javax.inject.Inject
  * [4] https://github.com/p1gp1g/sygnal/blob/unifiedpush/sygnal/upfcmpushkin.py (Not tested for a while)
  */
 class PushParser @Inject constructor() {
-    fun parsePushDataUnifiedPush(message: ByteArray): PushData? {
+    fun parsePushDataUnifiedPush(message: ByteArray, instance: String? = null): PushData? {
         return MatrixJsonParser.getMoshi().let {
-            tryOrNull { it.adapter(PushDataUnifiedPush::class.java).fromJson(String(message)) }?.toPushData()
+            tryOrNull { it.adapter(PushDataUnifiedPush::class.java).fromJson(String(message)) }?.toPushData(instance)
         }
     }
 

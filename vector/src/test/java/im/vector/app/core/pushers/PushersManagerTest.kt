@@ -7,7 +7,6 @@
 
 package im.vector.app.core.pushers
 
-import im.vector.app.features.mdm.NoOpMdmService
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeAppNameProvider
 import im.vector.app.test.fakes.FakeGetDeviceInfoUseCase
@@ -25,6 +24,7 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.matrix.android.sdk.api.session.crypto.model.UnsignedDeviceInfo
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
+import org.matrix.android.sdk.api.session.pushers.PusherState
 import java.util.Locale
 import kotlin.math.abs
 
@@ -45,7 +45,6 @@ class PushersManagerTest {
             stringProvider.instance,
             appNameProvider,
             getDeviceInfoUseCase,
-            NoOpMdmService(),
     )
 
     @Test
@@ -92,5 +91,28 @@ class PushersManagerTest {
         val pusher = pushersManager.getPusherForCurrentSession()
 
         pusher shouldBeEqualTo expectedPusher
+    }
+
+    @Test
+    fun `given a registered pusher, when isPusherRegisteredFor, then return true`() {
+        pushersService.givenGetPushers(listOf(PusherFixture.aPusher(pushKey = "endpoint")))
+
+        pushersManager.isPusherRegisteredFor("endpoint") shouldBeEqualTo true
+    }
+
+    @Test
+    fun `given a pusher for another endpoint, when isPusherRegisteredFor, then return false`() {
+        pushersService.givenGetPushers(listOf(PusherFixture.aPusher(pushKey = "other-endpoint")))
+
+        pushersManager.isPusherRegisteredFor("endpoint") shouldBeEqualTo false
+    }
+
+    @Test
+    fun `given a pusher that failed to register, when isPusherRegisteredFor, then return false`() {
+        pushersService.givenGetPushers(
+                listOf(PusherFixture.aPusher(pushKey = "endpoint", state = PusherState.FAILED_TO_REGISTER))
+        )
+
+        pushersManager.isPusherRegisteredFor("endpoint") shouldBeEqualTo false
     }
 }
