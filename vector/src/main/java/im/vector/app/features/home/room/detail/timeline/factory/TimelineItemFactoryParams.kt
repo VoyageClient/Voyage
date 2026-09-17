@@ -30,7 +30,8 @@ data class TimelineItemFactoryParams(
         // so items can mark it as revealed even though it no longer looks redacted.
         val isRevealedRedaction: Boolean = false,
         // For hosts outside the timeline which date each row themselves.
-        val hideTimestamp: Boolean = false
+        val hideTimestamp: Boolean = false,
+        val preserveSenderInfo: Boolean = false,
 ) {
 
     val highlightedEventId: String?

@@ -110,7 +110,9 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
         if (preview.isRedacted) {
             views.pinnedMessagesPreview.setRedactedPreviewStyle()
         } else {
-            views.pinnedMessagesPreview.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+            // Secondary, like the room list's preview line: the formatter spans the sender name in the
+            // primary colour, so the dimmer body is what makes the name stand out from it.
+            views.pinnedMessagesPreview.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
             views.pinnedMessagesPreview.clearDrawables()
         }
         views.pinnedMessagesLabel.text = if (eventIds.size > 1) {

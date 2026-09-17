@@ -29,9 +29,11 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.target.Target
@@ -163,13 +165,64 @@ class AvatarRenderer @Inject constructor(
      * [crossfade] is opt-in: in a recycler every rebind re-shows the placeholder, so fading there
      * flickers the letter constantly and costs a redraw per frame per row. Enable it on screens
      * showing a single, stable avatar.
+     *
+     * @param onSettled called once this render has landed, or failed — for a screen holding itself back
+     * until the avatar is really there instead of revealing the letter placeholder and fading over it.
+     * Fires inline when the avatar is already cached, and not at all when the request is superseded.
      */
     @UiThread
-    fun render(matrixItem: MatrixItem, imageView: ImageView, @DimenRes decodeSize: Int? = null, crossfade: Boolean = false) {
+    fun render(
+            matrixItem: MatrixItem,
+            imageView: ImageView,
+            @DimenRes decodeSize: Int? = null,
+            crossfade: Boolean = false,
+            onSettled: (() -> Unit)? = null,
+    ) {
+        renderAt(matrixItem, imageView, decodeSizePx(imageView, decodeSize), crossfade, onSettled)
+    }
+
+    /**
+     * [sizePx] spares Glide the wait for a layout pass to learn how big to decode. Without it a view
+     * that has not been measured yet — a freshly bound row — cannot be served even from memory until
+     * the next frame, which is what makes an avatar pop in a moment after its message.
+     */
+    @UiThread
+    fun renderAtSize(matrixItem: MatrixItem, imageView: ImageView, sizePx: Int, crossfade: Boolean = false) {
+        renderAt(matrixItem, imageView, sizePx.takeIf { it > 0 }, crossfade, onSettled = null)
+    }
+
+    private fun renderAt(
+            matrixItem: MatrixItem,
+            imageView: ImageView,
+            sizePx: Int?,
+            crossfade: Boolean,
+            onSettled: (() -> Unit)?,
+    ) {
         imageView.setContentDescription(matrixItem)
         GlideApp.with(imageView)
-                .loadAvatar(matrixItem, decodeSizePx = decodeSizePx(imageView, decodeSize), crossfade = crossfade)
-                .into(avatarTarget(imageView, matrixItem, decodeSizePx(imageView, decodeSize)))
+                .loadAvatar(matrixItem, decodeSizePx = sizePx, crossfade = crossfade)
+                .let { request ->
+                    if (onSettled == null) request else request.addListener(SettledListener(onSettled))
+                }
+                .into(avatarTarget(imageView, matrixItem, sizePx))
+    }
+
+    private class SettledListener(private val onSettled: () -> Unit) : RequestListener<Drawable> {
+        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+            onSettled()
+            return false
+        }
+
+        override fun onResourceReady(
+                resource: Drawable,
+                model: Any,
+                target: Target<Drawable>?,
+                dataSource: DataSource,
+                isFirstResource: Boolean,
+        ): Boolean {
+            onSettled()
+            return false
+        }
     }
 
     // Clips avatars to the configured shape (circle / rounded square / square) for animated drawables
@@ -360,6 +413,18 @@ class AvatarRenderer @Inject constructor(
     @UiThread
     fun preloadAvatar(matrixItem: MatrixItem, view: View) {
         preloadAvatar(GlideApp.with(view), matrixItem)
+    }
+
+    /**
+     * Warms the entry a [renderAtSize] of this size will look for. Cached per requested size, so a warm
+     * for one size is not a hit for another — which is why an avatar already on screen elsewhere can
+     * still arrive a frame late in a timeline row.
+     */
+    @UiThread
+    fun preloadAvatarAtSize(matrixItem: MatrixItem, view: View, sizePx: Int) {
+        if (sizePx <= 0) return
+        if (preloadedAvatars.put("${matrixItem.id}|${matrixItem.avatarUrl}|$sizePx", Unit) != null) return
+        GlideApp.with(view).loadAvatar(matrixItem, decodeSizePx = sizePx).preload(sizePx, sizePx)
     }
 
     /** Whether animated avatars should play, for callers that drive an animation themselves. */

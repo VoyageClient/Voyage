@@ -33,7 +33,7 @@ data class SearchSuggestion(
  */
 object SearchFilterSuggestions {
 
-    private const val MAX_MEMBERS = 8
+    private const val MAX_MEMBERS = 30
 
     fun suggestionsFor(term: String, members: List<RoomMemberSummary>): List<SearchSuggestion> {
         val tokenStart = term.indexOfLast { it.isWhitespace() } + 1
@@ -53,6 +53,7 @@ object SearchFilterSuggestions {
                     .map { SearchSuggestion(label = "$key:$it", hint = null, query = "$prefix$key:$it ", icon = hasIcon(it)) }
             in SearchFilters.userKeys -> members
                     .filter { it.matches(typed) }
+                    .sortedBy { it.matchRank(typed) }
                     .take(MAX_MEMBERS)
                     .map {
                         val pillStart = prefix.length + key.length + 1
@@ -74,6 +75,16 @@ object SearchFilterSuggestions {
     private fun RoomMemberSummary.matches(typed: String) = typed.isEmpty() ||
             userId.contains(typed, ignoreCase = true) ||
             displayName?.contains(typed, ignoreCase = true) == true
+
+    private fun RoomMemberSummary.matchRank(typed: String): Int {
+        if (typed.isEmpty()) return 0
+        val term = typed.removePrefix("@")
+        return when {
+            displayName?.startsWith(term, ignoreCase = true) == true -> 0
+            userId.removePrefix("@").startsWith(term, ignoreCase = true) -> 1
+            else -> 2
+        }
+    }
 
     private fun keySuggestions(prefix: String, token: String): List<SearchSuggestion> {
         val typed = token.lowercase()

@@ -19,7 +19,11 @@ import java.util.concurrent.CopyOnWriteArrayList
 class ScrollOnNewMessageCallback(
         recyclerView: RecyclerView,
         private val layoutManager: LinearLayoutManager,
-        private val timelineEventController: TimelineEventController
+        private val timelineEventController: TimelineEventController,
+        // Position 0 is only the live edge when the timeline is live. Reading a search result, the window
+        // is bounded on the newer side, so the reader can sit at position 0 and be nowhere near the newest
+        // event — and a message arriving there used to scroll them to it.
+        private val isTimelineLive: () -> Boolean = { true },
 ) : DefaultListUpdateCallback {
 
     private val newTimelineEventIds = CopyOnWriteArrayList<String>()
@@ -56,7 +60,7 @@ class ScrollOnNewMessageCallback(
             layoutManager.scrollToPosition(0)
             return
         }
-        if (layoutManager.findFirstVisibleItemPosition() > 1) {
+        if (layoutManager.findFirstVisibleItemPosition() > 1 || !isTimelineLive()) {
             return
         }
         val firstNewItem = tryOrNull {

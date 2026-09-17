@@ -153,6 +153,15 @@ interface ProfileService {
     /** The full profile dict this session last fetched for this user, or null when never fetched. */
     fun getCachedProfile(userId: String): JsonDict?
 
+    /**
+     * Whether this user's server recently failed to answer a profile lookup in time. A caller can then
+     * show what it already knows instead of waiting on that server again.
+     */
+    fun isProfileServerUnreachable(userId: String): Boolean
+
+    /** Records that a profile lookup for this user ran out of time. */
+    fun markProfileServerUnreachable(userId: String)
+
     /** Emits a userId whenever the color they should be drawn with may have changed. */
     fun getColorPreferenceUpdateFlow(): Flow<String>
 

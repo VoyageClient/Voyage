@@ -34,7 +34,6 @@ import im.vector.app.core.utils.BehaviorDataSource
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.VectorOverrides
 import im.vector.app.features.attachments.SendMediaMaterializer
-import im.vector.app.features.media.MSC4193_SPOILER_KEY
 import im.vector.app.features.attachments.withRandomizedFilename
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
@@ -49,6 +48,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetriever
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
+import im.vector.app.features.media.MSC4193_SPOILER_KEY
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.pgp.PgpRoomEncryptor
 import im.vector.app.features.raw.wellknown.CryptoConfig

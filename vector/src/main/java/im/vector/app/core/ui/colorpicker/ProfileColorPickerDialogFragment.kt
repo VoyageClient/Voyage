@@ -54,6 +54,9 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
 
     enum class Theme { LIGHT, DARK, CURRENT }
 
+    /** Who chose the color a row is showing: nobody, the user it belongs to, or us. */
+    enum class Origin { DEFAULT, THEIRS, OURS }
+
     private sealed class Entry(val onLight: String, val onDark: String) {
         class Palette(@StringRes val nameRes: Int, onLight: String, onDark: String) : Entry(onLight, onDark)
         class Custom(hex: String) : Entry(hex, hex)
@@ -93,7 +96,8 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
             selectedIsCustom = savedInstanceState.getBoolean(SAVE_SELECTED_CUSTOM)
         } else {
             palette = paletteOf(vectorPreferences.peopleColorPalette().name)
-            customHex = vectorPreferences.lastCustomProfileColor()
+            // Seed from the effective user color, not a custom color chosen for an unrelated profile.
+            customHex = ColorPreference.normalizeHex(args.getString(ARG_CUSTOM_SEED)) ?: DEFAULT_CUSTOM
             initFromInitial(initial)
         }
         childFragmentManager.setFragmentResultListener(HSV_REQUEST_KEY, this) { _, bundle ->
@@ -101,7 +105,6 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
             customHex = hex
             selectedHex = null
             selectedIsCustom = true
-            vectorPreferences.setLastCustomProfileColor(hex)
             context?.let { populate(it) }
         }
     }
@@ -326,6 +329,7 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
     companion object {
         private const val ARG_REQUEST_KEY = "requestKey"
         private const val ARG_INITIAL_HEX = "initialHex"
+        private const val ARG_CUSTOM_SEED = "customSeed"
         private const val ARG_THEME = "theme"
         private const val ARG_TITLE = "title"
         private const val ARG_DEFAULT_HEX = "defaultHex"
@@ -351,6 +355,7 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
                 title: String,
                 initialHex: String?,
                 defaultHex: String,
+                customSeed: String? = null,
                 theme: Theme = Theme.CURRENT,
                 showReset: Boolean = false,
                 resetIsDelete: Boolean = false,
@@ -360,6 +365,7 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
                         ARG_REQUEST_KEY to requestKey,
                         ARG_TITLE to title,
                         ARG_INITIAL_HEX to initialHex,
+                        ARG_CUSTOM_SEED to customSeed,
                         ARG_DEFAULT_HEX to defaultHex,
                         ARG_THEME to theme.name,
                         ARG_SHOW_RESET to showReset,
@@ -370,18 +376,27 @@ class ProfileColorPickerDialogFragment : DialogFragment() {
 
         fun themeOf(bundle: Bundle): Theme = Theme.valueOf(bundle.getString(RESULT_THEME) ?: Theme.CURRENT.name)
 
-        /** "Melon (#FF812D)", "Custom (#123456)" or, when [isDefault], "Default (#…)". */
-        fun describe(context: Context, hex: String, light: Boolean, isDefault: Boolean): String {
-            if (isDefault) return context.getString(CommonStrings.profile_color_summary_default, hex)
+        /** "Melon (#FF812D)" for our own pick, "Custom (#123456, Melon)" for theirs, "Default (#…, Melon)" for neither. */
+        fun describe(context: Context, hex: String, light: Boolean, origin: Origin): String {
             val normalized = ColorPreference.normalizeHex(hex) ?: hex
             fun hexOf(@ColorRes res: Int) = MatrixItemColorProvider.toHex(ContextCompat.getColor(context, res))
             val name = PICKABLE_PALETTES.firstNotNullOfOrNull { palette ->
                 palette.colors.firstOrNull { hexOf(it.forTheme(light)) == normalized }?.nameRes
-            }
-            return if (name != null) {
-                context.getString(CommonStrings.profile_color_summary_named, context.getString(name), normalized)
-            } else {
-                context.getString(CommonStrings.profile_color_summary_custom, normalized)
+            }?.let { context.getString(it) }
+            return when (origin) {
+                // Only our explicit palette choice is named as a palette entry; matching user colors retain their origin.
+                Origin.DEFAULT -> when (name) {
+                    null -> context.getString(CommonStrings.profile_color_summary_default, normalized)
+                    else -> context.getString(CommonStrings.profile_color_summary_default_named, normalized, name)
+                }
+                Origin.THEIRS -> when (name) {
+                    null -> context.getString(CommonStrings.profile_color_summary_custom, normalized)
+                    else -> context.getString(CommonStrings.profile_color_summary_custom_named, normalized, name)
+                }
+                Origin.OURS -> when (name) {
+                    null -> context.getString(CommonStrings.profile_color_summary_custom, normalized)
+                    else -> context.getString(CommonStrings.profile_color_summary_named, name, normalized)
+                }
             }
         }
 

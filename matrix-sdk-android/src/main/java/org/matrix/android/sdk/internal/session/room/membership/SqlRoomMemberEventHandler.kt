@@ -22,6 +22,7 @@ import javax.inject.Inject
 internal class SqlRoomMemberEventHandler @Inject constructor(
         @UserId private val myUserId: String,
         private val roomMemberColorCache: RoomMemberColorCache,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
 ) {
 
     fun handle(
@@ -51,6 +52,7 @@ internal class SqlRoomMemberEventHandler @Inject constructor(
         val existing = stores.roomMember.getByRoomAndUser(roomId, userId)
         val color = roomMember.effectiveColorPreference()
         roomMemberColorCache.put(roomId, userId, color)
+        if (existing?.displayName != roomMember.displayName) ambiguousDisplayNameCache.invalidate(roomId)
         if (existing != null) {
             existing.displayName = roomMember.displayName
             existing.avatarUrl = roomMember.avatarUrl

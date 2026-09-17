@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.Pronoun
@@ -142,7 +144,8 @@ internal fun List<Pronoun>.toProfileValue(): List<Map<String, Any>> {
 internal class ExtendedProfileCache @Inject constructor(
         private val taskExecutor: TaskExecutor,
         private val getProfileInfoTask: GetProfileInfoTask,
-) {
+        private val profileColorStore: ProfileColorStore,
+) : SessionLifecycleObserver {
 
     // The last full field dict seen per user, so MSC4429/MSC4262 field-level deltas can be merged
     // into it and the parsed values re-derived.
@@ -176,6 +179,22 @@ internal class ExtendedProfileCache @Inject constructor(
     private val colorUpdates = MutableSharedFlow<String>(extraBufferCapacity = 64)
     val colorUpdateFlow: SharedFlow<String> = colorUpdates.asSharedFlow()
 
+    // Servers whose profile lookup ran out of time, so the next open of a profile there reveals what is
+    // known instead of waiting on them again. Re-probed after [UNREACHABLE_RETRY_MS] in case they return.
+    private val unreachableServers = ConcurrentHashMap<String, Long>()
+
+    fun markServerUnreachable(userId: String) {
+        userId.substringAfter(':', "").takeIf { it.isNotEmpty() }?.let { unreachableServers[it] = System.currentTimeMillis() }
+    }
+
+    fun isServerUnreachable(userId: String): Boolean {
+        val server = userId.substringAfter(':', "").takeIf { it.isNotEmpty() } ?: return false
+        val markedAt = unreachableServers[server] ?: return false
+        if (System.currentTimeMillis() - markedAt < UNREACHABLE_RETRY_MS) return true
+        unreachableServers.remove(server)
+        return false
+    }
+
     fun getCachedProfile(userId: String): Map<String, Any>? = rawProfiles[userId]
 
     fun getCachedPronouns(userId: String): List<Pronoun>? = pronounsCache[userId]
@@ -192,11 +211,16 @@ internal class ExtendedProfileCache @Inject constructor(
 
     fun getCachedBio(userId: String): UserBio? = bioCache[userId]?.getOrNull()
 
-    fun getCachedColorPreference(userId: String): ColorPreference? = colorCache[userId]?.getOrNull()
+    fun getCachedColorPreference(userId: String): ColorPreference? =
+            colorCache[userId]?.getOrNull() ?: profileColorStore.get(userId)
 
     fun cacheColorPreference(userId: String, color: ColorPreference?) {
         val updated = Optional.from(color?.takeIf { !it.isEmpty() })
-        if (colorCache.put(userId, updated) != updated) colorUpdates.tryEmit(userId)
+        val changed = colorCache.put(userId, updated) != updated
+        // Written through whatever the outcome: a color the user has since cleared has to stop being
+        // restored from disk on the next start.
+        profileColorStore.put(userId, updated.getOrNull())
+        if (changed) colorUpdates.tryEmit(userId)
     }
 
     fun notifyColorChanged(userId: String) {
@@ -269,7 +293,15 @@ internal class ExtendedProfileCache @Inject constructor(
         }
     }
 
-    /** The server told us we no longer share a room with this user, so drop what we cached. */
+    override fun onSessionStarted(session: Session) {
+        taskExecutor.executorScope.launch { profileColorStore.ensureLoaded() }
+    }
+
+    override fun onClearCache(session: Session) {
+        profileColorStore.clear()
+    }
+
+    /** Keep disk colors when forgetting a session profile: other accounts may still share rooms with the user. */
     fun forget(userId: String) {
         rawProfiles.remove(userId)
         fullProfiles.remove(userId)
@@ -317,5 +349,9 @@ internal class ExtendedProfileCache @Inject constructor(
 
     private companion object {
         private const val FAILED_FETCH_RETRY_MS = 5 * 60_000L
+
+        // Long enough that opening profile after profile on a dead server costs one wait rather than one
+        // each, short enough that a server which comes back is picked up without restarting the app.
+        private const val UNREACHABLE_RETRY_MS = 10 * 60_000L
     }
 }

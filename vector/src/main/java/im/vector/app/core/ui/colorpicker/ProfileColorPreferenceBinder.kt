@@ -93,8 +93,16 @@ class ProfileColorPreferenceBinder(
 
     private fun bind(preference: ProfileColorPreference, forLight: Boolean) {
         val own = stored?.axis(forLight)
-        val hex = own ?: inherited?.forTheme(forLight) ?: defaultHex(forLight)
-        preference.setColor(Color.parseColor(hex), hex, light = forLight, isDefault = own == null)
+        val theirs = inherited?.forTheme(forLight)
+        val hex = own ?: theirs ?: defaultHex(forLight)
+        // Only the client's hash color is "Default": one inherited from the account was still chosen by
+        // someone, so it reads as the color it is rather than as a fallback.
+        val origin = when {
+            own != null -> ProfileColorPickerDialogFragment.Origin.OURS
+            theirs != null -> ProfileColorPickerDialogFragment.Origin.THEIRS
+            else -> ProfileColorPickerDialogFragment.Origin.DEFAULT
+        }
+        preference.setColor(Color.parseColor(hex), hex, light = forLight, origin = origin)
     }
 
     private fun ColorPreference.axis(light: Boolean) = if (light) onLight else onDark
@@ -113,6 +121,7 @@ class ProfileColorPreferenceBinder(
                 title = title,
                 initialHex = own,
                 defaultHex = inherited?.forTheme(forLight) ?: defaultHex(forLight),
+                customSeed = own ?: inherited?.forTheme(forLight),
                 theme = theme,
                 showReset = own != null,
                 resetIsDelete = resetIsDelete,

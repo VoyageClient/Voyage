@@ -10,8 +10,8 @@ package im.vector.app.features.home.room.detail.composer
 import im.vector.app.core.platform.VectorViewEvents
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
-import java.io.File
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
+import java.io.File
 
 sealed class MessageComposerViewEvents : VectorViewEvents {
 

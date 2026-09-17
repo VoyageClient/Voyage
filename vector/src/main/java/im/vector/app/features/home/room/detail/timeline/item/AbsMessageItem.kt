@@ -102,7 +102,11 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                 width = attributes.avatarSize
             }
             im.vector.app.core.utils.PerfTrace.time("bind.super.avatar") {
-                attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
+                // The size the row was just given, rather than whatever the view has been measured to:
+                // the layoutParams above have not been through a layout pass yet.
+                attributes.avatarRenderer.renderAtSize(
+                        attributes.informationData.matrixItem, holder.avatarImageView, attributes.avatarSize
+                )
                 // Tapping the name/avatar mentions the sender, so have the pill's avatar ready by then.
                 attributes.avatarRenderer.preloadAvatar(attributes.informationData.matrixItem, holder.avatarImageView)
             }
@@ -326,7 +330,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
     inner class ReplyViewUpdater : ReplyPreviewRetriever.PreviewReplyRetrieverListener {
         var replyView: InReplyToView? = null
 
-        override fun onStateUpdated(state: PreviewReplyUiState) {
+        override fun onStateUpdated(state: PreviewReplyUiState, force: Boolean) {
             val view = replyView ?: return
             // A rebind (notifyItemChanged) doesn't unbind the previous model, so its updater stays
             // registered with a replyView that RecyclerView may later reuse for another message. Ignore
@@ -339,6 +343,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                         attributes.informationData,
                         attributes.itemLongClickListener,
                         coroutineScope,
+                        force,
                 )
             }
         }

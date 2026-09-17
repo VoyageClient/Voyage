@@ -284,7 +284,9 @@ class MergedHeaderItemFactory @Inject constructor(
         val createIndex = snapshot.indexOfFirst { it.root.getClearType() == EventType.STATE_ROOM_CREATE }
         if (createIndex <= 0) return null
         val createEvent = snapshot[createIndex]
+        // Room version 11 uses the create event sender instead of content.creator.
         val creator = createEvent.root.getClearContent().toModel<RoomCreateContent>()?.creator
+                ?: createEvent.root.senderId
         // The anchor is the config event directly newer than create; it may be the creator's own join, so it
         // is matched against the creator. The rest of the block is pure (non-member) configuration.
         val anchor = snapshot[createIndex - 1]

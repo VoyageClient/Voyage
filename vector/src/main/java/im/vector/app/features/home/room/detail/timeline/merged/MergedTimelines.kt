@@ -114,6 +114,11 @@ class MergedTimelines(
         secondaryTimeline.dispose()
     }
 
+    override fun setPaused(paused: Boolean) {
+        mainTimeline.setPaused(paused)
+        secondaryTimeline.setPaused(paused)
+    }
+
     override fun restartWithEventId(eventId: String?) {
         mainTimeline.restartWithEventId(eventId)
     }

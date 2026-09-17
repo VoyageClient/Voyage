@@ -20,7 +20,6 @@ import android.view.View
 import android.widget.EditText
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.airbnb.mvrx.Mavericks
@@ -37,6 +36,7 @@ import im.vector.lib.core.utils.compat.getParcelableCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
@@ -101,12 +101,8 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
     private fun setupSuggestions(roomId: String) {
         suggestionAdapter = SearchSuggestionAdapter(avatarRenderer, ::applySuggestion)
         views.searchSuggestions.layoutManager = LinearLayoutManager(this)
-        // Rows must never animate their own position: the list reveals itself by growing, and a row
-        // that also tweens towards its slot slides in from wherever the shorter list had put it.
-        (views.searchSuggestions.itemAnimator as? DefaultItemAnimator)?.apply {
-            moveDuration = 0
-            changeDuration = 0
-        }
+        // The list animates its height; item animations can leave detached holders during rapid query changes.
+        views.searchSuggestions.itemAnimator = null
         views.searchSuggestions.adapter = suggestionAdapter
         views.searchSuggestions.addItemDecoration(
                 DividerItemDecoration(this, DividerItemDecoration.VERTICAL).apply {
@@ -120,13 +116,20 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
         // The filter keys are worth showing before anything is typed — that is how they get discovered.
         renderSuggestions("")
         lifecycleScope.launch {
-            members = withContext(Dispatchers.Default) {
-                session.getRoom(roomId)
-                        ?.membershipService()
+            val membershipService = session.getRoom(roomId)?.membershipService()
+
+            // Lazy loading omits most members. Show cached suggestions while loading the full membership.
+            suspend fun readMembers() = withContext(Dispatchers.Default) {
+                membershipService
                         ?.getRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.JOIN) })
                         .orEmpty()
+                        .distinctBy { it.userId }
                         .sortedBy { (it.displayName ?: it.userId).lowercase() }
             }
+            members = readMembers()
+            renderSuggestions(views.searchView.query?.toString())
+            tryOrNull { membershipService?.loadRoomMembersIfNeeded() }
+            members = readMembers()
             renderSuggestions(views.searchView.query?.toString())
         }
     }

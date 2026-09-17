@@ -22,6 +22,7 @@ import org.matrix.android.sdk.api.session.getUser
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 
@@ -32,6 +33,10 @@ class PillsPostProcessor @AssistedInject constructor(
         private val sessionHolder: ActiveSessionHolder
 ) :
         EventHtmlRenderer.PostProcessor {
+
+    private val knownSenders = object : LinkedHashMap<String, SenderInfo>(128, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<String, SenderInfo>): Boolean = size > 128
+    }
 
     /* ==========================================================================================
      * Public api
@@ -48,6 +53,14 @@ class PillsPostProcessor @AssistedInject constructor(
 
     override fun afterRender(renderedText: Spannable) {
         addPillSpans(renderedText)
+    }
+
+    fun rememberSenders(senders: Iterable<SenderInfo>) {
+        synchronized(knownSenders) {
+            senders.forEach { sender ->
+                if (!sender.displayName.isNullOrBlank() || !sender.avatarUrl.isNullOrBlank()) knownSenders[sender.userId] = sender
+            }
+        }
     }
 
     /* ==========================================================================================
@@ -113,9 +126,19 @@ class PillsPostProcessor @AssistedInject constructor(
         }
     }
 
-    private fun PermalinkData.UserLink.toMatrixItem(): MatrixItem? =
-            roomId?.let { sessionHolder.getSafeActiveSession()?.roomService()?.getRoomMember(userId, it)?.toMatrixItem() }
-                    ?: sessionHolder.getSafeActiveSession()?.getUser(userId)?.toMatrixItem()
+    private fun PermalinkData.UserLink.toMatrixItem(): MatrixItem? {
+        val session = sessionHolder.getSafeActiveSession() ?: return null
+        val member = roomId?.let { session.roomService().getRoomMember(userId, it) }
+        val known = synchronized(knownSenders) { knownSenders[userId] }
+        if (member != null || known != null) {
+            return MatrixItem.UserItem(
+                    userId,
+                    member?.displayName?.takeUnless { it.isBlank() } ?: known?.displayName,
+                    member?.avatarUrl?.takeUnless { it.isBlank() } ?: known?.avatarUrl,
+            )
+        }
+        return session.getUser(userId)?.toMatrixItem()
+    }
 
     private fun PermalinkData.RoomLink.toMatrixItem(): MatrixItem? =
             if (eventId == null) {

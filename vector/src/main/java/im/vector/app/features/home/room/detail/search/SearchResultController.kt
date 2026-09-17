@@ -160,6 +160,7 @@ class SearchResultController @Inject constructor(
                     event = timelineEvent,
                     partialState = TimelineEventController.PartialState(roomSummary = roomSummary),
                     callback = this,
+                    preserveSenderInfo = true,
             )
             val model = timelineItemFactory.create(params)
             model.boldSearchMatches(data.highlights)
@@ -176,7 +177,6 @@ class SearchResultController @Inject constructor(
                 root = this,
                 localId = eventId.hashCode().toLong(),
                 eventId = eventId.orEmpty(),
-                displayIndex = 0,
                 senderInfo = SenderInfo(
                         userId = senderId.orEmpty(),
                         displayName = senderDisplayName,

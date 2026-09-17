@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.core.platform.DefaultListUpdateCallback
 import im.vector.app.core.platform.Restorable
 import im.vector.lib.core.utils.compat.getParcelableCompat
+import org.matrix.android.sdk.api.debug.DebugLog
 import java.util.concurrent.atomic.AtomicReference
 
 private const val LAYOUT_MANAGER_STATE = "LAYOUT_MANAGER_STATE"
@@ -42,6 +43,7 @@ class LayoutManagerStateRestorer(layoutManager: RecyclerView.LayoutManager) : Re
 
     override fun onInserted(position: Int, count: Int) {
         layoutManagerState.getAndSet(null)?.also {
+            DebugLog.i { "VIEWDBG restoring saved layout state on insert of $count at $position" }
             layoutManager?.onRestoreInstanceState(it)
         }
     }

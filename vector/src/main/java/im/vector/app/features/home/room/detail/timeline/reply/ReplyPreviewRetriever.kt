@@ -338,6 +338,28 @@ class ReplyPreviewRetriever(
         }
     }
 
+    fun onPermalinkSenderResolved(targetEventId: String) {
+        val needle = targetEventId.removePrefix("$")
+        val affected = synchronized(data) {
+            data.mapNotNull { (key, value) ->
+                val state = value.previewReplyUiState as? PreviewReplyUiState.InReplyTo ?: return@mapNotNull null
+                val content = state.event.getLastMessageContent() ?: return@mapNotNull null
+                val linksToTarget = content.body.contains(needle) ||
+                        (content as? MessageContentWithFormattedBody)?.formattedBody?.contains(needle).orFalse()
+                if (linksToTarget) key to state else null
+            }
+        }
+        if (affected.isEmpty()) return
+        synchronized(replyBodyCache) {
+            affected.forEach { (_, state) -> replyBodyCache.remove("${state.event.eventId}:${state.event.getCacheId()}") }
+        }
+        coroutineScope.launch(Dispatchers.Main) {
+            affected.forEach { (key, state) ->
+                listeners[key].orEmpty().forEach { it.onStateUpdated(state, force = true) }
+            }
+        }
+    }
+
     // Called by the Epoxy item during binding
     fun addListener(key: String, listener: PreviewReplyRetrieverListener) {
         listeners.getOrPut(key) { mutableSetOf() }.add(listener)
@@ -353,7 +375,7 @@ class ReplyPreviewRetriever(
     }
 
     interface PreviewReplyRetrieverListener {
-        fun onStateUpdated(state: PreviewReplyUiState)
+        fun onStateUpdated(state: PreviewReplyUiState, force: Boolean = false)
     }
 
     private val roomForColors by lazy { session.getRoom(roomId) }

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.roommemberprofile
 
+import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MavericksViewModelFactory
@@ -138,10 +139,12 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         setState {
             copy(
                     isMine = session.myUserId == this.userId,
-                    // Members render instantly. Anyone else stays Loading until fetchProfileInfo's single
-                    // final setState, so the page reveals once and complete rather than field by field;
-                    // that setState always lands (bare-mxid fallback), so it cannot get stuck.
-                    userMatrixItem = initialRoomMember?.let { Success(it.toMatrixItem()) } ?: Loading(),
+                    // What this screen settles on is the global profile, so a member's room-specific name
+                    // and avatar are not shown first — that only flicked over to the global ones a moment
+                    // later. Straight from the cache when it is there, the fallback when the server is
+                    // known not to answer, and otherwise a spinner until the fetch lands (which always
+                    // ends in a setState, bare mxid included, so it cannot get stuck).
+                    userMatrixItem = initialUserItem(),
                     hasReadReceipt = room?.readService()?.getUserReadReceipt(initialState.userId) != null,
                     isSpace = initialRoomSummary?.roomType == RoomType.SPACE,
                     isHistoricalOrWatchedRoom = initialRoomSummary?.let { it.isRemovedFromRoom || it.isWatched } == true,
@@ -788,7 +791,11 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     when {
                         it is Fail -> copy(userMatrixItem = Fail(it.error), asyncMembership = Fail(it.error))
                         member != null -> copy(
-                                userMatrixItem = Success(member.toMatrixItem()),
+                                // While the global profile is still on its way, keep spinning rather than
+                                // showing the room's copy of the name and avatar and then swapping it out.
+                                userMatrixItem = cachedGlobalProfile()?.let { profile ->
+                                    Success(globalProfileMatrixItem(profile, member.toMatrixItem()))
+                                } ?: userMatrixItem.takeIf { it is Loading } ?: Success(member.toMatrixItem()),
                                 asyncMembership = Success(member.membership)
                         )
                         // No summary (e.g. membership event redacted): keep the mxid fallback rather than
@@ -802,6 +809,38 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     private fun handleRetryFetchProfileInfo() {
         viewModelScope.launch {
             fetchProfileInfo()
+        }
+    }
+
+    private fun cachedGlobalProfile(): JsonDict? = session.profileService().getCachedProfile(initialState.userId)
+
+    private fun initialUserItem(): Async<MatrixItem> {
+        val cached = cachedGlobalProfile()
+        return when {
+            cached != null -> Success(globalProfileMatrixItem(cached, bestKnownMatrixItem()))
+            session.profileService().isProfileServerUnreachable(initialState.userId) -> Success(bestKnownMatrixItem())
+            else -> Loading()
+        }
+    }
+
+    /**
+     * The global profile, from this session's cache when it has been fetched before, and otherwise from
+     * the server — unless that server has just failed to answer in time, in which case there is nothing
+     * to wait for. Null means: show what is already known.
+     */
+    private suspend fun globalProfile(): JsonDict? {
+        cachedGlobalProfile()?.let { return it }
+        if (session.profileService().isProfileServerUnreachable(initialState.userId)) return null
+        return try {
+            // A dead homeserver otherwise rides the full connect-timeout ladder while the spinner spins.
+            withTimeoutOrNull(PROFILE_FETCH_TIMEOUT_MS) {
+                session.profileService().getProfile(initialState.userId)
+            } ?: run {
+                session.profileService().markProfileServerUnreachable(initialState.userId)
+                null
+            }
+        } catch (throwable: Throwable) {
+            null
         }
     }
 
@@ -825,15 +864,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private suspend fun fetchProfileInfo() {
-        val profile = try {
-            // A dead homeserver otherwise rides the full connect-timeout ladder while the spinner
-            // spins; give up and reveal the blank fallback profile instead.
-            withTimeoutOrNull(PROFILE_FETCH_TIMEOUT_MS) {
-                session.profileService().getProfile(initialState.userId)
-            }
-        } catch (throwable: Throwable) {
-            null
-        }
+        val profile = globalProfile()
         val item = profile?.let { globalProfileMatrixItem(it, bestKnownMatrixItem()) }
                 ?: bestKnownMatrixItem()
         setState {
@@ -877,10 +908,15 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     private fun fetchGlobalProfile() {
         viewModelScope.launch {
             // 403 (profiles limited to shared-room users) just means no banner
-            val profile = tryOrNull { session.profileService().getProfile(initialState.userId) } ?: return@launch
+            val profile = globalProfile()
+            if (profile == null) {
+                // Nothing to overlay: reveal the member (or the bare mxid) rather than spinning on.
+                setState { copy(userMatrixItem = Success(bestKnownMatrixItem())) }
+                return@launch
+            }
             setState {
                 copy(
-                        userMatrixItem = Success(globalProfileMatrixItem(profile, userMatrixItem())),
+                        userMatrixItem = Success(globalProfileMatrixItem(profile, bestKnownMatrixItem())),
                         globalBannerUrl = profile.bannerUrl(),
                         profileJson = profile,
                         status = session.profileService().getCachedStatus(initialState.userId),

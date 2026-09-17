@@ -15,6 +15,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.os.SystemClock
 import android.text.Editable
 import android.text.InputType
 import android.view.LayoutInflater
@@ -124,9 +125,14 @@ class RoomMemberProfileFragment :
 
     private var headerRevealed = true
     private var pendingReveal = false
+    private var modelsBuilt = false
+
+    // No avatar to wait for until a real one is being loaded, so a letter avatar reveals at once.
+    private var avatarSettled = true
 
     /** True from raising the cover until it has fully faded out — nothing may move the layout then. */
     private var coverActive = false
+    private var coverShownAt = 0L
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
@@ -183,18 +189,16 @@ class RoomMemberProfileFragment :
         headerViews.memberProfileBannerView.debouncedClicks { onBannerClicked() }
         // Raise the cover here, before the enter animation runs: raising it in the first invalidate()
         // lets the empty page show during the slide-in.
-        withState(viewModel) { state ->
-            if (state.userMatrixItem is Loading) {
-                headerRevealed = false
-                showLoadingCover()
-            }
-        }
+        // Whether or not the profile is already known, the page builds behind the cover and is revealed
+        // once its models AND its avatar are there — a cached profile otherwise revealed instantly with
+        // the letter placeholder still up, and swapped the picture in a frame or two later.
+        headerRevealed = false
+        showLoadingCover()
         views.matrixProfileLoadingBackButton.debouncedClicks { vectorBaseActivity.onBackPressedDispatcher.onBackPressed() }
         roomMemberProfileController.addModelBuildListener {
             if (pendingReveal) {
-                pendingReveal = false
-                // One more frame so the recycler actually lays the new models out before the reveal
-                views.matrixProfileRecyclerView.post { revealHeader() }
+                modelsBuilt = true
+                revealWhenReady()
             }
         }
         viewModel.observeViewEvents {
@@ -280,6 +284,8 @@ class RoomMemberProfileFragment :
     }
 
     override fun onDestroyView() {
+        headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
+        views.matrixProfileRecyclerView.removeCallbacks(revealTimeout)
         notesInputProxy?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 it.viewTreeObserver.removeOnGlobalLayoutListener(proxyKeyboardListener)
@@ -323,7 +329,12 @@ class RoomMemberProfileFragment :
                 val userMatrixItem = asyncUserMatrixItem()
                 // Don't reveal yet: wait for the epoxy list (biography, More, admin…) to build and lay
                 // out, so the whole page — header AND sheet below it — appears in one frame.
-                if (!headerRevealed) pendingReveal = true
+                if (!headerRevealed && !pendingReveal) {
+                    pendingReveal = true
+                    // Nothing may reveal the page if the models happen to come out identical, so the wait
+                    // is bounded rather than trusting the build listener to fire.
+                    views.matrixProfileRecyclerView.postDelayed(revealTimeout, REVEAL_WAIT_MS)
+                }
                 headerViews.memberProfileStateView.state = StateView.State.Content
                 headerViews.memberProfileIdView.text = userMatrixItem.id.neutralizeDirectionOverrides()
                 headerViews.memberProfileIdView.setCopySource(userMatrixItem.id)
@@ -354,7 +365,17 @@ class RoomMemberProfileFragment :
                 }
                 if (avatarKey != lastRenderedAvatarKey) {
                     lastRenderedAvatarKey = avatarKey
-                    avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView, crossfade = true)
+                    // A real avatar is loaded, so the page waits for it rather than revealing the letter
+                    // placeholder and fading the picture in over it a moment later.
+                    val waitsForAvatar = !headerRevealed && !displayedMatrixItem.avatarUrl.isNullOrEmpty()
+                    if (waitsForAvatar) {
+                        avatarSettled = false
+                        headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
+                        headerViews.memberProfileAvatarView.postDelayed(avatarWaitTimeout, AVATAR_WAIT_MS)
+                    }
+                    avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView, crossfade = true) {
+                        if (waitsForAvatar) onAvatarSettled()
+                    }
                     avatarRenderer.render(displayedMatrixItem, views.matrixProfileToolbarAvatarImageView, crossfade = true)
                     // The Mention action below returns to the composer, so have the pill's avatar ready.
                     avatarRenderer.preloadAvatar(displayedMatrixItem, headerViews.memberProfileAvatarView)
@@ -422,12 +443,34 @@ class RoomMemberProfileFragment :
         roomMemberProfileController.setData(state)
     }
 
+    private val avatarWaitTimeout = Runnable { onAvatarSettled() }
+
+    private val revealTimeout = Runnable { revealHeader() }
+
+    /** The avatar is there, or is taking too long to wait for; either way the page can show. */
+    private fun onAvatarSettled() {
+        if (avatarSettled) return
+        avatarSettled = true
+        headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
+        revealWhenReady()
+    }
+
+    private fun revealWhenReady() {
+        if (!pendingReveal || !modelsBuilt || !avatarSettled) return
+        // One more frame so the recycler actually lays the new models out before the reveal
+        views.matrixProfileRecyclerView.post { revealHeader() }
+    }
+
     private fun revealHeader() {
         if (headerRevealed) {
             return
         }
         headerRevealed = true
         pendingReveal = false
+        modelsBuilt = false
+        avatarSettled = true
+        views.matrixProfileRecyclerView.removeCallbacks(revealTimeout)
+        headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
         val cover = views.matrixProfileLoadingView
         // Settle the page in its final position BEHIND the cover, since with a banner this drops the
         // root's top padding and would otherwise jump the page up once the cover is gone. The cover
@@ -438,7 +481,12 @@ class RoomMemberProfileFragment :
                 hasBanner,
                 bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED
         )
-        if (cover.isVisible) {
+        if (cover.isVisible && SystemClock.uptimeMillis() - coverShownAt < COVER_INSTANT_MS) {
+            // Up for a frame or two only: fading it out would read as a flash of its own.
+            cover.isVisible = false
+            cover.setPadding(0, 0, 0, 0)
+            coverActive = false
+        } else if (cover.isVisible) {
             cover.animate().alpha(0f).setDuration(COVER_FADE_MS).setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     cover.isVisible = false
@@ -455,6 +503,7 @@ class RoomMemberProfileFragment :
     /** Opaque panel over the whole page, so it builds unseen behind a plain spinner + back arrow. */
     private fun showLoadingCover() {
         val cover = views.matrixProfileLoadingView
+        if (!coverActive) coverShownAt = SystemClock.uptimeMillis()
         coverActive = true
         cover.animate().cancel()
         cover.alpha = 1f
@@ -558,7 +607,8 @@ class RoomMemberProfileFragment :
         }
         val item = state.userMatrixItem() ?: MatrixItem.UserItem(state.userId)
         val overrideHex = matrixItemColorProvider.overrideAxis(state.userId, light)
-        val ownHex = matrixItemColorProvider.ownColorHex(item, light) ?: matrixItemColorProvider.defaultColorHex(state.userId, light)
+        val theirsHex = matrixItemColorProvider.ownColorHex(item, light)
+        val ownHex = theirsHex ?: matrixItemColorProvider.defaultColorHex(state.userId, light)
         val titleRes = when (theme) {
             ProfileColorPickerDialogFragment.Theme.LIGHT -> CommonStrings.settings_profile_color_light
             ProfileColorPickerDialogFragment.Theme.DARK -> CommonStrings.settings_profile_color_dark
@@ -569,6 +619,7 @@ class RoomMemberProfileFragment :
                 title = getString(titleRes),
                 initialHex = overrideHex,
                 defaultHex = ownHex,
+                customSeed = overrideHex ?: theirsHex,
                 theme = theme,
                 showReset = overrideHex != null,
         ).show(childFragmentManager, PROFILE_COLOR_DIALOG_TAG)
@@ -885,5 +936,15 @@ class RoomMemberProfileFragment :
         private const val PROFILE_COLOR_REQUEST_KEY = "RoomMemberProfileFragment.profileColor"
         private const val PROFILE_COLOR_DIALOG_TAG = "RoomMemberProfileFragment.profileColorDialog"
         private const val COVER_FADE_MS = 180L
+
+        // Below this the cover has not been seen, so it is dropped rather than faded.
+        private const val COVER_INSTANT_MS = 140L
+
+        // Backstop for the reveal: the page shows even if the models or the avatar never report in.
+        private const val REVEAL_WAIT_MS = 1_200L
+
+        // How long the page waits for the avatar before showing without it; a dead media server must not
+        // hold the profile back.
+        private const val AVATAR_WAIT_MS = 800L
     }
 }

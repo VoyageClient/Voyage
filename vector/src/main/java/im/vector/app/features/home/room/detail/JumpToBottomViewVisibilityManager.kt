@@ -29,6 +29,8 @@ class JumpToBottomViewVisibilityManager(
         // Reaching the live edge means there is nothing left to return to, so a remembered
         // jump-back source must not survive to hijack the button when the user scrolls up again.
         private val onReachedLiveEdge: () -> Unit = {},
+        // Programmatic settling scrolls must not hide the return-to-live button.
+        private val isJumping: () -> Boolean = { false },
 ) {
 
     init {
@@ -38,7 +40,7 @@ class JumpToBottomViewVisibilityManager(
 
                 val scrollingToPast = dy < 0
 
-                if (scrollingToPast && isTimelineLive()) {
+                if (scrollingToPast && isTimelineLive() && !isJumping()) {
                     jumpToBottomView.hide()
                 } else {
                     maybeShowJumpToBottomViewVisibility()
@@ -63,7 +65,8 @@ class JumpToBottomViewVisibilityManager(
         }
     }
 
-    private fun maybeShowJumpToBottomViewVisibility() {
+    /** Without the debounce, for a jump the user just asked for: the answer is known immediately. */
+    fun maybeShowJumpToBottomViewVisibility() {
         val firstVis = layoutManager.findFirstVisibleItemPosition()
         val show = firstVis > 1 || !isTimelineLive()
         if (show) {

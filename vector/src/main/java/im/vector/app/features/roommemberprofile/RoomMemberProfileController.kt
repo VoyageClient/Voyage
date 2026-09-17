@@ -291,12 +291,18 @@ class RoomMemberProfileController @Inject constructor(
         }
         val item = state.userMatrixItem() ?: MatrixItem.UserItem(state.userId)
         val overrideHex = matrixItemColorProvider.overrideAxis(state.userId, light)
-        val hex = overrideHex ?: matrixItemColorProvider.ownColorHex(item, light) ?: matrixItemColorProvider.defaultColorHex(state.userId, light)
+        val theirsHex = matrixItemColorProvider.ownColorHex(item, light)
+        val hex = overrideHex ?: theirsHex ?: matrixItemColorProvider.defaultColorHex(state.userId, light)
+        val origin = when {
+            overrideHex != null -> ProfileColorPickerDialogFragment.Origin.OURS
+            theirsHex != null -> ProfileColorPickerDialogFragment.Origin.THEIRS
+            else -> ProfileColorPickerDialogFragment.Origin.DEFAULT
+        }
         buildProfileAction(
                 id = id,
                 editable = false,
                 title = stringProvider.getString(titleRes),
-                subtitle = ProfileColorPickerDialogFragment.describe(context, hex, light, isDefault = overrideHex == null),
+                subtitle = ProfileColorPickerDialogFragment.describe(context, hex, light, origin),
                 divider = false,
                 accessoryColor = Color.parseColor(hex),
                 action = { callback?.onOverrideColorClicked(theme) }

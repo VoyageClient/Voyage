@@ -75,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="?vctr_content_primary"
+                    android:textColor="?vctr_content_secondary"
                     tools:text="Meeting notes: agenda for the week" />
 
             </LinearLayout>

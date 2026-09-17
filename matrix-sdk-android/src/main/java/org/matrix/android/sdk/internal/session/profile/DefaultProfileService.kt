@@ -179,6 +179,10 @@ internal class DefaultProfileService @Inject constructor(
 
     override fun getCachedProfile(userId: String): JsonDict? = extendedProfileCache.getCachedProfile(userId)
 
+    override fun isProfileServerUnreachable(userId: String): Boolean = extendedProfileCache.isServerUnreachable(userId)
+
+    override fun markProfileServerUnreachable(userId: String) = extendedProfileCache.markServerUnreachable(userId)
+
     override fun getColorPreferenceUpdateFlow() = extendedProfileCache.colorUpdateFlow
 
     override fun getCachedStatus(userId: String): UserStatus? = extendedProfileCache.getCachedStatus(userId)

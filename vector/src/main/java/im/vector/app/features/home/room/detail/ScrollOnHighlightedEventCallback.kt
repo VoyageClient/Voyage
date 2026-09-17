@@ -40,7 +40,10 @@ class ScrollOnHighlightedEventCallback(
     init {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
-                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) pinnedEventId = null
+                // The user taking over ends the jump, pending or landed: a target still waiting for its
+                // model would otherwise snap them back to it whenever the build finally arrives, which
+                // is seconds after they scrolled away.
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) cancel()
             }
         })
         // Neighbour height changes (a decrypted message replacing its placeholder) apply during bind/layout,

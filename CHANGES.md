@@ -8,6 +8,10 @@ New features, improvements, and notable removals in this fork.
 
 - **Background-sync battery fix**: polling is gated on permissions and runs off a single alarm chain with a bounded retry loop, instead of draining the battery overnight.
 
+- **Reliable push notifications**: every push is retried until it becomes a notification, so a dozing phone or a lost request no longer swallows a message. A push history in the notification settings shows what arrived and what became of it.
+
+- **Push gateway setting**: choose which gateway your homeserver sends notifications to, instead of accepting whichever one your notification method advertises.
+
 - **Room previews**: a public room's timeline opens before you join it, from the room directory or a link. You can scroll back through history, search it, and browse the room's profile, members and media gallery, all read-only with a join bar at the bottom. Nothing is stored locally until you join.
 
 - **Invite previews**: an invite to a world-readable room shows the actual conversation with Accept/Decline underneath instead of a blank invite screen, and an invite back to a room you were kicked or banned from previews your retained copy of the history the same way.
@@ -226,9 +230,9 @@ New features, improvements, and notable removals in this fork.
 
 ## Significant bugfixes
 
-- Fixed scrollback in rooms damaged by the Synapse depth exploit, where scrolling back jumped over months or years of history as if it had never existed. Suspicious jumps are now verified against the local search index or the server, and the skipped span is fetched and stitched back into the timeline (labs toggle, on by default).
+- **History gap recovery**: Fixed scrollback in rooms damaged by the Synapse depth exploit, where scrolling back jumped over months or years of history as if it had never existed. Suspicious jumps are now verified against the local search index or the server, and the skipped span is fetched and stitched back into the timeline.
 
-- Fixed messages from a slow or recovering server showing under the wrong date. A message delivered long after it was sent now sits where it was sent, even when that part of the history has to be loaded first (labs toggle, on by default).
+- **Late messages' position**: Fixed messages from a slow or recovering server showing under the wrong date. A message delivered long after it was sent now sits where it was sent, even when that part of the history has to be loaded first.
 
 - Fixed rooms that stopped loading history. A fetched page whose boundary token didn't match the one stored was saved unreachable, so the timeline stayed at the handful of messages the last sync had cached until the room was reopened.
 

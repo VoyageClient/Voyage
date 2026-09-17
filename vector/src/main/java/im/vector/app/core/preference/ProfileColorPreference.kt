@@ -40,9 +40,9 @@ class ProfileColorPreference : Preference {
         refreshSwatch()
     }
 
-    fun setColor(@ColorInt color: Int, hex: String, light: Boolean, isDefault: Boolean) {
+    fun setColor(@ColorInt color: Int, hex: String, light: Boolean, origin: ProfileColorPickerDialogFragment.Origin) {
         this.color = color
-        summary = ProfileColorPickerDialogFragment.describe(context, hex, light, isDefault)
+        summary = ProfileColorPickerDialogFragment.describe(context, hex, light, origin)
         refreshSwatch()
     }
 

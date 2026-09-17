@@ -105,12 +105,13 @@ class MessageInformationDataFactory @Inject constructor(
         // Sender name/avatar are denormalized at sync time: null = member state unknown when stored,
         // so fall back to the current member state; "" = member known but field genuinely empty at
         // that time, no fallback. With "show latest user info" on, always prefer the live member.
-        val useLiveSenderInfo = vectorPreferences.showLiveSenderInfo()
+        val useLiveSenderInfo = vectorPreferences.showLiveSenderInfo() && !params.preserveSenderInfo
         val storedName = event.senderInfo.displayName
         val storedAvatar = event.senderInfo.avatarUrl
         // A redaction strips a membership event's own name and avatar: null there means the content is
         // gone, not unknown, so it falls back to the user id rather than the sender's profile today.
-        val liveMember = if (useLiveSenderInfo || ((storedName == null || storedAvatar == null) && !event.root.isRedacted())) {
+        val liveMember = if (!params.preserveSenderInfo &&
+                (useLiveSenderInfo || ((storedName == null || storedAvatar == null) && !event.root.isRedacted()))) {
             event.root.roomId?.let { session.roomService().getRoom(it)?.membershipService()?.getRoomMember(senderId) }
         } else {
             null

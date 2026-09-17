@@ -64,6 +64,15 @@ class ViewEditHistoryViewModel @AssistedInject constructor(
         )
     }
 
+    /**
+     * Whether this edit was redacted in its own right, rather than merely orphaned when the message it
+     * edits was. Restoring the first from its preserved copy would undo a deletion someone asked for;
+     * restoring the second is the whole point of preserving it. Only a redaction's own target is ever
+     * marked redacted locally, so the flag tells them apart.
+     */
+    private fun wasRedactedItself(editEventId: String): Boolean =
+            room.timelineService().getTimelineEvent(editEventId)?.root?.isRedacted() == true
+
     private fun loadHistory() {
         setState { copy(editList = Loading()) }
 
@@ -74,10 +83,13 @@ class ViewEditHistoryViewModel @AssistedInject constructor(
                 // the rest from the message logger's preserved copies: restore pruned entries, add the
                 // preserved edits the server no longer returns, and keep newest-first with the
                 // original last (the order the fetch produces).
-                val fetched = room.relationService().fetchEditHistory(eventId).map { restorePreservedContent(it) }
+                val fetched = room.relationService().fetchEditHistory(eventId)
+                        .filterNot { it.eventId != eventId && it.isRedacted() }
+                        .map { restorePreservedContent(it) }
                 val fetchedIds = fetched.mapNotNull { it.eventId }.toHashSet()
                 val preservedEdits = session.redactedContentService().getPreservedRelationsOf(room.roomId, eventId)
                         .filter { it.relationType() == RelationType.REPLACE && it.eventId !in fetchedIds }
+                        .filterNot { wasRedactedItself(it.eventId) }
                         .map { it.toEvent() }
                 val (edits, original) = (fetched + preservedEdits).partition { it.eventId != eventId }
                 edits.sortedByDescending { it.originServerTs ?: 0 } + original

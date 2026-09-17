@@ -41,6 +41,7 @@ import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
 import org.matrix.android.sdk.internal.raw.RawModule
 import org.matrix.android.sdk.internal.session.MockHttpInterceptor
 import org.matrix.android.sdk.internal.session.TestInterceptor
+import org.matrix.android.sdk.internal.session.profile.ProfileColorStore
 import org.matrix.android.sdk.internal.session.user.accountdata.PendingUnIgnoreStore
 import org.matrix.android.sdk.internal.settings.SettingsModule
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -99,6 +100,8 @@ internal interface MatrixComponent {
     fun filesDir(): File
 
     fun taskExecutor(): TaskExecutor
+
+    fun profileColorStore(): ProfileColorStore
 
     fun olmManager(): OlmManager
 

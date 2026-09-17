@@ -90,6 +90,7 @@ import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMedia
 import org.matrix.android.sdk.internal.session.media.PublicHostDns
 import org.matrix.android.sdk.internal.session.openid.DefaultOpenIdService
 import org.matrix.android.sdk.internal.session.permalinks.DefaultPermalinkService
+import org.matrix.android.sdk.internal.session.profile.ExtendedProfileCache
 import org.matrix.android.sdk.internal.session.profile.ProfileOverridesLoader
 import org.matrix.android.sdk.internal.session.room.EventRelationsAggregationProcessor
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.DefaultPollAggregationProcessor
@@ -446,6 +447,10 @@ internal abstract class SessionModule {
     @Binds
     @IntoSet
     abstract fun bindProfileOverridesLoader(loader: ProfileOverridesLoader): SessionLifecycleObserver
+
+    @Binds
+    @IntoSet
+    abstract fun bindExtendedProfileCache(cache: ExtendedProfileCache): SessionLifecycleObserver
 
     @Binds
     @IntoSet

@@ -255,7 +255,11 @@ class MessageActionsViewModel @AssistedInject constructor(
     // Forget quick-reaction emotes whose image pack no longer has them (they'd render blank / send empty ::).
     private fun pruneDeletedEmotes(quickReactions: List<String>): List<String> {
         if (quickReactions.none { it.isMxcUrl() }) return quickReactions
-        val validMxcs = ImagePackUsageFilter.emoticonPacks(imagePackProvider.getEnabledImagePacks(initialState.roomId))
+        // The cached packs: this runs while the long-press sheet is being built, and resolving them
+        // walks account data, room state and the parent spaces' state — a second on the main thread.
+        val resolved = imagePackProvider.cachedImagePacks(initialState.roomId)
+        if (resolved.isEmpty()) return quickReactions
+        val validMxcs = ImagePackUsageFilter.emoticonPacks(imagePackProvider.enabledPacksOf(resolved))
                 .flatMap { it.images }
                 .mapTo(HashSet()) { it.mxcUrl }
         val pruned = quickReactions.filter { !it.isMxcUrl() || it in validMxcs }
@@ -525,7 +529,36 @@ class MessageActionsViewModel @AssistedInject constructor(
             // Hide applies to what the timeline is actually rendering; Reveal to what it could render.
             val isShowingContent = redactedContentRestorer.isShowingRestoredContent(timelineEvent)
             when {
-                isShowingContent -> add(EventSharedAction.HideRedacted(eventId))
+                isShowingContent -> {
+                    add(EventSharedAction.HideRedacted(eventId))
+                    val restoredMessageContent = restoredEvent?.getVectorLastMessageContent()
+                    if (restoredEvent != null && canCopy(restoredMessageContent?.msgType, restoredMessageContent)) {
+                        add(EventSharedAction.Copy(pgpCopyBody(restoredEvent, restoredMessageContent!!, mentionsAsIds = true)))
+                    }
+                    if (restoredEvent != null && canTranslate(restoredMessageContent?.msgType, restoredMessageContent)) {
+                        when {
+                            messageTranslationStore.isTranslated(eventId) -> add(EventSharedAction.Untranslate(eventId))
+                            !messageTranslationStore.isTranslating(eventId) -> add(
+                                    EventSharedAction.Translate(
+                                            eventId,
+                                            pgpCopyBody(restoredEvent, restoredMessageContent!!),
+                                            translatableFormattedBody(restoredEvent, restoredMessageContent),
+                                    )
+                            )
+                        }
+                    }
+                    if (restoredEvent != null && canForward(restoredEvent, restoredMessageContent?.msgType)) {
+                        val baseContent = restoredEvent.getLastEditNewContent()
+                                ?: restoredEvent.root.getClearContent().orEmpty()
+                        @Suppress("UNCHECKED_CAST")
+                        val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
+                                restoredEvent.forwardedInfoUnlessDm()
+                        add(EventSharedAction.Forward(eventId, restoredEvent.root.getClearType(), forwardContent))
+                    }
+                    if (restoredMessageContent != null && canShare(restoredMessageContent.msgType) && !isFailedMedia(restoredMessageContent)) {
+                        add(EventSharedAction.Share(eventId, restoredMessageContent))
+                    }
+                }
                 canRestoreRedactedContent(timelineEvent) -> add(EventSharedAction.RevealRedacted(eventId))
                 else -> Unit
             }

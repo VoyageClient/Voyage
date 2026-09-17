@@ -474,7 +474,10 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             for (i in 0 until view.childCount) {
                 val holder = view.getChildViewHolder(view.getChildAt(i)) ?: continue
                 val position = holder.absoluteAdapterPosition
-                if (position != RecyclerView.NO_POSITION && position < adapter.itemCount) adapter.bindViewHolder(holder, position)
+                if (position == RecyclerView.NO_POSITION || position >= adapter.itemCount) continue
+                // A still-visible holder may belong to the previous list; rebinding it as a different type would crash.
+                if (adapter.getItemViewType(position) != holder.itemViewType) continue
+                adapter.bindViewHolder(holder, position)
             }
         } else if (view is ViewGroup) {
             for (i in 0 until view.childCount) rebindColoredViews(view.getChildAt(i))
@@ -511,12 +514,12 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         }
 
         applyDrawUnderSystemBars()
+        insetsListenerInstalled = true
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
-            val systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() or
-                            WindowInsetsCompat.Type.displayCutout() or
-                            WindowInsetsCompat.Type.ime()
-            )
+            // Some Android versions restore a stale visible IME inset while the home screen gains focus.
+            // It belongs to this window only when a text editor actually owns focus.
+            val hasFocusedTextEditor = hasWindowFocus() && currentFocus?.onCheckIsTextEditor() == true
+            val systemBars = insets.getInsets(WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor))
             systemBarsTopInset = systemBars.top
             navigationBarBottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
             if (drawUnderSystemBars) {
@@ -535,6 +538,8 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             }
         }
     }
+
+    private var insetsListenerInstalled = false
 
     /** Last dispatched status-bar inset (View.getRootWindowInsets is API 23+, this works on all). */
     var systemBarsTopInset: Int = 0
@@ -620,6 +625,12 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             }
             postResumeScheduledActions.clear()
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Focus can move to or from a text editor without a new inset value.
+        if (insetsListenerInstalled) ViewCompat.requestApplyInsets(rootView)
     }
 
     override fun onPause() {

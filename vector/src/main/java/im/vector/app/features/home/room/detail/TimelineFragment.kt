@@ -239,6 +239,7 @@ import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
+import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import java.net.URL
 import java.util.UUID
@@ -254,6 +255,7 @@ class TimelineFragment :
 
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var avatarSizeProvider: im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
@@ -324,6 +326,8 @@ class TimelineFragment :
 
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
+
+    private var timelineHasContent = false
     private var replyJumpSourceEventId: String? = null
     private var modelBuildListener: OnModelBuildFinishedListener? = null
 
@@ -998,8 +1002,9 @@ class TimelineFragment :
                 debouncer,
                 views.timelineRecyclerView,
                 layoutManager,
-                isTimelineLive = { timelineViewModel.timeline?.isLive != false },
+                isTimelineLive = { !timelineHasContent || timelineViewModel.timeline?.isLive != false },
                 onReachedLiveEdge = { clearReplyJumpSource() },
+                isJumping = { scrollOnHighlightedEventCallback.isSettling() },
         )
     }
 
@@ -1031,6 +1036,10 @@ class TimelineFragment :
         } else {
             views.timelineRecyclerView.stopScroll()
             layoutManager.scrollToPosition(scrollPosition)
+        }
+        jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibility()
+        session.userService().getUser(session.myUserId)?.toMatrixItem()?.let {
+            avatarRenderer.preloadAvatarAtSize(it, views.timelineRecyclerView, avatarSizeProvider.avatarSize)
         }
     }
 
@@ -1362,7 +1371,12 @@ class TimelineFragment :
             stackFromEnd = isLocalRoom()
         }
         val stateRestorer = LayoutManagerStateRestorer(layoutManager).register()
-        scrollOnNewMessageCallback = ScrollOnNewMessageCallback(views.timelineRecyclerView, layoutManager, timelineEventController)
+        scrollOnNewMessageCallback = ScrollOnNewMessageCallback(
+                views.timelineRecyclerView,
+                layoutManager,
+                timelineEventController,
+                isTimelineLive = { !timelineHasContent || timelineViewModel.timeline?.isLive != false },
+        )
         scrollOnHighlightedEventCallback = ScrollOnHighlightedEventCallback(views.timelineRecyclerView, layoutManager, timelineEventController) {
             // The landing itself produces no scroll events, so re-evaluate the FAB explicitly.
             jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibilityWithDelay()
@@ -1545,6 +1559,12 @@ class TimelineFragment :
 
     override fun invalidate() = withState(timelineViewModel, messageComposerViewModel) { mainState, messageComposerState ->
         invalidateOptionsMenu()
+        if (timelineHasContent != mainState.timelineHasContent) {
+            timelineHasContent = mainState.timelineHasContent
+            if (::jumpToBottomViewVisibilityManager.isInitialized) {
+                jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibility()
+            }
+        }
         if (mainState.asyncRoomSummary is Fail) {
             handleRoomSummaryFailure(mainState.asyncRoomSummary)
             return@withState
