@@ -7,6 +7,7 @@
 
 package im.vector.app.features.imagepack
 
+import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 
@@ -20,6 +21,7 @@ enum class ImagePackSource {
     SPACE,
 }
 
+@JsonClass(generateAdapter = true)
 data class ResolvedImagePack(
         val source: ImagePackSource,
         val roomId: String?,
@@ -32,6 +34,7 @@ data class ResolvedImagePack(
         val enabled: Boolean = true,
 )
 
+@JsonClass(generateAdapter = true)
 data class ResolvedImage(
         val shortcode: String,
         val mxcUrl: String,

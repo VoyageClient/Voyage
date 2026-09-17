@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.mvrx.args
@@ -22,6 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.cleanup
+import im.vector.app.core.glide.GridImagePreloader
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetStickerPickerBinding
 import im.vector.app.features.imagepack.ImagePackProvider
@@ -31,6 +33,9 @@ import im.vector.app.features.imagepack.ResolvedImagePack
 import im.vector.app.features.reactions.EmojiPickerSection
 import im.vector.app.features.reactions.pauseImageAnimationsWhileScrolling
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 
@@ -86,20 +91,69 @@ class StickerPickerBottomSheet :
         views.stickerPickerRecyclerView.layoutManager = layoutManager
         views.stickerPickerRecyclerView.adapter = controller.adapter
         views.stickerPickerRecyclerView.pauseImageAnimationsWhileScrolling()
+        // As in the emote grid: nothing animates in or out, the bounds never depend on the contents, and
+        // a screenful of already-bound cells beats rebinding them when the grid is scrolled back over.
+        views.stickerPickerRecyclerView.itemAnimator = null
+        views.stickerPickerRecyclerView.setHasFixedSize(true)
+        views.stickerPickerRecyclerView.setItemViewCacheSize(STICKER_VIEW_CACHE_SIZE)
+        views.stickerPickerRecyclerView.recycledViewPool.setMaxRecycledViews(R.layout.item_sticker, STICKER_POOL_SIZE)
         controller.listener = this
 
-        packs = imagePackProvider.sortForDisplay(ImagePackUsageFilter.stickerPacks(imagePackProvider.getEnabledImagePacks(pickerArgs.roomId)))
+        setupSearch()
+        // Whatever the room already resolved, drawn in this same frame.
+        show(fromPacks(imagePackProvider.cachedImagePacks(pickerArgs.roomId), prune = false), layoutManager)
+        // Aggregating the packs walks account data, the room's state and its parent spaces' state, and
+        // pruning the recents writes account data — none of it belongs on the thread drawing the sheet.
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Cold caches fall back to the stored copy, then to the aggregation itself.
+            val loaded = withContext(Dispatchers.Default) {
+                if (packs.isEmpty()) fromPacks(imagePackProvider.warmImagePacks(pickerArgs.roomId), prune = false) else null
+            }
+            loaded?.takeIf { it.packs.isNotEmpty() }?.let { show(it, layoutManager) }
+            val refreshed = withContext(Dispatchers.Default) { fromPacks(imagePackProvider.refreshImagePacks(pickerArgs.roomId), prune = true) }
+            if (refreshed.packs != packs || refreshed.frequent != frequent) show(refreshed, layoutManager)
+        }
+    }
+
+    private fun show(loaded: LoadedStickers, layoutManager: GridLayoutManager) {
+        if (loaded.packs.isEmpty() && loaded.frequent.isEmpty() && packs.isNotEmpty()) return
+        packs = loaded.packs
+        frequent = loaded.frequent
+        controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs))
+        setupTabs(layoutManager)
+        val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
+        val stickers = frequent + packs.flatMap { it.images }
+        val mxcByResolvedUrl = stickers.mapNotNull { sticker ->
+            contentUrlResolver?.resolveFullSize(sticker.mxcUrl)?.let { it to sticker.mxcUrl }
+        }.toMap()
+        GridImagePreloader.warm(
+                key = "stickers",
+                context = requireContext(),
+                urls = mxcByResolvedUrl.keys.toList(),
+                size = StickerItem.CELL_PX,
+                // Still frames: what a cell needs to draw something the instant it binds. The animation
+                // itself is decoded by the cell, from the file this also puts in the disk cache.
+                animated = false,
+                keepFrameFor = { resolvedUrl -> mxcByResolvedUrl[resolvedUrl] },
+        )
+    }
+
+    private class LoadedStickers(val packs: List<ResolvedImagePack>, val frequent: List<ResolvedImage>)
+
+    /**
+     * @param prune whether to drop recents whose sticker is gone from the packs. Only for a freshly
+     * resolved set: doing it from a cached one could delete recents whose pack simply hasn't loaded.
+     */
+    private fun fromPacks(resolved: List<ResolvedImagePack>, prune: Boolean): LoadedStickers {
+        val packs = imagePackProvider.sortForDisplay(ImagePackUsageFilter.stickerPacks(imagePackProvider.enabledPacksOf(resolved)))
                 .filter { it.images.isNotEmpty() }
         val packImagesByMxc = packs.flatMap { it.images }.associateBy { it.mxcUrl }
         // Drop deleted stickers from both the displayed list and the remote recent_stickers account data.
-        recentStickerDataSource.pruneToValidMxcs(packImagesByMxc.keys)
+        if (prune) recentStickerDataSource.pruneToValidMxcs(packImagesByMxc.keys)
         // Re-resolve against the packs: the account data doesn't round-trip shortcode/info.
-        frequent = recentStickerDataSource.getRecentStickersSnapshot()
+        val frequent = recentStickerDataSource.getRecentStickersSnapshot()
                 .mapNotNull { packImagesByMxc[it.mxcUrl] }
-
-        controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs))
-        setupTabs(layoutManager)
-        setupSearch()
+        return LoadedStickers(packs, frequent)
     }
 
     @Suppress("DEPRECATION")
@@ -166,6 +220,7 @@ class StickerPickerBottomSheet :
     }
 
     override fun onDestroyView() {
+        GridImagePreloader.cancel("stickers")
         views.stickerPickerRecyclerView.cleanup()
         controller.listener = null
         super.onDestroyView()
@@ -189,6 +244,8 @@ class StickerPickerBottomSheet :
 
     companion object {
         private const val SPAN_COUNT = 4
+        private const val STICKER_VIEW_CACHE_SIZE = 60
+        private const val STICKER_POOL_SIZE = 120
         const val RESULT_KEY = "StickerPickerBottomSheet_result"
         const val BUNDLE_URL = "url"
         const val BUNDLE_BODY = "body"

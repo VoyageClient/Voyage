@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<im.vector.app.core.ui.views.FixedSizeImageView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/grid_item_emote_image"
     android:layout_width="40dp"
     android:layout_height="40dp"
-    tools:viewBindingIgnore="true">
-
-    <ImageView
-        android:id="@+id/grid_item_emote_image"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="center"
-        android:contentDescription="@null"
-        android:padding="6dp"
-        android:scaleType="fitCenter"
-        tools:src="@tools:sample/avatars" />
-
-</FrameLayout>
+    android:contentDescription="@null"
+    android:padding="6dp"
+    android:scaleType="fitCenter"
+    tools:src="@tools:sample/avatars"
+    tools:viewBindingIgnore="true" />

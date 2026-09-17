@@ -7,6 +7,7 @@
 
 package im.vector.app.features.imagepack.picker
 
+import com.airbnb.epoxy.EpoxyAsyncUtil
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
@@ -23,7 +24,12 @@ class StickerPickerController @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
-) : TypedEpoxyController<StickerPickerController.Data>() {
+) : TypedEpoxyController<StickerPickerController.Data>(
+        // A pack of any size is hundreds of models; building and diffing them on the main thread is
+        // what the sheet used to wait for before it could draw.
+        EpoxyAsyncUtil.getAsyncBackgroundHandler(),
+        EpoxyAsyncUtil.getAsyncBackgroundHandler(),
+) {
 
     data class Data(
             val frequentlyUsed: List<ResolvedImage>,
@@ -84,6 +90,7 @@ class StickerPickerController @Inject constructor(
                     id("frequent_${image.mxcUrl}")
                     // Full (original) file: it animates, and server thumbnails flatten transparency.
                     resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
+                    mxcUrl(image.mxcUrl)
                     contentDescription(image.body ?: image.shortcode)
                     autoplay(host.vectorPreferences.autoplayAnimatedImages())
                     onClickListener { host.listener?.onStickerClicked(image) }
@@ -104,6 +111,7 @@ class StickerPickerController @Inject constructor(
                     id("${packKey}_${image.shortcode}")
                     // Full (original) file: it animates, and server thumbnails flatten transparency.
                     resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
+                    mxcUrl(image.mxcUrl)
                     contentDescription(image.body ?: image.shortcode)
                     autoplay(host.vectorPreferences.autoplayAnimatedImages())
                     onClickListener { host.listener?.onStickerClicked(image) }

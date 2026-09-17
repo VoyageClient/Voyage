@@ -43,6 +43,7 @@ import javax.inject.Singleton
 @Singleton
 class ImagePackProvider @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
+        private val diskCache: ImagePackDiskCache,
 ) {
 
     private val roomPackTypes = setOf(EventType.STATE_ROOM_IMAGE_PACK, EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE)
@@ -130,7 +131,10 @@ class ImagePackProvider @Inject constructor(
 
     /** Only the packs active in pickers (personal pack + packs enabled via m.image_pack.rooms), with
      * duplicate emoticon shortcodes disambiguated (`name`, `name@2`, `name@3`…) in priority order. */
-    fun getEnabledImagePacks(roomId: String?): List<ResolvedImagePack> = disambiguate(getImagePacks(roomId).filter { it.enabled })
+    fun getEnabledImagePacks(roomId: String?): List<ResolvedImagePack> = enabledPacksOf(getImagePacks(roomId))
+
+    /** The picker-active subset of an already-resolved set (e.g. one out of [cachedImagePacks]). */
+    fun enabledPacksOf(packs: List<ResolvedImagePack>): List<ResolvedImagePack> = disambiguate(packs.filter { it.enabled })
 
     /** Display order for pack lists: personal pack first, then room packs grouped by room (rooms
      * alphabetical), packs alphabetical within their room. Display-only — aggregation priority
@@ -273,6 +277,34 @@ class ImagePackProvider @Inject constructor(
     fun emoticonsOf(packs: List<ResolvedImagePack>): List<ResolvedImage> = collectImages(packs, ImagePackUsage.EMOTICON)
 
     private val emoticonCache = ConcurrentHashMap<String, List<ResolvedImage>>()
+    private val packCache = ConcurrentHashMap<String, List<ResolvedImagePack>>()
+
+    /**
+     * The packs last resolved for [roomId], for a picker that has to draw before [getImagePacks] — a walk
+     * of account data, room state and parent-space state, a second's worth in a room with several packs —
+     * can run. Empty only until [warmImagePacks] or a collector of [getImagePacksLive] has filled it.
+     */
+    fun cachedImagePacks(roomId: String?): List<ResolvedImagePack> = packCache[emoticonCacheKey(roomId)].orEmpty()
+
+    /** Fills [cachedImagePacks] from the stored copy, for the first open of a session. Off-main. */
+    fun warmImagePacks(roomId: String?): List<ResolvedImagePack> {
+        val key = emoticonCacheKey(roomId)
+        packCache[key]?.let { return it }
+        val stored = diskCache.read(key).orEmpty()
+        // Don't cache an empty read as an answer: it is "nothing stored", not "no packs".
+        if (stored.isNotEmpty()) packCache[key] = stored
+        return stored
+    }
+
+    /** Re-resolves the packs and stores them, for showing the cached copy and correcting it after. Off-main. */
+    fun refreshImagePacks(roomId: String?): List<ResolvedImagePack> = getImagePacks(roomId).also { store(roomId, it) }
+
+    private fun store(roomId: String?, packs: List<ResolvedImagePack>) {
+        val key = emoticonCacheKey(roomId)
+        if (packCache[key] == packs) return
+        packCache[key] = packs
+        diskCache.write(key, packs)
+    }
 
     // Session-keyed: the cache includes the account's personal user_emotes pack, which must not
     // surface in another account's autocomplete after a switch.
@@ -312,7 +344,11 @@ class ImagePackProvider @Inject constructor(
                 ?.stateService()
                 ?.getStateEventsFlow(roomPackTypes, QueryStringValue.IsNotNull)
                 ?: flowOf(emptyList())
+        // Every collector warms the caches the pickers read, so the room being open is enough to keep
+        // them current — and off-main, since the aggregation is all DB reads.
         return combine(accountDataFlow, roomStateFlow) { _, _ -> getImagePacks(roomId) }
+                .onEach { store(roomId, it) }
+                .flowOn(Dispatchers.Default)
     }
 
     private fun Session.readImagePackRooms(): ImagePackRoomsContent? {

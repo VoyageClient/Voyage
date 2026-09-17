@@ -68,6 +68,14 @@ class EmojiDataSource @Inject constructor(
                 ?: EmojiData(emptyList(), emptyMap(), emptyMap())
     }
 
+    /**
+     * Starts parsing the bundled resource without waiting for it. Only search needs what it holds
+     * (names and keywords), so a picker kicks it off as it opens rather than blocking on it.
+     */
+    fun prime() {
+        rawData.start()
+    }
+
     private val quickReactions = mutableListOf<EmojiItem>()
 
     private fun isEmojiRenderable(emoji: String): Boolean {

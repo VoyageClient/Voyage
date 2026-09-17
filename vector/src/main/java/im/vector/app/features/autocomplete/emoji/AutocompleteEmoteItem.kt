@@ -19,6 +19,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.features.imagepack.EmoteFrameCache
 import im.vector.app.features.imagepack.ResolvedImage
 
 @EpoxyModelClass
@@ -43,10 +44,12 @@ abstract class AutocompleteEmoteItem : VectorEpoxyModel<AutocompleteEmoteItem.Ho
                 if (image.personal) holder.view.context.getString(im.vector.lib.strings.CommonStrings.image_pack_your_personal_pack)
                 else image.packDisplayName
         )
-        GlideApp.with(holder.image)
-                .load(resolvedUrl)
-                .into(holder.image)
-        holder.view.onClick(onClickListener)
+        GlideApp.with(holder.image).load(resolvedUrl).into(holder.image)
+        holder.view.onClick { view ->
+            // What this row drew is what an emote span in the message will show at once.
+            EmoteFrameCache.captureFrom(holder.image, image.mxcUrl)
+            onClickListener?.invoke(view)
+        }
     }
 
     override fun unbind(holder: Holder) {

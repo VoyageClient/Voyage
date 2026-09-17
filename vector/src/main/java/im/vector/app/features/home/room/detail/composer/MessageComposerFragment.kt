@@ -89,8 +89,8 @@ import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.matrixto.OriginOfMatrixTo
-import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.permalink.NavigationInterceptor
 import im.vector.app.features.permalink.PermalinkHandler
@@ -216,6 +216,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         setupComposer()
         setupEmojiButton()
         setupStickerPicker()
+        // Both pickers read the same caches; filling them while the room opens is what makes either of
+        // them draw its content in the frame it is opened in.
+        viewLifecycleOwner.lifecycleScope.launch { emojiPickerSectionFactory.warm(roomId) }
 
         // Avoid a one-frame flash before renderRegularMode runs.
         if (!vectorPreferences.isVoiceMessageButtonEnabled()) {

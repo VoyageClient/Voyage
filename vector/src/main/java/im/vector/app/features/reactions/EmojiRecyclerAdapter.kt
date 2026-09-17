@@ -7,6 +7,7 @@
 package im.vector.app.features.reactions
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Build
 import android.text.Layout
 import android.text.StaticLayout
@@ -16,11 +17,17 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.emoji2.text.EmojiCompat
-import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.glide.GridImagePreloader
+import im.vector.app.features.imagepack.EmoteFrameCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,6 +37,9 @@ import javax.inject.Inject
  * Renders the reaction picker grid: a mix of custom-emote (image) packs and unicode emoji categories,
  * each as a header-prefixed section. Tabs in the activity map 1:1 to these sections.
  */
+private const val EMOTE_CELL_PX = 96
+private const val ITEM_VIEW_CACHE_SIZE = 300
+
 class EmojiRecyclerAdapter @Inject constructor() :
         RecyclerView.Adapter<EmojiRecyclerAdapter.ViewHolder>() {
 
@@ -37,6 +47,7 @@ class EmojiRecyclerAdapter @Inject constructor() :
     var interactionListener: InteractionListener? = null
 
     private var sections: List<EmojiPickerSection> = emptyList()
+
     private var mRecyclerView: RecyclerView? = null
 
     private var currentFirstVisibleSection = 0
@@ -49,7 +60,20 @@ class EmojiRecyclerAdapter @Inject constructor() :
     @SuppressLint("NotifyDataSetChanged")
     fun update(sections: List<EmojiPickerSection>) {
         this.sections = sections
+        rebuildPositionTables()
         notifyDataSetChanged()
+        mRecyclerView?.context?.let { context ->
+            val emotes = sections.flatMap { section -> section.items }.filterIsInstance<EmojiPickerItem.Emote>()
+            val mxcByResolvedUrl = emotes.mapNotNull { emote -> emote.resolvedUrl?.let { it to emote.key } }.toMap()
+            GridImagePreloader.warm(
+                    key = "emotes",
+                    context = context,
+                    urls = emotes.mapNotNull { it.resolvedUrl },
+                    size = EMOTE_CELL_PX,
+                    animated = false,
+                    keepFrameFor = { resolvedUrl -> mxcByResolvedUrl[resolvedUrl] },
+            )
+        }
     }
 
     private val itemClickListener = View.OnClickListener { view ->
@@ -57,7 +81,12 @@ class EmojiRecyclerAdapter @Inject constructor() :
             if (itemPosition != RecyclerView.NO_POSITION && !isSection(itemPosition)) {
                 when (val item = itemAt(itemPosition)) {
                     is EmojiPickerItem.Unicode -> reactionClickListener?.onReactionSelected(item.glyph)
-                    is EmojiPickerItem.Emote -> reactionClickListener?.onReactionSelected(item.key)
+                    is EmojiPickerItem.Emote -> {
+                        // What the cell drew is what the reaction or message will show at once.
+                        (view.findViewById(R.id.grid_item_emote_image) as? ImageView)
+                                ?.let { EmoteFrameCache.captureFrom(it, item.key) }
+                        reactionClickListener?.onReactionSelected(item.key)
+                    }
                     null -> Unit
                 }
             }
@@ -78,17 +107,23 @@ class EmojiRecyclerAdapter @Inject constructor() :
         }
         recyclerView.layoutManager = gridLayoutManager
 
-        recyclerView.itemAnimator = DefaultItemAnimator().apply {
-            supportsChangeAnimations = false
-        }
+        // Nothing here animates in or out — the whole grid is replaced at once — and an animator keeps
+        // its own copies of every changed holder.
+        recyclerView.itemAnimator = null
+        // The grid's own bounds never depend on its contents, so a data change need not remeasure it.
+        recyclerView.setHasFixedSize(true)
+        // Two screens' worth of already-bound cells, so scrolling back over what was just passed
+        // rebinds nothing: at ~150 cells to a screen the default of 2 is a rounding error here.
+        recyclerView.setItemViewCacheSize(ITEM_VIEW_CACHE_SIZE)
 
-        recyclerView.recycledViewPool.setMaxRecycledViews(R.layout.grid_item_emoji, 300)
-        recyclerView.recycledViewPool.setMaxRecycledViews(R.layout.grid_item_emote, 120)
+        recyclerView.recycledViewPool.setMaxRecycledViews(R.layout.grid_item_emoji, 400)
+        recyclerView.recycledViewPool.setMaxRecycledViews(R.layout.grid_item_emote, 400)
         recyclerView.addOnScrollListener(scrollListener)
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         this.mRecyclerView = null
+        GridImagePreloader.cancel("emotes")
         recyclerView.removeOnScrollListener(scrollListener)
         staticLayoutCache.clear()
         super.onDetachedFromRecyclerView(recyclerView)
@@ -122,51 +157,57 @@ class EmojiRecyclerAdapter @Inject constructor() :
         }
     }
 
-    private fun isSection(position: Int): Boolean {
-        var sectionOffset = 1
-        sections.forEach { section ->
-            if (position == sectionOffset - 1) return true
-            sectionOffset += section.items.size + 1
+    // Position tables, rebuilt with the data. Every one of these is asked per position, and the span
+    // size lookup is asked for positions far beyond the viewport — walking the section list each time
+    // made the cost of a scroll grow with how far down the grid it happened.
+    private var sectionOfPosition = IntArray(0)
+    private var headerPositions = IntArray(0)
+    private var sectionOffsets = IntArray(0)
+    private var itemOfPosition = arrayOfNulls<EmojiPickerItem>(0)
+
+    private fun rebuildPositionTables() {
+        val total = sections.sumOf { 1 + it.items.size }
+        val sectionOf = IntArray(total)
+        val items = arrayOfNulls<EmojiPickerItem>(total)
+        val headers = IntArray(sections.size)
+        val offsets = IntArray(sections.size)
+        var position = 0
+        sections.forEachIndexed { index, section ->
+            headers[index] = position
+            sectionOf[position] = index
+            position++
+            offsets[index] = position
+            section.items.forEach { item ->
+                sectionOf[position] = index
+                items[position] = item
+                position++
+            }
         }
-        return false
+        sectionOfPosition = sectionOf
+        itemOfPosition = items
+        headerPositions = headers
+        sectionOffsets = offsets
     }
 
-    private fun getSectionForAbsoluteIndex(position: Int): Int {
-        var sectionOffset = 1
-        var index = 0
-        sections.forEach { section ->
-            val lastItemInSection = sectionOffset + section.items.size - 1
-            if (position <= lastItemInSection) return index
-            sectionOffset = lastItemInSection + 2
-            index++
-        }
-        return (sections.size - 1).coerceAtLeast(0)
-    }
+    private fun isSection(position: Int): Boolean =
+            position in itemOfPosition.indices && itemOfPosition[position] == null
 
-    private fun getSectionOffset(section: Int): Int {
-        var sectionOffset = 1
-        sections.forEachIndexed { index, s ->
-            if (section == index) return sectionOffset
-            sectionOffset += s.items.size + 1
-        }
-        return sectionOffset
-    }
+    private fun getSectionForAbsoluteIndex(position: Int): Int =
+            sectionOfPosition.getOrNull(position) ?: (sections.size - 1).coerceAtLeast(0)
 
-    private fun itemAt(position: Int): EmojiPickerItem? {
-        val section = getSectionForAbsoluteIndex(position)
-        val sectionOffset = getSectionOffset(section)
-        return sections.getOrNull(section)?.items?.getOrNull(position - sectionOffset)
-    }
+    private fun getSectionOffset(section: Int): Int = sectionOffsets.getOrNull(section) ?: 1
+
+    private fun itemAt(position: Int): EmojiPickerItem? = itemOfPosition.getOrNull(position)
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         if (isSection(position)) {
             (holder as SectionViewHolder).bind(sections[getSectionForAbsoluteIndex(position)].name)
-            return
-        }
-        when (val item = itemAt(position)) {
-            is EmojiPickerItem.Unicode -> (holder as EmojiViewHolder).bind(item.glyph)
-            is EmojiPickerItem.Emote -> (holder as EmoteViewHolder).bind(item)
-            null -> Unit
+        } else {
+            when (val item = itemAt(position)) {
+                is EmojiPickerItem.Unicode -> (holder as EmojiViewHolder).bind(item.glyph)
+                is EmojiPickerItem.Emote -> (holder as EmoteViewHolder).bind(item)
+                null -> Unit
+            }
         }
     }
 
@@ -175,7 +216,7 @@ class EmojiRecyclerAdapter @Inject constructor() :
         super.onViewRecycled(holder)
     }
 
-    override fun getItemCount() = sections.sumOf { 1 /* header */ + it.items.size }
+    override fun getItemCount() = itemOfPosition.size
 
     abstract class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
@@ -196,12 +237,46 @@ class EmojiRecyclerAdapter @Inject constructor() :
 
         fun bind(item: EmojiPickerItem.Emote) {
             imageView.contentDescription = item.contentDescription
-            // Downsample to cell size so animated emotes play without a full-resolution decode.
-            GlideApp.with(imageView).load(item.resolvedUrl).override(96, 96).into(imageView)
+            // Drawn straight from memory, like the unicode cells' sprites: a cell scrolled back to
+            // repaints in its bind rather than blanking and waiting for a fresh request.
+            EmoteFrameCache.get(item.key)?.let {
+                imageView.setImageBitmap(it)
+                return
+            }
+            imageView.setImageDrawable(null)
+            // A still frame, at cell size. Animated emotes are the norm in a pack, and an animated
+            // drawable is delivered *synchronously* on a memory-cache hit — constructing one and
+            // starting it (which decodes a frame) cost 10-50ms of the bind, per cell. Unicode cells are
+            // fast for the same reason: they draw a ready bitmap.
+            GlideApp.with(imageView.context)
+                    .asBitmap()
+                    .load(item.resolvedUrl)
+                    .override(EMOTE_CELL_PX, EMOTE_CELL_PX)
+                    // Keep the decoded cell, not just the original: a pack's files are full-size, and
+                    // the default strategy caches only those — so every rebind decoded one again.
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .addListener(object : RequestListener<Bitmap> {
+                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean) = false
+
+                        override fun onResourceReady(
+                                resource: Bitmap,
+                                model: Any,
+                                target: Target<Bitmap>?,
+                                dataSource: DataSource,
+                                isFirstResource: Boolean,
+                        ): Boolean {
+                            // Keep it for every later bind of this emote, here and in the timeline.
+                            EmoteFrameCache.put(item.key, resource)
+                            return false
+                        }
+                    })
+                    .into(imageView)
         }
 
         fun clear() {
-            GlideApp.with(imageView.context.applicationContext).clear(imageView)
+            // Not Glide.clear(): a retriever lookup and a cancel per recycled cell cost ~15% of a
+            // scrolling second, and the next bind's into() cancels the old request for this view anyway.
+            imageView.setImageDrawable(null)
         }
     }
 

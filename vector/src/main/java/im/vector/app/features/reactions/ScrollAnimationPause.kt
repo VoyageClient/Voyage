@@ -11,9 +11,7 @@ import android.graphics.drawable.Animatable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import im.vector.app.features.settings.VectorPreferences
 
 /**
  * Keeps a grid of (possibly animated) images smooth to scroll: while the list is dragging/flinging it
@@ -21,13 +19,14 @@ import im.vector.app.features.settings.VectorPreferences
  * emotes/stickers play when idle without the per-frame redraw cost during a scroll. (Glide loading is
  * intentionally NOT paused here — pausing its request manager can get stuck and hang all later loads.)
  *
- * Only active in performance mode — capable devices keep animations running through the scroll.
- * Raw pref read (the key is seeded at startup) since callers include plain custom views.
+ * A pack grid holds dozens of animated images at once, each invalidating its cell every frame, which no
+ * device scrolls smoothly through — so this is not conditional on performance mode.
+ *
+ * Only what is on screen when a scroll starts is paused. Stopping drawables as they arrive mid-fling
+ * leaves the ones that have not decoded a frame yet with nothing to draw, which reads as a grid that
+ * loads nothing until the scroll stops.
  */
 fun RecyclerView.pauseImageAnimationsWhileScrolling() {
-    val performanceMode = PreferenceManager.getDefaultSharedPreferences(context)
-            .getBoolean(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY, false)
-    if (!performanceMode) return
     addOnScrollListener(object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             val idle = newState == RecyclerView.SCROLL_STATE_IDLE
@@ -40,7 +39,10 @@ fun RecyclerView.pauseImageAnimationsWhileScrolling() {
 
 private fun toggleAnimatables(view: View, play: Boolean) {
     when (view) {
-        is ImageView -> (view.drawable as? Animatable)?.let { if (play) it.start() else it.stop() }
+        // start/stop on an already-settled drawable still walks Glide's frame loader.
+        is ImageView -> (view.drawable as? Animatable)?.let {
+            if (play && !it.isRunning) it.start() else if (!play && it.isRunning) it.stop()
+        }
         is ViewGroup -> for (i in 0 until view.childCount) toggleAnimatables(view.getChildAt(i), play)
     }
 }

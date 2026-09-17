@@ -13,11 +13,17 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackSource
 import im.vector.app.features.imagepack.ImagePackUsageFilter
+import im.vector.app.features.reactions.data.EmojiCatalogCache
+import im.vector.app.features.reactions.data.EmojiCatalogCategory
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.reactions.data.RecentEmote
 import im.vector.app.features.reactions.data.RecentEmoteDataSource
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
@@ -32,18 +38,82 @@ class EmojiPickerSectionFactory @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val recentEmojiDataSource: RecentEmojiDataSource,
         private val recentEmoteDataSource: RecentEmoteDataSource,
+        private val catalogCache: EmojiCatalogCache,
         private val stringProvider: StringProvider,
 ) {
 
     /** Resolves a reaction/emote `mxc` key to its shortcode, for recents bookkeeping. */
     private val mxcToShortcode = HashMap<String, String>()
 
-    suspend fun build(roomId: String?): List<EmojiPickerSection> {
-        val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
+    /**
+     * Readies what a picker draws — the emoji categories and the room's packs — before one is opened.
+     * Cheap once the catalog is on disk; safe to call repeatedly.
+     */
+    suspend fun warm(roomId: String?) = withContext(Dispatchers.Default) {
+        emojiSections()
+        imagePackProvider.warmImagePacks(roomId)
+    }
+
+    /**
+     * The unicode categories: from this process, else from the stored catalog, else built from the
+     * bundled resource — which is the only path that has to parse it, and which stores the result.
+     */
+    private suspend fun emojiSections(): List<EmojiPickerSection> {
+        emojiSectionsCache?.let { return it }
+        // Both pickers can ask at once (a prewarm and an open); one builds, the other waits for it.
+        return sectionsLock.withLock { emojiSectionsCache ?: loadEmojiSections() }
+    }
+
+    private suspend fun loadEmojiSections(): List<EmojiPickerSection> {
+        catalogCache.read()?.let { stored ->
+            val sections = stored.map { category ->
+                EmojiPickerSection(
+                        name = category.name,
+                        tabGlyph = category.tabGlyph,
+                        tabImageUrl = null,
+                        items = category.glyphs.map { EmojiPickerItem.Unicode(it) },
+                )
+            }
+            emojiSectionsCache = sections
+            return sections
+        }
         val rawData = emojiDataSource.rawData.await()
+        val categories = rawData.categories.mapNotNull { category ->
+            val glyphs = category.emojis.mapNotNull { key -> rawData.emojis[key]?.emoji }
+            if (glyphs.isEmpty()) null else EmojiCatalogCategory(category.name, glyphs.first(), glyphs)
+        }
+        val sections = categories.map { category ->
+            EmojiPickerSection(
+                    name = category.name,
+                    tabGlyph = category.tabGlyph,
+                    tabImageUrl = null,
+                    items = category.glyphs.map { EmojiPickerItem.Unicode(it) },
+            )
+        }
+        if (sections.isNotEmpty()) {
+            emojiSectionsCache = sections
+            catalogCache.write(categories)
+        }
+        return sections
+    }
+
+    suspend fun build(roomId: String?): List<EmojiPickerSection> {
+        // Have the searchable data on its way while the grid draws from the catalog.
+        emojiDataSource.prime()
+        // Outside the Default block: the stored catalog means a picker never waits on the resource.
+        val emojiSections = emojiSections()
+        return withContext(Dispatchers.Default) { buildBlocking(roomId, emojiSections) }
+    }
+
+    private fun buildBlocking(roomId: String?, emojiSections: List<EmojiPickerSection>): List<EmojiPickerSection> {
+        val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
 
         val validEmoteMxcs = HashSet<String>()
-        val enabledPacks = imagePackProvider.sortForDisplay(ImagePackUsageFilter.emoticonPacks(imagePackProvider.getEnabledImagePacks(roomId)))
+        // The cached packs when the room has them, so a picker is not held up by the aggregation; it
+        // refreshes them itself for the next open.
+        val resolved = imagePackProvider.cachedImagePacks(roomId).ifEmpty { imagePackProvider.warmImagePacks(roomId) }
+                .ifEmpty { imagePackProvider.refreshImagePacks(roomId) }
+        val enabledPacks = imagePackProvider.sortForDisplay(ImagePackUsageFilter.emoticonPacks(imagePackProvider.enabledPacksOf(resolved)))
         val emoteSections = enabledPacks.mapNotNull { pack ->
             val emotes = pack.images
             if (emotes.isEmpty()) return@mapNotNull null
@@ -55,15 +125,6 @@ class EmojiPickerSectionFactory @Inject constructor(
                     tabGlyph = null,
                     tabImageUrl = contentUrlResolver?.fullSize(tabMxc),
                     items = emotes.map { it.toItem(contentUrlResolver) },
-            )
-        }
-
-        val emojiSections = rawData.categories.map { category ->
-            EmojiPickerSection(
-                    name = category.name,
-                    tabGlyph = category.emojis.firstOrNull()?.let { rawData.emojis[it]?.emoji },
-                    tabImageUrl = null,
-                    items = category.emojis.mapNotNull { key -> rawData.emojis[key]?.emoji?.let { EmojiPickerItem.Unicode(it) } },
             )
         }
 
@@ -126,7 +187,11 @@ class EmojiPickerSectionFactory @Inject constructor(
      * Narrows built sections to what matches [query], keeping the category grouping and dropping the
      * categories left with nothing. Unicode emojis match on name/keyword, emotes on their shortcode.
      */
-    suspend fun filterSections(sections: List<EmojiPickerSection>, query: String): List<EmojiPickerSection> {
+    suspend fun filterSections(sections: List<EmojiPickerSection>, query: String): List<EmojiPickerSection> = withContext(Dispatchers.Default) {
+        filterSectionsBlocking(sections, query)
+    }
+
+    private suspend fun filterSectionsBlocking(sections: List<EmojiPickerSection>, query: String): List<EmojiPickerSection> {
         if (query.isBlank()) return sections
         val matchingGlyphs = emojiDataSource.filterWith(query).mapTo(HashSet()) { it.emoji }
         return sections.mapNotNull { section ->
@@ -164,5 +229,16 @@ class EmojiPickerSectionFactory @Inject constructor(
 
     companion object {
         private const val FREQUENT_LIMIT = 48
+
+        /**
+         * The unicode categories, built once per process rather than per picker: they come from an app
+         * resource and never change, while every open used to rebuild all ~1800 of their items. Held
+         * here rather than on the instance because each screen injects a factory of its own — and
+         * because, unlike the rest of a factory's state, this carries nothing account-specific.
+         */
+        @Volatile
+        private var emojiSectionsCache: List<EmojiPickerSection>? = null
+
+        private val sectionsLock = Mutex()
     }
 }

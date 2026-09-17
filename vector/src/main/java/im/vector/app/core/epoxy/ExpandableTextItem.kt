@@ -7,6 +7,7 @@
 
 package im.vector.app.core.epoxy
 
+import android.text.SpannableString
 import android.text.TextUtils
 import android.text.method.MovementMethod
 import android.view.MotionEvent
@@ -66,7 +67,9 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         // Apply the final collapsed/expanded state before the text is laid out, so a reused holder never
         // flashes the full height before settling — that flash was the flicker on open.
         applyMaxLines(holder.content)
-        holder.content.text = content
+        // TextView mutates selection spans, but Epoxy hashes the model content. Copy the Spannable
+        // while retaining span objects so asynchronous emote updates still reach the view.
+        holder.content.text = SpannableString(content)
         holder.content.bindEmoteImageSpans()
         holder.content.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP) {

@@ -24,6 +24,7 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
+import im.vector.app.features.imagepack.EmoteFrameCache
 import im.vector.app.features.reactions.EmojiDrawView
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import java.lang.ref.WeakReference
@@ -51,6 +52,7 @@ class EmoteImageSpan(
     }
 
     private var drawable: Drawable? = null
+    private var frameCached = false
     private var tv: WeakReference<TextView>? = null
 
     // We draw the drawable ourselves (not via an ImageView), so we must relay its frame invalidations to
@@ -83,6 +85,8 @@ class EmoteImageSpan(
         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
             val textView = tv?.get() ?: return
             drawable = BitmapDrawable(textView.resources, resource)
+            EmoteFrameCache.put(mxcUrl, resource)
+            frameCached = true
             repaint()
         }
     }
@@ -93,6 +97,12 @@ class EmoteImageSpan(
 
     fun bind(textView: TextView) {
         tv = WeakReference(textView)
+        if (drawable == null) {
+            EmoteFrameCache.get(mxcUrl)?.let {
+                drawable = BitmapDrawable(textView.resources, it)
+                frameCached = true
+            }
+        }
         if (PerformanceMode.enabled) {
             // An animated emote redraws its whole TextView every frame; decode a single static frame instead.
             GlideApp.with(textView).asBitmap().load(resolvedUrl).into(bitmapTarget)
@@ -139,6 +149,11 @@ class EmoteImageSpan(
         val dr = drawable ?: run {
             drawPlaceholder(canvas, x, y, paint)
             return
+        }
+        if (!frameCached) {
+            // Taken here rather than on load: an animated emote has decoded nothing yet at that point.
+            frameCached = true
+            EmoteFrameCache.snapshot(dr)?.let { EmoteFrameCache.put(mxcUrl, it) }
         }
         val box = boxSize(paint)
         // Fit-centre within the reserved square, preserving aspect ratio.
