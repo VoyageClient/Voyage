@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.user.accountdata
 
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
+import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -25,18 +26,32 @@ import javax.inject.Inject
 
 internal class DirectChatsHelper @Inject constructor(
         private val stores: SessionStores,
+        private val directRoomsCache: org.matrix.android.sdk.internal.session.room.summary.DirectRoomsCache,
 ) {
 
     /**
-     * @return a map of userId <-> list of roomId
+     * Merge stored m.direct with local summaries: PUT replaces the whole map,
+     * so rebuilding from a partially synced room list would erase unseen DMs.
      */
-    fun getLocalDirectMessages(filterRoomId: String? = null): DirectMessagesContent {
-        return stores.roomSummary.directRooms()
-                .asSequence()
+    fun getDirectMessagesToPut(filterRoomId: String? = null): DirectMessagesContent {
+        val stored = stores.accountData.getUserAccountData(UserAccountDataTypes.TYPE_DIRECT_MESSAGES)
+                ?.let { ContentMapper.map(it.contentStr) }
+                ?.toModel<DirectMessagesContent>()
+                .orEmpty()
+        val merged: MutableMap<String, MutableList<String>> = stored
+                .mapValuesTo(mutableMapOf()) { (_, roomIds) -> roomIds.toMutableList() }
+        stores.roomSummary.directRooms()
                 .filter { (roomId, directUserId, membershipStr) ->
                     roomId != filterRoomId && directUserId != null && Membership.valueOf(membershipStr).isActive()
                 }
-                .groupByTo(mutableMapOf(), { it.second!! }, { it.first })
+                .forEach { (roomId, directUserId, _) ->
+                    merged.getOrPut(directUserId!!) { mutableListOf() }.let { if (roomId !in it) it.add(roomId) }
+                }
+        if (filterRoomId != null) {
+            merged.values.forEach { it.remove(filterRoomId) }
+            merged.entries.removeAll { it.value.isEmpty() }
+        }
+        return merged
     }
 
     /**
@@ -46,5 +61,6 @@ internal class DirectChatsHelper @Inject constructor(
      */
     fun storeLocally(directMessages: DirectMessagesContent) {
         stores.accountData.upsertUserAccountData(UserAccountDataTypes.TYPE_DIRECT_MESSAGES, ContentMapper.map(directMessages))
+        directRoomsCache.invalidate()
     }
 }

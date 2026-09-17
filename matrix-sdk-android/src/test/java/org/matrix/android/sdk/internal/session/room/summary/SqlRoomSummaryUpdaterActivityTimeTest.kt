@@ -44,11 +44,14 @@ internal class SqlRoomSummaryUpdaterActivityTimeTest {
             roomAccountDataDataSource = mockk { every { getAccountDataEvent(any(), any()) } returns null },
             roomSummaryEventDecryptor = mockk(relaxed = true),
             roomSummaryEventsHelper = eventsHelper,
+            directRoomsCache = DirectRoomsCache(),
+            lightweightSettingsStorage = mockk { every { areThreadMessagesEnabled() } returns true },
             clock = FakeClock().apply { givenEpoch(NOW) },
     )
 
     init {
         every { eventsHelper.getLatestPreviewableEvent(any(), any(), any()) } returns null
+        every { eventsHelper.getLatestUnreadEvent(any(), any()) } returns null
     }
 
     @After
@@ -75,7 +78,7 @@ internal class SqlRoomSummaryUpdaterActivityTimeTest {
         val dbId = stores.event.insert(
                 EventEntity(eventId = "\$message", roomId = A_ROOM_ID, type = EventType.MESSAGE, sender = "@bob:example.org", originServerTs = ts)
         )
-        val timelineEvent = TimelineEventEntity(eventId = "\$message", roomId = A_ROOM_ID, displayIndex = 0)
+        val timelineEvent = TimelineEventEntity(eventId = "\$message", roomId = A_ROOM_ID)
         stores.timelineEvent.insert(timelineEvent, chunkId = 1L, rootEventDbId = dbId)
         every { eventsHelper.getLatestPreviewableEvent(any(), any(), any()) } returns
                 stores.timelineEvent.getByRoomAndEventId(A_ROOM_ID, "\$message")

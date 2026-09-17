@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.StealthAccountData
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
@@ -47,6 +48,7 @@ internal class DefaultSessionAccountDataService @Inject constructor(
         private val roomAccountDataDataSource: RoomAccountDataDataSource,
         private val taskExecutor: TaskExecutor,
         private val profileOverridesUpdater: ProfileOverridesUpdater,
+        private val directRoomsCache: org.matrix.android.sdk.internal.session.room.summary.DirectRoomsCache,
 ) : SessionAccountDataService {
 
     override fun getUserAccountDataEvent(type: String): UserAccountDataEvent? =
@@ -98,6 +100,7 @@ internal class DefaultSessionAccountDataService @Inject constructor(
                 stores.accountData.upsertUserAccountData(type, ContentMapper.map(content))
             }
         }
+        if (type == UserAccountDataTypes.TYPE_DIRECT_MESSAGES) directRoomsCache.invalidate()
         if (ProfileOverrides.isAccountDataType(type)) {
             // Off the caller's (usually main) thread: applying rewrites affected room summaries.
             database.awaitDbTransaction(dispatcher) {

@@ -41,9 +41,9 @@ class GetNotificationCountForSpacesUseCase @Inject constructor(
                     val inviteCount = if (autoAcceptInvites.hideInvites) {
                         0
                     } else {
-                        session.roomService().getRoomSummaries(
+                        session.roomService().getRoomSummariesCount(
                                 roomSummaryQueryParams { this.memberships = listOf(Membership.INVITE) }
-                        ).size
+                        )
                     }
                     val totalCount = session.roomService().getNotificationCountForRooms(spaceQueryParams)
                     RoomAggregateNotificationCount(

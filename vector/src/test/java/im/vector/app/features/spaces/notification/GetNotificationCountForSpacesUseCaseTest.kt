@@ -7,6 +7,7 @@
 
 package im.vector.app.features.spaces.notification
 
+import im.vector.app.features.home.HomeScreenVisibility
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeAutoAcceptInvites
 import im.vector.app.test.test
@@ -15,6 +16,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -23,19 +25,25 @@ import org.junit.Before
 import org.junit.Test
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.session.room.model.Membership
-import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
 
 internal class GetNotificationCountForSpacesUseCaseTest {
 
     private val fakeActiveSessionHolder = FakeActiveSessionHolder()
     private val fakeAutoAcceptInvites = FakeAutoAcceptInvites()
+    private val fakeHomeScreenVisibility = mockk<HomeScreenVisibility>()
 
     private val getNotificationCountForSpacesUseCase = GetNotificationCountForSpacesUseCase(
             activeSessionHolder = fakeActiveSessionHolder.instance,
             autoAcceptInvites = fakeAutoAcceptInvites,
-            homeScreenVisibility = mockk(relaxed = true),
+            homeScreenVisibility = fakeHomeScreenVisibility,
     )
+
+    private fun givenHomeScreenVisible() {
+        every { fakeHomeScreenVisibility.whileVisible<Unit>(any(), Unit) } answers {
+            firstArg<() -> Flow<Unit>>().invoke()
+        }
+    }
 
     @Before
     fun setUp() {
@@ -54,6 +62,7 @@ internal class GetNotificationCountForSpacesUseCaseTest {
         val updateFlow = fakeActiveSessionHolder.fakeSession
                 .fakeRoomService
                 .givenRoomSummaryUpdateFlowEmits()
+        givenHomeScreenVisible()
         every { updateFlow.sample(any<Long>()) } returns updateFlow
         val expectedNotificationCount = RoomAggregateNotificationCount(
                 notificationCount = 1,
@@ -87,6 +96,7 @@ internal class GetNotificationCountForSpacesUseCaseTest {
         val updateFlow = fakeActiveSessionHolder.fakeSession
                 .fakeRoomService
                 .givenRoomSummaryUpdateFlowEmits()
+        givenHomeScreenVisible()
         every { updateFlow.sample(any<Long>()) } returns updateFlow
         val notificationCount = RoomAggregateNotificationCount(
                 notificationCount = 1,
@@ -95,14 +105,14 @@ internal class GetNotificationCountForSpacesUseCaseTest {
         fakeActiveSessionHolder.fakeSession
                 .fakeRoomService
                 .givenGetNotificationCountForRoomsReturns(notificationCount)
-        val invitedRooms = listOf<RoomSummary>(mockk())
+        val invitedRoomCount = 1
         fakeActiveSessionHolder.fakeSession
                 .fakeRoomService
-                .givenGetRoomSummaries(invitedRooms)
+                .givenGetRoomSummariesCountReturns(invitedRoomCount)
         fakeAutoAcceptInvites._isEnabled = false
         val expectedNotificationCount = RoomAggregateNotificationCount(
-                notificationCount = notificationCount.notificationCount + invitedRooms.size,
-                highlightCount = notificationCount.highlightCount + invitedRooms.size,
+                notificationCount = notificationCount.notificationCount + invitedRoomCount,
+                highlightCount = notificationCount.highlightCount + invitedRoomCount,
         )
 
         // When
@@ -114,7 +124,7 @@ internal class GetNotificationCountForSpacesUseCaseTest {
                 .assertValues(expectedNotificationCount)
                 .finish()
         verify {
-            fakeActiveSessionHolder.fakeSession.fakeRoomService.getRoomSummaries(
+            fakeActiveSessionHolder.fakeSession.fakeRoomService.getRoomSummariesCount(
                     queryParams = match { it.memberships == listOf(Membership.INVITE) }
             )
             fakeActiveSessionHolder.fakeSession.fakeRoomService.getNotificationCountForRooms(

@@ -41,15 +41,21 @@ class SqlRoomSummaryEventsHelperTest {
 
     private fun event(
             eventId: String,
+            ts: Long = 1_000L,
             type: String = EventType.MESSAGE,
             redacted: Boolean = false,
             isUseless: Boolean = false,
             relationType: String? = null,
     ): TimelineEventEntity {
         val content = if (relationType == null) {
-            mapOf("body" to "hi")
+            mapOf("body" to "hi", "msgtype" to "m.text")
         } else {
-            mapOf("body" to "hi", "m.relates_to" to mapOf("rel_type" to relationType, "event_id" to "\$target"))
+            mapOf(
+                    "body" to "* edited",
+                    "msgtype" to "m.text",
+                    "m.new_content" to mapOf("body" to "edited", "msgtype" to "m.text"),
+                    "m.relates_to" to mapOf("rel_type" to relationType, "event_id" to "\$target"),
+            )
         }
         val unsigned = if (redacted) {
             MoshiProvider.providesMoshi().adapter(UnsignedData::class.java)
@@ -64,10 +70,10 @@ class SqlRoomSummaryEventsHelperTest {
                 content = MoshiProvider.providesMoshi().adapter(Map::class.java).toJson(content),
                 isUseless = isUseless,
                 sender = A_SENDER,
-                originServerTs = 1_000L,
+                originServerTs = ts,
                 unsignedData = unsigned,
         )
-        return TimelineEventEntity(localId = 1L, eventId = eventId, roomId = A_ROOM_ID, displayIndex = 0, root = root)
+        return TimelineEventEntity(localId = 1L, eventId = eventId, roomId = A_ROOM_ID, ts = ts, root = root)
     }
 
     /**
@@ -129,6 +135,13 @@ class SqlRoomSummaryEventsHelperTest {
         helper.getLatestPreviewableEvent(stores, A_ROOM_ID)?.eventId shouldBe "\$message"
     }
 
+    @Test
+    fun `given an edit is the only delivered event, then it is the preview fallback`() {
+        liveChunkHolds(event("\$edit", relationType = RelationType.REPLACE))
+
+        helper.getLatestPreviewableEvent(stores, A_ROOM_ID)?.eventId shouldBe "\$edit"
+    }
+
     /** Nothing previewable in the newest slice: the caller keeps whatever is already persisted. */
     @Test
     fun `given only undone reactions, then no preview is found`() {
@@ -136,5 +149,22 @@ class SqlRoomSummaryEventsHelperTest {
         every { stores.timelineEvent.getByRoomTypesNewest(A_ROOM_ID, any(), any()) } returns emptyList()
 
         helper.getLatestPreviewableEvent(stores, A_ROOM_ID).shouldBeNull()
+    }
+
+    @Test
+    fun `given an older failed send and a newer synced message, then the synced message is the preview`() {
+        val synced = event("\$synced", ts = 2_000L)
+        liveChunkHolds(synced)
+        every { stores.timelineEvent.getSendingByRoom(A_ROOM_ID) } returns listOf(event("\$failed", ts = 1_000L))
+
+        helper.getLatestPreviewableEvent(stores, A_ROOM_ID)?.eventId shouldBe "\$synced"
+    }
+
+    @Test
+    fun `given a newer membership event, then the latest message from an older chunk is the preview`() {
+        liveChunkHolds(event("\$join", type = EventType.STATE_ROOM_MEMBER, ts = 2_000L))
+        every { stores.timelineEvent.getByRoomTypesNewest(A_ROOM_ID, any(), any()) } returns listOf(event("\$message", ts = 1_000L))
+
+        helper.getLatestPreviewableEvent(stores, A_ROOM_ID)?.eventId shouldBe "\$message"
     }
 }

@@ -26,41 +26,56 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
             .plus(matrixConfiguration.customEventTypesProvider?.customPreviewableEventTypes.orEmpty())
             .toSet()
 
-    /**
-     * The room-list preview event.
-     *
-     * [thorough] controls cost vs completeness:
-     * - false (the sync / redaction hot path): only the sending queue and the newest slice of the live chunk
-     *   are scanned — cheap, runs for every touched room on every sync. When it finds nothing (e.g. the newest
-     *   events are a redaction/membership burst) it returns null and the caller keeps the already-persisted
-     *   preview, so a dormant room doesn't lose its last message.
-     * - true (room open): additionally searches the whole room by timestamp for the newest previewable
-     *   message, correcting a stale/missing preview that sits many events back or in an older chunk. The result
-     *   is persisted, so it survives restarts until a newer message replaces it (either path).
-     */
+    /** Returns the newest event that can be rendered as a room-list preview. */
     fun getLatestPreviewableEvent(stores: SessionStores, roomId: String, thorough: Boolean = false): TimelineEventEntity? {
         val ignored = stores.user.getIgnoredUserIds().toSet()
-        val sending = stores.timelineEvent.getSendingByRoom(roomId).filter { it.isPreviewable(ignored) }
-        if (sending.isNotEmpty()) {
-            return sending.maxByOrNull { it.displayIndex }
-        }
+        val sendingEvents = stores.timelineEvent.getSendingByRoom(roomId)
+        val sending = sendingEvents.filter { it.isPreviewable(ignored) }
         val chunkId = stores.chunk.lastForward(roomId)?.id
-        val newest = chunkId?.let {
-            stores.timelineEvent.getByChunkNewest(it, PREVIEW_SCAN_LIMIT).firstOrNull { e -> e.isPreviewable(ignored) }
+        val liveEvents = chunkId?.let { stores.timelineEvent.getByChunkNewest(it, PREVIEW_SCAN_LIMIT) }.orEmpty()
+        val live = liveEvents.firstOrNull { it.isPreviewable(ignored) }
+        // The live range holds the room's newest events, so once it has named one there is nothing newer
+        // for a room-wide scan to find — and that scan runs for every touched room on every sync.
+        val crossChunkEvents = if (thorough || live == null) {
+            val limit = if (thorough) PREVIEW_CROSS_CHUNK_THOROUGH_LIMIT else PREVIEW_CROSS_CHUNK_LIMIT
+            stores.timelineEvent.getByRoomTypesNewest(roomId, allowedTypes, limit)
+        } else {
+            emptyList()
         }
-        if (newest != null || !thorough) return newest
-        // Only previewable event types are considered here, so a redaction/membership burst ahead of the last
-        // real message (even one in an older chunk) doesn't hide it.
-        return stores.timelineEvent.getByRoomTypesNewest(roomId, allowedTypes, PREVIEW_CROSS_CHUNK_LIMIT)
-                .firstOrNull { it.isPreviewable(ignored) }
+        val crossChunk = crossChunkEvents.firstOrNull { it.isPreviewable(ignored) }
+        val candidates = listOfNotNull(sending.lastOrNull(), live, crossChunk)
+        return candidates.maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.eventId }))
+                ?: listOf(
+                        sendingEvents,
+                        liveEvents,
+                        crossChunkEvents,
+                ).mapNotNull { events -> events.firstOrNull { it.isPreviewableEdit(ignored) } }
+                        .maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.eventId }))
+    }
+
+    fun getLatestUnreadEvent(stores: SessionStores, roomId: String): TimelineEventEntity? {
+        val excludedSenders = stores.user.getIgnoredUserIds().ifEmpty { listOf(EMPTY_SENDER) }
+        return stores.timelineEvent.getLatestUnreadEvent(roomId, UNREAD_TYPES, excludedSenders)
     }
 
     companion object {
         private const val PREVIEW_SCAN_LIMIT = 200L
         private const val PREVIEW_CROSS_CHUNK_LIMIT = 200L
+        private const val PREVIEW_CROSS_CHUNK_THOROUGH_LIMIT = 1_000L
+
+        private const val EMPTY_SENDER = ""
+        private val UNREAD_TYPES = listOf(EventType.MESSAGE, EventType.ENCRYPTED, EventType.STICKER) + EventType.POLL_START.values
     }
 
     private fun TimelineEventEntity.isPreviewable(ignored: Set<String>): Boolean {
+        return isPreviewableBase(ignored) && root?.asDomain()?.getRelationContent()?.type != RelationType.REPLACE
+    }
+
+    private fun TimelineEventEntity.isPreviewableEdit(ignored: Set<String>): Boolean {
+        return isPreviewableBase(ignored) && root?.asDomain()?.getRelationContent()?.type == RelationType.REPLACE
+    }
+
+    private fun TimelineEventEntity.isPreviewableBase(ignored: Set<String>): Boolean {
         val root = this.root ?: return false
         // An unknown custom type still previews (as the "not handled" notice) — it IS the room's
         // latest activity. Only known-but-unpreviewable types (reactions, state, calls) are skipped.
@@ -74,7 +89,6 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         // with itself, since the stale pointer showed the placeholder until something recomputed. Redacting a
         // reaction is an undo rather than a deletion, so those still fall through to the last real message.
         if (domain.isRedacted() && root.type == EventType.REACTION) return false
-        if (domain.getRelationContent()?.type == RelationType.REPLACE) return false
         // thread replies belong to their own timeline, not the room's conversation
         if (domain.getRelationContent()?.type == RelationType.THREAD) return false
         return true

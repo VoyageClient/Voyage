@@ -97,7 +97,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
     }
 
     private suspend fun updateDirectUserIds(directUserIdsToUpdate: Map<String, String>) {
-        val directChats = directChatsHelper.getLocalDirectMessages().toMutable()
+        val directChats = directChatsHelper.getDirectMessagesToPut().toMutable()
         var hasUpdate = false
         directUserIdsToUpdate.forEach { (roomId, candidateUserId) ->
             // consider room is a DM if referenced in the DM dictionary

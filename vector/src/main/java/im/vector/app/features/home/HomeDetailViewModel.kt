@@ -200,21 +200,21 @@ class HomeDetailViewModel @AssistedInject constructor(
                     var dmInvites = 0
                     var roomsInvite = 0
                     if (autoAcceptInvites.showInvites()) {
-                        dmInvites = session.roomService().getRoomSummaries(
+                        dmInvites = session.roomService().getRoomSummariesCount(
                                 roomSummaryQueryParams {
                                     memberships = listOf(Membership.INVITE)
                                     roomCategoryFilter = RoomCategoryFilter.ONLY_DM
                                     spaceFilter = activeSpaceRoomId.toActiveSpaceOrNoFilter()
                                 }
-                        ).size
+                        )
 
-                        roomsInvite = session.roomService().getRoomSummaries(
+                        roomsInvite = session.roomService().getRoomSummariesCount(
                                 roomSummaryQueryParams {
                                     memberships = listOf(Membership.INVITE)
                                     roomCategoryFilter = RoomCategoryFilter.ONLY_ROOMS
                                     spaceFilter = activeSpaceRoomId.toActiveSpaceOrOrphanRooms()
                                 }
-                        ).size
+                        )
                     }
 
                     val dmRooms = session.roomService().getNotificationCountForRooms(

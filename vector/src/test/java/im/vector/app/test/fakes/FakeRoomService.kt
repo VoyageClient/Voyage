@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomService
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
 
@@ -25,6 +26,10 @@ class FakeRoomService(
 ) : RoomService by mockk(), RoomPagingService by mockk() {
 
     override fun getRoom(roomId: String) = fakeRoom
+
+    fun givenGetRoomMemberReturns(member: RoomMemberSummary?) {
+        every { getRoomMember(any(), any()) } returns member
+    }
 
     fun getRoomSummaryReturns(roomSummary: RoomSummary?) {
         every { getRoomSummary(any()) } returns roomSummary
@@ -50,5 +55,9 @@ class FakeRoomService(
 
     fun givenGetRoomSummaries(roomSummaries: List<RoomSummary>) {
         every { getRoomSummaries(any()) } returns roomSummaries
+    }
+
+    fun givenGetRoomSummariesCountReturns(count: Int) {
+        every { getRoomSummariesCount(queryParams = any()) } returns count
     }
 }

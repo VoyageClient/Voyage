@@ -21,11 +21,13 @@ import app.cash.sqldelight.Query
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.query.isNormalized
@@ -50,6 +52,7 @@ import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabaseRead
 import org.matrix.android.sdk.internal.query.matches
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.sync.SyncImportState
 import javax.inject.Inject
 import org.matrix.android.sdk.internal.database.sql.Room_summary as RoomSummaryRow
 
@@ -64,6 +67,7 @@ internal class RoomSummaryDataSource @Inject constructor(
         private val localRoomSummaryMapper: LocalRoomSummaryMapper,
         private val stores: SessionStores,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
+        private val syncImportState: SyncImportState,
 ) {
     internal val queries get() = database.roomSummaryQueries
 
@@ -75,10 +79,12 @@ internal class RoomSummaryDataSource @Inject constructor(
         Thread(runnable, "room-list-section-paging")
     }
 
-    // Mapping a row is expensive (deep latest-event/space/tag resolution). Memoize by the row itself
-    // (a generated data class) so each sync only re-maps rooms whose summary actually changed; a new
-    // message mutates the row (latest event id, unread counts, activity) → cache miss → fresh map.
-    private val summaryCache = java.util.concurrent.ConcurrentHashMap<RoomSummaryRow, RoomSummary>()
+    // Mapping a row is expensive (deep latest-event/space/tag resolution). Memoize per room, holding the
+    // row it was mapped from: a new message mutates the row (latest event id, unread counts, activity),
+    // so an unequal row is a miss and re-maps just that room. Keyed by room id rather than by the row
+    // itself because that grew an entry per changed row until it hit a size cap and dropped every
+    // mapping, making the next pass re-map the whole account (traced: ~30s of a cold fill).
+    private val summaryCache = java.util.concurrent.ConcurrentHashMap<String, Pair<RoomSummaryRow, RoomSummary>>()
 
     // One deserialized selectAll snapshot shared by every observer. The room list spins up 10+
     // selectAll-based observers (per-section paged lists, counts, notification counts); without this,
@@ -87,26 +93,31 @@ internal class RoomSummaryDataSource @Inject constructor(
     private val roomSummaryGeneration = MutableStateFlow(0L)
     @Volatile private var cachedAllRows: Pair<Long, List<RoomSummaryRow>>? = null
     private val allRowsLock = Any()
+    private val cachedFilteredRows = java.util.concurrent.ConcurrentHashMap<Pair<RoomSummaryQueryParams, RoomSortOrder>,
+            Pair<Long, List<RoomSummaryRow>>>()
+    private val cachedCounts = java.util.concurrent.ConcurrentHashMap<RoomSummaryQueryParams,
+            Pair<Long, RoomAggregateNotificationCount>>()
     private val allRowsInvalidator = Query.Listener {
         cachedAllRows = null
+        cachedFilteredRows.clear()
+        cachedCounts.clear()
         roomSummaryGeneration.value += 1
     }
 
     // Retained so the driver-level listener registration lives as long as the (session-scoped) source.
     private val invalidationQuery = database.roomSummaryQueries.selectAll().also { it.addListener(allRowsInvalidator) }
 
-    // Tags live in room_tag, not in the summary row, so a tag-only change (e.g. moving a room into a
-    // custom section) leaves the row — and therefore the memoized RoomSummary with its stale tag
-    // list — untouched. Tag writes are rare; evicting the whole memo is fine.
-    private val tagInvalidator = Query.Listener { summaryCache.clear() }
+    // Tags live in room_tag, so a tag-only change leaves the summary row — and every cached filter
+    // pass keyed on tags — untouched. The mapped summaries are evicted per room by the writer
+    // (RoomSummarySqlStore.updateTags): a sync writes tags for every room it delivers, and dropping the
+    // whole memo there re-mapped the account several times over a cold fill.
+    private val tagInvalidator = Query.Listener { allRowsInvalidator.queryResultsChanged() }
     private val tagInvalidationQuery = database.roomTagQueries.selectRoomIdsByTag("").also { it.addListener(tagInvalidator) }
 
     init {
-        // Preview decryption changes the mapped summary without changing the row, so the row-keyed
-        // memo must be evicted explicitly (see RoomSummaryPreviewInvalidation).
-        previewInvalidation.register { roomId ->
-            summaryCache.keys.removeAll { it.room_id == roomId }
-        }
+        // Preview decryption changes the mapped summary without changing the row, so the memo must be
+        // evicted explicitly (see RoomSummaryPreviewInvalidation).
+        previewInvalidation.register { roomId -> summaryCache.remove(roomId) }
     }
 
     private fun allRows(): List<RoomSummaryRow> {
@@ -127,12 +138,20 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     /**
-     * Emits once per room_summary write burst. A sync commits each room's summary separately, so the raw
-     * generation ticks 15+ times per sync; every observer downstream re-runs a full filter pass over every
-     * row, so debouncing here is worth far more than the settle delay costs.
+     * Emits the first change immediately, then paces the rest: every observer downstream re-runs a full
+     * filter pass over every row, and a room-list fill writes without pause, so the idle cadence spends the
+     * whole fill re-listing rooms on the database dispatcher the import itself is waiting on. Debouncing
+     * instead would starve observers entirely for as long as the writes keep coming.
      */
-    @OptIn(kotlinx.coroutines.FlowPreview::class)
-    private val roomSummaryChange: Flow<Long> = roomSummaryGeneration.debounce(CHANGE_COALESCE_MS)
+    private val roomSummaryChange: Flow<Long> = flow {
+        var emitted = -1L
+        roomSummaryGeneration.collect { generation ->
+            if (generation == emitted) return@collect
+            emitted = generation
+            emit(generation)
+            delay(if (syncImportState.isImporting) IMPORT_COALESCE_MS else CHANGE_COALESCE_MS)
+        }
+    }
 
     /** Emits (without data) once per room_summary write burst, for observers that recompute their own view. */
     fun getRoomSummaryUpdateFlow(): Flow<Unit> = roomSummaryChange.map { }
@@ -142,13 +161,11 @@ internal class RoomSummaryDataSource @Inject constructor(
             roomSummaryChange.map { transform() }.flowOn(dispatcher)
 
     internal fun RoomSummaryRow.toDomain(): RoomSummary? {
-        summaryCache[this]?.let { return it }
+        summaryCache[room_id]?.let { (row, mapped) -> if (row == this) return mapped }
         val perfStart = MatrixPerf.now()
         val mapped = stores.roomSummary.get(room_id)?.let { roomSummaryMapper.map(it) } ?: return null
         MatrixPerf.end(perfStart) { "roomlist.toDomain.miss room=$room_id" }
-        // Changed rooms leave their old row as a dead key; bound growth.
-        if (summaryCache.size > 512) summaryCache.clear()
-        summaryCache[this] = mapped
+        summaryCache[room_id] = this to mapped
         return mapped
     }
 
@@ -224,16 +241,33 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     fun getCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int> {
-        return flowOnRoomSummaryChange { filteredSortedRows(queryParams, RoomSortOrder.NONE).size }
+        return flowOnRoomSummaryChange { getRoomSummariesCount(queryParams) }
     }
 
+    /** How many rooms match, without mapping any of them — `getRoomSummaries(...).size` maps every one. */
+    fun getRoomSummariesCount(queryParams: RoomSummaryQueryParams): Int =
+            filteredSortedRows(queryParams, RoomSortOrder.NONE).size
+
+    /**
+     * Every room-list section and every space badge asks for its own count, and they all wake from the
+     * same change tick — a dozen-odd identical-shaped aggregates within a few milliseconds of each other,
+     * serialized on the single database read thread. Answering from the shared row snapshot (one query per
+     * generation, not one per observer) and memoizing the result keeps a tick to one table read.
+     */
     fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount =
             MatrixPerf.time("roomlist.notificationCount") {
+                val generation = roomSummaryGeneration.value
+                cachedCounts[queryParams]?.let { (gen, counts) -> if (gen == generation) return@time counts }
                 val rows = filteredSortedRows(queryParams, RoomSortOrder.NONE)
-                RoomAggregateNotificationCount(
-                        rows.sumOf { it.notification_count.toInt() },
-                        rows.sumOf { it.highlight_count.toInt() },
-                )
+                var notificationCount = 0
+                var highlightCount = 0
+                rows.forEach {
+                    notificationCount += it.notification_count.toInt()
+                    highlightCount += it.highlight_count.toInt()
+                }
+                RoomAggregateNotificationCount(notificationCount, highlightCount).also {
+                    if (roomSummaryGeneration.value == generation) cachedCounts[queryParams] = generation to it
+                }
             }
 
     fun getAllRoomSummaryChildOf(spaceAliasOrId: String, memberShips: List<Membership>): List<RoomSummary> {
@@ -310,10 +344,16 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     internal fun filteredSortedRows(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> {
+        val generation = roomSummaryGeneration.value
         val all = allRows()
+        val key = queryParams to sortOrder
+        cachedFilteredRows[key]?.let { (gen, rows) -> if (gen == generation) return rows }
         val filterStart = MatrixPerf.now()
         return applyFilterAndSort(all, queryParams, sortOrder)
-                .also { MatrixPerf.end(filterStart) { "roomlist.filterSort ${it.size}/${all.size} sort=$sortOrder" } }
+                .also { rows ->
+                    MatrixPerf.end(filterStart) { "roomlist.filterSort ${rows.size}/${all.size} sort=$sortOrder" }
+                    if (roomSummaryGeneration.value == generation) cachedFilteredRows[key] = generation to rows
+                }
     }
 
     private fun applyFilterAndSort(rows: List<RoomSummaryRow>, queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> {
@@ -322,21 +362,59 @@ internal class RoomSummaryDataSource @Inject constructor(
         val hasTagRoomIds = queryParams.hasTag?.let { database.roomTagQueries.selectRoomIdsByTag(it).executeAsList().toHashSet() }
         val excludedTagRoomIds = queryParams.excludeTags.takeIf { it.isNotEmpty() }
                 ?.flatMapTo(HashSet()) { database.roomTagQueries.selectRoomIdsByTag(it).executeAsList() }
-        return sort(rows.filter { it.matches(queryParams, taggedRoomIds, hasTagRoomIds, excludedTagRoomIds) }, sortOrder)
+        val filter = CompiledRoomFilter(queryParams, taggedRoomIds, hasTagRoomIds, excludedTagRoomIds)
+        return sort(rows.filter { filter.matches(it) }, sortOrder)
     }
 
-    private fun RoomSummaryRow.matches(
-            p: RoomSummaryQueryParams,
-            taggedRoomIds: Set<String>?,
-            hasTagRoomIds: Set<String>?,
-            excludedTagRoomIds: Set<String>?,
-    ): Boolean {
+    private fun sort(rows: List<RoomSummaryRow>, sortOrder: RoomSortOrder): List<RoomSummaryRow> = when (sortOrder) {
+        RoomSortOrder.NAME -> rows.sortedBy { (it.normalized_display_name ?: it.display_name ?: "").lowercase() }
+        RoomSortOrder.ACTIVITY -> rows.sortedByDescending { it.last_activity_time ?: 0L }
+        RoomSortOrder.PRIORITY_AND_ACTIVITY -> rows.sortedWith(
+                compareByDescending<RoomSummaryRow> { it.is_favourite }
+                        .thenBy { it.is_low_priority }
+                        .thenByDescending { it.last_activity_time ?: 0L }
+        )
+        RoomSortOrder.NONE -> rows
+    }
+
+    private companion object {
+        const val CHANGE_COALESCE_MS = 120L
+
+        // Enough to stop a fill's write stream from driving a list pass per commit, while still growing the
+        // list visibly as rooms land. (Traced: the import is not waiting on these passes, so backing them
+        // off further buys nothing and only makes the room list lag the data.)
+        const val IMPORT_COALESCE_MS = 250L
+    }
+}
+
+/**
+ * The room-list filter, with everything that does not depend on the row resolved up front. It is applied
+ * to every room in the account, for every section, on every change tick — so a per-row allocation here
+ * (the membership names were rebuilt into a list per row) costs more than the comparison it feeds.
+ */
+internal class CompiledRoomFilter(
+        private val p: RoomSummaryQueryParams,
+        private val taggedRoomIds: Set<String>?,
+        private val hasTagRoomIds: Set<String>?,
+        private val excludedTagRoomIds: Set<String>?,
+) {
+    private val membershipNames: Set<String>? = p.memberships.takeIf { it.isNotEmpty() }?.mapTo(HashSet()) { it.name }
+    private val excludeTypes: Set<String?>? = p.excludeType?.toHashSet()
+    private val includeTypes: Set<String?>? = p.includeType?.toHashSet()
+    private val matchNormalizedName = p.displayName.isNormalized()
+    private val filtersRoomId = p.roomId !is QueryStringValue.NoCondition
+    private val filtersDisplayName = p.displayName !is QueryStringValue.NoCondition
+    private val filtersAlias = p.canonicalAlias !is QueryStringValue.NoCondition
+
+    fun matches(row: RoomSummaryRow): Boolean = with(row) {
         if (room_id.isEmpty()) return false
-        if (!p.roomId.matches(room_id)) return false
-        val displayNameField = if (p.displayName.isNormalized()) normalized_display_name else display_name
-        if (!p.displayName.matches(displayNameField)) return false
-        if (!p.canonicalAlias.matches(canonical_alias)) return false
-        if (p.memberships.isNotEmpty() && membership_str !in p.memberships.map { it.name }) return false
+        if (filtersRoomId && !p.roomId.matches(room_id)) return false
+        if (filtersDisplayName) {
+            val displayNameField = if (matchNormalizedName) normalized_display_name else display_name
+            if (!p.displayName.matches(displayNameField)) return false
+        }
+        if (filtersAlias && !p.canonicalAlias.matches(canonical_alias)) return false
+        if (membershipNames != null && membership_str !in membershipNames) return false
         if (is_hidden_from_user != 0L) return false
         p.removedFromRoom?.let { if ((is_removed_from_room != 0L) != it) return false }
         p.watched?.let { if ((is_watched != 0L) != it) return false }
@@ -346,8 +424,8 @@ internal class RoomSummaryDataSource @Inject constructor(
             f.isLowPriority?.let { if ((is_low_priority != 0L) != it) return false }
             f.isServerNotice?.let { if ((is_server_notice != 0L) != it) return false }
         }
-        p.excludeType?.let { if (room_type in it) return false }
-        p.includeType?.let { if (room_type !in it) return false }
+        excludeTypes?.let { if (room_type in it) return false }
+        includeTypes?.let { if (room_type !in it) return false }
         when (p.roomCategoryFilter) {
             RoomCategoryFilter.ONLY_DM -> if (is_direct == 0L) return false
             RoomCategoryFilter.ONLY_ROOMS -> if (is_direct != 0L) return false
@@ -365,19 +443,12 @@ internal class RoomSummaryDataSource @Inject constructor(
         if (excludedTagRoomIds != null && room_id in excludedTagRoomIds) return false
         return true
     }
-
-    private companion object {
-        const val CHANGE_COALESCE_MS = 120L
-    }
-
-    private fun sort(rows: List<RoomSummaryRow>, sortOrder: RoomSortOrder): List<RoomSummaryRow> = when (sortOrder) {
-        RoomSortOrder.NAME -> rows.sortedBy { (it.normalized_display_name ?: it.display_name ?: "").lowercase() }
-        RoomSortOrder.ACTIVITY -> rows.sortedByDescending { it.last_activity_time ?: 0L }
-        RoomSortOrder.PRIORITY_AND_ACTIVITY -> rows.sortedWith(
-                compareByDescending<RoomSummaryRow> { it.is_favourite }
-                        .thenBy { it.is_low_priority }
-                        .thenByDescending { it.last_activity_time ?: 0L }
-        )
-        RoomSortOrder.NONE -> rows
-    }
 }
+
+/** The filter predicate, for callers holding a single row. */
+internal fun RoomSummaryRow.matches(
+        p: RoomSummaryQueryParams,
+        taggedRoomIds: Set<String>?,
+        hasTagRoomIds: Set<String>?,
+        excludedTagRoomIds: Set<String>?,
+): Boolean = CompiledRoomFilter(p, taggedRoomIds, hasTagRoomIds, excludedTagRoomIds).matches(this)

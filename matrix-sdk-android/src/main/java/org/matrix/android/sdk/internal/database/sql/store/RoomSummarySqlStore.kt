@@ -17,6 +17,7 @@ import org.matrix.android.sdk.internal.database.model.SpaceParentSummaryEntity
 import org.matrix.android.sdk.internal.database.model.UserDraftsEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.session.room.membership.RoomName
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import org.matrix.android.sdk.internal.database.sql.Room_summary as RoomSummaryRow
 
 /**
@@ -31,6 +32,7 @@ internal class RoomSummarySqlStore(
         private val draftStore: DraftSqlStore,
         private val timelineEventStore: TimelineEventSqlStore,
         private val userStore: UserSqlStore,
+        private val summaryInvalidation: RoomSummaryPreviewInvalidation,
 ) {
 
     private val queries get() = database.roomSummaryQueries
@@ -103,6 +105,9 @@ internal class RoomSummarySqlStore(
     fun getWatchedRoomIds(): List<String> = queries.selectWatchedRoomIds().executeAsList()
 
     fun updateTags(roomId: String, tags: List<Pair<String, Double?>>) {
+        // A custom tag (a room-list section) leaves the summary row identical — only the three tag flags
+        // live there — so the mapped summary, which carries the tag list, has to be dropped by hand.
+        summaryInvalidation.onPreviewChanged(roomId)
         database.transaction {
             roomTagStore.replaceTags(roomId, tags.map { RoomTagEntity(it.first, it.second) })
             queries.insertEmptyIfAbsent(roomId)

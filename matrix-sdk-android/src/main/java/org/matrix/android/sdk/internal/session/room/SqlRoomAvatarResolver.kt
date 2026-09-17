@@ -16,6 +16,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sql.store.splitToList
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.room.accountdata.RoomStateOverrides
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
@@ -65,8 +66,15 @@ internal class SqlRoomAvatarResolver @Inject constructor(
                         .firstOrNull { !memberAvatar(it).isNullOrEmpty() }
                         ?.let { memberAvatar(it) }
                 return firstLeftAvatarUrl ?: members.firstOrNull()?.let { memberAvatar(it) }
-            } else if (members.size == 2) {
-                return members.firstOrNull { it.userId != userId }?.let { memberAvatar(it) }
+            } else {
+                // Use the same hero order as the group-DM name when choosing a member avatar.
+                val heroes = summary?.heroes.splitToList()
+                val others = members.filter { it.userId != userId }
+                val ordered = if (heroes.isEmpty()) others else {
+                    heroes.mapNotNull { heroId -> others.firstOrNull { it.userId == heroId } } +
+                            others.filterNot { it.userId in heroes }
+                }
+                ordered.firstNotNullOfOrNull { memberAvatar(it)?.takeIf(String::isNotEmpty) }?.let { return it }
             }
         }
 

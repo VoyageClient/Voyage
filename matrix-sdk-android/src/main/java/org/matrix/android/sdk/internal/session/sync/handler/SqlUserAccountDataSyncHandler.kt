@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.session.sync.handler
 
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
@@ -50,12 +51,13 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         private val ignoredUsersUpdater: IgnoredUsersUpdater,
         private val ignoredUsersApplier: IgnoredUsersApplier,
         private val profileOverridesUpdater: ProfileOverridesUpdater,
+        private val directRoomsCache: org.matrix.android.sdk.internal.session.room.summary.DirectRoomsCache,
 ) {
 
     // If we get some direct chat invites, synchronize the user account data including those.
     suspend fun synchronizeWithServerIfNeeded(invites: Map<String, InvitedRoomSync>) {
         if (invites.isEmpty()) return
-        val directChats = directChatsHelper.getLocalDirectMessages().toMutable()
+        val directChats = directChatsHelper.getDirectMessagesToPut().toMutable()
         var hasUpdate = false
         invites.forEach { (roomId, _) ->
             val myUserStateEvent = SqlRoomMemberHelper(stores, roomId).getLastStateEvent(userId)
@@ -98,11 +100,15 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         } else {
             stores.accountData.upsertUserAccountData(type, ContentMapper.map(content))
         }
+        if (type == UserAccountDataTypes.TYPE_DIRECT_MESSAGES) directRoomsCache.invalidate()
     }
 
     private fun handlePushRules(event: UserAccountDataEvent) {
         val pushRules = event.content.toModel<GetPushRulesResponse>() ?: return
         val global = pushRules.global
+        global.override?.find { it.ruleId == org.matrix.android.sdk.api.session.pushrules.RuleIds.RULE_ID_IS_USER_MENTION }
+                ?.let { DebugLog.i { "NOTIFDBG server sent is_user_mention for $userId enabled=${it.enabled} actions=${it.actions}" } }
+                ?: DebugLog.i { "NOTIFDBG server sent no is_user_mention for $userId (${global.override?.size} override rules)" }
         fun save(kind: RuleSetKey, rules: List<org.matrix.android.sdk.api.session.pushrules.rest.PushRule>?) {
             val entity = PushRulesEntity(RuleScope.GLOBAL).apply { this.kind = kind }
             rules?.filterNot { it.ruleId in org.matrix.android.sdk.api.session.pushrules.RuleIds.LEGACY_MENTION_RULE_IDS }

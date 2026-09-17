@@ -26,6 +26,8 @@ import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncSummary
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncUnreadNotifications
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncUnreadThreadNotifications
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
@@ -55,6 +57,8 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         private val roomAccountDataDataSource: RoomAccountDataDataSource,
         private val roomSummaryEventDecryptor: RoomSummaryEventDecryptor,
         private val roomSummaryEventsHelper: SqlRoomSummaryEventsHelper,
+        private val directRoomsCache: DirectRoomsCache,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val clock: Clock,
 ) {
 
@@ -64,7 +68,9 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
      */
     fun refreshLatestPreviewableEvent(stores: SessionStores, roomId: String, thorough: Boolean = false, clearIfNone: Boolean = false) {
         val entity = stores.roomSummary.get(roomId) ?: return
-        val latestPreviewableEvent = roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId, thorough)
+        val latestPreviewableEvent = MatrixPerf.time("summary.latestEvent") {
+            roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId, thorough)
+        }
         // Only advance when we actually found a previewable message — don't wipe a known-good last message
         // and its date just because the current chunk's newest events are non-previewable. Advancing the
         // activity time here is what lets opening a room correct a stale/missing room-list preview + date.
@@ -74,20 +80,25 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         } else if (clearIfNone) {
             entity.latestPreviewableEvent = null
         }
+        val unreadAnchor = roomSummaryEventsHelper.getLatestUnreadEvent(stores, roomId)
+        entity.hasUnreadMessages = entity.notificationCount > 0 ||
+                unreadAnchor?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
         stores.roomSummary.upsert(entity)
     }
 
     fun refreshDisplay(stores: SessionStores, roomId: String) {
         val entity = stores.roomSummary.get(roomId) ?: return
-        entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
-        entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
+        entity.setDisplayName(MatrixPerf.time("summary.displayName") { roomDisplayNameResolver.resolve(stores, roomId) })
+        entity.avatarUrl = MatrixPerf.time("summary.avatar") { roomAvatarResolver.resolve(stores, roomId) }
         stores.roomSummary.upsert(entity)
     }
 
     fun updateSendingInformation(stores: SessionStores, roomId: String) {
         val entity = stores.roomSummary.get(roomId) ?: RoomSummaryEntity(roomId = roomId)
         entity.hasFailedSending = hasFailedSending(stores, roomId)
-        entity.latestPreviewableEvent = roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId)
+        roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId)?.let {
+            entity.latestPreviewableEvent = it
+        }
         stores.roomSummary.upsert(entity)
     }
 
@@ -120,7 +131,9 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         // Synapse hardcodes both counts to 0 on a sliding-sync connection, calling them dummy values that
         // only a client can get right, so count what is unread ourselves.
         if (stores.syncToken.getSlidingSyncPos() != null) {
-            val local = stores.localUnreadCounts(userId, roomId)
+            val local = MatrixPerf.time("summary.unreadCounts") {
+                stores.localUnreadCounts(userId, roomId, lightweightSettingsStorage.areThreadMessagesEnabled())
+            }
             entity.notificationCount = local.notificationCount
             entity.highlightCount = local.highlightCount
         }
@@ -162,8 +175,9 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
                     ?: clock.epochMillis()
         }
 
+        val unreadAnchor = roomSummaryEventsHelper.getLatestUnreadEvent(stores, roomId)
         entity.hasUnreadMessages = entity.notificationCount > 0 ||
-                latestPreviewableEvent?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
+                unreadAnchor?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
 
         if (entity.isRemovedFromRoom) {
             // A kicked/banned room is frozen and the server refuses our read receipts for it, so there is
@@ -176,8 +190,16 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
             entity.markedUnread = false
         }
 
-        entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
-        entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
+        // Persist DM classification before resolving names and avatars; both resolvers read it from the store.
+        directRoomsCache.directUserId(stores, roomId)?.let { directUserId ->
+            if (!entity.isDirect || entity.directUserId != directUserId) {
+                entity.isDirect = true
+                entity.directUserId = directUserId
+                stores.roomSummary.upsert(entity)
+            }
+        }
+        entity.setDisplayName(MatrixPerf.time("summary.displayName") { roomDisplayNameResolver.resolve(stores, roomId) })
+        entity.avatarUrl = MatrixPerf.time("summary.avatar") { roomAvatarResolver.resolve(stores, roomId) }
         entity.name = ContentMapper.map(lastNameEvent?.content).toModel<RoomNameContent>()?.name
         val topicContent = ContentMapper.map(lastTopicEvent?.content).toModel<RoomTopicContent>()
         entity.topic = topicContent?.getBestTopic()

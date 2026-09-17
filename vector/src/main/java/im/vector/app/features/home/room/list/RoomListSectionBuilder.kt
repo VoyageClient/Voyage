@@ -677,7 +677,7 @@ class RoomListSectionBuilder(
                     .onEach { params ->
                         section.notificationCount.postValue(
                                 if (countRoomAsNotif) {
-                                    val count = session.roomService().getRoomSummaries(params).size
+                                    val count = session.roomService().getRoomSummariesCount(params)
                                     RoomAggregateNotificationCount(count, count)
                                 } else {
                                     session.roomService().getNotificationCountForRooms(

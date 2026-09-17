@@ -77,12 +77,12 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
                     val invites = if (autoAcceptInvites.hideInvites) {
                         0
                     } else {
-                        roomService.getRoomSummaries(
+                        roomService.getRoomSummariesCount(
                                 roomSummaryQueryParams {
                                     this.memberships = listOf(Membership.INVITE)
                                     this.spaceFilter = SpaceFilter.OrphanRooms
                                 }
-                        ).size
+                        )
                     }
 
                     copy(
@@ -104,19 +104,19 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
             val inviteCount = if (autoAcceptInvites.hideInvites) {
                 0
             } else {
-                roomService.getRoomSummaries(
+                roomService.getRoomSummariesCount(
                         roomSummaryQueryParams { this.memberships = listOf(Membership.INVITE) }
-                ).size
+                )
             }
 
             val spaceInviteCount = if (autoAcceptInvites.hideInvites) {
                 0
             } else {
-                roomService.getRoomSummaries(
+                roomService.getRoomSummariesCount(
                         spaceSummaryQueryParams {
                             this.memberships = listOf(Membership.INVITE)
                         }
-                ).size
+                )
             }
 
             val totalCount = roomService.getNotificationCountForRooms(

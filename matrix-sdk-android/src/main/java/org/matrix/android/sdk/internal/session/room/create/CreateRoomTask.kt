@@ -116,7 +116,7 @@ internal class DefaultCreateRoomTask @Inject constructor(
             stores.roomSummary.updateDirectInfo(roomId, isDirect = true, directUserId = otherUserId)
             // The summary was built before the direct flags existed, so its name/avatar are the plain-room ones.
             roomSummaryUpdater.refreshDisplay(stores, roomId)
-            directChatsHelper.getLocalDirectMessages().also { directChatsHelper.storeLocally(it) }
+            directChatsHelper.getDirectMessagesToPut().also { directChatsHelper.storeLocally(it) }
         }
         updateUserAccountDataTask.execute(UpdateUserAccountDataTask.DirectChatParams(directMessages = directChats))
     }
