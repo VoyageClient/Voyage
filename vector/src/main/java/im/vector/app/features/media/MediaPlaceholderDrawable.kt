@@ -154,7 +154,8 @@ class MediaPlaceholderDrawable(
             } else {
                 waiting
             }
-            canvas.drawRoundRect(rect, cornerRadius, cornerRadius, fillPaint)
+            val r = cappedMediaCornerRadius(cornerRadius, rect.width(), rect.height())
+            canvas.drawRoundRect(rect, r, r, fillPaint)
         }
 
         if (showGlyph && failProgress > 0f) {

@@ -235,6 +235,8 @@ dependencies {
     // Image
     implementation libs.androidx.exifinterface
     implementation libs.vanniktech.blurhash
+    // Blurhash needs SVG input rasterized first.
+    implementation 'com.caverock:androidsvg-aar:1.4'
     // JPEG XL, for measuring and re-encoding outgoing .jxl. minSdk 21 and it loads its .so from a
     // static initialiser, so it is reached only through JxlImageReader behind JxlSupport.isAvailable.
     // Version and exclusions are explained in vector/build.gradle, which registers the Glide decoders.

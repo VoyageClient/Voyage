@@ -38,7 +38,7 @@ class MyAppGlideModule : AppGlideModule() {
         // slow or wedged decode there stalls media app-wide until the process restarts.
         builder.setDiskCacheExecutor(
                 GlideExecutor.newDiskCacheBuilder()
-                        .setThreadCount(DISK_CACHE_THREADS)
+                        .setThreadCount(diskCacheThreadCount())
                         .build()
         )
         // Glide gives every animated image in the app 2 frame-decoding threads at most, and 1 below a
@@ -97,8 +97,13 @@ class MyAppGlideModule : AppGlideModule() {
 
     private fun animationThreadCount() = Runtime.getRuntime().availableProcessors().coerceIn(1, MAX_ANIMATION_THREADS)
 
+    // A picker grid is hundreds of cells, each a small read-and-decode of an already-downsampled file;
+    // three threads for the whole app made them complete in batches a fling ahead of themselves.
+    private fun diskCacheThreadCount() = Runtime.getRuntime().availableProcessors().coerceIn(DISK_CACHE_THREADS, MAX_DISK_CACHE_THREADS)
+
     companion object {
         private const val DISK_CACHE_THREADS = 3
+        private const val MAX_DISK_CACHE_THREADS = 6
         private const val MAX_ANIMATION_THREADS = 4
     }
 }

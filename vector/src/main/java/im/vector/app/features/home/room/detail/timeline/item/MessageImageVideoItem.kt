@@ -45,9 +45,11 @@ import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrap
 import im.vector.app.features.media.ImageAlphaProbe
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.cappedMediaCornerRadius
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.noties.markwon.MarkwonPlugin
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import kotlin.math.roundToInt
 
@@ -132,7 +134,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 val r = cornerPx.toFloat()
                 holder.imageView.outlineProvider = object : ViewOutlineProvider() {
                     override fun getOutline(view: View, outline: Outline) {
-                        outline.setRoundRect(0, 0, view.width, view.height, r)
+                        val capped = cappedMediaCornerRadius(r, view.width.toFloat(), view.height.toFloat())
+                        outline.setRoundRect(0, 0, view.width, view.height, capped)
                     }
                 }
                 holder.imageView.clipToOutline = true
@@ -341,6 +344,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             durationAligner = ViewTreeObserver.OnPreDrawListener {
                 advanceViewerHandover()
                 alignDurationToThumbnail()
+                reportSquish()
                 true
             }.also { imageView.viewTreeObserver.addOnPreDrawListener(it) }
         }
@@ -401,7 +405,38 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             // A see-through picture would show the stand-in through itself, and the hole it leaves
             // while the viewer holds it reads as timeline anyway.
             if (ImageAlphaProbe.usesAlpha(alphaProbeKey, imageView.drawable, cornerFraction())) return
+            // Sized here rather than at bind: the stand-in has to round like the picture it replaces,
+            // and how much of the shorter side the radius is worth is only known once laid out.
+            (thumbnailBackdrop.background as? GradientDrawable)?.cornerRadius =
+                    cappedMediaCornerRadius(alphaProbeCornerPx.toFloat(), imageView.width.toFloat(), imageView.height.toFloat())
             thumbnailBackdrop.isVisible = true
+        }
+
+        // MEDIADBG: fires only on the frame a picture is actually drawn wrong, so the state that
+        // produced it is captured rather than reconstructed.
+        private var squishReported = false
+
+        private fun reportSquish() {
+            if (!DebugLog.enabled) return
+            val drawable = imageView.drawable ?: return
+            if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) return
+            if (imageView.width <= 0 || imageView.height <= 0) return
+            val drawn = android.graphics.RectF(0f, 0f, drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat())
+            imageView.imageMatrix.mapRect(drawn)
+            val fillsWidth = drawn.width() >= imageView.width * 0.9f
+            val fillsHeight = drawn.height() >= imageView.height * 0.9f
+            if (fillsWidth || fillsHeight) {
+                squishReported = false
+                return
+            }
+            if (squishReported) return
+            squishReported = true
+            val params = imageView.layoutParams
+            DebugLog.i { "MEDIADBG squish view=${imageView.width}x${imageView.height} params=${params?.width}x${params?.height} " +
+                            "drawn=$drawn drawable=${drawable.javaClass.simpleName}@${System.identityHashCode(drawable)} " +
+                            "intrinsic=${drawable.intrinsicWidth}x${drawable.intrinsicHeight} bounds=${drawable.bounds} " +
+                            "scale=${imageView.scaleType} adjust=${imageView.adjustViewBoundsCompat} matrix=${imageView.imageMatrix} " +
+                            "key=$alphaProbeKey" }
         }
 
         /**

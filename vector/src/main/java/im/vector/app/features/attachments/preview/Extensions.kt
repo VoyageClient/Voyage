@@ -17,13 +17,12 @@ import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 
-/**
- * All images are editable, expect Gif.
- */
+/** Exclude GIFs and SVGs because pixel editing would discard animation or vector data. */
 fun ContentAttachmentData.isImageEditable(): Boolean {
     return type == ContentAttachmentData.Type.IMAGE &&
             getSafeMimeType()?.isMimeTypeImage() == true &&
-            getSafeMimeType() != MimeTypes.Gif
+            getSafeMimeType() != MimeTypes.Gif &&
+            getSafeMimeType() != MimeTypes.Svg
 }
 
 /** Video editing needs MediaMuxer, so it is unavailable below API 18 — see [VideoEditExporter]. */
@@ -53,6 +52,7 @@ fun ContentAttachmentData.animatedImageFormat(context: Context): AnimatedImageFo
 fun ContentAttachmentData.isEditable(animated: Boolean): Boolean =
         animated || isImageEditable() || isVideoEditable() || isAudioEditable()
 
-/** Only what the SDK's compressors act on: an explicit quality or size would be ignored elsewhere. */
+/** Only offer compression for formats handled by the SDK compressors. */
 fun ContentAttachmentData.isCompressible(): Boolean =
-        type == ContentAttachmentData.Type.IMAGE || type == ContentAttachmentData.Type.VIDEO
+        (type == ContentAttachmentData.Type.IMAGE && getSafeMimeType() != MimeTypes.Svg) ||
+                type == ContentAttachmentData.Type.VIDEO

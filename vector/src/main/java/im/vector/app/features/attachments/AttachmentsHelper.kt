@@ -126,7 +126,7 @@ class AttachmentsHelper(
         callback.onContentAttachmentsReady(
                 MultiPicker.get(MultiPicker.FILE)
                         .getSelectedFiles(context, data)
-                        .map { it.toContentAttachmentData() }
+                        .map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
         )
     }
 
@@ -134,7 +134,7 @@ class AttachmentsHelper(
         callback.onContentAttachmentsReady(
                 MultiPicker.get(MultiPicker.AUDIO)
                         .getSelectedFiles(context, data)
-                        .map { it.toContentAttachmentData() }
+                        .map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
         )
     }
 
@@ -155,7 +155,7 @@ class AttachmentsHelper(
         callback.onContentAttachmentsReady(
                 MultiPicker.get(MultiPicker.MEDIA)
                         .getSelectedFiles(context, data)
-                        .map { it.toContentAttachmentData() }
+                        .map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
         )
     }
 
@@ -165,7 +165,7 @@ class AttachmentsHelper(
                     .getTakenPhoto(context, captureUri)
                     ?.let {
                         callback.onContentAttachmentsReady(
-                                listOf(it).map { it.toContentAttachmentData() }
+                                listOf(it).map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
                         )
                     }
         }
@@ -177,7 +177,7 @@ class AttachmentsHelper(
                     .getTakenVideo(context, captureUri)
                     ?.let {
                         callback.onContentAttachmentsReady(
-                                listOf(it).map { it.toContentAttachmentData() }
+                                listOf(it).map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
                         )
                     }
         }
@@ -187,7 +187,7 @@ class AttachmentsHelper(
         callback.onContentAttachmentsReady(
                 MultiPicker.get(MultiPicker.VIDEO)
                         .getSelectedFiles(context, data)
-                        .map { it.toContentAttachmentData() }
+                        .map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
         )
     }
 }

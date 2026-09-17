@@ -201,6 +201,10 @@ class MessageItemFactory @Inject constructor(
         val callback = params.callback
         event.root.eventId ?: return null
         roomId = event.roomId
+        pillsPostProcessor.rememberSenders(
+                listOfNotNull(event.senderInfo, params.prevEvent?.senderInfo, params.nextEvent?.senderInfo,
+                        params.prevDisplayableEvent?.senderInfo, params.nextDisplayableEvent?.senderInfo)
+        )
         val informationData = im.vector.app.core.utils.PerfTrace.time("create.infoData") { messageInformationDataFactory.create(params) }
         val threadDetails = if (params.isFromThreadTimeline()) null else event.root.threadDetails
 
@@ -718,6 +722,8 @@ class MessageItemFactory @Inject constructor(
         val itemMode = when {
             messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL -> ImageContentRenderer.Mode.STICKER
             maybeAnimated && autoplay -> ImageContentRenderer.Mode.ANIMATED_THUMBNAIL
+            // Fetch originals for formats unsupported by server thumbnailing.
+            data.mimeType in ImageContentRenderer.ORIGINAL_ONLY_MIME_TYPES -> ImageContentRenderer.Mode.STICKER
             else -> ImageContentRenderer.Mode.THUMBNAIL
         }
         if (!readyToShowMedia(data, itemMode, informationData)) return null

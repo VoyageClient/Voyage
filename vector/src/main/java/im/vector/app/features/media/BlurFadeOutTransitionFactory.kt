@@ -12,12 +12,15 @@ import android.graphics.drawable.TransitionDrawable
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.request.transition.Transition
 import com.bumptech.glide.request.transition.TransitionFactory
+import org.matrix.android.sdk.api.debug.DebugLog
 
 class BlurFadeOutTransitionFactory(private val durationMs: Int) : TransitionFactory<Drawable> {
 
     override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> =
             Transition { current, adapter ->
                 val previous = adapter.currentDrawable
+                DebugLog.i { "MEDIADBG fade from=$dataSource first=$isFirstResource previous=${previous?.javaClass?.simpleName}" +
+                                " current=${current.javaClass.simpleName} ms=$durationMs" }
                 if (previous == null) {
                     adapter.setDrawable(current)
                 } else {

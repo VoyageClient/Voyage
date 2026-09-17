@@ -10,8 +10,8 @@ package im.vector.app.features.home.room.detail.timeline.style
 import android.content.Context
 import android.graphics.Bitmap
 import com.bumptech.glide.load.Transformation
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.media.CappedRoundedCorners
 import im.vector.app.features.themes.BubbleThemeUtils
 
 /**
@@ -26,7 +26,7 @@ fun TimelineMessageLayout.mediaCornerTransformation(context: Context): Transform
     return if (this is TimelineMessageLayout.Bubble) {
         cornersRadius.granularRoundedCorners()
     } else {
-        RoundedCorners(mediaCornerRadiusPx(context))
+        CappedRoundedCorners(mediaCornerRadiusPx(context))
     }
 }
 

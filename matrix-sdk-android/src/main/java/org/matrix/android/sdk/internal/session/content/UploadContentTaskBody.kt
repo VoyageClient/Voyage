@@ -178,7 +178,9 @@ internal class UploadContentTaskBody @Inject constructor(
                 // "Original size" is chosen per attachment, so it overrides the send's own answer.
                 val compressThisOne = (params.compressBeforeSending || attachment.hasCustomCompression) &&
                         !(attachment.keepOriginalSize && !attachment.hasCustomCompression)
-                if (attachment.type == ContentAttachmentData.Type.IMAGE && compressThisOne) {
+                // SVGs must bypass pixel compression and EXIF processing, which discard their dimensions.
+                val isVector = attachment.getSafeMimeType() == MimeTypes.Svg
+                if (attachment.type == ContentAttachmentData.Type.IMAGE && compressThisOne && !isVector) {
                     notifyItemPhase(params, 0L, 0L) { contentUploadStateTracker.setCompressingImage(it) }
 
                     val compressed = media.compressImage(
@@ -195,7 +197,7 @@ internal class UploadContentTaskBody @Inject constructor(
                     fileToUpload = outcome.fileToUpload
                     newAttachmentAttributes = outcome.attributes
                     transcodedVideoFile = outcome.transcodedFile
-                } else if (attachment.type == ContentAttachmentData.Type.IMAGE) {
+                } else if (attachment.type == ContentAttachmentData.Type.IMAGE && !isVector) {
                     // Original-size image: strip metadata in place when possible, otherwise re-encode.
                     val working = workingFile()
                     val stripped = if (stripMetadata) imageExitTagRemover.stripImageMetadata(working) else working

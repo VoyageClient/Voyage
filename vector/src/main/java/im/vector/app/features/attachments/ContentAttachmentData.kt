@@ -8,27 +8,10 @@
 package im.vector.app.features.attachments
 
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.util.MimeTypes
-
-private val listOfPreviewableMimeTypes = listOf(
-        MimeTypes.Jpeg,
-        MimeTypes.Png,
-        MimeTypes.Gif,
-        MimeTypes.Webp,
-        MimeTypes.Apng,
-        MimeTypes.Jxl,
-)
 
 fun ContentAttachmentData.isPreviewable(): Boolean {
-    // Preview supports image, video, audio and generic files (shown as a filetype card). A recorded
-    // voice message never comes through here — the recorder hands it straight to the send service —
-    // so previewing audio cannot delay one. Keeping files in the same batch matters for MSC4274:
-    // sent separately they could never join the others in one gallery event.
-    return (type == ContentAttachmentData.Type.IMAGE &&
-            listOfPreviewableMimeTypes.contains(getSafeMimeType() ?: "")) ||
-            type == ContentAttachmentData.Type.VIDEO ||
-            type == ContentAttachmentData.Type.AUDIO ||
-            type == ContentAttachmentData.Type.FILE
+    // Undecodable images still get a file card for review. Voice recordings bypass attachment preview.
+    return type != ContentAttachmentData.Type.VOICE_MESSAGE
 }
 
 data class GroupedContentAttachmentData(

@@ -11,8 +11,10 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.widget.ImageView
+import com.bumptech.glide.request.Request
 import im.vector.app.R
-import timber.log.Timber
+import org.matrix.android.sdk.api.debug.DebugLog
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -23,6 +25,7 @@ object PendingRenders {
 
     class Token(val id: Long, val describe: String) {
         val startedAt = SystemClock.uptimeMillis()
+        var view: WeakReference<ImageView>? = null
 
         @Volatile
         var done = false
@@ -37,8 +40,9 @@ object PendingRenders {
     fun startOn(imageView: ImageView, data: ImageContentRenderer.Data, mode: ImageContentRenderer.Mode): Token {
         cancelOn(imageView)
         val token = Token(nextId.incrementAndGet(), "event=${data.eventId} mode=$mode url=${data.url}")
+        token.view = WeakReference(imageView)
         synchronized(pending) { pending[token.id] = token }
-        Timber.i("MEDIADBG render start #${token.id} ${token.describe}")
+        DebugLog.i { "MEDIADBG render start #${token.id} ${token.describe}" }
         handler.postDelayed({ report(token) }, STUCK_AFTER_MS)
         imageView.setTag(R.id.image_renderer_pending_render, token)
         return token
@@ -54,18 +58,27 @@ object PendingRenders {
     fun finish(token: Token, outcome: String) {
         token.done = true
         synchronized(pending) { pending.remove(token.id) }
-        Timber.i("MEDIADBG render end #${token.id} ${SystemClock.uptimeMillis() - token.startedAt}ms $outcome — ${token.describe}")
+        DebugLog.i { "MEDIADBG render end #${token.id} ${SystemClock.uptimeMillis() - token.startedAt}ms $outcome — ${token.describe}" }
     }
 
     private fun report(token: Token) {
         if (token.done) return
         val outstanding = synchronized(pending) { pending.values.toList() }
-        Timber.w(
-                "MEDIADBG render STUCK #${token.id} for ${SystemClock.uptimeMillis() - token.startedAt}ms ${token.describe}" +
+        DebugLog.w { "MEDIADBG render STUCK #${token.id} for ${SystemClock.uptimeMillis() - token.startedAt}ms ${token.describe}" +
                         " — ${outstanding.size} outstanding: " +
-                        outstanding.joinToString { "#${it.id}(${SystemClock.uptimeMillis() - it.startedAt}ms)" }
-        )
+                        outstanding.joinToString { "#${it.id}(${SystemClock.uptimeMillis() - it.startedAt}ms)" } }
+        describeView(token)
         dumpGlideThreads()
+    }
+
+    /** Distinguish a stuck request from completed delivery to a stale view. */
+    private fun describeView(token: Token) {
+        val view = token.view?.get() ?: return Unit.also { DebugLog.w { "MEDIADBG stuck #${token.id}: view already gone" } }
+        val request = (view.getTag(com.bumptech.glide.R.id.glide_custom_view_target_tag) as? Request)
+        DebugLog.w { "MEDIADBG stuck #${token.id} view=${Integer.toHexString(System.identityHashCode(view))} " +
+                        "request=${request?.let { "running=${it.isRunning} complete=${it.isComplete} cleared=${it.isCleared}" } ?: "none"} " +
+                        "drawable=${view.drawable?.javaClass?.simpleName} attached=${view.windowToken != null} " +
+                        "shown=${view.isShown} size=${view.width}x${view.height}" }
     }
 
     /**
@@ -80,10 +93,8 @@ object PendingRenders {
         Thread.getAllStackTraces()
                 .filterKeys { it.name.contains("glide", ignoreCase = true) }
                 .forEach { (thread, frames) ->
-                    Timber.w(
-                            "MEDIADBG thread ${thread.name} ${thread.state}\n" +
-                                    frames.take(STACK_FRAMES).joinToString("\n") { "    at $it" }
-                    )
+                    DebugLog.w { "MEDIADBG thread ${thread.name} ${thread.state}\n" +
+                                    frames.take(STACK_FRAMES).joinToString("\n") { "    at $it" } }
                 }
     }
 

@@ -55,6 +55,9 @@ dependencies {
         exclude group: 'org.jetbrains.kotlin'
     }
 
+    // BitmapFactory cannot measure SVG dimensions.
+    implementation 'com.caverock:androidsvg-aar:1.4'
+
     // Log
     implementation libs.jakewharton.timber
 }

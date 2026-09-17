@@ -16,13 +16,13 @@ class MultiPickerIncomingFiles @Inject constructor(
         private val context: Context,
 ) {
 
-    fun image(intent: Intent) = MultiPicker.get(MultiPicker.IMAGE).getIncomingFiles(context, intent).map { it.toContentAttachmentData() }
+    fun image(intent: Intent) = MultiPicker.get(MultiPicker.IMAGE).getIncomingFiles(context, intent).map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
 
-    fun video(intent: Intent) = MultiPicker.get(MultiPicker.VIDEO).getIncomingFiles(context, intent).map { it.toContentAttachmentData() }
+    fun video(intent: Intent) = MultiPicker.get(MultiPicker.VIDEO).getIncomingFiles(context, intent).map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
 
-    fun media(intent: Intent) = MultiPicker.get(MultiPicker.MEDIA).getIncomingFiles(context, intent).map { it.toContentAttachmentData() }
+    fun media(intent: Intent) = MultiPicker.get(MultiPicker.MEDIA).getIncomingFiles(context, intent).map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
 
-    fun file(intent: Intent) = MultiPicker.get(MultiPicker.FILE).getIncomingFiles(context, intent).map { it.toContentAttachmentData() }
+    fun file(intent: Intent) = MultiPicker.get(MultiPicker.FILE).getIncomingFiles(context, intent).map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
 
-    fun audio(intent: Intent) = MultiPicker.get(MultiPicker.AUDIO).getIncomingFiles(context, intent).map { it.toContentAttachmentData() }
+    fun audio(intent: Intent) = MultiPicker.get(MultiPicker.AUDIO).getIncomingFiles(context, intent).map { it.toContentAttachmentData().withMeasuredSvgSize(context) }
 }

@@ -31,7 +31,9 @@ class ImageManager @Inject constructor(
 
         val glide = Glide.get(context)
 
-        // And this one. It'll be tried first, otherwise it'll use the one initialised by GlideImageLoader.
-        glide.registry.prepend(GlideUrl::class.java, InputStream::class.java, AuthenticatedGlideUrlLoaderFactory(context))
+        // replace, not prepend: with a second loader behind it, a failed authenticated request was retried
+        // by that one without the Authorization header — pointless traffic that can only 401. This loader
+        // handles public urls too, so nothing needs the fall-through.
+        glide.registry.replace(GlideUrl::class.java, InputStream::class.java, AuthenticatedGlideUrlLoaderFactory(context))
     }
 }

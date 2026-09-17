@@ -38,25 +38,25 @@ class AuthenticatedGlideUrlLoader(
         ModelLoader<GlideUrl, InputStream> {
 
     private val activeSessionHolder = context.singletonEntryPoint().activeSessionHolder()
-    private val client: OkHttpClient
-        get() = activeSessionHolder.getSafeActiveSession()
-                ?.getAuthenticatedOkHttpClient()
-                ?: defaultClient
 
-    private val callFactory = Call.Factory { request -> client.newCall(request) }
-
-    override fun handles(model: GlideUrl): Boolean {
-        if (!activeSessionHolder.hasActiveSession()) return false
-        val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
-        val stringUrl = model.toStringUrl()
-        return contentUrlResolver.requiresAuthentication(stringUrl)
-    }
+    /**
+     * Every remote url, not just the authenticated ones. Glide asks each registered loader in turn and
+     * falls through to the next when one *fails* — so leaving the stock loader in place meant every
+     * rejected authenticated request was immediately sent again with no Authorization header, which can
+     * only come back 401 and doubled the traffic of any media failure.
+     */
+    override fun handles(model: GlideUrl): Boolean = true
 
     override fun buildLoadData(model: GlideUrl, width: Int, height: Int, options: Options): ModelLoader.LoadData<InputStream> {
-        val fetcher = OkHttpStreamFetcher(callFactory, model)
+        val session = activeSessionHolder.getSafeActiveSession()
+        val stringUrl = model.toStringUrl()
+        val authenticated = session?.contentUrlResolver()?.requiresAuthentication(stringUrl) == true
+        val client = if (authenticated) session?.getAuthenticatedOkHttpClient() ?: defaultClient else defaultClient
+        val fetcher = OkHttpStreamFetcher(Call.Factory { request -> client.newCall(request) }, model)
         // Authenticated media is only readable per-account; a url-only key would let another
-        // account on this device replay this one's cached media from the shared Glide cache.
-        val sessionId = activeSessionHolder.getSafeActiveSession()?.sessionId.orEmpty()
-        return ModelLoader.LoadData(ObjectKey("$sessionId:${model.toStringUrl()}"), fetcher)
+        // account on this device replay this one's cached media from the shared Glide cache. A public
+        // url keeps its own key, so those entries stay shared and survive a session change.
+        val key = if (authenticated) ObjectKey("${session?.sessionId.orEmpty()}:$stringUrl") else model
+        return ModelLoader.LoadData(key, fetcher)
     }
 }

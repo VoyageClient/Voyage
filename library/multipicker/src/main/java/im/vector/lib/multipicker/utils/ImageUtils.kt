@@ -14,6 +14,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import androidx.exifinterface.media.ExifInterface
+import com.caverock.androidsvg.SVG
 import timber.log.Timber
 
 // android.util.Size is API 21+; this local equivalent keeps multipicker working on KitKat.
@@ -57,9 +58,23 @@ object ImageUtils {
             return ImageSize(bounds.outWidth, bounds.outHeight)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return runCatching { JxlSizeReader.read(context, uri) }.getOrNull()
+            runCatching { JxlSizeReader.read(context, uri) }.getOrNull()?.let { return it }
         }
-        return null
+        return svgSize(context, uri)
+    }
+
+    /** BitmapFactory cannot measure SVGs; fall back to declared dimensions or the view box. */
+    private fun svgSize(context: Context, uri: Uri): ImageSize? {
+        return try {
+            val svg = context.contentResolver.openInputStream(uri)?.use { SVG.getFromInputStream(it) } ?: return null
+            val declared = ImageSize(svg.documentWidth.toInt(), svg.documentHeight.toInt())
+            if (declared.width > 0 && declared.height > 0) return declared
+            val viewBox = svg.documentViewBox ?: return null
+            ImageSize(viewBox.width().toInt(), viewBox.height().toInt()).takeIf { it.width > 0 && it.height > 0 }
+        } catch (e: Exception) {
+            Timber.w(e, "Not an SVG, or one without a size: %s", uri.toString())
+            null
+        }
     }
 
     fun getOrientation(context: Context, uri: Uri): Int {

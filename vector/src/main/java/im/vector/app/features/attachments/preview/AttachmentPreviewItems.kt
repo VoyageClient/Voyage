@@ -13,6 +13,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.SurfaceTexture
 import android.graphics.drawable.Animatable
+import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -30,7 +31,11 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyModelClass
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.Target
 import com.github.penfeizhou.animation.FrameAnimationDrawable
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -63,12 +68,16 @@ object PlaybackPosition {
      */
     private fun regressionWindow(durationMs: Int) = if (durationMs > 0) min(HOLD_MS, durationMs / 2) else HOLD_MS
 
-    fun smooth(rawMs: Int, lastMs: Int, durationMs: Int, playing: Boolean): Int {
+    /**
+     * @param loopRestartMs where playback goes when it starts over — zero for a whole clip, the first
+     * kept frame for a trimmed one.
+     */
+    fun smooth(rawMs: Int, lastMs: Int, durationMs: Int, playing: Boolean, loopRestartMs: Int = 0): Int {
         if (!playing || rawMs >= lastMs) return rawMs
         if (lastMs - rawMs <= regressionWindow(durationMs)) return lastMs
         // The clip looped, caught a tick late; reporting the start it went back to rather than that
         // tick's own offset restarts the bar at zero.
-        return if (durationMs > 0) 0 else rawMs
+        return if (durationMs > 0) loopRestartMs else rawMs
     }
 }
 
@@ -118,17 +127,40 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                 // thread.
                 Glide.with(holder.view.context)
                         .load(attachment.queryUriAndroid)
+                        // Undecodable formats still need a file card so users can review the attachment.
+                        .listener(object : RequestListener<Drawable> {
+                            override fun onLoadFailed(
+                                    e: GlideException?,
+                                    model: Any?,
+                                    target: Target<Drawable>,
+                                    isFirstResource: Boolean
+                            ): Boolean {
+                                bindFileCard(holder)
+                                return true
+                            }
+
+                            override fun onResourceReady(
+                                    resource: Drawable,
+                                    model: Any,
+                                    target: Target<Drawable>?,
+                                    dataSource: DataSource,
+                                    isFirstResource: Boolean
+                            ) = false
+                        })
                         .into(holder.imageView)
             }
             ContentAttachmentData.Type.AUDIO, ContentAttachmentData.Type.VOICE_MESSAGE -> {
                 bindAudioThumbnail(holder)
             }
-            else -> {
-                holder.imageView.setImageResource(R.drawable.ic_paperclip_card)
-                ImageViewCompat.setImageTintList(holder.imageView, ColorStateList.valueOf(Color.WHITE))
-                holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
-            }
+            else -> bindFileCard(holder)
         }
+    }
+
+    /** What an attachment with nothing to show for itself looks like. */
+    private fun bindFileCard(holder: H) {
+        holder.imageView.setImageResource(R.drawable.ic_paperclip_card)
+        ImageViewCompat.setImageTintList(holder.imageView, ColorStateList.valueOf(Color.WHITE))
+        holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
     }
 
     /** The file's own artwork where there is one, and a note where there is not. */

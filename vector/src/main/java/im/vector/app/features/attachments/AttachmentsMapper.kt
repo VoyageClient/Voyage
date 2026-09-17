@@ -7,6 +7,11 @@
 
 package im.vector.app.features.attachments
 
+import android.content.Context
+import android.content.res.Resources
+import im.vector.app.core.ui.model.Size
+import im.vector.app.features.media.MIN_MEDIA_SIDE_DP
+import im.vector.app.features.media.atLeastMinimumMediaSize
 import im.vector.lib.multipicker.entity.MultiPickerAudioType
 import im.vector.lib.multipicker.entity.MultiPickerBaseMediaType
 import im.vector.lib.multipicker.entity.MultiPickerBaseType
@@ -14,11 +19,15 @@ import im.vector.lib.multipicker.entity.MultiPickerContactType
 import im.vector.lib.multipicker.entity.MultiPickerFileType
 import im.vector.lib.multipicker.entity.MultiPickerImageType
 import im.vector.lib.multipicker.entity.MultiPickerVideoType
+import im.vector.lib.multipicker.utils.ImageUtils
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.content.queryUriAndroid
+import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeAudio
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import timber.log.Timber
+import kotlin.math.roundToInt
 
 /**
  * Replace the file name with a random id, keeping the extension. Media (image/video/audio) never carries a
@@ -107,16 +116,37 @@ fun MultiPickerBaseMediaType.toContentAttachmentData(): ContentAttachmentData {
 
 fun MultiPickerImageType.toContentAttachmentData(): ContentAttachmentData {
     if (mimeType == null) Timber.w("No mimeType")
+    val sent = sentSize()
     return ContentAttachmentData(
             mimeType = mimeType,
             type = mapType(),
             name = displayName,
             size = size,
-            height = height.toLong(),
-            width = width.toLong(),
+            height = sent.height.toLong(),
+            width = sent.width.toLong(),
             exifOrientation = orientation,
             queryUri = contentUri.toString()
     )
+}
+
+/** Publish SVG dimensions at the same minimum size used for display. */
+private fun MultiPickerImageType.sentSize(): Size = svgSentSize(mimeType, width, height)
+
+private fun svgSentSize(mimeType: String?, width: Int, height: Int): Size {
+    val declared = Size(width, height)
+    if (mimeType != MimeTypes.Svg) return declared
+    val density = Resources.getSystem().displayMetrics.density
+    val floorPx = (MIN_MEDIA_SIDE_DP * density).roundToInt()
+    return declared.atLeastMinimumMediaSize(floorPx, Int.MAX_VALUE, Int.MAX_VALUE)
+}
+
+/** File pickers may omit SVG dimensions; measure them before publishing the attachment. */
+fun ContentAttachmentData.withMeasuredSvgSize(context: Context): ContentAttachmentData {
+    if (getSafeMimeType() != MimeTypes.Svg) return this
+    if ((width ?: 0) > 0 && (height ?: 0) > 0) return this
+    val measured = ImageUtils.getImageSize(context, queryUriAndroid) ?: return this
+    val sent = svgSentSize(MimeTypes.Svg, measured.width, measured.height)
+    return copy(width = sent.width.toLong(), height = sent.height.toLong())
 }
 
 fun MultiPickerVideoType.toContentAttachmentData(): ContentAttachmentData {

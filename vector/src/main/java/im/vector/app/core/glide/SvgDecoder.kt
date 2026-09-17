@@ -10,15 +10,16 @@ package im.vector.app.core.glide
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorFilter
+import android.graphics.Paint
 import android.graphics.Picture
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Build
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
-import com.bumptech.glide.load.resource.SimpleResource
 import com.bumptech.glide.util.ByteBufferUtil
 import com.caverock.androidsvg.SVG
 import com.caverock.androidsvg.SVGParseException
@@ -94,7 +95,25 @@ private fun decodeSvg(source: InputStream): Resource<Drawable>? {
     svg.documentWidth = intrinsicW.toFloat()
     svg.documentHeight = intrinsicH.toFloat()
     val picture = svg.renderToPicture(intrinsicW, intrinsicH)
-    return SimpleResource(ScaledPictureDrawable(picture))
+    return PictureDrawableResource(picture)
+}
+
+/** Each Glide target needs its own drawable bounds; the recorded Picture can be shared. */
+private class PictureDrawableResource(private val picture: Picture) : Resource<Drawable> {
+
+    override fun getResourceClass(): Class<Drawable> = Drawable::class.java
+
+    override fun get(): Drawable = ScaledPictureDrawable(picture)
+
+    // A picture holds recorded drawing ops, not pixels; its footprint is not knowable, so report the
+    // area it would rasterise to and let Glide size its cache from that.
+    override fun getSize(): Int = (picture.width * picture.height * BYTES_PER_PIXEL).coerceAtLeast(1)
+
+    override fun recycle() = Unit
+
+    private companion object {
+        private const val BYTES_PER_PIXEL = 4
+    }
 }
 
 private fun intrinsicSize(svg: SVG): Pair<Int, Int> {
@@ -116,26 +135,44 @@ internal class ScaledPictureDrawable(private val picture: Picture) : Drawable() 
     // Pictures can't replay onto a hardware canvas before M; rasterise once per size instead.
     private var raster: Bitmap? = null
 
+    // A crossfade dims each layer through setAlpha. Ignoring it drew the picture solid from the first
+    // frame, which covered whatever it was fading from and made the transition look like a swap.
+    private var alpha = OPAQUE
+    private val rasterPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+
     override fun getIntrinsicWidth(): Int = picture.width
     override fun getIntrinsicHeight(): Int = picture.height
 
+    // The saveLayerAlpha without flags is API 21; this one is the only version ICS has.
+    @Suppress("DEPRECATION")
     override fun draw(canvas: Canvas) {
         val b = bounds
-        if (b.isEmpty) return
+        if (b.isEmpty || alpha == 0) return
+        // drawPicture takes no paint, so a partly transparent picture is composited through a layer.
+        val layer = if (alpha < OPAQUE) canvas.saveLayerAlpha(RectF(b), alpha, Canvas.ALL_SAVE_FLAG) else -1
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M && canvas.isHardwareAccelerated) {
             val bitmap = raster?.takeIf { it.width == b.width() && it.height == b.height() }
                     ?: Bitmap.createBitmap(b.width(), b.height(), Bitmap.Config.ARGB_8888).also {
                         Canvas(it).drawPicture(picture, Rect(0, 0, b.width(), b.height()))
                         raster = it
                     }
-            canvas.drawBitmap(bitmap, null, b, null)
+            canvas.drawBitmap(bitmap, null, b, rasterPaint)
         } else {
             canvas.drawPicture(picture, b)
         }
+        if (layer != -1) canvas.restoreToCount(layer)
     }
 
-    override fun setAlpha(alpha: Int) = Unit
+    override fun setAlpha(alpha: Int) {
+        if (this.alpha == alpha) return
+        this.alpha = alpha
+        invalidateSelf()
+    }
     override fun setColorFilter(colorFilter: ColorFilter?) = Unit
     @Deprecated("Deprecated in Java")
     override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
+
+    private companion object {
+        private const val OPAQUE = 255
+    }
 }

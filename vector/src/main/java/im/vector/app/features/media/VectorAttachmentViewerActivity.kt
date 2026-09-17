@@ -155,7 +155,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             transitionCornerPx = args.transitionCornerRadiusPx.toFloat()
             imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, transitionCornerPx)
+                    // Re-capped every frame: the view is screen-sized mid-morph and media-sized at the
+                    // shared element, so the radius the timeline settles on is only right at the ends.
+                    outline.setRoundRect(
+                            0, 0, view.width, view.height,
+                            cappedMediaCornerRadius(transitionCornerPx, view.width.toFloat(), view.height.toFloat())
+                    )
                 }
             }
             imageTransitionView.clipToOutline = true

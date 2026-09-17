@@ -25,7 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import timber.log.Timber
+import org.matrix.android.sdk.api.debug.DebugLog
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -87,28 +87,28 @@ class ImageContentRendererDataFetcher(
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in ByteBuffer>) {
         val isLocal = localFilesHelper.isLocalFile(data.url)
-        Timber.i("MEDIADBG fetcher start url=${data.url} local=$isLocal event=${data.eventId} thread=${Thread.currentThread().name}")
+        DebugLog.i { "MEDIADBG fetcher start url=${data.url} local=$isLocal event=${data.eventId} thread=${Thread.currentThread().name}" }
         if (isLocal) {
             val buffer = try {
                 localFilesHelper.openInputStream(data.url)?.use { ByteBuffer.wrap(it.readBytes()) }
             } catch (throwable: Throwable) {
-                Timber.w(throwable, "MEDIADBG fetcher local open failed url=${data.url}")
+                DebugLog.w(throwable) { "MEDIADBG fetcher local open failed url=${data.url}" }
                 null
             }
             if (buffer == null) {
                 // Glide waits forever on a fetcher that answers with neither callback.
-                Timber.w("MEDIADBG fetcher local stream unavailable url=${data.url}")
+                DebugLog.w { "MEDIADBG fetcher local stream unavailable url=${data.url}" }
                 callback.onLoadFailed(IOException("Cannot open local file ${data.url}"))
             } else {
                 callback.onDataReady(buffer)
-                Timber.i("MEDIADBG fetcher local done url=${data.url}")
+                DebugLog.i { "MEDIADBG fetcher local done url=${data.url}" }
             }
             return
         }
 //        val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
 
         val session = activeSessionHolder.getSafeActiveSession() ?: return Unit.also {
-            Timber.w("MEDIADBG fetcher no session url=${data.url}")
+            DebugLog.w { "MEDIADBG fetcher no session url=${data.url}" }
             callback.onLoadFailed(IllegalArgumentException("No session"))
         }
         val fileService = session.fileService()
@@ -129,7 +129,7 @@ class ImageContentRendererDataFetcher(
                     )
                 }
             }
-            Timber.i("MEDIADBG fetcher download settled url=${data.url} ok=${result.isSuccess}")
+            DebugLog.i { "MEDIADBG fetcher download settled url=${data.url} ok=${result.isSuccess}" }
             // Mapped, not read: decodes touch only what they sample.
             val buffered = result.mapCatching { ByteBufferUtil.fromFile(it) }
             withContext(Dispatchers.Main) {
@@ -141,12 +141,12 @@ class ImageContentRendererDataFetcher(
                         { callback.onLoadFailed(it as? Exception ?: IOException(it.localizedMessage, it)) }
                 )
             }
-            Timber.i("MEDIADBG fetcher callback delivered url=${data.url}")
+            DebugLog.i { "MEDIADBG fetcher callback delivered url=${data.url}" }
         }
         // A cancelled scope silently swallows the launch, leaving Glide on the placeholder forever.
         job.invokeOnCompletion { cause ->
             if (cause != null && !delivered.getAndSet(true)) {
-                Timber.w(cause, "MEDIADBG fetcher job ended without delivering url=${data.url}")
+                DebugLog.w(cause) { "MEDIADBG fetcher job ended without delivering url=${data.url}" }
                 callback.onLoadFailed(cause as? Exception ?: IOException(cause.localizedMessage, cause))
             }
         }

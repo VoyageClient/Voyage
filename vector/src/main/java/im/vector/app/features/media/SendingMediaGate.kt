@@ -10,6 +10,7 @@ package im.vector.app.features.media
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.mediaCornerTransformation
@@ -29,9 +30,16 @@ class SendingMediaGate @Inject constructor(
         @ApplicationContext private val context: Context,
         private val imageContentRenderer: ImageContentRenderer,
 ) {
-
-    /** Set by the timeline while it is attached, so a settled decode can put the row back. */
+    /** Replay missed rebuilds on attach when decoding finishes while the timeline is detached. */
     var onRequestBuild: (() -> Unit)? = null
+        set(value) {
+            field = value
+            if (value != null && synchronized(lock) { missedBuildRequest.also { missedBuildRequest = false } }) {
+                value.invoke()
+            }
+        }
+
+    private var missedBuildRequest = false
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -43,12 +51,25 @@ class SendingMediaGate @Inject constructor(
     }
     private val inFlight = mutableSetOf<String>()
 
+    // When each hold started, so the hold cannot outlive its own timeout even if no callback runs.
+    private val heldSince = mutableMapOf<String, Long>()
+
     /** False only while the first decode of a still-sending attachment is outstanding. */
     fun canShow(data: ImageContentRenderer.Data, mode: ImageContentRenderer.Mode, messageLayout: TimelineMessageLayout): Boolean {
         val key = data.eventId
         val alreadyAsked = synchronized(lock) {
             if (settled.containsKey(key)) return true
-            !inFlight.add(key)
+            // Check elapsed time here too so a missed timeout callback cannot hide the row indefinitely.
+            val since = heldSince[key]
+            if (since != null && SystemClock.elapsedRealtime() - since >= DECODE_TIMEOUT_MS) {
+                settled[key] = true
+                inFlight.remove(key)
+                heldSince.remove(key)
+                return true
+            }
+            val asked = !inFlight.add(key)
+            if (!asked) heldSince[key] = SystemClock.elapsedRealtime()
+            asked
         }
         if (!alreadyAsked) {
             val cornerTransformation = messageLayout.mediaCornerTransformation(context)
@@ -74,6 +95,8 @@ class SendingMediaGate @Inject constructor(
         synchronized(lock) {
             settled.clear()
             inFlight.clear()
+            heldSince.clear()
+            missedBuildRequest = false
         }
         onRequestBuild = null
     }
@@ -82,6 +105,8 @@ class SendingMediaGate @Inject constructor(
         synchronized(lock) {
             if (settled.put(key, true) != null) return
             inFlight.remove(key)
+            heldSince.remove(key)
+            if (onRequestBuild == null) missedBuildRequest = true
         }
         onRequestBuild?.invoke()
     }
