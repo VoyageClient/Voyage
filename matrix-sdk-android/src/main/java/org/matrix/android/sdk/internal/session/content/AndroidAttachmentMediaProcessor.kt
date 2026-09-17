@@ -11,9 +11,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.Rect
 import android.media.MediaMetadataRetriever
 import android.os.Build
+import com.caverock.androidsvg.SVG
 import com.vanniktech.blurhash.BlurHash
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -24,6 +31,8 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import javax.inject.Inject
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 internal class AndroidAttachmentMediaProcessor @Inject constructor(
         private val appContext: Context,
@@ -52,25 +61,32 @@ internal class AndroidAttachmentMediaProcessor @Inject constructor(
     }
 
     override suspend fun compressImage(file: File, width: Int, height: Int, quality: Int, exactSize: Boolean): CompressedImage =
-            imageCompressor.compress(file, width, height, quality, exactSize)
+            imageCompressLock.withPermit { imageCompressor.compress(file, width, height, quality, exactSize) }
 
     override suspend fun reEncodeImageStrippingMetadata(file: File): CompressedImage =
             imageCompressor.reEncodeStrippingMetadata(file)
 
+    /**
+     * Transcoding drives the hardware video codec, of which a device has few — attachments now compress
+     * concurrently, and letting several transcodes start at once yields codec-acquisition failures rather
+     * than any speed-up. Images are pure CPU and stay parallel.
+     */
     override suspend fun compressVideo(
             attachment: ContentAttachmentData,
             targetWidth: Int?,
             targetHeight: Int?,
             targetBitrate: Int?,
             progressListener: ProgressListener?,
-    ): VideoCompressionResult = videoCompressor.compress(
-            attachment.queryUriAndroid,
-            attachment.size,
-            targetWidth = targetWidth,
-            targetHeight = targetHeight,
-            targetBitrate = targetBitrate,
-            progressListener = progressListener,
-    )
+    ): VideoCompressionResult = videoTranscodeLock.withPermit {
+        videoCompressor.compress(
+                attachment.queryUriAndroid,
+                attachment.size,
+                targetWidth = targetWidth,
+                targetHeight = targetHeight,
+                targetBitrate = targetBitrate,
+                progressListener = progressListener,
+        )
+    }
 
     override suspend fun stripVideoMetadata(attachment: ContentAttachmentData, progressListener: ProgressListener?): File? =
             videoMetadataStripper.strip(attachment.queryUriAndroid, progressListener)
@@ -139,14 +155,64 @@ internal class AndroidAttachmentMediaProcessor @Inject constructor(
             val options = BitmapFactory.Options().apply { inSampleSize = sample }
             return file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
         }
-        return if (JxlSupport.isAvailable && sniffImageFormat(file) == ImageSourceFormat.JXL) {
-            JxlImageReader.decode(file, BLURHASH_DECODE_MAX)
-        } else {
-            null
+        if (JxlSupport.isAvailable && sniffImageFormat(file) == ImageSourceFormat.JXL) {
+            return JxlImageReader.decode(file, BLURHASH_DECODE_MAX)
         }
+        return rasterizeSvgForBlurHash(file)
+    }
+
+    /** Rasterize SVGs at hash size because blurhash needs pixels. */
+    private fun rasterizeSvgForBlurHash(file: File): Bitmap? {
+        return tryOrNull {
+            val svg = file.inputStream().use { SVG.getFromInputStream(it) }
+            // documentAspectRatio requires explicit width and height; viewBox also supports implicit SVG sizes.
+            val viewBox = svg.documentViewBox
+            val docWidth = svg.documentWidth.takeIf { it > 0f } ?: viewBox?.width() ?: 1f
+            val docHeight = svg.documentHeight.takeIf { it > 0f } ?: viewBox?.height() ?: 1f
+            val scale = BLURHASH_DECODE_MAX / max(docWidth, docHeight)
+            val width = (docWidth * scale).roundToInt().coerceAtLeast(1)
+            val height = (docHeight * scale).roundToInt().coerceAtLeast(1)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            canvas.drawPicture(svg.renderToPicture(bitmap.width, bitmap.height), Rect(0, 0, bitmap.width, bitmap.height))
+            // Blurhash has no alpha. Fill transparent pixels with the artwork's average color to avoid black halos.
+            averageOpaqueColor(bitmap)?.let { fill ->
+                canvas.drawColor(fill, PorterDuff.Mode.DST_OVER)
+            }
+            bitmap
+        }
+    }
+
+    /** What the drawn part of a picture averages to, or null when nothing was drawn at all. */
+    private fun averageOpaqueColor(bitmap: Bitmap): Int? {
+        val pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        var weight = 0L
+        var red = 0L
+        var green = 0L
+        var blue = 0L
+        pixels.forEach { pixel ->
+            val alpha = Color.alpha(pixel)
+            if (alpha == 0) return@forEach
+            weight += alpha
+            red += Color.red(pixel).toLong() * alpha
+            green += Color.green(pixel).toLong() * alpha
+            blue += Color.blue(pixel).toLong() * alpha
+        }
+        if (weight == 0L) return null
+        return Color.rgb((red / weight).toInt(), (green / weight).toInt(), (blue / weight).toInt())
     }
 
     companion object {
         private const val BLURHASH_DECODE_MAX = 128
+
+        private val videoTranscodeLock = Semaphore(1)
+
+        /**
+         * Attachments compress concurrently, and the WorkManager configuration uses a cached thread pool,
+         * so nothing else bounds this. Each compression holds a full-size decoded bitmap — tens of MB for
+         * a phone camera image — which a small-heap device cannot afford several of at once.
+         */
+        private val imageCompressLock = Semaphore(2)
     }
 }

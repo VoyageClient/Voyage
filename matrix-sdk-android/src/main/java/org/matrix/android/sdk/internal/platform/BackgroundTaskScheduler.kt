@@ -33,6 +33,17 @@ internal interface BackgroundTaskScheduler {
             then: BackgroundTaskRequest<*>,
     ): BackgroundTaskHandle
 
+    /**
+     * Runs [requests] concurrently, then [then] once they have all finished. The handle cancels [then],
+     * matching [enqueueUniqueChain].
+     */
+    fun enqueueUniqueParallelChain(
+            queueName: String,
+            policy: BackgroundQueuePolicy,
+            requests: List<BackgroundTaskRequest<*>>,
+            then: BackgroundTaskRequest<*>,
+    ): BackgroundTaskHandle
+
     fun cancelUniqueQueue(queueName: String)
 
     fun cancelAllByTag(tag: String)

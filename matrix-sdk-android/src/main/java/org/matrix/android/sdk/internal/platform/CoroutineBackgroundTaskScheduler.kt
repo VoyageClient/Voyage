@@ -10,8 +10,12 @@ package org.matrix.android.sdk.internal.platform
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.worker.BackgroundTaskBody
 import org.matrix.android.sdk.internal.worker.BackgroundTaskContext
@@ -93,6 +97,36 @@ internal class CoroutineBackgroundTaskScheduler @Inject constructor(
         return handleOf(job)
     }
 
+    override fun enqueueUniqueParallelChain(
+            queueName: String,
+            policy: BackgroundQueuePolicy,
+            requests: List<BackgroundTaskRequest<*>>,
+            then: BackgroundTaskRequest<*>,
+    ): BackgroundTaskHandle {
+        if (policy == BackgroundQueuePolicy.REPLACE) {
+            cancelUniqueQueue(queueName)
+        }
+        val queue = synchronized(queues) { queues.getOrPut(queueName) { Queue() } }
+        val previous = queue.tail
+        val job = scope.launch {
+            previous?.join()
+            val semaphore = Semaphore(PARALLEL_TASK_LIMIT)
+            requests.map { request ->
+                async { semaphore.withPermit { runWithRetries(request, request.params) } }
+            }.awaitAll()
+            runWithRetries(then, then.params)
+        }
+        queue.tail = job
+        synchronized(queue.jobs) { queue.jobs.add(job) }
+        job.invokeOnCompletion {
+            synchronized(queue.jobs) { queue.jobs.remove(job) }
+            synchronized(queues) { if (queue.tail === job) queues.remove(queueName) }
+        }
+        requests.forEach { track(it, job) }
+        track(then, job)
+        return handleOf(job)
+    }
+
     override fun cancelUniqueQueue(queueName: String) {
         val queue = synchronized(queues) { queues.remove(queueName) } ?: return
         synchronized(queue.jobs) { queue.jobs.toList() }.forEach { it.cancel() }
@@ -170,5 +204,8 @@ internal class CoroutineBackgroundTaskScheduler @Inject constructor(
 
     companion object {
         private const val RETRY_DELAY_MILLIS = 10_000L
+
+        // Matches the order of magnitude of WorkManager's own executor, so both schedulers behave alike.
+        private const val PARALLEL_TASK_LIMIT = 4
     }
 }

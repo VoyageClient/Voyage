@@ -80,6 +80,46 @@ class CoroutineBackgroundTaskSchedulerTest {
     }
 
     @Test
+    fun `a parallel chain overlaps its tasks and runs the tail after all of them`() = runTest {
+        val log = mutableListOf<String>()
+        val running = mutableListOf<String>()
+        var maxConcurrent = 0
+        val overlapping = object : BackgroundTaskBody<TestParams> {
+            override suspend fun execute(params: TestParams, context: BackgroundTaskContext): BackgroundTaskOutcome {
+                running.add(params.value)
+                maxConcurrent = maxOf(maxConcurrent, running.size)
+                // Suspends so a serialized scheduler could never show two of these running at once.
+                kotlinx.coroutines.delay(100)
+                running.remove(params.value)
+                log.add("upload:" + params.value)
+                return BackgroundTaskOutcome.Success
+            }
+
+            override fun onError(params: TestParams, failureMessage: String) = BackgroundTaskOutcome.SuccessWith(params)
+        }
+        val scheduler = scheduler(
+                this,
+                mapOf(
+                        BackgroundTaskType.UPLOAD_CONTENT to overlapping,
+                        BackgroundTaskType.MULTIPLE_EVENT_DISPATCHER to RecordingBody(log, "dispatch"),
+                )
+        )
+
+        scheduler.enqueueUniqueParallelChain(
+                "queue",
+                BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                listOf("one", "two", "three").map { request(BackgroundTaskType.UPLOAD_CONTENT, it) },
+                request(BackgroundTaskType.MULTIPLE_EVENT_DISPATCHER, "tail"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(3, maxConcurrent)
+        assertEquals(4, log.size)
+        assertEquals("dispatch:tail", log.last())
+        assertEquals(setOf("upload:one", "upload:two", "upload:three"), log.dropLast(1).toSet())
+    }
+
+    @Test
     fun `a chain forwards the first task's failure to the second`() = runTest {
         val log = mutableListOf<String>()
         val failing = RecordingBody(log, "upload") { params, _ ->

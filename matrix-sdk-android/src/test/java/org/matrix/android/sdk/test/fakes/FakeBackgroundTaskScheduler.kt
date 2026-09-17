@@ -22,6 +22,7 @@ internal class FakeBackgroundTaskScheduler {
         every { it.enqueue(any()) } returns newHandle()
         every { it.enqueueUnique(any(), any(), any()) } returns newHandle()
         every { it.enqueueUniqueChain(any(), any(), any(), any()) } returns newHandle()
+        every { it.enqueueUniqueParallelChain(any(), any(), any(), any()) } returns newHandle()
         justRun { it.cancelUniqueQueue(any()) }
         justRun { it.cancelAllByTag(any()) }
         justRun { it.cancelAllTasks() }

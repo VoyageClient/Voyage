@@ -76,6 +76,22 @@ internal class WorkManagerTaskScheduler @Inject constructor(
         return handleOf(thenRequest)
     }
 
+    override fun enqueueUniqueParallelChain(
+            queueName: String,
+            policy: BackgroundQueuePolicy,
+            requests: List<BackgroundTaskRequest<*>>,
+            then: BackgroundTaskRequest<*>,
+    ): BackgroundTaskHandle {
+        val thenRequest = then.toWorkRequest()
+        // A list handed to beginUniqueWork runs as one parallel stage, bounded by WorkManager's own
+        // executor, and `then` waits for all of it.
+        workManagerProvider.workManager
+                .beginUniqueWork(queueName, policy.toWorkPolicy(), requests.map { it.toWorkRequest() })
+                .then(thenRequest)
+                .enqueue()
+        return handleOf(thenRequest)
+    }
+
     override fun cancelUniqueQueue(queueName: String) {
         workManagerProvider.workManager.cancelUniqueWork(queueName)
     }

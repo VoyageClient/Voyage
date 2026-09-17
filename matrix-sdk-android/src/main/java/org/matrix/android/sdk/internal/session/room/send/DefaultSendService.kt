@@ -72,6 +72,10 @@ private const val UPLOAD_WORK = "UPLOAD_WORK"
  */
 internal fun uploadWorkTag(eventId: String): String = "upload_${eventId}"
 
+/** Distinct per send, so one attachment's uploads never queue behind — or are cancelled with — another's. */
+private fun uploadWorkName(localEchoes: List<Event>): String =
+        "${UPLOAD_WORK}_${localEchoes.firstOrNull()?.eventId.orEmpty()}"
+
 internal class DefaultSendService @AssistedInject constructor(
         @Assisted private val roomId: String,
         private val backgroundTaskScheduler: BackgroundTaskScheduler,
@@ -402,9 +406,11 @@ internal class DefaultSendService @AssistedInject constructor(
         allLocalEchoes.groupBy { cryptoStore.roomWasOnceEncrypted(it.roomId!!) }.forEach { (isRoomEncrypted, localEchoes) ->
             val localEchoIds = localEchoes.map { LocalEchoIdentifiers(it.roomId!!, it.eventId!!) }
             val itemSizes = attachments.map { it.size }
-            // One upload work per item, all on the same FIFO queue, each patching its slot of the
-            // shared echo; only the last one is chained to the dispatcher that sends the event.
-            attachments.forEachIndexed { index, attachment ->
+            // One upload work per item, each patching its slot of the shared echo, all in one parallel
+            // stage: chaining them instead made every item wait out the previous one's compression, which
+            // is the slow half of the work and needs no ordering. The dispatcher that sends the event
+            // still runs only once they have all finished.
+            val uploads = attachments.mapIndexed { index, attachment ->
                 val params = UploadContentWorkerParams(
                         sessionId = sessionId,
                         localEchoIds = localEchoIds,
@@ -414,25 +420,22 @@ internal class DefaultSendService @AssistedInject constructor(
                         galleryItemIndex = index,
                         galleryItemSizes = itemSizes,
                 )
-                val work = backgroundTask(
+                backgroundTask(
                         type = BackgroundTaskType.UPLOAD_CONTENT,
                         params = params,
                         matrixConstraints = true,
                         isolateInput = true,
                         extraTags = localEchoIds.map { uploadWorkTag(it.eventId) },
                 )
-                val handle = if (index == attachments.lastIndex) {
-                    backgroundTaskScheduler.enqueueUniqueChain(
-                            buildWorkName(UPLOAD_WORK),
+            }
+            cancelableBag.add(
+                    backgroundTaskScheduler.enqueueUniqueParallelChain(
+                            buildWorkName(uploadWorkName(localEchoes)),
                             BackgroundQueuePolicy.APPEND_OR_REPLACE,
-                            work,
+                            uploads,
                             createMultipleEventDispatcherWork(isRoomEncrypted),
                     )
-                } else {
-                    backgroundTaskScheduler.enqueueUnique(buildWorkName(UPLOAD_WORK), BackgroundQueuePolicy.APPEND_OR_REPLACE, work)
-                }
-                cancelableBag.add(handle)
-            }
+            )
         }
         return cancelableBag
     }
@@ -541,8 +544,11 @@ internal class DefaultSendService @AssistedInject constructor(
 
                         val dispatcherWork = createMultipleEventDispatcherWork(isRoomEncrypted)
 
+                        // A queue name per send, not one per room: sharing it made every attachment wait
+                        // out the previous one's compression, and cancelling the one that was compressing
+                        // left the rest of the chain blocked behind it with no echo ever settling.
                         val handle = backgroundTaskScheduler.enqueueUniqueChain(
-                                buildWorkName(UPLOAD_WORK),
+                                buildWorkName(uploadWorkName(localEchoes)),
                                 BackgroundQueuePolicy.APPEND_OR_REPLACE,
                                 uploadWork,
                                 dispatcherWork,
