@@ -283,7 +283,11 @@ class SearchFragment :
                     audioMessageHelper.resolveLocalFile(messageAudioContent.url)
                             ?: session.fileService().downloadFile(messageAudioContent)
                 }
-                audioMessageHelper.startOrPausePlayback(eventId, audioFile)
+                audioMessageHelper.startOrPausePlayback(
+                        eventId,
+                        audioFile,
+                        isVoiceMessage = messageAudioContent.voiceMessageIndicator != null,
+                )
             } catch (failure: Throwable) {
                 Timber.w(failure, "Unable to play audio message from search")
             }

@@ -48,6 +48,7 @@ class AudioMessageHelper @Inject constructor(
 ) {
     private var mediaPlayer: MediaPlayer? = null
     private var currentPlayingId: String? = null
+    private var currentPlayingIsVoiceMessage = false
 
     // Held as the Lazy itself so the stop paths can tell "no recorder was ever needed" from "stop it":
     // building one enumerates the platform codec list, which class-initialises MediaCodec and loads a
@@ -148,11 +149,11 @@ class AudioMessageHelper @Inject constructor(
 
     fun startOrPauseRecordingPlayback() {
         voiceRecorder.getVoiceMessageFile()?.let {
-            startOrPausePlayback(AudioMessagePlaybackTracker.RECORDING_ID, it)
+            startOrPausePlayback(AudioMessagePlaybackTracker.RECORDING_ID, it, isVoiceMessage = true)
         }
     }
 
-    fun startOrPausePlayback(id: String, file: File) {
+    fun startOrPausePlayback(id: String, file: File, isVoiceMessage: Boolean) {
         val playbackState = playbackTracker.getPlaybackState(id)
         releasePlayer()
         stopPlaybackTicker()
@@ -161,12 +162,12 @@ class AudioMessageHelper @Inject constructor(
         if (playbackState is AudioMessagePlaybackTracker.Listener.State.Playing) {
             playbackTracker.pausePlayback(id)
         } else {
-            startPlayback(id, file)
+            startPlayback(id, file, isVoiceMessage)
             playbackTracker.startPlayback(id)
         }
     }
 
-    private fun startPlayback(id: String, file: File) {
+    private fun startPlayback(id: String, file: File, isVoiceMessage: Boolean) {
         val currentPlaybackTime = playbackTracker.getPlaybackTime(id) ?: 0
         val playableFile = resolvePlayableFile(file)
         lastCompletionAtMs = 0L
@@ -194,6 +195,7 @@ class AudioMessageHelper @Inject constructor(
                 }
             }
             currentPlayingId = id
+            currentPlayingIsVoiceMessage = isVoiceMessage
         } catch (failure: Throwable) {
             Timber.e(failure, "Unable to start playback")
             throw VoiceFailure.UnableToPlay(failure)
@@ -267,8 +269,9 @@ class AudioMessageHelper @Inject constructor(
         lastCompletionAtMs = now
         stopPlaybackTicker()
         val player = mediaPlayer
-        // The same setting media loops under, applied to sound: play it again from the top.
-        if (player != null && vectorPreferences.loopVideos() && runCatching { player.seekToPrecise(0); player.start() }.isSuccess) {
+        // The same setting media loops under, applied to sound, but never to speech.
+        if (player != null && !currentPlayingIsVoiceMessage && vectorPreferences.loopVideos() &&
+                runCatching { player.seekToPrecise(0); player.start() }.isSuccess) {
             playbackTracker.updatePlayingAtPlaybackTime(id, 0, 0f)
             startPlaybackTicker(id)
             return
@@ -281,9 +284,9 @@ class AudioMessageHelper @Inject constructor(
     }
 
     fun movePlaybackTo(id: String, percentage: Float, totalDuration: Int) {
-        playbackTracker.pauseAllPlaybacks()
-
-        val playing = mediaPlayer?.takeIf { currentPlayingId == id && tryOrNull { it.isPlaying }.orFalse() }
+        // Only this message's own player: scrubbing one message leaves whatever else plays alone.
+        val player = mediaPlayer?.takeIf { currentPlayingId == id }
+        val playing = player?.takeIf { tryOrNull { it.isPlaying }.orFalse() }
         // What the sender declared and what the file actually holds can differ, and the bar is drawn
         // against the file: seeking by the declared length lands somewhere other than the touch.
         val duration = playing?.let { tryOrNull { it.duration } }?.takeIf { it > 0 } ?: totalDuration
@@ -295,9 +298,11 @@ class AudioMessageHelper @Inject constructor(
         } else {
             // Seeking a player that is not running leaves it silent, so say the playback is paused
             // rather than reporting one that stands still: the next tap on play resumes from here.
-            tryOrNull { mediaPlayer?.pause() }
+            if (player != null) {
+                tryOrNull { player.pause() }
+                stopPlaybackTicker()
+            }
             playbackTracker.updatePausedAtPlaybackTime(id, toMillisecond, percentage)
-            stopPlaybackTicker()
         }
     }
 

@@ -35,6 +35,8 @@ import kotlin.math.roundToInt
  * where dropping to just the last part (.gz) would break extraction, so the .tar.<x> pair is preserved.
  */
 fun ContentAttachmentData.withRandomizedFilename(): ContentAttachmentData {
+    // A voice message's name says nothing about its sender, and clients display it as-is.
+    if (type == ContentAttachmentData.Type.VOICE_MESSAGE) return this
     val originalName = name ?: return this
     return copy(name = java.util.UUID.randomUUID().toString() + extensionSuffixOf(originalName, type))
 }
@@ -45,8 +47,7 @@ private fun extensionSuffixOf(fileName: String, type: ContentAttachmentData.Type
     if (parts.size < 2 || last.isEmpty()) return ""
     val isMedia = type == ContentAttachmentData.Type.IMAGE ||
             type == ContentAttachmentData.Type.VIDEO ||
-            type == ContentAttachmentData.Type.AUDIO ||
-            type == ContentAttachmentData.Type.VOICE_MESSAGE
+            type == ContentAttachmentData.Type.AUDIO
     return if (!isMedia && parts.size >= 3 && parts[parts.size - 2].equals("tar", ignoreCase = true)) {
         ".tar.$last"
     } else {

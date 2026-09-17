@@ -79,15 +79,15 @@ class AudioMessagePlaybackTracker @Inject constructor() {
         val currentPercentage = getPercentage(id) ?: 0f
         val currentState = Listener.State.Playing(currentPlaybackTime, currentPercentage)
         setState(id, currentState)
-        // Pause any active playback
+        // Whatever else was playing keeps its position, so the next tap resumes it rather than
+        // starting it over.
         states
                 .filter { it.key != id }
                 .keys
                 .forEach { key ->
                     val state = states[key]
                     if (state is Listener.State.Playing) {
-                        // Paused(state.playbackTime) state should also be considered later.
-                        setState(key, Listener.State.Idle)
+                        setState(key, Listener.State.Paused(state.playbackTime, state.percentage))
                     }
                 }
     }

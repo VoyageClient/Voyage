@@ -2629,7 +2629,11 @@ class MessageComposerViewModel @AssistedInject constructor(
                 try {
                     val audioFile = audioMessageHelper.resolveLocalFile(action.messageAudioContent.url)
                             ?: session.fileService().downloadFile(action.messageAudioContent)
-                    audioMessageHelper.startOrPausePlayback(action.eventId, audioFile)
+                    audioMessageHelper.startOrPausePlayback(
+                            action.eventId,
+                            audioFile,
+                            isVoiceMessage = action.messageAudioContent.voiceMessageIndicator != null,
+                    )
                 } catch (failure: CancellationException) {
                     throw failure
                 } catch (failure: Throwable) {
