@@ -375,7 +375,7 @@ class HomeDetailFragment :
     }
 
     private fun BadgeDrawable.render(count: Int, highlight: Boolean) {
-        isVisible = count > 0
+        isVisible = count > 0 && vectorPreferences.showUnreadCounter()
         number = count
         maxCharacterCount = 3
         badgeTextColor = ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorOnPrimary)

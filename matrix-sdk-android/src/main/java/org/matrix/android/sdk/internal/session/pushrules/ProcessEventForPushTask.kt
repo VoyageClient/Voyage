@@ -16,10 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.pushrules
 
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isEdition
 import org.matrix.android.sdk.api.session.events.model.isInvitation
+import org.matrix.android.sdk.api.session.pushrules.Action
 import org.matrix.android.sdk.api.session.pushrules.PushEvents
+import org.matrix.android.sdk.api.session.pushrules.RuleIds
+import org.matrix.android.sdk.api.session.pushrules.getActions
 import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
 import org.matrix.android.sdk.internal.crypto.EventDecryptor
@@ -85,6 +89,7 @@ internal class DefaultProcessEventForPushTask @Inject constructor(
                 "[PushRules] Found ${allEvents.size} out of ${(newJoinEvents + inviteEvents).size}" +
                         " to check for push rules with ${params.rules.size} rules"
         )
+        logRuleSetIfChanged(params.rules)
         val matchedEvents = allEvents.mapNotNull { event ->
             pushRuleFinder.fulfilledBingRule(event, params.rules)?.let {
                 Timber.v("[PushRules] Rule $it match for event ${event.eventId}")
@@ -110,6 +115,41 @@ internal class DefaultProcessEventForPushTask @Inject constructor(
                         roomsLeft = params.syncResponse.leave.keys,
                         redactedEventIds = allRedactedEvents
                 )
+        )
+    }
+
+    private var loggedRuleSetDigest: Int? = null
+
+    /** Log the evaluated ruleset on changes so delayed notification reports can be traced. */
+    private fun logRuleSetIfChanged(rules: List<PushRule>) {
+        val notifying = rules.filter { it.enabled && it.getActions().any { action -> action is Action.Notify } }
+        val digest = notifying.map { it.ruleId to it.actions }.hashCode()
+        if (digest == loggedRuleSetDigest) return
+        loggedRuleSetDigest = digest
+        DebugLog.i { "NOTIFDBG rule set for $userId: ${rules.size} rules, ${notifying.size} enabled and notifying" }
+        notifying.forEach { rule ->
+            DebugLog.i { "NOTIFDBG   notifying rule=${rule.ruleId} default=${rule.default} actions=${rule.actions}" }
+        }
+        // The rules the settings screen claims to control, whatever they are doing: "mentions and
+        // keywords" notifying nothing at all looks identical to a rule set that is simply quiet.
+        INTERESTING_RULE_IDS.forEach { ruleId ->
+            val rule = rules.find { it.ruleId == ruleId }
+            DebugLog.i { "NOTIFDBG   default rule=$ruleId ($userId) " +
+                            (rule?.let { "enabled=${it.enabled} actions=${it.actions} conditions=${it.conditions}" } ?: "ABSENT") }
+        }
+    }
+
+    private companion object {
+        private val INTERESTING_RULE_IDS = listOf(
+                RuleIds.RULE_ID_IS_USER_MENTION,
+                RuleIds.RULE_ID_IS_ROOM_MENTION,
+                RuleIds.RULE_ID_KEYWORDS,
+                ".m.rule.contains_display_name",
+                ".m.rule.contains_user_name",
+                RuleIds.RULE_ID_ONE_TO_ONE_ROOM,
+                RuleIds.RULE_ID_ONE_TO_ONE_ENCRYPTED_ROOM,
+                RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS,
+                RuleIds.RULE_ID_ENCRYPTED,
         )
     }
 }

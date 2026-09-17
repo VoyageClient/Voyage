@@ -18,6 +18,7 @@ import im.vector.app.core.platform.VectorViewModel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 
@@ -38,6 +39,7 @@ class RoomNotificationSettingsViewModel @AssistedInject constructor(
     init {
         observeSummary()
         observeNotificationState()
+        observeExplicitRule()
     }
 
     private fun observeSummary() {
@@ -56,6 +58,12 @@ class RoomNotificationSettingsViewModel @AssistedInject constructor(
                 }
     }
 
+    private fun observeExplicitRule() {
+        room.flow()
+                .liveExplicitNotificationState()
+                .setOnEach { copy(hasExplicitRule = it != null) }
+    }
+
     override fun handle(action: RoomNotificationSettingsAction) {
         when (action) {
             is RoomNotificationSettingsAction.SelectNotificationState -> handleSelectNotificationState(action)
@@ -69,7 +77,11 @@ class RoomNotificationSettingsViewModel @AssistedInject constructor(
                     .fold(
                             {
                                 setState {
-                                    copy(isLoading = false, notificationState = Success(action.notificationState))
+                                    copy(
+                                            isLoading = false,
+                                            notificationState = Success(action.notificationState),
+                                            hasExplicitRule = action.notificationState != RoomNotificationState.ALL_MESSAGES,
+                                    )
                                 }
                             },
                             {

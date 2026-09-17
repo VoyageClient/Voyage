@@ -19,6 +19,7 @@ import im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotif
 import im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationViewEvent.PushRulesUpdated
 import im.vector.app.features.settings.notifications.usecase.GetPushRulesOnInvalidStateUseCase
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.failure.Failure.ServerError
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.Session
@@ -26,7 +27,9 @@ import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.pushrules.Action
 import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
+import org.matrix.android.sdk.api.session.pushrules.getActions
 import org.matrix.android.sdk.api.session.pushrules.rest.PushRuleAndKind
+import org.matrix.android.sdk.api.session.pushrules.rest.RuleSet
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 
@@ -48,12 +51,22 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
 
     companion object : MavericksViewModelFactory<ViewModel, ViewState> by hiltMavericksViewModelFactory()
 
+    // Every read rebuilds the whole rule set: five queries plus one per rule for its conditions. The
+    // screen asks about a dozen rules while it binds, so without this it pays that cost each time.
+    private var cachedRuleSet: RuleSet? = null
+
+    private fun ruleSet(): RuleSet = cachedRuleSet ?: session.pushRuleService().getPushRules().also { cachedRuleSet = it }
+
     init {
         session.flow()
                 .liveUserAccountData(UserAccountDataTypes.TYPE_PUSH_RULES)
                 .unwrap()
                 .setOnEach {
-                    val allRules = session.pushRuleService().getPushRules().getAllRules()
+                    cachedRuleSet = null
+                    val allRules = ruleSet().getAllRules()
+                    allRules.find { it.ruleId == RuleIds.RULE_ID_IS_USER_MENTION }?.let {
+                        DebugLog.i { "NOTIFDBG account data refresh: is_user_mention enabled=${it.enabled} actions=${it.actions}" }
+                    }
                     val rulesOnError = getPushRulesOnInvalidStateUseCase.execute(session).map { it.ruleId }.toSet()
                     copy(
                             allRules = allRules,
@@ -70,7 +83,7 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
     }
 
     fun getPushRuleAndKind(ruleId: String): PushRuleAndKind? {
-        return session.pushRuleService().getPushRules().findDefaultRule(ruleId)
+        return ruleSet().findDefaultRule(ruleId)
     }
 
     fun isPushRuleChecked(ruleId: String): Boolean {
@@ -90,9 +103,16 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
                     val ruleAndKind = getPushRuleAndKind(ruleId) ?: return@mapNotNull null
                     val standardAction = getStandardAction(ruleId, if (checked) NotificationIndex.NOISY else NotificationIndex.OFF)
                             ?: return@mapNotNull null
-                    RuleUpdate(ruleId, ruleAndKind.kind, standardAction)
+                    // An unnecessary actions write can replay stale enabled state through account data after the toggle.
+                    val actionsChanged = standardAction.actions.orEmpty() != ruleAndKind.pushRule.getActions()
+                    RuleUpdate(ruleId, ruleAndKind.kind, standardAction, actionsChanged)
                 }
-        if (rulesToUpdate.isEmpty()) return
+        DebugLog.i { "NOTIFDBG toggle $ruleIds -> checked=$checked, writing " +
+                        rulesToUpdate.joinToString { "${it.ruleId}(kind=${it.kind}, ${it.standardAction}, actions=${it.standardAction.actions})" } }
+        if (rulesToUpdate.isEmpty()) {
+            DebugLog.w { "NOTIFDBG toggle $ruleIds: nothing to write, the rules are unknown or have no standard action" }
+            return
+        }
 
         setState { copy(isLoading = true) }
 
@@ -103,11 +123,18 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
                             ruleUpdate.kind,
                             ruleUpdate.ruleId,
                             ruleUpdate.standardAction != StandardActions.Disabled,
-                            ruleUpdate.standardAction.actions
+                            ruleUpdate.standardAction.actions.takeIf { ruleUpdate.actionsChanged }
                     )
                 }
             }
 
+            cachedRuleSet = null
+            rulesToUpdate.forEachIndexed { index, update ->
+                val outcome = results[index].exceptionOrNull()?.let { "FAILED: $it" } ?: "ok"
+                val now = getPushRuleAndKind(update.ruleId)?.pushRule
+                DebugLog.i { "NOTIFDBG toggle wrote ${update.ruleId}: $outcome — now enabled=${now?.enabled} actions=${now?.getActions()} " +
+                                "checkedReadsBack=${isPushRuleChecked(update.ruleId)}" }
+            }
             val failures = results.mapNotNull { result ->
                 // If the failure is a rule not found error, do not consider it
                 result.exceptionOrNull()?.takeUnless { it is ServerError && it.error.code == MatrixError.M_NOT_FOUND }
@@ -143,7 +170,8 @@ class VectorSettingsPushRuleNotificationViewModel @AssistedInject constructor(
     private data class RuleUpdate(
             val ruleId: String,
             val kind: RuleKind,
-            val standardAction: StandardActions
+            val standardAction: StandardActions,
+            val actionsChanged: Boolean,
     )
 
     private suspend fun updatePushRule(kind: RuleKind, ruleId: String, enable: Boolean, newActions: List<Action>?) {

@@ -44,6 +44,12 @@ class RoomMemberCountCondition(
         // Parse the is field into prefix and number the first time
         val (prefix, count) = parseIsField() ?: return false
 
+        // Treat m.direct rooms as one-to-one for exact "2" conditions, including group DMs.
+        // Range conditions retain their numeric meaning; homeserver push evaluation still uses member counts.
+        if (count == 2 && (prefix.isNullOrEmpty() || prefix == "==") && room.roomSummary()?.isDirect == true) {
+            return true
+        }
+
         val numMembers = room.membershipService().getNumberOfJoinedMembers()
 
         return when (prefix) {

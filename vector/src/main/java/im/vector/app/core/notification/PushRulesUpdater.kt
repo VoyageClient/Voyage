@@ -14,8 +14,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
+import org.matrix.android.sdk.api.session.pushrules.Kind
 import org.matrix.android.sdk.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +33,21 @@ class PushRulesUpdater @Inject constructor(
     private var job: Job? = null
 
     fun onSessionStarted(session: Session) {
+        repairConditionsMissingTheirValue(session)
         updatePushRulesOnChange(session)
+    }
+
+    /** Refetch legacy conditions with missing values; unchanged account rules may never repair themselves via sync. */
+    private fun repairConditionsMissingTheirValue(session: Session) {
+        session.coroutineScope.launch(Dispatchers.Default) {
+            val suspect = session.pushRuleService().getPushRules().getAllRules().any { rule ->
+                rule.conditions.orEmpty().any { it.kind in VALUE_CONDITION_KINDS && it.value == null }
+            }
+            if (suspect) {
+                DebugLog.w { "NOTIFDBG ${session.myUserId}: stored push conditions lost their value, re-fetching" }
+                session.pushRuleService().fetchPushRules()
+            }
+        }
     }
 
     private fun updatePushRulesOnChange(session: Session) {
@@ -43,5 +59,9 @@ class PushRulesUpdater @Inject constructor(
                     .onEach { updatePushRulesIfNeededUseCase.execute(session) }
                     .collect()
         }
+    }
+
+    private companion object {
+        private val VALUE_CONDITION_KINDS = setOf(Kind.EventPropertyIs.value, Kind.EventPropertyContains.value)
     }
 }

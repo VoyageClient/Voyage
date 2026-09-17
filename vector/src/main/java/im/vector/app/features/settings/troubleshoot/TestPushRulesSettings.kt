@@ -30,7 +30,7 @@ class TestPushRulesSettings @Inject constructor(
     override fun perform(testParameters: TestParameters) {
         val session = activeSessionHolder.getSafeActiveSession() ?: return
         val pushRules = session.pushRuleService().getPushRules().getAllRules()
-        var oneOrMoreRuleIsOff = false
+        val rulesThatAreOff = mutableListOf<String>()
         var oneOrMoreRuleAreSilent = false
         testedRules.forEach { ruleId ->
             pushRules.find { it.ruleId == ruleId }?.let { rule ->
@@ -38,7 +38,7 @@ class TestPushRulesSettings @Inject constructor(
                 val notifAction = actions.toNotificationAction()
                 if (!rule.enabled || !notifAction.shouldNotify) {
                     // off
-                    oneOrMoreRuleIsOff = true
+                    rulesThatAreOff.add(ruleId)
                 } else if (notifAction.soundName == null) {
                     // silent
                     oneOrMoreRuleAreSilent = true
@@ -48,8 +48,13 @@ class TestPushRulesSettings @Inject constructor(
             }
         }
 
-        if (oneOrMoreRuleIsOff) {
-            description = stringProvider.getString(CommonStrings.settings_troubleshoot_test_bing_settings_failed)
+        if (rulesThatAreOff.isNotEmpty()) {
+            // Naming the categories turns "something is disabled" into something the user can act on,
+            // and tells a deliberate mentions-only setup apart from a rule that went off by itself.
+            description = stringProvider.getString(
+                    CommonStrings.settings_troubleshoot_test_bing_settings_failed_detail,
+                    rulesThatAreOff.joinToString { stringProvider.getString(it.labelRes()) },
+            )
             // TODO
 //                quickFix = object : TroubleshootQuickFix(CommonStrings.settings_troubleshoot_test_bing_settings_quickfix) {
 //                    override fun doFix() {
@@ -69,5 +74,11 @@ class TestPushRulesSettings @Inject constructor(
             }
             status = TestStatus.SUCCESS
         }
+    }
+
+    private fun String.labelRes() = when (this) {
+        RuleIds.RULE_ID_IS_USER_MENTION -> CommonStrings.settings_troubleshoot_rule_mentions
+        RuleIds.RULE_ID_ONE_TO_ONE_ROOM -> CommonStrings.settings_troubleshoot_rule_direct_messages
+        else -> CommonStrings.settings_troubleshoot_rule_group_messages
     }
 }

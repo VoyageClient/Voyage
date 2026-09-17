@@ -45,6 +45,7 @@ internal class VectorSettingsPushRuleNotificationViewModelTest {
     @Before
     fun setup() {
         mockkStatic("im.vector.app.features.settings.notifications.NotificationIndexKt")
+        mockkStatic("org.matrix.android.sdk.api.session.pushrules.ActionKt")
         every { fakeGetPushRulesOnInvalidStateUseCase.execute(any()) } returns emptyList()
     }
 

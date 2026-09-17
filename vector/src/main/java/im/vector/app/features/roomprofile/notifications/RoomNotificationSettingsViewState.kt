@@ -20,7 +20,9 @@ data class RoomNotificationSettingsViewState(
         val roomId: String,
         val roomSummary: Async<RoomSummary> = Uninitialized,
         val isLoading: Boolean = false,
-        val notificationState: Async<RoomNotificationState> = Uninitialized
+        val notificationState: Async<RoomNotificationState> = Uninitialized,
+        /** False when the room has no rule of its own and simply follows the account-wide settings. */
+        val hasExplicitRule: Boolean = true
 ) : MavericksState {
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)
     constructor(args: RoomListActionsArgs) : this(roomId = args.roomId)
@@ -32,10 +34,19 @@ data class RoomNotificationSettingsViewState(
 val RoomNotificationSettingsViewState.notificationStateMapped: Async<RoomNotificationState>
     get() {
         return when {
+            // No rule of its own: the room follows the account-wide settings, which is its own choice
+            // rather than whatever those settings currently resolve to.
+            !hasExplicitRule -> Success(RoomNotificationState.ALL_MESSAGES)
             notificationState() == RoomNotificationState.ALL_MESSAGES -> Success(RoomNotificationState.ALL_MESSAGES_NOISY)
             else -> notificationState
         }
     }
 
 val RoomNotificationSettingsViewState.notificationOptions: List<RoomNotificationState>
-    get() = listOf(RoomNotificationState.ALL_MESSAGES_NOISY, RoomNotificationState.MENTIONS_ONLY, RoomNotificationState.MUTE)
+    get() = listOf(
+            // ALL_MESSAGES writes no rule at all, so it is how a room goes back to following the account.
+            RoomNotificationState.ALL_MESSAGES,
+            RoomNotificationState.ALL_MESSAGES_NOISY,
+            RoomNotificationState.MENTIONS_ONLY,
+            RoomNotificationState.MUTE,
+    )

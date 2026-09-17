@@ -54,6 +54,10 @@ internal class DefaultRoomPushRuleService @AssistedInject constructor(
         }
     }
 
+    override fun getExplicitRoomNotificationStateFlow(): Flow<RoomNotificationState?> {
+        return getPushRuleForRoom().map { it?.toRoomNotificationState() }
+    }
+
     override suspend fun setRoomNotificationState(roomNotificationState: RoomNotificationState) {
         setRoomNotificationStateTask.execute(SetRoomNotificationStateTask.Params(roomId, roomNotificationState))
     }

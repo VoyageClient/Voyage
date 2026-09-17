@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.members.MembershipService
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.internal.session.room.RoomGetter
 
@@ -304,6 +305,52 @@ class PushRulesConditionTest : MatrixTest {
             assertFalse("This room has more than 3 members", conditionLessThan3.isSatisfied(it, roomGetterStub))
         }
     }
+
+    @Test
+    fun test_group_dm_counts_as_one_to_one() {
+        val groupDmId = "groupDm"
+        val plainRoomId = "plainRoom"
+        val roomGetterStub = mockk<RoomGetter> {
+            every { getRoom(groupDmId) } returns roomWith(joinedMembers = 4, isDirect = true)
+            every { getRoom(plainRoomId) } returns roomWith(joinedMembers = 4, isDirect = false)
+        }
+
+        val equalTwo = RoomMemberCountCondition("2")
+        val equalTwoBis = RoomMemberCountCondition("==2")
+        val lessThanTwo = RoomMemberCountCondition("<2")
+        val equalFour = RoomMemberCountCondition("4")
+
+        messageIn(groupDmId).also {
+            assertTrue("A four-person DM is still a DM", equalTwo.isSatisfied(it, roomGetterStub))
+            assertTrue("A four-person DM is still a DM", equalTwoBis.isSatisfied(it, roomGetterStub))
+            assertFalse("A range condition means what it says", lessThanTwo.isSatisfied(it, roomGetterStub))
+            assertTrue("The real member count still matches", equalFour.isSatisfied(it, roomGetterStub))
+        }
+
+        messageIn(plainRoomId).also {
+            assertFalse("An ordinary room is not one-to-one", equalTwo.isSatisfied(it, roomGetterStub))
+            assertFalse("An ordinary room is not one-to-one", equalTwoBis.isSatisfied(it, roomGetterStub))
+        }
+    }
+
+    private fun roomWith(joinedMembers: Int, isDirect: Boolean): Room {
+        val membership = mockk<MembershipService>()
+        every { membership.getNumberOfJoinedMembers() } returns joinedMembers
+        val summary = mockk<RoomSummary>(relaxed = true)
+        every { summary.isDirect } returns isDirect
+        val room = mockk<Room>()
+        every { room.membershipService() } returns membership
+        every { room.roomSummary() } returns summary
+        return room
+    }
+
+    private fun messageIn(roomId: String) = Event(
+            type = "m.room.message",
+            eventId = "mx0",
+            content = MessageTextContent("m.text", "A").toContent(),
+            originServerTs = 0,
+            roomId = roomId
+    )
 
     /* ==========================================================================================
      * Test the intentional mention conditions

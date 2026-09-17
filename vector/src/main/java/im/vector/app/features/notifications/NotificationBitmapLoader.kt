@@ -12,26 +12,32 @@ import android.graphics.Bitmap
 import android.os.Build
 import androidx.annotation.WorkerThread
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.signature.ObjectKey
+import im.vector.app.features.home.AvatarRenderer
+import org.matrix.android.sdk.api.util.MatrixItem
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
-class NotificationBitmapLoader @Inject constructor(private val context: Context) {
+class NotificationBitmapLoader @Inject constructor(
+        private val context: Context,
+        private val avatarRenderer: Provider<AvatarRenderer>,
+) {
 
     /**
      * Get icon of a room.
      */
     @WorkerThread
-    fun getRoomBitmap(path: String?): Bitmap? {
-        if (path == null) {
-            return null
-        }
-        return loadRoomBitmap(path)
+    fun getRoomBitmap(path: String?, matrixItem: MatrixItem?): Bitmap? {
+        path?.let { loadRoomBitmap(it) }?.let { return it }
+        // Use circular default avatars when loading fails, matching notification sender icons.
+        return matrixItem?.let { defaultAvatarBitmap(it, forceCircle = true) }
     }
 
     @WorkerThread
@@ -40,6 +46,7 @@ class NotificationBitmapLoader @Inject constructor(private val context: Context)
             Glide.with(context)
                     .asBitmap()
                     .load(path)
+                    .transform(CircleCrop())
                     .format(DecodeFormat.PREFER_ARGB_8888)
                     .signature(ObjectKey("room-icon-notification"))
                     .submit()
@@ -55,12 +62,26 @@ class NotificationBitmapLoader @Inject constructor(private val context: Context)
      * Before Android P, this does nothing because the icon won't be used
      */
     @WorkerThread
-    fun getUserIcon(path: String?): IconCompat? {
-        if (path == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+    fun getUserIcon(path: String?, matrixItem: MatrixItem?): IconCompat? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             return null
         }
+        path?.let { loadUserIcon(it) }?.let { return it }
+        return matrixItem
+                ?.let { defaultAvatarBitmap(it, forceCircle = true) }
+                ?.let { IconCompat.createWithBitmap(it) }
+    }
 
-        return loadUserIcon(path)
+    /** The default avatar the app draws elsewhere: the item's glyph over its own profile color. */
+    @WorkerThread
+    private fun defaultAvatarBitmap(matrixItem: MatrixItem, forceCircle: Boolean): Bitmap? {
+        return try {
+            val size = context.resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height)
+            avatarRenderer.get().getPlaceholderDrawable(matrixItem, forceCircle = forceCircle).toBitmap(size, size)
+        } catch (e: Exception) {
+            Timber.e(e, "default avatar failed for ${matrixItem.id}")
+            null
+        }
     }
 
     @WorkerThread

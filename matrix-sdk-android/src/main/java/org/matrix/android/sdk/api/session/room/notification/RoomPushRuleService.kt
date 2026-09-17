@@ -22,5 +22,11 @@ interface RoomPushRuleService {
 
     fun getRoomNotificationStateFlow(): Flow<RoomNotificationState>
 
+    /**
+     * The room's own rule, or null when it has none and simply follows the account-wide defaults.
+     * [getRoomNotificationStateFlow] resolves that fallback, so it cannot tell the two apart.
+     */
+    fun getExplicitRoomNotificationStateFlow(): Flow<RoomNotificationState?>
+
     suspend fun setRoomNotificationState(roomNotificationState: RoomNotificationState)
 }

@@ -15,6 +15,7 @@
  */
 package org.matrix.android.sdk.internal.session.pushers
 
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.pushrules.Action
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
 import org.matrix.android.sdk.api.session.pushrules.toJson
@@ -40,10 +41,13 @@ internal class DefaultUpdatePushRuleActionsTask @Inject constructor(
     override suspend fun execute(params: UpdatePushRuleActionsTask.Params) {
         if (params.actions != null) {
             val body = mapOf("actions" to params.actions.toJson())
+            DebugLog.i { "NOTIFDBG PUT pushrules/global/${params.kind.value}/${params.ruleId}/actions = ${params.actions}" }
             executeRequest(globalErrorReceiver) {
                 pushRulesApi.updateRuleActions(params.kind.value, params.ruleId, body)
             }
+            DebugLog.i { "NOTIFDBG PUT actions accepted for ${params.ruleId}" }
         }
+        DebugLog.i { "NOTIFDBG PUT pushrules/global/${params.kind.value}/${params.ruleId}/enabled = ${params.enable}" }
         executeRequest(globalErrorReceiver) {
             pushRulesApi.updateEnableRuleStatus(
                     params.kind.value,
@@ -51,5 +55,6 @@ internal class DefaultUpdatePushRuleActionsTask @Inject constructor(
                     EnabledBody(params.enable)
             )
         }
+        DebugLog.i { "NOTIFDBG PUT enabled accepted for ${params.ruleId}" }
     }
 }

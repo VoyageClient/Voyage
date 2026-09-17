@@ -19,7 +19,9 @@ internal open class PushConditionEntity(
         var kind: String = "",
         var key: String? = null,
         var pattern: String? = null,
-        var iz: String? = null
+        var iz: String? = null,
+        /** event_property_is / event_property_contains: the JSON value to match. */
+        var value: Any? = null
 ) {
 
     companion object

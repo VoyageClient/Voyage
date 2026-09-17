@@ -15,6 +15,12 @@
             android:key="SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY"
             android:title="@string/settings_enable_this_device" />
 
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_UNREAD_COUNTER_KEY"
+            android:summary="@string/settings_show_unread_counter_summary"
+            android:title="@string/settings_show_unread_counter" />
+
         <!--<im.vector.app.core.preference.VectorSwitchPreference-->
         <!--android:dependency="SETTINGS_ENABLE_ALL_NOTIF_PREFERENCE_KEY"-->
         <!--android:key="SETTINGS_TURN_SCREEN_ON_PREFERENCE_KEY"-->
@@ -34,6 +40,13 @@
             android:title="@string/settings_notification_mentions_and_keywords"
             app:fragment="im.vector.app.features.settings.notifications.keywordandmentions.VectorSettingsKeywordAndMentionsNotificationFragment" />
 
+        <im.vector.app.core.preference.VectorPreference
+            android:dependency="SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY"
+            android:key="SETTINGS_RESET_ROOM_NOTIFICATION_OVERRIDES_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_reset_room_notification_overrides_summary"
+            android:title="@string/settings_reset_room_notification_overrides" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
@@ -49,6 +62,20 @@
             android:key="SETTINGS_NOTIFICATION_METHOD_KEY"
             android:persistent="false"
             android:title="@string/settings_notification_method" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:dependency="SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY"
+            android:key="SETTINGS_PUSH_GATEWAY_KEY"
+            android:persistent="false"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/settings_push_gateway" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PUSH_HISTORY_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_push_history_summary"
+            android:title="@string/settings_push_history" />
 
         <!-- For API < 26 -->
         <im.vector.app.core.preference.VectorPreference

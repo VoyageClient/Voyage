@@ -55,6 +55,7 @@ class RoomNotificationSettingsController @Inject constructor() : TypedEpoxyContr
 
     @StringRes
     private fun titleForNotificationState(notificationState: RoomNotificationState): Int? = when (notificationState) {
+        RoomNotificationState.ALL_MESSAGES -> CommonStrings.room_settings_follow_account_default
         RoomNotificationState.ALL_MESSAGES_NOISY -> CommonStrings.room_settings_all_messages
         RoomNotificationState.MENTIONS_ONLY -> CommonStrings.room_settings_mention_and_keyword_only
         RoomNotificationState.MUTE -> CommonStrings.room_settings_none

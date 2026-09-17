@@ -86,7 +86,7 @@ class VectorSettingsDefaultNotificationFragment :
         val knownRuleIds = withState(viewModel) { it.allRules.map { rule -> rule.ruleId }.toSet() }
         defaultPreferenceRules.forEach { (preferenceKey, ruleIds) ->
             findPreference<VectorListPreference>(preferenceKey)?.apply {
-                isVisible = ruleIds.any { it in knownRuleIds }
+                isVisible = knownRuleIds.isEmpty() || ruleIds.any { it in knownRuleIds }
                 value = if (ruleIds.any(viewModel::isPushRuleChecked)) {
                     DEFAULT_LEVEL_ALL_MESSAGES
                 } else {

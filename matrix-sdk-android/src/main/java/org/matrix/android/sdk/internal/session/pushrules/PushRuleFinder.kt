@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.pushrules
 
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.pushrules.ConditionResolver
 import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
@@ -30,6 +31,10 @@ internal class PushRuleFinder @Inject constructor(
             rule.enabled && rule.conditions?.all {
                 it.asExecutableCondition()?.isSatisfied(event, conditionResolver) ?: false
             } ?: false
+        }?.also { rule ->
+            DebugLog.i { "NOTIFDBG matched rule=${rule.ruleId} default=${rule.default} actions=${rule.actions} " +
+                            "conditions=${rule.conditions} " +
+                            "event=${event.eventId} type=${event.type} sender=${event.senderId} room=${event.roomId}" }
         }
     }
 }

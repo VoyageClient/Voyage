@@ -12,6 +12,7 @@ import im.vector.app.features.notifications.NotificationDrawerManager.Companion.
 import im.vector.app.features.notifications.NotificationDrawerManager.Companion.ROOM_INVITATION_NOTIFICATION_ID
 import im.vector.app.features.notifications.NotificationDrawerManager.Companion.ROOM_MESSAGES_NOTIFICATION_ID
 import im.vector.app.features.notifications.NotificationDrawerManager.Companion.SUMMARY_NOTIFICATION_ID
+import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -30,6 +31,10 @@ class NotificationRenderer @Inject constructor(
             eventsToProcess: List<ProcessedEvent<NotifiableEvent>>
     ) {
         val (roomEvents, simpleEvents, invitationEvents) = eventsToProcess.groupByType()
+        eventsToProcess.filter { it.type == ProcessedEvent.Type.KEEP }.forEach { processed ->
+            val room = (processed.event as? NotifiableMessageEvent)?.let { "room=${it.roomId} noisy=${it.noisy}" }.orEmpty()
+            DebugLog.i { "NOTIFDBG rendering ${processed.event.javaClass.simpleName} event=${processed.event.eventId} $room" }
+        }
         with(notificationFactory) {
             val roomNotifications = roomEvents.toNotifications(myUserDisplayName, myUserAvatarUrl)
             val invitationNotifications = invitationEvents.toNotifications(myUserId)

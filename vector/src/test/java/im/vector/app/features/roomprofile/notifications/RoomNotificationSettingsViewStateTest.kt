@@ -30,11 +30,34 @@ class RoomNotificationSettingsViewStateTest {
 
         assertEquals(
                 listOf(
+                        RoomNotificationState.ALL_MESSAGES,
                         RoomNotificationState.ALL_MESSAGES_NOISY,
                         RoomNotificationState.MENTIONS_ONLY,
                         RoomNotificationState.MUTE
                 ),
                 state.notificationOptions
         )
+    }
+
+    @Test
+    fun `a room with no rule of its own shows as following the account`() {
+        val state = RoomNotificationSettingsViewState(
+                roomId = "!room:example.org",
+                notificationState = Success(RoomNotificationState.ALL_MESSAGES_NOISY),
+                hasExplicitRule = false
+        )
+
+        assertEquals(Success(RoomNotificationState.ALL_MESSAGES), state.notificationStateMapped)
+    }
+
+    @Test
+    fun `an explicit notify-without-sound rule still reads as all messages`() {
+        val state = RoomNotificationSettingsViewState(
+                roomId = "!room:example.org",
+                notificationState = Success(RoomNotificationState.ALL_MESSAGES),
+                hasExplicitRule = true
+        )
+
+        assertEquals(Success(RoomNotificationState.ALL_MESSAGES_NOISY), state.notificationStateMapped)
     }
 }

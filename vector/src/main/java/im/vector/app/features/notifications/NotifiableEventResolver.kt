@@ -14,6 +14,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
+import im.vector.app.features.html.expandPillSpans
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
@@ -109,7 +110,6 @@ class NotifiableEventResolver @Inject constructor(
                     root = event,
                     localId = -1,
                     eventId = event.eventId!!,
-                    displayIndex = 0,
                     senderInfo = SenderInfo(
                             userId = user.userId,
                             displayName = user.toMatrixItem().getBestName(),
@@ -131,7 +131,7 @@ class NotifiableEventResolver @Inject constructor(
         return if (room == null) {
             Timber.e("## Unable to resolve room for eventId [$event]")
             // Ok room is not known in store, but we can still display something
-            val body = displayableEventFormatter.format(event, isDm = false, appendAuthor = false)
+            val body = displayableEventFormatter.format(event, isDm = false, appendAuthor = false).expandPillSpans()
             val roomName = stringProvider.getString(CommonStrings.notification_unknown_room_name)
             val senderDisplayName = event.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()
 
@@ -157,7 +157,10 @@ class NotifiableEventResolver @Inject constructor(
                     event.root.getClearContent()?.toModel<ElementCallNotifyContent>()?.isUserMentioned(session.myUserId) == true
             when {
                 isIncomingElementCall || event.root.supportsNotification() -> {
-                    val body = displayableEventFormatter.format(event, isDm = room.roomSummary()?.isDirect.orFalse(), appendAuthor = false).toString()
+                    // A notification is plain text: pills would otherwise arrive as their bare U+FFFC
+                    // placeholder, so put each mention's display name back before flattening.
+                    val body = displayableEventFormatter.format(event, isDm = room.roomSummary()?.isDirect.orFalse(), appendAuthor = false)
+                            .expandPillSpans().toString()
                     val roomName = (room.roomSummary()?.displayName ?: "").neutralizeDirectionOverrides()
                     val senderDisplayName = event.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()
 
@@ -254,7 +257,7 @@ class NotifiableEventResolver @Inject constructor(
                     timestamp = event.originServerTs ?: 0,
                     noisy = isNoisy,
                     title = stringProvider.getString(CommonStrings.notification_new_invitation),
-                    description = body.toString().neutralizeDirectionOverrides(),
+                    description = body.expandPillSpans().toString().neutralizeDirectionOverrides(),
                     soundName = null, // will be set later
                     type = event.getClearType()
             )

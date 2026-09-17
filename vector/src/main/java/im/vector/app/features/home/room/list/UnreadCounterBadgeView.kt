@@ -9,8 +9,14 @@ package im.vector.app.features.home.room.list
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
+import androidx.preference.PreferenceManager
 import com.google.android.material.textview.MaterialTextView
 import im.vector.app.R
+import im.vector.app.features.settings.VectorPreferences
+
+private fun showUnreadCounters(context: Context): Boolean = PreferenceManager
+        .getDefaultSharedPreferences(context.applicationContext)
+        .getBoolean(VectorPreferences.SETTINGS_SHOW_UNREAD_COUNTER_KEY, true)
 
 class UnreadCounterBadgeView : MaterialTextView {
 
@@ -21,6 +27,10 @@ class UnreadCounterBadgeView : MaterialTextView {
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     fun render(state: State) {
+        if (!showUnreadCounters(context)) {
+            visibility = View.INVISIBLE
+            return
+        }
         when (state) {
             is State.Count -> renderAsCount(state)
             is State.Text -> renderAsText(state)

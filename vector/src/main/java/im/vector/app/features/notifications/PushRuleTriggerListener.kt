@@ -11,7 +11,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.pushrules.PushEvents
 import org.matrix.android.sdk.api.session.pushrules.PushRuleService
@@ -49,9 +52,13 @@ class PushRuleTriggerListener @Inject constructor(
             Timber.d("Push rule match for event ${event.eventId}")
             val action = pushRule.getActions().toNotificationAction()
             if (action.shouldNotify) {
-                resolver.resolveEvent(event, session, isNoisy = !action.soundName.isNullOrBlank())
+                val resolved = resolver.resolveEvent(event, session, isNoisy = !action.soundName.isNullOrBlank())
+                DebugLog.i { "NOTIFDBG notify rule=${pushRule.ruleId} for ${session.myUserId} " +
+                                "noisy=${!action.soundName.isNullOrBlank()} " +
+                                "event=${event.eventId} room=${event.roomId} resolved=${resolved != null}" }
+                resolved
             } else {
-                Timber.d("Matched push rule is set to not notify")
+                DebugLog.i { "NOTIFDBG suppressed rule=${pushRule.ruleId} (dont_notify) event=${event.eventId} room=${event.roomId}" }
                 null
             }
         }
@@ -63,6 +70,11 @@ class PushRuleTriggerListener @Inject constructor(
         }
         this.session = session
         session.pushRuleService().addPushRuleListener(this)
+        session.syncService().syncFlow()
+                .onEach {
+                    if (this.session === session) notificationDrawerManager.updateEvents { }
+                }
+                .launchIn(scope)
     }
 
     fun stop() {

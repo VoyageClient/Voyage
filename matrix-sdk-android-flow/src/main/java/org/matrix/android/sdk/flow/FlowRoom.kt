@@ -130,6 +130,10 @@ class FlowRoom(private val room: Room) {
         return room.roomPushRuleService().getRoomNotificationStateFlow()
     }
 
+    fun liveExplicitNotificationState(): Flow<RoomNotificationState?> {
+        return room.roomPushRuleService().getExplicitRoomNotificationStateFlow()
+    }
+
     fun liveThreadList(): Flow<List<ThreadRootEvent>> {
         return room.threadsLocalService().getAllThreadsFlow()
                 .startWith(room.coroutineDispatchers.io) {

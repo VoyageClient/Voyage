@@ -26,7 +26,8 @@ internal object PushConditionMapper {
                 kind = entity.kind,
                 iz = entity.iz,
                 key = entity.key,
-                pattern = entity.pattern
+                pattern = entity.pattern,
+                value = entity.value
         )
     }
 
@@ -35,7 +36,8 @@ internal object PushConditionMapper {
                 kind = domain.kind,
                 iz = domain.iz,
                 key = domain.key,
-                pattern = domain.pattern
+                pattern = domain.pattern,
+                value = domain.value
         )
     }
 }

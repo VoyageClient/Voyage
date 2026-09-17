@@ -94,7 +94,9 @@ abstract class VectorSettingsPushRuleNotificationFragment :
         val preferenceKey = prefKeyToPushRuleId.entries.find { it.value == ruleId }?.key ?: return
         val preference = findPreference<VectorCheckboxPreference>(preferenceKey) ?: return
         val ruleIds = withState(viewModel) { state -> state.allRules.map { it.ruleId } }
-        preference.isVisible = ruleId in ruleIds
+        // Empty means the rules have not arrived yet, not that this one is missing: hiding on that
+        // first pass leaves the screen as two bare category headers until the account data lands.
+        preference.isVisible = ruleIds.isEmpty() || ruleId in ruleIds
         preference.isChecked = checked
     }
 

@@ -26,7 +26,7 @@ class OutdatedEventDetector @Inject constructor(
             val eventID = notifiableEvent.eventId
             val roomID = notifiableEvent.roomId
             val room = session.getRoom(roomID) ?: return false
-            return room.readService().isEventRead(eventID)
+            return room.readService().isEventRead(eventID, notifiableEvent.threadId)
         }
         return false
     }

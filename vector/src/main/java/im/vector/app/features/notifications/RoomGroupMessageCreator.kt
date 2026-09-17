@@ -15,6 +15,7 @@ import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.Span
 import me.gujun.android.span.span
+import org.matrix.android.sdk.api.util.MatrixItem
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -31,7 +32,7 @@ class RoomGroupMessageCreator @Inject constructor(
         val style = NotificationCompat.MessagingStyle(
                 Person.Builder()
                         .setName(userDisplayName)
-                        .setIcon(bitmapLoader.getUserIcon(userAvatarUrl))
+                        .setIcon(bitmapLoader.getUserIcon(userAvatarUrl, lastKnownRoomEvent.matrixID?.let { MatrixItem.UserItem(it, userDisplayName) }))
                         .setKey(lastKnownRoomEvent.matrixID)
                         .build()
         ).also {
@@ -84,7 +85,7 @@ class RoomGroupMessageCreator @Inject constructor(
             } else {
                 Person.Builder()
                         .setName(event.senderName)
-                        .setIcon(bitmapLoader.getUserIcon(event.senderAvatarPath))
+                        .setIcon(bitmapLoader.getUserIcon(event.senderAvatarPath, event.senderMatrixItem()))
                         .setKey(event.senderId)
                         .build()
             }
@@ -144,10 +145,14 @@ class RoomGroupMessageCreator @Inject constructor(
 
     private fun getRoomBitmap(events: List<NotifiableMessageEvent>): Bitmap? {
         // Use the last event (most recent?)
-        return events.lastOrNull()
-                ?.roomAvatarPath
-                ?.let { bitmapLoader.getRoomBitmap(it) }
+        val event = events.lastOrNull() ?: return null
+        val room = MatrixItem.RoomItem(event.roomId, event.roomName)
+        return bitmapLoader.getRoomBitmap(event.roomAvatarPath, room)
     }
+
+    // A sender with no id (an outgoing echo) has nothing to draw a default avatar from.
+    private fun NotifiableMessageEvent.senderMatrixItem(): MatrixItem? =
+            senderId?.let { MatrixItem.UserItem(it, senderName) }
 }
 
 private fun NotifiableMessageEvent.isSmartReplyError() = outGoingMessage && outGoingMessageFailed

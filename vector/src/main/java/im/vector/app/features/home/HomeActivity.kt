@@ -128,6 +128,7 @@ class HomeActivity :
 
     private var isNewAppLayoutEnabled: Boolean = false // delete once old app layout is removed
     private var combinedOverview: Boolean = false
+    private var showUnreadCounter: Boolean = true
 
     private val createSpaceResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == Activity.RESULT_OK) {
@@ -196,6 +197,7 @@ class HomeActivity :
         super.onCreate(savedInstanceState)
         isNewAppLayoutEnabled = vectorPreferences.isNewAppLayoutEnabled()
         combinedOverview = vectorPreferences.combinedOverview()
+        showUnreadCounter = vectorPreferences.showUnreadCounter()
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
         sharedActionViewModel = viewModelProvider[HomeSharedActionViewModel::class.java]
         roomListSharedActionViewModel = viewModelProvider[RoomListSharedActionViewModel::class.java]
@@ -569,7 +571,10 @@ class HomeActivity :
 
     private fun checkNewAppLayoutFlagChange() {
         if (vectorPreferences.isNewAppLayoutEnabled() != isNewAppLayoutEnabled ||
-                vectorPreferences.combinedOverview() != combinedOverview) {
+                vectorPreferences.combinedOverview() != combinedOverview ||
+                // The badge views only redraw when their row rebinds, so an already-drawn list would keep
+                // its counters until something else changed them.
+                vectorPreferences.showUnreadCounter() != showUnreadCounter) {
             restart()
         }
     }

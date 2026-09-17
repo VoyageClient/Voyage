@@ -10,6 +10,7 @@ package im.vector.app.features.notifications
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.notifications.ProcessedEvent.Type.KEEP
 import im.vector.app.features.notifications.ProcessedEvent.Type.REMOVE
+import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.EventType
 import timber.log.Timber
 import javax.inject.Inject
@@ -22,22 +23,27 @@ class NotifiableEventProcessor @Inject constructor(
 ) {
 
     fun process(queuedEvents: List<NotifiableEvent>, currentRoomId: String?, currentThreadId: String?, renderedEvents: ProcessedEvents): ProcessedEvents {
-        val processedEvents = queuedEvents.map {
-            val type = when (it) {
+        val processedEvents = queuedEvents.map { event ->
+            val type = when (event) {
                 is InviteNotifiableEvent -> if (autoAcceptInvites.hideInvites) REMOVE else KEEP
                 is NotifiableMessageEvent -> when {
-                    it.shouldIgnoreMessageEventInRoom(currentRoomId, currentThreadId) -> REMOVE
+                    event.shouldIgnoreMessageEventInRoom(currentRoomId, currentThreadId) -> REMOVE
                             .also { Timber.d("notification message removed due to currently viewing the same room or thread") }
-                    outdatedDetector.isMessageOutdated(it) -> REMOVE
-                            .also { Timber.d("notification message removed due to being read") }
+                    outdatedDetector.isMessageOutdated(event) -> REMOVE
+                            .also {
+                                DebugLog.i {
+                                    "NOTIFDBG Removing read notification event=${event.eventId} " +
+                                            "room=${event.roomId} thread=${event.threadId}"
+                                }
+                            }
                     else -> KEEP
                 }
-                is SimpleNotifiableEvent -> when (it.type) {
+                is SimpleNotifiableEvent -> when (event.type) {
                     EventType.REDACTION -> REMOVE
                     else -> KEEP
                 }
             }
-            ProcessedEvent(type, it)
+            ProcessedEvent(type, event)
         }
 
         val removedEventsDiff = renderedEvents.filter { renderedEvent ->
