@@ -12,6 +12,7 @@ import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides.ProfileMedia
 import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -51,7 +52,7 @@ data class RoomMemberProfileViewState(
         // "she/her • PST" line from MSC4247 pronouns + MSC4175 time zone, or null when neither is set
         val profileFieldsLine: String? = null,
         // MSC4427 profile banner field
-        val globalBannerUrl: String? = null,
+        val globalBannerMedia: ProfileMedia? = null,
         // MSC4426 status / MSC4440 biography
         val status: UserStatus? = null,
         val bio: UserBio? = null,
@@ -66,8 +67,6 @@ data class RoomMemberProfileViewState(
 ) : MavericksState {
 
     constructor(args: RoomMemberProfileArgs) : this(userId = args.userId, roomId = args.roomId)
-
-    fun resolvedBannerUrl(): String? = globalBannerUrl?.takeIf { it.isNotEmpty() }
 }
 
 data class ActionPermissions(

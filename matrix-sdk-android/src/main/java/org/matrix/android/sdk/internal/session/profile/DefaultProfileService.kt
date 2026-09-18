@@ -93,9 +93,8 @@ internal class DefaultProfileService @Inject constructor(
 
     override suspend fun getAvatarUrl(userId: String): Optional<String> {
         val params = GetProfileInfoTask.Params(userId)
-        val data = ProfileOverrides.mergedOver(userId, getProfileInfoTask.execute(params))
-        val avatarUrl = data[ProfileService.AVATAR_URL_KEY] as? String
-        return Optional.from(avatarUrl)
+        val avatarUrl = getProfileInfoTask.execute(params)[ProfileService.AVATAR_URL_KEY] as? String
+        return Optional.from(ProfileOverrides.avatarUrlOr(userId, avatarUrl))
     }
 
     override suspend fun setProfileField(userId: String, keyName: String, value: String) {
@@ -120,7 +119,13 @@ internal class DefaultProfileService @Inject constructor(
     override suspend fun getBannerUrl(userId: String): Optional<String> {
         val data = getProfileInfoTask.execute(GetProfileInfoTask.Params(userId))
         extendedProfileCache.cacheBannerUrl(userId, data.profileBannerUrl())
-        return Optional.from(ProfileOverrides.mergedOver(userId, data).profileBannerUrl())
+        return Optional.from(
+                ProfileOverrides.mediaOr(
+                        userId,
+                        listOf(ProfileKeys.BANNER_URL, ProfileKeys.BANNER_URL_UNSTABLE),
+                        data.profileBannerUrl(),
+                )?.url
+        )
     }
 
     override fun getCachedBannerUrl(userId: String): String? {
@@ -209,7 +214,7 @@ internal class DefaultProfileService @Inject constructor(
     // Keys other clients write are read-only fallbacks for us, but one left behind would keep winning
     // once the keys we do write are cleared, so drop any the profile still carries.
     private suspend fun deleteStaleForeignKeys(userId: String, foreignKeys: Set<String>) {
-        val stale = extendedProfileCache.getCachedProfile(userId)?.keys.orEmpty().filterTo(mutableSetOf()) { it in foreignKeys }
+        val stale = extendedProfileCache.getRawProfile(userId)?.keys.orEmpty().filterTo(mutableSetOf()) { it in foreignKeys }
         if (stale.isNotEmpty()) deleteProfileFieldKeys(userId, stale)
     }
 

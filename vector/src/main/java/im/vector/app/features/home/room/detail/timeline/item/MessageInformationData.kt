@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.os.Parcelable
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationState
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -61,6 +62,8 @@ data class MessageInformationData(
         // MSC4522 per-room profile color for the sender, split into its two theme axes so this stays Parcelable.
         val senderColorOnLight: String? = null,
         val senderColorOnDark: String? = null,
+        // Travels with [avatarUrl] so a restored-from-parcel item can still decrypt an MSC4529 avatar override.
+        val avatarDecryption: ElementToDecrypt? = null,
 ) : Parcelable {
 
     val matrixItem: MatrixItem
@@ -68,6 +71,7 @@ data class MessageInformationData(
                 senderId,
                 memberName?.toString(),
                 avatarUrl.takeUnless { hideAvatars },
+                avatarDecryption.takeUnless { hideAvatars },
                 colorPreference = ColorPreference(senderColorOnLight, senderColorOnDark).takeUnless { it.isEmpty() },
         )
 }
@@ -118,6 +122,7 @@ data class ReadReceiptData(
         // MSC4522 per-room color, split into its two theme axes so this stays Parcelable.
         val colorOnLight: String? = null,
         val colorOnDark: String? = null,
+        val avatarDecryption: ElementToDecrypt? = null,
 ) : Parcelable
 
 @Parcelize
@@ -162,6 +167,6 @@ enum class AnonymousReadReceipt {
 }
 
 fun ReadReceiptData.toMatrixItem() = MatrixItem.UserItem(
-        userId, displayName, avatarUrl,
+        userId, displayName, avatarUrl, avatarDecryption,
         colorPreference = ColorPreference(colorOnLight, colorOnDark).takeUnless { it.isEmpty() },
 )

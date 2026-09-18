@@ -14,6 +14,7 @@ import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
 import im.vector.app.features.session.SessionListener
@@ -29,6 +30,8 @@ interface SingletonEntryPoint {
     fun sessionListener(): SessionListener
 
     fun avatarRenderer(): AvatarRenderer
+
+    fun imageContentRenderer(): ImageContentRenderer
 
     fun activeSessionHolder(): ActiveSessionHolder
 

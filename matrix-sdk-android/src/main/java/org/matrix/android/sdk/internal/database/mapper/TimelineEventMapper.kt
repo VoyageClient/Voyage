@@ -103,7 +103,9 @@ internal class TimelineEventMapper @Inject constructor(
             // to mean known-empty vs unknown.
             h = 31 * h + (v?.hashCode() ?: -1)
         }
-        add(ProfileOverrides.generation)
+        // This sender's own overrides, not the global generation: keying on the generation makes any
+        // override change miss the memo for every event in the room, re-parsing all their JSON.
+        add(ProfileOverrides.fieldsFor(e.root?.sender))
         add(roomMemberColorCache.generation)
         add(ambiguousDisplayNameCache.generation)
         add(e.eventId)

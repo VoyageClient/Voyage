@@ -202,7 +202,11 @@ internal class FileUploader @Inject constructor(
             filename: String?,
             mimeType: String?,
             progressListener: ProgressRequestBody.Listener? = null
-    ): ContentUploadResponse {
+    ): ContentUploadResponse = withPreparedUploadFile(uri) { file ->
+        uploadFile(file, filename, mimeType, progressListener)
+    }
+
+    suspend fun <T> withPreparedUploadFile(uri: String, block: suspend (File) -> T): T {
         val workingFile = contentUriResolver.copyToTempFile(uri)
         // Avatars, banners and image-pack stickers upload the picked bytes directly (they don't go
         // through the timeline-media worker), so scrub their EXIF/location here too when enabled.
@@ -212,7 +216,9 @@ internal class FileUploader @Inject constructor(
         } else {
             workingFile
         }
-        return uploadFile(fileToUpload, filename, mimeType, progressListener).also {
+        return try {
+            block(fileToUpload)
+        } finally {
             tryOrNull { workingFile.delete() }
             if (fileToUpload !== workingFile) tryOrNull { fileToUpload.delete() }
         }

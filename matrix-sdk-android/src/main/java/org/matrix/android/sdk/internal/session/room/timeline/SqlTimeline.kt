@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -101,6 +102,7 @@ internal class SqlTimeline(
     private var receiptsJob: Job? = null
     private var decryptedJob: Job? = null
     private var decryptionSignalJob: Job? = null
+    private var profileOverridesJob: Job? = null
 
     // Decryption writes the event table, which the timeline_event chunk flow doesn't observe, so a decrypt
     // completion won't re-map on its own. Coalesce a burst of decryptions (e.g. a key import) into one
@@ -215,6 +217,18 @@ internal class SqlTimeline(
         decryptionSignalJob = timelineScope.launch {
             decryptionSignal.rooms.collect { if (it == roomId) decryptedSignal.trySend(Unit) }
         }
+        profileOverridesJob = timelineScope.launch {
+            ProfileOverrides.changes.collect { changedUsers ->
+                // Only the affected events: dropping the cache re-maps every loaded row, which in a
+                // scrolled-back room takes seconds — long enough that the override lands well after the
+                // user is back in the timeline.
+                remapCachedEventsOfUsers(changedUsers)
+                // Force: overrides are set from the member-profile screen, which pauses this timeline, and
+                // a deferred rebuild leaves builtEvents mapped under the old overrides for addListener to
+                // re-publish on the way back.
+                rebuildSnapshot(force = true)
+            }
+        }
         timelineScope.launch {
             delay(ROOM_MEMBER_LOAD_DELAY_MS)
             loadRoomMembers()
@@ -281,6 +295,7 @@ internal class SqlTimeline(
         receiptsJob?.cancel()
         decryptedJob?.cancel()
         decryptionSignalJob?.cancel()
+        profileOverridesJob?.cancel()
         val rootId = threadRootId
         if (rootId != null) {
             // Drop the temporary thread chunk; keep the scope alive just long enough to commit it.
@@ -523,6 +538,20 @@ internal class SqlTimeline(
                 MatrixPerf.end(perfStart) { "timeline.receiptsPropagate changed=${changed.size} remapped=$remapped" }
             }
         }
+    }
+
+    /** Events these users' profiles are displayed on: their own, plus any carrying a read receipt of theirs. */
+    private fun remapCachedEventsOfUsers(userIds: Set<String>) {
+        if (userIds.isEmpty()) return
+        val eventIds = HashSet<String>()
+        chunkSnapshotCache.values.forEach { events ->
+            events.forEach { event ->
+                if (event.senderInfo.userId in userIds || event.readReceipts.any { it.roomMember.userId in userIds }) {
+                    eventIds.add(event.eventId)
+                }
+            }
+        }
+        remapCachedEvents(eventIds)
     }
 
     /** Re-map the given events in place, leaving every other cached mapping alone. @return how many moved. */
@@ -994,8 +1023,8 @@ internal class SqlTimeline(
         rebuildSnapshot(reuseLiveChunk = true)
     }
 
-    private suspend fun rebuildSnapshot(reuseLiveChunk: Boolean = false) {
-        if (rebuildsPaused) {
+    private suspend fun rebuildSnapshot(reuseLiveChunk: Boolean = false, force: Boolean = false) {
+        if (rebuildsPaused && !force) {
             rebuildPendingWhilePaused = true
             return
         }

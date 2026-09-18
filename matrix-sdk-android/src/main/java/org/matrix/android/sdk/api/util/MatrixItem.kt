@@ -18,7 +18,9 @@ package org.matrix.android.sdk.api.util
 
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -34,10 +36,18 @@ sealed class MatrixItem(
         open val displayName: String?,
         open val avatarUrl: String?
 ) {
+    /**
+     * How to decrypt [avatarUrl] when it points at an encrypted file (an MSC4529 avatar override).
+     * Carried with the url so the two can never be separated: an mxc whose key went missing decodes
+     * to nothing, which renders as no avatar at all rather than a stale one.
+     */
+    open val avatarDecryption: ElementToDecrypt? = null
+
     data class UserItem(
             override val id: String,
             override val displayName: String? = null,
             override val avatarUrl: String? = null,
+            override val avatarDecryption: ElementToDecrypt? = null,
             // The user's own name, when [displayName] is a decorated label ("Message from Bob") whose
             // first letter is not the one the avatar placeholder should draw.
             val userDisplayName: String? = null,
@@ -50,7 +60,8 @@ sealed class MatrixItem(
             if (BuildConfig.DEBUG) checkId()
         }
 
-        override fun updateAvatar(newAvatar: String?) = copy(avatarUrl = newAvatar)
+        // The key belongs to the url it was resolved with, so a replacement url invalidates it.
+        override fun updateAvatar(newAvatar: String?) = copy(avatarUrl = newAvatar, avatarDecryption = null)
     }
 
     data class EveryoneInRoomItem(
@@ -191,7 +202,7 @@ sealed class MatrixItem(
  * Extensions to create MatrixItem
  * ========================================================================================== */
 
-fun User.toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl)
+fun User.toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl, ProfileOverrides.avatarDecryptionForUrl(avatarUrl))
 
 fun RoomSummary.toMatrixItem() = if (roomType == RoomType.SPACE) {
     MatrixItem.SpaceItem(roomId, displayName, avatarUrl)
@@ -207,7 +218,9 @@ fun RoomSummary.toMatrixItem() = if (roomType == RoomType.SPACE) {
 fun RoomSummary.toDisplayMatrixItem(): MatrixItem {
     if (!isDirect) return toMatrixItem()
     val otherUserId = if (membership == Membership.INVITE) inviterId else directUserId
-    return otherUserId?.let { MatrixItem.UserItem(it, displayName, avatarUrl) } ?: toMatrixItem()
+    return otherUserId?.let {
+        MatrixItem.UserItem(it, displayName, avatarUrl, ProfileOverrides.avatarDecryptionForUrl(avatarUrl))
+    } ?: toMatrixItem()
 }
 
 fun RoomSummary.toRoomAliasMatrixItem() = MatrixItem.RoomAliasItem(canonicalAlias ?: roomId, displayName, avatarUrl)
@@ -217,9 +230,11 @@ fun RoomSummary.toEveryoneInRoomMatrixItem() = MatrixItem.EveryoneInRoomItem(id 
 // If no name is available, use room alias as Riot-Web does
 fun PublicRoom.toMatrixItem() = MatrixItem.RoomItem(roomId, name ?: getPrimaryAlias() ?: "", avatarUrl)
 
-fun RoomMemberSummary.toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl, colorPreference = colorPreference)
+fun RoomMemberSummary.toMatrixItem() =
+        MatrixItem.UserItem(userId, displayName, avatarUrl, avatarDecryption, colorPreference = colorPreference)
 
-fun SenderInfo.toMatrixItem() = MatrixItem.UserItem(userId, disambiguatedDisplayName, avatarUrl, colorPreference = colorPreference)
+fun SenderInfo.toMatrixItem() =
+        MatrixItem.UserItem(userId, disambiguatedDisplayName, avatarUrl, avatarDecryption, colorPreference = colorPreference)
 
 fun SenderInfo.toMatrixItemOrNull() = tryOrNull { toMatrixItem() }
 

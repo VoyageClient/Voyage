@@ -81,10 +81,12 @@ import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.json.JSONObject
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ColorPreference
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -354,7 +356,7 @@ class RoomMemberProfileFragment :
                 // to the placeholder for a frame whenever Glide can't answer synchronously. With a real
                 // avatar the name/color only reach the invisible placeholder, so they stay out of the key.
                 val avatarKey = if (!displayedMatrixItem.avatarUrl.isNullOrEmpty()) {
-                    listOf(displayedMatrixItem.avatarUrl)
+                    listOf(displayedMatrixItem.avatarUrl, ProfileOverrides.generation)
                 } else {
                     listOf(
                             null,
@@ -382,13 +384,14 @@ class RoomMemberProfileFragment :
                 }
 
                 // Follow the same hiding rule as the avatar
-                currentBannerUrl = state.resolvedBannerUrl()
+                val currentBannerMedia = state.globalBannerMedia
                         ?.takeUnless { state.userId != session.myUserId && shouldHideAvatars(state.roomId, session, vectorPreferences) }
+                currentBannerUrl = currentBannerMedia?.url
                 val hasBanner = currentBannerUrl != null
                 headerViews.memberProfileBannerView.isVisible = hasBanner
                 headerViews.memberProfileBannerScrim.isVisible = hasBanner
                 headerViews.memberProfileBannerOverlap.isVisible = hasBanner
-                bannerRenderer.render(currentBannerUrl, headerViews.memberProfileBannerView)
+                bannerRenderer.renderProfileMedia(currentBannerMedia, headerViews.memberProfileBannerView)
                 bannerRenderer.applyAvatarStroke(headerViews.memberProfileAvatarView, displayedMatrixItem, hasBanner)
                 // Deferred while the cover is up: this flips the window to draw under the status bar,
                 // which drops the root's top padding and yanks the cover (and its back arrow) up
@@ -589,12 +592,19 @@ class RoomMemberProfileFragment :
                 title = userMatrixItem.getBestName(),
                 roomId = roomId.takeIf { memberEventId != null },
                 eventId = memberEventId,
+                elementToDecrypt = userMatrixItem.avatarDecryption,
         )
     }
 
     private fun onBannerClicked() = withState(viewModel) { state ->
-        currentBannerUrl?.let { bannerUrl ->
-            navigator.openBigImageViewer(requireActivity(), null, bannerUrl, state.userMatrixItem()?.getBestName() ?: state.userId)
+        state.globalBannerMedia?.let { banner ->
+            navigator.openBigImageViewer(
+                    requireActivity(),
+                    null,
+                    banner.url,
+                    state.userMatrixItem()?.getBestName() ?: state.userId,
+                    elementToDecrypt = banner.encryptedFile?.toElementToDecrypt(),
+            )
         }
     }
 

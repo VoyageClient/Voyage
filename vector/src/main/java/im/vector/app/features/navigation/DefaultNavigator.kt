@@ -99,6 +99,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.verification.SasVerificationTransaction
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
@@ -406,7 +407,7 @@ class DefaultNavigator @Inject constructor(
         openBigImageViewer(activity, null, matrixItem.avatarUrl, matrixItem.getBestName())
     }
 
-    override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?, roomId: String?, eventId: String?) {
+    override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?, roomId: String?, eventId: String?, elementToDecrypt: ElementToDecrypt?) {
         val avatarUrl = mxcUrl?.takeIf { it.isNotBlank() } ?: return
         // Reuse the timeline media viewer (zoom + download + share) with the avatar as a single entry.
         val imageData = ImageContentRenderer.Data(
@@ -414,7 +415,7 @@ class DefaultNavigator @Inject constructor(
                 filename = title?.takeIf { it.isNotBlank() } ?: "avatar",
                 mimeType = null,
                 url = avatarUrl,
-                elementToDecrypt = null,
+                elementToDecrypt = elementToDecrypt,
                 height = null,
                 maxHeight = -1,
                 width = null,

@@ -48,8 +48,9 @@ internal class SqlRoomAvatarResolver @Inject constructor(
             if (!directUserId.isNullOrBlank()) {
                 val directMember = SqlRoomMemberHelper(stores, roomId).getLastRoomMember(directUserId)
                 // Only force the DM target's avatar while they are still in the room (see display-name resolver).
-                val directAvatar = ProfileOverrides.avatarUrlFor(directUserId) ?: directMember?.avatarUrl
-                if (directMember?.membership?.isActive() == true && !directAvatar.isNullOrBlank()) {
+                val directAvatar = ProfileOverrides.avatarUrlOr(directUserId, directMember?.avatarUrl)
+                val hasOverride = ProfileOverrides.fieldsFor(directUserId)?.containsKey(ProfileOverrides.FIELD_AVATAR_URL) == true
+                if (directMember?.membership?.isActive() == true && (hasOverride || !directAvatar.isNullOrBlank())) {
                     return directAvatar
                 }
             }
@@ -82,5 +83,5 @@ internal class SqlRoomAvatarResolver @Inject constructor(
     }
 
     private fun memberAvatar(member: RoomMemberSummaryEntity): String? =
-            ProfileOverrides.avatarUrlFor(member.userId) ?: member.avatarUrl
+            ProfileOverrides.avatarUrlOr(member.userId, member.avatarUrl)
 }

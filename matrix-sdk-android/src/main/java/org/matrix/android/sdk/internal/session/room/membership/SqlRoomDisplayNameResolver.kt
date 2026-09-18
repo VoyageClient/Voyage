@@ -54,8 +54,9 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
                 val directMember = roomMembers.getLastRoomMember(directUserId)
                 // Only force the DM target's name while they are still in the room; once they leave we
                 // fall through to the normal multi-member naming instead of clinging to a stale name.
-                val directName = ProfileOverrides.displayNameFor(directUserId) ?: directMember?.displayName
-                if (directMember?.membership?.isActive() == true && !directName.isNullOrBlank()) {
+                val directName = ProfileOverrides.displayNameOr(directUserId, directMember?.displayName)
+                val hasOverride = ProfileOverrides.fieldsFor(directUserId)?.containsKey(ProfileOverrides.FIELD_DISPLAY_NAME) == true
+                if (directMember?.membership?.isActive() == true && (hasOverride || !directName.isNullOrBlank())) {
                     return resolveRoomMemberName(directMember, roomMembers).toRoomName()
                 }
             }
@@ -130,7 +131,9 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
 
     private fun resolveRoomMemberName(roomMemberSummary: RoomMemberSummaryEntity, roomMemberHelper: SqlRoomMemberHelper): String {
         // A user-chosen override needs no disambiguation.
-        ProfileOverrides.displayNameFor(roomMemberSummary.userId)?.let { return it }
+        ProfileOverrides.fieldsFor(roomMemberSummary.userId)?.let {
+            if (ProfileOverrides.FIELD_DISPLAY_NAME in it) return ProfileOverrides.displayNameFor(roomMemberSummary.userId) ?: roomMemberSummary.userId
+        }
         val isUnique = roomMemberHelper.isUniqueDisplayName(roomMemberSummary.displayName)
         return if (isUnique) {
             displayNameResolver.getBestName(roomMemberSummary.toMatrixItem())

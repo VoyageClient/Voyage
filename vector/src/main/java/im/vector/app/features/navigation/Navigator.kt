@@ -30,6 +30,7 @@ import im.vector.app.features.roomdirectory.RoomDirectoryData
 import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.share.SharedData
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
 import org.matrix.android.sdk.api.session.terms.TermsService
@@ -126,6 +127,7 @@ interface Navigator {
             /** When set, the viewer's "show in timeline" eye jumps to this event (e.g. the avatar-change event). */
             roomId: String? = null,
             eventId: String? = null,
+            elementToDecrypt: ElementToDecrypt? = null,
     )
 
     fun openPinCode(

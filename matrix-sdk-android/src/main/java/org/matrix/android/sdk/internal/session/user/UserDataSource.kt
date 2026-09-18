@@ -46,8 +46,8 @@ internal class UserDataSource @Inject constructor(
 
     private fun overriddenUser(userId: String, displayName: String?, avatarUrl: String?) = User(
             userId,
-            ProfileOverrides.displayNameFor(userId) ?: displayName,
-            ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+            ProfileOverrides.displayNameOr(userId, displayName),
+            ProfileOverrides.avatarUrlOr(userId, avatarUrl),
     )
 
     fun getUserFlow(userId: String): Flow<Optional<User>> {

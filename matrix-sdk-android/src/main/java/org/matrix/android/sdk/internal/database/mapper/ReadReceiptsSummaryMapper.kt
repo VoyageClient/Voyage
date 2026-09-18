@@ -40,8 +40,9 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
                     ?: member
                     ?: RoomMemberSummary(membership = Membership.JOIN, userId = receipt.userId)
             val effectiveUser = user.copy(
-                    displayName = ProfileOverrides.displayNameFor(receipt.userId) ?: user.displayName,
-                    avatarUrl = ProfileOverrides.avatarUrlFor(receipt.userId) ?: user.avatarUrl,
+                    displayName = ProfileOverrides.displayNameOr(receipt.userId, user.displayName),
+                    avatarUrl = ProfileOverrides.avatarUrlOr(receipt.userId, user.avatarUrl),
+                    avatarDecryption = ProfileOverrides.avatarDecryptionFor(receipt.userId),
             )
             ReadReceipt(effectiveUser, receipt.originServerTs.toLong(), receipt.threadId)
         }

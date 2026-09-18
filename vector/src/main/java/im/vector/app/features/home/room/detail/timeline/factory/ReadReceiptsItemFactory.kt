@@ -45,6 +45,7 @@ class ReadReceiptsItemFactory @Inject constructor(
                             it.originServerTs,
                             colorOnLight = it.roomMember.colorPreference?.onLight,
                             colorOnDark = it.roomMember.colorPreference?.onDark,
+                            avatarDecryption = it.roomMember.avatarDecryption,
                     )
                 }
                 .sortedByDescending { it.timestamp }

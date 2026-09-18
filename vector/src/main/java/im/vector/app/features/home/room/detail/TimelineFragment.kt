@@ -217,6 +217,7 @@ import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -452,6 +453,16 @@ class TimelineFragment :
                         timelineEventController.invalidateEventCachesForSenders(batch)
                     }
         }
+
+        // A profile override re-resolves in the SDK's snapshot, but the reply previews resolved their
+        // sender when they were built, so they have to be dropped and rebuilt alongside it.
+        ProfileOverrides.changes
+                .onEach { changedUsers ->
+                    timelineViewModel.replyPreviewRetriever.onProfileOverridesChanged(changedUsers)
+                    timelineEventController.invalidateEventCachesForSenders(changedUsers)
+                    timelineEventController.invalidateReplyEventCaches()
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // When a reply target (or any non-timeline-body) PGP block finishes decrypting, rebuild so
         // reply headers settle on the plaintext.

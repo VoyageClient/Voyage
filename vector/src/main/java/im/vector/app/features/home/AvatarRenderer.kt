@@ -60,12 +60,15 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.avatar.DefaultAvatarFactory
 import im.vector.app.features.home.avatar.effect.AvatarEffectDrawables
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.util.MatrixItem
 import java.io.File
 import javax.inject.Inject
@@ -383,6 +386,9 @@ class AvatarRenderer @Inject constructor(
 
     private fun GlideRequest<Bitmap>.avatarOrText(matrixItem: MatrixItem, iconSize: Int): GlideRequest<Bitmap> {
         return this.let {
+            avatarDecryption(matrixItem)?.let { decrypt ->
+                return it.load(encryptedAvatarData(matrixItem, decrypt, iconSize))
+            }
             // A shortcut icon is a Bitmap, and an animated thumbnail has no bitmap decoder to fall to.
             val resolvedUrl = thumbnailUrl(matrixItem.avatarUrl, animated = false)
             if (resolvedUrl != null) {
@@ -461,7 +467,7 @@ class AvatarRenderer @Inject constructor(
         // dontAnimate asks the decoders that can for a still bitmap, which the shape can be baked into.
         // The target drops the crossfade for drawables needing its runtime clipping (animated ones):
         // the transition path bypasses setResource, where that clip is applied.
-        fun requestFor(url: String?, retrieveFromCacheOnly: Boolean) = load(url)
+        fun requestFor(model: Any?, retrieveFromCacheOnly: Boolean) = load(model)
                 .optionalTransform(transformation)
                 .placeholder(placeholder)
                 .onlyRetrieveFromCache(retrieveFromCacheOnly)
@@ -477,6 +483,10 @@ class AvatarRenderer @Inject constructor(
                     }
                 }
                 .let { if (crossfade) it.transition(DrawableTransitionOptions.with(FadeOutPlaceholderFactory(FADE_MS, placeholder))) else it }
+
+        avatarDecryption(matrixItem)?.let { decrypt ->
+            return requestFor(encryptedAvatarData(matrixItem, decrypt, THUMBNAIL_SIZE), cacheOnly)
+        }
 
         // Once every attempt is cache-only the two still ones are the same request.
         val attempts = avatarAttempts(matrixItem.avatarUrl, autoplay)
@@ -505,6 +515,26 @@ class AvatarRenderer @Inject constructor(
         return activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
                 ?.resolveThumbnail(avatarUrl, THUMBNAIL_SIZE, THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE, animated)
     }
+
+    /**
+     * How to decrypt this item's avatar: what it carries, or — for an item built from a bare url, like a
+     * room summary's avatar column — whichever override that url belongs to.
+     */
+    private fun avatarDecryption(matrixItem: MatrixItem): ElementToDecrypt? =
+            matrixItem.avatarDecryption ?: ProfileOverrides.avatarDecryptionForUrl(matrixItem.avatarUrl)
+
+    private fun encryptedAvatarData(matrixItem: MatrixItem, decrypt: ElementToDecrypt, sizePx: Int) =
+            ImageContentRenderer.Data(
+                    eventId = "profile-override-${matrixItem.id}",
+                    filename = "avatar",
+                    mimeType = null,
+                    url = matrixItem.avatarUrl,
+                    elementToDecrypt = decrypt,
+                    height = null,
+                    maxHeight = sizePx,
+                    width = null,
+                    maxWidth = sizePx,
+            )
 
     /**
      * Accessibility management.

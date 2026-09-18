@@ -23,28 +23,37 @@ internal class ProfileOverridesUpdater @Inject constructor(
         private val stores: SessionStores,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val encryptedAccountDataService: Lazy<EncryptedAccountDataService>,
+        private val extendedProfileCache: ExtendedProfileCache,
 ) {
 
     fun apply() {
         val old = ProfileOverrides.overrides
-        val new = ProfileOverrides.parse(stores.storedProfileOverrides(encryptedAccountDataService.get()))
+        val stored = stores.storedProfileOverrides(encryptedAccountDataService.get())
+        val new = ProfileOverrides.parse(stored?.content, stored?.encrypted == true)
         if (new == old) return
         if (!ProfileOverrides.set(sessionId, new)) return
         val changedUsers = (old.keys + new.keys).filter { old[it] != new[it] }
+        extendedProfileCache.notifyOverridesChanged(changedUsers)
         stores.roomSummary.roomIdsWithActiveMembers(changedUsers).forEach {
             roomSummaryUpdater.refreshDisplay(stores, it)
         }
     }
 }
 
-// A type whose MSC4483 payload cannot be decrypted (no ADK yet) falls through to the next one.
-internal fun SessionStores.storedProfileOverrides(encryption: EncryptedAccountDataService): Content? =
-        ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { type ->
-            val content = ContentMapper.map(accountData.getUserAccountData(type)?.contentStr) ?: return@firstNotNullOfOrNull null
-            if (encryption.isEncrypted(content)) encryption.decryptOrNull(type, content) else content
-        }
+internal data class StoredProfileOverrides(val content: Content, val encrypted: Boolean)
+
+internal fun SessionStores.storedProfileOverrides(encryption: EncryptedAccountDataService): StoredProfileOverrides? {
+    val stored = ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { type ->
+        ContentMapper.map(accountData.getUserAccountData(type)?.contentStr)?.let { type to it }
+    } ?: return null
+    return if (encryption.isEncrypted(stored.second)) {
+        encryption.decryptOrNull(stored.first, stored.second)?.let { StoredProfileOverrides(it, encrypted = true) }
+    } else {
+        StoredProfileOverrides(stored.second, encrypted = false)
+    }
+}
 
 internal fun SessionStores.hasLockedProfileOverrides(encryption: EncryptedAccountDataService): Boolean =
-        !encryption.hasAccountDataKey() && ProfileOverrides.ACCOUNT_DATA_TYPES.any { type ->
-            ContentMapper.map(accountData.getUserAccountData(type)?.contentStr)?.let(encryption::isEncrypted) == true
-        }
+        !encryption.hasAccountDataKey() && ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { type ->
+            ContentMapper.map(accountData.getUserAccountData(type)?.contentStr)
+        }?.let(encryption::isEncrypted) == true

@@ -338,6 +338,22 @@ class ReplyPreviewRetriever(
         }
     }
 
+    /** A preview resolves the replied-to sender once, when it is built, so a later override never reaches it. */
+    fun onProfileOverridesChanged(userIds: Set<String>) {
+        if (userIds.isEmpty()) return
+        val affectedKeys = synchronized(data) {
+            data.filterValues { (it.previewReplyUiState as? PreviewReplyUiState.InReplyTo)?.event?.senderInfo?.userId in userIds }
+                    .keys.toHashSet()
+        }
+        if (affectedKeys.isEmpty()) return
+        val replies = lastSnapshot.filter { it.timelineStableId() in affectedKeys }
+        synchronized(data) {
+            affectedKeys.forEach { data.remove(it) }
+            replies.forEach { lookedUpEvents.remove(it.eventId) }
+        }
+        replies.forEach { getReplyTo(it) }
+    }
+
     fun onPermalinkSenderResolved(targetEventId: String) {
         val needle = targetEventId.removePrefix("$")
         val affected = synchronized(data) {

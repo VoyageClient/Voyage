@@ -211,7 +211,7 @@ class EventTextRenderer @AssistedInject constructor(
                         sender.userId,
                         context.getString(CommonStrings.pill_message_from_user, senderName),
                         sender.avatarUrl,
-                        senderName
+                        userDisplayName = senderName,
                 )
             } else {
                 MatrixItem.RoomItem(targetRoomId, context.getString(CommonStrings.pill_message_from_unknown_user), sender?.avatarUrl)

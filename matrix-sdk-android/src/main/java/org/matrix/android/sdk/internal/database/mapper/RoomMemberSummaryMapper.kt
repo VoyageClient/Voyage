@@ -27,8 +27,9 @@ internal object RoomMemberSummaryMapper {
         return RoomMemberSummary(
                 userId = roomMemberSummaryEntity.userId,
                 userPresence = roomMemberSummaryEntity.userPresenceEntity?.toUserPresence(),
-                avatarUrl = ProfileOverrides.avatarUrlFor(roomMemberSummaryEntity.userId) ?: roomMemberSummaryEntity.avatarUrl,
-                displayName = ProfileOverrides.displayNameFor(roomMemberSummaryEntity.userId) ?: roomMemberSummaryEntity.displayName,
+                avatarUrl = ProfileOverrides.avatarUrlOr(roomMemberSummaryEntity.userId, roomMemberSummaryEntity.avatarUrl),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(roomMemberSummaryEntity.userId),
+                displayName = ProfileOverrides.displayNameOr(roomMemberSummaryEntity.userId, roomMemberSummaryEntity.displayName),
                 originalDisplayName = roomMemberSummaryEntity.displayName,
                 membership = roomMemberSummaryEntity.membership,
                 colorPreference = roomMemberSummaryEntity.colorPreference,

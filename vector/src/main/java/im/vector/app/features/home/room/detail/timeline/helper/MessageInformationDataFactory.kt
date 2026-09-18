@@ -121,6 +121,11 @@ class MessageInformationDataFactory @Inject constructor(
             storedName == null -> liveMember?.displayName?.takeUnless { it.isBlank() } ?: event.senderInfo.disambiguatedDisplayName
             else -> event.senderInfo.disambiguatedDisplayName
         }
+        val senderAvatarDecryption = when {
+            useLiveSenderInfo && liveMember != null -> liveMember.avatarDecryption
+            storedAvatar == null -> liveMember?.avatarDecryption
+            else -> event.senderInfo.avatarDecryption
+        }
         val senderAvatar = when {
             useLiveSenderInfo && liveMember != null -> liveMember.avatarUrl
             storedAvatar == null -> liveMember?.avatarUrl
@@ -178,6 +183,7 @@ class MessageInformationDataFactory @Inject constructor(
                 time = time,
                 ageLocalTS = event.root.ageLocalTs,
                 avatarUrl = senderAvatar,
+                avatarDecryption = senderAvatarDecryption,
                 memberName = senderName,
                 messageLayout = messageLayout,
                 reactionsSummary = reactionsSummaryFactory.create(event),

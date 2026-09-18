@@ -18,13 +18,16 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.home.avatar.AvatarShapeBackgroundDrawable
+import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaPlaceholderDrawable
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
+import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides.ProfileMedia
 import org.matrix.android.sdk.api.session.room.model.RoomBannerContent
 import org.matrix.android.sdk.api.util.MatrixItem
 import java.util.WeakHashMap
@@ -41,12 +44,11 @@ fun List<Event>.resolveRoomBannerUrl(): String? {
     return event?.content?.toModel<RoomBannerContent>()?.url?.takeIf { it.isNotEmpty() }
 }
 
-/**
- * Loads room (MSC4221) and profile (MSC4427) banner images (plain mxc urls) into ImageViews.
- */
+/** Loads room (MSC4221) and profile (MSC4427) banner images into ImageViews. */
 class BannerRenderer @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val vectorPreferences: VectorPreferences,
+        private val imageContentRenderer: ImageContentRenderer,
 ) {
 
     // Glide compares placeholders by reference when deciding whether a request is equivalent, so the
@@ -84,6 +86,32 @@ class BannerRenderer @Inject constructor(
                         .into(imageView)
             }
         }
+    }
+
+    @UiThread
+    fun renderProfileMedia(media: ProfileMedia?, imageView: ImageView) {
+        val encryptedFile = media?.encryptedFile
+        if (encryptedFile == null) {
+            render(media?.url, imageView)
+            return
+        }
+        val size = imageView.resources.displayMetrics.let { im.vector.app.core.ui.model.Size(it.widthPixels, it.heightPixels) }
+        val data = ImageContentRenderer.Data(
+                eventId = "profile-media-${media.url}",
+                filename = "profile-media",
+                mimeType = null,
+                url = media.url,
+                elementToDecrypt = encryptedFile.toElementToDecrypt(),
+                height = null,
+                maxHeight = size.height,
+                width = null,
+                maxWidth = size.width,
+        )
+        imageContentRenderer.createGlideRequest(data, ImageContentRenderer.Mode.FULL_SIZE, GlideApp.with(imageView), size)
+                .optionalTransform(CenterCrop())
+                .placeholder(placeholderFor(imageView))
+                .transition(DrawableTransitionOptions.with(FADE_FACTORY))
+                .into(imageView)
     }
 
     private fun placeholderFor(imageView: ImageView): MediaPlaceholderDrawable {

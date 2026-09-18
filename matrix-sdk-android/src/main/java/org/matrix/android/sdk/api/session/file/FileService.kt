@@ -18,6 +18,7 @@ package org.matrix.android.sdk.api.session.file
 
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
+import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
@@ -138,6 +139,8 @@ interface FileService {
      * Used for content that is referenced by URL rather than sent as a message, e.g. MSC2545 image packs.
      */
     suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String
+
+    suspend fun uploadEncryptedFile(uri: String, fileName: String?, mimeType: String?): EncryptedFileInfo
 
     /**
      * Compresses an image [uri] for upload, downscaling within [maxDimension] and re-encoding. Animated

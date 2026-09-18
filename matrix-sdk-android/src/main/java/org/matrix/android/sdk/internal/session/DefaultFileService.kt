@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
+import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.util.md5
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
@@ -72,6 +73,22 @@ internal class DefaultFileService @Inject constructor(
 
     override suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String {
         return fileUploader.uploadFromUri(uri, fileName, mimeType).contentUri
+    }
+
+    override suspend fun uploadEncryptedFile(uri: String, fileName: String?, mimeType: String?): EncryptedFileInfo {
+        return withContext(coroutineDispatchers.io) {
+            val encrypted = File.createTempFile("encrypted_upload", null, context.cacheDir)
+            fileUploader.withPreparedUploadFile(uri) { source ->
+                try {
+                    val info = source.inputStream().use {
+                        MXEncryptedAttachments.encrypt(it, encrypted, clock) { _, _ -> }
+                    }
+                    info.copy(url = fileUploader.uploadFile(encrypted, fileName, mimeType).contentUri)
+                } finally {
+                    encrypted.delete()
+                }
+            }
+        }
     }
 
     override suspend fun compressImageForUpload(uri: String, mimeType: String?, maxDimension: Int): FileService.CompressedImageResult {

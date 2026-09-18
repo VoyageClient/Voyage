@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.model
 
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 
@@ -28,6 +29,8 @@ data class RoomMemberSummary constructor(
         val userPresence: UserPresence? = null,
         val displayName: String? = null,
         val avatarUrl: String? = null,
+        /** How to decrypt [avatarUrl] when it points at an encrypted file, so the two never travel apart. */
+        val avatarDecryption: ElementToDecrypt? = null,
         // The name the user actually publishes, before any local ProfileOverrides substitution. Text we
         // send to the room (mention bodies) must use this, since an override is meaningful only to us.
         val originalDisplayName: String? = null,

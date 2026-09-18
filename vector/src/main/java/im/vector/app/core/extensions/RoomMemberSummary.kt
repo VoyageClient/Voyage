@@ -16,6 +16,6 @@ import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
  * pill drawn over it still shows the override.
  */
 fun RoomMemberSummary.bodyName(): String? {
-    ProfileOverrides.displayNameFor(userId) ?: return displayName
+    ProfileOverrides.fieldsFor(userId)?.takeIf { ProfileOverrides.FIELD_DISPLAY_NAME in it } ?: return displayName
     return originalDisplayName?.takeIf { it.isNotBlank() } ?: userId
 }

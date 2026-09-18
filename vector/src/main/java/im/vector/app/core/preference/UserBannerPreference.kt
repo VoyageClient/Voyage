@@ -28,7 +28,7 @@ class UserBannerPreference : Preference {
     private var mLoadingProgressBar: ProgressBar? = null
 
     private var bannerRenderer: BannerRenderer = context.singletonEntryPoint().let {
-        BannerRenderer(it.activeSessionHolder(), it.vectorPreferences())
+        BannerRenderer(it.activeSessionHolder(), it.vectorPreferences(), it.imageContentRenderer())
     }
 
     private var mxcUrl: String? = null

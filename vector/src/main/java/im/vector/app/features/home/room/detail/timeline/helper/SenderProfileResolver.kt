@@ -88,9 +88,10 @@ class SenderProfileResolver @Inject constructor(
         // server for that user's profile, which a list of a few hundred senders turns into a flood.
         return senderInfo.copy(
                 // A per-user override outranks every source, as it does everywhere else it is applied.
-                displayName = ProfileOverrides.displayNameFor(senderInfo.userId) ?: name,
+                displayName = ProfileOverrides.displayNameOr(senderInfo.userId, name),
                 isUniqueDisplayName = true,
-                avatarUrl = ProfileOverrides.avatarUrlFor(senderInfo.userId) ?: avatar,
+                avatarUrl = ProfileOverrides.avatarUrlOr(senderInfo.userId, avatar),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(senderInfo.userId),
                 colorPreference = senderInfo.colorPreference ?: liveMember?.colorPreference,
         )
     }

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.roommemberprofile
 
+import android.net.Uri
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
@@ -47,6 +48,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.EncryptedAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
+import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -156,7 +158,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     asyncMembership = initialRoomMember?.membership?.let { Success(it) } ?: Uninitialized,
                     // Seeded synchronously so the banner doesn't pop in a frame late
                     profileJson = session.profileService().getCachedProfile(initialState.userId),
-                    globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId),
+                    globalBannerMedia = resolvedProfileBanner(session.profileService().getCachedBannerUrl(initialState.userId)),
                     status = session.profileService().getCachedStatus(initialState.userId),
                     bio = session.profileService().getCachedBio(initialState.userId),
                     profileFieldsLine = cachedProfileFieldsLine(),
@@ -235,28 +237,36 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     /** The stored profile-overrides content, stable type preferred, decrypted when MSC4483-encrypted. */
-    private fun overridesClearContent(): Content? {
+    private fun overridesClearContent(): Pair<Content, Boolean>? {
         val service = session.encryptedAccountDataService()
-        return ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { type ->
-            val content = session.accountDataService().getUserAccountDataEvent(type)?.content ?: return@firstNotNullOfOrNull null
-            if (service.isEncrypted(content)) {
-                service.decryptOrNull(type, content) ?: run {
-                    ensureAdkSilently()
-                    null
-                }
-            } else {
-                content
+        val stored = ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { type ->
+            session.accountDataService().getUserAccountDataEvent(type)?.content?.let { type to it }
+        } ?: return null
+        return if (service.isEncrypted(stored.second)) {
+            service.decryptOrNull(stored.first, stored.second)?.let { it to true } ?: run {
+                ensureAdkSilently()
+                null
             }
+        } else {
+            stored.second to false
         }
     }
 
     private fun refreshProfileOverrides() {
-        applyProfileOverrideFieldsToState(ProfileOverrides.parse(overridesClearContent())[initialState.userId])
+        val stored = overridesClearContent()
+        val fields = ProfileOverrides.parse(stored?.first, stored?.second == true)[initialState.userId]
+        applyProfileOverrideFieldsToState(fields)
     }
 
     private fun applyProfileOverrideFieldsToState(fields: Map<String, Any?>?) {
-        val overrideName = (fields?.get(ProfileOverrides.FIELD_DISPLAY_NAME) as? String)?.takeIf { it.isNotBlank() }
-        val overrideAvatar = (fields?.get(ProfileOverrides.FIELD_AVATAR_URL) as? String)?.takeIf { it.isNotBlank() }
+        val overrideName = fields?.get(ProfileOverrides.FIELD_DISPLAY_NAME) as? String
+        val hasOverrideName = fields?.containsKey(ProfileOverrides.FIELD_DISPLAY_NAME) == true
+        val overrideAvatar = when (val value = fields?.get(ProfileOverrides.FIELD_AVATAR_URL)) {
+            is String -> value
+            is EncryptedFileInfo -> value.url
+            else -> null
+        }
+        val hasOverrideAvatar = fields?.containsKey(ProfileOverrides.FIELD_AVATAR_URL) == true
         val overrideColor = ColorPreference.parse(fields?.get(ProfileKeys.COLOR_PREFERENCE))
         val base = bestKnownMatrixItem()
         val sameForThemes = if (profileColorSameInitialized) {
@@ -273,6 +283,10 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     profileOverrideColor = overrideColor,
                     profileColorSameForThemes = sameForThemes ?: profileColorSameForThemes,
                     hasProfileOverrides = !fields.isNullOrEmpty(),
+                    globalBannerMedia = resolvedProfileBanner(session.profileService().getCachedBannerUrl(initialState.userId)),
+                    status = session.profileService().getCachedStatus(initialState.userId),
+                    bio = session.profileService().getCachedBio(initialState.userId),
+                    profileFieldsLine = cachedProfileFieldsLine(),
                     // Only rebuild an already-resolved item: while it is Loading, forcing
                     // Success here would dismiss the spinner with stale store data, and
                     // fetchProfileInfo already merges the overrides into its own result.
@@ -280,8 +294,9 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                         Success(
                                 MatrixItem.UserItem(
                                         initialState.userId,
-                                        overrideName ?: base.displayName,
-                                        overrideAvatar ?: base.avatarUrl,
+                                        if (hasOverrideName) overrideName else base.displayName,
+                                        if (hasOverrideAvatar) overrideAvatar else base.avatarUrl,
+                                        if (hasOverrideAvatar) ProfileOverrides.avatarDecryptionFor(initialState.userId) else null,
                                         colorPreference = (base as? MatrixItem.UserItem)?.colorPreference,
                                 )
                         )
@@ -477,7 +492,13 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             }
             pendingOverridesMutate?.let {
                 pendingOverridesMutate = null
-                updateProfileOverrideFields(it)
+                val forceEncrypted = pendingOverridesForceEncrypted
+                pendingOverridesForceEncrypted = false
+                updateProfileOverrideFields(forceEncrypted, it)
+            }
+            pendingAvatarOverride?.let {
+                pendingAvatarOverride = null
+                handleSetProfileOverrideAvatar(RoomMemberProfileAction.SetProfileOverrideAvatar(it))
             }
         } catch (failure: Throwable) {
             _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
@@ -493,19 +514,33 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
 
     private fun handleSetProfileOverrideAvatar(action: RoomMemberProfileAction.SetProfileOverrideAvatar) {
         viewModelScope.launch {
+            val service = session.encryptedAccountDataService()
+            val existingEncrypted = ProfileOverrides.ACCOUNT_DATA_TYPES.firstNotNullOfOrNull { type ->
+                session.accountDataService().getUserAccountDataEvent(type)?.content
+            }?.let(service::isEncrypted) == true
+            val encryptAvatar = vectorPreferences.encryptAccountData() || existingEncrypted
+            if (action.avatarUri != null && encryptAvatar && !service.ensureAccountDataKey()) {
+                pendingAvatarOverride = action.avatarUri
+                _viewEvents.post(RoomMemberProfileViewEvents.RequireProfileOverridesAdk)
+                return@launch
+            }
             val url = if (action.avatarUri == null) {
                 null
             } else {
                 _viewEvents.post(RoomMemberProfileViewEvents.Loading())
                 try {
-                    session.fileService().uploadFile(action.avatarUri.toString(), action.avatarUri.lastPathSegment, MimeTypes.Jpeg)
+                    if (encryptAvatar) {
+                        session.fileService().uploadEncryptedFile(action.avatarUri.toString(), action.avatarUri.lastPathSegment, MimeTypes.Jpeg)
+                    } else {
+                        session.fileService().uploadFile(action.avatarUri.toString(), action.avatarUri.lastPathSegment, MimeTypes.Jpeg)
+                    }
                 } catch (failure: Throwable) {
                     _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
                     _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
                     return@launch
                 }
             }
-            updateProfileOverrideFields { fields ->
+            updateProfileOverrideFields(forceEncrypted = url is EncryptedFileInfo) { fields ->
                 if (url != null) fields[ProfileOverrides.FIELD_AVATAR_URL] = url else fields.remove(ProfileOverrides.FIELD_AVATAR_URL)
             }
         }
@@ -582,13 +617,14 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private var pendingOverridesMutate: ((MutableMap<String, Any?>) -> Unit)? = null
+    private var pendingOverridesForceEncrypted = false
+    private var pendingAvatarOverride: Uri? = null
 
-    /**
-     * Rewrites this user's entry of the profile-overrides account data; an emptied entry is removed.
-     * Written MSC4483-encrypted when the labs toggle is on, plaintext when it is off — either way
-     * the stored event is converted to the target form on the way through.
-     */
-    private fun updateProfileOverrideFields(mutate: (MutableMap<String, Any?>) -> Unit) {
+    /** Rewrites this user's entry while preserving encryption on an existing encrypted event. */
+    private fun updateProfileOverrideFields(
+            forceEncrypted: Boolean = false,
+            mutate: (MutableMap<String, Any?>) -> Unit,
+    ) {
         viewModelScope.launch {
             trackingAccountDataWrite {
                 accountDataWriteMutex.withLock {
@@ -596,13 +632,14 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     val existing = ProfileOverrides.ACCOUNT_DATA_TYPES
                             .firstNotNullOfOrNull { type -> session.accountDataService().getUserAccountDataEvent(type)?.content?.let { type to it } }
                     val existingEncrypted = existing != null && service.isEncrypted(existing.second)
-                    val encryptWrites = vectorPreferences.encryptAccountData()
+                    val encryptWrites = vectorPreferences.encryptAccountData() || existingEncrypted || forceEncrypted
                     val adkAvailable = (existingEncrypted || encryptWrites) && service.ensureAccountDataKey()
                     // Without the ADK an encrypted store cannot be read-modified at all: run the
                     // recovery-key flow and replay this update once the key is in. A plaintext store
                     // just skips the upgrade for this write.
-                    if (existingEncrypted && !adkAvailable) {
+                    if ((existingEncrypted || forceEncrypted) && !adkAvailable) {
                         pendingOverridesMutate = mutate
+                        pendingOverridesForceEncrypted = forceEncrypted
                         matrixItemColorProvider.clearOptimisticOverride(initialState.userId)
                         _viewEvents.post(RoomMemberProfileViewEvents.StopLoading)
                         _viewEvents.post(RoomMemberProfileViewEvents.RequireProfileOverridesAdk)
@@ -856,12 +893,20 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         val fallbackUser = fallback as? MatrixItem.UserItem
         return MatrixItem.UserItem(
                 id = initialState.userId,
-                displayName = globalProfile.displayName ?: fallback?.displayName,
-                avatarUrl = globalProfile.avatarUrl ?: fallback?.avatarUrl,
+                displayName = ProfileOverrides.displayNameOr(initialState.userId, globalProfile.displayName ?: fallback?.displayName),
+                avatarUrl = ProfileOverrides.avatarUrlOr(initialState.userId, globalProfile.avatarUrl ?: fallback?.avatarUrl),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(initialState.userId),
                 userDisplayName = fallbackUser?.userDisplayName,
                 colorPreference = ColorPreference.fromProfileFields(profile) ?: fallbackUser?.colorPreference,
         )
     }
+
+    private fun resolvedProfileBanner(fallback: String?): ProfileOverrides.ProfileMedia? =
+            ProfileOverrides.mediaOr(
+                    initialState.userId,
+                    listOf(ProfileKeys.BANNER_URL, ProfileKeys.BANNER_URL_UNSTABLE),
+                    fallback,
+            )
 
     private suspend fun fetchProfileInfo() {
         val profile = globalProfile()
@@ -871,7 +916,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             copy(
                     userMatrixItem = Success(item),
                     // On fetch failure keep the seeded cache value rather than blanking the banner
-                    globalBannerUrl = if (profile != null) profile.bannerUrl() else globalBannerUrl,
+                    globalBannerMedia = if (profile != null) resolvedProfileBanner(profile.bannerUrl()) else globalBannerMedia,
                     profileJson = profile ?: profileJson,
                     status = session.profileService().getCachedStatus(initialState.userId),
                     bio = session.profileService().getCachedBio(initialState.userId),
@@ -894,7 +939,9 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                         copy(
                                 userMatrixItem = profile?.let { Success(globalProfileMatrixItem(it, userMatrixItem())) }
                                         ?: userMatrixItem,
-                                globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId) ?: globalBannerUrl,
+                                globalBannerMedia = resolvedProfileBanner(
+                                        session.profileService().getCachedBannerUrl(initialState.userId) ?: globalBannerMedia?.url
+                                ),
                                 profileJson = profile ?: profileJson,
                                 status = session.profileService().getCachedStatus(initialState.userId),
                                 bio = session.profileService().getCachedBio(initialState.userId),
@@ -917,7 +964,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             setState {
                 copy(
                         userMatrixItem = Success(globalProfileMatrixItem(profile, bestKnownMatrixItem())),
-                        globalBannerUrl = profile.bannerUrl(),
+                        globalBannerMedia = resolvedProfileBanner(profile.bannerUrl()),
                         profileJson = profile,
                         status = session.profileService().getCachedStatus(initialState.userId),
                         bio = session.profileService().getCachedBio(initialState.userId),

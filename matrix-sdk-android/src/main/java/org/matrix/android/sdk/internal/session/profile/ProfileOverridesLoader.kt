@@ -30,7 +30,9 @@ internal class ProfileOverridesLoader @Inject constructor(
         ProfileOverrides.claim(session.sessionId)
         taskExecutor.executorScope.launch {
             val encryption = encryptedAccountDataService.get()
-            ProfileOverrides.set(session.sessionId, ProfileOverrides.parse(stores.storedProfileOverrides(encryption)))
+            stores.storedProfileOverrides(encryption).let { stored ->
+                ProfileOverrides.set(session.sessionId, ProfileOverrides.parse(stored?.content, stored?.encrypted == true))
+            }
             // Encrypted overrides with no ADK: the 4S key may be cached from an earlier unlock, so
             // try to acquire the ADK silently; success re-applies through setAccountDataKey.
             if (stores.hasLockedProfileOverrides(encryption)) {

@@ -19,13 +19,14 @@ internal fun overriddenSenderInfo(
         avatarUrl: String?,
         colorPreference: ColorPreference? = null,
 ): SenderInfo {
-    val overrideName = ProfileOverrides.displayNameFor(userId)
+    val hasOverrideName = ProfileOverrides.fieldsFor(userId)?.containsKey(ProfileOverrides.FIELD_DISPLAY_NAME) == true
     return SenderInfo(
             userId = userId,
-            displayName = overrideName ?: displayName,
+            displayName = ProfileOverrides.displayNameOr(userId, displayName),
             // A user-chosen override needs no "(userId)" disambiguation suffix.
-            isUniqueDisplayName = overrideName != null || isUniqueDisplayName,
-            avatarUrl = ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+            isUniqueDisplayName = hasOverrideName || isUniqueDisplayName,
+            avatarUrl = ProfileOverrides.avatarUrlOr(userId, avatarUrl),
+            avatarDecryption = ProfileOverrides.avatarDecryptionFor(userId),
             colorPreference = colorPreference,
     )
 }
@@ -37,7 +38,8 @@ internal fun overriddenUserItem(
         colorPreference: ColorPreference? = null,
 ) = MatrixItem.UserItem(
         userId,
-        ProfileOverrides.displayNameFor(userId) ?: displayName,
-        ProfileOverrides.avatarUrlFor(userId) ?: avatarUrl,
+        ProfileOverrides.displayNameOr(userId, displayName),
+        ProfileOverrides.avatarUrlOr(userId, avatarUrl),
+        ProfileOverrides.avatarDecryptionFor(userId),
         colorPreference = colorPreference,
 )

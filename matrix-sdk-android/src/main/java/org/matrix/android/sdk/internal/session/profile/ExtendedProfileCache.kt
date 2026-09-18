@@ -16,6 +16,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.profile.UserStatus
@@ -195,24 +196,58 @@ internal class ExtendedProfileCache @Inject constructor(
         return false
     }
 
-    fun getCachedProfile(userId: String): Map<String, Any>? = rawProfiles[userId]
+    fun getCachedProfile(userId: String): Map<String, Any>? =
+            rawProfiles[userId]?.let { ProfileOverrides.mergedOver(userId, it) }
 
-    fun getCachedPronouns(userId: String): List<Pronoun>? = pronounsCache[userId]
+    fun getRawProfile(userId: String): Map<String, Any>? = rawProfiles[userId]
 
-    fun getCachedTimezone(userId: String): String? = timezoneCache[userId]?.getOrNull()
+    fun getCachedPronouns(userId: String): List<Pronoun>? {
+        val keys = setOf(ProfileKeys.PRONOUNS, ProfileKeys.PRONOUNS_UNSTABLE)
+        return if (hasOverride(userId, keys)) resolvedProfile(userId).profilePronouns() else pronounsCache[userId]
+    }
 
-    fun getCachedBannerUrl(userId: String): String? = bannerUrlCache[userId]?.getOrNull()
+    fun getCachedTimezone(userId: String): String? {
+        val keys = setOf(ProfileKeys.TIMEZONE, ProfileKeys.TIMEZONE_UNSTABLE)
+        return if (hasOverride(userId, keys)) resolvedProfile(userId).profileTimezone() else timezoneCache[userId]?.getOrNull()
+    }
+
+    fun getCachedBannerUrl(userId: String): String? {
+        val keys = setOf(ProfileKeys.BANNER_URL, ProfileKeys.BANNER_URL_UNSTABLE)
+        val fallback = bannerUrlCache[userId]?.getOrNull()
+        return if (hasOverride(userId, keys)) ProfileOverrides.mediaOr(userId, keys.toList(), fallback)?.url else fallback
+    }
 
     fun cacheBannerUrl(userId: String, bannerUrl: String?) {
         bannerUrlCache[userId] = Optional.from(bannerUrl)
     }
 
-    fun getCachedStatus(userId: String): UserStatus? = statusCache[userId]?.getOrNull()
+    fun getCachedStatus(userId: String): UserStatus? {
+        val keys = setOf(ProfileKeys.STATUS, ProfileKeys.STATUS_UNSTABLE, ProfileKeys.STATUS_COMMET)
+        return if (hasOverride(userId, keys)) resolvedProfile(userId).profileStatus() else statusCache[userId]?.getOrNull()
+    }
 
-    fun getCachedBio(userId: String): UserBio? = bioCache[userId]?.getOrNull()
+    fun getCachedBio(userId: String): UserBio? =
+            if (hasOverride(userId, ProfileKeys.ALL_BIOGRAPHY_KEYS)) resolvedProfile(userId).profileBio() else bioCache[userId]?.getOrNull()
 
-    fun getCachedColorPreference(userId: String): ColorPreference? =
-            colorCache[userId]?.getOrNull() ?: profileColorStore.get(userId)
+    fun getCachedColorPreference(userId: String): ColorPreference? = if (hasOverride(userId, ProfileKeys.COLOR_KEYS)) {
+        resolvedProfile(userId).profileColorPreference()
+    } else {
+        colorCache[userId]?.getOrNull() ?: profileColorStore.get(userId)
+    }
+
+    private fun hasOverride(userId: String, keys: Set<String>): Boolean =
+            ProfileOverrides.fieldsFor(userId)?.let { fields -> keys.any { it in fields } } == true
+
+    private fun resolvedProfile(userId: String): JsonDict =
+            ProfileOverrides.mergedOver(userId, rawProfiles[userId].orEmpty())
+
+    fun notifyOverridesChanged(userIds: Collection<String>) {
+        userIds.forEach { userId ->
+            profileUpdates.tryEmit(userId)
+            pronounsUpdates.tryEmit(userId)
+            colorUpdates.tryEmit(userId)
+        }
+    }
 
     fun cacheColorPreference(userId: String, color: ColorPreference?) {
         val updated = Optional.from(color?.takeIf { !it.isEmpty() })
