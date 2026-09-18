@@ -172,3 +172,16 @@ DELETE FROM event WHERE room_id = ?;
 
 deleteAll:
 DELETE FROM event;
+
+-- Mentions screen: rows across every room whose content might mention us. The LIKE pattern only
+-- narrows the scan down; whether a row really is a mention is decided in Kotlin by the account's
+-- push rules. Matched against the whole content JSON, not just the body, so a caller can narrow by
+-- our user id or by an m.mentions flag as well as by a keyword.
+selectContentLikeCandidates:
+SELECT * FROM event
+WHERE type IN ? AND is_useless = 0 AND (sender IS NULL OR sender NOT IN ?)
+AND (unsigned_data IS NULL OR unsigned_data NOT LIKE '%redacted_because%')
+AND (content IS NULL OR content NOT LIKE '%"rel_type":"m.replace"%')
+AND (decryption_result_json IS NULL OR decryption_result_json NOT LIKE '%"rel_type":"m.replace"%')
+AND (content LIKE ? ESCAPE '\' OR decryption_result_json LIKE ? ESCAPE '\')
+ORDER BY origin_server_ts DESC LIMIT ?;

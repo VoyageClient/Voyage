@@ -22,6 +22,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 internal interface PushRulesApi {
     /**
@@ -29,6 +30,21 @@ internal interface PushRulesApi {
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushrules/")
     suspend fun getAllRules(): GetPushRulesResponse
+
+    /**
+     * The events that notified us, newest first, as the server evaluated our push rules. It covers
+     * what arrived while the client was offline, which no local scan can see.
+     *
+     * @param from a previous response's next_token, to page further back
+     * @param limit how many notifications to return
+     * @param only "highlight" for the ones that highlight (mentions and highlighting keywords)
+     */
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "notifications")
+    suspend fun getNotifications(
+            @Query("from") from: String?,
+            @Query("limit") limit: Int?,
+            @Query("only") only: String?
+    ): GetNotificationsResponse
 
     /**
      * Update the ruleID enable status.

@@ -21,6 +21,8 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasDescription
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
+import org.matrix.android.sdk.api.session.room.mentions.MentionsQueryParams
+import org.matrix.android.sdk.api.session.room.mentions.MentionsResult
 import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
@@ -360,4 +362,10 @@ interface RoomService {
      * such as forcing the contact display for group DMs.
      */
     fun refreshJoinedRoomSummaryDisplay(roomId: String?)
+
+    /**
+     * Everything across the account's joined rooms that mentions us, newest first. Decided by the
+     * account's own push rules, so it lists what would have notified rather than every `@`.
+     */
+    suspend fun getMentions(params: MentionsQueryParams): MentionsResult
 }

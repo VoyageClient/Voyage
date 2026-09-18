@@ -1211,4 +1211,11 @@
         <item quantity="one">Cleared %d room notification override.</item>
         <item quantity="other">Cleared %d room notification overrides.</item>
     </plurals>
+    <string name="mentions_title" translatable="false">Mentions</string>
+    <string name="mentions_empty" translatable="false">Nobody has mentioned you yet.</string>
+    <string name="mentions_no_results" translatable="false">No mention matches your search.</string>
+    <string name="mentions_search_hint" translatable="false">Search mentions</string>
+    <string name="mentions_filter_room" translatable="false">@room mentions</string>
+    <string name="mentions_filter_keywords" translatable="false">Keyword mentions</string>
+    <string name="mentions_filter_exclude_dms" translatable="false">Exclude direct messages</string>
 </resources>

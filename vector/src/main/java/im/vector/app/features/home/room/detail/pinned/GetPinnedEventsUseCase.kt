@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.pinned
 
+import im.vector.app.features.home.room.detail.timeline.helper.SenderProfileResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ import javax.inject.Inject
 
 class GetPinnedEventsUseCase @Inject constructor(
         private val session: Session,
+        private val senderProfileResolver: SenderProfileResolver,
 ) {
 
     fun getPinnedEventIds(room: Room): Flow<List<String>> {
@@ -67,6 +69,7 @@ class GetPinnedEventsUseCase @Inject constructor(
                             session.eventService().requestDecryption(event.root)
                         }
                     }
+                    ?.let { it.copy(senderInfo = senderProfileResolver.resolve(room.roomId, it.senderInfo, it.root.isRedacted())) }
         }
                 // Order by the pinned event's own date (oldest first), not by when it was pinned.
                 .sortedBy { it.root.originServerTs ?: 0 }

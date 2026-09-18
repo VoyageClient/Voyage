@@ -275,6 +275,9 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_ENABLE_ALL_NOTIF_PREFERENCE_KEY = "SETTINGS_ENABLE_ALL_NOTIF_PREFERENCE_KEY"
         const val SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY = "SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY"
         const val SETTINGS_SHOW_UNREAD_COUNTER_KEY = "SETTINGS_SHOW_UNREAD_COUNTER_KEY"
+        private const val SETTINGS_MENTIONS_SHOW_ROOM_KEY = "SETTINGS_MENTIONS_SHOW_ROOM_KEY"
+        private const val SETTINGS_MENTIONS_SHOW_KEYWORDS_KEY = "SETTINGS_MENTIONS_SHOW_KEYWORDS_KEY"
+        private const val SETTINGS_MENTIONS_EXCLUDE_DMS_KEY = "SETTINGS_MENTIONS_EXCLUDE_DMS_KEY"
         private const val SETTINGS_NOTIFICATION_PERMISSION_ASKED_KEY = "SETTINGS_NOTIFICATION_PERMISSION_ASKED_KEY"
         const val SETTINGS_EMAIL_NOTIFICATION_CATEGORY_PREFERENCE_KEY = "SETTINGS_EMAIL_NOTIFICATION_CATEGORY_PREFERENCE_KEY"
 
@@ -495,6 +498,18 @@ class VectorPreferences @Inject constructor(
     fun showUnreadCounter(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_UNREAD_COUNTER_KEY, true)
     }
+
+    fun mentionsShowRoomMentions(): Boolean = defaultPrefs.getBoolean(SETTINGS_MENTIONS_SHOW_ROOM_KEY, true)
+
+    fun setMentionsShowRoomMentions(show: Boolean) = defaultPrefs.edit { putBoolean(SETTINGS_MENTIONS_SHOW_ROOM_KEY, show) }
+
+    fun mentionsShowKeywords(): Boolean = defaultPrefs.getBoolean(SETTINGS_MENTIONS_SHOW_KEYWORDS_KEY, true)
+
+    fun setMentionsShowKeywords(show: Boolean) = defaultPrefs.edit { putBoolean(SETTINGS_MENTIONS_SHOW_KEYWORDS_KEY, show) }
+
+    fun mentionsExcludeDms(): Boolean = defaultPrefs.getBoolean(SETTINGS_MENTIONS_EXCLUDE_DMS_KEY, false)
+
+    fun setMentionsExcludeDms(exclude: Boolean) = defaultPrefs.edit { putBoolean(SETTINGS_MENTIONS_EXCLUDE_DMS_KEY, exclude) }
 
     fun areNotificationEnabledForDevice(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY, true)

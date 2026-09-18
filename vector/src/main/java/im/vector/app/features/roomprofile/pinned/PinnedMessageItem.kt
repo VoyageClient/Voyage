@@ -21,7 +21,10 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.html.bindEmoteImageSpans
+import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -66,6 +69,9 @@ abstract class PinnedMessageItem : VectorEpoxyModel<PinnedMessageItem.Holder>(R.
             holder.body.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
             holder.body.clearDrawables()
         }
+        holder.body.bindEmoteImageSpans()
+        holder.body.bindPillImageSpans()
+        holder.body.applySpoilerRenderLayer()
 
         holder.timestamp.text = formattedDate
     }

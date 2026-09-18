@@ -488,6 +488,11 @@ interface MiscMavericksViewModelModule {
 
     @Binds
     @IntoMap
+    @MavericksViewModelKey("im.vector.app.features.mentions.MentionsViewModel")
+    fun mentionsViewModel(factory: im.vector.app.features.mentions.MentionsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.createdirect.CreateDirectRoomViewModel")
     fun vm2(factory: im.vector.app.features.createdirect.CreateDirectRoomViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 

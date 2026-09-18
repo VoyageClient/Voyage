@@ -66,6 +66,7 @@ import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VectorAttachmentViewerActivity
+import im.vector.app.features.mentions.MentionsActivity
 import im.vector.app.features.onboarding.OnboardingActivity
 import im.vector.app.features.pin.PinActivity
 import im.vector.app.features.pin.PinArgs
@@ -348,6 +349,10 @@ class DefaultNavigator @Inject constructor(
     override fun openRoomsFiltering(context: Context) {
         val intent = FilteredRoomsActivity.newIntent(context)
         context.startActivity(intent)
+    }
+
+    override fun openMentions(context: Context) {
+        context.startActivity(MentionsActivity.newIntent(context))
     }
 
     override fun openSettings(context: Context, directAccess: Int) {

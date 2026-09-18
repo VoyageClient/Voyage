@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.search
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.search.MatrixSearchQuery
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.session.search.SearchService
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -36,6 +37,13 @@ internal class DefaultSearchService @Inject constructor(
         private val peekedRoomManager: PeekedRoomManager,
         private val peekRoomSearchTask: PeekRoomSearchTask,
 ) : SearchService {
+
+    override fun parseQuery(searchTerm: String): MatrixSearchQuery {
+        val parsed = searchTerm.takeIf { it.isNotBlank() }?.let { SearchQueryParser.parse(it) }
+        return object : MatrixSearchQuery {
+            override fun matches(event: Event) = parsed == null || parsed.matchesEvent(event)
+        }
+    }
 
     override suspend fun search(
             searchTerm: String,

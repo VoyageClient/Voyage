@@ -21,6 +21,13 @@ CREATE TABLE indexed_event (
 
 CREATE INDEX indexed_event_room_ts ON indexed_event(room_id, origin_server_ts);
 
+-- Cross-room mention lookup (the mentions screen). The LIKE needle can't use an index, but almost no
+-- row mentions anybody, so the query range-scans `mentions > ''` through this index instead of
+-- reading the whole table (written as a range, not IS NOT NULL, so the planner takes it without
+-- ANALYZE stats; INDEXED BY then makes that non-negotiable). Existing databases get the index from
+-- EventIndexStore's CREATE INDEX IF NOT EXISTS pass on open.
+CREATE INDEX indexed_event_mentions ON indexed_event(mentions);
+
 -- Where to resume crawling a room's history (mirrors seshat's crawler checkpoints).
 CREATE TABLE crawler_checkpoint (
     room_id TEXT NOT NULL,
@@ -36,6 +43,20 @@ CREATE TABLE crawled_room (
     room_id TEXT NOT NULL PRIMARY KEY,
     last_token TEXT NOT NULL
 );
+
+-- The events that mention us, kept as they are indexed. Scanning `indexed_event.mentions` for our own
+-- id instead means a leading-wildcard LIKE over every row that mentions anybody — a fifth of the table
+-- — which no index can narrow (and SQLite 3.7.4 on ICS has no partial indexes). This table holds only
+-- the handful of real hits, so the mentions screen reads it in one ordered pass.
+CREATE TABLE mention_hit (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    room_id TEXT NOT NULL,
+    origin_server_ts INTEGER NOT NULL,
+    -- USER (mentions our id) or ROOM (an @room mention); USER wins when an event is both.
+    kind TEXT NOT NULL
+);
+
+CREATE INDEX mention_hit_ts ON mention_hit(origin_server_ts);
 
 -- Misc key/value state (event-table sweep watermark).
 CREATE TABLE index_meta (
@@ -83,6 +104,13 @@ WHERE room_id = ? AND content_text LIKE ? ESCAPE '\'
 ORDER BY origin_server_ts DESC
 LIMIT ? OFFSET ?;
 
+-- Mentions screen, across every room. The crawler reaches history the session store never received
+-- (anything that arrived while the client was offline), so these are its deeper archive; the caller
+-- still decides by push rule whether a row really is a mention.
+selectByContentLike:
+SELECT * FROM indexed_event WHERE content_text LIKE ? ESCAPE '\'
+ORDER BY origin_server_ts DESC LIMIT ?;
+
 eventsInTsRangeNewestFirst:
 SELECT event_id, origin_server_ts FROM indexed_event
 WHERE room_id = ? AND origin_server_ts > ? AND origin_server_ts < ?
@@ -105,6 +133,26 @@ LIMIT ?;
 
 oldestTsInRoom:
 SELECT origin_server_ts FROM indexed_event WHERE room_id = ? ORDER BY origin_server_ts ASC LIMIT 1;
+
+insertMentionHit:
+INSERT OR REPLACE INTO mention_hit(event_id, room_id, origin_server_ts, kind) VALUES (?, ?, ?, ?);
+
+deleteMentionHit:
+DELETE FROM mention_hit WHERE event_id = ?;
+
+clearMentionHits:
+DELETE FROM mention_hit;
+
+selectMentionHits:
+SELECT h.event_id, h.room_id, e.sender, e.event_json
+FROM mention_hit h JOIN indexed_event e ON e.event_id = h.event_id
+ORDER BY h.origin_server_ts DESC LIMIT ?;
+
+-- One-off backfill of rows indexed before the table existed. No ORDER BY: the whole range is read
+-- anyway and sorting it would only add a temp B-tree over half a million rows.
+selectMentionBackfill:
+SELECT event_id, room_id, origin_server_ts FROM indexed_event INDEXED BY indexed_event_mentions
+WHERE mentions > '' AND mentions LIKE ? ESCAPE '\';
 
 countEvents:
 SELECT COUNT(*) FROM indexed_event;

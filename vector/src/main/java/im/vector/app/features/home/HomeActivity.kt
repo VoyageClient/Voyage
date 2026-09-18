@@ -606,6 +606,10 @@ class HomeActivity :
                 navigator.openRoomsFiltering(this)
                 true
             }
+            R.id.menu_home_mentions -> {
+                navigator.openMentions(this)
+                true
+            }
             R.id.menu_home_setting -> {
                 navigator.openSettings(this)
                 true

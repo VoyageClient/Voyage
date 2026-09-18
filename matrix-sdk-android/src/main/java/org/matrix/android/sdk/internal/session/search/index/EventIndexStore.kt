@@ -12,8 +12,10 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.SessionReleasable
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.search.ROOM_MENTION_SENTINEL
 import org.matrix.android.sdk.internal.session.search.index.db.EventIndexSqlDatabase
 import org.matrix.android.sdk.internal.session.search.index.db.Indexed_event
 import java.io.File
@@ -31,6 +33,17 @@ internal data class IndexableEvent(
         val mentions: String?,
 )
 
+/** The slice of an indexed row a cross-room reader needs; the stored clear event carries the rest. */
+internal data class IndexedRow(
+        val roomId: String,
+        val sender: String?,
+        val eventJson: String,
+)
+
+private const val MENTION_BACKFILL_KEY = "mention_hits_backfilled"
+private const val MENTION_KIND_USER = "USER"
+private const val MENTION_KIND_ROOM = "ROOM"
+
 internal data class IndexCheckpoint(
         val roomId: String,
         val token: String,
@@ -45,8 +58,11 @@ internal data class IndexCheckpoint(
 @SessionScope
 internal class EventIndexStore @Inject constructor(
         @SessionFilesDirectory private val directory: File,
+        @UserId private val userId: String,
         private val driverFactory: SqlDriverFactory,
 ) : SessionReleasable {
+
+    private val ownMention = userId.lowercase()
 
     // Like the session database, the driver and its thread live as long as the session component:
     // a stopped session may be reopened, so teardown happens on component release only.
@@ -59,9 +75,21 @@ internal class EventIndexStore @Inject constructor(
     private var driver: SqlDriver? = null
 
     private val database by lazy {
-        EventIndexSqlDatabase(
-                driverFactory.create(EventIndexSqlDatabase.Schema, File(directory, "event_index.db")).also { driver = it }
-        )
+        val opened = driverFactory.create(EventIndexSqlDatabase.Schema, File(directory, "event_index.db")).also { driver = it }
+        // Added after the schema shipped: a version bump would drop the whole crawled index, so these
+        // are applied idempotently instead (see SessionModule for the same pattern). Building the
+        // index over an already-crawled table costs real time, but only on the first open.
+        opened.execute(null, "CREATE INDEX IF NOT EXISTS indexed_event_mentions ON indexed_event(mentions)", 0)
+        opened.execute(null, """
+            CREATE TABLE IF NOT EXISTS mention_hit (
+                event_id TEXT NOT NULL PRIMARY KEY,
+                room_id TEXT NOT NULL,
+                origin_server_ts INTEGER NOT NULL,
+                kind TEXT NOT NULL
+            )
+        """.trimIndent(), 0)
+        opened.execute(null, "CREATE INDEX IF NOT EXISTS mention_hit_ts ON mention_hit(origin_server_ts)", 0)
+        EventIndexSqlDatabase(opened)
     }
 
     override fun onSessionReleased() {
@@ -89,6 +117,7 @@ internal class EventIndexStore @Inject constructor(
                             event.msgtype,
                             event.mentions,
                     )
+                    recordMentionHit(event)
                     added++
                 }
             }
@@ -108,6 +137,27 @@ internal class EventIndexStore @Inject constructor(
                 event.msgtype,
                 event.mentions,
         )
+        recordMentionHit(event)
+    }
+
+    /** Mirrors an indexed event into [mention_hit], or out of it once it no longer mentions us. */
+    private fun recordMentionHit(event: IndexableEvent) {
+        val kind = mentionKindOf(event.mentions)
+        if (kind == null) {
+            queries.deleteMentionHit(event.eventId)
+        } else {
+            queries.insertMentionHit(event.eventId, event.roomId, event.originServerTs, kind)
+        }
+    }
+
+    /** The column is a space-joined list of lowercased ids, plus `@room` for an `m.mentions.room` event. */
+    private fun mentionKindOf(mentions: String?): String? {
+        val parts = mentions?.split(' ') ?: return null
+        return when {
+            ownMention in parts -> MENTION_KIND_USER
+            ROOM_MENTION_SENTINEL in parts -> MENTION_KIND_ROOM
+            else -> null
+        }
     }
 
     suspend fun eventJson(eventId: String): String? = withContext(dispatcher) {
@@ -121,10 +171,12 @@ internal class EventIndexStore @Inject constructor(
     /** Keeps the row, drops everything the (now redacted) content contributed to it. */
     suspend fun stripEvent(eventId: String, json: String) = withContext(dispatcher) {
         queries.stripEvent(json, eventId)
+        queries.deleteMentionHit(eventId)
     }
 
     suspend fun deleteEvent(eventId: String) = withContext(dispatcher) {
         queries.deleteEvent(eventId)
+        queries.deleteMentionHit(eventId)
     }
 
     suspend fun deleteLocalEchoes() = withContext(dispatcher) {
@@ -135,6 +187,36 @@ internal class EventIndexStore @Inject constructor(
             withContext(dispatcher) {
                 queries.search(roomId, likePattern(searchTerm), limit.toLong(), offset.toLong()).executeAsList()
             }
+
+    /** Everything indexed that mentions us, by our id or by `@room`, newest first. */
+    suspend fun mentionHits(limit: Int): List<IndexedRow> = withContext(dispatcher) {
+        backfillMentionHits()
+        queries.selectMentionHits(limit.toLong()).executeAsList()
+                .map { IndexedRow(roomId = it.room_id, sender = it.sender, eventJson = it.event_json) }
+    }
+
+    /**
+     * Fill [mention_hit] from events indexed before it existed. One scan of the whole mentions range,
+     * once per session database, rather than on every open of the screen.
+     */
+    private fun backfillMentionHits() {
+        if (queries.selectMeta(MENTION_BACKFILL_KEY).executeAsOneOrNull() != null) return
+        queries.transaction {
+            // ROOM first so an event that is both is left as USER.
+            listOf(ROOM_MENTION_SENTINEL to MENTION_KIND_ROOM, ownMention to MENTION_KIND_USER).forEach { (needle, kind) ->
+                queries.selectMentionBackfill(likePattern(needle)).executeAsList().forEach { row ->
+                    queries.insertMentionHit(row.event_id, row.room_id, row.origin_server_ts, kind)
+                }
+            }
+            queries.upsertMeta(MENTION_BACKFILL_KEY, "1")
+        }
+    }
+
+    /** Rows whose searchable text holds [pattern], across every room. */
+    suspend fun byContentLike(pattern: String, limit: Int): List<IndexedRow> = withContext(dispatcher) {
+        queries.selectByContentLike(pattern, limit.toLong()).executeAsList()
+                .map { IndexedRow(roomId = it.room_id, sender = it.sender, eventJson = it.event_json) }
+    }
 
     /** Indexed events with origin_server_ts strictly inside (olderTs, newerTs), newest first. */
     suspend fun eventsInTsRange(roomId: String, olderTs: Long, newerTs: Long, limit: Int, newestFirst: Boolean = true): List<Pair<String, Long>> =
@@ -231,6 +313,7 @@ internal class EventIndexStore @Inject constructor(
     suspend fun clear() = withContext(dispatcher) {
         queries.transaction {
             queries.clearEvents()
+            queries.clearMentionHits()
             queries.clearCheckpoints()
             queries.clearCrawledRooms()
             queries.clearMeta()

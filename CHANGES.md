@@ -52,6 +52,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Message pinning**: pin and unpin messages, sorted by most recent, with a pinned-messages banner you can turn off.
 
+- **Mentions list**: a searchable, filterable list of everything that has mentioned you across your rooms, newest first.
+
 - **Mass redactions**: bulk redaction via `/massredact`, with an optional delay and `after:`/`before:` time range, redacting only messages unless you ask for everything. Redacting a message also redacts its edits and reactions and applies live to open timelines, "remove" is renamed to "redact", and the confirmation dialog can be skipped.
 
 - **Redact on kick/ban**: kicking or banning someone offers to redact everything they sent in the room, from the member's profile or as `/kick @user:server redact`.

@@ -32,6 +32,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem_
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
@@ -62,6 +63,7 @@ class SearchResultController @Inject constructor(
         private val timelineItemFactory: TimelineItemFactory,
         private val timelineRetrieversFactory: TimelineRetrieversFactory,
         private val stubCallback: StubTimelineEventCallback,
+        private val vectorPreferences: VectorPreferences,
 ) : TypedEpoxyController<SearchViewState>(), TimelineEventController.Callback by stubCallback {
 
     var listener: Listener? = null
@@ -160,7 +162,7 @@ class SearchResultController @Inject constructor(
                     event = timelineEvent,
                     partialState = TimelineEventController.PartialState(roomSummary = roomSummary),
                     callback = this,
-                    preserveSenderInfo = true,
+                    preserveSenderInfo = !vectorPreferences.showLiveSenderInfo(),
             )
             val model = timelineItemFactory.create(params)
             model.boldSearchMatches(data.highlights)

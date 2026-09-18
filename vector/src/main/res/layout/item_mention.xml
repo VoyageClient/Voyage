@@ -11,11 +11,11 @@
     android:paddingStart="12dp"
     android:paddingLeft="12dp"
     android:paddingTop="12dp"
-    android:paddingEnd="4dp"
-    android:paddingRight="4dp">
+    android:paddingEnd="12dp"
+    android:paddingRight="12dp">
 
     <ImageView
-        android:id="@+id/pinnedMessageAvatar"
+        android:id="@+id/mentionAvatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:contentDescription="@string/avatar"
@@ -24,7 +24,7 @@
         tools:src="@sample/user_round_avatars" />
 
     <TextView
-        android:id="@+id/pinnedMessageSender"
+        android:id="@+id/mentionSender"
         style="@style/Widget.Vector.TextView.Body.Medium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -36,61 +36,72 @@
         android:maxLines="1"
         android:textColor="?vctr_content_primary"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/pinnedMessageTimestamp"
-        app:layout_constraintStart_toEndOf="@id/pinnedMessageAvatar"
+        app:layout_constraintEnd_toStartOf="@id/mentionTimestamp"
+        app:layout_constraintStart_toEndOf="@id/mentionAvatar"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Alice" />
 
     <TextView
-        android:id="@+id/pinnedMessageTimestamp"
+        android:id="@+id/mentionTimestamp"
         style="@style/Widget.Vector.TextView.Caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
         android:maxLines="1"
         android:textColor="?vctr_content_secondary"
-        app:layout_constraintBottom_toBottomOf="@id/pinnedMessageSender"
-        app:layout_constraintEnd_toStartOf="@id/pinnedMessageOverflow"
-        app:layout_constraintTop_toTopOf="@id/pinnedMessageSender"
+        app:layout_constraintBottom_toBottomOf="@id/mentionSender"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/mentionSender"
         tools:text="10:32" />
 
-    <ImageButton
-        android:id="@+id/pinnedMessageOverflow"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/pinned_messages_actions"
-        app:srcCompat="@drawable/ic_more_vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="?vctr_content_secondary" />
-
     <TextView
-        android:id="@+id/pinnedMessageBody"
+        android:id="@+id/mentionBody"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginRight="12dp"
         android:ellipsize="end"
         android:maxLines="2"
         android:textColor="?vctr_content_secondary"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/pinnedMessageSender"
-        app:layout_constraintTop_toBottomOf="@id/pinnedMessageSender"
-        tools:text="Meeting notes: agenda for the week ahead" />
+        app:layout_constraintStart_toStartOf="@id/mentionSender"
+        app:layout_constraintTop_toBottomOf="@id/mentionSender"
+        tools:text="Can you take a look at this, @alice?" />
+
+    <ImageView
+        android:id="@+id/mentionRoomAvatar"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginTop="6dp"
+        android:importantForAccessibility="no"
+        app:layout_constraintStart_toStartOf="@id/mentionSender"
+        app:layout_constraintTop_toBottomOf="@id/mentionBody"
+        tools:src="@sample/room_round_avatars" />
+
+    <TextView
+        android:id="@+id/mentionRoomName"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginLeft="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?vctr_content_secondary"
+        app:layout_constraintBottom_toBottomOf="@id/mentionRoomAvatar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/mentionRoomAvatar"
+        app:layout_constraintTop_toTopOf="@id/mentionRoomAvatar"
+        tools:text="@sample/rooms.json/data/name" />
 
     <View
-        android:id="@+id/pinnedMessageDivider"
+        android:id="@+id/mentionDivider"
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_marginTop="12dp"
         android:background="?vctr_list_separator"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/pinnedMessageSender"
-        app:layout_constraintTop_toBottomOf="@id/pinnedMessageBody"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintStart_toStartOf="@id/mentionSender"
+        app:layout_constraintTop_toBottomOf="@id/mentionRoomAvatar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

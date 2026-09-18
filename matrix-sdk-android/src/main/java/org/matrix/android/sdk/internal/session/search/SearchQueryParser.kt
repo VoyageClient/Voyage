@@ -138,6 +138,18 @@ internal object SearchQueryParser {
     }
 }
 
+/** Match [event] on the same fields a stored search row is matched on. */
+internal fun ParsedSearchQuery.matchesEvent(event: Event): Boolean {
+    val clearContent = event.getClearContent()
+    return matches(
+            text = clearContent?.get("body") as? String ?: "",
+            sender = event.senderId,
+            originServerTs = event.originServerTs ?: 0L,
+            msgtypes = searchMsgTypes(event.getClearType(), clearContent),
+            eventMentions = extractMentionedUserIds(clearContent),
+    )
+}
+
 /**
  * Present an edit (m.replace) event as its target: the timeline only shows the original row, so
  * jumping must target it — and after this remap identical matches dedupe by event id.
@@ -178,13 +190,19 @@ private fun galleryItemTypes(clearContent: Content?): List<String> =
 
 private val MXID_REGEX = Regex("""@[a-zA-Z0-9._=/+-]+:[a-zA-Z0-9.-]+(?::\d+)?""")
 
+/** Sentinel stored alongside mentioned user ids for an `m.mentions.room` event, so a cross-room
+ * `@room` lookup reads the same indexed column instead of scanning every stored event body. */
+internal const val ROOM_MENTION_SENTINEL = "@room"
+
 /**
  * User ids an event mentions: the explicit m.mentions list plus any mxid appearing in the
  * formatted or plain body (pills carry the id in their matrix.to href; reply fallbacks quote it).
+ * An `m.mentions.room` event also carries [ROOM_MENTION_SENTINEL].
  */
 internal fun extractMentionedUserIds(content: Content?): List<String> {
     content ?: return emptyList()
     val result = LinkedHashSet<String>()
+    if ((content["m.mentions"] as? Map<*, *>)?.get("room") == true) result.add(ROOM_MENTION_SENTINEL)
     ((content["m.mentions"] as? Map<*, *>)?.get("user_ids") as? List<*>)
             .orEmpty()
             .forEach { id -> (id as? String)?.let { result.add(it) } }

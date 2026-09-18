@@ -43,4 +43,10 @@ interface SearchService {
             afterLimit: Int,
             includeProfile: Boolean
     ): SearchResult
+
+    /**
+     * Parse [searchTerm] into a matcher for events already held in memory. It takes bare words,
+     * `"quoted phrases"`, and the `from:` / `mentions:` / `has:` / `after:` / `before:` filters.
+     */
+    fun parseQuery(searchTerm: String): MatrixSearchQuery
 }

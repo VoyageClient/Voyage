@@ -96,6 +96,8 @@ interface Navigator {
 
     fun openRoomsFiltering(context: Context)
 
+    fun openMentions(context: Context)
+
     fun openSettings(context: Context, directAccess: Int = VectorSettingsActivity.EXTRA_DIRECT_ACCESS_ROOT)
 
     fun openSettings(context: Context, payload: SettingsActivityPayload)

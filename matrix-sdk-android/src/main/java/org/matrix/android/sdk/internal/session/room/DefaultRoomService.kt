@@ -30,6 +30,8 @@ import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasDescription
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
+import org.matrix.android.sdk.api.session.room.mentions.MentionsQueryParams
+import org.matrix.android.sdk.api.session.room.mentions.MentionsResult
 import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
@@ -55,6 +57,7 @@ import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomT
 import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.ForgetRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
+import org.matrix.android.sdk.internal.session.room.mentions.MentionsFinder
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekedRoomManager
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
@@ -95,7 +98,12 @@ internal class DefaultRoomService @Inject constructor(
         private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater,
         private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
         private val localEchoEventFactory: org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory,
+        private val mentionsFinder: MentionsFinder,
 ) : RoomService {
+
+    override suspend fun getMentions(params: MentionsQueryParams): MentionsResult {
+        return mentionsFinder.getMentions(params)
+    }
 
     override fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? {
         return localEchoEventFactory.computeFormattedHtml(text, autoMarkdown)

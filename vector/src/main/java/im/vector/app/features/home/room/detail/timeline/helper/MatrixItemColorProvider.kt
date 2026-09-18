@@ -38,6 +38,12 @@ class MatrixItemColorProvider @Inject constructor(
         private val activeSessionHolder: Provider<ActiveSessionHolder>,
 ) {
     private val cache = ConcurrentHashMap<String, Int>()
+
+    // Resolving a chosen color walks the overrides and the profile cache, and can start a profile
+    // fetch; a list binding hundreds of avatars cannot afford that per bind. Cleared with [cache],
+    // and invalidate() runs whenever a color may have changed, including when a fetched profile
+    // color lands, so a cached miss is never final.
+    private val resolvedCache = ConcurrentHashMap<String, Int>()
     private val hexCache = ConcurrentHashMap<String, Int>()
 
     // im.vector.setting.override_colors: the pre-MSC4522 per-user override, kept as a fallback for
@@ -61,6 +67,7 @@ class MatrixItemColorProvider @Inject constructor(
 
     fun invalidate() {
         cache.clear()
+        resolvedCache.clear()
         cacheSignature = null
         _changes.value++
     }
@@ -77,7 +84,13 @@ class MatrixItemColorProvider @Inject constructor(
         // Turning names off is a request for no chosen colors at all, so profile colors and per-user
         // overrides stop applying too; the settings screens still read them through resolveHex.
         if (namesAreUncolored()) return defaultColor(matrixItem, light)
-        return resolveHex(matrixItem, light)?.let { hexToColor(it) } ?: defaultColor(matrixItem, light)
+        ensureCacheSignature(light)
+        // Keyed by the carried preference too: the same user can hold a different color per room.
+        val key = "${matrixItem.id}|${(matrixItem as? MatrixItem.UserItem)?.colorPreference}"
+        resolvedCache[key]?.let { return it }
+        val color = resolveHex(matrixItem, light)?.let { hexToColor(it) } ?: defaultColor(matrixItem, light)
+        resolvedCache[key] = color
+        return color
     }
 
     /**
@@ -172,13 +185,7 @@ class MatrixItemColorProvider @Inject constructor(
      */
     @ColorInt
     fun defaultColor(matrixItem: MatrixItem, light: Boolean = themeProvider.isLightTheme()): Int {
-        val peoplePalette = vectorPreferences.peopleColorPalette()
-        val roomPalette = vectorPreferences.roomColorPalette()
-        val signature = Triple(peoplePalette, roomPalette, light)
-        if (signature != cacheSignature) {
-            cache.clear()
-            cacheSignature = signature
-        }
+        val (peoplePalette, roomPalette) = ensureCacheSignature(light)
 
         return cache.getOrPut(matrixItem.id) {
             colorProvider.getColor(
@@ -190,6 +197,19 @@ class MatrixItemColorProvider @Inject constructor(
                     }
             )
         }
+    }
+
+    /** Both caches only hold for one (people palette, room palette, theme) combination. */
+    private fun ensureCacheSignature(light: Boolean): Pair<ColorPalette, ColorPalette> {
+        val peoplePalette = vectorPreferences.peopleColorPalette()
+        val roomPalette = vectorPreferences.roomColorPalette()
+        val signature = Triple(peoplePalette, roomPalette, light)
+        if (signature != cacheSignature) {
+            cache.clear()
+            resolvedCache.clear()
+            cacheSignature = signature
+        }
+        return peoplePalette to roomPalette
     }
 
     // A room pill is built from an alias, everything else from the room id; hash the room id either
