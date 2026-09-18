@@ -157,7 +157,7 @@ class BlurHashDrawable private constructor(
                 val cached = synchronized(cache) { cache[key] }
                 // useCache = false: the library's shared cosine-table cache isn't thread-safe, so concurrent
                 // decodes corrupt each other (zig-zag artifacts). Recompute per call — cheap at this size.
-                val bmp = cached ?: runCatching { BlurHash.decode(hash, decodeW, decodeH, punch = 1f, useCache = false) }.getOrNull() ?: return@launch
+                val bmp = cached ?: runCatching { BlurHash.decode(hash, decodeW, decodeH, punch = 2f, useCache = false) }.getOrNull() ?: return@launch
                 if (cached == null) synchronized(cache) { cache[key] = bmp }
                 mainHandler.post { target.onBitmapReady(bmp) }
             }
