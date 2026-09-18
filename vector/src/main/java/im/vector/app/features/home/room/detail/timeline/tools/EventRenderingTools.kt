@@ -17,7 +17,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.DrawableRes
-import androidx.core.text.toSpannable
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyViewHolder
 import im.vector.app.EmojiSpanify
@@ -36,7 +35,6 @@ import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.permalinks.MatrixLinkify
 import org.matrix.android.sdk.api.session.permalinks.MatrixPermalinkSpan
 
@@ -130,13 +128,11 @@ fun CharSequence.asEmoteBody(senderName: CharSequence, senderNameSpan: SenderNam
             .apply { setSpan(StyleSpan(Typeface.ITALIC), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
 }
 
+// Main thread only: reading spans off-thread races with edits and throws on a half-written span.
 fun CharSequence.findPillsAndProcess(scope: CoroutineScope, processBlock: (PillImageSpan) -> Unit) {
+    val spanned = this as? Spanned ?: return
     scope.launch(Dispatchers.Main) {
-        withContext(Dispatchers.IO) {
-            toSpannable().let { spannable ->
-                spannable.getSpans(0, spannable.length, PillImageSpan::class.java)
-            }
-        }.forEach { processBlock(it) }
+        spanned.getSpans(0, spanned.length, PillImageSpan::class.java).forEach { processBlock(it) }
     }
 }
 
