@@ -61,6 +61,7 @@ class StickerPickerController @Inject constructor(
             genericFooterItem {
                 id("empty")
                 text(host.stringProvider.getString(CommonStrings.sticker_picker_empty).toEpoxyCharSequence())
+                spanSizeOverride { totalSpanCount, _, _ -> totalSpanCount }
             }
             return
         }
@@ -74,6 +75,7 @@ class StickerPickerController @Inject constructor(
             genericFooterItem {
                 id("search_empty")
                 text(host.stringProvider.getString(CommonStrings.search_no_results).toEpoxyCharSequence())
+                spanSizeOverride { totalSpanCount, _, _ -> totalSpanCount }
             }
             return
         }

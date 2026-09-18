@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -120,6 +121,9 @@ class StickerPickerBottomSheet :
         packs = loaded.packs
         frequent = loaded.frequent
         controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs))
+        val hasStickers = packs.isNotEmpty() || frequent.isNotEmpty()
+        views.stickerPickerTabRow.isVisible = hasStickers
+        views.stickerPickerTabSeparator.isVisible = hasStickers
         setupTabs(layoutManager)
         val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
         val stickers = frequent + packs.flatMap { it.images }

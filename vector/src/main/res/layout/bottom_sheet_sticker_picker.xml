@@ -25,6 +25,7 @@
         android:layout_height="40dp" />
 
     <View
+        android:id="@+id/stickerPickerTabSeparator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?vctr_list_separator" />
