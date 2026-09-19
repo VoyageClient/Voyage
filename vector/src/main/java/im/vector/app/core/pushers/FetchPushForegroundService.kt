@@ -8,6 +8,7 @@
 package im.vector.app.core.pushers
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -19,9 +20,11 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import im.vector.app.R
 import im.vector.lib.strings.CommonStrings
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Keeps the device awake while a push is turned into a notification.
@@ -51,6 +54,7 @@ class FetchPushForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         NotificationManagerCompat.from(this).createNotificationChannelsCompat(
                 listOf(
                         NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
@@ -85,7 +89,7 @@ class FetchPushForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (!isOnForeground) {
+        if (!isOnForeground || stopRequested.get()) {
             stopSelf()
             return START_NOT_STICKY
         }
@@ -103,6 +107,7 @@ class FetchPushForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        instance = null
         timeoutHandler.removeCallbacks(timeoutRunnable)
         if (wakelock.isHeld) {
             wakelock.release()
@@ -120,5 +125,33 @@ class FetchPushForegroundService : Service() {
 
         // A short foreground service may only live 3 minutes.
         const val WAKELOCK_TIMEOUT_MS = 3 * 60 * 1000L
+
+        @Volatile
+        private var instance: FetchPushForegroundService? = null
+
+        private val stopRequested = AtomicBoolean(false)
+
+        private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
+
+        fun start(context: Context) {
+            stopRequested.set(false)
+            val intent = Intent(context, FetchPushForegroundService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ContextCompat.startForegroundService(context, intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        // stopService() before the service is created leaves the startForegroundService() promise
+        // unfulfilled and the system kills the process, so it always stops itself once foreground.
+        fun stop() {
+            stopRequested.set(true)
+            mainHandler.post {
+                if (stopRequested.get()) {
+                    instance?.stopSelf()
+                }
+            }
+        }
     }
 }

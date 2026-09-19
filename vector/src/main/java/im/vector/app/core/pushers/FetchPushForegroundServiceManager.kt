@@ -8,10 +8,8 @@
 package im.vector.app.core.pushers
 
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.PowerManager
-import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicInteger
@@ -38,13 +36,8 @@ class FetchPushForegroundServiceManager @Inject constructor(
             return
         }
 
-        val intent = Intent(context, FetchPushForegroundService::class.java)
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ContextCompat.startForegroundService(context, intent)
-            } else {
-                context.startService(intent)
-            }
+            FetchPushForegroundService.start(context)
         } catch (throwable: Throwable) {
             Timber.e(throwable, "FetchPush: cannot start the foreground service")
         }
@@ -58,11 +51,7 @@ class FetchPushForegroundServiceManager @Inject constructor(
     /** The worker took over and holds its own wakelock, so nothing is waiting on this one. */
     fun stopAll() {
         pendingPushes.set(0)
-        try {
-            context.stopService(Intent(context, FetchPushForegroundService::class.java))
-        } catch (throwable: Throwable) {
-            Timber.e(throwable, "FetchPush: cannot stop the foreground service")
-        }
+        FetchPushForegroundService.stop()
     }
 
     @Suppress("DEPRECATION")
