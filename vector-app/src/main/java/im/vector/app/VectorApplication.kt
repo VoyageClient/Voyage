@@ -61,6 +61,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.version.VersionProvider
 import im.vector.lib.core.utils.audio.AudioRouteKeepAlive
 import kotlinx.coroutines.asCoroutineDispatcher
+import org.commonmark.parser.Parser
 import org.maplibre.android.MapLibre
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
@@ -128,6 +129,10 @@ class VectorApplication :
             // Loader process: skip Hilt and all app init (its dexes/components aren't available here).
             return
         }
+        // commonmark reads its entity table with Class.getResourceAsStream, which verifies the whole
+        // APK manifest: seconds, paid by whichever thread parses first. Cold-started that is the main
+        // thread building the room list, so parse an entity here to take it off a background thread.
+        Thread({ runCatching { Parser.builder().build().parse("&amp;") } }, "commonmark-warmup").start()
         enableStrictModeIfNeeded()
         // Pre-Lollipop can't inflate <vector> drawables natively (android:src/setImageResource); let
         // AppCompat load them through VectorDrawableCompat instead. Must run before any inflation.
