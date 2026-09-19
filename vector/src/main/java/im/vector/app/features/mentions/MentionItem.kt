@@ -35,13 +35,14 @@ abstract class MentionItem : VectorEpoxyModel<MentionItem.Holder>(R.layout.item_
     @EpoxyAttribute
     lateinit var roomItem: MatrixItem
 
+    // Every text here is wrapped: setting a spannable on a TextView (emoji2) and binding its emote/pill
+    // spans both mutate it in place, which would change the model's hash mid-bind.
     @EpoxyAttribute
-    lateinit var senderName: CharSequence
+    lateinit var senderName: EpoxyCharSequence
 
     @EpoxyAttribute
-    lateinit var roomName: CharSequence
+    lateinit var roomName: EpoxyCharSequence
 
-    // Wrapped: binding the emote/pill spans re-sets them, mutating the body's hash mid-bind.
     @EpoxyAttribute
     lateinit var body: EpoxyCharSequence
 
@@ -56,8 +57,8 @@ abstract class MentionItem : VectorEpoxyModel<MentionItem.Holder>(R.layout.item_
         holder.view.onClick(itemClickListener)
         avatarRenderer.render(senderItem, holder.avatar)
         avatarRenderer.render(roomItem, holder.roomAvatar)
-        holder.sender.text = senderName
-        holder.room.text = roomName
+        holder.sender.text = senderName.charSequence
+        holder.room.text = roomName.charSequence
         holder.timestamp.text = formattedDate
         holder.body.text = body.charSequence
         holder.body.bindEmoteImageSpans()

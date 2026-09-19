@@ -56,8 +56,8 @@ class MentionsController @Inject constructor(
                 avatarRenderer(host.avatarRenderer)
                 senderItem(event.senderInfo.toMatrixItem())
                 roomItem(item.roomSummary.toDisplayMatrixItem())
-                senderName(item.senderName)
-                roomName(item.roomName)
+                senderName(item.senderName.toEpoxyCharSequence())
+                roomName(item.roomName.toEpoxyCharSequence())
                 body(item.body.toEpoxyCharSequence())
                 formattedDate(item.formattedDate)
                 itemClickListener { host.callback?.onMentionClicked(item.roomSummary.roomId, event.eventId) }
