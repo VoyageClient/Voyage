@@ -26,6 +26,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -40,8 +41,9 @@ abstract class PinnedMessageItem : VectorEpoxyModel<PinnedMessageItem.Holder>(R.
     @EpoxyAttribute
     lateinit var senderName: CharSequence
 
+    // Wrapped: binding the emote/pill spans re-sets them, mutating the body's hash mid-bind.
     @EpoxyAttribute
-    lateinit var body: CharSequence
+    lateinit var body: EpoxyCharSequence
 
     @EpoxyAttribute
     var redacted: Boolean = false
@@ -62,7 +64,7 @@ abstract class PinnedMessageItem : VectorEpoxyModel<PinnedMessageItem.Holder>(R.
         holder.overflow.onClick(overflowClickListener)
         avatarRenderer.render(matrixItem, holder.avatar)
         holder.sender.text = senderName.prepareForDisplay()
-        holder.body.text = body
+        holder.body.text = body.charSequence
         if (redacted) {
             holder.body.setRedactedPreviewStyle()
         } else {

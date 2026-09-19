@@ -20,6 +20,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.html.bindPillImageSpans
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -40,8 +41,9 @@ abstract class MentionItem : VectorEpoxyModel<MentionItem.Holder>(R.layout.item_
     @EpoxyAttribute
     lateinit var roomName: CharSequence
 
+    // Wrapped: binding the emote/pill spans re-sets them, mutating the body's hash mid-bind.
     @EpoxyAttribute
-    lateinit var body: CharSequence
+    lateinit var body: EpoxyCharSequence
 
     @EpoxyAttribute
     var formattedDate: String? = null
@@ -57,7 +59,7 @@ abstract class MentionItem : VectorEpoxyModel<MentionItem.Holder>(R.layout.item_
         holder.sender.text = senderName
         holder.room.text = roomName
         holder.timestamp.text = formattedDate
-        holder.body.text = body
+        holder.body.text = body.charSequence
         holder.body.bindEmoteImageSpans()
         holder.body.bindPillImageSpans()
         holder.body.applySpoilerRenderLayer()

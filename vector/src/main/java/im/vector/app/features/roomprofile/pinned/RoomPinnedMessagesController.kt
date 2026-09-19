@@ -52,7 +52,7 @@ class RoomPinnedMessagesController @Inject constructor(
                 avatarRenderer(host.avatarRenderer)
                 matrixItem(event.senderInfo.toMatrixItem())
                 senderName(event.senderInfo.disambiguatedDisplayName)
-                body(host.displayableEventFormatter.format(event, isDm = false, appendAuthor = false))
+                body(host.displayableEventFormatter.format(event, isDm = false, appendAuthor = false).toEpoxyCharSequence())
                 redacted(event.root.isRedacted())
                 formattedDate(host.dateFormatter.format(event.root.originServerTs, DateFormatKind.DEFAULT_DATE_AND_TIME))
                 itemClickListener { host.callback?.onMessageClicked(eventId) }

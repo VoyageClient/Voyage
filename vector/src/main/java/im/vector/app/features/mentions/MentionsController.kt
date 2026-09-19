@@ -58,7 +58,7 @@ class MentionsController @Inject constructor(
                 roomItem(item.roomSummary.toDisplayMatrixItem())
                 senderName(item.senderName)
                 roomName(item.roomName)
-                body(item.body)
+                body(item.body.toEpoxyCharSequence())
                 formattedDate(item.formattedDate)
                 itemClickListener { host.callback?.onMentionClicked(item.roomSummary.roomId, event.eventId) }
             }
