@@ -56,6 +56,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.getUser
 import org.matrix.android.sdk.api.session.pushrules.SenderNotificationPermissionCondition
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
@@ -386,18 +387,20 @@ class AutoCompleter @AssistedInject constructor(
     private fun aliasItem(alias: String): MatrixItem? =
             session.roomService().getRoomSummary(alias)?.toRoomAliasMatrixItem()?.also { knownAliases[alias] = it }
 
-    // Once the member is known the pill carries their name, exactly as an autocompleted one does: the
-    // id is only what an unknown user falls back to.
+    // The room member is authoritative, but lazy-loaded rooms may only have the account-wide profile.
     private fun resolveUserPill(editable: Editable, placeholder: PillImageSpan, userId: String) {
         emoteScope.launch {
-            val member = withContext(Dispatchers.IO) { room()?.membershipService()?.getRoomMember(userId) } ?: return@launch
+            val (item, bodyName) = withContext(Dispatchers.IO) {
+                room()?.membershipService()?.getRoomMember(userId)?.let { it.toMatrixItem() to (it.bodyName() ?: userId) }
+                        ?: session.getUser(userId)?.let { it.toMatrixItem() to (it.displayName ?: userId) }
+            } ?: return@launch
             val editText = editText ?: return@launch
             val start = editable.getSpanStart(placeholder)
             val end = editable.getSpanEnd(placeholder)
             if (start < 0 || end <= start) return@launch
             editable.removeSpan(placeholder)
             val resolved = PillImageSpan(
-                    glideRequests, avatarRenderer, editText.context, member.toMatrixItem(), bodyText = member.bodyName()
+                    glideRequests, avatarRenderer, editText.context, item, bodyText = bodyName
             )
             resolved.bind(editText)
             editable.setSpan(resolved, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)

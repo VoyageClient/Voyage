@@ -8,6 +8,11 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.text.Editable
+import android.text.Spannable
+import im.vector.app.features.html.PILL_PLACEHOLDER
+import im.vector.app.features.html.PillImageSpan
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,5 +61,19 @@ class ComposerPillInsertionTest {
 
         assertEquals(emptyList<String>(), collapsed)
         assertEquals("hi @bob:matrix.org ", editable.toString())
+    }
+
+    @Test
+    fun `programmatically clearing a pill does not restore its copy text`() {
+        val editText = ComposerEditText(context)
+        val pill = mockk<PillImageSpan> {
+            every { copyText } returns "@bob:matrix.org"
+        }
+        editText.setText(PILL_PLACEHOLDER)
+        editText.editableText.setSpan(pill, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        editText.setTextProgrammatically("")
+
+        assertEquals("", editText.text.toString())
     }
 }

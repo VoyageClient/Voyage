@@ -33,7 +33,6 @@ import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setSenderNameEmphasis
-import im.vector.app.core.extensions.setTextIfDifferent
 import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.platform.SimpleTextWatcher
@@ -315,7 +314,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     }
 
     override fun setTextIfDifferent(text: CharSequence?): Boolean {
-        return views.composerEditText.setTextIfDifferent(text)
+        return views.composerEditText.setTextProgrammatically(text)
     }
 
     private fun renderRelatedMessageGallery(event: TimelineEvent): Boolean {
@@ -442,7 +441,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             // content (already-spanned, no markdown), this is a no-op and the existing pills are kept.
             val content = reconstructMentionPills(mode.content ?: "")
             if (editText.text?.toString() != content.toString()) {
-                editText.setTextIfDifferent(content)
+                views.composerEditText.setTextProgrammatically(content)
             }
             selectionToRestore?.let { editText.setSelection(it.coerceIn(0, editText.length())) }
             editSelectionToRestore = null

@@ -28,6 +28,7 @@ import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.pillsToCopyText
 import im.vector.lib.core.utils.text.copyRawSelection
 import timber.log.Timber
+import im.vector.app.core.extensions.setTextIfDifferent as setTextIfDifferentBase
 
 class ComposerEditText @JvmOverloads constructor(
         context: Context,
@@ -52,7 +53,7 @@ class ComposerEditText @JvmOverloads constructor(
     // handling below doesn't act on a change it made itself.
     private var rewriting = false
     private var pasting = false
-    private var insertingPill = false
+    private var suppressMentionHandling = false
     private var pillToRestore: PillImageSpan? = null
     private var pillRestorePosition = -1
 
@@ -131,7 +132,7 @@ class ComposerEditText @JvmOverloads constructor(
         addTextChangedListener(
                 object : SimpleTextWatcher() {
                     override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-                        if (rewriting || count != 1 || after != 0) return
+                        if (rewriting || suppressMentionHandling || count != 1 || after != 0) return
                         // Backspace onto a pill — or onto the space that finished the mention off and
                         // made it one — puts the mention back as editable text rather than swallowing
                         // it, so it can be corrected (and pilled again).
@@ -149,7 +150,7 @@ class ComposerEditText @JvmOverloads constructor(
                         if (rewriting) return
                         rewriting = true
                         try {
-                            if (!restorePillText(s) && !insertingPill) pillifyCompletedMentions(s)
+                            if (!restorePillText(s) && !suppressMentionHandling) pillifyCompletedMentions(s)
                         } finally {
                             rewriting = false
                         }
@@ -164,12 +165,18 @@ class ComposerEditText @JvmOverloads constructor(
 
     // The autocomplete writes a name that may itself read as a mention (a user with no display name
     // is inserted as their id); pilling that under it would move the text it is about to span.
-    fun insertingPill(block: () -> Unit) {
-        insertingPill = true
+    fun insertingPill(block: () -> Unit) = withoutMentionHandling(block)
+
+    fun setTextProgrammatically(text: CharSequence?): Boolean =
+            withoutMentionHandling { setTextIfDifferentBase(text) }
+
+    private fun <T> withoutMentionHandling(block: () -> T): T {
+        val wasSuppressed = suppressMentionHandling
+        suppressMentionHandling = true
         try {
-            block()
+            return block()
         } finally {
-            insertingPill = false
+            suppressMentionHandling = wasSuppressed
         }
     }
 
