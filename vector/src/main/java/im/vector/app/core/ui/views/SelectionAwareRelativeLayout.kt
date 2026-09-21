@@ -11,6 +11,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.view.View
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.DrawableCompat
 
@@ -30,6 +31,7 @@ open class SelectionAwareRelativeLayout @JvmOverloads constructor(
 ) : RelativeLayout(context, attrs, defStyleAttr) {
 
     private var descendantPressed = false
+    private var mergingWindowFocus = false
 
     private val pressOverlay: Drawable? = context.obtainStyledAttributes(
             intArrayOf(android.R.attr.selectableItemBackground)
@@ -49,6 +51,26 @@ open class SelectionAwareRelativeLayout @JvmOverloads constructor(
         descendantPressed = pressed
         if (pressed) pressOverlay?.let { DrawableCompat.setHotspot(it, hotspotX, hotspotY) }
         refreshDrawableState()
+    }
+
+    /**
+     * A window focus change refreshes every descendant's drawable state in turn, and
+     * addStatesFromChildren turns each of those into a re-merge of the whole row. Merge once instead,
+     * when the dispatch is over; opening a dialog over the timeline otherwise costs hundreds of ms.
+     */
+    override fun dispatchWindowFocusChanged(hasFocus: Boolean) {
+        mergingWindowFocus = true
+        try {
+            super.dispatchWindowFocusChanged(hasFocus)
+        } finally {
+            mergingWindowFocus = false
+        }
+        refreshDrawableState()
+    }
+
+    override fun childDrawableStateChanged(child: View) {
+        if (mergingWindowFocus) return
+        super.childDrawableStateChanged(child)
     }
 
     override fun verifyDrawable(who: Drawable): Boolean {

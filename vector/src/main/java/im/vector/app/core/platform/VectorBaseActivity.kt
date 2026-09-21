@@ -629,8 +629,12 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        // Focus can move to or from a text editor without a new inset value.
-        if (insetsListenerInstalled) ViewCompat.requestApplyInsets(rootView)
+        if (!insetsListenerInstalled) return
+        // Focus can move to or from a text editor without a new inset value, but the IME inset is the
+        // only one taken conditionally: without one the pass recomputes the padding it already has, at
+        // the price of a whole traversal just as a dialog is opening.
+        val imeInset = ViewCompat.getRootWindowInsets(rootView)?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
+        if (imeInset) ViewCompat.requestApplyInsets(rootView)
     }
 
     override fun onPause() {

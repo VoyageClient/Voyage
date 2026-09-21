@@ -81,6 +81,7 @@ import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.ButtonStateView
+import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.platform.showOptimizedSnackbar
@@ -329,6 +330,7 @@ class TimelineFragment :
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
 
     private var timelineHasContent = false
+    private var timelineHeldForModal = false
     private var replyJumpSourceEventId: String? = null
     private var modelBuildListener: OnModelBuildFinishedListener? = null
 
@@ -1280,6 +1282,9 @@ class TimelineFragment :
 
     override fun onStart() {
         super.onStart()
+        // A sheet dismissed while the room was away takes its release listener with it.
+        timelineHeldForModal = false
+        if (!views.timelineRecyclerView.isComputingLayout) views.timelineRecyclerView.suppressLayout(false)
         timelineEventController.setPaused(false)
         timelineViewModel.timeline?.setPaused(false)
     }
@@ -2063,9 +2068,7 @@ class TimelineFragment :
         val roomId = timelineArgs.roomId
         this.view?.hideKeyboard()
 
-        MessageActionsBottomSheet
-                .newInstance(roomId, informationData, isThreadTimeLine())
-                .show(requireActivity().supportFragmentManager, "MESSAGE_CONTEXTUAL_ACTIONS")
+        showMessageActions(MessageActionsBottomSheet.newInstance(roomId, informationData, isThreadTimeLine()))
 
         return true
     }
@@ -2073,10 +2076,35 @@ class TimelineFragment :
     override fun onGalleryItemLongClicked(informationData: MessageInformationData, itemIndex: Int): Boolean {
         view?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         this.view?.hideKeyboard()
-        MessageActionsBottomSheet
-                .newInstance(timelineArgs.roomId, informationData, isThreadTimeLine(), galleryItemIndex = itemIndex)
-                .show(requireActivity().supportFragmentManager, "MESSAGE_CONTEXTUAL_ACTIONS")
+        showMessageActions(
+                MessageActionsBottomSheet.newInstance(timelineArgs.roomId, informationData, isThreadTimeLine(), galleryItemIndex = itemIndex)
+        )
         return true
+    }
+
+    /**
+     * A timeline still streaming rows in spends the frames the opening sheet needs, which then draws
+     * before the dim behind it lands and reads as the tint flickering off. Nothing under a modal sheet
+     * has to stay live, so hold the pipeline until it is dismissed.
+     */
+    private fun showMessageActions(sheet: MessageActionsBottomSheet) {
+        setTimelineHeldForModal(true)
+        sheet.resultListener = object : VectorBaseBottomSheetDialogFragment.ResultListener {
+            override fun onBottomSheetResult(resultCode: Int, data: Any?) {
+                setTimelineHeldForModal(false)
+            }
+        }
+        sheet.show(requireActivity().supportFragmentManager, "MESSAGE_CONTEXTUAL_ACTIONS")
+    }
+
+    private fun setTimelineHeldForModal(held: Boolean) {
+        if (timelineHeldForModal == held) return
+        timelineHeldForModal = held
+        timelineEventController.setPaused(held)
+        timelineViewModel.timeline?.setPaused(held)
+        // The sheet outlives this view when a rotation recreates the fragment underneath it.
+        val recycler = view?.let { views.timelineRecyclerView } ?: return
+        if (!recycler.isComputingLayout) recycler.suppressLayout(held)
     }
 
     override fun onThreadSummaryClicked(eventId: String, isRootThreadEvent: Boolean): Boolean {
