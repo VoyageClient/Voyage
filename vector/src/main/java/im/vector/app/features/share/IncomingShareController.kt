@@ -30,6 +30,17 @@ class IncomingShareController @Inject constructor(
 
     var callback: Callback? = null
 
+    private val selections = PendingCheckboxSelections()
+
+    fun onRoomToggled(roomId: String) {
+        selections.toggle(roomId)
+    }
+
+    fun submitState(data: IncomingShareViewState) {
+        selections.commit(data.selectedRoomIds)
+        setData(data)
+    }
+
     override fun buildModels(data: IncomingShareViewState) {
         val host = this
         if (data.sharedData == null || data.filteredRoomSummaries is Incomplete) {
@@ -45,16 +56,18 @@ class IncomingShareController @Inject constructor(
                 text(host.stringProvider.getString(CommonStrings.no_result_placeholder))
             }
         } else {
+            val selectedRoomIds = selections.applyTo(data.selectedRoomIds)
             roomSummaries.forEach { roomSummary ->
                 roomSummaryItemFactory
                         .createRoomItem(
                                 roomSummary,
-                                data.selectedRoomIds,
+                                selectedRoomIds,
                                 RoomListDisplayMode.FILTERED,
                                 singleLineLastEvent = false,
                                 callback?.let { it::onRoomClicked },
                                 callback?.let { it::onRoomLongClicked },
-                                showCheckbox = true
+                                showCheckbox = true,
+                                checkboxStateProvider = { host.selections.isTicked(roomSummary.roomId) }
                         )
                         .addTo(this)
             }

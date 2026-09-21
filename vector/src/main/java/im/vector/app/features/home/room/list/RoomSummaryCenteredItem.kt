@@ -82,17 +82,22 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
     @EpoxyAttribute
     var showCheckbox: Boolean = false
 
+    // Models build off the main thread, so showSelected can be stale by bind time; a live answer wins.
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var checkboxStateProvider: (() -> Boolean)? = null
+
     override fun bind(holder: Holder) {
         super.bind(holder)
 
         holder.rootView.onClick { view ->
-            flipCheckboxOptimistically(holder)
             itemClickListener?.invoke(view)
+            renderCurrentSelection(holder)
         }
         holder.rootView.setOnLongClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            flipCheckboxOptimistically(holder)
-            itemLongClickListener?.onLongClick(it) ?: false
+            val handled = itemLongClickListener?.onLongClick(it) ?: false
+            renderCurrentSelection(holder)
+            handled
         }
         holder.titleView.text = matrixItem.getBestName().prepareForDisplay()
         avatarRenderer.render(matrixItem, holder.avatarImageView)
@@ -101,7 +106,7 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
         holder.roomAvatarPublicDecorationImageView.isVisible = izPublic
         holder.roomAvatarPublicDecorationImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending
-        renderSelection(holder, showSelected)
+        renderSelection(holder, checkboxStateProvider?.invoke() ?: showSelected)
         holder.roomAvatarPresenceImageView.render(showPresence, userPresence)
     }
 
@@ -112,17 +117,16 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
         super.unbind(holder)
     }
 
-    // Rebuilding the whole list to reflect the new selection takes a beat, so the tick is flipped
-    // up front and the rebuild confirms it.
-    private fun flipCheckboxOptimistically(holder: Holder) {
-        if (showCheckbox) holder.selectionCheckBox.renderRoomSelectionCheckbox(!showSelected)
-    }
-
     private fun renderSelection(holder: Holder, isSelected: Boolean) {
         holder.selectionCheckBox.isVisible = showCheckbox
         if (showCheckbox) {
             holder.selectionCheckBox.renderRoomSelectionCheckbox(isSelected)
         }
+    }
+
+    private fun renderCurrentSelection(holder: Holder) {
+        if (!showCheckbox) return
+        checkboxStateProvider?.let { renderSelection(holder, it()) }
     }
 
     class Holder : VectorEpoxyHolder() {

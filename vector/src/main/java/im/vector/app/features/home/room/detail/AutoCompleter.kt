@@ -184,6 +184,8 @@ class AutoCompleter @AssistedInject constructor(
         }
 
     fun clear() {
+        // Dropped first: dismissing the popups below calls back, and the host's views may be gone.
+        onSuggestionsVisibilityChanged = {}
         (this.editText as? ComposerEditText)?.onMentionCompleted = null
         this.editText = null
         emoteScope.coroutineContext.cancelChildren()

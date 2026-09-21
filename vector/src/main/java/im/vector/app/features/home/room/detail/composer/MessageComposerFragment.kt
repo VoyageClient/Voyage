@@ -374,13 +374,14 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-
+        // Before super: dismissing the autocomplete popups calls back into the composer views.
         emojiKeyboardController?.destroy()
         emojiKeyboardController = null
         autoCompleters.values.forEach(AutoCompleter::clear)
         autoCompleters.clear()
         messageComposerViewModel.endAllVoiceActions()
+
+        super.onDestroyView()
     }
 
     override fun invalidate() = withState(

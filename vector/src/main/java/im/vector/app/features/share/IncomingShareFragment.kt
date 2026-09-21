@@ -216,14 +216,16 @@ class IncomingShareFragment :
     }
 
     override fun invalidate() = withState(viewModel) {
-        incomingShareController.setData(it)
+        incomingShareController.submitState(it)
     }
 
     override fun onRoomClicked(roomSummary: RoomSummary) {
+        incomingShareController.onRoomToggled(roomSummary.roomId)
         viewModel.handle(IncomingShareAction.SelectRoom(roomSummary))
     }
 
     override fun onRoomLongClicked(roomSummary: RoomSummary): Boolean {
+        incomingShareController.onRoomToggled(roomSummary.roomId)
         viewModel.handle(IncomingShareAction.SelectRoom(roomSummary))
         return true
     }
