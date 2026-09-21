@@ -139,7 +139,7 @@ class RoomMemberProfileController @Inject constructor(
             id("biography")
             content(host.formattedBio(bio))
             maxLines(3)
-            expanded(host.isBioExpanded)
+            expandedProvider { host.isBioExpanded }
             onExpandedChange { host.isBioExpanded = it }
             movementMethod(createLinkMovementMethod(null))
         }

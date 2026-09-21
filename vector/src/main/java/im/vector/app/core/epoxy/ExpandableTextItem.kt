@@ -22,6 +22,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.hasClickableSpanAt
 import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.html.bindEmoteImageSpans
+import im.vector.app.features.html.bindPillImageSpans
 import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
@@ -36,9 +37,10 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var movementMethod: MovementMethod? = null
 
-    // Persisted by the caller so the expanded state survives model rebuilds (app resume, room-state reloads).
-    @EpoxyAttribute
-    var expanded: Boolean = false
+    // Read at bind time, not captured when the model is built: a rebuild enqueued before the user
+    // expanded still carries the old value, and binding it collapses the view for a frame.
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var expandedProvider: (() -> Boolean)? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var onExpandedChange: ((Boolean) -> Unit)? = null
@@ -63,7 +65,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
             holder.content.showSoftInputOnFocus = false
         }
         holder.content.movementMethod = movementMethod
-        isExpanded = expanded
+        isExpanded = expandedProvider?.invoke() == true
         // Apply the final collapsed/expanded state before the text is laid out, so a reused holder never
         // flashes the full height before settling — that flash was the flicker on open.
         applyMaxLines(holder.content)
@@ -71,6 +73,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         // while retaining span objects so asynchronous emote updates still reach the view.
         holder.content.text = SpannableString(content)
         holder.content.bindEmoteImageSpans()
+        holder.content.bindPillImageSpans()
         holder.content.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP) {
                 val textView = v as TextView

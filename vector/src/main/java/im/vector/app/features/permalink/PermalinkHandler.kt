@@ -63,7 +63,7 @@ class PermalinkHandler @Inject constructor(
             deepLink.isIgnored() -> true
             !activeSessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedHosts, deepLink.toString()).orFalse() -> false
             else -> {
-                tryOrNull {
+                tryOrNull("Failed to open permalink $deepLink") {
                     withContext(Dispatchers.Default) {
                         val permalinkData = PermalinkParser.parse(deepLink.toString())
                         handlePermalink(permalinkData, deepLink, fragmentActivity, navigationInterceptor, buildTask)

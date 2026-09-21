@@ -306,11 +306,8 @@ class DefaultNavigator @Inject constructor(
             openRoomMemberProfile(userId = it.userId, roomId = null, context = fragmentActivity)
             return
         }
-        if (fragmentActivity !is MatrixToBottomSheet.InteractionListener) {
-            fatalError("Caller context should implement MatrixToBottomSheet.InteractionListener", vectorPreferences.failFast())
-            return
-        }
-        // TODO check if there is already one??
+        // Hosts that don't implement MatrixToBottomSheet.InteractionListener get the card all the same:
+        // it falls back to plain navigation (see MatrixToBottomSheet).
         MatrixToBottomSheet.withLink(link, origin)
                 .show(fragmentActivity.supportFragmentManager, "HA#MatrixToBottomSheet")
     }

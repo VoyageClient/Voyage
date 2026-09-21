@@ -74,7 +74,8 @@
       "end": 119,
       "kind": "pill",
       "id": "@bob:example.org",
-      "itemType": "UserItem"
+      "itemType": "UserItem",
+      "displayName": "bob"
     },
     {
       "start": 118,
@@ -169,7 +170,8 @@
         "end": 119,
         "kind": "pill",
         "id": "@bob:example.org",
-        "itemType": "UserItem"
+        "itemType": "UserItem",
+        "displayName": "bob"
       }
     ]
   },
@@ -256,7 +258,8 @@
           "end": 4,
           "kind": "pill",
           "id": "@bob:example.org",
-          "itemType": "UserItem"
+          "itemType": "UserItem",
+          "displayName": "bob"
         },
         {
           "start": 3,

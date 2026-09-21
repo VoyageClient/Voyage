@@ -118,7 +118,7 @@ class RoomProfileController @Inject constructor(
                         id("topic")
                         content(host.formattedTopic(it, roomSummary.topicFormatted, roomSummary.roomId, topicCallback))
                         maxLines(2)
-                        expanded(host.isTopicExpanded)
+                        expandedProvider { host.isTopicExpanded }
                         onExpandedChange { host.isTopicExpanded = it }
                         movementMethod(createLinkMovementMethod(topicCallback))
                     }

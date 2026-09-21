@@ -16,6 +16,7 @@ import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.navigation.Navigator
+import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.pin.PinLocker
 import im.vector.app.features.session.SessionListener
 import im.vector.app.features.settings.VectorPreferences
@@ -38,6 +39,8 @@ interface SingletonEntryPoint {
     fun unrecognizedCertificateDialog(): UnrecognizedCertificateDialog
 
     fun navigator(): Navigator
+
+    fun permalinkHandler(): PermalinkHandler
 
     fun clock(): Clock
 

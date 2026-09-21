@@ -34,7 +34,7 @@ import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
-import im.vector.app.core.utils.isValidUrl
+import im.vector.app.core.utils.isTappableLink
 import im.vector.app.core.utils.openUrlInExternalBrowser
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentSearchBinding
@@ -53,6 +53,7 @@ import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.media.hasPoster
+import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
@@ -331,7 +332,11 @@ class SearchFragment :
                 ViewEditHistoryBottomSheet.newInstance(fragmentArgs.roomId, action.messageInformationData)
                         .show(requireActivity().supportFragmentManager, "DISPLAY_EDITS")
             is EventSharedAction.JumpToRelation -> openRoom(fragmentArgs.roomId, action.targetEventId)
-            is EventSharedAction.OnUrlClicked -> openUrlInExternalBrowser(requireContext(), action.url)
+            is EventSharedAction.OnUrlClicked -> {
+                if (!openPermalinkInApp(requireContext(), action.url)) {
+                    openUrlInExternalBrowser(requireContext(), action.url)
+                }
+            }
             is EventSharedAction.OnUrlLongClicked -> copyUrl(action.url)
             EventSharedAction.UseKeyBackup -> startActivity(KeysBackupRestoreActivity.intent(requireContext()))
             EventSharedAction.ViewInRoom -> actionsTargetEventId?.let { openRoom(fragmentArgs.roomId, it) }
@@ -399,7 +404,7 @@ class SearchFragment :
     }
 
     private fun copyUrl(url: String) {
-        if (url.isValidUrl()) copyToClipboard(requireContext(), url, true, CommonStrings.link_copied_to_clipboard)
+        if (url.isTappableLink()) copyToClipboard(requireContext(), url, true, CommonStrings.link_copied_to_clipboard)
     }
 
     private fun copyAndNotify(content: String) {

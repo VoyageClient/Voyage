@@ -28,6 +28,7 @@ import im.vector.app.core.extensions.hasClickableSpanAt
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.features.html.bindEmoteImageSpans
+import im.vector.app.features.html.bindPillImageSpans
 
 /**
  * Discord-style inline profile note: renders the formatted note, tapping it switches to a plain
@@ -103,6 +104,7 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
         holder.rendered.text = renderedNote
         // Async emote images can't surface through a span's invalidate(); they need the TextView bound
         holder.rendered.bindEmoteImageSpans()
+        holder.rendered.bindPillImageSpans()
         val isEditing = editingProvider?.invoke() == true || holder.edit.hasFocus()
         if (!holder.edit.hasFocus()) {
             holder.edit.setText(draftProvider?.invoke() ?: noteSource)

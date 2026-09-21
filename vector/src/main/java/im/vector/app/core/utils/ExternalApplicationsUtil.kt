@@ -35,6 +35,8 @@ import im.vector.app.R
 import im.vector.app.core.extensions.useCompat
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.notifications.NotificationUtils
+import im.vector.app.features.permalink.isMatrixUri
+import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +68,9 @@ fun openUrlInExternalBrowser(context: Context, url: String?) {
  */
 fun openUrlInExternalBrowser(context: Context, uri: Uri?) {
     uri?.let {
+        // No browser opens a matrix: URI; handing it to the system only offers this app back through
+        // a chooser, so take it here whatever the caller thought it had.
+        if (it.toString().isMatrixUri() && openPermalinkInApp(context, it.toString())) return
         val browserIntent = Intent(Intent.ACTION_VIEW, it).apply {
             // Open activity on browser task and not on element task
             flags = Intent.FLAG_ACTIVITY_NEW_TASK

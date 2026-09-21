@@ -24,6 +24,7 @@ import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetMatrixToCardBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
@@ -42,6 +43,7 @@ class MatrixToBottomSheet :
     ) : Parcelable
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var navigator: Navigator
 
     var interactionListener: InteractionListener? = null
 
@@ -94,12 +96,16 @@ class MatrixToBottomSheet :
         viewModel.observeViewEvents {
             when (it) {
                 is MatrixToViewEvents.NavigateToRoom -> {
+                    // A host that wants to route the navigation itself (e.g. Home switching tabs) sets a
+                    // listener; the card also opens from screens that don't, so plain navigation is the default.
                     interactionListener?.mxToBottomSheetNavigateToRoom(it.roomId)
+                            ?: navigator.openRoom(requireActivity(), it.roomId)
                     dismiss()
                 }
                 MatrixToViewEvents.Dismiss -> dismiss()
                 is MatrixToViewEvents.NavigateToSpace -> {
                     interactionListener?.mxToBottomSheetSwitchToSpace(it.spaceId)
+                            ?: navigator.switchToSpace(requireActivity(), it.spaceId, Navigator.PostSwitchSpaceAction.None)
                     dismiss()
                 }
                 is MatrixToViewEvents.ShowModalError -> {

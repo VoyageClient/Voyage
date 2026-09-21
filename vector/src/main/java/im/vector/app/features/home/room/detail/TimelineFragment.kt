@@ -102,6 +102,7 @@ import im.vector.app.core.utils.colorizeMatchingText
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.core.utils.createUIHandler
+import im.vector.app.core.utils.isTappableLink
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.openLocation
@@ -1977,7 +1978,7 @@ class TimelineFragment :
     }
 
     override fun onUrlLongClicked(url: String): Boolean {
-        if (url != getString(CommonStrings.edited_suffix) && url.isValidUrl()) {
+        if (url != getString(CommonStrings.edited_suffix) && url.isTappableLink()) {
             // Copy the url to the clipboard
             copyToClipboard(requireContext(), url, true, CommonStrings.link_copied_to_clipboard)
         }

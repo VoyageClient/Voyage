@@ -38,10 +38,13 @@ import com.bumptech.glide.request.target.Target
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import io.noties.markwon.AbstractMarkwonPlugin
+import io.noties.markwon.LinkResolverDef
 import io.noties.markwon.Markwon
+import io.noties.markwon.MarkwonConfiguration
 import io.noties.markwon.MarkwonPlugin
 import io.noties.markwon.MarkwonSpansFactory
 import io.noties.markwon.PrecomputedFutureTextSetterCompat
@@ -293,7 +296,22 @@ class EventHtmlRenderer @Inject constructor(
         return text
     }
 
+    /**
+     * A link Markwon resolves itself — one no movement method claimed — must not hand a matrix
+     * permalink to the system, which would offer this app back through a chooser at best.
+     */
+    private val permalinkLinkPlugin = object : AbstractMarkwonPlugin() {
+        private val default = LinkResolverDef()
+
+        override fun configureConfiguration(builder: MarkwonConfiguration.Builder) {
+            builder.linkResolver { view, link ->
+                if (!openPermalinkInApp(view.context, link)) default.resolve(view, link)
+            }
+        }
+    }
+
     private fun buildMarkwon() = Markwon.builder(context)
+            .usePlugin(permalinkLinkPlugin)
             .usePlugin(HtmlRootTagPlugin())
             .usePlugin(HtmlPlugin.create(htmlConfigure))
             .usePlugin(sourceSpansPlugin)

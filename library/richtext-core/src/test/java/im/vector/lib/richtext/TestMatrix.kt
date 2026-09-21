@@ -75,14 +75,15 @@ class TestPillResolver(private val roomId: String? = "!roomid:example.org") : Pi
         }
     }
 
-    private fun user(userId: String) = PillTarget(PillKind.USER, userId, if (userId == "@alice:example.org") "Alice" else null, null)
+    private fun user(userId: String, label: String? = null) =
+            PillTarget(PillKind.USER, userId, if (userId == "@alice:example.org") "Alice" else label, null)
 
-    override fun resolveLink(url: String): PillTarget? = when (val parsed = parse(url)) {
-        is Parsed.User -> user(parsed.userId)
+    override fun resolveLink(url: String, label: String?): PillTarget? = when (val parsed = parse(url)) {
+        is Parsed.User -> user(parsed.userId, label)
         is Parsed.Room -> when {
             parsed.eventId != null -> null
-            parsed.isAlias -> PillTarget(PillKind.ROOM_ALIAS, parsed.roomIdOrAlias, null, null)
-            else -> PillTarget(PillKind.ROOM, parsed.roomIdOrAlias, null, null)
+            parsed.isAlias -> PillTarget(PillKind.ROOM_ALIAS, parsed.roomIdOrAlias, label, null)
+            else -> PillTarget(PillKind.ROOM, parsed.roomIdOrAlias, label, null)
         }
         Parsed.Fallback -> null
     }

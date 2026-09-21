@@ -23,7 +23,8 @@ import im.vector.app.EmojiSpanify
 import im.vector.app.core.linkify.VectorLinkify
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
-import im.vector.app.core.utils.isValidUrl
+import im.vector.app.core.utils.copyToClipboard
+import im.vector.app.core.utils.isTappableLink
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
 import im.vector.app.features.html.AttachmentPillSpan
@@ -31,7 +32,10 @@ import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.SpoilerSpan
+import im.vector.app.features.permalink.isMatrixUri
+import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -225,8 +229,10 @@ fun createLinkMovementMethod(urlClickCallback: TimelineEventController.UrlClickC
             // Record before the callback runs: this covers both the handled path and the fallback
             // where the span's own onClick (e.g. MatrixPermalinkSpan) delivers the url without the view.
             LinkClickSourceHolder.record(textView.findContainingTimelineEventId())
-            // Always return false if the url is not valid, so the EvenBetterLinkMovementMethod can fallback to default click listener.
-            return url.isValidUrl() && urlClickCallback?.onUrlClicked(url, actualText) == true
+            if (url.isTappableLink() && urlClickCallback?.onUrlClicked(url, actualText) == true) return true
+            // Nothing on this screen claimed it (a biography, a room topic in a preview, …): a matrix
+            // permalink still belongs in the app rather than in the system's URI handler.
+            return openPermalinkInApp(textView.context, url)
         }
     })
             .apply {
@@ -234,7 +240,14 @@ fun createLinkMovementMethod(urlClickCallback: TimelineEventController.UrlClickC
                 setOnLinkLongClickListener { tv, url ->
                     // Long clicks are handled by parent, return true to block android to do something with url
                     // Always return false if the url is not valid, so the EvenBetterLinkMovementMethod can fallback to default click listener.
-                    if (url.isValidUrl() && urlClickCallback?.onUrlLongClicked(url) == true) {
+                    var consumed = url.isTappableLink() && urlClickCallback?.onUrlLongClicked(url) == true
+                    if (!consumed && url.isMatrixUri()) {
+                        // Nothing on this screen claims it (a biography): copy it as the timeline does,
+                        // rather than letting the press reach the system's "open with".
+                        copyToClipboard(tv.context, url, true, CommonStrings.link_copied_to_clipboard)
+                        consumed = true
+                    }
+                    if (consumed) {
                         tv.dispatchTouchEvent(MotionEvent.obtain(0, 0, MotionEvent.ACTION_CANCEL, 0f, 0f, 0))
                         this@apply.clearUrlHighlight(tv)
                         true

@@ -66,12 +66,17 @@ class PillImageSpan(
         private val glideRequests: GlideRequests,
         private val avatarRenderer: AvatarRenderer,
         private val context: Context,
-        override val matrixItem: MatrixItem,
+        matrixItem: MatrixItem,
         // What [expandPillSpans] writes into the outgoing body, and the link text of the generated
         // permalink: the composer passes the un-overridden name, since a local display-name override
         // means nothing to the rest of the room.
         override val bodyText: String? = null,
+        // Only set where the pill has no room to draw the name and avatar from (see [PillItemResolver]).
+        private val itemResolver: PillItemResolver? = null,
 ) : ReplacementSpan(), MatrixItemSpan, ContentHashedSpan {
+
+    override var matrixItem: MatrixItem = matrixItem
+        private set
 
     override fun contentHash() = matrixItem.hashCode()
 
@@ -84,7 +89,7 @@ class PillImageSpan(
     private var emojiLabelLayoutWidth = -1
 
     // Display-only; the outgoing body built by [expandPillSpans] uses [bodyText].
-    private val displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
+    private var displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
 
     // What a copy of the pill puts on the clipboard, and what backspacing into it restores: an id the
     // composer pills again. "@room" and a room known only by its id have none, so they use the name.
@@ -103,11 +108,13 @@ class PillImageSpan(
     // blink the pill back through a placeholder for no gain.
     private var hasCachedAvatar = false
 
+    private var itemResolutionRequested = false
+
     // The unwrapped drawable the chip icon is built from, so the animation can be driven through the
     // paths that know how to rewind it. Declared above [pillDrawable], whose initialiser sets it.
     private var rawIcon: Drawable? = null
 
-    private val pillDrawable = createChipDrawable()
+    private var pillDrawable = createChipDrawable()
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
     private val spoilerTextPaint = TextPaint()
@@ -120,8 +127,34 @@ class PillImageSpan(
         pillDrawable.callback = chipCallback
         // Picks the animation back up when a recycled row rebinds a pill that was parked below.
         if (avatarRenderer.animatesAvatars()) rawIcon?.restartAnimation()
+        resolveItemIfNeeded()
         if (useGenericIcon || hasCachedAvatar) return
         avatarRenderer.render(glideRequests, matrixItem, target, forceCircle = true)
+    }
+
+    private fun resolveItemIfNeeded() {
+        val resolver = itemResolver ?: return
+        if (itemResolutionRequested || !matrixItem.avatarUrl.isNullOrEmpty()) return
+        itemResolutionRequested = true
+        resolver.resolve(matrixItem) { applyResolvedItem(it) }
+    }
+
+    // Redraw the pill now the server has told us what it points at.
+    private fun applyResolvedItem(item: MatrixItem) {
+        matrixItem = item
+        displayName = item.getBestName().neutralizeDirectionOverrides()
+        emojiLabel = null
+        emojiLabelPaint = null
+        emojiLabelLayout = null
+        emojiLabelLayoutWidth = -1
+        useGenericIcon = false
+        hasCachedAvatar = false
+        rawIcon = null
+        pillDrawable = createChipDrawable()
+        pillDrawable.callback = chipCallback
+        val textView = tv?.get() ?: return
+        if (!useGenericIcon && !hasCachedAvatar) avatarRenderer.render(glideRequests, item, target, forceCircle = true)
+        textView.repaintSpan(this)
     }
 
     // ReplacementSpan *****************************************************************************
@@ -306,30 +339,31 @@ class PillImageSpan(
 
     private fun createChipDrawable(): ChipDrawable {
         val textPadding = context.resources.getDimension(im.vector.lib.ui.styles.R.dimen.pill_text_padding)
+        val item = matrixItem
         val icon = when {
-            matrixItem is MatrixItem.RoomAliasItem && matrixItem.avatarUrl.isNullOrEmpty() &&
-                    matrixItem.displayName == context.getString(CommonStrings.pill_message_in_room, matrixItem.id) -> {
+            item is MatrixItem.RoomAliasItem && item.avatarUrl.isNullOrEmpty() &&
+                    item.displayName == context.getString(CommonStrings.pill_message_in_room, item.id) -> {
                 useGenericIcon = true
                 AppCompatResources.getDrawable(context, R.drawable.ic_permalink_round)
             }
-            matrixItem is MatrixItem.RoomItem && matrixItem.avatarUrl.isNullOrEmpty() && (
-                    matrixItem.displayName == context.getString(CommonStrings.pill_message_in_unknown_room) ||
-                            matrixItem.displayName == context.getString(CommonStrings.pill_message_unknown_room_or_space) ||
-                            matrixItem.displayName == context.getString(CommonStrings.pill_message_from_unknown_user)
+            item is MatrixItem.RoomItem && item.avatarUrl.isNullOrEmpty() && (
+                    item.displayName == context.getString(CommonStrings.pill_message_in_unknown_room) ||
+                            item.displayName == context.getString(CommonStrings.pill_message_unknown_room_or_space) ||
+                            item.displayName == context.getString(CommonStrings.pill_message_from_unknown_user)
                     ) -> {
                 useGenericIcon = true
                 AppCompatResources.getDrawable(context, R.drawable.ic_permalink_round)
             }
-            matrixItem is MatrixItem.UserItem && matrixItem.avatarUrl.isNullOrEmpty() && matrixItem.displayName?.isMatrixId().orTrue() -> {
+            item is MatrixItem.UserItem && item.avatarUrl.isNullOrEmpty() && item.displayName?.isMatrixId().orTrue() -> {
                 useGenericIcon = true
                 AppCompatResources.getDrawable(context, R.drawable.ic_user_round)
             }
             else -> {
                 try {
-                    prepareIcon(avatarRenderer.getCachedDrawable(glideRequests, matrixItem, forceCircle = true))
+                    prepareIcon(avatarRenderer.getCachedDrawable(glideRequests, item, forceCircle = true))
                             .also { hasCachedAvatar = true }
                 } catch (exception: Exception) {
-                    avatarRenderer.getPlaceholderDrawable(matrixItem, forceCircle = true)
+                    avatarRenderer.getPlaceholderDrawable(item, forceCircle = true)
                 }
             }
         }
@@ -345,7 +379,7 @@ class PillImageSpan(
             setChipMinHeightResource(im.vector.lib.ui.styles.R.dimen.pill_min_height)
             setChipIconSizeResource(im.vector.lib.ui.styles.R.dimen.pill_avatar_size)
             chipIcon = icon
-            if (matrixItem is MatrixItem.EveryoneInRoomItem) {
+            if (item is MatrixItem.EveryoneInRoomItem) {
                 chipBackgroundColor = ColorStateList.valueOf(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorError))
                 // setTextColor API does not exist right now for ChipDrawable, use textAppearance
                 setTextAppearanceResource(im.vector.lib.ui.styles.R.style.TextAppearance_Vector_Body_OnError)

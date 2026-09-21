@@ -30,7 +30,8 @@ class PillsPostProcessor @AssistedInject constructor(
         @Assisted private val roomId: String?,
         private val context: Context,
         private val avatarRenderer: AvatarRenderer,
-        private val sessionHolder: ActiveSessionHolder
+        private val sessionHolder: ActiveSessionHolder,
+        private val itemResolver: PillItemResolver,
 ) :
         EventHtmlRenderer.PostProcessor {
 
@@ -89,7 +90,7 @@ class PillsPostProcessor @AssistedInject constructor(
             val endSpan = renderedText.getSpanEnd(linkSpan)
             // A mention/permalink inside inline code or a code block should stay verbatim, not become a pill.
             if (codeSpans.any { renderedText.getSpanStart(it) < endSpan && startSpan < renderedText.getSpanEnd(it) }) return@forEach
-            val pillSpan = linkSpan.createPillSpan() ?: return@forEach
+            val pillSpan = linkSpan.createPillSpan(renderedText.subSequence(startSpan, endSpan).toString()) ?: return@forEach
             // GlideImagesPlugin causes duplicated pills if we have a nested spans in the pill span,
             // such as images or italic text.
             // Accordingly, it's better to remove all spans that are contained in this span before rendering.
@@ -108,16 +109,27 @@ class PillsPostProcessor @AssistedInject constructor(
         }
     }
 
+    // Outside a room (a biography, a profile note) nothing local backs the mention, so let the pill
+    // look the user or room up. In a room the member event and the room summary are the authority.
     private fun createPillImageSpan(matrixItem: MatrixItem) =
-            PillImageSpan(GlideApp.with(context), avatarRenderer, context, matrixItem)
+            PillImageSpan(
+                    GlideApp.with(context),
+                    avatarRenderer,
+                    context,
+                    matrixItem,
+                    itemResolver = itemResolver.takeIf { roomId == null },
+            )
 
-    private fun LinkSpan.createPillSpan(): PillImageSpan? {
+    private fun LinkSpan.createPillSpan(linkText: String): PillImageSpan? {
         val supportedHosts = context.resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
         val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedHosts, url).orFalse()
         if (isPermalinkSupported) {
+            // What the mention was written as. A pill falls back to it rather than to a raw id when we
+            // don't know the user or room ourselves; a link whose text is just its target says nothing.
+            val label = linkText.trim().takeUnless { it.isBlank() || it == url }
             val matrixItem = when (val permalinkData = PermalinkParser.parse(url)) {
-                is PermalinkData.UserLink -> permalinkData.toMatrixItem()
-                is PermalinkData.RoomLink -> permalinkData.toMatrixItem()
+                is PermalinkData.UserLink -> permalinkData.toMatrixItem(label)
+                is PermalinkData.RoomLink -> permalinkData.toMatrixItem(label)
                 else -> null
             } ?: return null
             return createPillImageSpan(matrixItem)
@@ -126,26 +138,30 @@ class PillsPostProcessor @AssistedInject constructor(
         }
     }
 
-    private fun PermalinkData.UserLink.toMatrixItem(): MatrixItem? {
+    private fun PermalinkData.UserLink.toMatrixItem(label: String?): MatrixItem? {
         val session = sessionHolder.getSafeActiveSession() ?: return null
         val member = roomId?.let { session.roomService().getRoomMember(userId, it) }
         val known = synchronized(knownSenders) { knownSenders[userId] }
         if (member != null || known != null) {
             return MatrixItem.UserItem(
                     userId,
-                    member?.displayName?.takeUnless { it.isBlank() } ?: known?.displayName,
+                    member?.displayName?.takeUnless { it.isBlank() } ?: known?.displayName?.takeUnless { it.isBlank() } ?: label,
                     member?.avatarUrl?.takeUnless { it.isBlank() } ?: known?.avatarUrl,
             )
         }
-        return session.getUser(userId)?.toMatrixItem()
+        // A mention we know nothing about still pills, under the name it was written as — but a link
+        // whose text is just its target isn't a mention, and stays a link.
+        val user = session.getUser(userId) ?: return label?.let { MatrixItem.UserItem(userId, it) }
+        return MatrixItem.UserItem(userId, user.displayName?.takeUnless { it.isBlank() } ?: label, user.avatarUrl)
     }
 
-    private fun PermalinkData.RoomLink.toMatrixItem(): MatrixItem? =
+    private fun PermalinkData.RoomLink.toMatrixItem(label: String?): MatrixItem? =
             if (eventId == null) {
                 val room: RoomSummary? = sessionHolder.getSafeActiveSession()?.getRoomSummary(roomIdOrAlias)
+                val name = room?.displayName?.takeUnless { it.isBlank() } ?: label
                 when {
-                    isRoomAlias -> MatrixItem.RoomAliasItem(roomIdOrAlias, room?.displayName, room?.avatarUrl)
-                    else -> MatrixItem.RoomItem(roomIdOrAlias, room?.displayName, room?.avatarUrl)
+                    isRoomAlias -> MatrixItem.RoomAliasItem(roomIdOrAlias, name, room?.avatarUrl)
+                    else -> MatrixItem.RoomItem(roomIdOrAlias, name, room?.avatarUrl)
                 }
             } else {
                 // Exclude event link (used in reply events, we do not want to pill the "in reply to")

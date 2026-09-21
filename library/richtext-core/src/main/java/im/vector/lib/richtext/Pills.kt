@@ -13,8 +13,9 @@ enum class PillKind { USER, ROOM, ROOM_ALIAS, SPACE, EVERYONE }
 
 /** Decides what becomes a pill; the client supplies permalink parsing, profile lookups and strings. */
 interface PillResolver {
-    /** A `<a href>` mention: user / room / alias permalinks only (event links are left as links). */
-    fun resolveLink(url: String): PillTarget?
+    /** A `<a href>` mention: user / room / alias permalinks only (event links are left as links).
+     *  [label] is what the mention was written as, for a target we know nothing about. */
+    fun resolveLink(url: String, label: String?): PillTarget?
 
     /** A permalink found in the text body, event links included (their display text is client-provided). */
     fun resolvePermalink(url: String): PillTarget?
@@ -33,7 +34,9 @@ class PillsPostProcessor(private val resolver: PillResolver) : RichTextRenderer.
             val endSpan = linkSpan.end
             // A mention/permalink inside inline code or a code block stays verbatim.
             if (codeSpans.any { it.start < endSpan && startSpan < it.end }) continue
-            val target = resolver.resolveLink((linkSpan.style as RichStyle.Link).url) ?: continue
+            val url = (linkSpan.style as RichStyle.Link).url
+            val label = text.toString().substring(startSpan, endSpan).trim().takeUnless { it.isBlank() || it == url }
+            val target = resolver.resolveLink(url, label) ?: continue
             // Spans nested inside the link would draw on top of the pill; drop everything the link contains.
             text.getSpans(startSpan, endSpan).forEach {
                 if (it.style !is RichStyle.Link && it.start >= startSpan && it.end <= endSpan) text.removeSpan(it)
