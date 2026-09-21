@@ -219,7 +219,7 @@ class AutoCompleter @AssistedInject constructor(
                 .with(object : AutocompleteCallback<AutocompleteCommand> {
                     override fun onPopupItemClicked(editable: Editable, item: AutocompleteCommand): Boolean {
                         editable.clear()
-                        editable.append(item.insertionCommand)
+                        editable.append(item.insertionCommand).append(" ")
                         return false
                     }
 
