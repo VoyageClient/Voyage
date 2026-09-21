@@ -166,11 +166,23 @@ class MentionsFinderTest {
     }
 
     @Test
-    fun `the user mention rule being off hides mentions`() {
+    fun `the user mention rule being off does not hide mentions`() {
         add(ROOM_ID, "\$a", ts = HOUR, mentionsMe = true)
         disableRule(RuleIds.RULE_ID_IS_USER_MENTION)
 
-        find().shouldBeEmpty()
+        find().map { it.eventId } shouldContainSame listOf("\$a")
+    }
+
+    @Test
+    fun `the room mention rule being off does not hide room mentions`() {
+        allowRoomMention(ROOM_ID)
+        add(ROOM_ID, "\$a", ts = HOUR, roomMention = true)
+        disableRule(RuleIds.RULE_ID_IS_ROOM_MENTION)
+
+        val mentions = find()
+
+        mentions.map { it.eventId } shouldContainSame listOf("\$a")
+        mentions.first().kind shouldBeEqualTo MentionKind.ROOM
     }
 
     @Test
@@ -349,6 +361,19 @@ class MentionsFinderTest {
         stores.roomSummary.upsert(RoomSummaryEntity(roomId = roomId).apply { this.membership = membership })
     }
 
+    private fun allowRoomMention(roomId: String) {
+        val eventId = "\$power"
+        stores.event.insert(EventEntity(
+                eventId = eventId,
+                roomId = roomId,
+                type = EventType.STATE_ROOM_POWER_LEVELS,
+                stateKey = "",
+                sender = ME,
+                content = """{"users":{"$THEM":100}}""",
+        ))
+        stores.currentStateEvent.upsert(roomId, EventType.STATE_ROOM_POWER_LEVELS, "", eventId, eventId)
+    }
+
     private fun disableRule(ruleId: String) {
         saveRules(RuleKind.OVERRIDE, PushRuleEntity(ruleId = ruleId, enabled = false, default = true))
     }
@@ -372,11 +397,13 @@ class MentionsFinderTest {
             mentionsMe: Boolean = false,
             mentioned: String? = null,
             emptyMentions: Boolean = false,
+            roomMention: Boolean = false,
             relationType: String? = null,
     ) {
         val relatesTo = relationType?.let { ""","m.relates_to":{"rel_type":"$it","event_id":"${'$'}target"}""" }.orEmpty()
         val target = mentioned ?: ME.takeIf { mentionsMe }
         val mentions = target?.let { ""","m.mentions":{"user_ids":["$it"]}""" }
+                ?: ""","m.mentions":{"room":true}""".takeIf { roomMention }
                 ?: ""","m.mentions":{}""".takeIf { emptyMentions }.orEmpty()
         val entity = EventEntity(
                 eventId = eventId,

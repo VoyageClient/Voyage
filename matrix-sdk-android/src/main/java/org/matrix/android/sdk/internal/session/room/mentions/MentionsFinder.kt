@@ -18,7 +18,6 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.pushrules.EventMatchCondition
 import org.matrix.android.sdk.api.session.pushrules.EventPropertyContainsCondition
 import org.matrix.android.sdk.api.session.pushrules.EventPropertyIsCondition
-import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
 import org.matrix.android.sdk.api.session.room.mentions.MentionEvent
@@ -71,9 +70,8 @@ private val MENTIONABLE_TYPES = listOf(
 ) + EventType.POLL_START.values
 
 /**
- * Everything across the account's joined rooms that mentions us, newest first, decided by the same
- * push rules the notifications use: the two `m.mentions` rules and the user's keyword rules, each only
- * while enabled.
+ * Everything across the account's joined rooms that mentions us, newest first. User and room mentions
+ * come directly from `m.mentions`; keyword mentions come from the user's enabled keyword push rules.
  *
  * Three sources, unioned and deduplicated by event id: the synced timeline, the local search index
  * (which the crawler fills with history sync never received), and the server's own `/notifications`.
@@ -102,30 +100,23 @@ internal class MentionsFinder @Inject constructor(
         val hits = LinkedHashMap<String, MentionEvent>()
 
         val userMentions = EventPropertyContainsCondition(MENTIONS_USER_IDS_PATH, userId)
-                .takeIf { isRuleEnabled(RuleIds.RULE_ID_IS_USER_MENTION) }
         val roomMentions = EventPropertyIsCondition(MENTIONS_ROOM_PATH, true)
-                .takeIf { params.includeRoomMentions && isRuleEnabled(RuleIds.RULE_ID_IS_ROOM_MENTION) }
+                .takeIf { params.includeRoomMentions }
 
         // The index keeps its own table of what mentions us, so one read serves both kinds.
-        val indexed = if (!continuation && (userMentions != null || roomMentions != null)) {
+        val indexed = if (!continuation) {
             indexCandidates(excludedSenders, joinedRooms) { indexStore.mentionHits(LOCAL_LIMIT) }
         } else {
             emptyList()
         }
-        val page = if (userMentions != null || roomMentions != null) {
-            serverPage(params, excludedSenders, joinedRooms)
-        } else {
-            ServerPage(emptyList(), null)
-        }
+        val page = serverPage(params, excludedSenders, joinedRooms)
         val notified = page.events
 
-        if (userMentions != null) {
-            // Narrowed by our user id rather than by `m.mentions`: an empty `"m.mentions":{}` block
-            // rides along on most messages, so that pattern's newest rows are nearly all not mentions.
-            (localCandidates(continuation) { sessionCandidates(userId.escapeForSqlLike(), excludedSenders, LOCAL_LIMIT, joinedRooms) } + indexed + notified)
-                    .filter { userMentions.isSatisfied(it) }
-                    .forEach { hits.addHit(it, MentionKind.USER) }
-        }
+        // Narrowed by our user id rather than by `m.mentions`: an empty `"m.mentions":{}` block
+        // rides along on most messages, so that pattern's newest rows are nearly all not mentions.
+        (localCandidates(continuation) { sessionCandidates(userId.escapeForSqlLike(), excludedSenders, LOCAL_LIMIT, joinedRooms) } + indexed + notified)
+                .filter { userMentions.isSatisfied(it) }
+                .forEach { hits.addHit(it, MentionKind.USER) }
 
         if (roomMentions != null) {
             (localCandidates(continuation) { sessionCandidates(ROOM_MENTION_LIKE, excludedSenders, LOCAL_LIMIT, joinedRooms) } + indexed + notified)
@@ -249,9 +240,6 @@ internal class MentionsFinder @Inject constructor(
                     // A keyword is any content rule the user added: the spec's own start with a dot.
                     .filter { it.enabled && !it.pattern.isNullOrBlank() && !it.ruleId.startsWith(".") }
                     .mapNotNull { it.pattern }
-
-    private fun isRuleEnabled(ruleId: String): Boolean =
-            stores.pushRules.findRule(RuleScope.GLOBAL, ruleId)?.second?.enabled ?: true
 
     private fun Event.canNotifyRoom(): Boolean {
         val roomId = roomId ?: return false
