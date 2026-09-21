@@ -32,6 +32,7 @@ import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
+import im.vector.app.core.ui.model.Size
 import im.vector.app.core.ui.views.RoundedCornerImageView
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
@@ -175,10 +176,16 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         // Same condition bindPlayButton uses: where that badge lands, the failure glyph must not.
         val showsPlayButton = playable && !(isImageMessage && attributes.autoplayAnimatedImages)
         val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.stableId)
+        // An image declaring no dimensions is sized only once decoded, long after the caption was
+        // bound to the width of the square it was held at.
+        val applyCaptionWidth = { size: Size -> holder.captionView.maxWidth = size.width.takeIf { it > 0 } ?: Int.MAX_VALUE }
         if (hidden) {
             imageContentRenderer.renderHidden(mediaData, mode, holder.imageView, hiddenMediaSolidColor)
         } else {
-            imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation, showFailureGlyph = !showsPlayButton)
+            imageContentRenderer.render(
+                    mediaData, mode, holder.imageView, imageCornerTransformation,
+                    showFailureGlyph = !showsPlayButton, onSized = applyCaptionWidth
+            )
         }
         holder.mediaHiddenScrim.isVisible = hidden
         holder.mediaHiddenScrim.alpha = 1f
@@ -188,7 +195,10 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 mediaRevealManager.reveal(mediaData.stableId)
                 holder.mediaShowButton.isVisible = false
                 // Render the real content underneath, then fade the dark scrim away to it.
-                imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation, showFailureGlyph = !showsPlayButton)
+                imageContentRenderer.render(
+                        mediaData, mode, holder.imageView, imageCornerTransformation,
+                        showFailureGlyph = !showsPlayButton, onSized = applyCaptionWidth
+                )
                 ViewCompat.animate(holder.mediaHiddenScrim)
                         .alpha(0f)
                         .setDuration(SCRIM_FADE_OUT_MS)

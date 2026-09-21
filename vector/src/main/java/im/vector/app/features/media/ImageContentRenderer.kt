@@ -284,8 +284,7 @@ class ImageContentRenderer @Inject constructor(
     private fun viewId(imageView: ImageView) = Integer.toHexString(System.identityHashCode(imageView))
 
     /** Release the holding square an unknown-dimension load was pinned to, so the view takes the picture's shape. */
-    private fun ImageView.sizeToPicture(data: Data, resource: Drawable?) {
-        // Give tiny intrinsic images room to scale within the caller's bounds.
+    private fun ImageView.sizeToPicture(data: Data, mode: Mode, resource: Drawable?): Size? {
         val intrinsic = resource?.let { Size(it.intrinsicWidth, it.intrinsicHeight) }
                 ?.takeIf { it.width > 0 && it.height > 0 }
         if (intrinsic == null) {
@@ -294,10 +293,12 @@ class ImageContentRenderer @Inject constructor(
                 width = ViewGroup.LayoutParams.WRAP_CONTENT
                 height = ViewGroup.LayoutParams.WRAP_CONTENT
             }
-            return
+            return null
         }
-        // adjustViewBounds ignores view minimums, so calculate explicit dimensions for the minimum-size floor.
-        val sized = intrinsic.atLeastMinimum(data.maxWidth, data.maxHeight)
+        // Box the measured aspect ratio exactly as a declared one, or an event carrying no w/h is
+        // drawn at its pixel size inside a far larger box. Measured pixels are not the dp a sticker declares.
+        val sized = boxedSize(intrinsic.width, intrinsic.height, sizingMode(data, mode), data.maxWidth, data.maxHeight, declaredInDp = false)
+                ?: return null
         adjustViewBounds = false
         updateLayoutParams {
             width = sized.width
@@ -307,6 +308,7 @@ class ImageContentRenderer @Inject constructor(
                         "-> ${sized.width}x${sized.height} max=${data.maxWidth}x${data.maxHeight} " +
                         "resource=${resource.javaClass.simpleName}@${System.identityHashCode(resource)} " +
                         "bounds=${resource.bounds} callback=${resource.callback?.javaClass?.simpleName} view=${System.identityHashCode(this)}" }
+        return sized
     }
 
     private val Data.isLocalContent get() = allowNonMxcUrls && url.isLocalMediaUri()
@@ -346,6 +348,9 @@ class ImageContentRenderer @Inject constructor(
             fromRetryTap: Boolean = false,
             // Anything drawing a play badge over the thumbnail has no room for a second symbol.
             showFailureGlyph: Boolean = true,
+            // The box the picture ends up in. Called again when an unknown-dimension load lands and
+            // the view grows out of its holding square, for callers laying out alongside the media.
+            onSized: ((Size) -> Unit)? = null,
     ) {
         val size = processSize(data, mode)
         // Local-echo → remote swap of a fully-rendered message: the media is byte-identical to what
@@ -376,9 +381,10 @@ class ImageContentRenderer @Inject constructor(
                 width = size.width
                 height = size.height
             }
+            onSized?.invoke(size)
         } else {
-            // Unknown dimensions (e.g. a sticker whose info has no w/h): wrap the view to the loaded
-            // image, bounded by the max size, so it isn't letterboxed in a max-size box (gaps around it).
+            // Unknown dimensions (e.g. a sticker whose info has no w/h): the picture's own aspect
+            // ratio is only known once it is decoded, so the view is sized in onResourceReady.
             // Reset explicitly: a recycled view may carry FIT_XY over from a local echo.
             imageView.scaleType = ImageView.ScaleType.FIT_CENTER
             imageView.adjustViewBounds = true
@@ -386,12 +392,13 @@ class ImageContentRenderer @Inject constructor(
             imageView.maxHeight = data.maxHeight
             // Hold a square until the real bounds are known. Placeholders have no intrinsic size, so
             // wrapping to one measures to nothing and the row collapses to zero height — which is
-            // where it stays if the load then fails. onResourceReady restores the wrap.
+            // where it stays if the load then fails.
             val square = data.loadingSquare()
             imageView.updateLayoutParams {
                 width = square.width
                 height = square.height
             }
+            onSized?.invoke(square)
         }
         // a11y
         imageView.contentDescription = data.filename
@@ -408,7 +415,7 @@ class ImageContentRenderer @Inject constructor(
         // fill, which reads as the failure state vanishing every time the row rebinds.
         val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
         imageView.setTag(R.id.image_renderer_retry) {
-            render(data, mode, imageView, cornerTransformation, crossFade, fromRetryTap = true, showFailureGlyph = showFailureGlyph)
+            render(data, mode, imageView, cornerTransformation, crossFade, fromRetryTap = true, showFailureGlyph = showFailureGlyph, onSized = onSized)
         }
         // Stamped rather than flagged: renderFailed holds the loading state visible for a moment from
         // this instant. Assigned unconditionally so a request whose callbacks never fire cannot leave
@@ -453,8 +460,10 @@ class ImageContentRenderer @Inject constructor(
                         imageView.setTag(R.id.image_renderer_retrying, null)
                         failedMediaTracker.onLoadSucceeded(data.url)
                         thisRender.completed = true
-                        // Real bounds at last — drop the holding square so the view wraps the image.
-                        if (!data.hasKnownDimensions()) imageView.sizeToPicture(data, resource)
+                        // Real bounds at last — drop the holding square for the picture's own shape.
+                        if (!data.hasKnownDimensions()) {
+                            imageView.sizeToPicture(data, mode, resource)?.let { onSized?.invoke(it) }
+                        }
                         return false
                     }
                 })
@@ -1013,48 +1022,54 @@ class ImageContentRenderer @Inject constructor(
     private fun Size.atLeastMinimum(maxWidth: Int, maxHeight: Int): Size =
             atLeastMinimumMediaSize(dimensionConverter.dpToPx(MIN_MEDIA_SIDE_DP), maxWidth, maxHeight)
 
-    private fun processSize(data: Data, requestedMode: Mode): Size {
-        // SVGs use sticker fetching for original bytes, but retain normal image sizing.
-        val mode = if (requestedMode == Mode.STICKER && data.mimeType in ORIGINAL_ONLY_MIME_TYPES) Mode.THUMBNAIL else requestedMode
-        val maxImageWidth = data.maxWidth
-        val maxImageHeight = data.maxHeight
-        val width = data.width ?: maxImageWidth
-        val height = data.height ?: maxImageHeight
-        var finalWidth = -1
-        var finalHeight = -1
-
-        // if the image size is known
-        // compute the expected height
-        if (width > 0 && height > 0) {
-            when (mode) {
-                Mode.FULL_SIZE -> {
-                    finalHeight = height
-                    finalWidth = width
-                }
-                Mode.ANIMATED_THUMBNAIL,
-                Mode.THUMBNAIL -> {
-                    finalHeight = min(maxImageWidth * height / width, maxImageHeight)
+    /**
+     * Fit a picture's aspect ratio to the caller's box, per mode. A sticker's declared dimensions are
+     * read as dp; measured pixels ([declaredInDp] false) are not.
+     */
+    @VisibleForTesting(otherwise = PRIVATE)
+    fun boxedSize(width: Int, height: Int, requestedMode: Mode, maxWidth: Int, maxHeight: Int, declaredInDp: Boolean): Size? {
+        if (width <= 0 || height <= 0) return null
+        var finalWidth: Int
+        var finalHeight: Int
+        when (requestedMode) {
+            Mode.FULL_SIZE -> {
+                finalHeight = height
+                finalWidth = width
+            }
+            Mode.ANIMATED_THUMBNAIL,
+            Mode.THUMBNAIL -> {
+                finalHeight = min(maxWidth * height / width, maxHeight)
+                finalWidth = finalHeight * width / height
+            }
+            Mode.STICKER -> {
+                // limit on width
+                finalWidth = min(if (declaredInDp) dimensionConverter.dpToPx(width) else width, maxWidth * 3 / 4)
+                finalHeight = finalWidth * height / width
+                // Also cap the height: a tall alpha-capable image (routed here by previewMode) would
+                // otherwise render at full height in the reply header / composer / long-press previews.
+                if (finalHeight > maxHeight) {
+                    finalHeight = maxHeight
                     finalWidth = finalHeight * width / height
-                }
-                Mode.STICKER -> {
-                    // limit on width
-                    finalWidth = min(dimensionConverter.dpToPx(width), maxImageWidth * 3 / 4)
-                    finalHeight = finalWidth * height / width
-                    // Also cap the height: a tall alpha-capable image (routed here by previewMode) would
-                    // otherwise render at full height in the reply header / composer / long-press previews.
-                    if (finalHeight > maxImageHeight) {
-                        finalHeight = maxImageHeight
-                        finalWidth = finalHeight * width / height
-                    }
                 }
             }
         }
+        return Size(finalWidth, finalHeight).atLeastMinimum(maxWidth, maxHeight)
+    }
+
+    /** SVGs use sticker fetching for original bytes, but retain normal image sizing. */
+    private fun sizingMode(data: Data, requestedMode: Mode): Mode =
+            if (requestedMode == Mode.STICKER && data.mimeType in ORIGINAL_ONLY_MIME_TYPES) Mode.THUMBNAIL else requestedMode
+
+    private fun processSize(data: Data, requestedMode: Mode): Size {
+        val boxed = boxedSize(
+                width = data.width ?: data.maxWidth,
+                height = data.height ?: data.maxHeight,
+                requestedMode = sizingMode(data, requestedMode),
+                maxWidth = data.maxWidth,
+                maxHeight = data.maxHeight,
+                declaredInDp = true,
+        )
         // Use the same unknown-size square for loading and revealed media.
-        if (finalWidth < 0 || finalHeight < 0) {
-            val square = data.loadingSquare()
-            finalWidth = square.width
-            finalHeight = square.height
-        }
-        return Size(finalWidth, finalHeight).atLeastMinimum(maxImageWidth, maxImageHeight)
+        return boxed ?: data.loadingSquare().atLeastMinimum(data.maxWidth, data.maxHeight)
     }
 }
