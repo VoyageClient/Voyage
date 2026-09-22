@@ -19,6 +19,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
+import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.html.bindPillImageSpans
@@ -48,6 +49,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        setBottomPadding(holder, 16)
         // Order matters: setTextIsSelectable() re-creates the editor and resets the movement method, so make
         // the view selectable and attach the link movement method before setting the span-bearing text.
         holder.content.setReadOnlySelectable(true)
@@ -71,7 +73,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
                 // and reading it off the live view would need a full-height pass — the flicker we're avoiding).
                 val fullLines = holder.content.fullLineCount()
                 val needsToggle = fullLines > maxLines
-                val changed = holder.toggle.isVisible != needsToggle
+                val changed = holder.toggle.isVisible != needsToggle || setBottomPadding(holder, if (needsToggle) 0 else 16)
                 if (needsToggle) {
                     updateArrow(holder)
                     holder.toggle.setOnClickListener {
@@ -105,6 +107,18 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         holder.toggle.contentDescription = holder.view.context.getString(
                 if (isExpanded) CommonStrings.merged_events_collapse else CommonStrings.merged_events_expand
         )
+    }
+
+    private fun setBottomPadding(holder: Holder, paddingDp: Int): Boolean {
+        val bottomPadding = DimensionConverter(holder.view.resources).dpToPx(paddingDp)
+        if (holder.view.paddingBottom == bottomPadding) return false
+        holder.view.setPadding(
+                holder.view.paddingLeft,
+                holder.view.paddingTop,
+                holder.view.paddingRight,
+                bottomPadding
+        )
+        return true
     }
 
     // Full line count the text would occupy at the current width, independent of the view's own maxLines /

@@ -8,7 +8,7 @@
     android:paddingLeft="16dp"
     android:paddingTop="16dp"
     android:paddingRight="16dp"
-    android:paddingBottom="4dp"
+    android:paddingBottom="16dp"
     tools:viewBindingIgnore="true">
 
     <im.vector.app.core.ui.views.NonScrollingTextView
