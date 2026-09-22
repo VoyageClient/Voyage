@@ -10,6 +10,7 @@ package im.vector.app.features.media
 import android.content.Context
 import android.view.LayoutInflater
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import im.vector.app.core.extensions.setExpandedContentView
 import im.vector.app.databinding.BottomSheetMediaInfoBinding
 import im.vector.app.databinding.ItemMediaInfoFieldBinding
 
@@ -33,7 +34,7 @@ class MediaInfoDialog(
     fun show(initialFields: Map<String, String>) {
         fields.putAll(initialFields)
         render()
-        dialog.setContentView(views.root)
+        dialog.setExpandedContentView(views.root)
         dialog.setOnDismissListener { onDismiss() }
         dialog.show()
     }

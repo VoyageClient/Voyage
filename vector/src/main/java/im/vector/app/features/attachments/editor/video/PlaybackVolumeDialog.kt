@@ -13,6 +13,7 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import im.vector.app.core.extensions.setExpandedContentView
 import im.vector.app.databinding.BottomSheetVideoVolumeBinding
 import im.vector.lib.core.utils.math.QuadraticSlider
 import im.vector.lib.strings.CommonStrings
@@ -62,7 +63,7 @@ class PlaybackVolumeDialog(
         views.volumeReset.setOnClickListener { update(PlaybackVolume()) }
 
         val dialog = BottomSheetDialog(context).apply {
-            setContentView(views.root)
+            setExpandedContentView(views.root)
             setOnDismissListener { onDismiss?.invoke() }
         }
         views.volumeDone.setOnClickListener {

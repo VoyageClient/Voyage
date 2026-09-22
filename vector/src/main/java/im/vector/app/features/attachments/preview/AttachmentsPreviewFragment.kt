@@ -51,6 +51,7 @@ import im.vector.app.core.extensions.flattenAsScrim
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.removeParagraphLayoutSpans
 import im.vector.app.core.extensions.resourcesFor
+import im.vector.app.core.extensions.setExpandedContentView
 import im.vector.app.core.extensions.thumbCompat
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
@@ -389,7 +390,7 @@ class AttachmentsPreviewFragment :
         // tinting drawables one at a time and missing the ones with no drawable to tint.
         val themedContext = ContextThemeWrapper(requireContext(), ThemeUtils.getApplicationThemeRes(requireContext()))
         val binding = BottomSheetAttachmentCompressionBinding.inflate(LayoutInflater.from(themedContext))
-        val dialog = BottomSheetDialog(themedContext).apply { setContentView(binding.root) }
+        val dialog = BottomSheetDialog(themedContext).apply { setExpandedContentView(binding.root) }
         // As the picture appears, not as it is stored: a photo carrying an EXIF quarter-turn would
         // otherwise be offered its sides the wrong way round, and typing a size against those
         // numbers squashes the image — the compressor rotates before it scales.

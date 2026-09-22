@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.SeekBar
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import im.vector.app.core.extensions.setExpandedContentView
 import im.vector.app.databinding.BottomSheetVideoSpeedBinding
 import im.vector.lib.core.utils.math.QuadraticSlider
 import im.vector.lib.strings.CommonStrings
@@ -60,7 +61,7 @@ class PlaybackSpeedDialog(
         views.speedReset.setOnClickListener { update(PlaybackSpeed()) }
 
         val dialog = BottomSheetDialog(context).apply {
-            setContentView(views.root)
+            setExpandedContentView(views.root)
             setOnDismissListener { onDismiss?.invoke() }
         }
         views.speedDone.setOnClickListener { dialog.dismiss() }

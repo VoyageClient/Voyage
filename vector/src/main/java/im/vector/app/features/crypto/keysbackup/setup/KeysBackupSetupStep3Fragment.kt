@@ -22,6 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.safeOpenOutputStream
+import im.vector.app.core.extensions.setExpandedContentView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.utils.LiveEvent
 import im.vector.app.core.utils.copyToClipboard
@@ -98,7 +99,7 @@ class KeysBackupSetupStep3Fragment :
 
     private fun onCopyButtonClicked() {
         val dialog = BottomSheetDialog(requireActivity())
-        dialog.setContentView(R.layout.bottom_sheet_save_recovery_key)
+        dialog.setExpandedContentView(R.layout.bottom_sheet_save_recovery_key)
         dialog.setCanceledOnTouchOutside(true)
         val recoveryKey = viewModel.recoveryKey.value!!
 
