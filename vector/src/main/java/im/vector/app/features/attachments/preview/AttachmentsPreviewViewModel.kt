@@ -108,6 +108,8 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
                         width = action.width ?: contentAttachmentData.width,
                         height = action.height ?: contentAttachmentData.height,
                         size = action.size ?: contentAttachmentData.size,
+                        // The export has the source rotation baked into its pixels and carries no EXIF.
+                        exifOrientation = 0,
                         mimeType = action.mimeType ?: contentAttachmentData.mimeType,
                         // Editing re-encodes (image -> jpg/png, video -> mp4, video -> animated webp),
                         // and the old extension would otherwise mislabel the uploaded file.

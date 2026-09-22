@@ -9,6 +9,7 @@ package im.vector.app.features.attachments
 
 import android.content.Context
 import android.content.res.Resources
+import androidx.exifinterface.media.ExifInterface
 import im.vector.app.core.ui.model.Size
 import im.vector.app.features.media.MIN_MEDIA_SIDE_DP
 import im.vector.app.features.media.atLeastMinimumMediaSize
@@ -125,9 +126,17 @@ fun MultiPickerImageType.toContentAttachmentData(): ContentAttachmentData {
             size = size,
             height = sent.height.toLong(),
             width = sent.width.toLong(),
-            exifOrientation = orientation,
+            exifOrientation = exifOrientationOf(orientation),
             queryUri = contentUri.toString()
     )
+}
+
+/** The picker reports the EXIF rotation in degrees; the SDK keys its side swap off the tag's own value. */
+internal fun exifOrientationOf(rotationDegrees: Int): Int = when (rotationDegrees) {
+    90 -> ExifInterface.ORIENTATION_ROTATE_90
+    180 -> ExifInterface.ORIENTATION_ROTATE_180
+    270 -> ExifInterface.ORIENTATION_ROTATE_270
+    else -> ExifInterface.ORIENTATION_NORMAL
 }
 
 /** Publish SVG dimensions at the same minimum size used for display. */

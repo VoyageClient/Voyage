@@ -164,9 +164,11 @@ internal class UploadContentTaskBody @Inject constructor(
                 val fileToUpload: File
                 var transcodedVideoFile: File? = null
                 var waveformDeferred: Deferred<List<Int>?>? = null
+                // Display dims: a file uploaded untouched keeps its EXIF rotation, so what the
+                // recipient sees is the rotated shape, not the one stored in the pixels.
                 var newAttachmentAttributes = NewAttachmentAttributes(
-                        params.attachment.width?.toInt(),
-                        params.attachment.height?.toInt(),
+                        params.attachment.displayWidth?.toInt(),
+                        params.attachment.displayHeight?.toInt(),
                         params.attachment.size
                 )
 
