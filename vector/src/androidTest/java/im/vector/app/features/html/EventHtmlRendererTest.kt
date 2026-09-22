@@ -43,6 +43,13 @@ class EventHtmlRendererTest {
     }
 
     @Test
+    fun rendersDescriptionLists() {
+        val result = """<dl><dt>Term</dt><dd>Definition</dd></dl>""".renderAsTestSpan()
+
+        result shouldBeEqualTo "[bold]Term[/bold]\n[leading margin]Definition[/leading margin]"
+    }
+
+    @Test
     fun doesNotProcessMarkdownWithinCodeBlocks() {
         val result = """<code>__italic__ **bold**</code>""".renderAsTestSpan()
 

@@ -8,6 +8,7 @@
 package im.vector.lib.richtext
 
 import com.squareup.moshi.Moshi
+import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
@@ -20,6 +21,19 @@ class MarkwonGoldenTest {
     private val adapter = moshi.adapter(Any::class.java)
 
     private val resolver = TestPillResolver()
+
+    @Test
+    fun `renders description lists`() {
+        val rendered = RichTextRenderer().render("<dl><dt>Term</dt><dd>Definition</dd></dl>")
+
+        assertEquals(normalize(mapOf(
+                "text" to "Term\nDefinition",
+                "spans" to listOf(
+                        mapOf("start" to 0, "end" to 4, "kind" to "bold"),
+                        mapOf("start" to 5, "end" to 15, "kind" to "leadingMargin", "margin" to 8.0),
+                ),
+        )), normalize(SpanDump.dump(rendered)))
+    }
 
     @Test
     fun `compressor matches VectorHtmlCompressor`() {

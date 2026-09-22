@@ -16,6 +16,7 @@ import io.noties.markwon.SpannableBuilder
 import io.noties.markwon.html.HtmlTag
 import io.noties.markwon.html.MarkwonHtmlRenderer
 import io.noties.markwon.html.TagHandler
+import io.noties.markwon.html.tag.StrongEmphasisHandler
 import me.gujun.android.span.style.VerticalPaddingSpan
 
 /**
@@ -49,6 +50,28 @@ class DetailsTagHandler(private val dimensionConverter: DimensionConverter) : Ta
                         tag.end(),
                 )
             }
+        }
+    }
+}
+
+class DescriptionListTagHandler(private val dimensionConverter: DimensionConverter) : TagHandler() {
+
+    override fun supportedTags() = listOf("dl", "dt", "dd")
+
+    override fun handle(visitor: MarkwonVisitor, renderer: MarkwonHtmlRenderer, tag: HtmlTag) {
+        if (tag.isBlock) {
+            visitChildren(visitor, renderer, tag.asBlock)
+        }
+        if (tag.start() == tag.end()) return
+
+        when (tag.name()) {
+            "dt" -> StrongEmphasisHandler().handle(visitor, renderer, tag)
+            "dd" -> SpannableBuilder.setSpans(
+                    visitor.builder(),
+                    LeadingMarginSpan.Standard(dimensionConverter.dpToPx(8)),
+                    tag.start(),
+                    tag.end(),
+            )
         }
     }
 }

@@ -11,6 +11,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.text.Layout
 import android.text.Spanned
+import android.text.style.LeadingMarginSpan
 import android.text.style.StrikethroughSpan
 import androidx.core.text.getSpans
 import im.vector.app.features.html.HtmlCodeSpan
@@ -51,6 +52,7 @@ private fun Any.readTags(): SpanTags {
         StrongEmphasisSpan::class -> "bold"
         EmphasisSpan::class, CustomTypefaceSpan::class -> "italic"
         StrikethroughSpan::class -> "strikethrough"
+        LeadingMarginSpan.Standard::class -> "leading margin"
         LinkSpan::class -> "link"
         else -> if (this::class.qualifiedName!!.startsWith("android.widget")) {
             null

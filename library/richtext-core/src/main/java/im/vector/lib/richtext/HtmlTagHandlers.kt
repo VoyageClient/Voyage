@@ -174,6 +174,18 @@ internal class DetailsTagHandler : TagHandler() {
     }
 }
 
+internal class DescriptionListTagHandler : TagHandler() {
+    override val supportedTags = listOf("dl", "dt", "dd")
+    override fun handle(ctx: HtmlRenderContext, tag: HtmlTag) {
+        if (tag.isBlock) ctx.visitChildren(tag.asBlock)
+        if (tag.start() == tag.end()) return
+        when (tag.name()) {
+            "dt" -> ctx.setSpans(RichStyle.Bold, tag.start(), tag.end())
+            "dd" -> ctx.setSpans(RichStyle.LeadingMargin(8), tag.start(), tag.end())
+        }
+    }
+}
+
 internal class MxReplyTagHandler : TagHandler() {
     override val supportedTags = listOf("mx-reply")
     override fun handle(ctx: HtmlRenderContext, tag: HtmlTag) {
@@ -304,6 +316,7 @@ internal fun matrixTagHandlers(): List<TagHandler> = listOf(
         FontTagHandler(),
         ParagraphHandler(),
         DetailsTagHandler(),
+        DescriptionListTagHandler(),
         MxReplyTagHandler(),
         CodePostProcessorTagHandler(),
         CodePreTagHandler(),
