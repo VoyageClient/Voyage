@@ -221,11 +221,11 @@ class ReadOnlySelectionFocus(private val textView: TextView) {
         textView.isFocusableInTouchMode = false
     }
 
-    fun endSelection() {
+    fun endSelection(restorePreviousFocus: Boolean = true) {
         textView.isFocusableInTouchMode = false
-        if (!textView.isFocused) return
-        val previousFocus = focusBeforeSelection
+        val previousFocus = focusBeforeSelection.takeIf { restorePreviousFocus }
         focusBeforeSelection = null
+        if (!textView.isFocused) return
         // Move focus in one step rather than clearing first, so the IME never sees an unfocused window
         if (previousFocus?.requestFocus() != true) textView.clearFocus()
     }

@@ -10,16 +10,15 @@ package im.vector.app.core.epoxy
 import android.text.SpannableString
 import android.text.TextUtils
 import android.text.method.MovementMethod
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
-import im.vector.app.core.extensions.hasClickableSpanAt
 import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.html.bindPillImageSpans
@@ -47,23 +46,11 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
 
     private var isExpanded = false
 
-    // The content view is selectable, so a tap on a link runs the link movement method AND the view's
-    // own performClick (the expand/collapse toggle) — both fire. Record whether the last tap belonged to
-    // the text (it hit a link, or it dismissed a selection) so the toggle can bow out.
-    private var lastTapHitText = false
-
-    @android.annotation.SuppressLint("ClickableViewAccessibility")
     override fun bind(holder: Holder) {
         super.bind(holder)
         // Order matters: setTextIsSelectable() re-creates the editor and resets the movement method, so make
-        // the view selectable and attach the link movement method BEFORE setting the (span-bearing) text —
-        // otherwise link taps aren't caught and fall through to the expand/collapse toggle below.
+        // the view selectable and attach the link movement method before setting the span-bearing text.
         holder.content.setReadOnlySelectable(true)
-        // Read-only text: keep selection (copy) but never raise the soft keyboard when it takes focus
-        // (e.g. after tapping a link and returning to the screen).
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            holder.content.showSoftInputOnFocus = false
-        }
         holder.content.movementMethod = movementMethod
         isExpanded = expandedProvider?.invoke() == true
         // Apply the final collapsed/expanded state before the text is laid out, so a reused holder never
@@ -74,16 +61,8 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         holder.content.text = SpannableString(content)
         holder.content.bindEmoteImageSpans()
         holder.content.bindPillImageSpans()
-        holder.content.setOnTouchListener { v, event ->
-            if (event.actionMasked == MotionEvent.ACTION_UP) {
-                val textView = v as TextView
-                // Read before the view handles the tap, which is what clears an existing selection.
-                lastTapHitText = textView.hasClickableSpanAt(event) || textView.hasSelection()
-            }
-            false
-        }
 
-        // Manual pre-draw listener (not doOnPreDraw) so the frame can be canceled when the arrow's
+        // Manual pre-draw listener (not doOnPreDraw) so the frame can be canceled when the toggle's
         // visibility changes — otherwise the first frame draws at the wrong height and then jumps.
         holder.content.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
             override fun onPreDraw(): Boolean {
@@ -91,15 +70,11 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
                 // Measure the full line count off-view (a selectable TextView doesn't reliably report ellipsis,
                 // and reading it off the live view would need a full-height pass — the flicker we're avoiding).
                 val fullLines = holder.content.fullLineCount()
-                val needsArrow = fullLines > maxLines
-                val changed = holder.arrow.isVisible != needsArrow
-                if (needsArrow) {
+                val needsToggle = fullLines > maxLines
+                val changed = holder.toggle.isVisible != needsToggle
+                if (needsToggle) {
                     updateArrow(holder)
-                    val toggle = View.OnClickListener {
-                        if (lastTapHitText) {
-                            lastTapHitText = false
-                            return@OnClickListener
-                        }
+                    holder.toggle.setOnClickListener {
                         isExpanded = !isExpanded
                         onExpandedChange?.invoke(isExpanded)
                         // Set maxLines directly rather than animating it: animating maxLines on a selectable
@@ -108,16 +83,12 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
                         applyMaxLines(holder.content)
                         updateArrow(holder)
                     }
-                    holder.view.setOnClickListener(toggle)
-                    // The selectable text view consumes taps, so it needs the toggle too
-                    holder.content.setOnClickListener(toggle)
                 } else {
                     // A recycled holder still carries the previous model's toggle, which would drive
                     // that model's onExpandedChange from this item.
-                    holder.view.setOnClickListener(null)
-                    holder.content.setOnClickListener(null)
+                    holder.toggle.setOnClickListener(null)
                 }
-                holder.arrow.isVisible = needsArrow
+                holder.toggle.isVisible = needsToggle
                 return !changed
             }
         })
@@ -129,8 +100,9 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
     }
 
     private fun updateArrow(holder: Holder) {
-        holder.arrow.setImageResource(if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
-        holder.arrow.contentDescription = holder.view.context.getString(
+        val icon = if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
+        holder.arrow.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, icon))
+        holder.toggle.contentDescription = holder.view.context.getString(
                 if (isExpanded) CommonStrings.merged_events_collapse else CommonStrings.merged_events_expand
         )
     }
@@ -151,6 +123,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
 
     class Holder : VectorEpoxyHolder() {
         val content by bind<TextView>(R.id.expandableContent)
+        val toggle by bind<View>(R.id.expandableToggle)
         val arrow by bind<ImageView>(R.id.expandableArrow)
     }
 }

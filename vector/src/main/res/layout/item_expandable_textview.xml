@@ -5,7 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?android:colorBackground"
-    android:padding="16dp"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="4dp"
     tools:viewBindingIgnore="true">
 
     <im.vector.app.core.ui.views.NonScrollingTextView
@@ -14,24 +17,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
-        app:layout_constraintBottom_toTopOf="@id/expandableArrow"
+        app:layout_constraintBottom_toTopOf="@id/expandableToggle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:maxLines="2"
         tools:text="@sample/rooms.json/data/topic" />
 
-    <ImageView
-        android:id="@+id/expandableArrow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <FrameLayout
+        android:id="@+id/expandableToggle"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
         android:layout_marginTop="4dp"
         android:contentDescription="@string/merged_events_expand"
-        app:srcCompat="@drawable/ic_expand_more"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/expandableContent"
-        app:tint="?vctr_content_secondary"
-        tools:ignore="MissingPrefix" />
+        app:layout_constraintTop_toBottomOf="@id/expandableContent">
+
+        <ImageView
+            android:id="@+id/expandableArrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            app:srcCompat="@drawable/ic_expand_more"
+            app:tint="?vctr_content_secondary"
+            tools:ignore="MissingPrefix" />
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
