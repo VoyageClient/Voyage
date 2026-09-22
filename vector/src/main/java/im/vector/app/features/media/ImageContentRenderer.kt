@@ -14,6 +14,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import android.os.SystemClock
+import android.util.LruCache
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -318,6 +319,7 @@ class ImageContentRenderer @Inject constructor(
             }
             return null
         }
+        data.sizeMemoKey()?.let { measuredMediaSizes.put(it, intrinsic) }
         // Box the measured aspect ratio exactly as a declared one, or an event carrying no w/h is
         // drawn at its pixel size inside a far larger box. Measured pixels are not the dp a sticker declares.
         val sized = boxedSize(intrinsic.width, intrinsic.height, sizingMode(data, mode), data.maxWidth, data.maxHeight, declaredInDp = false)
@@ -410,18 +412,20 @@ class ImageContentRenderer @Inject constructor(
             // ratio is only known once it is decoded, so the view is sized in onResourceReady.
             // Reset explicitly: a recycled view may carry FIT_XY over from a local echo.
             imageView.scaleType = ImageView.ScaleType.FIT_CENTER
-            imageView.adjustViewBounds = true
             imageView.maxWidth = data.maxWidth
             imageView.maxHeight = data.maxHeight
-            // Hold a square until the real bounds are known. Placeholders have no intrinsic size, so
+            // Hold a square until the real bounds are known — unless this picture has decoded before,
+            // in which case hold the shape it is going to take. Placeholders have no intrinsic size, so
             // wrapping to one measures to nothing and the row collapses to zero height — which is
             // where it stays if the load then fails.
-            val square = data.loadingSquare()
+            val reserved = rememberedBox(data, mode)
+            imageView.adjustViewBounds = reserved == null
+            val holding = reserved ?: data.loadingSquare()
             imageView.updateLayoutParams {
-                width = square.width
-                height = square.height
+                width = holding.width
+                height = holding.height
             }
-            onSized?.invoke(square)
+            onSized?.invoke(holding)
         }
         // a11y
         imageView.contentDescription = data.filename
@@ -733,6 +737,10 @@ class ImageContentRenderer @Inject constructor(
     }
 
     companion object {
+        // Intrinsic pixel size of media whose event carried no dimensions, learned when it first
+        // decoded, so a later render reserves its shape instead of growing out of a holding square.
+        private val measuredMediaSizes = LruCache<String, Size>(256)
+
         // Glide's withCrossFade() leaves the placeholder as an opaque layer under the image for good,
         // which a transparent picture then shows the waiting fill through. Fading it out instead.
         private const val CROSSFADE_MS = 220
@@ -1060,7 +1068,24 @@ class ImageContentRenderer @Inject constructor(
     private fun sizingMode(data: Data, requestedMode: Mode): Mode =
             if (requestedMode == Mode.STICKER && data.mimeType in ORIGINAL_ONLY_MIME_TYPES) Mode.THUMBNAIL else requestedMode
 
+    /**
+     * The box a picture ended up in last time it decoded, for media whose event declares no dimensions.
+     * Computed exactly as [sizeToPicture] computes it, so reserving it up front and sizing to the
+     * decoded picture agree and nothing moves when the load lands.
+     */
+    private fun rememberedBox(data: Data, requestedMode: Mode): Size? {
+        if (data.hasKnownDimensions()) return null
+        val intrinsic = data.sizeMemoKey()?.let { measuredMediaSizes.get(it) } ?: return null
+        return boxedSize(
+                intrinsic.width, intrinsic.height, sizingMode(data, requestedMode),
+                data.maxWidth, data.maxHeight, declaredInDp = false
+        )
+    }
+
+    private fun Data.sizeMemoKey(): String? = url ?: preservedFile?.path
+
     private fun processSize(data: Data, requestedMode: Mode): Size {
+        rememberedBox(data, requestedMode)?.let { return it }
         val boxed = boxedSize(
                 width = data.width ?: data.maxWidth,
                 height = data.height ?: data.maxHeight,

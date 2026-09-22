@@ -156,6 +156,18 @@
             app:layout_constraintTop_toBottomOf="@id/liveLocationStatusIndicator"
             tools:listitem="@layout/item_timeline_event_base" />
 
+        <ProgressBar
+            android:id="@+id/jumpToEventProgress"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/timelineRecyclerView"
+            app:layout_constraintEnd_toEndOf="@id/timelineRecyclerView"
+            app:layout_constraintStart_toStartOf="@id/timelineRecyclerView"
+            app:layout_constraintTop_toTopOf="@id/timelineRecyclerView"
+            tools:visibility="visible" />
+
         <com.google.android.material.chip.Chip
             android:id="@+id/jumpToReadMarkerView"
             style="?vctr_jump_to_unread_style"

@@ -10,7 +10,9 @@ package im.vector.app.features.home.room.detail.timeline.url
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
+import android.util.LruCache
 import android.view.View
+import android.view.ViewGroup
 import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
 import im.vector.app.R
@@ -70,9 +72,19 @@ class PreviewUrlView @JvmOverloads constructor(
         when (newState) {
             PreviewUrlUiState.Unknown,
             PreviewUrlUiState.NoUrl -> renderHidden()
-            PreviewUrlUiState.Loading -> renderLoading()
+            is PreviewUrlUiState.Loading -> renderLoading(newState.url)
             is PreviewUrlUiState.Error -> renderHidden()
             is PreviewUrlUiState.Data -> renderData(newState.previewUrlData, imageContentRenderer)
+        }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        // Remember what this card measures to, so the next message previewing the same link reserves
+        // its space while the preview is still being fetched instead of appearing under the reader.
+        val url = (state as? PreviewUrlUiState.Data)?.url ?: return
+        if (measuredHeight > 0) {
+            measuredHeights.put(url, measuredHeight)
         }
     }
 
@@ -149,15 +161,34 @@ class PreviewUrlView @JvmOverloads constructor(
     }
 
     private fun renderHidden() {
+        setReservedHeight(null)
         isVisible = false
     }
 
-    private fun renderLoading() {
-        // Just hide for the moment
-        isVisible = false
+    private fun renderLoading(url: String) {
+        val reserved = measuredHeights.get(url)
+        if (reserved == null) {
+            setReservedHeight(null)
+            isVisible = false
+        } else {
+            // Held empty at the height it will take, so the answer landing doesn't move everything
+            // below it — including a message the reader has just been sent to.
+            setReservedHeight(reserved)
+            visibility = View.INVISIBLE
+        }
+    }
+
+    private fun setReservedHeight(height: Int?) {
+        val params = layoutParams ?: return
+        val target = height ?: ViewGroup.LayoutParams.WRAP_CONTENT
+        if (params.height != target) {
+            params.height = target
+            layoutParams = params
+        }
     }
 
     private fun renderData(previewUrlData: PreviewUrlData, imageContentRenderer: ImageContentRenderer) {
+        setReservedHeight(null)
         isVisible = true
 
         views.urlPreviewTitle.setTextOrHide(previewUrlData.title)
@@ -180,5 +211,10 @@ class PreviewUrlView @JvmOverloads constructor(
         views.urlPreviewImage.isVisible = false
         views.urlPreviewDescription.isVisible = false
         views.urlPreviewSite.isVisible = false
+    }
+
+    companion object {
+        // Card height per previewed url, shared by every message linking it.
+        private val measuredHeights = LruCache<String, Int>(128)
     }
 }

@@ -84,6 +84,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Read receipts**: private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms, so they no longer desync from what the server holds.
 
+- **Steady jumps to a message**: jumping to a message waits for it to load rather than landing somewhere near it first, puts it in the middle of the screen, and holds it there while everything around it decrypts and loads in. Replies, search results, pinned messages and permalinks no longer leave the message you asked for shoved off screen.
+
 - **Auto-dismiss "Jump to unread"**: an optional mode where reaching the end of the timeline, by opening the room at the bottom or scrolling down to it, dismisses the banner and marks the room read instead of leaving it up.
 
 - **Media galleries (MSC4274)**: send several photos, videos, files and audio as a single message that renders as a grid of thumbnails with a caption underneath. Each tile opens, saves, shares and forwards on its own, the whole message can be saved at once, and every item appears individually in the room's media viewer and Uploads tab. Galleries from other clients always display; sending them is opt-in under Settings → Labs.

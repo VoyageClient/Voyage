@@ -75,7 +75,7 @@ class PreviewUrlRetriever(
                     null
                 } else if (url != (current?.previewUrlUiState as? PreviewUrlUiState.Data)?.url) {
                     // There is a not known URL, or the Event has been edited and the URL has changed
-                    updateState(eventId, latestEventId, PreviewUrlUiState.Loading)
+                    updateState(eventId, latestEventId, PreviewUrlUiState.Loading(url))
                     url
                 } else {
                     // Already handled

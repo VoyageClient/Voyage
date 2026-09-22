@@ -19,8 +19,9 @@ sealed class PreviewUrlUiState {
     // The event does not contain any URLs
     object NoUrl : PreviewUrlUiState()
 
-    // Loading
-    object Loading : PreviewUrlUiState()
+    // Loading. Carries the url so a card whose height is already known can be given its space
+    // up front rather than shoving the timeline down when the answer lands.
+    data class Loading(val url: String) : PreviewUrlUiState()
 
     // Error
     data class Error(val throwable: Throwable) : PreviewUrlUiState()
