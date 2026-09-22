@@ -12,6 +12,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getPerMessageProfile
 
 data class PerMessageProfileRendering(
+        val profileId: String?,
         val senderName: String,
         val fallbackDisplayName: String?,
         val avatarUrl: String?,
@@ -25,9 +26,16 @@ fun TimelineEvent.renderPerMessageProfile(
         senderAvatarDecryption: ElementToDecrypt? = senderInfo.avatarDecryption,
 ): PerMessageProfileRendering {
     val profile = getPerMessageProfile()?.takeIf { enabled }
-            ?: return PerMessageProfileRendering(senderName, null, senderAvatarUrl, senderAvatarDecryption)
+            ?: return PerMessageProfileRendering(
+                    profileId = null,
+                    senderName = senderName,
+                    fallbackDisplayName = null,
+                    avatarUrl = senderAvatarUrl,
+                    avatarDecryption = senderAvatarDecryption,
+            )
     val displayName = profile.displayName ?: senderName
     return PerMessageProfileRendering(
+            profileId = profile.id,
             senderName = "$displayName (${root.senderId ?: senderInfo.userId})",
             fallbackDisplayName = displayName.takeIf { profile.hasFallback },
             avatarUrl = when {
@@ -40,6 +48,14 @@ fun TimelineEvent.renderPerMessageProfile(
                 else -> senderAvatarDecryption
             },
     )
+}
+
+// Who a message reads as, for grouping consecutive messages: a per-message profile splits a run even
+// though the Matrix sender is unchanged. Null for a missing event, which never groups.
+fun TimelineEvent?.perMessageSenderIdentity(enabled: Boolean): List<Any?>? {
+    if (this == null) return null
+    val rendered = renderPerMessageProfile(senderInfo.disambiguatedDisplayName, enabled)
+    return listOf(root.senderId, rendered.profileId, rendered.senderName, rendered.avatarUrl)
 }
 
 fun String.withoutPerMessageProfileFallback(fallbackDisplayName: String?): String {

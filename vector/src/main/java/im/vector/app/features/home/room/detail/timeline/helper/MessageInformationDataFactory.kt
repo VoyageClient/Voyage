@@ -50,7 +50,6 @@ import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getPerMessageProfile
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import javax.inject.Inject
 
@@ -229,20 +228,8 @@ class MessageInformationDataFactory @Inject constructor(
         )
     }
 
-    private fun TimelineEvent?.senderIdentity(): List<Any?>? {
-        if (this == null) return null
-        val profile = getPerMessageProfile()?.takeIf { vectorPreferences.arePerMessageProfilesEnabled() }
-        return listOf(
-                root.senderId,
-                profile?.id,
-                profile?.displayName ?: senderInfo.disambiguatedDisplayName,
-                when {
-                    profile == null -> senderInfo.avatarUrl
-                    profile.clearsAvatar -> null
-                    else -> profile.avatarUrl ?: senderInfo.avatarUrl
-                },
-        )
-    }
+    private fun TimelineEvent?.senderIdentity(): List<Any?>? =
+            perMessageSenderIdentity(vectorPreferences.arePerMessageProfilesEnabled())
 
     // MSC2723 carries no via servers, and our own server may know nothing about a room we were never in.
     // Whoever sent us this copy could see the room it came from, so route through their server.

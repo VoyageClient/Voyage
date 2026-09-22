@@ -13,6 +13,7 @@ import im.vector.app.core.extensions.localDateTime
 import im.vector.app.core.resources.LocaleProvider
 import im.vector.app.core.resources.isRTL
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
+import im.vector.app.features.home.room.detail.timeline.helper.perMessageSenderIdentity
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.BubbleThemeUtils
 import org.matrix.android.sdk.api.session.Session
@@ -26,7 +27,6 @@ import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
-import org.matrix.android.sdk.api.session.room.timeline.getPerMessageProfile
 import org.matrix.android.sdk.api.session.room.timeline.isEdition
 import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
@@ -168,20 +168,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
         return messageLayout
     }
 
-    private fun TimelineEvent?.senderIdentity(): List<Any?>? {
-        if (this == null) return null
-        val profile = getPerMessageProfile()?.takeIf { vectorPreferences.arePerMessageProfilesEnabled() }
-        return listOf(
-                root.senderId,
-                profile?.id,
-                profile?.displayName ?: senderInfo.disambiguatedDisplayName,
-                when {
-                    profile == null -> senderInfo.avatarUrl
-                    profile.clearsAvatar -> null
-                    else -> profile.avatarUrl ?: senderInfo.avatarUrl
-                },
-        )
-    }
+    private fun TimelineEvent?.senderIdentity(): List<Any?>? =
+            perMessageSenderIdentity(vectorPreferences.arePerMessageProfilesEnabled())
 
     /**
      * Dumb layout setting, so non-bubble classes (read receipts, merged headers) can still get basic ScBubble alignment.
