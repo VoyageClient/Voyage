@@ -19,6 +19,7 @@ import android.os.Bundle
 import androidx.core.content.getSystemService
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
+import im.vector.app.features.animations.ScrollAnimationManager
 import im.vector.app.features.popup.PopupAlertManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,10 @@ import timber.log.Timber
 
 private const val ACTION_REQUEST_PERMISSIONS = "android.content.pm.action.REQUEST_PERMISSIONS"
 
-class VectorActivityLifecycleCallbacks constructor(private val popupAlertManager: PopupAlertManager) : Application.ActivityLifecycleCallbacks {
+class VectorActivityLifecycleCallbacks constructor(
+        private val popupAlertManager: PopupAlertManager,
+        private val scrollAnimationManager: ScrollAnimationManager,
+) : Application.ActivityLifecycleCallbacks {
     /**
      * The activities information collected from the app manifest.
      */
@@ -43,11 +47,14 @@ class VectorActivityLifecycleCallbacks constructor(private val popupAlertManager
 
     override fun onActivityResumed(activity: Activity) {
         popupAlertManager.onNewActivityDisplayed(activity)
+        scrollAnimationManager.install(activity)
     }
 
     override fun onActivityStarted(activity: Activity) {}
 
-    override fun onActivityDestroyed(activity: Activity) {}
+    override fun onActivityDestroyed(activity: Activity) {
+        scrollAnimationManager.uninstall(activity)
+    }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 

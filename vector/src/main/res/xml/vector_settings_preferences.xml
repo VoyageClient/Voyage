@@ -65,6 +65,14 @@
             android:title="@string/settings_sc_bubble_style_title"
             app:useSimpleSummaryProvider="true" />
 
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="none"
+            android:entries="@array/scroll_animation_entries"
+            android:entryValues="@array/scroll_animation_values"
+            android:key="SETTINGS_SCROLL_ANIMATION_KEY"
+            android:title="@string/settings_scroll_animation_title"
+            app:useSimpleSummaryProvider="true" />
+
         <im.vector.app.core.preference.VectorPreference
             android:key="BUBBLE_APPEARANCE_KEY"
             android:title="@string/settings_sc_bubble_appearance"

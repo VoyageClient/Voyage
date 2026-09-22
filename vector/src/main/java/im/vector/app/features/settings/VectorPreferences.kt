@@ -145,6 +145,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_BACKGROUND_SYNC_DIVIDER_PREFERENCE_KEY = "SETTINGS_BACKGROUND_SYNC_DIVIDER_PREFERENCE_KEY"
         const val SETTINGS_LABS_PREFERENCE_KEY = "SETTINGS_LABS_PREFERENCE_KEY"
         const val SETTINGS_LABS_NEW_APP_LAYOUT_KEY = "SETTINGS_LABS_NEW_APP_LAYOUT_KEY"
+        const val SETTINGS_SCROLL_ANIMATION_KEY = "SETTINGS_SCROLL_ANIMATION_KEY"
         const val SETTINGS_LABS_ENABLE_PER_MESSAGE_PROFILES = "SETTINGS_LABS_ENABLE_PER_MESSAGE_PROFILES"
         const val SETTINGS_LABS_DEFERRED_DM_KEY = "SETTINGS_LABS_DEFERRED_DM_KEY"
         const val SETTINGS_TIMELINE_LINE_WRAP_KEY = "SETTINGS_TIMELINE_LINE_WRAP_KEY"
@@ -422,6 +423,7 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY,
                 SETTINGS_START_ON_BOOT_PREFERENCE_KEY,
                 SETTINGS_INTERFACE_TEXT_SIZE_KEY,
+                SETTINGS_SCROLL_ANIMATION_KEY,
                 SETTINGS_NOTIFICATION_RINGTONE_PREFERENCE_KEY,
                 SETTINGS_NOTIFICATION_RINGTONE_SELECTION_PREFERENCE_KEY,
 
@@ -1753,6 +1755,10 @@ class VectorPreferences @Inject constructor(
     fun isNewAppLayoutEnabled(): Boolean {
         return vectorFeatures.isNewAppLayoutFeatureEnabled() &&
                 defaultPrefs.getBoolean(SETTINGS_LABS_NEW_APP_LAYOUT_KEY, getDefault(im.vector.app.config.R.bool.settings_labs_new_app_layout_default))
+    }
+
+    fun scrollAnimationStyle(): String {
+        return defaultPrefs.getString(SETTINGS_SCROLL_ANIMATION_KEY, "none") ?: "none"
     }
 
     fun arePerMessageProfilesEnabled(): Boolean {

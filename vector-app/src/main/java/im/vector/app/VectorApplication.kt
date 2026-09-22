@@ -42,6 +42,7 @@ import im.vector.app.core.session.EnsureSessionSyncingUseCase
 import im.vector.app.core.session.HomeserverMirrorRefresher
 import im.vector.app.core.vpn.VpnGate
 import im.vector.app.core.vpn.VpnGateState
+import im.vector.app.features.animations.ScrollAnimationManager
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.home.avatar.effect.AvatarEffectRenderer
 import im.vector.app.features.home.avatar.effect.AvatarFrameClock
@@ -181,7 +182,7 @@ class VectorApplication :
 
         configureEpoxy()
 
-        registerActivityLifecycleCallbacks(VectorActivityLifecycleCallbacks(popupAlertManager))
+        registerActivityLifecycleCallbacks(VectorActivityLifecycleCallbacks(popupAlertManager, ScrollAnimationManager(vectorPreferences)))
         vectorLocale.init()
         ThemeUtils.init(this)
         vectorConfiguration.applyToApplicationContext()

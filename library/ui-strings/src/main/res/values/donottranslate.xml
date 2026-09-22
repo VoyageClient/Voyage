@@ -752,6 +752,53 @@
     <string name="settings_app_logo_burst" translatable="false">Burst</string>
     <string name="settings_app_logo_spark" translatable="false">Spark</string>
     <string name="settings_app_logo_element" translatable="false">Element</string>
+    <string name="settings_scroll_animation_title" translatable="false">Scroll animation</string>
+    <string name="scroll_animation_none" translatable="false">None</string>
+    <string name="scroll_animation_fade" translatable="false">Fade</string>
+    <string name="scroll_animation_flip" translatable="false">Flip</string>
+    <string name="scroll_animation_bounce" translatable="false">Bounce</string>
+    <string name="scroll_animation_glitch" translatable="false">Glitch</string>
+    <string name="scroll_animation_helix" translatable="false">Helix</string>
+    <string name="scroll_animation_rotate" translatable="false">Rotate</string>
+    <string name="scroll_animation_zoom" translatable="false">Zoom</string>
+    <string name="scroll_animation_drop" translatable="false">Drop</string>
+    <string name="scroll_animation_stretch" translatable="false">Stretch</string>
+    <string name="scroll_animation_slide" translatable="false">Slide</string>
+    <string name="scroll_animation_shake" translatable="false">Shake</string>
+    <string name="scroll_animation_swing" translatable="false">Swing</string>
+    <string name="scroll_animation_jiggle" translatable="false">Jiggle</string>
+    <string-array name="scroll_animation_entries" translatable="false">
+        <item>@string/scroll_animation_none</item>
+        <item>@string/scroll_animation_fade</item>
+        <item>@string/scroll_animation_flip</item>
+        <item>@string/scroll_animation_bounce</item>
+        <item>@string/scroll_animation_glitch</item>
+        <item>@string/scroll_animation_helix</item>
+        <item>@string/scroll_animation_rotate</item>
+        <item>@string/scroll_animation_zoom</item>
+        <item>@string/scroll_animation_drop</item>
+        <item>@string/scroll_animation_stretch</item>
+        <item>@string/scroll_animation_slide</item>
+        <item>@string/scroll_animation_shake</item>
+        <item>@string/scroll_animation_swing</item>
+        <item>@string/scroll_animation_jiggle</item>
+    </string-array>
+    <string-array name="scroll_animation_values" translatable="false">
+        <item>none</item>
+        <item>fade</item>
+        <item>flip</item>
+        <item>bounce</item>
+        <item>glitch</item>
+        <item>helix</item>
+        <item>rotate</item>
+        <item>zoom</item>
+        <item>drop</item>
+        <item>stretch</item>
+        <item>slide</item>
+        <item>shake</item>
+        <item>swing</item>
+        <item>jiggle</item>
+    </string-array>
     <string-array name="app_logo_entries" translatable="false">
         <item>@string/settings_app_logo_burst</item>
         <item>@string/settings_app_logo_spark</item>
