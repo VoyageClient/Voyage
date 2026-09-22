@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
+import org.matrix.android.sdk.api.session.room.timeline.getPerMessageProfile
 import org.matrix.android.sdk.api.session.room.timeline.isEdition
 import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
@@ -95,14 +96,13 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 ?: false
 
         val showInformation = addDaySeparator ||
-                event.senderInfo.avatarUrl != nextDisplayableEvent?.senderInfo?.avatarUrl ||
-                event.senderInfo.disambiguatedDisplayName != nextDisplayableEvent?.senderInfo?.disambiguatedDisplayName ||
-                nextDisplayableEvent.root.getClearType() !in listOf(EventType.MESSAGE, EventType.STICKER, EventType.ENCRYPTED) ||
+                event.senderIdentity() != nextDisplayableEvent.senderIdentity() ||
+                nextDisplayableEvent?.root?.getClearType() !in listOf(EventType.MESSAGE, EventType.STICKER, EventType.ENCRYPTED) ||
                 isNextMessageReceivedMoreThanOneHourAgo ||
                 isTileTypeMessage(nextDisplayableEvent) ||
-                nextDisplayableEvent.isRootThread() ||
+                (nextDisplayableEvent?.isRootThread() ?: false) ||
                 event.isRootThread() ||
-                nextDisplayableEvent.isEdition()
+                (nextDisplayableEvent?.isEdition() ?: false)
 
         val messageLayout = when (layoutSettingsProvider.getLayoutSettings()) {
             TimelineLayoutSettings.SC_BUBBLE -> {
@@ -137,10 +137,10 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 val shouldBuildBubbleLayout = event.shouldBuildBubbleLayout()
                 if (shouldBuildBubbleLayout) {
                     val isFirstFromThisSender = nextDisplayableEvent == null || !nextDisplayableEvent.shouldBuildBubbleLayout() ||
-                            nextDisplayableEvent.root.senderId != event.root.senderId || addDaySeparator
+                            nextDisplayableEvent.senderIdentity() != event.senderIdentity() || addDaySeparator
 
                     val isLastFromThisSender = prevDisplayableEvent == null || !prevDisplayableEvent.shouldBuildBubbleLayout() ||
-                            prevDisplayableEvent.root.senderId != event.root.senderId ||
+                            prevDisplayableEvent.senderIdentity() != event.senderIdentity() ||
                             prevDisplayableEvent.root.localDateTime().toLocalDate() != date.toLocalDate()
 
                     val cornersRadius = buildCornersRadius(
@@ -166,6 +166,21 @@ class TimelineMessageLayoutFactory @Inject constructor(
             }
         }
         return messageLayout
+    }
+
+    private fun TimelineEvent?.senderIdentity(): List<Any?>? {
+        if (this == null) return null
+        val profile = getPerMessageProfile()?.takeIf { vectorPreferences.arePerMessageProfilesEnabled() }
+        return listOf(
+                root.senderId,
+                profile?.id,
+                profile?.displayName ?: senderInfo.disambiguatedDisplayName,
+                when {
+                    profile == null -> senderInfo.avatarUrl
+                    profile.clearsAvatar -> null
+                    else -> profile.avatarUrl ?: senderInfo.avatarUrl
+                },
+        )
     }
 
     /**

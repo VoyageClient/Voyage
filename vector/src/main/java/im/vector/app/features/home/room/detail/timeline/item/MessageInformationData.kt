@@ -64,6 +64,7 @@ data class MessageInformationData(
         val senderColorOnDark: String? = null,
         // Travels with [avatarUrl] so a restored-from-parcel item can still decrypt an MSC4529 avatar override.
         val avatarDecryption: ElementToDecrypt? = null,
+        val perMessageProfileFallback: String? = null,
 ) : Parcelable {
 
     val matrixItem: MatrixItem

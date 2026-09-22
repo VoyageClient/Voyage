@@ -65,6 +65,12 @@
         android:title="@string/labs_enable_live_location" />
 
     <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_LABS_ENABLE_PER_MESSAGE_PROFILES"
+        android:summary="@string/labs_enable_per_message_profiles_summary"
+        android:title="@string/labs_enable_per_message_profiles_title" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
         android:defaultValue="@bool/settings_labs_new_app_layout_default"
         android:key="SETTINGS_LABS_NEW_APP_LAYOUT_KEY"
         android:summary="@string/labs_enable_new_app_layout_summary"

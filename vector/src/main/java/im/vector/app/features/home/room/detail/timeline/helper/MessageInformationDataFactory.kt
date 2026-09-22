@@ -50,6 +50,7 @@ import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getPerMessageProfile
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import javax.inject.Inject
 
@@ -80,8 +81,8 @@ class MessageInformationDataFactory @Inject constructor(
         val nextDate = nextDisplayableEvent?.root?.localDateTime()
         val addDaySeparator = date.toLocalDate() != nextDate?.toLocalDate()
 
-        val isFirstFromThisSender = nextDisplayableEvent?.root?.senderId != event.root.senderId || addDaySeparator
-        val isLastFromThisSender = prevDisplayableEvent?.root?.senderId != event.root.senderId ||
+        val isFirstFromThisSender = nextDisplayableEvent.senderIdentity() != event.senderIdentity() || addDaySeparator
+        val isLastFromThisSender = prevDisplayableEvent.senderIdentity() != event.senderIdentity() ||
                 prevDisplayableEvent?.root?.localDateTime()?.toLocalDate() != date.toLocalDate()
 
         // Blank rather than absent: the footer measures the string, and a host which shows the time
@@ -130,6 +131,22 @@ class MessageInformationDataFactory @Inject constructor(
             useLiveSenderInfo && liveMember != null -> liveMember.avatarUrl
             storedAvatar == null -> liveMember?.avatarUrl
             else -> storedAvatar.takeUnless { it.isEmpty() }
+        }
+        val perMessageProfile = event.getPerMessageProfile().takeIf { vectorPreferences.arePerMessageProfilesEnabled() }
+        val realSenderId = event.root.senderId ?: senderId
+        val renderedSenderName = perMessageProfile?.let { profile ->
+            "${profile.displayName ?: senderName} ($realSenderId)"
+        } ?: senderName
+        val renderedSenderAvatar = when {
+            perMessageProfile == null -> senderAvatar
+            perMessageProfile.clearsAvatar -> null
+            else -> perMessageProfile.avatarUrl ?: senderAvatar
+        }
+        val renderedAvatarDecryption = when {
+            perMessageProfile == null -> senderAvatarDecryption
+            perMessageProfile.clearsAvatar -> null
+            perMessageProfile.avatarUrl != null -> perMessageProfile.avatarDecryption
+            else -> senderAvatarDecryption
         }
 
         // Determine DM partner so dual-side bubbles can hide both avatars in direct chats.
@@ -182,9 +199,12 @@ class MessageInformationDataFactory @Inject constructor(
                 sendState = event.root.sendState,
                 time = time,
                 ageLocalTS = event.root.ageLocalTs,
-                avatarUrl = senderAvatar,
-                avatarDecryption = senderAvatarDecryption,
-                memberName = senderName,
+                avatarUrl = renderedSenderAvatar,
+                avatarDecryption = renderedAvatarDecryption,
+                perMessageProfileFallback = perMessageProfile
+                        ?.takeIf { it.hasFallback }
+                        ?.displayName,
+                memberName = renderedSenderName,
                 messageLayout = messageLayout,
                 reactionsSummary = reactionsSummaryFactory.create(event),
                 pollResponseAggregatedSummary = pollResponseDataFactory.create(event),
@@ -215,6 +235,21 @@ class MessageInformationDataFactory @Inject constructor(
                 },
                 sharedByUserId = event.root.mxDecryptionResult?.sharedByUserId,
                 forwardedInfo = forwardedInfo
+        )
+    }
+
+    private fun TimelineEvent?.senderIdentity(): List<Any?>? {
+        if (this == null) return null
+        val profile = getPerMessageProfile()?.takeIf { vectorPreferences.arePerMessageProfilesEnabled() }
+        return listOf(
+                root.senderId,
+                profile?.id,
+                profile?.displayName ?: senderInfo.disambiguatedDisplayName,
+                when {
+                    profile == null -> senderInfo.avatarUrl
+                    profile.clearsAvatar -> null
+                    else -> profile.avatarUrl ?: senderInfo.avatarUrl
+                },
         )
     }
 

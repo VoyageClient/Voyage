@@ -625,7 +625,7 @@ class MessageItemFactory @Inject constructor(
     ): MessageTextItem? {
         // For compatibility reason we should display the body
         return buildMessageTextItem(
-                messageContent.body,
+                messageContent.body.withoutPerMessageProfileFallback(informationData),
                 false,
                 informationData,
                 highlight,
@@ -1000,18 +1000,19 @@ class MessageItemFactory @Inject constructor(
                     return buildFormattedTextItem(state.text, informationData, highlight, callback, attributes)
                 }
             }
-            buildPgpBody(messageContent.body, informationData, callback)?.let { pgpBody ->
+            buildPgpBody(messageContent.body.withoutPerMessageProfileFallback(informationData), informationData, callback)?.let { pgpBody ->
                 return buildMessageTextItem(pgpBody, false, informationData, highlight, callback, attributes)
             }
         }
-        val matrixFormattedBody = messageContent.matrixFormattedBody
+        val matrixFormattedBody = messageContent.matrixFormattedBody?.withoutPerMessageProfileFallback(informationData)
         val replyToContent = messageContent.relatesTo?.inReplyTo
         return if (matrixFormattedBody != null) {
             buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes)
         } else {
             // Strip any legacy "> <@user:server> …" reply fallback prefix from the plain body; the
             // replied-to preview is rendered separately by InReplyToView.
-            val body = if (replyToContent?.eventId != null) ContentUtils.extractUsefulTextFromReply(messageContent.body) else messageContent.body
+            val rawBody = messageContent.body.withoutPerMessageProfileFallback(informationData)
+            val body = if (replyToContent?.eventId != null) ContentUtils.extractUsefulTextFromReply(rawBody) else rawBody
             buildMessageTextItem(body, false, informationData, highlight, callback, attributes)
         }
     }
@@ -1127,16 +1128,17 @@ class MessageItemFactory @Inject constructor(
             informationData: MessageInformationData,
             callback: TimelineEventController.Callback?,
     ): RenderedCaption? {
-        if (body.isEmpty()) return null
+        val fallbackFreeBody = body.withoutPerMessageProfileFallback(informationData)
+        if (fallbackFreeBody.isEmpty()) return null
         val translation = messageTranslationStore.get(informationData.eventId)
         // PGP: a captioned media's caption may be an armored block — show the decrypted plaintext
         // (and ignore the armored formatted_body).
-        val pgpCaption = if (translation == null) pgpDecryptor.peekDecryptedBody(body) else null
-        val effectiveBody = translation?.text ?: pgpCaption ?: body
+        val pgpCaption = if (translation == null) pgpDecryptor.peekDecryptedBody(fallbackFreeBody) else null
+        val effectiveBody = translation?.text ?: pgpCaption ?: fallbackFreeBody
         val effectiveFormatted = when {
             translation != null -> translation.formatted
             pgpCaption != null -> null
-            else -> formattedBody
+            else -> formattedBody?.withoutPerMessageProfileFallback(informationData)
         }
         val initialBody: CharSequence = if (effectiveFormatted != null) {
             val compressed = htmlCompressor.compress(effectiveFormatted)
@@ -1331,12 +1333,13 @@ class MessageItemFactory @Inject constructor(
         messageTranslationStore.get(informationData.eventId)?.let { translation ->
             return buildTranslatedItem(translation, informationData, highlight, callback, attributes, noticeStyle = true)
         }
-        val matrixFormattedBody = messageContent.matrixFormattedBody
+        val matrixFormattedBody = messageContent.matrixFormattedBody?.withoutPerMessageProfileFallback(informationData)
         val replyToContent = messageContent.relatesTo?.inReplyTo
         return if (matrixFormattedBody != null) {
             buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes, noticeStyle = true)
         } else {
-            val body = if (replyToContent?.eventId != null) ContentUtils.extractUsefulTextFromReply(messageContent.body) else messageContent.body
+            val rawBody = messageContent.body.withoutPerMessageProfileFallback(informationData)
+            val body = if (replyToContent?.eventId != null) ContentUtils.extractUsefulTextFromReply(rawBody) else rawBody
             buildMessageTextItem(body, false, informationData, highlight, callback, attributes, noticeStyle = true)
         }
     }
@@ -1353,7 +1356,7 @@ class MessageItemFactory @Inject constructor(
             return buildTranslatedItem(translation, informationData, highlight, callback, attributes, emoteSender = senderName)
         }
         val formattedBody = SpannableStringBuilder(
-                messageContent.getHtmlBody().asEmoteBody(senderName, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
+                messageContent.getHtmlBody(informationData).asEmoteBody(senderName, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
         )
         val bindingOptions = spanUtils.getBindingOptions(formattedBody)
         val message = formattedBody.linkify(callback)
@@ -1376,14 +1379,16 @@ class MessageItemFactory @Inject constructor(
                 .movementMethod(createLinkMovementMethod(callback))
     }
 
-    private fun MessageContentWithFormattedBody.getHtmlBody(): CharSequence {
+    private fun MessageContentWithFormattedBody.getHtmlBody(informationData: MessageInformationData): CharSequence {
         // Strip the reply fallback (embedded <mx-reply>, or the legacy "> <@user:server> …" body prefix);
         // the replied-to preview is rendered separately by InReplyToView.
         return matrixFormattedBody
+                ?.withoutPerMessageProfileFallback(informationData)
                 ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
                 ?.let { htmlCompressor.compress(it) }
                 ?.let { htmlRenderer.get().render(it, pillsPostProcessor) }
-                ?: body.let { if (relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(it) else it }
+                ?: body.withoutPerMessageProfileFallback(informationData)
+                        .let { if (relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(it) else it }
     }
 
     private fun buildRedactedItem(
@@ -1408,6 +1413,13 @@ class MessageItemFactory @Inject constructor(
                 }
     }
 
+    private fun String.withoutPerMessageProfileFallback(informationData: MessageInformationData): String {
+        val displayName = informationData.perMessageProfileFallback ?: return this
+        val plaintextFallback = "$displayName: "
+        if (startsWith(plaintextFallback)) return removePrefix(plaintextFallback)
+        return replace(PER_MESSAGE_PROFILE_HTML_FALLBACK, "")
+    }
+
     companion object {
         private const val MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT = 5
         const val MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP = 200
@@ -1415,5 +1427,6 @@ class MessageItemFactory @Inject constructor(
         private const val OBJECT_REPLACEMENT_CHAR = '￼'
         private const val OBJECT_REPLACEMENT_STRING = "￼"
         private const val PGP_FORMATTED_CACHE_SUFFIX = "\u0000fmt"
+        private val PER_MESSAGE_PROFILE_HTML_FALLBACK = Regex("<strong\\s+data-mx-profile-fallback(?:=\"\")?\\s*>([^<]+): </strong\\s*>")
     }
 }
