@@ -28,12 +28,15 @@ data class RoomDevToolViewState(
         val selectedEvent: Event? = null,
         val selectedAccountData: RoomAccountDataEvent? = null,
         val selectedEventJson: String? = null,
+        val showRawStateEvent: Boolean = false,
         val editedContent: String? = null,
         /** False while previewing an un-joined room: state browsing works, sending/editing cannot.
          * Defaults false so preview mode never flashes the edit affordances before the VM decides. */
         val canEditState: Boolean = false,
         val modalLoading: Async<Unit> = Uninitialized,
         val sendEventDraft: SendEventDraft? = null,
+        /** MSC4362: only then is the encrypt choice offered on the send-state form. */
+        val stateEncryptionEnabled: Boolean = false,
         /** True when opened straight onto a send form (/sendevent, /sendstate): there is no Root to back out to. */
         val sendFormIsRoot: Boolean = false
 ) : MavericksState {
@@ -59,12 +62,14 @@ data class RoomDevToolViewState(
     enum class SendTarget { MESSAGE, STATE, ACCOUNT_DATA }
 
     companion object {
-        fun defaultTypeFor(target: SendTarget) = if (target == SendTarget.ACCOUNT_DATA) null else EventType.MESSAGE
+        /** Only a custom message has an obvious type to start from; state and account data do not. */
+        fun defaultTypeFor(target: SendTarget) = EventType.MESSAGE.takeIf { target == SendTarget.MESSAGE }
     }
 
     data class SendEventDraft(
             val type: String?,
             val stateKey: String?,
-            val content: String?
+            val content: String?,
+            val encrypt: Boolean = true
     )
 }

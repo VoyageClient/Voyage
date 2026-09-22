@@ -24,6 +24,7 @@ sealed class CreateSpaceAction : VectorViewModelAction {
     data class DefaultInvite3pidChanged(val index: Int, val email: String) : CreateSpaceAction()
     data class SetJoinRule(val joinRule: RoomJoinRules) : CreateSpaceAction()
     data class SetIsEncrypted(val isEncrypted: Boolean) : CreateSpaceAction()
+    data class SetEncryptStateEvents(val enabled: Boolean) : CreateSpaceAction()
     object ToggleShowAdvanced : CreateSpaceAction()
     data class SetDisableFederation(val disableFederation: Boolean) : CreateSpaceAction()
     data class SetRoomVersion(val version: String) : CreateSpaceAction()

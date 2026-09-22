@@ -62,4 +62,9 @@ data class OlmDecryptionResult(
          * sent it; nobody else did.
          */
         @Json(name = "shared_by_user_id") val sharedByUserId: String? = null,
+
+        @Json(name = "wire_type") val wireType: String? = null,
+        @Json(name = "wire_state_key") val wireStateKey: String? = null,
+        @Json(name = "wire_content") val wireContent: JsonDict? = null,
+        @Json(name = "wire_prev_content") val wirePrevContent: JsonDict? = null,
 )

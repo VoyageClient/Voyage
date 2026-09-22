@@ -38,6 +38,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.startSharePlainTextIntent
+import im.vector.app.databinding.DialogEnableEncryptionBinding
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
 import im.vector.app.features.displayname.getBestName
@@ -322,12 +323,13 @@ class RoomProfileFragment :
     }
 
     override fun onEnableEncryptionClicked() {
+        val dialogViews = DialogEnableEncryptionBinding.inflate(layoutInflater)
         MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(CommonStrings.room_settings_enable_encryption_dialog_title)
-                .setMessage(CommonStrings.room_settings_enable_encryption_dialog_content)
+                .setView(dialogViews.root)
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .setPositiveButton(CommonStrings.room_settings_enable_encryption_dialog_submit) { _, _ ->
-                    roomProfileViewModel.handle(RoomProfileAction.EnableEncryption)
+                    roomProfileViewModel.handle(RoomProfileAction.EnableEncryption(dialogViews.enableEncryptionStateCheck.isChecked))
                 }
                 .show()
     }

@@ -126,6 +126,10 @@ class CreateSpaceDetailsFragment :
         sharedViewModel.handle(CreateSpaceAction.SetIsEncrypted(isEncrypted))
     }
 
+    override fun setEncryptStateEvents(enabled: Boolean) {
+        sharedViewModel.handle(CreateSpaceAction.SetEncryptStateEvents(enabled))
+    }
+
     override fun toggleShowAdvanced() {
         sharedViewModel.handle(CreateSpaceAction.ToggleShowAdvanced)
     }

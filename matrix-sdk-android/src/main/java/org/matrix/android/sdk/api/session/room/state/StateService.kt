@@ -34,12 +34,12 @@ interface StateService {
      * Update the topic of the room. [formattedTopic] is the HTML rendering to publish alongside the
      * plain text (MSC3765 extensible topics); pass null for a plain-text-only topic.
      */
-    suspend fun updateTopic(topic: String, formattedTopic: String? = null)
+    suspend fun updateTopic(topic: String, formattedTopic: String? = null, forceStateEncryption: Boolean = false)
 
     /**
      * Update the name of the room.
      */
-    suspend fun updateName(name: String)
+    suspend fun updateName(name: String, forceStateEncryption: Boolean = false)
 
     /**
      * Update the canonical alias of the room.
@@ -61,7 +61,7 @@ interface StateService {
     /**
      * Update the avatar of the room.
      */
-    suspend fun updateAvatar(avatarUri: String, fileName: String)
+    suspend fun updateAvatar(avatarUri: String, fileName: String, forceStateEncryption: Boolean = false)
 
     /**
      * Delete the avatar of the room.
@@ -115,9 +115,11 @@ interface StateService {
      * @param eventType The type of event to send.
      * @param stateKey The state_key for the state to send. Can be an empty string.
      * @param body The content object of the event; the fields in this object will vary depending on the type of event
+     * @param encrypt MSC4362: null encrypts the event if the room encrypts its state, true and false
+     * override that either way.
      * @return the id of the created state event
      */
-    suspend fun sendStateEvent(eventType: String, stateKey: String, body: JsonDict): String
+    suspend fun sendStateEvent(eventType: String, stateKey: String, body: JsonDict, encrypt: Boolean? = null): String
 
     /**
      * Get a state event of the room.

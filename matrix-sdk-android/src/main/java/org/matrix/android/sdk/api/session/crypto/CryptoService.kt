@@ -146,7 +146,8 @@ interface CryptoService {
     suspend fun encryptEventContent(
             eventContent: Content,
             eventType: String,
-            roomId: String
+            roomId: String,
+            stateKey: String? = null,
     ): MXEncryptEventContentResult
 
     fun discardOutboundSession(roomId: String)
@@ -155,6 +156,8 @@ interface CryptoService {
     suspend fun decryptEvent(event: Event, timeline: String): MXEventDecryptionResult
 
     fun getEncryptionAlgorithm(roomId: String): String?
+
+    fun isStateEncryptionEnabled(roomId: String): Boolean
 
     fun shouldEncryptForInvitedMembers(roomId: String): Boolean
 

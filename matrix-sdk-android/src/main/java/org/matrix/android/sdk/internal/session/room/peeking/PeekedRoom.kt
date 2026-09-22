@@ -176,13 +176,13 @@ internal class PeekedRoom(
             )
         }
 
-        override suspend fun sendStateEvent(eventType: String, stateKey: String, body: JsonDict): String = readOnly()
-        override suspend fun updateTopic(topic: String, formattedTopic: String?) = readOnly()
-        override suspend fun updateName(name: String) = readOnly()
+        override suspend fun sendStateEvent(eventType: String, stateKey: String, body: JsonDict, encrypt: Boolean?): String = readOnly()
+        override suspend fun updateTopic(topic: String, formattedTopic: String?, forceStateEncryption: Boolean) = readOnly()
+        override suspend fun updateName(name: String, forceStateEncryption: Boolean) = readOnly()
         override suspend fun updateCanonicalAlias(alias: String?, altAliases: List<String>) = readOnly()
         override suspend fun updateHistoryReadability(readability: RoomHistoryVisibility) = readOnly()
         override suspend fun updateJoinRule(joinRules: RoomJoinRules?, guestAccess: GuestAccess?, allowList: List<RoomJoinRulesAllowEntry>?) = readOnly()
-        override suspend fun updateAvatar(avatarUri: String, fileName: String) = readOnly()
+        override suspend fun updateAvatar(avatarUri: String, fileName: String, forceStateEncryption: Boolean) = readOnly()
         override suspend fun deleteAvatar() = readOnly()
         override suspend fun updateBanner(bannerUri: String, fileName: String) = readOnly()
         override suspend fun deleteBanner() = readOnly()
@@ -501,7 +501,7 @@ internal class PeekedRoom(
         override fun isEncrypted(): Boolean = false
         override fun encryptionAlgorithm(): String? = null
         override fun shouldEncryptForInvitedMembers(): Boolean = false
-        override suspend fun enableEncryption(algorithm: String, force: Boolean) = readOnly()
+        override suspend fun enableEncryption(algorithm: String, force: Boolean, encryptStateEvents: Boolean) = readOnly()
         override suspend fun prepareToEncrypt() = Unit
     }
 

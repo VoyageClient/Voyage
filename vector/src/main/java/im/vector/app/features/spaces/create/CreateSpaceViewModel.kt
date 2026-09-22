@@ -200,13 +200,15 @@ class CreateSpaceViewModel @AssistedInject constructor(
                 }
             }
             is CreateSpaceAction.SetIsEncrypted -> {
-                setState { copy(isEncrypted = action.isEncrypted) }
+                setState { copy(isEncrypted = action.isEncrypted, encryptStateEvents = encryptStateEvents && action.isEncrypted) }
             }
+            is CreateSpaceAction.SetEncryptStateEvents -> setState { copy(encryptStateEvents = action.enabled) }
             CreateSpaceAction.ToggleShowAdvanced -> {
                 setState {
                     val hiding = showAdvanced
                     copy(
                             showAdvanced = !hiding,
+                            encryptStateEvents = encryptStateEvents && !hiding,
                             disableFederation = disableFederation && !hiding,
                             roomVersion = if (hiding) defaultRoomVersion else roomVersion,
                             myPowerLevelOverride = if (hiding) null else myPowerLevelOverride,

@@ -76,7 +76,10 @@ class RoomDevToolViewModel @AssistedInject constructor(
 
     init {
         setState {
-            copy(canEditState = session.getRoom(initialState.roomId)?.roomSummary()?.membership == Membership.JOIN)
+            copy(
+                    canEditState = session.getRoom(initialState.roomId)?.roomSummary()?.membership == Membership.JOIN,
+                    stateEncryptionEnabled = session.cryptoService().isStateEncryptionEnabled(initialState.roomId)
+            )
         }
         session.getRoom(initialState.roomId)
                 ?.flow()
@@ -181,6 +184,16 @@ class RoomDevToolViewModel @AssistedInject constructor(
             RoomDevToolAction.MenuItemSend -> {
                 handleMenuItemSend()
             }
+            RoomDevToolAction.ToggleRawStateEvent -> withState { state ->
+                val event = state.selectedEvent ?: return@withState
+                val showRaw = !state.showRawStateEvent
+                setState {
+                    copy(
+                            showRawStateEvent = showRaw,
+                            selectedEventJson = stateEventJson(event, showRaw)
+                    )
+                }
+            }
             is RoomDevToolAction.UpdateContentText -> {
                 setState {
                     copy(editedContent = action.contentJson)
@@ -207,6 +220,11 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     copy(
                             sendEventDraft = sendEventDraft?.copy(stateKey = action.stateKey)
                     )
+                }
+            }
+            is RoomDevToolAction.CustomEventEncryptChange -> {
+                setState {
+                    copy(sendEventDraft = sendEventDraft?.copy(encrypt = action.encrypt))
                 }
             }
             is RoomDevToolAction.CustomEventContentChange -> {
@@ -321,7 +339,8 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     RoomDevToolViewState.SendTarget.STATE -> room.stateService().sendStateEvent(
                             eventType,
                             state.sendEventDraft.stateKey.orEmpty(),
-                            json
+                            json,
+                            encrypt = state.sendEventDraft.encrypt.takeIf { state.stateEncryptionEnabled }
                     )
                     RoomDevToolViewState.SendTarget.MESSAGE -> room.sendService().sendEvent(
                             eventType,
@@ -360,13 +379,10 @@ class RoomDevToolViewModel @AssistedInject constructor(
     private fun showStateEventDetail(event: Event, fromSearch: Boolean = false) {
         // Coerce up front so the source we show (and copy to clipboard) is already correct JSON —
         // integers, not "size":15394.0 floats from Moshi's Any adapter.
-        val sanitizedEvent = event.copy(
+        val sanitizedEvent = event.copyAll(
                 content = coerceContent(event.content),
                 prevContent = coerceContent(event.prevContent),
         )
-        val jsonString = MatrixJsonParser.getMoshi()
-                .adapter(Event::class.java)
-                .toJson(sanitizedEvent)
         setState {
             copy(
                     displayMode = RoomDevToolViewState.Mode.StateEventDetail,
@@ -374,9 +390,28 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     detailSearchQuery = "",
                     selectedEvent = sanitizedEvent,
                     selectedAccountData = null,
-                    selectedEventJson = jsonString
+                    selectedEventJson = stateEventJson(sanitizedEvent, false),
+                    showRawStateEvent = false
             )
         }
+    }
+
+    // unsigned.prev_content of an encrypted state event is stored as it arrived, so it is still the
+    // encrypted payload; show the decrypted one alongside the decrypted content.
+    private fun stateEventJson(event: Event, raw: Boolean): String {
+        val decryptionResult = event.mxDecryptionResult
+        val displayedEvent = when {
+            decryptionResult == null -> event
+            raw && decryptionResult.wireContent != null -> event.copyAll(
+                    type = decryptionResult.wireType,
+                    stateKey = decryptionResult.wireStateKey,
+                    content = coerceContent(decryptionResult.wireContent),
+                    prevContent = coerceContent(decryptionResult.wirePrevContent),
+                    unsignedData = event.unsignedData?.copy(prevContent = coerceContent(decryptionResult.wirePrevContent)),
+            )
+            else -> event.copyAll(unsignedData = event.unsignedData?.copy(prevContent = event.prevContent))
+        }
+        return MatrixJsonParser.getMoshi().adapter(Event::class.java).toJson(displayedEvent)
     }
 
     private fun singleEmptyKeyEvent(state: RoomDevToolViewState, type: String?): Event? {

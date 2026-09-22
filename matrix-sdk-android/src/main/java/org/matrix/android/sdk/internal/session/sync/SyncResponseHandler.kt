@@ -37,6 +37,7 @@ import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.SessionManager
+import org.matrix.android.sdk.internal.crypto.decryptStatePrevContent
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
@@ -110,6 +111,7 @@ internal class SyncResponseHandler @Inject constructor(
                                 // MSC4222 replaces state with state_after; crypto needs either form.
                                 val isGappySync = roomSync.timeline?.limited.orFalse()
                                 (roomSync.stateAfter ?: roomSync.state)?.events?.filter { it.isStateEvent() }?.forEach {
+                                    if (it.isEncrypted()) decryptIfNeeded(it, roomId)
                                     MatrixPerf.timeSuspending("crypto.onStateEvent") {
                                         cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator, isGappySync)
                                     }
@@ -185,7 +187,12 @@ internal class SyncResponseHandler @Inject constructor(
                     forwardingCurve25519KeyChain = result.forwardingCurve25519KeyChain,
                     verificationState = result.messageVerificationState,
                     sharedByUserId = result.sharedByUserId,
+                    wireType = event.type,
+                    wireStateKey = event.stateKey,
+                    wireContent = event.content,
+                    wirePrevContent = event.prevContent ?: event.unsignedData?.prevContent,
             )
+            cryptoService.decryptStatePrevContent(event, roomId, timelineId)?.let { event.decryptedPrevContent = it }
         } catch (e: MXCryptoError) {
             Timber.v(e, "Failed to decrypt $roomId")
             if (e is MXCryptoError.Base) {

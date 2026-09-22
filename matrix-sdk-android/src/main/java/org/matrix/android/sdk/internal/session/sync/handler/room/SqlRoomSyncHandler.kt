@@ -31,7 +31,9 @@ import org.matrix.android.sdk.api.session.sync.model.RoomSyncHeroProfile
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.MatrixPerf
+import org.matrix.android.sdk.internal.crypto.EncryptedStateEvents
 import org.matrix.android.sdk.internal.crypto.algorithms.megolm.UnRequestedForwardManager
+import org.matrix.android.sdk.internal.crypto.isStateEncryptionEnabled
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.mapper.overriddenSenderInfo
@@ -255,9 +257,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
     ) {
         events?.forEach { event ->
             val eventId = event.eventId
-            val stateKey = event.stateKey
-            val type = event.type
-            if (stateKey == null || type == null) return@forEach
+            val (type, stateKey) = EncryptedStateEvents.stateSlot(event) ?: return@forEach
             if (type in SPACE_RELATION_TYPES) aggregator.spaceHierarchyChanged = true
             if (eventId == null) {
                 // MSC4186 reports state that no longer applies as a bare {type, state_key} stub. Sync v2
@@ -267,9 +267,19 @@ internal class SqlRoomSyncHandler @Inject constructor(
             }
             val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
             insertEventOrIgnore(stores, event.toEntity(roomId, SendState.SYNCED, ageLocalTs), insertType)
-            stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
+            if (!yieldsToEncryptedState(stores, roomId, event, type, stateKey)) {
+                stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
+            }
             roomMemberEventHandler.handle(stores, roomId, event, isInitialSync, aggregator)
         }
+    }
+
+    // MSC4362: while an encrypted state event holds a (type, state key), an unencrypted one must not
+    // take it over. Only reached for types that can be encrypted, in rooms that encrypt their state.
+    private fun yieldsToEncryptedState(stores: SessionStores, roomId: String, event: Event, type: String, stateKey: String): Boolean {
+        if (event.isEncrypted() || type in EncryptedStateEvents.UNENCRYPTABLE_TYPES) return false
+        if (!stores.isStateEncryptionEnabled(roomId)) return false
+        return stores.currentStateEvent.isHeldByEncryptedState(roomId, type, stateKey)
     }
 
     // When the remote copy of a sent edit arrives, re-point its edit-summary edition from the local echo
@@ -481,11 +491,14 @@ internal class SqlRoomSyncHandler @Inject constructor(
 
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
             val eventDbId = MatrixPerf.time("sync.timeline.insertEvent") { insertEventOrIgnore(stores, entity, insertType) }
-            val stateKey = event.stateKey
-            if (stateKey != null) {
-                MatrixPerf.time("tl.currentStateUpsert") { stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId) }
-                if (type in SPACE_RELATION_TYPES) aggregator.spaceHierarchyChanged = true
-                if (type == EventType.STATE_ROOM_MEMBER) {
+            val slot = EncryptedStateEvents.stateSlot(event)
+            if (slot != null) {
+                val (clearType, stateKey) = slot
+                if (!yieldsToEncryptedState(stores, roomId, event, clearType, stateKey)) {
+                    MatrixPerf.time("tl.currentStateUpsert") { stores.currentStateEvent.upsert(roomId, clearType, stateKey, eventId, eventId) }
+                }
+                if (clearType in SPACE_RELATION_TYPES) aggregator.spaceHierarchyChanged = true
+                if (clearType == EventType.STATE_ROOM_MEMBER) {
                     roomMemberContentsByUser[stateKey] = event.getFixedRoomMemberContent()
                     roomMemberEventIdsByUser[stateKey] = eventId
                     MatrixPerf.time("tl.memberEventHandler") { roomMemberEventHandler.handle(stores, roomId, event, isInitialSync) }

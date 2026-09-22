@@ -22,6 +22,8 @@ import dagger.assisted.AssistedInject
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventContent
+import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.crypto.RoomCryptoService
 import org.matrix.android.sdk.internal.session.room.state.SendStateTask
 import java.security.InvalidParameterException
@@ -53,7 +55,7 @@ internal class DefaultRoomCryptoService @AssistedInject constructor(
         cryptoService.prepareToEncrypt(roomId)
     }
 
-    override suspend fun enableEncryption(algorithm: String, force: Boolean) {
+    override suspend fun enableEncryption(algorithm: String, force: Boolean, encryptStateEvents: Boolean) {
         when {
             (!force && isEncrypted() && encryptionAlgorithm() == MXCRYPTO_ALGORITHM_MEGOLM) -> {
                 throw IllegalStateException("Encryption is already enabled for this room")
@@ -66,9 +68,11 @@ internal class DefaultRoomCryptoService @AssistedInject constructor(
                         roomId = roomId,
                         stateKey = "",
                         eventType = EventType.STATE_ROOM_ENCRYPTION,
-                        body = mapOf(
-                                "algorithm" to algorithm
-                        )
+                        body = EncryptionEventContent(
+                                algorithm = algorithm,
+                                encryptStateEvents = if (encryptStateEvents) true else null,
+                                encryptStateEventsUnstable = if (encryptStateEvents) true else null,
+                        ).toContent()
                 )
 
                 sendStateTask.execute(params)

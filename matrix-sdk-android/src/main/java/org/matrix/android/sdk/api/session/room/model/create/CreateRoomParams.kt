@@ -155,10 +155,14 @@ open class CreateRoomParams {
     var algorithm: String? = null
         internal set
 
+    var encryptStateEvents: Boolean = false
+        internal set
+
     var historyVisibility: RoomHistoryVisibility? = null
 
-    fun enableEncryption() {
+    fun enableEncryption(encryptStateEvents: Boolean = false) {
         algorithm = MXCRYPTO_ALGORITHM_MEGOLM
+        this.encryptStateEvents = encryptStateEvents
     }
 
     var roomVersion: String? = null

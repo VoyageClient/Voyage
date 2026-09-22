@@ -89,7 +89,8 @@ internal class MXMegolmEncryption(
     override suspend fun encryptEventContent(
             eventContent: Content,
             eventType: String,
-            userIds: List<String>
+            userIds: List<String>,
+            stateKey: String?,
     ): Content {
         val ts = clock.epochMillis()
         Timber.tag(loggerTag.value).v("encryptEventContent : getDevicesInRoom")
@@ -109,7 +110,7 @@ internal class MXMegolmEncryption(
         Timber.tag(loggerTag.value).v("encryptEventContent ${clock.epochMillis() - ts}: getDevicesInRoom ${devices.allowedDevices.toDebugString()}")
         val outboundSession = ensureOutboundSession(devices.allowedDevices)
 
-        return encryptContent(outboundSession, eventType, eventContent)
+        return encryptContent(outboundSession, eventType, eventContent, stateKey)
                 .also {
                     notifyWithheldForSession(devices.withHeldDevices, outboundSession)
                     // annoyingly we have to serialize again the saved outbound session to store message index :/
@@ -405,12 +406,13 @@ internal class MXMegolmEncryption(
     /**
      * process the pending encryptions.
      */
-    private fun encryptContent(session: MXOutboundSessionInfo, eventType: String, eventContent: Content): Content {
+    private fun encryptContent(session: MXOutboundSessionInfo, eventType: String, eventContent: Content, stateKey: String?): Content {
         // Everything is in place, encrypt all pending events
         val payloadJson = HashMap<String, Any>()
         payloadJson["room_id"] = roomId
         payloadJson["type"] = eventType
         payloadJson["content"] = eventContent
+        stateKey?.let { payloadJson["state_key"] = it }
 
         // Get canonical Json from
 

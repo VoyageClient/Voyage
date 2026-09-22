@@ -36,7 +36,7 @@ internal class MXOlmEncryption(
 ) :
         IMXEncrypting {
 
-    override suspend fun encryptEventContent(eventContent: Content, eventType: String, userIds: List<String>): Content {
+    override suspend fun encryptEventContent(eventContent: Content, eventType: String, userIds: List<String>, stateKey: String?): Content {
         // pick the list of recipients based on the membership list.
         //
         // TODO there is a race condition here! What if a new user turns up

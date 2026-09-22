@@ -42,6 +42,8 @@ internal class CryptoSessionInfoProvider @Inject constructor(
         return stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_ENCRYPTION, "") != null
     }
 
+    fun isStateEncryptionEnabled(roomId: String): Boolean = stores.isStateEncryptionEnabled(roomId)
+
     /**
      * @param roomId the room Id
      * @param allActive if true return joined as well as invited, if false, only joined

@@ -8,6 +8,7 @@
 package im.vector.app.features.devtools
 
 import com.airbnb.epoxy.TypedEpoxyController
+import im.vector.app.R
 import im.vector.app.core.epoxy.noResultItem
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
@@ -50,6 +51,9 @@ class RoomStateListController @Inject constructor(
                                         host.stringProvider.getQuantityString(CommonPlurals.entries, entry.value.size, entry.value.size)
                                                 .toEpoxyCharSequence()
                                 )
+                                if (entry.value.any { it.isStateEncrypted() }) {
+                                    endIconResourceId(R.drawable.ic_shield_black)
+                                }
                                 itemClickAction {
                                     host.interactionListener?.processAction(RoomDevToolAction.ShowStateEventType(entry.key))
                                 }
@@ -58,14 +62,18 @@ class RoomStateListController @Inject constructor(
                     }
                 } else {
                     // Searching spans every type at once, so results are flat events rather than type groups.
-                    buildStateEvents(data.stateEvents.invoke().orEmpty().filter { query.matches(it.type, it.stateKey, it.content) }, fromSearch = true)
+                    buildStateEvents(
+                            data.stateEvents.invoke().orEmpty()
+                                    .filter { query.matches(it.getClearType(), it.getClearStateKey(), it.content) },
+                            fromSearch = true
+                    )
                 }
             }
             RoomDevToolViewState.Mode.StateEventListByType -> {
                 buildStateEvents(
                         data.stateEvents.invoke().orEmpty()
-                                .filter { it.type == data.currentStateType }
-                                .filter { query.matches(it.type, it.stateKey, it.content) },
+                                .filter { it.getClearType() == data.currentStateType }
+                                .filter { query.matches(it.getClearType(), it.getClearStateKey(), it.content) },
                         fromSearch = false
                 )
             }
@@ -121,22 +129,25 @@ class RoomStateListController @Inject constructor(
                 }
             }
             genericItem {
-                id(stateEvent.eventId ?: "${stateEvent.type}-${stateEvent.stateKey}")
+                id(stateEvent.eventId ?: "${stateEvent.getClearType()}-${stateEvent.getClearStateKey()}")
                 title(span {
                     +"Type: "
                     span {
                         textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                        text = "\"${stateEvent.type?.neutralizeDirectionOverrides()}\""
+                        text = "\"${stateEvent.getClearType().neutralizeDirectionOverrides()}\""
                         textStyle = "normal"
                     }
                     +"\nState Key: "
                     span {
                         textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                        text = stateEvent.stateKey.let { "\"${it?.neutralizeDirectionOverrides()}\"" }
+                        text = stateEvent.getClearStateKey().let { "\"${it?.neutralizeDirectionOverrides()}\"" }
                         textStyle = "normal"
                     }
                 }.toEpoxyCharSequence())
                 description(contentJson.neutralizeDirectionOverrides().toEpoxyCharSequence())
+                if (stateEvent.isStateEncrypted()) {
+                    endIconResourceId(R.drawable.ic_shield_black)
+                }
                 itemClickAction {
                     host.interactionListener?.processAction(RoomDevToolAction.ShowStateEvent(stateEvent, fromSearch))
                 }
@@ -144,3 +155,6 @@ class RoomStateListController @Inject constructor(
         }
     }
 }
+
+/** MSC4362: the event reached us encrypted, so it is state the homeserver cannot read. */
+private fun Event.isStateEncrypted() = isEncrypted() || mxDecryptionResult != null

@@ -100,6 +100,9 @@ data class Event(
     var mCryptoErrorReason: String? = null
 
     @Transient
+    var decryptedPrevContent: Content? = null
+
+    @Transient
     var sendState: SendState = SendState.UNKNOWN
 
     @Transient
@@ -183,6 +186,7 @@ data class Event(
             it.mxDecryptionResult = mxDecryptionResult
             it.mCryptoError = mCryptoError
             it.mCryptoErrorReason = mCryptoErrorReason
+            it.decryptedPrevContent = decryptedPrevContent
             it.sendState = sendState
             it.ageLocalTs = ageLocalTs
             it.threadDetails = threadDetails
@@ -235,6 +239,11 @@ data class Event(
      */
     fun getDecryptedType(): String? {
         return mxDecryptionResult?.payload?.get("type")?.toString()
+    }
+
+    /** MSC4362: the state key of an encrypted state event only becomes known once it is decrypted. */
+    fun getClearStateKey(): String? {
+        return if (isEncrypted()) mxDecryptionResult?.payload?.get("state_key") as? String else stateKey
     }
 
     /**
@@ -343,7 +352,7 @@ data class Event(
      */
     fun isRedactedBySameUser() = senderId == unsignedData?.redactedEvent?.senderId
 
-    fun resolvedPrevContent(): Content? = prevContent ?: unsignedData?.prevContent
+    fun resolvedPrevContent(): Content? = decryptedPrevContent ?: prevContent ?: unsignedData?.prevContent
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

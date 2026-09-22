@@ -66,11 +66,15 @@ class CreateSpaceViewModelTask @Inject constructor(
 
     override suspend fun execute(params: CreateSpaceTaskParams): CreateSpaceTaskResult {
         val isPublic = params.joinRule == RoomJoinRules.PUBLIC
+        // MSC4362: the details would be created in the clear, so they are sent encrypted afterwards instead.
+        val encryptState = params.isEncrypted && params.advancedOptions.encryptStateEvents
         val spaceID = try {
             session.spaceService().createSpace(CreateSpaceParams().apply {
-                this.name = params.spaceName
-                this.topic = params.spaceTopic
-                this.avatarUri = params.spaceAvatar?.toString()
+                if (!encryptState) {
+                    this.name = params.spaceName
+                    this.topic = params.spaceTopic
+                    this.avatarUri = params.spaceAvatar?.toString()
+                }
                 if (isPublic) {
                     this.roomAliasName = params.spaceAlias
                     this.powerLevelContentOverride = (powerLevelContentOverride ?: PowerLevelsContent()).copy(
@@ -101,7 +105,7 @@ class CreateSpaceViewModelTask @Inject constructor(
                     )
                 }
                 if (params.isEncrypted) {
-                    enableEncryption()
+                    enableEncryption(encryptState)
                 }
                 applyAdvancedRoomOptions(params.advancedOptions, session.myUserId, params.customInitialStates)
             })
@@ -110,6 +114,17 @@ class CreateSpaceViewModelTask @Inject constructor(
         }
 
         val createdSpace = session.spaceService().getSpace(spaceID)
+        if (encryptState) {
+            try {
+                session.roomService().getRoom(spaceID)?.stateService()?.also { state ->
+                    params.spaceName.takeIf { it.isNotBlank() }?.let { state.updateName(it, forceStateEncryption = true) }
+                    params.spaceTopic?.takeIf { it.isNotBlank() }?.let { state.updateTopic(it, forceStateEncryption = true) }
+                    params.spaceAvatar?.let { state.updateAvatar(it.toString(), "space-avatar", forceStateEncryption = true) }
+                }
+            } catch (failure: Throwable) {
+                return CreateSpaceTaskResult.FailedToCreateSpace(failure)
+            }
+        }
 
         val childErrors = mutableMapOf<String, Throwable>()
         val childIds = mutableListOf<String>()

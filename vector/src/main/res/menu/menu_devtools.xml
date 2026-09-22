@@ -31,4 +31,12 @@
         app:iconTint="?vctr_content_secondary"
         android:title="@string/action_send" />
 
+    <item
+        android:id="@+id/menuItemRaw"
+        android:visible="false"
+        tools:visible="true"
+        android:checkable="true"
+        app:showAsAction="never"
+        android:title="@string/account_data_view_raw" />
+
 </menu>

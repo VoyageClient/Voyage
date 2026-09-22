@@ -26,11 +26,15 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.internal.crypto.EncryptedStateEvents
+import org.matrix.android.sdk.internal.crypto.applyDecryptedState
+import org.matrix.android.sdk.internal.crypto.decryptStatePrevContent
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
+import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArrayList
@@ -46,6 +50,7 @@ internal class TimelineEventDecryptor @Inject constructor(
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
         private val eventIndexer: EventIndexer,
         private val decryptionSignal: TimelineDecryptionSignal,
+        private val roomSummaryUpdater: dagger.Lazy<SqlRoomSummaryUpdater>,
 ) {
 
     private val newSessionListener = object : NewSessionListener {
@@ -196,7 +201,13 @@ internal class TimelineEventDecryptor @Inject constructor(
             if (!event.isEncrypted()) continue
             try {
                 val result = runBlocking { cryptoService.decryptEvent(event, request.timelineId) }
-                if (event.eventId != null) successes.add(event to result)
+                if (event.eventId != null) {
+                    successes.add(event to result)
+                    if (event.stateKey != null) {
+                        runBlocking { cryptoService.decryptStatePrevContent(event, event.roomId.orEmpty(), request.timelineId) }
+                                ?.let { event.decryptedPrevContent = it }
+                    }
+                }
             } catch (e: MXCryptoError) {
                 if (e is MXCryptoError.Base) {
                     errors.add(Triple(
@@ -217,12 +228,21 @@ internal class TimelineEventDecryptor @Inject constructor(
         if (successes.isNotEmpty() || errors.isNotEmpty()) {
             runBlocking {
                 database.awaitDbTransaction(dispatcher) {
+                    var spaceGraphStale = false
                     successes.forEach { (event, result) ->
                         val eventId = event.eventId.orEmpty()
-                        stores.event.applyDecryptionResult(eventId, result)
+                        stores.event.applyDecryptionResult(event, result, event.decryptedPrevContent)
+                        when (applyDecryptedState(stores, event, result, eventId)) {
+                            EncryptedStateEvents.Refresh.ROOM_SUMMARY ->
+                                roomSummaryUpdater.get().refreshStateDerivedFields(stores, event.roomId.orEmpty())
+                            EncryptedStateEvents.Refresh.SPACE_GRAPH -> spaceGraphStale = true
+                            EncryptedStateEvents.Refresh.NONE -> Unit
+                        }
                         // the event can now be aggregated (reactions/edits) on its clear content
                         stores.eventInsert.setCanBeProcessed(eventId, true)
                     }
+                    // Rebuilding the parent/child graph walks every room, so do it once for the chunk.
+                    if (spaceGraphStale) roomSummaryUpdater.get().validateSpaceRelationship(stores)
                     errors.forEach { (eventId, code, reason) ->
                         stores.event.applyDecryptionError(eventId, code, reason)
                     }

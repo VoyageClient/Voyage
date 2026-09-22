@@ -4,6 +4,8 @@ New features, improvements, and notable removals in this fork.
 
 ## Features & improvements
 
+- **Encrypted state events (MSC4362)**: room names, topics, avatars and other non-essential state can be encrypted, so the homeserver cannot read them. Experimental, and largely unsupported by other clients.
+
 - **Faster, freeze-free app**: media uploads no longer block the UI, tab-switching and message-sending are quicker, syncs on launch and idle-return are faster, and timelines and the room list are cached.
 
 - **Background-sync battery fix**: polling is gated on permissions and runs off a single alarm chain with a bounded retry loop, instead of draining the battery overnight.

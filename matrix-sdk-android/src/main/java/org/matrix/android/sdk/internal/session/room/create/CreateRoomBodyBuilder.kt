@@ -172,7 +172,7 @@ internal class CreateRoomBodyBuilder @Inject constructor(
         if (params.algorithm == null &&
                 canEnableEncryption(params)) {
             // Enable the encryption
-            params.enableEncryption()
+            params.enableEncryption(params.encryptStateEvents)
         }
         return params.algorithm
                 ?.let {
@@ -182,7 +182,11 @@ internal class CreateRoomBodyBuilder @Inject constructor(
                     Event(
                             type = EventType.STATE_ROOM_ENCRYPTION,
                             stateKey = "",
-                            content = EncryptionEventContent(it).toContent()
+                            content = EncryptionEventContent(
+                                    it,
+                                    encryptStateEvents = if (params.encryptStateEvents) true else null,
+                                    encryptStateEventsUnstable = if (params.encryptStateEvents) true else null,
+                            ).toContent()
                     )
                 }
     }

@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.database.sql.store
 
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.internal.database.model.CurrentStateEventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.Current_state_event as CurrentStateEventRow
@@ -35,6 +36,21 @@ internal class CurrentStateEventSqlStore(
 
     fun upsert(roomId: String, type: String, stateKey: String, eventId: String, rootEventId: String?) =
             queries.upsert(roomId, type, stateKey, eventId, rootEventId)
+
+    /**
+     * MSC4362: an encrypted state event is held under its packed key until it can be decrypted, then
+     * moves to its real (type, state key) — where it wins over any unencrypted event holding it.
+     */
+    fun applyDecryptedState(roomId: String, packedStateKey: String?, type: String, stateKey: String, eventId: String) {
+        packedStateKey?.let { deleteOne(roomId, EventType.ENCRYPTED, it) }
+        upsert(roomId, type, stateKey, eventId, eventId)
+    }
+
+    /** True while an encrypted state event holds this key, which an unencrypted one must not take. */
+    fun isHeldByEncryptedState(roomId: String, type: String, stateKey: String): Boolean {
+        val root = getOne(roomId, type, stateKey)?.root ?: return false
+        return root.decryptionResultJson != null || root.type == EventType.ENCRYPTED
+    }
 
     fun deleteOne(roomId: String, type: String, stateKey: String) = queries.deleteOne(roomId, type, stateKey)
 

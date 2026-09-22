@@ -187,7 +187,7 @@ class RoomProfileViewModel @AssistedInject constructor(
 
     override fun handle(action: RoomProfileAction) {
         when (action) {
-            is RoomProfileAction.EnableEncryption -> handleEnableEncryption()
+            is RoomProfileAction.EnableEncryption -> handleEnableEncryption(action.encryptStateEvents)
             RoomProfileAction.LeaveRoom -> handleLeaveRoom()
             is RoomProfileAction.ChangeRoomNotificationState -> handleChangeNotificationMode(action)
             is RoomProfileAction.ShareRoomProfile -> handleShareRoomProfile()
@@ -201,11 +201,11 @@ class RoomProfileViewModel @AssistedInject constructor(
         return room.stateService().isPublic()
     }
 
-    private fun handleEnableEncryption() {
+    private fun handleEnableEncryption(encryptStateEvents: Boolean) {
         postLoading(true)
 
         viewModelScope.launch {
-            val result = runCatching { room.roomCryptoService().enableEncryption() }
+            val result = runCatching { room.roomCryptoService().enableEncryption(encryptStateEvents = encryptStateEvents) }
             postLoading(false)
             result.onFailure { failure ->
                 _viewEvents.post(RoomProfileViewEvents.Failure(failure))

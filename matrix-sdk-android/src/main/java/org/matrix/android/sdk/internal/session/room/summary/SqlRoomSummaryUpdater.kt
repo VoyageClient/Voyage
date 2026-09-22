@@ -93,6 +93,25 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         stores.roomSummary.upsert(entity)
     }
 
+    /**
+     * Re-derive the summary fields that come from room state, for state that only became readable
+     * once it was decrypted — by then the sync pass that would have picked it up is long over.
+     */
+    fun refreshStateDerivedFields(stores: SessionStores, roomId: String) {
+        val entity = stores.roomSummary.get(roomId) ?: return
+        val nameEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_NAME, "")?.root
+        val topicEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_TOPIC, "")?.root
+        val canonicalAliasEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_CANONICAL_ALIAS, "")?.root
+        entity.name = ContentMapper.map(nameEvent?.content).toModel<RoomNameContent>()?.name
+        val topicContent = ContentMapper.map(topicEvent?.content).toModel<RoomTopicContent>()
+        entity.topic = topicContent?.getBestTopic()
+        entity.topicFormatted = topicContent?.getBestFormattedTopic()
+        entity.canonicalAlias = ContentMapper.map(canonicalAliasEvent?.content).toModel<RoomCanonicalAliasContent>()?.canonicalAlias
+        entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
+        entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
+        stores.roomSummary.upsert(entity)
+    }
+
     fun updateSendingInformation(stores: SessionStores, roomId: String) {
         val entity = stores.roomSummary.get(roomId) ?: RoomSummaryEntity(roomId = roomId)
         entity.hasFailedSending = hasFailedSending(stores, roomId)

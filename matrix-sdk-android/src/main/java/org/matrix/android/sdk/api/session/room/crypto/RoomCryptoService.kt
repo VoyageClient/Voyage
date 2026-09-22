@@ -33,7 +33,11 @@ interface RoomCryptoService {
      * will throw if encryption is already setup or if the algorithm is not supported. Only to
      * be used by admins to fix misconfigured encryption.
      */
-    suspend fun enableEncryption(algorithm: String = MXCRYPTO_ALGORITHM_MEGOLM, force: Boolean = false)
+    suspend fun enableEncryption(
+            algorithm: String = MXCRYPTO_ALGORITHM_MEGOLM,
+            force: Boolean = false,
+            encryptStateEvents: Boolean = false
+    )
 
     /**
      * Ensures all members of the room are loaded and outbound session keys are shared.

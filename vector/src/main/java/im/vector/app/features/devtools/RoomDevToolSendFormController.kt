@@ -8,6 +8,7 @@
 package im.vector.app.features.devtools
 
 import com.airbnb.epoxy.TypedEpoxyController
+import im.vector.app.core.epoxy.checkBoxItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.features.form.formEditTextItem
@@ -48,6 +49,16 @@ class RoomDevToolSendFormController @Inject constructor(
                 hint(host.stringProvider.getString(CommonStrings.dev_tools_form_hint_state_key))
                 onTextChange { text ->
                     host.interactionListener?.processAction(RoomDevToolAction.CustomEventStateKeyChange(text))
+                }
+            }
+            if (data.stateEncryptionEnabled) {
+                checkBoxItem {
+                    id("state_event_encrypt")
+                    title(host.stringProvider.getString(CommonStrings.account_data_encrypt))
+                    checked(data.sendEventDraft?.encrypt ?: true)
+                    checkChangeListener { _, checked ->
+                        host.interactionListener?.processAction(RoomDevToolAction.CustomEventEncryptChange(checked))
+                    }
                 }
             }
         }

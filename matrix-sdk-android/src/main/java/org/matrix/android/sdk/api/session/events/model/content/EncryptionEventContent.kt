@@ -39,5 +39,16 @@ data class EncryptionEventContent(
          * How many messages should be sent before changing the session. 100 is the recommended default.
          */
         @Json(name = "rotation_period_msgs")
-        val rotationPeriodMsgs: Long? = null
-)
+        val rotationPeriodMsgs: Long? = null,
+
+        /**
+         * MSC4362: whether eligible state events are encrypted in this room.
+         */
+        @Json(name = "encrypt_state_events")
+        val encryptStateEvents: Boolean? = null,
+
+        @Json(name = "io.element.msc4362.encrypt_state_events")
+        val encryptStateEventsUnstable: Boolean? = null
+) {
+    val stateEncryptionEnabled: Boolean get() = encryptStateEvents ?: encryptStateEventsUnstable ?: false
+}

@@ -16,8 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.room.state
 
+import dagger.Lazy
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import org.matrix.android.sdk.api.session.crypto.CryptoService
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.internal.crypto.EncryptedStateEvents
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.RoomAPI
@@ -31,7 +37,9 @@ internal interface SendStateTask : Task<SendStateTask.Params, String> {
             val roomId: String,
             val stateKey: String,
             val eventType: String,
-            val body: JsonDict
+            val body: JsonDict,
+            /** MSC4362: null follows the room's own setting; true and false override it. */
+            val encrypt: Boolean? = null,
     )
 }
 
@@ -39,6 +47,7 @@ internal class DefaultSendStateTask @Inject constructor(
         private val roomAPI: RoomAPI,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val createRoomFromLocalRoomTask: CreateRoomFromLocalRoomTask,
+        private val cryptoService: Lazy<CryptoService>,
 ) : SendStateTask {
 
     override suspend fun execute(params: SendStateTask.Params): String {
@@ -47,18 +56,19 @@ internal class DefaultSendStateTask @Inject constructor(
                 // Room is local, so create a real one and send the event to this new room
                 createRoomAndSendEvent(params)
             } else {
-                val response = if (params.stateKey.isEmpty()) {
+                val event = encryptIfNeeded(params)
+                val response = if (event.stateKey.isEmpty()) {
                     roomAPI.sendStateEvent(
-                            roomId = params.roomId,
-                            stateEventType = params.eventType,
-                            params = params.body
+                            roomId = event.roomId,
+                            stateEventType = event.eventType,
+                            params = event.body
                     )
                 } else {
                     roomAPI.sendStateEvent(
-                            roomId = params.roomId,
-                            stateEventType = params.eventType,
-                            stateKey = params.stateKey,
-                            params = params.body
+                            roomId = event.roomId,
+                            stateEventType = event.eventType,
+                            stateKey = event.stateKey,
+                            params = event.body
                     )
                 }
                 response.eventId.also {
@@ -68,9 +78,37 @@ internal class DefaultSendStateTask @Inject constructor(
         }
     }
 
+    private suspend fun encryptIfNeeded(params: SendStateTask.Params): SendStateTask.Params {
+        if (params.eventType in EncryptedStateEvents.UNENCRYPTABLE_TYPES) return params
+        val encrypt = params.encrypt ?: cryptoService.get().isStateEncryptionEnabled(params.roomId)
+        if (!encrypt) return params
+        awaitEncryptionReady(params.roomId)
+        val encrypted = cryptoService.get().encryptEventContent(params.body, params.eventType, params.roomId, params.stateKey)
+        return params.copy(
+                stateKey = EncryptedStateEvents.packStateKey(params.eventType, params.stateKey),
+                eventType = EventType.ENCRYPTED,
+                body = encrypted.eventContent,
+        )
+    }
+
+    // Callers that force encryption send right after creating the room, before m.room.encryption has
+    // come back down sync — without the key the room has, there is nothing to encrypt to. Returns at
+    // once in a room whose algorithm is already known.
+    private suspend fun awaitEncryptionReady(roomId: String) {
+        withTimeoutOrNull(ENCRYPTION_READY_TIMEOUT_MS) {
+            while (cryptoService.get().getEncryptionAlgorithm(roomId) == null) {
+                delay(500)
+            }
+        } ?: throw IllegalStateException("Timed out waiting for encryption to be enabled in $roomId")
+    }
+
     private suspend fun createRoomAndSendEvent(params: SendStateTask.Params): String {
         val roomId = createRoomFromLocalRoomTask.execute(CreateRoomFromLocalRoomTask.Params(params.roomId))
         Timber.d("State event: convert local room (${params.roomId}) to existing room ($roomId) before sending the event.")
         return execute(params.copy(roomId = roomId))
+    }
+
+    companion object {
+        private const val ENCRYPTION_READY_TIMEOUT_MS = 30_000L
     }
 }

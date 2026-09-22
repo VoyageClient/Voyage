@@ -29,12 +29,16 @@ import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.internal.crypto.EncryptedStateEvents
+import org.matrix.android.sdk.internal.crypto.applyDecryptedState
+import org.matrix.android.sdk.internal.crypto.decryptStatePrevContent
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
+import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.search.index.DecryptedEventIndexer
 import timber.log.Timber
 import javax.inject.Inject
@@ -50,6 +54,8 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
         private val eventIndexer: DecryptedEventIndexer,
         private val decryptionSignal: TimelineDecryptionSignal,
+        // Lazy: SqlRoomSummaryUpdater injects this decryptor to re-attempt the preview event.
+        private val roomSummaryUpdater: dagger.Lazy<SqlRoomSummaryUpdater>,
 ) {
 
     internal sealed class Message {
@@ -115,10 +121,17 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
 
         try {
             val result = cryptoService.get().decryptEvent(event, "")
+            val clearPrevContent = cryptoService.get().decryptStatePrevContent(event, event.roomId.orEmpty(), "")
             // now let's persist the result in database
             val eventId = event.eventId.orEmpty()
             database.awaitDbTransaction(dispatcher) {
-                stores.event.applyDecryptionResult(eventId, result)
+                stores.event.applyDecryptionResult(event, result, clearPrevContent)
+                when (applyDecryptedState(stores, event, result, eventId)) {
+                    EncryptedStateEvents.Refresh.ROOM_SUMMARY ->
+                        roomSummaryUpdater.get().refreshStateDerivedFields(stores, event.roomId.orEmpty())
+                    EncryptedStateEvents.Refresh.SPACE_GRAPH -> roomSummaryUpdater.get().validateSpaceRelationship(stores)
+                    EncryptedStateEvents.Refresh.NONE -> Unit
+                }
                 stores.eventInsert.setCanBeProcessed(eventId, true)
                 // The room list won't see this event-table write; refresh the summary it previews.
                 stores.roomSummary.roomIdsWithPreviewEvent(listOf(eventId)).forEach { roomId ->

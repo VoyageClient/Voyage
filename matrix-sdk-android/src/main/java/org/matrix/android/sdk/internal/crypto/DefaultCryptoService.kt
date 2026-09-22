@@ -209,7 +209,7 @@ internal class DefaultCryptoService @Inject constructor(
     override fun supportsForwardedKeyWiththeld() = true
 
     override suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?, isGappySync: Boolean) {
-        when (event.type) {
+        when (event.getClearType()) {
             EventType.STATE_ROOM_ENCRYPTION -> MatrixPerf.timeSuspending("crypto.encryptionEvent") { onRoomEncryptionEvent(roomId, event) }
             EventType.STATE_ROOM_MEMBER -> MatrixPerf.timeSuspending("crypto.memberEvent") {
                 onRoomMembershipEvent(roomId, event, isGappySync, cryptoStoreAggregator)
@@ -223,7 +223,7 @@ internal class DefaultCryptoService @Inject constructor(
     override suspend fun onLiveEvent(roomId: String, event: Event, isInitialSync: Boolean, cryptoStoreAggregator: CryptoStoreAggregator?) {
         // handle state events
         if (event.isStateEvent()) {
-            when (event.type) {
+            when (event.getClearType()) {
                 EventType.STATE_ROOM_ENCRYPTION -> onRoomEncryptionEvent(roomId, event)
                 EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event, cryptoStoreAggregator = cryptoStoreAggregator)
                 EventType.STATE_ROOM_HISTORY_VISIBILITY -> onRoomHistoryVisibilityEvent(roomId, event, cryptoStoreAggregator)
@@ -727,6 +727,8 @@ internal class DefaultCryptoService @Inject constructor(
         return cryptoStore.getRoomAlgorithm(roomId)
     }
 
+    override fun isStateEncryptionEnabled(roomId: String): Boolean = cryptoSessionInfoProvider.isStateEncryptionEnabled(roomId)
+
     /**
      * Determine whether we should encrypt messages for invited users in this room.
      * <p>
@@ -751,6 +753,7 @@ internal class DefaultCryptoService @Inject constructor(
             eventContent: Content,
             eventType: String,
             roomId: String,
+            stateKey: String?,
     ): MXEncryptEventContentResult {
         // moved to crypto scope to have uptodate values
         return withContext(coroutineDispatchers.crypto) {
@@ -768,7 +771,7 @@ internal class DefaultCryptoService @Inject constructor(
             if (safeAlgorithm != null) {
                 val t0 = clock.epochMillis()
                 Timber.tag(loggerTag.value).v("encryptEventContent() starts")
-                val content = safeAlgorithm.encryptEventContent(eventContent, eventType, userIds)
+                val content = safeAlgorithm.encryptEventContent(eventContent, eventType, userIds, stateKey)
                 Timber.tag(loggerTag.value).v("## CRYPTO | encryptEventContent() : succeeds after ${clock.epochMillis() - t0} ms")
                 return@withContext MXEncryptEventContentResult(content, EventType.ENCRYPTED)
             } else {
@@ -803,7 +806,14 @@ internal class DefaultCryptoService @Inject constructor(
      */
     @Throws(MXCryptoError::class)
     override suspend fun decryptEvent(event: Event, timeline: String): MXEventDecryptionResult {
-        return internalDecryptEvent(event, timeline)
+        return internalDecryptEvent(event, timeline).also { result ->
+            if (!EncryptedStateEvents.isPackedStateKeyValid(event.stateKey, result.clearEvent)) {
+                throw MXCryptoError.Base(
+                        MXCryptoError.ErrorType.BAD_ENCRYPTED_MESSAGE,
+                        "Encrypted state event has a mismatched packed state key",
+                )
+            }
+        }
     }
 
     /**

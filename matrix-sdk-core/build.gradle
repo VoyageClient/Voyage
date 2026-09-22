@@ -885,6 +885,7 @@ ext.coreSources = [
         // Feature-area leaf sweep: Retrofit APIs, tasks and stateless helpers across call/widgets/
         // space/directory/homeserver/media/alias/signout/crypto that resolve entirely against core.
         'org/matrix/android/sdk/internal/crypto/CryptoSessionInfoProvider.kt',
+        'org/matrix/android/sdk/internal/crypto/EncryptedStateEvents.kt',
         'org/matrix/android/sdk/internal/crypto/GetRoomUserIdsUseCase.kt',
         'org/matrix/android/sdk/internal/crypto/ShouldEncryptForInvitedMembersUseCase.kt',
         'org/matrix/android/sdk/internal/crypto/store/IMXCommonCryptoStore.kt',

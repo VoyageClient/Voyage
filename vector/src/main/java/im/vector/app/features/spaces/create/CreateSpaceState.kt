@@ -23,6 +23,7 @@ data class CreateSpaceState(
         val joinRule: RoomJoinRules = RoomJoinRules.INVITE,
         val supportsKnock: Boolean = false,
         val isEncrypted: Boolean = false,
+        override val encryptStateEvents: Boolean = false,
         val homeServerName: String = "",
         val aliasLocalPart: String? = null,
         val aliasManuallyModified: Boolean = false,
@@ -43,6 +44,8 @@ data class CreateSpaceState(
         override val initialStateJson: String = "",
         override val initialStateJsonInvalid: Boolean = false,
 ) : MavericksState, AdvancedRoomOptions {
+
+    override val encryptionEnabled: Boolean get() = isEncrypted && !isPublic
 
     val isPublic: Boolean get() = joinRule == RoomJoinRules.PUBLIC
 

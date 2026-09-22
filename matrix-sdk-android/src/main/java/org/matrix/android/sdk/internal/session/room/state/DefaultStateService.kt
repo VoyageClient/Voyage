@@ -89,13 +89,15 @@ internal class DefaultStateService @AssistedInject constructor(
     override suspend fun sendStateEvent(
             eventType: String,
             stateKey: String,
-            body: JsonDict
+            body: JsonDict,
+            encrypt: Boolean?
     ): String {
         val params = SendStateTask.Params(
                 roomId = roomId,
                 stateKey = stateKey,
                 eventType = eventType,
-                body = body.toSafeJson(eventType)
+                body = body.toSafeJson(eventType),
+                encrypt = encrypt
         )
         return sendStateTask.executeRetry(params, 3)
     }
@@ -108,7 +110,7 @@ internal class DefaultStateService @AssistedInject constructor(
         }
     }
 
-    override suspend fun updateTopic(topic: String, formattedTopic: String?) {
+    override suspend fun updateTopic(topic: String, formattedTopic: String?, forceStateEncryption: Boolean) {
         // Keep the legacy `topic` field for backwards compatibility (MSC3765).
         val body = mutableMapOf<String, Any>("topic" to topic)
         if (topic.isNotEmpty()) {
@@ -124,15 +126,17 @@ internal class DefaultStateService @AssistedInject constructor(
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_TOPIC,
                 body = body,
-                stateKey = ""
+                stateKey = "",
+                encrypt = if (forceStateEncryption) true else null,
         )
     }
 
-    override suspend fun updateName(name: String) {
+    override suspend fun updateName(name: String, forceStateEncryption: Boolean) {
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_NAME,
                 body = mapOf("name" to name),
-                stateKey = ""
+                stateKey = "",
+                encrypt = if (forceStateEncryption) true else null,
         )
     }
 
@@ -186,12 +190,13 @@ internal class DefaultStateService @AssistedInject constructor(
         }
     }
 
-    override suspend fun updateAvatar(avatarUri: String, fileName: String) {
+    override suspend fun updateAvatar(avatarUri: String, fileName: String, forceStateEncryption: Boolean) {
         val response = fileUploader.uploadFromUri(avatarUri, fileName, MimeTypes.Jpeg)
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_AVATAR,
                 body = mapOf("url" to response.contentUri),
-                stateKey = ""
+                stateKey = "",
+                encrypt = if (forceStateEncryption) true else null,
         )
     }
 

@@ -52,6 +52,7 @@ class RoomDevToolActivity :
     private var currentDisplayMode: RoomDevToolViewState.Mode? = null
 
     private var searchMenuItem: MenuItem? = null
+    private var currentDetailJson: String? = null
 
     @Parcelize
     data class Args(
@@ -99,12 +100,7 @@ class RoomDevToolActivity :
             val fragment: Fragment = when (it.displayMode) {
                 RoomDevToolViewState.Mode.Root -> RoomDevToolFragment()
                 RoomDevToolViewState.Mode.StateEventDetail,
-                RoomDevToolViewState.Mode.AccountDataDetail -> JSonViewerFragment.newInstance(
-                        jsonString = it.selectedEventJson ?: "",
-                        initialOpenDepth = -1,
-                        wrap = true,
-                        styleProvider = createJSonViewerStyleProvider(colorProvider)
-                )
+                RoomDevToolViewState.Mode.AccountDataDetail -> jsonFragment(it.selectedEventJson)
                 RoomDevToolViewState.Mode.StateEventList,
                 RoomDevToolViewState.Mode.StateEventListByType,
                 RoomDevToolViewState.Mode.AccountDataList -> RoomDevToolStateEventListFragment()
@@ -116,7 +112,18 @@ class RoomDevToolActivity :
                     .replace(views.container.id, fragment)
                     .commit()
             currentDisplayMode = it.displayMode
+            currentDetailJson = it.selectedEventJson
             updateToolBar(it)
+            invalidateOptionsMenu()
+        }
+
+        if ((it.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
+                        it.displayMode == RoomDevToolViewState.Mode.AccountDataDetail) &&
+                it.selectedEventJson != currentDetailJson) {
+            supportFragmentManager.beginTransaction()
+                    .replace(views.container.id, jsonFragment(it.selectedEventJson))
+                    .commit()
+            currentDetailJson = it.selectedEventJson
             invalidateOptionsMenu()
         }
 
@@ -137,6 +144,13 @@ class RoomDevToolActivity :
         }
     }
 
+    private fun jsonFragment(json: String?) = JSonViewerFragment.newInstance(
+            jsonString = json.orEmpty(),
+            initialOpenDepth = -1,
+            wrap = true,
+            styleProvider = createJSonViewerStyleProvider(colorProvider)
+    )
+
     override fun handleMenuItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menuItemEdit -> {
@@ -147,12 +161,17 @@ class RoomDevToolActivity :
                 viewModel.handle(RoomDevToolAction.MenuItemSend)
                 true
             }
+            R.id.menuItemRaw -> {
+                viewModel.handle(RoomDevToolAction.ToggleRawStateEvent)
+                true
+            }
             else -> false
         }
     }
 
     override fun onDestroy() {
         currentDisplayMode = null
+        currentDetailJson = null
         searchMenuItem = null
         super.onDestroy()
     }
@@ -203,6 +222,11 @@ class RoomDevToolActivity :
                             state.displayMode == RoomDevToolViewState.Mode.AccountDataDetail)
             menu.findItem(R.id.menuItemSend).isVisible = state.displayMode == RoomDevToolViewState.Mode.EditEventContent ||
                     state.displayMode is RoomDevToolViewState.Mode.SendEventForm
+            menu.findItem(R.id.menuItemRaw).apply {
+                isVisible = state.displayMode == RoomDevToolViewState.Mode.StateEventDetail &&
+                        state.selectedEvent?.mxDecryptionResult?.wireContent != null
+                isChecked = state.showRawStateEvent
+            }
         }
     }
 

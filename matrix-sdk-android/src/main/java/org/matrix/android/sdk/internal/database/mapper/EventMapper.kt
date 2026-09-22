@@ -135,6 +135,11 @@ internal fun Event.toEntity(
         contentToInject: String? = null
 ): EventEntity {
     return EventMapper.map(this, roomId).apply {
+        if (this@toEntity.isEncrypted() && this@toEntity.stateKey != null) {
+            this@toEntity.getDecryptedType()?.let { type = it }
+            this@toEntity.getClearStateKey()?.let { stateKey = it }
+            this@toEntity.getDecryptedContent()?.let { content = ContentMapper.map(it) }
+        }
         this.sendState = sendState
         this.ageLocalTs = ageLocalTs
         contentToInject?.let {

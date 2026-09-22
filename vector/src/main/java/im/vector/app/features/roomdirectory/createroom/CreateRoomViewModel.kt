@@ -142,6 +142,7 @@ class CreateRoomViewModel @AssistedInject constructor(
             is CreateRoomAction.SetVisibility -> setVisibility(action)
             is CreateRoomAction.SetRoomAliasLocalPart -> setRoomAliasLocalPart(action)
             is CreateRoomAction.SetIsEncrypted -> setIsEncrypted(action)
+            is CreateRoomAction.SetEncryptStateEvents -> setState { copy(encryptStateEvents = action.enabled) }
             is CreateRoomAction.Create -> doCreateRoom()
             CreateRoomAction.Reset -> doReset()
             CreateRoomAction.ToggleShowAdvanced -> toggleShowAdvanced()
@@ -169,6 +170,7 @@ class CreateRoomViewModel @AssistedInject constructor(
             val hiding = showAdvanced
             copy(
                     showAdvanced = !showAdvanced,
+                    encryptStateEvents = encryptStateEvents && !hiding,
                     // Reset advanced options when the section is hidden
                     disableFederation = disableFederation && !hiding,
                     roomVersion = if (hiding) defaultRoomVersion else roomVersion,
@@ -248,7 +250,9 @@ class CreateRoomViewModel @AssistedInject constructor(
         }
     }
 
-    private fun setIsEncrypted(action: CreateRoomAction.SetIsEncrypted) = setState { copy(isEncrypted = action.isEncrypted) }
+    private fun setIsEncrypted(action: CreateRoomAction.SetIsEncrypted) = setState {
+        copy(isEncrypted = action.isEncrypted, encryptStateEvents = encryptStateEvents && action.isEncrypted)
+    }
 
     private fun doCreateRoom() = withState { state ->
         if (state.asyncCreateRoomRequest is Loading || state.asyncCreateRoomRequest is Success) {
@@ -276,11 +280,21 @@ class CreateRoomViewModel @AssistedInject constructor(
             copy(asyncCreateRoomRequest = Loading())
         }
 
+        val shouldEncrypt = when (state.roomJoinRules) {
+            // we ignore the isEncrypted for public room as the switch is hidden in this case
+            RoomJoinRules.PUBLIC -> false
+            else -> state.isEncrypted ?: state.defaultEncrypted[state.roomJoinRules].orFalse()
+        }
+        // MSC4362: the details would be created in the clear, so they are sent encrypted afterwards instead.
+        val encryptState = shouldEncrypt && state.encryptStateEvents
+
         val createRoomParams = CreateRoomParams()
                 .apply {
-                    name = state.roomName.takeIf { it.isNotBlank() }
-                    topic = state.roomTopic.takeIf { it.isNotBlank() }
-                    avatarUri = state.avatarUri?.toString()
+                    if (!encryptState) {
+                        name = state.roomName.takeIf { it.isNotBlank() }
+                        topic = state.roomTopic.takeIf { it.isNotBlank() }
+                        avatarUri = state.avatarUri?.toString()
+                    }
 
                     if (state.isSubSpace) {
                         // Space-rooms are distinguished from regular messaging rooms by the m.room.type of m.space
@@ -330,14 +344,8 @@ class CreateRoomViewModel @AssistedInject constructor(
                             preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
                         }
                     }
-                    // Encryption
-                    val shouldEncrypt = when (state.roomJoinRules) {
-                        // we ignore the isEncrypted for public room as the switch is hidden in this case
-                        RoomJoinRules.PUBLIC -> false
-                        else -> state.isEncrypted ?: state.defaultEncrypted[state.roomJoinRules].orFalse()
-                    }
                     if (shouldEncrypt) {
-                        enableEncryption()
+                        enableEncryption(encryptState)
                     }
 
                     applyAdvancedRoomOptions(state, session.myUserId, customInitialStates)
@@ -347,6 +355,12 @@ class CreateRoomViewModel @AssistedInject constructor(
         viewModelScope.launch {
             runCatching { session.roomService().createRoom(createRoomParams) }.fold(
                     { roomId ->
+                        if (encryptState) {
+                            runCatching { sendEncryptedRoomDetails(roomId, state) }.onFailure { failure ->
+                                Timber.w(failure, "Failed to send the encrypted room details")
+                                _viewEvents.post(CreateRoomViewEvents.Failure(failure))
+                            }
+                        }
                         if (state.parentSpaceId != null) {
                             // add it as a child
                             try {
@@ -370,5 +384,12 @@ class CreateRoomViewModel @AssistedInject constructor(
                     }
             )
         }
+    }
+
+    private suspend fun sendEncryptedRoomDetails(roomId: String, state: CreateRoomViewState) {
+        val roomState = session.roomService().getRoom(roomId)?.stateService() ?: return
+        state.roomName.takeIf { it.isNotBlank() }?.let { roomState.updateName(it, forceStateEncryption = true) }
+        state.roomTopic.takeIf { it.isNotBlank() }?.let { roomState.updateTopic(it, forceStateEncryption = true) }
+        state.avatarUri?.let { roomState.updateAvatar(it.toString(), "room-avatar", forceStateEncryption = true) }
     }
 }

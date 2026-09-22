@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
+import org.matrix.android.sdk.internal.crypto.EncryptedStateEvents
 import org.matrix.android.sdk.internal.database.mapper.toEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomEntity
@@ -179,12 +180,10 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                 // We ignore all the already known members
                 val now = clock.epochMillis()
                 for (roomMemberEvent in roomMemberEvents) {
-                    val memberEventId = roomMemberEvent.eventId
-                    val memberStateKey = roomMemberEvent.stateKey
-                    val memberType = roomMemberEvent.type
-                    if (memberEventId == null || memberStateKey == null || memberType == null) {
-                        continue
-                    }
+                    val memberEventId = roomMemberEvent.eventId ?: continue
+                    // The response carries whatever state the room has, not only members, so an encrypted
+                    // state event has to take the slot its packed key names rather than the wire type.
+                    val (memberType, memberStateKey) = EncryptedStateEvents.stateSlot(roomMemberEvent) ?: continue
                     if (memberType == EventType.STATE_ROOM_MEMBER && knownMemberEventIds[memberStateKey] == memberEventId) {
                         continue
                     }

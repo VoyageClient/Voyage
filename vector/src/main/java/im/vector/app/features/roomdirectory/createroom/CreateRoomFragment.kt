@@ -193,6 +193,10 @@ class CreateRoomFragment :
         viewModel.handle(CreateRoomAction.SetIsEncrypted(isEncrypted))
     }
 
+    override fun setEncryptStateEvents(enabled: Boolean) {
+        viewModel.handle(CreateRoomAction.SetEncryptStateEvents(enabled))
+    }
+
     override fun toggleShowAdvanced() {
         viewModel.handle(CreateRoomAction.ToggleShowAdvanced)
     }

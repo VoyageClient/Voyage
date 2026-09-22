@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.database.sql.store
 
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
@@ -15,6 +16,7 @@ import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
+import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
@@ -189,8 +191,18 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun isUserParticipatingInThread(roomId: String, rootThreadEventId: String, senderId: String): Boolean =
             queries.selectThreadParticipation(roomId, rootThreadEventId, senderId).executeAsOneOrNull() != null
 
-    /** Persist an on-demand decryption result (keyed by global event id) without touching content. */
-    fun applyDecryptionResult(eventId: String, result: org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult) {
+    /**
+     * A decrypted state event replaces its wire type, packed state key and content in place, so the
+     * rest of the SDK reads it like any other state event; the wire form is kept on the decryption
+     * result so devtools can still show it.
+     */
+    fun applyDecryptionResult(
+            event: Event,
+            result: org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult,
+            clearPrevContent: Content? = null,
+    ) {
+        val eventId = event.eventId.orEmpty()
+        val wirePrevContent = event.prevContent ?: event.unsignedData?.prevContent
         val olm = OlmDecryptionResult(
                 payload = result.clearEvent,
                 senderKey = result.senderCurve25519Key,
@@ -198,8 +210,28 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
                 forwardingCurve25519KeyChain = result.forwardingCurve25519KeyChain,
                 verificationState = result.messageVerificationState,
                 sharedByUserId = result.sharedByUserId,
+                wireType = event.type,
+                wireStateKey = event.stateKey,
+                wireContent = event.content,
+                wirePrevContent = wirePrevContent,
         )
-        queries.updateDecryptionResultByEventId(resultAdapter.toJson(olm), eventId)
+        val decryptionJson = resultAdapter.toJson(olm)
+        val clearType = result.clearEvent["type"] as? String
+        val clearStateKey = result.clearEvent["state_key"] as? String
+        if (event.stateKey != null && clearType != null && clearStateKey != null) {
+            @Suppress("UNCHECKED_CAST")
+            val clearContent = result.clearEvent["content"] as? Content
+            queries.updateDecryptedStateByEventId(
+                    clearType,
+                    clearStateKey,
+                    ContentMapper.map(clearContent),
+                    ContentMapper.map(clearPrevContent ?: wirePrevContent),
+                    decryptionJson,
+                    eventId,
+            )
+        } else {
+            queries.updateDecryptionResultByEventId(decryptionJson, eventId)
+        }
     }
 
     fun applyDecryptionError(eventId: String, errorCode: String?, errorReason: String?) =

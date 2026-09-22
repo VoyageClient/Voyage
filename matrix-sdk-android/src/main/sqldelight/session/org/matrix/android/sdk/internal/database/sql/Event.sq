@@ -95,6 +95,11 @@ updateDecryptionResultByEventId:
 UPDATE event SET decryption_result_json = ?, decryption_error_code = NULL, decryption_error_reason = NULL,
 is_verification_state_dirty = 0 WHERE event_id = ?;
 
+updateDecryptedStateByEventId:
+UPDATE event SET type = ?, state_key = ?, content = ?, prev_content = ?, decryption_result_json = ?,
+decryption_error_code = NULL, decryption_error_reason = NULL, is_verification_state_dirty = 0
+WHERE event_id = ?;
+
 updateDecryptionErrorByEventId:
 UPDATE event SET decryption_error_code = ?, decryption_error_reason = ? WHERE event_id = ?;
 

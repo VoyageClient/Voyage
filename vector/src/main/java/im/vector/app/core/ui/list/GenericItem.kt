@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -66,7 +67,7 @@ abstract class GenericItem : VectorEpoxyModel<GenericItem.Holder>(R.layout.item_
         holder.titleText.setTextOrHide(title?.charSequence)
 
         if (titleIconResourceId != -1) {
-            holder.titleIcon.setImageResource(titleIconResourceId)
+            holder.titleIcon.setImageDrawable(AppCompatResources.getDrawable(holder.titleIcon.context, titleIconResourceId))
             holder.titleIcon.isVisible = true
         } else {
             holder.titleIcon.isVisible = false
@@ -82,7 +83,7 @@ abstract class GenericItem : VectorEpoxyModel<GenericItem.Holder>(R.layout.item_
         } else {
             holder.progressBar.isVisible = false
             if (endIconResourceId != -1) {
-                holder.accessoryImage.setImageResource(endIconResourceId)
+                holder.accessoryImage.setImageDrawable(AppCompatResources.getDrawable(holder.accessoryImage.context, endIconResourceId))
                 holder.accessoryImage.isVisible = true
             } else {
                 holder.accessoryImage.isVisible = false

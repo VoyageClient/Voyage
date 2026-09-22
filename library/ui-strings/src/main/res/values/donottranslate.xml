@@ -1267,4 +1267,7 @@
     <string name="mentions_filter_room" translatable="false">@room mentions</string>
     <string name="mentions_filter_keywords" translatable="false">Keyword mentions</string>
     <string name="mentions_filter_exclude_dms" translatable="false">Exclude direct messages</string>
+    <string name="create_room_encrypted_state_title" translatable="false">Encrypted state events</string>
+    <string name="create_room_encrypted_state_warning" translatable="false">Encrypts room details and other eligible state events via MSC4362. Most clients do not yet support this, so some features may be missing or unusable.</string>
+    <string name="create_room_encrypted_state_dialog_summary" translatable="false">Unsupported clients may not show room details correctly.</string>
 </resources>

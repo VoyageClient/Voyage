@@ -17,6 +17,8 @@ sealed class RoomDevToolAction : VectorViewModelAction {
     object OnBackPressed : RoomDevToolAction()
     object MenuEdit : RoomDevToolAction()
     object MenuItemSend : RoomDevToolAction()
+    object ToggleRawStateEvent : RoomDevToolAction()
+    data class CustomEventEncryptChange(val encrypt: Boolean) : RoomDevToolAction()
     data class ShowStateEvent(val event: Event, val fromSearch: Boolean = false) : RoomDevToolAction()
     data class ShowAccountDataEvent(val event: RoomAccountDataEvent) : RoomDevToolAction()
     data class UpdateSearchQuery(val query: String) : RoomDevToolAction()

@@ -10,12 +10,14 @@ package org.matrix.android.sdk.internal.database.sql.store
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
+import org.amshove.kluent.shouldContain
 import org.amshove.kluent.shouldContainAll
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.query.TimelineEventFilter
@@ -78,11 +80,14 @@ class EventSqlStoreTest {
         store.insert(event("\$enc", type = EventType.ENCRYPTED, decryptionResultJson = null))
         store.applyDecryptionError("\$enc", "UNKNOWN_INBOUND_SESSION_ID", "no session")
 
-        store.applyDecryptionResult("\$enc", MXEventDecryptionResult(
-                clearEvent = mapOf("type" to "m.room.message", "content" to mapOf("body" to "secret")),
-                senderCurve25519Key = "curveKey",
-                claimedEd25519Key = "edKey",
-        ))
+        store.applyDecryptionResult(
+                Event(eventId = "\$enc", roomId = "!room:hs", type = EventType.ENCRYPTED),
+                MXEventDecryptionResult(
+                        clearEvent = mapOf("type" to "m.room.message", "content" to mapOf("body" to "secret")),
+                        senderCurve25519Key = "curveKey",
+                        claimedEd25519Key = "edKey",
+                )
+        )
 
         val read = store.getByEventId("\$enc")!!
         read.decryptionResultJson!!.let {
@@ -90,6 +95,30 @@ class EventSqlStoreTest {
         }
         read.decryptionErrorCode.shouldBeNull()
         read.decryptionErrorReason.shouldBeNull()
+    }
+
+    @Test
+    fun `a decrypted state event is rewritten to its clear type, state key and content`() {
+        store.insert(event("\$state", type = EventType.ENCRYPTED).also { it.stateKey = "m.room.name:" })
+
+        store.applyDecryptionResult(
+                Event(eventId = "\$state", roomId = "!room:hs", type = EventType.ENCRYPTED, stateKey = "m.room.name:"),
+                MXEventDecryptionResult(
+                        clearEvent = mapOf(
+                                "type" to "m.room.name",
+                                "state_key" to "",
+                                "content" to mapOf("name" to "Secret room"),
+                        ),
+                        senderCurve25519Key = "curveKey",
+                ),
+                clearPrevContent = mapOf("name" to "Older name"),
+        )
+
+        val read = store.getByEventId("\$state")!!
+        read.type shouldBeEqualTo "m.room.name"
+        read.stateKey shouldBeEqualTo ""
+        read.content!! shouldContain "Secret room"
+        read.prevContent!! shouldContain "Older name"
     }
 
     @Test

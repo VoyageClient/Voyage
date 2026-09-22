@@ -20,6 +20,7 @@ data class CreateRoomViewState(
         val roomTopic: String = "",
         val roomJoinRules: RoomJoinRules = RoomJoinRules.INVITE,
         val isEncrypted: Boolean? = null,
+        override val encryptStateEvents: Boolean = false,
         val defaultEncrypted: Map<RoomJoinRules, Boolean> = emptyMap(),
         override val showAdvanced: Boolean = false,
         override val disableFederation: Boolean = false,
@@ -41,6 +42,9 @@ data class CreateRoomViewState(
         val isSubSpace: Boolean = false,
         val openAfterCreate: Boolean = true
 ) : MavericksState, AdvancedRoomOptions {
+
+    override val encryptionEnabled: Boolean
+        get() = roomJoinRules != RoomJoinRules.PUBLIC && (isEncrypted ?: defaultEncrypted[roomJoinRules] ?: false)
 
     constructor(args: CreateRoomArgs) : this(
             roomName = args.initialName,

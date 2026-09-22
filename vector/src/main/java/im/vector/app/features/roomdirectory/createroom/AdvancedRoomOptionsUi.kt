@@ -26,6 +26,7 @@ interface AdvancedRoomOptionsListener {
     fun selectRoomVersion()
     fun selectMyPowerLevel()
     fun editInitialState()
+    fun setEncryptStateEvents(enabled: Boolean)
 }
 
 /**
@@ -46,6 +47,15 @@ fun EpoxyController.buildAdvancedRoomOptions(
     }
 
     if (!options.showAdvanced) return
+
+    formSwitchItem {
+        id("encryptedState")
+        enabled(enabled && options.encryptionEnabled)
+        title(stringProvider.getString(CommonStrings.create_room_encrypted_state_title))
+        summary(stringProvider.getString(CommonStrings.create_room_encrypted_state_warning))
+        switchChecked(options.encryptStateEvents && options.encryptionEnabled)
+        listener { value -> listener?.setEncryptStateEvents(value) }
+    }
 
     formSwitchItem {
         id("federation")

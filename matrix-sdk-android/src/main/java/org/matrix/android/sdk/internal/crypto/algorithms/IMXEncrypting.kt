@@ -31,5 +31,5 @@ internal interface IMXEncrypting {
      * @param userIds the room members the event will be sent to.
      * @return the encrypted content
      */
-    suspend fun encryptEventContent(eventContent: Content, eventType: String, userIds: List<String>): Content
+    suspend fun encryptEventContent(eventContent: Content, eventType: String, userIds: List<String>, stateKey: String? = null): Content
 }

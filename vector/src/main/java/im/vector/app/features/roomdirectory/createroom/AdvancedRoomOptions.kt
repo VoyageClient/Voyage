@@ -30,6 +30,8 @@ interface AdvancedRoomOptions {
     val isDeveloperMode: Boolean
     val initialStateJson: String
     val initialStateJsonInvalid: Boolean
+    val encryptStateEvents: Boolean
+    val encryptionEnabled: Boolean
 }
 
 /**
