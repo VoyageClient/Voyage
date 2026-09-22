@@ -72,8 +72,8 @@ internal class FrameworkSqliteDriver private constructor(
 
     private val transactions = ThreadLocal<Transaction?>()
 
-    // Serialises every top-level transaction so the several session DB threads never open two at once.
-    private val transactionLock = java.util.concurrent.locks.ReentrantLock()
+    // Shared per database file so outgoing and incoming session drivers cannot race beginTransaction.
+    private val transactionLock: java.util.concurrent.locks.ReentrantLock by lazy { transactionLockFor(database.path) }
     private val listeners = linkedMapOf<String, MutableSet<Query.Listener>>()
 
     // SQLDelight hands each prepared statement a stable [identifier]; caching the compiled
@@ -143,8 +143,8 @@ internal class FrameworkSqliteDriver private constructor(
             // Android's beginTransaction always takes SQLite's single writer lock — even for a
             // read-only SQLDelight transaction. This database is touched from several session
             // threads (write, read, timeline), so without serialising here a transaction on one
-            // races the writer on another and one side gets SQLITE_BUSY. Hold a process-wide lock
-            // for the whole transaction so only one is ever open on this database at a time.
+            // races the writer on another and one side gets SQLITE_BUSY. Hold the database's
+            // process-wide lock for the whole transaction so only one is ever open at a time.
             transactionLock.lock()
             try {
                 val waitStart = MatrixPerf.now()
@@ -257,8 +257,13 @@ internal class FrameworkSqliteDriver private constructor(
 
     companion object {
 
-        private const val BEGIN_BUSY_TIMEOUT_MS = 5_000L
+        private const val BEGIN_BUSY_TIMEOUT_MS = 30_000L
         private const val BEGIN_BUSY_MAX_BACKOFF_MS = 25L
+        private val transactionLocks = mutableMapOf<String, java.util.concurrent.locks.ReentrantLock>()
+
+        private fun transactionLockFor(path: String): java.util.concurrent.locks.ReentrantLock = synchronized(transactionLocks) {
+            transactionLocks.getOrPut(path) { java.util.concurrent.locks.ReentrantLock() }
+        }
 
         /**
          * Open a database at an explicit file path (e.g. inside a per-session directory, so it is
