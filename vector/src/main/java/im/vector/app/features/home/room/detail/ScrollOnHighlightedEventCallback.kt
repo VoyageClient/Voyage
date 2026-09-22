@@ -29,8 +29,6 @@ class ScrollOnHighlightedEventCallback(
         private val layoutManager: LinearLayoutManager,
         private val timelineEventController: TimelineEventController,
         private val onLanded: () -> Unit = {},
-        /** Raised while a jump is waiting on data, for the caller to show progress. */
-        private val onPendingChanged: (Boolean) -> Unit = {},
 ) : DefaultListUpdateCallback {
 
     private class Anchor(
@@ -53,7 +51,6 @@ class ScrollOnHighlightedEventCallback(
     private var anchorDeadlineMs = 0L
     @Volatile private var lastAnchorActivityMs = 0L
     private var consecutiveDrawSkips = 0
-    private var pendingNotified = false
 
     // Where the row is held once the layout proves it cannot give it the offset we ask for (it is
     // against the end of the list), instead of asking for the same impossible place every frame.
@@ -106,9 +103,7 @@ class ScrollOnHighlightedEventCallback(
                 // It never got a row (hidden, or aggregated into a neighbor): approximate once.
                 scheduledEventId.set(null)
                 val nearest = timelineEventController.searchPositionOfEventOrNearest(eventId)
-                if (nearest == null) {
-                    recyclerView.post { notifyPending(false) }
-                } else {
+                if (nearest != null) {
                     land(nearest, ScrollAnchorAlignment.CENTER) {
                         timelineEventController.searchPositionOfEventOrNearest(eventId)
                     }
@@ -145,7 +140,6 @@ class ScrollOnHighlightedEventCallback(
             anchor = Anchor(alignment, resolvePosition)
             anchorDeadlineMs = now + ANCHOR_MAX_MS
             lastAnchorActivityMs = now
-            notifyPending(false)
             onLanded()
         }
     }
@@ -218,12 +212,6 @@ class ScrollOnHighlightedEventCallback(
         consecutiveDrawSkips = 0
     }
 
-    private fun notifyPending(pending: Boolean) {
-        if (pendingNotified == pending) return
-        pendingNotified = pending
-        onPendingChanged(pending)
-    }
-
     /** True while a jump is in flight or its target is still held (the timeline around it still moving). */
     fun isSettling(): Boolean = scheduledEventId.get() != null || anchor != null
 
@@ -233,7 +221,6 @@ class ScrollOnHighlightedEventCallback(
         scheduledEventId.set(null)
         neighborhoodDeadlineMs = 0L
         releaseAnchor()
-        notifyPending(false)
     }
 
     /** Jump to [eventId], waiting for it to load and build rather than moving the viewport meanwhile. */
@@ -248,7 +235,6 @@ class ScrollOnHighlightedEventCallback(
         }
         scheduledEventId.set(eventId)
         scheduleDeadlineMs = SystemClock.uptimeMillis() + SCHEDULE_TIMEOUT_MS
-        notifyPending(true)
         scrollIfNeeded()
     }
 
