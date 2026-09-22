@@ -7,19 +7,27 @@
 
 package im.vector.app.features.home.avatar.effect
 
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.view.Choreographer
+import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 import im.vector.app.core.utils.DeviceCapabilities
 import java.lang.ref.WeakReference
 
 /**
- * The single ticker every animated avatar shares. One [Handler] loop for the whole app, not one per
- * drawable, and it only runs while something visible is registered.
+ * The single ticker every animated avatar shares. One loop for the whole app, not one per drawable,
+ * and it only runs while something visible is registered.
  *
  * The frame number is global, so avatars are in step with each other and a drawable's phase does not
  * depend on when it happened to be bound.
+ *
+ * Frames are due at a fixed rate rather than a fixed delay from the last one, and a tick that comes
+ * up while the main thread is already behind is dropped rather than taken: a shape losing a frame is
+ * invisible next to the scroll or room opening that the main thread is busy with.
  */
 object AvatarFrameClock {
 
@@ -32,7 +40,27 @@ object AvatarFrameClock {
     private val subscribers = ArrayList<WeakReference<AnimatedAvatarDrawable>>()
     private var running = false
 
-    private val tick = Runnable { tick() }
+    /** When the next avatar frame is due, advanced at a fixed rate rather than by delay from the last. */
+    private var nextFrameAt = 0L
+
+    private val tick = Runnable {
+        val now = SystemClock.uptimeMillis()
+        onDue(now, lateBy = now - nextFrameAt)
+        if (running) schedule()
+    }
+
+    // A vsync callback carries the frame it belongs to, which makes "the main thread is behind"
+    // something the clock can read directly rather than infer from its own lateness. Ice Cream
+    // Sandwich has no Choreographer and falls back to a plain delay, which still measures its own
+    // lateness against when the frame was due.
+    private val vsync = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) VsyncTicker() else null
+
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
+    private class VsyncTicker {
+        private val callback = Choreographer.FrameCallback { onVsync(it) }
+        fun post() = Choreographer.getInstance().postFrameCallback(callback)
+        fun cancel() = Choreographer.getInstance().removeFrameCallback(callback)
+    }
 
     @UiThread
     fun subscribe(drawable: AnimatedAvatarDrawable) {
@@ -42,7 +70,8 @@ object AvatarFrameClock {
         }
         if (!running) {
             running = true
-            handler.postDelayed(tick, interval())
+            nextFrameAt = SystemClock.uptimeMillis()
+            schedule()
         }
     }
 
@@ -63,33 +92,69 @@ object AvatarFrameClock {
         stopping.forEach { it.stop() }
     }
 
-    /**
-     * A fixed rate, with no throttling of its own. Rendering happens off the main thread and a
-     * drawable skips a tick while its last frame is still in flight, so each animates as fast as it
-     * can be drawn and a device that cannot keep up drops frames rather than blocking anything.
-     */
-    private fun interval() = AvatarEffect.FRAME_DELAY_MS
-
     private fun stop() {
         running = false
         handler.removeCallbacks(tick)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) vsync?.cancel()
     }
 
-    private fun tick() {
-        frame++
+    private fun schedule() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && vsync != null) {
+            vsync.post()
+        } else {
+            handler.postDelayed(tick, (nextFrameAt - SystemClock.uptimeMillis()).coerceIn(1, AvatarEffect.FRAME_DELAY_MS))
+        }
+    }
+
+    private fun onVsync(frameTimeNanos: Long) {
+        if (!running) return
+        val now = SystemClock.uptimeMillis()
+        // The gap between the vsync this callback belongs to and actually running it.
+        onDue(now, lateBy = now - frameTimeNanos / 1_000_000)
+        if (running) schedule()
+    }
+
+    @VisibleForTesting
+    @UiThread
+    internal fun onDue(now: Long, lateBy: Long) {
+        when {
+            lateBy > JANK_MS -> {
+                // Not caught up afterwards: a frame given up is gone, and the shapes carry on from
+                // wherever the clock has reached.
+                nextFrameAt = now + AvatarEffect.FRAME_DELAY_MS
+            }
+            now >= nextFrameAt -> {
+                nextFrameAt = maxOf(nextFrameAt + AvatarEffect.FRAME_DELAY_MS, now + 1)
+                tick()
+            }
+            // A freshly bound avatar is showing nothing, so it does not wait for the animation's own
+            // rate — only for a frame the main thread can spare.
+            else -> tick(hungryOnly = true)
+        }
+    }
+
+    /** @param hungryOnly serve only the drawables with nothing rendered yet, without advancing time. */
+    private fun tick(hungryOnly: Boolean = false) {
+        if (!hungryOnly) frame++
         compact()
         var animating = 0
         for (ref in subscribers) {
             val drawable = ref.get() ?: continue
             if (!drawable.wantsFrames()) continue
+            // A first frame is one render, not an animation, so the cap does not apply to it: an
+            // avatar the cap holds back should still be sharp rather than stuck on its inline frame.
+            if (hungryOnly) {
+                if (drawable.needsFirstFrame()) drawable.tick()
+                continue
+            }
             // Chosen per tick rather than when subscribing, so a slot freeing up is taken on the
             // next one. Refusing at subscription time strands whatever arrived while another
             // screen's avatars still held the slots, since nothing would start it again.
             if (animating >= maxAnimating && !drawable.exemptFromCap) continue
-            drawable.tick()
             animating++
+            drawable.tick()
         }
-        if (subscribers.isEmpty()) stop() else handler.postDelayed(tick, interval())
+        if (subscribers.isEmpty()) stop()
     }
 
     /** How many drawables are being given frames right now. */
@@ -118,4 +183,8 @@ object AvatarFrameClock {
     // ticks it cannot keep up with, so this is really a bound on how many frame buffers exist at once.
     private const val MAX_ANIMATING = 32
     private const val MAX_ANIMATING_LOW_END = 6
+
+    // Two frames at 60Hz: enough slack that an ordinary frame is not mistaken for jank, small enough
+    // that a bind storm is.
+    private const val JANK_MS = 32
 }

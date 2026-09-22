@@ -10,6 +10,7 @@ package im.vector.app.features.home.avatar.effect
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import android.os.SystemClock
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeNull
@@ -22,6 +23,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowChoreographer
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -30,12 +32,18 @@ class AvatarFrameClockTest {
 
     @Before
     fun reset() {
+        // Robolectric advances its clock to serve a vsync, so an unpaused Choreographer turns the
+        // clock's own loop into one that never lets the looper go idle. These tests drive it by hand.
+        ShadowChoreographer.setPaused(true)
         AvatarFrameClock.pause()
         frames = 0
     }
 
     @After
-    fun tearDown() = AvatarFrameClock.pause()
+    fun tearDown() {
+        AvatarFrameClock.pause()
+        ShadowChoreographer.setPaused(false)
+    }
 
     @Test
     fun `a drawable only animates once it is started, visible and hosted`() {
@@ -271,6 +279,78 @@ class AvatarFrameClockTest {
                 AvatarEffect.values().size
     }
 
+    @Test
+    fun `a tick that comes up while the main thread is behind is dropped`() {
+        // The whole point: a scroll or a room opening keeps its frames, and the shapes lose theirs.
+        val drawable = attached()
+        drawable.start()
+        val before = AvatarFrameClock.frame
+
+        AvatarFrameClock.onDue(SystemClock.uptimeMillis() + 1_000, lateBy = 200)
+
+        AvatarFrameClock.frame shouldBeEqualTo before
+    }
+
+    @Test
+    fun `a tick that is due on an unhurried main thread advances the animation`() {
+        val drawable = attached()
+        drawable.start()
+        val before = AvatarFrameClock.frame
+
+        AvatarFrameClock.onDue(SystemClock.uptimeMillis() + 1_000, lateBy = 0)
+
+        AvatarFrameClock.frame shouldBeEqualTo before + 1
+    }
+
+    @Test
+    fun `a frame that is not due yet does not advance the animation`() {
+        val drawable = attached()
+        drawable.start()
+        val now = SystemClock.uptimeMillis()
+        // Jank pushes the next frame a full delay out, so the vsync right after it is early.
+        AvatarFrameClock.onDue(now, lateBy = 200)
+        val before = AvatarFrameClock.frame
+
+        AvatarFrameClock.onDue(now + 1, lateBy = 0)
+
+        AvatarFrameClock.frame shouldBeEqualTo before
+    }
+
+    @Test
+    fun `binding an avatar shows the shape without launching a render of its own`() {
+        // A row binding is the busiest the main thread gets, so the full-size render waits for the
+        // clock to decide there is room for it.
+        val drawable = attached()
+        drawable.start()
+
+        drawable.draw(Canvas(Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)))
+
+        drawable.hasFrame().shouldBeTrue()
+        drawable.needsFirstFrame().shouldBeTrue()
+    }
+
+    @Test
+    fun `a texture buffer comes back from the pool blank`() {
+        val used = AvatarEffectRenderer.obtainBlank(POOLED_SIZE).apply { eraseColor(android.graphics.Color.RED) }
+        AvatarEffectRenderer.recycle(used)
+
+        val reused = AvatarEffectRenderer.obtainBlank(POOLED_SIZE)
+
+        (reused === used).shouldBeTrue()
+        reused.getPixel(0, 0) shouldBeEqualTo 0
+    }
+
+    @Test
+    fun `a solid's faces are filled with the avatar's own picture`() {
+        val still = AvatarEffectRenderer.renderStill(AvatarEffect.DODECAHEDRON, texture(), SIZE)
+
+        var painted = 0
+        for (x in 0 until SIZE) for (y in 0 until SIZE) {
+            if (still.getPixel(x, y) == android.graphics.Color.RED) painted++
+        }
+        (painted > 0).shouldBeTrue()
+    }
+
     private fun attached(): AnimatedAvatarDrawable {
         val drawable = AnimatedAvatarDrawable(texture(), AvatarEffect.CUBE, SIZE)
         drawable.setBounds(0, 0, SIZE, SIZE)
@@ -308,5 +388,6 @@ class AvatarFrameClockTest {
 
     private companion object {
         const val SIZE = 48
+        const val POOLED_SIZE = 37
     }
 }

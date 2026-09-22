@@ -17,7 +17,6 @@ import android.os.Process
 import android.util.SparseArray
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
-import androidx.annotation.WorkerThread
 
 /**
  * Renders effect frames off the main thread, into each drawable's spare buffer.
@@ -36,11 +35,12 @@ object AvatarEffectRenderer {
      * thread and each shape would only get a frame once the whole queue had drained.
      */
     private class Renderer(index: Int) {
-        // Not THREAD_PRIORITY_BACKGROUND: below Lollipop that lands the thread in a cgroup capped
-        // near a twentieth of a core, which would starve it into dropping every frame.
+        // Well below the UI thread, since a dropped avatar frame costs nothing and a dropped UI frame
+        // is a visible stutter — but not THREAD_PRIORITY_BACKGROUND, which below Lollipop lands the
+        // thread in a cgroup capped near a twentieth of a core and starves it into dropping every one.
         private val thread = HandlerThread(
                 "avatar-fx-$index",
-                Process.THREAD_PRIORITY_DEFAULT + Process.THREAD_PRIORITY_LESS_FAVORABLE,
+                Process.THREAD_PRIORITY_DEFAULT + RENDER_NICE,
         ).apply { start() }
 
         val handler = Handler(thread.looper)
@@ -126,7 +126,7 @@ object AvatarEffectRenderer {
         if (bitmap.width != bitmap.height || bitmap.isRecycled) return
         synchronized(pool) {
             val bucket = pool.get(bitmap.width) ?: ArrayDeque<Bitmap>().also { pool.put(bitmap.width, it) }
-            if (bucket.size < POOL_PER_SIZE) bucket.addLast(bitmap) else bitmap.recycle()
+            if (bucket.size < poolLimit(bitmap.width)) bucket.addLast(bitmap) else bitmap.recycle()
         }
     }
 
@@ -138,12 +138,21 @@ object AvatarEffectRenderer {
         synchronized(painter) { painter.paint(canvas, effect, texture, sizePx, frame) }
     }
 
-    @WorkerThread
+    @AnyThread
     private fun obtain(sizePx: Int): Bitmap {
         val reused = synchronized(pool) { pool.get(sizePx)?.removeLastOrNull() }
         return reused?.takeIf { !it.isRecycled } ?: Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
     }
 
-    private const val POOL_PER_SIZE = 8
+    /** A blank buffer to draw an avatar's picture into, for callers building a texture. */
+    @AnyThread
+    fun obtainBlank(sizePx: Int): Bitmap = obtain(sizePx).also { it.eraseColor(0) }
+
+    // Textures share the pool with rendered frames, so a bucket holds a screenful of both — but held
+    // as a byte budget, since the same count of 256px buffers is eight times the memory of 48px ones.
+    private fun poolLimit(sizePx: Int) = (POOL_BUDGET_BYTES / (sizePx * sizePx * 4)).coerceIn(4, 24)
+
+    private const val POOL_BUDGET_BYTES = 2 * 1024 * 1024
+    private const val RENDER_NICE = 6
     private const val MAX_RENDER_THREADS = 4
 }

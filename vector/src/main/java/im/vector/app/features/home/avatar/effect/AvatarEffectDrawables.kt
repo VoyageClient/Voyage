@@ -9,6 +9,8 @@ package im.vector.app.features.home.avatar.effect
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -95,19 +97,24 @@ object AvatarEffectDrawables {
         else -> rasterize(drawable, sizePx)
     }
 
+    // Drawn into a pooled buffer rather than a fresh bitmap: a scrolling list rebinds avatars far
+    // faster than the collector wants to reclaim a hundred kilobytes each.
     private fun square(source: Bitmap, sizePx: Int): Bitmap =
-            if (source.width == sizePx && source.height == sizePx) source.copy(Bitmap.Config.ARGB_8888, false)
-            else Bitmap.createScaledBitmap(source, sizePx, sizePx, true)
+            AvatarEffectRenderer.obtainBlank(sizePx).also {
+                Canvas(it).drawBitmap(source, null, Rect(0, 0, sizePx, sizePx), scalePaint)
+            }
 
     // The first frame, which is also the still an animated avatar falls back to when autoplay is off.
     private fun rasterize(drawable: Drawable, sizePx: Int): Bitmap? {
         if (sizePx <= 0) return null
-        val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val bitmap = AvatarEffectRenderer.obtainBlank(sizePx)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, sizePx, sizePx)
         drawable.draw(canvas)
         return bitmap
     }
+
+    private val scalePaint = Paint(Paint.FILTER_BITMAP_FLAG)
 
     // Weakly keyed, so a view that goes away takes its shape with it.
     private val lastByHost = WeakHashMap<View, AnimatedAvatarDrawable>()

@@ -46,6 +46,9 @@ class AnimatedAvatarDrawable(
     private var source: Drawable? = null
     private var spareTexture: Bitmap? = null
     private var front: Bitmap? = null
+
+    /** Whether [front] is the small inline frame rather than a full render. */
+    private var frontIsFirstFrame = false
     private var pending = false
     private var running = false
 
@@ -62,9 +65,16 @@ class AnimatedAvatarDrawable(
         // inline at a fraction of the size instead. It is the right shape immediately, costs well
         // under a millisecond, and the full-size frame replaces it a tick later.
         front = AvatarEffectRenderer.renderFirstFrame(effect, texture, FIRST_FRAME_PX, frameNow())
+        frontIsFirstFrame = true
         front?.let { canvas.drawBitmap(it, null, bounds, paint) }
-        requestFrame()
+        // A running drawable is served by the clock, which holds the full-size render back while the
+        // main thread is busy binding this very row. One that is not gets no ticks, so it asks here.
+        if (!running) requestFrame()
     }
+
+    /** Showing only the small inline frame, which the clock replaces ahead of the animation's own rate. */
+    @UiThread
+    internal fun needsFirstFrame() = (front == null || frontIsFirstFrame) && !pending
 
     /** Whether this wants frames at all: started, on screen, and hosted by something that draws it. */
     @UiThread
@@ -138,13 +148,17 @@ class AnimatedAvatarDrawable(
     @UiThread
     internal fun swapTexture(replacement: Bitmap) {
         if (replacement === texture) return
+        val replaced = texture
         texture = replacement
         // A frame already in flight was drawn from the old picture.
         generation++
+        val wasRendering = pending
         pending = false
         // That render is still reading whichever buffer it was handed, so do not offer it back for
         // the next animated frame to be drawn into.
         spareTexture = null
+        // Only once nothing is reading it: a render in flight still has the old picture.
+        if (!wasRendering) AvatarEffectRenderer.recycle(replaced)
     }
 
     /**
@@ -162,7 +176,14 @@ class AnimatedAvatarDrawable(
         }
         // Sizes can differ between binds — an unmeasured view guesses — and a scaled frame still
         // beats a blank one for the tick before the real render lands.
-        front = if (carried.width == sizePx) carried else Bitmap.createScaledBitmap(carried, sizePx, sizePx, true)
+        front = if (carried.width == sizePx) {
+            carried
+        } else {
+            AvatarEffectRenderer.obtainBlank(sizePx)
+                    .also { Canvas(it).drawBitmap(carried, null, android.graphics.Rect(0, 0, sizePx, sizePx), paint) }
+                    .also { AvatarEffectRenderer.recycle(carried) }
+        }
+        frontIsFirstFrame = previous.frontIsFirstFrame
         previous.front = null
     }
 
@@ -171,6 +192,7 @@ class AnimatedAvatarDrawable(
         pending = false
         val previous = front
         front = bitmap
+        frontIsFirstFrame = false
         AvatarEffectRenderer.recycle(previous)
         invalidateSelf()
     }

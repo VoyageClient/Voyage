@@ -8,10 +8,12 @@
 package im.vector.app.features.home.avatar.effect
 
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Shader
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -20,7 +22,7 @@ import kotlin.math.sqrt
  *
  * [Matrix.setPolyToPoly] takes up to four point pairs and yields a full perspective homography, and
  * a planar face under perspective maps to its texture by exactly that — so four projected vertices
- * describe a face of any vertex count, and each face costs one clip plus one `drawBitmap`.
+ * describe a face of any vertex count, and each face costs a single filled path.
  *
  * The reference renderer runs unlit, so faces are drawn at full brightness with no shading pass.
  */
@@ -44,9 +46,22 @@ class SolidRasterizer {
     private val matrix = Matrix()
     private val path = Path()
 
-    // No ANTI_ALIAS_FLAG: antialiased face edges against a hard clip leave visible seams between
-    // neighbouring faces.
+    // No ANTI_ALIAS_FLAG: antialiased face edges leave visible seams between neighbouring faces.
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
+
+    private var shaderTexture: Bitmap? = null
+    private var shader: BitmapShader? = null
+
+    // Filling the face with the texture as a shader, rather than clipping to it and blitting: a
+    // software clipPath costs more per face than the blit it guards, and a shader's local matrix
+    // takes the same homography, so the pixels are the ones the clip would have let through.
+    private fun shaderFor(texture: Bitmap): BitmapShader {
+        shader?.let { if (shaderTexture === texture) return it }
+        return BitmapShader(texture, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).also {
+            shader = it
+            shaderTexture = texture
+        }
+    }
 
     /**
      * @param scale uniform scale applied after the rotation.
@@ -162,6 +177,7 @@ class SolidRasterizer {
         geometry ?: return
         val texW = texture.width.toFloat()
         val texH = texture.height.toFloat()
+        val shader = shaderFor(texture)
         for (face in 0 until geometry.faceCount) {
             val count = geometry.vertexCount(face)
             path.rewind()
@@ -178,10 +194,9 @@ class SolidRasterizer {
             }
             if (!matrix.setPolyToPoly(src, 0, dst, 0, points)) continue
 
-            val saved = canvas.save()
-            canvas.clipPath(path)
-            canvas.drawBitmap(texture, matrix, paint)
-            canvas.restoreToCount(saved)
+            shader.setLocalMatrix(matrix)
+            paint.shader = shader
+            canvas.drawPath(path, paint)
         }
     }
 
