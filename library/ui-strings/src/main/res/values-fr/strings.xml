@@ -1548,8 +1548,6 @@
     <string name="attachment_type_dialog_title">Ajouter une image à partir de</string>
     <string name="create_room_settings_section">Paramètres du salon</string>
     <string name="create_room_topic_hint">Sujet</string>
-    <string name="create_room_topic_section">Sujet du salon (facultatif)</string>
-    <string name="create_room_name_section">Nom du salon</string>
     <string name="room_member_open_or_create_dm">Message direct</string>
     <string name="no_more_results">Plus aucun résultat</string>
     <string name="settings_export_trail">Exporter le rapport d’audit</string>
@@ -1755,7 +1753,6 @@
     <string name="spaces_header">Espaces</string>
     <string name="suggested_header">Salons recommandés</string>
     <string name="you_are_invited">Vous êtes invité</string>
-    <string name="space_add_existing_rooms">Ajouter des salons et espaces existants</string>
     <string name="leave_space">Quitter</string>
     <string name="space_add_child_title">Ajouter des salons</string>
     <string name="space_explore_activity_title">Parcourir les salons</string>
@@ -1768,7 +1765,6 @@
     <string name="join_anyway">Rejoindre quand même</string>
     <string name="join_space">Rejoindre l’espace</string>
     <string name="create_space">Créer un espace</string>
-    <string name="skip_for_now">Passer pour l’instant</string>
     <string name="share_space_link_message">Rejoignez mon espace %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Ne fera pas partie de %s</string>
     <string name="invite_just_to_this_room">Seulement ce salon</string>
@@ -1780,16 +1776,6 @@
     <string name="invite_people_to_your_space">Invitez des personnes dans votre espace</string>
     <string name="invite_people_menu">Inviter des personnes</string>
     <string name="create_space_topic_hint">Description</string>
-    <string name="create_spaces_loading_message">Création de l’espace…</string>
-    <string name="create_spaces_default_public_random_room_name">Aléatoire</string>
-    <string name="create_spaces_default_public_room_name">Général</string>
-    <string name="create_spaces_room_private_header_desc">Créons un salon pour chacun d’entre eux. Vous pourrez en ajouter plus tard, y compris certains déjà existant.</string>
-    <string name="create_spaces_room_private_header">Sur quels projets travaillez-vous \?</string>
-    <string name="create_spaces_room_public_header_desc">Nous allons créer les salons pour ces sujets. Vous pourrez en ajouter d’autres plus tard.</string>
-    <string name="create_spaces_room_public_header">De quoi allez-vous parler dans %s \?</string>
-    <string name="create_space_error_empty_field_space_name">Donnez-lui un nom pour poursuivre.</string>
-    <string name="create_spaces_details_private_header">Ajoutez quelques informations pour renforcer son identité. Vous pourrez changer ceci plus tard.</string>
-    <string name="activity_create_space_title">Créer un espace</string>
     <string name="space_type_private">Privé</string>
     <string name="error_file_too_big_simple">Le fichier est trop volumineux pour être envoyé.</string>
     <string name="send_file_step_compressing_video">Compression de la vidéo %d %%</string>
@@ -1919,7 +1905,6 @@
     <string name="room_settings_mention_and_keyword_only">Mentions et mots-clés seulement</string>
     <string name="spaces">Espaces</string>
     <string name="a11y_stop_voice_message">Arrêter l’enregistrement</string>
-    <string name="space_add_space_to_any_space_you_manage">Ajouter un espace à un espace que vous gérez.</string>
     <string name="space_add_existing_spaces">Ajouter des espaces existants</string>
     <string name="space_add_existing_rooms_only">Ajouter des salons existants</string>
     <string name="space_leave_prompt_msg_with_name">Voulez-vous vraiment quitter %s \?</string>
@@ -1927,20 +1912,15 @@
     <string name="finish_setup">Terminer le réglage</string>
     <string name="discovery_invite">Inviter par courriel, trouver des contacts et plus…</string>
     <string name="finish_setting_up_discovery">Terminer le réglage de la découverte.</string>
-    <string name="create_space_identity_server_info_none">Vous n’utilisez actuellement pas de serveur d’identité. Pour inviter des proches et qu’ils puissent vous trouver, configurez-en un ci-dessous.</string>
-    <string name="create_spaces_invite_public_header">Qui sont vos proches \?</string>
     <string name="invite_by_username_or_mail">Inviter par nom d’utilisateur ou courriel</string>
-    <string name="create_spaces_invite_public_header_desc">Assurez-vous que l’accès à la société %s est accordé aux bonnes personnes. Vous pourrez en inviter d’autres plus tard.</string>
     <string name="command_description_add_to_space">Ajouter à l’espace mentionné</string>
     <string name="create_space_in_progress">Création de l’espace…</string>
     <string name="command_description_lenny">Ajoute ( ͡° ͜ʖ ͡°) devant un message en texte brut</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Affiche des informations nécessaire au débogage de l’application</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Afficher les informations de débogage à l’écran</string>
-    <string name="does_not_look_like_valid_email">Ceci ne ressemble pas à une adresse de courriel valide</string>
     <string name="settings_discovery_no_policy_provided">Aucune politique fournie par le serveur d’identité</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Cacher la politique du serveur d’identité</string>
     <string name="settings_discovery_show_identity_server_policy_title">Afficher la politique du serveur d’identité</string>
-    <string name="open_discovery_settings">Ouvrir les réglages de découverte</string>
     <string name="user_directory_search_hint_2">Rechercher par nom, identifiant ou courriel</string>
     <string name="create_new_space">Créer un nouvel espace</string>
     <string name="command_description_whois">Affiche des informations à propos de l’utilisateur</string>
@@ -2212,7 +2192,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Le point de connexion a été correctement enregistré sur le serveur d’accueil.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Enregistrement du point de connexion</string>
-    <string name="action_next">Suivant</string>
     <string name="poll_undisclosed_not_ended">Les résultats seront visibles lorsque le sondage sera terminé</string>
     <string name="send_your_first_msg_to_invite">Envoyez votre premier message pour inviter %s à discuter</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Les messages de ce salon seront chiffrés de bout en bout.</string>

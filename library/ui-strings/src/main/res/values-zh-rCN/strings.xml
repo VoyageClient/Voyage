@@ -1542,8 +1542,6 @@
     <string name="add_by_qr_code">通过QR码添加</string>
     <string name="create_room_settings_section">房间设置</string>
     <string name="create_room_topic_hint">话题</string>
-    <string name="create_room_topic_section">房间话题（可选）</string>
-    <string name="create_room_name_section">房间名称</string>
     <string name="room_preview_no_preview_join">此房间无法预览。你想加入吗？</string>
     <string name="room_preview_not_found">目前无法访问此房间。
 \n请稍后重试，或询问房间管理员以确认你是否拥有访问权限。</string>
@@ -1676,7 +1674,6 @@
     <string name="looking_for_someone_not_in_space">正在寻找不在 %s 中的人？</string>
     <string name="user_invites_you">%s 邀请了你</string>
     <string name="you_are_invited">你被邀请</string>
-    <string name="space_add_existing_rooms">添加现有房间和空间</string>
     <string name="space_leave_prompt_msg_as_admin">你是此空间唯一的管理员。离开就意味着没人能控制它。</string>
     <string name="space_leave_prompt_msg_private">除非你被重新邀请，否则你将无法重新加入。</string>
     <string name="space_leave_prompt_msg_only_you">你是这唯一的人。如果你离开，包括你在内的所有人都将无法加入此空间。</string>
@@ -1691,7 +1688,6 @@
     <string name="join_anyway">依然加入</string>
     <string name="join_space">加入空间</string>
     <string name="create_space">创建空间</string>
-    <string name="skip_for_now">暂且略过</string>
     <string name="share_space_link_message">加入我的空间 %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">他们不会成为 %s 的一部分</string>
     <string name="invite_just_to_this_room">仅到此房间</string>
@@ -1704,16 +1700,6 @@
     <string name="invite_people_menu">邀请人们</string>
     <string name="invite_people_to_your_space">邀请人们加入你的空间</string>
     <string name="create_space_topic_hint">描述</string>
-    <string name="create_spaces_loading_message">正在创建空间……</string>
-    <string name="create_spaces_default_public_random_room_name">随机</string>
-    <string name="create_spaces_default_public_room_name">一般性</string>
-    <string name="create_spaces_room_private_header_desc">让我们为他们每个人创建一个房间。 你也可以稍后添加更多内容，包括已经存在的内容。</string>
-    <string name="create_spaces_room_private_header">你在做些什么？</string>
-    <string name="create_spaces_room_public_header_desc">我们将会为此创建房间。你也可以在稍后增加更多。</string>
-    <string name="create_spaces_room_public_header">你希望在 %s 中进行哪些讨论？</string>
-    <string name="create_space_error_empty_field_space_name">为它取名以继续。</string>
-    <string name="create_spaces_details_private_header">增加一些详细信息以帮助人们识别。你可以随时更改这些信息。</string>
-    <string name="activity_create_space_title">创建空间</string>
     <string name="space_type_private">私有</string>
     <string name="add_space">添加空间</string>
     <string name="command_description_leave_room">离开给定id的房间（如果为null则为当前所处的房间）</string>
@@ -1881,7 +1867,6 @@
     <string name="room_settings_none">无</string>
     <string name="room_settings_mention_and_keyword_only">仅提及和关键词</string>
     <string name="spaces">空间</string>
-    <string name="space_add_space_to_any_space_you_manage">将一个空间添加到你管理的任何空间。</string>
     <string name="space_add_existing_spaces">添加现有空间</string>
     <string name="space_add_existing_rooms_only">添加现有房间</string>
     <string name="space_leave_prompt_msg_with_name">你确定要离开 %s 吗？</string>
@@ -1889,16 +1874,11 @@
     <string name="finish_setup">完成设置</string>
     <string name="discovery_invite">通过电子邮件邀请、寻找联系人和更多…</string>
     <string name="finish_setting_up_discovery">设置“发现”已毕。</string>
-    <string name="create_space_identity_server_info_none">你目前没有使用身份服务器。为了邀请队友并能让他们发现，在下方配置一个。</string>
     <string name="invite_by_username_or_mail">通过用户名或邮件邀请</string>
-    <string name="create_spaces_invite_public_header_desc">确保只有合适的人能访问 %s 空间。稍后你可以邀请更多的人加入。</string>
-    <string name="create_spaces_invite_public_header">谁是你的队友？</string>
     <string name="command_description_add_to_space">添加至给定的空间</string>
     <string name="create_space_in_progress">创建空间中…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">显示一些有用的信息以帮助调试应用程序</string>
     <string name="settings_developer_mode_show_info_on_screen_title">在屏幕上显示调试信息</string>
-    <string name="does_not_look_like_valid_email">看起来不像是有效的邮箱地址</string>
-    <string name="open_discovery_settings">打开“发现”设置</string>
     <string name="user_directory_search_hint_2">按名称、ID或邮箱搜索</string>
     <string name="create_new_space">创建新空间</string>
     <string name="room_settings_space_access_public_description">任何人均可找到此空间并加入</string>
@@ -2214,7 +2194,6 @@
     <string name="room_unsupported_e2e_algorithm">加密被错误地配置了，所以你无法发送消息。请联系管理员将加密还原到有效的状态。</string>
     <string name="room_notification_more_than_two_users_are_typing">%1$s、%2$s与其他人</string>
     <string name="room_notification_two_users_are_typing">%1$s与%2$s</string>
-    <string name="action_next">下一步</string>
     <string name="action_learn_more">进一步了解</string>
     <string name="action_try_it_out">试试看</string>
     <string name="action_view_threads">查看消息列</string>

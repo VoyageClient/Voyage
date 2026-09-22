@@ -1582,7 +1582,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="looking_for_someone_not_in_space">Olyant keresel aki még nincs itt: %s\?</string>
     <string name="user_invites_you">%s meghívott</string>
     <string name="you_are_invited">Meghívtak</string>
-    <string name="space_add_existing_rooms">Létező szobák és tér hozzáadása</string>
     <string name="space_leave_prompt_msg_as_admin">Ön az egyetlen adminisztrátora a térnek. Ha kilép, senki nem tudja irányítani.</string>
     <string name="space_leave_prompt_msg_private">Amíg nem hívnak meg újra nem tudsz újracsatlakozni.</string>
     <string name="space_leave_prompt_msg_only_you">Csak te van itt. Ha kilépsz, akkor a jövőben senki nem tud majd ide belépni, beleértve téged is.</string>
@@ -1598,7 +1597,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="join_anyway">Belépés mindenképpen</string>
     <string name="join_space">Belépés a Térbe</string>
     <string name="create_space">Tér készítése</string>
-    <string name="skip_for_now">Kihagy egyelőre</string>
     <string name="share_space_link_message">Csatlakozz a Teremhez %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Nem lesznek a részesei ennek: %s</string>
     <string name="invite_just_to_this_room">Csak ehhez a szobához</string>
@@ -1611,16 +1609,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="invite_people_to_your_space">Emberek meghívása a teredbe</string>
     <string name="invite_people_menu">Személyek meghívása</string>
     <string name="create_space_topic_hint">Leírás</string>
-    <string name="create_spaces_loading_message">Tér készítése…</string>
-    <string name="create_spaces_default_public_random_room_name">Véletlen</string>
-    <string name="create_spaces_default_public_room_name">Általános</string>
-    <string name="create_spaces_room_private_header_desc">Készítsünk mindegyik szobához egyet. Később is hozzáadhatsz újakat vagy akár meglévőket.</string>
-    <string name="create_spaces_room_private_header">Milyen projekteken dolgozol\?</string>
-    <string name="create_spaces_room_public_header_desc">Készítünk szobákat számukra. Később még adhatsz hozzájuk.</string>
-    <string name="create_spaces_room_public_header">Milyen beszélgetéseket szeretnél itt: %s\?</string>
-    <string name="create_space_error_empty_field_space_name">A folytatáshoz adj neki nevet.</string>
-    <string name="create_spaces_details_private_header">Adj hozzá információkat amik segítenek felismerni ezt a teret. Bármikor megváltoztathatod.</string>
-    <string name="activity_create_space_title">Tér készítése</string>
     <string name="space_type_private">Privát</string>
     <string name="settings_security_pin_code_notifications_summary_off">Csak az olvasatlan üzenetek számát mutassa az egyszerű értesítésekben.</string>
     <string name="add_space">Tér hozzáadása</string>
@@ -1769,8 +1757,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="settings_labs_show_complete_history_in_encrypted_room">Teljes tartalom megmutatása titkosított szobákban</string>
     <string name="give_feedback">Visszajelzés küldése</string>
     <string name="create_room_topic_hint">Téma</string>
-    <string name="create_room_topic_section">Szoba témája (nem kötelező)</string>
-    <string name="create_room_name_section">Szoba neve</string>
     <string name="room_preview_no_preview_join">Ennek a szobának nincs előnézete. Szeretnél csatlakozni\?</string>
     <string name="room_preview_not_found">Ez a szoba jelenleg nem elérhető.
 \nPróbáld meg később vagy kérdezd meg a szoba adminisztrátorát, hogy van-e hozzáférésed.</string>
@@ -1915,7 +1901,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_settings_none">Semmi</string>
     <string name="room_settings_mention_and_keyword_only">Csak megemlítések és kulcsszavak</string>
     <string name="spaces">Terek</string>
-    <string name="space_add_space_to_any_space_you_manage">Add hozzá a teret bármelyik általad kezelt térhez.</string>
     <string name="space_add_existing_spaces">Meglévő terek hozzáadása</string>
     <string name="space_add_existing_rooms_only">Létező szobák hozzáadása</string>
     <string name="space_leave_prompt_msg_with_name">Biztos, hogy ki akarsz lépni innen: %s\?</string>
@@ -1923,16 +1908,11 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="finish_setup">Beállítás befejezése</string>
     <string name="discovery_invite">E-mail alapú meghívás, kapcsolatok megtalálása és sok más…</string>
     <string name="finish_setting_up_discovery">Felderíthetőségi beállítás befejezése.</string>
-    <string name="create_space_identity_server_info_none">Jelenleg nem használsz azonosítási szolgáltatást. Ahhoz, hogy a csoporttársaidat meghívd vagy megtaláljanak állíts be egyet alább.</string>
     <string name="invite_by_username_or_mail">Meghívás felhasználói névvel vagy e-mail címmel</string>
-    <string name="create_spaces_invite_public_header_desc">Ellenőrizd, hogy a megfelelő személyeknek van hozzáférése ehhez a céghez: %s. Később meghívhatsz másokat is.</string>
-    <string name="create_spaces_invite_public_header">Kik a csoporttársaid\?</string>
     <string name="command_description_add_to_space">A megadott térhez adás</string>
     <string name="create_space_in_progress">Tér készítése…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Néhány hasznos információ megjelenítése az alkalmazás hibakeresés segítéséért</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Hibakeresési információk megjelenítése a képernyőn</string>
-    <string name="does_not_look_like_valid_email">Az e-mail cím nem tűnik érvényesnek</string>
-    <string name="open_discovery_settings">Felderíthetőségi Beállítások megnyitása</string>
     <string name="user_directory_search_hint_2">Keresés név, azonosító vagy e-mail alapján</string>
     <string name="create_new_space">Új tér készítése</string>
     <string name="room_settings_space_access_public_description">Bárki rátalálhat és beléphet a térre</string>
@@ -2213,7 +2193,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Végpont sikeresen regisztrálva lett a saját kiszolgálón.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Végpont regisztráció</string>
-    <string name="action_next">Következő</string>
     <string name="ftue_auth_login_username_entry">Felhasználónév / e-mail / telefonszám</string>
     <string name="ftue_auth_captcha_title">Valódi személy vagy\?</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">Kövesd az útmutatást, amit ide küldtünk: %s</string>

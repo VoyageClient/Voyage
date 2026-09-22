@@ -658,8 +658,6 @@
     <string name="room_preview_no_preview">Dette rommet kan ikke forhåndsvises</string>
     <string name="room_preview_no_preview_join">Dette rommet kan ikke forhåndsvises. Vil du bli med på det\?</string>
     <string name="create_room_action_create">OPPRETT</string>
-    <string name="create_room_name_section">Romnavn</string>
-    <string name="create_room_topic_section">Romemne (valgfritt)</string>
     <string name="create_room_topic_hint">Emne</string>
     <string name="create_room_public_description">Hvem som helst vil kunne bli med i dette rommet</string>
     <string name="create_room_settings_section">Rominnstillinger</string>

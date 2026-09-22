@@ -323,9 +323,7 @@
     <string name="create_room_public_title">Public</string>
     <string name="create_room_settings_section">Paramètres du salon</string>
     <string name="create_room_topic_hint">Sujet</string>
-    <string name="create_room_topic_section">Sujet du salon (facultatif)</string>
     <string name="create_room_name_hint">Nom</string>
-    <string name="create_room_name_section">Nom du salon</string>
     <string name="create_room_action_create">CRÉER</string>
     <string name="fab_menu_create_chat">Conversations privées</string>
     <string name="fab_menu_create_room">Salons</string>
@@ -1739,9 +1737,6 @@
     <string name="notice_room_created">%1$s a créé le salon</string>
     <string name="notice_room_invite_no_invitee_by_you">Votre invitation</string>
     <string name="notice_room_invite_no_invitee">invitation de %s</string>
-    <string name="create_space_error_empty_field_space_name">Donnez-lui un nom pour poursuivre.</string>
-    <string name="create_spaces_details_private_header">Ajoutez quelques informations pour renforcer son identité. Vous pourrez changer ceci plus tard.</string>
-    <string name="activity_create_space_title">Créer un espace</string>
     <string name="space_type_private">Privé</string>
     <string name="add_space">Ajouter un espace</string>
     <string name="command_description_leave_room">Partir du salon correspondant à l’identifiant donné (ou le salon actuel si aucun n’est fourni)</string>
@@ -1785,7 +1780,6 @@
     <string name="looking_for_someone_not_in_space">Vous cherchez quelqu’un qui n’est pas dans %s\?</string>
     <string name="user_invites_you">%s vous invite</string>
     <string name="you_are_invited">Vous êtes invité·e</string>
-    <string name="space_add_existing_rooms">Ajouter des salons et espaces existants</string>
     <string name="space_leave_prompt_msg_as_admin">Vous êtes admin de cet espace, assurez-vous d’avoir transféré les droits d’admin à un autre membre avant de partir.</string>
     <string name="space_leave_prompt_msg_private">Cet espace n’est pas public. Vous ne pourrez pas le rejoindre sans invitation.</string>
     <string name="space_leave_prompt_msg_only_you">Vous êtes la seule personne ici. Si vous partez, personne ne pourra entrer à l’avenir, même pas vous.</string>
@@ -1801,7 +1795,6 @@
     <string name="join_anyway">Rejoindre quand même</string>
     <string name="join_space">Rejoindre l’espace</string>
     <string name="create_space">Créer un espace</string>
-    <string name="skip_for_now">Passer pour l’instant</string>
     <string name="share_space_link_message">Rejoignez mon espace %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Ne fera pas partie de %s</string>
     <string name="invite_just_to_this_room">Seulement ce salon</string>
@@ -1814,13 +1807,6 @@
     <string name="invite_people_menu">Inviter des personnes</string>
     <string name="invite_people_to_your_space">Invitez des personnes dans votre espace</string>
     <string name="create_space_topic_hint">Description</string>
-    <string name="create_spaces_loading_message">Création de l’espace…</string>
-    <string name="create_spaces_default_public_random_room_name">Aléatoire</string>
-    <string name="create_spaces_default_public_room_name">Général</string>
-    <string name="create_spaces_room_private_header_desc">Créons un salon pour chacun d’entre eux. Vous pourrez en ajouter plus tard, y compris certains déjà existant.</string>
-    <string name="create_spaces_room_private_header">Sur quels projets travaillez-vous\?</string>
-    <string name="create_spaces_room_public_header_desc">Nous allons créer les salons pour ces sujets. Vous pourrez en ajouter d’autres plus tard.</string>
-    <string name="create_spaces_room_public_header">De quoi allez-vous parler dans %s\?</string>
     <string name="give_feedback">Envoyer des remarques</string>
     <string name="denied_permission_generic">Certaines permissions manquent pour effectuer cette action, veuillez autoriser ces permissions depuis les réglages système.</string>
     <string name="spaces">Espaces</string>

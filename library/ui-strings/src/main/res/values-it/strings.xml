@@ -1561,8 +1561,6 @@
     <string name="attachment_type_dialog_title">Aggiungi immagine da</string>
     <string name="create_room_settings_section">Impostazioni stanza</string>
     <string name="create_room_topic_hint">Argomento</string>
-    <string name="create_room_topic_section">Argomento stanza (facoltativo)</string>
-    <string name="create_room_name_section">Nome stanza</string>
     <string name="settings_export_trail">Esporta revisione</string>
     <string name="room_member_open_or_create_dm">Messaggio diretto</string>
     <string name="no_more_results">Nessun altro risultato</string>
@@ -1730,7 +1728,6 @@
     <string name="initial_sync_start_server_computing">Sincronizzazione iniziale:
 \nIn attesa di risposta dal server…</string>
     <string name="you_are_invited">Sei stato/a invitato/a</string>
-    <string name="space_add_existing_rooms">Aggiungi stanze e Spazi esistenti</string>
     <string name="leave_space">Esci</string>
     <string name="space_add_child_title">Aggiungi stanze</string>
     <string name="space_explore_activity_title">Guarda le stanze</string>
@@ -1743,7 +1740,6 @@
     <string name="join_anyway">Unisciti comunque</string>
     <string name="join_space">Unisciti a uno Spazio</string>
     <string name="create_space">Crea spazio</string>
-    <string name="skip_for_now">Per il momento, salta</string>
     <string name="share_space_link_message">Unisciti al mio Spazio %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Non faranno parte di %s</string>
     <string name="invite_just_to_this_room">Solo in questa stanza</string>
@@ -1755,16 +1751,6 @@
     <string name="invite_people_menu">Invita persone</string>
     <string name="invite_people_to_your_space">Invita persone nel tuo Spazio</string>
     <string name="create_space_topic_hint">Descrizione</string>
-    <string name="create_spaces_loading_message">Creazione Spazio…</string>
-    <string name="create_spaces_default_public_random_room_name">Casuale</string>
-    <string name="create_spaces_default_public_room_name">Generale</string>
-    <string name="create_spaces_room_private_header_desc">Creiamo una stanza per ognuno di essi. Potrai sempre aggiungerne altre a quelle già esistenti.</string>
-    <string name="create_spaces_room_private_header">A cosa stai lavorando\?</string>
-    <string name="create_spaces_room_public_header_desc">Creeremo delle stanze per ognuno di essi. Puoi aggiungerne altre in seguito.</string>
-    <string name="create_spaces_room_public_header">Di quali argomenti vorresti parlare in %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Dagli un nome per continuare.</string>
-    <string name="create_spaces_details_private_header">Aggiungi alcuni dettagli per aiutare le persone ad identificarlo. Potrai modificarli in qualsiasi momento.</string>
-    <string name="activity_create_space_title">Crea uno Spazio</string>
     <string name="space_type_private">Privato</string>
     <string name="add_space">Aggiungi spazio</string>
     <string name="command_description_leave_room">Esci dalla stanza con un ID (o dalla stanza attuale se vuota)</string>
@@ -1909,24 +1895,18 @@
     <string name="room_settings_none">Nessuno</string>
     <string name="room_settings_mention_and_keyword_only">Solo menzioni e parole chiave</string>
     <string name="spaces">Spazi</string>
-    <string name="open_discovery_settings">Apri impostazioni di rintracciabilità</string>
     <string name="discovery_section">Farsi trovare (%s)</string>
     <string name="finish_setting_up_discovery">Termina la configurazione della rintracciabilità.</string>
-    <string name="space_add_space_to_any_space_you_manage">Aggiungi uno spazio ad un altro che gestisci.</string>
     <string name="space_add_existing_spaces">Aggiungi spazi esistenti</string>
     <string name="space_add_existing_rooms_only">Aggiungi stanze esistenti</string>
     <string name="space_leave_prompt_msg_with_name">Vuoi davvero uscire da %s\?</string>
     <string name="finish_setup">Termina configurazione</string>
     <string name="discovery_invite">Invita per email, trova contatti e altro…</string>
-    <string name="create_space_identity_server_info_none">Attualmente non stai usando un server d\'identità. Per poter invitare compagni ed essere individuabile da loro, configurane uno sotto.</string>
     <string name="invite_by_username_or_mail">Invita per nome utente o email</string>
-    <string name="create_spaces_invite_public_header_desc">Assicurati che le persone giuste abbiano accesso a %s. Puoi invitarne altre dopo.</string>
-    <string name="create_spaces_invite_public_header">Chi sono i tuoi compagni di squadra\?</string>
     <string name="command_description_add_to_space">Aggiungi allo spazio scelto</string>
     <string name="create_space_in_progress">Creazione spazio…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Mostra alcune informazioni utili per aiutare il debug dell\'applicazione</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Mostra info di debug su schermo</string>
-    <string name="does_not_look_like_valid_email">Non sembra essere un indirizzo email valido</string>
     <string name="user_directory_search_hint_2">Cerca per nome, ID o email</string>
     <string name="create_new_space">Crea nuovo spazio</string>
     <string name="room_settings_space_access_public_description">Chiunque può trovare lo spazio ed entrarvi</string>
@@ -2203,7 +2183,6 @@
 \n %1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Endpoint registrato con successo sull\'homeserver.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registrazione endpoint</string>
-    <string name="action_next">Avanti</string>
     <string name="poll_undisclosed_not_ended">I risultati saranno visibili quando il sondaggio sarà terminato</string>
     <string name="send_your_first_msg_to_invite">Invia il primo messaggio per invitare %s a parlare</string>
     <string name="direct_room_encryption_enabled_tile_description_future">I messaggi in questa conversazione saranno cifrati end-to-end.</string>

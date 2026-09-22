@@ -962,7 +962,6 @@
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Token de registre</string>
     <string name="settings_other_third_party_notices">Altres avisos de tercers</string>
     <string name="create_room_settings_section">Configuració de la sala</string>
-    <string name="create_room_name_section">Nom de la sala</string>
     <string name="room_preview_no_preview_join">Aquesta sala no es pot previsualitzar. Vols unir-t\'hi\?</string>
     <string name="error_user_already_logged_in">Sembla que t\'estàs intentant connectar a un servidor local diferent. Vols tancar la sessió\?</string>
     <string name="identity_server_not_defined">No estàs utilitzant cap servidor d\'identitat</string>
@@ -1051,7 +1050,6 @@
     <string name="add_a_topic_link_text">Afegeix un tema</string>
     <string name="room_created_summary_no_topic_creation_text">%s perquè la gent sàpiga de què tracta la sala.</string>
     <string name="create_room_topic_hint">Tema</string>
-    <string name="create_room_topic_section">Tema de la sala (opcional)</string>
     <string name="notice_crypto_unable_to_decrypt_merged">Esperant l\'històric xifrat</string>
     <string name="secure_backup_reset_no_history">Es reiniciarà sense històric, sense missatges i sense dispositius ni usuaris de confiança</string>
     <string name="e2e_use_keybackup">Desbloqueja l\'històric de missatges xifrats</string>
@@ -1759,10 +1757,6 @@
     <string name="room_permissions_enable_space_encryption">Activa els xifrat de l\'espai</string>
     <string name="create_space">Crea espai</string>
     <string name="create_space_topic_hint">Descripció</string>
-    <string name="create_spaces_loading_message">Creant espai…</string>
-    <string name="create_spaces_default_public_random_room_name">Aleatori</string>
-    <string name="create_spaces_default_public_room_name">General</string>
-    <string name="activity_create_space_title">Crea un espai</string>
     <string name="command_description_create_space">Crea un espai</string>
     <string name="create_space_in_progress">Creant espai…</string>
     <string name="create_space_alias_hint">Adreça de l\'espai</string>
@@ -1847,10 +1841,8 @@
     <string name="location_share_option_pinned">Comparteix la ubicació</string>
     <string name="invite_people_to_your_space">Convida gent al teu espai</string>
     <string name="invite_people_menu">Convida gent</string>
-    <string name="create_space_error_empty_field_space_name">Posa-li un nom per continuar.</string>
     <string name="settings_messages_direct_messages">Xats directes</string>
     <string name="settings_encrypted_direct_messages">Xats directes xifrats</string>
-    <string name="create_spaces_invite_public_header">Qui son els teus companys\?</string>
     <string name="a11y_unchecked">Sense marcar</string>
     <string name="a11y_location_share_pin_on_map">Pin d\'ubicació seleccionada al mapa</string>
     <string name="upgrade_room_warning">L\'actualització d\'una sala és una acció avançada i normalment es recomana si la sala és inestable per culpa d\'errors, funcions que falten o vulnerabilitats de seguretat.
@@ -1864,12 +1856,9 @@
     <string name="settings_show_latest_profile_description">Mostra la informació de perfil més recent per a tots els missatges (foto i àlies).</string>
     <string name="you_are_invited">T\'han convidat</string>
     <string name="finish_setting_up_discovery">Acaba de configurar el descobriment.</string>
-    <string name="create_space_identity_server_info_none">Actualment no estàs utilitzant un servidor d\'identitat. Per convidar persones i poder ser descobert per elles, configura\'n un a continuació.</string>
     <string name="room_alias_preview_not_found">Aquest àlies no està accessible ara mateix.
 \nTorna-ho a provar més tard o demana a un administrador de la sala que en comprovi l\'accés.</string>
     <string name="invite_people_to_your_space_desc">De moment només hi ets tu. %s serà encara millor amb altres persones.</string>
-    <string name="create_spaces_room_private_header_desc">Crearem una sala per a cadascun d\'ells. També pots afegir-ne més després, incloses les ja existents.</string>
-    <string name="create_spaces_invite_public_header_desc">Assegura\'t que les persones adequades tinguin accés a %s. Pots convidar-ne més després.</string>
     <string name="identity_server_consent_dialog_content_3">Per descobrir contactes existents, s\'ha d\'enviar informació de contacte (adreces de correu electrònic i números de telèfon) al servidor d\'identitat utilitzat. Es fa un \'hash\' de les dades abans d\'enviar-les per privacitat.</string>
     <string name="identity_server_consent_dialog_title_2">Envia adreces de correu electrònic i números de telèfon a %s</string>
     <string name="settings_discovery_consent_notice_off_2">Els teus contactes són privats. Per descobrir els usuaris dels teus contactes, necessitem permís per enviar informació dels contactes al servidor d\'identitat que estiguis utilitzant.</string>
@@ -1933,7 +1922,6 @@
     <string name="discovery_invite">Convida per correu, busca contactes i més…</string>
     <string name="join_anyway">Uneix-te de totes maneres</string>
     <string name="join_space">Uneix-te a l\'espai</string>
-    <string name="skip_for_now">Omet per ara</string>
     <string name="share_space_link_message">Uneix-te al meu espai %1$s·%2$s</string>
     <string name="invite_just_to_this_room_desc">No formaran part de %s</string>
     <string name="invite_just_to_this_room">Només aquesta sala</string>
@@ -1943,10 +1931,6 @@
     <string name="invite_by_email">Convida mitjançant correu electrònic</string>
     <string name="invite_by_username_or_mail">Convida mitjançant de nom d\'usuari o correu</string>
     <string name="invite_to_space">Invitació per %s</string>
-    <string name="create_spaces_room_private_header">En quines coses esteu treballant\?</string>
-    <string name="create_spaces_room_public_header_desc">Crearem sales per ells. També en podràs afegir després.</string>
-    <string name="create_spaces_room_public_header">De què podrien ser alguns temes dels que parleu a %s\?</string>
-    <string name="create_spaces_details_private_header">Afegeix alguns detalls per ajudar la gent a identificar-lo Pots canviar-ho en qualsevol moment.</string>
     <string name="ftue_display_name_title">Escull un àlies</string>
     <string name="ftue_account_created_subtitle">El teu compte %s s\'ha creat</string>
     <string name="ftue_account_created_congratulations_title">Felicitats!</string>
@@ -1982,10 +1966,8 @@
     <string name="ftue_profile_picture_subtitle">És hora de posar cara al nom</string>
     <string name="ftue_display_name_entry_footer">Ho podràs canviar després</string>
     <string name="ftue_display_name_entry_title">Àlies</string>
-    <string name="space_add_space_to_any_space_you_manage">Afegeix espai a un espai gestionat per tu.</string>
     <string name="space_add_existing_spaces">Afegeix espais existents</string>
     <string name="space_add_existing_rooms_only">Afegeix sales existents</string>
-    <string name="space_add_existing_rooms">Afegeix sales i espais existents</string>
     <string name="space_leave_prompt_msg_as_admin">Ets l\'únic administrador d\'aquest espai. Si marxes ningú en podrà tenir el control.</string>
     <string name="space_leave_prompt_msg_private">No podràs tornar a unir-t\'hi mentre no t\'hi tornin a convidar.</string>
     <string name="space_leave_prompt_msg_only_you">Ets l\'única persona aquí. Si marxes, ningú podrà unir-s\'hi en el futur, incloent-te a tu.</string>
@@ -2061,13 +2043,11 @@
     <string name="command_description_lenny">Afegeix ( ͡° ͜ʖ ͡°) abans d\'un missatge de text</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Mostra informació útil per ajudar a depurar l\'aplicació</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Mostra la informació de depuració a la pantalla</string>
-    <string name="does_not_look_like_valid_email">Sembla que l\'adreça de correu no és vàlida</string>
     <string name="login_splash_already_have_account">Ja tinc un compte</string>
     <string name="login_splash_create_account">Crea compte</string>
     <string name="settings_discovery_no_policy_provided">El servidor d\'identitat no ha proporcionat cap política</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Amaga les polítiques del servidor d\'identitat</string>
     <string name="settings_discovery_show_identity_server_policy_title">Mostra les polítiques del servidor d\'identitat</string>
-    <string name="open_discovery_settings">Obre la configuració de descobriment</string>
     <string name="user_directory_search_hint_2">Cerca per nom, ID o correu</string>
     <string name="send_file_step_compressing_video">Comprimint vídeo %d%%</string>
     <string name="send_file_step_compressing_image">Comprimint imatge…</string>
@@ -2212,7 +2192,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">\'Endpoint\' registrat correctament al servidor.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registre d\'endpoint</string>
-    <string name="action_next">Següent</string>
     <string name="poll_undisclosed_not_ended">Els resultats es mostraran quan acabi l\'enquesta</string>
     <string name="send_your_first_msg_to_invite">Envia un primer missatge per convidar %s a parlar</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Els missatges d\'aquest xat seran xifrats d\'extrem a extrem.</string>

@@ -546,7 +546,6 @@
     <string name="invite_just_to_this_room">فقط في هذه الغُرفة</string>
     <string name="invite_just_to_this_room_desc">لن يكونوا جزءًا من %s</string>
     <string name="share_space_link_message">إنضم إلى مساحتي %1$s %2$s</string>
-    <string name="skip_for_now">تخطي في الوقت الراهن</string>
     <string name="create_space">إنشاء مساحة</string>
     <string name="join_space">انضم إلى المساحة</string>
     <string name="join_anyway">الانضمام على أي حال</string>
@@ -566,7 +565,6 @@
     <string name="space_leave_prompt_msg_only_you">انت الشخص الوحيد هنا إذا غادرت، فلن يتمكن أي شخص من الانضمام في المستقبل، بما في ذلك أنت.</string>
     <string name="space_leave_prompt_msg_private">هذه المساحة ليست عامة. لن تتمكن من الانضمام مرة أخرى بدون دعوة.</string>
     <string name="space_leave_prompt_msg_as_admin">أنت المسؤول عن هذه المساحة، تأكد من أنك قمت بنقل حق المسؤول إلى عضو آخر قبل المغادرة.</string>
-    <string name="space_add_existing_rooms">أضف الغُرف الموجودة ومساحة</string>
     <string name="you_are_invited">أنت مدعو</string>
     <string name="space_mark_as_suggested">علم كمقترحة</string>
     <string name="space_mark_as_not_suggested">علم كغير مقترحة</string>
@@ -729,9 +727,7 @@
     <string name="create_room_public_title">علنية</string>
     <string name="create_room_settings_section">إعدادات الغرفة</string>
     <string name="create_room_topic_hint">الموضوع</string>
-    <string name="create_room_topic_section">موضوع الغرفة (اختياري)</string>
     <string name="create_room_name_hint">الاسم</string>
-    <string name="create_room_name_section">اسم الغرفة</string>
     <string name="create_room_action_create">أنشئ</string>
     <string name="fab_menu_create_chat">رسالة مباشرة</string>
     <string name="fab_menu_create_room">الغرف</string>
@@ -1046,7 +1042,6 @@
     <string name="action_deselect_all">ألغ تحديد الكل</string>
     <string name="action_select_all">حدد الكل</string>
     <string name="action_got_it">فهمتُ</string>
-    <string name="action_next">التالي</string>
     <string name="time_unit_second_short">ثا</string>
     <string name="time_unit_minute_short">د</string>
     <string name="time_unit_hour_short">سا</string>

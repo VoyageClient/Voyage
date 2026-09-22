@@ -608,9 +608,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="create_room_public_title">Publiska</string>
     <string name="create_room_settings_section">Istabas iestatījumi</string>
     <string name="create_room_topic_hint">Temats</string>
-    <string name="create_room_topic_section">Istabas temats (izvēles)</string>
     <string name="create_room_name_hint">Nosaukums</string>
-    <string name="create_room_name_section">Istabas nosaukums</string>
     <string name="create_room_action_create">IZVEIDOT</string>
     <string name="fab_menu_create_chat">Tiešās ziņas</string>
     <string name="fab_menu_create_room">Istabas</string>
@@ -1498,7 +1496,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="join_anyway">Pievienoties tāpat</string>
     <string name="join_space">Pievienoties Telpai</string>
     <string name="create_space">Izveidot Telpu</string>
-    <string name="skip_for_now">Pagaidām izlaist</string>
     <string name="share_space_link_message">Pievienojies manai Telpai %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Tie nebūs daļa no %s</string>
     <string name="invite_just_to_this_room">Tikai uz šo istabu</string>
@@ -1512,18 +1509,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="invite_people_menu">Uzaicināt cilvēkus</string>
     <string name="invite_people_to_your_space">Uzaiciniet cilvēkus uz savu Telpu</string>
     <string name="create_space_topic_hint">Apraksts</string>
-    <string name="create_spaces_loading_message">Izveido Telpu…</string>
-    <string name="create_spaces_default_public_random_room_name">Nejaušs</string>
-    <string name="create_spaces_default_public_room_name">Vispārīgi</string>
-    <string name="create_spaces_room_private_header_desc">Izveidosim katram no tiem savu istabu. Vēlāk varat pievienot arī citas, tostarp jau esošās.</string>
-    <string name="create_spaces_room_private_header">Pie kādām lietām strādājat\?</string>
-    <string name="create_spaces_invite_public_header_desc">Nodrošiniet piekļuvi %s uzņēmumam pareizajiem cilvēkiem. Vēlāk varat uzaicināt vairāk.</string>
-    <string name="create_spaces_invite_public_header">Kas ir Tavi komandas biedri\?</string>
-    <string name="create_spaces_room_public_header_desc">Mēs izveidosim tām istabas. Vēlāk var pievienot arī citas.</string>
-    <string name="create_spaces_room_public_header">Kādas ir dažas diskusijas, ko vēlaties apspriest %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Dodiet tam nosaukumu, lai turpinātu.</string>
-    <string name="create_spaces_details_private_header">Pievienojiet sīkāku informāciju, lai palīdzētu cilvēkiem to identificēt. Tās var mainīt jebkurā brīdī.</string>
-    <string name="activity_create_space_title">Izveidot Telpu</string>
     <string name="space_type_private">Privāta</string>
     <string name="add_space">Pievienot Telpu</string>
     <string name="private_space">Privāta Telpa</string>
@@ -1683,7 +1668,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
 \n• Citā sesijā ir izdzēsta šī sesija.
 \n
 \n• Servera pārvaldītājs piekļuvi ir padarījis par spēkā neesošu drošības apsvērumu dēļ.</string>
-    <string name="does_not_look_like_valid_email">Neizskatās pēc derīgas e-pasta adreses</string>
     <string name="command_description_spoiler">Nosūta doto ziņojumu kā pārsteigumu</string>
     <string name="uploads_files_subtitle">%1$s pie %2$s</string>
     <string name="uploads_media_no_result">Šajā istabā nav multivides</string>
@@ -1703,7 +1687,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_discovery_no_policy_provided">Identitātes serveris nesniedz nekādu politiku</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Slēpt identitātes servera politiku</string>
     <string name="settings_discovery_show_identity_server_policy_title">Parādīt identitātes servera politiku</string>
-    <string name="open_discovery_settings">Atvērt atklāšanas iestatījumus</string>
     <string name="search_hint_room_name">Meklēt Vārdu</string>
     <string name="user_directory_search_hint_2">Meklēt pēc vārda, ID vai pasta</string>
     <string name="send_file_step_compressing_video">Kompresē video %d%%</string>
@@ -1828,7 +1811,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="action_view_threads">Skatīt pavedienus</string>
     <string name="leave_space">Pamest</string>
     <string name="time_unit_hour_short">h</string>
-    <string name="action_next">Nākamais</string>
     <string name="space_leave_radio_button_none">Nepamest neko</string>
     <string name="action_try_it_out">Izmēģināt</string>
     <string name="action_learn_more">Uzzināt vairāk</string>
@@ -1898,7 +1880,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="space_explore_activity_title">Izpētīt istabas</string>
     <string name="space_add_existing_rooms_only">Pievienot esošas istabas</string>
     <string name="space_settings_manage_rooms">Pārvaldīt istabas</string>
-    <string name="space_add_existing_rooms">Pievienot esošas istabas un vietas</string>
     <string name="this_space_has_no_rooms">Šajā vietā nav istabu</string>
     <string name="threads_beta_enable_notice_title">Pavedieni Beta</string>
     <string name="this_space_has_no_rooms_admin">Dažas istabas var būt paslēptas, jo tās ir privātas un ir nepieciešams uzaicinājums.</string>
@@ -2246,7 +2227,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="dev_tools_menu_name">Izstrādātāja rīki</string>
     <string name="discovery_section">Atklājamība (%s)</string>
     <string name="space_add_existing_spaces">Pievienot esošas vietas</string>
-    <string name="space_add_space_to_any_space_you_manage">Pievienot vietu jebkurai sevis pārvaldītai vietai.</string>
     <string name="settings_show_latest_profile">Parādīt jaunāko lietotāja informāciju</string>
     <string name="a11y_play_voice_message">Atskaņot balss ziņu</string>
     <string name="a11y_pause_voice_message">Apturēt balss ziņu</string>
@@ -2280,7 +2260,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="dev_tools_state_event">Stāvokļa notikumi</string>
     <string name="room_alias_preview_not_found">Pašlaik šis aizstājvārds nav pieejams.
 \nVēlāk jāmēģina vēlreiz vai jāvaicā istabas pārvaldītājam, lai pārbauda, vai Tev ir piekļuve.</string>
-    <string name="create_space_identity_server_info_none">Pašlaik netiek izmantots identitātes serveris. Lai varētu uzaicināt komandas biedrus un būtu tiem atklājams, jāiestata tāds zemāk.</string>
     <string name="space_leave_prompt_msg_private">Nebūs iespējams atkārtoti pievienoties bez uzaicinājuma.</string>
     <string name="space_explore_filter_no_result_title">Nekas netika atrasts</string>
     <string name="settings_security_pin_code_use_biometrics_summary_on">Iespējot no ierīces atkarīgu biometriju, piemēram, pirkstu nospiedumus un sejas atpazīšanu.</string>

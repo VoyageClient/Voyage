@@ -49,7 +49,6 @@
     <string name="action_dismiss">Яшерү</string>
     <string tools:ignore="UnusedResources" name="action_reset">Ташлату</string>
     <string name="action_learn_more">Күбрәк белү</string>
-    <string name="action_next">Киләсе</string>
     <string name="action_got_it">Аңладым</string>
     <string name="action_deselect_all">Берсен дә сайламау</string>
     <string name="copied_to_clipboard">Алмашу буферына күчермәләнде</string>

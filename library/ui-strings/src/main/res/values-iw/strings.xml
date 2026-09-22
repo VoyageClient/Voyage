@@ -1022,9 +1022,7 @@
     <string name="verification_request_waiting">ממתין…</string>
     <string name="create_room_settings_section">הגדרות החדר</string>
     <string name="create_room_topic_hint">נושא</string>
-    <string name="create_room_topic_section">נושא החדר (לא חובה)</string>
     <string name="create_room_name_hint">שם</string>
-    <string name="create_room_name_section">שם החדר</string>
     <string name="create_room_action_create">צור</string>
     <string name="fab_menu_create_chat">הודעות ישירות</string>
     <string name="fab_menu_create_room">חדרים</string>
@@ -1892,7 +1890,6 @@
     <string name="join_anyway">הצטרף בכל מקרה</string>
     <string name="join_space">הצטרף למרחב</string>
     <string name="create_space">יצירת מרחב</string>
-    <string name="skip_for_now">דלג כרגע</string>
     <string name="share_space_link_message">הצטרף למרחב שלי %1$s%2$s</string>
     <string name="settings_encrypted_group_messages">הודעות קבוצה מוצפנות</string>
     <string name="settings_messages_direct_messages">הודעות ישירות</string>
@@ -1903,18 +1900,6 @@
     <string name="invite_people_menu">הזמן אנשים</string>
     <string name="invite_people_to_your_space">הזמן אנשים למרחב שלך</string>
     <string name="create_space_topic_hint">תֵאוּר</string>
-    <string name="create_spaces_loading_message">יוצר מרחב…</string>
-    <string name="create_spaces_default_public_random_room_name">אַקרַאִי</string>
-    <string name="create_spaces_default_public_room_name">ראשי</string>
-    <string name="create_spaces_room_private_header_desc">בואו ניצור חדר לכל אחד מהם. אתה יכול להוסיף עוד מאוחר יותר, כולל אלה שכבר קיימים.</string>
-    <string name="create_spaces_room_private_header">על איזה דברים אתה עובד\?</string>
-    <string name="create_spaces_invite_public_header_desc">ודא שלאנשים הנכונים יש גישה לחברה %s. תוכל להזמין עוד מאוחר יותר.</string>
-    <string name="create_spaces_invite_public_header">מי הם חבריך לצוות\?</string>
-    <string name="create_spaces_room_public_header_desc">אנחנו ניצור עבורם חדרים. אתה יכול להוסיף עוד מאוחר יותר גם.</string>
-    <string name="create_spaces_room_public_header">איזה דיונים אתה רוצה לקיים ב-%s\?</string>
-    <string name="create_space_error_empty_field_space_name">תן לזה שם כדי להמשיך.</string>
-    <string name="create_spaces_details_private_header">הוסף כמה פרטים כדי לשפר לזיהוי. אתה יכול לשנות את זה בכל שלב.</string>
-    <string name="activity_create_space_title">צור מרחב</string>
     <string name="space_type_private">פְּרָטִי</string>
     <string name="add_space">הוספת מרחב</string>
     <string name="private_space">מרחב אישי</string>
@@ -1973,10 +1958,8 @@
     <string name="looking_for_someone_not_in_space">מחפש מישהו שאינו ב-%s\?</string>
     <string name="user_invites_you">%s מזמין אותך</string>
     <string name="you_are_invited">אתם מוזמנים</string>
-    <string name="space_add_space_to_any_space_you_manage">הוסף מרחב לכל מרחב שאתה מנהל.</string>
     <string name="space_add_existing_spaces">הוסף מרחבים קיימים</string>
     <string name="space_add_existing_rooms_only">הוסף חדרים קיימים</string>
-    <string name="space_add_existing_rooms">הוסף חדרים ומרחבים קיימים</string>
     <string name="space_leave_prompt_msg_as_admin">אתה המנהל היחיד של המרחב הזה. עזיבה תגרום לכך שאף אחד לא ישלוט על המרחב.</string>
     <string name="space_leave_prompt_msg_private">לא תוכל להצטרף מחדש אלא אם כן תוזמן מחדש.</string>
     <string name="space_leave_prompt_msg_only_you">אתה האדם היחיד כאן. אם תעזוב, אף אחד לא יוכל להצטרף בעתיד, כולל אותך.</string>
@@ -1994,7 +1977,6 @@
     <string name="finish_setup">סיים את ההגדרה</string>
     <string name="discovery_invite">הזמן בדואר אלקטרוני, מצא אנשי קשר ועוד…</string>
     <string name="finish_setting_up_discovery">סיים להגדיר את הגילוי.</string>
-    <string name="create_space_identity_server_info_none">אינך משתמש כעת בשרת זהות. על מנת להזמין חברים לצוות ולהיות ניתנים לגילוי על ידם, הגדר שרת זהות למטה.</string>
     <string name="room_alias_preview_not_found">כינוי זה אינו נגיש בשלב זה.
 \nנסה שוב מאוחר יותר, או בקש ממנהל חדר לבדוק אם יש לך גישה.</string>
     <string name="invite_just_to_this_room_desc">הם לא יהיו חלק מ-%s</string>
@@ -2013,7 +1995,6 @@
     <string name="command_description_lenny">קידומת ( ͡° ͜ʖ ͡°) להודעת טקסט רגילה</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">הצגת מידע שימושי לטיפול בתקלות ביישומון</string>
     <string name="settings_developer_mode_show_info_on_screen_title">הראה מידע על באגים במסך</string>
-    <string name="does_not_look_like_valid_email">נראה שכתובת הדואר האלקטרוני אינה תקפה</string>
     <string name="ftue_auth_use_case_connect_to_server">התחבר לשרת</string>
     <string name="ftue_auth_use_case_join_existing_server">מחפש להצטרף לשרת קיים \?</string>
     <string name="ftue_auth_use_case_skip">עדיין לא בטוח\? אתה יכול %s</string>
@@ -2037,7 +2018,6 @@
     <string name="settings_discovery_no_policy_provided">לא סופקה מדיניות על ידי שרת הזדהות</string>
     <string name="settings_discovery_hide_identity_server_policy_title">הסתר מדיניות שרת הזדהות</string>
     <string name="settings_discovery_show_identity_server_policy_title">הראה מדיניות שרת הזדהות</string>
-    <string name="open_discovery_settings">פתח את הגדרות גילוי</string>
     <string name="preference_system_settings">הגדרות מערכת</string>
     <string name="preference_versions">גרסאות</string>
     <string name="preference_help_summary">קבלת עזרה בשימוש ${app_name}</string>

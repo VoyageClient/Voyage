@@ -594,9 +594,7 @@
     <string name="create_room_public_title">ສາທາລະນະ</string>
     <string name="create_room_settings_section">ການຕັ້ງຄ່າຫ້ອງ</string>
     <string name="create_room_topic_hint">ຫົວຂໍ້</string>
-    <string name="create_room_topic_section">ຫົວຂໍ້ຫ້ອງ (ທາງເລືອກ)</string>
     <string name="create_room_name_hint">ຊື່</string>
-    <string name="create_room_name_section">ຊື່ຫ້ອງ</string>
     <string name="create_room_action_create">ສ້າງ</string>
     <string name="fab_menu_create_chat">ຂໍ້ຄວາມໂດຍກົງ</string>
     <string name="fab_menu_create_room">ຫ້ອງ</string>
@@ -998,7 +996,6 @@
     <string name="settings_discovery_hide_identity_server_policy_title">ເຊື່ອງນະໂຍບາຍເຊີບເວີ</string>
     <string name="settings_discovery_show_identity_server_policy_title">ສະແດງນະໂຍບາຍເຊີບ</string>
     <string name="change_identity_server">ປ່ຽນເຊີບເວີ</string>
-    <string name="open_discovery_settings">ເປີດການຕັ້ງຄ່າ ການຄົ້ນພົບ</string>
     <string name="add_identity_server">ຕັ້ງຄ່າເຊີບເວີ</string>
     <string name="disconnect_identity_server">ຕັດການເຊື່ອມຕໍ່ເຊີບເວີ</string>
     <string name="identity_server">ຂໍ້ມູນເຊີບເວີ</string>
@@ -1285,10 +1282,8 @@
     <string name="looking_for_someone_not_in_space">ຊອກຫາຄົນທີ່ບໍ່ໄດ້ຢູ່ໃນ %s ບໍ\?</string>
     <string name="user_invites_you">%s ເຊີນທ່ານ</string>
     <string name="you_are_invited">ທ່ານໄດ້ຮັບເຊີນ</string>
-    <string name="space_add_space_to_any_space_you_manage">ເພີ່ມພື້ນທີ່ໃສ່ບ່ອນໃດກໍໄດ້ທີ່ທ່ານຈັດການ.</string>
     <string name="space_add_existing_spaces">ເພີ່ມພື້ນທີ່ທີ່ມີຢູ່</string>
     <string name="space_add_existing_rooms_only">ເພີ່ມຫ້ອງທີ່ມີຢູ່</string>
-    <string name="space_add_existing_rooms">ເພີ່ມຫ້ອງ ແລະພື້ນທີ່ທີ່ມີຢູ່</string>
     <string name="space_leave_prompt_msg_as_admin">ທ່ານພຽງຜູ້ທີ່ເບິ່ງແຍງລະບົບພື້ນທີ່ນີ້. ການອອກຈາກລະບົບນັ້ນຫມາຍຄວາມວ່າບໍ່ມີໃຜຄວບຄຸມມັນ.</string>
     <string name="space_leave_prompt_msg_private">ທ່ານຈະບໍ່ສາມາດເຂົ້າຮ່ວມຄືນໃໝ່ໄດ້ເວັ້ນເສຍແຕ່ວ່າທ່ານໄດ້ຮັບເຊີນຄືນໃໝ່.</string>
     <string name="space_leave_prompt_msg_only_you">ທ່ານເປັນຄົນດຽວຢູ່ທີ່ນີ້. ຖ້າທ່ານອອກໄປ, ບໍ່ມີໃຜຈະສາມາດເຂົ້າຮ່ວມໃນອະນາຄົດ, ລວມທັງທ່ານ.</string>
@@ -1303,7 +1298,6 @@
     <string name="finish_setup">ສຳເລັດການຕັ້ງຄ່າ</string>
     <string name="discovery_invite">ເຊີນທາງອີເມວ, ຊອກຫາລາຍຊື່ຜູ້ຕິດຕໍ່ ແລະ ອື່ນໆອີກ…</string>
     <string name="finish_setting_up_discovery">ສຳເລັດການຕັ້ງຄ່າການຄົ້ນຫາ.</string>
-    <string name="create_space_identity_server_info_none">ໃນປັດຈຸບັນນີ້ທ່ານບໍ່ໄດ້ໃຊ້ເຊີບເວີ. ເພື່ອເຊີນເພື່ອນຮ່ວມທີມ ແລະ ສາມາດຄົ້ນຫາໄດ້ໂດຍພວກເຂົາ,ກຳນົດຄ່າຂ້າງລຸ່ມນີ້.</string>
     <string name="room_alias_preview_not_found">ບໍ່ສາມາດເຂົ້າເຖິງນາມແຝງນີ້ໄດ້ໃນເວລານີ້.
 \nລອງໃໝ່ໃນພາຍຫຼັງ, ຫຼື ຖາມຜູ້ເບິ່ງແຍງຫ້ອງເພື່ອກວດເບິ່ງວ່າທ່ານມີການເຂົ້າເຖິງຫຼືບໍ່.</string>
     <string name="join_anyway">ເຂົ້າຮ່ວມເລີຍ</string>
@@ -1660,7 +1654,6 @@
     <string name="login_set_msisdn_notice2">ກະລຸນາໃຊ້ຮູບແບບສາກົນ.</string>
     <string name="login_set_msisdn_notice">ກຳນົດເບີໂທລະສັບເພື່ອອະນຸຍາດໃຫ້ຄົນທີ່ທ່ານຮູ້ຈັກຄົ້ນຫາທ່ານ.</string>
     <string name="login_set_msisdn_title">ຕັ້ງເບີໂທລະສັບ</string>
-    <string name="does_not_look_like_valid_email">ເບິ່ງຄືວ່າທີ່ຢູ່ອີເມວບໍ່ຖືກຕ້ອງ</string>
     <string name="login_set_email_submit">ຕໍ່ໄປ</string>
     <string name="login_set_email_optional_hint">ອີເມວ (ທາງເລືອກ)</string>
     <string name="login_set_email_mandatory_hint">ອີເມວ</string>
@@ -1715,7 +1708,6 @@
     <string name="login_social_signin_with">ເຂົ້າສູ່ລະບົບດ້ວຍ %s</string>
     <string name="join_space">ເຂົ້າຮ່ວມ ພື້ນທີ່</string>
     <string name="create_space">ສ້າງພື້ນທີ່</string>
-    <string name="skip_for_now">ຂ້າມໄປດຽວນີ້</string>
     <string name="share_space_link_message">ເຂົ້າຮ່ວມພື້ນທີ່ຂອງຂ້ອຍ %1$s%2$s</string>
     <string name="invite_just_to_this_room_desc">ເຂົາເຈົ້າຈະບໍ່ເປັນສ່ວນຫນຶ່ງຂອງ %s</string>
     <string name="invite_just_to_this_room">ພຽງແຕ່ຫ້ອງນີ້</string>
@@ -1729,18 +1721,6 @@
     <string name="invite_people_menu">ເຊີນຄົນ</string>
     <string name="invite_people_to_your_space">ເຊີນຄົນເຂົ້າມາໃນພື້ນທີ່ຂອງທ່ານ</string>
     <string name="create_space_topic_hint">ລາຍລະອຽດ</string>
-    <string name="create_spaces_loading_message">ກຳລັງສ້າງພື້ນທີ່…</string>
-    <string name="create_spaces_default_public_random_room_name">ສຸ່ມ</string>
-    <string name="create_spaces_default_public_room_name">ທົ່ວໄປ</string>
-    <string name="create_spaces_room_private_header_desc">ໃຫ້ສ້າງຫ້ອງສໍາລັບພວກເຂົາແຕ່ລະຄົນ. ທ່ານສາມາດເພີ່ມເພີ່ມເຕີມໄດ້ໃນພາຍຫຼັງ, ລວມທັງລາຍການທີ່ມີຢູ່ແລ້ວ.</string>
-    <string name="create_spaces_room_private_header">ເຈົ້າກຳລັງເຮັດວຽກຫຍັງແດ່\?</string>
-    <string name="create_spaces_invite_public_header_desc">ໃຫ້ແນ່ໃຈວ່າຄົນທີ່ມີສິດເຂົ້າເຖິງບໍລິສັດ %s. ທ່ານສາມາດເຊີນເພີ່ມເຕີມໄດ້ໃນພາຍຫຼັງ.</string>
-    <string name="create_spaces_invite_public_header">ໃຜເປັນເພື່ອນຮ່ວມທີມຂອງທ່ານ\?</string>
-    <string name="create_spaces_room_public_header_desc">ພວກເຮົາຈະສ້າງຫ້ອງສໍາລັບພວກເຂົາ. ທ່ານສາມາດເພີ່ມເພີ່ມເຕີມໄດ້ໃນພາຍຫຼັງ.</string>
-    <string name="create_spaces_room_public_header">ການສົນທະນາໃດນຶ່ງທີ່ທ່ານຕ້ອງການມີຢູ່ໃນ %s\?</string>
-    <string name="create_space_error_empty_field_space_name">ຕັ້ງຊື່ເພື່ອສືບຕໍ່.</string>
-    <string name="create_spaces_details_private_header">ເພີ່ມລາຍລະອຽດບາງຢ່າງເພື່ອຊ່ວຍໃຫ້ຜູ້ອຶ່ນລະບຸຕົວຕົນໄດ້. ທ່ານສາມາດປ່ຽນສິ່ງເຫຼົ່ານີ້ໄດ້ທຸກເວລາ.</string>
-    <string name="activity_create_space_title">ສ້າງພື້ນທີ່</string>
     <string name="space_type_private">ສ່ວນຕົວ</string>
     <string name="add_space">ເພີ່ມພື້ນທີ່</string>
     <string name="private_space">ພື້ນທີ່ສ່ວນຕົວ</string>

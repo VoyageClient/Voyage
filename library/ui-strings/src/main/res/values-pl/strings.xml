@@ -1295,8 +1295,6 @@
 \n%s</string>
     <string name="create_room_settings_section">Ustawienia pokoju</string>
     <string name="create_room_topic_hint">Temat</string>
-    <string name="create_room_topic_section">Temat pokoju (opcjonalnie)</string>
-    <string name="create_room_name_section">Nazwa pokoju</string>
     <string name="room_preview_no_preview_join">Tego pokoju nie można podejrzeć. Czy chcesz do niego dołączyć\?</string>
     <string name="room_preview_not_found">Ten pokój nie jest dostępny w tej chwili. 
 \nSpróbuj ponownie później bądź zapytaj administratora czy masz stosowne uprawnienia.</string>
@@ -1754,10 +1752,8 @@
     <string name="looking_for_someone_not_in_space">Szukasz kogoś , kto nie jest w %s\?</string>
     <string name="user_invites_you">%s Cię zaprasza</string>
     <string name="you_are_invited">Zostałeś zaproszony</string>
-    <string name="space_add_space_to_any_space_you_manage">Dodaj przestrzeń do jakiejkolwiek przestrzeni, którą zarządzasz.</string>
     <string name="space_add_existing_spaces">Dodaj istniejące przestrzenie</string>
     <string name="space_add_existing_rooms_only">Dodaj istniejące pokoje</string>
-    <string name="space_add_existing_rooms">Dodaj istniejące pokoje i przestrzenie</string>
     <string name="space_leave_prompt_msg_as_admin">Jesteś jedynym administratorem tej przestrzeni. Opuszczenie jej oznacza brak kontroli nad nią.</string>
     <string name="space_leave_prompt_msg_private">Nie będziesz w stanie ponownie dołączyć, do momentu kiedy nie zostaniesz ponownie zaproszony.</string>
     <string name="space_leave_prompt_msg_only_you">Jesteś jedyną osoba tutaj. Jeśli wyjdziesz, nikt nie będzie w stanie dołączyć w przyszłości, włączając Ciebie.</string>
@@ -1767,13 +1763,11 @@
     <string name="space_explore_activity_title">Przeglądaj pokoje</string>
     <string name="finish_setup">Ukończ konfigurację</string>
     <string name="discovery_invite">Zaproś przez email, znajdź kontakty i więcej…</string>
-    <string name="create_space_identity_server_info_none">Aktualnie nie używasz serwera tożsamości. Aby zapraszać znajomych i być dla nich widoczny, skonfiguruj go poniżej.</string>
     <string name="room_alias_preview_not_found">Ten alias na razie nie jest dostępny.
 \nSpróbuj ponownie później lub zapytaj administratora tego pokoju czy masz dostęp.</string>
     <string name="join_anyway">Dołącz pomimo to</string>
     <string name="join_space">Dołącz do przestrzeni</string>
     <string name="create_space">Utwórz przestrzeń</string>
-    <string name="skip_for_now">Pomiń na razie</string>
     <string name="share_space_link_message">Dołącz do mojej przestrzeni %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Nie będą częścią %s</string>
     <string name="invite_just_to_this_room">Tylko do tego pokoju</string>
@@ -1787,14 +1781,6 @@
     <string name="invite_people_menu">Zaproś osoby</string>
     <string name="invite_people_to_your_space">Zaproś osoby do Twojej przestrzeni</string>
     <string name="create_space_topic_hint">Opis</string>
-    <string name="create_spaces_loading_message">Tworzenie przestrzeni…</string>
-    <string name="create_spaces_default_public_random_room_name">Losowe</string>
-    <string name="create_spaces_default_public_room_name">Ogólny</string>
-    <string name="create_spaces_invite_public_header">Kim są Twoi znajomi \?</string>
-    <string name="create_spaces_room_public_header_desc">Stworzymy dla nich pokoje. Możesz też dodać następne w późniejszym etapie.</string>
-    <string name="create_spaces_room_public_header">Jaki rodzaj dyskusji chcesz mieć w %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Nadaj nazwę aby kontynuować.</string>
-    <string name="activity_create_space_title">Stwórz przestrzeń</string>
     <string name="space_type_private">Prywatna</string>
     <string name="initial_sync_start_downloading">Wstępna synchronizacja:
 \nPobieranie danych…</string>
@@ -1842,7 +1828,6 @@
     <string name="settings_discovery_no_policy_provided">Serwer tożsamości nie udostępnił swojej polityki</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Ukryj politykę serwera tożsamości</string>
     <string name="settings_discovery_show_identity_server_policy_title">Wyświetl politykę serwera tożsamości</string>
-    <string name="open_discovery_settings">Otwórz ustawienia Poznawania</string>
     <string name="search_hint_room_name">Wyszukaj nazwę</string>
     <string name="user_directory_search_hint_2">Wyszukaj po nazwie, ID lub mailu</string>
     <string name="send_file_step_compressing_video">Kompresowanie filmu %d%%</string>
@@ -1901,7 +1886,6 @@
     <string name="create_space_in_progress">Tworzę przestrzeń…</string>
     <string name="create_space_alias_hint">Adres przestrzeni</string>
     <string name="command_description_lenny">Przygotowuje ( ͡° ͜ʖ ͡°) jako zwykły tekst</string>
-    <string name="does_not_look_like_valid_email">Adres e-mail wygląda na niepoprawny</string>
     <string name="login_clear_homeserver_history">Wyczyść historię</string>
     <string name="login_social_signup_with">Zarejestruj się za pomocą %s</string>
     <string name="login_social_signin_with">Zaloguj się za pomocą %s</string>
@@ -1962,7 +1946,6 @@
     <string name="upgrade_private_room">Aktualizuj pokój prywatny</string>
     <string name="upgrade_public_room">Aktualizuj pokój publiczny</string>
     <string name="joining_replacement_room">Dołącz do pokoju zastępczego</string>
-    <string name="create_spaces_details_private_header">Dodaj kilka szczegółów, aby ułatwić ludziom identyfikację. Możesz je zmienić w dowolnym momencie.</string>
     <string name="add_space">Dodaj przestrzeń</string>
     <string name="private_space">Przestrzeń prywatna</string>
     <string name="public_space">Przestrzeń publiczna</string>
@@ -2009,8 +1992,6 @@
     <string name="create_poll_question_title">Pytanie lub temat ankiety</string>
     <string name="create_poll_title">Utwórz ankietę</string>
     <string name="link_this_email_settings_link">Powiąż ten adres e-mail ze swoim kontem</string>
-    <string name="create_spaces_room_private_header_desc">Stwórzmy pokój dla każdego z nich. Możesz potem dodać kolejne, także te już istniejące.</string>
-    <string name="create_spaces_room_private_header">Nad czym pracujesz\?</string>
     <string name="delete_poll_dialog_content">Czy na pewno chcesz usunąć ankietę\? Nie będziesz w stanie jej odzyskać po usunięciu.</string>
     <string name="identity_server_consent_dialog_content_question">Zgadzasz się na wysłanie tych informacji\?</string>
     <string name="preference_system_settings">Ustawienia systemu</string>
@@ -2062,7 +2043,6 @@
     <string name="poll_end_action">Zakończ ankietę</string>
     <string name="end_poll_confirmation_title">Czy zakończyć ankietę\?</string>
     <string name="end_poll_confirmation_description">To powstrzyma użytkowników od głosowania i wyświetli ostateczny wynik ankiety.</string>
-    <string name="create_spaces_invite_public_header_desc">Upewnij się, że odpowiednie osoby mają dostęp do firmy %s. Więcej osób możesz zaprosić później.</string>
     <string name="dev_tools_send_custom_state_event">Wyślij własne wydarzenie stanu</string>
     <string name="dev_tools_send_state_event">Wyślij zdarzenie stanowe</string>
     <string name="dev_tools_state_event">Zdarzenia stanowe</string>
@@ -2270,7 +2250,6 @@
     <string name="time_unit_hour_short">godz</string>
     <string name="time_unit_minute_short">min</string>
     <string name="space_leave_radio_buttons_title">Pokoje w przestrzeni</string>
-    <string name="action_next">Dalej</string>
     <string name="settings_troubleshoot_test_current_distributor_title">Metoda</string>
     <plurals name="settings_troubleshoot_test_distributors_many">
         <item quantity="one">Znaleziono %d dostawcę.</item>

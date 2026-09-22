@@ -83,8 +83,6 @@
 
     <string name="list_members">Lista membrilor</string>
     <string name="space_manage_rooms_and_spaces">Administrează camerele și spațiile</string>
-    <string name="create_spaces_loading_message">Se creează spațiul…</string>
-    <string name="create_spaces_default_public_random_room_name">Aleatoriu</string>
     <string name="room_settings_room_access_restricted_title">Spații numai pentru membri</string>
     <string name="send_a_sticker">Autocolant.</string>
     <string name="attachment_type_sticker">Autocolant</string>
@@ -170,7 +168,6 @@
     <string name="invite_people_menu">Invită persoane</string>
     <string name="add_space">Adaugă spațiu</string>
     <string name="settings_emails_and_phone_numbers_title">E-mailuri și numere de telefon</string>
-    <string name="create_spaces_default_public_room_name">Generale</string>
     <string name="settings_general_title">Generale</string>
     <string name="preference_voice_and_video">Voce și video</string>
     <string name="room_settings_category_advanced_title">Avansat</string>

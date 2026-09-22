@@ -669,7 +669,6 @@
     <string name="create_room_encryption_description">Eftir að kveikt er á dulritun er ekki hægt að slökkva á henni.</string>
     <string name="command_description_lenny">Setur ( ͡° ͜ʖ ͡°) framan við hrein textaskilaboð</string>
     <string name="command_description_shrug">Setur ¯\\_(ツ)_/¯ framan við hrein textaskilaboð</string>
-    <string name="does_not_look_like_valid_email">Þetta lítur ekki út eins og gilt tölvupóstfang</string>
     <string name="login_set_email_title">Skrá tölvupóstfang</string>
     <string name="login_server_url_form_common_notice">Sláðu inn vistfang netþjónsins sem þú vilt nota</string>
     <string name="login_server_url_form_modular_notice">Sláðu inn vistfang Modular Element-þjóns eða netþjónsins sem þú vilt nota</string>
@@ -721,7 +720,6 @@
     <string name="keys_backup_info_keys_all_backup_up">Allir lyklar öryggisafritaðir</string>
     <string name="settings_secure_backup_enter_to_setup">Setja upp á þessu tæki</string>
     <string name="settings_secure_backup_section_title">Varið öryggisafrit</string>
-    <string name="activity_create_space_title">Búa til svæði</string>
     <string name="room_member_jump_to_read_receipt">Fara í fyrstu leskvittun</string>
     <string name="verification_verify_device">Sannprófa þessa setu</string>
     <string name="verification_sas_do_not_match">Þau samsvara ekki</string>
@@ -846,7 +844,6 @@
     <string name="preference_root_help_about">Hjálp og um hugbúnaðinn</string>
     <string name="preference_voice_and_video">Tal og myndmerki</string>
     <string name="create_room_settings_section">Stillingar spjallrásar</string>
-    <string name="create_room_topic_section">Umfjöllunarefni spjallrásar (valkvætt)</string>
     <string name="change_room_directory_network">Skipta um netkerfi</string>
     <string name="create_new_space">Búa til nýtt svæði</string>
     <string name="reactions">Viðbrögð</string>
@@ -910,12 +907,9 @@
     <string name="unnamed_room">Nafnlaus spjallrás</string>
     <string name="space_suggested">Tillaga</string>
     <string name="finish_setup">Ljúka uppsetningu</string>
-    <string name="skip_for_now">Sleppa í bili</string>
     <string name="invite_by_link">Deila tengli</string>
     <string name="invite_people_menu">Bjóða fólki</string>
     <string name="create_space_topic_hint">Lýsing</string>
-    <string name="create_spaces_default_public_random_room_name">Slembið</string>
-    <string name="create_spaces_default_public_room_name">Almennt</string>
     <string name="space_type_private">Einka</string>
     <string name="event_status_delete_all_failed_dialog_title">Eyða ósendum skilaboðum</string>
     <string name="event_status_a11y_failed">Mistókst</string>
@@ -1100,7 +1094,6 @@
     <string name="create_room_public_title">Opinbert</string>
     <string name="create_room_topic_hint">Umfjöllunarefni</string>
     <string name="create_room_name_hint">Heiti</string>
-    <string name="create_room_name_section">Nafn spjallrásar</string>
     <string name="create_room_action_create">ÚTBÚA</string>
     <string name="fab_menu_create_chat">Bein skilaboð</string>
     <string name="fab_menu_create_room">Spjallrásir</string>
@@ -1394,7 +1387,6 @@
     <string name="voice_message_slide_to_cancel">Renna til að hætta við</string>
     <string name="a11y_start_voice_message">Taka upp talskilaboð</string>
     <string name="user_invites_you">%s býður þér</string>
-    <string name="create_spaces_loading_message">Útbý svæði…</string>
     <string name="event_status_failed_messages_warning">Mistókst að senda skilaboð</string>
     <string name="dev_tools_event_content_hint">Efni atburðar</string>
     <string name="dev_tools_edit_content">Breyta efni</string>
@@ -1459,7 +1451,6 @@
     <string name="settings_discovery_hide_identity_server_policy_title">Fela reglur fyrir auðkenningarþjón</string>
     <string name="settings_discovery_show_identity_server_policy_title">Sýna reglur fyrir auðkenningarþjón</string>
     <string name="change_identity_server">Skipta um auðkennisþjón</string>
-    <string name="open_discovery_settings">Opna uppgötvunarstillingar</string>
     <string name="add_identity_server">Stilla auðkennisþjón</string>
     <string name="terms_description_for_identity_server">Vertu finnanlegur fyrir aðra</string>
     <string name="direct_room_user_list_known_title">Þekktir notendur</string>
@@ -1550,7 +1541,6 @@
     <string name="warning_room_not_created_yet">Ekki er ennþá búið að útbúa spjallrásina. Hætta við að búa hana til\?</string>
     <string name="discovery_invite">Bjóddu með tölvupósti, finndu tengiliði og ýmislegt fleira…</string>
     <string name="finish_setting_up_discovery">Ljúka við að setja upp uppgötvun.</string>
-    <string name="create_space_identity_server_info_none">Þú ert núna ekki að nota neinn auðkennisþjón. Til að uppgötva og vera finnanleg/ur fyrir félaga þína í teyminu, skaltu bæta við auðkennisþjóni hér fyrir neðan.</string>
     <string name="re_authentication_default_confirm_text">${app_name} krefst þess að þú setjir inn auðkennin þín til að framkvæma þessa aðgerð.</string>
     <string name="re_authentication_activity_title">Endurauðkenning er nauðsynleg</string>
     <string name="use_recovery_key">Nota endurheimtulykil</string>
@@ -1622,9 +1612,6 @@
     <string name="settings_security_pin_code_notifications_title">Birta efni í tilkynningum</string>
     <string name="settings_security_application_protection_screen_title">Stilla varnir</string>
     <string name="settings_security_application_protection_title">Verja aðgang</string>
-    <string name="create_spaces_room_private_header_desc">Búum til spjallrás fyrir hvern og einn þeirra. Þú getur bætt fleirum við síðar, þar með töldum þeim sem fyrir eru þegar.</string>
-    <string name="create_spaces_room_public_header_desc">Búum til spjallrás fyrir þá. Þú getur bætt fleirum við síðar.</string>
-    <string name="create_spaces_details_private_header">Bættu við nánari atriðum svo fólk eigi auðveldara með að þekkja þetta. Þú getur breytt þessu hvenær sem er.</string>
     <string name="event_status_delete_all_failed_dialog_message">Ertu viss um að þú viljir eyða öllum ósendum skilaboðum úr þessari spjallrás\?</string>
     <string name="event_status_a11y_delete_all">Eyða öllum misförnum skilaboðum</string>
     <string name="dev_tools_success_state_event">Stöðuatburður sendur!</string>
@@ -1655,11 +1642,6 @@
     <string name="invite_to_space_with_name_desc">Þau munu geta kannað %s</string>
     <string name="invite_people_to_your_space_desc">Í augnablikinu ert þetta bara þú. %s verður enn betri með fleirum.</string>
     <string name="invite_people_to_your_space">Bjóddu fólki inn á svæðið þitt</string>
-    <string name="create_spaces_room_private_header">Í hvaða málum ertu að vinna\?</string>
-    <string name="create_spaces_invite_public_header_desc">Gakktu úr skugga um að rétta fólkið hafi aðgang að %s. Þú getur boðið fleira fólki síðar.</string>
-    <string name="create_spaces_invite_public_header">Hverjir eru félagar í teyminu þínu\?</string>
-    <string name="create_spaces_room_public_header">Hverjar eru umræðurnar sem þú vilt hafa í %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Gefðu því nafn til að halda áfram.</string>
     <string name="delete_poll_dialog_content">Ertu viss um að þú viljir ljúka þessari könnun\? Þú munt ekki geta endurheimt hana ef hún hefur einu sinni verið fjarlægð.</string>
     <string name="end_poll_confirmation_description">Þetta mun birta lokaniðurstöður könnunarinnar og koma í veg fyrir að fólk geti kosið.</string>
     <string name="link_this_email_with_your_account">%s í stillingunum til að fá boð beint í ${app_name}.</string>
@@ -1678,8 +1660,6 @@
 \nÞú getur bætt fyrirliggjandi svæðum í annað svæði.</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Allar spjallrásir sem þú ert í munu birtast á forsíðu.</string>
     <string name="looking_for_someone_not_in_space">Leitarðu að einhverjum sem ekki er í %s\?</string>
-    <string name="space_add_space_to_any_space_you_manage">Bættu svæði við eitthvað svæði sem þú stýrir.</string>
-    <string name="space_add_existing_rooms">Bæta við fyrirliggjandi spjallrásum og svæði</string>
     <string name="space_leave_prompt_msg_with_name">Ertu viss um að þú viljir yfirgefa %s\?</string>
     <string name="command_description_add_to_space">Bæta við í uppgefið svæði</string>
     <string name="settings_account_data">Gögn notandaaðgangs</string>
@@ -1938,7 +1918,6 @@
     <string name="home_layout_preferences_sort_by">Raða eftir</string>
     <string name="home_layout_preferences_recents">Birta nýlegt</string>
     <string name="home_layout_preferences_filters">Sýna síur</string>
-    <string name="action_next">Næsta</string>
     <string name="time_unit_second_short">sek</string>
     <string name="time_unit_minute_short">mín</string>
     <string name="time_unit_hour_short">klst</string>

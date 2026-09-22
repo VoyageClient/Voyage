@@ -1562,8 +1562,6 @@
     <string name="settings_labs_show_complete_history_in_encrypted_room">Mostrar la historia completa en salas cifradas</string>
     <string name="create_room_settings_section">Ajustes de la sala</string>
     <string name="create_room_topic_hint">Tema</string>
-    <string name="create_room_topic_section">Tema de la sala (opcional)</string>
-    <string name="create_room_name_section">Nombre de la sala</string>
     <string name="notification_unread_notified_messages_and_invitation">%1$s y %2$s</string>
     <string name="notification_unread_notified_messages_in_room_and_invitation">%1$s en %2$s y %3$s</string>
     <plurals name="notification_invitations">
@@ -1628,7 +1626,6 @@
     <string name="create_space">Crear espacio</string>
     <string name="add_space">Añadir espacio</string>
     <string name="command_description_create_space">Crea un Espacio</string>
-    <string name="activity_create_space_title">Crear un espacio</string>
     <string name="initial_sync_start_server_computing">Sincronización inicial:
 \nEsperando respuesta del servidor…</string>
     <string name="a11y_error_message_not_sent">El mensaje no se pudo enviar por un error</string>
@@ -1652,7 +1649,6 @@
     <string name="space_add_child_title">Añadir salas</string>
     <string name="space_explore_activity_title">Explorar salas</string>
     <string name="join_anyway">Unirte igualmente</string>
-    <string name="skip_for_now">Saltar por ahora</string>
     <string name="invite_just_to_this_room">Sólo a esta sala</string>
     <string name="invite_to_space_with_name">Invitar a %s</string>
     <string name="invite_by_link">Compartir enlace</string>
@@ -1661,11 +1657,6 @@
     <string name="invite_people_to_your_space">Invitar gente a tu espacio</string>
     <string name="invite_people_menu">Invitar gente</string>
     <string name="create_space_topic_hint">Descripción</string>
-    <string name="create_spaces_loading_message">Creando espacio…</string>
-    <string name="create_spaces_default_public_random_room_name">Aleatorio</string>
-    <string name="create_spaces_default_public_room_name">General</string>
-    <string name="create_spaces_room_private_header">¿En qué cosas estás trabajando\?</string>
-    <string name="create_space_error_empty_field_space_name">Dale un nombre para continuar.</string>
     <string name="space_type_private">Privado</string>
     <string name="event_status_a11y_delete_all">Borrar todos los mensajes fallidos</string>
     <string name="event_status_a11y_failed">Falló</string>
@@ -1820,7 +1811,6 @@
     <string name="space_manage_rooms_and_spaces">Gestionar salas y espacios</string>
     <string name="space_settings_manage_rooms">Gestionar salas</string>
     <string name="looking_for_someone_not_in_space">¿Buscas a alguien que no está en %s\?</string>
-    <string name="space_add_existing_rooms">Añade salas y espacios existentes</string>
     <string name="space_leave_prompt_msg_as_admin">Eres el único administrador de este espacio. Dejarlo significará que nadie tiene control sobre él.</string>
     <string name="space_leave_prompt_msg_private">No podrás volver a unirte a menos que te vuelvan a invitar.</string>
     <string name="space_leave_prompt_msg_only_you">Eres la única persona aquí. Si sales, nadie podrá unirse a aquí en el futuro, incluido tú.</string>
@@ -1834,10 +1824,6 @@
     <string name="invite_just_to_this_room_desc">Ellos no serán parte de %s</string>
     <string name="invite_to_space_with_name_desc">Ellos podrán explorar %s</string>
     <string name="invite_people_to_your_space_desc">Por el momento sólo estás tú. %s será incluso mejor con otros.</string>
-    <string name="create_spaces_room_private_header_desc">Vamos a crear una sala para cada uno de ellos. Puedes añadir más en otro momento también, incluso aquellas que ya existan.</string>
-    <string name="create_spaces_room_public_header_desc">Crearemos salas para ellos. Puedes añadir más en otro momento también.</string>
-    <string name="create_spaces_room_public_header">¿Cuáles son las discusiones que quieres tener en %s\?</string>
-    <string name="create_spaces_details_private_header">Añade algunos detalles para ayudar a la gente a identificarlo. Puedes cambiar esto en cualquier momento.</string>
     <string name="private_space">Espacio privado</string>
     <string name="public_space">Espacio público</string>
     <string name="event_status_delete_all_failed_dialog_message">¿Estás seguro de querer eliminar todos los mensajes no enviados en esta sala\?</string>
@@ -1864,10 +1850,7 @@
     <string name="finish_setup">Terminar la configuración</string>
     <string name="discovery_invite">Invitar por correo electrónico, buscar contactos y más…</string>
     <string name="finish_setting_up_discovery">Terminé de configurar el descubrimiento.</string>
-    <string name="create_space_identity_server_info_none">Actualmente no está utilizando un servidor de identidad. Para invitar a compañeros de equipo y ser detectado por ellos, configure uno a continuación.</string>
     <string name="invite_by_username_or_mail">Invitar por nombre de usuario o correo</string>
-    <string name="create_spaces_invite_public_header_desc">Asegúrate que las personas adecuadas tengan acceso a %s. Puede invitar a más persona más tarde.</string>
-    <string name="create_spaces_invite_public_header">¿Quiénes son tus compañeros de equipo\?</string>
     <string name="command_description_add_to_space">Agregar al espacio dado</string>
     <string name="dev_tools_form_hint_state_key">Clave de estado</string>
     <string name="call_tile_you_declined_this_call">Rechazaste esta llamada</string>
@@ -1888,12 +1871,10 @@
     <string name="command_description_lenny">Antepone ( ͡° ͜ʖ ͡°) a un mensaje de texto sin formato</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Mostrar información útil para ayudar a depurar la aplicación</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Mostrar información de depuración en la pantalla</string>
-    <string name="does_not_look_like_valid_email">No parece una dirección de correo electrónico válida</string>
     <string name="login_social_sso">Inicio de sesión único</string>
     <string name="settings_discovery_no_policy_provided">Ninguna política proporcionada por el servidor de identidad</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Ocultar la política del servidor de identidad</string>
     <string name="settings_discovery_show_identity_server_policy_title">Mostrar la política del servidor de identidad</string>
-    <string name="open_discovery_settings">Abrir configuración de descubrimiento</string>
     <string name="user_directory_search_hint_2">Buscar por nombre, ID o correo</string>
     <string name="create_new_space">Crear nuevo espacio</string>
     <string name="command_description_whois">Muestra información sobre un usuario</string>
@@ -1961,7 +1942,6 @@
     <string name="room_using_unstable_room_version">Está sala está ejecutando la versión de sala %s, que este servidor doméstico a marcado como inestable.</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Todas las salas en las que se encuentra se mostraran en inicio.</string>
     <string name="preference_show_all_rooms_in_home">Mostrar todas las salas en inicio</string>
-    <string name="space_add_space_to_any_space_you_manage">Agregar un espacio a cualquier espacio que administre.</string>
     <string name="space_add_existing_spaces">Añadir espacios existentes</string>
     <string name="shortcut_disabled_reason_sign_out">¡Se ha cerrado la sesión!</string>
     <string name="shortcut_disabled_reason_room_left">¡Se ha abandonado la sala!</string>
@@ -2208,7 +2188,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">El destino se ha registrado de forma satisfactoria al servidor doméstico.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registración de punto final</string>
-    <string name="action_next">Siguiente</string>
     <string name="home_empty_no_unreads_title">Nada que reportar.</string>
     <string name="home_empty_no_rooms_title">Bienvenido a ${app_name},
 \n%s.</string>

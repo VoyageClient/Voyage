@@ -1158,8 +1158,6 @@
 \n%s</string>
     <string name="create_room_settings_section">ルームの設定</string>
     <string name="create_room_topic_hint">トピック</string>
-    <string name="create_room_topic_section">ルームのトピック（任意）</string>
-    <string name="create_room_name_section">ルーム名</string>
     <string name="room_preview_no_preview_join">このルームはプレビューできません。参加しますか？</string>
     <string name="room_preview_not_found">現在、このルームにはアクセスできません。
 \n後でもう一度やり直すか、ルームの管理者にアクセス権があるかどうかを確認するよう依頼してください。</string>
@@ -1457,8 +1455,6 @@
     <string name="space_add_existing_spaces">既存のスペースを追加</string>
     <string name="space_add_existing_rooms_only">既存のルームを追加</string>
     <string name="finish_setup">セットアップを終了</string>
-    <string name="create_spaces_default_public_random_room_name">ランダム</string>
-    <string name="create_spaces_loading_message">スペースを作成しています…</string>
     <string name="space_type_private">非公開</string>
     <string name="command_description_upgrade_room">ルームを新しいバージョンにアップグレード</string>
     <string name="command_description_create_space">スペースを作成</string>
@@ -1543,11 +1539,9 @@
         <item quantity="other">%1$d個の投票</item>
     </plurals>
     <string name="end_poll_confirmation_description">アンケートを締め切り、最終結果を表示します。</string>
-    <string name="activity_create_space_title">スペースを作成</string>
     <string name="invite_people_to_your_space">連絡先をスペースに招待</string>
     <string name="settings_discovery_no_terms_title">IDサーバーには利用規約がありません</string>
     <string name="settings_discovery_consent_notice_off_2">あなたの連絡先は非公開です。端末の連絡先からユーザーを発見するためには、連絡先の情報をIDサーバーに送信する許可が必要です。</string>
-    <string name="open_discovery_settings">ディスカバリー設定を開く</string>
     <string name="add_a_topic_link_text">トピックを追加</string>
     <string name="room_created_summary_item">%sがルームを作成し設定しました。</string>
     <string name="direct_room_created_summary_item_by_you">参加しました。</string>
@@ -1572,7 +1566,6 @@
     <string name="error_handling_incoming_share">共有データを取り扱えませんでした</string>
     <string name="rotate_and_crop_screen_title">回転とトリミング</string>
     <string name="space_explore_activity_title">ルームを探す</string>
-    <string name="space_add_existing_rooms">既存のルームとスペースを追加</string>
     <string name="space_mark_as_suggested">おすすめに追加</string>
     <string name="space_mark_as_not_suggested">おすすめから除外</string>
     <string name="space_manage_rooms_and_spaces">ルームとスペースを管理</string>
@@ -1603,7 +1596,6 @@
     <string name="a11y_presence_unavailable">離席中</string>
     <string name="a11y_presence_offline">オフライン</string>
     <string name="a11y_presence_online">オンライン</string>
-    <string name="create_spaces_default_public_room_name">一般</string>
     <string name="trusted">信頼済</string>
     <string name="verification_profile_verified">認証済</string>
     <string name="event_status_delete_all_failed_dialog_title">未送信のメッセージを削除</string>
@@ -1645,7 +1637,6 @@
     <string name="invite_by_username_or_mail">ユーザー名かメールアドレスで招待</string>
     <string name="space_leave_prompt_msg_with_name">%sから退出してよろしいですか？</string>
     <string name="you_are_invited">招待されています</string>
-    <string name="space_add_space_to_any_space_you_manage">新しいスペースを、あなたが管理するスペースに追加。</string>
     <string name="spaces_no_server_support_description">ホームサーバーの管理者にお問い合わせください</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">あなたが参加している全てのルームがホームに表示されます。</string>
     <string name="upgrade_room_update_parent_space">上位のスペースを自動的に更新</string>
@@ -1718,7 +1709,6 @@
     <string name="verification_request_other_cancelled">%sがキャンセルしました</string>
     <string name="seen_by">閲覧済</string>
     <string name="verification_profile_verify">認証</string>
-    <string name="does_not_look_like_valid_email">メールアドレスの形式が正しくありません</string>
     <string name="login_set_msisdn_notice2">国際電話番号の形式を使用してください。</string>
     <string name="login_msisdn_error_not_international">国際電話番号は「+」から始めてください</string>
     <string name="login_msisdn_confirm_notice">コードを%1$sに送信しました。以下に入力して認証してください。</string>
@@ -1922,12 +1912,9 @@
     <string name="qr_code_scanned_verif_waiting">%sを待機しています…</string>
     <string name="verification_profile_device_untrust_info">このユーザーがこのセッションを認証するまで、送受信されるメッセージには警告マークが付きます。手動で認証することもできます。</string>
     <string name="room_member_profile_failed_to_get_devices">セッションの取得に失敗しました</string>
-    <string name="create_spaces_invite_public_header">誰がチームの仲間ですか？</string>
     <string name="invite_to_space_with_name_desc">%sを探せるようになります</string>
     <string name="share_space_link_message">私のスペース %1$s %2$s に参加してください</string>
-    <string name="skip_for_now">スキップ</string>
     <string name="room_message_autocomplete_notification">ルームの通知</string>
-    <string name="create_space_identity_server_info_none">現在、IDサーバーを使用していません。あなたの知っているチームメイトを招待したり、チームメイトから見つけてもらったりするには、以下でIDサーバーを設定してください。</string>
     <string name="finish_setting_up_discovery">ディスカバリーの設定を終了します。</string>
     <string name="space_leave_prompt_msg_only_you">ここの参加者はあなただけです。退出すると、今後あなたを含めて誰も参加できなくなります。</string>
     <string name="space_leave_prompt_msg_private">再び招待されない限り、再参加することはできません。</string>
@@ -1960,13 +1947,10 @@
     <string name="cross_signing_verify_by_emoji">絵文字で認証</string>
     <string name="cross_signing_verify_by_text">テキストを使って手動で認証</string>
     <string name="bad_passphrase_key_reset_all_action">復旧用の手段を全て無くしてしまいましたか？全てリセットする</string>
-    <string name="create_spaces_room_public_header">どのような議論を%sで行いたいですか？</string>
     <string name="failed_to_initialize_cross_signing">クロス署名の設定に失敗しました</string>
     <string name="secure_backup_reset_no_history">履歴とメッセージが消去され、信頼済の端末、信頼済のユーザーが取り消されます</string>
     <string name="secure_backup_reset_if_you_reset_all">全てをリセットすると</string>
     <string name="call_tile_you_declined_this_call">通話を拒否しました</string>
-    <string name="create_spaces_room_private_header_desc">それぞれにルームを作りましょう。後から追加することもできます（既にあるルームも追加できます）。</string>
-    <string name="create_spaces_details_private_header">このスペースを特定できるような特徴を記入してください。これはいつでも変更できます。</string>
     <string name="settings_security_pin_code_notifications_summary_off">未読のメッセージ数のみを通知に表示。</string>
     <string name="settings_security_pin_code_grace_period_summary_on">2分間${app_name}を使用しないと、PINコードが要求されます。</string>
     <string name="invite_friends_rich_title">🔐️ ${app_name}で話しましょう</string>
@@ -1976,8 +1960,6 @@
     <string name="dev_tools_state_event">ステートイベント</string>
     <string name="dev_tools_send_custom_state_event">ユーザー定義のステートイベントを送信</string>
     <string name="dev_tools_success_state_event">ステートイベントを送信しました！</string>
-    <string name="create_space_error_empty_field_space_name">続行するには名前を設定してください。</string>
-    <string name="create_spaces_room_private_header">どんな作業に取り組みますか？</string>
     <plurals name="message_reaction_show_more">
         <item quantity="other">あと%1$d件</item>
     </plurals>
@@ -2050,7 +2032,6 @@
     <string name="location_share_live_enabled">位置情報（ライブ）が有効です</string>
     <string name="a11y_location_share_option_user_current_icon">現在の位置情報を共有</string>
     <string name="location_share_option_user_current">現在の位置情報を共有</string>
-    <string name="create_spaces_room_public_header_desc">ルームを作成します。後から追加できます。</string>
     <plurals name="entries">
         <item quantity="other">%d個のエントリー</item>
     </plurals>
@@ -2147,7 +2128,6 @@
     <string name="home_layout_preferences_filters">フィルターを表示</string>
     <string name="home_layout_preferences">レイアウトの設定</string>
     <string name="action_got_it">了解</string>
-    <string name="action_next">次へ</string>
     <string name="action_learn_more">詳細を表示</string>
     <string name="time_unit_second_short">秒</string>
     <string name="time_unit_minute_short">分</string>
@@ -2415,7 +2395,6 @@
     <string name="qr_code_login_header_show_qr_code_new_device_description">サインイン済の端末で以下のQRコードをスキャンしてください：</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">この端末を使い、QRコードをスキャンして新しい端末でサインインできます。2つの方法があります：</string>
     <string name="space_leave_radio_buttons_title">このスペース内のもの</string>
-    <string name="create_spaces_invite_public_header_desc">正しい参加者が%sにアクセスできるようにしましょう。後から追加で招待できます。</string>
     <string name="message_reply_to_ended_poll_preview">終了したアンケート</string>
     <string name="message_reply_to_sender_ended_poll">アンケートを終了しました。</string>
     <string name="message_reply_to_sender_created_poll">アンケートを作成しました。</string>

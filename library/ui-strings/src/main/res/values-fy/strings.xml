@@ -143,9 +143,7 @@
     <string name="settings_sdk_version">Matrix SDK-ferzje</string>
     <string name="create_room_settings_section">Keamerynstellingen</string>
     <string name="create_room_topic_hint">Underwerp</string>
-    <string name="create_room_topic_section">Keamerûnderwerp (opsjoneel)</string>
     <string name="create_room_name_hint">Namme</string>
-    <string name="create_room_name_section">Keamernamme</string>
     <string name="create_room_action_create">OANMEITSJE</string>
     <string name="fab_menu_create_chat">Direkte berjochten</string>
     <string name="fab_menu_create_room">Keamers</string>
@@ -208,7 +206,6 @@
     <string name="media_saving_period_forever">Altyd</string>
     <string name="action_add">Tafoegje</string>
     <string name="bottom_action_notification">Notifikaasjes</string>
-    <string name="create_spaces_default_public_room_name">Algemien</string>
     <string name="matrix_error">Matrix-flater</string>
     <string name="unable_to_send_message">Kin it berjocht net ferstjoere</string>
     <string name="you_are_invited">Jo binne útnûge</string>
@@ -733,7 +730,6 @@
     <string name="settings_discovery_hide_identity_server_policy_title">Identiteitsserverbelied ferstopje</string>
     <string name="settings_discovery_show_identity_server_policy_title">Identiteitsserverbelied toane</string>
     <string name="settings_privacy_policy">Privacybelied</string>
-    <string name="create_spaces_default_public_random_room_name">Samar wat</string>
     <string name="encryption_information_device_name">Iepenbiere namme</string>
     <string name="login_error_not_json">Befette gjin jildige JSON</string>
     <string name="error_unauthorized">Net autorisearre, jildige autentikaasjegegevens ûntbrekke</string>

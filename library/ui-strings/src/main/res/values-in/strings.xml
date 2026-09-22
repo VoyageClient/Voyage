@@ -1206,9 +1206,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="create_room_public_title">Publik</string>
     <string name="create_room_settings_section">Pengaturan ruangan</string>
     <string name="create_room_topic_hint">Topik</string>
-    <string name="create_room_topic_section">Topik ruangan (opsional)</string>
     <string name="create_room_name_hint">Nama</string>
-    <string name="create_room_name_section">Nama ruangan</string>
     <string name="create_room_action_create">BUAT</string>
     <string name="fab_menu_create_chat">Pesan Langsung</string>
     <string name="fab_menu_create_room">Ruangan</string>
@@ -1525,7 +1523,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="you_are_invited">Anda telah diundang</string>
     <string name="space_add_existing_spaces">Tambahkan space yang sudah ada</string>
     <string name="space_add_existing_rooms_only">Tambahkan ruangan yang sudah ada</string>
-    <string name="space_add_existing_rooms">Tambahkan ruangan dan space yang sudah ada</string>
     <string name="space_leave_prompt_msg_as_admin">Anda adalah admin satu-satunya di space ini. Meninggalkannya berarti siapa saja tidak akan mempunyai kontrol atas space-nya.</string>
     <string name="space_leave_prompt_msg_private">Anda tidak akan dapat bergabung lagi kecuali jika Anda diundang lagi.</string>
     <string name="space_leave_prompt_msg_only_you">Anda adalah orang satu-satunya di sini. Jika Anda tinggalkan, siapa saja tidak dapat bergabung di masa depan, termasuk Anda.</string>
@@ -1540,13 +1537,11 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="finish_setup">Selesaikan penyiapan</string>
     <string name="discovery_invite">Undang dari email, cari kontak dan lain lagi…</string>
     <string name="finish_setting_up_discovery">Selesai menyiapkan penjelajahan.</string>
-    <string name="create_space_identity_server_info_none">Anda tidak menggunakan server identitas. Supaya dapat mengundang tim dan dapat dijelajahi oleh mereka, konfigurasi sebuah server identitas di bawah.</string>
     <string name="room_alias_preview_not_found">Alias ini tidak tersedia sekarang.
 \nCoba lagi nanti, atau tanyakan ke admin ruangan untuk mengecek jika Anda punya akses.</string>
     <string name="join_anyway">Bergabung Saja</string>
     <string name="join_space">Bergabung ke Space</string>
     <string name="create_space">Buat space</string>
-    <string name="skip_for_now">Lewat untuk sekarang</string>
     <string name="share_space_link_message">Bergabung ke space saya %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Mereka tidak akan menjadi bagian dari %s</string>
     <string name="invite_just_to_this_room">Hanya ke ruangan ini</string>
@@ -1560,17 +1555,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="invite_people_menu">Undang orang</string>
     <string name="invite_people_to_your_space">Undang orang ke space Anda</string>
     <string name="create_space_topic_hint">Deskripsi</string>
-    <string name="create_spaces_loading_message">Membuat space…</string>
-    <string name="create_spaces_default_public_random_room_name">Sembarangan</string>
-    <string name="create_spaces_default_public_room_name">Umum</string>
-    <string name="create_spaces_room_private_header_desc">Mari kita buat ruangan untuk masing-masing. Anda dapat menambahkan lebih banyak nanti, termasuk yang sudah ada.</string>
-    <string name="create_spaces_room_private_header">Apa saja yang Anda sedang kerjakan\?</string>
-    <string name="create_spaces_invite_public_header_desc">Pastikan orang yang tepat memiliki akses ke %s. Anda dapat menambahkan lagi nanti.</string>
-    <string name="create_spaces_invite_public_header">Siapa tim Anda\?</string>
-    <string name="create_spaces_room_public_header_desc">Kami akan membuat ruangannya. Anda dapat menambahkan lagi juga nanti.</string>
-    <string name="create_spaces_room_public_header">Diskusi apa yang Anda ingin punya di %s\?</string>
-    <string name="create_spaces_details_private_header">Tambahkan detail supaya orang-orang dapat mengidentifikasinya. Anda dapat mengubahnya di waktu yang mendatang.</string>
-    <string name="activity_create_space_title">Buat sebuah space</string>
     <string name="space_type_private">Privat</string>
     <string name="add_space">Tambahkan space</string>
     <string name="private_space">Space privat</string>
@@ -1730,8 +1714,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="external_link_confirmation_message">Tautan ini %1$s akan membawa Anda ke situs lain: %2$s.
 \n
 \nApakah Anda yakin untuk melanjutkan\?</string>
-    <string name="space_add_space_to_any_space_you_manage">Tambahkan sebuah space ke space apa saja yang Anda dapat kelola.</string>
-    <string name="create_space_error_empty_field_space_name">Beri nama untuk melanjutkan.</string>
     <string name="create_pin_confirm_failure">Gagal untuk memvalidasi PIN, mohon ketuk yang baru.</string>
     <string name="link_this_email_with_your_account">%s di Pengaturan untuk menerima undangan secara langsung di ${app_name}.</string>
     <string name="link_this_email_settings_link">Tautkan alamat email ini ke akun Anda</string>
@@ -1899,8 +1881,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="create_space_in_progress">Membuat space…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Tampilkan info yang berguna untuk membantu debugging aplikasi</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Tampilkan info debug di layar</string>
-    <string name="does_not_look_like_valid_email">Tidak terlihat sebagai alamat email yang absah</string>
-    <string name="open_discovery_settings">Buka Pengaturan Penemuan</string>
     <string name="user_directory_search_hint_2">Cari dengan nama, ID atau email</string>
     <string name="create_new_space">Buat Space Baru</string>
     <string name="room_settings_space_access_public_description">Siapa saja dapat menemukan space ini dan bergabung</string>
@@ -2169,7 +2149,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Endpoint berhasil terdaftar ke homeserver.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Pendaftaran Endpoint</string>
-    <string name="action_next">Lanjut</string>
     <string name="poll_undisclosed_not_ended">Hasil akan ditampilkan ketika pemungutan suara berakhir</string>
     <string name="send_your_first_msg_to_invite">Kirim pesan pertama Anda untuk mengundang %s ke obrolan</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Pesan di obrolan ini akan dienkripsi secara ujung ke ujung.</string>

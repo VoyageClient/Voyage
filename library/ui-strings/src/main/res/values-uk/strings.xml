@@ -965,12 +965,10 @@
     <string name="this_is_the_beginning_of_room_no_name">Це початок цієї розмови.</string>
     <string name="room_settings_name_hint">Назва кімнати</string>
     <string name="settings_security_pin_code_notifications_summary_on">Показувати такі подробиці, як назви кімнат та вміст повідомлень.</string>
-    <string name="create_room_topic_section">Тема кімнати (необов\'язково)</string>
     <string name="create_room_topic_hint">Тема</string>
     <string name="room_created_summary_no_topic_creation_text">%s щоб люди знали, про що ця кімната.</string>
     <string name="add_a_topic_link_text">Додати тему</string>
     <string name="topic_prefix">"Тема: "</string>
-    <string name="create_room_name_section">Назва кімнати</string>
     <string name="room_settings_topic_hint">Тема</string>
     <string name="open_terms_of">Відкрити умови %s</string>
     <string name="choose_locale_loading_locales">Завантаження інших доступних мов…</string>
@@ -1320,7 +1318,6 @@
     <string name="invite_people_menu">Запросити людей</string>
     <string name="invite_people_to_your_space">Запрошуйте людей до свого простору</string>
     <string name="create_space_topic_hint">Опис</string>
-    <string name="create_spaces_loading_message">Створення простору…</string>
     <string name="add_space">Додати простір</string>
     <string name="private_space">Приватний простір</string>
     <string name="event_status_delete_all_failed_dialog_title">Видалити не надіслані повідомлення</string>
@@ -1555,8 +1552,6 @@
         <item quantity="many">Резервне копіювання %d ключів…</item>
         <item quantity="other">Резервне копіювання %d ключів…</item>
     </plurals>
-    <string name="space_add_existing_rooms">Додати наявну кімнату до простору</string>
-    <string name="activity_create_space_title">Створити простір</string>
     <string name="command_description_create_space">Створити простір</string>
     <string name="dev_tools_event_content_hint">Вміст події</string>
     <string name="dev_tools_form_hint_event_content">Вміст події</string>
@@ -1622,7 +1617,6 @@
     <string name="login_reset_password_cancel_confirmation_title">Попередження</string>
     <string name="login_signup_cancel_confirmation_title">Попередження</string>
     <string name="login_set_msisdn_title">Вказати номер телефону</string>
-    <string name="does_not_look_like_valid_email">Це не схоже на правильна адресу е-пошти</string>
     <string name="login_signup_error_user_in_use">Це ім\'я користувача вже зайнято</string>
     <string name="login_msisdn_confirm_submit">Далі</string>
     <string name="login_set_msisdn_submit">Далі</string>
@@ -1702,7 +1696,6 @@
     <string name="settings_discovery_msisdn_title">Виявні номери телефону</string>
     <string name="settings_discovery_no_msisdn">Опції виявності з\'являться після додавання номера телефону.</string>
     <string name="settings_discovery_no_mails">Опції виявності з\'являться після додавання адреси е-пошти.</string>
-    <string name="open_discovery_settings">Відкрити налаштування виявності</string>
     <string name="user_directory_search_hint_2">Пошук за іменем, ID або е-поштою</string>
     <string name="create_new_space">Створити новий простір</string>
     <string name="room_settings_space_access_public_description">Будь-хто може знайти простір і приєднатися</string>
@@ -1860,7 +1853,6 @@
     <string name="space_mark_as_not_suggested">Позначити не пропонованим</string>
     <string name="space_mark_as_suggested">Позначити запропонованим</string>
     <string name="space_suggested">Запропоновано</string>
-    <string name="space_add_space_to_any_space_you_manage">Додайте простір до будь-якого простору, яким ви керуєте.</string>
     <string name="space_add_existing_spaces">Додати наявні простори</string>
     <string name="space_add_existing_rooms_only">Додати наявні кімнати</string>
     <string name="space_leave_prompt_msg_with_name">Ви впевнені, що хочете вийти з %s\?</string>
@@ -1917,12 +1909,8 @@
     <string name="spaces_no_server_support_title">Схоже, ваш домашній сервер ще не підтримує просторів</string>
     <string name="looking_for_someone_not_in_space">Шукаєте когось не в %s\?</string>
     <string name="finish_setup">Завершити налаштування</string>
-    <string name="skip_for_now">На разі пропустити</string>
     <string name="share_space_link_message">Приєднуйтеся до мого простору %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Вони не будуть учасниками %s</string>
-    <string name="create_spaces_room_private_header">Над чим ви працюєте\?</string>
-    <string name="create_spaces_invite_public_header">Хто учасники вашої команди\?</string>
-    <string name="create_space_error_empty_field_space_name">Назвіть його, щоб продовжити.</string>
     <string name="room_error_not_found">Не вдалося знайти таку кімнату. Переконайтеся, що вона існує.</string>
     <string name="settings_security_pin_code_notifications_title">Показувати вміст у сповіщеннях</string>
     <plurals name="wrong_pin_message_remaining_attempts">
@@ -1981,7 +1969,6 @@
     <string name="invite_just_to_this_room">Лише в цю кімнату</string>
     <string name="invite_to_space_with_name_desc">Вони зможуть переглядати %s</string>
     <string name="invite_by_username_or_mail">Запрошення за іменем користувача або е-поштою</string>
-    <string name="create_spaces_default_public_room_name">Головне</string>
     <string name="share_by_text">Поділитися у тексті</string>
     <string name="settings_security_pin_code_notifications_summary_off">Показувати лише кількість непрочитаних повідомлень у звичайному сповіщенні.</string>
     <string name="wrong_pin_message_last_remaining_attempt">Увага! Залишилась остання спроба перед виходом!</string>
@@ -2030,14 +2017,7 @@
         <item quantity="many">%d ваших знайомих уже приєдналися</item>
         <item quantity="other">%d ваших знайомих уже приєдналися</item>
     </plurals>
-    <string name="create_space_identity_server_info_none">Зараз ви не використовуєте сервер ідентифікації. Налаштуйте його нижче, щоб запрошувати інших і щоб інші могли знаходити вас.</string>
     <string name="invite_people_to_your_space_desc">Наразі тут лише ви. %s стане ще краще з іншими.</string>
-    <string name="create_spaces_default_public_random_room_name">Різне</string>
-    <string name="create_spaces_room_private_header_desc">Створімо по кімнаті для кожної теми. Згодом ви зможете додати ще, зокрема створені раніше.</string>
-    <string name="create_spaces_invite_public_header_desc">Надайте потрібним людям доступ до %s. Ви зможете додати інших згодом.</string>
-    <string name="create_spaces_room_public_header_desc">Ми створимо по кімнаті для кожної теми. Згодом ви зможете додати ще.</string>
-    <string name="create_spaces_room_public_header">Що ви бажаєте обговорювати в %s\?</string>
-    <string name="create_spaces_details_private_header">Додайте деталі, щоб люди впізнавали ваш простір. Ви зможете будь-коли редагувати це.</string>
     <plurals name="entries">
         <item quantity="one">%d елемент</item>
         <item quantity="few">%d елементи</item>
@@ -2302,7 +2282,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Кінцеву точку успішно зареєстровано на домашньому сервері.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Реєстрація кінцевої точки</string>
-    <string name="action_next">Далі</string>
     <string name="poll_undisclosed_not_ended">Результати будуть видимі після завершення опитування</string>
     <string name="send_your_first_msg_to_invite">Надішліть своє перше повідомлення, щоб запросити %s до бесіди</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Повідомлення в цій бесіді будуть захищені наскрізним шифруванням.</string>

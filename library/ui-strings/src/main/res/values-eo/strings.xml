@@ -1515,8 +1515,6 @@
     <string name="attachment_type_dialog_title">Aldoni bildon el</string>
     <string name="create_room_settings_section">Agordoj de ĉambro</string>
     <string name="create_room_topic_hint">Temo</string>
-    <string name="create_room_topic_section">Temo de ĉambro (malnepra)</string>
-    <string name="create_room_name_section">Nomo de ĉambro</string>
     <string name="room_permissions_notice">Elektu la rolojn bezonatajn por ŝanĝi diversajn partojn de la ĉambro</string>
     <string name="room_permissions_title">Permesoj</string>
     <string name="room_settings_permissions_subtitle">Montri kaj ĝisdatigi la rolojn bezonatajn por ŝanĝi diversajn partojn de la ĉambro.</string>
@@ -1726,7 +1724,6 @@
     <string name="looking_for_someone_not_in_space">Ĉu vi serĉas iun, kiu ne estas en %s\?</string>
     <string name="user_invites_you">%s invitas vin</string>
     <string name="you_are_invited">Vi estas invitita</string>
-    <string name="space_add_existing_rooms">Aldoni jamajn ĉambrojn kaj spacojn</string>
     <string name="space_leave_prompt_msg_as_admin">Vi estas la sola administranto de ĉi tiu spaco. Se vi foriros, neniu povos ĝin regi.</string>
     <string name="space_leave_prompt_msg_private">Vi ne povos ree aliĝi sen invito.</string>
     <string name="space_leave_prompt_msg_only_you">Vi estas la sola persono ĉi tie. Se vi foriros, neniu plu povos aliĝi, inkluzive vin mem.</string>
@@ -1742,7 +1739,6 @@
     <string name="join_anyway">Tamen aliĝi</string>
     <string name="join_space">Aliĝi al spaco</string>
     <string name="create_space">Krei spacon</string>
-    <string name="skip_for_now">Provizore preterpasi</string>
     <string name="share_space_link_message">Aliĝu al mia spaco %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Oni ne apartenos al %s</string>
     <string name="invite_just_to_this_room">Nur al ĉi tiu ĉambro</string>
@@ -1755,16 +1751,6 @@
     <string name="invite_people_menu">Inviti personojn</string>
     <string name="invite_people_to_your_space">Invitu personojn al via spaco</string>
     <string name="create_space_topic_hint">Priskribo</string>
-    <string name="create_spaces_loading_message">Kreante spacon…</string>
-    <string name="create_spaces_default_public_random_room_name">Hazarda</string>
-    <string name="create_spaces_default_public_room_name">Ĝenerala</string>
-    <string name="create_spaces_room_private_header_desc">Ni kreu por ĉio apartan ĉambron. Vi povos aldoni pliajn poste, inkluzive jam ekzistantajn.</string>
-    <string name="create_spaces_room_private_header">Kion vi prilaboras\?</string>
-    <string name="create_spaces_room_public_header_desc">Ni kreos ĉambrojn por ili. Vi povos aldoni pliajn poste.</string>
-    <string name="create_spaces_room_public_header">Kiajn diskutojn vi volus havi en %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Donu al ĝi nomon kaj pluiĝu.</string>
-    <string name="create_spaces_details_private_header">Aldonu kelkajn detalojn por helpi identigi la aron. Vi povos ilin ŝanĝi iam ajn.</string>
-    <string name="activity_create_space_title">Krei spacon</string>
     <string name="space_type_private">Privata</string>
     <string name="add_space">Aldoni spacon</string>
     <string name="event_status_delete_all_failed_dialog_message">Ĉu vi certe volas forigi ĉiujn nesenditajn mesaĝojn en ĉi tiu ĉambro\?</string>
@@ -1893,8 +1879,6 @@
     <string name="command_description_add_to_space">Aldoni al la spaco</string>
     <string name="call_tile_you_declined_this_call">Vi rifuzis ĉi tiun vokon</string>
     <string name="create_space_in_progress">Kreante spacon…</string>
-    <string name="does_not_look_like_valid_email">Tio ne ŝajnas valida retpoŝtadreso</string>
-    <string name="open_discovery_settings">Malfermi agordojn de trovado</string>
     <string name="user_directory_search_hint_2">Serĉi laŭ nomo, identigilo, aŭ retpoŝtadreso</string>
     <string name="create_new_space">Krei novan spacon</string>
     <string name="space_you_know_that_contains_this_room">Konata spaco enhavanta ĉi tiun ĉambron</string>
@@ -1971,10 +1955,8 @@
     <string name="navigate_to_thread_when_already_in_the_thread">Vi jam rigardas ĉi tiun fadenon!</string>
     <string name="settings_security_incognito_keyboard_summary">Peti, ke la klavaro ne ĝisdatigu iujn ajn personigitajn datumojn kiel tajpa historio kaj vortaro laŭ tio, kion vi tajpis en konversacioj. Rimarku, ke iuj klavaroj eble ne respektas ĉi tiun agordon.</string>
     <string name="auth_biometric_key_invalidated_message">Biometria aŭtentikigo estis malŝaltita ĉar nova biometrika aŭtentikigmetodo ĵus estis aldonita. Vi povas ebligi ĝin denove en Agordoj.</string>
-    <string name="create_space_identity_server_info_none">Vi nuntempe ne uzas identeco-servilon. Por inviti samteamanoj kaj esti malkovreblaj de ili, agordu unu sube.</string>
     <string name="space_leave_radio_buttons_title">Aferoj en ĉi tiu spaco</string>
     <string name="space_leave_radio_button_all">Eliri ĉion</string>
-    <string name="space_add_space_to_any_space_you_manage">Aldoni spacon al iu ajn spaco, kiun vi administras.</string>
     <string name="settings_show_latest_profile">Montri plej novajn informojn pri uzantoj</string>
     <string name="preference_show_all_rooms_in_home">Montri ĉiujn ĉambrojn en Hejmo</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Ĉiuj ĉambroj, kiujn vi estas ene, estos montritaj en Hejmo.</string>
@@ -2064,7 +2046,6 @@
     <string name="font_size_section_auto">Agordi aŭtomate</string>
     <string name="action_learn_more">Lerni pli</string>
     <string name="action_try_it_out">Provi ĝin</string>
-    <string name="action_next">Poste</string>
     <string name="action_not_now">Ne nun</string>
     <string name="action_got_it">Atingis</string>
     <string name="action_select_all">Elekti ĉiujn</string>

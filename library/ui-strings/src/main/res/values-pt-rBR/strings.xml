@@ -1570,8 +1570,6 @@
     <string name="rotate_and_crop_screen_title">Rotar e recortar</string>
     <string name="create_room_settings_section">Configurações de sala</string>
     <string name="create_room_topic_hint">Tópico</string>
-    <string name="create_room_topic_section">Tópico de sala (opcional)</string>
-    <string name="create_room_name_section">Nome de sala</string>
     <string name="no_more_results">Mais nenhum resultado</string>
     <string name="settings_export_trail">Exportar Auditoria</string>
     <string name="room_member_open_or_create_dm">Mensagem direta</string>
@@ -1764,7 +1762,6 @@
     <string name="room_alias_preview_not_found">Este alias não é acessível neste momento.
 \nTente de novo mais tarde, ou peça a um/uma admin de sala para checar se você tem acesso.</string>
     <string name="join_anyway">Entrar Mesmo Assim</string>
-    <string name="skip_for_now">Pular por enquanto</string>
     <string name="invite_just_to_this_room_desc">Elas não vão fazer parte de %s</string>
     <string name="invite_just_to_this_room">Só a esta sala</string>
     <string name="invite_by_link">Compartilhar link</string>
@@ -1784,7 +1781,6 @@
     <string name="space_manage_rooms_and_spaces">Gerenciar salas e espaços</string>
     <string name="space_settings_manage_rooms">Gerenciar salas</string>
     <string name="looking_for_someone_not_in_space">Procurando por alguém que não está em %s\?</string>
-    <string name="space_add_existing_rooms">Adicionar salas e espaços existentes</string>
     <string name="space_leave_prompt_msg_as_admin">Você é a/o única(o) admin deste espaço. Sair dele vai significar que ninguém tem controle sobre ele.</string>
     <string name="space_leave_prompt_msg_private">Você não poderá voltar a menos que você seja re-convidado.</string>
     <string name="space_leave_prompt_msg_only_you">Você é a única pessoa aqui. Se você sair, ninguém poderá entrar no futuro, nem mesmo você.</string>
@@ -1804,16 +1800,6 @@
     <string name="invite_to_space">Convidar para %s</string>
     <string name="invite_people_to_your_space">Convidar pessoas para seu espaço</string>
     <string name="create_space_topic_hint">Descrição</string>
-    <string name="create_spaces_loading_message">Criando Espaço…</string>
-    <string name="create_spaces_default_public_random_room_name">Aleatório</string>
-    <string name="create_spaces_default_public_room_name">Geral</string>
-    <string name="create_spaces_room_private_header_desc">Vamos criar uma sala para cada uma delas. Você pode adicionar outras mais tarde também, incluindo umas já existentes.</string>
-    <string name="create_spaces_room_private_header">Em que coisas você está trabalhando\?</string>
-    <string name="create_spaces_room_public_header_desc">Nós vamos criar salas para elas. Você pode adicionar outras mais tarde também.</string>
-    <string name="create_spaces_room_public_header">Quais são algumas discussões que você quer ter em %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Dê-lhe um nome para continuar.</string>
-    <string name="create_spaces_details_private_header">Adicione alguns detalhes para ajudar pessoas a identificá-lo. Você pode mudar isto a qualquer ponto.</string>
-    <string name="activity_create_space_title">Criar um espaço</string>
     <string name="space_type_private">Privado</string>
     <string name="add_space">Adicionar espaço</string>
     <string name="private_space">Espaço privado</string>
@@ -1918,7 +1904,6 @@
     <string name="room_settings_none">Nenhuma</string>
     <string name="room_settings_mention_and_keyword_only">Menções e Palavras-chave apenas</string>
     <string name="spaces">Espaços</string>
-    <string name="space_add_space_to_any_space_you_manage">Adicione um espaço a qualquer espaço que você gerencia.</string>
     <string name="space_add_existing_spaces">Adicionar espaços existentes</string>
     <string name="space_add_existing_rooms_only">Adicionar salas existentes</string>
     <string name="space_leave_prompt_msg_with_name">Você tem certeza que você quer sair de %s\?</string>
@@ -1926,16 +1911,11 @@
     <string name="finish_setup">Terminar configuração</string>
     <string name="discovery_invite">Convidar por email, encontrar contatos e mais…</string>
     <string name="finish_setting_up_discovery">Termine de configurar descoberta.</string>
-    <string name="create_space_identity_server_info_none">Você não está atualmente usando um servidor de identidade. Para que você possa convidar seus amigos e ser descoberto por eles, configure um abaixo.</string>
     <string name="invite_by_username_or_mail">Convidar por nome de usuária(o) ou mail</string>
-    <string name="create_spaces_invite_public_header_desc">Assegure que as pessoas certas têm acesso a companhia %s. Você pode convidar outras mais tarde.</string>
-    <string name="create_spaces_invite_public_header">Quem são suas/seus colegas\?</string>
     <string name="command_description_add_to_space">Adicionar ao dado Espaço</string>
     <string name="create_space_in_progress">Criando espaço…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Mostrar certa info útil para ajudar a fazer debugging do aplicativo</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Mostrar info de debug em tela</string>
-    <string name="does_not_look_like_valid_email">Não parece com um endereço de email válido</string>
-    <string name="open_discovery_settings">Abrir Configurações de Descoberta</string>
     <string name="user_directory_search_hint_2">Pesquisar por nome, ID ou mail</string>
     <string name="create_new_space">Criar Novo Espaço</string>
     <string name="room_settings_space_access_public_description">Qualquer pessoa pode encontrar o espaço e entrar</string>
@@ -2212,7 +2192,6 @@
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">Redefinir método de notificação</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Endpoint registrado com sucesso ao servidorcasa.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registro de Endpoint</string>
-    <string name="action_next">Próximo</string>
     <string name="live_location_share_location_item_share">Compartilhar localização</string>
     <string name="live_location_not_enough_permission_dialog_description">Você precisa ter as permissões certas a fim de compartilhar localização ao vivo nesta sala.</string>
     <string name="live_location_not_enough_permission_dialog_title">Você não tem permissão para compartilhar localização ao vivo</string>

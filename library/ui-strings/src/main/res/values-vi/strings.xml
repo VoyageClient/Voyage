@@ -1104,10 +1104,8 @@
     <string name="looking_for_someone_not_in_space">Tìm kiếm một người không có trong %s\?</string>
     <string name="user_invites_you">%s mời bạn</string>
     <string name="you_are_invited">Bạn được mời</string>
-    <string name="space_add_space_to_any_space_you_manage">Thêm một Space vào bất kỳ Space nào bạn quản lý.</string>
     <string name="space_add_existing_spaces">Thêm Space hiện có</string>
     <string name="space_add_existing_rooms_only">Thêm các phòng hiện có</string>
-    <string name="space_add_existing_rooms">Thêm các phòng và Space hiện có</string>
     <string name="space_leave_prompt_msg_as_admin">Bạn là quản trị viên duy nhất của không gian này. Rời khỏi nó sẽ có nghĩa là không ai có quyền kiểm soát nó.</string>
     <string name="space_leave_prompt_msg_private">Bạn sẽ không thể tham gia lại trừ khi bạn được mời lại.</string>
     <string name="space_leave_prompt_msg_only_you">Bạn là người duy nhất ở đây. Nếu bạn rời, sẽ không ai có thể tham gia trong tương lai, kể cả bạn.</string>
@@ -1119,10 +1117,8 @@
     <string name="finish_setup">Hoàn tất cài đặt</string>
     <string name="discovery_invite">Mời qua thư điện tử, tìm liên hệ và hơn thế nữa…</string>
     <string name="finish_setting_up_discovery">Hoàn tất việc cài đặt khám phá.</string>
-    <string name="create_space_identity_server_info_none">Hiện tại bạn không sử dụng máy chủ định danh. Để mời đồng đội và có thể khám phá bởi họ, hãy cấu hình một bên dưới.</string>
     <string name="join_space">Tham gia Space</string>
     <string name="create_space">Tạo space</string>
-    <string name="skip_for_now">Bỏ qua ngay bây giờ</string>
     <string name="share_space_link_message">Gia nhập Space của tôi %1$s %2$s</string>
     <string name="invite_by_username_or_mail">Mời theo tên người dùng hoặc thư</string>
     <string name="invite_by_email">Mời qua thư điện tử</string>
@@ -1131,18 +1127,6 @@
     <string name="invite_people_menu">Mời mọi người</string>
     <string name="invite_people_to_your_space">Mời mọi người vào Space của bạn</string>
     <string name="create_space_topic_hint">Sự mô tả</string>
-    <string name="create_spaces_loading_message">Đang tạo Space…</string>
-    <string name="create_spaces_default_public_random_room_name">Ngẫu nhiên</string>
-    <string name="create_spaces_default_public_room_name">Tổng quát</string>
-    <string name="create_spaces_room_private_header_desc">Hãy tạo ra một căn phòng cho mỗi người trong số họ. Bạn cũng có thể thêm nhiều hơn sau, bao gồm cả những cái đã có sẵn.</string>
-    <string name="create_spaces_room_private_header">Bạn đang làm gì\?</string>
-    <string name="create_spaces_invite_public_header_desc">Đảm bảo đúng người có quyền truy cập vào công ty %s. Bạn có thể mời thêm sau.</string>
-    <string name="create_spaces_invite_public_header">Đồng đội của bạn là ai\?</string>
-    <string name="create_spaces_room_public_header_desc">Chúng tôi sẽ tạo ra các phòng cho họ. Bạn cũng có thể thêm nhiều hơn sau.</string>
-    <string name="create_spaces_room_public_header">Một số cuộc thảo luận bạn muốn có trong %s là gì\?</string>
-    <string name="create_space_error_empty_field_space_name">Đặt tên để tiếp tục.</string>
-    <string name="create_spaces_details_private_header">Thêm một số chi tiết để giúp mọi người xác định nó. Bạn có thể thay đổi chúng bất cứ lúc nào.</string>
-    <string name="activity_create_space_title">Tạo một Space</string>
     <string name="space_type_private">Riêng tư</string>
     <string name="add_space">Thêm space</string>
     <string name="private_space">Space riêng tư</string>
@@ -1535,7 +1519,6 @@
     <string name="login_connect_using_matrix_id_submit">Đăng nhập bằng Matrix ID</string>
     <string name="login_error_outdated_homeserver_warning_content">Homeerver này đang chạy một phiên bản cũ. Yêu cầu người quản trị homeerver của bạn nâng cấp. Bạn có thể tiếp tục, nhưng một số tính năng có thể không hoạt động chính xác.</string>
     <string name="login_error_outdated_homeserver_title">Homeerver lỗi thời</string>
-    <string name="does_not_look_like_valid_email">Không giống một địa chỉ thư điện tử hợp lệ</string>
     <string name="login_registration_not_supported">Ứng dụng không thể tạo tài khoản trên homeerver này.
 \n
 \nBạn có muốn đăng ký bằng máy khách web không\?</string>
@@ -1600,9 +1583,7 @@
     <string name="create_room_public_title">Công cộng</string>
     <string name="create_room_settings_section">Cài đặt phòng</string>
     <string name="create_room_topic_hint">Chủ đề</string>
-    <string name="create_room_topic_section">Chủ đề phòng (tùy chọn)</string>
     <string name="create_room_name_hint">Tên</string>
-    <string name="create_room_name_section">Tên phòng</string>
     <string name="create_room_action_create">TẠO</string>
     <string name="fab_menu_create_chat">Tin nhắn trực tiếp</string>
     <string name="fab_menu_create_room">Phòng</string>
@@ -1947,7 +1928,6 @@
     <string name="settings_discovery_no_policy_provided">Máy chủ định danh không cung cấp chính sách nào</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Ẩn chính sách máy chủ định danh</string>
     <string name="settings_discovery_show_identity_server_policy_title">Hiện chính sách máy chủ định danh</string>
-    <string name="open_discovery_settings">Mở Cài đặt Khám phá</string>
     <string name="labs_show_unread_notifications_as_tab">Thêm tab dành riêng cho các thông báo chưa đọc trên màn hình chính.</string>
     <string name="user_directory_search_hint_2">Tìm kiếm theo tên, ID hoặc thư</string>
     <string name="room_filtering_filter_hint">Lọc hội thoại…</string>
@@ -2016,7 +1996,6 @@
     <string name="action_deselect_all">Loại tất cả</string>
     <string name="action_select_all">Chọn tất cả</string>
     <string name="action_got_it">Hiểu rồi</string>
-    <string name="action_next">Tiếp</string>
     <string name="action_learn_more">Tìm hiểu thêm</string>
     <string name="action_try_it_out">Hãy thử nó</string>
     <string name="time_unit_second_short">giây</string>

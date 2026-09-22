@@ -1347,8 +1347,6 @@
 \n%s</string>
     <string name="create_room_settings_section">تنظیمات اتاق</string>
     <string name="create_room_topic_hint">توضیحات</string>
-    <string name="create_room_topic_section">توضیح در مورد اتاق (اختیاری)</string>
-    <string name="create_room_name_section">نام اتاق</string>
     <string name="error_user_already_logged_in">به نظر در تلاش برای وصل شدن به کارساز خانگی دیگری هستید. می‌خواهید خارج شوید؟</string>
     <string name="identity_server_not_defined">از هیچ کارساز هویتی استفاده نمی‌کنید</string>
     <string name="sas_error_unknown">خطای نامشخص</string>
@@ -1739,7 +1737,6 @@
     <string name="settings_room_directory_show_all_rooms">نمایش‌ها همه‌ی اتاق‌ها</string>
     <string name="settings_category_room_directory">فهرست اتاق‌ها</string>
     <string name="you_are_invited">دعوت شده‌اید</string>
-    <string name="space_add_existing_rooms">افزودن فضا و اتاق‌های موجود</string>
     <string name="leave_space">ترک</string>
     <string name="space_add_child_title">افزودن اتاق</string>
     <string name="space_explore_activity_title">کاوش در اتاق‌ها</string>
@@ -1752,7 +1749,6 @@
     <string name="join_anyway">در هر صورت بپیوند</string>
     <string name="join_space">پیوستن به فضا</string>
     <string name="create_space">ایجاد فضا</string>
-    <string name="skip_for_now">فعلا رد شوید</string>
     <string name="share_space_link_message">به فضایم %1$s بپیوند.%2$s</string>
     <string name="invite_just_to_this_room_desc">آن‌ها بخشی از %s نخواهند شد</string>
     <string name="invite_just_to_this_room">فقط به این اتاق</string>
@@ -1764,16 +1760,6 @@
     <string name="invite_people_menu">دعوت افراد</string>
     <string name="invite_people_to_your_space">دعوت افراد به فضایتان</string>
     <string name="create_space_topic_hint">توضیحات</string>
-    <string name="create_spaces_loading_message">ساختن فضا…</string>
-    <string name="create_spaces_default_public_random_room_name">تصادفی</string>
-    <string name="create_spaces_default_public_room_name">عمومی</string>
-    <string name="create_spaces_room_private_header_desc">بیایید برای هر یک از آنها یک اتاق درست کنیم. بعداً می توانید موارد دیگر را اضافه کنید، از جمله موارد موجود.</string>
-    <string name="create_spaces_room_private_header">روی چه چیزی کار می کنید؟</string>
-    <string name="create_spaces_room_public_header_desc">ما اتاق‌هایی برای آنها ایجاد خواهیم کرد. بعداً می توانید بیشتر اضافه کنید.</string>
-    <string name="create_spaces_room_public_header">موضوع گفتگوها %s یی چیست؟</string>
-    <string name="create_space_error_empty_field_space_name">برای ادامه یک اسم برای آن بگذارید.</string>
-    <string name="create_spaces_details_private_header">توضیحاتی را برای کمک به افراد در شناسایی آن اضافه کنید. همواره می توانید این توضیحات را تغییر دهید.</string>
-    <string name="activity_create_space_title">ایجاد یک فضا</string>
     <string name="space_type_private">خصوصی</string>
     <string name="command_description_create_space">ساخت یک فضا</string>
     <string name="room_settings_room_access_restricted_description">هر کسی در فضای این اتاق، می‌تواند اتاق را یافته و بپیوندد. فقط مدیران این اتاق می توانند به فضایی بیفزایندش.</string>
@@ -1918,7 +1904,6 @@
     <string name="room_settings_none">هیچ‌کدام</string>
     <string name="room_settings_mention_and_keyword_only">فقط اشاره‌ها و کلیدواژگان</string>
     <string name="spaces">فضاها</string>
-    <string name="space_add_space_to_any_space_you_manage">افزودن فضایی به هر فضایی که مدیریت می‌کنید.</string>
     <string name="space_add_existing_spaces">افزودن فضاهای موجود</string>
     <string name="space_add_existing_rooms_only">افزودن اتاق‌های موجود</string>
     <string name="space_leave_prompt_msg_with_name">مطمئنید می‌خواهید %s را ترک کنید؟</string>
@@ -1926,16 +1911,11 @@
     <string name="finish_setup">پایان برپایی</string>
     <string name="discovery_invite">دعوت با رایانامه، یافتن آشنایان و بیش‌تر…</string>
     <string name="finish_setting_up_discovery">پایان برپا سازی کشف.</string>
-    <string name="create_spaces_invite_public_header">همگروهی‌هایتان کیند؟</string>
-    <string name="create_space_identity_server_info_none">در حال حاضر از کارساز هویتی استفاده نمی‌کنید. برای دعوت همگروهی‌ها و قابل کشف بودن به دستشان، در پایین یکی پیکربندی کنید.</string>
     <string name="invite_by_username_or_mail">دعوت با نام کاربری یا نامه</string>
-    <string name="create_spaces_invite_public_header_desc">مطمئن شوید افراد درستی به %s دسترسی دارند. بعداً می‌توانید تفراد بیش‌تری را دعوت‌کنید.</string>
     <string name="command_description_add_to_space">افزودن به فضای داده شده</string>
     <string name="create_space_in_progress">ایجاد کردن فضا…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">نمایش اطلاعاتی مغید برای کمک به رفع اشکال برنامه</string>
     <string name="settings_developer_mode_show_info_on_screen_title">نمایش اطلاعات رفع اشکال روی صفحه</string>
-    <string name="does_not_look_like_valid_email">نشانی رایانامه‌ای معتبر به نظر نمی‌رسد</string>
-    <string name="open_discovery_settings">گشودن تنظیمات کشف</string>
     <string name="user_directory_search_hint_2">جست‌وجو با نام، شناسه یا رایانامه</string>
     <string name="create_new_space">ایجاد فضای جدید</string>
     <string name="room_settings_space_access_public_description">هرکسی می تواند فضا را یافته و بپیوندد</string>
@@ -2204,7 +2184,6 @@
     <string name="auth_biometric_key_invalidated_message">تأیی هویت زیست‌سنجی به دلیل اضافه شدن روش تأیسد هویت زیست‌سنجی جدیدی به تازگی از کار افتاده. می‌توانید دوباره در تنظیمات به کارش بیندازید.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">بازنشانی روش آگاهی</string>
     <string name="push_gateway_item_profile_tag">برچسب نمایه:</string>
-    <string name="action_next">بعدی</string>
     <string name="live_location_labs_promotion_description">لطفاً به خاطر داشته باشید: این یک ویژگی آزمایشگاهی با پیاده‌سازی موقّتی است. یعنی نخواهید توانست تاریخجهٔ مکانتان را حذف کرده و کاربران پیش‌رفته خواهند توانست حتا پس از پایان هم‌رسانی مکان زنده‌تان با این اتاق، تاریخچهٔ مکانتان را ببینند.</string>
     <string name="settings_troubleshoot_test_current_endpoint_failed">نتوانست نقطهٔ پایانی را بیابد.</string>
     <string name="settings_troubleshoot_test_current_endpoint_success">نقطهٔ پایانی کنونی: %s</string>

@@ -1536,8 +1536,6 @@
     <string name="attachment_type_dialog_title">新增圖片從</string>
     <string name="create_room_settings_section">聊天室設定</string>
     <string name="create_room_topic_hint">主題</string>
-    <string name="create_room_topic_section">聊天室主題（選填）</string>
-    <string name="create_room_name_section">聊天室名稱</string>
     <string name="settings_export_trail">匯出審核</string>
     <string name="room_member_open_or_create_dm">私人訊息</string>
     <string name="no_more_results">沒有更多結果</string>
@@ -1704,7 +1702,6 @@
     <string name="settings_room_directory_show_all_rooms">顯示帶有兒童不宜內容的聊天室</string>
     <string name="settings_category_room_directory">聊天室目錄</string>
     <string name="you_are_invited">您被邀請了</string>
-    <string name="space_add_existing_rooms">新增既有的聊天室與聊天空間</string>
     <string name="leave_space">離開</string>
     <string name="space_add_child_title">新增聊天室</string>
     <string name="space_explore_activity_title">探索聊天室</string>
@@ -1716,7 +1713,6 @@
     <string name="join_anyway">無論如何都要加入</string>
     <string name="join_space">加入聊天空間</string>
     <string name="create_space">建立聊天空間</string>
-    <string name="skip_for_now">現在略過</string>
     <string name="share_space_link_message">加入我的聊天空間 %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">他們不會是 %s 的一部分</string>
     <string name="invite_just_to_this_room">只傳到此聊天室</string>
@@ -1728,16 +1724,6 @@
     <string name="invite_people_menu">邀請夥伴</string>
     <string name="invite_people_to_your_space">邀請夥伴進入您的聊天空間</string>
     <string name="create_space_topic_hint">描述</string>
-    <string name="create_spaces_loading_message">正在建立聊天空間…</string>
-    <string name="create_spaces_default_public_random_room_name">隨機</string>
-    <string name="create_spaces_default_public_room_name">一般</string>
-    <string name="create_spaces_room_private_header_desc">讓我們為每個主題建立一個聊天室。您也可以稍後再新增，包含既有的。</string>
-    <string name="create_spaces_room_private_header">您在忙些什麼？</string>
-    <string name="create_spaces_room_public_header_desc">我們將會為此建立聊天室。您也可以在稍後新增更多。</string>
-    <string name="create_spaces_room_public_header">您希望在 %s 中進行哪些討論？</string>
-    <string name="create_space_error_empty_field_space_name">為它命名以繼續。</string>
-    <string name="create_spaces_details_private_header">新增一些詳細資訊以協助人們識別。您隨時可以變更這些資訊。</string>
-    <string name="activity_create_space_title">建立聊天空間</string>
     <string name="space_type_private">私密</string>
     <string name="add_space">新增聊天空間</string>
     <string name="command_description_leave_room">離開指定 ID 的聊天室（如果是 null 的話則為目前聊天室）</string>
@@ -1881,7 +1867,6 @@
     <string name="room_settings_none">無</string>
     <string name="room_settings_mention_and_keyword_only">僅有被提及與出現關鍵字時</string>
     <string name="spaces">聊天空間</string>
-    <string name="space_add_space_to_any_space_you_manage">新增聊天空間至您管理的任何聊天空間。</string>
     <string name="space_add_existing_spaces">新增既有的聊天空間</string>
     <string name="space_add_existing_rooms_only">新增既有的聊天室</string>
     <string name="space_leave_prompt_msg_with_name">您確定要離開 %s 嗎？</string>
@@ -1889,16 +1874,11 @@
     <string name="finish_setup">結束設定</string>
     <string name="discovery_invite">透過電子郵件邀請、尋找聯絡人以及更多…</string>
     <string name="finish_setting_up_discovery">完成探索設定。</string>
-    <string name="create_space_identity_server_info_none">您目前並未使用身分認證伺服器。為了邀請團隊成員並可讓他們找到您，請在下方設定一個。</string>
     <string name="invite_by_username_or_mail">透過使用者名稱或電子郵件邀請</string>
-    <string name="create_spaces_invite_public_header_desc">確保合適的人可以存取 %s 公司。您之後也可以繼續邀請。</string>
-    <string name="create_spaces_invite_public_header">有哪些團隊成員？</string>
     <string name="command_description_add_to_space">新增至特定的聊天空間</string>
     <string name="create_space_in_progress">正在建立聊天空間…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">顯示一些有用的資訊以協助應用程式除錯</string>
     <string name="settings_developer_mode_show_info_on_screen_title">在畫面上顯示除錯資訊</string>
-    <string name="does_not_look_like_valid_email">不像是有效的電子郵件地址</string>
-    <string name="open_discovery_settings">開啟探索設定</string>
     <string name="user_directory_search_hint_2">以名稱、ID 或電子郵件搜尋</string>
     <string name="create_new_space">建立新聊天空間</string>
     <string name="room_settings_space_access_public_description">任何人都可以找到此聊天空間並加入</string>
@@ -2167,7 +2147,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">端點成功註冊至家伺服器。</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">端點註冊</string>
-    <string name="action_next">下一步</string>
     <string name="poll_undisclosed_not_ended">投票結束後將顯示結果</string>
     <string name="send_your_first_msg_to_invite">傳送您的第一則訊息以邀請 %s 來聊天</string>
     <string name="direct_room_encryption_enabled_tile_description_future">此聊天中的訊息將使用端對端加密。</string>

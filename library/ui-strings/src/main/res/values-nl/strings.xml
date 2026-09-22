@@ -847,7 +847,6 @@
     <string name="direct_room_created_summary_item">%s is toegetreden.</string>
     <string name="sent_verification_conclusion">Conclusie Bevestiging.</string>
     <string name="create_room_settings_section">Kamerinstellingen</string>
-    <string name="create_room_name_section">Kamernaam</string>
     <string name="room_manage_integrations">Integraties Beheren</string>
     <plurals name="notification_invitations">
         <item quantity="one">%d uitnodiging</item>
@@ -976,8 +975,6 @@
     <string name="upgrade">Opwaarderen</string>
     <string name="space_suggested">Aanbevolen</string>
     <string name="create_space_topic_hint">Beschrijving</string>
-    <string name="create_spaces_default_public_random_room_name">Willekeurig</string>
-    <string name="create_spaces_default_public_room_name">Algemeen</string>
     <string name="space_type_private">Privé</string>
     <string name="event_status_a11y_failed">Mislukt</string>
     <string name="event_status_a11y_sent">Verzonden</string>
@@ -1272,7 +1269,6 @@
     <string name="settings_discovery_hide_identity_server_policy_title">Identiteitsserverbeleid verbergen</string>
     <string name="settings_discovery_show_identity_server_policy_title">Identiteitsserverbeleid weergeven</string>
     <string name="change_identity_server">Identiteitsserver wijzigen</string>
-    <string name="open_discovery_settings">Ontdekkingsinstellingen openen</string>
     <string name="add_identity_server">Identiteitsserver configureren</string>
     <string name="disconnect_identity_server">Identiteitsserver ontkoppelen</string>
     <string name="terms_description_for_integration_manager">Gebruik bots, bruggen, widgets en stickerpakketten</string>
@@ -1319,7 +1315,6 @@
     <string name="create_room_federation_error">De kamer is aangemaakt, maar sommige uitnodigingen zijn om de volgende reden niet verzonden:
 \n
 \n%s</string>
-    <string name="create_room_topic_section">Kameronderwerp (optioneel)</string>
     <string name="create_new_space">Nieuwe space aanmaken</string>
     <string name="secure_backup_setup">Beveiligde back-up instellen</string>
     <string name="secure_backup_banner_setup_line2">Beveiliging tegen verlies van toegang tot versleutelde berichten en gegevens</string>
@@ -1880,7 +1875,6 @@
     <string name="login_set_msisdn_notice2">Gebruik het internationale formaat.</string>
     <string name="login_set_msisdn_notice">Stel een telefoonnummer in om optioneel toe te staan dat mensen die je kent jou kunnen ontdekken.</string>
     <string name="login_set_msisdn_title">Telefoonnummer instellen</string>
-    <string name="does_not_look_like_valid_email">Lijkt niet op een geldig e-mailadres</string>
     <string name="login_set_email_notice">Stel een e-mail in om je account te herstellen. Later kan je optioneel toestaan dat mensen die je kent jou via je e-mail ontdekken.</string>
     <string name="login_set_email_title">E-mailadres instellen</string>
     <string name="login_reset_password_cancel_confirmation_content">Jouw wachtwoord is nog niet gewijzigd.
@@ -1893,8 +1887,6 @@
     <string name="login_reset_password_mail_confirmation_notice_2">Tik op de link om je nieuwe wachtwoord te bevestigen. Klik hieronder als je de link hebt gevolgd die erin staat.</string>
     <string name="ftue_auth_carousel_secure_title">Word eigenaar van jouw gesprekken.</string>
     <string name="create_space">Space aanmaken</string>
-    <string name="create_spaces_loading_message">Space aanmaken…</string>
-    <string name="activity_create_space_title">Een ruimte aanmaken</string>
     <string name="dev_tools_event_content_hint">Gebeurtenis inhoud</string>
     <string name="upgrade_room_for_restricted_note">Houd er rekening mee dat bij het upgraden een nieuwe versie van de kamer wordt gemaakt. Alle huidige berichten blijven in deze gearchiveerde kamer.</string>
     <string name="upgrade_room_for_restricted_no_param">Iedereen in een ouderspace kan deze kamer vinden en er lid van worden. Het is niet nodig om iedereen handmatig uit te nodigen. Je kan dit op elk moment wijzigen in de kamer instellingen.</string>
@@ -1984,10 +1976,8 @@
     <string name="looking_for_someone_not_in_space">Op zoek naar iemand die niet in %s zit\?</string>
     <string name="user_invites_you">%s nodigt je uit</string>
     <string name="you_are_invited">Je bent uitgenodigd</string>
-    <string name="space_add_space_to_any_space_you_manage">Voeg een space toe aan elke space die jij beheert.</string>
     <string name="space_add_existing_spaces">Bestaande spaces toevoegen</string>
     <string name="space_add_existing_rooms_only">Bestaande kamers toevoegen</string>
-    <string name="space_add_existing_rooms">Bestaande kamers en space toevoegen</string>
     <string name="space_leave_prompt_msg_private">Je kan pas weer deelnemen als je opnieuw wordt uitgenodigd.</string>
     <string name="space_leave_prompt_msg_only_you">Je bent de enige persoon hier. Als je weggaat, kan niemand meer meedoen, ook jij niet.</string>
     <string name="space_leave_prompt_msg_with_name">Weet je zeker dat je %s wil verlaten\?</string>
@@ -2002,10 +1992,8 @@
     <string name="finish_setup">Installatie voltooien</string>
     <string name="discovery_invite">Nodig uit via e-mail, vind contacten en meer…</string>
     <string name="finish_setting_up_discovery">Voltooi het instellen van detectie.</string>
-    <string name="create_space_identity_server_info_none">Je gebruikt momenteel geen identiteitsserver. Om teamgenoten uit te nodigen en door hen vindbaar te zijn, configureet je er hieronder een.</string>
     <string name="join_anyway">Doe toch mee</string>
     <string name="join_space">Space deelnemen</string>
-    <string name="skip_for_now">Voor nu overslaan</string>
     <string name="invite_just_to_this_room_desc">Ze zullen geen deel uitmaken van %s</string>
     <string name="invite_just_to_this_room">Alleen voor deze kamer</string>
     <string name="invite_to_space_with_name_desc">Ze kunnen %s ontdekken</string>
@@ -2017,14 +2005,6 @@
     <string name="invite_to_space">Uitnodigen voor %s</string>
     <string name="invite_people_menu">Mensen uitnodigen</string>
     <string name="invite_people_to_your_space">Nodig mensen uit voor jouw space</string>
-    <string name="create_spaces_room_private_header_desc">Laten we voor elk van hen een kamer maken. Je kan er later ook meer toevoegen, inclusief reeds bestaande.</string>
-    <string name="create_spaces_room_private_header">Aan welke dingen werk jij\?</string>
-    <string name="create_spaces_invite_public_header_desc">Zorg ervoor dat de juiste mensen toegang hebben tot %s bedrijf. Je kan er later meer uitnodigen.</string>
-    <string name="create_spaces_invite_public_header">Wie zijn jouw teamgenoten\?</string>
-    <string name="create_spaces_room_public_header_desc">We zullen kamers voor hen maken. Je kan later ook meer toevoegen.</string>
-    <string name="create_spaces_room_public_header">Wat zijn enkele discussies die je wil voeren in %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Geef het een naam om door te gaan.</string>
-    <string name="create_spaces_details_private_header">Voeg wat details toe om mensen te helpen het te identificeren. Je kan deze op elk moment wijzigen.</string>
     <string name="add_space">Space toevoegen</string>
     <string name="private_space">Privé space</string>
     <string name="public_space">Openbare space</string>
@@ -2212,7 +2192,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Eindpunt succesvol geregistreerd bij server.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registratie van eindpunt</string>
-    <string name="action_next">Volgende</string>
     <string name="poll_undisclosed_not_ended">Resultaten zijn zichtbaar wanneer de poll is afgelopen</string>
     <string name="send_your_first_msg_to_invite">Stuur je eerste bericht om %s uit te nodigen om te chatten</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Berichten in deze chat worden eind-tot-eind versleuteld.</string>

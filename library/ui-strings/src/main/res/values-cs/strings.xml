@@ -1587,8 +1587,6 @@
     <string name="settings_labs_show_complete_history_in_encrypted_room">V šifrovaných místnostech zobrazit úplnou historii</string>
     <string name="create_room_settings_section">Nastavení místnosti</string>
     <string name="create_room_topic_hint">Téma</string>
-    <string name="create_room_topic_section">Téma místnosti (volitelné)</string>
-    <string name="create_room_name_section">Název místnosti</string>
     <string name="notification_unread_notified_messages_and_invitation">%1$s a %2$s</string>
     <string name="notification_unread_notified_messages_in_room_and_invitation">%1$s v %2$s a %3$s</string>
     <plurals name="notification_invitations">
@@ -1774,13 +1772,8 @@
     <string name="settings_room_directory_show_all_rooms">Zobrazit místnosti s explicitním obsahem</string>
     <string name="settings_category_room_directory">Adresář místností</string>
     <string name="a11y_unchecked">Neoznačeno</string>
-    <string name="create_spaces_room_private_header_desc">Založme pro každé místnost. Později můžete přidat i další, včetně již existujících.</string>
-    <string name="create_spaces_room_private_header">Na jakých tématech pracujete\?</string>
-    <string name="create_spaces_room_public_header_desc">Založíme pro ně místnosti. Můžete přidat další později.</string>
-    <string name="create_spaces_details_private_header">Doplňte nějaké podrobnosti, aby jej lidé mohli identifikovat. Můžete je kdykoli změnit.</string>
     <string name="spaces_header">Prostory</string>
     <string name="you_are_invited">Jste zváni</string>
-    <string name="space_add_existing_rooms">Přidat existující místnosti a prostor</string>
     <string name="leave_space">Opustit</string>
     <string name="space_add_child_title">Přidat místnosti</string>
     <string name="space_explore_activity_title">Prozkoumat místnosti</string>
@@ -1794,7 +1787,6 @@
     <string name="join_anyway">I tak vstoupit</string>
     <string name="join_space">Vstoupit do prostoru</string>
     <string name="create_space">Vytvořit prostor</string>
-    <string name="skip_for_now">Nyní přeskočit</string>
     <string name="share_space_link_message">Připojte se k mému prostoru %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">Nebudou součástí %s</string>
     <string name="invite_just_to_this_room">Jen do této místnosti</string>
@@ -1806,12 +1798,6 @@
     <string name="invite_people_menu">Pozvat lidi</string>
     <string name="invite_people_to_your_space">Pozvěte do svého prostoru lidi</string>
     <string name="create_space_topic_hint">Popis</string>
-    <string name="create_spaces_loading_message">Vytvářím prostor…</string>
-    <string name="create_spaces_default_public_random_room_name">Nahodilé</string>
-    <string name="create_spaces_default_public_room_name">Obecné</string>
-    <string name="create_spaces_room_public_header">Jaké diskuse si přejete vést v %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Dejte prostoru jméno a pokračujte.</string>
-    <string name="activity_create_space_title">Vytvořit prostor</string>
     <string name="space_type_private">Soukromý</string>
     <string name="add_space">Přidat prostor</string>
     <string name="command_description_leave_room">Opustit místnost s daným id (nebo nynější místnost pokud prázdné)</string>
@@ -1955,7 +1941,6 @@
     <string name="room_settings_none">Žádné</string>
     <string name="room_settings_mention_and_keyword_only">Pouze zmínky a klíčová slova</string>
     <string name="spaces">Prostory</string>
-    <string name="space_add_space_to_any_space_you_manage">Přidejte prostor do jakéhokoli prostoru, který spravujete.</string>
     <string name="space_add_existing_spaces">Přidat stávající prostory</string>
     <string name="space_add_existing_rooms_only">Přidat stávající místnosti</string>
     <string name="space_leave_prompt_msg_with_name">Opravdu chcete opustit %s\?</string>
@@ -1963,16 +1948,11 @@
     <string name="finish_setup">Dokončit nastavení</string>
     <string name="discovery_invite">Pozvání e-mailem, vyhledávání kontaktů a další…</string>
     <string name="finish_setting_up_discovery">Dokončit nastavení objevování.</string>
-    <string name="create_space_identity_server_info_none">V současné době nepoužíváte server identit. Chcete-li pozvat kolegy a být pro ně zjistitelní, nakonfigurujte jej níže.</string>
     <string name="invite_by_username_or_mail">Pozvat pomocí uživatelského jména nebo e-mailu</string>
-    <string name="create_spaces_invite_public_header_desc">Zajistěte, aby měli do společnosti %s přístup ti správní lidé. Další můžete pozvat později.</string>
-    <string name="create_spaces_invite_public_header">Kdo jsou vaši kolegové\?</string>
     <string name="command_description_add_to_space">Přidat do daného prostoru</string>
     <string name="create_space_in_progress">Vytváření prostoru…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Zobrazit užitečné informace, které pomohou při ladění aplikace</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Zobrazení ladících informací na obrazovce</string>
-    <string name="does_not_look_like_valid_email">Nevypadá to jako platná e-mailová adresa</string>
-    <string name="open_discovery_settings">Otevřít nastavení objevování</string>
     <string name="user_directory_search_hint_2">Vyhledávání podle jména, ID nebo emailu</string>
     <string name="create_new_space">Vytvořit nový prostor</string>
     <string name="room_settings_space_access_public_description">Každý může prostor najít a připojit se k němu</string>
@@ -2257,7 +2237,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Koncový bod byl úspěšně zaregistrován na domovském serveru.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registrace koncového bodu</string>
-    <string name="action_next">Další</string>
     <string name="poll_undisclosed_not_ended">Výsledky se zobrazí po ukončení hlasování</string>
     <string name="send_your_first_msg_to_invite">Odesláním první zprávy pozvete %s do místnosti</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Zprávy v této místnosti budou koncově šifrovány.</string>

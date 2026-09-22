@@ -1568,10 +1568,8 @@
     <string name="room_list_quick_actions_low_priority_add">Märgi vähetähtsaks</string>
     <string name="rotate_and_crop_screen_title">Pööra ja kadreeri</string>
     <string name="attachment_type_dialog_title">Lisa pildid valitud asukohast</string>
-    <string name="create_room_name_section">Jututoa nimi</string>
     <string name="create_room_settings_section">Jututoa seadistused</string>
     <string name="create_room_topic_hint">Teema</string>
-    <string name="create_room_topic_section">Jututoa teema (kui soovid)</string>
     <string name="settings_export_trail">Ekspordi rakenduse taustakontrolli andmed</string>
     <string name="room_member_open_or_create_dm">Otsevestlus</string>
     <string name="no_more_results">Rohkem otsingutulemusi pole</string>
@@ -1739,7 +1737,6 @@
     <string name="event_status_a11y_sending">Saadan</string>
     <string name="settings_category_room_directory">Jututubade kataloog</string>
     <string name="you_are_invited">Sa oled saanud kutse</string>
-    <string name="space_add_existing_rooms">Lisa olemasolevaid jututubasid ja kogukonnakeskuseid</string>
     <string name="leave_space">Lahku kogukonnast</string>
     <string name="space_add_child_title">Lisa jututube</string>
     <string name="space_explore_activity_title">Tutvu jututubadega</string>
@@ -1752,7 +1749,6 @@
     <string name="join_anyway">Liitu ikkagi</string>
     <string name="join_space">Liitu kogukonnakeskusega</string>
     <string name="create_space">Loo kogukond</string>
-    <string name="skip_for_now">Hetkel jäta vahele</string>
     <string name="share_space_link_message">Palun liitu %1$s kogukonnakeskusega %2$s</string>
     <string name="invite_just_to_this_room_desc">Nad ei saa osalema %s jututoas</string>
     <string name="invite_just_to_this_room">Kutse vaid siia jututuppa</string>
@@ -1764,16 +1760,6 @@
     <string name="invite_people_menu">Kutsu teisi kasutajaid</string>
     <string name="invite_people_to_your_space">Kutsu inimesi oma kogukonnakeskusega liituma</string>
     <string name="create_space_topic_hint">Kirjeldus</string>
-    <string name="create_spaces_loading_message">Loon kogukonnakeskust…</string>
-    <string name="create_spaces_default_public_random_room_name">Juhuslik</string>
-    <string name="create_spaces_default_public_room_name">Üldist</string>
-    <string name="create_spaces_room_private_header_desc">Loome nüüd igaühe jaoks jututoa. Sa võid neid ka hiljem lisada, sealhulgas olemasolevaid.</string>
-    <string name="create_spaces_room_private_header">Mis ettevõtmistega sa tegeled\?</string>
-    <string name="create_spaces_room_public_header_desc">Lisame selle jaoks ka jututoad. Sa saad neid veel hiljemgi lisada.</string>
-    <string name="create_spaces_room_public_header">Mis teemal sa sooviksid %s kogukonnakeskuses vestelda\?</string>
-    <string name="create_space_error_empty_field_space_name">Jätkamaks anna talle nimi.</string>
-    <string name="create_spaces_details_private_header">Tuvastamiseks palun lisa natuke teavet. Sa saad seda hiljem muuta ja täiendada.</string>
-    <string name="activity_create_space_title">Loo kogukonnakeskus</string>
     <string name="space_type_private">Privaatne</string>
     <string name="add_space">Lisa kogukond</string>
     <string name="command_description_leave_room">Lahku antud tunnusega jututoast (tunnuse puudumisel jututoast, kus hetkel asud)</string>
@@ -1918,7 +1904,6 @@
     <string name="room_settings_none">Ei midagi</string>
     <string name="room_settings_mention_and_keyword_only">Vaid mainimised ja märksõnad</string>
     <string name="spaces">Kogukonnad</string>
-    <string name="space_add_space_to_any_space_you_manage">Lisa kogukond ükspuha millisesse kogukonda, mida sa juba haldad.</string>
     <string name="space_add_existing_spaces">Lisa olemasolevaid kogukondi</string>
     <string name="space_add_existing_rooms_only">Lisa olemasolevaid jututubasid</string>
     <string name="space_leave_prompt_msg_with_name">Kas oled kindel, et soovid lahkuda %s kogukonnast\?</string>
@@ -1926,16 +1911,11 @@
     <string name="finish_setup">Lõpeta seadistamine</string>
     <string name="discovery_invite">Kutsu e-posti aadressi alusel, leia tuttavaid, jne…</string>
     <string name="finish_setting_up_discovery">Lõpeta leitavuse seadistamine.</string>
-    <string name="create_space_identity_server_info_none">Hetkel sa ei kasuta isikutuvastusserverit. Kaaslastele kutse saatmiseks ning end teistele leitavaks tegemiseks palun seadista ta alljärgnevalt.</string>
     <string name="invite_by_username_or_mail">Kutsu kasutajanime või e-posti aadressi alusel</string>
-    <string name="create_spaces_invite_public_header_desc">Kontrolli, et vajalikel inimestel oleks ligipääs %s kogukonda. Teistele võid kutse saata ka hiljem.</string>
-    <string name="create_spaces_invite_public_header">Kes on su kaasteelised\?</string>
     <string name="command_description_add_to_space">Lisa näidatud kogukonnakeskusesse</string>
     <string name="create_space_in_progress">Loon kogukonnakeskust…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Näita sellist teavet, millest võib kasu olla rakenduse silumisel ja veaotsingul</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Näita ekraanil silumisteateid</string>
-    <string name="does_not_look_like_valid_email">See ei tundu olema e-posti aadressi moodi</string>
-    <string name="open_discovery_settings">Ava leitavuse seadistused</string>
     <string name="user_directory_search_hint_2">Otsi nime, Matrixi kasutajatunnuse või e-posti aadressi alusel</string>
     <string name="create_new_space">Loo kogukond</string>
     <string name="room_settings_space_access_public_description">Kõik võivad kogukonda leida ja sellega liituda</string>
@@ -2190,7 +2170,6 @@
     <string name="auth_biometric_key_invalidated_message">Kuna hiljuti lisandus uus biomeetrilise autentimise meetod, siis lülitati biomeetriline autentimine välja. Sa saad ta uuesti kasutusele võtta seadistustest.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">Lähtesta teavituse meetod</string>
     <string name="push_gateway_item_profile_tag">Profiili silt:</string>
-    <string name="action_next">Järgmine</string>
     <string name="settings_troubleshoot_test_current_distributor">Hetkel on kasutusel %s.</string>
     <string name="settings_troubleshoot_test_current_distributor_title">Meetod</string>
     <plurals name="settings_troubleshoot_test_distributors_many">

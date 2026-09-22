@@ -76,7 +76,6 @@
     <string name="notice_room_created">%1$s otağı yaratdı</string>
     <string name="notification_noisy_notifications">Səsli bildirişlər</string>
     <string name="notification_listening_for_notifications">Bildirişləri dinləmək</string>
-    <string name="create_spaces_default_public_room_name">Ümumi</string>
     <string name="settings_general_title">Ümumi</string>
     <string name="room_participants_action_ignore_prompt_msg">Bu istifadəçiyə məhəl qoymamaq onun mesajlarını paylaşdığınız otaqlardan siləcək.
 \n

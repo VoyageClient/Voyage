@@ -383,7 +383,6 @@
     <string name="soft_logout_clear_data_submit">Διαγρφή όλων των δεδομένων</string>
     <string name="settings">Ρυθμίσεις</string>
     <string name="settings_general_title">Γενικά</string>
-    <string name="create_spaces_default_public_room_name">Γενικά</string>
     <string name="notice_room_avatar_removed">%1$s Έχει αφαιρεθεί το avatar του δωματίου</string>
     <string name="notice_room_avatar_removed_by_you">Έχεις αφαιρέσει το avatar του δωματίου</string>
     <string name="notice_room_server_acl_updated_no_change">Καμία αλλαγή.</string>

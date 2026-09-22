@@ -753,7 +753,6 @@
     <string name="room_settings_topic_hint">주제</string>
     <string name="add_a_topic_link_text">주제 추가</string>
     <string name="create_room_topic_hint">주제</string>
-    <string name="create_room_topic_section">방 주제 (선택)</string>
     <string name="room_permissions_change_topic">주제 변경</string>
     <string name="direct_room_encryption_enabled_tile_description">이 방의 메시지는 종단간 암호화가 적용되었습니다.</string>
     <string name="encryption_enabled_tile_description">이 방의 메시지는 종단간 암호화가 적용되었습니다. 더보기 &amp; 프로필을 통해 검증.</string>

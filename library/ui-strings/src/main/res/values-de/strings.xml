@@ -1570,8 +1570,6 @@
     <string name="room_list_quick_actions_low_priority_remove">Aus niedriger Priorität entfernen</string>
     <string name="rotate_and_crop_screen_title">Rotieren und Zuschneiden</string>
     <string name="create_room_settings_section">Raumeinstellungen</string>
-    <string name="create_room_topic_section">Raumthema (optional)</string>
-    <string name="create_room_name_section">Raumname</string>
     <string name="settings_export_trail">Prüfung exportieren</string>
     <string name="room_member_open_or_create_dm">Direktnachricht</string>
     <string name="no_more_results">Keine weiteren Ergebnisse</string>
@@ -1752,10 +1750,6 @@
     <string name="invite_to_space_with_name_desc">Sie wird in der Lage sein, %s zu durchsuchen</string>
     <string name="invite_just_to_this_room_desc">Sie wird kein Teil von %s sein</string>
     <string name="share_space_link_message">Tritt meinem Space %1$s %2$s bei</string>
-    <string name="space_add_existing_rooms">Räume oder Spaces hinzufügen</string>
-    <string name="skip_for_now">Vorübergehend überspringen</string>
-    <string name="create_spaces_room_public_header">Über welche Themen möchtest du dich in %s unterhalten\?</string>
-    <string name="create_spaces_details_private_header">Füge ein paar Details hinzu, um die Wiedererkennbarkeit zu steigern. Du kannst die Angaben auch später wieder ändern.</string>
     <string name="command_description_leave_room">Verlasse den Raum mit der angegebenen ID (oder den aktuellen Raum, wenn keine ID angegeben wird)</string>
     <string name="search_hint_room_name">Name suchen</string>
     <string name="you_are_invited">Du wurdest eingeladen</string>
@@ -1771,13 +1765,8 @@
     <string name="invite_by_email">Mithilfe einer E-Mail-Adresse einladen</string>
     <string name="invite_people_menu">Personen einladen</string>
     <string name="invite_people_to_your_space">Lade Personen in deinen Space ein</string>
-    <string name="create_space_error_empty_field_space_name">Trage einen Namen ein um fortzufahren.</string>
     <string name="command_description_join_space">Betrete einen Space mit der angegebenen ID</string>
     <string name="create_space_topic_hint">Beschreibung</string>
-    <string name="create_spaces_loading_message">Erstelle Space …</string>
-    <string name="create_spaces_default_public_random_room_name">Ohne Thema</string>
-    <string name="create_spaces_default_public_room_name">Allgemein</string>
-    <string name="activity_create_space_title">Einen Space erstellen</string>
     <string name="add_space">Space erstellen</string>
     <string name="command_description_create_space">Space erstellen</string>
     <string name="room_settings_room_access_restricted_description">Jeder, der sich in einem Space mit diesem Raum befindet, kann diesen Raum finden und ihn betreten. Nur die Administration des Raums kann diesen zu einem Space hinzufügen.</string>
@@ -1787,7 +1776,6 @@
         <item quantity="other">%d Personen, die du kennst, sind bereits beigetreten</item>
     </plurals>
     <string name="looking_for_someone_not_in_space">Suchst du jemanden außerhalb %s\?</string>
-    <string name="create_spaces_room_public_header_desc">Wir erstellen dir für jedes einen Raum. Du kannst jederzeit weitere Räume hinzufügen.</string>
     <string name="space_manage_rooms_and_spaces">Räume und Spaces verwalten</string>
     <string name="space_mark_as_suggested">Als vorgeschlagen markieren</string>
     <string name="space_mark_as_not_suggested">Als nicht vorgeschlagen markieren</string>
@@ -1796,8 +1784,6 @@
     <string name="user_invites_you">%s lädt dich ein</string>
     <string name="room_alias_preview_not_found">Dieser Alias ist gerade nicht verfügbar.
 \nVersuche es später noch einmal oder kontaktiere einen Admin.</string>
-    <string name="create_spaces_room_private_header_desc">Wir erstellen dir für jedes einen Raum. Du kannst jederzeit neue oder existierende Räume hinzufügen.</string>
-    <string name="create_spaces_room_private_header">An welchen Projekten arbeitest du gerade\?</string>
     <string name="a11y_public_room">Öffentlicher Raum</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">Video in Originalauflösung senden</item>
@@ -1920,7 +1906,6 @@
     <string name="create_space_in_progress">Erstelle Space …</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Hilfreiche Informationen zur Fehlersuche anzeigen</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Debug-Info anzeigen</string>
-    <string name="does_not_look_like_valid_email">Das scheint keine gültige E-Mail-Adresse zu sein</string>
     <string name="user_directory_search_hint_2">Mittels Name, ID oder E-Mail-Adresse suchen</string>
     <string name="create_new_space">Neuen Space erstellen</string>
     <string name="room_settings_space_access_title">Zugriff</string>
@@ -1968,19 +1953,15 @@
     <string name="create_poll_question_title">Abstimmungsthema oder Frage</string>
     <string name="create_poll_title">Umfrage erstellen</string>
     <string name="attachment_type_poll">Umfrage</string>
-    <string name="open_discovery_settings">Auffindungseinstellungen öffnen</string>
     <string name="shortcut_disabled_reason_sign_out">Sitzung abgemeldet!</string>
     <string name="shortcut_disabled_reason_room_left">Raum verlassen!</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Heim-Server auswählen</string>
     <string name="login_error_homeserver_from_url_not_found">Es konnte kein Heim-Server mit der Adresse %s gefunden werden. Bitte überprüfe die Adresse oder wähle den Heim-Server manuell.</string>
-    <string name="space_add_space_to_any_space_you_manage">Untergeordneten Space hinzufügen.</string>
     <string name="identity_server_consent_dialog_content_question">Bist du dir wirklich sicher, dass du diese Informationen senden willst\?</string>
     <string name="identity_server_consent_dialog_title_2">E-Mail-Adressen und Telefonnummern an %s übermitteln</string>
     <string name="action_not_now">Nicht jetzt</string>
     <string name="notification_listening_for_notifications">Auf Benachrichtigungen warten</string>
     <string name="legals_third_party_notices">Externe Bibliotheken</string>
-    <string name="create_spaces_invite_public_header_desc">Stelle sicher, dass die richtigen Personen Zugriff auf %s haben. Du kannst jederzeit weitere Personen einladen.</string>
-    <string name="create_spaces_invite_public_header">Wer ist Mitglied deines Teams\?</string>
     <string name="settings_discovery_no_policy_provided">Der Identitäts-Server gibt keine Bedingungen an</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Richtlinie des Identitäts-Servers ausblenden</string>
     <string name="settings_discovery_show_identity_server_policy_title">Bedingungen des Identitäts-Servers anzeigen</string>
@@ -2011,7 +1992,6 @@
     <string name="discovery_section">Auffindbarkeit (%s)</string>
     <string name="discovery_invite">Lade per E-Mail ein, finde deine Kontakte und mehr …</string>
     <string name="finish_setting_up_discovery">Schließe die Konfiguration des Auffindbarkeitsdienstes ab.</string>
-    <string name="create_space_identity_server_info_none">Du verwendest derzeit keinen Identitäts-Server. Um Team-Mitglieder einzuladen und für sie auffindbar zu sein, konfiguriere zunächst einen.</string>
     <string name="login_splash_already_have_account">Ich habe bereits ein Konto</string>
     <string name="ftue_auth_carousel_encrypted_title">Sichere Kommunikation.</string>
     <string name="ftue_auth_carousel_secure_title">Besitze deine Unterhaltungen.</string>
@@ -2188,7 +2168,6 @@
 \nIn Vorbereitung darauf müssen wir einige Änderungen vornehmen: Threads, die vor diesem Zeitpunkt erstellt wurden, werden als normale Antworten angezeigt.
 \n
 \nDies wird ein einmaliger Übergang sein, da Threads nun Teil der Matrix-Spezifikation sind.</string>
-    <string name="action_next">Weiter</string>
     <string name="action_learn_more">Mehr erfahren</string>
     <string name="time_unit_second_short">sek</string>
     <string name="time_unit_minute_short">min</string>

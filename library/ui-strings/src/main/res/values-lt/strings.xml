@@ -458,7 +458,6 @@
     <string name="home_layout_preferences_recents">Rodyti naujausius</string>
     <string name="home_layout_preferences_filters">Rodyti filtrus</string>
     <string name="home_layout_preferences">Išdėstymo parinktys</string>
-    <string name="action_next">Kitas</string>
     <string name="time_unit_minute_short">min</string>
     <string name="time_unit_hour_short">val</string>
     <string name="notice_room_canonical_alias_alternative_changed">%1$s pakeitė alternatyvius šio kambario adresus.</string>
@@ -680,7 +679,6 @@
     <string name="space_leave_radio_button_all">Palikti visus</string>
     <string name="space_leave_radio_buttons_title">Dalykai šioje erdvėje</string>
     <string name="join_anyway">Vistiek prisijungti</string>
-    <string name="skip_for_now">Kol kas praleisti</string>
     <string name="finish_setting_up_discovery">Baigti nustatyti atradimą.</string>
     <string name="room_alias_preview_not_found">Šiuo metu šis pseudonimas neprieinamas.
 \nPabandykite vėliau arba paprašykite kambario administratoriaus patikrinti, ar turite prieigą.</string>
@@ -689,7 +687,6 @@
     <string name="discovery_invite">Kvieskite el. paštu, ieškokite kontaktų ir daugiau…</string>
     <string name="invite_just_to_this_room_desc">Jie nebus %s dalis</string>
     <string name="invite_just_to_this_room">Tik į šį kambarį</string>
-    <string name="create_space_identity_server_info_none">Šiuo metu nenaudojate tapatybės serverio. Norėdami pakviesti komandos draugus ir būti jų atrandami, sukonfigūruokite jį toliau.</string>
     <string name="join_space">Prisijungti prie erdvės</string>
     <string name="create_space">Sukurti erdvę</string>
     <string name="share_space_link_message">Prisijunkite prie mano erdvės %1$s %2$s</string>
@@ -697,18 +694,6 @@
     <string name="invite_to_space_with_name">Pakvietimas į %s</string>
     <string name="invite_people_to_your_space">Kviesti žmones į savo erdvę</string>
     <string name="create_space_topic_hint">Aprašymas</string>
-    <string name="create_spaces_loading_message">Kuriama erdvė…</string>
-    <string name="create_spaces_default_public_random_room_name">Atsitiktinis</string>
-    <string name="create_spaces_default_public_room_name">Bendra</string>
-    <string name="create_spaces_room_private_header_desc">Sukurkime kiekvienai iš jų po kambarį. Vėliau galite pridėti ir daugiau, įskaitant jau esamus.</string>
-    <string name="create_spaces_room_private_header">Su kokiais dalykais dirbate\?</string>
-    <string name="create_spaces_invite_public_header_desc">Užtikrinkite, kad prieigą prie %s kompanijos turėtų tinkami žmonės. Vėliau galite pakviesti daugiau.</string>
-    <string name="create_spaces_invite_public_header">Kas yra jūsų komandos draugai\?</string>
-    <string name="create_spaces_room_public_header_desc">Mes sukursime joms kambarius. Vėliau galėsite pridėti ir daugiau.</string>
-    <string name="create_spaces_room_public_header">Kokias diskusijas norite turėti %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Suteikite jai pavadinimą, kad galėtumėte tęsti.</string>
-    <string name="create_spaces_details_private_header">Pridėkite šiek tiek detalių, kad žmonės galėtų ją atpažinti. Jas galite keisti bet kuriuo metu.</string>
-    <string name="activity_create_space_title">Sukurti erdvę</string>
     <string name="add_space">Pridėti erdvę</string>
     <string name="private_space">Privati erdvė</string>
     <string name="public_space">Vieša erdvė</string>
@@ -1182,10 +1167,8 @@
     <string name="user_invites_you">%s kviečia tave</string>
     <string name="settings_show_latest_profile_description">Rodyti naujausią profilio informaciją (avatarą ir rodomą vardą) visose žinutėse.</string>
     <string name="settings_show_latest_profile">Rodyti naujausią naudotojo informaciją</string>
-    <string name="space_add_space_to_any_space_you_manage">Įtraukite erdvę į bet kurią valdomą erdvę.</string>
     <string name="space_add_existing_spaces">Pridėti esamas erdves</string>
     <string name="space_add_existing_rooms_only">Pridėti esamus kambarius</string>
-    <string name="space_add_existing_rooms">Pridėti esamus kambarius ir erdvę</string>
     <string name="space_explore_filter_no_result_description">Kai kurie rezultatai gali būti paslėpti, nes jie yra privatūs ir į juos reikia pakvietimo.</string>
     <string name="space_explore_filter_no_result_title">Rezultatų nerasta</string>
     <string name="thread_list_empty_notice">Patarimas: Ilgai bakstelėkite žinutę ir naudokite “%s”.</string>
@@ -1225,7 +1208,6 @@
     <string name="login_msisdn_confirm_hint">Įvesti kodą</string>
     <string name="login_msisdn_confirm_notice">Ką tik išsiuntėme kodą į %1$s. Įveskite jį toliau, kad patvirtintumėte, kad tai jūs.</string>
     <string name="login_set_msisdn_title">Nustatyti telefono numerį</string>
-    <string name="does_not_look_like_valid_email">Neatrodo kaip tinkamas el. pašto adresas</string>
     <string name="login_set_email_submit">Toliau</string>
     <string name="login_msisdn_confirm_title">Patvirtinkite telefono numerį</string>
     <string name="login_set_email_optional_hint">El. pašto adresas (nebūtinas)</string>
@@ -1359,9 +1341,7 @@
     <string name="create_room_public_description">Kiekvienas galės prisijungti prie šio kambario</string>
     <string name="create_room_public_title">Viešas</string>
     <string name="create_room_topic_hint">Tema</string>
-    <string name="create_room_topic_section">Kambario tema (nebūtina)</string>
     <string name="create_room_name_hint">Pavadinimas</string>
-    <string name="create_room_name_section">Kambario pavadinimas</string>
     <string name="create_room_action_go">Eiti</string>
     <string name="create_room_action_create">SUKURTI</string>
     <string name="fab_menu_create_chat">Tiesioginės žinutės</string>
@@ -1850,7 +1830,6 @@
     <string name="terms_of_service">Paslaugų teikimo sąlygos</string>
     <string name="message_view_edit_history">Peržiūrėti redagavimo istoriją</string>
     <string name="link_copied_to_clipboard">Nuoroda nukopijuota į iškarpinę</string>
-    <string name="open_discovery_settings">Atidaryti atradimo nustatymus</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Rodyti pilną istoriją užšifruotuose kambariuose</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Rodyti paslėptus įvykius laiko juostoje</string>
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">Iš naujo nustatyti pranešimų metodą</string>

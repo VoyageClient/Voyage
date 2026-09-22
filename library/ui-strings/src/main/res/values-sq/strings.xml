@@ -1561,8 +1561,6 @@
     <string name="attachment_type_dialog_title">Shtoni figurë prej</string>
     <string name="create_room_settings_section">Rregullime dhome</string>
     <string name="create_room_topic_hint">Subjekt</string>
-    <string name="create_room_topic_section">Subjekt dhome (në daçi)</string>
-    <string name="create_room_name_section">Emër dhome</string>
     <string name="settings_export_trail">Eksporto Auditim</string>
     <string name="room_member_open_or_create_dm">Mesazh i drejtpërdrejtë</string>
     <string name="no_more_results">S’ka më përfundime</string>
@@ -1729,7 +1727,6 @@
     <string name="initial_sync_start_server_computing">Njëkohësimi fillestar:
 \nPo pritet për përgjigje nga shërbyesi…</string>
     <string name="you_are_invited">Jeni ftuar</string>
-    <string name="space_add_existing_rooms">Shtoni dhoma ekzistuese dhe hapësira</string>
     <string name="leave_space">Braktiseni</string>
     <string name="space_add_child_title">Shtoni dhoma</string>
     <string name="space_explore_activity_title">Eksploroni dhoma</string>
@@ -1742,7 +1739,6 @@
     <string name="join_anyway">Hyni, Sido Qoftë</string>
     <string name="join_space">Hyni te Hapësirë</string>
     <string name="create_space">Krijo hapësirën</string>
-    <string name="skip_for_now">Hëpërhë anashkaloje</string>
     <string name="share_space_link_message">Ejani në hapësirën time %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">S’do të jenë pjesë e %s</string>
     <string name="invite_just_to_this_room">Thjesht te kjo dhomë</string>
@@ -1754,16 +1750,6 @@
     <string name="invite_people_menu">Ftoni njerëz</string>
     <string name="invite_people_to_your_space">Ftoni njerëz te ekipi juaj</string>
     <string name="create_space_topic_hint">Përshkrim</string>
-    <string name="create_spaces_loading_message">Po krijohet Hapësirë…</string>
-    <string name="create_spaces_default_public_random_room_name">Kuturu</string>
-    <string name="create_spaces_default_public_room_name">Të Përgjithshme</string>
-    <string name="create_spaces_room_private_header_desc">Le të krijojmë një dhomë për secilën prej tyre. Mund të shtoni të tjera më vonë, përfshi ato ekzistuese tashmë.</string>
-    <string name="create_spaces_room_private_header">Me çfarë po merreni\?</string>
-    <string name="create_spaces_room_public_header_desc">Do të krijojmë dhoma për to. Mund edhe të shtoni të tilla më vonë.</string>
-    <string name="create_spaces_room_public_header">Cilat janë disa nga gjërat që doni të diskutoni në %s\?</string>
-    <string name="create_space_error_empty_field_space_name">Jepini një emër që të vazhdohet.</string>
-    <string name="create_spaces_details_private_header">Shtoni ndonjë hollësi për të ndihmuar njerëzit ta identifikojnë. Mund t’i ndryshoni kur të doni.</string>
-    <string name="activity_create_space_title">Krijoni një hapësirë</string>
     <string name="space_type_private">Vetjake</string>
     <string name="add_space">Shtoni hapësirë</string>
     <string name="command_description_leave_room">Braktiseni dhomën me ID-në e dhënë (ose dhomën e tanishme, në qoftë nul)</string>
@@ -1908,7 +1894,6 @@
     <string name="room_settings_none">Asnjë</string>
     <string name="room_settings_mention_and_keyword_only">Vetëm Përmendje &amp; Fjalëkyçe</string>
     <string name="spaces">Hapësira</string>
-    <string name="space_add_space_to_any_space_you_manage">Shtoni një hapësirë te cilado hapësirë që administroni.</string>
     <string name="space_add_existing_spaces">Shtoni hapësira ekzistuese</string>
     <string name="space_add_existing_rooms_only">Shtoni dhoma ekzistuese</string>
     <string name="space_leave_prompt_msg_with_name">Jeni i sigurt se doni të dilni nga \'%s\?</string>
@@ -1916,16 +1901,11 @@
     <string name="finish_setup">Përfundoje ujdisjen</string>
     <string name="discovery_invite">Ftoni me email, gjeni kontakte, etj…</string>
     <string name="finish_setting_up_discovery">Përfundo ujdisjen e zbulimit.</string>
-    <string name="create_space_identity_server_info_none">Aktualisht nuk përdorni ndonjë shërbyes identitetesh. Që të ftoni shokë të ekipit dhe të jeni i zbulueshëm prej tyre, formësoni një të tillë më poshtë.</string>
     <string name="invite_by_username_or_mail">Ftoni me emër përdoruesi ose email</string>
-    <string name="create_spaces_invite_public_header_desc">Sigurohuni se te %s e shoqërisë kanë hyrje personat e duhur. Më vonë mund të ftoni të tjerë.</string>
-    <string name="create_spaces_invite_public_header">Cilët janë shokët tuaj të ekipit\?</string>
     <string name="command_description_add_to_space">Shtoni te Hapësira e dhënë</string>
     <string name="create_space_in_progress">Po krijohet hapësirë…</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Shfaqni ca hollësira të dobishme, për të ndihmuar në diagnostikimin e aplikacionit</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Shfaq në ekran të dhëna diagnostikimi</string>
-    <string name="does_not_look_like_valid_email">S’duket si adresë email e vlefshme</string>
-    <string name="open_discovery_settings">Hapni Rregullime Zbulimi</string>
     <string name="user_directory_search_hint_2">Kërkoni sipas emri , ID-je ose email-i</string>
     <string name="create_new_space">Krijoni Hapësirë të Re</string>
     <string name="room_settings_space_access_public_description">Hapësirën mund ta gjejë kushdo dhe hyjë në të</string>
@@ -2451,7 +2431,6 @@
     <string name="action_deselect_all">Shpërzgjidhi krejt</string>
     <string name="action_select_all">Përzgjidhi krejt</string>
     <string name="action_got_it">E mora</string>
-    <string name="action_next">Më pas</string>
     <string name="action_reset">Rifillo</string>
     <string name="time_unit_second_short">sek</string>
     <string name="time_unit_minute_short">min</string>
