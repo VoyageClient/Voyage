@@ -97,26 +97,24 @@ class SpaceDirectoryController @Inject constructor(
             }
         } else {
             val hierarchySummary = results?.invoke()
-            val flattenChildInfo = hierarchySummary
-                    ?.children
-                    ?.filter {
-                        it.parentRoomId == (data.hierarchyStack.lastOrNull() ?: data.spaceId)
-                    }
-                    ?.filterNot { it.isUpgradedRoom(data) }
-                    ?: emptyList()
+            val flattenChildInfo = mergeSpaceChildren(
+                    apiChildren = hierarchySummary?.children?.filter { it.parentRoomId == currentRootId }.orEmpty(),
+                    localChildren = data?.childList?.takeIf { data.hierarchyStack.isEmpty() }.orEmpty()
+            )
+                    .filterNot { info -> data != null && info.isUpgradedRoom(data) }
 
             if (flattenChildInfo.isEmpty()) {
                 genericEmptyWithActionItem {
                     id("empty_res")
                     title(host.stringProvider.getString(CommonStrings.this_space_has_no_rooms))
                     iconRes(R.drawable.ic_empty_icon_room)
-                    iconTint(host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_reaction_background_on))
+                    iconTint(host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_accent))
                     apply {
                         if (data?.canAddRooms == true) {
                             description(host.stringProvider.getString(CommonStrings.this_space_has_no_rooms_admin))
                             buttonAction(
                                     Action(
-                                            title = host.stringProvider.getString(CommonStrings.space_add_existing_rooms),
+                                            title = host.stringProvider.getString(CommonStrings.space_add_rooms),
                                             listener = object : ClickListener {
                                                 override fun invoke(p1: View) {
                                                     host.listener?.addExistingRooms(data.spaceId)
@@ -205,4 +203,15 @@ class SpaceDirectoryController @Inject constructor(
 
     private fun SpaceChildInfo.isUpgradedRoom(data: SpaceDirectoryState) =
             data.knownRoomSummaries.any { it.roomId == childRoomId && it.versioningState.isUpgraded() }
+}
+
+/**
+ * The /hierarchy response can lag behind or come back short, so the children we already synced
+ * locally stand in for whatever it left out rather than the screen claiming the space is empty.
+ */
+internal fun mergeSpaceChildren(
+        apiChildren: List<SpaceChildInfo>,
+        localChildren: List<SpaceChildInfo>,
+): List<SpaceChildInfo> {
+    return apiChildren + localChildren.filter { local -> apiChildren.none { it.childRoomId == local.childRoomId } }
 }

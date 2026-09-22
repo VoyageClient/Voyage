@@ -68,6 +68,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/emptyItemMessageView"
-        tools:text="@string/space_add_existing_rooms" />
+        tools:text="@string/space_add_rooms" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

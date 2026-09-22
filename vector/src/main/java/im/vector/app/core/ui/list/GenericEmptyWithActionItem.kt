@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import com.airbnb.epoxy.EpoxyAttribute
@@ -53,7 +54,7 @@ abstract class GenericEmptyWithActionItem : VectorEpoxyModel<GenericEmptyWithAct
         holder.descriptionText.setTextOrHide(description)
 
         if (iconRes != -1) {
-            holder.imageView.setImageResource(iconRes)
+            holder.imageView.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, iconRes))
             holder.imageView.isVisible = true
             if (iconTint != null) {
                 ImageViewCompat.setImageTintList(holder.imageView, ColorStateList.valueOf(iconTint!!))

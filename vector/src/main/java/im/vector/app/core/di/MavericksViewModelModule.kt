@@ -328,11 +328,6 @@ interface SpacesMavericksViewModelModule {
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.spaces.create.CreateSpaceViewModel")
-    fun vm5(factory: im.vector.app.features.spaces.create.CreateSpaceViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.spaces.explore.SpaceDirectoryViewModel")
     fun vm6(factory: im.vector.app.features.spaces.explore.SpaceDirectoryViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 

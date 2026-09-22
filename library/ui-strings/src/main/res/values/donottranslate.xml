@@ -1207,6 +1207,8 @@
 
     <!-- Space creation -->
     <string name="create_space_encryption_description" translatable="false">Spaces hold no messages of their own, so this only encrypts what little is sent in the space room itself. Once enabled, it cannot be disabled.</string>
+    <string name="space_add_rooms" translatable="false">Add rooms</string>
+    <string name="create_space_settings_section" translatable="false">Space settings</string>
     <string name="room_acl_title" translatable="false">Room ACLs</string>
     <string name="room_acl_subtitle" translatable="false">Control which servers can participate in the room.</string>
     <string name="room_acl_allow_ip_literals" translatable="false">Allow IP literal server names</string>

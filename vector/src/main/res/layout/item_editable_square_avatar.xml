@@ -12,9 +12,8 @@
     <!-- I cannot do what I want using layer-list, do it manually here-->
     <FrameLayout
         android:id="@+id/itemEditableAvatarImageContainer"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:background="@drawable/placeholder_shape_8"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
         android:contentDescription="@string/a11y_change_avatar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -22,9 +21,17 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            app:srcCompat="@drawable/ic_attachment_camera"
+            app:tint="?vctr_content_secondary" />
+
+        <ImageView
             android:id="@+id/itemEditableAvatarImage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
             tools:alpha="0.3"
@@ -39,27 +46,12 @@
         android:background="@drawable/header_panel_round_background"
         android:contentDescription="@string/a11y_delete_avatar"
         android:scaleType="center"
-        app:srcCompat="@drawable/ic_delete"
         android:visibility="gone"
-        app:layout_constraintCircle="@id/itemEditableAvatarImageContainer"
-        app:layout_constraintCircleAngle="45"
-        app:layout_constraintCircleRadius="48dp"
+        app:layout_constraintEnd_toEndOf="@id/itemEditableAvatarImageContainer"
+        app:layout_constraintTop_toTopOf="@id/itemEditableAvatarImageContainer"
+        app:srcCompat="@drawable/ic_delete"
         app:tint="?colorError"
-        tools:ignore="MissingConstraints,MissingPrefix"
+        tools:ignore="MissingPrefix"
         tools:visibility="visible" />
-
-    <ImageView
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_gravity="center"
-        android:background="@drawable/circle"
-        android:contentDescription="@string/a11y_change_avatar"
-        android:padding="8dp"
-        app:srcCompat="@drawable/ic_camera_plain"
-        app:layout_constraintCircle="@id/itemEditableAvatarImageContainer"
-        app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="48dp"
-        app:tint="?vctr_content_secondary"
-        tools:ignore="MissingConstraints,MissingPrefix" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

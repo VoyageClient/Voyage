@@ -59,7 +59,6 @@ class CreateRoomFragment :
         OnBackPressed {
 
     @Inject lateinit var createRoomController: CreateRoomController
-    @Inject lateinit var createSpaceController: CreateSubSpaceController
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
 
     private lateinit var sharedActionViewModel: RoomDirectorySharedActionViewModel
@@ -126,18 +125,12 @@ class CreateRoomFragment :
     override fun onDestroyView() {
         views.createRoomForm.cleanup()
         createRoomController.listener = null
-        createSpaceController.listener = null
         super.onDestroyView()
     }
 
     private fun setupRecyclerView() {
-        if (args.isSpace) {
-            views.createRoomForm.configureWith(createSpaceController)
-            createSpaceController.listener = this
-        } else {
-            views.createRoomForm.configureWith(createRoomController)
-            createRoomController.listener = this
-        }
+        views.createRoomForm.configureWith(createRoomController)
+        createRoomController.listener = this
     }
 
     override fun onAvatarDelete() {
@@ -270,11 +263,7 @@ class CreateRoomFragment :
             sharedActionViewModel.post(RoomDirectorySharedAction.Close)
         } else {
             // Populate list with Epoxy
-            if (args.isSpace) {
-                createSpaceController.setData(state)
-            } else {
-                createRoomController.setData(state)
-            }
+            createRoomController.setData(state)
         }
     }
 }

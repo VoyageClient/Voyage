@@ -65,7 +65,9 @@ class CreateRoomViewModel @AssistedInject constructor(
         initHomeServerName()
         initAdminE2eByDefault()
 
-        val parentSpaceId = initialState.parentSpaceId ?: spaceStateHandler.getSafeActiveSpaceId()
+        // A space created from the drawer is top level: it must not silently become a child of the selected space.
+        val parentSpaceId = initialState.parentSpaceId
+                ?: spaceStateHandler.getSafeActiveSpaceId().takeUnless { initialState.isSubSpace }
 
         val homeServerCapabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
         val createDefaultRoomVersion = homeServerCapabilities.roomVersions?.defaultRoomVersion
@@ -168,11 +170,9 @@ class CreateRoomViewModel @AssistedInject constructor(
     private fun toggleShowAdvanced() {
         setState {
             val hiding = showAdvanced
+            // Reset advanced options when the section is hidden
             copy(
                     showAdvanced = !showAdvanced,
-                    encryptStateEvents = encryptStateEvents && !hiding,
-                    // Reset advanced options when the section is hidden
-                    disableFederation = disableFederation && !hiding,
                     roomVersion = if (hiding) defaultRoomVersion else roomVersion,
                     myPowerLevelOverride = if (hiding) null else myPowerLevelOverride,
                     initialStateJson = if (hiding) "" else initialStateJson,

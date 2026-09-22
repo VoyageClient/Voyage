@@ -60,11 +60,21 @@ class SpaceDirectoryViewModel @AssistedInject constructor(
             )
         }
 
+        observeRootSummary()
         refreshFromApi(initialState.spaceId)
         observeJoinedRooms()
         observeMembershipChanges()
         observePermissions()
         observeKnownSummaries()
+    }
+
+    private fun observeRootSummary() {
+        session.roomService().getRoomSummaryFlow(initialState.spaceId)
+                .onEach { optionalSummary ->
+                    val summary = optionalSummary.getOrNull() ?: return@onEach
+                    setState { copy(childList = summary.spaceChildren.orEmpty()) }
+                }
+                .launchIn(viewModelScope)
     }
 
     private fun observeKnownSummaries() {

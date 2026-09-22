@@ -24,13 +24,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
@@ -139,14 +140,19 @@ class SpaceAddRoomsViewModel @AssistedInject constructor(
     val selectionListLiveData = MutableLiveData<Map<String, Boolean>>()
 
     init {
-        val spaceSummary = session.getRoomSummary(initialState.spaceId)
-        setState {
-            copy(
-                    spaceName = spaceSummary?.displayName ?: "",
-                    ignoreRooms = (spaceSummary?.flattenParentIds ?: emptyList()) + listOf(initialState.spaceId),
-                    shouldShowDMs = !onlyShowSpaces && spaceSummary?.isPublic == false
-            )
-        }
+        // A space opened right after creation has no name in the local DB yet, so keep following it.
+        roomService.getRoomSummaryFlow(initialState.spaceId)
+                .onEach { optionalSummary ->
+                    val spaceSummary = optionalSummary.getOrNull()
+                    setState {
+                        copy(
+                                spaceName = spaceSummary?.displayName ?: "",
+                                ignoreRooms = (spaceSummary?.flattenParentIds ?: emptyList()) + listOf(initialState.spaceId),
+                                shouldShowDMs = !onlyShowSpaces && spaceSummary?.isPublic == false
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
     }
 
     fun canGoBack(): Boolean {

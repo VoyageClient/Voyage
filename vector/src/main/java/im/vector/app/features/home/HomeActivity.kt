@@ -62,8 +62,8 @@ import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.rageshake.BugReporter
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
+import im.vector.app.features.roomdirectory.createroom.CreateRoomActivity
 import im.vector.app.features.session.coroutineScope
-import im.vector.app.features.spaces.SpaceCreationActivity
 import im.vector.app.features.spaces.SpacePreviewActivity
 import im.vector.app.features.spaces.SpaceSettingsMenuBottomSheet
 import im.vector.app.features.spaces.invite.SpaceInviteBottomSheet
@@ -132,24 +132,15 @@ class HomeActivity :
 
     private val createSpaceResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == Activity.RESULT_OK) {
-            val spaceId = SpaceCreationActivity.getCreatedSpaceId(activityResult.data)
-            val defaultRoomId = SpaceCreationActivity.getDefaultRoomId(activityResult.data)
-            val isJustMe = SpaceCreationActivity.isJustMeSpace(activityResult.data)
+            val spaceId = CreateRoomActivity.getCreatedRoomId(activityResult.data)
             views.drawerLayout.closeDrawer(GravityCompat.START)
 
-            val postSwitchOption: Navigator.PostSwitchSpaceAction = if (defaultRoomId != null) {
-                Navigator.PostSwitchSpaceAction.OpenDefaultRoom(defaultRoomId, !isJustMe)
-            } else if (isJustMe) {
-                Navigator.PostSwitchSpaceAction.OpenAddExistingRooms
-            } else {
-                Navigator.PostSwitchSpaceAction.None
-            }
-            // Here we want to change current space to the newly created one, and then immediately open the default room
+            // A freshly created space is empty, so go straight to picking rooms for it.
             if (spaceId != null) {
                 navigator.switchToSpace(
                         context = this,
                         spaceId = spaceId,
-                        postSwitchOption,
+                        Navigator.PostSwitchSpaceAction.OpenAddExistingRooms,
                 )
                 roomListSharedActionViewModel.post(RoomListSharedAction.CloseBottomSheet)
             }
@@ -220,7 +211,9 @@ class HomeActivity :
                         is HomeActivitySharedAction.OpenDrawer -> views.drawerLayout.openDrawer(GravityCompat.START)
                         is HomeActivitySharedAction.CloseDrawer -> views.drawerLayout.closeDrawer(GravityCompat.START)
                         is HomeActivitySharedAction.OpenSpacePreview -> startActivity(SpacePreviewActivity.newIntent(this, sharedAction.spaceId))
-                        is HomeActivitySharedAction.AddSpace -> createSpaceResultLauncher.launch(SpaceCreationActivity.newIntent(this))
+                        is HomeActivitySharedAction.AddSpace -> createSpaceResultLauncher.launch(
+                                CreateRoomActivity.getIntent(this, isSpace = true, openAfterCreate = false)
+                        )
                         is HomeActivitySharedAction.ShowSpaceSettings -> showSpaceSettings(sharedAction.spaceId)
                         is HomeActivitySharedAction.OpenSpaceInvite -> openSpaceInvite(sharedAction.spaceId)
                         HomeActivitySharedAction.OnCloseSpace -> onCloseSpace()

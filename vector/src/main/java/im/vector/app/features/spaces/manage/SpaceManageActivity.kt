@@ -55,7 +55,7 @@ class SpaceManageActivity : VectorBaseActivity<ActivitySimpleLoadingBinding>() {
     override val rootView: View
         get() = views.coordinatorLayout
 
-    override fun getTitleRes(): Int = CommonStrings.space_add_existing_rooms
+    override fun getTitleRes(): Int = CommonStrings.space_add_rooms
 
     val sharedViewModel: SpaceManageSharedViewModel by viewModel()
 

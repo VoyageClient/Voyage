@@ -17,16 +17,13 @@ import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.features.form.formAdvancedToggleItem
-import im.vector.app.features.form.formSwitchItem
 import im.vector.lib.strings.CommonStrings
 
 interface AdvancedRoomOptionsListener {
     fun toggleShowAdvanced()
-    fun setDisableFederation(disableFederation: Boolean)
     fun selectRoomVersion()
     fun selectMyPowerLevel()
     fun editInitialState()
-    fun setEncryptStateEvents(enabled: Boolean)
 }
 
 /**
@@ -35,7 +32,6 @@ interface AdvancedRoomOptionsListener {
 fun EpoxyController.buildAdvancedRoomOptions(
         options: AdvancedRoomOptions,
         stringProvider: StringProvider,
-        homeServerName: String,
         enabled: Boolean,
         listener: AdvancedRoomOptionsListener?,
 ) {
@@ -48,30 +44,12 @@ fun EpoxyController.buildAdvancedRoomOptions(
 
     if (!options.showAdvanced) return
 
-    formSwitchItem {
-        id("encryptedState")
-        enabled(enabled && options.encryptionEnabled)
-        title(stringProvider.getString(CommonStrings.create_room_encrypted_state_title))
-        summary(stringProvider.getString(CommonStrings.create_room_encrypted_state_warning))
-        switchChecked(options.encryptStateEvents && options.encryptionEnabled)
-        listener { value -> listener?.setEncryptStateEvents(value) }
-    }
-
-    formSwitchItem {
-        id("federation")
-        enabled(enabled)
-        title(stringProvider.getString(CommonStrings.create_room_disable_federation_title, homeServerName))
-        summary(stringProvider.getString(CommonStrings.create_room_disable_federation_description))
-        switchChecked(options.disableFederation)
-        listener { value -> listener?.setDisableFederation(value) }
-    }
-
     if (options.availableRoomVersions.size >= 2) {
         buildProfileAction(
                 id = "roomVersion",
                 title = stringProvider.getString(CommonStrings.create_room_version_title),
                 subtitle = options.selectedRoomVersionLabel(stringProvider),
-                divider = false,
+                divider = true,
                 editable = true,
                 action = { if (enabled) listener?.selectRoomVersion() }
         )
@@ -82,7 +60,7 @@ fun EpoxyController.buildAdvancedRoomOptions(
                 id = "powerLevel",
                 title = stringProvider.getString(CommonStrings.create_room_power_level_title),
                 subtitle = options.myPowerLevelOverride?.toString(),
-                divider = false,
+                divider = true,
                 editable = true,
                 action = { if (enabled) listener?.selectMyPowerLevel() }
         )

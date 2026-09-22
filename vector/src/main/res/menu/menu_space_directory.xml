@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/spaceAddRoom"
-        android:title="@string/space_add_existing_rooms"
+        android:title="@string/space_add_rooms"
         app:showAsAction="never" />
 
     <item

@@ -55,15 +55,15 @@ class SpaceSettingsController @Inject constructor(
         formEditableSquareAvatarItem {
             id("avatar")
             enabled(data.actionPermissions.canChangeAvatar)
+            avatarRenderer(host.avatarRenderer)
             when (val avatarAction = data.avatarAction) {
                 RoomSettingsViewState.AvatarAction.None -> {
-                    // Use the current value
-                    avatarRenderer(host.avatarRenderer)
                     // We do not want to use the fallback avatar url, which can be the other user avatar, or the current user avatar.
                     matrixItem(roomSummary.toMatrixItem().updateAvatar(data.currentRoomAvatarUrl))
                 }
                 RoomSettingsViewState.AvatarAction.DeleteAvatar ->
-                    imageUri(null)
+                    // Render the generated avatar, so removing the picture visibly takes effect.
+                    matrixItem(roomSummary.toMatrixItem().updateAvatar(null))
                 is RoomSettingsViewState.AvatarAction.UpdateAvatar ->
                     imageUri(avatarAction.newAvatarUri)
             }
