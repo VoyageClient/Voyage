@@ -27,6 +27,8 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.room.detail.composer.spliceMentionIds
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
+import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
@@ -316,6 +318,10 @@ class MessageActionsViewModel @AssistedInject constructor(
                                 ?: rawContent
                         val isReply = messageContent?.relatesTo?.inReplyTo?.eventId != null
                         val isEmote = messageContent?.msgType == MessageType.MSGTYPE_EMOTE
+                        val renderedProfile = timelineEvent.renderPerMessageProfile(
+                                timelineEvent.senderInfo.disambiguatedDisplayName,
+                                vectorPreferences.arePerMessageProfilesEnabled()
+                        )
                         val formattedContent = (messageContent as? MessageContentWithFormattedBody)
                                 ?.takeIf { messageContent is MessageTextContent || messageContent is MessageEmoteContent || messageContent is MessageNoticeContent }
                         val body = if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
@@ -323,9 +329,12 @@ class MessageActionsViewModel @AssistedInject constructor(
                             // outdated clients embed in the body, so the preview shows only the message.
                             val html = formattedContent.formattedBody
                                     ?.takeIf { it.isNotBlank() }
+                                    ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
                                     ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
                                     ?.let { htmlCompressor.compress(it) }
-                                    ?: messageContent.body.let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
+                                    ?: messageContent.body
+                                            .withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
+                                            .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
 
                             textRenderer.render(eventHtmlRenderer.get().render(html, pillsPostProcessor))
                         } else if (messageContent is MessageVerificationRequestContent) {
@@ -348,7 +357,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                         } else if (messageContent?.msgType == MessageType.MSGTYPE_LOCATION) {
                             // The text representation of a location is the same on every API; only the
                             // long-press preview's map (buildLocationUiData) is gated to Lollipop+.
-                            noticeEventFormatter.formatLocationNotice(timelineEvent.root, timelineEvent.senderInfo.disambiguatedDisplayName)
+                            noticeEventFormatter.formatLocationNotice(timelineEvent.root, renderedProfile.senderName)
                         } else if (messageContent == null) {
                             // Same placeholder the timeline shows for an unparseable message, instead
                             // of a blank preview.
@@ -356,12 +365,13 @@ class MessageActionsViewModel @AssistedInject constructor(
                         } else {
                             // Run the text renderer so bare permalinks / @room in a plain body pill too.
                             messageContent.body
+                                    .withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
                                     .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
                                     .let { textRenderer.render(it) }
                         }
                         if (isEmote) {
                             body.asEmoteBody(
-                                    timelineEvent.senderInfo.disambiguatedDisplayName,
+                                    renderedProfile.senderName,
                                     messageColorProvider.senderNameSpan(timelineEvent.senderInfo.toMatrixItem()),
                             )
                         } else {
@@ -446,11 +456,18 @@ class MessageActionsViewModel @AssistedInject constructor(
     // message is a whole armored PGP block).
     private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent, mentionsAsIds: Boolean = false): String {
         computePgpDecryptedBody(timelineEvent)?.let { return it.toString() }
-        val formatted = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
+        val profile = timelineEvent.renderPerMessageProfile(
+                timelineEvent.senderInfo.disambiguatedDisplayName,
+                vectorPreferences.arePerMessageProfilesEnabled()
+        )
+        val formatted = (messageContent as? MessageContentWithFormattedBody)
+                ?.matrixFormattedBody
+                ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
+        val rawBody = messageContent.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
         val body = if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
-            ContentUtils.extractUsefulTextFromReply(messageContent.body, formatted)
+            ContentUtils.extractUsefulTextFromReply(rawBody, formatted)
         } else {
-            messageContent.body
+            rawBody
         }
         // Mentions read as names in the body; the clipboard carries the ids instead, which a composer
         // pills back into real mentions.
@@ -460,7 +477,14 @@ class MessageActionsViewModel @AssistedInject constructor(
     // The formatted body to feed HTML-aware translation; null for a PGP body (only its decrypted plaintext is translatable).
     private suspend fun translatableFormattedBody(timelineEvent: TimelineEvent, messageContent: MessageContent): String? {
         if (computePgpDecryptedBody(timelineEvent) != null) return null
-        val formatted = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody ?: return null
+        val profile = timelineEvent.renderPerMessageProfile(
+                timelineEvent.senderInfo.disambiguatedDisplayName,
+                vectorPreferences.arePerMessageProfilesEnabled()
+        )
+        val formatted = (messageContent as? MessageContentWithFormattedBody)
+                ?.matrixFormattedBody
+                ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
+                ?: return null
         return if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
             ContentUtils.extractUsefulTextFromHtmlReply(formatted)
         } else {

@@ -17,11 +17,14 @@ import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
+import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.pgp.PgpDecryptor
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
@@ -48,6 +51,7 @@ class DisplayableEventFormatter @Inject constructor(
         private val reactionFormatter: ReactionFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val pgpDecryptor: PgpDecryptor,
+        private val vectorPreferences: VectorPreferences,
         private val matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider,
         private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         private val pillsPostProcessorFactory: im.vector.app.features.html.PillsPostProcessor.Factory,
@@ -85,7 +89,12 @@ class DisplayableEventFormatter @Inject constructor(
             return stringProvider.getString(CommonStrings.encrypted_message_room_list_preview)
         }
 
-        val senderName = timelineEvent.senderInfo.disambiguatedDisplayName
+        val renderedProfile = timelineEvent.renderPerMessageProfile(
+                timelineEvent.senderInfo.disambiguatedDisplayName,
+                vectorPreferences.arePerMessageProfilesEnabled()
+        )
+        val senderName = renderedProfile.senderName
+        val profileFallback = renderedProfile.fallbackDisplayName
 
         return when (timelineEvent.root.getClearType()) {
             EventType.MESSAGE -> {
@@ -101,7 +110,7 @@ class DisplayableEventFormatter @Inject constructor(
                     when (messageContent.msgType) {
                         MessageType.MSGTYPE_TEXT,
                         MessageType.MSGTYPE_NOTICE -> {
-                            val preview = messageContent.previewText()
+                            val preview = messageContent.previewText(profileFallback)
                             if (preview.formattedBody != null) {
                                 // Render the formatted HTML so custom emotes and inline colours survive.
                                 simpleFormat(senderName, renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody), appendAuthor)
@@ -110,7 +119,7 @@ class DisplayableEventFormatter @Inject constructor(
                             }
                         }
                         MessageType.MSGTYPE_EMOTE -> {
-                            val preview = messageContent.previewText()
+                            val preview = messageContent.previewText(profileFallback)
                             val rendered = if (preview.formattedBody != null) {
                                 renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody)
                             } else {
@@ -148,7 +157,7 @@ class DisplayableEventFormatter @Inject constructor(
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.location_room_list_preview), appendAuthor)
                         }
                         else -> {
-                            simpleFormat(senderName, messageContent.body, appendAuthor)
+                            simpleFormat(senderName, messageContent.body.withoutPerMessageProfileFallback(profileFallback), appendAuthor)
                         }
                     }
                 } ?: simpleFormat(senderName, noticeEventFormatter.formatMalformedMessage(), appendAuthor)
@@ -306,11 +315,13 @@ class DisplayableEventFormatter @Inject constructor(
 
     // Strip the reply fallback so the preview shows the reply's own content, not the quoted message: the
     // <mx-reply> block from the formatted body, or the legacy "> <@user>" prefix from the plain body.
-    private fun MessageContent.previewText(): PreviewText {
+    private fun MessageContent.previewText(profileFallback: String? = null): PreviewText {
         val isReply = relatesTo?.inReplyTo?.eventId != null
         val formattedBody = (this as? MessageContentWithFormattedBody)?.matrixFormattedBody?.takeIf { it.isNotBlank() }
+                ?.withoutPerMessageProfileFallback(profileFallback)
                 ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
-        val previewBody = if (isReply) ContentUtils.extractUsefulTextFromReply(body) else body
+        val rawBody = body.withoutPerMessageProfileFallback(profileFallback)
+        val previewBody = if (isReply) ContentUtils.extractUsefulTextFromReply(rawBody) else rawBody
         return PreviewText(formattedBody, previewBody)
     }
 

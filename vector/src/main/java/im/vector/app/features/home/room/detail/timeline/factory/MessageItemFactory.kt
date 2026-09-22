@@ -41,6 +41,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvid
 import im.vector.app.features.home.room.detail.timeline.helper.MessageInformationDataFactory
 import im.vector.app.features.home.room.detail.timeline.helper.MessageItemAttributesFactory
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
+import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.BaseEventItem
 import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
@@ -1414,10 +1415,7 @@ class MessageItemFactory @Inject constructor(
     }
 
     private fun String.withoutPerMessageProfileFallback(informationData: MessageInformationData): String {
-        val displayName = informationData.perMessageProfileFallback ?: return this
-        val plaintextFallback = "$displayName: "
-        if (startsWith(plaintextFallback)) return removePrefix(plaintextFallback)
-        return replace(PER_MESSAGE_PROFILE_HTML_FALLBACK, "")
+        return withoutPerMessageProfileFallback(informationData.perMessageProfileFallback)
     }
 
     companion object {
@@ -1427,6 +1425,5 @@ class MessageItemFactory @Inject constructor(
         private const val OBJECT_REPLACEMENT_CHAR = '￼'
         private const val OBJECT_REPLACEMENT_STRING = "￼"
         private const val PGP_FORMATTED_CACHE_SUFFIX = "\u0000fmt"
-        private val PER_MESSAGE_PROFILE_HTML_FALLBACK = Regex("<strong\\s+data-mx-profile-fallback(?:=\"\")?\\s*>([^<]+): </strong\\s*>")
     }
 }

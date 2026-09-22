@@ -82,6 +82,7 @@ class LatexPreviewTest {
             pgpDecryptor = mockk<im.vector.app.features.pgp.PgpDecryptor>(relaxed = true).also {
                 every { it.peekDecryptedBody(any()) } returns null
             },
+            vectorPreferences = mockk(relaxed = true),
             matrixItemColorProvider = mockk<im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider>(relaxed = true).also {
                 every { it.changes } returns kotlinx.coroutines.flow.MutableStateFlow(0L)
             },

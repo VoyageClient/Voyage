@@ -11,10 +11,8 @@ import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
-import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 
 data class PerMessageProfile(
         val id: String,
@@ -25,6 +23,7 @@ data class PerMessageProfile(
         val hasFallback: Boolean,
 )
 
+private const val NEW_CONTENT = "m.new_content"
 private const val STABLE_PER_MESSAGE_PROFILE = "m.per_message_profile"
 private const val UNSTABLE_PER_MESSAGE_PROFILE = "com.beeper.per_message_profile"
 private const val MAX_PROFILE_TEXT_BYTES = 255
@@ -32,15 +31,17 @@ private const val MAX_PROFILE_TEXT_BYTES = 255
 fun TimelineEvent.getPerMessageProfile(): PerMessageProfile? {
     if (root.getClearType() !in setOf(EventType.MESSAGE, EventType.STICKER)) return null
     if (root.isRedacted()) return null
-    val content = if (root.getClearType() == EventType.STICKER) {
-        annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageStickerContent>()?.newContent
-    } else {
-        getLastEditNewContent()
-    } ?: root.getClearContent() ?: return null
-    return content.perMessageProfile()
+    // An edit may restate the profile in m.new_content, only at its top level, or not at all — the
+    // last leaving the original's profile standing. Read the edit's raw content: getLastEditNewContent()
+    // round-trips replies through a typed model, which drops the unknown profile key.
+    val latestEdit = annotations?.editSummary?.latestEdit?.getClearContent()
+    val editedProfile = latestEdit?.let {
+        (it[NEW_CONTENT] as? Map<*, *>)?.perMessageProfile() ?: it.perMessageProfile()
+    }
+    return editedProfile ?: root.getClearContent()?.perMessageProfile()
 }
 
-private fun Content.perMessageProfile(): PerMessageProfile? {
+private fun Map<*, *>.perMessageProfile(): PerMessageProfile? {
     val raw = (this[STABLE_PER_MESSAGE_PROFILE] ?: this[UNSTABLE_PER_MESSAGE_PROFILE]) as? Map<*, *> ?: return null
     val id = raw["id"] as? String ?: return null
     if (!id.isValidProfileText(allowEmpty = true)) return null

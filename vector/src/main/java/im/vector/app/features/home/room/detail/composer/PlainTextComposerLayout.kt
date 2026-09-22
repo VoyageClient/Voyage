@@ -45,7 +45,9 @@ import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
+import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
@@ -99,7 +101,6 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
-import org.matrix.android.sdk.api.util.toMatrixItemOrNull
 import javax.inject.Inject
 
 /**
@@ -501,11 +502,21 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val pillsPostProcessor = pillsPostProcessorFactory.create(event.roomId)
         val textRenderer = textRendererFactory.create(event.roomId)
 
-        val senderItem = event.senderInfo.toMatrixItemOrNull() ?: MatrixItem.UserItem("@")
+        val renderedProfile = event.renderPerMessageProfile(
+                event.senderInfo.disambiguatedDisplayName,
+                vectorPreferences.arePerMessageProfilesEnabled()
+        )
+        val senderItem = MatrixItem.UserItem(
+                id = event.senderInfo.userId,
+                displayName = renderedProfile.senderName,
+                avatarUrl = renderedProfile.avatarUrl,
+                avatarDecryption = renderedProfile.avatarDecryption,
+                colorPreference = event.senderInfo.colorPreference,
+        )
 
         // switch to expanded bar
         views.composerRelatedMessageTitle.apply {
-            text = event.senderInfo.disambiguatedDisplayName.prepareForDisplay()
+            text = renderedProfile.senderName.prepareForDisplay()
             setTextColor(matrixItemColorProvider.getNameColor(senderItem))
             setSenderNameEmphasis(matrixItemColorProvider.isNameColored())
         }
@@ -532,7 +543,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
             // The composer preview never shows a map, so location is always the notice text.
             messageContent?.msgType == MessageType.MSGTYPE_LOCATION ->
-                noticeEventFormatter.formatLocationNotice(event.root, event.senderInfo.disambiguatedDisplayName)
+                noticeEventFormatter.formatLocationNotice(event.root, renderedProfile.senderName)
             // A message whose content can't be parsed previews as the timeline's malformed placeholder.
             messageContent == null && event.root.getClearType() in listOf(EventType.MESSAGE, EventType.STICKER) ->
                 noticeEventFormatter.formatMalformedMessage()
@@ -543,8 +554,12 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             // Text / notice / emote without a formatted body: drop the legacy "> <@user:server> …"
             // reply fallback, which the formatted path below strips via <mx-reply>.
             messageContent.relatesTo?.inReplyTo?.eventId != null ->
-                ContentUtils.extractUsefulTextFromReply(messageContent.body, (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody)
-            else -> messageContent.body
+                ContentUtils.extractUsefulTextFromReply(
+                        messageContent.body.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName),
+                        (messageContent as? MessageContentWithFormattedBody)?.formattedBody
+                                ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
+                )
+            else -> messageContent.body.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
         }
         var formattedBody: CharSequence? = null
         var renderedTable = false
@@ -555,7 +570,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 messageContent?.msgType == MessageType.MSGTYPE_EMOTE
         if (pgpPlain == null && isFormattableText && messageContent is MessageContentWithFormattedBody &&
                 messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
-            val htmlToRender = messageContent.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+            val htmlToRender = messageContent.formattedBody
+                    ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
+                    ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
             val compressed = htmlToRender?.let { htmlCompressor.compress(it) }
             val richSegments = if (compressed != null && (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true))) {
                 HtmlBodySegmenter.segment(compressed).takeIf { segs -> segs.any { it !is BodySegment.Html } }
@@ -571,7 +588,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 formattedBody = eventHtmlRenderer.render(compressed, pillsPostProcessor)
             } else {
                 val parser = Parser.builder().build()
-                val document = parser.parse(ContentUtils.extractUsefulTextFromReply(messageContent.body))
+                val document = parser.parse(
+                        ContentUtils.extractUsefulTextFromReply(
+                                messageContent.body.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
+                        )
+                )
                 formattedBody = eventHtmlRenderer.render(document, pillsPostProcessor)
             }
         }
@@ -593,7 +614,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 ?.let { if (isFilenamePreview || isNoticePreview) it else it.linkify(null) }
         val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
             renderedBody.asEmoteBody(
-                    event.senderInfo.disambiguatedDisplayName,
+                    renderedProfile.senderName,
                     SenderNameSpan(senderItem, matrixItemColorProvider),
             )
         } else {
@@ -634,7 +655,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         views.composerRelatedMessageActionIcon.setImageDrawable(ContextCompat.getDrawable(context, iconRes))
 
-        avatarRenderer.render(event.senderInfo.toMatrixItem(), views.composerRelatedMessageAvatar)
+        avatarRenderer.render(senderItem, views.composerRelatedMessageAvatar)
 
         val content = if (specialMode is MessageComposerMode.Edit) {
             // Edit against the plain body — the markdown source the user typed. The rendered

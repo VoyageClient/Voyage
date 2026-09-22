@@ -20,7 +20,9 @@ package im.vector.app.features.home.room.detail.timeline.reply
 import im.vector.app.core.extensions.toCachedTimelineEvent
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
+import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
@@ -269,7 +271,7 @@ class ReplyPreviewRetriever(
                                         when {
                                             it == null -> PreviewReplyUiState.Error(Exception("Event not found"), eventIdToRetrieve)
                                             it.root.senderId in ignoredUserIds -> PreviewReplyUiState.Error(IgnoredAuthorException, eventIdToRetrieve)
-                                            else -> PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, it.senderInfo.disambiguatedDisplayName)
+                                            else -> PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, replySenderName(it))
                                         }
                                 )
                             }
@@ -305,6 +307,13 @@ class ReplyPreviewRetriever(
                 it.onStateUpdated(state)
             }
         }
+    }
+
+    private fun replySenderName(event: TimelineEvent): String {
+        return event.renderPerMessageProfile(
+                event.senderInfo.disambiguatedDisplayName,
+                vectorPreferences.arePerMessageProfilesEnabled()
+        ).senderName
     }
 
     /**
@@ -450,16 +459,22 @@ class ReplyPreviewRetriever(
 
     private fun buildReplyBody(content: MessageContentWithFormattedBody, event: TimelineEvent): RenderedReplyBody {
         // If the replied-to event is itself a reply, strip its quoted portion so only its own message shows.
-        val formattedBody = content.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+        val profile = event.renderPerMessageProfile(
+                event.senderInfo.disambiguatedDisplayName,
+                vectorPreferences.arePerMessageProfilesEnabled()
+        )
+        val formattedBody = content.formattedBody
+                ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
+                ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
         val compressed = formattedBody?.let { htmlCompressor.compress(it) }
         val text = (if (compressed != null) {
             textRenderer.render(htmlRenderer.render(compressed, pillsPostProcessor))
         } else {
-            textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body))
+            textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)))
         }).linkify(null)
         val emoteBody = if (content.msgType == MessageType.MSGTYPE_EMOTE) {
             text.asEmoteBody(
-                    event.senderInfo.disambiguatedDisplayName,
+                    profile.senderName,
                     messageColorProvider.senderNameSpan(senderMatrixItem(event)),
             )
         } else {

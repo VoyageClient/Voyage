@@ -132,22 +132,15 @@ class MessageInformationDataFactory @Inject constructor(
             storedAvatar == null -> liveMember?.avatarUrl
             else -> storedAvatar.takeUnless { it.isEmpty() }
         }
-        val perMessageProfile = event.getPerMessageProfile().takeIf { vectorPreferences.arePerMessageProfilesEnabled() }
-        val realSenderId = event.root.senderId ?: senderId
-        val renderedSenderName = perMessageProfile?.let { profile ->
-            "${profile.displayName ?: senderName} ($realSenderId)"
-        } ?: senderName
-        val renderedSenderAvatar = when {
-            perMessageProfile == null -> senderAvatar
-            perMessageProfile.clearsAvatar -> null
-            else -> perMessageProfile.avatarUrl ?: senderAvatar
-        }
-        val renderedAvatarDecryption = when {
-            perMessageProfile == null -> senderAvatarDecryption
-            perMessageProfile.clearsAvatar -> null
-            perMessageProfile.avatarUrl != null -> perMessageProfile.avatarDecryption
-            else -> senderAvatarDecryption
-        }
+        val renderedProfile = event.renderPerMessageProfile(
+                senderName,
+                vectorPreferences.arePerMessageProfilesEnabled(),
+                senderAvatar,
+                senderAvatarDecryption,
+        )
+        val renderedSenderName = renderedProfile.senderName
+        val renderedSenderAvatar = renderedProfile.avatarUrl
+        val renderedAvatarDecryption = renderedProfile.avatarDecryption
 
         // Determine DM partner so dual-side bubbles can hide both avatars in direct chats.
         val isEffectivelyDirect = roomSummary?.isDirect ?: false
@@ -201,9 +194,7 @@ class MessageInformationDataFactory @Inject constructor(
                 ageLocalTS = event.root.ageLocalTs,
                 avatarUrl = renderedSenderAvatar,
                 avatarDecryption = renderedAvatarDecryption,
-                perMessageProfileFallback = perMessageProfile
-                        ?.takeIf { it.hasFallback }
-                        ?.displayName,
+                perMessageProfileFallback = renderedProfile.fallbackDisplayName,
                 memberName = renderedSenderName,
                 messageLayout = messageLayout,
                 reactionsSummary = reactionsSummaryFactory.create(event),
