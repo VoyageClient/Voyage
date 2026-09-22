@@ -340,8 +340,12 @@ class InReplyToView @JvmOverloads constructor(
         val text = rendered?.text ?: retriever.formatFallbackReply(event)
         val markwonPlugins = retriever.htmlRenderer.plugins
 
+        val hostStableId = sourceStableId
         text.findPillsAndProcess(coroutineScope) { pillImageSpan ->
-            pillImageSpan.bind(views.replyTextView)
+            // Posted to the main thread: by the time it runs the row may have been recycled onto another
+            // message, and pointing the span at a view that no longer holds it strands the pill's avatar
+            // on the row that does (a cached reply body shares its spans across every view quoting it).
+            if (sourceStableId == hostStableId) pillImageSpan.bind(views.replyTextView)
         }
         text.let { charSequence ->
             if (charSequence is Spanned) {
@@ -473,7 +477,8 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.isVisible = true
         views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
         val markwonPlugins = retriever.htmlRenderer.plugins
-        text.findPillsAndProcess(coroutineScope) { it.bind(views.replyTextView) }
+        val hostStableId = sourceStableId
+        text.findPillsAndProcess(coroutineScope) { if (sourceStableId == hostStableId) it.bind(views.replyTextView) }
         if (text is Spanned) {
             markwonPlugins.forEach { plugin -> plugin.beforeSetText(views.replyTextView, text) }
         }

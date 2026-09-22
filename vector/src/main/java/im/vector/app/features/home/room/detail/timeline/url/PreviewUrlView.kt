@@ -37,6 +37,9 @@ class PreviewUrlView @JvmOverloads constructor(
 
     var delegate: TimelineEventController.PreviewUrlCallback? = null
 
+    // Echo-swap-stable identity of the message currently hosting this view, for stale-update guards.
+    var boundStableId: String? = null
+
     init {
         setupView()
         radius = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.preview_url_view_corner_radius).toFloat()
@@ -71,6 +74,14 @@ class PreviewUrlView @JvmOverloads constructor(
             is PreviewUrlUiState.Error -> renderHidden()
             is PreviewUrlUiState.Data -> renderData(newState.previewUrlData, imageContentRenderer)
         }
+    }
+
+    // Goes through [state] rather than touching visibility, so a later render of the same state cannot
+    // early-return onto a view left hidden behind its back.
+    fun hide() {
+        state = PreviewUrlUiState.NoUrl
+        hideAll()
+        renderHidden()
     }
 
     override fun renderMessageLayout(messageLayout: TimelineMessageLayout) {

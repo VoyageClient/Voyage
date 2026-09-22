@@ -89,6 +89,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
     @SuppressLint("SetTextI18n")
     override fun bind(holder: H) {
         super.bind(holder)
+        holder.boundStableId = attributes.informationData.stableId
 
         val scBindMarker = im.vector.app.core.utils.PerfTrace.mark("bind.super.scCustomBind")
         val scBound = (holder.view as? ScMessageBubbleWrapView)?.customBind(this, holder, attributes, _avatarClickListener) == true
@@ -359,6 +360,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         val replyToView: InReplyToView? by lazy { view.findViewById(R.id.inReplyToContainer) }
         val forwardedNoticeView: TextView? by lazy { view.findViewById(R.id.messageForwardedNoticeView) }
         var replyBandListener: View.OnLayoutChangeListener? = null
+
+        // The message this holder's views currently show, for guarding async work posted by an earlier bind.
+        var boundStableId: String? = null
         val informationBottom by bind<LinearLayout>(R.id.informationBottom)
         val threadSummaryConstraintLayout by bind<ConstraintLayout>(R.id.messageThreadSummaryConstraintLayout)
         val threadSummaryCounterTextView by bind<TextView>(R.id.messageThreadSummaryCounterTextView)

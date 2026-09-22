@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.url
 
-import androidx.core.view.isVisible
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.media.ImageContentRenderer
@@ -35,9 +34,10 @@ class PreviewUrlViewUpdater : PreviewUrlRetriever.PreviewUrlRetrieverListener {
         this.retriever = retriever
         this.stableId = stableId
         view.delegate = callback
+        view.boundStableId = stableId
         view.renderMessageLayout(messageLayout)
         if (retriever == null) {
-            view.isVisible = false
+            view.hide()
         } else {
             retriever.addListener(stableId, this)
         }
@@ -52,11 +52,20 @@ class PreviewUrlViewUpdater : PreviewUrlRetriever.PreviewUrlRetrieverListener {
     }
 
     override fun onStateUpdated(state: PreviewUrlUiState) {
-        val safeImageContentRenderer = imageContentRenderer
-        if (safeImageContentRenderer == null) {
-            previewUrlView?.isVisible = false
+        val view = previewUrlView ?: return
+        // A rebind doesn't unbind the previous model, so its updater stays registered with a view that
+        // RecyclerView may later reuse for another message. Ignore the update unless the view still hosts
+        // this event, else a late preview hides (or overwrites) an unrelated message's card. Deregister
+        // too: a rebind re-registers, so an orphan would only pile up on a message we keep rebuilding.
+        if (view.boundStableId != stableId) {
+            unbind()
             return
         }
-        previewUrlView?.render(state, safeImageContentRenderer)
+        val safeImageContentRenderer = imageContentRenderer
+        if (safeImageContentRenderer == null) {
+            view.hide()
+            return
+        }
+        view.render(state, safeImageContentRenderer)
     }
 }

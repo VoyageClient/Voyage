@@ -146,7 +146,8 @@ class PreviewUrlRetriever(
         data[eventId] = EventIdPreviewUrlUiState(latestEventId, state)
         // Notify the listener
         coroutineScope.launch(Dispatchers.Main) {
-            listeners[eventId].orEmpty().forEach {
+            // Copy: a listener may deregister itself while being notified.
+            listeners[eventId].orEmpty().toList().forEach {
                 it.onStateUpdated(state)
             }
         }

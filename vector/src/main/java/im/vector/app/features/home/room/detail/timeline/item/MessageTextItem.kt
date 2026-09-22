@@ -158,9 +158,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         val activeMessage = (if (showBlocked) blockedMessage else message)?.charSequence
         val activeOptions = if (showBlocked) blockedBindingOptions else bindingOptions
         if (searchForPills) {
+            val stableId = attributes.informationData.stableId
             activeMessage?.findPillsAndProcess(coroutineScope) {
-                // mmm.. not sure this is so safe in regards to cell reuse
-                it.bind(messageView)
+                // Posted to the main thread: by the time it runs the row may have been recycled onto
+                // another message, and pointing the span at a view that no longer holds it strands the
+                // pill's avatar on the row that does.
+                if (holder.boundStableId == stableId) it.bind(messageView)
             }
         }
         val defaultColorAttr = if (noticeStyle) {
