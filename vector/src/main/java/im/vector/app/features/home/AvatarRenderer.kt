@@ -37,9 +37,11 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.NoTransition
 import com.bumptech.glide.request.transition.Transition
 import com.bumptech.glide.request.transition.TransitionFactory
 import com.bumptech.glide.signature.ObjectKey
+import im.vector.app.R
 import im.vector.app.core.contacts.MappedContact
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.ClippedDrawableImageViewTarget
@@ -55,6 +57,7 @@ import im.vector.app.core.glide.ThumbnailVariants
 import im.vector.app.core.glide.chainAttempts
 import im.vector.app.core.glide.thumbnailAttempts
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.avatar.DefaultAvatarFactory
@@ -101,13 +104,16 @@ class AvatarRenderer @Inject constructor(
     /**
      * Fades the letter placeholder out on top of the avatar rather than cross-fading, which would
      * draw the avatar over a still-visible letter and show it through transparent avatars.
-     * Memory-cached hits fade too: off the room list the avatar is usually already in memory.
      */
     private class FadeOutPlaceholderFactory(
             private val durationMs: Long,
             private val placeholder: Drawable?,
     ) : TransitionFactory<Drawable> {
         override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> {
+            // A memory hit resolves inside Glide's begin(), so there was no visible wait to fade out
+            // of — and fading anyway stretches a one-frame letter, from a rebind that re-showed the
+            // placeholder, into a fifth of a second of flicker.
+            if (dataSource == DataSource.MEMORY_CACHE) return NoTransition.get()
             return FadeOutPlaceholderTransition(durationMs, placeholder)
         }
     }
@@ -117,8 +123,8 @@ class AvatarRenderer @Inject constructor(
             private val placeholder: Drawable?,
     ) : Transition<Drawable> {
         override fun transition(current: Drawable, adapter: Transition.ViewAdapter): Boolean {
-            // A memory hit can land before the placeholder is ever drawn, leaving nothing on the
-            // view to fade — use the request's own placeholder as the outgoing layer then.
+            // Nothing on the view to fade — fall back to the request's own placeholder, which is what
+            // it would have been showing.
             val shown = adapter.currentDrawable
             val previous = (if (shown == null || shown === current) placeholder else shown) ?: return false
             val fading = FadingDrawable(previous, durationMs)
@@ -165,9 +171,9 @@ class AvatarRenderer @Inject constructor(
     }
 
     /**
-     * [crossfade] is opt-in: in a recycler every rebind re-shows the placeholder, so fading there
-     * flickers the letter constantly and costs a redraw per frame per row. Enable it on screens
-     * showing a single, stable avatar.
+     * [crossfade] fades the letter placeholder out once the avatar lands, and only when the avatar
+     * was not already in memory — a load that resolves in the same frame never showed a placeholder
+     * to fade. Opt out where the letter is the point, or where the redraw per frame is not worth it.
      *
      * @param onSettled called once this render has landed, or failed — for a screen holding itself back
      * until the avatar is really there instead of revealing the letter placeholder and fading over it.
@@ -178,7 +184,7 @@ class AvatarRenderer @Inject constructor(
             matrixItem: MatrixItem,
             imageView: ImageView,
             @DimenRes decodeSize: Int? = null,
-            crossfade: Boolean = false,
+            crossfade: Boolean = true,
             onSettled: (() -> Unit)? = null,
     ) {
         renderAt(matrixItem, imageView, decodeSizePx(imageView, decodeSize), crossfade, onSettled)
@@ -190,7 +196,7 @@ class AvatarRenderer @Inject constructor(
      * the next frame, which is what makes an avatar pop in a moment after its message.
      */
     @UiThread
-    fun renderAtSize(matrixItem: MatrixItem, imageView: ImageView, sizePx: Int, crossfade: Boolean = false) {
+    fun renderAtSize(matrixItem: MatrixItem, imageView: ImageView, sizePx: Int, crossfade: Boolean = true) {
         renderAt(matrixItem, imageView, sizePx.takeIf { it > 0 }, crossfade, onSettled = null)
     }
 
@@ -203,7 +209,7 @@ class AvatarRenderer @Inject constructor(
     ) {
         imageView.setContentDescription(matrixItem)
         GlideApp.with(imageView)
-                .loadAvatar(matrixItem, decodeSizePx = sizePx, crossfade = crossfade)
+                .loadAvatar(matrixItem, decodeSizePx = sizePx, crossfade = crossfade, reusablePlaceholder = placeholderFor(imageView, matrixItem))
                 .let { request ->
                     if (onSettled == null) request else request.addListener(SettledListener(onSettled))
                 }
@@ -443,6 +449,24 @@ class AvatarRenderer @Inject constructor(
                 .get()
     }
 
+    private data class ViewPlaceholder(val matrixItem: MatrixItem, val shape: AvatarShape, val drawable: Drawable)
+
+    /**
+     * Glide decides whether a rebind is the request it is already serving by comparing placeholders
+     * by reference. A fresh letter drawable per bind makes every one of them a new request, so the
+     * view is cleared back to the letter and the avatar reloaded — which is the flicker seen when a
+     * room list row or a timeline sender rebinds. Memoised per view, keyed by what it draws.
+     */
+    private fun placeholderFor(imageView: ImageView, matrixItem: MatrixItem): Drawable {
+        val shape = shapeFor(matrixItem)
+        (imageView.getTag(R.id.avatar_renderer_placeholder) as? ViewPlaceholder)
+                ?.takeIf { it.matrixItem == matrixItem && it.shape == shape }
+                ?.let { return it.drawable }
+        return getPlaceholderDrawable(matrixItem).also {
+            imageView.setTag(R.id.avatar_renderer_placeholder, ViewPlaceholder(matrixItem, shape, it))
+        }
+    }
+
     @AnyThread
     fun getPlaceholderDrawable(matrixItem: MatrixItem, forceCircle: Boolean = false): Drawable {
         val avatarColor = matrixItemColorProvider.getColor(matrixItem)
@@ -458,8 +482,9 @@ class AvatarRenderer @Inject constructor(
             decodeSizePx: Int? = null,
             forceCircle: Boolean = false,
             crossfade: Boolean = false,
+            reusablePlaceholder: Drawable? = null,
     ): GlideRequest<Drawable> {
-        val placeholder = getPlaceholderDrawable(matrixItem, forceCircle)
+        val placeholder = reusablePlaceholder ?: getPlaceholderDrawable(matrixItem, forceCircle)
         val transformation = if (forceCircle) CircleCrop() else avatarTransform(matrixItem)
         val autoplay = vectorPreferences.autoplayAnimatedImages()
 
@@ -482,7 +507,13 @@ class AvatarRenderer @Inject constructor(
                         else -> it.addListener(RestartAnimationListener)
                     }
                 }
-                .let { if (crossfade) it.transition(DrawableTransitionOptions.with(FadeOutPlaceholderFactory(FADE_MS, placeholder))) else it }
+                .let {
+                    if (crossfade && !PerformanceMode.enabled) {
+                        it.transition(DrawableTransitionOptions.with(FadeOutPlaceholderFactory(FADE_MS, placeholder)))
+                    } else {
+                        it
+                    }
+                }
 
         avatarDecryption(matrixItem)?.let { decrypt ->
             return requestFor(encryptedAvatarData(matrixItem, decrypt, THUMBNAIL_SIZE), cacheOnly)

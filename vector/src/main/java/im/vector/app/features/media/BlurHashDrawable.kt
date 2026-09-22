@@ -40,10 +40,8 @@ class BlurHashDrawable private constructor(
     private val handler = Handler(Looper.getMainLooper())
     private val startMs = SystemClock.uptimeMillis()
     private var running = false
-    private var finished = false
 
     override fun draw(canvas: Canvas) {
-        if (finished) return
         val bmp = bitmap ?: return
         if (!pulse) {
             canvas.drawBitmap(bmp, null, bounds, paint)
@@ -58,28 +56,8 @@ class BlurHashDrawable private constructor(
     }
 
     private fun onBitmapReady(bmp: Bitmap) {
-        if (finished) return
         bitmap = bmp
         if (isVisible && pulse) start()
-        invalidateSelf()
-    }
-
-    /**
-     * Re-arms an instance the fade-out already finished, so the memoised placeholder can serve a
-     * later load instead of drawing nothing. Reused rather than replaced because Glide compares
-     * placeholders by reference — a new instance would make the rebind a new request and replay the
-     * whole blurhash transition.
-     */
-    fun reset() {
-        if (!finished) return
-        finished = false
-        if (isVisible) start()
-        invalidateSelf()
-    }
-
-    fun markFinished() {
-        finished = true
-        stop()
         invalidateSelf()
     }
 

@@ -39,6 +39,7 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.glide.RestartAnimationListener
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.ui.model.Size
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.imagepack.EmoteFrameCache
@@ -134,24 +135,48 @@ class ImageContentRenderer @Inject constructor(
         } else {
             imageView.scaleType = ImageView.ScaleType.CENTER_CROP
         }
+        // The placeholder has no intrinsic size, so a wrapping view would measure to nothing and show
+        // none of it. The declared box is what the picture ends up in anyway, override() decoding to it.
+        val displayHeight = height.coerceAtMost(maxHeight)
+        imageView.updateLayoutParams { this.height = displayHeight }
+        val data = previewUrlData.toImageData(encryptedImage)
+        // Square: the card clips the image to its own top corners.
+        val placeholder = placeholderFor(imageView, data, showGlyph = false, square = true)
         val request = if (encryptedImage == null) {
             GlideApp.with(imageView).load(imageUrl)
         } else {
             // MSC4095 preview thumbnails of an encrypted room are attachments of their own, so they go
             // through the decrypting loader rather than a plain url.
-            createGlideRequest(previewUrlData.toEncryptedImageData(encryptedImage), Mode.FULL_SIZE, GlideApp.with(imageView), Size(width, height))
+            createGlideRequest(data, Mode.FULL_SIZE, GlideApp.with(imageView), Size(width, height), placeholder)
         }
-        request.override(width, height.coerceAtMost(maxHeight))
+        request.override(width, displayHeight)
+                .withWaitingState(placeholder)
+                // The box is reserved before there is a picture for it; a preview whose image never
+                // arrives must give it back rather than leave an empty fill in the card.
+                .addListener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        imageView.visibility = View.GONE
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean,
+                    ): Boolean = false
+                })
                 .into(imageView)
         return true
     }
 
-    private fun PreviewUrlData.toEncryptedImageData(encryptedImage: EncryptedFileInfo) = Data(
-            eventId = encryptedImage.url.orEmpty(),
+    private fun PreviewUrlData.toImageData(encryptedImage: EncryptedFileInfo?) = Data(
+            eventId = encryptedImage?.url ?: mxcUrl.orEmpty(),
             filename = title ?: url,
             mimeType = imageMimeType,
-            url = encryptedImage.url,
-            elementToDecrypt = encryptedImage.toElementToDecrypt(),
+            url = encryptedImage?.url ?: mxcUrl,
+            elementToDecrypt = encryptedImage?.toElementToDecrypt(),
             height = imageHeight,
             maxHeight = imageHeight ?: URL_PREVIEW_IMAGE_MIN_FULL_HEIGHT_PX,
             width = imageWidth,
@@ -195,7 +220,6 @@ class ImageContentRenderer @Inject constructor(
         val restartsPendingRender = thisRender === last && !thisRender.completed && thisRender.isStale
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
         val renderToken = imageView.startRender()
-        // No explicit placeholder: it would win over the blurhash that createGlideRequest attaches.
         val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
         imageView.setTag(R.id.image_renderer_retry) { render(data, imageView, width, height, fromRetryTap = true) }
         // Stamped like the main render, so a tap while a retry is in flight is swallowed rather
@@ -203,7 +227,8 @@ class ImageContentRenderer @Inject constructor(
         imageView.setTag(R.id.image_renderer_retrying, if (fromRetryTap) SystemClock.uptimeMillis() else null)
         if (fromRetryTap) showLoadingNow(imageView, data, showGlyph = true, square = true)
         val pending = PendingRenders.startOn(imageView, data, mode)
-        createGlideRequest(data, mode, imageView, Size(width, height))
+        val placeholder = placeholderFor(imageView, data, showGlyph = true, square = true).also { it.setFailed(retryingFailed) }
+        createGlideRequest(data, mode, imageView, Size(width, height), placeholder)
                 .withFreshKey(fromRetryTap || restartsPendingRender)
                 .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
@@ -233,9 +258,7 @@ class ImageContentRenderer @Inject constructor(
                         return false
                     }
                 })
-                .placeholder(
-                        placeholderFor(imageView, data, showGlyph = true, square = true).also { it.setFailed(retryingFailed) }
-                )
+                .placeholder(placeholder)
                 // Animated media plays here too: a grid of stills gives no hint which of them move.
                 .intoView(imageView, animate = true)
     }
@@ -428,7 +451,10 @@ class ImageContentRenderer @Inject constructor(
                         "retryTap=$fromRetryTap restartsPending=$restartsPendingRender freshKey=${fromRetryTap || restartsPendingRender} " +
                         "knownFailed=$retryingFailed drawable=${imageView.drawable?.javaClass?.simpleName} url=${data.url}" }
         val pending = PendingRenders.startOn(imageView, data, mode)
-        createGlideRequest(data, mode, imageView, size)
+        // Built once per view so a rebind is the request Glide is already serving, and handed to the
+        // request itself so the thumbnail fallback keeps it up rather than blanking the view.
+        val placeholder = pickerFrame ?: placeholderFor(imageView, data, showFailureGlyph).also { it.setFailed(retryingFailed) }
+        createGlideRequest(data, mode, imageView, size, placeholder)
                 .withFreshKey(fromRetryTap || restartsPendingRender)
                 .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
@@ -467,17 +493,13 @@ class ImageContentRenderer @Inject constructor(
                         return false
                     }
                 })
-                // The very object already on screen, so Glide's own placeholder step cannot cut the
-                // fade short by swapping in an equivalent-looking one.
-                .placeholder(
-                        pickerFrame ?: placeholderFor(imageView, data, showFailureGlyph).also { it.setFailed(retryingFailed) }
-                )
+                .placeholder(placeholder)
                 .let {
                     when {
                         // The placeholder is this very picture already, and a crossfade between two of
                         // them only dips through the backdrop behind — which is the grey the send flashed.
                         pickerFrame != null -> it.transition(DrawableTransitionOptions().dontTransition())
-                        crossFade -> it.transition(DrawableTransitionOptions.with(REVEAL_FADE_FACTORY))
+                        crossFade -> it.transition(fade(placeholder))
                         else -> it
                     }
                 }
@@ -711,13 +733,9 @@ class ImageContentRenderer @Inject constructor(
     }
 
     companion object {
-        private const val BLURHASH_CROSSFADE_MS = 200L
-        private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS.toInt())
-        private const val REVEAL_CROSSFADE_MS = 220
-
         // Glide's withCrossFade() leaves the placeholder as an opaque layer under the image for good,
         // which a transparent picture then shows the waiting fill through. Fading it out instead.
-        private val REVEAL_FADE_FACTORY = BlurFadeOutTransitionFactory(REVEAL_CROSSFADE_MS.toInt())
+        private const val CROSSFADE_MS = 220
         private const val MIN_RETRY_FEEDBACK_MS = 550L
 
         // How long a render may be in flight before a rebind that restarts it re-fetches rather than
@@ -856,11 +874,17 @@ class ImageContentRenderer @Inject constructor(
                 .into(imageView)
     }
 
-    private fun createGlideRequest(data: Data, mode: Mode, imageView: ImageView, size: Size): GlideRequest<Drawable> {
-        return createGlideRequest(data, mode, GlideApp.with(imageView), size)
+    private fun createGlideRequest(data: Data, mode: Mode, imageView: ImageView, size: Size, placeholder: Drawable? = null): GlideRequest<Drawable> {
+        return createGlideRequest(data, mode, GlideApp.with(imageView), size, placeholder)
     }
 
-    fun createGlideRequest(data: Data, mode: Mode, glideRequests: GlideRequests, size: Size = processSize(data, mode)): GlideRequest<Drawable> {
+    fun createGlideRequest(
+            data: Data,
+            mode: Mode,
+            glideRequests: GlideRequests,
+            size: Size = processSize(data, mode),
+            placeholder: Drawable? = null,
+    ): GlideRequest<Drawable> {
         data.preservedFile?.let { file ->
             return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE)
         }
@@ -907,17 +931,13 @@ class ImageContentRenderer @Inject constructor(
                     .apply {
                         if (mode == Mode.THUMBNAIL) {
                             error(
-                                    decorateWithBlurHash(glideRequests.load(resolveUrl(data, localCopy)), data, localCopy)
+                                    glideRequests.load(resolveUrl(data, localCopy)).withWaitingState(placeholder)
                             )
                         }
                     }
         }
-        return decorateWithBlurHash(request, data, localCopy)
+        return request.withWaitingState(placeholder)
     }
-
-    // Glide's request-equivalence check compares placeholders by reference: a fresh BlurHashDrawable
-    // per bind makes every rebind a "new" request, resetting to the blurhash and replaying the fade.
-    private val blurHashPlaceholders = android.util.LruCache<String, BlurHashDrawable>(64)
 
     private data class ViewPlaceholder(
             val data: Data,
@@ -951,42 +971,22 @@ class ImageContentRenderer @Inject constructor(
                         ),
                 ).also { imageView.setTag(R.id.image_renderer_placeholder, it) }
         return placeholder.drawable.also {
-            // The fade-out transition marks the blurhash finished when an image lands, after which
-            // it draws nothing at all. Re-arm it for this load, or a reused placeholder shows the
-            // scrim over bare transparency instead of the hash it was built with.
-            it.blurHash?.reset()
             it.boundedWait = !data.isUploading()
             it.setSquareCorners(square)
         }
     }
 
-    private fun decorateWithBlurHash(
-            request: GlideRequest<Drawable>,
-            data: Data,
-            localCopy: Lazy<File?> = lazy { localCopyOf(data) },
-    ): GlideRequest<Drawable> {
-        // A blurhash is a stand-in for a download. With the bytes already on disk there is nothing to
-        // stand in for, and showing one only produces a flash on every rebind.
-        if (localCopy.value != null) {
-            return request.transition(DrawableTransitionOptions.with(REVEAL_FADE_FACTORY))
-        }
-        // No blurhash still means a download is in flight, and an empty box reads as nothing
-        // happening. Hold the same fill the failure placeholder falls back to, so the box is visibly
-        // occupied for the wait and only the glyph changes if it ends badly.
-        // No blurhash — video thumbnails rarely carry one — still means going from the waiting state
-        // to a picture, so it gets an ordinary crossfade rather than appearing in a single frame.
-        val blurHash = data.blurHash ?: return request.transition(DrawableTransitionOptions.with(REVEAL_FADE_FACTORY))
-        val key = "${data.stableId}:$blurHash:${data.width}x${data.height}"
-        val placeholder = synchronized(blurHashPlaceholders) {
-            // The fade-out transition marks the instance finished when the image lands, after which it
-            // draws nothing at all — re-arm it rather than replacing it, so a later slow load still has
-            // something to show without the swap counting as a new request.
-            blurHashPlaceholders.get(key)?.also { it.reset() }
-                    ?: BlurHashDrawable.from(blurHash, data.width, data.height)?.also { blurHashPlaceholders.put(key, it) }
-        } ?: return request
-        return request.placeholder(placeholder)
-                .transition(DrawableTransitionOptions.with(BLURHASH_FADE_FACTORY))
-    }
+    /**
+     * The waiting state a load is drawn over until it lands, and the fade that reveals it. Preloads
+     * pass none: there is no view to hold one, only the decode to warm.
+     */
+    private fun GlideRequest<Drawable>.withWaitingState(waiting: Drawable?): GlideRequest<Drawable> =
+            (if (waiting == null) this else placeholder(waiting)).transition(fade(waiting))
+
+    // Performance mode buys frames by dropping decoration; a fade costs a redraw per frame per view.
+    private fun fade(placeholder: Drawable?): DrawableTransitionOptions =
+            if (PerformanceMode.enabled) DrawableTransitionOptions().dontTransition()
+            else DrawableTransitionOptions.with(BlurFadeOutTransitionFactory(CROSSFADE_MS, placeholder))
 
     private fun resolveUrl(data: Data, localCopy: Lazy<File?> = lazy { localCopyOf(data) }): Any? {
         localCopy.value?.let { return it }
