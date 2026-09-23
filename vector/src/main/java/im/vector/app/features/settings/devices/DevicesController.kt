@@ -138,6 +138,7 @@ class DevicesController @Inject constructor(
                             detailedMode(host.vectorPreferences.developerMode())
                             deviceInfo(deviceInfo)
                             currentDevice(false)
+                            lastSeenFormatted(host.dateFormatter.format(deviceInfo.lastSeenTs, DateFormatKind.DEFAULT_DATE_AND_TIME))
                             itemClickAction { host.callback?.onDeviceClicked(deviceInfo) }
                             e2eCapable(cryptoInfo != null)
                             trusted(cryptoInfo?.trustLevel)

@@ -5,10 +5,6 @@
     <string name="notice_direct_room_join_by_you">Ulijiunga</string>
     <string name="notice_direct_room_join">%1$s alijiunga</string>
     <string name="notice_room_invite_you">%1$s Amekualika</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d Iliyochaguliwa</item>
-        <item quantity="other">%1$d Ziliyochaguliwa</item>
-    </plurals>
     <string name="notice_room_created">%1$s Andaa chumba</string>
     <string name="notice_room_created_by_you">Umeandaa chumba</string>
     <string name="notice_direct_room_created">%1$s anzisha mjadala</string>

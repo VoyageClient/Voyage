@@ -83,18 +83,21 @@ abstract class DeviceItem : VectorEpoxyModel<DeviceItem.Holder>(R.layout.item_de
             holder.trustIcon.renderDeviceShield(null)
         }
 
+        val displayName = deviceInfo.displayName?.takeIf { it.isNotBlank() }
         val detailedModeLabels = listOf(
-                holder.displayNameLabelText,
-                holder.displayNameText,
                 holder.deviceIdLabelText,
                 holder.deviceIdText,
                 holder.deviceLastSeenLabelText,
                 holder.deviceLastSeenText
         )
+        val displayNameLabels = listOf(
+                holder.displayNameLabelText,
+                holder.displayNameText
+        )
         if (detailedMode) {
             holder.summaryLabelText.isVisible = false
 
-            holder.displayNameText.text = (deviceInfo.displayName ?: "").prepareForDisplay()
+            holder.displayNameText.text = (displayName ?: "").prepareForDisplay()
             holder.deviceIdText.text = deviceInfo.deviceId ?: ""
 
             val lastSeenIp = deviceInfo.lastSeenIp?.takeIf { ip -> ip.isNotBlank() } ?: "-"
@@ -107,13 +110,19 @@ abstract class DeviceItem : VectorEpoxyModel<DeviceItem.Holder>(R.layout.item_de
                 it.isVisible = true
                 it.setTypeface(null, if (currentDevice) Typeface.BOLD else Typeface.NORMAL)
             }
+            displayNameLabels.map {
+                it.isVisible = displayName != null
+                it.setTypeface(null, if (currentDevice) Typeface.BOLD else Typeface.NORMAL)
+            }
+            (holder.deviceIdLabelText.layoutParams as ViewGroup.MarginLayoutParams).topMargin =
+                    if (displayName == null) 0 else DimensionConverter(holder.root.resources).dpToPx(6)
         } else {
             holder.summaryLabelText.text =
                     span {
-                        +(deviceInfo.displayName ?: deviceInfo.deviceId ?: "")
+                        +(displayName ?: deviceInfo.deviceId ?: "")
                         apply {
                             // Add additional info if current session is not trusted
-                            if (!trustedSession) {
+                            if (!trustedSession && displayName != null) {
                                 +"\n"
                                 span {
                                     text = "${deviceInfo.deviceId}"
@@ -131,7 +140,7 @@ abstract class DeviceItem : VectorEpoxyModel<DeviceItem.Holder>(R.layout.item_de
                     }
 
             holder.summaryLabelText.isVisible = true
-            detailedModeLabels.map {
+            (detailedModeLabels + displayNameLabels).map {
                 it.isVisible = false
             }
         }

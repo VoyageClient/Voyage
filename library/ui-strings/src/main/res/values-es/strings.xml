@@ -1340,7 +1340,6 @@
     <string name="encryption_information_dg_xsigning_not_trusted">La firma cruzada está habilitada. 
 \nLas claves no son de confianza</string>
     <string name="settings_hs_admin_e2e_disabled">El administrador de su servidor ha desactivado el cifrado Extremo-a-Extremo de forma predeterminada en salas privadas y mensajes directos.</string>
-    <string name="settings_failed_to_get_crypto_device_info">No hay información criptográfica disponible</string>
     <string name="settings_active_sessions_verified_device_desc">Esta sesión es confiable para mensajería segura porque la verificaste:</string>
     <string name="settings_active_sessions_unverified_device_desc">Verifica esta sesión para marcarla como confiable y otorgarle acceso a mensajes cifrados. Si no iniciaste sesión en esta sesión, su cuenta puede haber sido comprometida:</string>
     <plurals name="settings_active_sessions_count">
@@ -2193,26 +2192,6 @@
 \n%s.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nparece un poco vacío.</string>
-    <string name="device_manager_inactive_sessions_title">Sesiones inactivas</string>
-    <string name="device_manager_unverified_sessions_description">Verifica o cierra sesión de sesiones sin verificar.</string>
-    <string name="device_manager_unverified_sessions_title">Sesiones sin verificar</string>
-    <string name="device_manager_header_section_security_recommendations_description">Mejora la seguridad de tu cuenta siguiendo estas recomendaciones.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Consejos de seguridad</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Inactiva por %1$d+ día (%2$s)</item>
-        <item quantity="other">Inactiva por %1$d+ días (%2$s)</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_unverified">Sin verificar · Última actividad %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Verificada · Última actividad %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Ver todos (%1$d)</string>
-    <string name="device_manager_view_details">Ver detalles</string>
-    <string name="device_manager_verify_session">Verificar sesión</string>
-    <string name="device_manager_verification_status_unverified">Sesión sin verificar</string>
-    <string name="device_manager_verification_status_verified">Sesión verificada</string>
-    <string name="a11y_device_manager_device_type_unknown">Tipo de dispositivo desconocido</string>
-    <string name="a11y_device_manager_device_type_desktop">Escritorio</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_mobile">Móvil</string>
     <string name="live_location_description">Ubicación en tiempo real</string>
     <string name="live_location_share_location_item_share">Compartir ubicación</string>
     <string name="live_location_not_enough_permission_dialog_description">Debes tener el permiso correspondiente para compartir ubicaciones en esta sala.</string>
@@ -2225,9 +2204,6 @@
     <string name="verify_invalid_qr_notice">Este código QR parece incorrecto. Por favor, intente verificar con otro método.</string>
     <string name="crosssigning_cannot_verify_this_session_desc">No serás capaz de acceder al historial de mensajes encriptado. Restablece tu backup de mensajes seguro y las claves de verificación para empezar de cero.</string>
     <string name="crosssigning_cannot_verify_this_session">No se ha podido verificar el dispositivo</string>
-    <string name="device_manager_sessions_other_description">Para más seguridad, verifica tus sesiones y cierra cualquiera que no reconozcas o hayas dejado de usar.</string>
-    <string name="device_manager_sessions_other_title">Otras sesiones</string>
-    <string name="settings_sessions_list">Sesiones</string>
     <string name="permalink_unsupported_groups">No se puede abrir este enlace: las comunidades han sido reemplazadas por espacios</string>
     <string name="ftue_auth_login_username_entry">Usuario / Email / Teléfono</string>
     <string name="ftue_auth_captcha_title">¿Eres una persona\?</string>
@@ -2308,10 +2284,6 @@
     <string name="all_chats">Todas las conversaciones</string>
     <string name="action_select_all">Seleccionar todo</string>
     <string name="action_got_it">De acuerdo</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d seleccionado</item>
-        <item quantity="other">%1$d seleccionados</item>
-    </plurals>
     <string name="settings_enable_direct_share_title">Habilitar compartición directa</string>
     <string name="grant_permission">Otorgar permiso</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} necesita permiso para mostrar notificaciones.

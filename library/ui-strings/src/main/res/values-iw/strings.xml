@@ -1266,7 +1266,6 @@
     </plurals>
     <string name="settings_active_sessions_unverified_device_desc">אמת את ההפעלה הזו כדי לסמן אותה כאמינה והענק לה גישה להודעות מוצפנות. אם לא נכנסת למפגש זה ייתכן שחשבונך נפגע:</string>
     <string name="settings_active_sessions_verified_device_desc">הפגישה הזו מהימנה בהודעות מאובטחות מכיוון שאמתת אותה:</string>
-    <string name="settings_failed_to_get_crypto_device_info">אין מידע קריפטוגרפי זמין</string>
     <string name="settings_active_sessions_signout_device">צא מפגישה זו</string>
     <string name="settings_active_sessions_manage">נהל מושבים</string>
     <string name="settings_active_sessions_show_all">הצג את כל הפעילויות באתר</string>

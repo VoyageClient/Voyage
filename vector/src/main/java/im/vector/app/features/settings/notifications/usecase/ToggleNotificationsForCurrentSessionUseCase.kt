@@ -9,9 +9,9 @@ package im.vector.app.features.settings.notifications.usecase
 
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.pushers.UnifiedPushHelper
-import im.vector.app.features.settings.devices.v2.notification.CheckIfCanToggleNotificationsViaPusherUseCase
-import im.vector.app.features.settings.devices.v2.notification.DeleteNotificationSettingsAccountDataUseCase
-import im.vector.app.features.settings.devices.v2.notification.SetNotificationSettingsAccountDataUseCase
+import im.vector.app.features.settings.devices.notification.CheckIfCanToggleNotificationsViaPusherUseCase
+import im.vector.app.features.settings.devices.notification.DeleteNotificationSettingsAccountDataUseCase
+import im.vector.app.features.settings.devices.notification.SetNotificationSettingsAccountDataUseCase
 import org.matrix.android.sdk.api.account.LocalNotificationSettingsContent
 import timber.log.Timber
 import javax.inject.Inject

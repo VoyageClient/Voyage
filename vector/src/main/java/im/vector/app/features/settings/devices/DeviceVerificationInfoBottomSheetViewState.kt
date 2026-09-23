@@ -10,6 +10,7 @@ package im.vector.app.features.settings.devices
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
+import im.vector.app.features.settings.devices.notification.NotificationsStatus
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 
@@ -21,7 +22,8 @@ data class DeviceVerificationInfoBottomSheetViewState(
         val accountCrossSigningIsTrusted: Boolean = false,
         val isMine: Boolean = false,
         val hasOtherSessions: Boolean = false,
-        val isRecoverySetup: Boolean = false
+        val isRecoverySetup: Boolean = false,
+        val notificationsStatus: NotificationsStatus = NotificationsStatus.NOT_SUPPORTED
 ) : MavericksState {
 
     constructor(args: DeviceVerificationInfoArgs) : this(deviceId = args.deviceId)

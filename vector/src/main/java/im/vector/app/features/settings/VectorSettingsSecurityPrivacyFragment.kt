@@ -153,10 +153,6 @@ class VectorSettingsSecurityPrivacyFragment :
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_SHOW_DEVICES_LIST_PREFERENCE_KEY)!!
     }
 
-    private val showDevicesListV2Pref by lazy {
-        findPreference<VectorPreference>(VectorPreferences.SETTINGS_SHOW_DEVICES_LIST_V2_PREFERENCE_KEY)!!
-    }
-
     // encrypt to unverified devices
     private val sendToUnverifiedDevicesPref by lazy {
         findPreference<SwitchPreference>(VectorPreferences.SETTINGS_ENCRYPTION_NEVER_SENT_TO_PREFERENCE_KEY)!!
@@ -895,13 +891,8 @@ class VectorSettingsSecurityPrivacyFragment :
      * Build the cryptography preference section.
      */
     private suspend fun refreshCryptographyPreference(devices: List<DeviceInfo>) {
-        showDeviceListPref.isVisible = !vectorPreferences.isNewSessionManagerEnabled()
         showDeviceListPref.isEnabled = devices.isNotEmpty()
         showDeviceListPref.summary = resources.getQuantityString(CommonPlurals.settings_active_sessions_count, devices.size, devices.size)
-
-        showDevicesListV2Pref.isVisible = vectorPreferences.isNewSessionManagerEnabled()
-        showDevicesListV2Pref.isEnabled = devices.isNotEmpty()
-        showDevicesListV2Pref.summary = resources.getQuantityString(CommonPlurals.settings_active_sessions_count, devices.size, devices.size)
 
         val userId = session.myUserId
         val deviceId = session.sessionParams.deviceId

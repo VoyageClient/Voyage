@@ -72,7 +72,6 @@
     <string name="crosssigning_verify_this_session">Vérifier cette session</string>
     <string name="settings_active_sessions_unverified_device_desc">Vérifiez cette session pour la marquer comme fiable et lui permettre d’accéder aux messages chiffrés. Si vous ne vous êtes pas connecté à cette session, votre compte est peut-être compromis :</string>
     <string name="settings_active_sessions_verified_device_desc">Cette session est fiable pour la messagerie sécurisée car vous l’avez vérifiée :</string>
-    <string name="settings_failed_to_get_crypto_device_info">Aucune information cryptographique n’est disponible</string>
     <string name="settings_server_upload_size_unknown">La limite n’est pas connue.</string>
     <string name="settings_server_upload_size_content">Votre serveur d’accueil accepte les pièces jointes (fichiers, médias, etc.) jusqu’à %s.</string>
     <string name="settings_server_version">Version du serveur</string>

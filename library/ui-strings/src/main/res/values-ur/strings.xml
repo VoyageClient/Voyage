@@ -37,10 +37,6 @@
     <string name="notice_room_ban">%1$s نے %2$s پر پابندی لگا دی</string>
     <string name="notice_room_ban_by_you">آپنے %1$s پر پابندی لگا دی</string>
     <string name="notice_room_withdraw">%1$s نے %2$s کی دعوت واپس لے لی</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d منتخب شدہ</item>
-        <item quantity="other">%1$d منتخب شدہ</item>
-    </plurals>
     <string name="notice_room_withdraw_by_you">آپنے %1$s کی دعوت واپس لے لی</string>
     <string name="notice_avatar_url_changed">%1$s نے اپنا اوتار بدل لیا</string>
     <string name="notice_avatar_url_changed_by_you">آپنے اپنا اوتار بدل لیا</string>

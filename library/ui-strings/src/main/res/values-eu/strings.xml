@@ -1045,7 +1045,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="settings_active_sessions_show_all">Erakutsi saio guztiak</string>
     <string name="settings_active_sessions_manage">Kudeatu saioak</string>
     <string name="settings_active_sessions_signout_device">Amaitu saio hau</string>
-    <string name="settings_failed_to_get_crypto_device_info">Ez dago informazio kriptografikorik eskuragarri</string>
     <string name="settings_active_sessions_verified_device_desc">Saio hau fidagarritzat jotzen da mezu seguruetarako egiaztatu duzulako:</string>
     <string name="settings_active_sessions_unverified_device_desc">Egiaztatu saio hau fidagarritzat markatzeko eta zifratutako mezuetara sarbidea emateko. Ez baduzu saio hau zuk hasi agian zure kontua konprometituta dago:</string>
     <plurals name="settings_active_sessions_count">
@@ -1231,10 +1230,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="notice_room_reject_by_you">Ez duzu gonbidapena onartu</string>
     <string name="notice_room_invite_no_invitee_by_you">Zure gonbidapena</string>
     <string name="notice_room_created_by_you">Gela bat sortu duzu</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d aukeratuta</item>
-        <item quantity="other">%1$d aukeratua</item>
-    </plurals>
     <string name="notice_room_join_by_you">Gelara elkartu zara</string>
     <string name="notice_direct_room_join">%1$s erabiltzailea batu da</string>
     <string name="notice_direct_room_join_by_you">Batu zara</string>

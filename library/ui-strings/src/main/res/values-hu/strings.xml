@@ -1112,7 +1112,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="settings_active_sessions_show_all">Minden munkamenet megmutatása</string>
     <string name="settings_active_sessions_manage">Munkamenet kezelése</string>
     <string name="settings_active_sessions_signout_device">Kijelentkezés ebből a munkamenetből</string>
-    <string name="settings_failed_to_get_crypto_device_info">Titkosítási információk nem ismertek</string>
     <string name="settings_active_sessions_verified_device_desc">Ez a munkamenet megbízhatónak van jelölve a biztonságos üzenetküldéshez, mert ellenőrizted:</string>
     <string name="settings_active_sessions_unverified_device_desc">A munkamenet megbízhatónak való jelöléséhez és a titkosított üzenetekhez való hozzáférés engedélyezéséhez hitelesítsd azt. Ha nem te jelentkeztél be ebbe a munkamenetbe akkor lehetséges, hogy a fiókodat feltörték:</string>
     <plurals name="settings_active_sessions_count">
@@ -2258,20 +2257,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     </plurals>
     <string name="search_space_two_parents">%1$s és %2$s</string>
     <string name="all_chats">Összes beszélgetés</string>
-    <string name="device_manager_other_sessions_description_unverified">Nem ellenőrzött - Utolsó aktivitás %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Ellenőrzött - Utolsó tevékenység %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Összes megtekintése (%1$d)</string>
-    <string name="device_manager_view_details">Részletek megtekintése</string>
-    <string name="device_manager_verify_session">Munkamenet hitelesítése</string>
-    <string name="device_manager_verification_status_unverified">Ellenőrizetlen munkamenet</string>
-    <string name="device_manager_verification_status_verified">Ellenőrzött munkamenet</string>
-    <string name="a11y_device_manager_device_type_unknown">Ismeretlen eszköztípus</string>
-    <string name="a11y_device_manager_device_type_desktop">Asztali</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_mobile">Mobil</string>
-    <string name="device_manager_sessions_other_description">A legjobb biztonság érdekében ellenőrizd a munkameneteket, és jelentkezz ki minden olyan munkamenetből, melyet már nem ismersz fel vagy nem használsz.</string>
-    <string name="device_manager_sessions_other_title">Más munkamenetek</string>
-    <string name="settings_sessions_list">Munkamenetek</string>
     <string name="a11y_open_spaces">Nyitott területek listája</string>
     <string name="a11y_create_message">Új beszélgetés vagy szoba létrehozása</string>
     <string name="room_list_filter_people">Emberek</string>
@@ -2298,99 +2283,16 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="home_empty_space_no_rooms_message">Szobák és emberek csoportokba rendezésének új mondja a terek használata. Létező szoba hozzáadása vagy új készítése a jobb alsó gombbal.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nkicsit üresnek tűnik.</string>
-    <string name="device_manager_inactive_sessions_title">Nem aktív munkamenetek</string>
-    <string name="device_manager_unverified_sessions_description">Ellenőrizd vagy jelentkezz ki az ellenőrizetlen munkamenetekből.</string>
-    <string name="device_manager_unverified_sessions_title">Meg nem erősített munkamenetek</string>
-    <string name="device_manager_header_section_security_recommendations_description">Javítsa a fiókja biztonságát azzal, hogy követi a következő javaslatokat.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Biztonsági javaslatok</string>
     <string name="invites_empty_title">Semmi új.</string>
     <string name="space_list_empty_message">Terekkel lehet szobákat és személyeket csoportokba rendezni. Készíts egyet indulásnak.</string>
     <string name="space_list_empty_title">Nincsenek terek egyelőre.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Fontold meg, hogy a régi már nem használt (%1$d napja vagy régebben) munkamenetből kijelentkezel.</item>
-        <item quantity="other">Fontold meg, hogy a régi már nem használt (%1$d napja vagy régebben) munkamenetből kijelentkezel.</item>
-    </plurals>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">%1$d+ napja inaktív (%2$s)</item>
-        <item quantity="other">%1$d+ napja inaktív (%2$s)</item>
-    </plurals>
     <string name="invites_empty_message">Itt láthatók a meghívók és elvégzendő műveletek.</string>
-    <string name="device_manager_session_details_device_ip_address">IP cím</string>
-    <string name="device_manager_session_details_session_last_activity">Utolsó tevékenység</string>
-    <string name="device_manager_session_details_session_name">Munkamenet neve</string>
-    <string name="device_manager_session_details_description">Alkalmazás, eszköz és aktivitás információ.</string>
-    <string name="device_manager_session_details_title">Munkamenet információk</string>
-    <string name="device_manager_other_sessions_clear_filter">Szűrő törlése</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Nincs inaktív munkamenet.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Nincs ellenőrizetlen munkamenet.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Nincs ellenőrzött munkamenet.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Fontold meg, hogy kijelentkezel a régi munkamenetekből (%1$d napja vagy régebben használtál) amit már nem használsz.</item>
-        <item quantity="other">Fontold meg, hogy kijelentkezel a régi munkamenetekből (%1$d napja vagy régebben használtál) amit már nem használsz.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Inaktív</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Erősítse meg a munkameneteit a még biztonságosabb csevegéshez vagy jelentkezzen ki ezekből, ha nem ismeri fel vagy már nem használja őket.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Ellenőrizetlen</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">A legjobb biztonság érdekében jelentkezz ki minden olyan munkamenetből amit nem ismersz fel vagy régen használtál már.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Hitelesített</string>
-    <string name="a11y_device_manager_filter">Szűrés</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">%1$d napja inaktív</item>
-        <item quantity="other">%1$d napja inaktív</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Inaktív</string>
-    <string name="device_manager_filter_option_unverified_description">Nem áll készen a biztonságos üzenetküldésre</string>
-    <string name="device_manager_filter_option_unverified">Ellenőrizetlen</string>
-    <string name="device_manager_filter_option_verified_description">Felkészülve a biztonságos üzenetküldésre</string>
-    <string name="device_manager_filter_option_verified">Hitelesített</string>
-    <string name="device_manager_filter_option_all_sessions">Minden munkamenet</string>
-    <string name="device_manager_filter_bottom_sheet_title">Szűrés</string>
-    <string name="device_manager_session_last_activity">Utolsó aktivitás %1$s</string>
-    <string name="device_manager_device_title">Eszköz</string>
-    <string name="device_manager_session_title">Munkamenet</string>
-    <string name="device_manager_current_session_title">Jelenlegi munkamenet</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">A jobb biztonság vagy megbízhatóság érdekében ellenőrizze vagy jelentkezzen ki ebből a munkamenetből.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Ellenőrizd az aktuális munkamenetet a biztonságos üzenetküldéshez.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Ez a munkamenet beállítva a biztonságos üzenetküldéshez.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Az aktuális munkamenet készen áll a biztonságos üzenetküldésre.</string>
     <string name="labs_enable_deferred_dm_summary">Közvetlen beszélgetés indítása csak az első üzenettel</string>
     <string name="labs_enable_deferred_dm_title">Késleltetett közvetlen üzenetek engedélyezése</string>
     <string name="labs_enable_new_app_layout_summary">Egyszerűsített Element nem kötelező lapokkal</string>
     <string name="labs_enable_new_app_layout_title">Új kinézet engedélyezése</string>
-    <string name="device_manager_learn_more_session_rename">Más felhasználók akikkel közvetlenül vagy szobában beszélgetsz látják a teljes listát a munkameneteidről.
-\n
-\nEzzel ők biztosak lehetnek abban, hogy ténylegesen veled beszélgetnek. Ez azt is jelenti, hogy látják a munkamenet nevét amit itt megadsz.</string>
-    <string name="labs_enable_client_info_recording_summary">Kliens neve, verziója és url felvétele a munkamenet könnyebb azonosításához a munkamenet kezelőben.</string>
-    <string name="labs_enable_client_info_recording_title">Kliens információ felvételének engedélyezése</string>
-    <string name="labs_enable_session_manager_summary">Jobb áttekintés és felügyelet a munkamenetek felett.</string>
-    <string name="labs_enable_session_manager_title">Új munkamenet kezelő engedélyezése</string>
-    <string name="device_manager_learn_more_session_rename_title">Munkamenet átnevezése</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Hitelesített munkamenetek</string>
-    <string name="device_manager_learn_more_sessions_unverified">Az ellenőrizetlen munkamenetek azok amikre a felhasználói neveddel és jelszavaddal léptek be de nem lett ellenőrizve.
-\n
-\nMindenképpen győződj meg arról, hogy felismered ezeket a munkameneteket mert lehet, hogy illetéktelenül használják a fiókodat.</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Ellenőrizetlen munkamenetek</string>
-    <string name="device_manager_learn_more_sessions_inactive">Az inaktív munkamenetek azok amiket egy ideje nem használtál, de továbbra is megkapják a titkosítási kulcsokat.
-\n
-\nA nem aktív munkamenetek törlésével növelhető a biztonság és a sebesség valamint könnyebb lesz felismerni a gyanús munkameneteket.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Nem aktív munkamenetek</string>
-    <string name="device_manager_session_rename_warning">Fontos, hogy a munkamenet neve a kommunikációban résztvevők számára látható.</string>
-    <string name="device_manager_session_rename_description">Az egyedi munkamenet név segíthet az eszköz könnyebb felismerésében.</string>
-    <string name="device_manager_session_rename_edit_hint">Munkamenet neve</string>
-    <string name="device_manager_session_rename">Munkamenet átnevezése</string>
-    <string name="device_manager_session_details_device_operating_system">Operációs rendszer</string>
-    <string name="device_manager_session_details_device_model">Modell</string>
-    <string name="device_manager_session_details_device_browser">Böngésző</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Verzió</string>
-    <string name="device_manager_session_details_application_name">Név</string>
-    <string name="device_manager_session_details_application">Alkalmazás</string>
     <string name="device_manager_push_notifications_description">Push értesítések fogadása ebben a munkamenetben.</string>
     <string name="device_manager_push_notifications_title">Push értesítések</string>
-    <string name="device_manager_session_overview_signout">Kijelentkezés ebből a munkamenetből</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Ellenőrizetlen · A jelenlegi munkameneted</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Ellenőrizd a jelenlegi munkamenetedet, hogy ismert állapotba kerüljön.</string>
-    <string name="device_manager_verification_status_unknown">Ismeretlen ellenőrzési státusz</string>
     <string name="key_authenticity_not_guaranteed">A titkosított üzenetek valódiságát ezen az eszközön nem lehet garantálni.</string>
     <string name="settings_security_incognito_keyboard_summary">Utasítja a billentyűzetet, hogy ne mentsen személyre szabott adatokat, mint előzmények vagy szótár abból amit a beszélgetésekben írsz. Vedd figyelembe, hogy nem minden billentyűzet veszi ezt figyelembe.</string>
     <string name="settings_security_incognito_keyboard_title">Inkognitó billentyűzet</string>
@@ -2449,7 +2351,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="qr_code_login_header_failed_other_device_already_signed_in_description">A másik eszköz már bejelentkezett.</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">Biztonsági probléma merült fel a biztonságos üzenetküldés beállításával kapcsolatban. Az alábbiak egyike veszélybe kerülhet: Az Ön saját kiszolgálója; Az Ön internetkapcsolata(i); Az Ön eszköze(i);</string>
     <string name="qr_code_login_header_failed_other_description">A kérés sikertelen.</string>
-    <string name="device_manager_other_sessions_select">Munkamenetek kiválasztása</string>
     <string name="attachment_type_selector_camera">Kamera</string>
     <string name="attachment_type_selector_location">Földrajzi helyzet</string>
     <string name="attachment_type_selector_poll">Szavazások</string>
@@ -2458,18 +2359,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="attachment_type_selector_gallery">Fénykép könyvtár</string>
     <string name="action_deselect_all">Összes kiválasztásának megszüntetése</string>
     <string name="action_select_all">Összes kiválasztása</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d kiválasztva</item>
-        <item quantity="other">%1$d kiválasztva</item>
-    </plurals>
-    <string name="device_manager_learn_more_sessions_verified_description">Mindenhol ellenőrzött munkamenetek vannak ahol ezt a fiókot használva megadtad a jelmondatodat vagy egy másik már hitelesített munkamenetből megerősítetted az identitásodat.
-\n
-\nEz azt jelenti, hogy a titkosított üzenetek visszafejtéséhez rendelkezel a kulcsokkal és megerősíted a többiek felé, hogy megbízol a munkamenetben.</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Kijelentkezés %1$d munkamenetből</item>
-        <item quantity="other">Kijelentkezés %1$d munkamenetből</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Kijelentkezés</string>
     <string name="attachment_type_selector_text_formatting">Szöveg formázás</string>
     <string name="message_reply_to_sender_created_poll">szavazás elkészítve.</string>
     <string name="message_reply_to_sender_sent_sticker">matrica elküldve.</string>
@@ -2479,21 +2368,12 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="message_reply_to_sender_sent_audio_file">hangfájl elküldve.</string>
     <string name="message_reply_to_sender_sent_file">fájl elküldve.</string>
     <string name="message_reply_to_prefix">Válaszolva erre</string>
-    <string name="device_manager_other_sessions_hide_ip_address">IP címek elrejtése</string>
-    <string name="device_manager_other_sessions_show_ip_address">IP címek megjelenítése</string>
     <string name="review_unverified_sessions_description">Tekintsd át, hogy meggyőződj arról, hogy a fiókod biztonságban van</string>
     <string name="review_unverified_sessions_title">Ellenőrizetlen bejelentkezéseid vannak</string>
     <string name="settings_enable_direct_share_summary">Friss beszélgetések megjelenítése a rendszer megosztási menüjében</string>
     <string name="settings_enable_direct_share_title">Közvetlen megosztás engedélyezése</string>
     <string name="settings_nightly_build_update">Szerezd be a napi összeállítást (megjegyzés: lehet, hogy problémáid lesznek a bejelentkezéssel)</string>
     <string name="settings_nightly_build">Napi összeállítás</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Ez a munkamenet nem támogatja a titkosítást, így nem lehet ellenőrizni sem.
-\n
-\nEzzel a munkamenettel nem tudsz részt venni olyan szobákban ahol a titkosítás be van kapcsolva.
-\n
-\nA biztonság és a adatbiztonsági okokból javasolt olyan Matrix kliens használata ami támogatja a titkosítást.</string>
-    <string name="device_manager_signout_all_other_sessions">Kijelentkezés minden más munkamenetből</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Ez a munkamenet nem támogatja a titkosítást, így nem lehet ellenőrizni sem.</string>
     <string name="notice_voice_broadcast_ended_by_you">Ön befejezte a hang közvetítést.</string>
     <string name="notice_voice_broadcast_ended">%1$s befejezte a hang közvetítést.</string>
     <string name="set_link_edit">Hivatkozás szerkesztése</string>

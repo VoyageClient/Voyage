@@ -1168,7 +1168,6 @@
     <string name="settings_active_sessions_show_all">Mostra tutte le sessioni</string>
     <string name="settings_active_sessions_manage">Gestisci sessioni</string>
     <string name="settings_active_sessions_signout_device">Disconnetti questa sessione</string>
-    <string name="settings_failed_to_get_crypto_device_info">Nessuna informazione crittografica disponibile</string>
     <string name="settings_active_sessions_verified_device_desc">Questa sessione è fidata per i messaggi sicuri perché l\'hai verificata:</string>
     <string name="settings_active_sessions_unverified_device_desc">Verifica questa sessione per segnarla come affidabile e darle l\'accesso ai messaggi criptati. Se non hai effettuato l\'accesso a questa sessione il tuo account potrebbe essere compromesso:</string>
     <plurals name="settings_active_sessions_count">
@@ -2252,9 +2251,6 @@
     <string name="location_share_loading_map_error">Impossibile caricare la mappa
 \nQuesto homeserver potrebbe non essere configurato per mostrare mappe.</string>
     <string name="all_chats">Tutte le chat</string>
-    <string name="device_manager_sessions_other_description">Per una maggiore sicurezza, verifica le tue sessioni e disconnetti quelle che non riconosci o che non usi più.</string>
-    <string name="device_manager_sessions_other_title">Altre sessioni</string>
-    <string name="settings_sessions_list">Sessioni</string>
     <string name="a11y_open_spaces">Apri elenco spazi</string>
     <string name="a11y_create_message">Crea una nuova conversazione o stanza</string>
     <string name="room_list_filter_people">Persone</string>
@@ -2270,17 +2266,6 @@
     <string name="explore_rooms">Esplora le stanze</string>
     <string name="create_room">Crea una stanza</string>
     <string name="start_chat">Inizia una chat</string>
-    <string name="device_manager_other_sessions_description_unverified">Non verificata · Ultima attività %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Verificata · Ultima attività %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Vedi tutte (%1$d)</string>
-    <string name="device_manager_view_details">Vedi dettagli</string>
-    <string name="device_manager_verify_session">Verifica la sessione</string>
-    <string name="device_manager_verification_status_unverified">Sessione non verificata</string>
-    <string name="device_manager_verification_status_verified">Sessione verificata</string>
-    <string name="a11y_device_manager_device_type_unknown">Tipo di dispositivo sconosciuto</string>
-    <string name="a11y_device_manager_device_type_desktop">Desktop</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_mobile">Mobile</string>
     <string name="timeline_error_room_not_found">Spiacenti, questa stanza non è stata trovata.
 \nRiprova più tardi.%s</string>
     <string name="invites_title">Inviti</string>
@@ -2292,84 +2277,14 @@
     <string name="home_empty_space_no_rooms_message">Gli spazi sono un modo nuovo di raggruppare stanze e persone. Aggiungi una stanza esistente, o creane una nuova usando il pulsante in basso a destra.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nsembra un po\' vuoto.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Considera di disconnettere le sessioni vecchie (%1$d giorno o più) che non usi più.</item>
-        <item quantity="other">Considera di disconnettere le sessioni vecchie (%1$d giorni o più) che non usi più.</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">Sessioni inattive</string>
-    <string name="device_manager_unverified_sessions_description">Verifica o disconnetti le sessioni non verificate.</string>
-    <string name="device_manager_unverified_sessions_title">Sessioni non verificate</string>
-    <string name="device_manager_header_section_security_recommendations_description">Migliora la sicurezza del tuo account seguendo questi consigli.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Consigli di sicurezza</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Inattivo da %1$d+ giorno (%2$s)</item>
-        <item quantity="other">Inattivo da %1$d+ giorni (%2$s)</item>
-    </plurals>
     <string name="invites_empty_message">Qui è dove troverai le nuove richieste e gli inviti.</string>
     <string name="invites_empty_title">Niente di nuovo.</string>
     <string name="space_list_empty_message">Gli spazi sono un modo nuovo di raggruppare stanze e persone. Crea uno spazio per iniziare.</string>
     <string name="space_list_empty_title">Ancora nessuno spazio.</string>
-    <string name="device_manager_session_details_device_ip_address">Indirizzo IP</string>
-    <string name="device_manager_session_details_session_last_activity">Ultima attività</string>
-    <string name="device_manager_session_details_session_name">Nome sessione</string>
-    <string name="device_manager_session_details_description">Applicazione, dispositivo e informazioni di attività.</string>
-    <string name="device_manager_session_details_title">Dettagli sessione</string>
-    <string name="device_manager_other_sessions_clear_filter">Annulla filtro</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Nessuna sessione inattiva trovata.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Nessuna sessione non verificata trovata.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Nessuna sessione verificata trovata.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Considera di disconnettere le sessioni vecchie (%1$d giorno o più) che non usi più.</item>
-        <item quantity="other">Considera di disconnettere le sessioni vecchie (%1$d giorni o più) che non usi più.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Inattivo</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Verifica le tue sessioni per avere conversazioni più sicure o disconnetti quelle che non riconosci o che non usi più.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Non verificato</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Per una maggiore sicurezza, disconnetti tutte le sessioni che non riconosci o che non usi più.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Verificato</string>
-    <string name="a11y_device_manager_filter">Filtra</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Inattivo da %1$d giorno o più</item>
-        <item quantity="other">Inattivo da %1$d giorni o più</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Inattivo</string>
-    <string name="device_manager_filter_option_unverified_description">Non pronto per messaggi sicuri</string>
-    <string name="device_manager_filter_option_unverified">Non verificato</string>
-    <string name="device_manager_filter_option_verified_description">Pronto per messaggi sicuri</string>
-    <string name="device_manager_filter_option_verified">Verificato</string>
-    <string name="device_manager_filter_option_all_sessions">Tutte le sessioni</string>
-    <string name="device_manager_filter_bottom_sheet_title">Filtra</string>
-    <string name="device_manager_session_last_activity">Ultima attività %1$s</string>
-    <string name="device_manager_device_title">Dispositivo</string>
-    <string name="device_manager_session_title">Sessione</string>
-    <string name="device_manager_current_session_title">Sessione attuale</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Verifica o disconnetti questa sessione per una migliore sicurezza e affidabilità.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Verifica la tua sessione attuale per messaggi più sicuri.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Questa sessione è pronta per i messaggi sicuri.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">La tua sessione attuale è pronta per i messaggi sicuri.</string>
     <string name="labs_enable_deferred_dm_title">Attiva messaggi diretti differiti</string>
     <string name="labs_enable_deferred_dm_summary">Crea messaggio diretto solo al primo messaggio</string>
     <string name="labs_enable_new_app_layout_summary">Un Element semplificato con schede opzionali</string>
     <string name="labs_enable_new_app_layout_title">Attiva nuova disposizione</string>
-    <string name="device_manager_learn_more_session_rename">Gli altri utenti nei messaggi diretti e nelle stanze in cui entri, possono vedere una lista completa delle tue sessioni.
-\n
-\nIn questo modo hanno la certezza che stanno parlando davvero con te, ma significa anche che possono vedere il nome della sessione che inserisci qui.</string>
-    <string name="device_manager_learn_more_session_rename_title">Rinominare le sessioni</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Sessioni verificate</string>
-    <string name="device_manager_learn_more_sessions_unverified">Le sessioni non verificate sono quelle in cui è stato fatto l\'accesso con le tue credenziali, ma che non sono state verificate.
-\n
-\nDovresti essere particolarmente sicuro di riconoscere queste sessioni dato che potrebbero rappresentare un uso non autorizzato del tuo account.</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Sessioni non verificate</string>
-    <string name="device_manager_learn_more_sessions_inactive">Le sessioni inattive sono quelle che non usi da un po\' di tempo, ma che continuano a ricevere chiavi di crittografia.
-\n
-\nLa rimozione di sessioni inattive migliora la sicurezza e le prestazioni, e ti rende più facile capire se una sessione nuova è sospetta.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Sessioni inattive</string>
-    <string name="device_manager_session_rename_warning">Ricorda che i nomi di sessione sono anche visibili alle persone con cui comunichi.</string>
-    <string name="device_manager_session_rename_description">I nomi di sessione personalizzati possono aiutarti a riconoscere i tuoi dispositivi più facilmente.</string>
-    <string name="device_manager_session_rename_edit_hint">Nome sessione</string>
-    <string name="device_manager_session_rename">Rinomina sessione</string>
-    <string name="device_manager_session_overview_signout">Disconnetti questa sessione</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Non verificata · La sessione attuale</string>
     <string name="key_authenticity_not_guaranteed">L\'autenticità di questo messaggio cifrato non può essere garantita su questo dispositivo.</string>
     <string name="settings_security_incognito_keyboard_summary">Richiedi che la tastiera non debba aggiornare dati personalizzati come la cronologia di digitazione e il dizionario in base a cosa digiti nelle conversazioni. Nota che alcune tastiere potrebbero non rispettare questa impostazione.</string>
     <string name="settings_security_incognito_keyboard_title">Tastiera incognito</string>
@@ -2379,21 +2294,8 @@
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ Ci sono dispositivi non verificati in questa stanza, non potranno decifrare i messaggi che invii.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">Non inviare mai messaggi cifrati a sessioni non verificate in questa stanza.</string>
     <string name="action_got_it">Capito</string>
-    <string name="labs_enable_client_info_recording_summary">Registra il nome, la versione e l\'url del client per riconoscere le sessioni più facilmente nel gestore di sessioni.</string>
-    <string name="labs_enable_client_info_recording_title">Attiva registrazione info client</string>
-    <string name="labs_enable_session_manager_summary">Maggiore visibilità e controllo su tutte le tue sessioni.</string>
-    <string name="labs_enable_session_manager_title">Attiva il nuovo gestore di sessioni</string>
-    <string name="device_manager_session_details_device_operating_system">Sistema operativo</string>
-    <string name="device_manager_session_details_device_model">Modello</string>
-    <string name="device_manager_session_details_device_browser">Browser</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Versione</string>
-    <string name="device_manager_session_details_application_name">Nome</string>
-    <string name="device_manager_session_details_application">Applicazione</string>
     <string name="device_manager_push_notifications_description">Ricevi notifiche push in questa sessione.</string>
     <string name="device_manager_push_notifications_title">Notifiche push</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Verifica l\'attuale sessione per rivelare lo stato di verifica di questa sessione.</string>
-    <string name="device_manager_verification_status_unknown">Stato di verifica sconosciuto</string>
     <string name="push_gateway_item_enabled">Attivato:</string>
     <string name="push_gateway_item_device_id">ID sessione:</string>
     <string name="error_check_network">Qualcosa è andato storto. Controlla la tua connessione di rete e riprova.</string>
@@ -2443,7 +2345,6 @@
     <string name="qr_code_login_header_failed_other_device_already_signed_in_description">L\'altro dispositivo ha già fatto l\'accesso.</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">Si è verificato un problema di sicurezza configurando i messaggi sicuri. Una delle seguenti cose potrebbe essere compromessa: il tuo homeserver; la/e connessione/i internet; il/i dispositivo/i;</string>
     <string name="qr_code_login_header_failed_other_description">La richiesta è fallita.</string>
-    <string name="device_manager_other_sessions_select">Seleziona sessioni</string>
     <string name="attachment_type_selector_camera">Fotocamera</string>
     <string name="attachment_type_selector_location">Posizione</string>
     <string name="attachment_type_selector_poll">Sondaggi</string>
@@ -2452,18 +2353,6 @@
     <string name="attachment_type_selector_gallery">Album di foto</string>
     <string name="action_deselect_all">Deseleziona tutto</string>
     <string name="action_select_all">Seleziona tutto</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d selezionato</item>
-        <item quantity="other">%1$d selezionati</item>
-    </plurals>
-    <string name="device_manager_learn_more_sessions_verified_description">Le sessioni verificate sono ovunque usi questo account dopo l\'inserimento della password o la conferma della tua identità con un\'altra sessione verificata.
-\n
-\nCiò significa che hai tutte le chiavi necessarie per sbloccare i tuoi messaggi cifrati e per confermare agli altri utenti che ti fidi di questa sessione.</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Disconnetti da %1$d sessione</item>
-        <item quantity="other">Disconnetti da %1$d sessioni</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Disconnetti</string>
     <string name="attachment_type_selector_text_formatting">Formattazione testo</string>
     <string name="message_reply_to_sender_created_poll">creato un sondaggio.</string>
     <string name="message_reply_to_sender_sent_sticker">inviato un adesivo.</string>
@@ -2473,19 +2362,10 @@
     <string name="message_reply_to_sender_sent_audio_file">inviato un file audio.</string>
     <string name="message_reply_to_sender_sent_file">inviato un file.</string>
     <string name="message_reply_to_prefix">In risposta a</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Nascondi indirizzo IP</string>
-    <string name="device_manager_other_sessions_show_ip_address">Mostra indirizzo IP</string>
     <string name="settings_enable_direct_share_summary">Mostra chat recenti nel menu di condivisione di sistema</string>
     <string name="settings_enable_direct_share_title">Attiva condivisione diretta</string>
     <string name="review_unverified_sessions_description">Controlla per assicurarti che l\'account sia sicuro</string>
     <string name="review_unverified_sessions_title">Hai sessioni non verificate</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Questa sessione non supporta la crittografia, perciò non può essere verificata.
-\n
-\nNon potrai partecipare in stanze dove la crittografia è attiva mentre usi questa sessione.
-\n
-\nPer maggiore sicurezza e privacy, è consigliabile usare i client di Matrix che supportano la crittografia.</string>
-    <string name="device_manager_signout_all_other_sessions">Disconnetti da tutte le altre sessioni</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Questa sessione non supporta la crittografia, perciò non può essere verificata.</string>
     <string name="settings_nightly_build_update">Ottieni la build più recente (nota: potresti avere problemi nell\'accesso)</string>
     <string name="settings_nightly_build">Nightly build</string>
     <string name="notice_voice_broadcast_ended_by_you">Hai terminato una trasmissione vocale.</string>

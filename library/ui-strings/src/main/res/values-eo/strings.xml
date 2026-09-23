@@ -1438,7 +1438,6 @@
     </plurals>
     <string name="settings_active_sessions_unverified_device_desc">Kontrolu ĉi tiun salutaĵon por marki ĝin fidata ⳤ doni al ĝi aliron al ĉifritaj mesaĝoj. Se vi ne salutis ĉi tiun salutaĵon, la sekureco de via konto povus esti rompita:</string>
     <string name="settings_active_sessions_verified_device_desc">Ĉi tiu salutaĵo estas fidata por sekura mesaĝado ĉar vi kontrolis ĝin:</string>
-    <string name="settings_failed_to_get_crypto_device_info">Neniuj informoj pri ĉifroteĥnikaro disponeblas</string>
     <string name="settings_active_sessions_signout_device">Elsaluti ĉi tiun salutaĵon</string>
     <string name="settings_active_sessions_manage">Administri salutaĵojn</string>
     <string name="settings_active_sessions_show_all">Montri ĉiujn salutaĵojn</string>
@@ -1914,10 +1913,6 @@
     <string name="spaces">Spacoj</string>
     <string name="settings_mentions_at_room">\@room</string>
     <string name="all_chats">Ĉiuj Babilejoj</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d elektita</item>
-        <item quantity="other">%1$d elektitaj</item>
-    </plurals>
     <string name="action_view_threads">Vidi fadenojn</string>
     <string name="push_gateway_item_enabled">Ebligita:</string>
     <string name="push_gateway_item_device_id">Identigilo de sesio:</string>
@@ -1945,7 +1940,6 @@
     <string name="threads_beta_enable_notice_title">Fadenoj Betao</string>
     <string name="thread_list_not_available">Via hejma servilo ankoraŭ ne subtenas montri la liston de fadenoj.</string>
     <string name="restart_the_application_to_apply_changes">Rekomencu la aplikaĵon por ke la ŝanĝo ekvalidu.</string>
-    <string name="device_manager_session_rename_description">Propraj sesiaj nomoj povas helpi vin rekoni viajn aparatojn pli facile.</string>
     <string name="thread_list_empty_title">Restigu diskutojn organizitajn per fadenoj</string>
     <string name="legals_third_party_notices">Bibliotekoj de ekstera liveranto</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Montri sencimigajn informojn sur la ekrano</string>
@@ -1962,8 +1956,6 @@
     <string name="all_rooms_youre_in_will_be_shown_in_home">Ĉiuj ĉambroj, kiujn vi estas ene, estos montritaj en Hejmo.</string>
     <string name="settings_notification_method">Metodo de sciigo</string>
     <string name="live_location_labs_promotion_description">Bonvolu noti: ĉi tio estas funkcio de laboratorio uzanta provizoran efektivigon. Ĉi tio signifas, ke vi ne povos forigi vian lokhistorion, kaj progresintaj uzantoj povos vidi vian lokhistorion eĉ post kiam vi ĉesos kunhavigi vian tujan lokon kun ĉi tiu ĉambro.</string>
-    <string name="labs_enable_session_manager_summary">Havu pli grandan videblecon kaj kontrolon super ĉiuj viaj sesioj.</string>
-    <string name="labs_enable_client_info_recording_summary">Registri la klientnomon, version kaj URL-on por rekoni sesiojn pli facile en sesia administrilo.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \n aspektas iom malplena.</string>
     <string name="home_empty_space_no_rooms_message">Spacoj estas nova maniero grupigi ĉambrojn kaj homojn. Aldonu ekzistantan ĉambron aŭ kreu novan per la malsupra dekstra butono.</string>
@@ -1973,7 +1965,6 @@
     <string name="legals_home_server_title">La politiko de via hejmservilo</string>
     <string name="space_explore_filter_no_result_description">Iuj rezultoj povas esti kaŝitaj ĉar ĝi estas privataj kaj vi bezonas inviton al ĝi.</string>
     <string name="upgrade_room_update_parent_space">Aŭtomate ĝisdatigi gepatron de spaco</string>
-    <string name="labs_enable_client_info_recording_title">Ebligi klientinformregistradon</string>
     <string name="avatar_of_space">Avataro de spaco %1$s</string>
     <string name="live_location_labs_promotion_title">Tuja Loko-kunhavigado</string>
     <string name="settings_acceptable_use_policy">Akceptebla Uzo-Politiko</string>
@@ -2014,9 +2005,6 @@
 \nĈi tio estos unufoja transiro ĉar Fadenoj nun estas parto de la Matrix-specifo.</string>
     <string name="preference_system_settings">Sistemaj agordoj</string>
     <string name="live_location_sharing_notification_description">Loko-kunhavigado estas en progreso</string>
-    <string name="device_manager_learn_more_sessions_inactive">Neaktivaj sesioj estas sesioj, kiujn vi ne uzis dum kelka tempo, sed ĝi daŭre ricevas ĉifrajn ŝlosilojn.
-\n
-\nForigi neaktivajn sesiojn plibonigas sekurecon kaj rendimenton, kaj faciligas al vi identigi ĉu nova sesio estas suspektinda.</string>
     <string name="home_layout_preferences_sort_by">Ordigi laŭ</string>
     <string name="home_layout_preferences_sort_activity">Aktiveco</string>
     <string name="a11y_open_spaces">Malfermi la liston de spacoj</string>
@@ -2034,7 +2022,6 @@
     <string name="this_invite_to_this_space_was_sent">Ĉi tiu invito al ĉi tiu spaco estis sendita al %s kiu ne estas asociita kun via konto</string>
     <string name="search_space_two_parents">%1$s kaj %2$s</string>
     <string name="threads_labs_enable_notice_message">Via hejmservilo nuntempe ne subtenas fadenojn, do ĉi tiu funkcio eble estas nefidinda. Iuj fadenigitaj mesaĝoj eble ne estas fidinde disponeblaj. %sĈu vi tamen volas ebligi fadenojn\?</string>
-    <string name="labs_enable_session_manager_title">Ebligi novan sesian administrilo</string>
     <string name="legals_no_policy_provided">Ĉi tiu servilo ne provizas ajnan politikon.</string>
     <string name="settings_developer_mode_fail_fast_title">Rapida fiasko</string>
     <string name="settings_security_incognito_keyboard_title">Inkognita klavaro</string>

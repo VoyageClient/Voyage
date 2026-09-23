@@ -1326,7 +1326,6 @@
     <string name="settings_active_sessions_show_all">Sken meṛṛa tiɣimiyin</string>
     <string name="settings_active_sessions_manage">Sefrek tiɣimiyin</string>
     <string name="settings_active_sessions_signout_device">Ffeɣ seg tɣimit-a</string>
-    <string name="settings_failed_to_get_crypto_device_info">Ulac talɣut n uwgelhen i yellan</string>
     <string name="settings_active_sessions_verified_device_desc">Tiɣimit-a tettwattkal i yiznan iɣelsanen acku tesneqdeḍ-tt:</string>
     <string name="settings_active_sessions_unverified_device_desc">Senqed tiɣimit-a i wakken ad tt-tcerḍeḍ tettwattkal &amp; anef-as ad tekcem ɣer yiznan yettwawgelhen. Ma yella ur teqqineḍ ara ɣer tɣimit-a, amiḍan-inek·inem yezmer ad yettwaker:</string>
     <plurals name="settings_active_sessions_count">

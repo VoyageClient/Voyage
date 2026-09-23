@@ -8,8 +8,8 @@
 package im.vector.app.core.notification
 
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.settings.devices.v2.notification.GetNotificationsStatusUseCase
-import im.vector.app.features.settings.devices.v2.notification.NotificationsStatus
+import im.vector.app.features.settings.devices.notification.GetNotificationsStatusUseCase
+import im.vector.app.features.settings.devices.notification.NotificationsStatus
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.Session

@@ -160,8 +160,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_JUMP_TO_BOTTOM_ON_SEND = "SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
         const val SETTINGS_JUMP_BACK_TO_REPLY_SOURCE = "SETTINGS_JUMP_BACK_TO_REPLY_SOURCE"
         private const val SETTINGS_COLLAPSED_ROOM_SECTIONS = "SETTINGS_COLLAPSED_ROOM_SECTIONS"
-        const val SETTINGS_LABS_NEW_SESSION_MANAGER_KEY = "SETTINGS_LABS_NEW_SESSION_MANAGER_KEY"
-        const val SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY = "SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY"
         const val SETTINGS_CRYPTOGRAPHY_PREFERENCE_KEY = "SETTINGS_CRYPTOGRAPHY_PREFERENCE_KEY"
         const val SETTINGS_CRYPTOGRAPHY_DIVIDER_PREFERENCE_KEY = "SETTINGS_CRYPTOGRAPHY_DIVIDER_PREFERENCE_KEY"
         const val SETTINGS_CRYPTOGRAPHY_MANAGE_PREFERENCE_KEY = "SETTINGS_CRYPTOGRAPHY_MANAGE_PREFERENCE_KEY"
@@ -173,7 +171,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_ENCRYPTION_IMPORT_E2E_ROOM_KEYS_PREFERENCE_KEY = "SETTINGS_ENCRYPTION_IMPORT_E2E_ROOM_KEYS_PREFERENCE_KEY"
         const val SETTINGS_ENCRYPTION_NEVER_SENT_TO_PREFERENCE_KEY = "SETTINGS_ENCRYPTION_NEVER_SENT_TO_PREFERENCE_KEY"
         const val SETTINGS_SHOW_DEVICES_LIST_PREFERENCE_KEY = "SETTINGS_SHOW_DEVICES_LIST_PREFERENCE_KEY"
-        const val SETTINGS_SHOW_DEVICES_LIST_V2_PREFERENCE_KEY = "SETTINGS_SHOW_DEVICES_LIST_V2_PREFERENCE_KEY"
         const val SETTINGS_ALLOW_INTEGRATIONS_KEY = "SETTINGS_ALLOW_INTEGRATIONS_KEY"
         const val SETTINGS_INTEGRATION_MANAGER_UI_URL_KEY = "SETTINGS_INTEGRATION_MANAGER_UI_URL_KEY"
         const val SETTINGS_SECURE_MESSAGE_RECOVERY_PREFERENCE_KEY = "SETTINGS_SECURE_MESSAGE_RECOVERY_PREFERENCE_KEY"
@@ -1792,25 +1789,6 @@ class VectorPreferences @Inject constructor(
      */
     fun isDeferredDmEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_LABS_DEFERRED_DM_KEY, getDefault(im.vector.app.config.R.bool.settings_labs_deferred_dm_default))
-    }
-
-    /**
-     * Indicates whether or not new session manager screens are enabled.
-     */
-    fun isNewSessionManagerEnabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_LABS_NEW_SESSION_MANAGER_KEY, getDefault(im.vector.app.config.R.bool.settings_labs_new_session_manager_default))
-    }
-
-    /**
-     * Indicates whether or not client info recording is enabled.
-     */
-    fun isClientInfoRecordingEnabled(): Boolean {
-        return defaultPrefs.getBoolean(
-                SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY,
-                getDefault(
-                        im.vector.app.config.R.bool.settings_labs_client_info_recording_default
-                )
-        )
     }
 
     fun showLiveSenderInfo(): Boolean {

@@ -1181,7 +1181,6 @@
     <string name="identity_server">Сервер ідентифікації</string>
     <string name="terms_description_for_identity_server">Бути виявним для інших</string>
     <string name="identity_server_not_defined">Ви не використовуєте жодного сервера ідентифікації</string>
-    <string name="settings_failed_to_get_crypto_device_info">Криптографічна інформація недоступна</string>
     <string name="settings_server_upload_size_unknown">Обмеження невідомі.</string>
     <string name="settings_server_upload_size_content">Ваш домашній сервер дозволяє надсилати файли розміром до %s.</string>
     <string name="settings_server_upload_size_title">Обмеження сервера на розмір файлів</string>
@@ -2353,9 +2352,6 @@
     <string name="location_share_loading_map_error">Неможливо завантажити карту
 \nМожливо, цей домашній сервер не налаштовано для показу карт.</string>
     <string name="all_chats">Усі бесіди</string>
-    <string name="device_manager_sessions_other_description">Звірте свої сеанси та вийдіть з усіх сеансів, які ви більше не розпізнаєте або не використовуєте для кращої безпеки.</string>
-    <string name="device_manager_sessions_other_title">Інші сеанси</string>
-    <string name="settings_sessions_list">Сеанси</string>
     <string name="a11y_open_spaces">Відкрити список кімнат</string>
     <string name="a11y_create_message">Створити нову розмову або кімнату</string>
     <string name="room_list_filter_people">Люди</string>
@@ -2371,17 +2367,6 @@
     <string name="explore_rooms">Знайти кімнати</string>
     <string name="create_room">Створити кімнату</string>
     <string name="start_chat">Розпочати бесіду</string>
-    <string name="device_manager_other_sessions_description_unverified">Не звірений · Остання активність %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Звірений · Остання активність %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Переглянути всі (%1$d)</string>
-    <string name="device_manager_view_details">Переглянути подробиці</string>
-    <string name="device_manager_verify_session">Звірити сеанс</string>
-    <string name="device_manager_verification_status_unverified">Не звірений сеанс</string>
-    <string name="device_manager_verification_status_verified">Звірений сеанс</string>
-    <string name="a11y_device_manager_device_type_unknown">Невідомий тип пристрою</string>
-    <string name="a11y_device_manager_device_type_desktop">Комп\'ютер</string>
-    <string name="a11y_device_manager_device_type_web">Браузер</string>
-    <string name="a11y_device_manager_device_type_mobile">Мобільний</string>
     <string name="timeline_error_room_not_found">Перепрошуємо, цю кімнату не знайдено.
 \nСпробуйте пізніше.%s</string>
     <string name="invites_title">Запрошення</string>
@@ -2393,92 +2378,14 @@
     <string name="home_empty_space_no_rooms_message">Простори – це новий спосіб групувати кімнати та людей. Додайте наявну кімнату або створіть нову, використовуючи кнопку внизу праворуч.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nмає дещо порожній вигляд.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Зважте потребу вийти зі старих сеансів (%1$d день або більше), який ви більше не використовуєте.</item>
-        <item quantity="few">Зважте потребу вийти зі старих сеансів (%1$d дні або більше), які ви більше не використовуєте.</item>
-        <item quantity="many">Зважте потребу вийти зі старих сеансів (%1$d днів або більше), які ви більше не використовуєте.</item>
-        <item quantity="other">Зважте потребу вийти зі старих сеансів (%1$d днів або більше), які ви більше не використовуєте.</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">Неактивні сеанси</string>
-    <string name="device_manager_unverified_sessions_description">Звірити або вийти з не звірених сеансів.</string>
-    <string name="device_manager_unverified_sessions_title">Не звірені сеанси</string>
-    <string name="device_manager_header_section_security_recommendations_description">Удоскональте безпеку свого облікового запису, дотримуючись цих порад.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Поради щодо безпеки</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Без активності %1$d+ день (%2$s)</item>
-        <item quantity="few">Без активності %1$d+ дні (%2$s)</item>
-        <item quantity="many">Без активності %1$d+ днів (%2$s)</item>
-        <item quantity="other">Без активності %1$d+ днів (%2$s)</item>
-    </plurals>
     <string name="invites_empty_message">Тут з\'являтимуться нові запити та запрошення.</string>
     <string name="invites_empty_title">Нічого нового.</string>
     <string name="space_list_empty_message">Простори – це новий спосіб групувати кімнати та людей. Створіть простір, щоб розпочати.</string>
     <string name="space_list_empty_title">Ще немає просторів.</string>
-    <string name="device_manager_session_details_device_ip_address">IP-адреса</string>
-    <string name="device_manager_session_details_session_last_activity">Остання активність</string>
-    <string name="device_manager_session_details_session_name">Назва сеансу</string>
-    <string name="device_manager_session_details_description">Відомості про застосунок, пристрій та діяльність.</string>
-    <string name="device_manager_session_details_title">Подробиці сеансу</string>
-    <string name="device_manager_other_sessions_clear_filter">Очистити фільтр</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Неактивних сеансів не знайдено.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Не знайдено не звірених сеансів.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Знайдені не звірені сеанси.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Подумайте про те, щоб вийти зі старих сеансів (%1$d день або довше), якими ви більше не користуєтесь.</item>
-        <item quantity="few">Подумайте про те, щоб вийти зі старих сеансів (%1$d дні або довше), якими ви більше не користуєтесь.</item>
-        <item quantity="many">Подумайте про те, щоб вийти зі старих сеансів (%1$d днів або довше), якими ви більше не користуєтесь.</item>
-        <item quantity="other">Подумайте про те, щоб вийти зі старих сеансів (%1$d днів або довше), якими ви більше не користуєтесь.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Неактивний</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Звірте свої сеанси для посилення безпеки обміну повідомленнями або вийдіть з тих, які ви більше не впізнаєте або не використовуєте.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Не звірений</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Для кращої безпеки виходьте з будь-якого сеансу, який ви більше не впізнаєте або не використовуєте.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Звірений</string>
-    <string name="a11y_device_manager_filter">Фільтрувати</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Неактивний %1$d день або довше</item>
-        <item quantity="few">Неактивний %1$d дні або довше</item>
-        <item quantity="many">Неактивний %1$d днів або довше</item>
-        <item quantity="other">Неактивний %1$d днів або довше</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Неактивний</string>
-    <string name="device_manager_filter_option_unverified_description">Не готовий до безпечного обміну повідомленнями</string>
-    <string name="device_manager_filter_option_unverified">Не звірений</string>
-    <string name="device_manager_filter_option_verified">Звірений</string>
-    <string name="device_manager_filter_option_verified_description">Готовий до безпечного обміну повідомленнями</string>
-    <string name="device_manager_filter_option_all_sessions">Усі сеанси</string>
-    <string name="device_manager_filter_bottom_sheet_title">Фільтрувати</string>
-    <string name="device_manager_session_last_activity">Остання активність %1$s</string>
-    <string name="device_manager_device_title">Пристрій</string>
-    <string name="device_manager_session_title">Сеанс</string>
-    <string name="device_manager_current_session_title">Поточний сеанс</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Звірте або вийдіть з цього сеансу для кращої безпеки та надійності.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Звірте свій поточний сеанс для посилення безпеки обміну повідомленнями.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Цей сеанс готовий до безпечного обміну повідомленнями.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Ваш поточний сеанс готовий до безпечного обміну повідомленнями.</string>
     <string name="labs_enable_deferred_dm_summary">Створюйте приватні повідомлення лише за надсилання першого повідомлення</string>
     <string name="labs_enable_deferred_dm_title">Увімкнути відкладені приватні повідомлення</string>
     <string name="labs_enable_new_app_layout_summary">Спрощений Element з опціональними вкладками</string>
     <string name="labs_enable_new_app_layout_title">Увімкнути новий вигляд</string>
-    <string name="device_manager_learn_more_session_rename">Інші користувачі в особистих повідомленнях і кімнатах, до яких ви приєдналися, можуть переглядати повний список ваших сеансів.
-\n
-\nЦе дає їм впевненість у тому, що вони дійсно розмовляють з вами, а також означає, що вони можуть бачити назву сеансу, яку ви ввели тут.</string>
-    <string name="device_manager_learn_more_session_rename_title">Перейменування сеансів</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Звірені сеанси</string>
-    <string name="device_manager_learn_more_sessions_unverified">Не звірені сеанси — це сеанси, до яких ви ввійшли в за допомогою своїх облікових даних, але не пройшли перехресну перевірку.
-\n
-\nВи повинні бути особливо впевнені, що розпізнаєте ці сеанси, оскільки вони можуть означати несанкціоноване використання вашого облікового запису.</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Не звірені сеанси</string>
-    <string name="device_manager_learn_more_sessions_inactive">Неактивні сеанси — це сеанси, які ви не використовували протягом певного часу, але вони продовжують отримувати ключі шифрування.
-\n
-\nВилучення неактивних сеансів поліпшує безпеку і швидкодію, а також полегшує визначення підозрілих нових сеансів.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Неактивні сеанси</string>
-    <string name="device_manager_session_rename_warning">Зауважте, що назви сеансів також видно людям, з якими ви спілкуєтесь.</string>
-    <string name="device_manager_session_rename_description">Власні назви сеансів допоможуть вам легше розпізнавати ваші пристрої.</string>
-    <string name="device_manager_session_rename_edit_hint">Назва сеансу</string>
-    <string name="device_manager_session_rename">Перейменувати сеанс</string>
-    <string name="device_manager_session_overview_signout">Вийти з цього сеансу</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Не звірений - Ваш поточний сеанс</string>
     <string name="key_authenticity_not_guaranteed">Справжність цього зашифрованого повідомлення не може бути гарантована на цьому пристрої.</string>
     <string name="settings_security_incognito_keyboard_summary">Заборонити клавіатурі оновлювати будь-які персоналізовані дані, як-от історію набору тексту та словник, на основі того, що ви набрали в розмовах. Зауважте, що деякі клавіатури можуть не дотримуватися цього налаштування.</string>
     <string name="settings_security_incognito_keyboard_title">Клавіатура інкогніто</string>
@@ -2488,21 +2395,8 @@
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ У цій кімнаті є неперевірені пристрої, вони не зможуть розшифрувати повідомлення, які ви надсилаєте.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">Ніколи не надсилати зашифровані повідомлення на неперевірені сеанси в цій кімнаті.</string>
     <string name="action_got_it">Зрозуміло</string>
-    <string name="labs_enable_client_info_recording_summary">Записуйте назву клієнта, версію та URL-адресу, щоб легше розпізнавати сеанси в менеджері сеансів.</string>
-    <string name="labs_enable_client_info_recording_title">Увімкнути запис відомостей про клієнт</string>
-    <string name="labs_enable_session_manager_summary">Отримайте кращу видимість і контроль над усіма вашими сеансами.</string>
-    <string name="labs_enable_session_manager_title">Увімкнути новий менеджер сеансів</string>
-    <string name="device_manager_session_details_device_operating_system">Операційна система</string>
-    <string name="device_manager_session_details_device_model">Модель</string>
-    <string name="device_manager_session_details_device_browser">Браузер</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Версія</string>
-    <string name="device_manager_session_details_application_name">Назва</string>
-    <string name="device_manager_session_details_application">Застосунок</string>
     <string name="device_manager_push_notifications_description">Отримувати push-сповіщення про цей сеанс.</string>
     <string name="device_manager_push_notifications_title">Push-сповіщення</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Звірте свій поточний сеанс, щоб побачити стан перевірки цього сеансу.</string>
-    <string name="device_manager_verification_status_unknown">Невідомий стан перевірки</string>
     <string name="push_gateway_item_enabled">Увімкнено:</string>
     <string name="push_gateway_item_device_id">ID сеансу:</string>
     <string name="error_check_network">Щось пішло не так. Будь ласка, перевірте мережеве з\'єднання та спробуйте ще раз.</string>
@@ -2552,7 +2446,6 @@
     <string name="qr_code_login_header_failed_other_device_already_signed_in_description">Вхід з іншого пристрою вже виконано.</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">Під час налаштування захищеного обміну повідомленнями виникла проблема з безпекою. Можливо, порушено одне з таких налаштувань: Ваш домашній сервер; Ваше інтернет-з\'єднання; Ваш пристрій;</string>
     <string name="qr_code_login_header_failed_other_description">Запит не виконаний.</string>
-    <string name="device_manager_other_sessions_select">Вибрати сеанси</string>
     <string name="attachment_type_selector_camera">Камера</string>
     <string name="attachment_type_selector_location">Місце перебування</string>
     <string name="attachment_type_selector_poll">Опитування</string>
@@ -2560,45 +2453,20 @@
     <string name="attachment_type_selector_sticker">Наліпки</string>
     <string name="attachment_type_selector_gallery">Фотобібліотека</string>
     <string name="action_deselect_all">Скасувати вибір усіх</string>
-    <plurals name="x_selected">
-        <item quantity="one">Вибрано %1$d</item>
-        <item quantity="few">Вибрано %1$d</item>
-        <item quantity="many">Вибрано %1$d</item>
-        <item quantity="other">Вибрано %1$d</item>
-    </plurals>
     <string name="action_select_all">Вибрати все</string>
     <string name="attachment_type_selector_text_formatting">Форматування тексту</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Звірені сеанси — це будь-який пристрій, на якому ви використовуєте цей обліковий запис після введення парольної фрази або підтвердження вашої особи за допомогою іншого звіреного сеансу.
-\n
-\nЦе означає, що ви маєте всі ключі, необхідні для розблокування ваших зашифрованих повідомлень і підтвердження іншим користувачам, що ви довіряєте цьому сеансу.</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Вийти з %1$d сеансу</item>
-        <item quantity="few">Вийти з %1$d сеансів</item>
-        <item quantity="many">Вийти з %1$d сеансів</item>
-        <item quantity="other">Вийти з %1$d сеансів</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Вийти</string>
     <string name="message_reply_to_sender_sent_audio_file">надсилає аудіофайл.</string>
     <string name="message_reply_to_sender_sent_file">надсилає файл.</string>
     <string name="message_reply_to_prefix">У відповідь на</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Сховати IP-адресу</string>
     <string name="message_reply_to_sender_created_poll">створює опитування.</string>
     <string name="message_reply_to_sender_sent_sticker">надсилає наліпку.</string>
     <string name="message_reply_to_sender_sent_video">надсилає відео.</string>
     <string name="message_reply_to_sender_sent_image">надсилає зображення.</string>
     <string name="message_reply_to_sender_sent_voice_message">надсилає голосове повідомлення.</string>
-    <string name="device_manager_other_sessions_show_ip_address">Показати IP-адресу</string>
     <string name="settings_enable_direct_share_summary">Показувати останні бесіди в системному меню загального доступу</string>
     <string name="settings_enable_direct_share_title">Увімкнути пряме поширення</string>
     <string name="review_unverified_sessions_description">Перегляньте їх, щоб переконатися, що ваш обліковий запис у безпеці</string>
     <string name="review_unverified_sessions_title">У вас є незвірені сеанси</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Цей сеанс не підтримує шифрування, тому його неможливо звірити.
-\n
-\nПід час користування цим сеансом ви не зможете брати участь у кімнатах, в яких увімкнено шифрування.
-\n
-\nДля кращої безпеки й приватності радимо використовувати клієнти Matrix, які підтримують шифрування.</string>
-    <string name="device_manager_signout_all_other_sessions">Вийти з усіх інших сеансів</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Цей сеанс не підтримує шифрування і тому не може бути звірений.</string>
     <string name="settings_nightly_build_update">Отримати найновішу збірку (примітка: у вас можуть виникнути проблеми з входом в систему)</string>
     <string name="settings_nightly_build">Збірка Nightly</string>
     <string name="notice_voice_broadcast_ended_by_you">Ви завершили голосову трансляцію.</string>

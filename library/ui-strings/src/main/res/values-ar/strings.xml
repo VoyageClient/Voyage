@@ -1004,14 +1004,6 @@
     <string name="login_reset_password_email_hint">البريد الإلكتروني</string>
     <string name="login_reset_password_password_hint">كلمة السر الجديدة</string>
     <string name="login_reset_password_submit">التالي</string>
-    <plurals name="x_selected">
-        <item quantity="zero">لم تحدد</item>
-        <item quantity="one">واحد محدد</item>
-        <item quantity="two">اثنان محددان</item>
-        <item quantity="few">%1$d محددة</item>
-        <item quantity="many">%1$d محددة</item>
-        <item quantity="other">%1$d محددة</item>
-    </plurals>
     <plurals name="notice_room_canonical_alias_alternative_removed">
         <item quantity="zero">صفر</item>
         <item quantity="one">واحد</item>

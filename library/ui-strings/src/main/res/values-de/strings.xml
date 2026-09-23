@@ -1177,7 +1177,6 @@
     <string name="settings_active_sessions_show_all">Alle Sitzungen anzeigen</string>
     <string name="settings_active_sessions_manage">Sitzungen verwalten</string>
     <string name="settings_active_sessions_signout_device">Von dieser Sitzung abmelden</string>
-    <string name="settings_failed_to_get_crypto_device_info">Keine kryptografischen Informationen verfügbar</string>
     <string name="settings_active_sessions_verified_device_desc">Diese Sitzung ist für sichere Kommunikation vertrauenswürdig, da du sie überprüft hast:</string>
     <string name="settings_active_sessions_unverified_device_desc">Verifiziere diese Sitzung, um sie als vertrauenswürdig zu markieren, und gewähren ihr Zugriff auf verschlüsselte Nachrichten. Wenn du dich nicht bei dieser Sitzung angemeldet hast, ist dein Konto möglicherweise gefährdet:</string>
     <plurals name="settings_active_sessions_count">
@@ -2248,9 +2247,6 @@
     <string name="room_list_filter_unreads">Ungelesene</string>
     <string name="room_list_filter_people">Personen</string>
     <string name="send_your_first_msg_to_invite">Schreibe deine erste Nachricht, um %s zur Unterhaltung einzuladen</string>
-    <string name="device_manager_sessions_other_description">Für bestmögliche Sicherheit verifiziere deine Sitzungen und melde dich von allen ab, die du nicht erkennst oder nutzt.</string>
-    <string name="device_manager_sessions_other_title">Andere Sitzungen</string>
-    <string name="settings_sessions_list">Sitzungen</string>
     <string name="a11y_open_spaces">Space-Liste öffnen</string>
     <string name="a11y_create_message">Beginne ein Gespräch oder erstelle einen Raum</string>
     <string name="room_list_filter_favourites">Favoriten</string>
@@ -2274,23 +2270,9 @@
     <string name="ftue_auth_choose_server_ems_cta">Kontakt aufnehmen</string>
     <string name="ftue_auth_choose_server_ems_subtitle">Element Matrix Services (EMS) ist ein robuster und zuverlässiger Hosting-Dienst für schnelle und sichere Echtzeitkommunikation. Erfahre mehr unter <a href="${ftue_ems_url}">element.io/ems</a></string>
     <string name="ftue_auth_choose_server_ems_title">Willst du deinen eigenen Server betreiben\?</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_mobile">Mobil</string>
     <string name="timeline_error_room_not_found">Entschuldigung, dieser Raum wurde nicht gefunden.
 \nBitte versuche es später erneut.%s</string>
     <string name="invites_title">Einladungen</string>
-    <string name="device_manager_other_sessions_description_unverified">Nicht verifiziert · Neueste Aktivität %1$s</string>
-    <string name="device_manager_verification_status_unverified">Nicht verifizierte Sitzung</string>
-    <string name="device_manager_unverified_sessions_title">Nicht verifizierte Sitzungen</string>
-    <string name="device_manager_header_section_security_recommendations_description">Verbessere deine Kontosicherheit, indem du diese Empfehlungen beherzigst.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Sicherheitsempfehlungen</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Inaktiv seit %1$d+ Tag (%2$s)</item>
-        <item quantity="other">Inaktiv seit %1$d+ Tagen (%2$s)</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_verified">Verifiziert · Neueste Aktivität %1$s</string>
-    <string name="device_manager_verification_status_verified">Verifizierte Sitzung</string>
-    <string name="a11y_device_manager_device_type_unknown">Unbekannter Gerätetyp</string>
     <string name="invites_empty_title">Nichts Neues.</string>
     <string name="space_list_empty_message">Spaces sind eine neue Möglichkeit, Räume und Personen zu gruppieren. Erstelle einen Space, um zu beginnen.</string>
     <string name="space_list_empty_title">Noch keine Spaces.</string>
@@ -2298,8 +2280,6 @@
     <string name="home_empty_no_unreads_title">Es gibt nichts Neues.</string>
     <string name="all_chats">Alle Unterhaltungen</string>
     <string name="start_chat">Unterhaltung beginnen</string>
-    <string name="device_manager_filter_bottom_sheet_title">Filter</string>
-    <string name="a11y_device_manager_filter">Filtern</string>
     <string name="ftue_auth_create_account_username_entry_footer">Andere können dich als %s finden</string>
     <string name="labs_enable_deferred_dm_summary">Erstelle Unterhaltungen mit der ersten Nachricht</string>
     <string name="labs_enable_deferred_dm_title">Verzögerte Direktnachrichten</string>
@@ -2310,74 +2290,9 @@
     <string name="home_empty_space_no_rooms_message">Spaces sind eine neue Möglichkeit, Räume und Personen zu gruppieren. Füge einen bestehenden Raum hinzu oder erstelle einen neuen mit der Schaltfläche unten rechts.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nsieht ein bisschen leer aus.</string>
-    <string name="device_manager_session_details_device_ip_address">IP-Adresse</string>
-    <string name="device_manager_session_details_session_name">Sitzungsname</string>
-    <string name="device_manager_session_details_description">Anwendung, Gerät und Aktivitätsinformationen.</string>
-    <string name="device_manager_session_details_title">Sitzungsdetails</string>
-    <string name="device_manager_other_sessions_clear_filter">Filter zurücksetzen</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Keine inaktiven Sitzungen gefunden.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Keine unverifizierten Sitzungen gefunden.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Keine verifizierten Sitzungen gefunden.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Erwäge, dich aus alten (ein Tag oder mehr), nicht mehr verwendeten Sitzungen abzumelden.</item>
-        <item quantity="other">Erwäge, dich aus alten (%1$d Tage oder mehr), nicht mehr verwendeten Sitzungen abzumelden.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Inaktiv</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Für besonders sichere Kommunikation verifiziere deine Sitzungen oder melde dich von ihnen ab, falls du sie nicht mehr identifizieren kannst.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Nicht verifiziert</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Verifiziert</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Inaktiv seit %1$d Tag oder länger</item>
-        <item quantity="other">Inaktiv seit %1$d Tagen oder länger</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Inaktiv</string>
-    <string name="device_manager_filter_option_unverified_description">Nicht bereit für sichere Kommunikation</string>
-    <string name="device_manager_filter_option_unverified">Nicht verifiziert</string>
-    <string name="device_manager_filter_option_verified_description">Für sichere Kommunikation bereit</string>
-    <string name="device_manager_filter_option_verified">Verifiziert</string>
-    <string name="device_manager_filter_option_all_sessions">Alle Sitzungen</string>
-    <string name="device_manager_device_title">Gerät</string>
-    <string name="device_manager_session_title">Sitzung</string>
-    <string name="device_manager_current_session_title">Aktuelle Sitzung</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Erwäge, dich aus alten (ein Tag oder mehr), nicht mehr verwendeten Sitzungen abzumelden.</item>
-        <item quantity="other">Erwäge, dich aus alten (%1$d Tage oder mehr), nicht mehr verwendeten Sitzungen abzumelden.</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">Inaktive Sitzungen</string>
-    <string name="device_manager_unverified_sessions_description">Nicht verifizierte Sitzungen verifizieren oder abmelden.</string>
-    <string name="device_manager_other_sessions_view_all">Alle anzeigen (%1$d)</string>
-    <string name="device_manager_verify_session">Sitzung verifizieren</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Diese Sitzung ist für sichere Kommunikation bereit.</string>
-    <string name="a11y_device_manager_device_type_desktop">Desktop</string>
     <string name="invites_empty_message">Hier erscheinen deine neuen Anfragen und Einladungen.</string>
     <string name="labs_enable_new_app_layout_summary">Ein vereinfachtes Element mit optionalen Tabs</string>
     <string name="labs_enable_new_app_layout_title">Neues Layout aktivieren</string>
-    <string name="device_manager_session_details_session_last_activity">Neueste Aktivität</string>
-    <string name="device_manager_session_last_activity">Neueste Aktivität %1$s</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Verifiziere deine aktuelle Sitzung für besonders sichere Kommunikation.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Deine aktuelle Sitzung ist für sichere Kommunikation bereit.</string>
-    <string name="device_manager_view_details">Details anzeigen</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Für bestmögliche Sicherheit und Zuverlässigkeit verifiziere diese Sitzung oder melde sie ab.</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Für bestmögliche Sicherheit, melde dich von allen Sitzungen ab, die du nicht erkennst oder benutzt.</string>
-    <string name="device_manager_learn_more_session_rename">Andere Nutzer in Direktnachrichten und Räumen, in denen du dich befindest, können eine vollständige Liste deiner Sitzungen einsehen.
-\n
-\nDies gibt ihnen die Sicherheit, dass sie auch wirklich mit dir kommunizieren. Allerdings bedeutet es auch, dass sie die Sitzungsnamen sehen können, die du hier angibst.</string>
-    <string name="device_manager_learn_more_session_rename_title">Sitzungen umbenennen</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Verifizierte Sitzungen</string>
-    <string name="device_manager_learn_more_sessions_unverified">Nicht verifizierte Sitzungen sind jene, die angemeldet, aber nicht quer signiert sind.
-\n
-\nDu solltest besonders sicherstellen, dass du diese Sitzungen erkennst, da sie auf eine nicht autorisierte Nutzung deines Kontos hindeuten könnten.</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Nicht verifizierte Sitzungen</string>
-    <string name="device_manager_learn_more_sessions_inactive">Inaktive Sitzungen sind jene, die du einige Zeit nicht mehr verwendet hast, die aber weiterhin Verschlüsselungs-Schlüssel erhalten.
-\n
-\nDas Löschen von inaktiven Sitzungen verbessert Sicherheit und Leistung, und hilft dir zu erkennen, ob eine neue Sitzung verdächtig ist.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Inaktive Sitzungen</string>
-    <string name="device_manager_session_rename_warning">Sei dir bitte bewusst, dass Sitzungsnamen auch für Personen, mit denen du kommunizierst, sichtbar sind.</string>
-    <string name="device_manager_session_rename_description">Individuelle Sitzungsnamen können dir helfen, deine Geräte einfacher zu erkennen.</string>
-    <string name="device_manager_session_rename_edit_hint">Sitzungsname</string>
-    <string name="device_manager_session_rename">Sitzung umbenennen</string>
-    <string name="device_manager_session_overview_signout">Von dieser Sitzung abmelden</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Nicht verifiziert · Deine aktuelle Sitzung</string>
     <string name="key_authenticity_not_guaranteed">Die Echtheit dieser verschlüsselten Nachricht kann auf diesem Gerät nicht garantiert werden.</string>
     <string name="settings_security_incognito_keyboard_summary">Tastatur auffordern, keine personalisierten Daten, z. B. den Tippverlauf und Wörterbücher, basierend auf deinen Konversationen zu aktualisieren. Beachte, dass einige Tastaturen diese Einstellung ignorieren werden.</string>
     <string name="settings_security_incognito_keyboard_title">Inkognito-Tastatur</string>
@@ -2387,23 +2302,10 @@
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ Es befinden sich nicht verifizierte Geräte in diesem Raum. Sie werden deine Nachrichten nicht entschlüsseln können.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">Niemals verschlüsselte Nachrichten zu unverifizierten Sitzungen in diesem Raum senden.</string>
     <string name="action_got_it">Verstanden</string>
-    <string name="device_manager_session_details_device_browser">Browser</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} benötigt die Berechtigung zur Anzeige von Benachrichtigungen.
 \nBitte gewähre diese Berechtigung.</string>
-    <string name="labs_enable_client_info_recording_summary">Bezeichnung, Version und URL der Anwendung registrieren, damit diese Sitzung in der Sitzungsverwaltung besser erkennbar ist.</string>
-    <string name="labs_enable_client_info_recording_title">Anwendungsinformationen erfassen</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="labs_enable_session_manager_summary">Bessere Übersicht und Kontrolle über all deine Sitzungen.</string>
-    <string name="labs_enable_session_manager_title">Aktiviere neue Sitzungsverwaltung</string>
-    <string name="device_manager_session_details_device_operating_system">Betriebssystem</string>
-    <string name="device_manager_session_details_device_model">Modell</string>
-    <string name="device_manager_session_details_application_version">Version</string>
-    <string name="device_manager_session_details_application_name">Name</string>
-    <string name="device_manager_session_details_application">Anwendung</string>
     <string name="device_manager_push_notifications_description">Erhalte Push-Benachrichtigungen in dieser Sitzung.</string>
     <string name="device_manager_push_notifications_title">Push-Benachrichtigungen</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Verifiziere deine aktuelle Sitzung, um den Verifizierungsstatus dieser Sitzung anzuzeigen.</string>
-    <string name="device_manager_verification_status_unknown">Unbekannter Verifizierungsstatus</string>
     <string name="push_gateway_item_device_id">Sitzungs-ID:</string>
     <string name="push_gateway_item_enabled">Aktiviert:</string>
     <string name="error_check_network">Etwas ist schiefgelaufen. Bitte überprüfe deine Internetverbindung und versuche es erneut.</string>
@@ -2452,7 +2354,6 @@
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">Es ist ein Problem bei der Herstellung der sicheren Kommunikation aufgetreten. Eines der folgenden Dinge könnte kompromittiert sein: Dein Heim-Server; deine Internetverbindung(en); dein(e) Gerät(e);</string>
     <string name="qr_code_login_header_failed_other_description">Die Anfrage ist fehlgeschlagen.</string>
     <string name="attachment_type_selector_sticker">Sticker</string>
-    <string name="device_manager_other_sessions_select">Sitzungen auswählen</string>
     <string name="attachment_type_selector_camera">Kamera</string>
     <string name="attachment_type_selector_location">Standort</string>
     <string name="attachment_type_selector_poll">Umfragen</string>
@@ -2460,19 +2361,7 @@
     <string name="attachment_type_selector_gallery">Fotobibliothek</string>
     <string name="action_deselect_all">Alle abwählen</string>
     <string name="action_select_all">Alle auswählen</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d ausgewählt</item>
-        <item quantity="other">%1$d ausgewählt</item>
-    </plurals>
     <string name="attachment_type_selector_text_formatting">Textformatierung</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Auf verifizierte Sitzungen kannst du überall mit deinem Konto zugreifen, wenn du deine Passphrase eingegeben oder Element mit einer anderen Sitzung verifiziert hast.
-\n
-\nDies bedeutet, dass du alle Schlüssel zum Entsperren deiner verschlüsselten Nachrichten hast und anderen bestätigst, dieser Sitzung zu vertrauen.</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Von %1$d Sitzung abmelden</item>
-        <item quantity="other">Von %1$d Sitzungen abmelden</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Abmelden</string>
     <string name="message_reply_to_sender_created_poll">erstellte eine Umfrage.</string>
     <string name="message_reply_to_sender_sent_sticker">sendete einen Sticker.</string>
     <string name="message_reply_to_sender_sent_video">sendete ein Video.</string>
@@ -2481,21 +2370,12 @@
     <string name="message_reply_to_sender_sent_audio_file">sendete eine Audiodatei.</string>
     <string name="message_reply_to_sender_sent_file">sendete eine Datei.</string>
     <string name="message_reply_to_prefix">Als Antwort auf</string>
-    <string name="device_manager_other_sessions_hide_ip_address">IP-Adresse ausblenden</string>
-    <string name="device_manager_other_sessions_show_ip_address">IP-Adresse anzeigen</string>
     <string name="settings_enable_direct_share_summary">Kürzliche Unterhaltungen im Teilen-Menü des Systems anzeigen</string>
     <string name="settings_enable_direct_share_title">Direktes Teilen aktivieren</string>
     <string name="review_unverified_sessions_description">Überprüfe sie, um ein sicheres Konto gewährleisten zu können</string>
     <string name="review_unverified_sessions_title">Du hast nicht verifizierte Sitzungen</string>
     <string name="settings_nightly_build_update">Hol dir den neuesten Build (Achtung: Du kannst dich eventuell nicht anmelden)</string>
     <string name="settings_nightly_build">Nightly-Build</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Diese Sitzung unterstützt keine Verschlüsselung, weshalb sie nicht verifiziert werden kann.
-\n
-\nDu wirst dich mit dieser Sitzung nicht an Unterhaltungen in Räumen mit aktivierter Verschlüsselung beteiligen können.
-\n
-\nAus Sicherheits- und Datenschutzgründen, wird die Nutzung von verschlüsselungsfähigen Matrix-Anwendungen empfohlen.</string>
-    <string name="device_manager_signout_all_other_sessions">Von allen anderen Sitzungen abmelden</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Diese Sitzung unterstützt keine Verschlüsselung und kann deshalb nicht verifiziert werden.</string>
     <string name="notice_voice_broadcast_ended_by_you">Du hast eine Sprachübertragung beendet.</string>
     <string name="notice_voice_broadcast_ended">%1$s beendete eine Sprachübertragung.</string>
     <string name="set_link_edit">Link bearbeiten</string>

@@ -1182,7 +1182,6 @@
     <string name="verification_profile_device_verified_because">این نشست برای ارسال امن پیام‌ها مورد اعتماد است، چرا که %1$s (%2$s) آن را تأیید کرده است:</string>
     <string name="settings_active_sessions_unverified_device_desc">این نشست را تأیید کنید تا به عنوان معتمد علامت‌گذاری شود و به آن اجازه دسترسی به پیام‌های رمزگذاری شده داده شود. اگر این نشست مربوط به شما نیست، ممکن است حساب شما هک شده باشد:</string>
     <string name="settings_active_sessions_verified_device_desc">این نشست برای ارسال امن پیام‌ها مورد اعتماد است، چرا که شما آن را تأیید کرده اید:</string>
-    <string name="settings_failed_to_get_crypto_device_info">اطلاعات رمزنگاری در دسترس نیست</string>
     <string name="verification_conclusion_ok_self_notice">نشست جدید شما اکنون تأیید شده‌است. این نشست به پیام‌های رمزگذاری شده‌ی شما دسترسی داشته و سایر کاربران نیز این نشست را قابل اعتماد می دانند.</string>
     <string name="verification_conclusion_ok_notice">پیام‌های این کاربر به صورت سرتاسر رمزگذاری شده و توسط افراد دیگر قابل خواندن نیستند.</string>
     <string name="verification_code_notice">کد را با کدی که در صفحه کاربر دیگر نمایش داده شده مقایسه کنید.</string>
@@ -2261,9 +2260,6 @@
     <string name="location_share_loading_map_error">ناتوان در بار کردن نقشه
 \nشاید این کارساز خانگی برای نمایش نقشه‌ها پیکربندی نشده باشد.</string>
     <string name="all_chats">تمامی گپ‌ها</string>
-    <string name="device_manager_sessions_other_description">برای امنیت بیش‌تر، نشست‌هایتان را تأیید و از هر نشستی که تشخیصش نمی‌دهید یا دیگر استفاده نمی‌کنید خارج شوید.</string>
-    <string name="device_manager_sessions_other_title">دیگر نشست‌ها</string>
-    <string name="settings_sessions_list">نشست‌ها</string>
     <string name="a11y_open_spaces">گشودن سیاههٔ فضاها</string>
     <string name="a11y_create_message">ایجاد اتاق یا گفت‌وگویی جدید</string>
     <string name="room_list_filter_people">افراد</string>
@@ -2279,17 +2275,6 @@
     <string name="explore_rooms">کاوش اتاق‌ها</string>
     <string name="create_room">ایجاد اتاق</string>
     <string name="start_chat">آغاز گپ</string>
-    <string name="device_manager_other_sessions_description_unverified">تأیید نشده · آخرین فعّالیت %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">تأیید شده · آخرین فعّالیت %1$s</string>
-    <string name="device_manager_other_sessions_view_all">دیدن همه (%1$d)</string>
-    <string name="device_manager_view_details">دیدن جزییات</string>
-    <string name="device_manager_verify_session">تأیید نشست</string>
-    <string name="device_manager_verification_status_unverified">نشست تأیید نشده</string>
-    <string name="device_manager_verification_status_verified">نشست تأیید شده</string>
-    <string name="a11y_device_manager_device_type_unknown">گونهٔ افزاره ناشناخته</string>
-    <string name="a11y_device_manager_device_type_desktop">میزکار</string>
-    <string name="a11y_device_manager_device_type_web">وب</string>
-    <string name="a11y_device_manager_device_type_mobile">تلفن همراه</string>
     <string name="timeline_error_room_not_found">متأسفانه این اتاق پیدا نشد.
 \nلطفاً بعداً دوباره تلاش کنید.%s</string>
     <string name="invites_title">دعوت‌ها</string>
@@ -2298,85 +2283,26 @@
     <string name="home_empty_space_no_rooms_message">فضاها راهی جدید برای گروه‌بندی اتاق‌ها و افراد است. با استفاده از دکمهٔ پایین سمت چپ فضایی ساخته یا اتاقی را بیفزایید.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nکمی خالی به نظر می‌رسد.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">در نظر گرفتن خروج از نشست‌های قدیمی (۱ روز یا بیش‌تر) که دیگر استفاده نمی‌کنید.</item>
-        <item quantity="other">در نظر گرفتن خروج از نشست‌های قدیمی (%1$d روز یا بیش‌تر) که دیگر استفاده نمی‌کنید.</item>
-    </plurals>
-    <string name="device_manager_unverified_sessions_description">تأیید یا خروج از نشست‌های تأییدنشده.</string>
-    <string name="device_manager_header_section_security_recommendations_description">بهبود امنیت حسابتان با پیروی از این توصیه‌ها.</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">غیرفعّال برای بیش از %1$d روز (%2$s)</item>
-        <item quantity="other">غیرفعّال برای بیش از %1$d روز (%2$s)</item>
-    </plurals>
     <string name="invites_empty_message">این جایی است که درخواست‌ها و دعوت‌های جدیدتان خواهند بود.</string>
     <string name="space_list_empty_message">فضاها راهی جدید برای گروه‌بندی اتاق‌ها و افراد است. برای آغاز، فضایی بسازید.</string>
     <string name="home_empty_no_unreads_title">چیزی برای گزارش نیست.</string>
     <string name="home_empty_no_rooms_title">%s
 \nبه ${app_name} خوش آمدی.</string>
-    <string name="device_manager_inactive_sessions_title">نشست‌های غیرفعّال</string>
-    <string name="device_manager_unverified_sessions_title">نشست‌های تأیید نشده</string>
-    <string name="device_manager_header_section_security_recommendations_title">توصیه‌های امنیتی</string>
     <string name="invites_empty_title">چیز جدیدی نیست.</string>
     <string name="space_list_empty_title">هنوز فضایی وجود ندارد.</string>
-    <string name="device_manager_session_details_device_ip_address">نشانی آی‌پی</string>
-    <string name="device_manager_session_details_session_last_activity">واپسین فعّالیت</string>
-    <string name="device_manager_session_details_session_name">نام نشست</string>
-    <string name="device_manager_session_details_description">اطّلاعات برنامه، افزاره و فعّالیت.</string>
-    <string name="device_manager_session_details_title">جزییات نشست</string>
-    <string name="device_manager_other_sessions_clear_filter">پاک‌سازی پالایه</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">هیچ نشست غیرفعّالی پیدا نشد.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">هیچ نشست تأیید نشده‌ای پیدا نشد.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">هیچ نشست تأیید نشده‌ای پیدا نشد.</string>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">غیرفعّال</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">تأیید نشده</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">برای بهترین امنیت، از هرنشستی که تشخیصش نمی‌دهید یا دیگر استفاده نمی‌کنید، خارج شوید.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">تأیید شده</string>
-    <string name="a11y_device_manager_filter">پالایه</string>
-    <string name="device_manager_filter_option_inactive">غیرفعّال</string>
-    <string name="device_manager_filter_option_unverified_description">نا آماده برای پیام‌رسانی امن</string>
-    <string name="device_manager_filter_option_unverified">تأیید نشده</string>
-    <string name="device_manager_filter_option_verified_description">آمادهٔ پیام‌رسانی امن</string>
-    <string name="device_manager_filter_option_verified">تأیید شده</string>
-    <string name="device_manager_filter_option_all_sessions">تمامی نشست‌ها</string>
-    <string name="device_manager_filter_bottom_sheet_title">پالایه</string>
-    <string name="device_manager_session_last_activity">آخرین فعّالیت %1$s</string>
-    <string name="device_manager_device_title">افزاره</string>
-    <string name="device_manager_session_title">نشست</string>
-    <string name="device_manager_current_session_title">نشست کنونی</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">برای بهترین امنیت و اطمینان این نشست را تأیید کرده یا خارج شوید.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">تأیید نشست کنونیتان برای پیام‌رسانی امن.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">این نشست برای پیام‌رسانی امن آماده است.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">نشست کنونیتان برای پیام‌رسانی امن آماده است.</string>
     <string name="labs_enable_deferred_dm_summary">ایجاد پیام خصوصی فقط در نخستین پیام</string>
     <string name="labs_enable_new_app_layout_summary">المنتی ساده شده با زبانه‌های انتخابی</string>
     <string name="labs_enable_new_app_layout_title">به کار انداختن چینش جدید</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">تأیید نشست‌هایتان برای پیام‌رسانی امن بهبود یافته یا خروج از آن‌هایی که تشخیصشان نداده یا دیگر استفاده نمی‌کنید.</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">غیرفعّال برای ۱ روز یا بیش‌تر</item>
-        <item quantity="other">غیرفعّال برای %1$d روز یا بیش‌تر</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_unverified_current_session">تأیید نشده · نشست کنونیتان</string>
     <string name="key_authenticity_not_guaranteed">اعتبار این پیام رمز شده نمی‌تواند روی این افزاره تأیید شود.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">در این اتاق، هرگز پیام‌های رمز شده به نشست‌های تأیید نشده فرستاده نشود.</string>
-    <string name="device_manager_learn_more_session_rename_title">تغییر نام نشست‌ها</string>
-    <string name="device_manager_learn_more_sessions_verified_title">نشست‌های تأییدشده</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">نشست‌های تأییدنشده</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">نشست‌های غیرفعّال</string>
-    <string name="device_manager_session_rename_warning">لطفاً آگاه باشید که نام‌های نشست برای افرادی که با آن‌ها در تماسید نیز نشان داده می‌شود.</string>
-    <string name="device_manager_session_rename_description">نام‌های نشست شخصی به نظم دادن آسان‌تر افزاره‌هایتان کمک می‌کند.</string>
-    <string name="device_manager_session_rename_edit_hint">نام نشست</string>
-    <string name="device_manager_session_rename">تغییر نام نشست</string>
-    <string name="device_manager_session_overview_signout">خروج از این نشست</string>
     <string name="settings_security_incognito_keyboard_title">صفحه‌کلید ناشناس</string>
     <string name="command_description_devtools">گشودن صفحهٔ ابزارهای توسعه‌دهنده</string>
     <string name="labs_enable_deferred_dm_title">به کار انداختن پیام‌های مستقیم تعویقی</string>
     <string name="action_got_it">گرفتم</string>
     <string name="command_description_table_flip">(╯°□°）╯︵ ┻━┻ را به ابتدای پیام متنی خام می‌افزاید</string>
     <string name="grant_permission">اعطای دسترسی</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">برای آشکارسازی وضعیت تأیید نشست کنونیتان، تأییدش کنید.</string>
     <string name="qr_code_login_header_failed_homeserver_is_not_supported_description">کارساز خانگی از ورود با کد QR پشتیبانی نمی‌کند.</string>
     <string name="qr_code_login_header_failed_user_cancelled_description">ورود روی افزارهٔ دیگر لغو شد.</string>
-    <string name="labs_enable_session_manager_summary">دید و واپایش بیش‌تری روی نشست‌هایتان داشته باشید.</string>
     <string name="qr_code_login_header_failed_denied_description">درخواست روی افزارهٔ دیگر رد شد.</string>
     <string name="qr_code_login_header_failed_timeout_description">پیوند در مدّت مقرّر کامل نشد‌.</string>
     <string name="qr_code_login_header_failed_other_device_not_signed_in_description">افزارهٔ دیگر باید وارد شده باشد.</string>
@@ -2395,8 +2321,6 @@
     <string name="device_manager_sessions_sign_in_with_qr_code_title">ورود با کد QR</string>
     <string name="qr_code_login_link_a_device_show_qr_code_instruction_2">گزینش «نمایش کد QR»</string>
     <string name="qr_code_login_new_device_instruction_3">گزینش «نمایش کد QR»</string>
-    <string name="labs_enable_client_info_recording_title">به کار انداختن ضبط اطّلاعات کارخواه</string>
-    <string name="labs_enable_session_manager_title">به کار انداختن مدیر نشست جدید</string>
     <string name="qr_code_login_header_failed_other_description">درخواست شکست خورد.</string>
     <string name="qr_code_login_signing_in">وارد کردنتان</string>
     <string name="qr_code_login_connecting_to_device">وصل شدن به افزاره</string>
@@ -2404,13 +2328,10 @@
     <string name="qr_code_login_header_connected_title">اتّصال امن برقرار شده</string>
     <string name="qr_code_login_header_scan_qr_code_title">پویش کد QR</string>
     <string name="login_scan_qr_code">پویش کد QR</string>
-    <string name="device_manager_verification_status_unknown">وضعیت تأیید نامعلوم</string>
-    <string name="device_manager_other_sessions_select">گزینش نشست‌ها</string>
     <string name="attachment_type_selector_gallery">کتابخانهٔ عکس</string>
     <string name="qr_code_login_try_again">دوباره تلاش کنید</string>
     <string name="qr_code_login_status_no_match">مطابق نیستند؟</string>
     <string name="qr_code_login_header_failed_title">اتّصال ناموفّق</string>
-    <string name="device_manager_session_details_device_operating_system">سیستم‌عامل</string>
     <string name="device_manager_push_notifications_title">آگاهی‌های ارسالی</string>
     <string name="push_gateway_item_device_id">شناسهٔ نشست:</string>
     <string name="attachment_type_selector_camera">دوربین</string>
@@ -2422,39 +2343,19 @@
     <string name="three">۳</string>
     <string name="two">۲</string>
     <string name="one">۱</string>
-    <string name="device_manager_session_details_device_model">مدل</string>
-    <string name="device_manager_session_details_device_browser">مرورگر</string>
-    <string name="device_manager_session_details_application_url">نشانی</string>
-    <string name="device_manager_session_details_application_version">نگارش</string>
-    <string name="device_manager_session_details_application_name">نام</string>
-    <string name="device_manager_session_details_application">برنامه</string>
     <string name="push_gateway_item_enabled">به کار افتاده:</string>
     <string name="action_deselect_all">ناگزینش همه</string>
     <string name="action_select_all">گزینش همه</string>
-    <plurals name="x_selected">
-        <item quantity="one">۱ گزیده</item>
-        <item quantity="other">%1$d گزیده</item>
-    </plurals>
     <string name="qr_code_login_header_connected_description">با بررسی افزاره‌های وارد شده‌تان باید کد زیر را ببینید. تأیید کنید که این کد با آن افزاره مطابق است:</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ افزاره‌های تأییدنشده‌ای در این اتاق وجود دارند. آن‌ها قادر به رمزگشایی پیام‌هایی که فرستاده‌اید نیستند.</string>
     <string name="qr_code_login_header_scan_qr_code_description">استفاده از دوربین روی این افزاره برای پویش کد QR نشان داده شده روی افزارهٔ دیگرتان:</string>
-    <string name="labs_enable_client_info_recording_summary">ضبط نام کارخواه، نگارش و نشانی برای بازشناسی آسان‌تر نشست‌ها در مدیر نشست.</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 رمزگذاری به نشست‌های تأیید شده را فقط برای تمامی اتاق‌ها در تنظیمات امنیت به کار انداخته‌اید.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">خارج شدن از نشست‌های قدیمی (۱ روز یا بیش‌تر) که دیگر استفاده نمی‌کنید را در نظر داشته باشید.</item>
-        <item quantity="other">خارج شدن از نشست‌های قدیمی (%1$d روز یا بیش‌تر) که دیگر استفاده نمی‌کنید را در نظر داشته باشید.</item>
-    </plurals>
     <string name="qr_code_login_header_show_qr_code_link_a_device_description">پویش کد QR زیر با افزاره‌ای که خارج شده.</string>
     <string name="qr_code_login_header_show_qr_code_new_device_description">استفاده از افزارهٔ وارد شده‌تان برای پویش کد QR زیر:</string>
     <string name="error_check_network">چیزی اشتباه پیش رفت. لطفاً اتّصال شبکه‌تان را بررسی و دوباره تلاش کنید.</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} برای نمایش آگاهی‌ها نیازمند اجازه است.
 \nلطفاً اجازه را اعطا کنید.</string>
     <string name="attachment_type_selector_text_formatting">قالب‌بندی متن</string>
-    <string name="device_manager_other_sessions_multi_signout_selection">خروج</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">خروج از ۱ نشست</item>
-        <item quantity="other">خروج از %1$d نشست</item>
-    </plurals>
     <string name="message_reply_to_sender_sent_voice_message">پیام صوتی‌ای فرستاد.</string>
     <string name="message_reply_to_sender_sent_audio_file">پروندهٔ صوتی‌ای فرستاد.</string>
     <string name="message_reply_to_sender_created_poll">نظرسنجی‌ای ایجاد کرد.</string>
@@ -2463,8 +2364,6 @@
     <string name="message_reply_to_sender_sent_image">تصویری فرستاد.</string>
     <string name="message_reply_to_sender_sent_file">پرونده‌ای فرستاد.</string>
     <string name="message_reply_to_prefix">در پاسخ به</string>
-    <string name="device_manager_other_sessions_hide_ip_address">نهفتن نشانی آی‌پی</string>
-    <string name="device_manager_other_sessions_show_ip_address">نمایش نشانی آی‌پی</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">می‌توانید با یک رمز QR از این افزاره برای ورود به افزاره‌ای همراه یا روی وب استفاده کنید. دو راه برای این کار وجود دارد:</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">مشکلی امنیتی در برپایی پیام‌رسانی امن وجود داشت. ممکن است یکی از موارد زیر دستکاری شده باشند: کارساز خانیگیتان؛ اتّصال اینترنتیتان؛ افزاره(های)تان؛</string>
     <string name="qr_code_login_confirm_security_code_description">لطفاً مطمئن شوید که مبدأ این کد را می‌دانید. با پیوند دادن افزاره‌ها، دسترسی کامل را به حسابتان می‌دهید.</string>
@@ -2474,27 +2373,8 @@
     <string name="permissions_rationale_msg_notification">${app_name} برای نمایش آگاهی‌ها نیازمند اجازه است. آگاهی می‌تواندد پیام‌ها، دعوت‌ها و…تان را نشان دهند.
 \n
 \nلطفا در بیرون‌پریدنی بعدی اجازهٔ دسترسی بدهید تا بتوانید آگاهی‌ها را ببینید.</string>
-    <string name="device_manager_learn_more_session_rename">کاربران دیگر در پیام‌های مستقیم و اتاق‌هایی که می‌پیوندید قادر خواهند بود سیاهه‌ای کامل از نشست‌هایتان را ببینند.
-\n
-\nاین کار مطمئنشان می‌کند که دارند واقعاً با شما صحبت می‌کنند؛ ولی همچنین به این معنیست که می‌توانند نام نشست‌هایی که این‌جا وارد کرده‌اید را هم ببینند.</string>
-    <string name="device_manager_learn_more_sessions_verified_description">نشست‌های تأیید شده آن‌هاییند که پس از ورود عبارت عبورتان یا تأیید هویتتان با نشست تأیید شده‌ای دیگر، واردشان شده‌اید.
-\n
-\nیعنی تمامی کلیدهای لارم برای رمزگشایی پیام‌های رمزنگاشته‌تان را داشته و این تأیید را به دیگران می‌دهند که به این نشست اطمینان دارید.</string>
-    <string name="device_manager_learn_more_sessions_unverified">نشست‌های تأیید نشده نشست‌هاییند که به آن‌ها وارد شده‌اید، ولی تأیید متقبالشان نکرده‌اید.
-\n
-\nباید به طور خاص مطمئن شوید که این نشست‌ها را می‌شناسید؛ چرا که می‌توانند نشان‌دهندهٔ استفادهٔ تأییدنشده از حسابتان باشند.</string>
-    <string name="device_manager_learn_more_sessions_inactive">نشست‌های غیرفعّال نشست‌هاییند که مدّتیست استفاده نکرده‌اید، ولی به دریافت کلیدهای رمزنگاری ادامه می‌دهند.
-\n
-\nبرداشتن نشست‌های غیرفعّال امنیت و کارایی را بهبود داده و تشخیص مشکوک بودن نشست‌های جدید را برایتان راحت‌تر می‌کند.</string>
     <string name="review_unverified_sessions_description">بازبینی برای اطمینان از امن بودن حسابتان</string>
     <string name="review_unverified_sessions_title">نسشت‌هایی تأیید نشده دارید</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">این نشست از رمزنگاری پشتیبانی نمی‌کند؛ پس نمی‌تواند تأیید شود.
-\n
-\nهنگام استفاده از اسن نشست نخواهید توانست در اتاق‌هایی که رمزنگاریشان به کار افتاده شرکت کنید.
-\n
-\nبرای بهترین امنیت و محرمانگی، پیشنهاد می‌شود از کارخواه‌های ماتریکس دارای رمزنگاری استفاده کنید.</string>
-    <string name="device_manager_signout_all_other_sessions">خروج از تمامی نشست‌های دیگر</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">این نشست از رمزنگاری پشتیبانی نکرده و بنابراین نمی‌تواند تأیید شود.</string>
     <string name="settings_nightly_build_update">رفتن به جدیدترین ساخت (نکته: ممکن است برای ورود به مشکل بخورید)</string>
     <string name="settings_nightly_build">ساخت شبانه</string>
     <string name="notice_voice_broadcast_ended_by_you">به پخش صوتی پایان دادید.</string>

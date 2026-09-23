@@ -894,8 +894,5 @@
     <string name="notice_room_unban_with_reason">%1$s 님이 %2$s 의 금지를 해제했습니다. 사유: %3$s</string>
     <string name="notice_display_name_changed_to">%1$s 님이 표시 이름을 %2$s 로 변경했습니다</string>
     <string name="notice_room_server_acl_set_ip_literals_allowed">• IP 리터럴(literals)과 일치하는 서버는 허용됩니다.</string>
-    <plurals name="x_selected">
-        <item quantity="other">%1$d 선택됨</item>
-    </plurals>
     <string name="notice_room_server_acl_set_allowed">• %s 와 일치하는 서버가 허용되었습니다.</string>
 </resources>

@@ -37,10 +37,6 @@ class FakeVectorPreferences {
         verify(inverse = inverse) { instance.setSpaceBackstack(value, any()) }
     }
 
-    fun givenIsClientInfoRecordingEnabled(isEnabled: Boolean) {
-        every { instance.isClientInfoRecordingEnabled() } returns isEnabled
-    }
-
     fun givenTextFormatting(isEnabled: Boolean) =
             every { instance.isTextFormattingEnabled() } returns isEnabled
 

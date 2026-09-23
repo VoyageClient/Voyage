@@ -1365,7 +1365,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
 \n
 \nJāizmanto piesardzīgi, jo tas var izraisīt neparedzētu uzvedību.</string>
     <string name="settings_dev_tools">Izstrādātāj rīki</string>
-    <string name="settings_failed_to_get_crypto_device_info">Nav pieejama kriptogrāfiska informācija</string>
     <string name="settings_server_upload_size_content">Mājasserveris pieņem pielikumus (datnes, multivides u.c.), kuru izmērs nepārsniedz %s.</string>
     <string name="settings_server_upload_size_unknown">Robeža nav zināma.</string>
     <string name="settings_server_upload_size_title">Servera datņu augšupielādes ierobežojums</string>
@@ -1791,11 +1790,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="three">3</string>
     <string name="two">2</string>
     <string name="one">1</string>
-    <plurals name="x_selected">
-        <item quantity="zero">%1$d atlasīti</item>
-        <item quantity="one">%1$d atlasīts</item>
-        <item quantity="other">%1$d atlasīti</item>
-    </plurals>
     <string name="notice_display_name_changed_to">%1$s nomainīja attēlojamo vārdu uz %2$s</string>
     <string name="room_error_access_unauthorized">Nav ļauts pievienoties šai istabai</string>
     <string name="all_chats">Visas tērzēšanas</string>
@@ -1865,9 +1859,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="thread_list_title">Pavedieni</string>
     <string name="thread_list_modal_all_threads_subtitle">Rāda pašreizējās istabas visus pavedienus</string>
     <string name="thread_list_empty_subtitle">Pavedieni palīdz viegli izsekot un noturēt sarunas par tēmu.</string>
-    <string name="device_manager_learn_more_session_rename">Citi lietotāji tiešajās ziņās un istabās, kurās pievienojies, var redzēt visu Tavu sesiju sarakstu.
-\n
-\nTas nodrošina viņiem pārliecību, ka viņi tiešām runā ar Tevi, bet tas arī nozīmē, ka viņi var redzēt šeit ievadītās sesijas nosaukumu.</string>
     <string name="threads_notice_migration_title">Pavedieni tuvojas Beta 🎉</string>
     <string name="labs_enable_new_app_layout_summary">Vienkāršots Element ar cilnēm pēc izvēles</string>
     <string name="labs_enable_deferred_dm_title">Iespējot atliktās tiešās ziņas</string>
@@ -1895,11 +1886,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="preference_show_all_rooms_in_home">Sākumsadaļā rādīt visas istabas</string>
     <string name="this_space_has_no_rooms_not_admin">Dažas istabas var būt paslēptas, jo tās ir privātas un ir nepieciešams uzaicinājums.
 \nNav atļaujas pievienot istabas.</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Šī sesija neatbalsta šifrēšana, tādēļ to nevar apliecināt.
-\n
-\nNebūs iespējams piedalīties istabās, kurās ir iespējota šifrēšana, kad tiks izmantota šī sesija.
-\n
-\nVislabākajai drošībai un privātumam ir ieteicams izmantot Matrix klientus, kas atbalsta šifrēšanu.</string>
     <string name="home_empty_space_no_rooms_message">Vietas ir jauns veids, kā apkopot istabas un cilvēkus. Pievienot esošu istabu vai izveidot jaunu var ar apakšējā labajā stūrī esošo pogu.</string>
     <string name="threads_beta_enable_notice_message">Pavedieni palīdz uzturēt sarunas par tēmu un ir viegli izsekojami. %sPavedienu iespējošana atsvaidzinās lietotni. Dažiem kontiem tas var aizņemt vairāk laika.</string>
     <string name="threads_labs_enable_notice_title">Pavedieni Beta</string>
@@ -2011,7 +1997,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="ftue_auth_sign_out_all_devices">Atteikties visās ierīcēs</string>
     <string name="ftue_auth_email_resend_email">Atkārtoti nosūtīt e-pastu</string>
     <string name="ftue_auth_login_username_entry">Lietotājvārds / e-pasta adrese / tālruņa numurs</string>
-    <string name="settings_sessions_list">Sesijas</string>
     <string name="a11y_open_spaces">Atvērt vietu sarakstu</string>
     <string name="ftue_auth_use_case_option_three">Kopienas</string>
     <string name="ftue_personalize_lets_go">Aiziet!</string>
@@ -2107,9 +2092,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">Drošas ziņapmaiņas uzstādīšanā atgadījās drošības nepilnība. Kaut kas no šī var būt iesaistīts drošības pārkāpumā: mājasserveris; Interneta savienojums(i); ierīce(s);</string>
     <string name="qr_code_login_header_failed_homeserver_is_not_supported_description">Mājasserveris nenodrošina pieteikšanos ar kvadrātkodu.</string>
     <string name="bootstrap_progress_generating_ssss_with_info">Izveido SSSS atslēgu no paroles vārdkopas (%s)</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Apliecinātas sesijas ir jebkur, kur tiek izmantots šis konts pēc paroles vārdkopas ievadīšanas vai identitātes apstiprināšanas ar citu apliecinātu sesiju.
-\n
-\nTas nozīmē, ka ir pieejamas visas nepieciešamās atslēgas, lai atslēgtu šifrētās ziņas un apstiprinātu citiem lietotājiem, ka šī sesija ir uzticama.</string>
     <string name="verification_verify_with_another_device">Apliecināt ar citu ierīci</string>
     <string name="verification_verify_identity">Jāapliecina sava identitāte, lai piekļūtu šifrētajām ziņām un pierādītu citiem savu identitāti.</string>
     <string name="settings_export_trail">Izgūt pārbaudes ierakstus</string>
@@ -2417,24 +2399,11 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="attachment_type_selector_poll">Aptaujas</string>
     <string name="attachment_type_selector_camera">Kamera</string>
     <string name="settings_troubleshoot_test_current_endpoint_title">Galamērķis</string>
-    <string name="device_manager_other_sessions_multi_signout_selection">Atteikties</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="zero">Atteikties no %1$d sesijām</item>
-        <item quantity="one">Atteikties no %1$d sesijas</item>
-        <item quantity="other">Atteikties no %1$d sesijām</item>
-    </plurals>
-    <string name="device_manager_other_sessions_show_ip_address">Parādīt IP adresi</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Paslēpt IP adresi</string>
-    <string name="device_manager_session_details_application_name">Nosaukums</string>
-    <string name="device_manager_session_rename_edit_hint">Sesijas nosaukums</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Neapliecinātās sesijas</string>
     <plurals name="message_reaction_show_more">
         <item quantity="zero">Vēl %1$d</item>
         <item quantity="one">Vēl %1$d</item>
         <item quantity="other">Vēl %1$d</item>
     </plurals>
-    <string name="device_manager_learn_more_session_rename_title">Sesiju pārdēvēšana</string>
-    <string name="device_manager_session_overview_signout">Atteikties no šīs sesijas</string>
     <string name="tooltip_attachment_file">Augšupielādēt datni</string>
     <string name="tooltip_attachment_poll">Izveidot aptauju</string>
     <string name="message_reaction_show_less">Rādīt mazāk</string>
@@ -2442,39 +2411,13 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_troubleshoot_test_distributors_fdroid">Netika atrasts neviens cits veids bez sinhronizēšanas fonā.</string>
     <string name="settings_troubleshoot_test_current_endpoint_success">Pašreizējais galamērķis: %s</string>
     <string name="settings_troubleshoot_test_current_gateway_title">Vārteja</string>
-    <string name="device_manager_verification_status_unknown">Nezināms apliecinājuma stāvoklis</string>
-    <string name="device_manager_other_sessions_view_all">Apskatīt visas (%1$d)</string>
-    <string name="device_manager_unverified_sessions_description">Jāapliecina vai jāatsakās no neapliecinātām sesijām.</string>
-    <string name="device_manager_filter_option_verified_description">Gatavas drošai ziņapmaiņai</string>
-    <string name="device_manager_filter_option_unverified_description">Nav gatavas drošai ziņapmaiņai</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Vislabākajai drošībai jāatsakās no jebkuras neatpazīstamas vai vairs neizmantotas sesijas.</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Jāapliecina savas sesijas paplašinātai drošajai ziņapmaiņai vai jāatsakās no tām, kas nav atpazīstamas vai vairs netiek izmantotas.</string>
-    <string name="device_manager_session_details_description">Informācija par lietotne, ierīci un darbībām.</string>
-    <string name="device_manager_session_details_device_operating_system">Operētājsistēma</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Apliecinātas sesijas</string>
-    <string name="device_manager_filter_bottom_sheet_title">Atlase</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Neapliecinātas</string>
-    <string name="device_manager_session_details_application">Lietotne</string>
-    <string name="device_manager_verification_status_unverified">Neapliecināta sesija</string>
     <string name="settings_troubleshoot_test_distributors_title">Pieejamie veidi</string>
-    <string name="device_manager_session_title">Sesija</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Apliecinātas sesijas netika atrastas.</string>
-    <string name="device_manager_session_rename">Pārdēvēt sesiju</string>
     <string name="unifiedpush_getdistributors_dialog_title">Izvēlēties, kā saņemt paziņojumus</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google pakalpojumi</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Jāapliecina pašreizējā sesija paplašinātai drošajai ziņapmaiņai.</string>
-    <string name="a11y_device_manager_device_type_mobile">Tālrunis</string>
-    <string name="device_manager_session_details_title">Sesijas izvērsums</string>
     <string name="attachment_type_selector_text_formatting">Teksta formatēšana</string>
-    <string name="device_manager_device_title">Iekārta</string>
-    <string name="device_manager_session_details_session_name">Sesijas nosaukums</string>
     <string name="attachment_type_selector_location">Atrašanās vieta</string>
     <string name="settings_troubleshoot_test_current_distributor_title">Veids</string>
-    <string name="device_manager_header_section_security_recommendations_description">Uzlabo sava konta drošību ievērojot šos ieteikumus.</string>
-    <string name="device_manager_session_details_device_browser">Pārlūks</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Pieteikties ar kvadrātkodu</string>
-    <string name="device_manager_verify_session">Apliecināt sesiju</string>
-    <string name="a11y_device_manager_filter">Atlasīt</string>
     <string name="tooltip_attachment_location">Kopīgot atrašanās vietu</string>
     <string name="room_message_notify_everyone">Paziņot visai istabai</string>
     <string name="room_message_autocomplete_users">Lietotāji</string>
@@ -2482,26 +2425,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_notification_method">Paziņojuma veids</string>
     <string name="settings_troubleshoot_test_current_endpoint_failed">Nevar atrast galamērķi.</string>
     <string name="live_location_labs_promotion_title">Atrašanās vietas tiešraides kopīgošana</string>
-    <string name="device_manager_sessions_other_title">Citas sesijas</string>
-    <string name="a11y_device_manager_device_type_web">Tīmeklis</string>
-    <string name="a11y_device_manager_device_type_desktop">Darbvirsma</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Šī sesija ir gatava drošai ziņapmaiņai.</string>
-    <string name="device_manager_other_sessions_description_unverified">Neapliecināta · Pēdējā darbība %1$s</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="zero">Neizmantota %1$d+ dienas (%2$s)</item>
-        <item quantity="one">Neizmantota %1$d+ dienu (%2$s)</item>
-        <item quantity="other">Neizmantota %1$d+ dienas (%2$s)</item>
-    </plurals>
-    <string name="device_manager_unverified_sessions_title">Neapliecinātas sesijas</string>
-    <string name="device_manager_session_details_session_last_activity">Pēdējā darbība</string>
-    <string name="device_manager_session_details_application_version">Versija</string>
-    <string name="device_manager_session_rename_warning">Lūgums ņemt vērā, ka sesiju nosaukumi ir redzami arī cilvēkiem, ar kuriem sazinies.</string>
     <string name="settings_troubleshoot_test_current_distributor">Pašreiz tiek izmantots %s.</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Jāapliecina pašreizējā sesija, lai atklātu šīs sesijas apliecinājuma stāvokli.</string>
-    <string name="device_manager_filter_option_all_sessions">Visas sesijas</string>
-    <string name="device_manager_header_section_security_recommendations_title">Drošības ieteikumi</string>
-    <string name="device_manager_current_session_title">Pašreizējā sesija</string>
-    <string name="device_manager_other_sessions_clear_filter">Notīrīt atlasi</string>
     <string name="tooltip_attachment_sticker">Nosūtīt uzlīmi</string>
     <string name="attachment_type_selector_gallery">Attēlu bibliotēka</string>
     <string name="attachment_type_selector_sticker">Uzlīmes</string>
@@ -2513,54 +2437,8 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
         <item quantity="other">Atrasti %d veidi.</item>
     </plurals>
     <string name="settings_troubleshoot_test_current_gateway">Pašreizējā vārteja: %s</string>
-    <string name="a11y_device_manager_device_type_unknown">Nezināms ierīces veids</string>
-    <string name="device_manager_view_details">Apskatīt izvērsumu</string>
-    <string name="device_manager_inactive_sessions_title">Neizmantotas sesijas</string>
-    <string name="device_manager_filter_option_verified">Apliecinātas</string>
-    <string name="device_manager_filter_option_inactive">Neizmantotas</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Apliecinātas</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Neizmantotas sesijas netika atrastas.</string>
-    <string name="device_manager_other_sessions_select">Atlasīt sesijas</string>
-    <string name="device_manager_signout_all_other_sessions">Atteikties no visām pārējām sesijām</string>
-    <string name="device_manager_session_details_device_ip_address">IP adrese</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_device_model">Modelis</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Neizmantotās sesijas</string>
-    <string name="device_manager_learn_more_sessions_unverified">Neapliecinātās sesijas ir sesijas, kurās ir notikusi pieteikšanās ar Taviem datiem, bet nav starpapliecinātas.
-\n
-\nVajadzētu īpaši pārliecināties, ka šīs sesijas ir atpazīstamas, jo tās var norādīt uz nepilnvarotu konta izmantošanu.</string>
     <string name="live_location_labs_promotion_switch_title">Iespējot atrašanās vietas kopīgošanu</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="zero">Jāapsver atteikšanās no vecajām sesijām (%1$d dienu vai vairāk), kas vairs netiek izmantotas.</item>
-        <item quantity="one">Jāapsver atteikšanās no vecajām sesijām (%1$d diena vai vairāk), kas vairs netiek izmantotas.</item>
-        <item quantity="other">Jāapsver atteikšanās no vecajām sesijām (%1$d dienas vai vairāk), kas vairs netiek izmantotas.</item>
-    </plurals>
-    <string name="device_manager_session_last_activity">Pēdējā darbība %1$s</string>
-    <string name="device_manager_sessions_other_description">Vislielākajai drošībai jāapliecina savas sesijas un jāatsakās no jebkuras neatpazītas vai neizmantotas sesijas.</string>
-    <string name="device_manager_filter_option_unverified">Neapliecinātas</string>
-    <string name="device_manager_verification_status_verified">Apliecināta sesija</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Pašreizējā sesija ir gatava drošai ziņapmaiņai.</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Vislabākajai drošībai un uzticamībai jāapliecina šī sesija vai jāatsakās no tās.</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="zero">Neizmantotas %1$d dienu vai ilgāk</item>
-        <item quantity="one">Neizmantotas %1$d dienu vai ilgāk</item>
-        <item quantity="other">Neizmantotas %1$d dienas vai ilgāk</item>
-    </plurals>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Šī sesija nenodrošina šifrēšanu, tādēļ to nevar apliecināt.</string>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Neizmantotas</string>
-    <string name="device_manager_other_sessions_description_verified">Apliecināta · Pēdējā darbība %1$s</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="zero">Jāapsver atteikšanās no vecajām sesijām (%1$d dienu vai vairāk), kas vairs netiek izmantotas.</item>
-        <item quantity="one">Jāapsver atteikšanās no vecajām sesijām (%1$d diena vai vairāk), kas vairs netiek izmantotas.</item>
-        <item quantity="other">Jāapsver atteikšanās no vecajām sesijām (%1$d dienas vai vairāk), kas vairs netiek izmantotas.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Neapliecināta · Pašreizējā sesija</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Neapliecinātas sesijas netika atrastas.</string>
-    <string name="device_manager_session_rename_description">Pielāgoti sesiju nosaukumi var palīdzēt vieglāk atpazīt savas ierīces.</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">Tu vari izmanto šo ierīci, lai pieteiktos tālruņa vai tīmekļa ierīcē ar kvadrātkodu. Ir divi veidi, kā to izdarīt:</string>
-    <string name="device_manager_learn_more_sessions_inactive">Neizmantotās sesijas ir sesijas, kas kādu laiku nav izmantotas, bet tās turpina saņemt šifrēšanas atslēgas.
-\n
-\nNeizmantotas sesijas noņemšana uzlabo drošību un veiktspēju un ir vieglāk noteikt, vai jauna sesija ir aizdomīga.</string>
     <string name="pill_message_from_unknown_user">Ziņa</string>
     <string name="qr_code_login_header_failed_other_device_not_signed_in_description">Otrā ierīcē ir jāpiesakās.</string>
     <string name="home_empty_no_unreads_message">Šeit tiks parādītas nelasītās ziņas, kad tādas būs.</string>
@@ -2584,12 +2462,10 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="qr_code_login_show_qr_code_button">Rādīt kvadrātkodu šajā ierīcē</string>
     <string name="qr_code_login_status_no_match">Nav atbilstības\?</string>
     <string name="qr_code_login_try_again">Jāmēģina vēlreiz</string>
-    <string name="labs_enable_session_manager_title">Iespējot jauno sesiju pārvaldnieku</string>
     <string name="home_empty_no_rooms_title">Laipni lūdzam ${app_name},
 \n%s!</string>
     <string name="message_reply_to_sender_sent_image">nosūtīja attēlu.</string>
     <string name="set_link_text">Teksts</string>
-    <string name="labs_enable_client_info_recording_title">Iespējot klienta informācijas ierakstīšanu</string>
     <string name="qr_code_login_header_failed_other_description">Pieprasījums neizdevās.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nizskatās mazliet tukša.</string>
@@ -2603,7 +2479,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="message_reply_to_poll_preview">Aptauja</string>
     <string name="pill_message_in_unknown_room">Ziņa istabā</string>
     <string name="message_reply_to_ended_poll_preview">Noslēgtās aptaujas</string>
-    <string name="labs_enable_session_manager_summary">Iegūsti labāku pārredzamību un pārraudzību pār visām savām sesijām!</string>
     <string name="qr_code_login_header_failed_other_device_already_signed_in_description">Otrā ierīcē jau ir pieteikšanās.</string>
     <string name="set_link_create">Izveidot saiti</string>
     <string name="settings_access_token">Piekļuves pilnvara</string>
@@ -2615,7 +2490,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="message_reply_to_sender_sent_sticker">nosūtīja uzlīmi.</string>
     <string name="pill_message_from_user">Ziņa no %s</string>
     <string name="pill_message_unknown_room_or_space">Istaba/vieta</string>
-    <string name="labs_enable_client_info_recording_summary">Ierakstīt klienta nosaukumu, versiju un URL, lai sesiju pārvaldniekā vieglāk atpazītu sesijas.</string>
     <string name="qr_code_login_header_connected_description">Jāpārbauda ierīce, kurā esi pieteicies, tajā vajadzētu būt attēlotam zemāk redzamajam kodam. Jāapstiprina, ka zemāk esošais kods saskan ar to, kas ir ierīcē:</string>
     <string name="qr_code_login_header_failed_denied_description">Pieprasījums tika atteikts otrā ierīcē.</string>
     <string name="qr_code_login_scan_qr_code_button">Nolasīt kvadrātkodu</string>

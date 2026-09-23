@@ -605,32 +605,6 @@
     <string name="home_empty_space_no_rooms_message">Erdvės - tai naujas kambarių ir žmonių grupavimo būdas. Pridėkite esamą kambarį arba sukurkite naują naudodami apatinį dešinįjį mygtuką.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \natrodo šiek tiek tuščia.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Apsvarstykite galimybę atsijungti iš senų sesijų (%1$d diena ar daugiau), kurių nebenaudojate.</item>
-        <item quantity="few">Apsvarstykite galimybę atsijungti iš senų sesijų (%1$d dienos ar daugiau), kurių nebenaudojate.</item>
-        <item quantity="other">Apsvarstykite galimybę atsijungti iš senų sesijų (%1$d dienų ar daugiau), kurių nebenaudojate.</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">Neaktyvios sesijos</string>
-    <string name="device_manager_unverified_sessions_description">Patvirtinkite nepatvirtintas sesijas arba atjunkite jas.</string>
-    <string name="device_manager_unverified_sessions_title">Nepatvirtintos sesijos</string>
-    <string name="device_manager_header_section_security_recommendations_description">Pagerinkite savo paskyros saugumą laikydamiesi šių rekomendacijų.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Saugumo rekomendacijos</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Neaktyvus %1$d+ dieną (%2$s)</item>
-        <item quantity="few">Neaktyvus %1$d+ dienas (%2$s)</item>
-        <item quantity="other">Neaktyvus %1$d+ dienų (%2$s)</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_unverified">Nepatvirtinta · Paskutinė veikla %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Patvirtinta · Paskutinė veikla %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Peržiūrėti visas (%1$d)</string>
-    <string name="device_manager_view_details">Peržiūrėti detales</string>
-    <string name="device_manager_verify_session">Patvirtinti sesiją</string>
-    <string name="device_manager_verification_status_unverified">Nepatvirtinta sesija</string>
-    <string name="device_manager_verification_status_verified">Patvirtinta sesija</string>
-    <string name="a11y_device_manager_device_type_unknown">Nežinomas įrenginio tipas</string>
-    <string name="a11y_device_manager_device_type_desktop">Stalinis kompiuteris</string>
-    <string name="a11y_device_manager_device_type_web">Naršyklė</string>
-    <string name="a11y_device_manager_device_type_mobile">Mobilus</string>
     <string name="live_location_labs_promotion_switch_title">Įjungti vietos bendrinimą</string>
     <string name="live_location_labs_promotion_description">Atkreipkite dėmesį, kad tai yra laboratorinė funkcija, kuri įgyvendinama laikinai. Tai reiškia, kad negalėsite ištrinti savo buvimo vietos istorijos, o pažengę naudotojai galės matyti jūsų buvimo vietos istoriją net tada, kai nustosite bendrinti savo tiesioginę buvimo vietą su šiuo kambariu.</string>
     <string name="live_location_labs_promotion_title">Tiesioginės buvimo vietos bendrinimas</string>
@@ -1907,11 +1881,6 @@
     <string name="notice_voice_broadcast_ended_by_you">Jūs pabaigėte balso transliaciją.</string>
     <string name="threads_labs_enable_notice_title">Temos Beta</string>
     <string name="threads_beta_enable_notice_title">Temos Beta</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d pasirinktas</item>
-        <item quantity="few">%1$d pasirinkti</item>
-        <item quantity="other">%1$d pasirinkta</item>
-    </plurals>
     <string name="notice_display_name_changed_to">%1$s pakeitė savo rodomą vardą į %2$s</string>
     <string name="action_proceed_to_reset">Tęsti nustatymą iš naujo</string>
     <string name="action_got_it">Supratau</string>

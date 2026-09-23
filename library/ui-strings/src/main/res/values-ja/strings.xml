@@ -1900,7 +1900,6 @@
     <string name="verification_profile_device_verified_because">このセッションは%1$s（%2$s）によって認証されているので、メッセージのセキュリティーは信頼できます。</string>
     <string name="verification_open_other_to_verify">既存のセッションでこのセッションを認証して、暗号化されたメッセージにアクセスできるようにしましょう。</string>
     <string name="settings_active_sessions_verified_device_desc">あなたはこのセッションを認証しているので、メッセージのセキュリティーは信頼できます。</string>
-    <string name="settings_failed_to_get_crypto_device_info">利用可能な暗号情報がありません</string>
     <string name="settings_server_default_room_version">既定のバージョン</string>
     <string name="settings_hs_admin_e2e_disabled">非公開のルームとダイレクトメッセージにおけるエンドツーエンド暗号化は、あなたのサーバーの管理者により既定として無効にされています。</string>
     <string name="notice_power_level_changed">%1$sが%2$s変更しました。</string>
@@ -2080,16 +2079,6 @@
     <string name="auth_reset_password_error_unverified">メールアドレスが認証されていません。メールボックスを確認してください</string>
     <string name="invites_title">招待</string>
     <string name="device_manager_push_notifications_title">プッシュ通知</string>
-    <string name="device_manager_session_rename_edit_hint">セッション名</string>
-    <string name="device_manager_session_rename">セッション名を変更</string>
-    <string name="device_manager_session_details_device_ip_address">IPアドレス</string>
-    <string name="device_manager_session_details_device_operating_system">オペレーティングシステム</string>
-    <string name="device_manager_session_details_device_model">形式</string>
-    <string name="device_manager_session_details_device_browser">ブラウザー</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">バージョン</string>
-    <string name="device_manager_session_details_application_name">名称</string>
-    <string name="device_manager_session_details_application">アプリケーション</string>
     <string name="ftue_personalize_skip_this_step">このステップをスキップ</string>
     <string name="ftue_personalize_complete_title">問題ありません！</string>
     <string name="ftue_personalize_lets_go">進みましょう</string>
@@ -2138,9 +2127,7 @@
     <string name="all_chats">全ての会話</string>
     <string name="home_empty_no_rooms_title">${app_name}にようこそ、
 \n%s。</string>
-    <string name="device_manager_learn_more_sessions_verified_title">認証済のセッション</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">QRコードでサインイン</string>
-    <string name="labs_enable_session_manager_title">新しいセッションマネージャーを有効にする</string>
     <string name="qr_code_login_header_show_qr_code_title">QRコードでサインイン</string>
     <string name="three">3</string>
     <string name="two">2</string>
@@ -2163,9 +2150,6 @@
     <string name="action_select_all">全て選択</string>
     <string name="notice_voice_broadcast_ended_by_you">音声配信を終了しました。</string>
     <string name="notice_voice_broadcast_ended">%1$sが音声配信を終了しました。</string>
-    <plurals name="x_selected">
-        <item quantity="other">%1$d個選択済</item>
-    </plurals>
     <string name="settings_presence_user_always_appears_offline_summary">有効にすると、このアプリケーションを使用している際にも、他のユーザーにオフラインとして表示されます。</string>
     <string name="settings_enable_direct_share_summary">最近のチャットをシステムの共有メニューに表示</string>
     <string name="font_size_use_system">システムの既定値を使用</string>
@@ -2177,54 +2161,17 @@
     <string name="thread_list_not_available">あなたのホームサーバーはスレッドの一覧表示をまだサポートしていません。</string>
     <string name="invites_empty_message">ここに新しいリクエストと招待が表示されます。</string>
     <string name="labs_enable_new_app_layout_summary">タブを使用してElementの表示をシンプルにする</string>
-    <string name="device_manager_session_details_title">セッションの詳細</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="other">%1$d日以上使用されていません</item>
-    </plurals>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="other">%1$d日以上使用されていません（%2$s）</item>
-    </plurals>
     <string name="location_share_loading_map_error">地図を読み込めません
 \nこのホームサーバーは地図が読み込めるように設定されていないおそれがあります。</string>
     <string name="home_empty_space_no_rooms_message">スペースは、ルームや連絡先をまとめる新しい方法です。右下のボタンを使うと、既存のルームを追加したり新たに作成したりできます。</string>
-    <string name="device_manager_header_section_security_recommendations_title">セキュリティーに関する勧告</string>
-    <string name="device_manager_sessions_other_title">その他のセッション</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">セキュリティーを最大限に高めるには、不明なセッションや使用していないセッションからサインアウトしてください。</string>
     <string name="settings_security_pin_code_use_biometrics_error">生体認証を有効にできませんでした。</string>
     <string name="identity_server_error_binding_error">関連付けに失敗しました。</string>
     <string name="ftue_auth_welcome_back_title">おかえりなさい！</string>
     <string name="ftue_auth_create_account_sso_section_header">または</string>
     <string name="settings_autoplay_animated_images_summary">アニメーション画像がタイムラインに表示されたらすぐに再生</string>
-    <string name="device_manager_learn_more_sessions_inactive">非アクティブなセッションは、しばらく使用されていませんが、暗号鍵を受信しているセッションです。
-\n
-\n使用していないセッションを削除すると、セキュリティーとパフォーマンスが改善されます。また、新しいセッションが疑わしい場合に、より容易に特定できるようになります。</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">非アクティブなセッション</string>
-    <string name="labs_enable_session_manager_summary">改善したセッションの管理画面を使用します。</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">未認証のセッション</string>
     <string name="home_empty_no_unreads_message">未読のメッセージがある場合は、ここに表示されます。</string>
     <string name="home_empty_no_unreads_title">未読はありません。</string>
-    <string name="labs_enable_client_info_recording_title">クライアントの情報の保存を有効にする</string>
-    <string name="device_manager_session_rename_warning">セッション名は連絡先に対しても表示されます。ご注意ください。</string>
-    <string name="device_manager_session_rename_description">セッション名を設定すると、端末をより簡単に認識できるようになります。</string>
     <string name="device_manager_push_notifications_description">このセッションでプッシュ通知を受信。</string>
-    <string name="device_manager_other_sessions_clear_filter">絞り込みを解除</string>
-    <string name="a11y_device_manager_filter">絞り込む</string>
-    <string name="device_manager_session_details_description">アプリケーション、端末、アクティビティーに関する情報。</string>
-    <string name="device_manager_session_details_session_last_activity">直近のアクティビティー</string>
-    <string name="device_manager_session_details_session_name">セッション名</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="other">%1$d件のセッションからサインアウト</item>
-    </plurals>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">使用していないセッションはありません。</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">未認証のセッションはありません。</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">認証済のセッションはありません。</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="other">使用していない古いセッション（%1$d日以上使用されていません）からのサインアウトを検討してください。</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">非アクティブ</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">セッションを認証すると、より安全なメッセージのやりとりが可能になります。見覚えのない、または使用していないセッションがあれば、サインアウトしましょう。</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">未認証</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">認証済</string>
     <string name="qr_code_login_connecting_to_device">端末に接続しています</string>
     <string name="qr_code_login_header_failed_homeserver_is_not_supported_description">ホームサーバーはQRコードによるサインインをサポートしていません。</string>
     <string name="qr_code_login_header_connected_title">安全な接続を確立しました</string>
@@ -2237,39 +2184,6 @@
     <string name="message_reply_to_poll_preview">アンケート</string>
     <string name="settings_access_token">アクセストークン</string>
     <string name="settings_access_token_summary">アクセストークンを用いると、あなたのアカウントの全ての情報にアクセスできます。外部に公開したり、誰かと共有したりしないでください。</string>
-    <string name="device_manager_other_sessions_select">セッションを選択</string>
-    <string name="device_manager_session_overview_signout">このセッションからサインアウト</string>
-    <string name="device_manager_other_sessions_hide_ip_address">IPアドレスを表示しない</string>
-    <string name="device_manager_other_sessions_show_ip_address">IPアドレスを表示</string>
-    <string name="device_manager_signout_all_other_sessions">他の全てのセッションからサインアウト</string>
-    <string name="device_manager_other_sessions_multi_signout_selection">サインアウト</string>
-    <string name="device_manager_filter_option_inactive">非アクティブ</string>
-    <string name="device_manager_filter_option_unverified_description">安全なメッセージのやりとりの準備ができていません</string>
-    <string name="device_manager_filter_option_unverified">未認証</string>
-    <string name="device_manager_filter_option_verified_description">安全なメッセージのやりとりの準備ができました</string>
-    <string name="device_manager_filter_option_verified">認証済</string>
-    <string name="device_manager_filter_option_all_sessions">全てのセッション</string>
-    <string name="device_manager_device_title">端末</string>
-    <string name="device_manager_session_title">セッション</string>
-    <string name="device_manager_current_session_title">現在のセッション</string>
-    <string name="device_manager_inactive_sessions_title">非アクティブなセッション</string>
-    <string name="device_manager_unverified_sessions_title">未認証のセッション</string>
-    <string name="device_manager_header_section_security_recommendations_description">以下の勧告に従い、アカウントのセキュリティーを改善しましょう。</string>
-    <string name="device_manager_other_sessions_view_all">全て表示（%1$d）</string>
-    <string name="device_manager_view_details">詳細を表示</string>
-    <string name="device_manager_verify_session">セッションを認証</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">このセッションは暗号化をサポートしていないため、認証できません。</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">セキュリティーと安定性の観点から、このセッションを認証するかサインアウトしてください。</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">より安全なメッセージのやりとりのために、現在のセッションを認証しましょう。</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">このセッションは安全なメッセージのやりとりの準備ができています。</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">現在のセッションは安全なメッセージのやりとりに対応しています。</string>
-    <string name="device_manager_verification_status_unknown">認証の状態が不明です</string>
-    <string name="device_manager_verification_status_unverified">未認証のセッション</string>
-    <string name="device_manager_verification_status_verified">認証済のセッション</string>
-    <string name="a11y_device_manager_device_type_unknown">端末の種類が不明です</string>
-    <string name="a11y_device_manager_device_type_desktop">デスクトップ</string>
-    <string name="a11y_device_manager_device_type_web">ウェブ</string>
-    <string name="a11y_device_manager_device_type_mobile">携帯端末</string>
     <string name="live_location_labs_promotion_switch_title">位置情報の共有を有効にする</string>
     <string name="live_location_labs_promotion_description">注意：これは一時的な実装による試験機能です。位置情報の履歴を削除することはできません。高度なユーザーは、あなたがこのルームで位置情報（ライブ）の共有を停止した後でも、あなたの位置情報の履歴を閲覧することができます。</string>
     <string name="live_location_labs_promotion_title">位置情報（ライブ）の共有</string>
@@ -2340,7 +2254,6 @@
     <string name="settings_nightly_build_update">最新版を入手（注意：サインインの際に問題が起こる可能性があります）</string>
     <string name="crosssigning_cannot_verify_this_session_desc">暗号化されたメッセージの履歴にアクセスできません。鍵の安全なバックアップと認証用の鍵をリセットして、やり直してください。</string>
     <string name="crosssigning_cannot_verify_this_session">この端末を認証できません</string>
-    <string name="settings_sessions_list">セッション</string>
     <string name="room_profile_section_more_polls">アンケートの履歴</string>
     <string name="command_description_table_flip">プレーンテキストメッセージの前に (╯°□°）╯︵ ┻━┻ を付ける</string>
     <string name="permalink_unsupported_groups">このリンクを開けません：コミュニティー機能はスペース機能に変更されました</string>
@@ -2422,19 +2335,6 @@
     <string name="qr_code_login_header_scan_qr_code_description">この端末のカメラを使用して、他の端末に表示されているQRコードをスキャンしてください：</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nは空です。</string>
-    <string name="labs_enable_client_info_recording_summary">クライアントの名称、バージョン、URLを記録し、セッションマネージャーでより容易にセッションを認識できるよう設定。</string>
-    <string name="device_manager_learn_more_session_rename_title">セッション名の変更</string>
-    <string name="device_manager_filter_bottom_sheet_title">絞り込む</string>
-    <string name="device_manager_session_last_activity">直近のオンライン日時 %1$s</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="other">使用していない古いセッション（%1$d日以上使用されていません）からサインアウトすることを検討してください。</item>
-    </plurals>
-    <string name="device_manager_unverified_sessions_description">未認証のセッションを認証するか、サインアウトしてください。</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">未認証・現在のセッション</string>
-    <string name="device_manager_other_sessions_description_unverified">未認証・直近のオンライン日時 %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">認証済・直近のオンライン日時 %1$s</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">現在のセッションを認証すると、このセッションの認証の状態を確認できます。</string>
-    <string name="device_manager_sessions_other_description">セキュリティーを最大限に高めるには、セッションを認証し、不明なセッションや使用していないセッションからサインアウトしてください。</string>
     <string name="settings_troubleshoot_test_current_gateway">現在のゲートウェイ：%s</string>
     <string name="settings_troubleshoot_test_current_gateway_title">ゲートウェイ</string>
     <plurals name="settings_troubleshoot_test_distributors_many">
@@ -2456,20 +2356,6 @@
     <string name="voice_message_tap_to_stop_toast">録音をタップして停止または再生</string>
     <string name="space_explore_filter_no_result_description">非公開で招待が必要なものは表示されていません。</string>
     <string name="a11y_unsent_draft">下書きを取り消しました</string>
-    <string name="device_manager_learn_more_session_rename">あなたが参加するダイレクトメッセージとルームの他のユーザーは、あなたのセッションの一覧を閲覧できます。
-\n
-\nセッションの一覧から、相手はあなたとやり取りしていることを確かめることができます。なお、あなたがここに入力するセッション名は相手に対して表示されます。</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">このセッションは暗号化をサポートしていないため、認証できません。
-\n
-\nこのセッションでは、暗号化が有効になっているルームに参加することができません。
-\n
-\nセキュリティーとプライバシー保護の観点から、暗号化をサポートしているMatrixのクライアントの使用を推奨します。</string>
-    <string name="device_manager_learn_more_sessions_unverified">未認証のセッションは、認証情報でログインされていますが、クロス認証は行われていないセッションです。
-\n
-\nこれらのセッションは、アカウントの不正使用を示している可能性があるため、注意して確認してください。</string>
-    <string name="device_manager_learn_more_sessions_verified_description">認証済のセッションは、パスフレーズの入力、または他の認証済のセッションで本人確認を行ったセッションです。
-\n
-\n認証済のセッションには、暗号化されたメッセージを復号化する際に使用する全ての鍵が備わっています。また、他のユーザーに対しては、あなたがこのセッションを信頼していることが表示されます。</string>
     <string name="qr_code_login_header_failed_other_device_not_signed_in_description">もう一方の端末でサインインしてください。</string>
     <string name="qr_code_login_signing_in_a_mobile_device">携帯端末にサインインしますか？</string>
     <string name="qr_code_login_link_a_device_show_qr_code_instruction_1">サインインの画面で開始</string>

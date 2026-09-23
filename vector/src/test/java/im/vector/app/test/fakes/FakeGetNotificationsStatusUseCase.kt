@@ -7,8 +7,8 @@
 
 package im.vector.app.test.fakes
 
-import im.vector.app.features.settings.devices.v2.notification.GetNotificationsStatusUseCase
-import im.vector.app.features.settings.devices.v2.notification.NotificationsStatus
+import im.vector.app.features.settings.devices.notification.GetNotificationsStatusUseCase
+import im.vector.app.features.settings.devices.notification.NotificationsStatus
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf

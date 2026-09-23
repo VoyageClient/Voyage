@@ -474,7 +474,6 @@
     <string name="settings_active_sessions_show_all">Näita kõiki sessioone</string>
     <string name="settings_active_sessions_manage">Halda sessioone</string>
     <string name="settings_active_sessions_signout_device">Logi sellest sessioonist välja</string>
-    <string name="settings_failed_to_get_crypto_device_info">Teave krüptograafia kohta puudub</string>
     <string name="settings_active_sessions_verified_device_desc">Kuna sina oled selle sessiooni verifitseerinud, siis see sessioon on krüptitud sõnumite saatmiseks usaldusväärne:</string>
     <string name="identity_server_error_outdated_identity_server">See isikutuvastusserver kasutab vana API\'t. ${app_name} toetab aga vaid API versiooni 2.</string>
     <string name="identity_server_error_outdated_home_server">See tegevus ei ole võimalik. Koduserveri versioon on liiga vana.</string>
@@ -2252,9 +2251,6 @@
     <string name="location_share_loading_map_error">Kaardi laadimine ei õnnestu.
 \nSee koduserver ei pruugi olla seadistatud kuvama kaarte.</string>
     <string name="all_chats">Kõik vestlused</string>
-    <string name="device_manager_sessions_other_description">Parima turvalisuse nimel verifitseeri kõik oma sessioonid ning logi välja neist, mida sa enam ei kasuta või ei tunne ära.</string>
-    <string name="device_manager_sessions_other_title">Muud sessioonid</string>
-    <string name="settings_sessions_list">Sessioonid</string>
     <string name="a11y_open_spaces">Ava kogukondade loend</string>
     <string name="a11y_create_message">Alusta uut vestlust või loo uus jututuba</string>
     <string name="room_list_filter_people">Inimesed</string>
@@ -2270,17 +2266,6 @@
     <string name="explore_rooms">Tutvu jututubadega</string>
     <string name="create_room">Loo jututuba</string>
     <string name="start_chat">Alusta vestlust</string>
-    <string name="device_manager_other_sessions_description_unverified">Verifitseerimata · Viimati kasutusel %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Verifitseeritud · Viimati kasutusel %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Näita kõiki (%1$d)</string>
-    <string name="device_manager_view_details">Vaata lisateavet</string>
-    <string name="device_manager_verify_session">Verifitseeri sessioon</string>
-    <string name="device_manager_verification_status_unverified">Verifitseerimata sessioon</string>
-    <string name="device_manager_verification_status_verified">Verifitseeritud sessioon</string>
-    <string name="a11y_device_manager_device_type_unknown">Tundmatu seadme tüüp</string>
-    <string name="a11y_device_manager_device_type_desktop">Töölauarakendus</string>
-    <string name="a11y_device_manager_device_type_web">Veebiliides</string>
-    <string name="a11y_device_manager_device_type_mobile">Mobiiltelefon</string>
     <string name="timeline_error_room_not_found">Vabandust, aga seda jututuba ei õnnestu leida.
 \nPalun proovi hiljem uuesti.%s</string>
     <string name="invites_title">Kutsed</string>
@@ -2295,83 +2280,13 @@
     <string name="home_empty_space_no_rooms_message">Kogukonnad on võimalus jututubade ja inimeste ühendamiseks. Kasutades all paremal olevat nuppu lisa mõni olemasolev jututuba või loo uus.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \ntundub olema tühjavõitu.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Logi välja sellisest vanast sessioonist (vanem kui %1$d päev), mida sa enam ei kasuta.</item>
-        <item quantity="other">Logi välja sellistest vanadest sessioonidest (vanemad kui %1$d päeva), mida sa enam ei kasuta.</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">Mitteaktiivsed sessioonid</string>
-    <string name="device_manager_unverified_sessions_description">Logi verifitseerimata sessioonidest välja või verifitseeri nad.</string>
-    <string name="device_manager_unverified_sessions_title">Verifitseerimata sessioonid</string>
-    <string name="device_manager_header_section_security_recommendations_description">Kui järgid neid soovitusi, siis sa parandad oma kasutajakonto turvalisust.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Turvalisusega seotud soovitused</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Pole olnud kasutusel %1$d+ päeva (%2$s)</item>
-        <item quantity="other">Pole olnud kasutusel %1$d+ päeva (%2$s)</item>
-    </plurals>
     <string name="invites_empty_message">Siin saavad olema sinu tulevased päringud ja kutsed.</string>
-    <string name="device_manager_session_details_device_ip_address">IP-aadress</string>
-    <string name="device_manager_session_details_session_last_activity">Viimati kasutusel</string>
-    <string name="device_manager_session_details_session_name">Sessiooni nimi</string>
-    <string name="device_manager_session_details_description">Rakendus, seade ja kasutamise teave.</string>
-    <string name="device_manager_session_details_title">Sessiooni teave</string>
-    <string name="device_manager_other_sessions_clear_filter">Eemalda filter</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Ei leidu sessioone, mis pole aktiivses kasutuses.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Verifitseerimata sessioone ei leidu.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Verifitseeritud sessioone ei leidu.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Kaalu vanadest ja kasutamata sessioonidest väljalogimist (vanemad kui %1$d või enam päeva).</item>
-        <item quantity="other">Kaalu vanadest ja kasutamata sessioonidest väljalogimist (vanemad kui %1$d või enam päeva).</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Pole pidevas kasutuses</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Turvalise sõnumvahetuse nimel verifitseeri kõik oma sessioonid ning logi neist välja, mida sa enam ei kasuta või ei tunne enam ära.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Verifitseerimata</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Parima turvalisuse nimel logi välja neist sessioonidest, mida sa enam ei kasuta või ei tunne ära.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Verifitseeritud</string>
-    <string name="a11y_device_manager_filter">Filtreeri</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Pole olnud kasutusel %1$d või enam päeva</item>
-        <item quantity="other">Pole olnud kasutusel %1$d või enam päeva</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Pole pidevas kasutuses</string>
-    <string name="device_manager_filter_option_unverified_description">Pole valmis turvaliseks sõnumivahetuseks</string>
-    <string name="device_manager_filter_option_unverified">Verifitseerimata</string>
-    <string name="device_manager_filter_option_verified_description">Valmis turvaliseks sõnumivahetuseks</string>
-    <string name="device_manager_filter_option_verified">Verifitseeritud</string>
-    <string name="device_manager_filter_option_all_sessions">Kõik sessioonid</string>
-    <string name="device_manager_filter_bottom_sheet_title">Filtreeri</string>
-    <string name="device_manager_session_last_activity">Viimati kasutusel %1$s</string>
-    <string name="device_manager_device_title">Seade</string>
-    <string name="device_manager_session_title">Sessioon</string>
-    <string name="device_manager_current_session_title">Praegune sessioon</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Parima turvalisuse ja töökindluse nimel verifitseeri see sessioon või logi ta võrgust välja.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Turvalise sõnumivahetuse nimel palun verifitseeri oma praegune sessioon.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">See sessioon on valmis turvaliseks sõnumivahetuseks.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Sinu praegune sessioon on valmis turvaliseks sõnumivahetuseks.</string>
     <string name="labs_enable_deferred_dm_summary">Alusta otsevestlust esimese sõnumiga</string>
     <string name="labs_enable_deferred_dm_title">Võta kasutusele viivitusega otsevestlused</string>
     <string name="labs_enable_new_app_layout_summary">Lihtsustatud Element valikuliste kaartidega</string>
     <string name="labs_enable_new_app_layout_title">Võta kasutusele rakenduse uus välimus</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 Sa oled rakenduse turvaseadistustes määranud, et krüptimine kehtib vaid verifitseeritud sessioonidele.</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ Selles jututoas on verifitseerimata seadmeid, mis ei saa sinu saadetud sõnumeid dekrüptida.</string>
-    <string name="device_manager_learn_more_session_rename">Teised osapooled nii otsesõnumites kui jututubades näevad sinu kõikide sessioonide loendit.
-\n
-\nSee tähendab, et nad võivad uskuda, et tegemist on tõesti sinuga. Samal ajal näevad ka siin sisestatud sessiooninime.</string>
-    <string name="device_manager_learn_more_session_rename_title">Sessioonide nimede muutmine</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Verifitseeritud sessioonid</string>
-    <string name="device_manager_learn_more_sessions_unverified">Verifitseerimata sessioonid on sellised, kuhu sa oled oma kasutajanime ja salasõnaga sisse loginud, kuid mille puhul on risttunnustamine tegemata.
-\n
-\nPalun kontrolli, et need on sulle teadaolevad sessioonid. Vastasel korral võib olla tegemist sinu kasutajakonto lubamatu kasutamisega.</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Verifitseerimata sessioonid</string>
-    <string name="device_manager_learn_more_sessions_inactive">Sessioonid, mida sa pole mõnda aega kasutanud, saavad jätkuvalt pärida sinu krüptovõtmeid.
-\n
-\nSelliste sessioonide eemaldamine parandab jõudlust ja turvalisust ning sul on lihtsam märgata, kui loendisse tekib midagi kahtlast.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Mitteaktiivsed sessioonid</string>
-    <string name="device_manager_session_rename_warning">Palun arvesta, et sessioonide nimed on näha ka kõikidele osapooltele, kellega sa suhtled.</string>
-    <string name="device_manager_session_rename_description">Sinu enda kirjutatud sessiooninimede alusel on sul oma seadmeid lihtsam ära tunda.</string>
-    <string name="device_manager_session_rename_edit_hint">Sessiooni nimi</string>
-    <string name="device_manager_session_rename">Muuda sessiooni nime</string>
-    <string name="device_manager_session_overview_signout">Logi sellest sessioonist välja</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Verifitseerimata · Sinu praegune sessioon</string>
     <string name="key_authenticity_not_guaranteed">Selle krüptitud sõnumi autentsus pole selles seadmes tagatud.</string>
     <string name="settings_security_incognito_keyboard_summary">Väldi sisetuste ja muude isikustatud andmete edastamist väljaspoole seda rakendust. Palun arvesta, et kõik klaviatuurirakendused ei pruugi seda seadistust tunnistada.</string>
     <string name="settings_security_incognito_keyboard_title">Privaatne klahvistik</string>
@@ -2410,22 +2325,9 @@
     <string name="three">3</string>
     <string name="two">2</string>
     <string name="one">1</string>
-    <string name="labs_enable_client_info_recording_summary">Sessioonide paremaks tuvastamiseks saad nüüd sessioonihalduris salvestada klientrakenduse nime, versiooni ja aadressi.</string>
-    <string name="labs_enable_client_info_recording_title">Luba klientrakenduse teabe salvestamine</string>
-    <string name="labs_enable_session_manager_summary">Sellega saad parema ülevaate oma sessioonidest ja võimaluse neid mugavasti hallata.</string>
-    <string name="labs_enable_session_manager_title">Kasuta uut sessioonihaldurit</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Logi sisse QR-koodi abil</string>
-    <string name="device_manager_session_details_device_operating_system">Operatsioonisüsteem</string>
-    <string name="device_manager_session_details_device_model">Mudel</string>
-    <string name="device_manager_session_details_device_browser">Brauser</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Versioon</string>
-    <string name="device_manager_session_details_application_name">Nimi</string>
-    <string name="device_manager_session_details_application">Rakendus</string>
     <string name="device_manager_push_notifications_description">Luba selles sessioonis tõuketeavitused.</string>
     <string name="device_manager_push_notifications_title">Tõuketeavitused</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Selle sessiooni olekut ei saa tuvastada enne kui oled ta verifitseerinud.</string>
-    <string name="device_manager_verification_status_unknown">Verifitseerimise olek on määratlemata</string>
     <string name="login_scan_qr_code">Loe QR-koodi</string>
     <string name="push_gateway_item_enabled">Kasutusel:</string>
     <string name="push_gateway_item_device_id">Sessiooni tunnus:</string>
@@ -2443,7 +2345,6 @@
     <string name="qr_code_login_header_failed_other_device_already_signed_in_description">Teine seade on juba võrku loginud.</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">Turvalise sõnumivahetuse ülesseadmisel tekkis turvaviga. Üks kolmest võib olla sattunud vale osapoole kontrolli alla: sinu koduserver, sinu internetiühendus või sinu seade;</string>
     <string name="qr_code_login_header_failed_other_description">Päring ei õnnestunud.</string>
-    <string name="device_manager_other_sessions_select">Vali sessioonid</string>
     <string name="attachment_type_selector_camera">Kaamera</string>
     <string name="attachment_type_selector_location">Asukoht</string>
     <string name="attachment_type_selector_poll">Küsitlused</string>
@@ -2452,21 +2353,7 @@
     <string name="attachment_type_selector_gallery">Fotode kogu</string>
     <string name="action_deselect_all">Eemalda kõik valikud</string>
     <string name="action_select_all">Vali kõik</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d valitud</item>
-        <item quantity="other">%1$d valitud</item>
-    </plurals>
     <string name="attachment_type_selector_text_formatting">Tekstivorming</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Verifitseeritud sessioonideks loetakse Element\'is või mõnes muus Matrix\'i rakenduses selliseid sessioone, kus sa kas oled sisestanud oma salafraasi või tuvastanud end mõne teise oma verifitseeritud sessiooni abil.
-\n
-\nSee tähendab, et selles sessioonis on ka kõik vajalikud võtmed krüptitud sõnumite lugemiseks ja teistele kasutajatele kinnitamiseks, et sa usaldad seda sessiooni.</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Logi välja %1$d\'st sessioonist</item>
-        <item quantity="other">Logi välja %1$d\'st sessioonist</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Logi välja</string>
-    <string name="device_manager_other_sessions_show_ip_address">Näita IP-aadressi</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Peida IP-aadress</string>
     <string name="message_reply_to_prefix">Vastuseks kasutajale</string>
     <string name="message_reply_to_sender_sent_file">saatis faili.</string>
     <string name="message_reply_to_sender_sent_audio_file">saatis helifaili.</string>
@@ -2481,13 +2368,6 @@
     <string name="review_unverified_sessions_title">Sul on verifitseerimata sessioone</string>
     <string name="settings_nightly_build">Igaöine arendusversioon</string>
     <string name="settings_nightly_build_update">Kasuta viimast arendusversiooni (aga võib tekkida erinevaid vigu, sealhulgas sisselogimisega)</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Seda sessiooni ei saa verifitseerida, sest seal puudub krüptimise tugi.</string>
-    <string name="device_manager_signout_all_other_sessions">Logi välja kõikidest oma muudest sessioonidest</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Seda sessiooni ei saa verifitseerida, sest seal puudub krüptimise tugi.
-\n
-\nSelle sessiooniga ei saa sa osaleda krüptitud jututubades.
-\n
-\nParima turvalisuse ja privaatsuse nimel palun kasuta selliseid Matrix\'i kliente, mis toetavad krüptimist.</string>
     <string name="notice_voice_broadcast_ended_by_you">Sa lõpetasid ringhäälingukõne.</string>
     <string name="notice_voice_broadcast_ended">%1$s lõpetas ringhäälingukõne.</string>
     <string name="set_link_text">Tekst</string>

@@ -22,7 +22,6 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.platform.VectorViewModelAction
-import im.vector.app.core.session.clientinfo.DeleteUnusedClientInformationUseCase
 import im.vector.lib.core.utils.timer.Clock
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -58,7 +57,6 @@ class UnknownDeviceDetectorSharedViewModel @AssistedInject constructor(
         private val setUnverifiedSessionsAlertShownUseCase: SetUnverifiedSessionsAlertShownUseCase,
         private val isNewLoginAlertShownUseCase: IsNewLoginAlertShownUseCase,
         private val setNewLoginAlertShownUseCase: SetNewLoginAlertShownUseCase,
-        private val deleteUnusedClientInformationUseCase: DeleteUnusedClientInformationUseCase,
 ) : VectorViewModel<UnknownDevicesState, UnknownDeviceDetectorSharedViewModel.Action, EmptyViewEvents>(initialState) {
 
     sealed class Action : VectorViewModelAction {
@@ -90,8 +88,6 @@ class UnknownDeviceDetectorSharedViewModel @AssistedInject constructor(
         ) { cryptoList, infoList, pInfo ->
             Timber.v("## Detector trigger ${cryptoList.map { "${it.deviceId} ${it.trustLevel}" }}")
             Timber.v("## Detector trigger canCrossSign ${pInfo.get().selfSigned != null}")
-
-            deleteUnusedClientInformation(infoList)
 
             val currentSessionTs = session.cryptoService().getCryptoDeviceInfo(session.myUserId)
                     .firstOrNull { it.deviceId == session.sessionParams.deviceId }
@@ -151,12 +147,6 @@ class UnknownDeviceDetectorSharedViewModel @AssistedInject constructor(
         // trigger a refresh of lastSeen / last Ip
         viewModelScope.launch {
             tryOrNull { session.cryptoService().fetchDevicesList() }
-        }
-    }
-
-    private fun deleteUnusedClientInformation(deviceFullInfoList: List<DeviceInfo>) {
-        viewModelScope.launch {
-            deleteUnusedClientInformationUseCase.execute(deviceFullInfoList)
         }
     }
 

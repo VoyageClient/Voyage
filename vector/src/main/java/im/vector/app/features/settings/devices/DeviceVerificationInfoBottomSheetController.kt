@@ -13,11 +13,12 @@ import im.vector.app.core.epoxy.loadingItem
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.ItemStyle
-import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.core.ui.list.genericItem
 import im.vector.app.core.ui.views.toDrawableRes
 import im.vector.app.features.crypto.verification.epoxy.bottomSheetVerificationActionItem
+import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.settings.devices.notification.NotificationsStatus
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -143,8 +144,8 @@ class DeviceVerificationInfoBottomSheetController @Inject constructor(
         // DEVICE INFO SECTION
         genericItem {
             id("info${cryptoDeviceInfo.deviceId}")
-            title(cryptoDeviceInfo.displayName().orEmpty().toEpoxyCharSequence())
-            description("(${cryptoDeviceInfo.deviceId})".toEpoxyCharSequence())
+            title(host.deviceName(cryptoDeviceInfo.displayName(), cryptoDeviceInfo.deviceId).toEpoxyCharSequence())
+            description(host.deviceIdDescription(cryptoDeviceInfo.displayName(), cryptoDeviceInfo.deviceId)?.toEpoxyCharSequence())
         }
 
         if (isMine) {
@@ -220,8 +221,8 @@ class DeviceVerificationInfoBottomSheetController @Inject constructor(
         // DEVICE INFO SECTION
         genericItem {
             id("info${cryptoDeviceInfo.deviceId}")
-            title(cryptoDeviceInfo.displayName().orEmpty().toEpoxyCharSequence())
-            description("(${cryptoDeviceInfo.deviceId})".toEpoxyCharSequence())
+            title(host.deviceName(cryptoDeviceInfo.displayName(), cryptoDeviceInfo.deviceId).toEpoxyCharSequence())
+            description(host.deviceIdDescription(cryptoDeviceInfo.displayName(), cryptoDeviceInfo.deviceId)?.toEpoxyCharSequence())
         }
 
         // ACTIONS
@@ -276,8 +277,33 @@ class DeviceVerificationInfoBottomSheetController @Inject constructor(
         }
     }
 
+    private fun deviceName(displayName: String?, deviceId: String?) =
+            displayName?.takeIf { it.isNotBlank() } ?: deviceId.orEmpty()
+
+    private fun deviceIdDescription(displayName: String?, deviceId: String?) =
+            if (displayName.isNullOrBlank()) null else "($deviceId)"
+
+    private fun addPushNotificationsToggle(data: DeviceVerificationInfoBottomSheetViewState, deviceId: String) {
+        val host = this
+        if (data.notificationsStatus == NotificationsStatus.NOT_SUPPORTED) return
+
+        bottomSheetDividerItem {
+            id("notificationsD")
+        }
+        formSwitchItem {
+            id("notifications")
+            title(host.stringProvider.getString(CommonStrings.device_manager_push_notifications_title))
+            summary(host.stringProvider.getString(CommonStrings.device_manager_push_notifications_description))
+            switchChecked(data.notificationsStatus == NotificationsStatus.ENABLED)
+            listener { enabled ->
+                host.callback?.onTogglePushNotifications(deviceId, enabled)
+            }
+        }
+    }
+
     private fun addGenericDeviceManageActions(data: DeviceVerificationInfoBottomSheetViewState, deviceId: String) {
         val host = this
+        addPushNotificationsToggle(data, deviceId)
         // Offer delete session if not me
         if (!data.isMine) {
             // Add the delete option
@@ -317,19 +343,15 @@ class DeviceVerificationInfoBottomSheetController @Inject constructor(
         val info = data.deviceInfo.invoke() ?: return
         genericItem {
             id("info${info.deviceId}")
-            title(info.displayName.orEmpty().toEpoxyCharSequence())
-            description("(${info.deviceId})".toEpoxyCharSequence())
-        }
-
-        genericFooterItem {
-            id("infoCrypto${info.deviceId}")
-            text(host.stringProvider.getString(CommonStrings.settings_failed_to_get_crypto_device_info).toEpoxyCharSequence())
+            title(host.deviceName(info.displayName, info.deviceId).toEpoxyCharSequence())
+            description(host.deviceIdDescription(info.displayName, info.deviceId)?.toEpoxyCharSequence())
         }
 
         info.deviceId?.let { addGenericDeviceManageActions(data, it) }
     }
 
     interface Callback {
+        fun onTogglePushNotifications(deviceId: String, enabled: Boolean)
         fun onAction(action: DevicesAction)
     }
 }

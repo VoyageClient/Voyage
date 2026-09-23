@@ -7,9 +7,9 @@
 
 package im.vector.app.features.settings.notifications.usecase
 
-import im.vector.app.features.settings.devices.v2.notification.CheckIfCanToggleNotificationsViaPusherUseCase
-import im.vector.app.features.settings.devices.v2.notification.DeleteNotificationSettingsAccountDataUseCase
-import im.vector.app.features.settings.devices.v2.notification.SetNotificationSettingsAccountDataUseCase
+import im.vector.app.features.settings.devices.notification.CheckIfCanToggleNotificationsViaPusherUseCase
+import im.vector.app.features.settings.devices.notification.DeleteNotificationSettingsAccountDataUseCase
+import im.vector.app.features.settings.devices.notification.SetNotificationSettingsAccountDataUseCase
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeUnifiedPushHelper
 import im.vector.app.test.fixtures.PusherFixture

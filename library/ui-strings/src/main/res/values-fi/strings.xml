@@ -1111,7 +1111,6 @@
     <string name="settings_active_sessions_show_all">Näytä kaikki istunnot</string>
     <string name="settings_active_sessions_manage">Istuntojen hallinta</string>
     <string name="settings_active_sessions_signout_device">Kirjaudu ulos tästä istunnosta</string>
-    <string name="settings_failed_to_get_crypto_device_info">Ei salaukseen liittyvää tietoa</string>
     <string name="settings_active_sessions_verified_device_desc">Istunto on luotettu, koska olet vahvistanut sen:</string>
     <string name="settings_active_sessions_unverified_device_desc">Vahvista tämä istunto jotta se merkitään luotetuksi ja se saa pääsyn salattuihin viesteihin. Jos et ole kirjautunut tähän istuntoon, tunnuksesi on saattanut vuotaa hyökkääjälle:</string>
     <plurals name="settings_active_sessions_count">
@@ -1839,48 +1838,6 @@
     <string name="notice_room_canonical_alias_alternative_changed_by_you">Muutit tämän huoneen vaihtoehtoisia osoitteita.</string>
     <string name="notice_room_canonical_alias_alternative_changed">%1$s muutti tämän huoneen vaihtoehtoisia osoitteita.</string>
     <string name="room_alias_action_unpublish">Poista tämän osoitteen julkaisu</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Vahvistamaton</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Parhaan turvallisuuden takaamiseksi kirjaudu ulos istunnoista, joita et tunnista tai et enää käytä.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Vahvistetu</string>
-    <string name="a11y_device_manager_filter">Suodata</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Käyttämättä vuorokauden tai pidempään</item>
-        <item quantity="other">Käyttämättä %1$d vuorokautta tai pidempään</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Käyttämätön</string>
-    <string name="device_manager_filter_option_unverified_description">Ei valmis turvallista viestintää varten</string>
-    <string name="device_manager_filter_option_unverified">Vahvistamaton</string>
-    <string name="device_manager_filter_option_verified_description">Valmis turvallista viestintää varten</string>
-    <string name="device_manager_filter_option_verified">Vahvistettu</string>
-    <string name="device_manager_filter_option_all_sessions">Kaikki istunnot</string>
-    <string name="device_manager_filter_bottom_sheet_title">Suodata</string>
-    <string name="device_manager_session_last_activity">Viimeisin toiminta %1$s</string>
-    <string name="device_manager_device_title">Laite</string>
-    <string name="device_manager_session_title">Istunto</string>
-    <string name="device_manager_current_session_title">Nykyinen istunto</string>
-    <string name="device_manager_inactive_sessions_title">Käyttämättä olevat istunnot</string>
-    <string name="device_manager_unverified_sessions_description">Vahvista nämä istunnot tai kirjaudu niistä ulos.</string>
-    <string name="device_manager_unverified_sessions_title">Vahvistamattomat istunnot</string>
-    <string name="device_manager_header_section_security_recommendations_description">Paranna tilisi turvallisuutta noudattamalla näitä suosituksia.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Turvallisuussuositukset</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Käyttämättä %1$d+ päivän (%2$s)</item>
-        <item quantity="other">Käyttämättä %1$d+ päivää (%2$s)</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Vahvistamaton · Nykyinen istuntosi</string>
-    <string name="device_manager_other_sessions_description_unverified">Vahvistamaton · Viimeisin toiminta %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Vahvistettu · Viimeisin toiminta %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Näytä kaikki (%1$d)</string>
-    <string name="device_manager_view_details">Näytä tiedot</string>
-    <string name="device_manager_verify_session">Vahvista istunto</string>
-    <string name="device_manager_verification_status_unknown">Tuntematon vahvistuksen tila</string>
-    <string name="device_manager_verification_status_unverified">Vahvistamaton istunto</string>
-    <string name="device_manager_verification_status_verified">Vahvistettu istunto</string>
-    <string name="a11y_device_manager_device_type_unknown">Tuntematon laitetyyppi</string>
-    <string name="a11y_device_manager_device_type_desktop">Työpöytä</string>
-    <string name="a11y_device_manager_device_type_mobile">Mobiili</string>
-    <string name="device_manager_sessions_other_description">Turvallisuuden vuoksi vahvista istunnot ja kirjaudu ulos niistä istunnoista, joita et tunnista tai et enää käytä.</string>
-    <string name="device_manager_sessions_other_title">Muut istunnot</string>
     <string name="live_location_labs_promotion_switch_title">Käytä sijainnin jakamista</string>
     <string name="settings_troubleshoot_test_current_distributor">Tällä hetkellä käytössä %s.</string>
     <string name="settings_troubleshoot_test_current_distributor_title">Menetelmä</string>
@@ -1915,7 +1872,6 @@
     <string name="a11y_audio_playback_duration" tools:ignore="PluralsCandidate">%1$d minuuttia %2$d sekuntia</string>
     <string name="space_explore_filter_no_result_title">Tuloksia ei löydy</string>
     <string name="settings_security_incognito_keyboard_title">Incognito-näppäimistö</string>
-    <string name="settings_sessions_list">Istunnot</string>
     <string name="permalink_unsupported_groups">Tätä linkkiä ei voi avata: yhteisöt on korvattu avaruuksilla</string>
     <string name="login_scan_qr_code">Skannaa QR-koodi</string>
     <string name="ftue_auth_login_username_entry">Käyttäjänimi / sähköposti / puhelin</string>
@@ -2008,10 +1964,6 @@
 \nvaikuttaa hieman tyhjältä.</string>
     <string name="room_permissions_upgrade_the_space">Päivitä avaruus</string>
     <string name="room_permissions_change_space_avatar">Vaihda avaruuden kuva</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d valittu</item>
-        <item quantity="other">%1$d valittu</item>
-    </plurals>
     <string name="room_using_unstable_room_version">Tässä huoneessa on käytössä huoneversio %s, jonka tämä kotipalvelin on merkinnyt epävakaaksi.</string>
     <string name="space_leave_radio_button_none">Älä poistu mistään</string>
     <string name="space_leave_radio_button_all">Poistu kaikista</string>
@@ -2059,35 +2011,6 @@
     <string name="home_empty_no_unreads_message">Lukemattomat viestisi näkyvät tässä sitten kun saat niitä.</string>
     <string name="home_empty_no_unreads_title">Ei ilmoitettavaa.</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Kirjaudu QR-koodilla</string>
-    <string name="device_manager_session_rename_warning">Huomaa, että istuntojen nimet näkyvät ihmisille, joiden kanssa viestit.</string>
-    <string name="device_manager_session_rename_edit_hint">Istunnon nimi</string>
-    <string name="device_manager_session_details_device_ip_address">IP-osoite</string>
-    <string name="device_manager_session_details_device_operating_system">Käyttöjärjestelmä</string>
-    <string name="device_manager_session_details_device_model">Malli</string>
-    <string name="device_manager_session_details_device_browser">Selain</string>
-    <string name="device_manager_session_details_application_url">URL-osoite</string>
-    <string name="device_manager_session_details_application_version">Versio</string>
-    <string name="device_manager_session_details_application_name">Nimi</string>
-    <string name="device_manager_session_details_session_name">Istunnon nimi</string>
-    <string name="device_manager_session_overview_signout">Kirjaudu ulos tästä istunnosta</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Piilota IP-osoite</string>
-    <string name="device_manager_other_sessions_show_ip_address">Näytä IP-osoite</string>
-    <string name="device_manager_signout_all_other_sessions">Kirjaudu ulos kaikista muista istunnoista</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Kirjaudu ulos yhdestä istunnosta</item>
-        <item quantity="other">Kirjaudu ulos %1$d istunnosta</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Kirjaudu ulos</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Harkitse vanhoista (yksi vuorokausi tai vanhemmista), käyttämättömistä istunnoista uloskirjautumista.</item>
-        <item quantity="other">Harkitse vanhoista (%1$d vuorokautta tai vanhemmista), käyttämättömistä istunnoista uloskirjautumista.</item>
-    </plurals>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Harkitse vanhoista (yksi vuorokausi tai vanhemmista), käyttämättömistä istunnoista uloskirjautumista.</item>
-        <item quantity="other">Harkitse vanhoista (%1$d vuorokautta tai vanhemmista), käyttämättömistä istunnoista uloskirjautumista.</item>
-    </plurals>
-    <string name="device_manager_verification_status_detail_other_session_verified">Tämä istunto on valmiina turvalliseen viestintään.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Nykyinen istuntosi on valmina turvalliseen viestintään.</string>
     <string name="attachment_type_selector_camera">Kamera</string>
     <string name="attachment_type_selector_location">Sijainti</string>
     <string name="attachment_type_selector_poll">Kyselyt</string>
@@ -2158,7 +2081,6 @@
     <string name="home_empty_no_rooms_message">Monikäyttöinen ja turvallinen viestisovellus tiimeille, kavereille ja organisaatioille. Aloita luomalla keskustelu tai liittymällä olemassa olevaan huoneeseen.</string>
     <string name="home_empty_no_rooms_title">${app_name} toivottaa sinut tervetulleeksi,
 \n%s.</string>
-    <string name="device_manager_session_details_application">Sovellus</string>
     <string name="settings_troubleshoot_test_distributors_fdroid">Muuta menetelmää kuin taustasynkronointi ei löytynyt.</string>
     <string name="attachment_type_selector_text_formatting">Tekstin muotoilu</string>
     <string name="a11y_location_share_locate_button">Zoomaa nykyiseen sijaintiin</string>

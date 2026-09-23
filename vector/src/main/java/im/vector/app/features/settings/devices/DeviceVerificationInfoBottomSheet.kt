@@ -72,6 +72,10 @@ class DeviceVerificationInfoBottomSheet :
         }
     }
 
+    override fun onTogglePushNotifications(deviceId: String, enabled: Boolean) {
+        viewModel.handle(DeviceVerificationInfoAction.TogglePushNotifications(deviceId, enabled))
+    }
+
     override fun onAction(action: DevicesAction) {
         dismiss()
         sharedViewModel.handle(action)

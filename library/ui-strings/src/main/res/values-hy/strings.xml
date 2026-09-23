@@ -61,10 +61,6 @@
     <string name="notice_direct_room_created">%1$s ստեղծել է այս քննարկումը</string>
     <string name="notice_room_created_by_you">Դուք ստեղծել եք այս սենյակը</string>
     <string name="notice_room_created">%1$s ստեղծել է այս սենյակը</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d ընտրված է</item>
-        <item quantity="other">%1$d ընտրված են</item>
-    </plurals>
     <string name="notice_room_invite_no_invitee_by_you">Ձեր հրավերը</string>
     <string name="notice_room_invite_no_invitee">%sի հրավերը</string>
     <string name="notice_room_reject_by_you">Դուք մերժել եք հրավերը</string>

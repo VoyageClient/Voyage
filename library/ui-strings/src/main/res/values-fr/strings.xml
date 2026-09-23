@@ -1154,7 +1154,6 @@
     <string name="settings_active_sessions_show_all">Afficher toutes les sessions</string>
     <string name="settings_active_sessions_manage">Gérer les sessions</string>
     <string name="settings_active_sessions_signout_device">Se déconnecter de cette session</string>
-    <string name="settings_failed_to_get_crypto_device_info">Aucune information cryptographique n’est disponible</string>
     <string name="settings_active_sessions_verified_device_desc">Cette session est fiable pour la messagerie sécurisée car vous l’avez vérifiée :</string>
     <string name="settings_active_sessions_unverified_device_desc">Vérifiez cette session pour la marquer comme fiable et lui permettre d’accéder aux messages chiffrés. Si vous ne vous êtes pas connecté à cette session, votre compte est peut-être compromis :</string>
     <plurals name="settings_active_sessions_count">
@@ -2261,9 +2260,6 @@
     <string name="location_share_loading_map_error">Impossible de charger la carte
 \nCe serveur d’accueil n’a peut-être pas été configuré pour afficher les cartes.</string>
     <string name="all_chats">Toutes les conversations</string>
-    <string name="device_manager_sessions_other_description">Pour une meilleure sécurité, vérifiez vos sessions et déconnectez toutes les sessions que vous ne connaissez pas ou que vous n’utilisez plus.</string>
-    <string name="device_manager_sessions_other_title">Autres sessions</string>
-    <string name="settings_sessions_list">Sessions</string>
     <string name="a11y_open_spaces">Ouvrir la liste des espaces</string>
     <string name="a11y_create_message">Créer une nouvelle conversation ou salon</string>
     <string name="room_list_filter_people">Personnes</string>
@@ -2279,17 +2275,6 @@
     <string name="explore_rooms">Parcourir les salons</string>
     <string name="create_room">Créer un salon</string>
     <string name="start_chat">Commencer un message direct</string>
-    <string name="device_manager_other_sessions_description_unverified">Non vérifiée · Dernière activité %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Vérifié · Dernière activité %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Tout voir (%1$d)</string>
-    <string name="device_manager_view_details">Voir les détails</string>
-    <string name="device_manager_verify_session">Vérifier la session</string>
-    <string name="device_manager_verification_status_unverified">Session non vérifiée</string>
-    <string name="device_manager_verification_status_verified">Session vérifiée</string>
-    <string name="a11y_device_manager_device_type_unknown">Type de périphérique inconnu</string>
-    <string name="a11y_device_manager_device_type_desktop">Ordinateur</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_mobile">Portable</string>
     <string name="timeline_error_room_not_found">Désolé, impossible de trouver ce salon.
 \nVeuillez réessayer plus tard.%s</string>
     <string name="invites_title">Invitations</string>
@@ -2301,84 +2286,14 @@
     <string name="home_empty_space_no_rooms_message">Les espaces sont un nouveau moyen de grouper les salons et les gens. Ajoutez un salon, ou créez en un nouveau à l’aide du bouton en bas à droite.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \na l’air un peu vide.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Pensez à vous déconnecter des anciennes sessions (%1$d jour ou plus) que vous n’utilisez plus.</item>
-        <item quantity="other">Pensez à vous déconnecter des anciennes sessions (%1$d jours ou plus) que vous n’utilisez plus.</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">Sessions inactives</string>
-    <string name="device_manager_unverified_sessions_description">Vérifier ou déconnecter les sessions non vérifiées.</string>
-    <string name="device_manager_unverified_sessions_title">Sessions non vérifiées</string>
-    <string name="device_manager_header_section_security_recommendations_description">Améliorez la sécurité de votre compte à l’aide de ces recommandations.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Recommandations de sécurité</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Inactif depuis %1$d+ jour (%2$s)</item>
-        <item quantity="other">Inactif depuis %1$d+ jours (%2$s)</item>
-    </plurals>
     <string name="invites_empty_message">C’est l’endroit où se trouveront vos nouvelles requêtes et invitations.</string>
     <string name="invites_empty_title">Rien de neuf.</string>
     <string name="space_list_empty_message">Les espaces sont un nouveau moyen de regrouper les salons et les gens. Créez un espace pour commencer.</string>
     <string name="space_list_empty_title">Pas d’espace pour l’instant.</string>
-    <string name="device_manager_session_details_device_ip_address">Adresse IP</string>
-    <string name="device_manager_session_details_session_last_activity">Dernière activité</string>
-    <string name="device_manager_session_details_session_name">Nom de la session</string>
-    <string name="device_manager_session_details_description">Application, appareil et information sur l’activité.</string>
-    <string name="device_manager_session_details_title">Détails de session</string>
-    <string name="device_manager_other_sessions_clear_filter">Supprimer les filtres</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Aucune session inactive n’a été trouvée.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Aucune session non vérifiée n’a été trouvée.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Aucune session vérifiée n’a été trouvée.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Pensez à vous déconnecter des anciennes sessions (%1$d jour ou plus) que vous n’utilisez plus.</item>
-        <item quantity="other">Pensez à vous déconnecter des anciennes sessions (%1$d jours ou plus) que vous n’utilisez plus.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Inactif</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Vérifiez vos sessions pour améliorer la sécurité de votre messagerie, ou déconnectez celles que vous ne connaissez pas ou n’utilisez plus.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Non vérifié</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Pour une meilleure sécurité, déconnectez toutes les sessions que vous ne connaissez pas ou que vous n’utilisez plus.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Vérifié</string>
-    <string name="a11y_device_manager_filter">Filtrer</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Inactif depuis %1$d jour ou plus</item>
-        <item quantity="other">Inactif depuis %1$d jours ou plus</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Inactif</string>
-    <string name="device_manager_filter_option_unverified_description">Pas prêt pour une messagerie sécurisée</string>
-    <string name="device_manager_filter_option_unverified">Non vérifié</string>
-    <string name="device_manager_filter_option_verified_description">Prêt pour une messagerie sécurisée</string>
-    <string name="device_manager_filter_option_verified">Vérifié</string>
-    <string name="device_manager_filter_option_all_sessions">Toutes les sessions</string>
-    <string name="device_manager_filter_bottom_sheet_title">Filtrer</string>
-    <string name="device_manager_session_last_activity">Dernière activité %1$s</string>
-    <string name="device_manager_device_title">Appareil</string>
-    <string name="device_manager_session_title">Session</string>
-    <string name="device_manager_current_session_title">Cette session</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Vérifiez ou déconnectez cette session pour une meilleure sécurité et fiabilité.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Vérifiez votre session pour une sécurité accrue de votre messagerie.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Cette session est prête pour l’envoi de messages sécurisés.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Votre session est prête pour l’envoi de messages sécurisés.</string>
     <string name="labs_enable_deferred_dm_summary">Créer la conversation seulement lors du premier message</string>
     <string name="labs_enable_deferred_dm_title">Activer les conversations privées différées</string>
     <string name="labs_enable_new_app_layout_summary">Un Element simplifié avec des onglets optionnels</string>
     <string name="labs_enable_new_app_layout_title">Activer la nouvelle présentation</string>
-    <string name="device_manager_learn_more_session_rename">Les autres utilisateurs en conversations privées ou salons qui peuvent vous parler sont capables de voir la liste complète de vos sessions.
-\n
-\nCela leur fournit une preuve de confiance que c’est bien avec vous qu\'ils communiquent, mais cela veut également dire qu’ils peuvent voir le nom de la session que vous saisissez ici.</string>
-    <string name="device_manager_learn_more_session_rename_title">Renommer les sessions</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Sessions vérifiées</string>
-    <string name="device_manager_learn_more_sessions_unverified">Les sessions non vérifiées sont celles qui sont identifiées avec votre mot de passe sans avoir fait de vérification croisée.
-\n
-\nVous devriez tout particulièrement vous assurer de reconnaître ces sessions, car elles pourraient être la preuve d’un usage non autorisé de votre compte.</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Sessions non vérifiées</string>
-    <string name="device_manager_learn_more_sessions_inactive">Les sessions inactives sont celles que vous n’avez pas utilisées depuis un certain temps, mais qui continue de recevoir les clés de chiffrements.
-\n
-\nLa suppression des sessions inactives améliore la sécurité et la performance, et vous aide à identifier si une nouvelle session est douteuse.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Sessions inactives</string>
-    <string name="device_manager_session_rename_warning">Soyez conscient que les noms de sessions sont également visibles pour les personnes avec lesquelles vous communiquez.</string>
-    <string name="device_manager_session_rename_description">Les noms de sessions personnalisés peuvent vous aider à reconnaître vos appareils plus facilement.</string>
-    <string name="device_manager_session_rename_edit_hint">Nom de la session</string>
-    <string name="device_manager_session_rename">Renommer la session</string>
-    <string name="device_manager_session_overview_signout">Se déconnecter de cette session</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Non vérifiée · Votre session actuelle</string>
     <string name="key_authenticity_not_guaranteed">L’authenticité de ce message chiffré ne peut pas être garantie sur cet appareil.</string>
     <string name="settings_security_incognito_keyboard_summary">Demande au clavier de ne pas mettre à jour les données personnalisées, comme l’historique de la frappe et le dictionnaire composé de ce que vous avez tapé dans vos conversations. Il est possible que certains claviers ne respectent pas ce paramètre.</string>
     <string name="settings_security_incognito_keyboard_title">Clavier incognito</string>
@@ -2388,21 +2303,8 @@
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ Il y a des appareils non vérifiés dans ce salon, ils ne pourront pas déchiffrer vos messages envoyés.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">Ne jamais envoyer de messages chiffrés aux sessions non vérifiées dans ce salon.</string>
     <string name="action_got_it">Compris</string>
-    <string name="labs_enable_client_info_recording_summary">Enregistre le nom du client, sa version, et son URL pour retrouvez vos sessions plus facilement dans le gestionnaire de sessions.</string>
-    <string name="labs_enable_client_info_recording_title">Activer l’enregistrement des informations du client</string>
-    <string name="labs_enable_session_manager_summary">Ayez une meilleur visibilité et plus de contrôle sur toutes vos sessions.</string>
-    <string name="labs_enable_session_manager_title">Activer le nouveau gestionnaire de session</string>
-    <string name="device_manager_session_details_device_operating_system">Système d’exploitation</string>
-    <string name="device_manager_session_details_device_model">Modèle</string>
-    <string name="device_manager_session_details_device_browser">Navigateur</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Version</string>
-    <string name="device_manager_session_details_application_name">Nom</string>
-    <string name="device_manager_session_details_application">Application</string>
     <string name="device_manager_push_notifications_description">Recevoir les notifications push sur cette session.</string>
     <string name="device_manager_push_notifications_title">Notifications push</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Vérifiez votre session actuelle pour découvrir le statut de vérification de cette session.</string>
-    <string name="device_manager_verification_status_unknown">Status de vérification inconnu</string>
     <string name="push_gateway_item_enabled">Activer :</string>
     <string name="push_gateway_item_device_id">Identifiant de session :</string>
     <string name="error_check_network">Quelque chose s’est mal passé. Vérifiez votre connexion réseau et réessayez.</string>
@@ -2452,7 +2354,6 @@
     <string name="device_manager_sessions_sign_in_with_qr_code_description">Vous pouvez utiliser cet appareil pour connecter un appareil mobile ou un client web avec un QR code. Il y a deux façons de le faire :</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Se connecter avec un QR code</string>
     <string name="login_scan_qr_code">Scanner le QR code</string>
-    <string name="device_manager_other_sessions_select">Sélectionner des sessions</string>
     <string name="attachment_type_selector_camera">Appareil photo</string>
     <string name="attachment_type_selector_location">Position</string>
     <string name="attachment_type_selector_poll">Sondages</string>
@@ -2461,19 +2362,7 @@
     <string name="attachment_type_selector_gallery">Galerie photo</string>
     <string name="action_deselect_all">Tout désélectionner</string>
     <string name="action_select_all">Tout sélectionner</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d sélectionné</item>
-        <item quantity="other">%1$d sélectionnés</item>
-    </plurals>
     <string name="attachment_type_selector_text_formatting">Formatage de texte</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Les sessions vérifiées sont toutes celles qui utilisent ce compte après avoir saisie la phrase de sécurité ou confirmé votre identité à l’aide d’une autre session vérifiée.
-\n
-\nCela veut dire qu’elles disposent de toutes les clés nécessaires pour lire les messages chiffrés, et confirment aux autres utilisateurs que vous faites confiance à cette session.</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Déconnecter %1$d session</item>
-        <item quantity="other">Déconnecter %1$d sessions</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Déconnecter</string>
     <string name="message_reply_to_sender_created_poll">a créé un sondage.</string>
     <string name="message_reply_to_sender_sent_sticker">a envoyé un autocollant.</string>
     <string name="message_reply_to_sender_sent_video">a envoyé une vidéo.</string>
@@ -2482,19 +2371,10 @@
     <string name="message_reply_to_sender_sent_audio_file">a envoyé un fichier audio.</string>
     <string name="message_reply_to_sender_sent_file">a envoyé un fichier.</string>
     <string name="message_reply_to_prefix">En réponse à</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Masquer l’adresse IP</string>
-    <string name="device_manager_other_sessions_show_ip_address">Afficher l’adresse IP</string>
     <string name="settings_enable_direct_share_summary">Affiche les conversations récentes dans le menu de partage du système</string>
     <string name="settings_enable_direct_share_title">Activer le partage direct</string>
     <string name="review_unverified_sessions_description">Vérifiez pour assurer la sécurité de votre compte</string>
     <string name="review_unverified_sessions_title">Vous avez des sessions non vérifiées</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Cette session ne prend pas en charge le chiffrement, elle ne peut donc pas être vérifiée.
-\n
-\nVous ne pourrez pas participer dans les salons où le chiffrement est activé en utilisant cette session.
-\n
-\nPour de meilleures sécurité et confidentialité, il est recommandé d’utiliser des clients Matrix qui prennent en charge le chiffrement.</string>
-    <string name="device_manager_signout_all_other_sessions">Déconnecter toutes les autres sessions</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Cette session ne prend pas en charge le chiffrement, elle ne peut donc pas être vérifiée.</string>
     <string name="settings_nightly_build_update">Obtenir la toute dernière version (note : vous pourriez avoir des problèmes pour vous connecter)</string>
     <string name="settings_nightly_build">Version Nightly</string>
     <string name="notice_voice_broadcast_ended_by_you">Vous avez terminé une diffusion audio.</string>

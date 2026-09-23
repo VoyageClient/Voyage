@@ -12,19 +12,29 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
-import im.vector.app.core.platform.EmptyAction
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.core.platform.VectorViewModelAction
+import im.vector.app.features.settings.devices.notification.GetNotificationsStatusUseCase
+import im.vector.app.features.settings.devices.notification.ToggleNotificationsUseCase
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.flow.flow
 
+sealed class DeviceVerificationInfoAction : VectorViewModelAction {
+    data class TogglePushNotifications(val deviceId: String, val enabled: Boolean) : DeviceVerificationInfoAction()
+}
+
 class DeviceVerificationInfoBottomSheetViewModel @AssistedInject constructor(
         @Assisted initialState: DeviceVerificationInfoBottomSheetViewState,
-        val session: Session
-) : VectorViewModel<DeviceVerificationInfoBottomSheetViewState, EmptyAction, EmptyViewEvents>(initialState) {
+        val session: Session,
+        private val getNotificationsStatusUseCase: GetNotificationsStatusUseCase,
+        private val toggleNotificationsUseCase: ToggleNotificationsUseCase
+) : VectorViewModel<DeviceVerificationInfoBottomSheetViewState, DeviceVerificationInfoAction, EmptyViewEvents>(initialState) {
 
     @AssistedFactory
     interface Factory : MavericksAssistedViewModelFactory<DeviceVerificationInfoBottomSheetViewModel, DeviceVerificationInfoBottomSheetViewState> {
@@ -70,6 +80,10 @@ class DeviceVerificationInfoBottomSheetViewModel @AssistedInject constructor(
                 .execute {
                     copy(deviceInfo = it)
                 }
+
+        getNotificationsStatusUseCase.execute(session, initialState.deviceId)
+                .onEach { setState { copy(notificationsStatus = it) } }
+                .launchIn(viewModelScope)
     }
 
     private fun initState() {
@@ -87,6 +101,13 @@ class DeviceVerificationInfoBottomSheetViewModel @AssistedInject constructor(
         }
     }
 
-    override fun handle(action: EmptyAction) {
+    override fun handle(action: DeviceVerificationInfoAction) {
+        when (action) {
+            is DeviceVerificationInfoAction.TogglePushNotifications -> {
+                viewModelScope.launch {
+                    toggleNotificationsUseCase.execute(action.deviceId, action.enabled)
+                }
+            }
+        }
     }
 }

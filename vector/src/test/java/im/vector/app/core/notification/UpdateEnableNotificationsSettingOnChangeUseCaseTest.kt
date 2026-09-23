@@ -7,7 +7,7 @@
 
 package im.vector.app.core.notification
 
-import im.vector.app.features.settings.devices.v2.notification.NotificationsStatus
+import im.vector.app.features.settings.devices.notification.NotificationsStatus
 import im.vector.app.test.fakes.FakeGetNotificationsStatusUseCase
 import im.vector.app.test.fakes.FakeSession
 import im.vector.app.test.fakes.FakeVectorPreferences

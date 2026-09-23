@@ -193,36 +193,6 @@ interface SettingsMavericksViewModelModule {
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.settings.devices.v2.DevicesViewModel")
-    fun vm4(factory: im.vector.app.features.settings.devices.v2.DevicesViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.settings.devices.v2.details.SessionDetailsViewModel")
-    fun vm5(factory: im.vector.app.features.settings.devices.v2.details.SessionDetailsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.settings.devices.v2.more.SessionLearnMoreViewModel")
-    fun vm6(factory: im.vector.app.features.settings.devices.v2.more.SessionLearnMoreViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.settings.devices.v2.othersessions.OtherSessionsViewModel")
-    fun vm7(factory: im.vector.app.features.settings.devices.v2.othersessions.OtherSessionsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.settings.devices.v2.overview.SessionOverviewViewModel")
-    fun vm8(factory: im.vector.app.features.settings.devices.v2.overview.SessionOverviewViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.settings.devices.v2.rename.RenameSessionViewModel")
-    fun vm9(factory: im.vector.app.features.settings.devices.v2.rename.RenameSessionViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.settings.devtools.AccountDataViewModel")
     fun vm10(factory: im.vector.app.features.settings.devtools.AccountDataViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
@@ -255,11 +225,6 @@ interface SettingsMavericksViewModelModule {
     @IntoMap
     @MavericksViewModelKey("im.vector.app.features.settings.ignored.IgnoredUsersViewModel")
     fun vm16(factory: im.vector.app.features.settings.ignored.IgnoredUsersViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.settings.labs.VectorSettingsLabsViewModel")
-    fun vm17(factory: im.vector.app.features.settings.labs.VectorSettingsLabsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap

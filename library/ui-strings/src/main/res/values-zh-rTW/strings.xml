@@ -1153,7 +1153,6 @@
     <string name="settings_active_sessions_show_all">顯示所有工作階段</string>
     <string name="settings_active_sessions_manage">管理工作階段</string>
     <string name="settings_active_sessions_signout_device">登出此工作階段</string>
-    <string name="settings_failed_to_get_crypto_device_info">無可用的加密資訊</string>
     <string name="settings_active_sessions_verified_device_desc">因為您已驗證此工作階段，可信任其用於安全通訊：</string>
     <string name="settings_active_sessions_unverified_device_desc">驗證此工作階段以將其標記為受信任並讓其可以存取加密訊息。如果您並未登入此工作階段，您的帳號可能遭到盜用：</string>
     <plurals name="settings_active_sessions_count">
@@ -2215,9 +2214,6 @@
     <string name="location_share_loading_map_error">無法載入地圖
 \n此家伺服器可能未設定好顯示地圖。</string>
     <string name="all_chats">所有聊天</string>
-    <string name="device_manager_sessions_other_description">為了取得最佳安全性，請驗證您的工作階段並登出所有不認得或不再使用的工作階段。</string>
-    <string name="device_manager_sessions_other_title">其他工作階段</string>
-    <string name="settings_sessions_list">工作階段</string>
     <string name="a11y_open_spaces">開啟聊天空間清單</string>
     <string name="a11y_create_message">建立一則新的對話或一間聊天室</string>
     <string name="room_list_filter_people">聯絡人</string>
@@ -2233,17 +2229,6 @@
     <string name="explore_rooms">探索聊天室</string>
     <string name="create_room">建立聊天室</string>
     <string name="start_chat">開始聊天</string>
-    <string name="device_manager_other_sessions_description_unverified">未驗證 · 最後活動 %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">已驗證 · 最後活動 %1$s</string>
-    <string name="device_manager_other_sessions_view_all">檢視全部（%1$d）</string>
-    <string name="device_manager_view_details">檢視詳細資訊</string>
-    <string name="device_manager_verify_session">驗證工作階段</string>
-    <string name="device_manager_verification_status_unverified">未驗證的工作階段</string>
-    <string name="device_manager_verification_status_verified">已驗證的工作階段</string>
-    <string name="a11y_device_manager_device_type_unknown">未知的裝置類型</string>
-    <string name="a11y_device_manager_device_type_desktop">桌面</string>
-    <string name="a11y_device_manager_device_type_web">網頁</string>
-    <string name="a11y_device_manager_device_type_mobile">行動裝置</string>
     <string name="timeline_error_room_not_found">抱歉，找不到此聊天室。
 \n請稍後再試。%s</string>
     <string name="invites_title">邀請</string>
@@ -2255,80 +2240,14 @@
     <string name="home_empty_space_no_rooms_message">聊天空間是一種為聊天室與人們分組的新方式。使用右下角的按鈕新增既有的聊天室或建立新的。</string>
     <string name="home_empty_space_no_rooms_title">%s
 \n看起來有點空。</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="other">請考慮登出您不再使用的舊工作階段（%1$d 天以上）。</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">未使用的工作階段</string>
-    <string name="device_manager_unverified_sessions_description">驗證或從未驗證的工作階段登出。</string>
-    <string name="device_manager_unverified_sessions_title">未驗證的工作階段</string>
-    <string name="device_manager_header_section_security_recommendations_description">按照這些建議提高您的帳號安全性。</string>
-    <string name="device_manager_header_section_security_recommendations_title">安全建議</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="other">超過 %1$d 天未使用（%2$s）</item>
-    </plurals>
     <string name="invites_empty_message">這是您新請求與邀請的所在。</string>
     <string name="invites_empty_title">沒有新東西。</string>
     <string name="space_list_empty_message">聊天空間是一種分類聊天室與聯絡人的新方式。開始建立聊天空間吧。</string>
     <string name="space_list_empty_title">尚無聊天空間。</string>
-    <string name="device_manager_session_details_device_ip_address">IP 位址</string>
-    <string name="device_manager_session_details_session_last_activity">最後活動</string>
-    <string name="device_manager_session_details_session_name">工作階段名稱</string>
-    <string name="device_manager_session_details_description">應用程式、裝置與活動資訊。</string>
-    <string name="device_manager_session_details_title">工作階段詳細資訊</string>
-    <string name="device_manager_other_sessions_clear_filter">清除過濾條件</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">找不到未使用的工作階段。</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">找不到未驗證的工作階段。</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">找不到已驗證的工作階段。</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="other">%1$d 天以上未使用</item>
-    </plurals>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="other">考慮登出您不再使用（%1$d 天以上）的舊工作階段。</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">未使用</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">請驗證您的工作階段來加強安全通訊，或登出您不認識，或已不使用的工作階段。</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">未驗證</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">為取得最佳安全性，請登出您不認識，或已不使用的工作階段。</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">已驗證</string>
-    <string name="a11y_device_manager_filter">篩選</string>
-    <string name="device_manager_filter_option_inactive">未使用</string>
-    <string name="device_manager_filter_option_unverified_description">尚未準備好安全通訊</string>
-    <string name="device_manager_filter_option_unverified">未驗證</string>
-    <string name="device_manager_filter_option_verified_description">已準備好安全通訊</string>
-    <string name="device_manager_filter_option_verified">已驗證</string>
-    <string name="device_manager_filter_option_all_sessions">所有工作階段</string>
-    <string name="device_manager_filter_bottom_sheet_title">篩選</string>
-    <string name="device_manager_session_last_activity">最後活動 %1$s</string>
-    <string name="device_manager_device_title">裝置</string>
-    <string name="device_manager_session_title">工作階段</string>
-    <string name="device_manager_current_session_title">目前的工作階段</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">驗證或從此工作階段登出以取得最佳安全性與可靠性。</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">驗證您目前的工作階段以強化安全通訊。</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">此工作階段已準備好安全通訊。</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">您目前的工作階段已準備好安全通訊。</string>
     <string name="labs_enable_deferred_dm_summary">僅在第一則訊息上建立私密訊息</string>
     <string name="labs_enable_deferred_dm_title">啟用延期的私密訊息</string>
     <string name="labs_enable_new_app_layout_summary">包含選擇性分頁的簡潔 Element</string>
     <string name="labs_enable_new_app_layout_title">啟用新佈局</string>
-    <string name="device_manager_learn_more_session_rename">私人訊息與您加入的聊天室當中的其他使用者，可以檢視您有哪些工作階段。
-\n
-\n此功能讓對方能夠確認真的在與您交談，但他們也因此會看到您在此處輸入的工作階段名稱。</string>
-    <string name="device_manager_learn_more_session_rename_title">正在重新命名工作階段</string>
-    <string name="device_manager_learn_more_sessions_verified_title">已驗證的工作階段</string>
-    <string name="device_manager_learn_more_sessions_unverified">未驗證的工作階段是使用您的憑證登入但未進行交叉驗證的工作階段。
-\n
-\n您應特別確認都能認得出這些工作階段，因為若有無法識別的階段，代表您的帳號可能遭到未經授權的登入。</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">未驗證的工作階段</string>
-    <string name="device_manager_learn_more_sessions_inactive">未使用的工作階段是您有一段時間未使用的工作階段，但它們會繼續接收加密金鑰。
-\n
-\n刪除未使用的工作階段可以改善安全性與效能，並讓您可以更容易地識別新的工作階段是否可疑。</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">未使用的工作階段</string>
-    <string name="device_manager_session_rename_warning">請注意，所有與您對話的人都能看到工作階段的名稱。</string>
-    <string name="device_manager_session_rename_description">自訂工作階段名稱，可以幫助您辨識您的裝置。</string>
-    <string name="device_manager_session_rename_edit_hint">工作階段名稱</string>
-    <string name="device_manager_session_rename">重新命名工作階段</string>
-    <string name="device_manager_session_overview_signout">登出此工作階段</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">未驗證 · 目前的工作階段</string>
     <string name="key_authenticity_not_guaranteed">此裝置無法保證此加密訊息的真實性。</string>
     <string name="settings_security_incognito_keyboard_summary">要求鍵盤不要根據您在對話中輸入的內容更新任何個人化資料（如輸入紀錄與字典等）。請注意，某些鍵盤可能不會遵守此設定。</string>
     <string name="settings_security_incognito_keyboard_title">無痕式鍵盤</string>
@@ -2338,21 +2257,8 @@
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ 此聊天室中有未驗證的裝置，它們將無法解密您傳送的訊息。</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">絕不在此聊天室傳送加密訊息到未驗證的工作階段。</string>
     <string name="action_got_it">了解</string>
-    <string name="labs_enable_client_info_recording_summary">記錄客戶端名稱、版本與網址，以便在工作階段管理員當中能更輕鬆找出工作階段。</string>
-    <string name="labs_enable_client_info_recording_title">啟用客戶端資訊記錄</string>
-    <string name="labs_enable_session_manager_summary">對所有工作階段有更大的能見度與控制。</string>
-    <string name="labs_enable_session_manager_title">啟用新的工作階段管理員</string>
-    <string name="device_manager_session_details_device_operating_system">作業系統</string>
-    <string name="device_manager_session_details_device_model">機型</string>
-    <string name="device_manager_session_details_device_browser">瀏覽器</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">版本</string>
-    <string name="device_manager_session_details_application_name">名稱</string>
-    <string name="device_manager_session_details_application">應用程式</string>
     <string name="device_manager_push_notifications_description">接收關於此工作階段的推送通知。</string>
     <string name="device_manager_push_notifications_title">推送通知</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">驗證您目前的工作階段以顯示此工作階段的驗證狀態。</string>
-    <string name="device_manager_verification_status_unknown">未知的驗證狀態</string>
     <string name="push_gateway_item_enabled">已啟用：</string>
     <string name="push_gateway_item_device_id">工作階段 ID：</string>
     <string name="error_check_network">發生了一些問題。請檢查您的網路連線並再試一次。</string>
@@ -2402,7 +2308,6 @@
     <string name="qr_code_login_header_failed_other_device_already_signed_in_description">另一台裝置已登入。</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">設定安全訊息傳遞時遇到安全性問題。以下其中一項可能已被駭入：您的家伺服器、您的網際網路連線、您的裝置</string>
     <string name="qr_code_login_header_failed_other_description">請求失敗。</string>
-    <string name="device_manager_other_sessions_select">選取工作階段</string>
     <string name="attachment_type_selector_camera">相機</string>
     <string name="attachment_type_selector_location">位置</string>
     <string name="attachment_type_selector_poll">投票</string>
@@ -2411,17 +2316,7 @@
     <string name="attachment_type_selector_gallery">照片媒體庫</string>
     <string name="action_deselect_all">取消選取全部</string>
     <string name="action_select_all">選取全部</string>
-    <plurals name="x_selected">
-        <item quantity="other">已選取 %1$d</item>
-    </plurals>
     <string name="attachment_type_selector_text_formatting">文字格式</string>
-    <string name="device_manager_learn_more_sessions_verified_description">已驗證的工作階段是您輸入安全密語或透過另一個已驗證工作階段確認您的身分後，使用此帳號的任何地方。
-\n
-\n這代表您擁有解鎖加密訊息，並向其他使用者確認您信任此工作階段所需的所有金鑰。</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="other">登出 %1$d 個工作階段</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">登出</string>
     <string name="message_reply_to_sender_created_poll">已建立投票。</string>
     <string name="message_reply_to_sender_sent_sticker">已傳送貼圖。</string>
     <string name="message_reply_to_sender_sent_video">已傳送影片。</string>
@@ -2430,19 +2325,10 @@
     <string name="message_reply_to_sender_sent_audio_file">已傳送音訊檔。</string>
     <string name="message_reply_to_sender_sent_file">已傳送檔案。</string>
     <string name="message_reply_to_prefix">回覆給</string>
-    <string name="device_manager_other_sessions_hide_ip_address">隱藏 IP 位址</string>
-    <string name="device_manager_other_sessions_show_ip_address">顯示 IP 位址</string>
     <string name="settings_enable_direct_share_summary">在系統分享選單中顯示最近使用過的聊天室</string>
     <string name="settings_enable_direct_share_title">啟用直接分享</string>
     <string name="review_unverified_sessions_description">請確認您的帳號安全</string>
     <string name="review_unverified_sessions_title">您有未驗證的工作階段</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">此使用階段不支援加密，因此也無法驗證。
-\n
-\n使用此工作階段時無法進入加密聊天室。
-\n
-\n為了安全與隱私，建議使用支援加密的 Matrix 客戶端。</string>
-    <string name="device_manager_signout_all_other_sessions">登出所有其他的工作階段</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">此工作階段無法被加密，因此無法被驗證。</string>
     <string name="settings_nightly_build_update">取得最新建構版本（注意：可能會無法登入）</string>
     <string name="settings_nightly_build">Nightly build</string>
     <string name="notice_voice_broadcast_ended_by_you">您已結束語音直播。</string>

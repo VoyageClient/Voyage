@@ -1313,7 +1313,6 @@
     <string name="settings_active_sessions_show_all">Показать все сеансы</string>
     <string name="settings_active_sessions_manage">Управление сеансами</string>
     <string name="settings_active_sessions_signout_device">Выйти из этого сеанса</string>
-    <string name="settings_failed_to_get_crypto_device_info">Нет доступной криптографической информации</string>
     <plurals name="settings_active_sessions_count">
         <item quantity="one">%d сессия активна</item>
         <item quantity="few">%d сессии активны</item>
@@ -2317,9 +2316,6 @@
     <string name="location_share_loading_map_error">Не удалось загрузить карту
 \nВозможно, этот домашний сервер не настроен для отображения карт.</string>
     <string name="all_chats">Все беседы</string>
-    <string name="device_manager_sessions_other_description">Для лучшей защиты заверьте свои сеансы и выйдите из тех, которые более не признаёте или не используете.</string>
-    <string name="device_manager_sessions_other_title">Другие сеансы</string>
-    <string name="settings_sessions_list">Сеансы</string>
     <string name="a11y_create_message">Создать беседу или комнату</string>
     <string name="room_list_filter_people">ЛС</string>
     <string name="home_layout_preferences">Настройки вида</string>
@@ -2334,37 +2330,8 @@
     <string name="explore_rooms">Обзор комнат</string>
     <string name="start_chat">Отправить ЛС</string>
     <string name="create_room">Создать комнату</string>
-    <string name="device_manager_other_sessions_view_all">Посмотреть все (%1$d)</string>
-    <string name="device_manager_header_section_security_recommendations_description">Повысьте безопасность учётной записи, следуя этим рекомендациям.</string>
-    <string name="device_manager_other_sessions_description_verified">Заверенный · Последняя активность %1$s</string>
-    <string name="device_manager_verification_status_unverified">Незаверенный сеанс</string>
-    <string name="device_manager_verification_status_verified">Заверенный сеанс</string>
-    <string name="a11y_device_manager_device_type_unknown">Неизвестный тип устройства</string>
-    <string name="a11y_device_manager_device_type_desktop">Компьютер</string>
-    <string name="a11y_device_manager_device_type_mobile">Мобильный</string>
-    <string name="device_manager_other_sessions_description_unverified">Незаверенный · Последняя активность %1$s</string>
-    <string name="device_manager_header_section_security_recommendations_title">Рекомендации по безопасности</string>
-    <string name="device_manager_unverified_sessions_title">Незаверенные сеансы</string>
-    <string name="device_manager_inactive_sessions_title">Неактивные сеансы</string>
     <string name="home_empty_no_rooms_title">Добро пожаловать в ${app_name},
 \n%s.</string>
-    <string name="device_manager_session_details_session_name">Название сеанса</string>
-    <string name="device_manager_filter_option_inactive">Неактивные</string>
-    <string name="device_manager_session_details_device_ip_address">IP-адрес</string>
-    <string name="device_manager_session_details_session_last_activity">Последняя активность</string>
-    <string name="device_manager_session_details_title">Сведения о сеансе</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Для лучшей безопасности выйдите из всех сеансов, которые более не признаёте или не используете.</string>
-    <string name="device_manager_filter_option_verified">Заверенные</string>
-    <string name="device_manager_filter_option_all_sessions">Все сеансы</string>
-    <string name="device_manager_session_last_activity">Последняя активность %1$s</string>
-    <string name="device_manager_device_title">Устройство</string>
-    <string name="device_manager_session_title">Сеанс</string>
-    <string name="device_manager_current_session_title">Текущий сеанс</string>
-    <string name="device_manager_verify_session">Заверить сеанс</string>
-    <string name="device_manager_view_details">Подробности</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Этот сеанс готов к защищенной переписке.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Текущий сеанс готов к защищенной переписке.</string>
-    <string name="a11y_device_manager_device_type_web">Веб-браузер</string>
     <string name="space_list_empty_message">Пространства — это новый способ организации комнат и людей. Создайте пространство, чтобы начать.</string>
     <string name="labs_enable_new_app_layout_title">Новый вид</string>
     <string name="home_empty_no_unreads_title">Нечего отображать.</string>
@@ -2373,77 +2340,18 @@
     <string name="labs_enable_new_app_layout_summary">Упрощённый Element с дополнительными вкладками</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nвыглядит слегка пустовато.</string>
-    <string name="device_manager_session_details_description">Информация о приложении, устройстве и активности.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Заверьте текущий сеанс для усиления защиты переписки.</string>
     <string name="space_list_empty_title">Пока нет пространств.</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Заверьте свои сеансы для усиления защиты переписки или выйдите из тех, которые более не признаёте или не используете.</string>
-    <string name="device_manager_unverified_sessions_description">Заверьте или выйдите из незаверенных сеансов.</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Заверьте или выйдите из этого сеанса для лучшей безопасности и надёжности.</string>
     <string name="invites_empty_title">Ничего нового.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Заверенных сеансов не обнаружено.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Незаверенных сеансов не обнаружено.</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Неактивных сеансов не обнаружено.</string>
-    <string name="device_manager_other_sessions_clear_filter">Очистить фильтр</string>
-    <string name="device_manager_filter_option_unverified_description">Не готовы к защищенной переписке</string>
-    <string name="device_manager_filter_option_verified_description">Готовы к защищенной переписке</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Неактивны %1$d день или дольше</item>
-        <item quantity="few">Неактивны %1$d дня или дольше</item>
-        <item quantity="many">Неактивны %1$d дней или дольше</item>
-        <item quantity="other">Неактивны %1$d дней или дольше</item>
-    </plurals>
-    <string name="device_manager_filter_option_unverified">Незаверенные</string>
-    <string name="device_manager_filter_bottom_sheet_title">Фильтр</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Незаверенный · Текущий сеанс</string>
-    <string name="device_manager_session_rename">Переименовать сеанс</string>
-    <string name="device_manager_session_rename_edit_hint">Название сеанса</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Заверенные</string>
-    <string name="device_manager_session_overview_signout">Выйти из этого сеанса</string>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Неактивные</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Незаверенные</string>
-    <string name="device_manager_session_rename_warning">Пожалуйста, имейте в виду, что названия сеансов также видны людям, с которыми вы общаетесь.</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Заверенные сеансы</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Незаверенные сеансы</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Неактивные сеансы</string>
     <string name="command_description_table_flip">Добавляет (╯°□°）╯︵ ┻━┻ в начало сообщения</string>
     <string name="settings_security_incognito_keyboard_title">Приватная клавиатура</string>
     <string name="settings_security_incognito_keyboard_summary">Запрещает клавиатуре обновлять персональные данные, такие как история набора текста и словарь, на основе того, что вы набрали при общении. Обратите внимание, что некоторые клавиатуры могут не соблюдать эту настройку.</string>
     <string name="action_got_it">Понятно</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 В настройках безопасности вы включили шифрование только для заверенных сессий во всех комнатах.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">Не отправлять зашифрованные сообщения незаверенным сеансам в этой комнате.</string>
-    <string name="device_manager_learn_more_sessions_inactive">Неактивные сеансы — это сеансы, которыми вы не пользовались определённое время, но они продолжают получать ключи шифрования.
-\n
-\nУдаление неактивных сеансов повышает безопасность и производительность, а также облегчает выявление подозрительных новых сеансов.</string>
-    <string name="device_manager_learn_more_session_rename_title">Переименование сеансов</string>
-    <string name="device_manager_learn_more_session_rename">Другие пользователи в личных сообщениях и комнатах, к которым вы присоединились, могут просматривать весь перечень ваших сеансов.
-\n
-\nЭто даёт им уверенность в том, что они действительно общаются с вами, но это также означает, что они могут видеть название сеанса, которое вы ввели здесь.</string>
     <string name="push_gateway_item_device_id">ID сеанса:</string>
     <string name="device_manager_push_notifications_title">Уведомления</string>
     <string name="device_manager_push_notifications_description">Получать push-уведомления в этой сессии.</string>
-    <string name="device_manager_session_details_application_url">URL-адрес</string>
-    <string name="device_manager_session_details_application">Приложение</string>
-    <string name="device_manager_session_details_application_name">Название</string>
-    <string name="device_manager_session_details_application_version">Версия</string>
-    <string name="device_manager_session_details_device_browser">Веб-браузер</string>
-    <string name="device_manager_session_details_device_model">Модель</string>
-    <string name="device_manager_session_details_device_operating_system">Операционная система</string>
-    <string name="labs_enable_session_manager_title">Новый менеджер сеансов</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Рассмотрите возможность выхода из старых сеансов (%1$d день или дольше), которые вы более не используете.</item>
-        <item quantity="few">Рассмотрите возможность выхода из старых сеансов (%1$d дня или дольше), которые вы более не используете.</item>
-        <item quantity="many">Рассмотрите возможность выхода из старых сеансов (%1$d дней или дольше), которые вы более не используете.</item>
-        <item quantity="other">Рассмотрите возможность выхода из старых сеансов (%1$d дней или дольше), которые вы более не используете.</item>
-    </plurals>
     <string name="poll_undisclosed_not_ended">Результаты будут видны после завершения опроса</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Рассмотрите возможность выхода из старых сеансов (%1$d день или дольше), которые вы более не используете.</item>
-        <item quantity="few">Рассмотрите возможность выхода из старых сеансов (%1$d дня или дольше), которые вы более не используете.</item>
-        <item quantity="many">Рассмотрите возможность выхода из старых сеансов (%1$d дней или дольше), которые вы более не используете.</item>
-        <item quantity="other">Рассмотрите возможность выхода из старых сеансов (%1$d дней или дольше), которые вы более не используете.</item>
-    </plurals>
-    <string name="labs_enable_client_info_recording_summary">Записывает название клиента, версию и URL-адрес для более лёгкого распознавания сеансов в менеджере сеансов.</string>
-    <string name="labs_enable_client_info_recording_title">Записывать информацию о клиенте</string>
     <string name="attachment_type_selector_gallery">Галерея</string>
     <string name="attachment_type_selector_sticker">Наклейки</string>
     <string name="attachment_type_selector_file">Вложения</string>
@@ -2467,12 +2375,6 @@
     <string name="labs_enable_deferred_dm_title">Включить отложенные личные сообщения</string>
     <string name="action_deselect_all">Отменить выбор всего</string>
     <string name="action_select_all">Выбрать всё</string>
-    <plurals name="x_selected">
-        <item quantity="one">Выбрано %1$d</item>
-        <item quantity="few">Выбраны %1$d</item>
-        <item quantity="many">Выбраны %1$d</item>
-        <item quantity="other">Выбраны %1$d</item>
-    </plurals>
     <string name="qr_code_login_confirm_security_code_description">Пожалуйста удостоверьтесь в том, что вы знаете откуда этот код. При соединении устройств, вы даёте кому-то полный доступ к вашей учётной записи.</string>
     <string name="qr_code_login_confirm_security_code">Подтвердить</string>
     <string name="qr_code_login_try_again">Попробовать снова</string>
@@ -2512,33 +2414,8 @@
     <string name="one">1</string>
     <string name="home_empty_no_rooms_message">Универсальное безопасное приложение для переписок с командами, друзьями и организациями. Создайте переписку или присоеденитесь к уже существующей, чтобы начать.</string>
     <string name="home_empty_space_no_rooms_message">Пространства — новый способ групировать комнаты и людей. Добавьте существующую комнату или создайте новую, используя кнопку слева снизу.</string>
-    <string name="labs_enable_session_manager_summary">Получите лучший надзор и контроль над всеми вашими сессиями.</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Заверенные сеансы есть везде, где вы используете эту учётную запись после ввода своей мнемонической фразы или подтверждения своей личности с помощью другого заверенного сеанса.
-\n
-\nЭто означает, что у вас есть все ключи, необходимые для разблокировки ваших зашифрованных сообщений и подтверждения другим пользователям, что вы доверяете этому сеансу.</string>
-    <string name="device_manager_learn_more_sessions_unverified">Незаверенные сеансы — это сеансы, которые вошли в систему с вашими учётными данными, но не были перекрёстно заверены.
-\n
-\nВы должны быть особенно уверены, что признаёте эти сеансы, поскольку они могут представлять собой несанкционированное использование вашей учётной записи.</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">Вы можете использовать это устройство для входа с телефона или веб-устройства при помощи QR-кода. Для этого есть два способа:</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Войти по QR-коду</string>
-    <string name="device_manager_session_rename_description">Собственные названия сессий помогут вам легче распознать свои девайсы.</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Выйти из %1$d сеанса</item>
-        <item quantity="few">Выйти из %1$d сеансов</item>
-        <item quantity="many">Выйти из %1$d сеансов</item>
-        <item quantity="other">Выйти из %1$d сеансов</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Выйти</string>
-    <string name="device_manager_other_sessions_select">Выбрать сеансы</string>
-    <string name="a11y_device_manager_filter">Фильтр</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Неактивен %1$d+ день (%2$s)</item>
-        <item quantity="few">Неактивен %1$d+ дней (%2$s)</item>
-        <item quantity="many">Неактивен %1$d+ дня (%2$s)</item>
-        <item quantity="other">Неактивен %1$d+ дня (%2$s)</item>
-    </plurals>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Подтвердите текущую сессию, чтобы посмотреть её состояние подтверждения.</string>
-    <string name="device_manager_verification_status_unknown">Неизвестное состояние проверки</string>
     <string name="attachment_type_selector_text_formatting">Форматирование текста</string>
     <string name="live_location_not_enough_permission_dialog_description">Вам необходимо иметь нужные разрешения, чтобы делиться местоположением в реальном времени в этой комнате.</string>
     <string name="live_location_not_enough_permission_dialog_title">У вас нет разрешения делиться местоположением в реальном времени</string>
@@ -2571,19 +2448,10 @@
     <string name="message_reply_to_sender_sent_audio_file">отправил аудиофайл.</string>
     <string name="message_reply_to_sender_sent_file">отправил файл.</string>
     <string name="message_reply_to_prefix">В ответ на</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Скрыть IP-адрес</string>
-    <string name="device_manager_other_sessions_show_ip_address">Показать IP-адрес</string>
     <string name="settings_enable_direct_share_summary">Показывать последние беседы в системном меню распостранения</string>
     <string name="settings_enable_direct_share_title">Включить прямое распостранение</string>
-    <string name="device_manager_signout_all_other_sessions">Выйти из всех других сеансов</string>
     <string name="review_unverified_sessions_title">У вас есть незаверенные сеансы</string>
     <string name="settings_nightly_build">Ночная сборка</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Этот сеанс не поддерживает шифрование, поэтому его невозможно заверить.
-\n
-\nПри использовании этого сеанса вы не сможете участвовать в комнатах, где включено шифрование.
-\n
-\nДля лучшей защиты и приватности рекомендуется использовать клиенты Matrix, поддерживающие шифрование.</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Этот сеанс не поддерживает шифрование и поэтому не может быть заверен.</string>
     <string name="notice_voice_broadcast_ended">%1$s завершил(а) голосовую трансляцию.</string>
     <string name="notice_voice_broadcast_ended_by_you">Вы завершили голосовую трансляцию.</string>
     <plurals name="room_polls_active_no_item_for_loaded_period">

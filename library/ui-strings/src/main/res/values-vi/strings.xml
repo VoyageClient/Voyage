@@ -1759,7 +1759,6 @@
     <string name="crosssigning_verify_this_session">Xác thực thiết bị này</string>
     <string name="settings_active_sessions_unverified_device_desc">Xác thực phiên này để đánh dấu nó là đáng tin cậy và cấp cho nó quyền truy cập vào các thư được mã hóa. Nếu bạn không đăng nhập vào phiên này, tài khoản của bạn có thể bị xâm phạm:</string>
     <string name="settings_active_sessions_verified_device_desc">Phiên này được tin cậy để nhắn tin an toàn vì bạn đã xác thực nó:</string>
-    <string name="settings_failed_to_get_crypto_device_info">Không có thông tin mật mã sẵn dùng</string>
     <string name="settings_server_room_version_unstable">bất ổn định</string>
     <string name="settings_server_room_version_stable">ổn định</string>
     <string name="settings_server_default_room_version">Phiên bản Mặc định</string>
@@ -1974,9 +1973,6 @@
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">Đặt lại phương thức thông báo</string>
     <string name="action_proceed_to_reset">Tiến hành đặt lại</string>
     <string name="action_view_threads">Xem các chủ đề</string>
-    <plurals name="x_selected">
-        <item quantity="other">Đã chọn %1$d</item>
-    </plurals>
     <string name="room_unsupported_e2e_algorithm_as_admin">Thiết lập mã hóa sai nên bạn không thể gửi tin nhắn. Bấm vào để mở cài đặt.</string>
     <string name="room_unsupported_e2e_algorithm">Thiết lập mã hóa sai nên bạn không thể gửi tin nhắn. Liên hệ quản trị viên để khôi phục mã hóa về trạng thái hợp lệ.</string>
     <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s và nhiều người khác</string>
@@ -2103,13 +2099,6 @@
     <string name="space_leave_radio_button_all">Rời tất cả</string>
     <string name="secure_backup_reset_all_no_other_devices_long">Đặt lại các khóa xác thực không thể được hoàn tác. Sau khi đặt lại, bạn không thể truy cập vào các tin nhắn đã được mã hóa cũ, và tất cả bạn bè đã xác thực bạn trước đó sẽ thấy các cảnh báo cho đến khi nào bạn xác thực lại với họ.</string>
     <string name="settings_show_latest_profile_description">Hiện thông tin hồ sơ mới nhất (ảnh đại diện và tên hiển thị) cho tất cả các tin nhắn.</string>
-    <string name="device_manager_signout_all_other_sessions">Đăng xuất khỏi mọi phiên khác</string>
-    <string name="device_manager_learn_more_sessions_unverified">Các phiên chưa được xác thực là các phiên đã đăng nhập bằng thông tin của bạn nhưng chưa được xác thực chéo.
-\n
-\nBạn cần đặc biệt chắc chắn là bạn nhận ra các phiên này vì chúng có thể đang sử dụng trái phép tài khoản của bạn.</string>
-    <string name="device_manager_learn_more_session_rename">Những người dùng khác trong tin nhắn trực tiếp và các phòng bạn tham gia có thể xem danh sách các phiên của bạn.
-\n
-\nNhư vậy giúp họ chắc chắn họ đang thực sự nói chuyện với bạn, nhưng vì thế mà họ cũng có thể thấy tên phiên bạn nhập ở đây.</string>
     <string name="invites_empty_message">Đây là nơi chứa các yêu cầu và lời mời mới.</string>
     <string name="avatar_of_space">Ảnh đại diện cho space %1$s</string>
     <string name="avatar_of_room">Ảnh đại diện cho phòng %1$s</string>
@@ -2120,21 +2109,12 @@
     <string name="beta_title_bottom_sheet_action">Đang thử nghiệm</string>
     <string name="ftue_auth_choose_server_subtitle">Địa chỉ máy chủ của bạn là gì\? Đó như là nhà của tất cả dữ liệu của bạn</string>
     <string name="tooltip_attachment_gallery">Gửi ảnh và phim</string>
-    <string name="device_manager_other_sessions_view_all">Hiện tất cả (%1$d)</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} cũng là nơi tốt cho nơi làm việc. Được tin cậy bởi những tổ chức bảo mật nhất thế giới.</string>
     <string name="home_layout_preferences">Tùy chọn bố cục</string>
-    <string name="device_manager_filter_option_all_sessions">Mọi phiên</string>
     <string name="labs_enable_new_app_layout_title">Sử dụng bố cục mới</string>
     <string name="settings_troubleshoot_test_endpoint_registration_success">Điểm cuối đã được đăng ký với máy chủ nhà.</string>
     <string name="attachment_type_location">Vị trí</string>
     <string name="unifiedpush_distributor_fcm_fallback">Dịch vụ của Google</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="other">Đăng xuất khỏi %1$d phiên</item>
-    </plurals>
-    <string name="device_manager_learn_more_sessions_verified_description">Các phiên đã được xác thực là phiên mà bạn đăng nhập bằng mật khẩu hay xác thực danh tính bằng một phiên khác
-\n
-\nNghĩa là bạn đã có tất cả các khóa cần thiết để mở khóa các tin nhắn đã được mã hóa và xác nhận với những người khác là bạn tin cậy phiên này.</string>
-    <string name="labs_enable_session_manager_summary">Hiển thị và kiểm soát các phiên của bạn tốt hơn.</string>
     <string name="home_empty_no_rooms_message">Ứng dụng nhắn tin bảo mật tất cả-trong-một cho nhóm, bạn bè và tổ chức. Tạo một cuộc trò chuyện, hay tham gia vào một phòng, để bắt đầu.</string>
     <string name="ftue_auth_carousel_control_body">Chọn nơi lưu trữ các cuộc trò chuyện của bạn, cho bạn quyền kiểm soát và độc lập. Kết nối qua giao thức Matrix.</string>
     <string name="secure_backup_reset_danger_warning">Chỉ tiếp tục nếu bạn chắc chắn là bạn đã mất tất cả các thiết bị và khóa bảo mật.</string>
@@ -2166,7 +2146,6 @@
     <string name="settings_nightly_build">Bản dựng hằng ngày</string>
     <string name="verification_verify_with_another_device">Xác thực với thiết bị khác</string>
     <string name="room_profile_section_more_polls">Lịch sử bỏ phiếu</string>
-    <string name="settings_sessions_list">Các phiên</string>
     <string name="crosssigning_cannot_verify_this_session_desc">Bạn không thể truy cập vào các tin nhắn được mã hóa. Đặt lại sao lưu tin nhắn bảo mật và các khóa xác thực để bắt đầu lại.</string>
     <string name="crosssigning_cannot_verify_this_session">Không thể xác thực thiết bị này</string>
     <string name="crosssigning_verify_after_update">Ứng dụng được cập nhật</string>
@@ -2176,38 +2155,15 @@
     <string name="verification_request_was_sent">Yêu cầu xác thực đã được gửi. Mở một phiên đăng nhập khác để chấp nhận và bắt đầu xác thực.</string>
     <string name="review_unverified_sessions_description">Xem lại để chắc chắn rằng tài khoản bạn an toàn</string>
     <string name="a11y_audio_playback_duration" tools:ignore="PluralsCandidate">%1$d phút %2$d giây</string>
-    <string name="device_manager_session_details_session_last_activity">Hoạt động lần cuối</string>
-    <string name="device_manager_session_rename_edit_hint">Tên phiên</string>
     <string name="encrypted_by_deleted">Mã hóa bởi một thiết bị đã xóa</string>
     <string name="encryption_misconfigured">Mã hóa bị thiết lập sai</string>
-    <string name="device_manager_other_sessions_select">Chọn các phiên</string>
-    <string name="device_manager_other_sessions_clear_filter">Hủy bộ lọc</string>
     <string name="device_manager_push_notifications_title">Thông báo đẩy</string>
-    <string name="device_manager_session_details_application_name">Tên</string>
-    <string name="device_manager_session_details_application_url">Địa chỉ</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Phiên không hoạt động</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Phiên chưa xác thực</string>
     <string name="settings_security_incognito_keyboard_summary">Yêu cầu bàn phím không được phép cập nhật các dữ liệu cá nhân hóa như lịch sử nhập và từ điển dựa trên những gì bạn nhắn trong trò chuyện. Tuy vậy một số bàn phím sẽ không tuân theo cài đặt này.</string>
     <string name="key_authenticity_not_guaranteed">Tính xác thực của tin nhắn đã mã hóa này không thể được đảm bảo trên thiết bị này.</string>
     <string name="review_unverified_sessions_title">Bạn có các phiên chưa xác thực</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
-    <string name="device_manager_other_sessions_multi_signout_selection">Đăng xuất</string>
-    <string name="device_manager_session_overview_signout">Đăng xuất khỏi phiên này</string>
-    <string name="device_manager_session_details_title">Chi tiết phiên</string>
-    <string name="device_manager_session_details_description">Thông tin phần mềm, thiết bị, và hoạt động.</string>
-    <string name="device_manager_session_details_application_version">Phiên bản</string>
-    <string name="device_manager_session_details_device_browser">Trình duyệt</string>
-    <string name="device_manager_session_details_device_model">Mẫu mã</string>
-    <string name="device_manager_session_rename">Đổi tên phiên</string>
-    <string name="device_manager_other_sessions_show_ip_address">Hiện địa chỉ Internet (IP)</string>
-    <string name="device_manager_session_details_application">Phần mềm</string>
-    <string name="device_manager_session_details_device_ip_address">Địa chỉ Internet (IP)</string>
-    <string name="device_manager_session_details_session_name">Tên phiên</string>
     <string name="send_your_first_msg_to_invite">Gửi tin nhắn đầu tiên để mời %s vào cuộc trò chuyện</string>
     <string name="settings_security_incognito_keyboard_title">Bàn phím ẩn danh</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Ẩn địa chỉ Internet (IP)</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Phiên đã xác thực</string>
-    <string name="device_manager_session_details_device_operating_system">Hệ điều hành</string>
     <string name="thread_list_modal_title">Bộ lọc</string>
     <string name="room_threads_filter">Bộ lọc các chủ đề trong phòng</string>
     <string name="action_thread_copy_link_to_thread">Sao chép liên kết vào cuộc trò chuyện</string>
@@ -2227,9 +2183,6 @@
     <string name="thread_list_empty_subtitle">\'\'Chủ đề\'\' giúp giữ cho các cuộc trò chuyện của bạn theo chủ đề và dễ theo dõi.</string>
     <string name="thread_list_not_available">Máy chủ nhà của bạn chưa hỗ trợ cho việc liệt kê các chủ đề.</string>
     <string name="threads_beta_enable_notice_message">\'\'Chủ đề\'\' giúp giữ cho các cuộc trò chuyện của bạn theo chủ đề và dễ theo dõi. %sBật chủ đề sẽ làm mới ứng dụng. Quá trình này có thể mất nhiều thời gian hơn đối với một số tài khoản.</string>
-    <string name="device_manager_session_title">Phiên</string>
-    <string name="device_manager_device_title">Thiết bị</string>
-    <string name="device_manager_session_last_activity">Hoạt động cuối %1$s</string>
     <string name="_resume">Tiếp tục</string>
     <string name="a11y_presence_busy">Bận</string>
     <string name="invite_unknown_users_dialog_submit">Cứ mời cho tôi</string>

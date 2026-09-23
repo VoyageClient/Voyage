@@ -76,19 +76,8 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
                     replaceFragment(views.vectorSettingsPage, VectorSettingsAdvancedSettingsFragment::class.java, null, FRAGMENT_TAG)
                 SettingsActivityPayload.SecurityPrivacy ->
                     replaceFragment(views.vectorSettingsPage, VectorSettingsSecurityPrivacyFragment::class.java, null, FRAGMENT_TAG)
-                SettingsActivityPayload.SecurityPrivacyManageSessions -> {
-                    val fragmentClass = if (vectorPreferences.isNewSessionManagerEnabled()) {
-                        im.vector.app.features.settings.devices.v2.VectorSettingsDevicesFragment::class.java
-                    } else {
-                        VectorSettingsDevicesFragment::class.java
-                    }
-                    replaceFragment(
-                            views.vectorSettingsPage,
-                            fragmentClass,
-                            null,
-                            FRAGMENT_TAG
-                    )
-                }
+                SettingsActivityPayload.SecurityPrivacyManageSessions ->
+                    replaceFragment(views.vectorSettingsPage, VectorSettingsDevicesFragment::class.java, null, FRAGMENT_TAG)
                 SettingsActivityPayload.Notifications -> {
                     requestHighlightPreferenceKeyOnResume(VectorPreferences.SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY)
                     replaceFragment(views.vectorSettingsPage, VectorSettingsNotificationFragment::class.java, null, FRAGMENT_TAG)

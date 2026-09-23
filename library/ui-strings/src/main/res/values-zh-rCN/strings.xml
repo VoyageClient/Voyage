@@ -1178,7 +1178,6 @@
     <string name="settings_active_sessions_show_all">显示全部会话</string>
     <string name="settings_active_sessions_manage">管理会话</string>
     <string name="settings_active_sessions_signout_device">登出此会话</string>
-    <string name="settings_failed_to_get_crypto_device_info">加密信息不可用</string>
     <string name="settings_active_sessions_verified_device_desc">因为你已验证此会话，所以其在安全地收发消息上可受信任：</string>
     <string name="settings_active_sessions_unverified_device_desc">验证此会话以将其标记为可信，并授予其访问加密消息的权限。如果你未登录此会话，则你的账户可能已被盗：</string>
     <plurals name="settings_active_sessions_count">
@@ -2215,9 +2214,6 @@
     <string name="location_share_loading_map_error">无法加载地图
 \n此家服务器可能没有设置显示地图。</string>
     <string name="all_chats">全部聊天</string>
-    <string name="device_manager_sessions_other_description">为获得最佳安全性，请验证你的会话，并从任何你不认识或不再使用的会话登出。</string>
-    <string name="device_manager_sessions_other_title">其它会话</string>
-    <string name="settings_sessions_list">会话</string>
     <string name="a11y_open_spaces">打开空间列表</string>
     <string name="a11y_create_message">创建新对话或房间</string>
     <string name="room_list_filter_people">人</string>
@@ -2235,51 +2231,15 @@
     <string name="start_chat">开始聊天</string>
     <string name="timeline_error_room_not_found">抱歉，未发现此房间。
 \n请晚些重试。%s</string>
-    <string name="device_manager_other_sessions_description_unverified">未验证 · 上次活动 %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">已验证 · 上次活动 %1$s</string>
-    <string name="device_manager_other_sessions_view_all">查看全部（%1$d）</string>
-    <string name="device_manager_view_details">查看详情</string>
-    <string name="device_manager_verify_session">验证会话</string>
-    <string name="device_manager_verification_status_unverified">未验证的会话</string>
-    <string name="device_manager_verification_status_verified">已验证的会话</string>
-    <string name="a11y_device_manager_device_type_unknown">未知的设备类型</string>
     <string name="invites_title">邀请</string>
-    <string name="a11y_device_manager_device_type_mobile">移动设备</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_desktop">桌面</string>
     <string name="space_list_empty_title">尚无空间。</string>
     <string name="invites_empty_title">没有新的东西。</string>
     <string name="invites_empty_message">你的新请求和邀请会在这里。</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="other">闲置 %1$d+ 天 (%2$s)</item>
-    </plurals>
-    <string name="device_manager_header_section_security_recommendations_title">安全建议</string>
-    <string name="device_manager_header_section_security_recommendations_description">按照这些建议改善你的账户安全。</string>
-    <string name="device_manager_unverified_sessions_title">未验证的会话</string>
-    <string name="device_manager_unverified_sessions_description">验证未验证的会话或从之登出。</string>
-    <string name="device_manager_inactive_sessions_title">闲置会话</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="other">请考虑从不再使用的旧会话（%1$d天或更久）登出。</item>
-    </plurals>
     <string name="home_empty_no_rooms_title">欢迎来到 ${app_name}，
 \n%s。</string>
     <string name="home_empty_no_unreads_message">当你有一些未读消息时，这里会显示你的未读消息。</string>
     <string name="space_list_empty_message">空间是对房间和人进行分组的新方式。创建一个空间来开始吧。</string>
     <string name="labs_enable_new_app_layout_title">启用新布局</string>
-    <string name="device_manager_session_details_device_ip_address">IP地址</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">验证你的会话以增强安全消息传递或从你不再识别或不再使用的会话中登出。</string>
-    <string name="device_manager_filter_option_unverified_description">尚未准备好安全收发消息</string>
-    <string name="device_manager_filter_option_verified_description">准备好安全收发消息</string>
-    <string name="device_manager_filter_option_verified">已验证</string>
-    <string name="device_manager_filter_option_all_sessions">全部会话</string>
-    <string name="device_manager_filter_bottom_sheet_title">过滤器</string>
-    <string name="device_manager_session_last_activity">上次活动 %1$s</string>
-    <string name="device_manager_device_title">设备</string>
-    <string name="device_manager_session_title">会话</string>
-    <string name="device_manager_current_session_title">当前会话</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">验证你的会话以增强消息传输的安全性。</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">此会话已准备好安全地收发消息。</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">你当前的会话已准备好安全地收发消息。</string>
     <string name="labs_enable_deferred_dm_summary">仅在首条消息创建私聊消息</string>
     <string name="labs_enable_deferred_dm_title">启用延迟的私聊消息</string>
     <string name="labs_enable_new_app_layout_summary">简化的 Element，带有可选的标签</string>
@@ -2288,60 +2248,14 @@
     <string name="permissions_rationale_msg_notification">${app_name}需要权限来显示通知。通知可以显示消息、邀请等。
 \n
 \n请在下个弹窗允许访问以便查看通知。</string>
-    <string name="labs_enable_session_manager_title">启用新的会话管理器</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ 此房间里有未经验证的设备，它们将无法解密你发送的消息。</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">永远不要向这个房间里未经验证的会话发送加密的消息。</string>
     <string name="home_empty_space_no_rooms_title">%s
 \n看起来有点空荡荡的。</string>
-    <string name="labs_enable_client_info_recording_summary">记录客户端名称、版本和网址，以便在会话管理器中更轻松地识别会话。</string>
-    <string name="labs_enable_client_info_recording_title">启用客户端信息记录</string>
-    <string name="labs_enable_session_manager_summary">对所有会话有更好的可见性和控制。</string>
-    <string name="device_manager_learn_more_session_rename">你加入的私聊消息和房间中的其他用户可以查看你的会话的完整列表。
-\n
-\n这让他们确信他们真的在与你交谈，但这也意味着他们可以看到你在此处输入的会话名称。</string>
-    <string name="device_manager_learn_more_session_rename_title">重命名会话</string>
-    <string name="device_manager_learn_more_sessions_inactive">闲置会话是你一段时间未使用的会话，但它们会继续接收加密密钥。
-\n
-\n删除闲置会话可以提高安全性和性能，并使你更容易识别新会话是否可疑。</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">闲置会话</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">你可以使用此设备通过QR码登录移动设备或网络设备。 有两种方法可以做到这一点：</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">使用QR码登录</string>
-    <string name="device_manager_session_rename_warning">请注意，与你交流的人也可以看到会话名称。</string>
-    <string name="device_manager_session_rename_description">自定义会话名称可以帮助你更轻松地识别你的设备。</string>
-    <string name="device_manager_session_rename">重命名会话</string>
-    <string name="device_manager_session_details_device_operating_system">操作系统</string>
-    <string name="device_manager_session_details_device_model">型号</string>
-    <string name="device_manager_session_details_device_browser">浏览器</string>
-    <string name="device_manager_session_details_application_url">网址</string>
-    <string name="device_manager_session_details_application_version">版本</string>
-    <string name="device_manager_session_details_application_name">名称</string>
-    <string name="device_manager_session_details_application">应用</string>
-    <string name="device_manager_session_details_session_last_activity">上次活动</string>
-    <string name="device_manager_session_details_session_name">会话名称</string>
     <string name="device_manager_push_notifications_description">接收有关此会话的推送通知。</string>
     <string name="device_manager_push_notifications_title">推送通知</string>
-    <string name="device_manager_session_details_description">应用程序、设备和活动信息。</string>
-    <string name="device_manager_session_details_title">会话详情</string>
-    <string name="device_manager_session_overview_signout">登出此会话</string>
-    <string name="device_manager_other_sessions_clear_filter">清除过滤器</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">未找到闲置会话。</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">未找到未验证的会话。</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">未找到已验证的会话。</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="other">考虑登出你不再使用的旧会话（%1$d 天或更长时间）。</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">闲置</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">未验证</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">为获得最佳安全性，请从你不认识或不再使用的任何会话中登出。</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">已验证</string>
-    <string name="a11y_device_manager_filter">过滤器</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="other">闲置 %1$d 天或更长时间</item>
-    </plurals>
-    <string name="device_manager_filter_option_unverified">未验证</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">未验证 · 你当前的会话</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">验证你当前的会话以显示此会话的验证状态。</string>
-    <string name="device_manager_verification_status_unknown">未知的验证状态</string>
     <string name="action_got_it">知道了</string>
     <string name="qr_code_login_confirm_security_code_description">请确保你知道此代码的来源。 通过链接设备，你将为某人提供对你账户的完全访问权限。</string>
     <string name="qr_code_login_confirm_security_code">确认</string>
@@ -2383,14 +2297,6 @@
     <string name="home_empty_no_unreads_title">无需报告。</string>
     <string name="home_empty_no_rooms_message">适用于团队、朋友和组织的一体化安全聊天应用程序。 创建一个聊天或加入一个现有的房间来开始。</string>
     <string name="home_empty_space_no_rooms_message">空间是一种对房间和人员进行分组的新方式。 使用右下角的按钮添加现有房间或创建新房间。</string>
-    <string name="device_manager_learn_more_sessions_verified_title">已验证会话</string>
-    <string name="device_manager_learn_more_sessions_unverified">未验证会话是使用你的凭据登录但未经交叉验证的会话。
-\n
-\n你应特别确定你识别这些会话，因为它们可能代表未经授权使用你的账户。</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">未验证会话</string>
-    <string name="device_manager_filter_option_inactive">闲置</string>
-    <string name="device_manager_session_rename_edit_hint">会话名称</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">验证或登出此会话以获得最佳安全性和可靠性。</string>
     <string name="key_authenticity_not_guaranteed">此设备无法保证此加密消息的真实性。</string>
     <string name="command_description_table_flip">将 (╯°□°)╯︵ ┻━┻ 添加到纯文本消息中</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} 需要显示通知的权限。
@@ -2402,7 +2308,6 @@
     <string name="push_gateway_item_enabled">已启用：</string>
     <string name="push_gateway_item_device_id">会话ID：</string>
     <string name="error_check_network">出了点差错。请检查你的网络连接并重试。</string>
-    <string name="device_manager_other_sessions_select">选择会话</string>
     <string name="attachment_type_selector_text_formatting">文本格式</string>
     <string name="attachment_type_selector_camera">相机</string>
     <string name="attachment_type_selector_location">位置</string>
@@ -2412,9 +2317,6 @@
     <string name="attachment_type_selector_gallery">照片库</string>
     <string name="action_deselect_all">取消全选</string>
     <string name="action_select_all">全选</string>
-    <plurals name="x_selected">
-        <item quantity="other">已选择 %1$d</item>
-    </plurals>
     <string name="message_reply_to_sender_created_poll">已创建投票。</string>
     <string name="message_reply_to_sender_sent_sticker">已发送贴纸。</string>
     <string name="message_reply_to_sender_sent_video">已发送视频。</string>
@@ -2422,22 +2324,11 @@
     <string name="message_reply_to_sender_sent_voice_message">已发送语音消息。</string>
     <string name="message_reply_to_sender_sent_audio_file">已发送音频文件。</string>
     <string name="message_reply_to_sender_sent_file">已发送文件。</string>
-    <string name="device_manager_learn_more_sessions_verified_description">已验证的会话是在输入你的口令词组或用另一个已验证的会话确认你的身份之后你使用此账户的任何地方。
-\n
-\n这意味着你拥有解锁你的已加密消息和向其他用户证明你信任此会话所需的全部密钥。</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="other">登出%1$d个会话</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">登出</string>
-    <string name="device_manager_other_sessions_show_ip_address">显示IP地址</string>
-    <string name="device_manager_other_sessions_hide_ip_address">隐藏IP地址</string>
     <string name="message_reply_to_prefix">回复给</string>
     <string name="settings_enable_direct_share_title">启用直接分享</string>
     <string name="settings_enable_direct_share_summary">在系统分享菜单中显示最近聊天</string>
     <string name="review_unverified_sessions_description">复查以确保你的账户是安全的</string>
     <string name="review_unverified_sessions_title">你有未验证的会话</string>
-    <string name="device_manager_signout_all_other_sessions">登出全部其他会话</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">这个会话不支持加密，因此不能被验证。</string>
     <string name="settings_nightly_build_update">获取最新构建（注意：你可能在登录时遇到麻烦）</string>
     <string name="settings_nightly_build">Nightly构建</string>
     <string name="notice_voice_broadcast_ended_by_you">你结束了一个语音广播。</string>
@@ -2493,11 +2384,6 @@
     </plurals>
     <string name="unable_to_decrypt_some_events_in_poll">由于解密错误，一些投票可能不计入</string>
     <string name="room_polls_ended_no_item">此房间无过去的投票</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">此会话不支持加密，所以无法验证。
-\n
-\n使用此会话时，你将无法加入启用了加密的房间。
-\n
-\n为了获得最佳的安全性和隐私性，建议使用支持加密的 Matrix 客户端。</string>
     <string name="room_polls_loading_error">获取投票时出错。</string>
     <string name="room_poll_details_go_to_timeline">在时间线中查看</string>
     <string name="pill_message_from_user">来自%s的消息</string>

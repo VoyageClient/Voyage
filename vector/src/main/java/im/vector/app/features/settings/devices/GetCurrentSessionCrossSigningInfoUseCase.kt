@@ -8,7 +8,7 @@
 package im.vector.app.features.settings.devices
 
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.features.settings.devices.v2.verification.CurrentSessionCrossSigningInfo
+import im.vector.app.features.settings.devices.verification.CurrentSessionCrossSigningInfo
 import javax.inject.Inject
 
 class GetCurrentSessionCrossSigningInfoUseCase @Inject constructor(

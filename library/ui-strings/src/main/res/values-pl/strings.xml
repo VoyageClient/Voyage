@@ -1022,7 +1022,6 @@
     <string name="settings_active_sessions_show_all">Pokaż wszystkie sesje</string>
     <string name="settings_active_sessions_manage">Zarządzaj Sesjami</string>
     <string name="settings_active_sessions_signout_device">Wyloguj z tej sesji</string>
-    <string name="settings_failed_to_get_crypto_device_info">Brak dostępnej informacji o kryptografii</string>
     <string name="settings_active_sessions_verified_device_desc">Ta sesja jest zaufana dla wysyłania bezpiecznych wiadomości, ponieważ została zweryfikowana:</string>
     <string name="settings_active_sessions_unverified_device_desc">Zweryfikuj tę sesję, aby oznaczyć ją jako zaufaną i przyznaj jej dostęp do wiadomości szyfrowanych. Jeżeli nie zalogowałeś się do tej sesji, twoje konto mogło zostać zdradzone:</string>
     <plurals name="settings_active_sessions_count">
@@ -2349,9 +2348,6 @@
     <string name="settings_troubleshoot_test_current_endpoint_title">Punkt końcowy</string>
     <string name="location_share_loading_map_error">Nie można wczytać mapy.
 \nTen serwer macierzysty może nie być skonfigurowany do wyświetlania map.</string>
-    <string name="device_manager_sessions_other_description">Aby zapewnić najlepsze bezpieczeństwo, zweryfikuj swoje sesje i wyloguj się z każdej sesji, której już nie rozpoznajesz lub której już nie używasz.</string>
-    <string name="device_manager_sessions_other_title">Inne sesje</string>
-    <string name="settings_sessions_list">Sesje</string>
     <string name="a11y_open_spaces">Lista otwartych przestrzeni</string>
     <string name="a11y_create_message">Utwórz nową rozmowę lub pokój</string>
     <string name="room_list_filter_people">Ludzie</string>
@@ -2370,17 +2366,6 @@
     <string name="create_room">Utwórz pokój</string>
     <string name="start_chat">Rozpocznij czat</string>
     <string name="all_chats">Wszystkie rozmowy</string>
-    <string name="device_manager_other_sessions_description_unverified">Nie zweryfikowano · Ostatnia aktywność %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">Zweryfikowano · Ostatnia aktywność %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Pokaż wszystkie (%1$d)</string>
-    <string name="device_manager_view_details">Pokaż szczegóły</string>
-    <string name="device_manager_verify_session">Zweryfikuj sesję</string>
-    <string name="device_manager_verification_status_unverified">Sesja niezweryfikowana</string>
-    <string name="device_manager_verification_status_verified">Sesja zweryfikowana</string>
-    <string name="a11y_device_manager_device_type_unknown">Nieznany typ urządzenia</string>
-    <string name="a11y_device_manager_device_type_desktop">Komputer</string>
-    <string name="a11y_device_manager_device_type_web">Przeglądarka</string>
-    <string name="a11y_device_manager_device_type_mobile">Urządzenie przenośne</string>
     <string name="timeline_error_room_not_found">Niestety, ten pokój nie został znaleziony.
 \nSpróbuj ponownie później.%s</string>
     <string name="invites_title">Zaproszenia</string>
@@ -2405,30 +2390,8 @@
     <string name="invites_empty_message">Tutaj będą twoje nowe zaproszenia.</string>
     <string name="invites_empty_title">Brak zaproszeń.</string>
     <string name="encryption_never_send_to_unverified_devices_in_room">Nigdy nie wysyłaj zaszyfrowanych wiadomości do niezweryfikowanych sesji w tym pokoju.</string>
-    <string name="device_manager_session_overview_signout">Wyloguj się z tej sesji</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Wyloguj się z %1$d sesji</item>
-        <item quantity="few">Wyloguj się z %1$d sesji</item>
-        <item quantity="many">Wyloguj się z %1$d sesji</item>
-        <item quantity="other">Wyloguj się z %1$d sesji</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Wyloguj się</string>
-    <string name="device_manager_other_sessions_select">Wybierz sesje</string>
-    <string name="device_manager_other_sessions_show_ip_address">Pokaż adres IP</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Sesje niezweryfikowane</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">Brak niezweryfikowanych sesji.</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Dla wzmocnienia bezpiecznych wiadomości, zweryfikuj swoje sesje i wyloguj się ze wszystkich sesji, których nie rozpoznajesz lub nie używasz.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Niezweryfikowane</string>
-    <string name="device_manager_unverified_sessions_description">Zweryfikuj te sesje lub wyloguj się z nich.</string>
-    <string name="device_manager_unverified_sessions_title">Sesje niezweryfikowane</string>
-    <string name="device_manager_header_section_security_recommendations_description">Zwiększ bezpieczeństwo swojego konta kierując się tymi rekomendacjami.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Rekomendacje bezpieczeństwa</string>
     <string name="settings_enable_direct_share_summary">Pokaż ostatnie rozmowy w systemowym menu udostępniania</string>
     <string name="settings_enable_direct_share_title">Bezpośrednie udostępnianie</string>
-    <string name="labs_enable_client_info_recording_summary">Zachowuj nazwę aplikacji, wersję oraz jej url aby łatwiej rozpoznawać je w menedzerze sesji.</string>
-    <string name="labs_enable_client_info_recording_title">Włącz rejestrowanie informacji o kliencie</string>
-    <string name="labs_enable_session_manager_summary">Miej lepszą kontrolę nad zalogowanymi sesjami.</string>
-    <string name="labs_enable_session_manager_title">Włącz nowy menedżer sesji</string>
     <string name="attachment_type_selector_text_formatting">Formatowanie tekstu</string>
     <string name="attachment_type_selector_poll">Ankiety</string>
     <string name="attachment_type_selector_file">Załączniki</string>
@@ -2440,9 +2403,6 @@
     <string name="action_deselect_all">Odznacz wszystko</string>
     <string name="action_select_all">Zaznacz wszystko</string>
     <string name="action_got_it">Rozumiem</string>
-    <string name="device_manager_inactive_sessions_title">Sesje nieaktywne</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Sesja jest gotowa do wysyłania bezpiecznych wiadomości.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Twoja bieżąca sesja jest gotowa do wysyłania bezpiecznych wiadomości.</string>
     <string name="attachment_type_selector_location">Lokalizacja</string>
     <string name="attachment_type_selector_camera">Aparat</string>
     <string name="room_polls_ended">Przeszłe ankiety</string>
@@ -2465,14 +2425,6 @@
     <string name="device_manager_push_notifications_description">Otrzymuj powiadomienia push na tej sesji.</string>
     <string name="pill_message_in_room">Wiadomość w %s</string>
     <string name="qr_code_login_confirm_security_code_description">Upewnij się, że znasz pochodzenie tego kodu. Poprzez powiązanie urządzeń udostępniasz pełny dostęp do Twojego konta.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Rozważ wylogowanie się ze starych sesji (%1$d dzień lub starsze), z których już nie korzystasz.</item>
-        <item quantity="few">Rozważ wylogowanie się ze starych sesji (%1$d dni lub starsze), z których już nie korzystasz.</item>
-        <item quantity="many">Rozważ wylogowanie się ze starych sesji (%1$d dni lub starsze), z których już nie korzystasz.</item>
-        <item quantity="other">Rozważ wylogowanie się ze starych sesji (%1$d dni lub starsze), z których już nie korzystasz.</item>
-    </plurals>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Zweryfikuj lub wyloguj się z tej sesji dla zapewnienia najlepszego bezpieczeństwa.</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Sesje zweryfikowane</string>
     <string name="pill_message_unknown_room_or_space">Pokój/Przestrzeń</string>
     <string name="pill_message_in_unknown_room">Wiadomość w pokoju</string>
     <string name="pill_message_from_unknown_user">Wiadomość</string>
@@ -2529,87 +2481,9 @@
     <string name="three">3</string>
     <string name="two">2</string>
     <string name="one">1</string>
-    <string name="device_manager_learn_more_session_rename">Inni użytkownicy w wiadomościach bezpośrednich i pokojach, do których dołączyłeś, mogą wyświetlić całą listę Twoich sesji.
-\n
-\nOznacza to dla nich pewność, że rzeczywiście rozmawiają z Tobą, ale jednocześnie oznacza, że widzą nazwę sesji, którą tutaj wpiszesz.</string>
-    <string name="device_manager_learn_more_session_rename_title">Zmienianie nazwy sesji</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Ta sesja nie wspiera szyfrowania, więc nie może zostać zweryfikowana. 
-\n
-\nNie będziesz w stanie uczestniczyć w pokojach, gdzie szyfrowane jest włączone.
-\n
-\nDla najlepszego bezpieczeństwa i prywatności zaleca się korzystania z klientów Matrix, które wspierają szyfrowanie.</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Sesje zweryfikowane są wszędzie, gdzie korzystasz z Element po wprowadzeniu swojego hasła lub zweryfikowaniu swojej tożsamości za pomocą innej sesji zweryfikowanej.
-\n
-\nTo oznacza, że posiadasz wszystkie niezbędne klucze wymagane do odblokowania swoich zaszyfrowanych wiadomości i oznajmiasz innym użytkownikom, że ufasz tej sesji.</string>
-    <string name="device_manager_learn_more_sessions_unverified">Sesje niezweryfikowane to sesje, w których zalogowano się za pomocą Twoich danych, lecz nie zostały zweryfikowane inną sesją.
-\n
-\nW tym przypadku dokładnie się upewnij, że rozpoznajesz takie sesje, ponieważ mogą ujawnić nieautoryzowane użycie Twojego konta.</string>
-    <string name="device_manager_learn_more_sessions_inactive">Sesje nieaktywne to sesje, które nie były używane przez dłuższy czas, ale wciąż otrzymują klucze szyfrujące.
-\n
-\nRegularne usuwanie sesji nieaktywnych poprawia bezpieczeństwo, wydajność i upraszcza Tobie detekcje podejrzanych sesji.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Sesje nieaktywne</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">Możesz użyć tego urządzenia, aby zalogować się na komórce lub stronie internetowej za pomocą kodu QR. Są dwa sposoby, aby to zrobić:</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Zaloguj się za pomocą kodu QR</string>
-    <string name="device_manager_session_rename_warning">Bądź świadom, że nazwy sesji są również widoczne dla ludzi, z którymi się komunikujesz.</string>
-    <string name="device_manager_session_rename_description">Własne nazwy sesji pomogą Ci łatwiej rozpoznać swoje urządzenia.</string>
-    <string name="device_manager_session_rename_edit_hint">Nazwa sesji</string>
-    <string name="device_manager_session_rename">Zmień nazwę sesji</string>
-    <string name="device_manager_session_details_device_ip_address">Adres IP</string>
-    <string name="device_manager_session_details_device_operating_system">System operacyjny</string>
-    <string name="device_manager_session_details_device_model">Model</string>
-    <string name="device_manager_session_details_device_browser">Przeglądarka</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Wersja</string>
-    <string name="device_manager_session_details_application_name">Nazwa</string>
-    <string name="device_manager_session_details_application">Aplikacja</string>
-    <string name="device_manager_session_details_session_last_activity">Ostatnia aktywność</string>
-    <string name="device_manager_session_details_session_name">Nazwa sesji</string>
     <string name="device_manager_push_notifications_title">Powiadomienia push</string>
-    <string name="device_manager_session_details_description">Informacje aplikacji, urządzenia i aktywności.</string>
-    <string name="device_manager_session_details_title">Szczegóły sesji</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Ukryj adres IP</string>
-    <string name="device_manager_signout_all_other_sessions">Wyloguj z wszystkich pozostałych sesji</string>
-    <string name="device_manager_other_sessions_clear_filter">Wyczyść filtry</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">Nie znaleziono nieaktywnych sesji.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">Nie znaleziono zweryfikowanych sesji.</string>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Nieaktywny</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Dla najlepszego bezpieczeństwa, wyloguj się ze wszystkich sesji, których nie rozpoznajesz lub nie używasz.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Zweryfikowano</string>
-    <string name="a11y_device_manager_filter">Filtr</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Nieaktywny przez %1$d dzień lub dłużej</item>
-        <item quantity="few">Nieaktywny przez %1$d dni lub dłużej</item>
-        <item quantity="many">Nieaktywny przez %1$d dni lub dłużej</item>
-        <item quantity="other">Nieaktywny przez %1$d dni lub dłużej</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Nieaktywny</string>
-    <string name="device_manager_filter_option_unverified_description">Nieprzygotowane do bezpiecznej komunikacji</string>
-    <string name="device_manager_filter_option_unverified">Niezweryfikowano</string>
-    <string name="device_manager_filter_option_verified_description">Gotowe do bezpiecznej komunikacji</string>
-    <string name="device_manager_filter_option_verified">Zweryfikowano</string>
-    <string name="device_manager_filter_option_all_sessions">Wszystkie sesje</string>
-    <string name="device_manager_filter_bottom_sheet_title">Filtr</string>
-    <string name="device_manager_session_last_activity">Ostatnia aktywność %1$s</string>
-    <string name="device_manager_device_title">Urządzenie</string>
-    <string name="device_manager_session_title">Sesja</string>
-    <string name="device_manager_current_session_title">Bieżąca sesja</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Rozważ wylogowanie się ze starych sesji (%1$d dzień lub starsze), z których już nie korzystasz.</item>
-        <item quantity="few">Rozważ wylogowanie się ze starych sesji (%1$d dni lub starsze), z których już nie korzystasz.</item>
-        <item quantity="many">Rozważ wylogowanie się ze starych sesji (%1$d dni lub starsze), z których już nie korzystasz.</item>
-        <item quantity="other">Rozważ wylogowanie się ze starych sesji (%1$d dni lub starsze), z których już nie korzystasz.</item>
-    </plurals>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Nieaktywny przez %1$d+ dzień (%2$s)</item>
-        <item quantity="few">Nieaktywny przez %1$d+ dni (%2$s)</item>
-        <item quantity="many">Nieaktywny przez %1$d+ dni (%2$s)</item>
-        <item quantity="other">Nieaktywny przez %1$d+ dni (%2$s)</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_unverified_current_session">Niezweryfikowana · Twoja bieżąca sesja</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Ta sesja nie wspiera szyfrowania, dlatego nie może zostać zweryfikowana.</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Zweryfikuj swoją bieżącą sesję, aby odsłonić status weryfikacji tej sesji.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Zweryfikuj swoją bieżącą sesję dla wzmocnienia bezpiecznych wiadomości.</string>
-    <string name="device_manager_verification_status_unknown">Nieznany status weryfikacji</string>
     <string name="room_poll_details_go_to_timeline">Wyświetl ankiety na osi czasu</string>
     <string name="room_polls_loading_error">Wystąpił błąd podczas pobierania ankiet.</string>
     <string name="room_polls_load_more">Wczytaj więcej ankiet</string>
@@ -2660,12 +2534,6 @@
     <string name="thread_list_not_available">Twój serwer domowy nie wspiera wyświetlania wątków w liście.</string>
     <string name="action_proceed_to_reset">Zresetuj</string>
     <string name="notice_voice_broadcast_ended_by_you">Zakończyłeś transmisje na żywo.</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d zaznaczony</item>
-        <item quantity="few">%1$d zaznaczono</item>
-        <item quantity="many">%1$d zaznaczono</item>
-        <item quantity="other">%1$d zaznaczono</item>
-    </plurals>
     <string name="notice_display_name_changed_to">%1$s zmienił swoją wyświetlaną nazwę na %2$s</string>
     <string name="avatar_of_room">Awatar pokoju %1$s</string>
     <string name="avatar_of_space">Awatar przestrzeni %1$s</string>

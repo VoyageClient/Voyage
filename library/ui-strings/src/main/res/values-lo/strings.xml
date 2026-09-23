@@ -1888,7 +1888,6 @@
     </plurals>
     <string name="settings_active_sessions_unverified_device_desc">ຢືນຢັນລະບົບນີ້ເພື່ອກຳນົດເຄື່ອງໝາຍທີ່ເຊື່ອຖືໄດ້ ແລະໃຫ້ສິດເຂົ້າເຖິງຂໍ້ຄວາມທີ່ເຂົ້າລະຫັດໄວ້. ຖ້າທ່ານບໍ່ໄດ້ເຂົ້າສູ່ລະບົບນີ້ ບັນຊີຂອງທ່ານອາດຈະຖືກໂຈມຕີ:</string>
     <string name="settings_active_sessions_verified_device_desc">ລະບົບນີ້ຖືກເຊື່ອຖືໄດ້ສຳລັບການສົ່ງຂໍ້ຄວາມທີ່ປອດໄພ ເພາະວ່າທ່ານໄດ້ຢັ້ງຢືນແລ້ວ:</string>
-    <string name="settings_failed_to_get_crypto_device_info">ບໍ່ມີຂໍ້ມູນການເຂົ້າລະຫັດລັບ</string>
     <string name="settings_server_room_version_unstable">ບໍ່ໝັ້ນຄົງ</string>
     <string name="settings_server_room_version_stable">ໝັ້ນຄົງ</string>
     <string name="settings_server_default_room_version">ເວີຊັນເລີ່ມຕົ້ນ</string>

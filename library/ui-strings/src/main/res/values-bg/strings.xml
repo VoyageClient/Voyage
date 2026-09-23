@@ -1288,7 +1288,6 @@
     </plurals>
     <string name="settings_active_sessions_unverified_device_desc">Потвърдете тази сесия за да я маркирате като доверена и да й дадете достъп до шифрованите съобщения. Ако не сте се вписвали в тази сесия, профила ви вероятно е бил компрометиран:</string>
     <string name="settings_active_sessions_verified_device_desc">Тази сесия е доверена за сигурен обмен на съобщения, защото сте я потвърдили:</string>
-    <string name="settings_failed_to_get_crypto_device_info">Няма криптографска информация</string>
     <string name="settings_active_sessions_signout_device">Излез от тази сесия</string>
     <string name="settings_active_sessions_manage">Управление на сесиите</string>
     <string name="settings_active_sessions_show_all">Покажи всички сесии</string>

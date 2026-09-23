@@ -325,10 +325,6 @@
     <string name="notice_room_topic_changed_by_you">Άλλαξες το θέμα σε: %1$s</string>
     <string name="pill_message_unknown_room_or_space">Δωμάτιο/Χώρος</string>
     <string name="soft_logout_signin_submit">Σύνδεση</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d επιλέχθηκε</item>
-        <item quantity="other">%1$d επιλέχθηκαν</item>
-    </plurals>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="one">%d ACLs του server άλλαξε</item>
         <item quantity="other">%d ACLs του server άλλαξαν</item>

@@ -1145,7 +1145,6 @@
     <string name="settings_active_sessions_show_all">Shfaq Krejt Sesionet</string>
     <string name="settings_active_sessions_manage">Administroni Sesione</string>
     <string name="settings_active_sessions_signout_device">Dilni nga ky sesion</string>
-    <string name="settings_failed_to_get_crypto_device_info">S’ka të dhëna kriptografike</string>
     <string name="settings_active_sessions_verified_device_desc">Ky sesion është besuar për shkëmbim të sigurt mesazhesh, ngaqë e verifikuat:</string>
     <plurals name="settings_active_sessions_count">
         <item quantity="one">%d sesion aktiv</item>
@@ -2131,8 +2130,6 @@
     <string name="action_learn_more">Mësoni më tepër</string>
     <string name="action_try_it_out">Provojeni</string>
     <string name="settings_troubleshoot_test_distributors_fdroid">S’u gjet metodë tjetër veç njëkohësimit në prapaskenë.</string>
-    <string name="labs_enable_client_info_recording_summary">Regjistro emrin, versionin dhe URL-në e klientit, për të dalluar më kollaj sesionet te përgjegjës sesionesh.</string>
-    <string name="device_manager_session_last_activity">Veprimtaria e fundit më %1$s</string>
     <string name="qr_code_login_confirm_security_code_description">Ju lutemi, sigurohuni se e dini origjinën e këtij kodi. Duke lidhur pajisje, do t’i jepni dikujt hyrje të plotë në llogarinë tuaj.</string>
     <string name="qr_code_login_confirm_security_code">Ripohojeni</string>
     <string name="qr_code_login_try_again">Riprovoni</string>
@@ -2171,105 +2168,10 @@
     <string name="home_empty_space_no_rooms_message">Hapësirat janë një mënyrë e re për të grupuar dhoma dhe persona. Shtoni një dhomë ekzistuese, ose krijoni një të re, duke përdorur butonin poshtë djathtas.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nduket paksa si i zbrazët.</string>
-    <string name="labs_enable_client_info_recording_title">Aktivizo regjistrim hollësish klienti</string>
-    <string name="labs_enable_session_manager_summary">Shihini më qartë dhe kontrolloni më mirë krejt sesionet tuaj.</string>
-    <string name="labs_enable_session_manager_title">Aktivizo përgjegjës të ri sesionesh</string>
-    <string name="device_manager_learn_more_session_rename">Përdorues të tjerë në mesazhe të drejtpërdrejtë dhe dhoma ku hyni janë në gjendje të shohin një listë të plotë të sesioneve tuaj.
-\n
-\nKjo u jep atyre besim se po flasin vërtet me ju, por do të thotë gjithashtu që mund shohin emrin e sesionit që jepni këtu.</string>
-    <string name="device_manager_learn_more_session_rename_title">Riemërtim sesionesh</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Sesione të verifikuar</string>
-    <string name="device_manager_learn_more_sessions_unverified">Sesionet e paverifikuar janë sesione në të cilët është bërë hyrja me kredencialet tuaja, por pa u bërë verifikim.
-\n
-\nDuhet të jeni posaçërisht të qartë se i njihni këto sesione, ngaqë mund të përbëjnë përdorim të paautorizuar të llogarisë tuaj.</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Sesione të paverifikuar</string>
-    <string name="device_manager_learn_more_sessions_inactive">Sesioni joaktive janë sesione që keni ca kohë që s’i përdorni, por që vazhdojnë të marrin kyçe fshehtëzimi.
-\n
-\nHeqja e sesioneve joaktive përmirëson sigurinë dhe punimin dhe e bën më të lehtë për ju të pikasni nëse një sesion i ri është i dyshimtë.</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Sesione joaktive</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">Mund të përdorni këtë pajisje për të bërë hyrjen në një pajisje celulare apo web me një kod QR. Për ta bërë këtë ka dy mënyra:</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Hyni me Kod QR</string>
-    <string name="device_manager_session_rename_warning">Ju lutemi, kini parasysh se emrat e sesioneve janë të dukshëm edhe për personat me të cilët komunikoni.</string>
-    <string name="device_manager_session_rename_description">Emra vetjakë sesionesh mund t’ju ndihmojnë të njihni më kollaj pajisjet tuaja.</string>
-    <string name="device_manager_session_rename_edit_hint">Emër sesioni</string>
-    <string name="device_manager_session_rename">Riemërtoni sesionin</string>
-    <string name="device_manager_session_details_device_ip_address">Adresë IP</string>
-    <string name="device_manager_session_details_device_operating_system">Sistem operativ</string>
-    <string name="device_manager_session_details_device_model">Model</string>
-    <string name="device_manager_session_details_device_browser">Shfletues</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Version</string>
-    <string name="device_manager_session_details_application_name">Emër</string>
-    <string name="device_manager_session_details_application">Aplikacion</string>
-    <string name="device_manager_session_details_session_last_activity">Veprimtaria e fundit</string>
-    <string name="device_manager_session_details_session_name">Emër sesioni</string>
     <string name="device_manager_push_notifications_description">Merrni njoftime push për këtë sesion.</string>
     <string name="device_manager_push_notifications_title">Njoftime Push</string>
-    <string name="device_manager_session_details_description">Hollësi aplikacioni, pajisjeje dhe veprimtarie.</string>
-    <string name="device_manager_session_details_title">Hollësi sesioni</string>
-    <string name="device_manager_session_overview_signout">Dilni nga ky sesion</string>
-    <string name="device_manager_other_sessions_select">Përzgjidhni sesione</string>
-    <string name="device_manager_other_sessions_clear_filter">Spastroje Filtrin</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">S’u gjetën sesione joaktive.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">S’u gjetën seanca të paverifikuara.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">S’u gjetën sesione të verifikuara.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Shihni mundësinë e daljes nga sesione të vjetër (%1$d ditë ose më tepër) të cilët s’i përdorni më.</item>
-        <item quantity="other">Shihni mundësinë e daljes nga sesione të vjetër (%1$d ditë ose më tepër) të cilët s’i përdorni më.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Joaktive</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Verifikoni sesionet tuaj, për shkëmbim më të sigurt mesazhesh, ose dilni prej atyre që nuk i njihni, apo përdorni më.</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">Të paverifikuar</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Për sigurinë më të mirë, dilni nga çfarëdo sesioni që nuk e njihni apo përdorni më.</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Të verifikuar</string>
-    <string name="a11y_device_manager_filter">Filtroji</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Joaktiv për %1$d ditë, ose më gjatë</item>
-        <item quantity="other">Joaktiv për %1$d ditë, ose më gjatë</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Jo aktiv</string>
-    <string name="device_manager_filter_option_unverified_description">Jo gati për shkëmbim të sigurt mesazhesh</string>
-    <string name="device_manager_filter_option_unverified">E paverifikuar</string>
-    <string name="device_manager_filter_option_verified_description">Gati për shkëmbim të sigurt mesazhesh</string>
-    <string name="device_manager_filter_option_verified">E verifikuar</string>
-    <string name="device_manager_filter_option_all_sessions">Krejt sesionet</string>
-    <string name="device_manager_filter_bottom_sheet_title">Filtroji</string>
-    <string name="device_manager_device_title">Pajisje</string>
-    <string name="device_manager_session_title">Sesion</string>
-    <string name="device_manager_current_session_title">Sesioni i tanishëm</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Shihni mundësinë e daljes nga sesione të vjetër (%1$d ditë ose më tepër) të cilët s’i përdorni më.</item>
-        <item quantity="other">Shihni mundësinë e daljes nga sesione të vjetër (%1$d ditë ose më tepër) të cilët s’i përdorni më.</item>
-    </plurals>
-    <string name="device_manager_inactive_sessions_title">Sesione joaktive</string>
-    <string name="device_manager_unverified_sessions_description">Verifikojini, ose dilni nga sesione të paverifikuar.</string>
-    <string name="device_manager_unverified_sessions_title">Sesione të paverifikuar</string>
-    <string name="device_manager_header_section_security_recommendations_description">Përmirësoni sigurinë e llogarisë tuaj duke ndjekur këto rekomandime.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Rekomandime sigurie</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Joaktiv për %1$d+ ditë (%2$s)</item>
-        <item quantity="other">Joaktiv për %1$d+ ditë (%2$s)</item>
-    </plurals>
-    <string name="device_manager_other_sessions_description_unverified_current_session">I paverifikuar · Sesioni juaj i tanishëm</string>
-    <string name="device_manager_other_sessions_description_unverified">I paverifikuar · Veprimtari së fundi më %1$s</string>
-    <string name="device_manager_other_sessions_description_verified">I verifikuar · Veprimtaria e fundit më %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Shihni Krejt (%1$d)</string>
-    <string name="device_manager_view_details">Shihni Hollësitë</string>
-    <string name="device_manager_verify_session">Verifiko Sesion</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Verifikoni sesionin tuaj të tanishëm, që të shfaqni gjendjen e verifikimit të këtij sesioni.</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Për sigurinë dhe besueshmërinë më të mirë, verifikojeni, ose dilni nga ky sesion.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Verifikoni sesionin tuaj të tanishëm, për shkëmbim më të sigurt të mesazheve.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Ky sesion është gati për shkëmbim të sigurt mesazhesh.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">Sesioni juaj i tanishëm është gati për shkëmbim të sigurt mesazhesh.</string>
-    <string name="device_manager_verification_status_unknown">Gjendje e panjohur verifikimi</string>
-    <string name="device_manager_verification_status_unverified">Sesion i paverifikuar</string>
-    <string name="device_manager_verification_status_verified">Sesion i verifikuar</string>
-    <string name="a11y_device_manager_device_type_unknown">Lloj i panjohur pajisjeje</string>
-    <string name="a11y_device_manager_device_type_desktop">Desktop</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_mobile">Celular</string>
-    <string name="device_manager_sessions_other_description">Për sigurinë më të mirë, verifikoni sesionet tuaja dhe dilni nga çfarëdo sesioni që s’e njihni, ose s’e përdorni më.</string>
-    <string name="device_manager_sessions_other_title">Sesione të tjera</string>
     <string name="live_location_labs_promotion_switch_title">Aktivizoni tregim vendndodhjeje</string>
     <string name="live_location_labs_promotion_description">Ju lutemi, kini parasysh: kjo është një veçori në zhvillim, që përdor një sendërtim të përkohshëm. Kjo do të thotë se s’do të jeni në gjendje të fshini historikun e vendndodhjeve tuaja dhe përdoruesit e përparuar do të jenë në gjendje të shohin historikun e vendndodhjeve tuaja, edhe pasi të keni ndalur dhënien “live” për këtë dhomë të vendndodhjes tuaj.</string>
     <string name="live_location_labs_promotion_title">Tregim “live” vendndodhjeje</string>
@@ -2327,7 +2229,6 @@
     <string name="direct_room_encryption_enabled_tile_description_future">Mesazhet në këtë fjalosje do të jenë të fshehtëzuar skaj-më-skaj.</string>
     <string name="crosssigning_cannot_verify_this_session_desc">S’do të jeni në gjendje të shihni historikun e mesazheve të fshehtëzuara. Që t’ia rifilloni nga e para, ricaktoni kyçet tuaja për Kopjeruajtje të Sigurt Mesazhesh dhe kyçe verifikimi.</string>
     <string name="crosssigning_cannot_verify_this_session">S’arrihet të verifikohet kjo pajisje</string>
-    <string name="settings_sessions_list">Sesione</string>
     <string name="command_description_table_flip">E paraprin një mesazh tekst i thjeshtë me (╯°□°）╯︵ ┻━┻</string>
     <string name="permalink_unsupported_groups">S’hapet dot kjo lidhje: bashkësitë janë zëvendësuar nga hapësirat</string>
     <string name="login_scan_qr_code">Skanoni kodin QR</string>
@@ -2439,10 +2340,6 @@
     <string name="create_room">Krijo Dhomë</string>
     <string name="start_chat">Filloni Fjalosje</string>
     <string name="all_chats">Krejt Fjalosjet</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d i përzgjedhura</item>
-        <item quantity="other">%1$d të përzgjedhura</item>
-    </plurals>
     <string name="qr_code_login_header_failed_homeserver_is_not_supported_description">Shërbyesi Home nuk mbulon hyrje me kod QR.</string>
     <string name="qr_code_login_header_failed_e2ee_security_issue_description">U has një problem sigurie, kur ujdisej shkëmbim i siguruar mesazhesh. Mund të jetë komprometuar një nga sa vijon: shërbyesi juaj Home; lidhja(et) tuaja internet; pajisja(et) tuaja;</string>
     <string name="qr_code_login_header_failed_timeout_description">Lidhja s’u plotësua në kohën e duhur.</string>
@@ -2463,27 +2360,10 @@
     <string name="message_reply_to_sender_sent_audio_file">dërgoi një kartelë audio.</string>
     <string name="message_reply_to_sender_sent_file">dërgoi një kartelë.</string>
     <string name="message_reply_to_prefix">Në përgjigje të</string>
-    <string name="device_manager_learn_more_sessions_verified_description">Sesionet e verifikuar janë kudo ku përdorni këtë llogari pas dhënies së frazëkalimit tuaj, apo ripohimit të identitetit tuaj me një sesion tjetër të verifikuar.
-\n
-\nKjo do të thotë se keni krejt kyçet e nevojshëm për të shkyçur mesazhet tuaj të fshehtëzuar dhe për të ripohuar se e besoni këtë sesion.</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Fshihe adresën IP</string>
-    <string name="device_manager_other_sessions_show_ip_address">Shfaq adresë IP</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Dilni nga %1$d sesion</item>
-        <item quantity="other">Dilni nga %1$d sesione</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">Dilni</string>
     <string name="attachment_type_selector_text_formatting">Formatim teksti</string>
     <string name="labs_enable_deferred_dm_title">Aktivizo MD të lënë për më vonë</string>
     <string name="review_unverified_sessions_description">Shqyrtojini, për të garantuar se llogaria juaj është e parrezik</string>
     <string name="review_unverified_sessions_title">Keni sesione të paverifikuar</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">Ky sesion nuk mbulon fshehtëzim, ndaj s’mund të verifikohet.
-\n
-\nS’do të jeni në gjendje të merrni pjesë në dhoma ku është i aktivizuar fshehtëzimi, kur përdorni këtë sesion.
-\n
-\nPër sigurinë dhe privatësinë më të mirë, rekomandohet të përdorni klientë Matrix që mbulojnë fshehtëzimin.</string>
-    <string name="device_manager_signout_all_other_sessions">Dilni nga krejt sesionet e tjerë</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Ky sesion nuk mbulon fshehtëzim dhe ndaj s’mund të verifikohet.</string>
     <string name="settings_nightly_build_update">Merrni montimin më të ri (shënim: mund të keni probleme të bëni hyrjen)</string>
     <string name="settings_nightly_build">Montim i përnatshëm</string>
     <string name="notice_voice_broadcast_ended_by_you">Përfunduat një transmetim zanor.</string>

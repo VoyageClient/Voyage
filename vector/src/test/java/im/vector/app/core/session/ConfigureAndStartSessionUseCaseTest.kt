@@ -9,10 +9,9 @@ package im.vector.app.core.session
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import im.vector.app.core.extensions.startSyncing
-import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
 import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.session.coroutineScope
-import im.vector.app.features.settings.devices.v2.notification.UpdateNotificationSettingsAccountDataUseCase
+import im.vector.app.features.settings.devices.notification.UpdateNotificationSettingsAccountDataUseCase
 import im.vector.app.test.fakes.FakeContext
 import im.vector.app.test.fakes.FakeNotificationsSettingUpdater
 import im.vector.app.test.fakes.FakePushRulesUpdater
@@ -44,7 +43,6 @@ class ConfigureAndStartSessionUseCaseTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private val fakeContext = FakeContext()
-    private val fakeUpdateMatrixClientInfoUseCase = mockk<UpdateMatrixClientInfoUseCase>()
     private val fakeVectorPreferences = FakeVectorPreferences()
     private val fakeNotificationsSettingUpdater = FakeNotificationsSettingUpdater()
     private val fakePushRulesUpdater = FakePushRulesUpdater()
@@ -55,7 +53,6 @@ class ConfigureAndStartSessionUseCaseTest {
 
     private val configureAndStartSessionUseCase = ConfigureAndStartSessionUseCase(
             context = fakeContext.instance,
-            updateMatrixClientInfoUseCase = fakeUpdateMatrixClientInfoUseCase,
             vectorPreferences = fakeVectorPreferences.instance,
             notificationsSettingUpdater = fakeNotificationsSettingUpdater.instance,
             updateNotificationSettingsAccountDataUseCase = fakeUpdateNotificationSettingsAccountDataUseCase,
@@ -82,13 +79,11 @@ class ConfigureAndStartSessionUseCaseTest {
     }
 
     @Test
-    fun `given start sync needed and client info recording enabled when execute then it should be configured properly`() = runTest {
+    fun `given start sync needed when execute then it should be configured properly`() = runTest {
         // Given
         val aSession = givenASession()
         every { aSession.coroutineScope } returns this
-        coJustRun { fakeUpdateMatrixClientInfoUseCase.execute(any()) }
         coJustRun { fakeUpdateNotificationSettingsAccountDataUseCase.execute(any()) }
-        fakeVectorPreferences.givenIsClientInfoRecordingEnabled(isEnabled = true)
         fakeNotificationsSettingUpdater.givenOnSessionStarted(aSession)
         fakePushRulesUpdater.givenOnSessionStarted(aSession)
 
@@ -99,35 +94,6 @@ class ConfigureAndStartSessionUseCaseTest {
         // Then
         verify { aSession.startSyncing(fakeContext.instance) }
         aSession.fakePushersService.verifyRefreshPushers()
-        coVerify {
-            fakeUpdateMatrixClientInfoUseCase.execute(aSession)
-            fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)
-        }
-
-        // Stop the long-lived profile observer so runTest doesn't see an uncompleted coroutine.
-        configureAndStartSessionUseCase.cancelProfileObserver()
-    }
-
-    @Test
-    fun `given start sync needed and client info recording disabled when execute then it should be configured properly`() = runTest {
-        // Given
-        val aSession = givenASession()
-        every { aSession.coroutineScope } returns this
-        coJustRun { fakeUpdateNotificationSettingsAccountDataUseCase.execute(any()) }
-        fakeVectorPreferences.givenIsClientInfoRecordingEnabled(isEnabled = false)
-        fakeNotificationsSettingUpdater.givenOnSessionStarted(aSession)
-        fakePushRulesUpdater.givenOnSessionStarted(aSession)
-
-        // When
-        configureAndStartSessionUseCase.execute(aSession, startSyncing = true)
-        advanceUntilIdle()
-
-        // Then
-        verify { aSession.startSyncing(fakeContext.instance) }
-        aSession.fakePushersService.verifyRefreshPushers()
-        coVerify(inverse = true) {
-            fakeUpdateMatrixClientInfoUseCase.execute(aSession)
-        }
         coVerify {
             fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)
         }
@@ -141,9 +107,7 @@ class ConfigureAndStartSessionUseCaseTest {
         // Given
         val aSession = givenASession()
         every { aSession.coroutineScope } returns this
-        coJustRun { fakeUpdateMatrixClientInfoUseCase.execute(any()) }
         coJustRun { fakeUpdateNotificationSettingsAccountDataUseCase.execute(any()) }
-        fakeVectorPreferences.givenIsClientInfoRecordingEnabled(isEnabled = true)
         fakeNotificationsSettingUpdater.givenOnSessionStarted(aSession)
         fakePushRulesUpdater.givenOnSessionStarted(aSession)
 
@@ -155,7 +119,6 @@ class ConfigureAndStartSessionUseCaseTest {
         verify(inverse = true) { aSession.startSyncing(fakeContext.instance) }
         aSession.fakePushersService.verifyRefreshPushers()
         coVerify {
-            fakeUpdateMatrixClientInfoUseCase.execute(aSession)
             fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)
         }
 

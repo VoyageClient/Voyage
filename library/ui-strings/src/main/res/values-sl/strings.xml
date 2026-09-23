@@ -42,12 +42,6 @@
     <string name="notice_ended_call_by_you">Končali ste klic.</string>
     <string name="notice_made_future_room_visibility">%1$s je %2$s omogočil ogled prihodnje zgodovine sobe</string>
     <string name="notice_made_future_room_visibility_by_you">Omogočili ste ogled prihodnje zgodovine sobe %1$s</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d izbran</item>
-        <item quantity="two">%1$d izbrana</item>
-        <item quantity="few">%1$d izbranih</item>
-        <item quantity="other">%1$d izbranih</item>
-    </plurals>
     <string name="notice_direct_room_created">%1$s je ustvaril razpravo</string>
     <string name="notice_room_invite_by_you">Povabil si %1$s</string>
     <string name="notice_room_unban">%1$s je izključil %2$s</string>

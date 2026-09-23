@@ -718,7 +718,6 @@
     <string name="settings_active_sessions_show_all">Prikaži sve sesije</string>
     <string name="settings_active_sessions_manage">Upravljanje sesijama</string>
     <string name="settings_active_sessions_signout_device">Odjavi se iz ove sesije</string>
-    <string name="settings_failed_to_get_crypto_device_info">Nisu dostupne kriptografske informacije</string>
     <string name="settings_active_sessions_verified_device_desc">Ova je sesija pouzdana za sigurno dopisivanje jer ste ju Vi potvrdili:</string>
     <string name="message_key">Ključ za poruke</string>
     <string name="command_description_plain">Šalje poruku u jasnom tekstu bez interpretacije u Markdownu</string>

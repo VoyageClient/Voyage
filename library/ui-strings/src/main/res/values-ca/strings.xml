@@ -1451,7 +1451,6 @@
     <string name="invite_friends_rich_title">🔐️ Uneix-te a ${app_name}</string>
     <string name="identity_server_user_consent_not_provided">L\'usuari no s\'ha acceptat el consentiment.</string>
     <string name="user_code_my_code">El meu codi</string>
-    <string name="settings_failed_to_get_crypto_device_info">No hi ha informació criptogràfica disponible</string>
     <string name="verification_conclusion_ok_self_notice">La nova sessió s\'ha verificat. Tindrà accés als teus missatges xifrats i es mostrarà de confiança per als altres usuaris.</string>
     <string name="verification_conclusion_ok_notice">Els missatges amb aquest usuari estan xifrats d\'extrem a extrem i no podran ser llegits per tercers.</string>
     <string name="verification_code_notice">Compara el codi amb el que es mostra a la pantalla de l\'altre usuari.</string>
@@ -2263,9 +2262,6 @@
     <string name="all_chats">Tots els xats</string>
     <string name="home_layout_preferences">Preferències de disseny</string>
     <string name="explore_rooms">Explora sales</string>
-    <string name="device_manager_sessions_other_description">Per estar més segur, verifica les teves sessions i tanca qualsevol sessió que no reconeguis o ja no utilitzis.</string>
-    <string name="device_manager_sessions_other_title">Altres sessions</string>
-    <string name="settings_sessions_list">Sessions</string>
     <string name="a11y_open_spaces">Obre la llista d\'espais</string>
     <string name="a11y_create_message">Crea un nou xat o sala</string>
     <string name="room_list_filter_people">Gent</string>
@@ -2279,107 +2275,26 @@
     <string name="home_layout_preferences_filters">Mostra filtres</string>
     <string name="create_room">Crea sala</string>
     <string name="start_chat">Inicia xat</string>
-    <string name="device_manager_other_sessions_description_verified">Verificada · Última activitat %1$s</string>
-    <string name="device_manager_other_sessions_description_unverified">No verificada · Última activitat %1$s</string>
-    <string name="device_manager_other_sessions_view_all">Veure-ho tot (%1$d)</string>
-    <string name="device_manager_view_details">Veure detalls</string>
-    <string name="device_manager_verify_session">Verifica sessió</string>
-    <string name="device_manager_verification_status_unverified">Sessió no verificada</string>
-    <string name="device_manager_verification_status_verified">Sessió verificada</string>
-    <string name="a11y_device_manager_device_type_unknown">Tipus de dispositiu desconegut</string>
-    <string name="a11y_device_manager_device_type_desktop">Ordinador</string>
-    <string name="a11y_device_manager_device_type_web">Web</string>
-    <string name="a11y_device_manager_device_type_mobile">Mòbil</string>
     <string name="timeline_error_room_not_found">Aquesta sala no s\'ha trobat.
 \nTorna-ho a provar més tard.%s</string>
     <string name="invites_title">Invitacions</string>
     <string name="home_empty_no_rooms_title">${app_name}
 \nHola, %s.</string>
     <string name="home_empty_no_rooms_message">L\'aplicació de xats segurs tot en un. Per a equips, amics i organitzacions. Crea un xat o uneix-te a una sala existent per començar.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">Pensa en tancar sessió de les sessions antigues (%1$d dia o més) que ja no utilitzis.</item>
-        <item quantity="other">Pensa en tancar sessió de les sessions antigues (%1$d dies o més) que ja no utilitzis.</item>
-    </plurals>
     <string name="home_empty_no_unreads_message">Aquí es mostraran els teus missatges no llegits, quan en tinguis.</string>
     <string name="home_empty_no_unreads_title">Sense novetats.</string>
-    <string name="device_manager_unverified_sessions_description">Verifica les sessions o tanca\'n la sessió si no estan verificades.</string>
     <string name="home_empty_space_no_rooms_title">%s
 \nsembla una mica buit.</string>
-    <string name="device_manager_inactive_sessions_title">Sessions inactives</string>
-    <string name="device_manager_unverified_sessions_title">Sessions no verificades</string>
-    <string name="device_manager_header_section_security_recommendations_description">Millora la seguretat del teu compte seguint aquestes recomanacions.</string>
-    <string name="device_manager_header_section_security_recommendations_title">Recomanacions de seguretat</string>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">Actiu fa %1$d dia (%2$s)</item>
-        <item quantity="other">Actiu fa més de %1$d dies (%2$s)</item>
-    </plurals>
     <string name="invites_empty_message">Aquí és on apareixeran les teves sol·licituds i invitacions.</string>
     <string name="invites_empty_title">Res de nou.</string>
     <string name="home_empty_space_no_rooms_message">Els espais són una nova manera d\'agrupar sales i gent. Afegeix una sala o crea\'n una de nova mitjançant el botó de la part inferior dreta.</string>
     <string name="space_list_empty_message">Els espais són una nova manera d\'agrupar sales i gent. Crea\'n un per començar.</string>
     <string name="space_list_empty_title">Cap espai, encara.</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">Verifica les teves sessions per obtenir missatges segurs millorats o tanca les sessions que no reconeguis o ja no utilitzis.</string>
-    <string name="device_manager_filter_option_unverified_description">No llest per a missatges segurs</string>
-    <string name="device_manager_filter_option_verified_description">Llest per a missatges segurs</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">Aquesta sessió està llesta per a missatges segurs.</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">La teva sessió actual està llesta per a missatges segurs.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">Verifica la teva sessió actual obtenir missatges segurs millorats.</string>
     <string name="labs_enable_deferred_dm_summary">Crea missatge directe només al primer missatge</string>
     <string name="labs_enable_deferred_dm_title">Activa missatges directes programats</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">Verifica o tanca aquesta sessió per estar més segur.</string>
-    <string name="device_manager_other_sessions_recommendation_description_verified">Per estar més segur, tanca qualsevol sessió que no reconeguis o ja no utilitzis.</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">No s\'han trobat sessions inactives.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">No s\'han trobat sessions no verificades.</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">No s\'han trobat sessions verificades.</string>
-    <string name="device_manager_session_details_title">Detalls de sessió</string>
-    <string name="device_manager_other_sessions_clear_filter">Esborra filtre</string>
-    <string name="device_manager_session_details_session_last_activity">Última activitat</string>
-    <string name="device_manager_session_details_session_name">Nom de la sessió</string>
-    <string name="device_manager_session_details_description">Informació d\'aplicació, dispositiu i activitat.</string>
-    <string name="device_manager_session_details_device_ip_address">Adreça IP</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">Pensa en tancar sessió de les sessions antigues (%1$d dia o més) que ja no utilitzis.</item>
-        <item quantity="other">Pensa en tancar sessió de les sessions antigues (%1$d dies o més) que ja no utilitzis.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">Inactiu</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">No verificat</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">Verificat</string>
-    <string name="a11y_device_manager_filter">Filtra</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">Inactiu durant %1$d dia o més</item>
-        <item quantity="other">Inactiu durant %1$d dies o més</item>
-    </plurals>
-    <string name="device_manager_filter_option_inactive">Inactiu</string>
-    <string name="device_manager_filter_option_unverified">No verificat</string>
-    <string name="device_manager_filter_option_verified">Verificat</string>
-    <string name="device_manager_filter_option_all_sessions">Totes les sessions</string>
-    <string name="device_manager_filter_bottom_sheet_title">Filtre</string>
-    <string name="device_manager_session_last_activity">Última activitat %1$s</string>
-    <string name="device_manager_device_title">Dispositiu</string>
-    <string name="device_manager_session_title">Sessió</string>
-    <string name="device_manager_current_session_title">Sessió actual</string>
     <string name="labs_enable_new_app_layout_summary">Element simplificat amb pestanyes opcionals</string>
     <string name="labs_enable_new_app_layout_title">Activa la nova visualització</string>
-    <string name="device_manager_learn_more_sessions_inactive">Les sessions inactives son sessions que no has utilitzat durant un temps, però continuen rebent claus de xifrat.
-\n
-\nL\'eliminació de sessions inactives millora la seguretat i el rendiment, i et pot ajudar a identificar sessions noves sospitoses.</string>
-    <string name="device_manager_session_overview_signout">Tanca aquesta sessió</string>
     <string name="command_description_devtools">Obre la pantalla d\'eines per a desenvolupadors</string>
-    <string name="device_manager_learn_more_session_rename">Els usuaris dels xats directes i sales al les quals t\'hagis unit poden veure la llista completa de les teves sessions.
-\n
-\nAixò els pot proporcionar més confiança de que realment parlen amb tu però, poden veure el nom de sessió que introdueixis.</string>
-    <string name="device_manager_learn_more_sessions_unverified">Les sessions no verificades son sessions en què has iniciat sessió amb les teves credencials però s\'hi ha fet una verificació creuada.
-\n
-\nAssegura\'t que reconeixes aquestes sessions especialment, ja que podrien representar un ús no autoritzat del teu compte.</string>
-    <string name="device_manager_learn_more_session_rename_title">Canvi de nom de sessions</string>
-    <string name="device_manager_learn_more_sessions_verified_title">Sessions verificades</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">Sessions no verificades</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">Sessions inactives</string>
-    <string name="device_manager_session_rename_warning">Tingues en compte que els noms de sessió son visibles per les persones amb qui parlis.</string>
-    <string name="device_manager_session_rename_description">Els noms de sessió personalitzats et permeten identificar els teus dispositius més fàcilment.</string>
-    <string name="device_manager_session_rename_edit_hint">Nom de la sessió</string>
-    <string name="device_manager_session_rename">Canvia el nom de la sessió</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">No verificada · Sessió actual</string>
     <string name="key_authenticity_not_guaranteed">L\'autenticitat d\'aquest missatge xifrat no ha pogut ser garantida en aquest dispositiu.</string>
     <string name="command_description_table_flip">Afegeix (╯°□°）╯︵ ┻━┻ abans d\'un missatge de text</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ Hi ha dispositius no verificats en aquesta sala, no podran desxifrat els missatges que enviïs.</string>
@@ -2388,7 +2303,6 @@
     <string name="settings_security_incognito_keyboard_summary">Sol·licita que no es desi cap dada personalitzada del teclat en funció del que escrius a les converses (per exemple l\'historial d\'escriptura o el diccionari). Tingues en compte que alguns teclats poden no respectar aquesta configuració.</string>
     <string name="settings_security_incognito_keyboard_title">Teclat incògnit</string>
     <string name="room_settings_global_block_unverified_info_text">🔒 Has activat el xifrat a només en sessions verificades a totes les sales, a Configuració &gt; Seguretat.</string>
-    <string name="device_manager_verification_status_unknown">Estat de verificació desconegut</string>
     <string name="login_scan_qr_code">Escaneja codi QR</string>
     <string name="push_gateway_item_device_id">ID de sessió:</string>
     <string name="permissions_rationale_msg_notification">${app_name} necessita permís per mostrar notificacions. Les notificacions poden mostrar missatges, invitacions, etc.
@@ -2431,20 +2345,8 @@
     <string name="three">3</string>
     <string name="two">2</string>
     <string name="one">1</string>
-    <string name="labs_enable_client_info_recording_title">Activa la gravació d\'informació de client</string>
-    <string name="labs_enable_client_info_recording_summary">Desa el nom de client, la versió i l\'URL per reconèixer les sessions més fàcilment dins el gestor de sessions.</string>
-    <string name="labs_enable_session_manager_summary">Obté un millor control i visibilitat de totes les teves sessions.</string>
-    <string name="labs_enable_session_manager_title">Activa el nou gestor de sessions</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_description">Pots utilitzar aquest dispositiu per iniciar la sessió amb un codi QR a un dispositiu mòbil o web. Ho pots fer de dues maneres:</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Inicia sessió amb codi QR</string>
-    <string name="device_manager_session_details_device_operating_system">Sistema operatiu</string>
-    <string name="device_manager_session_details_device_model">Model</string>
-    <string name="device_manager_session_details_device_browser">Navegador</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_application_version">Versió</string>
-    <string name="device_manager_session_details_application_name">Nom</string>
-    <string name="device_manager_session_details_application">Aplicació</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">Verifica la teva sessió actual per mostrar l\'estat de verificació d\'aquesta sessió.</string>
     <string name="push_gateway_item_enabled">Activat:</string>
     <string name="error_check_network">Alguna cosa ha anat malament. Comprova la teva connexió i torna-ho a provar.</string>
     <string name="grant_permission">Concedir permís</string>
@@ -2454,12 +2356,7 @@
     <string name="device_manager_push_notifications_title">Notificacions</string>
     <string name="action_deselect_all">Deselecciona-ho tot</string>
     <string name="action_select_all">Selecciona-ho tot</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d seleccionat</item>
-        <item quantity="other">%1$d seleccionats</item>
-    </plurals>
     <string name="attachment_type_selector_poll">Enquestes</string>
-    <string name="device_manager_other_sessions_select">Selecciona sessions</string>
     <string name="attachment_type_selector_camera">Càmera</string>
     <string name="attachment_type_selector_location">Ubicació</string>
     <string name="attachment_type_selector_file">Adjunts</string>
@@ -2479,15 +2376,6 @@
     <string name="room_polls_wait_for_display">Mostrant enquestes</string>
     <string name="room_polls_load_more">Carrega més enquestes</string>
     <string name="room_polls_loading_error">Error obtenint enquestes.</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">Aquesta sessió no admet xifrat i, per tant, no es pot verificar.</string>
-    <string name="device_manager_other_sessions_multi_signout_selection">Tanca sessió</string>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">Tanca %1$d sessió</item>
-        <item quantity="other">Tanca %1$d sessions</item>
-    </plurals>
-    <string name="device_manager_signout_all_other_sessions">Tanca totes les altres sessions</string>
-    <string name="device_manager_other_sessions_show_ip_address">Mostra l\'adreça IP</string>
-    <string name="device_manager_other_sessions_hide_ip_address">Amaga l\'adreça IP</string>
     <string name="set_link_text">Text</string>
     <string name="set_link_link">Enllaç</string>
     <string name="set_link_create">Crea un enllaç</string>

@@ -25,8 +25,7 @@ import im.vector.app.core.utils.PublishDataSource
 import im.vector.app.features.auth.PendingAuthHandler
 import im.vector.app.features.crypto.verification.SupportedVerificationMethodsProvider
 import im.vector.app.features.login.ReAuthHelper
-import im.vector.app.features.settings.devices.v2.list.CheckIfSessionIsInactiveUseCase
-import im.vector.app.features.settings.devices.v2.verification.GetEncryptionTrustLevelForDeviceUseCase
+import im.vector.app.features.settings.devices.verification.GetEncryptionTrustLevelForDeviceUseCase
 import im.vector.lib.core.utils.flow.throttleFirst
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.combine

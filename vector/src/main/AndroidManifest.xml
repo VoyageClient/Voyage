@@ -360,10 +360,6 @@
         <activity android:name=".features.location.live.map.LiveLocationMapViewActivity" />
         <activity android:name=".features.settings.font.FontScaleSettingActivity" />
         <activity android:name=".features.home.room.list.home.invites.InvitesActivity" />
-        <activity android:name=".features.settings.devices.v2.overview.SessionOverviewActivity" />
-        <activity android:name=".features.settings.devices.v2.othersessions.OtherSessionsActivity" />
-        <activity android:name=".features.settings.devices.v2.details.SessionDetailsActivity" />
-        <activity android:name=".features.settings.devices.v2.rename.RenameSessionActivity" />
         <activity android:name=".features.roomprofile.polls.detail.ui.RoomPollDetailActivity" />
 
         <!-- Services -->

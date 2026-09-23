@@ -2,10 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="notice_room_invite_no_invitee">%s-ის მიწვევა</string>
     <string name="notice_room_invite_no_invitee_by_you">თქვენი მიწვევა</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d არჩეული</item>
-        <item quantity="other">%1$d არჩეული</item>
-    </plurals>
     <string name="notice_room_created_by_you">თქვენ შექმენით ოთახი</string>
     <string name="notice_direct_room_created">%1$s შექმნა განხილვა</string>
     <string name="notice_direct_room_leave_by_you">თქვენ დატოვეთ ოთახი</string>
@@ -1388,7 +1384,6 @@
     <string name="settings_active_sessions_show_all">ყველა სესიის ჩვენება</string>
     <string name="settings_active_sessions_manage">სესიების მართვა</string>
     <string name="settings_active_sessions_signout_device">გამოსვლა ამ სესიიდან</string>
-    <string name="settings_sessions_list">სესიები</string>
     <string name="settings_server_name">სერვერის სახელი</string>
     <string name="settings_server_version">სერვერის ვერსია</string>
     <string name="settings_server_upload_size_unknown">ლიმიტი უცნობია.</string>
@@ -1885,7 +1880,6 @@
     <string name="settings_server_upload_size_title">სერვერის ფაილების ატვირთვის ლიმიტი</string>
     <string name="settings_server_upload_size_content">თქვენი სახლის სერვერი იღებს დანართებს (ფაილები, მედია და ა.შ.) მაქსიმალური ზომით %s.</string>
     <string name="settings_server_room_version_stable">სტაბილური</string>
-    <string name="settings_failed_to_get_crypto_device_info">დაშიფვრის ინფორმაცია მიუწვდომელია</string>
     <string name="settings_active_sessions_unverified_device_desc">დაადასტურეთ ეს სესია როგორც სანდო და მიანიჭეთ დაშიფრული შეტყობინებების წვდომა. თუ ამ სესიაში არ შეხვიდეთ, თქვენი ანგარიში შეიძლება კომპრომეტირებული იყოს:</string>
     <string name="crosssigning_cannot_verify_this_session_desc">თქვენ ვერ შეძლებთ დაშიფრული შეტყობინებების ისტორიის წვდომას. გადატვირთეთ თქვენი უსაფრთხო შეტყობინებების სარეზერვო ასლი და ვერიფიკაციის გასაღებები ახლიდან.</string>
     <string name="verification_verify_with_another_device">დაადასტურეთ სხვა მოწყობილობით</string>
@@ -2221,74 +2215,9 @@
     <string name="settings_troubleshoot_test_current_gateway">მიმდინარე კარიბჭე: %s</string>
     <string name="live_location_labs_promotion_title">ცოცხალი ადგილმდებარეობის გაზიარება</string>
     <string name="live_location_labs_promotion_switch_title">ადგილმდებარეობის გაზიარების ჩართვა</string>
-    <string name="device_manager_sessions_other_title">სხვა სესიები</string>
-    <string name="a11y_device_manager_device_type_mobile">მობილური</string>
-    <string name="a11y_device_manager_device_type_web">ვებ</string>
-    <string name="a11y_device_manager_device_type_desktop">დესკტოპი</string>
-    <string name="a11y_device_manager_device_type_unknown">უცნობი მოწყობილობის ტიპი</string>
-    <string name="device_manager_verification_status_verified">დამოწმებული სესია</string>
-    <string name="device_manager_verification_status_unverified">დაუდასტურებელი სესია</string>
-    <string name="device_manager_verification_status_unknown">უცნობი გადამოწმების სტატუსი</string>
-    <string name="device_manager_verification_status_detail_current_session_verified">თქვენი მიმდინარე სესია მზად არის უსაფრთხო შეტყობინებებისთვის.</string>
-    <string name="device_manager_verification_status_detail_other_session_verified">ეს სესია მზად არის უსაფრთხო შეტყობინებებისთვის.</string>
-    <string name="device_manager_verification_status_detail_other_session_unverified">გადამოწმეთ ან დატოვეთ ეს სესია უსაფრთხოებისა და საიმედოობისთვის.</string>
-    <string name="device_manager_verification_status_detail_session_encryption_not_supported">ეს სესია არ უჭერს მხარს დაშიფვრას, ამიტომ ვერ იქნება გადამოწმებული.</string>
-    <string name="device_manager_verify_session">სესიის გადამოწმება</string>
-    <string name="device_manager_view_details">დეტალების ნახვა</string>
-    <string name="device_manager_other_sessions_view_all">ყველას ნახვა (%1$d)</string>
-    <string name="device_manager_other_sessions_description_unverified">დაუდასტურებელია · ბოლო აქტივობა %1$s</string>
-    <string name="device_manager_other_sessions_description_unverified_current_session">დაუდასტურებელია · თქვენი მიმდინარე სესია</string>
-    <string name="device_manager_header_section_security_recommendations_title">უსაფრთხოების რეკომენდაციები</string>
-    <string name="device_manager_unverified_sessions_title">დაუდასტურებელი სესიები</string>
-    <string name="device_manager_unverified_sessions_description">გადამოწმეთ ან დატოვეთ დაუდასტურებელი სესიები.</string>
-    <string name="device_manager_inactive_sessions_title">არააქტიური სესიები</string>
-    <string name="a11y_device_manager_filter">ფილტრი</string>
-    <string name="device_manager_current_session_title">მიმდინარე სესია</string>
-    <string name="device_manager_session_title">სესია</string>
-    <string name="device_manager_device_title">მოწყობილობა</string>
-    <string name="device_manager_session_last_activity">ბოლო აქტივობა %1$s</string>
-    <string name="device_manager_filter_bottom_sheet_title">ფილტრი</string>
-    <string name="device_manager_filter_option_all_sessions">ყველა სესია</string>
-    <string name="device_manager_filter_option_verified">დამოწმებულია</string>
-    <string name="device_manager_filter_option_verified_description">მზად არის უსაფრთხო შეტყობინებებისთვის</string>
-    <string name="device_manager_filter_option_unverified">დაუდასტურებელია</string>
-    <string name="device_manager_filter_option_inactive">არააქტიური</string>
-    <string name="device_manager_other_sessions_recommendation_title_verified">დამოწმებულია</string>
-    <string name="device_manager_other_sessions_recommendation_title_unverified">დაუდასტურებელია</string>
-    <string name="device_manager_other_sessions_recommendation_description_unverified">გადამოწმეთ თქვენი სესიები უსაფრთხო შეტყობინებების გასაუმჯობესებლად ან დატოვეთ ისინი, რომლებიც თქვენთვის არ არის ცნობილი ან აღარ იყენებთ.</string>
-    <string name="device_manager_other_sessions_recommendation_title_inactive">არააქტიური</string>
-    <string name="device_manager_other_sessions_no_verified_sessions_found">დამოწმებული სესიები ვერ მოიძებნა.</string>
-    <string name="device_manager_other_sessions_no_unverified_sessions_found">დაუდასტურებელი სესიები ვერ მოიძებნა.</string>
-    <string name="device_manager_other_sessions_no_inactive_sessions_found">არააქტიური სესიები ვერ მოიძებნა.</string>
-    <string name="device_manager_other_sessions_clear_filter">ფილტრის გასუფთავება</string>
-    <string name="device_manager_other_sessions_select">სესიების არჩევა</string>
-    <string name="device_manager_signout_all_other_sessions">გასვლა ყველა სხვა სესიიდან</string>
-    <string name="device_manager_other_sessions_show_ip_address">IP მისამართის ჩვენება</string>
-    <string name="device_manager_session_overview_signout">გასვლა ამ სესიიდან</string>
-    <string name="device_manager_session_details_title">სესიის დეტალები</string>
     <string name="device_manager_push_notifications_title">პუშ შეტყობინებები</string>
     <string name="device_manager_push_notifications_description">მიიღეთ პუშ შეტყობინებები ამ სესიაში.</string>
-    <string name="device_manager_session_details_session_name">სესიის სახელი</string>
     <string name="device_manager_session_details_session_id">სესიის ID</string>
-    <string name="device_manager_session_details_session_last_activity">ბოლო აქტივობა</string>
-    <string name="device_manager_session_details_application">აპლიკაცია</string>
-    <string name="device_manager_session_details_application_name">სახელი</string>
-    <string name="device_manager_session_details_application_version">ვერსია</string>
-    <string name="device_manager_session_details_application_url">URL</string>
-    <string name="device_manager_session_details_device_browser">ბრაუზერი</string>
-    <string name="device_manager_session_details_device_model">მოდელი</string>
-    <string name="device_manager_session_details_device_operating_system">ოპერაციული სისტემა</string>
-    <string name="device_manager_session_details_device_ip_address">IP მისამართი</string>
-    <string name="device_manager_session_rename">სესიის გადარქმევა</string>
-    <string name="device_manager_session_rename_edit_hint">სესიის სახელი</string>
-    <string name="device_manager_learn_more_sessions_inactive_title">არააქტიური სესიები</string>
-    <string name="device_manager_learn_more_sessions_unverified_title">დაუდასტურებელი სესიები</string>
-    <string name="device_manager_learn_more_sessions_verified_title">დამოწმებული სესიები</string>
-    <string name="device_manager_learn_more_session_rename_title">სესიების გადარქმევა</string>
-    <string name="labs_enable_session_manager_title">ახალი სესიის მენეჯერის გააქტიურება</string>
-    <string name="labs_enable_session_manager_summary">მიიღეთ უფრო მეტი ხილვადობა და კონტროლი ყველა თქვენს სესიაზე.</string>
-    <string name="labs_enable_client_info_recording_title">კლიენტის ინფორმაციის ჩაწერის გააქტიურება</string>
-    <string name="labs_enable_client_info_recording_summary">დაარქივეთ კლიენტის სახელი, ვერსია და URL, რათა სესიების უფრო მარტივად ამოცნობა მოახდინოთ სესიის მენეჯერში.</string>
     <string name="home_empty_space_no_rooms_title">%s 
 \nგამოიყურება ცოტა ცარიელია.</string>
     <string name="home_empty_no_rooms_title">კეთილი იყოს თქვენი მობრძანება ${app_name}-ში,
@@ -2327,14 +2256,6 @@
     <plurals name="poll_total_vote_count_after_ended">
         <item quantity="one">საბოლოო შედეგი დაფუძნებულია %1$d ხმაზე</item>
         <item quantity="other">საბოლოო შედეგი დაფუძნებულია %1$d ხმებზე</item>
-    </plurals>
-    <plurals name="device_manager_other_sessions_description_inactive">
-        <item quantity="one">არააქტიურია %1$d+ დღის განმავლობაში (%2$s)</item>
-        <item quantity="other">არააქტიურია %1$d+ დღის განმავლობაში (%2$s)</item>
-    </plurals>
-    <plurals name="device_manager_other_sessions_multi_signout_all">
-        <item quantity="one">გასვლა %1$d სესიიდან</item>
-        <item quantity="other">გასვლა %1$d სესიიდან</item>
     </plurals>
     <string tools:ignore="UnusedResources" name="device_manager_sessions_sign_in_with_qr_code_title">QR კოდით შესვლა</string>
     <string tools:ignore="UnusedResources" name="device_manager_sessions_sign_in_with_qr_code_description">ამ მოწყობილობის გამოყენება შესაძლებელია მობილურ ან ვებ მოწყობილობაში QR კოდით შესასვლელად. ამის გაკეთების ორი გზა არსებობს:</string>
@@ -2495,47 +2416,6 @@
     </plurals>
     <string name="settings_troubleshoot_test_current_endpoint_title">ბოლო წერტილი</string>
     <string name="live_location_labs_promotion_description">გთხოვთ გაითვალისწინოთ: ეს არის ლაბორატორიული ფუნქცია, რომელიც იყენებს დროებით განხორციელებას. ეს ნიშნავს, რომ თქვენ ვერ შეძლებთ თქვენი ადგილმდებარეობის ისტორიის წაშლას და მოწინავე მომხმარებლები შეძლებენ თქვენი ადგილმდებარეობის ისტორიის ნახვას, თუნდაც ცოცხალი ადგილმდებარეობის გაზიარების შეჩერების შემდეგ.</string>
-    <string name="device_manager_sessions_other_description">უმჯობესია, გააუმჯობესოთ თქვენი უსაფრთხოება და გავიდეთ სესიებიდან, რომლებიც თქვენთვის არ არის ცნობილი ან აღარ იყენებთ.</string>
-    <string name="device_manager_verification_status_detail_current_session_unverified">გადამოწმეთ თქვენი მიმდინარე სესია, რათა გააუმჯობესოთ უსაფრთხო შეტყობინებები.</string>
-    <string name="device_manager_verification_status_detail_other_session_unknown">გადამოწმეთ თქვენი მიმდინარე სესია, რათა გამოავლინოთ ამ სესიის გადამოწმების სტატუსი.</string>
-    <string name="device_manager_other_sessions_description_verified">დამოწმებულია · ბოლო აქტივობა %1$s</string>
-    <string name="device_manager_header_section_security_recommendations_description">გაუმჯობესეთ თქვენი ანგარიშის უსაფრთხოება ამ რეკომენდაციების მიყოლით.</string>
-    <plurals name="device_manager_inactive_sessions_description">
-        <item quantity="one">განიხილეთ ძველი სესიებიდან გამოსვლა (%1$d დღე ან მეტი), რომლებსაც აღარ იყენებთ.</item>
-        <item quantity="other">განიხილეთ ძველი სესიებიდან გამოსვლა (%1$d დღე ან მეტი), რომლებსაც აღარ იყენებთ.</item>
-    </plurals>
-    <string name="device_manager_filter_option_unverified_description">არ არის მზად უსაფრთხო შეტყობინებებისთვის</string>
-    <plurals name="device_manager_filter_option_inactive_description">
-        <item quantity="one">არააქტიურია %1$d დღის ან მეტის განმავლობაში</item>
-        <item quantity="other">არააქტიურია %1$d დღის ან მეტის განმავლობაში</item>
-    </plurals>
-    <string name="device_manager_other_sessions_recommendation_description_verified">უმჯობესია, გავიდეთ სესიებიდან, რომლებიც თქვენთვის არ არის ცნობილი ან აღარ იყენებთ.</string>
-    <plurals name="device_manager_other_sessions_recommendation_description_inactive">
-        <item quantity="one">მოიფიქრეთ გამოსვლაზე ძველი სესიებიდან (%1$d დღე ან მეტი), რომლებსაც აღარ იყენებთ.</item>
-        <item quantity="other">მოიფიქრეთ გამოსვლაზე ძველი სესიებიდან (%1$d დღე ან მეტი), რომლებსაც აღარ იყენებთ.</item>
-    </plurals>
-    <string name="device_manager_other_sessions_multi_signout_selection">გასვლა</string>
-    <string name="device_manager_other_sessions_hide_ip_address">IP მისამართის დამალვა</string>
-    <string name="device_manager_session_details_description">აპლიკაციის, მოწყობილობის და აქტივობის ინფორმაცია.</string>
-    <string name="device_manager_session_rename_description">მორგებული სესიის სახელები დაგეხმარებათ თქვენი მოწყობილობების უფრო მარტივად ამოცნობაში.</string>
-    <string name="device_manager_session_rename_warning">გაითვალისწინეთ, რომ სესიის სახელები ასევე ხილულია იმ ადამიანებისთვის, ვისთანაც ურთიერთობთ.</string>
-    <string name="device_manager_learn_more_sessions_inactive">არააქტიური სესიები არის სესიები, რომლებიც გარკვეული დროის განმავლობაში არ გიყენებიათ, მაგრამ ისინი კვლავ იღებენ დაშიფრულ გასაღებებს. 
-\n
-\nარააქტიური სესიების წაშლა აუმჯობესებს უსაფრთხოებას და მუშაობას და ამარტივებს, აღმოაჩინოთ საეჭვო ახალი სესია.</string>
-    <string name="device_manager_learn_more_sessions_unverified">დაუდასტურებელი სესიები არის სესიები, რომლებიც თქვენს სერთიფიკატებზე დაფუძნებით შესულა, მაგრამ არ არის გადამოწმებული. 
-\n
-\nუნდა დარწმუნდეთ, რომ ეს სესიები იცით, რადგან ისინი შეიძლება თქვენს ანგარიშზე უნებართვო წვდომას წარმოადგენდნენ.</string>
-    <string name="device_manager_learn_more_sessions_verified_description">დამოწმებული სესიები არის ნებისმიერი ადგილი, სადაც ამ ანგარიშს იყენებთ პაროლის შეყვანის ან თქვენი იდენტობის სხვა გადამოწმებული სესიით დადასტურების შემდეგ. 
-\n
-\nეს ნიშნავს, რომ გაქვთ ყველა გასაღები, რომელიც საჭიროა თქვენი დაშიფრული შეტყობინებების განბლოკვისთვის და სხვა მომხმარებლებისთვის დადასტურებისთვის, რომ ენდობით ამ სესიას.</string>
-    <string name="device_manager_learn_more_sessions_encryption_not_supported">ეს სესია არ უჭერს მხარს დაშიფვრას, ამიტომ ვერ იქნება გადამოწმებული. 
-\n
-\nვერ შეძლებთ მონაწილეობას ოთახებში, სადაც დაშიფვრა ჩართულია ამ სესიის გამოყენებისას. 
-\n
-\nუმჯობესია გამოიყენოთ Matrix-ის კლიენტები, რომლებიც მხარს უჭერენ დაშიფვრას.</string>
-    <string name="device_manager_learn_more_session_rename">მომხმარებლებს პირდაპირ შეტყობინებებსა და ოთახებში, რომლებშიც შედიხართ, შეუძლიათ ნახონ თქვენი ყველა სესიის სია. 
-\n
-\nეს აძლევს მათ რწმენას, რომ ნამდვილად თქვენ ესაუბრებიან, მაგრამ ასევე ნიშნავს, რომ მათ შეუძლიათ ნახონ სესიის სახელი, რომელიც აქ შეიყვანეთ.</string>
     <string name="home_empty_space_no_rooms_message">სივრცეები არის ახალი გზა ოთახებისა და ადამიანების დასაკავშირებლად. დაამატეთ არსებული ოთახი, ან შექმენით ახალი, ქვედა მარჯვენა ღილაკის გამოყენებით.</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_header_scan_qr_code_title">QR კოდის დასკანერება</string>
     <string tools:ignore="UnusedResources" name="qr_code_login_header_scan_qr_code_description">ამ მოწყობილობის კამერის გამოყენება შეგიძლიათ სხვა მოწყობილობაზე ნაჩვენები QR კოდის დასაკონტროლებლად:</string>

@@ -12,14 +12,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.notification.NotificationsSettingUpdater
 import im.vector.app.core.notification.PushRulesUpdater
-import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
 import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.reactions.data.QuickReactionsDataSource
 import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.MediaPreviewConfigDataSource
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.settings.devices.v2.notification.UpdateNotificationSettingsAccountDataUseCase
+import im.vector.app.features.settings.devices.notification.UpdateNotificationSettingsAccountDataUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -41,7 +40,6 @@ import javax.inject.Singleton
 @Singleton
 class ConfigureAndStartSessionUseCase @Inject constructor(
         @ApplicationContext private val context: Context,
-        private val updateMatrixClientInfoUseCase: UpdateMatrixClientInfoUseCase,
         private val vectorPreferences: VectorPreferences,
         private val notificationsSettingUpdater: NotificationsSettingUpdater,
         private val updateNotificationSettingsAccountDataUseCase: UpdateNotificationSettingsAccountDataUseCase,
@@ -66,7 +64,6 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         // The network-touching part is deferred while the VPN gate is closed
         vpnGateState.runWhenOpen(session.sessionId) {
             session.pushersService().refreshPushers()
-            updateMatrixClientInfoIfNeeded(session)
             createNotificationSettingsAccountDataIfNeeded(session)
             notificationsSettingUpdater.onSessionStarted(session)
             pushRulesUpdater.onSessionStarted(session)
@@ -115,14 +112,6 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
     companion object {
         private const val PROFILE_OBSERVER_RETRY_MS = 2_000L
         private const val PROFILE_OBSERVER_MAX_RETRIES = 5L
-    }
-
-    private fun updateMatrixClientInfoIfNeeded(session: Session) {
-        session.coroutineScope.launch {
-            if (vectorPreferences.isClientInfoRecordingEnabled()) {
-                updateMatrixClientInfoUseCase.execute(session)
-            }
-        }
     }
 
     private fun createNotificationSettingsAccountDataIfNeeded(session: Session) {

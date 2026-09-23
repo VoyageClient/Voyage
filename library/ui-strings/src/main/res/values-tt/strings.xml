@@ -2,10 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="power_level_moderator">Модератор</string>
     <string name="power_level_admin">Админ</string>
-    <plurals name="x_selected">
-        <item quantity="one">%1$d сайланды</item>
-        <item quantity="other"></item>
-    </plurals>
     <string name="notice_room_server_acl_updated_no_change">Үзгәреш юк.</string>
     <string name="power_level_default">Килешенгәнчә</string>
     <string name="matrix_error">Matrix хатасы</string>
