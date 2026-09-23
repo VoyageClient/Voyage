@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -1378,6 +1379,16 @@ class TimelineFragment :
         timelineEventController.timeline = timelineViewModel.timeline
 
         layoutManager = object : LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, true) {
+            // Starting a selection focuses the message text, and the focus scroll then yanks a tall
+            // message to the top under the user's finger.
+            override fun requestChildRectangleOnScreen(
+                    parent: RecyclerView,
+                    child: View,
+                    rect: Rect,
+                    immediate: Boolean,
+                    focusedChildVisible: Boolean,
+            ): Boolean = false
+
             override fun onLayoutCompleted(state: RecyclerView.State) {
                 super.onLayoutCompleted(state)
                 updateJumpToReadMarkerViewVisibility()
@@ -2042,7 +2053,7 @@ class TimelineFragment :
         openEmojiReactionPicker(event.eventId)
     }
 
-    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View, isRootThreadEvent: Boolean) {
+    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View) {
         when (messageContent) {
             is MessageVerificationRequestContent -> {
                 timelineViewModel.handle(RoomDetailAction.ResumeVerification(informationData.eventId, null))
@@ -2061,10 +2072,7 @@ class TimelineFragment :
                 navigateToLiveLocationMap()
             }
             else -> {
-                val handled = onThreadSummaryClicked(informationData.eventId, isRootThreadEvent)
-                if (!handled) {
-                    Timber.d("No click action defined for this message content")
-                }
+                Timber.d("No click action defined for this message content")
             }
         }
     }

@@ -46,7 +46,7 @@ class MessageItemAttributesFactory @Inject constructor(
                     callback?.onEventLongClicked(informationData, messageContent, view) ?: false
                 },
                 itemClickListener = { view ->
-                    callback?.onEventCellClicked(informationData, messageContent, view, threadDetails?.isRootThread ?: false)
+                    callback?.onEventCellClicked(informationData, messageContent, view)
                 },
                 memberClickListener = {
                     callback?.onMemberNameClicked(informationData)

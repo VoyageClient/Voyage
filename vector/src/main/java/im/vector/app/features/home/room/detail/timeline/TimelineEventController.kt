@@ -206,7 +206,7 @@ class TimelineEventController @Inject constructor(
     }
 
     interface BaseCallback {
-        fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View, isRootThreadEvent: Boolean)
+        fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View)
         fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean
     }
 

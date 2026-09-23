@@ -42,7 +42,7 @@ class StubTimelineEventCallback @Inject constructor() : TimelineEventController.
 
     override fun getReplyPreviewRetriever(): ReplyPreviewRetriever = retrievers.replyPreviewRetriever
 
-    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View, isRootThreadEvent: Boolean) {}
+    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View) {}
     override fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean = false
     override fun onImageMessageClicked(
             messageImageContent: MessageImageInfoContent,

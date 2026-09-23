@@ -211,7 +211,7 @@ class SearchResultController @Inject constructor(
 
     // Interactions supported by the search screen; everything else no-ops in StubTimelineEventCallback.
 
-    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View, isRootThreadEvent: Boolean) {
+    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View) {
         navigateTo(informationData)
     }
 

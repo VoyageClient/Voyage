@@ -338,7 +338,7 @@ class ViewEditHistoryEpoxyController @Inject constructor(
     }
 
     // What a file or audio revision offers instead of a viewer: a copy of that version of the file.
-    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View, isRootThreadEvent: Boolean) {
+    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View) {
         (messageContent as? MessageWithAttachmentContent)?.let { listener?.onRevisionFileClicked(informationData.eventId, it) }
     }
 
