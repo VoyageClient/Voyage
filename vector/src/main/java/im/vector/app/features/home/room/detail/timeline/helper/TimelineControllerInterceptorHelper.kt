@@ -14,6 +14,7 @@ import im.vector.app.features.home.room.detail.UnreadState
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
+import im.vector.app.features.home.room.detail.timeline.item.TimelineReadMarkerItem
 import im.vector.app.features.home.room.detail.timeline.item.TimelineReadMarkerItem_
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -28,6 +29,7 @@ class TimelineControllerInterceptorHelper(
 ) {
 
     private var previousModelsSize = 0
+    private val readMarkerFadeTracker = ReadMarkerFadeTracker(TimelineReadMarkerItem.TOTAL_DURATION_MS)
 
     // Update position when we are building new items
     fun intercept(
@@ -46,6 +48,7 @@ class TimelineControllerInterceptorHelper(
         val modelsIterator = models.listIterator()
         var index = 0
         val firstUnreadEventId = (unreadState as? UnreadState.HasUnread)?.firstUnreadEventId
+        val fadeKey = readMarkerFadeTracker.onSession(firstUnreadEventId)
         var atLeastOneVisibleItemSinceLastDaySeparator = false
         var atLeastOneVisibleItemsBeforeReadMarker = false
         var appendReadMarker = false
@@ -71,7 +74,7 @@ class TimelineControllerInterceptorHelper(
                 atLeastOneVisibleItemSinceLastDaySeparator = false
             }
             if (appendReadMarker) {
-                modelsIterator.addReadMarkerItem(callback)
+                modelsIterator.addReadMarkerItem(callback, fadeKey)
                 index++
                 positionOfReadMarker.set(index)
                 appendReadMarker = false
@@ -81,10 +84,12 @@ class TimelineControllerInterceptorHelper(
         previousModelsSize = models.size
     }
 
-    private fun MutableListIterator<EpoxyModel<*>>.addReadMarkerItem(callback: TimelineEventController.Callback?) {
+    private fun MutableListIterator<EpoxyModel<*>>.addReadMarkerItem(callback: TimelineEventController.Callback?, fadeKey: String?) {
         val readMarker = TimelineReadMarkerItem_()
                 .also {
                     it.id("read_marker")
+                    it.fadeKey(fadeKey)
+                    it.fadeTracker(readMarkerFadeTracker)
                     it.setOnVisibilityStateChanged(ReadMarkerVisibilityStateChangedListener(callback))
                 }
         add(readMarker)
