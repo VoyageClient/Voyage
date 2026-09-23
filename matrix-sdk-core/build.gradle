@@ -1299,6 +1299,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/timeline/RoomSummaryEventDecryptor.kt',
         'org/matrix/android/sdk/internal/session/room/summary/DirectRoomsCache.kt',
         'org/matrix/android/sdk/internal/session/room/summary/SqlRoomSummaryUpdater.kt',
+        'org/matrix/android/sdk/internal/session/room/send/SendOutcomeTracker.kt',
         'org/matrix/android/sdk/internal/session/room/send/LocalEchoRepository.kt',
         'org/matrix/android/sdk/internal/session/room/send/LocalEchoEventFactory.kt',
         // Worker task-input Params extracted to standalone core files (UploadContentWorkerParams,

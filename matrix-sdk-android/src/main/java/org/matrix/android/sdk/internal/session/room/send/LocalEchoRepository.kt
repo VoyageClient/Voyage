@@ -64,6 +64,7 @@ internal class LocalEchoRepository @Inject constructor(
         private val timelineInput: TimelineInput,
         private val timelineEventMapper: TimelineEventMapper,
         private val sessionDbPriority: SessionDbPriority,
+        private val sendOutcomeTracker: SendOutcomeTracker,
         private val clock: Clock,
 ) {
 
@@ -188,6 +189,7 @@ internal class LocalEchoRepository @Inject constructor(
     fun updateSendState(eventId: String, roomId: String?, sendState: SendState, sendStateDetails: String? = null) {
         Timber.v("## SendEvent: [${clock.epochMillis()}] Update local state of $eventId to ${sendState.name}")
         timelineInput.onLocalEchoUpdated(roomId = roomId ?: "", eventId = eventId, sendState = sendState)
+        sendOutcomeTracker.onSendStateChanged(eventId, sendState)
         enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {
                 stores.event.getByEventId(eventId)?.let { entity ->
@@ -296,6 +298,7 @@ internal class LocalEchoRepository @Inject constructor(
     suspend fun deleteFailedEcho(roomId: String, eventId: String?) {
         eventId ?: return
         pendingEchoes.remove(eventId)
+        sendOutcomeTracker.onEchoDeleted(eventId)
         database.awaitDbTransaction(dispatcher) {
             stores.timelineEvent.deleteSending(roomId, eventId)
             stores.event.deleteByEventIdInRoom(roomId, eventId)
@@ -309,6 +312,7 @@ internal class LocalEchoRepository @Inject constructor(
     fun deleteFailedEchoAsync(roomId: String, eventId: String?) {
         eventId ?: return
         pendingEchoes.remove(eventId)
+        sendOutcomeTracker.onEchoDeleted(eventId)
         enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {
                 stores.timelineEvent.deleteSending(roomId, eventId)
@@ -348,13 +352,6 @@ internal class LocalEchoRepository @Inject constructor(
         }
     }
 
-    suspend fun updateSendState(roomId: String, eventIds: List<String>, sendState: SendState) {
-        database.awaitDbTransaction(dispatcher) {
-            eventIds.forEach { stores.event.updateSendState(roomId, it, sendState, null) }
-            roomSummaryUpdater.updateSendingInformation(stores, roomId)
-        }
-    }
-
     // Only events the resend paths know how to rebuild; a failed echo with unparseable content can
     // still be CANCELLED (getAllEventsWithStates), just not resent.
     fun getAllFailedEventsToResend(roomId: String): List<TimelineEvent> {
@@ -379,8 +376,8 @@ internal class LocalEchoRepository @Inject constructor(
     fun getAllEventsWithStates(roomId: String, states: List<SendState>): List<TimelineEvent> {
         return stores.timelineEvent.getByRoom(roomId)
                 .filter { it.root?.sendState in states }
-                // Newest first, by insertion order: unsent rows have no server timestamp to sort by.
-                .sortedByDescending { it.localId }
+                // Newest first. Not localId: a local echo's is a random UUID half, not a sequence.
+                .sortedByDescending { it.ts }
                 .map { timelineEventMapper.map(it) }
     }
 

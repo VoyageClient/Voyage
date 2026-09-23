@@ -66,6 +66,9 @@ import org.matrix.android.sdk.internal.task.TaskExecutor
 
 private const val UPLOAD_WORK = "UPLOAD_WORK"
 
+// How long a bulk resend waits on one message before giving up on the rest of the batch.
+private const val RESEND_OUTCOME_TIMEOUT_MS = 2 * 60 * 1000L
+
 /**
  * Tag shared by every background task belonging to one attachment send, so cancelling the send stops
  * both the upload chain and any deferred byte upload it queued.
@@ -85,6 +88,7 @@ internal class DefaultSendService @AssistedInject constructor(
         private val cryptoStore: IMXCommonCryptoStore,
         private val taskExecutor: TaskExecutor,
         private val localEchoRepository: LocalEchoRepository,
+        private val sendOutcomeTracker: SendOutcomeTracker,
         private val eventSenderProcessor: EventSenderProcessor,
         private val cancelSendTracker: CancelSendTracker,
         private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,
@@ -302,16 +306,28 @@ internal class DefaultSendService @AssistedInject constructor(
     }
 
     override fun resendAllFailedMessages() {
+        if (!sendOutcomeTracker.startResendBatch(roomId)) return
         taskExecutor.executorScope.launch {
-            val eventsToResend = localEchoRepository.getAllFailedEventsToResend(roomId)
-            eventsToResend.forEach {
-                if (it.root.isTextMessage()) {
-                    resendTextMessage(it)
-                } else if (it.root.isAttachmentMessage()) {
-                    resendMediaMessage(it)
+            try {
+                // Posting the whole batch at once lets a later message land while an earlier one is still
+                // retrying, reordering the room — so send one at a time and stop at the first failure.
+                val eventsToResend = localEchoRepository.getAllFailedEventsToResend(roomId)
+                        .sortedBy { it.root.originServerTs ?: 0L }
+                for (event in eventsToResend) {
+                    val isTextMessage = event.root.isTextMessage()
+                    if (!isTextMessage && !event.root.isAttachmentMessage()) continue
+                    sendOutcomeTracker.track(event.eventId)
+                    val posted = if (isTextMessage) resendTextMessage(event) else resendMediaMessage(event)
+                    if (posted === NoOpCancellable) {
+                        sendOutcomeTracker.untrack(event.eventId)
+                        continue
+                    }
+                    // Failed, cancelled or still pending: the rest stay failed for the user to retry later.
+                    if (sendOutcomeTracker.await(event.eventId, RESEND_OUTCOME_TIMEOUT_MS)?.isSent() != true) break
                 }
+            } finally {
+                sendOutcomeTracker.endResendBatch(roomId)
             }
-            localEchoRepository.updateSendState(roomId, eventsToResend.map { it.eventId }, SendState.UNSENT)
         }
     }
 
