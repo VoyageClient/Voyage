@@ -487,6 +487,9 @@ public final class Autocomplete<T> implements TextWatcher, SpanWatcher {
         @Override
         public void run() {
             if (pendingShow) {
+                // The data set also changes when the presenter drops its previous results; showing then
+                // would put an empty popup on screen until the current query resolves.
+                if (!presenter.hasContent()) return;
                 pendingShow = false;
                 popup.show();
                 if (callback != null) callback.onPopupVisibilityChanged(true);

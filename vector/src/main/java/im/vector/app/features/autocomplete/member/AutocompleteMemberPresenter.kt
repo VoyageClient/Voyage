@@ -83,6 +83,10 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
         return controller.adapter
     }
 
+    override fun clearData() {
+        controller.setData(emptyList())
+    }
+
     override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_MEMBERS)
 
     override fun onViewShown() = slideContentUpOnShow()

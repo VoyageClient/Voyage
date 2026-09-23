@@ -42,6 +42,10 @@ class AutocompleteRoomPresenter @Inject constructor(
         return controller.adapter
     }
 
+    override fun clearData() {
+        controller.setData(emptyList())
+    }
+
     override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_ROOMS)
 
     override fun onViewShown() = slideContentUpOnShow()

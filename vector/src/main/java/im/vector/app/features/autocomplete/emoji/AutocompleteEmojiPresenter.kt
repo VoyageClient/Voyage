@@ -60,6 +60,10 @@ class AutocompleteEmojiPresenter @Inject constructor(
         return controller.adapter
     }
 
+    override fun clearData() {
+        controller.setData(emptyList())
+    }
+
     override fun instantiateRecyclerView(): RecyclerView = dividedRecyclerView(MAX_VISIBLE_EMOJIS)
 
     override fun onViewShown() = slideContentUpOnShow()

@@ -56,6 +56,9 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
 
     @CallSuper
     override fun getView(): ViewGroup {
+        // The controller outlives the popup, so its rows from the last query would otherwise count as
+        // content and flash the popup open before the current query has resolved (or dismissed it).
+        clearData()
         val adapter = instantiateAdapter()
         observer?.also {
             adapter.registerAdapterDataObserver(it)
@@ -201,6 +204,9 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
      * @return a new adapter.
      */
     protected abstract fun instantiateAdapter(): RecyclerView.Adapter<*>
+
+    /** Drop whatever the adapter is holding, so a freshly opened popup starts with no content. */
+    protected abstract fun clearData()
 
     /**
      * Provides a layout manager for the recycler.
