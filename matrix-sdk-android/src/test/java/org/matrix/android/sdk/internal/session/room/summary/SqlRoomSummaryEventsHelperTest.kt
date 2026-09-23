@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.session.room.summary
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeNull
 import org.junit.Test
@@ -16,6 +17,7 @@ import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -30,7 +32,9 @@ class SqlRoomSummaryEventsHelperTest {
     private val stores = mockk<SessionStores>(relaxed = true)
     private val configuration = mockk<MatrixConfiguration> { every { customEventTypesProvider } returns null }
 
-    private val helper = SqlRoomSummaryEventsHelper(configuration)
+    private val settingsStorage = mockk<LightweightSettingsStorage>(relaxed = true)
+
+    private val helper = SqlRoomSummaryEventsHelper(configuration, settingsStorage)
 
     private fun liveChunkHolds(vararg events: TimelineEventEntity) {
         every { stores.user.getIgnoredUserIds() } returns emptyList()
@@ -158,6 +162,31 @@ class SqlRoomSummaryEventsHelperTest {
         every { stores.timelineEvent.getSendingByRoom(A_ROOM_ID) } returns listOf(event("\$failed", ts = 1_000L))
 
         helper.getLatestPreviewableEvent(stores, A_ROOM_ID)?.eventId shouldBe "\$synced"
+    }
+
+    /** With the setting off a reaction is invisible, so it must not bold the room. */
+    @Test
+    fun `given reactions are hidden, then the unread anchor ignores them`() {
+        every { settingsStorage.areReactionsShownInTimeline() } returns false
+        every { stores.user.getIgnoredUserIds() } returns emptyList()
+        val types = slot<Collection<String>>()
+        every { stores.timelineEvent.getLatestUnreadEvent(A_ROOM_ID, capture(types), any()) } returns null
+
+        helper.getLatestUnreadEvent(stores, A_ROOM_ID)
+
+        types.captured.contains(EventType.REACTION) shouldBe false
+    }
+
+    @Test
+    fun `given reactions are shown, then the unread anchor counts them`() {
+        every { settingsStorage.areReactionsShownInTimeline() } returns true
+        every { stores.user.getIgnoredUserIds() } returns emptyList()
+        val types = slot<Collection<String>>()
+        every { stores.timelineEvent.getLatestUnreadEvent(A_ROOM_ID, capture(types), any()) } returns null
+
+        helper.getLatestUnreadEvent(stores, A_ROOM_ID)
+
+        types.captured.contains(EventType.REACTION) shouldBe true
     }
 
     @Test

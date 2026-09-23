@@ -34,6 +34,15 @@ internal class DefaultLightweightSettingsStorageTest {
     )
 
     @Test
+    fun `reactions are hidden out of the box, and the app's toggle is read`() {
+        storage.areReactionsShownInTimeline() shouldBeEqualTo false
+
+        appPreferences.putBoolean("SETTINGS_SHOW_REACTIONS_KEY", true)
+
+        storage.areReactionsShownInTimeline() shouldBeEqualTo true
+    }
+
+    @Test
     fun `previews are fetched by this device out of the box`() {
         storage.getLinkPreviewMode(A_ROOM_ID) shouldBeEqualTo LinkPreviewMode.ALWAYS
     }

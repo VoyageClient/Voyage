@@ -20,6 +20,9 @@ interface LightweightSettingsStorage {
     fun setThreadMessagesEnabled(enabled: Boolean)
     fun areThreadMessagesEnabled(): Boolean
 
+    /** Whether reactions are rendered in the timeline, and so are something to read. */
+    fun areReactionsShownInTimeline(): Boolean
+
     /** Whether EXIF/location metadata should be stripped from images and videos before upload. */
     fun shouldStripMediaMetadata(): Boolean
 

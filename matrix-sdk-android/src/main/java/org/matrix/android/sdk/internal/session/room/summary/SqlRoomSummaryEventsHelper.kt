@@ -13,6 +13,7 @@ import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.summary.RoomSummaryConstants
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -21,6 +22,7 @@ import javax.inject.Inject
 /** SQLDelight counterpart of [RoomSummaryEventsHelper]: the room-list preview event. */
 internal class SqlRoomSummaryEventsHelper @Inject constructor(
         matrixConfiguration: MatrixConfiguration,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
 ) {
     private val allowedTypes: Set<String> = RoomSummaryConstants.PREVIEWABLE_TYPES
             .plus(matrixConfiguration.customEventTypesProvider?.customPreviewableEventTypes.orEmpty())
@@ -55,7 +57,9 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
 
     fun getLatestUnreadEvent(stores: SessionStores, roomId: String): TimelineEventEntity? {
         val excludedSenders = stores.user.getIgnoredUserIds().ifEmpty { listOf(EMPTY_SENDER) }
-        return stores.timelineEvent.getLatestUnreadEvent(roomId, UNREAD_TYPES, excludedSenders)
+        // A reaction is only something to read when the timeline actually shows it.
+        val types = if (lightweightSettingsStorage.areReactionsShownInTimeline()) UNREAD_TYPES + EventType.REACTION else UNREAD_TYPES
+        return stores.timelineEvent.getLatestUnreadEvent(roomId, types, excludedSenders)
     }
 
     companion object {

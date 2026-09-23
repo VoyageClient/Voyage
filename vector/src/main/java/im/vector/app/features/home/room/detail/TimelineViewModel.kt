@@ -1468,14 +1468,29 @@ private fun handleSelectStickerAttachment() {
                         }
                     }
                     bufferedMostRecentDisplayedEvent.root.eventId?.let { eventId ->
+                        // Reactions are not timeline items of their own, so a receipt on the newest message
+                        // sits behind one that arrived after it and would leave the room unread while we are
+                        // looking at it. At the live edge the whole room is read, so move to the newest event.
+                        val receiptToNewest = bufferedMostRecentDisplayedEvent.indexOfEvent() == 0 &&
+                                timeline?.isLive == true &&
+                                initialState.rootThreadEventId == null &&
+                                vectorPreferences.showReactions()
                         session.coroutineScope.launch {
                             val threadId = initialState.rootThreadEventId ?: ReadService.THREAD_ID_MAIN
                             tryOrNull {
-                                room.readService().setReadReceipt(
-                                        eventId = eventId,
-                                        threadId = threadId,
-                                        public = vectorPreferences.sendReadReceipts(),
-                                )
+                                if (receiptToNewest) {
+                                    room.readService().markAsRead(
+                                            params = ReadService.MarkAsReadParams.READ_RECEIPT,
+                                            mainTimeLineOnly = true,
+                                            public = vectorPreferences.sendReadReceipts(),
+                                    )
+                                } else {
+                                    room.readService().setReadReceipt(
+                                            eventId = eventId,
+                                            threadId = threadId,
+                                            public = vectorPreferences.sendReadReceipts(),
+                                    )
+                                }
                             }
                         }
                     }

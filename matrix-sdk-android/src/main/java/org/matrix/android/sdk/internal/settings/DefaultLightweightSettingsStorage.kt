@@ -44,6 +44,11 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         return sdkDefaultPrefs.getBoolean(MATRIX_SDK_SETTINGS_THREAD_MESSAGES_ENABLED, matrixConfiguration.threadMessagesEnabledDefault)
     }
 
+    // Backed by the app's "Show reactions" toggle (shared default prefs); defaults to off.
+    override fun areReactionsShownInTimeline(): Boolean {
+        return sdkDefaultPrefs.getBoolean(SETTINGS_SHOW_REACTIONS, false)
+    }
+
     // Backed by the app's "Media and avatars" toggle (shared default prefs); defaults to on.
     override fun shouldStripMediaMetadata(): Boolean {
         return sdkDefaultPrefs.getBoolean(SETTINGS_STRIP_MEDIA_METADATA, true)
@@ -84,6 +89,7 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         private const val MATRIX_SDK_SETTINGS_FOREGROUND_PRESENCE_STATUS = "MATRIX_SDK_SETTINGS_FOREGROUND_PRESENCE_STATUS"
 
         // Must match the app-side preference key (im.vector.app VectorPreferences).
+        private const val SETTINGS_SHOW_REACTIONS = "SETTINGS_SHOW_REACTIONS_KEY"
         private const val SETTINGS_STRIP_MEDIA_METADATA = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
         private const val SETTINGS_LABS_SLIDING_SYNC = "SETTINGS_LABS_SLIDING_SYNC_KEY"
         private const val SETTINGS_LINK_PREVIEW_MODE = "SETTINGS_LINK_PREVIEW_MODE_KEY"
