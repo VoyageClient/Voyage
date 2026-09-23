@@ -17,13 +17,13 @@ import android.view.animation.OvershootInterpolator
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.R
 import im.vector.app.features.settings.VectorPreferences
+import java.util.WeakHashMap
 import kotlin.math.max
 
 class ScrollAnimationManager(private val vectorPreferences: VectorPreferences) {
 
     private val listeners = mutableMapOf<Activity, ViewTreeObserver.OnGlobalLayoutListener>()
-    private val visiblePositions = mutableMapOf<RecyclerView, MutableSet<Int>>()
-    private val observedRecyclerViews = mutableSetOf<RecyclerView>()
+    private val pendingEntries = WeakHashMap<RecyclerView, MutableList<View>>()
 
     fun install(activity: Activity) {
         if (listeners.containsKey(activity)) return
@@ -37,8 +37,6 @@ class ScrollAnimationManager(private val vectorPreferences: VectorPreferences) {
 
     fun uninstall(activity: Activity) {
         val listener = listeners.remove(activity) ?: return
-        visiblePositions.keys.removeAll { it.context === activity }
-        observedRecyclerViews.removeAll { it.context === activity }
         val observer = activity.window.decorView.viewTreeObserver
         if (!observer.isAlive) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -53,19 +51,27 @@ class ScrollAnimationManager(private val vectorPreferences: VectorPreferences) {
         if (view is RecyclerView && view.getTag(R.id.scroll_animation_installed) != true) {
             view.setTag(R.id.scroll_animation_installed, true)
             view.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
-                override fun onChildViewAttachedToWindow(child: View) = Unit
+                // Children attached while idle (initial fill, relayout, arriving message) are not entering:
+                // animating them would burst on the next scroll, long after they appeared.
+                override fun onChildViewAttachedToWindow(child: View) {
+                    if (view.scrollState != RecyclerView.SCROLL_STATE_IDLE) pendingOf(view).add(child)
+                }
 
                 override fun onChildViewDetachedFromWindow(child: View) {
                     child.animate().cancel()
                     reset(child)
+                    pendingOf(view).remove(child)
                 }
             })
             view.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dx != 0 || dy != 0) animateEnteringChildren(recyclerView)
                 }
+
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) pendingOf(recyclerView).clear()
+                }
             })
-            rememberVisiblePositions(view)
         }
         if (view is ViewGroup) {
             for (index in 0 until view.childCount) {
@@ -75,29 +81,14 @@ class ScrollAnimationManager(private val vectorPreferences: VectorPreferences) {
     }
 
     private fun animateEnteringChildren(recyclerView: RecyclerView) {
-        if (observedRecyclerViews.add(recyclerView)) {
-            rememberVisiblePositions(recyclerView)
-            return
-        }
-        val current = (0 until recyclerView.childCount)
-                .map(recyclerView::getChildAt)
-                .mapNotNull { child -> recyclerView.getChildAdapterPosition(child).takeIf { it != RecyclerView.NO_POSITION }?.let { it to child } }
-        val visible = visiblePositions.getOrPut(recyclerView) { mutableSetOf() }
-        val entering = current.filter { (position, _) -> position !in visible }.sortedBy { (_, child) -> child.top }
-        visible.clear()
-        visible.addAll(current.map { (position, _) -> position })
-        entering.forEachIndexed { index, (_, child) -> animate(child, index * STAGGER_MS) }
+        val pending = pendingOf(recyclerView)
+        if (pending.isEmpty()) return
+        val entering = pending.filter { it.parent === recyclerView }.sortedBy { it.top }
+        pending.clear()
+        entering.forEachIndexed { index, child -> animate(child, index * STAGGER_MS) }
     }
 
-    private fun rememberVisiblePositions(recyclerView: RecyclerView) {
-        val visible = visiblePositions.getOrPut(recyclerView) { mutableSetOf() }
-        for (index in 0 until recyclerView.childCount) {
-            recyclerView.getChildAdapterPosition(recyclerView.getChildAt(index))
-                    .takeIf { it != RecyclerView.NO_POSITION }
-                    ?.let(visible::add)
-        }
-        if (recyclerView.childCount > 0) observedRecyclerViews.add(recyclerView)
-    }
+    private fun pendingOf(recyclerView: RecyclerView): MutableList<View> = pendingEntries.getOrPut(recyclerView) { mutableListOf() }
 
     private fun animate(view: View, delay: Long) {
         val style = vectorPreferences.scrollAnimationStyle()
