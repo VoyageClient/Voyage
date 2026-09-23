@@ -9,14 +9,23 @@ package im.vector.app.core.platform
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.CallSuper
+import androidx.annotation.ColorInt
 import androidx.annotation.FloatRange
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -26,6 +35,8 @@ import com.airbnb.mvrx.MavericksView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.shape.MaterialShapeDrawable
 import dagger.hilt.android.EntryPointAccessors
 import im.vector.app.core.di.ActivityEntryPoint
 import im.vector.app.core.extensions.toMvRxBundle
@@ -121,9 +132,14 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
         Timber.i("onResume BottomSheet ${javaClass.simpleName}")
     }
 
+    @Suppress("DEPRECATION")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return super.onCreateDialog(savedInstanceState).apply {
             val dialog = this as? BottomSheetDialog
+            // Material only takes the sheet edge to edge when the window's navigation bar is not opaque.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                dialog?.window?.navigationBarColor = Color.TRANSPARENT
+            }
             bottomSheetBehavior = dialog?.behavior
             bottomSheetBehavior?.setPeekHeight(DimensionConverter(resources).dpToPx(400), false)
             if (showExpanded) {
@@ -134,9 +150,49 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
 
     override fun onStart() {
         super.onStart()
+        paintNavigationBarStrip()
         // This ensures that invalidate() is called for static screens that don't
         // subscribe to a ViewModel.
         postInvalidate()
+    }
+
+    /**
+     * The dialog dims the whole screen behind it, the navigation bar strip included, so the sheet has to
+     * cover that strip itself rather than leave it to the screen underneath.
+     */
+    private fun paintNavigationBarStrip() {
+        val sheetContext = dialog?.context ?: return
+        val sheet = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return
+        val surface = MaterialColors.getColor(sheetContext, com.google.android.material.R.attr.colorSurface, Color.TRANSPARENT)
+        // The sheet slides in from off screen, so for those frames the strip is this band's to paint.
+        addNavigationBarBand(sheet, surface)
+        // The background arrives with the first layout pass, and is replaced again on later ones.
+        sheet.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> paintSheetSurface(sheet, surface) }
+        paintSheetSurface(sheet, surface)
+    }
+
+    private fun addNavigationBarBand(sheet: View, @ColorInt surface: Int) {
+        val container = (sheet.parent as? View)?.parent as? ViewGroup ?: return
+        val band = View(container.context).apply { setBackgroundColor(surface) }
+        // Behind the sheet's coordinator, so it takes none of the touches that dismiss the sheet.
+        container.addView(band, 0, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, Gravity.BOTTOM))
+        ViewCompat.setOnApplyWindowInsetsListener(container) { _, insets ->
+            band.updateLayoutParams { height = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom }
+            insets
+        }
+    }
+
+    /** The strip the sheet covers is its own background, so it has to be exactly the sheet's surface. */
+    private fun paintSheetSurface(sheet: View, @ColorInt surface: Int) {
+        when (val background = sheet.background) {
+            is MaterialShapeDrawable -> {
+                // The elevation overlay only tints a fill that is colorSurface, which would leave the strip
+                // lighter than the flat surface the sheet's own content is painted with.
+                background.elevation = 0f
+                if (background.fillColor?.defaultColor != surface) background.fillColor = ColorStateList.valueOf(surface)
+            }
+            else -> if ((background as? ColorDrawable)?.color != surface) sheet.setBackgroundColor(surface)
+        }
     }
 
     @CallSuper

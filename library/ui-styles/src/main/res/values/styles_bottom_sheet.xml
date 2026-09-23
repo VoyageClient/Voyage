@@ -2,7 +2,16 @@
 <resources>
 
     <!-- BottomSheet theming -->
+    <!-- The window flags Material's own BottomSheetDialog overlay sets, which these themes do not inherit:
+         a floating window can never reach past the system bars, so the sheet could not paint that strip. -->
     <style name="Theme.Vector.BottomSheetDialog.Light" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="enableEdgeToEdge">true</item>
+        <item name="paddingBottomSystemWindowInsets">true</item>
+        <item name="paddingLeftSystemWindowInsets">true</item>
+        <item name="paddingRightSystemWindowInsets">true</item>
+        <item name="paddingTopSystemWindowInsets">true</item>
         <item name="colorAccent">?vctr_accent</item>
         <item name="android:colorAccent">?vctr_accent</item>
         <item name="colorPrimary">?vctr_accent</item>
@@ -19,6 +28,13 @@
     </style>
 
     <style name="Theme.Vector.BottomSheetDialog.Dark" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="enableEdgeToEdge">true</item>
+        <item name="paddingBottomSystemWindowInsets">true</item>
+        <item name="paddingLeftSystemWindowInsets">true</item>
+        <item name="paddingRightSystemWindowInsets">true</item>
+        <item name="paddingTopSystemWindowInsets">true</item>
         <item name="colorAccent">?vctr_accent</item>
         <item name="android:colorAccent">?vctr_accent</item>
         <item name="colorPrimary">?vctr_accent</item>
