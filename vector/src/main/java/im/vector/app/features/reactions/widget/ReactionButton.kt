@@ -7,7 +7,6 @@
 package im.vector.app.features.reactions.widget
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
@@ -19,6 +18,7 @@ import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.ColorUtils
@@ -107,14 +107,13 @@ class ReactionButton @JvmOverloads constructor(
     }
 
     // All colors are applied in code: theme attrs inside the drawable XML don't resolve pre-21
-    // (solid/wrong pills on ICS), and the "on" fill is additionally recoloured from the themed
-    // element-green to the accent — keeping the theme's alpha — so the highlight matches the outline.
+    // (solid/wrong pills on ICS). ?vctr_reaction_background_on is unused for the "on" fill: the SC
+    // themes declare it opaque, pre-blended against their background, which would fill the pill solid.
     private fun tintDrawablesFromTheme() {
         val accent = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorPrimary)
-        val themedFill = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_reaction_background_on)
         val themedOff = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_reaction_background_off)
         (onDrawable?.mutate() as? GradientDrawable)?.let { drawable ->
-            drawable.setColor(ColorUtils.setAlphaComponent(accent, Color.alpha(themedFill)))
+            drawable.setColor(reactionFillColor(accent, themedOff))
             drawable.setStroke(resources.displayMetrics.density.roundToInt(), accent)
             onDrawable = drawable
         }
@@ -261,4 +260,14 @@ class ReactionButton @JvmOverloads constructor(
         private const val IMAGE_SIZE_DP = 20
         private const val IMAGE_OVERSAMPLE_FACTOR = 2f
     }
+}
+
+private const val FILL_ALPHA_ON_LIGHT = 0x20
+private const val FILL_ALPHA_ON_DARK = 0x40
+
+/** The selected pill's interior: the accent, tinted down to read against [pillBackground]. */
+@ColorInt
+internal fun reactionFillColor(@ColorInt accent: Int, @ColorInt pillBackground: Int): Int {
+    val alpha = if (ColorUtils.calculateLuminance(pillBackground) > 0.5) FILL_ALPHA_ON_LIGHT else FILL_ALPHA_ON_DARK
+    return ColorUtils.setAlphaComponent(accent, alpha)
 }
