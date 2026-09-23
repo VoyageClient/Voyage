@@ -51,11 +51,17 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -97,6 +103,7 @@ import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
 import org.matrix.android.sdk.api.session.room.model.message.toForwardedInfoContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
+import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
@@ -153,6 +160,16 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     private val eventIdFlow = MutableStateFlow(initialState.eventId)
 
+    private var actionsJob: Job? = null
+
+    private var computedInput: Pair<TimelineEvent, ActionPermissions>? = null
+
+    // Pruning walks account data and room state — 80ms even on a fast device — so it stays off the
+    // sheet's creation path.
+    private val quickReactions = viewModelScope.async(Dispatchers.Default, start = CoroutineStart.LAZY) {
+        pruneDeletedEmotes(quickReactionsDataSource.getQuickReactions())
+    }
+
     @AssistedFactory
     interface Factory : MavericksAssistedViewModelFactory<MessageActionsViewModel, MessageActionState> {
         override fun create(initialState: MessageActionState): MessageActionsViewModel
@@ -162,36 +179,40 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     init {
         PerfTrace.time("longpress.vm.init") {
-            // Seed the timeline event synchronously so the sheet opens with the full action
-            // set on the first frame. Without this seed, the sheet starts with an empty
-            // actions list (defaults to emptyList()) and the sender preview can briefly show
-            // "-" until liveTimelineEvent's LiveData round-trips through the main thread.
+            // Seeded synchronously: without it the preview shows "-" until liveTimelineEvent's first
+            // emission round-trips through the main thread.
+            var seededEvent: TimelineEvent? = null
             if (room != null) {
-                room.getTimelineEvent(initialState.eventId)?.let { event ->
+                seededEvent = room.getTimelineEvent(initialState.eventId)
+                seededEvent?.let { event ->
                     setState { copy(timelineEvent = Success(event)) }
                 }
             }
 
-            // Seed action permissions synchronously so reactions / edit / redact / etc. are present in
-            // the very first state, instead of the sheet first rendering with the all-false defaults
-            // (no react/edit) and the real permissions popping in a beat later. getRoomPowerLevels() is
-            // a synchronous in-memory read once the room state is loaded — which it is by the time a
-            // message can be long-pressed — so this doesn't block on I/O in practice.
-            if (room != null) {
-                val initial = room.stateService().getRoomPowerLevels()
-                val isJoined = room.roomSummary()?.membership == Membership.JOIN
-                val permissions = ActionPermissions(
-                        canSendMessage = isJoined && initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
-                        canReact = isJoined && initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
-                        canRedact = isJoined && initial.isUserAbleToRedact(session.myUserId),
-                        canPinUnpin = isJoined && initial.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
-                )
-                setState { copy(actionPermissions = permissions) }
+            // liveAnnotationSummary's first emission is a few hundred ms out, and the seeded event already
+            // carries the same reaction summary, so the quick reactions are on the first frame too.
+            val storedQuickReactions = quickReactionsDataSource.getQuickReactions()
+            if (storedQuickReactions.isNotEmpty()) {
+                val seeded = storedQuickReactions.map { emoji ->
+                    ToggleState(emoji, seededEvent?.annotations?.reactionsSummary?.firstOrNull { it.key == emoji }?.addedByMe ?: false)
+                }
+                setState { copy(quickStates = Success(seeded)) }
             }
 
+            // On the main thread on purpose: these reads take ~15ms here and 70-100ms on a background
+            // thread, waiting for the database lock this one already holds.
+            val seededPermissions = PerfTrace.time("longpress.init.permissions") { readPermissions() }
+            setState { copy(actionPermissions = seededPermissions) }
+
+            // Off the seeds rather than through observeTimelineEventState's first emission, which arrives
+            // via a main thread busy inflating the sheet — about 130ms later.
+            seededEvent?.let { startActionsComputation(it, seededPermissions) }
+
             initialState.informationData.sharedByUserId?.let { sharedBy ->
-                val displayName = room?.membershipService()?.getRoomMember(sharedBy)?.displayName
-                setState { copy(sharedByDisplayName = displayName?.takeIf { it.isNotBlank() } ?: sharedBy) }
+                viewModelScope.launch(Dispatchers.Default) {
+                    val displayName = room?.membershipService()?.getRoomMember(sharedBy)?.displayName
+                    setState { copy(sharedByDisplayName = displayName?.takeIf { it.isNotBlank() } ?: sharedBy) }
+                }
             }
 
             observeEvent()
@@ -209,21 +230,26 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
         room.flow().liveRoomPowerLevels()
                 .onEach { roomPowerLevels ->
-                    val isJoined = room.roomSummary()?.membership == Membership.JOIN
-                    val canReact = isJoined && roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REACTION)
-                    val canRedact = isJoined && roomPowerLevels.isUserAbleToRedact(session.myUserId)
-                    val canSendMessage = isJoined && roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE)
-                    val canPinUnpin = isJoined && roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT)
-                    val permissions = ActionPermissions(
-                            canSendMessage = canSendMessage,
-                            canRedact = canRedact,
-                            canReact = canReact,
-                            canPinUnpin = canPinUnpin
-                    )
+                    val permissions = permissionsFrom(roomPowerLevels)
                     setState {
                         copy(actionPermissions = permissions)
                     }
                 }.launchIn(viewModelScope)
+    }
+
+    private fun readPermissions(): ActionPermissions {
+        val powerLevels = room?.stateService()?.getRoomPowerLevels() ?: return ActionPermissions()
+        return permissionsFrom(powerLevels)
+    }
+
+    private fun permissionsFrom(powerLevels: RoomPowerLevels): ActionPermissions {
+        val isJoined = room?.roomSummary()?.membership == Membership.JOIN
+        return ActionPermissions(
+                canSendMessage = isJoined && powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
+                canReact = isJoined && powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
+                canRedact = isJoined && powerLevels.isUserAbleToRedact(session.myUserId),
+                canPinUnpin = isJoined && powerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
+        )
     }
 
     private fun observeEvent() {
@@ -238,20 +264,26 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     private fun observeReactions() {
         if (room == null) return
-        val quickReactions = pruneDeletedEmotes(quickReactionsDataSource.getQuickReactions())
         eventIdFlow
                 .flatMapLatest { eventId ->
-                    room.flow()
-                            .liveAnnotationSummary(eventId)
-                            .map { annotations ->
-                                quickReactions.map { emoji ->
-                                    ToggleState(emoji, annotations.getOrNull()?.reactionsSummary?.firstOrNull { it.key == emoji }?.addedByMe ?: false)
-                                }
-                            }
+                    combine(quickReactionKeys(), room.flow().liveAnnotationSummary(eventId)) { keys, annotations ->
+                        keys.map { emoji ->
+                            ToggleState(emoji, annotations.getOrNull()?.reactionsSummary?.firstOrNull { it.key == emoji }?.addedByMe ?: false)
+                        }
+                    }
                 }
                 .execute {
                     copy(quickStates = it)
                 }
+    }
+
+    // The stored list first and the pruned one only if pruning dropped an emote: resolving the image
+    // packs takes long enough that the quick reactions would arrive after the rest of the sheet.
+    private fun quickReactionKeys(): Flow<List<String>> = flow {
+        val stored = quickReactionsDataSource.getQuickReactions()
+        emit(stored)
+        val pruned = quickReactions.await()
+        if (pruned != stored) emit(pruned)
     }
 
     // Forget quick-reaction emotes whose image pack no longer has them (they'd render blank / send empty ::).
@@ -274,29 +306,54 @@ class MessageActionsViewModel @AssistedInject constructor(
     private fun observeTimelineEventState() {
         onEach(MessageActionState::timelineEvent, MessageActionState::actionPermissions) { timelineEvent, permissions ->
             val nonNullTimelineEvent = timelineEvent() ?: return@onEach
-            eventIdFlow.tryEmit(nonNullTimelineEvent.eventId)
-            // computeMessageBody runs the Markwon HTML render (tens to hundreds of ms on a slow device);
-            // keep it off the main thread so the sheet opens/animates immediately instead of holding the
-            // "-" preview placeholder while the main thread blocks on the render.
-            viewModelScope.launch(Dispatchers.Default) {
-                try {
-                    val restored = redactedContentRestorer.restoreEvent(nonNullTimelineEvent)
-                    // Actions read the raw event: which of Reveal/Hide/Edit/Redact apply depends on the
-                    // message still being redacted. Everything that renders content reads the restored one.
-                    val events = actionsForEvent(nonNullTimelineEvent, permissions, restored)
-                    val body = computeMessageBody(restored ?: nonNullTimelineEvent)
-                    setState {
-                        copy(
-                                eventId = nonNullTimelineEvent.eventId,
-                                messageBody = body,
-                                restoredEvent = restored,
-                                actions = events
-                        )
-                    }
-                } catch (failure: Throwable) {
-                    // A throw here would otherwise die silently and leave the sheet empty.
-                    Timber.e(failure, "Failed to compute message actions for ${nonNullTimelineEvent.eventId}")
+            startActionsComputation(nonNullTimelineEvent, permissions)
+        }
+    }
+
+    @Synchronized
+    private fun startActionsComputation(nonNullTimelineEvent: TimelineEvent, permissions: ActionPermissions) {
+        // The seeds reach observeTimelineEventState as an emission of their own; recomputing the same
+        // input would only throw away the pass that is already running (or done) for it.
+        if (computedInput == nonNullTimelineEvent to permissions) return
+        computedInput = nonNullTimelineEvent to permissions
+        eventIdFlow.tryEmit(nonNullTimelineEvent.eventId)
+        // A newer event or power level supersedes whatever is in flight, rather than both racing to
+        // publish and each triggering its own model build.
+        actionsJob?.cancel()
+        // computeMessageBody runs the Markwon HTML render (tens to hundreds of ms on a slow device);
+        // keep it off the main thread so the sheet opens/animates immediately instead of holding the
+        // "-" preview placeholder while the main thread blocks on the render.
+        actionsJob = viewModelScope.launch(Dispatchers.Default) {
+            try {
+                val restored = redactedContentRestorer.restoreEvent(nonNullTimelineEvent)
+                // Actions read the raw event: which of Reveal/Hide/Edit/Redact apply depends on the
+                // message still being redacted. Everything that renders content reads the restored one.
+                val events = PerfTrace.timeSuspending("longpress.actions") {
+                    actionsForEvent(nonNullTimelineEvent, permissions, restored)
                 }
+                // Before the body: that render is the expensive half and the actions must not wait on it.
+                // Unchanged where the result is the same, because liveTimelineEvent re-emits an event equal
+                // in everything the sheet reads but not by `equals`, and a new state means a model rebuild.
+                setState {
+                    if (eventId == nonNullTimelineEvent.eventId && restoredEvent == restored && actions == events) {
+                        return@setState this
+                    }
+                    copy(
+                            eventId = nonNullTimelineEvent.eventId,
+                            restoredEvent = restored,
+                            actions = events
+                    )
+                }
+                val body = PerfTrace.timeSuspending("longpress.body") {
+                    computeMessageBody(restored ?: nonNullTimelineEvent)
+                }
+                // By text: every render is a fresh Spannable, so an unchanged body would republish anyway.
+                setState { if (messageBody.toString() == body.toString()) this else copy(messageBody = body) }
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Throwable) {
+                // A throw here would otherwise die silently and leave the sheet empty.
+                Timber.e(failure, "Failed to compute message actions for ${nonNullTimelineEvent.eventId}")
             }
         }
     }
@@ -608,6 +665,18 @@ class MessageActionsViewModel @AssistedInject constructor(
                 add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!, mentionsAsIds = true)))
             }
 
+            if (canRedact(timelineEvent, actionPermissions)) {
+                val isPoll = timelineEvent.root.getClearType() in EventType.POLL_START.values
+                add(
+                        EventSharedAction.Redact(
+                                eventId,
+                                askForReason = informationData.senderId != session.myUserId,
+                                dialogTitleRes = if (isPoll) CommonStrings.delete_poll_dialog_title else CommonStrings.redact_event_dialog_title,
+                                dialogDescriptionRes = if (isPoll) CommonStrings.delete_poll_dialog_content else CommonStrings.redact_event_dialog_content
+                        )
+                )
+            }
+
             if (canTranslate(msgType, messageContent)) {
                 when {
                     messageTranslationStore.isTranslated(eventId) -> add(EventSharedAction.Untranslate(eventId))
@@ -655,28 +724,6 @@ class MessageActionsViewModel @AssistedInject constructor(
                     add(EventSharedAction.Unpin(eventId))
                 } else {
                     add(EventSharedAction.Pin(eventId))
-                }
-            }
-
-            if (canRedact(timelineEvent, actionPermissions)) {
-                if (timelineEvent.root.getClearType() in EventType.POLL_START.values) {
-                    add(
-                            EventSharedAction.Redact(
-                                    eventId,
-                                    askForReason = informationData.senderId != session.myUserId,
-                                    dialogTitleRes = CommonStrings.delete_poll_dialog_title,
-                                    dialogDescriptionRes = CommonStrings.delete_poll_dialog_content
-                            )
-                    )
-                } else {
-                    add(
-                            EventSharedAction.Redact(
-                                    eventId,
-                                    askForReason = informationData.senderId != session.myUserId,
-                                    dialogTitleRes = CommonStrings.redact_event_dialog_title,
-                                    dialogDescriptionRes = CommonStrings.redact_event_dialog_content
-                            )
-                    )
                 }
             }
         }
@@ -756,17 +803,15 @@ class MessageActionsViewModel @AssistedInject constructor(
             messageContent: MessageContent?,
             actionPermissions: ActionPermissions
     ): Boolean {
-        // We let reply in thread visible even if threads are not enabled, with an enhanced flow to attract users
-//        if (!vectorPreferences.areThreadMessagesEnabled()) return false
-        // Disable beta prompt if the homeserver do not support threads
-        if (!vectorPreferences.areThreadMessagesEnabled() &&
-                !session.homeServerCapabilitiesService().getHomeServerCapabilities().canUseThreading) return false
-
         if (initialState.isFromThreadTimeline) return false
         if (event.root.isThread()) return false
         if (event.root.getClearType() != EventType.MESSAGE &&
                 !event.isSticker() && !event.isPoll()) return false
         if (!actionPermissions.canSendMessage) return false
+        // Last, as the only check here that reads the database. Threads stay offered while disabled (the
+        // beta prompt), unless the homeserver cannot do them at all.
+        if (!vectorPreferences.areThreadMessagesEnabled() &&
+                !session.homeServerCapabilitiesService().getHomeServerCapabilities().canUseThreading) return false
         return when (messageContent?.msgType) {
             MessageType.MSGTYPE_TEXT,
             MessageType.MSGTYPE_NOTICE,

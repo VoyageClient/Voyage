@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.state
 
+import app.cash.sqldelight.Query
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
@@ -58,18 +59,39 @@ internal class StateEventDataSource @Inject constructor(
     }
 
     private fun query(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): List<Event> {
-        return database.currentStateEventQueries.selectByRoom(roomId).executeAsList()
+        return rows(roomId, eventTypes)
                 .filter { it.matches(eventTypes, stateKey) }
                 .mapNotNull { it.rootEvent() }
     }
 
     private fun queryFlow(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): Flow<List<Event>> {
-        return database.currentStateEventQueries.selectByRoom(roomId)
+        return rowsQuery(roomId, eventTypes)
                 .asFlow()
                 .mapToList(dispatcher)
                 // flowOn: rootEvent() is a query + JSON parse per state event, so it must not run on the collector's thread.
                 .map { rows -> rows.filter { it.matches(eventTypes, stateKey) }.mapNotNull { it.rootEvent() } }
                 .flowOn(dispatcher)
+    }
+
+    /**
+     * Narrowed to the types the caller named: a room's current state holds a row per member, so reading
+     * all of it to reach one m.room.power_levels costs hundreds of milliseconds in a large room.
+     */
+    private fun rows(roomId: String, eventTypes: Set<String>): List<CurrentStateEventRow> {
+        return if (eventTypes.size > 1) {
+            eventTypes.flatMap { database.currentStateEventQueries.selectByRoomAndType(roomId, it).executeAsList() }
+        } else {
+            rowsQuery(roomId, eventTypes).executeAsList()
+        }
+    }
+
+    private fun rowsQuery(roomId: String, eventTypes: Set<String>): Query<CurrentStateEventRow> {
+        val singleType = eventTypes.singleOrNull()
+        return if (singleType == null) {
+            database.currentStateEventQueries.selectByRoom(roomId)
+        } else {
+            database.currentStateEventQueries.selectByRoomAndType(roomId, singleType)
+        }
     }
 
     private fun CurrentStateEventRow.rootEvent(): Event? =

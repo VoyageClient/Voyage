@@ -19,6 +19,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import androidx.annotation.CallSuper
 import androidx.annotation.ColorInt
@@ -40,6 +41,7 @@ import com.google.android.material.shape.MaterialShapeDrawable
 import dagger.hilt.android.EntryPointAccessors
 import im.vector.app.core.di.ActivityEntryPoint
 import im.vector.app.core.extensions.toMvRxBundle
+import im.vector.app.core.extensions.withLayerCompat
 import im.vector.app.core.utils.DimensionConverter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -81,6 +83,12 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
 
     private var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>? = null
 
+    private var enterPrepared = false
+
+    private var enterPostponed = false
+
+    private var slideIn: (() -> Unit)? = null
+
     val vectorBaseActivity: VectorBaseActivity<*> by lazy {
         activity as VectorBaseActivity<*>
     }
@@ -113,6 +121,7 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
     @CallSuper
     override fun onDestroyView() {
         _binding = null
+        slideIn = null
         super.onDestroyView()
     }
 
@@ -165,14 +174,77 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
         val sheet = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) ?: return
         val surface = MaterialColors.getColor(sheetContext, com.google.android.material.R.attr.colorSurface, Color.TRANSPARENT)
         // The sheet slides in from off screen, so for those frames the strip is this band's to paint.
-        addNavigationBarBand(sheet, surface)
+        val band = addNavigationBarBand(sheet, surface)
+        animateSheetIn(sheet, band)
         // The background arrives with the first layout pass, and is replaced again on later ones.
         sheet.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> paintSheetSurface(sheet, surface) }
         paintSheetSurface(sheet, surface)
     }
 
-    private fun addNavigationBarBand(sheet: View, @ColorInt surface: Int) {
-        val container = (sheet.parent as? View)?.parent as? ViewGroup ?: return
+    /**
+     * The sheet's window is not floating, so that it can reach past the system bars to paint the
+     * navigation strip. Material's enter animation is a window animation, which a full-screen window
+     * would play on the scrim as well, so the sheet slides itself in instead.
+     */
+    private fun animateSheetIn(sheet: View, band: View?) {
+        if (enterPrepared) return
+        enterPrepared = true
+        // Off screen from the start: the first layout is what reveals the sheet, and waiting for it to
+        // arrive before moving the sheet down shows one frame of it already in place.
+        sheet.translationY = resources.displayMetrics.heightPixels.toFloat()
+        band?.translationY = sheet.translationY
+        sheet.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+            override fun onLayoutChange(v: View, l: Int, t: Int, r: Int, b: Int, ol: Int, ot: Int, or: Int, ob: Int) {
+                if (v.height == 0) return
+                v.removeOnLayoutChangeListener(this)
+                slideIn = {
+                    // What the resting state shows, not the sheet's full height: one peeking at half the
+                    // screen would otherwise start a screen down and slide that whole distance.
+                    val visibleHeight = ((v.parent as? View)?.height ?: v.height) - v.top
+                    v.translationY = visibleHeight.toFloat()
+                    band?.translationY = v.translationY
+                    v.slideToRest()
+                    band?.slideToRest()
+                }
+                if (!enterPostponed) startSlideIn()
+            }
+        })
+        if (enterPostponed) {
+            // The content it is waiting for may never arrive (no room, a failed read); the sheet still has
+            // to appear.
+            sheet.postDelayed({ startSlideIn() }, POSTPONED_ENTER_TIMEOUT_MS)
+        }
+    }
+
+    // withLayer: the sheet holds a screen of list rows, and re-rasterising those every frame is what
+    // the slide cannot afford.
+    private fun View.slideToRest() {
+        animate()
+                .translationY(0f)
+                .setDuration(ENTER_ANIMATION_DURATION_MS)
+                .setInterpolator(DecelerateInterpolator())
+                .withLayerCompat(this)
+                .start()
+    }
+
+    private fun startSlideIn() {
+        enterPostponed = false
+        slideIn?.invoke()
+        slideIn = null
+    }
+
+    /** Hold the sheet off screen until [startPostponedEnter], so it slides in with its content in place. */
+    protected fun postponeEnter() {
+        enterPostponed = true
+    }
+
+    protected fun startPostponedEnter() {
+        if (!enterPostponed) return
+        startSlideIn()
+    }
+
+    private fun addNavigationBarBand(sheet: View, @ColorInt surface: Int): View? {
+        val container = (sheet.parent as? View)?.parent as? ViewGroup ?: return null
         val band = View(container.context).apply { setBackgroundColor(surface) }
         // Behind the sheet's coordinator, so it takes none of the touches that dismiss the sheet.
         container.addView(band, 0, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, Gravity.BOTTOM))
@@ -180,6 +252,7 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
             band.updateLayoutParams { height = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom }
             insets
         }
+        return band
     }
 
     /** The strip the sheet covers is its own background, so it has to be exactly the sheet's surface. */
@@ -200,10 +273,10 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
         forceExpandState()
     }
 
-    protected fun setPeekHeightAsScreenPercentage(@FloatRange(from = 0.0, to = 1.0) percentage: Float) {
+    protected fun setPeekHeightAsScreenPercentage(@FloatRange(from = 0.0, to = 1.0) percentage: Float, animate: Boolean = true) {
         context?.let {
             val screenHeight = it.resources.displayMetrics.heightPixels
-            bottomSheetBehavior?.setPeekHeight((screenHeight * percentage).toInt(), true)
+            bottomSheetBehavior?.setPeekHeight((screenHeight * percentage).toInt(), animate)
         }
     }
 
@@ -245,5 +318,11 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
                         }
             }
         }
+    }
+
+    companion object {
+        // Matches the dismiss, which is BottomSheetBehavior settling the sheet through ViewDragHelper.
+        private const val ENTER_ANIMATION_DURATION_MS = 350L
+        private const val POSTPONED_ENTER_TIMEOUT_MS = 350L
     }
 }

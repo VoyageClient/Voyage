@@ -7,6 +7,8 @@
 
 package im.vector.app.core.extensions
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.graphics.drawable.Drawable
@@ -14,6 +16,7 @@ import android.os.Build
 import android.text.format.DateFormat
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewPropertyAnimator
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.SeekBar
@@ -141,3 +144,15 @@ fun getBestDateTimePatternCompat(locale: Locale, skeleton: String): String =
         } else {
             skeleton
         }
+
+// ViewPropertyAnimator.withLayer is API 16+ (and so is withEndAction); pre-16 does what it does — hold a
+// hardware layer for the duration of the animation — through a listener.
+fun ViewPropertyAnimator.withLayerCompat(view: View): ViewPropertyAnimator {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) return withLayer()
+    view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+    return setListener(object : AnimatorListenerAdapter() {
+        override fun onAnimationEnd(animation: Animator) {
+            view.setLayerType(View.LAYER_TYPE_NONE, null)
+        }
+    })
+}

@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isInvisible
@@ -77,7 +78,7 @@ abstract class BottomSheetActionItem : VectorEpoxyModel<BottomSheetActionItem.Ho
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
         }
         holder.icon.isVisible = showIcon
-        holder.icon.setImageResource(iconRes)
+        holder.icon.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, iconRes))
         ImageViewCompat.setImageTintList(holder.icon, ColorStateList.valueOf(tintColor))
         if (text != null) {
             holder.text.text = text

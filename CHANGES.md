@@ -226,7 +226,7 @@ New features, improvements, and notable removals in this fork.
 
 - **New crypto backend, libce**: replaced vodozemac with the libce submodule, enabling builds for old devices.
 
-- **Performance internals**: SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, and a memoized event mapper are what the faster, freeze-free app is built on.
+- **Performance internals**: SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, room-state reads narrowed to the type asked for instead of the room's whole state, and a memoized event mapper are what the faster, freeze-free app is built on.
 
 - **Next-generation sync (MSC4525 paginated sync, MSC4186 simplified sliding sync)**: when the homeserver offers either, syncing moves onto it, preferring paginated sync. Responses arrive bounded and room by room instead of in one huge batch, so the app becomes usable sooner on accounts with many rooms. Falls back to the standard sync when the server has neither, and can be turned off under Labs.
 

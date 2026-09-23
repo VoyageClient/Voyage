@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- A LinearLayout, not a ConstraintLayout: a sheet inflates a dozen of these rows before it can be
+     shown, and the constraint solver costs more than this row's single line of children needs. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,7 +10,9 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
     android:minHeight="50dp"
+    android:orientation="horizontal"
     android:paddingStart="@dimen/layout_horizontal_margin"
     android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingTop="8dp"
@@ -23,9 +27,6 @@
         android:layout_width="32dp"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
     <ImageView
@@ -34,67 +35,35 @@
         android:layout_height="26dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:layout_toEndOf="@id/actionStartSpace"
-        android:layout_toRightOf="@id/actionStartSpace"
         android:importantForAccessibility="no"
         android:scaleType="center"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/actionTitleContainer"
-        app:layout_constraintStart_toEndOf="@id/actionStartSpace"
-        app:layout_constraintTop_toTopOf="parent"
         app:tint="?vctr_content_secondary"
         tools:ignore="MissingPrefix"
         tools:src="@drawable/ic_room_actions_notifications_all" />
 
-    <FrameLayout
-        android:id="@+id/actionTitleContainer"
+    <TextView
+        android:id="@+id/actionTitle"
+        style="@style/Widget.Vector.TextView.Subtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/actionSelected"
-        app:layout_constraintStart_toEndOf="@id/actionIcon"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/actionTitle"
-            style="@style/Widget.Vector.TextView.Subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
-            android:drawablePadding="16dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="?vctr_content_secondary"
-            tools:drawableEnd="@drawable/ic_expand_more"
-            tools:drawableTint="?vctr_content_secondary"
-            tools:text="kdqsksqdk" />
-
-    </FrameLayout>
-
-    <ImageView
-        android:id="@+id/actionSelected"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/a11y_selected"
-        app:srcCompat="@drawable/ic_check_white_24dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="?colorPrimary"
-        tools:ignore="MissingPrefix"
-        tools:visibility="visible" />
-
+        android:layout_marginEnd="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_weight="1"
+        android:drawablePadding="16dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="?vctr_content_secondary"
+        tools:drawableEnd="@drawable/ic_expand_more"
+        tools:drawableTint="?vctr_content_secondary"
+        tools:text="kdqsksqdk" />
 
     <TextView
         android:id="@+id/actionBetaTextView"
         style="@style/Widget.Vector.TextView.Caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_marginEnd="1dp"
+        android:layout_marginRight="1dp"
         android:background="@drawable/notification_badge"
         android:backgroundTint="@color/palette_azure"
         android:gravity="center"
@@ -103,15 +72,21 @@
         android:paddingTop="3dp"
         android:paddingEnd="10dp"
         android:paddingRight="10dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginRight="1dp"
         android:paddingBottom="3dp"
-        android:visibility="gone"
-        tools:visibility="visible"
         android:text="@string/beta_title_bottom_sheet_action"
         android:textColor="@color/palette_white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/actionSelected"
-        app:layout_constraintTop_toTopOf="parent"/>
+        android:visibility="gone"
+        tools:visibility="visible" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/actionSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/a11y_selected"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_check_white_24dp"
+        app:tint="?colorPrimary"
+        tools:ignore="MissingPrefix"
+        tools:visibility="visible" />
+
+</LinearLayout>
