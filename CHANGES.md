@@ -116,7 +116,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Voice messages overhaul**: an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.
 
-- **Music in the timeline**: an audio message shows its embedded cover art blurred behind the message, with the track title and artist in place of the file name. Read from the file itself and kept, so it appears at once the next time.
+- **Audio metadata (MSC4549)**: an audio file shows the track's title, artist and album, with its cover art blurred behind the player.
 
 - **JPEG XL images**: `.jxl` images sent by other clients display in the timeline and the media viewer, and you can send them yourself. They are recognized as images rather than plain files, so they get a preview, a blurhash and correct dimensions, and can go through the image editor. Sending at original size keeps the file byte-for-byte; compressing re-encodes to WebP like any other format. Needs Android 5.0 or later; below that a `.jxl` still sends fine as a file attachment, it just can't be displayed.
 

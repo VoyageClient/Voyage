@@ -18,6 +18,7 @@ import android.graphics.RectF
 import android.net.Uri
 import android.text.format.DateUtils
 import android.text.method.MovementMethod
+import android.util.LruCache
 import android.view.MotionEvent
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
@@ -34,6 +35,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import com.vanniktech.blurhash.BlurHash
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
@@ -56,6 +58,8 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import io.noties.markwon.MarkwonPlugin
+import org.matrix.android.sdk.api.session.room.model.message.AudioMetadata
+import timber.log.Timber
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
@@ -76,6 +80,13 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
     @EpoxyAttribute
     var izLocalFile = false
+
+    /**
+     * What the sender said the track is (MSC4549). Believed over anything the file on this device
+     * says about itself: the sender is describing what they sent.
+     */
+    @EpoxyAttribute
+    var audioMetadata: AudioMetadata? = null
 
     /**
      * Where the bytes are on this device: the file picked for a send that is still going out, or a
@@ -185,13 +196,11 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     /**
-     * A music file usually knows more about itself than its name: the tags and the cover come off
-     * the file once it is downloaded, and until then it reads as it always did.
+     * A music file usually knows more about itself than its name. The sender may have said what it
+     * is (MSC4549), and otherwise the tags and the cover come off the file once it is downloaded;
+     * until then it reads as it always did.
      */
     private fun bindFileDetails(holder: Holder, onlyIfSourceChanged: Boolean = false) {
-        // Playing is what fetches a file that was never downloaded, so the provider is asked again
-        // rather than trusting what was known when the row was built.
-        val source = localSource ?: localSourceProvider?.invoke()
         // Tracked by message rather than by where its bytes are: an upload's source changes under
         // it — the picked file becomes a cached download, and its local echo becomes a real event —
         // and a row that resets there flickers back to the file name and the plain pill mid-send.
@@ -202,6 +211,14 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
             holder.detailsSource = null
             holder.loadingDetailsSource = null
         }
+        audioMetadata?.let {
+            if (!changed && onlyIfSourceChanged) return
+            bindEventDetails(holder, it)
+            return
+        }
+        // Playing is what fetches a file that was never downloaded, so the provider is asked again
+        // rather than trusting what was known when the row was built.
+        val source = localSource ?: localSourceProvider?.invoke()
         if (onlyIfSourceChanged && (holder.detailsSource == source || holder.loadingDetailsSource == source)) return
         val known = source?.let { AudioDetails.cached(it) }
         showFileDetails(holder, known, reset = changed)
@@ -225,6 +242,24 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
             }
         }
     }
+
+    /**
+     * What the event says. Its cover art is decoded here rather than handed off to a thread: at the
+     * size a pill stretches it to that is a fraction of a frame, and a backdrop that arrives later
+     * lands under a message the eye has already settled on.
+     */
+    private fun bindEventDetails(holder: Holder, metadata: AudioMetadata) {
+        val backdrop = metadata.coverArt?.takeIf { it.isNotBlank() }?.let { coverArtBackdrop(it) }
+        showFileDetails(holder, metadata.toDetails(backdrop), reset = true)
+    }
+
+    private fun AudioMetadata.toDetails(backdrop: Bitmap?) = AudioDetails.Details(
+            title = title?.takeIf { it.isNotBlank() },
+            artist = artist?.takeIf { it.isNotBlank() },
+            album = album?.takeIf { it.isNotBlank() },
+            art = null,
+            backdrop = backdrop,
+    )
 
     private fun showFileDetails(holder: Holder, details: AudioDetails.Details?, reset: Boolean) {
         // Nothing to say and nothing to clear: leave the row showing what it already found.
@@ -320,7 +355,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         )
         Canvas(output).apply {
             drawBitmap(backdrop, null, destination, Paint(Paint.FILTER_BITMAP_FLAG))
-            drawColor(ColorUtils.setAlphaComponent(Color.BLACK, (BACKDROP_SCRIM_ALPHA * 255).toInt()))
+            drawColor(ColorUtils.setAlphaComponent(Color.BLACK, (scrimAlpha(backdrop) * 255).toInt()))
         }
         return output
     }
@@ -503,6 +538,62 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
         /** Dark enough to read white text on, light enough to leave the artwork its colour. */
         private const val BACKDROP_SCRIM_ALPHA = 0.6f
+
+        /** What the artwork may read at once the scrim is over it, before white stops being legible. */
+        private const val TARGET_LUMINANCE = 0.25f
+        private const val MAX_SCRIM_ALPHA = 0.85f
+
+        /** Roughly this many pixels across is plenty to average a blur down to one number. */
+        private const val LUMINANCE_SAMPLES = 24
+
+        /** A cover art hash decodes to this square; it is stretched across the message from there. */
+        private const val COVER_ART_DIMENSION = 48
+
+        /** A screenful of players' worth of backdrops; decoding a hash is not free. */
+        private val coverArtBackdrops = LruCache<String, Bitmap>(32)
+
+        /**
+         * A cover art BlurHash (MSC4549) at the size a player stretches it to. Small enough to
+         * decode in a bind — a few thousand terms — so a player never appears before its backdrop.
+         */
+        private fun coverArtBackdrop(hash: String): Bitmap? {
+            coverArtBackdrops.get(hash)?.let { return it }
+            // useCache = false: the library's cosine-table cache is not thread-safe.
+            val backdrop = runCatching { BlurHash.decode(hash, COVER_ART_DIMENSION, COVER_ART_DIMENSION, useCache = false) }
+                    .onFailure { Timber.w(it, "Cannot decode a cover art hash") }
+                    .getOrNull() ?: return null
+            coverArtBackdrops.put(hash, backdrop)
+            return backdrop
+        }
+
+        /**
+         * How far to darken [backdrop] to read white text on it. Bright artwork — a white sleeve, a
+         * washed-out photo — leaves nothing to tell the letters from under the flat veil that suits
+         * an ordinary cover, so the veil deepens with the artwork.
+         */
+        private fun scrimAlpha(backdrop: Bitmap): Float {
+            val luminance = averageLuminance(backdrop)
+            if (luminance <= 0f) return BACKDROP_SCRIM_ALPHA
+            return (1f - TARGET_LUMINANCE / luminance).coerceIn(BACKDROP_SCRIM_ALPHA, MAX_SCRIM_ALPHA)
+        }
+
+        private fun averageLuminance(backdrop: Bitmap): Float {
+            val step = maxOf(1, maxOf(backdrop.width, backdrop.height) / LUMINANCE_SAMPLES)
+            var total = 0f
+            var count = 0
+            var y = 0
+            while (y < backdrop.height) {
+                var x = 0
+                while (x < backdrop.width) {
+                    val pixel = backdrop.getPixel(x, y)
+                    total += 0.2126f * (pixel shr 16 and 0xFF) + 0.7152f * (pixel shr 8 and 0xFF) + 0.0722f * (pixel and 0xFF)
+                    count++
+                    x += step
+                }
+                y += step
+            }
+            return if (count == 0) 0f else total / count / 255f
+        }
 
         /** Matches bg_media_pill, which the backdrop stands in for. */
         private const val PILL_CORNER_RADIUS_DP = 12f

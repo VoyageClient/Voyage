@@ -523,7 +523,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             return handled
         }
 
-        /** What the file says it is, with a blown-up copy of its art behind the page as VLC does. */
+        /** What the file says it is, with a blown-up copy of its art behind the page. */
         private fun loadDetails(uri: Uri) {
             coverUri = uri
             val cached = AudioDetails.cached(uri)

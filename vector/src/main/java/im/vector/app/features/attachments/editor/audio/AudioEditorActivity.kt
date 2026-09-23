@@ -362,7 +362,7 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
         }
     }
 
-    /** What the file says it is, with a blown-up copy of its art behind the screen as VLC does. */
+    /** What the file says it is, with a blown-up copy of its art behind the screen. */
     private fun loadDetails() {
         AudioDetails.cached(sourceUri)?.let {
             showDetails(it)

@@ -34,5 +34,15 @@ data class AudioInfo(
         /**
          * The duration of the audio in milliseconds.
          */
-        @Json(name = "duration") val duration: Int? = null
-)
+        @Json(name = "duration") val duration: Int? = null,
+
+        /**
+         * MSC4549: what the track says about itself.
+         */
+        @Json(name = "audio_metadata") val audioMetadata: AudioMetadata? = null,
+
+        @Json(name = "org.matrix.msc4549.audio_metadata") val unstableAudioMetadata: AudioMetadata? = null,
+) {
+    val metadata: AudioMetadata?
+        get() = (audioMetadata ?: unstableAudioMetadata)?.takeIfNotEmpty()
+}

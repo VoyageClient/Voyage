@@ -23,7 +23,7 @@ import java.security.MessageDigest
 
 /**
  * What an audio file says about itself: its tags, the picture embedded in it, and the backdrop
- * VLC's player builds out of that — the art blurred and blown up far past its size.
+ * built out of that — the art blurred and blown up far past its size.
  */
 object AudioDetails {
 

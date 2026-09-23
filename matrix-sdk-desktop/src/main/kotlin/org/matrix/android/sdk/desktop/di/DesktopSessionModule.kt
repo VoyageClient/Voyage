@@ -42,6 +42,7 @@ import org.matrix.android.sdk.internal.session.media.LinkPreviewPrefetcher
 import org.matrix.android.sdk.internal.session.media.UrlPreviewBundler
 import org.matrix.android.sdk.internal.session.media.WebUrlPattern
 import org.matrix.android.sdk.internal.session.room.DefaultRoomService
+import org.matrix.android.sdk.internal.session.room.send.AudioMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.internal.session.room.threads.DefaultThreadsService
@@ -129,6 +130,9 @@ internal abstract class DesktopSessionModule {
 
     @Binds
     abstract fun bindVideoMetadataExtractor(extractor: DesktopVideoMetadataExtractor): VideoMetadataExtractor
+
+    @Binds
+    abstract fun bindAudioMetadataExtractor(extractor: DesktopAudioMetadataExtractor): AudioMetadataExtractor
 
     @Binds
     abstract fun bindTextPillsUtils(utils: DesktopTextPillsUtils): TextPillsUtils

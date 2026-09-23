@@ -72,6 +72,7 @@ class LocalEchoEventFactoryTests {
     private val localEchoEventFactory = LocalEchoEventFactory(
             // Nothing under test reads a video's size; the real one needs MediaMetadataRetriever.
             videoMetadataExtractor = VideoMetadataExtractor { 0 to 0 },
+            audioMetadataExtractor = AudioMetadataExtractor { null },
             userId = A_USER_ID_1,
             markdownParser = fakeMarkdownParser.instance,
             textPillsUtils = fakeTextPillsUtils.instance,

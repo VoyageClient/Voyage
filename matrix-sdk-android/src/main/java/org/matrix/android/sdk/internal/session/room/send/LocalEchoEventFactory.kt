@@ -91,6 +91,7 @@ import kotlin.math.roundToInt
  */
 internal class LocalEchoEventFactory @Inject constructor(
         private val videoMetadataExtractor: VideoMetadataExtractor,
+        private val audioMetadataExtractor: AudioMetadataExtractor,
         @UserId private val userId: String,
         private val markdownParser: MarkdownParser,
         private val textPillsUtils: TextPillsUtils,
@@ -729,6 +730,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             mentions: Mentions? = null,
     ): MessageAudioContent {
         val body = buildMediaBody(attachment, "audio", captionText, captionFormattedText, autoMarkdown)
+        val metadata = if (isVoiceMessage) null else audioMetadataExtractor.extractAudioMetadata(attachment)
         return MessageAudioContent(
                 msgType = MessageType.MSGTYPE_AUDIO,
                 body = body.body,
@@ -738,7 +740,9 @@ internal class LocalEchoEventFactory @Inject constructor(
                 audioInfo = AudioInfo(
                         duration = attachment.duration?.toInt(),
                         mimeType = attachment.getSafeMimeType()?.takeIf { it.isNotBlank() },
-                        size = attachment.size
+                        size = attachment.size,
+                        audioMetadata = metadata,
+                        unstableAudioMetadata = metadata,
                 ),
                 url = attachment.queryUri,
                 audioWaveformInfo = if (!isVoiceMessage) null else AudioWaveformInfo(

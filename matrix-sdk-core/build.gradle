@@ -447,6 +447,7 @@ ext.coreSources = [
         // AndroidThumbnailExtractor, AndroidTextPillsUtils) stay android. MarkdownParser + its commonmark
         // qualifier annotations come along.
         'org/matrix/android/sdk/internal/session/room/send/VideoMetadataExtractor.kt',
+        'org/matrix/android/sdk/internal/session/room/send/AudioMetadataExtractor.kt',
         'org/matrix/android/sdk/internal/session/content/ThumbnailExtractor.kt',
         'org/matrix/android/sdk/internal/session/room/send/pills/TextPillsUtils.kt',
         'org/matrix/android/sdk/internal/session/room/send/MarkdownParser.kt',

@@ -416,6 +416,7 @@ class MessageItemFactory @Inject constructor(
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
+                .audioMetadata(messageContent.audioInfo?.metadata)
                 .localSource(localAudioSource(messageContent, fileUrl))
                 .localSourceProvider { localAudioSource(messageContent, fileUrl) }
                 .fileSize(messageContent.audioInfo?.size ?: 0L)

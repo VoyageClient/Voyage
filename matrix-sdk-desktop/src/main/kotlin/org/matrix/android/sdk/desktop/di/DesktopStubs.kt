@@ -11,11 +11,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.room.model.message.AudioMetadata
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.session.content.ContentUriResolver
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 import org.matrix.android.sdk.internal.session.media.ImageDimensionsReader
 import org.matrix.android.sdk.internal.session.media.WebUrlPattern
+import org.matrix.android.sdk.internal.session.room.send.AudioMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
@@ -53,6 +55,12 @@ internal class DesktopVideoMetadataExtractor @Inject constructor() : VideoMetada
     // No media stack to demux with. The dimensions only feed the event's info block, and android
     // reports the same 0x0 when a file carries no dimension metadata, so the send still goes through.
     override fun getVideoSize(attachment: ContentAttachmentData): Pair<Int, Int> = 0 to 0
+}
+
+internal class DesktopAudioMetadataExtractor @Inject constructor() : AudioMetadataExtractor {
+
+    // No media stack to read tags with; an m.audio send simply carries no MSC4549 metadata.
+    override fun extractAudioMetadata(attachment: ContentAttachmentData): AudioMetadata? = null
 }
 
 internal class DesktopTextPillsUtils @Inject constructor() : TextPillsUtils {
