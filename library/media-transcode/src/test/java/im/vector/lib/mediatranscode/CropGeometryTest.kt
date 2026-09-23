@@ -124,6 +124,16 @@ class CropGeometryTest {
     }
 
     @Test
+    fun `an explicit size that does not align keeps the picture's shape`() {
+        // A 360x640 source: 360 rounds down to 352, which would squash the frame by 2%.
+        val output = CropGeometry.outputFor(360, 640, whole, targetWidth = 360, targetHeight = 640)
+        output.width shouldBeEqualTo 352
+        output.height shouldBeEqualTo 640
+        val cropAspect = (output.crop[2] - output.crop[0]) * 360 / ((output.crop[3] - output.crop[1]) * 640)
+        cropAspect shouldBeCloseToFloat output.width.toFloat() / output.height
+    }
+
+    @Test
     fun `a tiny crop still produces an encodable frame, at its own shape`() {
         // 19x11 of a 1080p frame, lifted off the floor without becoming a square.
         val output = CropGeometry.outputFor(1920, 1080, floatArrayOf(0f, 0f, 0.01f, 0.01f))

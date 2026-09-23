@@ -91,7 +91,7 @@ internal class ReverseTranscodeExporter(private val context: Context) {
             encoder.start()
 
             decoder = MediaCodec.createDecoderByType(source.videoMime).apply {
-                configure(sourceFormat, outputSurface.surface, null, 0)
+                configure(sourceFormat.withoutRotation(), outputSurface.surface, null, 0)
                 start()
             }
 

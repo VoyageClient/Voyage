@@ -50,7 +50,12 @@ internal object CropGeometry {
         val cropWidth = (crop[2] - crop[0]) * displayWidth
         val cropHeight = (crop[3] - crop[1]) * displayHeight
         if (targetWidth != null && targetHeight != null) {
-            return Output(align(targetWidth, displayWidth), align(targetHeight, displayHeight), crop)
+            val width = align(targetWidth, displayWidth)
+            val height = align(targetHeight, displayHeight)
+            // The size asked for is honoured as given, but the rounding it goes through is not the
+            // caller's doing, so the crop absorbs it rather than the picture stretching.
+            val drift = (width.toFloat() / height) / (targetWidth.toFloat() / targetHeight)
+            return Output(width, height, fitToAspect(crop, cropWidth, cropHeight, cropWidth / cropHeight * drift))
         }
         if (cropWidth <= 0f || cropHeight <= 0f) return Output(align(displayWidth, displayWidth), align(displayHeight, displayHeight), crop)
         // Both axes are lifted off the floor by the same factor, or a long thin crop would come out

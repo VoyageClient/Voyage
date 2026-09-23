@@ -40,3 +40,11 @@ internal fun MediaFormat.getIntOrNull(key: String): Int? =
 @RequiresApi(16)
 internal fun MediaFormat.getLongOrNull(key: String): Long? =
         if (containsKey(key)) runCatching { getLong(key) }.getOrNull() else null
+
+/**
+ * From API 21 a decoder turns its surface output by the container's rotation, which here would
+ * come on top of the turn the GL stage or the muxer's hint already makes. MediaFormat.KEY_ROTATION
+ * is API 23, and the platform reads this name at every level.
+ */
+@RequiresApi(16)
+internal fun MediaFormat.withoutRotation(): MediaFormat = apply { setInteger("rotation-degrees", 0) }

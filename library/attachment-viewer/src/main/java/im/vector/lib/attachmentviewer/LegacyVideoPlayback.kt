@@ -43,7 +43,8 @@ internal class LegacyVideoPlayback : VideoPlayback {
                     setDataSource(source)
                 }
                 isLooping = looping
-                setOnVideoSizeChangedListener { _, width, height -> listener.onVideoSizeChanged(width, height, 1f) }
+                // MediaPlayer rotates the frames itself and reports the size it has rotated them to.
+                setOnVideoSizeChangedListener { _, width, height -> listener.onVideoSizeChanged(width, height, 1f, 0) }
                 setOnPreparedListener {
                     prepared = true
                     listener.onReady()

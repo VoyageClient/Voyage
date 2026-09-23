@@ -92,7 +92,7 @@ internal class TranscodeExporter(private val context: Context) {
             encoder.start()
 
             decoder = MediaCodec.createDecoderByType(source.videoMime).apply {
-                configure(sourceFormat, outputSurface?.surface ?: encoderSurface, null, 0)
+                configure(sourceFormat.withoutRotation(), outputSurface?.surface ?: encoderSurface, null, 0)
                 start()
             }
 

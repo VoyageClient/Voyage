@@ -19,7 +19,9 @@ internal interface VideoPlayback {
 
     interface Listener {
         fun onReady()
-        fun onVideoSizeChanged(width: Int, height: Int, pixelWidthHeightRatio: Float)
+
+        /** [unappliedRotationDegrees] is the clockwise rotation the caller still has to apply itself. */
+        fun onVideoSizeChanged(width: Int, height: Int, pixelWidthHeightRatio: Float, unappliedRotationDegrees: Int)
         fun onCompletion()
         fun onError()
     }

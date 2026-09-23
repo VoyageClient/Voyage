@@ -65,6 +65,7 @@ class VideoViewHolder constructor(itemView: View) :
     private var waitingForFirstFrame = false
     private var videoWidth = 0f
     private var videoHeight = 0f
+    private var videoRotation = 0
     private var playbackSpeed = 1f
     private var pitchFollowsSpeed = true
     private var rebuiltForSpeed = false
@@ -277,18 +278,25 @@ class VideoViewHolder constructor(itemView: View) :
         val vw = view.width.toFloat()
         val vh = view.height.toFloat()
         if (vw <= 0f || vh <= 0f || videoWidth <= 0 || videoHeight <= 0) return
-        val scale = minOf(vw / videoWidth, vh / videoHeight)
-        val drawnW = videoWidth * scale
-        val drawnH = videoHeight * scale
+        val sideways = videoRotation % 180 == 90
+        val displayW = if (sideways) videoHeight else videoWidth
+        val displayH = if (sideways) videoWidth else videoHeight
+        val scale = minOf(vw / displayW, vh / displayH)
+        val drawnW = displayW * scale
+        val drawnH = displayH * scale
         seekRippleDrawable.contentRect = Rect(
                 ((vw - drawnW) / 2f).toInt(),
                 ((vh - drawnH) / 2f).toInt(),
                 ((vw + drawnW) / 2f).toInt(),
                 ((vh + drawnH) / 2f).toInt()
         )
+        // The surface still holds unrotated frames, so it is laid out sideways and then turned.
+        val preW = if (sideways) drawnH else drawnW
+        val preH = if (sideways) drawnW else drawnH
         baseMatrix.reset()
-        baseMatrix.setScale(drawnW / vw, drawnH / vh)
-        baseMatrix.postTranslate((vw - drawnW) / 2f, (vh - drawnH) / 2f)
+        baseMatrix.setScale(preW / vw, preH / vh)
+        baseMatrix.postTranslate((vw - preW) / 2f, (vh - preH) / 2f)
+        if (videoRotation != 0) baseMatrix.postRotate(videoRotation.toFloat(), vw / 2f, vh / 2f)
         applyDrawMatrix()
     }
 
@@ -449,9 +457,10 @@ class VideoViewHolder constructor(itemView: View) :
                 }
             }
 
-            override fun onVideoSizeChanged(width: Int, height: Int, pixelWidthHeightRatio: Float) {
+            override fun onVideoSizeChanged(width: Int, height: Int, pixelWidthHeightRatio: Float, unappliedRotationDegrees: Int) {
                 videoWidth = width * (pixelWidthHeightRatio.takeIf { it > 0f } ?: 1f)
                 videoHeight = height.toFloat()
+                videoRotation = ((unappliedRotationDegrees % 360) + 360) % 360
                 applyAspectMatrix()
             }
 
@@ -660,6 +669,7 @@ class VideoViewHolder constructor(itemView: View) :
         itemView.removeCallbacks(revealFallback)
         videoWidth = 0f
         videoHeight = 0f
+        videoRotation = 0
         progress = 0
         wasPaused = false
         endedNaturally = false
