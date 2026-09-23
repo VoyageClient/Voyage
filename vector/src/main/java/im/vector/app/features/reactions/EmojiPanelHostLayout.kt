@@ -43,7 +43,7 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
     }
 
     /** Whether the window lost focus because the app is going away, rather than to a window of our own. */
-    internal var isAppLeaving: () -> Boolean = { hostActivity()?.isTopResumedActivity == false }
+    internal var isAppLeaving: () -> Boolean = { hostActivity()?.isLosingFocusToAnotherApp == true }
 
     /** The strip itself; the emoji panel is parented here. */
     val strip: ViewGroup get() = checkNotNull(stripView) { "emojiPanelContainer missing" }

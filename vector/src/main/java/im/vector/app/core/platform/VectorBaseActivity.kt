@@ -65,6 +65,7 @@ import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.error.fatalError
 import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.core.extensions.hasShowingDialogFragment
 import im.vector.app.core.extensions.observeEvent
 import im.vector.app.core.extensions.observeNotNull
 import im.vector.app.core.extensions.registerStartForActivityResult
@@ -648,6 +649,18 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         super.onTopResumedActivityChanged(isTopResumedActivity)
         this.isTopResumedActivity = isTopResumedActivity
     }
+
+    /**
+     * Whether the window losing focus means the app itself is going away, rather than one of our own windows
+     * taking over. Below API 29 nothing reports the task change, so fall back to spotting our own dialogs —
+     * a plain framework dialog is missed there and reads as leaving, which only costs a late relayout.
+     */
+    val isLosingFocusToAnotherApp: Boolean
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            !isTopResumedActivity
+        } else {
+            !supportFragmentManager.hasShowingDialogFragment()
+        }
 
     override fun onPause() {
         super.onPause()
