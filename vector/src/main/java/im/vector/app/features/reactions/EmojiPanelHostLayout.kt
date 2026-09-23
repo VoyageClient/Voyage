@@ -30,6 +30,15 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
     private var stripView: ViewGroup? = null
     private var desiredStripHeight = 0
     private var unshrunkHeight = 0
+    private var frozenHeight = 0
+    private var frozenWidth = 0
+
+    // Always through requestLayout(): a measure we answered while frozen sits in the view's measure cache,
+    // and without the forced pass a later resize can be served that stale height instead of remeasuring.
+    private val clearFreeze = Runnable {
+        frozenHeight = 0
+        requestLayout()
+    }
 
     /** The strip itself; the emoji panel is parented here. */
     val strip: ViewGroup get() = checkNotNull(stripView) { "emojiPanelContainer missing" }
@@ -46,6 +55,31 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
         requestLayout()
     }
 
+    /**
+     * Losing window focus (app switcher, a dialog) dismisses the keyboard, and the window grows back to full
+     * height while the keyboard is still drawn over it for the rest of the animation. Hold the height we have
+     * until focus returns instead; the keyboard is restored with it, so nothing moves either way.
+     */
+    override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+        if (hasWindowFocus) unfreezeHeightWhenSettled() else freezeHeight()
+    }
+
+    private fun freezeHeight() {
+        removeCallbacks(clearFreeze)
+        if (height > 0) {
+            frozenHeight = height
+            frozenWidth = width
+        }
+    }
+
+    /** Ends once the window really is that height again (the keyboard came back), or after the grace period. */
+    private fun unfreezeHeightWhenSettled() {
+        if (frozenHeight == 0) return
+        removeCallbacks(clearFreeze)
+        postDelayed(clearFreeze, FREEZE_GRACE_MS)
+    }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         // Rotation or a multi-window resize: the old full height means nothing now.
@@ -53,12 +87,26 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val available = MeasureSpec.getSize(heightMeasureSpec)
+        if (frozenHeight != 0) {
+            val widthChanged = MeasureSpec.getSize(widthMeasureSpec) != frozenWidth
+            // Settled: the window really is the height we are holding, so letting go changes nothing on screen.
+            if (widthChanged || MeasureSpec.getSize(heightMeasureSpec) == frozenHeight) {
+                if (widthChanged) frozenHeight = 0
+                removeCallbacks(clearFreeze)
+                post(clearFreeze)
+            }
+        }
+        val heightSpec = if (frozenHeight != 0) MeasureSpec.makeMeasureSpec(frozenHeight, MeasureSpec.EXACTLY) else heightMeasureSpec
+        val available = MeasureSpec.getSize(heightSpec)
         if (available > unshrunkHeight) unshrunkHeight = available
         val takenByKeyboard = (unshrunkHeight - available).coerceAtLeast(0)
         val height = (desiredStripHeight - takenByKeyboard).coerceAtLeast(0)
         // In-place so this measure pass uses it; assigning layoutParams would schedule another one.
         stripView?.layoutParams?.let { if (it.height != height) it.height = height }
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        super.onMeasure(widthMeasureSpec, heightSpec)
+    }
+
+    companion object {
+        private const val FREEZE_GRACE_MS = 600L
     }
 }
