@@ -6,7 +6,6 @@
          a floating window can never reach past the system bars, so the sheet could not paint that strip. -->
     <style name="Theme.Vector.BottomSheetDialog.Light" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
         <item name="android:windowIsFloating">false</item>
-        <item name="android:windowSoftInputMode">adjustResize</item>
         <item name="enableEdgeToEdge">true</item>
         <item name="paddingBottomSystemWindowInsets">true</item>
         <item name="paddingLeftSystemWindowInsets">true</item>
@@ -29,7 +28,6 @@
 
     <style name="Theme.Vector.BottomSheetDialog.Dark" parent="Theme.MaterialComponents.BottomSheetDialog">
         <item name="android:windowIsFloating">false</item>
-        <item name="android:windowSoftInputMode">adjustResize</item>
         <item name="enableEdgeToEdge">true</item>
         <item name="paddingBottomSystemWindowInsets">true</item>
         <item name="paddingLeftSystemWindowInsets">true</item>
