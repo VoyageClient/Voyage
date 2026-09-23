@@ -18,16 +18,18 @@ package org.matrix.android.sdk.internal.network
 
 import okhttp3.Interceptor
 import okhttp3.Response
+import org.matrix.android.sdk.api.MatrixConfiguration
 import javax.inject.Inject
 
-internal class UserAgentInterceptor @Inject constructor(private val userAgentHolder: UserAgentHolder) : Interceptor {
+internal class UserAgentInterceptor @Inject constructor(matrixConfiguration: MatrixConfiguration) : Interceptor {
+
+    private val userAgent = matrixConfiguration.userAgent
 
     override fun intercept(chain: Interceptor.Chain): Response {
         var request = chain.request()
         val newRequestBuilder = request.newBuilder()
         // Add the user agent to all requests if it is set
-        userAgentHolder.userAgent
-                .takeIf { it.isNotBlank() }
+        userAgent.takeIf { it.isNotBlank() }
                 ?.let {
                     newRequestBuilder.header(HttpHeaders.UserAgent, it)
                 }

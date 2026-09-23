@@ -29,7 +29,6 @@ import org.matrix.android.sdk.api.network.ApiPath
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.network.ApiInterceptor
-import org.matrix.android.sdk.internal.network.UserAgentHolder
 import org.matrix.android.sdk.internal.platform.AndroidAppStateDriver
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 import org.matrix.android.sdk.internal.worker.MatrixWorkerFactory
@@ -39,11 +38,10 @@ import javax.inject.Inject
 /**
  * This mimics the Matrix class but using TestMatrixComponent internally instead of regular MatrixComponent.
  */
-internal class TestMatrix(context: Context, matrixConfiguration: MatrixConfiguration) {
+internal class TestMatrix(context: Context, private val matrixConfiguration: MatrixConfiguration) {
 
     @Inject internal lateinit var authenticationService: AuthenticationService
     @Inject internal lateinit var rawService: RawService
-    @Inject internal lateinit var userAgentHolder: UserAgentHolder
     @Inject internal lateinit var backgroundDetectionObserver: BackgroundDetectionObserver
     @Inject internal lateinit var sessionManager: SessionManager
     @Inject internal lateinit var homeServerHistoryService: HomeServerHistoryService
@@ -66,7 +64,7 @@ internal class TestMatrix(context: Context, matrixConfiguration: MatrixConfigura
         AndroidAppStateDriver(backgroundDetectionObserver).start()
     }
 
-    fun getUserAgent() = userAgentHolder.userAgent
+    fun getUserAgent() = matrixConfiguration.userAgent
 
     fun authenticationService(): AuthenticationService {
         return authenticationService

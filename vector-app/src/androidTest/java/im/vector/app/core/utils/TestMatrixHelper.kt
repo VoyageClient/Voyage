@@ -15,6 +15,7 @@ import org.matrix.android.sdk.api.SyncConfig
 fun getMatrixInstance(): Matrix {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
     val configuration = MatrixConfiguration(
+            userAgent = "TestAgent",
             roomDisplayNameFallbackProvider = TestRoomDisplayNameFallbackProvider(),
             syncConfig = SyncConfig(longPollTimeout = 5_000L),
     )

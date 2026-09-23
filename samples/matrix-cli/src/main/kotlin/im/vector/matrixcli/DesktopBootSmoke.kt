@@ -61,10 +61,9 @@ class DesktopBootSmoke {
         return DesktopMatrix(
                 dataDir = componentDataDir,
                 matrixConfiguration = MatrixConfiguration(
-                        applicationFlavor = "MatrixCli",
+                        userAgent = "MatrixCli/0.1",
                         roomDisplayNameFallbackProvider = CliRoomDisplayNameFallbackProvider,
                 ),
-                userAgent = { "MatrixCli/0.1" },
         ).component
     }
 

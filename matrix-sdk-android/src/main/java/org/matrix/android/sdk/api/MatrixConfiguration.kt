@@ -27,7 +27,11 @@ import org.matrix.android.sdk.api.provider.RoomDisplayNameFallbackProvider
 import java.net.Proxy
 
 data class MatrixConfiguration(
-        val applicationFlavor: String = "Default-application-flavor",
+        /**
+         * User-Agent sent on every request. Keep it free of app version, device and build details:
+         * the homeserver stores it per device and exposes it to anyone who can see the device list.
+         */
+        val userAgent: String,
         val cryptoConfig: MXCryptoConfig = MXCryptoConfig(),
         val integrationUIUrl: String = "https://scalar.vector.im/",
         val integrationRestUrl: String = "https://scalar.vector.im/api",

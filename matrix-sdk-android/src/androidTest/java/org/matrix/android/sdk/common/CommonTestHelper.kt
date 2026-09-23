@@ -127,7 +127,7 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
             _matrix = TestMatrix(
                     context,
                     MatrixConfiguration(
-                            applicationFlavor = "TestFlavor",
+                            userAgent = "TestAgent",
                             roomDisplayNameFallbackProvider = TestRoomDisplayNameFallbackProvider(),
                             syncConfig = SyncConfig(longPollTimeout = 5_000L),
                             cryptoConfig = cryptoConfig ?: MXCryptoConfig()

@@ -39,10 +39,9 @@ class DesktopSessionRun(
     private val matrix = DesktopMatrix(
             dataDir = dataDir,
             matrixConfiguration = MatrixConfiguration(
-                    applicationFlavor = "MatrixCli",
+                    userAgent = "MatrixCli/0.1",
                     roomDisplayNameFallbackProvider = CliRoomDisplayNameFallbackProvider,
             ),
-            userAgent = { "MatrixCli/0.1" },
     )
 
     fun run() = runBlocking {

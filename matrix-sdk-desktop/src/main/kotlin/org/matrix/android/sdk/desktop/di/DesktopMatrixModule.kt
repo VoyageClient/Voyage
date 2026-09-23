@@ -23,7 +23,6 @@ import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.di.CacheDirectory
 import org.matrix.android.sdk.internal.di.FilesDirectory
 import org.matrix.android.sdk.internal.di.MatrixScope
-import org.matrix.android.sdk.internal.network.ComputeUserAgentUseCase
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
 import org.matrix.android.sdk.internal.platform.SecureStorage
@@ -41,7 +40,6 @@ internal class DesktopMatrixModule(
         private val dataDir: File,
         private val cacheDir: File,
         private val mainDispatcher: CoroutineDispatcher?,
-        private val userAgent: () -> String,
 ) {
 
     init {
@@ -100,9 +98,4 @@ internal class DesktopMatrixModule(
     @Provides
     @MatrixScope
     fun providesSecureStorageService(secureStorage: SecureStorage): SecureStorageService = DesktopSecureStorageService(secureStorage)
-
-    @Provides
-    fun providesComputeUserAgentUseCase(): ComputeUserAgentUseCase = object : ComputeUserAgentUseCase {
-        override fun execute(flavorDescription: String) = userAgent()
-    }
 }

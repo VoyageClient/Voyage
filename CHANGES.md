@@ -174,6 +174,8 @@ New features, improvements, and notable removals in this fork.
 
 - **VPN protection**: opt-in warnings when your VPN is off. A full-screen warning blocks all network activity until you confirm, switching accounts asks first, and a per-account list decides which accounts are protected.
 
+- **Minimal User-Agent**: requests send just the app name, instead of the app version, phone manufacturer, model, Android version and build ID that the homeserver would otherwise store and show alongside your session.
+
 - **Metadata stripping on upload**: sent photos and videos no longer leak embedded metadata, including GPS location, capture timestamps, camera make, model and serial numbers, and the hidden EXIF thumbnail. JPEG, PNG and WebP are scrubbed losslessly while keeping display orientation, formats that can't be scrubbed in place such as HEIC are re-encoded, and videos are re-muxed to drop their location atoms without re-encoding. Images sent through the file picker, plus profile and room avatars and banners, are covered too. Stripping metadata and randomizing uploaded file names are each a three-way choice of always, never, or only in public rooms, and each room can override either of them.
 
 - **Direction-override (RLO) spoofing protection**: hostile Unicode direction-override characters in display names, messages, mention pills and room names no longer flip the surrounding text backwards, a trick used to spoof user IDs and file extensions. They show as a visible placeholder box instead. Genuine right-to-left text is unaffected.

@@ -50,7 +50,7 @@ class DefaultGetCurrentFilterTaskTest {
             homeServerCapabilitiesDataSource = homeServerCapabilitiesDataSource.instance,
             saveFilterTask = saveFilterTask,
             matrixConfiguration = MatrixConfiguration(
-                    applicationFlavor = "TestFlavor",
+                    userAgent = "TestAgent",
                     roomDisplayNameFallbackProvider = mockk(),
                     syncConfig = SyncConfig(syncFilterParams = SyncFilterParams(lazyLoadMembersForStateEvents = true, useThreadNotifications = true)),
             )

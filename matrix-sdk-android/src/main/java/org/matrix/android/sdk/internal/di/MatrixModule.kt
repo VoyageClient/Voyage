@@ -26,8 +26,6 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
-import org.matrix.android.sdk.internal.network.AndroidComputeUserAgentUseCase
-import org.matrix.android.sdk.internal.network.ComputeUserAgentUseCase
 import org.matrix.android.sdk.internal.platform.AndroidNetworkCallbackStrategyFactory
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
@@ -105,11 +103,5 @@ internal object MatrixModule {
     @MatrixScope
     fun providesNetworkCallbackStrategyFactory(context: Context): NetworkCallbackStrategyFactory {
         return AndroidNetworkCallbackStrategyFactory(context)
-    }
-
-    @JvmStatic
-    @Provides
-    fun providesComputeUserAgentUseCase(context: Context): ComputeUserAgentUseCase {
-        return AndroidComputeUserAgentUseCase(context)
     }
 }

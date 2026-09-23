@@ -136,9 +136,10 @@ import javax.inject.Singleton
             mdmService: MdmService,
             vpnGateInterceptor: VpnGateInterceptor,
             userAgentOverrideInterceptor: UserAgentOverrideInterceptor,
+            buildMeta: BuildMeta,
     ): MatrixConfiguration {
         return MatrixConfiguration(
-                applicationFlavor = BuildConfig.FLAVOR_DESCRIPTION,
+                userAgent = buildMeta.applicationName,
                 roomDisplayNameFallbackProvider = vectorRoomDisplayNameFallbackProvider,
                 threadMessagesEnabledDefault = vectorPreferences.areThreadMessagesEnabled(),
                 networkInterceptors = listOf(vpnGateInterceptor, userAgentOverrideInterceptor),

@@ -33,7 +33,6 @@ import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.verification.installSasEmojiResourceIds
 import org.matrix.android.sdk.internal.di.DaggerMatrixComponent
 import org.matrix.android.sdk.internal.network.ApiInterceptor
-import org.matrix.android.sdk.internal.network.UserAgentHolder
 import org.matrix.android.sdk.internal.platform.AndroidAppStateDriver
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 import org.matrix.android.sdk.internal.util.installAndroidHtmlConverter
@@ -50,12 +49,11 @@ import javax.inject.Inject
  * @param context the application context
  * @param matrixConfiguration global configuration that will be used for every [org.matrix.android.sdk.api.session.Session]
  */
-class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
+class Matrix(context: Context, private val matrixConfiguration: MatrixConfiguration) {
 
     @Inject internal lateinit var authenticationService: AuthenticationService
     @Inject internal lateinit var rawService: RawService
     @Inject internal lateinit var debugService: DebugService
-    @Inject internal lateinit var userAgentHolder: UserAgentHolder
     @Inject internal lateinit var backgroundDetectionObserver: BackgroundDetectionObserver
     @Inject internal lateinit var sessionManager: SessionManager
     @Inject internal lateinit var homeServerHistoryService: HomeServerHistoryService
@@ -85,9 +83,8 @@ class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
 
     /**
      * Return the User Agent used for any request that the SDK is making to the homeserver.
-     * There is no way to change the user agent at the moment.
      */
-    fun getUserAgent() = userAgentHolder.userAgent
+    fun getUserAgent() = matrixConfiguration.userAgent
 
     /**
      * Return the AuthenticationService.
