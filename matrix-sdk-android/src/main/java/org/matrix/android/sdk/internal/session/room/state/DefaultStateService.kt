@@ -47,6 +47,7 @@ import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevelsFlow
+import org.matrix.android.sdk.internal.util.unescapeHtml
 import timber.log.Timber
 
 internal class DefaultStateService @AssistedInject constructor(
@@ -111,8 +112,10 @@ internal class DefaultStateService @AssistedInject constructor(
     }
 
     override suspend fun updateTopic(topic: String, formattedTopic: String?, forceStateEncryption: Boolean) {
-        // Keep the legacy `topic` field for backwards compatibility (MSC3765).
-        val body = mutableMapOf<String, Any>("topic" to topic)
+        // The legacy `topic` field is all a client without MSC3765 support shows, so it gets a plain-text
+        // rendering rather than the markdown source, which stays in the m.topic plain representation.
+        val legacyTopic = formattedTopic?.takeIf { it.isNotEmpty() }?.unescapeHtml()?.trim() ?: topic
+        val body = mutableMapOf<String, Any>("topic" to legacyTopic)
         if (topic.isNotEmpty()) {
             // Richest first: a client rendering the first mimetype it understands (MSC3765) gets HTML.
             val representations = buildList {

@@ -32,6 +32,8 @@ data class RoomSettingsViewState(
         val currentRoomBannerUrl: String? = null,
         val bannerAction: BannerAction = BannerAction.None,
         val newName: String? = null,
+        /** The markdown source of the current topic, which is what the editor works on. */
+        val currentTopicSource: String? = null,
         val newTopic: String? = null,
         val newHistoryVisibility: RoomHistoryVisibility? = null,
         val newRoomJoinRules: NewJoinRule = NewJoinRule(),
@@ -42,6 +44,15 @@ data class RoomSettingsViewState(
 ) : MavericksState {
 
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)
+
+    fun hasPendingChanges(): Boolean {
+        return avatarAction !is AvatarAction.None ||
+                bannerAction !is BannerAction.None ||
+                roomSummary()?.name != newName ||
+                currentTopicSource != newTopic ||
+                (newHistoryVisibility != null && newHistoryVisibility != currentHistoryVisibility) ||
+                newRoomJoinRules.hasChanged()
+    }
 
     data class ActionPermissions(
             val canChangeAvatar: Boolean = false,

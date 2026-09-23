@@ -113,7 +113,7 @@ class RoomSettingsController @Inject constructor(
         formEditTextItem {
             id("topic")
             enabled(data.actionPermissions.canChangeTopic)
-            value(data.newTopic ?: roomSummary.topic)
+            value(data.newTopic ?: data.currentTopicSource.orEmpty())
             singleLine(false)
             hint(host.stringProvider.getString(CommonStrings.room_settings_topic_hint))
 

@@ -44,11 +44,26 @@ data class RoomTopicContent(
     /**
      * The plain-text topic. MSC3765 says to render the first representation whose mimetype is
      * understood; a missing mimetype defaults to text/plain (MSC1767). Falls back to the legacy field.
+     *
+     * When an HTML rendering exists the plain representation holds the markdown source it was rendered
+     * from, so the legacy field — which carries the plain-text rendering — wins there.
      */
-    fun getBestTopic(): String? = extensibleTopic()?.textRepresentations
-            ?.firstOrNull { it.mimeType == null || it.mimeType == MimeTypes.PlainText }
-            ?.body
-            ?: topic
+    fun getBestTopic(): String? {
+        val representations = extensibleTopic()?.textRepresentations
+        val plain = representations?.plainBody()
+        return if (representations?.any { it.mimeType == MimeTypes.Html } == true) {
+            topic?.takeIf { it.isNotEmpty() } ?: plain
+        } else {
+            plain ?: topic
+        }
+    }
+
+    /** The topic as it should be put back into an editor: the markdown source when there is one. */
+    fun getTopicSource(): String? = extensibleTopic()?.textRepresentations?.plainBody() ?: topic
+
+    private fun List<TopicRepresentation>.plainBody(): String? = firstOrNull {
+        it.mimeType == null || it.mimeType == MimeTypes.PlainText
+    }?.body
 
     private fun extensibleTopic(): TopicContent? = extensibleTopicStable ?: extensibleTopicUnstable
 

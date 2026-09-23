@@ -88,7 +88,7 @@ class SpaceSettingsController @Inject constructor(
         formMultiLineEditTextItem {
             id("topic")
             enabled(data.actionPermissions.canChangeTopic)
-            value(data.newTopic ?: roomSummary.topic)
+            value(data.newTopic ?: data.currentTopicSource.orEmpty())
             hint(host.stringProvider.getString(CommonStrings.create_space_topic_hint))
             onTextChange { text ->
                 host.callback?.onTopicChanged(text)

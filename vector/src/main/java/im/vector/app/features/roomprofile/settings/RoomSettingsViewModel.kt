@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomGuestAccessContent
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibilityContent
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
+import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.mapOptional
 import org.matrix.android.sdk.flow.unwrap
@@ -59,6 +60,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
             copy(currentRoomBannerUrl = room.stateService().getStateEvents(EventType.STATE_ROOM_BANNER.values.toSet(), QueryStringValue.IsEmpty).resolveRoomBannerUrl())
         }
         observeRoomSummary()
+        observeRoomTopic()
         observeRoomHistoryVisibility()
         observeJoinRule()
         observeGuestAccess()
@@ -90,25 +92,23 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 RoomSettingsViewState::newHistoryVisibility,
                 RoomSettingsViewState::newRoomJoinRules,
                 RoomSettingsViewState::roomSummary
-        ) { avatarAction,
-            bannerAction,
-            newName,
-            newTopic,
-            newHistoryVisibility,
-            newJoinRule,
-            asyncSummary ->
-            val summary = asyncSummary()
-            setState {
-                copy(
-                        showSaveAction = avatarAction !is RoomSettingsViewState.AvatarAction.None ||
-                                bannerAction !is RoomSettingsViewState.BannerAction.None ||
-                                summary?.name != newName ||
-                                summary?.topic != newTopic ||
-                                (newHistoryVisibility != null && newHistoryVisibility != currentHistoryVisibility) ||
-                                newJoinRule.hasChanged()
-                )
-            }
+        ) { _, _, _, _, _, _, _ ->
+            refreshSaveAction()
         }
+    }
+
+    private fun refreshSaveAction() = setState { copy(showSaveAction = hasPendingChanges()) }
+
+    private fun observeRoomTopic() {
+        room.flow()
+                .liveStateEvent(EventType.STATE_ROOM_TOPIC, QueryStringValue.IsEmpty)
+                .mapOptional { it.content.toModel<RoomTopicContent>() }
+                .onEach { optionalContent ->
+                    val source = optionalContent.getOrNull()?.getTopicSource().orEmpty()
+                    setState { copy(currentTopicSource = source, newTopic = newTopic ?: source) }
+                    refreshSaveAction()
+                }
+                .launchIn(viewModelScope)
     }
 
     private fun observeRoomSummary() {
@@ -121,8 +121,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
                     val alreadyLoaded = this.roomSummary is Success
                     copy(
                             roomSummary = async,
-                            newName = if (alreadyLoaded) newName else roomSummary?.name,
-                            newTopic = if (alreadyLoaded) newTopic else roomSummary?.topic
+                            newName = if (alreadyLoaded) newName else roomSummary?.name
                     )
                 }
 
@@ -306,7 +305,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
         if (summary?.name != state.newName) {
             operationList.add { room.stateService().updateName(state.newName ?: "") }
         }
-        if (summary?.topic != state.newTopic) {
+        if (state.currentTopicSource != state.newTopic) {
             val newTopic = state.newTopic ?: ""
             val formattedTopic = newTopic.takeIf { it.isNotEmpty() }?.let { room.sendService().computeFormattedHtml(it, autoMarkdown = true) }
             operationList.add { room.stateService().updateTopic(newTopic, formattedTopic) }

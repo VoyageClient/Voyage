@@ -39,6 +39,41 @@ class RoomTopicContentTest {
     }
 
     @Test
+    fun `the plain representation carries the markdown source we edit from`() {
+        val content = parse(
+                """
+                {"topic":"All about pizza",
+                 "m.topic":{"m.text":[{"body":"All about <b>pizza</b>","mimetype":"text/html"},
+                                      {"body":"All about **pizza**","mimetype":"text/plain"}]}}
+                """.trimIndent()
+        )
+
+        assertEquals("All about pizza", content?.getBestTopic())
+        assertEquals("All about **pizza**", content?.getTopicSource())
+    }
+
+    @Test
+    fun `an empty legacy topic still falls back to the plain representation`() {
+        val content = parse(
+                """
+                {"topic":"",
+                 "m.topic":{"m.text":[{"body":"All about <b>pizza</b>","mimetype":"text/html"},
+                                      {"body":"All about **pizza**","mimetype":"text/plain"}]}}
+                """.trimIndent()
+        )
+
+        assertEquals("All about **pizza**", content?.getBestTopic())
+    }
+
+    @Test
+    fun `without an html rendering the plain representation is the topic and the source`() {
+        val content = parse("""{"topic":"stale","m.topic":{"m.text":[{"body":"Kernel talk","mimetype":"text/plain"}]}}""")
+
+        assertEquals("Kernel talk", content?.getBestTopic())
+        assertEquals("Kernel talk", content?.getTopicSource())
+    }
+
+    @Test
     fun `legacy js-sdk shape - m dot topic as a bare array`() {
         val content = parse(
                 """
@@ -80,6 +115,7 @@ class RoomTopicContentTest {
         val content = parse("""{"topic":"Kernel talk"}""")
 
         assertEquals("Kernel talk", content?.getBestTopic())
+        assertEquals("Kernel talk", content?.getTopicSource())
         assertNull(content?.getBestFormattedTopic())
     }
 }
