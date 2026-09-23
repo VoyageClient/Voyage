@@ -8,10 +8,12 @@
 package im.vector.app.features.reactions
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import im.vector.app.R
+import im.vector.app.core.platform.VectorBaseActivity
 
 /**
  * Room screen root that keeps the emoji panel and the keyboard sharing one piece of space.
@@ -40,6 +42,9 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
         requestLayout()
     }
 
+    /** Whether the window lost focus because the app is going away, rather than to a window of our own. */
+    internal var isAppLeaving: () -> Boolean = { hostActivity()?.isTopResumedActivity == false }
+
     /** The strip itself; the emoji panel is parented here. */
     val strip: ViewGroup get() = checkNotNull(stripView) { "emojiPanelContainer missing" }
 
@@ -56,13 +61,26 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
     }
 
     /**
-     * Losing window focus (app switcher, a dialog) dismisses the keyboard, and the window grows back to full
-     * height while the keyboard is still drawn over it for the rest of the animation. Hold the height we have
-     * until focus returns instead; the keyboard is restored with it, so nothing moves either way.
+     * Leaving the app dismisses the keyboard, and the window grows back to full height while the keyboard is
+     * still drawn over it for the rest of the app-switcher animation. Hold the height we have until focus
+     * returns instead; the keyboard is restored with it, so nothing moves either way. A window of our own
+     * taking focus (a dialog, a bottom sheet) is a real dismissal and still gives the space back.
      */
     override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
         super.onWindowFocusChanged(hasWindowFocus)
-        if (hasWindowFocus) unfreezeHeightWhenSettled() else freezeHeight()
+        when {
+            hasWindowFocus -> unfreezeHeightWhenSettled()
+            isAppLeaving() -> freezeHeight()
+        }
+    }
+
+    private fun hostActivity(): VectorBaseActivity<*>? {
+        var candidate = context
+        while (candidate is ContextWrapper) {
+            if (candidate is VectorBaseActivity<*>) return candidate
+            candidate = candidate.baseContext
+        }
+        return null
     }
 
     private fun freezeHeight() {

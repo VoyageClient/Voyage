@@ -28,7 +28,10 @@ class EmojiPanelHostLayoutTest {
     private val host = EmojiPanelHostLayout(activity).apply {
         addView(View(activity))
         activity.setContentView(this)
+        isAppLeaving = { appLeaving }
     }
+
+    private var appLeaving = true
 
     @Test
     fun `holds its height while the window has no focus`() {
@@ -48,6 +51,15 @@ class EmojiPanelHostLayoutTest {
         // The keyboard came back with the focus: the same height as before, and the freeze is done.
         measureAt(KEYBOARD_UP) shouldBeEqualTo KEYBOARD_UP
         shadowOf(Looper.getMainLooper()).idle()
+        measureAt(FULL) shouldBeEqualTo FULL
+    }
+
+    @Test
+    fun `gives the space back when one of our own windows takes the focus`() {
+        appLeaving = false
+        layoutAt(KEYBOARD_UP)
+
+        host.onWindowFocusChanged(false)
         measureAt(FULL) shouldBeEqualTo FULL
     }
 

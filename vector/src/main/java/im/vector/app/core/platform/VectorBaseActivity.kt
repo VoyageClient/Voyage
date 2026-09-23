@@ -637,6 +637,18 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         if (imeInset) ViewCompat.requestApplyInsets(rootView)
     }
 
+    /**
+     * False once another task is on top — the app switcher, another app. Windows of our own (dialogs, bottom
+     * sheets) take the window focus without touching it. Always true below API 29, which never reports it.
+     */
+    var isTopResumedActivity = true
+        private set
+
+    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        super.onTopResumedActivityChanged(isTopResumedActivity)
+        this.isTopResumedActivity = isTopResumedActivity
+    }
+
     override fun onPause() {
         super.onPause()
         Timber.i("onPause Activity ${javaClass.simpleName}")
