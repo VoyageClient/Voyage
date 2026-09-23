@@ -648,6 +648,8 @@ class TimelineEventController @Inject constructor(
         // group taller than the screen, drop a matching "collapse" footer at the newest member = bottom
         // edge, so it stays reachable. Iteration is newest-first, so the newest member is seen first.
         var footerRunAnchor: Long? = null
+        var topRenderedPosition = -1
+        var topRenderedHasDay = false
         for (position in 0 until renderCount) {
             val cacheItemData = modelCache[position]
             val collapsed = cacheItemData != null && mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)
@@ -674,9 +676,20 @@ class TimelineEventController @Inject constructor(
                 collapsedReceipts = null
                 models.add(header)
             }
-            cacheItemData?.formattedDayModel
-                    ?.takeIf { eventModel != null || cacheItemData.mergedHeaderModel != null }
-                    ?.let { models.add(it) }
+            val hasContent = eventModel != null || cacheItemData?.mergedHeaderModel != null
+            val dayModel = cacheItemData?.formattedDayModel?.takeIf { hasContent }
+            dayModel?.let { models.add(it) }
+            if (hasContent) {
+                topRenderedPosition = position
+                topRenderedHasDay = dayModel != null
+            }
+        }
+        // A day separator belongs to the oldest event of its day, so a list cut short (build budget, or
+        // history still loading above) ends mid-day with no date at the top. Date the topmost item too.
+        if (topRenderedPosition >= 0 && !topRenderedHasDay) {
+            currentSnapshot.getOrNull(topRenderedPosition)?.let {
+                models.add(buildDaySeparatorItem(it.root.originServerTs, idPrefix = "top_"))
+            }
         }
         return models
     }
@@ -1096,9 +1109,9 @@ class TimelineEventController @Inject constructor(
         }
     }
 
-    private fun buildDaySeparatorItem(originServerTs: Long?): DaySeparatorItem {
+    private fun buildDaySeparatorItem(originServerTs: Long?, idPrefix: String = ""): DaySeparatorItem {
         val formattedDay = dateFormatter.format(originServerTs, DateFormatKind.TIMELINE_DAY_DIVIDER)
-        return DaySeparatorItem_().formattedDay(formattedDay).id(formattedDay)
+        return DaySeparatorItem_().formattedDay(formattedDay).id("$idPrefix$formattedDay")
     }
 
     private fun LoadingItem_.setVisibilityStateChangedListener(direction: Timeline.Direction, requestsMore: Boolean = true): LoadingItem_ {
