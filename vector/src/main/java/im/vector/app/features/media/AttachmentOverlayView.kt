@@ -12,8 +12,10 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.Paint
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -27,6 +29,7 @@ import android.widget.SeekBar
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.PopupMenu
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import im.vector.app.R
@@ -64,6 +67,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
     private var centerButtonUnlocked = false
 
     private var seekBarAnimator: ObjectAnimator? = null
+
+    private val scrimPaint = Paint().apply { color = ContextCompat.getColor(context, im.vector.lib.ui.styles.R.color.black_alpha) }
 
     /**
      * Scrub preview, after Telegram's VideoSeekPreviewImage: frames pulled on a single background
@@ -310,6 +315,16 @@ class AttachmentOverlayView @JvmOverloads constructor(
 
     private fun refreshCenterButton() {
         views.overlayCenterPlayPause.isVisible = isVideo && centerButtonUnlocked
+    }
+
+    // Not the bars' backgrounds, so the dims also cover the system-bar padding out to the screen edges.
+    override fun dispatchDraw(canvas: Canvas) {
+        val w = width.toFloat()
+        canvas.drawRect(0f, 0f, w, views.overlayTopBackground.bottom.toFloat(), scrimPaint)
+        if (views.overlayBottomBackground.isVisible) {
+            canvas.drawRect(0f, views.overlayBottomBackground.top.toFloat(), w, height.toFloat(), scrimPaint)
+        }
+        super.dispatchDraw(canvas)
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {

@@ -15,7 +15,6 @@
         android:id="@+id/overlayTopBackground"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/black_alpha"
         android:clickable="true"
         android:importantForAccessibility="no"
         app:layout_constraintTop_toTopOf="parent" />
@@ -126,7 +125,6 @@
         android:id="@+id/overlayBottomBackground"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/black_alpha"
         android:clickable="true"
         android:importantForAccessibility="no"
         app:layout_constraintBottom_toBottomOf="parent" />

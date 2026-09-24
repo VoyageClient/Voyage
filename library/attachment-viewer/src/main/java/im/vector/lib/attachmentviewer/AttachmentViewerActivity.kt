@@ -24,14 +24,12 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.viewpager2.widget.ViewPager2
 import im.vector.lib.attachmentviewer.databinding.ActivityAttachmentViewerBinding
-import im.vector.lib.ui.styles.R
 import java.lang.ref.WeakReference
 import kotlin.math.abs
 
@@ -193,13 +191,27 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
             window.setDecorFitsSystemWindows(false)
             // New API instead of SYSTEM_UI_FLAG_IMMERSIVE
             window.decorView.windowInsetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            // New API instead of FLAG_TRANSLUCENT_STATUS
+            // The overlay's own top and bottom dims run under the bars, so the bars stay clear.
             @Suppress("DEPRECATION")
-            window.statusBarColor = ContextCompat.getColor(this, R.color.half_transparent_status_bar)
-            // new API instead of FLAG_TRANSLUCENT_NAVIGATION
+            window.statusBarColor = Color.TRANSPARENT
             @Suppress("DEPRECATION")
-            window.navigationBarColor = ContextCompat.getColor(this, R.color.half_transparent_status_bar)
+            window.navigationBarColor = Color.TRANSPARENT
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE)
+            @Suppress("DEPRECATION")
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            @Suppress("DEPRECATION")
+            window.statusBarColor = Color.TRANSPARENT
+            @Suppress("DEPRECATION")
+            window.navigationBarColor = Color.TRANSPARENT
         } else {
+            // KitKat can only draw under the bars through the translucent flags, which bring their own scrim.
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = (
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
