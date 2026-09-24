@@ -78,7 +78,7 @@ abstract class BottomSheetActionItem : VectorEpoxyModel<BottomSheetActionItem.Ho
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
         }
         holder.icon.isVisible = showIcon
-        holder.icon.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, iconRes))
+        holder.icon.setImageDrawable(iconRes.takeIf { it != 0 }?.let { AppCompatResources.getDrawable(holder.view.context, it) })
         ImageViewCompat.setImageTintList(holder.icon, ColorStateList.valueOf(tintColor))
         if (text != null) {
             holder.text.text = text
