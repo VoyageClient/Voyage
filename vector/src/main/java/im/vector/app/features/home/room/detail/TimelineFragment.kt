@@ -1394,14 +1394,15 @@ class TimelineFragment :
 
         layoutManager = object : LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, true) {
             // Starting a selection focuses the message text, and the focus scroll then yanks a tall
-            // message to the top under the user's finger.
+            // message to the top under the user's finger. That scroll is never immediate, while long
+            // screenshots scroll through here with immediate = true.
             override fun requestChildRectangleOnScreen(
                     parent: RecyclerView,
                     child: View,
                     rect: Rect,
                     immediate: Boolean,
                     focusedChildVisible: Boolean,
-            ): Boolean = false
+            ): Boolean = immediate && super.requestChildRectangleOnScreen(parent, child, rect, immediate, focusedChildVisible)
 
             override fun onLayoutCompleted(state: RecyclerView.State) {
                 super.onLayoutCompleted(state)
