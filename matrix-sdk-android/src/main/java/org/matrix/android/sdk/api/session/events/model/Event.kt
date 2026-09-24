@@ -114,6 +114,14 @@ data class Event(
     @Transient
     var verificationStateIsDirty: Boolean? = null
 
+    /**
+     * The timeline deliberately did not load this event's content, because the stored JSON was large and its
+     * type only renders as a collapsed notice. Null [content] here means "not loaded", not "absent" — a
+     * formatter must not read an empty ACL or a deleted image pack into it.
+     */
+    @Transient
+    var contentWithheld: Boolean = false
+
     // [getRelationContent] parses the whole content map through Moshi, and the timeline's visibility pass
     // calls it (directly and via isThread/isEdition) for every event on every build pass — measured as the
     // single biggest cost of a deep-scrolled timeline. It reads only `type` and `content`, both immutable
@@ -191,6 +199,7 @@ data class Event(
             it.ageLocalTs = ageLocalTs
             it.threadDetails = threadDetails
             it.verificationStateIsDirty = verificationStateIsDirty
+            it.contentWithheld = contentWithheld
         }
     }
 

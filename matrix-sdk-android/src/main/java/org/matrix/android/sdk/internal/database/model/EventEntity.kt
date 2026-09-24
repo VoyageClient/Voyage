@@ -45,6 +45,10 @@ internal open class EventEntity(
         var isVerificationStateDirty: Boolean? = null,
 ) {
 
+    // The timeline read withheld this event's bulky JSON (see BulkyStateEvents) rather than parsing it, so
+    // null content here means "not loaded", not "absent" — a distinction the notice formatters depend on.
+    var contentWithheld: Boolean = false
+
     private var sendStateStr: String = SendState.UNKNOWN.name
 
     var sendState: SendState

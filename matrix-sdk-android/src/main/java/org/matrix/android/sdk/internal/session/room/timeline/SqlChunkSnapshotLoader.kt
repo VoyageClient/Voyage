@@ -54,7 +54,7 @@ internal class SqlChunkSnapshotLoader(
      * message) refresh just that entry instead of discarding a whole chunk's mapping.
      */
     fun reloadEvent(roomId: String, eventId: String): TimelineEvent? =
-            stores.timelineEvent.getByRoomAndEventId(roomId, eventId)?.let { timelineEventMapper.map(it) }
+            stores.timelineEvent.getByRoomAndEventIdForTimeline(roomId, eventId)?.let { timelineEventMapper.map(it) }
 
     /** The chunk's events strictly newer than the given row, most-recent first. */
     fun chunkSnapshotAfter(chunkId: Long, afterTs: Long, afterEventId: String): List<TimelineEvent> =
@@ -65,7 +65,9 @@ internal class SqlChunkSnapshotLoader(
         val perfStart = MatrixPerf.now()
         val entities = stores.timelineEvent.getByChunkNewest(chunkId, limit)
         MatrixPerf.end(perfStart) { "timeline.chunkSnapshotNewest.load chunk=$chunkId rows=${entities.size}" }
+        val mapStart = MatrixPerf.now()
         return entities.map { timelineEventMapper.map(it) }
+                .also { MatrixPerf.end(mapStart) { "timeline.chunkSnapshotNewest.map chunk=$chunkId rows=${it.size}" } }
     }
 
     /** The [limit] rows just older than the given one, most-recent first — appends to a bounded slice as the

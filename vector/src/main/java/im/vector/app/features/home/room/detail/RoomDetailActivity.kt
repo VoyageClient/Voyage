@@ -41,6 +41,7 @@ import im.vector.app.features.room.RequireActiveMembershipViewModel
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.matrix.android.sdk.api.util.RoomOpenTrace
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -111,6 +112,8 @@ class RoomDetailActivity :
         val timelineArgs: TimelineArgs = intent?.extras?.getParcelableCompat(EXTRA_ROOM_DETAIL_ARGS) ?: return
         intent.putExtra(Mavericks.KEY_ARG, timelineArgs)
         currentRoomId = timelineArgs.roomId
+        RoomOpenTrace.beginIfDifferent(timelineArgs.roomId, from = "activity")
+        RoomOpenTrace.stage("activity.onCreate")
 
         if (isFirstCreation()) {
             replaceFragment(views.roomDetailContainer, TimelineFragment::class.java, timelineArgs)

@@ -83,6 +83,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
+import org.matrix.android.sdk.api.util.RoomOpenTrace
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -572,6 +573,10 @@ class TimelineEventController @Inject constructor(
         }
 
         val timelineModels = getModels()
+        if (!firstNonEmptyModelsTraced && timelineModels.isNotEmpty()) {
+            firstNonEmptyModelsTraced = true
+            RoomOpenTrace.stage("models.firstNonEmpty", "n=${timelineModels.size} snapshot=${currentSnapshot.size} unbuilt=$hasUnbuiltEvents")
+        }
         add(timelineModels)
         if (hasReachedInvite && hasUTD) {
             return
@@ -596,6 +601,13 @@ class TimelineEventController @Inject constructor(
     private val isPaused = java.util.concurrent.atomic.AtomicBoolean(false)
     @Volatile private var pendingPausedSnapshot: List<TimelineEvent>? = null
 
+    @Volatile private var firstSnapshotTraced = false
+    @Volatile private var firstNonEmptySnapshotTraced = false
+    @Volatile private var firstNonEmptyModelsTraced = false
+
+    /** True once a build pass has emitted real timeline items, so the fragment can time the first paint. */
+    val hasBuiltTimelineModels: Boolean get() = firstNonEmptyModelsTraced
+
     fun setPaused(paused: Boolean) {
         isPaused.set(paused)
         if (!paused) {
@@ -615,6 +627,14 @@ class TimelineEventController @Inject constructor(
     }
 
     private fun submitSnapshot(newSnapshot: List<TimelineEvent>) {
+        if (!firstSnapshotTraced) {
+            firstSnapshotTraced = true
+            RoomOpenTrace.stage("snapshot.first", "n=${newSnapshot.size}")
+        }
+        if (!firstNonEmptySnapshotTraced && newSnapshot.isNotEmpty()) {
+            firstNonEmptySnapshotTraced = true
+            RoomOpenTrace.stage("snapshot.firstNonEmpty", "n=${newSnapshot.size}")
+        }
         // Update is triggered on any DB change
         backgroundHandler.post {
             inSubmitList = true

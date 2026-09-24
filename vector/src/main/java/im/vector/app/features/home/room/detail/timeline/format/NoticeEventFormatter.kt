@@ -176,6 +176,13 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     private fun formatRoomPowerLevels(event: Event, disambiguatedDisplayName: String): CharSequence? {
+        if (event.contentWithheld) {
+            return if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_power_levels_changed_by_you)
+            } else {
+                sp.getString(CommonStrings.notice_power_levels_changed, disambiguatedDisplayName)
+            }
+        }
         val powerLevelsContent: PowerLevelsContent = event.content.toModel() ?: return null
         val previousPowerLevelsContent: PowerLevelsContent = event.resolvedPrevContent().toModel() ?: return null
         val roomService = activeSessionDataSource.currentValue?.orNull()?.roomService()
@@ -275,6 +282,15 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     private fun formatImagePackEvent(event: Event, senderName: String?): CharSequence? {
+        if (event.contentWithheld) {
+            // Must short-circuit: the delete/create/edit distinction below reads empty content as a delete,
+            // which a withheld event would trip.
+            return if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_image_pack_changed_by_you)
+            } else {
+                sp.getString(CommonStrings.notice_image_pack_changed, senderName)
+            }
+        }
         val current = event.content.toModel<ImagePackContent>()
         val previous = event.resolvedPrevContent().toModel<ImagePackContent>()
         // A fully-cleared `{}` event is a delete; otherwise a pack that had no prior state is a creation, and
@@ -630,6 +646,15 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     private fun formatRoomServerAclEvent(event: Event, senderName: String?): String? {
+        if (event.contentWithheld) {
+            // "Updated" rather than "set": only the room's very first ACL event is a set, and without the
+            // content there is no way to tell them apart.
+            return if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_room_server_acl_updated_title_by_you)
+            } else {
+                sp.getString(CommonStrings.notice_room_server_acl_updated_title, senderName)
+            }
+        }
         val eventContent = event.content.toModel<RoomServerAclContent>() ?: return null
         val prevEventContent = event.resolvedPrevContent()?.toModel<RoomServerAclContent>()
 

@@ -663,6 +663,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/database/mapper/DraftMapper.kt',
         'org/matrix/android/sdk/internal/database/mapper/EditAggregatedSummaryEntityMapper.kt',
         'org/matrix/android/sdk/internal/database/mapper/EventAnnotationsSummaryMapper.kt',
+        'org/matrix/android/sdk/internal/database/BulkyStateEvents.kt',
         'org/matrix/android/sdk/internal/database/mapper/EventMapper.kt',
         'org/matrix/android/sdk/internal/database/mapper/IsUselessResolver.kt',
         'org/matrix/android/sdk/internal/database/mapper/LiveLocationShareAggregatedSummaryMapper.kt',
@@ -1227,6 +1228,7 @@ ext.coreSources = [
         // MatrixPerf: its only android coupling is android.util.Log, resolved on core's classpath
         // by the olm-jvm stand-in (real android.util.Log is used at runtime on device).
         'org/matrix/android/sdk/api/util/MatrixPerf.kt',
+        'org/matrix/android/sdk/api/util/RoomOpenTrace.kt',
         // ContentScanner service cluster: the api getLiveStatusForFile(LiveData) became
         // getStatusFlowForFile(Flow) with an android-only getLiveStatusForFile extension (zero
         // :vector consumers in this fork), landing the whole service+task+module cluster.

@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.session.room.membership
 
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.SessionScope
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -27,6 +28,12 @@ internal class AmbiguousDisplayNameCache @Inject constructor(
 ) {
     private val cache = ConcurrentHashMap<String, Set<String>>()
 
+    // Rooms whose member rows aren't loaded yet. Without this, "not loaded" is not a cacheable answer, so
+    // every timeline event re-ran the whole member query — ~11ms each, seconds across a chunk, on exactly
+    // the cold open where members have yet to arrive.
+    // newSetFromMap, not ConcurrentHashMap.newKeySet(): that static is API 24+ and this fork runs on 14.
+    private val membersUnknown = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
+
     private val generationCounter = AtomicLong(0)
     val generation: Long get() = generationCounter.get()
 
@@ -41,8 +48,12 @@ internal class AmbiguousDisplayNameCache @Inject constructor(
     }
 
     private fun load(roomId: String): Set<String>? {
+        if (roomId in membersUnknown) return null
         val members = stores.roomMember.getByRoom(roomId)
-        if (members.isEmpty()) return null
+        if (members.isEmpty()) {
+            membersUnknown.add(roomId)
+            return null
+        }
         val seen = HashSet<String>(members.size)
         val duplicated = HashSet<String>()
         members.forEach { member ->
@@ -55,6 +66,7 @@ internal class AmbiguousDisplayNameCache @Inject constructor(
 
     /** A membership change can make a name ambiguous, or stop it being so. */
     fun invalidate(roomId: String) {
-        if (cache.remove(roomId) != null) generationCounter.incrementAndGet()
+        val hadUnknown = membersUnknown.remove(roomId)
+        if (cache.remove(roomId) != null || hadUnknown) generationCounter.incrementAndGet()
     }
 }

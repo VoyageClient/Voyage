@@ -20,9 +20,10 @@ private const val A_ROOM = "!room:example.org"
 class AmbiguousDisplayNameCacheTest {
 
     private var members = emptyList<RoomMemberSummaryEntity>()
+    private var memberQueries = 0
 
     private val stores: SessionStores = mockk(relaxed = true) {
-        every { roomMember.getByRoom(A_ROOM) } answers { members }
+        every { roomMember.getByRoom(A_ROOM) } answers { memberQueries++; members }
     }
 
     private val cache = AmbiguousDisplayNameCache(stores)
@@ -90,5 +91,28 @@ class AmbiguousDisplayNameCacheTest {
         cache.invalidate(A_ROOM)
 
         cache.generation shouldBeEqualTo before
+    }
+
+    /** Re-querying per event cost seconds of a cold room open, since every event asks about its sender. */
+    @Test
+    fun `an unloaded room is queried once, not once per ask`() {
+        members = emptyList()
+
+        repeat(50) { cache.isAmbiguous(A_ROOM, "Alice") shouldBe null }
+
+        memberQueries shouldBeEqualTo 1
+    }
+
+    @Test
+    fun `members arriving after an unloaded read are picked up`() {
+        members = emptyList()
+        cache.isAmbiguous(A_ROOM, "Alice") shouldBe null
+        val before = cache.generation
+
+        members = listOf(member("@alice:example.org", "Alice"), member("@alice:other.org", "Alice"))
+        cache.invalidate(A_ROOM)
+
+        cache.isAmbiguous(A_ROOM, "Alice") shouldBe true
+        (cache.generation > before) shouldBeEqualTo true
     }
 }

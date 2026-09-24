@@ -1272,4 +1272,8 @@
     <string name="create_room_encrypted_state_title" translatable="false">Encrypted state events</string>
     <string name="create_room_encrypted_state_warning" translatable="false">Encrypts room details and other eligible state events via MSC4362. Most clients do not yet support this, so some features may be missing or unusable.</string>
     <string name="create_room_encrypted_state_dialog_summary" translatable="false">Unsupported clients may not show room details correctly.</string>
+    <string name="notice_power_levels_changed" translatable="false">%1$s changed the power levels.</string>
+    <string name="notice_power_levels_changed_by_you" translatable="false">You changed the power levels.</string>
+    <string name="notice_image_pack_changed" translatable="false">%1$s changed an image pack</string>
+    <string name="notice_image_pack_changed_by_you" translatable="false">You changed an image pack</string>
 </resources>

@@ -26,18 +26,18 @@ internal class TimelineEventSqlStore(
 
     fun nextLocalId(): Long = queries.nextLocalId().executeAsOne()
 
-    fun getByChunk(chunkId: Long): List<TimelineEventEntity> = queries.selectByChunk(chunkId).executeAsList().toEntities()
+    fun getByChunk(chunkId: Long): List<TimelineEventEntity> = queries.selectByChunk(chunkId).executeAsList().toEntities(forTimeline = true)
 
     fun getByChunkNewest(chunkId: Long, limit: Long): List<TimelineEventEntity> =
-            queries.selectByChunkNewest(chunkId, limit).executeAsList().toEntities()
+            queries.selectByChunkNewest(chunkId, limit).executeAsList().toEntities(forTimeline = true)
 
     /** Everything the chunk has gained above a known row — what a live append adds to an open timeline. */
     fun getByChunkNewerThan(chunkId: Long, ts: Long, eventId: String): List<TimelineEventEntity> =
-            queries.selectByChunkNewerThan(chunkId, ts, ts, eventId).executeAsList().toEntities()
+            queries.selectByChunkNewerThan(chunkId, ts, ts, eventId).executeAsList().toEntities(forTimeline = true)
 
     /** The rows immediately below a known one, newest first. Keyset, so it stays an index-only scan. */
     fun getByChunkOlderThan(chunkId: Long, ts: Long, eventId: String, limit: Long): List<TimelineEventEntity> =
-            queries.selectByChunkOlderThan(chunkId, ts, ts, eventId, limit).executeAsList().toEntities()
+            queries.selectByChunkOlderThan(chunkId, ts, ts, eventId, limit).executeAsList().toEntities(forTimeline = true)
 
     fun getInChunkByEventId(chunkId: Long, eventId: String): TimelineEventEntity? =
             queries.selectInChunkByEventId(chunkId, eventId).executeAsOneOrNull()?.toEntity()
@@ -46,6 +46,11 @@ internal class TimelineEventSqlStore(
 
     fun getByRoomAndEventId(roomId: String, eventId: String): TimelineEventEntity? =
             queries.selectByRoomAndEventId(roomId, eventId).executeAsOneOrNull()?.toEntity()
+
+    /** [getByRoomAndEventId] for the open timeline's single-event refresh, withholding bulky content so one
+     *  event cannot map two different ways and churn the snapshot mapper's memo. */
+    fun getByRoomAndEventIdForTimeline(roomId: String, eventId: String): TimelineEventEntity? =
+            queries.selectByRoomAndEventId(roomId, eventId).executeAsList().toEntities(forTimeline = true).firstOrNull()
 
     fun getByRoom(roomId: String): List<TimelineEventEntity> = queries.selectByRoom(roomId).executeAsList().toEntities()
 
@@ -146,9 +151,10 @@ internal class TimelineEventSqlStore(
 
     /** Bulk [toEntity]: resolve roots/annotations/receipts for the whole list in a handful of IN queries
      *  instead of ~4 per row — a chunk snapshot re-maps on every sync tick, so the N+1 dominated scroll. */
-    internal fun List<TimelineEventRow>.toEntities(): List<TimelineEventEntity> {
+    internal fun List<TimelineEventRow>.toEntities(forTimeline: Boolean = false): List<TimelineEventEntity> {
         if (isEmpty()) return emptyList()
-        val roots = eventStore.getByIds(mapNotNull { it.root_event_db_id })
+        val rootIds = mapNotNull { it.root_event_db_id }
+        val roots = if (forTimeline) eventStore.getByIdsForTimeline(rootIds) else eventStore.getByIds(rootIds)
         val eventIds = map { it.event_id }
         val annotations = annotationsStore.getForEventIds(eventIds)
         val receipts = readReceiptStore.getSummaries(eventIds)

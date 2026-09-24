@@ -552,7 +552,12 @@ class MessageActionsViewModel @AssistedInject constructor(
     private suspend fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent, restoredEvent: TimelineEvent? = null) {
         // A revealed redaction shows the recovered content, not the pruned {}; hidden again, it goes
         // back to the redacted form.
-        val sourceEvent = restoredEvent ?: timelineEvent
+        // The timeline withholds the bulky content of some state events (see BulkyStateEvents), so re-read
+        // the stored event for the viewer rather than showing it the null it was handed.
+        val sourceEvent = restoredEvent
+                ?: timelineEvent.takeUnless { it.root.contentWithheld }
+                ?: room?.timelineService()?.getTimelineEvent(timelineEvent.eventId)
+                ?: timelineEvent
         add(EventSharedAction.ViewSource(sourceEvent.root.toContentStringWithIndent()))
         if (sourceEvent.isEncrypted() && sourceEvent.root.mxDecryptionResult != null) {
             val decryptedContent = sourceEvent.root.toClearContentStringWithIndent()

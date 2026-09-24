@@ -47,6 +47,28 @@ SELECT * FROM event WHERE id = ?;
 selectByIds:
 SELECT * FROM event WHERE id IN ?;
 
+-- Timeline read: the bulky JSON of a few state types (a large server ACL, a fat power_levels, a big image
+-- pack) is never rendered beyond a collapsed notice, but parsing it dominated room open — one room spent
+-- 5.4s of CPU parsing 5MB of m.room.server_acl to display nothing. Withhold those fields past a size
+-- threshold so the bytes never leave SQLite; content_withheld tells the mapper it asked for that, so a
+-- formatter can't mistake it for genuinely-absent content. Small events of the same types are untouched.
+selectByIdsForTimeline:
+SELECT
+    id, event_id, room_id, type,
+    CAST(CASE WHEN type IN :bulkyTypes AND COALESCE(length(content), 0) > :maxInlineLength THEN NULL ELSE content END AS TEXT) AS content,
+    CAST(CASE WHEN type IN :bulkyTypes AND COALESCE(length(prev_content), 0) > :maxInlineLength THEN NULL ELSE prev_content END AS TEXT) AS prev_content,
+    is_useless, state_key, origin_server_ts, sender, send_state_details, age,
+    CAST(CASE WHEN type IN :bulkyTypes AND COALESCE(length(unsigned_data), 0) > :maxInlineLength THEN NULL ELSE unsigned_data END AS TEXT) AS unsigned_data,
+    redacts, decryption_result_json, age_local_ts, is_root_thread, root_thread_event_id,
+    number_of_threads, thread_summary_latest_timeline_id, is_verification_state_dirty,
+    send_state_str, thread_notification_state_str, decryption_error_code, decryption_error_reason,
+    COALESCE(type IN :bulkyTypes AND (
+        COALESCE(length(content), 0) > :maxInlineLength OR
+        COALESCE(length(prev_content), 0) > :maxInlineLength OR
+        COALESCE(length(unsigned_data), 0) > :maxInlineLength
+    ), 0) AS content_withheld
+FROM event WHERE id IN ?;
+
 selectByEventId:
 SELECT * FROM event WHERE event_id = ? LIMIT 1;
 

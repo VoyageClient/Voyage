@@ -130,6 +130,7 @@ import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationBadgeState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
+import org.matrix.android.sdk.api.util.RoomOpenTrace
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
@@ -225,7 +226,9 @@ class TimelineViewModel @AssistedInject constructor(
         } else {
             // Nominal case, we have retrieved the room.
             timeline = timelineFactory.createTimeline(room, eventId, initialState.rootThreadEventId)
+            RoomOpenTrace.stage("vm.timelineCreated")
             initSafe(room, timeline)
+            RoomOpenTrace.stage("vm.initSafe")
             // Sliding sync only delivers the state types it asked for, so an opened room fetches the rest
             // once. Deliberately not awaited: the timeline must not wait on a request for state it does
             // not need to render.
@@ -234,7 +237,8 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     private fun initSafe(room: Room, timeline: Timeline) = PerfTrace.time("timeline.vm.initSafe") {
-        timeline.start(initialState.rootThreadEventId)
+        PerfTrace.time("timeline.vm.start") { timeline.start(initialState.rootThreadEventId) }
+        RoomOpenTrace.stage("vm.timelineStarted")
         timeline.addListener(this)
         setState { copy(isRoomPreview = this@TimelineViewModel.isRoomPreview) }
         observeMembershipChanges()

@@ -111,6 +111,7 @@ import org.matrix.android.sdk.api.session.terms.TermsService
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.api.util.RoomOpenTrace
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -161,6 +162,8 @@ class DefaultNavigator @Inject constructor(
             fatalError("Trying to open an unknown room $roomId", vectorPreferences.failFast())
             return
         }
+
+        RoomOpenTrace.begin(roomId, from = "navigator")
 
         val args = TimelineArgs(
                 roomId = roomId,

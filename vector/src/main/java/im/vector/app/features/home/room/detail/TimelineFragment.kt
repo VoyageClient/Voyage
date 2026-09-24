@@ -242,6 +242,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
+import org.matrix.android.sdk.api.util.RoomOpenTrace
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
@@ -541,6 +542,19 @@ class TimelineFragment :
                 RoomDetailViewEvents.RoomReplacementStarted -> handleRoomReplacement()
                 is RoomDetailViewEvents.RevokeFilePermission -> revokeFilePermission(it)
             }
+        }
+        RoomOpenTrace.stage("fragment.onViewCreated")
+    }
+
+    private var firstPaintTraced = false
+
+    private fun traceFirstPaintedTimeline() {
+        if (firstPaintTraced || !timelineEventController.hasBuiltTimelineModels) return
+        val recyclerView = views.timelineRecyclerView
+        recyclerView.post {
+            if (firstPaintTraced || recyclerView.childCount == 0) return@post
+            firstPaintTraced = true
+            RoomOpenTrace.end("timeline.painted", "children=${recyclerView.childCount}")
         }
     }
 
@@ -1434,7 +1448,9 @@ class TimelineFragment :
             if (!firstModelsReported) {
                 firstModelsReported = true
                 firstModelsMarker.end()
+                RoomOpenTrace.stage("epoxy.firstBuildFinished")
             }
+            traceFirstPaintedTimeline()
             it.dispatchTo(stateRestorer)
             it.dispatchTo(scrollOnNewMessageCallback)
             it.dispatchTo(scrollOnHighlightedEventCallback)

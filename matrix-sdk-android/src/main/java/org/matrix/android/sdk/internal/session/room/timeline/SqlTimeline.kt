@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import org.matrix.android.sdk.api.util.MatrixPerf
+import org.matrix.android.sdk.api.util.RoomOpenTrace
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
@@ -231,11 +232,17 @@ internal class SqlTimeline(
         }
         timelineScope.launch {
             delay(ROOM_MEMBER_LOAD_DELAY_MS)
+            RoomOpenTrace.stageFor(roomId, "sdk.loadRoomMembers.start")
             loadRoomMembers()
+            RoomOpenTrace.stageFor(roomId, "sdk.loadRoomMembers.done")
         }
         timelineScope.launch {
+            RoomOpenTrace.stageFor(roomId, "sdk.seedJob.enter")
             if (!isThreadTimeline) {
-                val membership = withContext(sessionDispatcher) { stores.room.get(roomId)?.membership }
+                // Deliberately NOT on sessionDispatcher: that queue is serialized behind sync's multi-second
+                // write transactions, and this read gates the seed — i.e. the whole room open.
+                val membership = stores.room.get(roomId)?.membership
+                RoomOpenTrace.stageFor(roomId, "sdk.membershipRead", "membership=$membership")
                 if (membership == Membership.LEAVE || membership == Membership.BAN) {
                     // A boundary marked by an earlier 403 isn't authoritative — the server's
                     // departed-access policy varies per room — so a removed room re-probes once per
@@ -245,8 +252,11 @@ internal class SqlTimeline(
             }
             // A thread timeline gets a fresh (empty) thread chunk that the fetch task + sync then populate.
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
+            RoomOpenTrace.stageFor(roomId, "sdk.seedResolved", "chunk=$seed")
             seedFrom(seed)
+            RoomOpenTrace.stageFor(roomId, "sdk.seeded")
             rebuildSnapshot()
+            RoomOpenTrace.stageFor(roomId, "sdk.firstRebuild", "built=${builtEvents.size}")
             // The UI only asks for older events once its loading item is on screen, which waits for the
             // first models to build — seconds in a room whose cache holds little. Fetch that page here
             // instead. Unconditionally: this runs only when the seed range is short of a screenful, and a
@@ -254,7 +264,9 @@ internal class SqlTimeline(
             // room's stored history behind the gap it opened. Waiting for a sliding-sync subscription to
             // fill it costs the same round trip and shows one message meanwhile.
             if (!isThreadTimeline && initialEventId == null && builtEvents.size < initialWindowCount()) {
+                RoomOpenTrace.stageFor(roomId, "sdk.initialLoadMore.start", "built=${builtEvents.size}/${initialWindowCount()}")
                 loadMore(settings.initialSize, Timeline.Direction.BACKWARDS)
+                RoomOpenTrace.stageFor(roomId, "sdk.initialLoadMore.done", "built=${builtEvents.size}")
             }
         }
     }

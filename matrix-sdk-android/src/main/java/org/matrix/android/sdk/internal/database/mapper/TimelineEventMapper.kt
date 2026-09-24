@@ -117,6 +117,7 @@ internal class TimelineEventMapper @Inject constructor(
         add(e.ownedByThreadChunk)
         e.root?.let { r ->
             add(r.type)
+            add(r.contentWithheld)
             add(r.content)
             add(r.prevContent)
             add(r.unsignedData)

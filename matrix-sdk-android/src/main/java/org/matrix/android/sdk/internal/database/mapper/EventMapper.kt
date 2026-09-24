@@ -87,6 +87,7 @@ internal object EventMapper {
                 unsignedData = ud,
                 redacts = eventEntity.redacts
         ).also {
+            it.contentWithheld = eventEntity.contentWithheld
             it.ageLocalTs = eventEntity.ageLocalTs
             it.sendState = eventEntity.sendState
             it.sendStateDetails = eventEntity.sendStateDetails

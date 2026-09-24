@@ -16,12 +16,14 @@ import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
+import org.matrix.android.sdk.internal.database.BulkyStateEvents
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.Event as EventRow
+import org.matrix.android.sdk.internal.database.sql.SelectByIdsForTimeline as TimelineEventProjection
 
 /**
  * SQL access for the `event` table, reusing [EventEntity] as an unmanaged DTO so the existing
@@ -67,6 +69,19 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun getByIds(ids: Collection<Long>): Map<Long, EventEntity> =
             ids.flatMapInChunks { queries.selectByIds(it).executeAsList() }
                     .associateBy({ it.id }, { it.toResolvedEntity() })
+
+    /**
+     * [getByIds] for the timeline, withholding the bulky JSON of [BulkyStateEvents] types past its size
+     * threshold so those bytes are never read or parsed. Room settings and devtools read current state
+     * instead, so they still see the real content.
+     */
+    fun getByIdsForTimeline(ids: Collection<Long>): Map<Long, EventEntity> =
+            ids.flatMapInChunks {
+                queries.selectByIdsForTimeline(BulkyStateEvents.TYPES, BulkyStateEvents.MAX_INLINE_LENGTH, it).executeAsList()
+            }
+                    .associateBy({ row -> row.id }, { row ->
+                        row.toEventRow().toResolvedEntity().apply { contentWithheld = row.content_withheld != 0L }
+                    })
 
     fun getByEventId(eventId: String): EventEntity? = queries.selectByEventId(eventId).executeAsOneOrNull()?.toResolvedEntity()
 
@@ -260,6 +275,36 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
                 .adapter(UnsignedData::class.java)
     }
 }
+
+// The timeline projection blanks three columns, which makes SQLDelight generate its own row type; convert
+// back to the table row so [toEntity] stays the single place that knows the column-to-field mapping.
+private fun TimelineEventProjection.toEventRow(): EventRow = EventRow(
+        id = id,
+        event_id = event_id,
+        room_id = room_id,
+        type = type,
+        content = content,
+        prev_content = prev_content,
+        is_useless = is_useless,
+        state_key = state_key,
+        origin_server_ts = origin_server_ts,
+        sender = sender,
+        send_state_details = send_state_details,
+        age = age,
+        unsigned_data = unsigned_data,
+        redacts = redacts,
+        decryption_result_json = decryption_result_json,
+        age_local_ts = age_local_ts,
+        is_root_thread = is_root_thread,
+        root_thread_event_id = root_thread_event_id,
+        number_of_threads = number_of_threads,
+        thread_summary_latest_timeline_id = thread_summary_latest_timeline_id,
+        is_verification_state_dirty = is_verification_state_dirty,
+        send_state_str = send_state_str,
+        thread_notification_state_str = thread_notification_state_str,
+        decryption_error_code = decryption_error_code,
+        decryption_error_reason = decryption_error_reason,
+)
 
 /** A generated `event` row → unmanaged [EventEntity]. thread_summary_latest_message is resolved lazily by callers when needed. */
 internal fun EventRow.toEntity(): EventEntity = EventEntity(
