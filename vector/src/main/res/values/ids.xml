@@ -13,4 +13,5 @@
     <item name="image_renderer_pending_render" type="id" />
     <item name="avatar_renderer_placeholder" type="id" />
     <item name="scroll_animation_installed" type="id" />
+    <item name="scroll_animation_running" type="id" />
 </resources>

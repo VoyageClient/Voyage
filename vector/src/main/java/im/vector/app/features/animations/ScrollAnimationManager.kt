@@ -7,9 +7,13 @@
 
 package im.vector.app.features.animations
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.app.Activity
 import android.os.Build
+import android.util.Property
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
@@ -58,8 +62,7 @@ class ScrollAnimationManager(private val vectorPreferences: VectorPreferences) {
                 }
 
                 override fun onChildViewDetachedFromWindow(child: View) {
-                    child.animate().cancel()
-                    reset(child)
+                    cancel(child)
                     pendingOf(view).remove(child)
                 }
             })
@@ -90,60 +93,54 @@ class ScrollAnimationManager(private val vectorPreferences: VectorPreferences) {
 
     private fun pendingOf(recyclerView: RecyclerView): MutableList<View> = pendingEntries.getOrPut(recyclerView) { mutableListOf() }
 
+    // Not view.animate(): DefaultItemAnimator cancels that on item changes, freezing the entry mid-way.
     private fun animate(view: View, delay: Long) {
         val style = vectorPreferences.scrollAnimationStyle()
         if (style == NONE) return
-        view.animate().cancel()
-        reset(view)
+        cancel(view)
 
         val verticalDistance = max(view.height, (view.resources.displayMetrics.density * 48).toInt()).toFloat()
         val horizontalDistance = max(view.width, (view.resources.displayMetrics.density * 48).toInt()).toFloat()
-        val animator = view.animate().setDuration(DURATION_MS).setStartDelay(delay)
-        when (style) {
-            FADE -> view.alpha = 0f
-            FLIP -> {
-                view.rotationX = 25f
-                view.alpha = 0.7f
-            }
-            BOUNCE -> {
-                view.translationY = verticalDistance
-                animator.setInterpolator(OvershootInterpolator())
-            }
-            GLITCH -> {
-                view.alpha = 0.35f
-                view.translationX = horizontalDistance * 0.12f
-            }
-            HELIX -> {
-                view.rotationY = 25f
-                view.translationY = verticalDistance * 0.15f
-            }
-            ROTATE -> view.rotation = 180f
-            ZOOM -> {
-                view.scaleX = 0.6f
-                view.scaleY = 0.6f
-                view.alpha = 0f
-            }
-            DROP -> view.translationY = -verticalDistance
-            STRETCH -> view.scaleY = 0.5f
-            SLIDE -> view.translationX = horizontalDistance
-            SHAKE -> {
-                ObjectAnimator.ofFloat(view, "translationX", 0f, -horizontalDistance * 0.08f, horizontalDistance * 0.08f, -horizontalDistance * 0.04f, 0f)
-                        .also { it.duration = DURATION_MS; it.startDelay = delay }
-                        .start()
-                return
-            }
-            SWING -> {
-                view.rotation = -20f
-                animator.setInterpolator(OvershootInterpolator())
-            }
-            JIGGLE -> {
-                ObjectAnimator.ofFloat(view, "rotation", 0f, -5f, 5f, -3f, 3f, 0f)
-                        .also { it.duration = DURATION_MS; it.startDelay = delay }
-                        .start()
-                return
-            }
+        val animator = when (style) {
+            FADE -> enter(view, View.ALPHA to 0f)
+            FLIP -> enter(view, View.ROTATION_X to 25f, View.ALPHA to 0.7f)
+            BOUNCE -> enter(view, View.TRANSLATION_Y to verticalDistance).apply { interpolator = OvershootInterpolator() }
+            GLITCH -> enter(view, View.ALPHA to 0.35f, View.TRANSLATION_X to horizontalDistance * 0.12f)
+            HELIX -> enter(view, View.ROTATION_Y to 25f, View.TRANSLATION_Y to verticalDistance * 0.15f)
+            ROTATE -> enter(view, View.ROTATION to 180f)
+            ZOOM -> enter(view, View.SCALE_X to 0.6f, View.SCALE_Y to 0.6f, View.ALPHA to 0f)
+            DROP -> enter(view, View.TRANSLATION_Y to -verticalDistance)
+            STRETCH -> enter(view, View.SCALE_Y to 0.5f)
+            SLIDE -> enter(view, View.TRANSLATION_X to horizontalDistance)
+            SHAKE -> ObjectAnimator.ofFloat(view, View.TRANSLATION_X, 0f, -horizontalDistance * 0.08f, horizontalDistance * 0.08f, -horizontalDistance * 0.04f, 0f)
+            SWING -> enter(view, View.ROTATION to -20f).apply { interpolator = OvershootInterpolator() }
+            JIGGLE -> ObjectAnimator.ofFloat(view, View.ROTATION, 0f, -5f, 5f, -3f, 3f, 0f)
+            else -> return
         }
-        animator.alpha(1f).translationX(0f).translationY(0f).rotation(0f).rotationX(0f).rotationY(0f).scaleX(1f).scaleY(1f).start()
+        animator.duration = DURATION_MS
+        animator.startDelay = delay
+        animator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                if (view.getTag(R.id.scroll_animation_running) === animation) view.setTag(R.id.scroll_animation_running, null)
+            }
+        })
+        view.setTag(R.id.scroll_animation_running, animator)
+        animator.start()
+    }
+
+    private fun enter(view: View, vararg from: Pair<Property<View, Float>, Float>): ObjectAnimator {
+        val holders = from.map { (property, start) ->
+            property.set(view, start)
+            val rest = if (property == View.ALPHA || property == View.SCALE_X || property == View.SCALE_Y) 1f else 0f
+            PropertyValuesHolder.ofFloat(property, start, rest)
+        }
+        return ObjectAnimator.ofPropertyValuesHolder(view, *holders.toTypedArray())
+    }
+
+    private fun cancel(view: View) {
+        (view.getTag(R.id.scroll_animation_running) as? Animator)?.cancel()
+        view.setTag(R.id.scroll_animation_running, null)
+        reset(view)
     }
 
     private fun reset(view: View) {
