@@ -32,6 +32,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
+import org.json.JSONArray
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.settings.LinkPreviewMode
 import timber.log.Timber
@@ -1814,6 +1815,12 @@ class VectorPreferences @Inject constructor(
     fun getQuickReactions(): List<String> {
         val raw = defaultPrefs.getString(SETTINGS_QUICK_REACTIONS_KEY, null)
                 ?: return EmojiDataSource.quickEmojis
+        if (raw.startsWith("[")) {
+            tryOrNull { JSONArray(raw) }?.let { array ->
+                return (0 until array.length()).mapNotNull { array.optString(it).takeIf { entry -> entry.isNotBlank() } }
+            }
+        }
+        // Older builds stored a space-joined string.
         return raw.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
     }
 
@@ -1834,7 +1841,7 @@ class VectorPreferences @Inject constructor(
 
     fun setQuickReactions(reactions: List<String>) {
         defaultPrefs.edit {
-            putString(SETTINGS_QUICK_REACTIONS_KEY, reactions.joinToString(" "))
+            putString(SETTINGS_QUICK_REACTIONS_KEY, JSONArray(reactions).toString())
         }
     }
 
