@@ -111,7 +111,6 @@ data class ReactionInfoData(
         val key: String,
         val count: Int,
         val addedByMe: Boolean,
-        val synced: Boolean
 ) : Parcelable
 
 @Parcelize

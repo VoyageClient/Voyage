@@ -102,6 +102,9 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun getRedactionTargets(roomId: String): Set<String> =
             queries.selectRedactionTargetsInRoom(roomId, EventType.REDACTION).executeAsList().filterNotNull().toHashSet()
 
+    fun hasRedactionOf(roomId: String, eventId: String): Boolean =
+            queries.selectHasRedactionOf(roomId, EventType.REDACTION, eventId).executeAsOneOrNull() != null
+
     fun getRedactableEventIdsBySender(roomId: String, senderId: String, range: MassRedactionRange = MassRedactionRange.ALL): List<String> {
         val redactedIds = getRedactionTargets(roomId)
         fun markedRedacted(unsigned: String?) = unsigned != null && ("redacted_because" in unsigned || "redacted_by" in unsigned)

@@ -46,6 +46,8 @@ internal class DefaultFindReactionEventForUndoTask @Inject constructor(
                 ?.mapNotNull { stores.event.getByEventId(it) }
                 ?.firstOrNull { it.sender == userId }
                 ?.eventId
+                // Not synced back yet: redact the pending echo, which RedactQueuedTask maps to the sent id.
+                ?: reaction?.sourceLocalEcho?.firstOrNull { stores.event.getByEventId(it)?.sender == userId }
         return FindReactionEventForUndoTask.Result(eventId)
     }
 }

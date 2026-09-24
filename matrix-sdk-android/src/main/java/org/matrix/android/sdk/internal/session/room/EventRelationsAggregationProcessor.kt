@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollResponseContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageRelationContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
+import org.matrix.android.sdk.api.session.room.model.relation.ReactionInfo
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.verification.toState
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
@@ -371,6 +372,14 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         }
         // rel_type must be m.annotation
         val relatesTo = content.relatesTo
+        if (relatesTo == null && !isLocalEcho) {
+            // Redacted before it synced: the content is pruned, but the pending echo it stands for must still go.
+            Timber.v("Reaction ${event.eventId} arrived redacted, dropping its local echo")
+            reactionOfLocalEcho(stores, event.unsignedData?.transactionId)?.let { echoRelation ->
+                removeReactionSources(stores, roomId, echoRelation.eventId, echoRelation.key, setOfNotNull(event.unsignedData?.transactionId))
+            }
+            return
+        }
         if (RelationType.ANNOTATION != relatesTo?.type) {
             Timber.e("Unknown relation type ${relatesTo?.type} for event ${event.eventId}")
             return
@@ -397,7 +406,10 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
                 sum.sourceLocalEcho.add(txId)
             }
         } else {
-            if (reactionEventId != null && !sum.sourceEvents.contains(reactionEventId)) {
+            // Un-reacted while still an echo: that redaction already dropped it, and this copy's own redaction
+            // is behind it in sync. Counting it meanwhile would flash the reaction back.
+            val redactedAsEcho = txId != null && stores.event.hasRedactionOf(roomId, txId)
+            if (!redactedAsEcho && reactionEventId != null && !sum.sourceEvents.contains(reactionEventId)) {
                 Timber.v("Adding synced reaction")
                 sum.sourceEvents.add(reactionEventId)
             }
@@ -416,17 +428,29 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         }
 
         reactionSummaryRefresher.refresh(stores, sum)
+        if (sum.sourceEvents.isEmpty() && sum.sourceLocalEcho.isEmpty()) {
+            eventSummary.reactionsSummary.remove(sum)
+        }
         stores.annotations.upsertSummary(relatedEventID, roomId)
         stores.annotations.replaceReactions(relatedEventID, eventSummary.reactionsSummary)
     }
 
     private fun handleReactionRedact(stores: SessionStores, eventToPrune: EventEntity) {
         Timber.v("REDACTION of reaction ${eventToPrune.eventId}")
-        // delete a reaction, need to update the annotation summary if any
-        val reactionContent: ReactionContent = eventToPrune.asDomain().content.toModel() ?: return
-        val relatesTo = reactionContent.relatesTo ?: return
-        val eventThatWasReacted = relatesTo.eventId
-        val reactionKey = relatesTo.key
+        val target = eventToPrune.asDomain()
+        val txId = target.unsignedData?.transactionId
+        // A reaction redacted before it synced has pruned content; its local echo still holds the relation.
+        val relatesTo = target.getClearContent().toModel<ReactionContent>()?.relatesTo
+                ?: reactionOfLocalEcho(stores, txId)
+                ?: return
+        // The target may still be the pending local echo, which the summary only knows by transaction id.
+        removeReactionSources(stores, eventToPrune.roomId, relatesTo.eventId, relatesTo.key, setOfNotNull(eventToPrune.eventId, txId))
+    }
+
+    private fun reactionOfLocalEcho(stores: SessionStores, txId: String?): ReactionInfo? =
+            txId?.let { stores.event.getByEventId(it) }?.asDomain()?.getClearContent().toModel<ReactionContent>()?.relatesTo
+
+    private fun removeReactionSources(stores: SessionStores, roomId: String, eventThatWasReacted: String, reactionKey: String, ids: Set<String>) {
         Timber.v("REMOVE reaction for key $reactionKey")
         val summary = stores.annotations.get(eventThatWasReacted)
         if (summary == null) {
@@ -434,11 +458,12 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
             return
         }
         val aggregation = summary.reactionsSummary.firstOrNull { it.key == reactionKey } ?: return
-        if (!aggregation.sourceEvents.contains(eventToPrune.eventId)) {
-            Timber.e("## Cannot remove summary from count, corresponding reaction ${eventToPrune.eventId} is not known")
+        // Non-short-circuit `or`: a redacted synced reaction must also drop the echo it reconciles.
+        val removed = aggregation.sourceEvents.removeAll(ids) or aggregation.sourceLocalEcho.removeAll(ids)
+        if (!removed) {
+            Timber.e("## Cannot remove summary from count, corresponding reaction $ids is not known")
             return
         }
-        aggregation.sourceEvents.remove(eventToPrune.eventId)
         reactionSummaryRefresher.refresh(stores, aggregation)
         // Not on count == 0: an ignored reactor's reaction counts for nothing yet must stay stored,
         // so it comes back on un-ignore.
@@ -449,7 +474,7 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         // annotation-change flow only watches event_annotations_summary. Without this the removal writes only
         // the reactions table and the timeline never re-maps, leaving the redacted reaction shown until reopen
         // (the add path does the same via upsertSummary).
-        stores.annotations.upsertSummary(eventThatWasReacted, eventToPrune.roomId)
+        stores.annotations.upsertSummary(eventThatWasReacted, roomId)
         stores.annotations.replaceReactions(eventThatWasReacted, summary.reactionsSummary)
     }
 

@@ -139,6 +139,7 @@ import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHist
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.helper.ReactionsSummaryFactory
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.DefaultItem
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
@@ -261,6 +262,7 @@ class TimelineFragment :
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var avatarSizeProvider: im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
+    @Inject lateinit var reactionsSummaryFactory: ReactionsSummaryFactory
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
@@ -2166,6 +2168,7 @@ class TimelineFragment :
     }
 
     override fun onClickOnReactionPill(informationData: MessageInformationData, reaction: String, on: Boolean) {
+        reactionsSummaryFactory.onReactionToggled(informationData.eventId, reaction, on)
         if (on) {
             // we should test the current real state of reaction on this event
             timelineViewModel.handle(RoomDetailAction.SendReaction(informationData.eventId, reaction))

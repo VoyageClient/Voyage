@@ -64,7 +64,6 @@ object ReactionsContainerRenderer {
             reactionButton.reactionString = reaction.key
             reactionButton.reactionCount = reaction.count
             reactionButton.setChecked(reaction.addedByMe)
-            reactionButton.isEnabled = reaction.synced
             // While previewing a tap would only fake a toggle; long-press (who reacted) stays live.
             reactionButton.readOnly = !reactionsSummary.canAddReaction
         }
