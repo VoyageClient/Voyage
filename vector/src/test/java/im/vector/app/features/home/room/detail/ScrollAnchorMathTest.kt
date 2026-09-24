@@ -60,6 +60,17 @@ class ScrollAnchorMathTest {
         ScrollAnchorMath.currentOffset(endAfterPadding = 1000, decoratedBottom = 1200) shouldBeEqualTo -200
     }
 
+    @Test
+    fun `row is fully visible only when both edges are inside the padded viewport`() {
+        ScrollAnchorMath.isFullyVisible(startAfterPadding = 100, endAfterPadding = 1000, decoratedTop = 100, decoratedBottom = 1000) shouldBeEqualTo true
+        ScrollAnchorMath.isFullyVisible(startAfterPadding = 100, endAfterPadding = 1000, decoratedTop = 400, decoratedBottom = 600) shouldBeEqualTo true
+        // Tucked partly under the top padding or the composer.
+        ScrollAnchorMath.isFullyVisible(startAfterPadding = 100, endAfterPadding = 1000, decoratedTop = 50, decoratedBottom = 300) shouldBeEqualTo false
+        ScrollAnchorMath.isFullyVisible(startAfterPadding = 100, endAfterPadding = 1000, decoratedTop = 900, decoratedBottom = 1100) shouldBeEqualTo false
+        // Taller than the viewport: never fully visible, so it still gets top-aligned.
+        ScrollAnchorMath.isFullyVisible(startAfterPadding = 100, endAfterPadding = 1000, decoratedTop = 0, decoratedBottom = 1200) shouldBeEqualTo false
+    }
+
     private fun bottomOf(offset: Int, usableHeight: Int) = usableHeight - offset
 
     private fun topOf(offset: Int, usableHeight: Int, itemHeight: Int) = bottomOf(offset, usableHeight) - itemHeight

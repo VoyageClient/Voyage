@@ -38,4 +38,7 @@ object ScrollAnchorMath {
     }
 
     fun currentOffset(endAfterPadding: Int, decoratedBottom: Int): Int = endAfterPadding - decoratedBottom
+
+    fun isFullyVisible(startAfterPadding: Int, endAfterPadding: Int, decoratedTop: Int, decoratedBottom: Int): Boolean =
+            decoratedTop >= startAfterPadding && decoratedBottom <= endAfterPadding
 }

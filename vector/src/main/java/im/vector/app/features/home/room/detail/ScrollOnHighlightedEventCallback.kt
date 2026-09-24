@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail
 
 import android.os.SystemClock
+import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.core.platform.DefaultListUpdateCallback
@@ -144,6 +145,19 @@ class ScrollOnHighlightedEventCallback(
         }
     }
 
+    // The reader can already see the target, so it only flashes; it is still held so a neighbor
+    // decrypting or loading media doesn't push it away mid-flash.
+    private fun holdInPlace(view: View, resolvePosition: () -> Int?) {
+        recyclerView.stopScroll()
+        val now = SystemClock.uptimeMillis()
+        anchorOffset = ScrollAnchorMath.currentOffset(endAfterPadding(), layoutManager.getDecoratedBottom(view))
+        settledOffset = anchorOffset
+        anchor = Anchor(ScrollAnchorAlignment.CENTER, resolvePosition)
+        anchorDeadlineMs = now + ANCHOR_MAX_MS
+        lastAnchorActivityMs = now
+        onLanded()
+    }
+
     /**
      * Keeps the landed row at its offset. Returns false to drop the frame when a correction was made,
      * so the reader never sees the drifted position — bounded, since a correction that cannot converge
@@ -228,9 +242,17 @@ class ScrollOnHighlightedEventCallback(
         cancel()
         eventId ?: return
         val position = timelineEventController.searchPositionOfEvent(eventId)
-        if (position != null && layoutManager.findViewByPosition(position) != null) {
-            // Already on screen: there is nothing to wait for, and nothing for the reader to be told.
-            land(position, ScrollAnchorAlignment.CENTER) { timelineEventController.searchPositionOfEvent(eventId) }
+        val view = position?.let { layoutManager.findViewByPosition(it) }
+        if (position != null && view != null) {
+            val resolvePosition = { timelineEventController.searchPositionOfEvent(eventId) }
+            if (ScrollAnchorMath.isFullyVisible(
+                            recyclerView.paddingTop, endAfterPadding(),
+                            layoutManager.getDecoratedTop(view), layoutManager.getDecoratedBottom(view)
+                    )) {
+                holdInPlace(view, resolvePosition)
+            } else {
+                land(position, ScrollAnchorAlignment.CENTER, resolvePosition)
+            }
             return
         }
         scheduledEventId.set(eventId)
