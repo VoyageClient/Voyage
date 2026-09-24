@@ -362,7 +362,13 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun pgpFormattedFor(room: Room, message: CharSequence, explicitFormatted: String?, autoMarkdown: Boolean): String? =
             explicitFormatted ?: room.sendService().computeFormattedHtml(message, autoMarkdown)
 
-    private fun handlePgpSend(room: Room, text: CharSequence, formattedText: String?, consumedMode: SendMode?, send: suspend (armoredBody: String, armoredFormatted: String?) -> Unit) {
+    private fun handlePgpSend(
+            room: Room,
+            text: CharSequence,
+            formattedText: String?,
+            consumedMode: SendMode?,
+            send: suspend (armoredBody: String, armoredFormatted: String?) -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 when (val outcome = pgpRoomEncryptor.encryptForRoom(room, text, formattedText)) {
@@ -385,7 +391,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                 }
             }.onFailure { failure ->
                 Timber.w(failure, "PGP send failed")
-                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_encrypt_failed, failure.localizedMessage.orEmpty())))
+                val message = stringProvider.getString(CommonStrings.pgp_encrypt_failed, failure.localizedMessage.orEmpty())
+                _viewEvents.post(MessageComposerViewEvents.ShowMessage(message))
             }
         }
     }
@@ -692,7 +699,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                             if (roomPgpOn) {
                                 // Room is in PGP mode: encrypt the body (and the formatted body, if any,
                                 // separately) — each field carries its own armored block.
-                                handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown), state.sendMode) { armoredBody, armoredFormatted ->
+                                val formatted = pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown)
+                                handlePgpSend(room, action.text, formatted, state.sendMode) { armoredBody, armoredFormatted ->
                                     if (state.rootThreadEventId != null) {
                                         room.relationService().replyInThread(
                                                 rootThreadEventId = state.rootThreadEventId,
@@ -756,15 +764,17 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     viewModelScope.launch(Dispatchers.IO) {
                                         runCatching { pgpRoomEncryptor.resolveRoomRecipients(room) }
                                                 .onSuccess { others ->
-                                                    if (others == null) {
-                                                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
+                                                    val message = if (others == null) {
+                                                        stringProvider.getString(CommonStrings.pgp_no_recipient_keys)
                                                     } else {
                                                         pgpKeyStore.setRoomPgpEnabled(room.roomId, true)
-                                                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_mode_on)))
+                                                        stringProvider.getString(CommonStrings.pgp_mode_on)
                                                     }
+                                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(message))
                                                 }
                                                 .onFailure {
-                                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_encrypt_failed, it.localizedMessage.orEmpty())))
+                                                    val message = stringProvider.getString(CommonStrings.pgp_encrypt_failed, it.localizedMessage.orEmpty())
+                                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(message))
                                                 }
                                     }
                                 }
@@ -805,7 +815,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_disabled)))
                                 return@launch
                             }
-                            handlePgpSend(room, parsedCommand.message, pgpFormattedFor(room, parsedCommand.message, null, action.autoMarkdown), state.sendMode) { armoredBody, armoredFormatted ->
+                            val formatted = pgpFormattedFor(room, parsedCommand.message, null, action.autoMarkdown)
+                            handlePgpSend(room, parsedCommand.message, formatted, state.sendMode) { armoredBody, armoredFormatted ->
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
@@ -1048,7 +1059,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendRainbowEmote -> {
-                            sendColored(room, state.rootThreadEventId, parsedCommand.message, rainbowWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                            val colored = rainbowWithMentions(parsedCommand.message)
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, colored, MessageType.MSGTYPE_EMOTE)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
@@ -1058,7 +1070,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendTransEmote -> {
-                            sendColored(room, state.rootThreadEventId, parsedCommand.message, transWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                            val colored = transWithMentions(parsedCommand.message)
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, colored, MessageType.MSGTYPE_EMOTE)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
@@ -1344,7 +1357,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                     } else if (!handledAsCommand &&
                             pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(room.roomId) && !room.roomCryptoService().isEncrypted()) {
                         // PGP-mode reply: encrypt the body, keep the m.relates_to so it still threads/replies.
-                        handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown), state.sendMode) { armoredBody, armoredFormatted ->
+                        val formatted = pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown)
+                        handlePgpSend(room, action.text, formatted, state.sendMode) { armoredBody, armoredFormatted ->
                             state.rootThreadEventId?.let {
                                 room.relationService().replyInThread(
                                         rootThreadEventId = it,

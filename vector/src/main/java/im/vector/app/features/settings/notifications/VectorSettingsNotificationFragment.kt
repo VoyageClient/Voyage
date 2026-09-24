@@ -148,7 +148,13 @@ class VectorSettingsNotificationFragment :
                         } else {
                             MaterialAlertDialogBuilder(requireContext())
                                     .setTitle(CommonStrings.settings_reset_room_notification_overrides)
-                                    .setMessage(resources.getQuantityString(CommonPlurals.settings_reset_room_notification_overrides_prompt, overrides.size, overrides.size))
+                                    .setMessage(
+                                            resources.getQuantityString(
+                                                    CommonPlurals.settings_reset_room_notification_overrides_prompt,
+                                                    overrides.size,
+                                                    overrides.size
+                                            )
+                                    )
                                     .setNegativeButton(CommonStrings.action_cancel, null)
                                     .setPositiveButton(CommonStrings.ok) { _, _ -> clearRoomNotificationOverrides(overrides) }
                                     .show()

@@ -97,20 +97,20 @@ internal class FakeCryptoStoreForVerification(private val mode: StoreMode) {
 
     companion object {
 
-        val aliceMxId = "alice@example.com"
-        val bobMxId = "bob@example.com"
-        val bobDeviceId = "MKRJDSLYGA"
-        val bobDeviceId2 = "RRIWTEKZEI"
+        const val aliceMxId = "alice@example.com"
+        const val bobMxId = "bob@example.com"
+        const val bobDeviceId = "MKRJDSLYGA"
+        const val bobDeviceId2 = "RRIWTEKZEI"
 
-        val aliceDevice1Id = "MGDAADVDMG"
+        const val aliceDevice1Id = "MGDAADVDMG"
 
-        private val aliceMSK = "Ru4ni66dbQ6FZgUoHyyBtmjKecOHMvMSsSBZ2SABtt0"
-        private val aliceSSK = "Rw6MiEn5do57mBWlWUvL6VDZJ7vAfGrTC58UXVyA0eo"
-        private val aliceUSK = "3XpDI8J5T1Wy2NoGePkDiVhqZlVeVPHM83q9sUJuRcc"
+        private const val aliceMSK = "Ru4ni66dbQ6FZgUoHyyBtmjKecOHMvMSsSBZ2SABtt0"
+        private const val aliceSSK = "Rw6MiEn5do57mBWlWUvL6VDZJ7vAfGrTC58UXVyA0eo"
+        private const val aliceUSK = "3XpDI8J5T1Wy2NoGePkDiVhqZlVeVPHM83q9sUJuRcc"
 
-        private val bobMSK = "/ZK6paR+wBkKcazPx2xijn/0g+m2KCRqdCUZ6agzaaE"
-        private val bobSSK = "3/u3SRYywxRl2ul9OiRJK5zFeFnGXd0TrkcnVh1Bebk"
-        private val bobUSK = "601KhaiAhDTyFDS87leWc8/LB+EAUjKgjJvPMWNLP08"
+        private const val bobMSK = "/ZK6paR+wBkKcazPx2xijn/0g+m2KCRqdCUZ6agzaaE"
+        private const val bobSSK = "3/u3SRYywxRl2ul9OiRJK5zFeFnGXd0TrkcnVh1Bebk"
+        private const val bobUSK = "601KhaiAhDTyFDS87leWc8/LB+EAUjKgjJvPMWNLP08"
 
         private val aliceFirstDevice = CryptoDeviceInfo(
                 deviceId = aliceDevice1Id,

@@ -407,7 +407,15 @@ class DefaultNavigator @Inject constructor(
         openBigImageViewer(activity, null, matrixItem.avatarUrl, matrixItem.getBestName())
     }
 
-    override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?, roomId: String?, eventId: String?, elementToDecrypt: ElementToDecrypt?) {
+    override fun openBigImageViewer(
+            activity: Activity,
+            sharedElement: View?,
+            mxcUrl: String?,
+            title: String?,
+            roomId: String?,
+            eventId: String?,
+            elementToDecrypt: ElementToDecrypt?
+    ) {
         val avatarUrl = mxcUrl?.takeIf { it.isNotBlank() } ?: return
         // Reuse the timeline media viewer (zoom + download + share) with the avatar as a single entry.
         val imageData = ImageContentRenderer.Data(

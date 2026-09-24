@@ -59,7 +59,8 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
             // Fill the parent so the ScrollView can scroll a too-tall invite internally.
             views.inviteScroll.updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
-            avatarRenderer.render(sender.toMatrixItem().let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }, views.inviteAvatarView)
+            val senderItem = sender.toMatrixItem().let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }
+            avatarRenderer.render(senderItem, views.inviteAvatarView)
             views.inviteIdentifierView.text = sender.userId.neutralizeDirectionOverrides()
             views.inviteNameView.text = sender.displayName?.prepareForDisplay()
             views.inviteLabelView.text = context.getString(CommonStrings.send_you_invite)

@@ -105,7 +105,13 @@ object PermalinkParser {
         }
     }
 
-    private fun handleRoomIdCase(fragment: String, identifier: String, matrixToUriString: String, extraParameter: String?, viaQueryParameters: List<String>): PermalinkData {
+    private fun handleRoomIdCase(
+            fragment: String,
+            identifier: String,
+            matrixToUriString: String,
+            extraParameter: String?,
+            viaQueryParameters: List<String>
+    ): PermalinkData {
         // Can't rely on built in parsing because it's messing around the signurl
         val paramList = safeExtractParams(fragment)
         val signUrl = paramList.firstOrNull { it.first == "signurl" }?.second

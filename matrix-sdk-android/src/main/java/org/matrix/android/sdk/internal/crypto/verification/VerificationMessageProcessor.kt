@@ -55,7 +55,10 @@ internal class VerificationMessageProcessor @Inject constructor(
     }
 
     suspend fun process(roomId: String, event: Event) {
-        Timber.v("## SAS Verification[${userId.take(5)}] live observer: received msgId: ${event.eventId} msgtype: ${event.getClearType()} from ${event.senderId}")
+        Timber.v(
+                "## SAS Verification[${userId.take(5)}] live observer: received msgId: ${event.eventId} " +
+                        "msgtype: ${event.getClearType()} from ${event.senderId}"
+        )
 
         // If the request is in the future by more than 5 minutes or more than 10 minutes in the past,
         // the message should be ignored by the receiver.

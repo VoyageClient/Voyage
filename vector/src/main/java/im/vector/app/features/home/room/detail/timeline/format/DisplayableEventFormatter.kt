@@ -19,10 +19,12 @@ import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
+import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
@@ -54,8 +56,8 @@ class DisplayableEventFormatter @Inject constructor(
         private val vectorPreferences: VectorPreferences,
         private val matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider,
         private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
-        private val pillsPostProcessorFactory: im.vector.app.features.html.PillsPostProcessor.Factory,
-        private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
+        private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
+        private val textRendererFactory: EventTextRenderer.Factory,
 ) {
 
     // Rendered previews, keyed by room + source HTML. The room list re-renders every visible summary
@@ -67,7 +69,7 @@ class DisplayableEventFormatter @Inject constructor(
     private var previewCacheGeneration = ThemeUtils.themeGeneration to matrixItemColorProvider.changes.value
 
     // Per-room pill processors, cached so the room list doesn't rebuild them on every summary render.
-    private val pillProcessors = java.util.concurrent.ConcurrentHashMap<String, Pair<im.vector.app.features.html.PillsPostProcessor, im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer>>()
+    private val pillProcessors = java.util.concurrent.ConcurrentHashMap<String, Pair<PillsPostProcessor, EventTextRenderer>>()
 
     private fun pillProcessorsFor(roomId: String) = pillProcessors.getOrPut(roomId) {
         pillsPostProcessorFactory.create(roomId) to textRendererFactory.create(roomId)

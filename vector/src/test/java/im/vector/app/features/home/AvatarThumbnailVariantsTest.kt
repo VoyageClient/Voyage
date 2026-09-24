@@ -85,7 +85,7 @@ class AvatarThumbnailVariantsTest {
         every { it.error(any<RequestBuilder<Drawable>>()) } returns it
     }
     private val glideRequests = mockk<GlideRequests>(relaxed = true).also {
-        every { it.load(any<String>()) } returns request
+        every { it.load(any<Any>()) } returns request
     }
 
     @Test

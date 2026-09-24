@@ -48,7 +48,8 @@ class HomeServerConnectionConfigTest {
     @Test
     fun `json round-trips and keeps the legacy string shape`() {
         val adapter = MoshiProvider.providesMoshi().adapter(HomeServerConnectionConfig::class.java)
-        val legacyJson = """{"homeServerUri":"https://example.org/","homeServerUriBase":"https://matrix.example.org/","identityServerUri":"https://id.example.org/"}"""
+        val legacyJson = """{"homeServerUri":"https://example.org/","homeServerUriBase":"https://matrix.example.org/",""" +
+                """"identityServerUri":"https://id.example.org/"}"""
 
         val parsed = adapter.fromJson(legacyJson)!!
         assertEquals("https://example.org/", parsed.homeServerUri)

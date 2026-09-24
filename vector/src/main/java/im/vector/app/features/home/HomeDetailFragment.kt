@@ -180,7 +180,10 @@ class HomeDetailFragment :
                 VerificationVectorAlert(
                         uid = uid,
                         title = getString(CommonStrings.new_session),
-                        description = getString(CommonStrings.verify_this_session, (newest.displayName ?: newest.deviceId ?: "").neutralizeDirectionOverrides()),
+                        description = getString(
+                                CommonStrings.verify_this_session,
+                                (newest.displayName ?: newest.deviceId ?: "").neutralizeDirectionOverrides()
+                        ),
                         iconId = R.drawable.ic_shield_warning
                 ).apply {
                     viewBinder = VerificationVectorAlert.ViewBinder(user, avatarRenderer)

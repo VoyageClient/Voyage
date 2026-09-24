@@ -182,7 +182,9 @@ internal class DefaultLocationSharingServiceTest {
 
         defaultLocationSharingService.redactLiveLocationShare(beaconInfoEventId = AN_EVENT_ID, reason = A_REASON)
 
-        coVerify { redactLiveLocationShareTask.execute(RedactLiveLocationShareTask.Params(roomId = A_ROOM_ID, beaconInfoEventId = AN_EVENT_ID, reason = A_REASON)) }
+        coVerify {
+            redactLiveLocationShareTask.execute(RedactLiveLocationShareTask.Params(roomId = A_ROOM_ID, beaconInfoEventId = AN_EVENT_ID, reason = A_REASON))
+        }
     }
 
     @Test

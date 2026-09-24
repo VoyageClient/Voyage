@@ -117,7 +117,16 @@ enum class UaSpoofClient(
     ),
     ELEMENT_ANDROID_LEGACY(
             "element_android_legacy", CommonStrings.settings_ua_client_element_android_legacy,
-            listOf(UaField.APP_VERSION, UaField.DEVICE_MANUFACTURER, UaField.DEVICE_MODEL, UaField.ANDROID_VERSION, UaField.BUILD_ID, UaField.FLAVOUR, UaField.SDK_VERSION, UaField.SUFFIX),
+            listOf(
+                    UaField.APP_VERSION,
+                    UaField.DEVICE_MANUFACTURER,
+                    UaField.DEVICE_MODEL,
+                    UaField.ANDROID_VERSION,
+                    UaField.BUILD_ID,
+                    UaField.FLAVOUR,
+                    UaField.SDK_VERSION,
+                    UaField.SUFFIX
+            ),
             suffixOptions = listOf(SUFFIX_NONE, UaSuffix("dbg", CommonStrings.settings_ua_suffix_dbg)),
             defaultSurfaces = API_ONLY,
     ),

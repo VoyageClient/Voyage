@@ -149,18 +149,59 @@ internal class KeyRequestSqlStore(
 
     // ==================== Audit trail ====================
 
-    fun saveIncomingKeyRequestAuditTrail(requestId: String, roomId: String, sessionId: String, senderKey: String, algorithm: String, fromUser: String, fromDevice: String) {
-        val info = IncomingKeyRequestInfo(roomId = roomId, sessionId = sessionId, senderKey = senderKey, alg = algorithm, userId = fromUser, deviceId = fromDevice, requestId = requestId)
+    fun saveIncomingKeyRequestAuditTrail(
+            requestId: String,
+            roomId: String,
+            sessionId: String,
+            senderKey: String,
+            algorithm: String,
+            fromUser: String,
+            fromDevice: String
+    ) {
+        val info = IncomingKeyRequestInfo(
+                roomId = roomId,
+                sessionId = sessionId,
+                senderKey = senderKey,
+                alg = algorithm,
+                userId = fromUser,
+                deviceId = fromDevice,
+                requestId = requestId
+        )
         insertAudit(TrailType.IncomingKeyRequest.name, moshi.adapter(IncomingKeyRequestInfo::class.java).toJson(info))
     }
 
     fun saveWithheldAuditTrail(roomId: String, sessionId: String, senderKey: String, algorithm: String, code: WithHeldCode, userId: String, deviceId: String) {
-        val info = WithheldInfo(roomId = roomId, sessionId = sessionId, senderKey = senderKey, alg = algorithm, code = code, userId = userId, deviceId = deviceId)
+        val info = WithheldInfo(
+                roomId = roomId,
+                sessionId = sessionId,
+                senderKey = senderKey,
+                alg = algorithm,
+                code = code,
+                userId = userId,
+                deviceId = deviceId
+        )
         insertAudit(TrailType.OutgoingKeyWithheld.name, moshi.adapter(WithheldInfo::class.java).toJson(info))
     }
 
-    fun saveForwardKeyAuditTrail(roomId: String, sessionId: String, senderKey: String, algorithm: String, userId: String, deviceId: String, chainIndex: Long?, incoming: Boolean) {
-        val info = ForwardInfo(roomId = roomId, sessionId = sessionId, senderKey = senderKey, alg = algorithm, userId = userId, deviceId = deviceId, chainIndex = chainIndex)
+    fun saveForwardKeyAuditTrail(
+            roomId: String,
+            sessionId: String,
+            senderKey: String,
+            algorithm: String,
+            userId: String,
+            deviceId: String,
+            chainIndex: Long?,
+            incoming: Boolean
+    ) {
+        val info = ForwardInfo(
+                roomId = roomId,
+                sessionId = sessionId,
+                senderKey = senderKey,
+                alg = algorithm,
+                userId = userId,
+                deviceId = deviceId,
+                chainIndex = chainIndex
+        )
         val type = if (incoming) TrailType.IncomingKeyForward.name else TrailType.OutgoingKeyForward.name
         insertAudit(type, moshi.adapter(ForwardInfo::class.java).toJson(info))
     }

@@ -45,7 +45,11 @@ class NllbModelStore @Inject constructor(
     }
 
     val files = listOf(
-            ModelFile("sentencepiece_bpe.model", "https://raw.githubusercontent.com/niedev/RTranslator/v2.00/app/src/main/assets/sentencepiece_bpe.model", 4_852_054),
+            ModelFile(
+                    "sentencepiece_bpe.model",
+                    "https://raw.githubusercontent.com/niedev/RTranslator/v2.00/app/src/main/assets/sentencepiece_bpe.model",
+                    4_852_054
+            ),
             ModelFile("lid.176.ftz", "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz", 938_013),
             ModelFile("NLLB_cache_initializer.onnx", "https://github.com/niedev/RTranslator/releases/download/2.0.0/NLLB_cache_initializer.onnx", 25_368_443),
             ModelFile("NLLB_decoder.onnx", "https://github.com/niedev/RTranslator/releases/download/2.0.0/NLLB_decoder.onnx", 179_109_694),

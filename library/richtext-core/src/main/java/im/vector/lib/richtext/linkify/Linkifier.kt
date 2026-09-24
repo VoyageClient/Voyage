@@ -54,16 +54,16 @@ class Linkifier(private val matrix: MatrixIdentifiers) {
         }
     }
 
-    // Android removes every ClickableSpan here, which includes spoilers (SpoilerSpan is clickable).
+    // A spoiler is clickable too, but it is what hides the code or emote, so it is kept.
     private fun removeClickablesOver(text: SpanBuffer, covered: (RichStyle) -> Boolean) {
         val targets = text.allSpans().filter { covered(it.style) }
         if (targets.isEmpty()) return
-        text.allSpans().filter { it.style.isClickable() }.forEach { link ->
+        text.allSpans().filter { it.style.isLink() }.forEach { link ->
             if (targets.any { link.start < it.end && it.start < link.end }) text.removeSpan(link)
         }
     }
 
-    private fun RichStyle.isClickable() = this is RichStyle.Url || this is RichStyle.MatrixPermalink || this is RichStyle.Spoiler || this is RichStyle.Link
+    private fun RichStyle.isLink() = this is RichStyle.Url || this is RichStyle.MatrixPermalink || this is RichStyle.Link
 }
 
 /** Port of the app's `VectorLinkify` on top of [AndroidLinkify]. */
@@ -236,7 +236,14 @@ internal object AndroidLinkify {
         return true
     }
 
-    fun addLinks(text: SpanBuffer, pattern: Pattern, defaultScheme: String?, schemes: Array<String>?, matchFilter: MatchFilter?, transformFilter: TransformFilter?): Boolean {
+    fun addLinks(
+            text: SpanBuffer,
+            pattern: Pattern,
+            defaultScheme: String?,
+            schemes: Array<String>?,
+            matchFilter: MatchFilter?,
+            transformFilter: TransformFilter?
+    ): Boolean {
         val schemesCopy = ArrayList<String>()
         schemesCopy.add((defaultScheme ?: "").lowercase(Locale.ROOT))
         schemes?.forEach { schemesCopy.add(it.lowercase(Locale.ROOT)) }
@@ -272,7 +279,14 @@ internal object AndroidLinkify {
         return result
     }
 
-    private fun gatherLinks(links: ArrayList<LinkSpec>, s: SpanBuffer, pattern: Pattern, schemes: Array<String>, matchFilter: MatchFilter?, transformFilter: TransformFilter?) {
+    private fun gatherLinks(
+            links: ArrayList<LinkSpec>,
+            s: SpanBuffer,
+            pattern: Pattern,
+            schemes: Array<String>,
+            matchFilter: MatchFilter?,
+            transformFilter: TransformFilter?
+    ) {
         val m = pattern.matcher(s.toString())
         while (m.find()) {
             val start = m.start()

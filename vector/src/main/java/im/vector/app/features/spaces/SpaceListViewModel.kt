@@ -199,7 +199,6 @@ class SpaceListViewModel @AssistedInject constructor(
             tagFilterStateHandler.setSelectedTag(null)
             spaceStateHandler.setCurrentSpace(action.spaceSummary?.roomId)
             _viewEvents.post(SpaceListViewEvents.CloseDrawer)
-        } else {
         }
     }
 

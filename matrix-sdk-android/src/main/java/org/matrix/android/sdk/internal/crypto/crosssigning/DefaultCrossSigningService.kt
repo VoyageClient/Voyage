@@ -404,7 +404,8 @@ internal class DefaultCrossSigningService @Inject constructor(
                     otherMasterKey.canonicalSignable()
             )
         } catch (failure: Throwable) {
-            return UserTrustResult.Failure("Invalid signature $masterKeySignaturesMadeByMyUserKey") // UserTrustResult.InvalidSignature(myUserKey, masterKeySignaturesMadeByMyUserKey)
+            // UserTrustResult.InvalidSignature(myUserKey, masterKeySignaturesMadeByMyUserKey)
+            return UserTrustResult.Failure("Invalid signature $masterKeySignaturesMadeByMyUserKey")
         }
 
         return UserTrustResult.Success
@@ -514,7 +515,8 @@ internal class DefaultCrossSigningService @Inject constructor(
                     mySSKey.canonicalSignable()
             )
         } catch (failure: Throwable) {
-            return UserTrustResult.Failure("Invalid signature $ssKeySignaturesMadeByMyMasterKey") // UserTrustResult.InvalidSignature(mySSKey, ssKeySignaturesMadeByMyMasterKey)
+            // UserTrustResult.InvalidSignature(mySSKey, ssKeySignaturesMadeByMyMasterKey)
+            return UserTrustResult.Failure("Invalid signature $ssKeySignaturesMadeByMyMasterKey")
         }
 
         return UserTrustResult.Success

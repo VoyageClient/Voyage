@@ -114,7 +114,13 @@ class EventHtmlRenderer @Inject constructor(
             // decoder and invalidations route back to the TextView.
             return builder.listener(object : RequestListener<Drawable> {
                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean) = false
-                override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                override fun onResourceReady(
+                        resource: Drawable,
+                        model: Any,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource,
+                        isFirstResource: Boolean
+                ): Boolean {
                     drawable.callback?.let { resource.callback = it }
                     resource.setVisible(true, true)
                     return false

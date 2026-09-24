@@ -68,6 +68,7 @@ class VerificationItemFactory @Inject constructor(
         val referenceInformationData = messageInformationDataFactory.create(TimelineItemFactoryParams(event = refEvent))
 
         val informationData = messageInformationDataFactory.create(params)
+        val senderDescription = "${informationData.memberName?.neutralizeDirectionOverrides()} (${informationData.senderId.neutralizeDirectionOverrides()})"
         val attributes = messageItemAttributesFactory.create(null, informationData, params.callback, params.reactionsSummaryEvents)
 
         when (event.root.getClearType()) {
@@ -85,7 +86,7 @@ class VerificationItemFactory @Inject constructor(
                                 .attributes(
                                         StatusTileTimelineItem.Attributes(
                                                 title = stringProvider.getString(CommonStrings.verification_conclusion_warning),
-                                                description = "${informationData.memberName?.neutralizeDirectionOverrides()} (${informationData.senderId.neutralizeDirectionOverrides()})",
+                                                description = senderDescription,
                                                 shieldUIState = StatusTileTimelineItem.ShieldUIState.RED,
                                                 informationData = informationData,
                                                 avatarRenderer = attributes.avatarRenderer,
@@ -119,7 +120,7 @@ class VerificationItemFactory @Inject constructor(
                         .attributes(
                                 StatusTileTimelineItem.Attributes(
                                         title = stringProvider.getString(CommonStrings.sas_verified),
-                                        description = "${informationData.memberName?.neutralizeDirectionOverrides()} (${informationData.senderId.neutralizeDirectionOverrides()})",
+                                        description = senderDescription,
                                         shieldUIState = StatusTileTimelineItem.ShieldUIState.GREEN,
                                         informationData = informationData,
                                         avatarRenderer = attributes.avatarRenderer,

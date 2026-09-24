@@ -157,12 +157,18 @@ internal class SqlCryptoStore @Inject constructor(
 
     override fun getGlobalCryptoConfigFlow(): Flow<GlobalCryptoConfig> =
             database.cryptoMetadataQueries.selectFirst().asFlow().mapToOneOrNull(dispatcher)
-                    .map { row -> row?.let { GlobalCryptoConfig(it.global_blacklist_unverified_devices == 1L, it.global_enable_key_gossiping == 1L) } ?: GlobalCryptoConfig(false, false) }
+                    .map { row ->
+                        row?.let { GlobalCryptoConfig(it.global_blacklist_unverified_devices == 1L, it.global_enable_key_gossiping == 1L) }
+                                ?: GlobalCryptoConfig(false, false)
+                    }
                     .flowOn(dispatcher)
 
     override fun getCrossSigningPrivateKeysFlow(): Flow<Optional<PrivateKeysInfo>> =
             database.cryptoMetadataQueries.selectFirst().asFlow().mapToOneOrNull(dispatcher)
-                    .map { row -> row?.let { PrivateKeysInfo(it.x_sign_master_private_key, it.x_sign_self_signed_private_key, it.x_sign_user_private_key) }.toOptional() }
+                    .map { row ->
+                        row?.let { PrivateKeysInfo(it.x_sign_master_private_key, it.x_sign_self_signed_private_key, it.x_sign_user_private_key) }
+                                .toOptional()
+                    }
                     .flowOn(dispatcher)
 
     // ==================== Olm sessions ====================
@@ -201,7 +207,16 @@ internal class SqlCryptoStore @Inject constructor(
                     store(wrapper)
                     this.backedUp = backedUp
                 }
-                megolmStore.upsert(key, entity.sessionId, entity.senderKey, entity.roomId, entity.inboundGroupSessionDataJson, entity.serializedOlmInboundGroupSession, entity.sharedHistory, entity.backedUp)
+                megolmStore.upsert(
+                        key,
+                        entity.sessionId,
+                        entity.senderKey,
+                        entity.roomId,
+                        entity.inboundGroupSessionDataJson,
+                        entity.serializedOlmInboundGroupSession,
+                        entity.sharedHistory,
+                        entity.backedUp
+                )
             }
         }
     }
@@ -215,7 +230,8 @@ internal class SqlCryptoStore @Inject constructor(
             megolmStore.getWithSharedHistory(OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, senderKey), sharedHistory)?.toModelWrapper()
 
     override fun getInboundGroupSessions(): List<MXInboundMegolmSessionWrapper> = megolmStore.getAll().mapNotNull { it.toModelWrapper() }
-    override fun getInboundGroupSessions(roomId: String): List<MXInboundMegolmSessionWrapper> = megolmStore.getByRoomId(roomId).mapNotNull { it.toModelWrapper() }
+    override fun getInboundGroupSessions(roomId: String): List<MXInboundMegolmSessionWrapper> =
+            megolmStore.getByRoomId(roomId).mapNotNull { it.toModelWrapper() }
 
     override fun removeInboundGroupSession(sessionId: String, senderKey: String) =
             megolmStore.delete(OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, senderKey))
@@ -234,7 +250,8 @@ internal class SqlCryptoStore @Inject constructor(
         }
     }
 
-    override fun inboundGroupSessionsToBackup(limit: Int): List<MXInboundMegolmSessionWrapper> = megolmStore.getNotBackedUp(limit).mapNotNull { it.toModelWrapper() }
+    override fun inboundGroupSessionsToBackup(limit: Int): List<MXInboundMegolmSessionWrapper> =
+            megolmStore.getNotBackedUp(limit).mapNotNull { it.toModelWrapper() }
     override fun inboundGroupSessionsCount(onlyBackedUp: Boolean): Int = megolmStore.count(onlyBackedUp)
 
     // ==================== Megolm outbound sessions ====================
@@ -263,10 +280,14 @@ internal class SqlCryptoStore @Inject constructor(
     override fun getUserDeviceList(userId: String): List<CryptoDeviceInfo>? = deviceStore.getUserDeviceList(userId)
 
     override fun getDeviceListFlow(userId: String): Flow<List<CryptoDeviceInfo>> =
-            database.cryptoDevicesQueries.deviceSelectByUserId(userId).asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher)
+            database.cryptoDevicesQueries.deviceSelectByUserId(userId).asFlow().mapToList(dispatcher)
+                    .map { it.map(deviceStore::mapDeviceRow) }
+                    .flowOn(dispatcher)
 
     override fun getDeviceListFlow(userIds: List<String>): Flow<List<CryptoDeviceInfo>> =
-            database.cryptoDevicesQueries.deviceSelectByUserIds(userIds.distinct()).asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher)
+            database.cryptoDevicesQueries.deviceSelectByUserIds(userIds.distinct()).asFlow().mapToList(dispatcher)
+                    .map { it.map(deviceStore::mapDeviceRow) }
+                    .flowOn(dispatcher)
 
     override fun getDeviceListFlow(): Flow<List<CryptoDeviceInfo>> =
             database.cryptoDevicesQueries.deviceSelectAll().asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher)
@@ -285,7 +306,9 @@ internal class SqlCryptoStore @Inject constructor(
             database.cryptoDevicesQueries.myDeviceSelectAll().asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapMyDeviceRow) }.flowOn(dispatcher)
 
     override fun getMyDevicesInfoFlow(deviceId: String): Flow<Optional<DeviceInfo>> =
-            database.cryptoDevicesQueries.myDeviceSelectByDeviceId(deviceId).asFlow().mapToOneOrNull(dispatcher).map { it?.let(deviceStore::mapMyDeviceRow).toOptional() }.flowOn(dispatcher)
+            database.cryptoDevicesQueries.myDeviceSelectByDeviceId(deviceId).asFlow().mapToOneOrNull(dispatcher)
+                    .map { it?.let(deviceStore::mapMyDeviceRow).toOptional() }
+                    .flowOn(dispatcher)
 
     // ==================== Room crypto ====================
 
@@ -296,14 +319,17 @@ internal class SqlCryptoStore @Inject constructor(
     override fun roomWasOnceEncrypted(roomId: String): Boolean = roomStore.roomWasOnceEncrypted(roomId)
     override fun shouldEncryptForInvitedMembers(roomId: String): Boolean = roomStore.shouldEncryptForInvitedMembers(roomId)
     override fun shouldShareHistory(roomId: String): Boolean = roomStore.getRoomShouldShareHistory(roomId)
-    override fun setShouldEncryptForInvitedMembers(roomId: String, shouldEncryptForInvitedMembers: Boolean) = roomStore.setShouldEncryptForInvitedMembers(roomId, shouldEncryptForInvitedMembers)
+    override fun setShouldEncryptForInvitedMembers(roomId: String, shouldEncryptForInvitedMembers: Boolean) =
+            roomStore.setShouldEncryptForInvitedMembers(roomId, shouldEncryptForInvitedMembers)
     override fun setShouldShareHistory(roomId: String, shouldShareHistory: Boolean) = roomStore.setShouldShareHistory(roomId, shouldShareHistory)
     override fun blockUnverifiedDevicesInRoom(roomId: String, block: Boolean) = roomStore.blockUnverifiedDevicesInRoom(roomId, block)
     override fun getBlockUnverifiedDevices(roomId: String): Boolean = roomStore.getBlockUnverifiedDevices(roomId)
     override fun getRoomsListBlacklistUnverifiedDevices(): List<String> = roomStore.getRoomsListBlacklistUnverifiedDevices()
 
     override fun getBlockUnverifiedDevicesFlow(roomId: String): Flow<Boolean> =
-            database.cryptoRoomQueries.roomSelectById(roomId).asFlow().mapToOneOrNull(dispatcher).map { it?.blacklist_unverified_devices == 1L }.flowOn(dispatcher)
+            database.cryptoRoomQueries.roomSelectById(roomId).asFlow().mapToOneOrNull(dispatcher)
+                    .map { it?.blacklist_unverified_devices == 1L }
+                    .flowOn(dispatcher)
 
     // ==================== Cross signing ====================
 
@@ -316,12 +342,15 @@ internal class SqlCryptoStore @Inject constructor(
     override fun pinMasterKey(userId: String, masterKey: String) = crossSigningStore.pinMasterKey(userId, masterKey)
     override fun markMyMasterKeyAsLocallyTrusted(trusted: Boolean) = crossSigningStore.markMasterKeyAsLocallyTrusted(userId, trusted)
     override fun setUserKeysAsTrusted(userId: String, trusted: Boolean) = crossSigningStore.setUserKeysAsTrusted(userId, trusted)
-    override fun setDeviceTrust(userId: String, deviceId: String, crossSignedVerified: Boolean, locallyVerified: Boolean?) = deviceStore.setDeviceTrust(userId, deviceId, crossSignedVerified, locallyVerified)
+    override fun setDeviceTrust(userId: String, deviceId: String, crossSignedVerified: Boolean, locallyVerified: Boolean?) =
+            deviceStore.setDeviceTrust(userId, deviceId, crossSignedVerified, locallyVerified)
     override fun clearOtherUserTrust() = crossSigningStore.clearOtherUserTrust(userId)
     override fun updateUsersTrust(check: (String) -> Boolean) = crossSigningStore.updateUsersTrust(userId, check)
 
     override fun getCrossSigningInfoFlow(userId: String): Flow<Optional<MXCrossSigningInfo>> =
-            database.cryptoCrossSigningQueries.keyInfoSelectByUser(userId).asFlow().mapToList(dispatcher).map { crossSigningStore.getCrossSigningInfo(userId).toOptional() }.flowOn(dispatcher)
+            database.cryptoCrossSigningQueries.keyInfoSelectByUser(userId).asFlow().mapToList(dispatcher)
+                    .map { crossSigningStore.getCrossSigningInfo(userId).toOptional() }
+                    .flowOn(dispatcher)
 
     override fun storeUserIdentity(userId: String, userIdentity: UserIdentity) = doStoreUserIdentity(userId, userIdentity)
 
@@ -363,7 +392,14 @@ internal class SqlCryptoStore @Inject constructor(
 
     override fun getWithHeldMegolmSession(roomId: String, sessionId: String): RoomKeyWithHeldContent? =
             roomStore.getWithHeld(roomId, sessionId)?.let {
-                RoomKeyWithHeldContent(roomId = roomId, sessionId = sessionId, algorithm = it.algorithm, codeString = it.code_string, reason = it.reason, senderKey = it.sender_key)
+                RoomKeyWithHeldContent(
+                        roomId = roomId,
+                        sessionId = sessionId,
+                        algorithm = it.algorithm,
+                        codeString = it.code_string,
+                        reason = it.reason,
+                        senderKey = it.sender_key
+                )
             }
 
     override fun getWithHeldMegolmSessions(roomId: String): List<RoomKeyWithHeldContent> =
@@ -418,27 +454,60 @@ internal class SqlCryptoStore @Inject constructor(
 
     override fun getOutgoingRoomKeyRequest(requestBody: RoomKeyRequestBody): OutgoingKeyRequest? = keyRequestStore.getOutgoingRoomKeyRequest(requestBody)
     override fun getOutgoingRoomKeyRequest(requestId: String): OutgoingKeyRequest? = keyRequestStore.getOutgoingRoomKeyRequest(requestId)
-    override fun getOutgoingRoomKeyRequest(roomId: String, sessionId: String, algorithm: String, senderKey: String): List<OutgoingKeyRequest> = keyRequestStore.getOutgoingRoomKeyRequest(roomId, sessionId, algorithm, senderKey)
-    override fun getOrAddOutgoingRoomKeyRequest(requestBody: RoomKeyRequestBody, recipients: Map<String, List<String>>, fromIndex: Int): OutgoingKeyRequest = keyRequestStore.getOrAddOutgoingRoomKeyRequest(requestBody, recipients, fromIndex)
-    override fun updateOutgoingRoomKeyRequestState(requestId: String, newState: OutgoingRoomKeyRequestState) = keyRequestStore.updateOutgoingRoomKeyRequestState(requestId, newState)
+    override fun getOutgoingRoomKeyRequest(roomId: String, sessionId: String, algorithm: String, senderKey: String): List<OutgoingKeyRequest> =
+            keyRequestStore.getOutgoingRoomKeyRequest(roomId, sessionId, algorithm, senderKey)
+    override fun getOrAddOutgoingRoomKeyRequest(requestBody: RoomKeyRequestBody, recipients: Map<String, List<String>>, fromIndex: Int): OutgoingKeyRequest =
+            keyRequestStore.getOrAddOutgoingRoomKeyRequest(requestBody, recipients, fromIndex)
+    override fun updateOutgoingRoomKeyRequestState(requestId: String, newState: OutgoingRoomKeyRequestState) =
+            keyRequestStore.updateOutgoingRoomKeyRequestState(requestId, newState)
     override fun updateOutgoingRoomKeyRequiredIndex(requestId: String, newIndex: Int) = keyRequestStore.updateOutgoingRoomKeyRequiredIndex(requestId, newIndex)
-    override fun updateOutgoingRoomKeyReply(roomId: String, sessionId: String, algorithm: String, senderKey: String, fromDevice: String?, event: Event) = keyRequestStore.updateOutgoingRoomKeyReply(roomId, sessionId, algorithm, senderKey, fromDevice, event)
+    override fun updateOutgoingRoomKeyReply(roomId: String, sessionId: String, algorithm: String, senderKey: String, fromDevice: String?, event: Event) =
+            keyRequestStore.updateOutgoingRoomKeyReply(roomId, sessionId, algorithm, senderKey, fromDevice, event)
     override fun deleteOutgoingRoomKeyRequest(requestId: String) = keyRequestStore.deleteOutgoingRoomKeyRequest(requestId)
     override fun deleteOutgoingRoomKeyRequestInState(state: OutgoingRoomKeyRequestState) = keyRequestStore.deleteOutgoingRoomKeyRequestInState(state)
     override fun getOutgoingRoomKeyRequests(): List<OutgoingKeyRequest> = keyRequestStore.getOutgoingRoomKeyRequests()
-    override fun getOutgoingRoomKeyRequests(inStates: Set<OutgoingRoomKeyRequestState>): List<OutgoingKeyRequest> = keyRequestStore.getOutgoingRoomKeyRequests(inStates)
+    override fun getOutgoingRoomKeyRequests(inStates: Set<OutgoingRoomKeyRequestState>): List<OutgoingKeyRequest> =
+            keyRequestStore.getOutgoingRoomKeyRequests(inStates)
 
-    override fun saveIncomingKeyRequestAuditTrail(requestId: String, roomId: String, sessionId: String, senderKey: String, algorithm: String, fromUser: String, fromDevice: String) =
-            keyRequestStore.saveIncomingKeyRequestAuditTrail(requestId, roomId, sessionId, senderKey, algorithm, fromUser, fromDevice)
+    override fun saveIncomingKeyRequestAuditTrail(
+            requestId: String,
+            roomId: String,
+            sessionId: String,
+            senderKey: String,
+            algorithm: String,
+            fromUser: String,
+            fromDevice: String
+    ) = keyRequestStore.saveIncomingKeyRequestAuditTrail(requestId, roomId, sessionId, senderKey, algorithm, fromUser, fromDevice)
 
-    override fun saveWithheldAuditTrail(roomId: String, sessionId: String, senderKey: String, algorithm: String, code: WithHeldCode, userId: String, deviceId: String) =
-            keyRequestStore.saveWithheldAuditTrail(roomId, sessionId, senderKey, algorithm, code, userId, deviceId)
+    override fun saveWithheldAuditTrail(
+            roomId: String,
+            sessionId: String,
+            senderKey: String,
+            algorithm: String,
+            code: WithHeldCode,
+            userId: String,
+            deviceId: String
+    ) = keyRequestStore.saveWithheldAuditTrail(roomId, sessionId, senderKey, algorithm, code, userId, deviceId)
 
-    override fun saveForwardKeyAuditTrail(roomId: String, sessionId: String, senderKey: String, algorithm: String, userId: String, deviceId: String, chainIndex: Long?) =
-            keyRequestStore.saveForwardKeyAuditTrail(roomId, sessionId, senderKey, algorithm, userId, deviceId, chainIndex, incoming = false)
+    override fun saveForwardKeyAuditTrail(
+            roomId: String,
+            sessionId: String,
+            senderKey: String,
+            algorithm: String,
+            userId: String,
+            deviceId: String,
+            chainIndex: Long?
+    ) = keyRequestStore.saveForwardKeyAuditTrail(roomId, sessionId, senderKey, algorithm, userId, deviceId, chainIndex, incoming = false)
 
-    override fun saveIncomingForwardKeyAuditTrail(roomId: String, sessionId: String, senderKey: String, algorithm: String, userId: String, deviceId: String, chainIndex: Long?) =
-            keyRequestStore.saveForwardKeyAuditTrail(roomId, sessionId, senderKey, algorithm, userId, deviceId, chainIndex, incoming = true)
+    override fun saveIncomingForwardKeyAuditTrail(
+            roomId: String,
+            sessionId: String,
+            senderKey: String,
+            algorithm: String,
+            userId: String,
+            deviceId: String,
+            chainIndex: Long?
+    ) = keyRequestStore.saveForwardKeyAuditTrail(roomId, sessionId, senderKey, algorithm, userId, deviceId, chainIndex, incoming = true)
 
     override fun getGossipingEvents(): List<AuditTrail> = keyRequestStore.getGossipingEvents()
 

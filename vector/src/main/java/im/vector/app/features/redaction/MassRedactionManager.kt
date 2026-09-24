@@ -502,7 +502,15 @@ class MassRedactionManager @Inject constructor(
         }
     }
 
-    private fun saveRemote(owner: String, completed: Int, total: Int, token: String?, remoteDone: Boolean, failedEventIds: Set<String>, countedEventIds: Set<String>) {
+    private fun saveRemote(
+            owner: String,
+            completed: Int,
+            total: Int,
+            token: String?,
+            remoteDone: Boolean,
+            failedEventIds: Set<String>,
+            countedEventIds: Set<String>
+    ) {
         preferences.edit(commit = true) {
             putInt(key(owner, COMPLETED), completed)
             putInt(key(owner, TOTAL), total)

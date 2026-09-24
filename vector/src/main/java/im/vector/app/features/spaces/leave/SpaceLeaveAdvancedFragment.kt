@@ -104,7 +104,8 @@ class SpaceLeaveAdvancedFragment :
             views.spaceLeavePromptDescription.text = warningMessage
         }
 
-        views.spaceLeavePromptTitle.text = getString(CommonStrings.space_leave_prompt_msg_with_name, state.spaceSummary?.name?.neutralizeDirectionOverrides() ?: "")
+        views.spaceLeavePromptTitle.text =
+                getString(CommonStrings.space_leave_prompt_msg_with_name, state.spaceSummary?.name?.neutralizeDirectionOverrides() ?: "")
 
         if (state.isFilteringEnabled) {
             views.appBarLayout.setExpanded(false)

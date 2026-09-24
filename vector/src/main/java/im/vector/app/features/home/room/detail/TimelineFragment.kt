@@ -2048,7 +2048,12 @@ class TimelineFragment :
         }
     }
 
-    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View, inMemory: List<AttachmentData>) {
+    override fun onVideoMessageClicked(
+            messageVideoContent: MessageVideoContent,
+            mediaData: VideoContentRenderer.Data,
+            view: View,
+            inMemory: List<AttachmentData>
+    ) {
         navigator.openMediaViewer(
                 activity = requireActivity(),
                 roomId = timelineArgs.roomId,

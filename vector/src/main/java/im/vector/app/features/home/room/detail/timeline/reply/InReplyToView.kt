@@ -137,7 +137,9 @@ class InReplyToView @JvmOverloads constructor(
 
         if (effectiveState == state && revealed == quotesRevealedRedaction && plainOverride == renderedPlainOverride && !force) {
             // The sender's color can change under an otherwise identical state (override, palette).
-            (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { applySenderColor(retriever.getMemberNameColor(it.event), retriever.isMemberNameColored()) }
+            (effectiveState as? PreviewReplyUiState.InReplyTo)?.let {
+                applySenderColor(retriever.getMemberNameColor(it.event), retriever.isMemberNameColored())
+            }
             return
         }
 
@@ -527,7 +529,10 @@ class InReplyToView @JvmOverloads constructor(
         if (content.voiceMessageIndicator != null) {
             renderAttachmentPill(R.drawable.ic_microphone, context.getString(CommonStrings.voice_message_reply_content, formattedDuration))
         } else {
-            renderAttachmentPill(R.drawable.ic_music_note, context.getString(CommonStrings.audio_message_reply_content, content.getFileName(), formattedDuration))
+            renderAttachmentPill(
+                    R.drawable.ic_music_note,
+                    context.getString(CommonStrings.audio_message_reply_content, content.getFileName(), formattedDuration)
+            )
         }
     }
 

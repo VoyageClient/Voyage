@@ -46,7 +46,10 @@ class RoomJoinRuleController @Inject constructor(
                 RoomJoinRuleRadioAction(
                         roomJoinRule = RoomJoinRules.RESTRICTED,
                         description = if (state.parentSpaceName != null) {
-                            stringProvider.getString(CommonStrings.room_create_member_of_space_name_can_join, state.parentSpaceName.neutralizeDirectionOverrides())
+                            stringProvider.getString(
+                                    CommonStrings.room_create_member_of_space_name_can_join,
+                                    state.parentSpaceName.neutralizeDirectionOverrides()
+                            )
                         } else {
                             stringProvider.getString(CommonStrings.room_settings_room_access_restricted_description)
                         },

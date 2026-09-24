@@ -1152,9 +1152,7 @@ class MessageItemFactory @Inject constructor(
         val rendered = textRenderer.render(initialBody)
         val bindingOptions = spanUtils.getBindingOptions(rendered)
         val linkified = rendered.linkify(callback)
-        val emoteRanges = (linkified as? Spanned)
-                ?.let { spanned -> spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) } }
-                .orEmpty()
+        val emoteRanges = linkified.emoteRanges()
         val final = (if (informationData.hasBeenEdited) {
             annotateWithEdited(linkified, callback, informationData)
         } else {
@@ -1188,9 +1186,7 @@ class MessageItemFactory @Inject constructor(
         val blockedLinkified = blockedRendered?.linkify(callback)
 
         // A message of only emoji and/or custom emotes (+ spaces) renders large, like the emoji-only rule.
-        val emoteRanges = (linkifiedBody as? Spanned)
-                ?.let { spanned -> spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) } }
-                .orEmpty()
+        val emoteRanges = linkifiedBody.emoteRanges()
 
         val annotatedBody = (if (informationData.hasBeenEdited) {
             annotateWithEdited(linkifiedBody, callback, informationData)
@@ -1417,6 +1413,11 @@ class MessageItemFactory @Inject constructor(
 
     private fun String.withoutPerMessageProfileFallback(informationData: MessageInformationData): String {
         return withoutPerMessageProfileFallback(informationData.perMessageProfileFallback)
+    }
+
+    private fun CharSequence.emoteRanges(): List<IntRange> {
+        val spanned = this as? Spanned ?: return emptyList()
+        return spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) }
     }
 
     companion object {

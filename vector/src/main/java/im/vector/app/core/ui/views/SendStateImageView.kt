@@ -34,13 +34,13 @@ class SendStateImageView @JvmOverloads constructor(
         isInvisible = when (sendState) {
             SendStateDecoration.SENDING_NON_MEDIA -> {
                 setImageResource(R.drawable.ic_sending_message)
-                ImageViewCompat.setImageTintList(this, ColorStateList.valueOf(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)))
+                ImageViewCompat.setImageTintList(this, tertiaryTint())
                 contentDescription = context.getString(CommonStrings.event_status_a11y_sending)
                 false
             }
             SendStateDecoration.SENT -> {
                 setImageResource(R.drawable.ic_message_sent)
-                ImageViewCompat.setImageTintList(this, ColorStateList.valueOf(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)))
+                ImageViewCompat.setImageTintList(this, tertiaryTint())
                 contentDescription = context.getString(CommonStrings.event_status_a11y_sent)
                 false
             }
@@ -56,4 +56,6 @@ class SendStateImageView @JvmOverloads constructor(
             }
         }
     }
+
+    private fun tertiaryTint() = ColorStateList.valueOf(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary))
 }

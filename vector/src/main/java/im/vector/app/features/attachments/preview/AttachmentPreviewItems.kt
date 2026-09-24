@@ -216,7 +216,11 @@ abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<Attachment
         super.bind(holder)
         holder.imageView.isChecked = checked
         // The image view's padding turns this fill into a border.
-        val border = if (checked) ThemeUtils.getColorFromContextTheme(holder.view.context, com.google.android.material.R.attr.colorAccent) else Color.TRANSPARENT
+        val border = if (checked) {
+            ThemeUtils.getColorFromContextTheme(holder.view.context, com.google.android.material.R.attr.colorAccent)
+        } else {
+            Color.TRANSPARENT
+        }
         val pad = holder.imageView.paddingLeft
         holder.imageView.setBackgroundColor(border)
         holder.imageView.setPadding(pad, pad, pad, pad)

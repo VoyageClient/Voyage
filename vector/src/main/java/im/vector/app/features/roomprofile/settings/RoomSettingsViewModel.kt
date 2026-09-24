@@ -57,7 +57,11 @@ class RoomSettingsViewModel @AssistedInject constructor(
     init {
         // Seed synchronously so the editable header shows the banner on the first frame
         setState {
-            copy(currentRoomBannerUrl = room.stateService().getStateEvents(EventType.STATE_ROOM_BANNER.values.toSet(), QueryStringValue.IsEmpty).resolveRoomBannerUrl())
+            copy(
+                    currentRoomBannerUrl = room.stateService()
+                            .getStateEvents(EventType.STATE_ROOM_BANNER.values.toSet(), QueryStringValue.IsEmpty)
+                            .resolveRoomBannerUrl()
+            )
         }
         observeRoomSummary()
         observeRoomTopic()

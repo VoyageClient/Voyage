@@ -33,8 +33,10 @@ abstract class RoomAclEntryItem : VectorEpoxyModel<RoomAclEntryItem.Holder>(R.la
         if (holder.server.text.toString() != entry.server) holder.server.setText(entry.server)
         val typeLabel = if (entry.allowed) CommonStrings.room_acl_allow else CommonStrings.room_acl_deny
         holder.type.contentDescription = holder.type.context.getString(typeLabel)
-        holder.type.setImageDrawable(AppCompatResources.getDrawable(holder.type.context, if (entry.allowed) R.drawable.ic_check_white_24dp else R.drawable.ic_close_24dp))
-        ImageViewCompat.setImageTintList(holder.type, android.content.res.ColorStateList.valueOf(ThemeUtils.getColor(holder.type.context, if (entry.allowed) com.google.android.material.R.attr.colorSecondary else com.google.android.material.R.attr.colorError)))
+        val typeIcon = if (entry.allowed) R.drawable.ic_check_white_24dp else R.drawable.ic_close_24dp
+        holder.type.setImageDrawable(AppCompatResources.getDrawable(holder.type.context, typeIcon))
+        val typeTint = if (entry.allowed) com.google.android.material.R.attr.colorSecondary else com.google.android.material.R.attr.colorError
+        ImageViewCompat.setImageTintList(holder.type, android.content.res.ColorStateList.valueOf(ThemeUtils.getColor(holder.type.context, typeTint)))
         holder.server.isEnabled = editable
         holder.type.isEnabled = editable
         holder.type.isClickable = editable

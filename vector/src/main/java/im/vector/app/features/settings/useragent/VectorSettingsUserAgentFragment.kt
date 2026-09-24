@@ -384,7 +384,9 @@ class VectorSettingsUserAgentFragment : VectorSettingsBaseFragment(), UaVersionS
         units += DlUnit(getString(CommonStrings.settings_ua_field_build_id_title),
                 { dataRepository.refreshBuildIds("", -1); dataRepository.hasBuildIdsCache() }, { null }, { dataRepository.hasBuildIdsCache() })
         units += DlUnit(getString(CommonStrings.settings_ua_field_electron_version_title),
-                { dataRepository.refreshElectron().isNotEmpty() }, { dataRepository.cachedElectron().firstOrNull()?.version }, { dataRepository.hasElectronCache() })
+                { dataRepository.refreshElectron().isNotEmpty() },
+                { dataRepository.cachedElectron().firstOrNull()?.version },
+                { dataRepository.hasElectronCache() })
         return units
     }
 

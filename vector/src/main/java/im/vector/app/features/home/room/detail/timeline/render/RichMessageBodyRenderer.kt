@@ -110,7 +110,9 @@ class RichMessageBodyRenderer @Inject constructor(
         segments.forEach { segment ->
             when (segment) {
                 is BodySegment.Html ->
-                    container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback))
+                    container.addView(
+                            buildTextView(ctx, segment.html, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback)
+                    )
                 is BodySegment.Table ->
                     container.addView(
                             buildTable(ctx, segment.rows, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback)

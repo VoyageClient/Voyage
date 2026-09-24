@@ -82,7 +82,12 @@ class SearchResultController @Inject constructor(
         fun onItemClicked(event: Event)
         fun onThreadSummaryClicked(event: Event)
         fun loadMore()
-        fun onImageMessageClicked(messageImageContent: MessageImageInfoContent, mediaData: ImageContentRenderer.Data, view: View, inMemory: List<AttachmentData>)
+        fun onImageMessageClicked(
+                messageImageContent: MessageImageInfoContent,
+                mediaData: ImageContentRenderer.Data,
+                view: View,
+                inMemory: List<AttachmentData>
+        )
         fun onVideoMessageClicked(
                 messageVideoContent: MessageVideoContent,
                 mediaData: VideoContentRenderer.Data,
@@ -238,7 +243,12 @@ class SearchResultController @Inject constructor(
         listener?.onImageMessageClicked(messageImageContent, mediaData, view, inMemory)
     }
 
-    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View, inMemory: List<AttachmentData>) {
+    override fun onVideoMessageClicked(
+            messageVideoContent: MessageVideoContent,
+            mediaData: VideoContentRenderer.Data,
+            view: View,
+            inMemory: List<AttachmentData>
+    ) {
         listener?.onVideoMessageClicked(messageVideoContent, mediaData, view, inMemory)
     }
 

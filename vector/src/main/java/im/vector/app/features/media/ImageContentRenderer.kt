@@ -247,7 +247,13 @@ class ImageContentRenderer @Inject constructor(
                         return true
                     }
 
-                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                    ): Boolean {
                         if (!imageView.isCurrentRender(renderToken)) {
                             PendingRenders.finish(pending, "superseded, ready from $dataSource DROPPED")
                             imageView.setTag(R.id.image_renderer_retrying, null)
@@ -481,7 +487,13 @@ class ImageContentRenderer @Inject constructor(
                         return true
                     }
 
-                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                    ): Boolean {
                         if (!imageView.isCurrentRender(renderToken)) {
                             PendingRenders.finish(pending, "superseded, ready from $dataSource")
                             return true
@@ -526,7 +538,13 @@ class ImageContentRenderer @Inject constructor(
                         return false
                     }
 
-                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                    ): Boolean {
                         onSettled()
                         return false
                     }

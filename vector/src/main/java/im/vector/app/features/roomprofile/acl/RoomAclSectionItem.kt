@@ -32,7 +32,8 @@ abstract class RoomAclSectionItem : VectorEpoxyModel<RoomAclSectionItem.Holder>(
         holder.add.visibility = if (addVisible) View.VISIBLE else View.GONE
         holder.add.contentDescription = addDescription
         holder.expand.contentDescription = expandDescription
-        holder.expand.setImageDrawable(AppCompatResources.getDrawable(holder.expand.context, if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more))
+        val expandIcon = if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
+        holder.expand.setImageDrawable(AppCompatResources.getDrawable(holder.expand.context, expandIcon))
         holder.add.setOnClickListener { onAdd?.invoke() }
         holder.expand.setOnClickListener { onExpandToggle?.invoke() }
     }

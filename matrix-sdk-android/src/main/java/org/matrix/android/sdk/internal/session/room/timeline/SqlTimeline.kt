@@ -617,7 +617,11 @@ internal class SqlTimeline(
                 val oldestPrevToken = oldest.prev_token
                 when {
                     // is_last_backward is the room start: there is nothing older to ask for.
-                    oldest.is_last_backward != 0L -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                    oldest.is_last_backward != 0L -> if (isWindowed) {
+                        rebuildSnapshot(reuseLiveChunk = true)
+                    } else {
+                        updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                    }
                     oldestPrevToken != null -> {
                         val page = paginate(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
                         val gapped = page.gapDetected

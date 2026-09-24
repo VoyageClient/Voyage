@@ -690,7 +690,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 hideShowInChat: Boolean = false,
                 hideForward: Boolean = false,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
-            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview, openedFromTimeline, hideShowInChat, hideForward))
+            it.putExtra(
+                    EXTRA_ARGS,
+                    Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview, openedFromTimeline, hideShowInChat, hideForward)
+            )
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
                 it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))

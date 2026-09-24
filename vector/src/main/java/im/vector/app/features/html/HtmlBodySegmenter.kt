@@ -103,7 +103,8 @@ object HtmlBodySegmenter {
             val tag = section.tagName().lowercase()
             when (tag) {
                 "thead" -> section.children().toList().filter { it.tagName().equals("tr", true) }.forEach { rows += parseRow(it, headerSection = true) }
-                "tbody", "tfoot" -> section.children().toList().filter { it.tagName().equals("tr", true) }.forEach { rows += parseRow(it, headerSection = false) }
+                "tbody", "tfoot" -> section.children().toList().filter { it.tagName().equals("tr", true) }
+                        .forEach { rows += parseRow(it, headerSection = false) }
                 "tr" -> rows += parseRow(section, headerSection = false)
                 else -> Unit
             }

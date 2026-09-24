@@ -42,13 +42,14 @@ class TranslationExceptions private constructor(
         // Engines sometimes pad or full-width the braces; accept those on the way back.
         val PLACEHOLDER = Regex("""[{｛]\s*[{｛]\s*(\d+)\s*[}｝]\s*[}｝]""")
 
-        private val EMOJI = """(?:[\x{1F000}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|[\x{2300}-\x{23FF}]|[\x{2B00}-\x{2BFF}]|\x{FE0F}|\x{200D}|\x{20E3}|[\x{1F3FB}-\x{1F3FF}])+"""
-        private val URL = """(?:https?|matrix|mxc)://\S+"""
-        private val MATRIX_ID = """[@#!][^\s:]+:[A-Za-z0-9.\-]+(?::\d+)?"""
-        private val SHORTCODE = """:[A-Za-z0-9_+\-]+:"""
+        private const val EMOJI = """(?:[\x{1F000}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|[\x{2300}-\x{23FF}]|[\x{2B00}-\x{2BFF}]""" +
+                """|\x{FE0F}|\x{200D}|\x{20E3}|[\x{1F3FB}-\x{1F3FF}])+"""
+        private const val URL = """(?:https?|matrix|mxc)://\S+"""
+        private const val MATRIX_ID = """[@#!][^\s:]+:[A-Za-z0-9.\-]+(?::\d+)?"""
+        private const val SHORTCODE = """:[A-Za-z0-9_+\-]+:"""
 
         // Engines routinely collapse or drop line breaks; carry them through as placeholders.
-        private val NEWLINES = """\n+"""
+        private const val NEWLINES = """\n+"""
 
         private val RECEIVED = Regex("$URL|$MATRIX_ID|$SHORTCODE|$EMOJI|$NEWLINES")
         private val ISOLATED = Regex("(?:$URL|$MATRIX_ID)")

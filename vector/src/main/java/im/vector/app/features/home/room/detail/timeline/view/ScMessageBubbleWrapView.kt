@@ -95,7 +95,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             bubbleDependentView: BubbleDependentView<H>,
             holder: H,
             attributes: AbsMessageItem.Attributes,
-            _avatarClickListener: ClickListener,
+            avatarClickListener: ClickListener,
     ): Boolean {
         if (attributes.informationData.messageLayout !is TimelineMessageLayout.ScBubble) {
             Timber.v("Can't render messageLayout ${attributes.informationData.messageLayout}")
@@ -207,7 +207,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             width = attributes.avatarSize
         }
         avatarImageView?.visibility = View.VISIBLE
-        avatarImageView?.onClick(_avatarClickListener)
+        avatarImageView?.onClick(avatarClickListener)
         memberNameView?.visibility = View.VISIBLE
         memberNameView?.onClick(attributes.memberClickListener)
         timeView?.visibility = View.VISIBLE
@@ -437,8 +437,9 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                             footerLayoutParams.removeRuleCompat(startOf)
                             footerLayoutParams.removeRuleCompat(RelativeLayout.BELOW)
                             // Reverse margins
-                            footerMarginStartDp = views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_reverse_margin_start)
-                            footerMarginEndDp = views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_reverse_margin_end)
+                            val footRes = views.bubbleFootView.resources
+                            footerMarginStartDp = footRes.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_reverse_margin_start)
+                            footerMarginEndDp = footRes.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_reverse_margin_end)
                         }
                         else -> /* footer on the right / at the end */ {
                             footerLayoutParams.addRule(endOf, R.id.viewStubContainer)
@@ -595,8 +596,9 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             e2eWidth = 0
             e2eHeight = 0
         } else {
-            e2eWidth = views.bubbleFooterMessageE2EDecoration.layoutParams.width + views.bubbleFooterMessageE2EDecoration.paddingLeft + views.bubbleFooterMessageE2EDecoration.paddingRight
-            e2eHeight = views.bubbleFooterMessageE2EDecoration.layoutParams.height + views.bubbleFooterMessageE2EDecoration.paddingTop + views.bubbleFooterMessageE2EDecoration.paddingBottom
+            val e2eView = views.bubbleFooterMessageE2EDecoration
+            e2eWidth = e2eView.layoutParams.width + e2eView.paddingLeft + e2eView.paddingRight
+            e2eHeight = e2eView.layoutParams.height + e2eView.paddingTop + e2eView.paddingBottom
         }
 
         var footerWidth = timeWidth + readReceiptWidth + e2eWidth

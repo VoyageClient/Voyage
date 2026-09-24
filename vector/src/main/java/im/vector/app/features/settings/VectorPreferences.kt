@@ -1422,8 +1422,8 @@ class VectorPreferences @Inject constructor(
      */
     fun useMessageBubblesLayout(): Boolean {
         // Any bubble style (Element or SchildiChat) implies bubble media sizing.
-        return defaultPrefs.getString(im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_KEY, im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE) !=
-                im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE
+        val none = im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE
+        return defaultPrefs.getString(im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_KEY, none) != none
     }
 
     /**

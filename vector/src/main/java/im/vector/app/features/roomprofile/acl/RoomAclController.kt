@@ -70,7 +70,11 @@ class RoomAclController @Inject constructor(private val stringProvider: StringPr
                 expanded(expanded)
                 addVisible(data.canEdit)
                 addDescription(this@RoomAclController.stringProvider.getString(addTitle))
-                expandDescription(this@RoomAclController.stringProvider.getString(if (expanded) CommonStrings.room_acl_collapse_servers else CommonStrings.room_acl_expand_servers))
+                expandDescription(
+                        this@RoomAclController.stringProvider.getString(
+                                if (expanded) CommonStrings.room_acl_collapse_servers else CommonStrings.room_acl_expand_servers
+                        )
+                )
                 onAdd { this@RoomAclController.callback?.onAdd(allowed) }
                 onExpandToggle { this@RoomAclController.callback?.onExpandedToggle(allowed) }
             }

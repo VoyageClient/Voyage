@@ -617,7 +617,11 @@ internal class SqlRoomSyncHandler @Inject constructor(
         typingUsersTracker.setTypingUsersFromRoom(roomId, senderInfo)
     }
 
-    private fun insertEventOrIgnore(stores: SessionStores, entity: org.matrix.android.sdk.internal.database.model.EventEntity, insertType: EventInsertType): Long {
+    private fun insertEventOrIgnore(
+            stores: SessionStores,
+            entity: org.matrix.android.sdk.internal.database.model.EventEntity,
+            insertType: EventInsertType
+    ): Long {
         stores.event.getDbId(entity.roomId, entity.eventId)?.let { dbId ->
             // See TokenChunkEventPersistor.insertEventOrIgnore: re-enqueue re-delivered relation
             // events whose insert-queue entry is gone, or their edits/reactions never aggregate.

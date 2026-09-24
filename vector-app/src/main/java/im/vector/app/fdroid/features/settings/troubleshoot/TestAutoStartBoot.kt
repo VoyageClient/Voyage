@@ -13,7 +13,7 @@ import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
 /**
- * Test that the application is started on boot
+ * Test that the application is started on boot.
  */
 class TestAutoStartBoot @Inject constructor(
         private val vectorPreferences: VectorPreferences,

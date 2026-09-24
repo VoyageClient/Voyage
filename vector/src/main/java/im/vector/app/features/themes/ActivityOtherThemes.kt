@@ -18,11 +18,11 @@ sealed class ActivityOtherThemes(
         @StyleRes val light: Int,
         @StyleRes val dark: Int,
         @StyleRes val black: Int,
-        @StyleRes val sc_light: Int,
+        @StyleRes val scLight: Int,
         @StyleRes val sc: Int,
-        @StyleRes val sc_dark: Int,
-        @StyleRes val sc_colored: Int,
-        @StyleRes val sc_dark_colored: Int
+        @StyleRes val scDark: Int,
+        @StyleRes val scColored: Int,
+        @StyleRes val scDarkColored: Int
 ) {
 
     object Default : ActivityOtherThemes(

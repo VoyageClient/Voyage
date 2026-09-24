@@ -34,6 +34,7 @@ import org.matrix.android.sdk.internal.platform.SecureStorage
 import org.matrix.android.sdk.internal.raw.RawModule
 import org.matrix.android.sdk.internal.session.MockHttpInterceptor
 import org.matrix.android.sdk.internal.session.TestInterceptor
+import org.matrix.android.sdk.internal.session.profile.ProfileColorStore
 import org.matrix.android.sdk.internal.session.user.accountdata.PendingUnIgnoreStore
 import org.matrix.android.sdk.internal.settings.SettingsModule
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -92,6 +93,8 @@ internal interface DesktopMatrixComponent {
     fun backgroundDetectionObserver(): BackgroundDetectionObserver
 
     fun pendingUnIgnoreStore(): PendingUnIgnoreStore
+
+    fun profileColorStore(): ProfileColorStore
 
     fun secureStorage(): SecureStorage
 

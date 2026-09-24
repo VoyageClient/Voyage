@@ -116,7 +116,8 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
         return when {
             (baseAttributes.informationData.messageLayout as? TimelineMessageLayout.ScBubble)?.singleSidedLayout == true -> 0
             // Direct chats usually have avatars hidden on both sides
-            baseAttributes.informationData.isDirect -> resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_both_sides_without_avatar_margin)
+            baseAttributes.informationData.isDirect ->
+                resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_both_sides_without_avatar_margin)
             // No direct chat, but sent by me: other side has an avatar
             baseAttributes.informationData.sentByMe -> {
                 resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_one_side_without_avatar_margin) +

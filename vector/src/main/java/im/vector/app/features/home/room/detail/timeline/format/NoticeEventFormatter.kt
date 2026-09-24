@@ -301,9 +301,24 @@ class NoticeEventFormatter @Inject constructor(
         val name = (current?.pack?.displayName ?: previous?.pack?.displayName)?.takeIf { it.isNotBlank() }
         val byYou = event.isSentByCurrentUser()
         val keys = when {
-            isDeleted -> ImagePackNoticeKeys(CommonStrings.notice_image_pack_deleted_by_you, CommonStrings.notice_image_pack_deleted, CommonStrings.notice_image_pack_deleted_named_by_you, CommonStrings.notice_image_pack_deleted_named)
-            !hadImages -> ImagePackNoticeKeys(CommonStrings.notice_image_pack_added_by_you, CommonStrings.notice_image_pack_added, CommonStrings.notice_image_pack_added_named_by_you, CommonStrings.notice_image_pack_added_named)
-            else -> ImagePackNoticeKeys(CommonStrings.notice_image_pack_updated_by_you, CommonStrings.notice_image_pack_updated, CommonStrings.notice_image_pack_updated_named_by_you, CommonStrings.notice_image_pack_updated_named)
+            isDeleted -> ImagePackNoticeKeys(
+                    CommonStrings.notice_image_pack_deleted_by_you,
+                    CommonStrings.notice_image_pack_deleted,
+                    CommonStrings.notice_image_pack_deleted_named_by_you,
+                    CommonStrings.notice_image_pack_deleted_named
+            )
+            !hadImages -> ImagePackNoticeKeys(
+                    CommonStrings.notice_image_pack_added_by_you,
+                    CommonStrings.notice_image_pack_added,
+                    CommonStrings.notice_image_pack_added_named_by_you,
+                    CommonStrings.notice_image_pack_added_named
+            )
+            else -> ImagePackNoticeKeys(
+                    CommonStrings.notice_image_pack_updated_by_you,
+                    CommonStrings.notice_image_pack_updated,
+                    CommonStrings.notice_image_pack_updated_named_by_you,
+                    CommonStrings.notice_image_pack_updated_named
+            )
         }
         return when {
             name != null && byYou -> sp.getString(keys.namedByYou, name)
@@ -876,7 +891,12 @@ class NoticeEventFormatter @Inject constructor(
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_display_name_removed_by_you, prevEventContent?.displayName)
                     } else if (possessive != null) {
-                        sp.getString(CommonStrings.notice_display_name_removed_gendered, senderName ?: event.senderId, possessive, prevEventContent?.displayName)
+                        sp.getString(
+                                CommonStrings.notice_display_name_removed_gendered,
+                                senderName ?: event.senderId,
+                                possessive,
+                                prevEventContent?.displayName
+                        )
                     } else {
                         sp.getString(CommonStrings.notice_display_name_removed, senderName ?: event.senderId, prevEventContent?.displayName)
                     }
@@ -884,7 +904,12 @@ class NoticeEventFormatter @Inject constructor(
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_display_name_changed_from_by_you, prevEventContent?.displayName, eventContent?.displayName)
                     } else if (possessive != null) {
-                        sp.getString(CommonStrings.notice_display_name_changed_to_gendered, prevEventContent?.displayName, possessive, eventContent?.displayName)
+                        sp.getString(
+                                CommonStrings.notice_display_name_changed_to_gendered,
+                                prevEventContent?.displayName,
+                                possessive,
+                                eventContent?.displayName
+                        )
                     } else {
                         sp.getString(CommonStrings.notice_display_name_changed_to, prevEventContent?.displayName, eventContent?.displayName)
                     }

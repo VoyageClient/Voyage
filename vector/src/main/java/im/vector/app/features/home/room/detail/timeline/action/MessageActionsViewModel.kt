@@ -380,7 +380,9 @@ class MessageActionsViewModel @AssistedInject constructor(
                                 vectorPreferences.arePerMessageProfilesEnabled()
                         )
                         val formattedContent = (messageContent as? MessageContentWithFormattedBody)
-                                ?.takeIf { messageContent is MessageTextContent || messageContent is MessageEmoteContent || messageContent is MessageNoticeContent }
+                                ?.takeIf {
+                                    messageContent is MessageTextContent || messageContent is MessageEmoteContent || messageContent is MessageNoticeContent
+                                }
                         val body = if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
                             // Strip the legacy reply fallback ("In reply to" / "> <@user> …") that
                             // outdated clients embed in the body, so the preview shows only the message.
@@ -401,7 +403,11 @@ class MessageActionsViewModel @AssistedInject constructor(
                         } else if (messageContent is MessageAudioContent) {
                             val formattedDuration = DateUtils.formatElapsedTime(((messageContent.audioInfo?.duration ?: 0) / 1000).toLong())
                             if (messageContent.voiceMessageIndicator != null) {
-                                attachmentPreviewText(context, R.drawable.ic_microphone, stringProvider.getString(CommonStrings.voice_message_reply_content, formattedDuration))
+                                attachmentPreviewText(
+                                        context,
+                                        R.drawable.ic_microphone,
+                                        stringProvider.getString(CommonStrings.voice_message_reply_content, formattedDuration)
+                                )
                             } else {
                                 attachmentPreviewText(context, R.drawable.ic_music_note, messageContent.getFileName().orEmpty())
                             }
@@ -686,7 +692,13 @@ class MessageActionsViewModel @AssistedInject constructor(
                 when {
                     messageTranslationStore.isTranslated(eventId) -> add(EventSharedAction.Untranslate(eventId))
                     !messageTranslationStore.isTranslating(eventId) ->
-                        add(EventSharedAction.Translate(eventId, pgpCopyBody(timelineEvent, messageContent!!), translatableFormattedBody(timelineEvent, messageContent)))
+                        add(
+                                EventSharedAction.Translate(
+                                        eventId,
+                                        pgpCopyBody(timelineEvent, messageContent!!),
+                                        translatableFormattedBody(timelineEvent, messageContent)
+                                )
+                        )
                 }
             }
 

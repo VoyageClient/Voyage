@@ -161,11 +161,11 @@ object ThemeUtils {
             THEME_LIGHT_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.light, accent))
             THEME_DARK_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.dark, accent))
             THEME_BLACK_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.black, accent))
-            THEME_SC_LIGHT_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.sc_light, accent))
+            THEME_SC_LIGHT_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.scLight, accent))
             THEME_SC_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.sc, accent))
-            THEME_SC_DARK_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.sc_dark, accent))
-            THEME_SC_COLORED_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.sc_colored, accent))
-            THEME_SC_DARK_COLORED_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.sc_dark_colored, accent))
+            THEME_SC_DARK_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.scDark, accent))
+            THEME_SC_COLORED_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.scColored, accent))
+            THEME_SC_DARK_COLORED_VALUE -> activity.setTheme(getAccentedThemeRes(otherThemes.scDarkColored, accent))
         }
 
         mColorByAttr.clear()

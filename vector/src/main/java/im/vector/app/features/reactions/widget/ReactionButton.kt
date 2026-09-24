@@ -168,7 +168,13 @@ class ReactionButton @JvmOverloads constructor(
                         return false
                     }
 
-                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                    ): Boolean {
                         views.reactionText.isVisible = false
                         views.reactionImage.isVisible = true
                         return false

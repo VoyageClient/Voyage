@@ -302,11 +302,8 @@ fun BaseEpoxyVerificationController.renderQrTransaction(transaction: Verificatio
 
             bottomSheetVerificationWaitingItem {
                 id("waiting")
-                if (otherUserItem != null) {
-                    title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, otherUserItem.getBestName().neutralizeDirectionOverrides()))
-                } else {
-                    title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, transaction.otherDeviceId.orEmpty().neutralizeDirectionOverrides()))
-                }
+                val waitingFor = otherUserItem?.getBestName() ?: transaction.otherDeviceId.orEmpty()
+                title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, waitingFor.neutralizeDirectionOverrides()))
             }
         }
         QRCodeVerificationState.WaitingForScanConfirmation -> {
@@ -370,11 +367,8 @@ fun BaseEpoxyVerificationController.renderQrTransaction(transaction: Verificatio
             bottomSheetVerificationWaitingItem {
                 id("waiting")
                 apply {
-                    if (otherUserItem != null) {
-                        title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, otherUserItem.getBestName().neutralizeDirectionOverrides()))
-                    } else {
-                        title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, transaction.otherDeviceId.orEmpty().neutralizeDirectionOverrides()))
-                    }
+                    val waitingFor = otherUserItem?.getBestName() ?: transaction.otherDeviceId.orEmpty()
+                    title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, waitingFor.neutralizeDirectionOverrides()))
                 }
             }
         }

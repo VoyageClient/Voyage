@@ -89,7 +89,15 @@ class ImagePackProvider @Inject constructor(
         // 1. Personal account pack (always enabled).
         session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_USER_EMOTES)
                 ?.content.toModel<ImagePackContent>()
-                ?.toResolved(ImagePackSource.ACCOUNT, roomId = null, stateKey = null, fallbackName = null, fallbackAvatar = null, enabled = true, legacyPack = true)
+                ?.toResolved(
+                        ImagePackSource.ACCOUNT,
+                        roomId = null,
+                        stateKey = null,
+                        fallbackName = null,
+                        fallbackAvatar = null,
+                        enabled = true,
+                        legacyPack = true
+                )
                 ?.let { packs += it }
 
         // 2. Globally-enabled room packs (m.image_pack.rooms, fall back to im.ponies.emote_rooms).
@@ -163,7 +171,8 @@ class ImagePackProvider @Inject constructor(
         return room.stateService().getStateEvents(roomPackTypes, QueryStringValue.IsNotNull).uniqueRoomPackEvents()
                 .filter { it.hasPackContent() }
                 .mapNotNull { event ->
-                    event.toResolvedPack(ImagePackSource.CURRENT_ROOM, roomId, emoteRooms?.rooms?.get(roomId)?.containsKey(event.stateKey) == true, allowEmpty = true)
+                    val enabled = emoteRooms?.rooms?.get(roomId)?.containsKey(event.stateKey) == true
+                    event.toResolvedPack(ImagePackSource.CURRENT_ROOM, roomId, enabled, allowEmpty = true)
                 }
                 .sortedAlphabetically()
     }
@@ -185,7 +194,8 @@ class ImagePackProvider @Inject constructor(
                     room.stateService().getStateEvents(roomPackTypes, QueryStringValue.IsNotNull).uniqueRoomPackEvents()
                             .filter { it.hasPackContent() }
                             .mapNotNull { event ->
-                                event.toResolvedPack(ImagePackSource.GLOBAL_ROOM, summary.roomId, emoteRooms?.rooms?.get(summary.roomId)?.containsKey(event.stateKey) == true, allowEmpty = true)
+                                val enabled = emoteRooms?.rooms?.get(summary.roomId)?.containsKey(event.stateKey) == true
+                                event.toResolvedPack(ImagePackSource.GLOBAL_ROOM, summary.roomId, enabled, allowEmpty = true)
                             }
                             .sortedAlphabetically()
                 }

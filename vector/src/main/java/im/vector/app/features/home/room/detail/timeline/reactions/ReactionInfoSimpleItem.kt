@@ -99,7 +99,13 @@ abstract class ReactionInfoSimpleItem : VectorEpoxyModel<ReactionInfoSimpleItem.
                         return false
                     }
 
-                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                    ): Boolean {
                         holder.emojiReactionView.isVisible = false
                         holder.imageReactionView.isVisible = true
                         return false

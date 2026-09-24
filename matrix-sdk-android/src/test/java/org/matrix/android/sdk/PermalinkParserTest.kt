@@ -49,7 +49,8 @@ class PermalinkParserTest {
     @Test
     fun testParseLinkWIthEvent() {
         val rawInvite =
-                "https://matrix.to/#/!OGEhHVWSdvArJzumhm:matrix.org/\$xuvJUVDJnwEeVjPx029rAOZ50difpmU_5gZk_T0jGfc?via=matrix.org&via=libera.chat&via=matrix.example.io"
+                "https://matrix.to/#/!OGEhHVWSdvArJzumhm:matrix.org/\$xuvJUVDJnwEeVjPx029rAOZ50difpmU_5gZk_T0jGfc" +
+                        "?via=matrix.org&via=libera.chat&via=matrix.example.io"
 
         val parsedLink = PermalinkParser.parse(rawInvite)
         Assert.assertTrue("Should be parsed as room link", parsedLink is PermalinkData.RoomLink)

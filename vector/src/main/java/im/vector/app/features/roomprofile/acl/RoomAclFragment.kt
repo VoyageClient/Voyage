@@ -57,7 +57,9 @@ class RoomAclFragment : VectorBaseFragment<FragmentRoomSettingGenericBinding>(),
         setupToolbar(views.roomSettingsToolbar).allowBack()
         views.roomSettingsRecyclerView.configureWith(controller, hasFixedSize = false)
         (views.roomSettingsRecyclerView.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
-        views.roomSettingsRecyclerView.addItemDecoration(im.vector.app.core.epoxy.ListDividerDecoration(requireContext(), drawUnder = { model -> model is RoomAclEntryItem_ }))
+        views.roomSettingsRecyclerView.addItemDecoration(
+                im.vector.app.core.epoxy.ListDividerDecoration(requireContext(), drawUnder = { model -> model is RoomAclEntryItem_ })
+        )
         com.airbnb.epoxy.EpoxyTouchHelper.initDragging(controller).withRecyclerView(views.roomSettingsRecyclerView).forVerticalList()
                 .withTarget(RoomAclEntryItem_::class.java)
                 .andCallbacks(object : com.airbnb.epoxy.EpoxyTouchHelper.DragCallbacks<RoomAclEntryItem_>() {

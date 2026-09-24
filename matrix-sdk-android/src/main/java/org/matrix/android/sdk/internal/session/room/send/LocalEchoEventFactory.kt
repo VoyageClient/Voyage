@@ -525,7 +525,13 @@ internal class LocalEchoEventFactory @Inject constructor(
     private fun isPgpArmoredBody(body: String): Boolean =
             body.contains("-----BEGIN PGP MESSAGE-----") && body.contains("-----END PGP MESSAGE-----")
 
-    private fun buildMediaBody(attachment: ContentAttachmentData, fallback: String, captionText: CharSequence?, captionFormattedText: String?, autoMarkdown: Boolean): MediaBodyParts {
+    private fun buildMediaBody(
+            attachment: ContentAttachmentData,
+            fallback: String,
+            captionText: CharSequence?,
+            captionFormattedText: String?,
+            autoMarkdown: Boolean
+    ): MediaBodyParts {
         val name = attachment.name ?: fallback
         val plain = captionText?.toString()
         if (plain.isNullOrEmpty()) {

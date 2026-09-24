@@ -1601,7 +1601,11 @@ internal class VerificationActor @AssistedInject constructor(
     }
 
     // Create a QR code to display on the old device (Osborne2)
-    private suspend fun createQrCodeDataForVerifiedDevice(requestId: String, otherUserId: String, otherDeviceId: String?): QrCodeData.SelfVerifyingMasterKeyTrusted? {
+    private suspend fun createQrCodeDataForVerifiedDevice(
+            requestId: String,
+            otherUserId: String,
+            otherDeviceId: String?
+    ): QrCodeData.SelfVerifyingMasterKeyTrusted? {
         val myMasterKey = verificationTrustBackend.getUserMasterKeyBase64(myUserId)
                 ?: run {
                     Timber.w("## Unable to get my master key")

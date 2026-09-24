@@ -244,7 +244,9 @@ interface SettingsMavericksViewModelModule {
     @Binds
     @IntoMap
     @MavericksViewModelKey("im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationViewModel")
-    fun vm21(factory: im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+    fun vm21(
+            factory: im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationViewModel.Factory
+    ): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap
@@ -419,7 +421,9 @@ interface RoomProfileMavericksViewModelModule {
     @Binds
     @IntoMap
     @MavericksViewModelKey("im.vector.app.features.roomprofile.settings.joinrule.advanced.RoomJoinRuleChooseRestrictedViewModel")
-    fun vm14(factory: im.vector.app.features.roomprofile.settings.joinrule.advanced.RoomJoinRuleChooseRestrictedViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+    fun vm14(
+            factory: im.vector.app.features.roomprofile.settings.joinrule.advanced.RoomJoinRuleChooseRestrictedViewModel.Factory
+    ): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap

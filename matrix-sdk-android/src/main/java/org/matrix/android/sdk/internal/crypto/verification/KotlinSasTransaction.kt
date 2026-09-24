@@ -184,7 +184,8 @@ internal class KotlinSasTransaction(
     }
 
     override fun toString(): String {
-        return "KotlinSasTransaction(transactionId=$transactionId, state=$state, otherUserId=$otherUserId, otherDeviceId=$otherDeviceId, isToDevice=$isToDevice)"
+        return "KotlinSasTransaction(transactionId=$transactionId, state=$state, otherUserId=$otherUserId, " +
+                "otherDeviceId=$otherDeviceId, isToDevice=$isToDevice)"
     }
 
     // To override finalize(), all you need to do is simply declare it, without using the override keyword:

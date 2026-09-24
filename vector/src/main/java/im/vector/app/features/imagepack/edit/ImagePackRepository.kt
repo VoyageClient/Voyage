@@ -129,7 +129,14 @@ class ImagePackRepository @Inject constructor(
             inRoom = true,
     )
 
-    private fun roomManagedPack(roomId: String, stateKey: String, displayName: String?, avatarUrl: String?, firstImageUrl: String?, imageCount: Int): ManagedPack {
+    private fun roomManagedPack(
+            roomId: String,
+            stateKey: String,
+            displayName: String?,
+            avatarUrl: String?,
+            firstImageUrl: String?,
+            imageCount: Int
+    ): ManagedPack {
         val session = activeSessionHolder.getSafeActiveSession()
         return ManagedPack(
                 kind = ManagedPackKind.GLOBAL,

@@ -181,7 +181,8 @@ internal class AndroidImageExifTagRemover @Inject constructor(
             head[0] == 0x89.toByte() && head[1] == 0x50.toByte() && head[2] == 0x4E.toByte() && head[3] == 0x47.toByte() -> Format.PNG
             head[0] == 'G'.code.toByte() && head[1] == 'I'.code.toByte() && head[2] == 'F'.code.toByte() -> Format.GIF
             head[0] == 'R'.code.toByte() && head[1] == 'I'.code.toByte() && head[2] == 'F'.code.toByte() && head[3] == 'F'.code.toByte() &&
-                    head[8] == 'W'.code.toByte() && head[9] == 'E'.code.toByte() && head[10] == 'B'.code.toByte() && head[11] == 'P'.code.toByte() -> Format.WEBP
+                    head[8] == 'W'.code.toByte() && head[9] == 'E'.code.toByte() &&
+                    head[10] == 'B'.code.toByte() && head[11] == 'P'.code.toByte() -> Format.WEBP
             isJxlSignature(head, read) -> Format.JXL
             else -> Format.OTHER
         }

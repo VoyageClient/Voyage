@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.matrix.android.sdk.internal.crypto.verification.org.matrix.android.sdk.internal.crypto.verification
+package org.matrix.android.sdk.internal.crypto.verification
 
 import android.util.Base64
 import io.mockk.clearAllMocks
@@ -54,10 +54,6 @@ import org.matrix.android.sdk.api.session.crypto.verification.VerificationEvent
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationMethod
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationTransaction
 import org.matrix.android.sdk.api.session.crypto.verification.getRequest
-import org.matrix.android.sdk.internal.crypto.verification.FakeCryptoStoreForVerification
-import org.matrix.android.sdk.internal.crypto.verification.VerificationActor
-import org.matrix.android.sdk.internal.crypto.verification.VerificationActorHelper
-import org.matrix.android.sdk.internal.crypto.verification.VerificationIntent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VerificationActorTest : MatrixTest {

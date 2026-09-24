@@ -144,7 +144,11 @@ class RoomAclViewModel @AssistedInject constructor(
 private data class RoomAclDraft(val entries: List<RoomAclEntry>, val allowIpLiterals: Boolean)
 
 private fun roomAclDraft(entries: List<RoomAclEntry>, allowIpLiterals: Boolean) =
-        RoomAclDraft(entries.filter { it.server.isNotBlank() && it.allowed }.sortedBy { it.id } + entries.filter { it.server.isNotBlank() && !it.allowed }.sortedBy { it.id }, allowIpLiterals)
+        RoomAclDraft(
+                entries.filter { it.server.isNotBlank() && it.allowed }.sortedBy { it.id } +
+                        entries.filter { it.server.isNotBlank() && !it.allowed }.sortedBy { it.id },
+                allowIpLiterals
+        )
 
 sealed class RoomAclAction : VectorViewModelAction {
     data class Add(val allowed: Boolean) : RoomAclAction()
