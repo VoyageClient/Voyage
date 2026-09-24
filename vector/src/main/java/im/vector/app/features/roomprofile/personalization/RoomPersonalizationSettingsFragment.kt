@@ -54,7 +54,7 @@ import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.user.model.User
-import org.matrix.android.sdk.api.settings.LinkPreviewMode
+import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.flow.flow
@@ -258,13 +258,10 @@ class RoomPersonalizationSettingsFragment :
         }
 
         val linkPreviewPref = findPreference<VectorListPreference>(SETTINGS_ROOM_LINK_PREVIEW_KEY)
-        linkPreviewPref?.value = vectorPreferences.getRoomLinkPreviewOverride(roomId)?.value ?: INHERIT
+        linkPreviewPref?.value = vectorPreferences.getRoomLinkPreviewOverride(session.myUserId, roomId)?.value ?: INHERIT
         linkPreviewPref?.setOnPreferenceChangeListener { _, newValue ->
-            val value = newValue as? String
-            vectorPreferences.setRoomLinkPreviewOverride(
-                    roomId,
-                    if (value == INHERIT) null else LinkPreviewMode.fromValue(value)
-            )
+            // "inherit" is no source, which clears the override.
+            vectorPreferences.setRoomLinkPreviewOverride(session.myUserId, roomId, LinkPreviewSource.fromValue(newValue as? String))
             true
         }
 

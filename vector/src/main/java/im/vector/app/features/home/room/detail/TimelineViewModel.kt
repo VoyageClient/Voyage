@@ -130,6 +130,8 @@ import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationBadgeState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
+import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.api.util.RoomOpenTrace
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.flow.flow
@@ -165,6 +167,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val vectorOverrides: VectorOverrides,
         private val redactedContentRepository: RedactedContentRepository,
         private val sendMediaMaterializer: SendMediaMaterializer,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -616,9 +619,9 @@ class TimelineViewModel @AssistedInject constructor(
                         .map { it.isEncrypted }
                         .distinctUntilChanged()
         ) { snapshot, isRoomEncrypted ->
-            // Only the request is gated: a preview bundled in the event itself asks the homeserver nothing,
-            // so it is shown in encrypted rooms whatever this setting says.
-            val allowServerFetch = !isRoomEncrypted || vectorPreferences.allowUrlPreviewsInEncryptedRooms(session.myUserId)
+            // Only the request is gated: a preview bundled in the event itself asks nobody anything, so it is
+            // shown whatever this setting says.
+            val allowServerFetch = lightweightSettingsStorage.getLinkPreviewSource(session.myUserId, room.roomId, isRoomEncrypted) == LinkPreviewSource.SERVER
             withContext(Dispatchers.Default) {
                 Timber.v("On new timeline events for urlpreview on ${Thread.currentThread()}")
                 snapshot.forEach {

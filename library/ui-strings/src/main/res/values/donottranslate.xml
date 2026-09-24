@@ -254,8 +254,6 @@
     <string name="settings_compact_quick_reactions" translatable="false">Compact quick reactions</string>
     <string name="settings_compact_quick_reactions_summary" translatable="false">Keep quick reactions on a single row that scrolls horizontally, instead of wrapping onto more rows.</string>
 
-    <string name="url_previews_in_encrypted_rooms" translatable="false">URL previews in encrypted rooms</string>
-    <string name="url_previews_in_encrypted_rooms_summary" translatable="false">Allow URL previews in encrypted rooms. Only enable this if you trust your homeserver, as previews are generated server-side and can leak message content.</string>
     <string name="settings_open_chats_at_first_unread" translatable="false">Open chats at first unread message</string>
     <string name="settings_open_chats_at_first_unread_summary" translatable="false">Open rooms at the first unread message instead of at the bottom of the chat.</string>
     <string name="picker_clear_search" translatable="false">Clear search</string>
@@ -1102,11 +1100,13 @@
 
     <string name="error_rejected_by_policy_server" translatable="false">Rejected by this room\'s policy server, which automatically screens messages for spam.</string>
 
-    <string name="settings_link_preview_mode_title" translatable="false">Fetch link previews on this device</string>
-    <string name="settings_link_preview_mode_always" translatable="false">Yes</string>
-    <string name="settings_link_preview_mode_never" translatable="false">No</string>
-    <string name="settings_link_preview_mode_encrypted" translatable="false">In encrypted rooms</string>
-    <string name="settings_link_preview_mode_direct" translatable="false">In direct messages</string>
+    <string name="settings_link_previews" translatable="false">Link previews</string>
+    <string name="settings_link_previews_encrypted" translatable="false">Encrypted rooms</string>
+    <string name="settings_link_previews_unencrypted" translatable="false">Unencrypted rooms</string>
+    <string name="settings_link_previews_room" translatable="false">Fetch link previews</string>
+    <string name="settings_link_preview_source_none" translatable="false">No</string>
+    <string name="settings_link_preview_source_device" translatable="false">On-device</string>
+    <string name="settings_link_preview_source_server" translatable="false">Server-side</string>
 
     <string name="attachment_caption_hint" translatable="false">Add a caption…</string>
 

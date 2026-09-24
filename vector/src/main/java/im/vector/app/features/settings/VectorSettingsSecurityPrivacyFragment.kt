@@ -88,6 +88,7 @@ import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
+import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -314,6 +315,7 @@ class VectorSettingsSecurityPrivacyFragment :
 
         // Stealth mode: keep the fork's own account data local-only
         setUpStealthMode()
+        setUpLinkPreviews()
 
         // Media visibility / avatar hiding
         setUpMediaVisibility()
@@ -391,6 +393,24 @@ class VectorSettingsSecurityPrivacyFragment :
             setOnPreferenceChangeListener { _, newValue ->
                 stealthModeStore.setEnabled(userId, newValue as Boolean)
                 true
+            }
+        }
+    }
+
+    private fun setUpLinkPreviews() {
+        // Non-persistent lists: stored per-account so a different account doesn't inherit them.
+        val userId = session.myUserId
+        mapOf(
+                VectorPreferences.SETTINGS_LINK_PREVIEW_ENCRYPTED_KEY to true,
+                VectorPreferences.SETTINGS_LINK_PREVIEW_UNENCRYPTED_KEY to false,
+        ).forEach { (key, isEncrypted) ->
+            findPreference<VectorListPreference>(key)?.apply {
+                value = vectorPreferences.getLinkPreviewSource(userId, isEncrypted).value
+                setOnPreferenceChangeListener { _, newValue ->
+                    val source = LinkPreviewSource.fromValue(newValue as? String) ?: return@setOnPreferenceChangeListener false
+                    vectorPreferences.setLinkPreviewSource(userId, isEncrypted, source)
+                    true
+                }
             }
         }
     }

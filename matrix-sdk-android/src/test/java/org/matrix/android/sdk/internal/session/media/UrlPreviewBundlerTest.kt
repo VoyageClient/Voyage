@@ -26,21 +26,20 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
-import org.matrix.android.sdk.api.settings.LinkPreviewMode
+import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.session.content.ContentUploadResponse
 import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
-import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.test.fakes.FakeClock
 import org.robolectric.RobolectricTestRunner
 
 private const val AN_EVENT_ID = "\$local.event"
 private const val A_ROOM_ID = "!room:example.org"
+private const val A_USER_ID = "@alice:example.org"
 private const val URL = "https://matrix.org"
 private const val UPLOADED_MXC = "mxc://example.org/reuploaded"
 private val IMAGE_BYTES = ByteArray(64) { it.toByte() }
@@ -65,21 +64,20 @@ internal class UrlPreviewBundlerTest {
     private val homeServerUrlPreviewFetcher = mockk<HomeServerUrlPreviewFetcher>()
     private val fileUploader = mockk<FileUploader>()
     private val settingsStorage = mockk<LightweightSettingsStorage> {
-        every { getLinkPreviewMode(any()) } returns LinkPreviewMode.ALWAYS
+        every { getLinkPreviewSource(any(), any(), any()) } returns LinkPreviewSource.DEVICE
     }
-    private val roomSummaryDataSource = mockk<RoomSummaryDataSource>()
     private val localEchoRepository = mockk<LocalEchoRepository>()
     private val uploadedBytes = slot<ByteArray>()
     private val echoUpdate = slot<(EventEntity) -> Unit>()
 
     private val bundler = UrlPreviewBundler(
+            userId = A_USER_ID,
             urlsExtractor = UrlsExtractor(AndroidWebUrlPattern(), Parser.builder().build()),
             urlPreviewFetcher = urlPreviewFetcher,
             homeServerUrlPreviewFetcher = homeServerUrlPreviewFetcher,
             fileUploader = fileUploader,
             bundleCache = UrlPreviewBundleCache(clock = mockk(relaxed = true)),
             lightweightSettingsStorage = settingsStorage,
-            roomSummaryDataSource = roomSummaryDataSource,
             localEchoRepository = localEchoRepository,
             taskExecutor = mockk { every { executorScope } returns CoroutineScope(Dispatchers.Unconfined) },
             clock = FakeClock().apply { givenEpoch(1234) },
@@ -91,7 +89,6 @@ internal class UrlPreviewBundlerTest {
         coEvery { homeServerUrlPreviewFetcher.fetch(any()) } returns PREVIEW.copy(fields = PREVIEW.fields + ("og:title" to "From the homeserver"))
         coEvery { fileUploader.uploadByteArray(capture(uploadedBytes), any(), any(), any()) } returns ContentUploadResponse(UPLOADED_MXC)
         coEvery { localEchoRepository.updateEcho(any(), capture(echoUpdate)) } just Runs
-        every { roomSummaryDataSource.getRoomSummary(any()) } returns null
     }
 
     private fun textEvent(body: String, extra: JsonDict = emptyMap()) = Event(
@@ -106,10 +103,6 @@ internal class UrlPreviewBundlerTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun Event.unstablePreviews() = content?.get("com.beeper.linkpreviews") as? List<JsonDict>
-
-    private fun givenDirectRoom() {
-        every { roomSummaryDataSource.getRoomSummary(A_ROOM_ID) } returns mockk<RoomSummary> { every { isDirect } returns true }
-    }
 
     @Test
     fun `a message with a link gets its preview bundled`() = runTest {
@@ -162,15 +155,15 @@ internal class UrlPreviewBundlerTest {
     }
 
     @Test
-    fun `previews are fetched by this device by default`() = runTest {
+    fun `on-device previews never ask the homeserver`() = runTest {
         bundler.bundleUrlPreviews(textEvent(URL), encrypt = false).previews()!![0]["og:title"] shouldBeEqualTo "Matrix.org"
 
         coVerify(exactly = 0) { homeServerUrlPreviewFetcher.fetch(any()) }
     }
 
     @Test
-    fun `the homeserver previews the link when the user asked for that`() = runTest {
-        every { settingsStorage.getLinkPreviewMode(A_ROOM_ID) } returns LinkPreviewMode.NEVER
+    fun `server-side previews come from the homeserver`() = runTest {
+        every { settingsStorage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, false) } returns LinkPreviewSource.SERVER
 
         bundler.bundleUrlPreviews(textEvent(URL), encrypt = false).previews()!![0]["og:title"] shouldBeEqualTo "From the homeserver"
 
@@ -178,8 +171,9 @@ internal class UrlPreviewBundlerTest {
     }
 
     @Test
-    fun `previewing only in encrypted rooms keeps the link off the homeserver exactly there`() = runTest {
-        every { settingsStorage.getLinkPreviewMode(A_ROOM_ID) } returns LinkPreviewMode.ENCRYPTED_ROOMS
+    fun `the source is the one set for the room's encryption`() = runTest {
+        every { settingsStorage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, true) } returns LinkPreviewSource.DEVICE
+        every { settingsStorage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, false) } returns LinkPreviewSource.SERVER
 
         bundler.bundleUrlPreviews(textEvent(URL), encrypt = true)
         coVerify { urlPreviewFetcher.fetch(URL) }
@@ -190,15 +184,15 @@ internal class UrlPreviewBundlerTest {
     }
 
     @Test
-    fun `previewing only in direct messages asks the room whether it is one`() = runTest {
-        every { settingsStorage.getLinkPreviewMode(A_ROOM_ID) } returns LinkPreviewMode.DIRECT_MESSAGES
+    fun `a room without link previews bundles and fetches nothing`() = runTest {
+        every { settingsStorage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, any()) } returns LinkPreviewSource.NONE
+        val event = textEvent(URL)
 
-        bundler.bundleUrlPreviews(textEvent(URL), encrypt = false)
-        coVerify { homeServerUrlPreviewFetcher.fetch(URL) }
+        bundler.prefetch(A_ROOM_ID, URL, encrypt = false)
+        bundler.bundleUrlPreviews(event, encrypt = false) shouldBeEqualTo event
 
-        givenDirectRoom()
-        bundler.bundleUrlPreviews(textEvent(URL), encrypt = false)
-        coVerify { urlPreviewFetcher.fetch(URL) }
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
+        coVerify(exactly = 0) { homeServerUrlPreviewFetcher.fetch(any()) }
     }
 
     @Test

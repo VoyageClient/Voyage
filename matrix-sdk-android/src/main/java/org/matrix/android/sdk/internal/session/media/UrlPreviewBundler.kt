@@ -19,15 +19,15 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
-import org.matrix.android.sdk.api.settings.LinkPreviewMode
+import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
-import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.util.time.Clock
 import javax.inject.Inject
@@ -53,19 +53,19 @@ private val DISPLAYABLE_KEYS = setOf(
  * to hand the links over to their own homeserver — which is what makes previews usable in encrypted
  * rooms at all.
  *
- * Where the preview itself comes from is the user's choice ([LinkPreviewMode]): the page is either read
+ * Where the preview itself comes from is the user's choice ([LinkPreviewSource]): the page is either read
  * by this device, which tells nobody but the site, or by our homeserver, which is one server rather
  * than everyone's but does learn the link. Either way the thumbnail is reuploaded as our own media
  * (encrypted for an encrypted room) so it outlives whatever cache it came from.
  */
 internal class UrlPreviewBundler @Inject constructor(
+        @UserId private val userId: String,
         private val urlsExtractor: UrlsExtractor,
         private val urlPreviewFetcher: UrlPreviewFetcher,
         private val homeServerUrlPreviewFetcher: HomeServerUrlPreviewFetcher,
         private val fileUploader: FileUploader,
         private val bundleCache: UrlPreviewBundleCache,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
-        private val roomSummaryDataSource: RoomSummaryDataSource,
         private val localEchoRepository: LocalEchoRepository,
         private val taskExecutor: TaskExecutor,
         private val clock: Clock,
@@ -89,11 +89,11 @@ internal class UrlPreviewBundler @Inject constructor(
         val newContent = content["m.new_content"] as? Map<String, Any>
         val previewedContent = newContent ?: content
         val messageContent = previewedContent.toModel<MessageContent>() ?: return event
+        val onDevice = generatesOnDevice(roomId, encrypt) ?: return event
         // Stripping a reply fallback is a no-op on a body that has none, so no need to check the relation.
         val urls = previewableUrls(messageContent)
         if (urls.isEmpty()) return event
 
-        val onDevice = generatesOnDevice(roomId, encrypt)
         // Concurrently: the room's send queue is sequential, so several links must not add up their waits.
         val previews = coroutineScope {
             urls.map { url -> async { previewForSending(url, onDevice, encrypt) } }.awaitAll().filterNotNull()
@@ -106,12 +106,12 @@ internal class UrlPreviewBundler @Inject constructor(
         return event.copy(content = bundledContent)
     }
 
-    private fun generatesOnDevice(roomId: String, encrypt: Boolean): Boolean {
-        return when (lightweightSettingsStorage.getLinkPreviewMode(roomId)) {
-            LinkPreviewMode.ALWAYS -> true
-            LinkPreviewMode.NEVER -> false
-            LinkPreviewMode.ENCRYPTED_ROOMS -> encrypt
-            LinkPreviewMode.DIRECT_MESSAGES -> roomSummaryDataSource.getRoomSummary(roomId)?.isDirect == true
+    /** null when the room is not to have previews at all. */
+    private fun generatesOnDevice(roomId: String, encrypt: Boolean): Boolean? {
+        return when (lightweightSettingsStorage.getLinkPreviewSource(userId, roomId, encrypt)) {
+            LinkPreviewSource.NONE -> null
+            LinkPreviewSource.DEVICE -> true
+            LinkPreviewSource.SERVER -> false
         }
     }
 
@@ -127,7 +127,7 @@ internal class UrlPreviewBundler @Inject constructor(
      * would otherwise wait for the page and the thumbnail upload, which is most of the delay the user sees.
      */
     override suspend fun prefetch(roomId: String, text: CharSequence, encrypt: Boolean) {
-        val onDevice = generatesOnDevice(roomId, encrypt)
+        val onDevice = generatesOnDevice(roomId, encrypt) ?: return
         urlsExtractor.extractMarkdown(ContentUtils.extractUsefulTextFromReply(text.toString()))
                 .filterNot { isNotPreviewable(it) }
                 .take(MAX_PREVIEWS)

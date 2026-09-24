@@ -18,7 +18,7 @@ package org.matrix.android.sdk.internal.settings
 
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
-import org.matrix.android.sdk.api.settings.LinkPreviewMode
+import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.session.sync.SyncPresence
 import javax.inject.Inject
@@ -59,10 +59,14 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         return sdkDefaultPrefs.getBoolean(SETTINGS_LABS_SLIDING_SYNC, true)
     }
 
-    // Backed by the app's "Fetch link previews on this device" setting (shared default prefs).
-    override fun getLinkPreviewMode(roomId: String): LinkPreviewMode {
-        val override = sdkDefaultPrefs.getString("${SETTINGS_LINK_PREVIEW_MODE}_$roomId", null)
-        return LinkPreviewMode.fromValue(override ?: sdkDefaultPrefs.getString(SETTINGS_LINK_PREVIEW_MODE, LinkPreviewMode.ALWAYS.value))
+    // Backed by the app's per-account "Link previews" settings (shared default prefs).
+    override fun getLinkPreviewSource(userId: String, roomId: String, isEncrypted: Boolean): LinkPreviewSource {
+        LinkPreviewSource.fromValue(sdkDefaultPrefs.getString("${SETTINGS_LINK_PREVIEW_SOURCE}_${userId}_$roomId", null))?.let { return it }
+        return if (isEncrypted) {
+            LinkPreviewSource.fromValue(sdkDefaultPrefs.getString("${SETTINGS_LINK_PREVIEW_ENCRYPTED}_$userId", null)) ?: LinkPreviewSource.DEVICE
+        } else {
+            LinkPreviewSource.fromValue(sdkDefaultPrefs.getString("${SETTINGS_LINK_PREVIEW_UNENCRYPTED}_$userId", null)) ?: LinkPreviewSource.SERVER
+        }
     }
 
     /**
@@ -92,6 +96,8 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         private const val SETTINGS_SHOW_REACTIONS = "SETTINGS_SHOW_REACTIONS_KEY"
         private const val SETTINGS_STRIP_MEDIA_METADATA = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
         private const val SETTINGS_LABS_SLIDING_SYNC = "SETTINGS_LABS_SLIDING_SYNC_KEY"
-        private const val SETTINGS_LINK_PREVIEW_MODE = "SETTINGS_LINK_PREVIEW_MODE_KEY"
+        private const val SETTINGS_LINK_PREVIEW_ENCRYPTED = "SETTINGS_LINK_PREVIEW_ENCRYPTED_KEY"
+        private const val SETTINGS_LINK_PREVIEW_UNENCRYPTED = "SETTINGS_LINK_PREVIEW_UNENCRYPTED_KEY"
+        private const val SETTINGS_LINK_PREVIEW_SOURCE = "SETTINGS_LINK_PREVIEW_SOURCE_KEY"
     }
 }

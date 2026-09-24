@@ -67,11 +67,11 @@
             app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference
-            android:entries="@array/room_link_preview_modes"
-            android:entryValues="@array/room_link_preview_mode_values"
+            android:entries="@array/room_link_preview_sources"
+            android:entryValues="@array/room_link_preview_source_values"
             android:key="SETTINGS_ROOM_LINK_PREVIEW_KEY"
             android:persistent="false"
-            android:title="@string/settings_link_preview_mode_title"
+            android:title="@string/settings_link_previews_room"
             app:useSimpleSummaryProvider="true" />
 
         <im.vector.app.core.preference.VectorListPreference

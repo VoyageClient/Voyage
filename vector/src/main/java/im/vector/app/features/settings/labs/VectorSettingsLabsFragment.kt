@@ -60,19 +60,6 @@ class VectorSettingsLabsFragment :
         }
 
         configureUnreadNotificationsAsTabPreference()
-        configureUrlPreviewInEncryptedRoomsPreference()
-    }
-
-    private fun configureUrlPreviewInEncryptedRoomsPreference() {
-        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY)?.let { pref ->
-            // Non-persistent switch: stored per-account so a different account doesn't inherit it.
-            val userId = session.myUserId
-            pref.isChecked = vectorPreferences.allowUrlPreviewsInEncryptedRooms(userId)
-            pref.setOnPreferenceChangeListener { _, newValue ->
-                vectorPreferences.setAllowUrlPreviewsInEncryptedRooms(userId, newValue as Boolean)
-                true
-            }
-        }
     }
 
     private fun configureUnreadNotificationsAsTabPreference() {

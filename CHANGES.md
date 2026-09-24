@@ -82,7 +82,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Rich room topics (MSC3765)**: room and space topics support formatted content. Their HTML body renders like timeline messages, falling back to markdown when a topic is plain text only, and editing a topic publishes the HTML rendering alongside the plain text so other clients can show it too. Room IDs, aliases and user IDs in a topic show as tappable pills, where previously only the homeserver part of an alias was a link, and in the room profile a matrix link opens the room or user in-app while other links open in the browser.
 
-- **Link previews that work in encrypted rooms (MSC4095)**: messages you send carry the preview of their links with them, so nobody's homeserver ever sees what you linked. Your own device reads the page, and where that happens is configurable per account and per room, down to letting your homeserver generate previews the old way. Previews received this way display in encrypted rooms with no setting to turn on.
+- **Link previews that work in encrypted rooms (MSC4095)**: messages you send carry the preview of their links with them, so nobody's homeserver ever sees what you linked. Previews can be off, fetched on-device or fetched server-side, chosen separately for encrypted and unencrypted rooms and per room.
 
 - **Read receipts**: private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms, so they no longer desync from what the server holds.
 
@@ -132,7 +132,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Scroll animations**: choose an animation for room lists, timelines, settings and other app lists.
 
-- **SchildiChat layout & behavior options**: a combined people+rooms Overview list, mark chats as read/unread (MSC2867) synced with compatible clients, URL previews in encrypted rooms, opening a room at its first unread message, jump-to-bottom when sending, remembered collapsed list sections, and showing or hiding space members as people.
+- **SchildiChat layout & behavior options**: a combined people+rooms Overview list, mark chats as read/unread (MSC2867) synced with compatible clients, opening a room at its first unread message, jump-to-bottom when sending, remembered collapsed list sections, and showing or hiding space members as people.
 
 - **Markdown & HTML rendering overhaul**: added or improved tables (with a no-wrap option), blockquotes, spoilers, greentext, code blocks, underline (`__x__`), strikethrough (`~~x~~`), subscript (`~x~`) and superscript (`^x^`). Links and pills no longer render inside code blocks.
 

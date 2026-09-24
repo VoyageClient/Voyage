@@ -58,30 +58,28 @@
         <item>always_hide</item>
     </string-array>
 
-    <string-array name="link_preview_modes">
-        <item>@string/settings_link_preview_mode_always</item>
-        <item>@string/settings_link_preview_mode_never</item>
-        <item>@string/settings_link_preview_mode_encrypted</item>
-        <item>@string/settings_link_preview_mode_direct</item>
+    <string-array name="link_preview_sources">
+        <item>@string/settings_link_preview_source_none</item>
+        <item>@string/settings_link_preview_source_device</item>
+        <item>@string/settings_link_preview_source_server</item>
     </string-array>
-    <string-array name="link_preview_mode_values">
-        <item>always</item>
-        <item>never</item>
-        <item>encrypted</item>
-        <item>direct</item>
+    <string-array name="link_preview_source_values">
+        <item>none</item>
+        <item>device</item>
+        <item>server</item>
     </string-array>
 
-    <!-- Per-room link previews. The account-wide "in encrypted rooms" / "in direct messages" options
-         are predicates over which rooms match; scoped to one room they are just device or homeserver. -->
-    <string-array name="room_link_preview_modes">
+    <string-array name="room_link_preview_sources">
         <item>@string/settings_use_account_setting</item>
-        <item>@string/settings_link_preview_mode_always</item>
-        <item>@string/settings_link_preview_mode_never</item>
+        <item>@string/settings_link_preview_source_none</item>
+        <item>@string/settings_link_preview_source_device</item>
+        <item>@string/settings_link_preview_source_server</item>
     </string-array>
-    <string-array name="room_link_preview_mode_values">
+    <string-array name="room_link_preview_source_values">
         <item>inherit</item>
-        <item>always</item>
-        <item>never</item>
+        <item>none</item>
+        <item>device</item>
+        <item>server</item>
     </string-array>
 
     <string-array name="randomize_upload_filename_modes">

@@ -11,16 +11,20 @@ import io.mockk.mockk
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.matrix.android.sdk.api.settings.LinkPreviewMode
+import org.matrix.android.sdk.api.settings.LinkPreviewSource
 import org.matrix.android.sdk.internal.platform.SharedPreferencesKeyValueStoreFactory
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
 private const val A_ROOM_ID = "!room:example.org"
 private const val ANOTHER_ROOM_ID = "!other:example.org"
+private const val A_USER_ID = "@alice:example.org"
+private const val ANOTHER_USER_ID = "@bob:example.org"
 
-// The key the app writes; see im.vector.app.features.settings.VectorPreferences.
-private const val MODE_KEY = "SETTINGS_LINK_PREVIEW_MODE_KEY"
+// The keys the app writes; see im.vector.app.features.settings.VectorPreferences.
+private const val ENCRYPTED_KEY = "SETTINGS_LINK_PREVIEW_ENCRYPTED_KEY"
+private const val UNENCRYPTED_KEY = "SETTINGS_LINK_PREVIEW_UNENCRYPTED_KEY"
+private const val ROOM_KEY = "SETTINGS_LINK_PREVIEW_SOURCE_KEY"
 
 @RunWith(RobolectricTestRunner::class)
 internal class DefaultLightweightSettingsStorageTest {
@@ -43,37 +47,44 @@ internal class DefaultLightweightSettingsStorageTest {
     }
 
     @Test
-    fun `previews are fetched by this device out of the box`() {
-        storage.getLinkPreviewMode(A_ROOM_ID) shouldBeEqualTo LinkPreviewMode.ALWAYS
+    fun `out of the box, encrypted rooms preview on the device and the others on the homeserver`() {
+        storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.DEVICE
+        storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = false) shouldBeEqualTo LinkPreviewSource.SERVER
     }
 
     @Test
-    fun `the account-wide mode the app wrote is read`() {
-        appPreferences.putString(MODE_KEY, "encrypted")
+    fun `each kind of room reads its own account-wide setting`() {
+        appPreferences.putString("${ENCRYPTED_KEY}_$A_USER_ID", "none")
+        appPreferences.putString("${UNENCRYPTED_KEY}_$A_USER_ID", "device")
 
-        storage.getLinkPreviewMode(A_ROOM_ID) shouldBeEqualTo LinkPreviewMode.ENCRYPTED_ROOMS
+        storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.NONE
+        storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = false) shouldBeEqualTo LinkPreviewSource.DEVICE
     }
 
     @Test
-    fun `a room override wins over the account-wide mode, and only for that room`() {
-        appPreferences.putString(MODE_KEY, "never")
-        appPreferences.putString("${MODE_KEY}_$A_ROOM_ID", "always")
+    fun `settings are per account`() {
+        appPreferences.putString("${ENCRYPTED_KEY}_$A_USER_ID", "none")
+        appPreferences.putString("${ROOM_KEY}_${A_USER_ID}_$A_ROOM_ID", "server")
 
-        storage.getLinkPreviewMode(A_ROOM_ID) shouldBeEqualTo LinkPreviewMode.ALWAYS
-        storage.getLinkPreviewMode(ANOTHER_ROOM_ID) shouldBeEqualTo LinkPreviewMode.NEVER
+        storage.getLinkPreviewSource(ANOTHER_USER_ID, ANOTHER_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.DEVICE
+        storage.getLinkPreviewSource(ANOTHER_USER_ID, A_ROOM_ID, isEncrypted = false) shouldBeEqualTo LinkPreviewSource.SERVER
+        storage.getLinkPreviewSource(ANOTHER_USER_ID, A_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.DEVICE
     }
 
     @Test
-    fun `a room override of direct messages is understood too`() {
-        appPreferences.putString("${MODE_KEY}_$A_ROOM_ID", "direct")
+    fun `a room override wins over the account-wide setting, and only for that room`() {
+        appPreferences.putString("${ENCRYPTED_KEY}_$A_USER_ID", "device")
+        appPreferences.putString("${ROOM_KEY}_${A_USER_ID}_$A_ROOM_ID", "server")
 
-        storage.getLinkPreviewMode(A_ROOM_ID) shouldBeEqualTo LinkPreviewMode.DIRECT_MESSAGES
+        storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.SERVER
+        storage.getLinkPreviewSource(A_USER_ID, ANOTHER_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.DEVICE
     }
 
     @Test
-    fun `a mode this version does not know falls back to fetching on the device`() {
-        appPreferences.putString(MODE_KEY, "something-from-the-future")
+    fun `a value this version does not know falls back to the default`() {
+        appPreferences.putString("${ENCRYPTED_KEY}_$A_USER_ID", "something-from-the-future")
+        appPreferences.putString("${ROOM_KEY}_${A_USER_ID}_$A_ROOM_ID", "something-from-the-future")
 
-        storage.getLinkPreviewMode(A_ROOM_ID) shouldBeEqualTo LinkPreviewMode.ALWAYS
+        storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.DEVICE
     }
 }

@@ -543,7 +543,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/auth/registration/SuccessResult.kt',
         // Settings/extensions/statistics + QR-code verification value types.
         'org/matrix/android/sdk/api/settings/LightweightSettingsStorage.kt',
-        'org/matrix/android/sdk/api/settings/LinkPreviewMode.kt',
+        'org/matrix/android/sdk/api/settings/LinkPreviewSource.kt',
         'org/matrix/android/sdk/api/extensions/MatrixSdkExtensions.kt',
         'org/matrix/android/sdk/api/extensions/MetricsExtensions.kt',
         'org/matrix/android/sdk/api/session/statistics/StatisticEvent.kt',
