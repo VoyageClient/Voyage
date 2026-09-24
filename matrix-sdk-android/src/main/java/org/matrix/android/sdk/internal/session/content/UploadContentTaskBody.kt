@@ -640,7 +640,8 @@ internal class UploadContentTaskBody @Inject constructor(
         val sendParams = MultipleEventSendingDispatcherWorkerParams(
                 sessionId = params.sessionId,
                 localEchoIds = params.localEchoIds,
-                isEncrypted = params.isEncrypted
+                isEncrypted = params.isEncrypted,
+                sendAfterEventIds = params.sendAfterEventIds,
         )
         return BackgroundTaskOutcome.SuccessWith(sendParams).also {
             Timber.v("## handleSuccess $attachmentUrl, work is stopped ${context.isStopped}")

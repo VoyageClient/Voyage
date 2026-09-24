@@ -7,6 +7,8 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
@@ -27,6 +29,7 @@ import javax.inject.Inject
 internal class MultipleEventSendingDispatcherTaskBody @Inject constructor(
         private val timelineSendEventWorkCommon: TimelineSendEventWorkCommon,
         private val localEchoRepository: LocalEchoRepository,
+        private val mediaSendOrder: MediaSendOrder,
 ) : BackgroundTaskBody<MultipleEventSendingDispatcherWorkerParams> {
 
     override suspend fun execute(
@@ -34,7 +37,30 @@ internal class MultipleEventSendingDispatcherTaskBody @Inject constructor(
             context: BackgroundTaskContext
     ): BackgroundTaskOutcome {
         Timber.v("## SendEvent: Start dispatch sending multiple event work")
-        // Create a work for every event
+        var waitingFor = params.sendAfterEventIds
+        while (true) {
+            if (context.isStopped) return BackgroundTaskOutcome.Retry
+            val dispatched = mediaSendOrder.dispatchLock.withLock {
+                waitingFor = waitingFor.filterNot { hasLeft(it) }
+                if (waitingFor.isEmpty()) {
+                    dispatch(params)
+                    true
+                } else {
+                    false
+                }
+            }
+            if (dispatched) return BackgroundTaskOutcome.Success
+            delay(ORDER_POLL_MILLIS)
+        }
+    }
+
+    /** Dispatched, failed or dropped; an echo still uploading stays UNSENT. */
+    private suspend fun hasLeft(eventId: String): Boolean {
+        val echo = localEchoRepository.getUpToDateEcho(eventId) ?: return true
+        return !mediaSendOrder.isUndispatched(eventId) && echo.sendState != SendState.UNSENT
+    }
+
+    private suspend fun dispatch(params: MultipleEventSendingDispatcherWorkerParams) {
         params.localEchoIds.forEach { localEchoIds ->
             val roomId = localEchoIds.roomId
             val eventId = localEchoIds.eventId
@@ -48,8 +74,7 @@ internal class MultipleEventSendingDispatcherTaskBody @Inject constructor(
             val sendWork = createSendEventWork(params.sessionId, eventId, true)
             timelineSendEventWorkCommon.postWork(roomId, sendWork)
         }
-
-        return BackgroundTaskOutcome.Success
+        mediaSendOrder.markDispatched(params.localEchoIds.map { it.eventId })
     }
 
     override fun onError(params: MultipleEventSendingDispatcherWorkerParams, failureMessage: String): BackgroundTaskOutcome {
@@ -61,6 +86,7 @@ internal class MultipleEventSendingDispatcherTaskBody @Inject constructor(
                     sendStateDetails = params.lastFailureMessage
             )
         }
+        mediaSendOrder.markDispatched(params.localEchoIds.map { it.eventId })
 
         Timber.e("Work cancelled due to input error from parent: $failureMessage")
         return BackgroundTaskOutcome.SuccessWith(params)
@@ -73,5 +99,9 @@ internal class MultipleEventSendingDispatcherTaskBody @Inject constructor(
                 matrixConstraints = true,
                 isolateInput = startChain,
         )
+    }
+
+    private companion object {
+        const val ORDER_POLL_MILLIS = 500L
     }
 }

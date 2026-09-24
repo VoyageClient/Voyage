@@ -768,6 +768,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/membership/RoomMemberColorCache.kt',
         'org/matrix/android/sdk/internal/session/room/membership/RoomMemberEntityFactory.kt',
         'org/matrix/android/sdk/internal/session/room/send/CancelSendTracker.kt',
+        'org/matrix/android/sdk/internal/session/room/send/MediaSendOrder.kt',
         'org/matrix/android/sdk/internal/session/room/send/queue/HomeServerAvailabilityChecker.kt',
         'org/matrix/android/sdk/internal/session/room/send/queue/TaskInfo.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/TimelineDecryptionSignal.kt',

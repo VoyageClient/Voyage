@@ -24,6 +24,8 @@ internal data class MultipleEventSendingDispatcherWorkerParams(
         override val sessionId: String,
         val localEchoIds: List<LocalEchoIdentifiers>,
         val isEncrypted: Boolean,
+        /** Earlier media of the same rooms that must be dispatched (or have failed or gone) before these. */
+        val sendAfterEventIds: List<String> = emptyList(),
         override val lastFailureMessage: String? = null
 ) : SessionWorkerParams {
 

@@ -23,6 +23,8 @@ internal data class UploadContentWorkerParams(
         val galleryItemIndex: Int? = null,
         /** Declared byte sizes of every gallery item, for one size-weighted progress bar. */
         val galleryItemSizes: List<Long>? = null,
+        /** Handed on to the dispatcher (same key there, so it survives the failure path too). */
+        val sendAfterEventIds: List<String> = emptyList(),
         override val lastFailureMessage: String? = null
 ) : SessionWorkerParams {
 

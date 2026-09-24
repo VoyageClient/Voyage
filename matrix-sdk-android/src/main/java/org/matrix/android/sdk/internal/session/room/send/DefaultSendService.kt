@@ -93,6 +93,7 @@ internal class DefaultSendService @AssistedInject constructor(
         private val cancelSendTracker: CancelSendTracker,
         private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,
         private val linkPreviewPrefetcher: LinkPreviewPrefetcher,
+        private val mediaSendOrder: MediaSendOrder,
 ) : SendService {
 
     @AssistedFactory
@@ -297,6 +298,7 @@ internal class DefaultSendService @AssistedInject constructor(
         // CancelSendTracker is in-memory only; the background upload chain is persistent, so without
         // this cancel a stuck upload would survive restarts and block every subsequent send.
         backgroundTaskScheduler.cancelAllByTag(uploadWorkTag(eventId))
+        mediaSendOrder.markDispatched(listOf(eventId))
         // That tag also covers any deferred byte upload, which is torn down before it can
         // release the bytes it was holding.
         pendingMediaUploadRegistry.discardForEvent(eventId)
@@ -419,6 +421,7 @@ internal class DefaultSendService @AssistedInject constructor(
             }
         }
         val cancelableBag = CancelableBag()
+        val sendAfterEventIds = mediaSendOrder.enqueue(allLocalEchoes.map { LocalEchoIdentifiers(it.roomId!!, it.eventId!!) })
         allLocalEchoes.groupBy { cryptoStore.roomWasOnceEncrypted(it.roomId!!) }.forEach { (isRoomEncrypted, localEchoes) ->
             val localEchoIds = localEchoes.map { LocalEchoIdentifiers(it.roomId!!, it.eventId!!) }
             val itemSizes = attachments.map { it.size }
@@ -435,6 +438,7 @@ internal class DefaultSendService @AssistedInject constructor(
                         compressBeforeSending = compressBeforeSending,
                         galleryItemIndex = index,
                         galleryItemSizes = itemSizes,
+                        sendAfterEventIds = sendAfterEventIds,
                 )
                 backgroundTask(
                         type = BackgroundTaskType.UPLOAD_CONTENT,
@@ -550,13 +554,14 @@ internal class DefaultSendService @AssistedInject constructor(
      */
     private fun internalSendMedia(allLocalEchoes: List<Event>, attachment: ContentAttachmentData, compressBeforeSending: Boolean): Cancelable {
         val cancelableBag = CancelableBag()
+        val sendAfterEventIds = mediaSendOrder.enqueue(allLocalEchoes.map { LocalEchoIdentifiers(it.roomId!!, it.eventId!!) })
 
         allLocalEchoes.groupBy { cryptoStore.roomWasOnceEncrypted(it.roomId!!) }
                 .apply {
                     keys.forEach { isRoomEncrypted ->
                         // Should never be empty
                         val localEchoes = get(isRoomEncrypted).orEmpty()
-                        val uploadWork = createUploadMediaWork(localEchoes, attachment, isRoomEncrypted, compressBeforeSending)
+                        val uploadWork = createUploadMediaWork(localEchoes, attachment, isRoomEncrypted, compressBeforeSending, sendAfterEventIds)
 
                         val dispatcherWork = createMultipleEventDispatcherWork(isRoomEncrypted)
 
@@ -592,12 +597,20 @@ internal class DefaultSendService @AssistedInject constructor(
             allLocalEchos: List<Event>,
             attachment: ContentAttachmentData,
             isRoomEncrypted: Boolean,
-            compressBeforeSending: Boolean
+            compressBeforeSending: Boolean,
+            sendAfterEventIds: List<String>,
     ): BackgroundTaskRequest<UploadContentWorkerParams> {
         val localEchoIds = allLocalEchos.map {
             LocalEchoIdentifiers(it.roomId!!, it.eventId!!)
         }
-        val uploadMediaWorkerParams = UploadContentWorkerParams(sessionId, localEchoIds, attachment, isRoomEncrypted, compressBeforeSending)
+        val uploadMediaWorkerParams = UploadContentWorkerParams(
+                sessionId = sessionId,
+                localEchoIds = localEchoIds,
+                attachment = attachment,
+                isEncrypted = isRoomEncrypted,
+                compressBeforeSending = compressBeforeSending,
+                sendAfterEventIds = sendAfterEventIds,
+        )
         return backgroundTask(
                 type = BackgroundTaskType.UPLOAD_CONTENT,
                 params = uploadMediaWorkerParams,
