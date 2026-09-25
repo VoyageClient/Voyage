@@ -1076,7 +1076,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendSpoiler -> {
-                            val text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})"
+                            val text = parsedCommand.message.toString()
                             val formattedText = "<span data-mx-spoiler>${mentionsToHtml(parsedCommand.message)}</span>"
                             if (state.rootThreadEventId != null) {
                                 room.relationService().replyInThread(
@@ -2019,7 +2019,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             }
             is ParsedCommand.SendSpoiler -> {
                 edit(
-                        text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})",
+                        text = parsedCommand.message.toString(),
                         formatted = "<span data-mx-spoiler>${mentionsToHtml(parsedCommand.message)}</span>",
                 )
                 true
@@ -2176,7 +2176,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             }
             is ParsedCommand.SendSpoiler -> {
                 reply(
-                        text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})",
+                        text = parsedCommand.message.toString(),
                         formatted = "<span data-mx-spoiler>${mentionsToHtml(parsedCommand.message)}</span>",
                 )
                 finish()
@@ -2264,7 +2264,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             is ParsedCommand.SendTrans -> CaptionCommandResolution.Caption(parsed.message.toString(), transWithMentions(parsed.message), false)
             is ParsedCommand.SendTransEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), transWithMentions(parsed.message), false)
             is ParsedCommand.SendSpoiler -> CaptionCommandResolution.Caption(
-                    "[${stringProvider.getString(CommonStrings.spoiler)}](${parsed.message})",
+                    parsed.message.toString(),
                     "<span data-mx-spoiler>${mentionsToHtml(parsed.message)}</span>",
                     false,
             )

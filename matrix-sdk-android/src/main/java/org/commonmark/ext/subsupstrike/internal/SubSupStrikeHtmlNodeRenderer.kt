@@ -28,14 +28,19 @@ internal class SubSupStrikeHtmlNodeRenderer(private val context: HtmlNodeRendere
     )
 
     override fun render(node: Node) {
-        val (tag, attributes) = when (node) {
-            is Subscript -> "sub" to emptyMap<String, String>()
-            is Superscript -> "sup" to emptyMap()
-            is Strikethrough -> "del" to emptyMap()
-            is Spoiler -> "span" to mapOf("data-mx-spoiler" to "")
+        val tag = when (node) {
+            is Subscript -> "sub"
+            is Superscript -> "sup"
+            is Strikethrough -> "del"
+            is Spoiler -> "span"
             else -> return
         }
-        html.tag(tag, context.extendAttributes(node, tag, attributes))
+        if (node is Spoiler) {
+            // HtmlWriter always writes name="value"; the spoiler attribute is conventionally bare.
+            html.raw("<span data-mx-spoiler>")
+        } else {
+            html.tag(tag, context.extendAttributes(node, tag, emptyMap()))
+        }
         var child = node.firstChild
         while (child != null) {
             val next = child.next

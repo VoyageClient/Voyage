@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.room.send
 
 import de.spiritcroc.matrixsdk.StaticScSdkHelper
+import org.commonmark.ext.subsupstrike.Spoiler
 import org.commonmark.node.HtmlBlock
 import org.commonmark.node.HtmlInline
 import org.commonmark.node.ListBlock
@@ -52,6 +53,8 @@ internal class MarkdownParser @Inject constructor(
         const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
         val listItemMarker = Regex("""^( {0,3})((?:[-*+]|\d{1,9}[.)])[ \t]+)""")
         val fenceLine = Regex("""^ {0,3}(```|~~~)""")
+        val spoilerDelimiters = Regex("""\|\|(?=\S)(.+?)(?<=\S)\|\|""")
+        val codeSegment = Regex("""^ {0,3}(```|~~~)[\s\S]*?(?:^ {0,3}\1|\z)|(`+)[\s\S]+?\2""", RegexOption.MULTILINE)
     }
 
     /**
@@ -92,7 +95,8 @@ internal class MarkdownParser @Inject constructor(
             // The plain text version of the HTML should be provided in the body.
             // But it caused too many problems so it has been removed in #2002
             // See #739
-            TextContent(text.toString(), cleanHtmlText.postTreatment())
+            val body = if (document.containsSpoiler()) stripSpoilerDelimiters(text.toString()) else text.toString()
+            TextContent(body, cleanHtmlText.postTreatment())
         } else {
             TextContent(source)
         }.linkifyMscReferences()
@@ -220,6 +224,29 @@ internal class MarkdownParser @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun Node.containsSpoiler(): Boolean {
+        if (this is Spoiler) return true
+        var child = firstChild
+        while (child != null) {
+            if (child.containsSpoiler()) return true
+            child = child.next
+        }
+        return false
+    }
+
+    // Code spans and fences keep their literal `||`, matching what the parser left unformatted.
+    private fun stripSpoilerDelimiters(text: String): String {
+        val out = StringBuilder(text.length)
+        var index = 0
+        codeSegment.findAll(text).forEach { code ->
+            out.append(spoilerDelimiters.replace(text.substring(index, code.range.first), "$1"))
+            out.append(code.value)
+            index = code.range.last + 1
+        }
+        out.append(spoilerDelimiters.replace(text.substring(index), "$1"))
+        return out.toString()
     }
 
     private fun isFormattedTextPertinent(text: String, htmlText: String?) =
