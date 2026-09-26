@@ -10,9 +10,11 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
+import android.graphics.Rect
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.animation.LinearInterpolator
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -32,16 +34,24 @@ abstract class TimelineReadMarkerItem : VectorEpoxyModel<TimelineReadMarkerItem.
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        if (holder.animator != null && holder.boundFadeKey == fadeKey && holder.boundTracker === fadeTracker) return
         cancelAnimation(holder)
+        stopWatchingVisibility(holder)
+        holder.boundFadeKey = fadeKey
+        holder.boundTracker = fadeTracker
         val faded = fadeTracker?.isFadedOut.orFalse()
         applyFaded(holder, faded)
         if (!faded) {
             scheduleAnimation(holder)
+            watchVisibility(holder)
         }
     }
 
     override fun unbind(holder: Holder) {
+        stopWatchingVisibility(holder)
         cancelAnimation(holder)
+        holder.boundTracker = null
+        holder.boundFadeKey = null
         applyFaded(holder, fadeTracker?.isFadedOut.orFalse())
         super.unbind(holder)
     }
@@ -51,8 +61,36 @@ abstract class TimelineReadMarkerItem : VectorEpoxyModel<TimelineReadMarkerItem.
         if (visibilityState != VisibilityState.VISIBLE) return
         val tracker = fadeTracker ?: return
         if (tracker.isFadedOut) return
+        stopWatchingVisibility(view)
         tracker.onSeen(SystemClock.elapsedRealtime())
         scheduleAnimation(view)
+    }
+
+    private fun watchVisibility(holder: Holder) {
+        val tracker = fadeTracker ?: return
+        if (tracker.isFadedOut || holder.animator != null) return
+        // Epoxy may keep the same visibility state when a visible marker moves or is rebound.
+        val observer = holder.view.viewTreeObserver
+        val visibleRect = Rect()
+        val listener = ViewTreeObserver.OnPreDrawListener {
+            if (holder.view.isShown && holder.view.getGlobalVisibleRect(visibleRect) && !visibleRect.isEmpty) {
+                stopWatchingVisibility(holder)
+                tracker.onSeen(SystemClock.elapsedRealtime())
+                scheduleAnimation(holder)
+            }
+            true
+        }
+        holder.visibilityObserver = observer
+        holder.visibilityListener = listener
+        observer.addOnPreDrawListener(listener)
+    }
+
+    private fun stopWatchingVisibility(holder: Holder) {
+        val listener = holder.visibilityListener ?: return
+        val observer = holder.visibilityObserver?.takeIf { it.isAlive } ?: holder.view.viewTreeObserver
+        observer.removeOnPreDrawListener(listener)
+        holder.visibilityObserver = null
+        holder.visibilityListener = null
     }
 
     private fun scheduleAnimation(holder: Holder) {
@@ -138,6 +176,10 @@ abstract class TimelineReadMarkerItem : VectorEpoxyModel<TimelineReadMarkerItem.
     }
 
     class Holder : VectorEpoxyHolder() {
+        var boundFadeKey: String? = null
+        var boundTracker: ReadMarkerFadeTracker? = null
+        var visibilityObserver: ViewTreeObserver? = null
+        var visibilityListener: ViewTreeObserver.OnPreDrawListener? = null
         var animator: Animator? = null
         var fullHeight: Int = 0
         val lineStart by bind<View>(R.id.readMarkerLineStart)

@@ -47,8 +47,7 @@ class TimelineControllerInterceptorHelper(
 
         val modelsIterator = models.listIterator()
         var index = 0
-        val firstUnreadEventId = (unreadState as? UnreadState.HasUnread)?.firstUnreadEventId
-        val fadeKey = readMarkerFadeTracker.onSession(firstUnreadEventId)
+        val firstUnreadEventId = readMarkerFadeTracker.onSession((unreadState as? UnreadState.HasUnread)?.firstUnreadEventId)
         var atLeastOneVisibleItemSinceLastDaySeparator = false
         var atLeastOneVisibleItemsBeforeReadMarker = false
         var appendReadMarker = false
@@ -74,7 +73,7 @@ class TimelineControllerInterceptorHelper(
                 atLeastOneVisibleItemSinceLastDaySeparator = false
             }
             if (appendReadMarker) {
-                modelsIterator.addReadMarkerItem(callback, fadeKey)
+                modelsIterator.addReadMarkerItem(callback, firstUnreadEventId)
                 index++
                 positionOfReadMarker.set(index)
                 appendReadMarker = false

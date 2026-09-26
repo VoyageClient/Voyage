@@ -71,4 +71,29 @@ class ReadMarkerFadeTrackerTest {
 
         tracker.isFadedOut shouldBe false
     }
+
+    @Test
+    fun `given a seen marker when unread state clears then keep it until the animation finishes`() {
+        val tracker = ReadMarkerFadeTracker(DURATION)
+        tracker.onSession("first")
+        tracker.onSeen(1_000L)
+
+        tracker.onSession(null) shouldBeEqualTo "first"
+        tracker.remainingMs(2_000L) shouldBeEqualTo 4_300L
+        tracker.isFadedOut shouldBe false
+
+        tracker.markFadedOut()
+
+        tracker.onSession(null) shouldBe null
+        tracker.remainingMs(2_000L) shouldBe null
+    }
+
+    @Test
+    fun `given an unseen marker when unread state clears then remove it immediately`() {
+        val tracker = ReadMarkerFadeTracker(DURATION)
+        tracker.onSession("first")
+
+        tracker.onSession(null) shouldBe null
+        tracker.remainingMs(2_000L) shouldBe null
+    }
 }

@@ -7,11 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.helper
 
-/**
- * Deadline for the "Unread messages" separator to disappear, reset by each new batch of unread messages.
- * It lives here rather than in the view holder because the timeline rebinds its items constantly, which
- * would keep restarting the animation.
- */
+/** Keeps the fade deadline across timeline rebinds. */
 class ReadMarkerFadeTracker(private val totalDurationMs: Long) {
 
     @Volatile private var sessionKey: String? = null
@@ -21,8 +17,11 @@ class ReadMarkerFadeTracker(private val totalDurationMs: Long) {
     @Volatile var isFadedOut: Boolean = false
         private set
 
-    /** @return the key of the current unread session. */
     fun onSession(firstUnreadEventId: String?): String? {
+        // Read receipts can clear unread state before the visible separator finishes fading.
+        if (firstUnreadEventId == null && endElapsedMs != null && !isFadedOut) {
+            return sessionKey
+        }
         if (firstUnreadEventId != sessionKey) {
             sessionKey = firstUnreadEventId
             endElapsedMs = null

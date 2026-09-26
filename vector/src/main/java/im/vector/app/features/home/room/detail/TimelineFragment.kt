@@ -1592,13 +1592,11 @@ class TimelineFragment :
                         }
                     }
                     val atLiveEdge = layoutManager.findFirstVisibleItemPosition() <= 1 && timelineViewModel.timeline?.isLive != false
-                    if (showJumpToUnreadBanner && atLiveEdge && vectorPreferences.autoDismissJumpToUnread()) {
-                        // Same effect as tapping the banner's close icon, before it ever becomes visible
+                    val hideJumpToUnread = vectorPreferences.autoDismissJumpToUnread()
+                    if (showJumpToUnreadBanner && atLiveEdge && hideJumpToUnread) {
                         timelineViewModel.handle(RoomDetailAction.MarkAllAsRead)
-                        views.jumpToReadMarkerView.isVisible = false
-                    } else {
-                        views.jumpToReadMarkerView.isVisible = showJumpToUnreadBanner
                     }
+                    views.jumpToReadMarkerView.isVisible = showJumpToUnreadBanner && !hideJumpToUnread
                 }
             }
         }
