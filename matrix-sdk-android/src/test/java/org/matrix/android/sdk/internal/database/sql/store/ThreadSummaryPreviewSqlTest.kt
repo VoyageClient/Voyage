@@ -15,6 +15,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -73,6 +74,27 @@ class ThreadSummaryPreviewSqlTest {
     private fun threadChunk() = stores.chunk.insert(
             roomId, null, null, isLastForward = false, isLastBackward = false,
             rootThreadEventId = rootEventId, isLastForwardThread = true)
+
+    @Test
+    fun `sent local copies do not inflate the root reply count`() {
+        insertRoot()
+        repeat(3) { index ->
+            insertReply("\$reply$index", ts = 2_000L + index)
+            insertReply(LocalEcho.createLocalEchoId(), ts = 2_000L + index)
+        }
+
+        stores.markThreadRoots(roomId, listOf(rootEventId))
+
+        stores.event.getByEventId(rootEventId)!!.numberOfThreads shouldBeEqualTo 3
+    }
+
+    @Test
+    fun `duplicate stored copies of a remote reply count once`() {
+        insertReply("\$reply", ts = 2_000L)
+        insertReply("\$reply", ts = 2_000L)
+
+        stores.event.countThreadReplies(roomId, rootEventId) shouldBeEqualTo 1
+    }
 
     @Test
     fun `latest reply prefers the main-chunk row over the open thread chunk duplicate`() {

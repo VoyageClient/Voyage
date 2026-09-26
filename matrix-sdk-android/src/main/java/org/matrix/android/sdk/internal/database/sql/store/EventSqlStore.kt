@@ -11,6 +11,7 @@ import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
@@ -201,10 +202,11 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
             eventIds.flatMapInChunks { queries.selectThreadRootsAmong(roomId, it).executeAsList() }
                     .mapNotNull { it.root_thread_event_id }
 
-    /** Distinct, non-redacted thread replies for the given root (matches the Realm helper's count). */
+    /** Distinct, non-redacted remote replies for the given root. */
     fun countThreadReplies(roomId: String, rootThreadEventId: String): Int =
             queries.selectThreadRepliesForRoot(roomId, rootThreadEventId).executeAsList()
-                    .count { !it.unsigned_data.toUnsignedData().isRedacted() }
+                    // Sending-row cleanup can leave local events behind after their remote copies arrive.
+                    .count { !LocalEcho.isLocalEchoId(it.event_id) && !it.unsigned_data.toUnsignedData().isRedacted() }
 
     fun isUserParticipatingInThread(roomId: String, rootThreadEventId: String, senderId: String): Boolean =
             queries.selectThreadParticipation(roomId, rootThreadEventId, senderId).executeAsOneOrNull() != null
