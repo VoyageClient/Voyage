@@ -15,7 +15,7 @@ import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.Spannable
-import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.view.View
 import android.widget.EditText
 import androidx.appcompat.widget.SearchView
@@ -137,16 +137,20 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
     // A completed user filter reads as a mention pill: the span only draws over the id, so the term
     // submitted to the search backend is still the plain `from:@user:server`.
     private fun applySuggestion(suggestion: SearchSuggestion) {
+        val currentQuery = searchEditText?.text
+        val tokenStart = currentQuery?.indexOfLast { it.isWhitespace() }?.plus(1) ?: 0
+        val prefix = currentQuery?.subSequence(0, tokenStart)
+        val query = if (prefix != null && suggestion.query.startsWith(prefix.toString())) {
+            SpannableStringBuilder(prefix).append(suggestion.query.substring(tokenStart))
+        } else {
+            SpannableStringBuilder(suggestion.query)
+        }
         val avatar = suggestion.avatar
         val range = suggestion.pillRange
-        val query: CharSequence = if (avatar != null && range != null) {
-            SpannableString(suggestion.query).apply {
-                val span = PillImageSpan(GlideApp.with(this@SearchActivity), avatarRenderer, this@SearchActivity, avatar)
-                        .also { span -> searchEditText?.let { span.bind(it) } }
-                setSpan(span, range.first, range.last + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            }
-        } else {
-            suggestion.query
+        if (avatar != null && range != null) {
+            val span = PillImageSpan(GlideApp.with(this@SearchActivity), avatarRenderer, this@SearchActivity, avatar)
+                    .also { span -> searchEditText?.let { span.bind(it) } }
+            query.setSpan(span, range.first, range.last + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         views.searchView.setQuery(query, false)
     }
