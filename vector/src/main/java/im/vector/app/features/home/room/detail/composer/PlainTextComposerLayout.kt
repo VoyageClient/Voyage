@@ -156,6 +156,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     override val emojiButton: ImageButton?
         get() = views.composerEmojiButton
 
+    override val microphoneButton: ImageButton
+        get() = views.composerMicButton
+
     override val sendButton: ImageButton
         get() = views.sendButton
 

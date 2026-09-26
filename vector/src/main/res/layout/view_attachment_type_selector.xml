@@ -6,6 +6,15 @@
     android:layout_height="@dimen/composer_min_height"
     android:background="?android:colorBackground">
 
+    <View
+        android:id="@+id/attachmentTopDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="?vctr_list_separator"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageButton
         android:id="@+id/attachmentCloseButton"
         android:layout_width="@dimen/composer_attachment_size"

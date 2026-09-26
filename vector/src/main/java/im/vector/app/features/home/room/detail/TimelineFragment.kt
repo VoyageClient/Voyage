@@ -390,11 +390,6 @@ class TimelineFragment :
         observeRedactionRevealChanges()
         observeRedactionRevealFailures()
 
-        // Avoid a one-frame flash before invalidate runs.
-        if (!vectorPreferences.isVoiceMessageButtonEnabled()) {
-            views.voiceMessageRecorderContainer.isVisible = false
-        }
-
         views.includeRoomToolbar.roomToolbarContentView.debouncedClicks {
             navigator.openRoomProfile(requireActivity(), timelineArgs.roomId)
         }
@@ -1646,8 +1641,9 @@ class TimelineFragment :
             lazyLoadedViews.inviteView(false)?.isVisible = false
 
             views.composerContainer.isInvisible = !messageComposerState.isComposerVisible
-            views.voiceMessageRecorderContainer.isVisible =
-                    messageComposerState.isVoiceMessageRecorderVisible && vectorPreferences.isVoiceMessageButtonEnabled()
+            val recorderVisible = messageComposerState.isComposerVisible && messageComposerState.isVoiceRecording &&
+                    vectorPreferences.isVoiceMessageButtonEnabled()
+            views.voiceMessageRecorderContainer.isVisible = recorderVisible
             syncVoiceRecorderStackMargin(messageComposerState)
             when (messageComposerState.canSendMessage) {
                 CanSendStatus.Allowed -> {

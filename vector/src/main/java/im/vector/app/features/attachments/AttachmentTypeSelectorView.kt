@@ -46,8 +46,7 @@ private const val DISABLED_ALPHA = 0.4f
  * This class is the view presenting choices for picking attachments.
  * It will return result through [Callback].
  *
- * It covers the composer's input row, and shares the composer's parent so the two stay aligned
- * through keyboard changes, the reply preview opening and the bottom sheet resizing it.
+ * It covers the composer's input row.
  */
 class AttachmentTypeSelectorView @JvmOverloads constructor(
         context: Context,
@@ -64,8 +63,9 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
     private val views = ViewAttachmentTypeSelectorBinding.inflate(LayoutInflater.from(context), this, true)
 
     private var anchor: View? = null
+    private var closing = false
 
-    val isOpen: Boolean get() = isVisible
+    val isOpen: Boolean get() = isVisible && !closing
 
     /** Notified when the selector opens or closes, so callers can gate back-press handling. */
     var onOpenChanged: ((Boolean) -> Unit)? = null
@@ -89,6 +89,7 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
 
     /** Match the classic composer: same background, and a bare "+" glyph rotated into an X. */
     fun applyClassicComposerStyle() {
+        views.attachmentTopDivider.isVisible = false
         // The inflated root carries its own ?android:colorBackground, which would paint over this view's.
         views.root.setBackgroundColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
         val size = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_classic_button_size)
@@ -115,6 +116,7 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
     }
 
     fun show(anchor: View) {
+        if (isVisible) return
         this.anchor = anchor
         coverInputRow(anchor)
         isVisible = true
@@ -123,26 +125,16 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
         doOnNextLayout { animateWindowInCircular(anchor, this) }
     }
 
-    /**
-     * Cover the composer's input row exactly, and put the close button over the "+" it stands in for.
-     *
-     * None of it is constant: the row grows with the message's line count, the two composer layouts put
-     * that button in different places within it — centred on the whole row (classic) or in the bottom
-     * send-button strip (modern) — and the row is not flush with the bottom of the shared parent, which is
-     * stretched by the composer's bottom-sheet behaviour. So the row's rect is measured and matched rather
-     * than assumed from a fixed height or the layout's bottom gravity.
-     */
     private fun coverInputRow(anchor: View) {
         val row = anchor.parent as? View ?: return
         val host = parent as? View ?: return
         if (row.height <= 0 || host.height <= 0) return
-        var rowTop = 0
-        var current: View = row
-        while (current !== host) {
-            rowTop += current.top
-            current = current.parent as? View ?: return
-        }
-        updateLayoutParams<FrameLayout.LayoutParams> {
+        val rowLocation = IntArray(2)
+        val hostLocation = IntArray(2)
+        row.getLocationOnScreen(rowLocation)
+        host.getLocationOnScreen(hostLocation)
+        val rowTop = rowLocation[1] - hostLocation[1]
+        updateLayoutParams<ViewGroup.MarginLayoutParams> {
             height = row.height
             bottomMargin = host.height - (rowTop + row.height)
         }
@@ -152,7 +144,8 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
     }
 
     fun hide() {
-        if (!isVisible) return
+        if (!isVisible || closing) return
+        closing = true
         onOpenChanged?.invoke(false)
         animateClose()
 
@@ -203,7 +196,12 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
     }
 
     private fun animateWindowInCircular(anchor: View, contentView: View) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            contentView.startAnimation(TranslateAnimation(0f, 0f, contentView.height.toFloat(), 0f).apply {
+                duration = ANIMATION_DURATION.toLong()
+            })
+            return
+        }
         val coordinates = getClickCoordinates(anchor, contentView)
         val animator = ViewAnimationUtils.createCircularReveal(
                 contentView,
@@ -230,7 +228,7 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
         animator.duration = ANIMATION_DURATION.toLong()
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
-                isVisible = false
+                finishClose()
             }
         })
         animator.start()
@@ -243,13 +241,18 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
             override fun onAnimationStart(animation: Animation) {}
 
             override fun onAnimationEnd(animation: Animation) {
-                isVisible = false
+                finishClose()
             }
 
             override fun onAnimationRepeat(animation: Animation) {}
         })
 
         contentView.startAnimation(animation)
+    }
+
+    private fun finishClose() {
+        isVisible = false
+        closing = false
     }
 
     private fun getClickCoordinates(anchor: View, contentView: View): Pair<Int, Int> {

@@ -22,6 +22,7 @@ interface MessageComposerView {
     val formattedText: String?
     val editText: EditText
     val emojiButton: ImageButton?
+    val microphoneButton: ImageButton
     val sendButton: ImageButton
     val attachmentButton: ImageButton
 

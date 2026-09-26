@@ -253,6 +253,19 @@
             tools:visibility="visible" />
 
         <ImageButton
+            android:id="@+id/composerMicButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@null"
+            android:contentDescription="@string/a11y_start_voice_message"
+            android:visibility="invisible"
+            app:srcCompat="@drawable/ic_microphone"
+            app:layout_constraintBottom_toBottomOf="@id/sendButton"
+            app:layout_constraintTop_toTopOf="@id/sendButton"
+            app:layout_constraintStart_toStartOf="@id/sendButton"
+            app:layout_constraintEnd_toEndOf="@id/sendButton" />
+
+        <ImageButton
             android:id="@+id/sendButton"
             android:layout_width="56dp"
             android:layout_height="@dimen/composer_min_height"

@@ -350,7 +350,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:translationZ="10dp"
-        android:visibility="visible" />
+        android:visibility="gone" />
 
     <!-- Composer suggestions. A real view rather than a popup window, so it resizes and moves in the
          same layout pass as the composer instead of a frame behind it. Its bottom margin tracks the

@@ -9,12 +9,10 @@ package im.vector.app.features.home.room.detail.composer.voice
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.hardware.vibrate
-import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewVoiceMessageRecorderBinding
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.lib.core.utils.timer.Clock
@@ -34,11 +32,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), AudioMessagePlaybackTracker.Listener {
 
     interface Callback {
-        fun onVoiceRecordingStarted()
-        fun onVoiceRecordingEnded()
         fun onVoicePlaybackButtonClicked()
-        fun onVoiceRecordingCancelled()
-        fun onSendVoiceMessage()
         fun onDeleteVoiceMessage()
         fun onRecordingLimitReached()
         fun onRecordingWaveformClicked()
@@ -48,44 +42,25 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
 
     @Inject lateinit var clock: Clock
     @Inject lateinit var voiceMessageConfig: VoiceMessageConfig
-    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
-    // We need to define views as lateinit var to be able to check if initialized for the bug fix on api 21 and 22.
-    @Suppress("UNNECESSARY_LATEINIT")
-    private lateinit var voiceMessageViews: VoiceMessageViews
+    private val voiceMessageViews: VoiceMessageViews
     lateinit var callback: Callback
 
     private var recordingTicker: CountUpTimer? = null
     private var lastKnownState: RecordingUiState? = null
-    private var dragState: DraggingState = DraggingState.Ignored
     private var recordingDuration: Long = 0
 
     init {
         inflate(this.context, R.layout.view_voice_message_recorder, this)
-        val dimensionConverter = DimensionConverter(this.context.resources)
         voiceMessageViews = VoiceMessageViews(
                 this.context.resources,
-                ViewVoiceMessageRecorderBinding.bind(this),
-                dimensionConverter
+                ViewVoiceMessageRecorderBinding.bind(this)
         )
-        if (vectorPreferences.useClassicComposer()) {
-            voiceMessageViews.applyClassicComposerStyle()
-        }
-
         initListeners()
     }
 
     private fun initListeners() {
         voiceMessageViews.start(object : VoiceMessageViews.Actions {
-            override fun onRequestRecording() = callback.onVoiceRecordingStarted()
-            override fun onMicButtonReleased() {
-                when (dragState) {
-                    DraggingState.Cancel -> callback.onVoiceRecordingCancelled()
-                    else -> callback.onVoiceRecordingEnded()
-                }
-            }
-
-            override fun onSendVoiceMessage() = callback.onSendVoiceMessage()
             override fun onDeleteVoiceMessage() = callback.onDeleteVoiceMessage()
             override fun onWaveformClicked() {
                 when (lastKnownState) {
@@ -95,10 +70,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
             }
 
             override fun onVoicePlaybackButtonClicked() = callback.onVoicePlaybackButtonClicked()
-            override fun onMicButtonDrag(nextDragStateCreator: (DraggingState) -> DraggingState) {
-                onDrag(dragState, newDragState = nextDragStateCreator(dragState))
-            }
-
             override fun onVoiceWaveformTouchedUp(percentage: Float) {
                 if (lastKnownState == RecordingUiState.Draft) {
                     callback.onVoiceWaveformTouchedUp(percentage, recordingDuration.toInt())
@@ -113,14 +84,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         })
     }
 
-    override fun onVisibilityChanged(changedView: View, visibility: Int) {
-        super.onVisibilityChanged(changedView, visibility)
-        // onVisibilityChanged is called by constructor on api 21 and 22.
-        if (!this::voiceMessageViews.isInitialized) return
-        val parentChanged = changedView == this
-        voiceMessageViews.renderVisibilityChanged(parentChanged, visibility)
-    }
-
     fun render(recordingState: RecordingUiState) {
         if (lastKnownState == recordingState) return
         when (recordingState) {
@@ -132,7 +95,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
                     startRecordingTicker(startAt = recordingState.recordingStartTimestamp)
                 }
                 voiceMessageViews.showRecordingViews()
-                dragState = DraggingState.Ready
             }
             RecordingUiState.Draft -> {
                 stopRecordingTicker()
@@ -145,20 +107,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
     private fun reset() {
         stopRecordingTicker()
         voiceMessageViews.initViews()
-        dragState = DraggingState.Ignored
-    }
-
-    private fun onDrag(currentDragState: DraggingState, newDragState: DraggingState) {
-        if (currentDragState == newDragState) return
-        when (newDragState) {
-            is DraggingState.Cancelling -> voiceMessageViews.renderCancelling(newDragState.distanceX)
-            DraggingState.Cancel -> callback.onVoiceRecordingCancelled()
-            DraggingState.Ignored,
-            DraggingState.Ready -> {
-                // do nothing
-            }
-        }
-        dragState = newDragState
     }
 
     private fun startRecordingTicker(startAt: Long) {
@@ -215,12 +163,5 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         object Idle : RecordingUiState
         data class Recording(val recordingStartTimestamp: Long) : RecordingUiState
         object Draft : RecordingUiState
-    }
-
-    sealed interface DraggingState {
-        object Ready : DraggingState
-        object Ignored : DraggingState
-        data class Cancelling(val distanceX: Float) : DraggingState
-        object Cancel : DraggingState
     }
 }

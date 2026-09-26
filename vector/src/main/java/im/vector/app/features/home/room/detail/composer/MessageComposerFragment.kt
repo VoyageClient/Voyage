@@ -46,10 +46,12 @@ import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.hardware.vibrate
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.ExpandingBottomSheetBehavior
+import im.vector.app.core.utils.PERMISSIONS_FOR_VOICE_MESSAGE
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
@@ -395,6 +397,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     isPgp = pgpKeyStore.isEnabled && !summary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(summary.roomId),
             )
         }
+        renderMicrophoneVisibility(messageComposerState)
         val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() &&
                 messageComposerState.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Recording
         composer.sendButton.visibility = when {
@@ -458,7 +461,25 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
     }
 
+    // Permission denial stays silent so it does not cover the composer.
+    private val permissionVoiceMessageLauncher = registerForPermissionsResult { _, _ -> }
+
+    private fun renderMicrophoneVisibility(state: MessageComposerViewState) {
+        val visible = vectorPreferences.isVoiceMessageButtonEnabled() && state.isVoiceMessageRecorderVisible && !state.isVoiceRecording
+        composer.microphoneButton.isVisible = visible
+    }
+
     private fun setupComposer() {
+        withState(messageComposerViewModel) { renderMicrophoneVisibility(it) }
+        composer.microphoneButton.setOnClickListener {
+            withState(messageComposerViewModel) { state ->
+                if (state.isComposerVisible && !state.isVoiceRecording &&
+                        checkPermissions(PERMISSIONS_FOR_VOICE_MESSAGE, requireActivity(), permissionVoiceMessageLauncher)) {
+                    messageComposerViewModel.handle(MessageComposerAction.StartRecordingVoiceMessage)
+                    vibrate(requireContext())
+                }
+            }
+        }
         val composerEditText = composer.editText
         composerEditText.setHint(CommonStrings.room_message_placeholder)
         views.composerLayout.roomId = roomId
@@ -739,6 +760,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun handleSendButtonVisibilityChanged(event: MessageComposerViewEvents.AnimateSendButtonVisibility) {
+        withState(messageComposerViewModel) { state ->
+            composer.microphoneButton.isVisible = !event.isVisible && vectorPreferences.isVoiceMessageButtonEnabled() &&
+                    state.isComposerVisible && !state.isVoiceRecording
+        }
         if (event.isVisible) {
             composer.sendButton.alpha = 0f
             composer.sendButton.isVisible = true
