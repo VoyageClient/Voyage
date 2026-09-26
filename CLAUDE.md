@@ -82,6 +82,10 @@ Two install variants:
 
 To quickly check that code compiles without building/installing the whole app (no device needed), use ./gradlew :vector:compileDebugKotlin.
 
+# Before committing
+
+Always run the test suite and lint before committing to ensure there are no regressions in either. Fix any test or lint regressions, then rerun both checks before committing. A successful compile alone is not sufficient.
+
 # Debugging on device
 
 The installed fdroid-debug package is `im.voyage.app.debug` (NOT `im.vector.app.debug`). Use that for `am start`, `pidof`, logcat filters, etc.
