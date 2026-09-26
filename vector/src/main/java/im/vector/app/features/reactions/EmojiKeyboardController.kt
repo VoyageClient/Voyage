@@ -9,13 +9,16 @@ package im.vector.app.features.reactions
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.view.KeyEvent
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
+import im.vector.app.core.platform.VectorBaseActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,6 +41,7 @@ class EmojiKeyboardController(
         private val sectionFactory: EmojiPickerSectionFactory,
         private val scope: CoroutineScope,
         private val onVisibilityChanged: (visible: Boolean) -> Unit,
+        private val onKeyboardDismissed: () -> Unit,
 ) {
 
     private val pickerView = EmojiPickerView(activity).apply {
@@ -47,14 +51,58 @@ class EmojiKeyboardController(
     private val heightProvider = KeyboardHeightProvider(activity)
     private val prefs = activity.getSharedPreferences("emoji_panel", Context.MODE_PRIVATE)
     private var lastKeyboardHeight = 0
+    private var keyboardVisible = false
+    private var paused = false
+    private var showKeyboardOnResume = false
+    private val hideKeyboardAfterPause = Runnable { if (paused) hideKeyboard() }
+    private val restoreKeyboardAfterFocus = Runnable { restoreKeyboardIfReady() }
+    private val releaseKeyboardRestoreHold = Runnable {
+        hostActivity?.isRestoringComposerKeyboard = false
+        setAutomaticKeyboardRestore(keyboardVisible)
+        panelHost.releaseSettledHeightHold()
+    }
+
+    private var keyboardDismissalPending = false
     private var backspaceHeld = false
     private var stripReserved = false
     private var panelOpen = false
     private var reloadJob: Job? = null
+    private val hostActivity = activity as? VectorBaseActivity<*>
+    private val usesNativeImeState = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hostActivity != null
+    private val imeStateListener: (Int, Boolean) -> Unit = { height, animating ->
+        if (!animating) {
+            val measuredHeight = heightProvider.currentKeyboardHeight
+            updateKeyboardVisibility(if (height > 0 && measuredHeight > MIN_KEYBOARD_HEIGHT) measuredHeight else height)
+        }
+    }
+
+    private val recordKeyboardDismissal = object : Runnable {
+        override fun run() {
+            if (!keyboardDismissalPending || keyboardVisible || panelOpen) return
+            // A system overlay or cancelled gesture can temporarily hide the IME.
+            if (paused || !activity.hasWindowFocus()) return
+            if (panelHost.isHeightFrozen || hostActivity?.isImeAnimating == true) {
+                editText.postDelayed(this, 100L)
+                return
+            }
+            keyboardDismissalPending = false
+            rememberKeyboardDismissed()
+        }
+    }
 
     val isShowing: Boolean get() = panelOpen
 
     init {
+        if (usesNativeImeState) hostActivity?.addImeStateListener(imeStateListener)
+        panelHost.onWindowFocusRestored = {
+            // The input method receives window focus after the view hierarchy does.
+            editText.removeCallbacks(restoreKeyboardAfterFocus)
+            editText.post(restoreKeyboardAfterFocus)
+            if (keyboardDismissalPending) {
+                editText.removeCallbacks(recordKeyboardDismissal)
+                editText.postDelayed(recordKeyboardDismissal, 200L)
+            }
+        }
         pickerView.setTrailingAction(
                 im.vector.app.R.drawable.ic_backspace,
                 im.vector.lib.strings.CommonStrings.action_delete,
@@ -72,6 +120,8 @@ class EmojiKeyboardController(
     }
 
     private fun onKeyboardHeight(height: Int) {
+        if (usesNativeImeState) hostActivity?.updateMeasuredComposerImeHeight(height)
+        else updateKeyboardVisibility(height)
         if (height > MIN_KEYBOARD_HEIGHT) {
             if (height != lastKeyboardHeight) prefs.edit { putInt(PREF_KEYBOARD_HEIGHT, height) }
             lastKeyboardHeight = height
@@ -82,6 +132,26 @@ class EmojiKeyboardController(
             // Keyboard gone with no panel to take its place: give the space back to the timeline.
             pickerView.isVisible = false
             releaseStrip()
+        }
+    }
+
+    private fun updateKeyboardVisibility(height: Int) {
+        val wasVisible = keyboardVisible
+        keyboardVisible = height > MIN_KEYBOARD_HEIGHT
+        if (keyboardVisible || panelOpen) {
+            if (keyboardVisible && !paused) {
+                setAutomaticKeyboardRestore(true)
+                if (hostActivity?.isRestoringComposerKeyboard == true && activity.hasWindowFocus()) {
+                    editText.removeCallbacks(releaseKeyboardRestoreHold)
+                    releaseKeyboardRestoreHold.run()
+                }
+            }
+            keyboardDismissalPending = false
+            editText.removeCallbacks(recordKeyboardDismissal)
+        }
+        if (wasVisible && !keyboardVisible && !panelOpen) {
+            keyboardDismissalPending = true
+            editText.postDelayed(recordKeyboardDismissal, 200L)
         }
     }
 
@@ -114,11 +184,20 @@ class EmojiKeyboardController(
         panelOpen = false
         pickerView.isVisible = false
         hideKeyboard()
+        rememberKeyboardDismissed()
         releaseStrip()
         if (wasShowing) onVisibilityChanged(false)
     }
 
     fun destroy() {
+        editText.removeCallbacks(releaseKeyboardRestoreHold)
+        hostActivity?.isRestoringComposerKeyboard = false
+        hostActivity?.updateMeasuredComposerImeHeight(0)
+        editText.removeCallbacks(restoreKeyboardAfterFocus)
+        editText.removeCallbacks(hideKeyboardAfterPause)
+        hostActivity?.removeImeStateListener(imeStateListener)
+        panelHost.onWindowFocusRestored = null
+        editText.removeCallbacks(recordKeyboardDismissal)
         panelOpen = false
         pickerView.isVisible = false
         releaseStrip()
@@ -154,11 +233,59 @@ class EmojiKeyboardController(
         panelHost.setDesiredStripHeight(0)
     }
 
+    private fun rememberKeyboardDismissed() {
+        showKeyboardOnResume = false
+        onKeyboardDismissed()
+        setAutomaticKeyboardRestore(false)
+    }
+
+    private fun setAutomaticKeyboardRestore(enabled: Boolean) {
+        val state = if (enabled) WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED else WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+        setKeyboardRestoreState(state)
+    }
+
+    private fun setKeyboardRestoreState(state: Int) {
+        val mode = activity.window.attributes.softInputMode
+        val updated = (mode and WindowManager.LayoutParams.SOFT_INPUT_MASK_STATE.inv()) or state
+        if (mode != updated) activity.window.setSoftInputMode(updated)
+    }
+
+    fun onPause() {
+        editText.removeCallbacks(restoreKeyboardAfterFocus)
+        paused = true
+        showKeyboardOnResume = keyboardVisible && (editText.hasFocus() || activity.currentFocus?.onCheckIsTextEditor() != true)
+        editText.removeCallbacks(releaseKeyboardRestoreHold)
+        hostActivity?.isRestoringComposerKeyboard = showKeyboardOnResume
+        val anotherEditorFocused = !editText.hasFocus() && activity.currentFocus?.onCheckIsTextEditor() == true
+        if (!showKeyboardOnResume && !panelOpen && !anotherEditorFocused) rememberKeyboardDismissed()
+        editText.removeCallbacks(hideKeyboardAfterPause)
+        editText.postDelayed(hideKeyboardAfterPause, 500L)
+    }
+
+    fun onResume() {
+        paused = false
+        editText.removeCallbacks(hideKeyboardAfterPause)
+        if (showKeyboardOnResume) setKeyboardRestoreState(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        restoreKeyboardIfReady()
+    }
+
+    private fun restoreKeyboardIfReady() {
+        if (!paused && showKeyboardOnResume && activity.hasWindowFocus()) {
+            keyboardDismissalPending = false
+            editText.removeCallbacks(recordKeyboardDismissal)
+            showKeyboardOnResume = false
+            editText.requestFocus()
+            activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+            editText.postDelayed(releaseKeyboardRestoreHold, 1500L)
+        }
+    }
+
     private fun hideKeyboard() {
         activity.getSystemService<InputMethodManager>()?.hideSoftInputFromWindow(editText.windowToken, 0)
     }
 
     private fun showKeyboardOnComposer() {
+        setAutomaticKeyboardRestore(true)
         editText.requestFocus()
         activity.getSystemService<InputMethodManager>()?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
     }

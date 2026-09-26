@@ -9,20 +9,16 @@ package im.vector.app.features.reactions
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.Rect
 import android.util.AttributeSet
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.core.view.ViewCompat
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
 
-/**
- * Room screen root that keeps the emoji panel and the keyboard sharing one piece of space.
- *
- * The strip's height is resolved during measure, from the height the window still has: whatever the
- * system already took for the keyboard is subtracted from what the panel asked for. Doing it here rather
- * than from a layout listener means a window resize and the strip shrinking to match land in the same
- * traversal, so the composer never flickers a frame at the wrong height.
- */
+/** Keeps the emoji panel and IME sharing space within the same measurement pass. */
 class EmojiPanelHostLayout @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
@@ -30,20 +26,60 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     private var stripView: ViewGroup? = null
+    private var stationaryViews = emptyList<View>()
+    private var clippedViews = emptyList<View>()
+    private var keyboardTranslationResetPending = false
+
+    internal val canTranslateKeyboard: Boolean get() = !isHeightFrozen && desiredStripHeight == 0
+
+    internal fun finishKeyboardAnimation() {
+        keyboardTranslationResetPending = true
+        requestLayout()
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        if (keyboardTranslationResetPending) {
+            keyboardTranslationResetPending = false
+            setKeyboardTranslation(0f)
+        }
+    }
+
+    // Counter-translate headers so they remain anchored below the status bar.
+    internal fun setKeyboardTranslation(offset: Float) {
+        val shift = offset.coerceAtMost(0f)
+        translationY = shift
+        stationaryViews.forEach { it.translationY = if (shift == 0f) 0f else -shift }
+        clippedViews.forEach { view ->
+            ViewCompat.setClipBounds(view, if (shift == 0f) null else Rect(0, (-shift).toInt(), view.width, view.height))
+        }
+    }
+
     private var desiredStripHeight = 0
     private var unshrunkHeight = 0
     private var frozenHeight = 0
     private var frozenWidth = 0
+    private var windowFocused = true
+    private var incomingHeight = 0
 
-    // Always through requestLayout(): a measure we answered while frozen sits in the view's measure cache,
-    // and without the forced pass a later resize can be served that stale height instead of remeasuring.
-    private val clearFreeze = Runnable {
-        frozenHeight = 0
-        requestLayout()
+    internal var onWindowFocusRestored: (() -> Unit)? = null
+
+    internal val isHeightFrozen: Boolean get() = frozenHeight != 0
+
+    // Releasing the hold must invalidate the cached measurement with requestLayout().
+    private val clearFreeze = object : Runnable {
+        override fun run() {
+            if (frozenHeight != 0 && (hostActivity()?.isImeAnimating == true || hostActivity()?.isRestoringComposerKeyboard == true)) {
+                postDelayed(this, 100L)
+                return
+            }
+            frozenHeight = 0
+            requestLayout()
+        }
     }
 
-    /** Whether the window lost focus because the app is going away, rather than to a window of our own. */
-    internal var isAppLeaving: () -> Boolean = { hostActivity()?.isLosingFocusToAnotherApp == true }
+    // Dialogs need to reclaim the keyboard space; system overlays should leave it in place.
+    internal var shouldHoldHeightOnFocusLoss: () -> Boolean = { hostActivity()?.shouldHoldImeSpaceOnFocusLoss == true }
 
     /** The strip itself; the emoji panel is parented here. */
     val strip: ViewGroup get() = checkNotNull(stripView) { "emojiPanelContainer missing" }
@@ -51,6 +87,11 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         stripView = findViewById(R.id.emojiPanelContainer)
+        stationaryViews = listOf(
+                R.id.appBarLayout, R.id.massRedactionBanner, R.id.pinnedMessagesBanner,
+                R.id.tombstoneBanner, R.id.userIdentityWarningView, R.id.syncStateView, R.id.liveLocationStatusIndicator,
+        ).mapNotNull { findViewById<View>(it) }
+        clippedViews = listOf(R.id.rootConstraintLayout, R.id.timelineRecyclerView).mapNotNull { findViewById<View>(it) }
     }
 
     /** Height the panel wants, as if the keyboard were not taking any of the window. */
@@ -60,17 +101,24 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
         requestLayout()
     }
 
-    /**
-     * Leaving the app dismisses the keyboard, and the window grows back to full height while the keyboard is
-     * still drawn over it for the rest of the app-switcher animation. Hold the height we have until focus
-     * returns instead; the keyboard is restored with it, so nothing moves either way. A window of our own
-     * taking focus (a dialog, a bottom sheet) is a real dismissal and still gives the space back.
-     */
     override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
         super.onWindowFocusChanged(hasWindowFocus)
+        windowFocused = hasWindowFocus
         when {
-            hasWindowFocus -> unfreezeHeightWhenSettled()
-            isAppLeaving() -> freezeHeight()
+            hasWindowFocus -> {
+                releaseSettledHeightHold()
+                unfreezeHeightWhenSettled()
+                onWindowFocusRestored?.invoke()
+            }
+            shouldHoldHeightOnFocusLoss() -> freezeHeight()
+        }
+    }
+
+    internal fun releaseSettledHeightHold() {
+        if (windowFocused && hostActivity()?.isRestoringComposerKeyboard != true && frozenHeight != 0 && incomingHeight == frozenHeight) {
+            removeCallbacks(clearFreeze)
+            frozenHeight = 0
+            requestLayout()
         }
     }
 
@@ -91,7 +139,6 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
         }
     }
 
-    /** Ends once the window really is that height again (the keyboard came back), or after the grace period. */
     private fun unfreezeHeightWhenSettled() {
         if (frozenHeight == 0) return
         removeCallbacks(clearFreeze)
@@ -105,10 +152,11 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        incomingHeight = MeasureSpec.getSize(heightMeasureSpec)
         if (frozenHeight != 0) {
             val widthChanged = MeasureSpec.getSize(widthMeasureSpec) != frozenWidth
             // Settled: the window really is the height we are holding, so letting go changes nothing on screen.
-            if (widthChanged || MeasureSpec.getSize(heightMeasureSpec) == frozenHeight) {
+            if (widthChanged || (windowFocused && MeasureSpec.getSize(heightMeasureSpec) == frozenHeight)) {
                 if (widthChanged) frozenHeight = 0
                 removeCallbacks(clearFreeze)
                 post(clearFreeze)

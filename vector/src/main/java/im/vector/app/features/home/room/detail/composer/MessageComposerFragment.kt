@@ -23,7 +23,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.IntentSenderRequest
@@ -341,6 +340,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     override fun onResume() {
         super.onResume()
 
+        emojiKeyboardController?.onResume()
         restoreComposerFocusIfLost()
         // Focus restoration by the window itself lands after onResume, so re-check once it has settled.
         (composer as? View)?.post { if (view != null) restoreComposerFocusIfLost() }
@@ -352,8 +352,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (!isResumed || (composer as? View)?.isVisible != true) return
         val focused = view?.rootView?.findFocus()
         if (focused === composer.editText) return
-        val focusedIsSelectableText = focused is TextView && focused !is EditText && focused.isTextSelectable
-        if (composerHadFocus || focusedIsSelectableText) {
+        if (composerHadFocus && focused?.onCheckIsTextEditor() != true) {
             composer.editText.requestFocus()
         }
     }
@@ -361,7 +360,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     override fun onPause() {
         super.onPause()
 
-        emojiKeyboardController?.dismiss()
+        emojiKeyboardController?.onPause()
 
         withState(messageComposerViewModel) {
             when {
@@ -791,6 +790,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 roomId = roomId,
                 sectionFactory = emojiPickerSectionFactory,
                 scope = viewLifecycleOwner.lifecycleScope,
+                onKeyboardDismissed = {
+                    composerHadFocus = false
+                },
                 onVisibilityChanged = { visible ->
                     closeEmojiPanelOnBack.isEnabled = visible
                     composer.emojiButton?.apply {

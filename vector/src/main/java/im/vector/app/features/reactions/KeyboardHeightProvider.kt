@@ -35,6 +35,7 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
     private val popupView = View(activity)
     private val parentView: View = activity.findViewById(android.R.id.content)
     private var lastHeight = -1
+    val currentKeyboardHeight: Int get() = lastHeight
 
     init {
         contentView = popupView

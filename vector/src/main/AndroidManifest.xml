@@ -140,6 +140,7 @@
              which blanks the screen for many seconds on slow devices — relayout in place instead. -->
         <activity
             android:name=".features.home.room.detail.RoomDetailActivity"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:parentActivityName=".features.home.HomeActivity">
             <meta-data

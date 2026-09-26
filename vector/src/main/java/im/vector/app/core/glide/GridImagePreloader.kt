@@ -19,6 +19,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.features.imagepack.EmoteFrameCache
 import org.matrix.android.sdk.api.debug.DebugLog
 
@@ -35,9 +36,9 @@ import org.matrix.android.sdk.api.debug.DebugLog
  */
 object GridImagePreloader {
 
-    // Queued a batch at a time: preload() has to run on the main thread, and hundreds of them in one
-    // pass costs a frame of its own.
-    private const val BATCH_SIZE = 16
+    private const val BATCH_SIZE = 4
+    private const val BATCH_BUDGET_MS = 2L
+    private const val BATCH_DELAY_MS = 16L
 
     // Bounded by what the frame cache can hold anyway; past that the LRU just churns.
     private const val MAX_IMAGES = 600
@@ -74,8 +75,15 @@ object GridImagePreloader {
                     running.remove(key)
                     return
                 }
+                val activity = context.findActivity() as? VectorBaseActivity<*>
+                if (activity?.isImeAnimating == true || activity?.isRestoringComposerKeyboard == true) {
+                    handler.postDelayed(this, BATCH_DELAY_MS)
+                    return
+                }
+                val batchStartedAt = android.os.SystemClock.uptimeMillis()
                 var queued = 0
-                while (pending.isNotEmpty() && queued < BATCH_SIZE) {
+                while (pending.isNotEmpty() && queued < BATCH_SIZE &&
+                        (queued == 0 || android.os.SystemClock.uptimeMillis() - batchStartedAt < BATCH_BUDGET_MS)) {
                     val url = pending.removeAt(0)
                     if (animated) {
                         GlideApp.with(context).load(url).override(size, size).optionalFitCenter()
@@ -95,7 +103,7 @@ object GridImagePreloader {
                 }
                 warmed += queued
                 if (pending.isNotEmpty()) {
-                    handler.post(this)
+                    handler.postDelayed(this, BATCH_DELAY_MS)
                 } else {
                     // Queued, not decoded: the decodes land later, on Glide's threads.
                     DebugLog.i { "MEDIADBG preloader queued $warmed images of size $size in ${android.os.SystemClock.uptimeMillis() - startedAt}ms" }
@@ -122,8 +130,11 @@ object GridImagePreloader {
         }
     }
 
+    private fun Context.findActivity(): Activity? =
+            generateSequence(this) { (it as? ContextWrapper)?.baseContext }.filterIsInstance<Activity>().firstOrNull()
+
     private fun Context.isGone(): Boolean {
-        val activity = generateSequence(this) { (it as? ContextWrapper)?.baseContext }.filterIsInstance<Activity>().firstOrNull()
+        val activity = findActivity()
         return activity != null && (activity.isFinishing || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed))
     }
 

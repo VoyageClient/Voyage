@@ -11,6 +11,8 @@ import android.app.Activity
 import android.os.Looper
 import android.view.View
 import android.view.View.MeasureSpec
+import androidx.core.view.ViewCompat
+import im.vector.app.R
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,6 +20,7 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.util.ReflectionHelpers
 import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
@@ -28,7 +31,7 @@ class EmojiPanelHostLayoutTest {
     private val host = EmojiPanelHostLayout(activity).apply {
         addView(View(activity))
         activity.setContentView(this)
-        isAppLeaving = { appLeaving }
+        shouldHoldHeightOnFocusLoss = { appLeaving }
     }
 
     private var appLeaving = true
@@ -38,6 +41,17 @@ class EmojiPanelHostLayoutTest {
         layoutAt(KEYBOARD_UP)
 
         host.onWindowFocusChanged(false)
+        measureAt(FULL) shouldBeEqualTo KEYBOARD_UP
+    }
+
+    @Test
+    fun `keeps the hold when a layout runs before the system overlay resizes the window`() {
+        shadowOf(Looper.getMainLooper()).idle()
+        layoutAt(KEYBOARD_UP)
+        host.onWindowFocusChanged(false)
+        measureAt(KEYBOARD_UP) shouldBeEqualTo KEYBOARD_UP
+        shadowOf(Looper.getMainLooper()).idle()
+
         measureAt(FULL) shouldBeEqualTo KEYBOARD_UP
     }
 
@@ -52,6 +66,16 @@ class EmojiPanelHostLayoutTest {
         measureAt(KEYBOARD_UP) shouldBeEqualTo KEYBOARD_UP
         shadowOf(Looper.getMainLooper()).idle()
         measureAt(FULL) shouldBeEqualTo FULL
+    }
+
+    @Test
+    fun `focus regain releases a settled hold without needing another measure`() {
+        layoutAt(KEYBOARD_UP)
+        host.onWindowFocusChanged(false)
+        host.onWindowFocusChanged(true)
+
+        host.isHeightFrozen shouldBeEqualTo false
+        host.canTranslateKeyboard shouldBeEqualTo true
     }
 
     @Test
@@ -81,6 +105,49 @@ class EmojiPanelHostLayoutTest {
 
         host.measure(MeasureSpec.makeMeasureSpec(WIDTH * 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(FULL, MeasureSpec.EXACTLY))
         host.measuredHeight shouldBeEqualTo FULL
+    }
+
+    @Test
+    fun `keyboard frames translate the room without laying it out and keep headers stationary`() {
+        val toolbar = View(activity).apply { id = R.id.appBarLayout }
+        val timeline = View(activity).apply { id = R.id.timelineRecyclerView }
+        host.addView(toolbar)
+        host.addView(timeline)
+        ReflectionHelpers.callInstanceMethod<Unit>(host, "onFinishInflate")
+        layoutAt(FULL)
+
+        host.setKeyboardTranslation(-400f)
+
+        host.translationY shouldBeEqualTo -400f
+        toolbar.translationY shouldBeEqualTo 400f
+        ViewCompat.getClipBounds(timeline)?.top shouldBeEqualTo 400
+        host.isLayoutRequested shouldBeEqualTo false
+
+        host.setKeyboardTranslation(0f)
+
+        toolbar.translationY shouldBeEqualTo 0f
+        ViewCompat.getClipBounds(timeline) shouldBeEqualTo null
+    }
+
+    @Test
+    fun `finishing the keyboard animation resets translation in the final layout`() {
+        layoutAt(FULL)
+        host.setKeyboardTranslation(-400f)
+
+        host.finishKeyboardAnimation()
+        host.translationY shouldBeEqualTo -400f
+
+        layoutAt(KEYBOARD_UP)
+        host.translationY shouldBeEqualTo 0f
+    }
+
+    @Test
+    fun `restoring a keyboard into held space does not shift the room down`() {
+        layoutAt(KEYBOARD_UP)
+        host.setKeyboardTranslation(400f)
+
+        host.translationY shouldBeEqualTo 0f
+        host.isLayoutRequested shouldBeEqualTo false
     }
 
     private fun layoutAt(height: Int) {

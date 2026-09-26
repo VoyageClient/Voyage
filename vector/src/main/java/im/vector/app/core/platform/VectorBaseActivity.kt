@@ -35,6 +35,7 @@ import androidx.core.app.MultiWindowModeChangedInfo
 import androidx.core.util.Consumer
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
@@ -90,6 +91,7 @@ import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
 import im.vector.app.features.pin.PinMode
 import im.vector.app.features.pin.UnlockedActivity
+import im.vector.app.features.reactions.EmojiPanelHostLayout
 import im.vector.app.features.session.SessionListener
 import im.vector.app.features.settings.FontScalePreferences
 import im.vector.app.features.settings.FontScalePreferencesImpl
@@ -515,28 +517,158 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         }
 
         applyDrawUnderSystemBars()
+        if (!insetsListenerInstalled) installRootInsetsListener()
+    }
+
+    private val minimumComposerImeHeight = 150
+
+    private val imeAnimations = mutableSetOf<WindowInsetsAnimationCompat>()
+    private val imeStateListeners = mutableSetOf<(Int, Boolean) -> Unit>()
+    private var lastAnimationInsets: WindowInsetsCompat? = null
+    private var lastImeBottom = 0
+    private var imeAnimationStartBottom = 0
+    private var imeAnimationBaseBottom = 0
+    private var imeAnimationTargetBottom = 0
+    private var measuredComposerImeBottom = 0
+    var isRestoringComposerKeyboard = false
+        set(value) {
+            if (field == value) return
+            field = value
+            if (!value) ViewCompat.requestApplyInsets(rootView)
+        }
+
+    fun updateMeasuredComposerImeHeight(height: Int) {
+        if (measuredComposerImeBottom == height) return
+        measuredComposerImeBottom = height
+        ViewCompat.requestApplyInsets(rootView)
+    }
+
+    private var imeAnimationRooms = emptyList<EmojiPanelHostLayout>()
+    private var translateImeRooms = false
+    private var imeAnimationLayoutPrepared = false
+
+    private fun findImeRooms(view: View): List<EmojiPanelHostLayout> = when {
+        view is EmojiPanelHostLayout -> listOf(view)
+        view is ViewGroup -> (0 until view.childCount).flatMap { findImeRooms(view.getChildAt(it)) }
+        else -> emptyList()
+    }
+
+    val isImeAnimating: Boolean get() = imeAnimations.isNotEmpty()
+
+    fun addImeStateListener(listener: (Int, Boolean) -> Unit) {
+        imeStateListeners.add(listener)
+        if (insetsListenerInstalled) listener(lastImeBottom, isImeAnimating)
+    }
+
+    fun removeImeStateListener(listener: (Int, Boolean) -> Unit) {
+        imeStateListeners.remove(listener)
+    }
+
+    private fun dispatchImeState(insets: WindowInsetsCompat) {
+        lastImeBottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        imeStateListeners.toList().forEach { it(lastImeBottom, isImeAnimating) }
+    }
+
+    private fun installRootInsetsListener() {
         insetsListenerInstalled = true
+        // Older devices use the window's adjustResize path; only API 30+ supplies native IME animation frames.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Consumed insets must not also make the composer's bottom-sheet callback resize every frame.
+            val dispatchMode = if (drawUnderSystemBars) WindowInsetsAnimationCompat.Callback.DISPATCH_MODE_CONTINUE_ON_SUBTREE
+            else WindowInsetsAnimationCompat.Callback.DISPATCH_MODE_STOP
+            ViewCompat.setWindowInsetsAnimationCallback(rootView, object : WindowInsetsAnimationCompat.Callback(dispatchMode) {
+                override fun onPrepare(animation: WindowInsetsAnimationCompat) {
+                    if (animation.typeMask and WindowInsetsCompat.Type.ime() == 0) return
+                    if (imeAnimations.isEmpty()) {
+                        lastAnimationInsets = null
+                        imeAnimationLayoutPrepared = false
+                        imeAnimationStartBottom = rootView.paddingBottom
+                        imeAnimationBaseBottom = imeAnimationStartBottom
+                        imeAnimationTargetBottom = imeAnimationStartBottom
+                        imeAnimationRooms = findImeRooms(rootView).filter { it.isShown }
+                        imeAnimationRooms.forEach { it.releaseSettledHeightHold() }
+                        translateImeRooms = hasWindowFocus() && !isRestoringComposerKeyboard &&
+                                imeAnimationRooms.isNotEmpty() && imeAnimationRooms.all { it.canTranslateKeyboard }
+                    }
+                    imeAnimations.add(animation)
+                    imeStateListeners.toList().forEach { it(lastImeBottom, true) }
+                }
+
+                override fun onProgress(insets: WindowInsetsCompat, runningAnimations: MutableList<WindowInsetsAnimationCompat>): WindowInsetsCompat {
+                    if (isImeAnimating) {
+                        lastAnimationInsets = insets
+                        val predictiveBack = imeAnimations.any { it.durationMillis < 0 }
+                        if (translateImeRooms) {
+                            val nativeBottom = insets.getInsets(WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.navigationBars()).bottom
+                            val bottom = if (predictiveBack) nativeBottom else {
+                                // Some IMEs animate a provisional inset, then publish their full height without another animation.
+                                val target = if (imeAnimationTargetBottom > navigationBarBottomInset && measuredComposerImeBottom > navigationBarBottomInset) {
+                                    measuredComposerImeBottom
+                                } else imeAnimationTargetBottom
+                                val fraction = runningAnimations.lastOrNull { it.typeMask and WindowInsetsCompat.Type.ime() != 0 }?.interpolatedFraction ?: 1f
+                                (imeAnimationStartBottom + (target - imeAnimationStartBottom) * fraction).toInt()
+                            }
+                            imeAnimationRooms.forEach { it.setKeyboardTranslation((imeAnimationBaseBottom - bottom).toFloat()) }
+                        } else {
+                            applyRootInsets(rootView, insets, holdImeSpace = imeAnimationRooms.any { it.isHeightFrozen })
+                        }
+                        dispatchImeState(insets)
+                    }
+                    return insets
+                }
+
+                override fun onEnd(animation: WindowInsetsAnimationCompat) {
+                    if (!imeAnimations.remove(animation)) return
+                    if (!isImeAnimating) {
+                        translateImeRooms = false
+                        imeAnimationRooms.forEach { it.finishKeyboardAnimation() }
+                        imeAnimationRooms = emptyList()
+                        lastAnimationInsets?.let {
+                            applyRootInsets(rootView, it)
+                            dispatchImeState(it)
+                        }
+                        ViewCompat.requestApplyInsets(rootView)
+                    }
+                }
+            })
+        }
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
-            // Some Android versions restore a stale visible IME inset while the home screen gains focus.
-            // It belongs to this window only when a text editor actually owns focus.
-            val hasFocusedTextEditor = hasWindowFocus() && currentFocus?.onCheckIsTextEditor() == true
-            val systemBars = insets.getInsets(WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor))
-            systemBarsTopInset = systemBars.top
-            navigationBarBottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-            if (drawUnderSystemBars) {
-                // The screen paints itself to the very edges; only what must stay clear of the bars
-                // insets itself, so the insets are passed on rather than swallowed here.
-                v.updatePadding(0, 0, 0, 0)
-                insets
-            } else {
-                v.updatePadding(
-                        systemBars.left,
-                        if (drawUnderStatusBar) 0 else systemBars.top,
-                        systemBars.right,
-                        systemBars.bottom,
-                )
-                WindowInsetsCompat.CONSUMED
+            val result = applyRootInsets(v, insets, holdImeSpace = isImeAnimating)
+            if (!isImeAnimating) dispatchImeState(insets)
+            result
+        }
+    }
+
+    private fun applyRootInsets(v: View, insets: WindowInsetsCompat, holdImeSpace: Boolean = false): WindowInsetsCompat {
+        val holdForSystemWindow = !hasWindowFocus() && shouldHoldImeSpaceOnFocusLoss
+        val hasFocusedTextEditor = (hasWindowFocus() || holdForSystemWindow) && currentFocus?.onCheckIsTextEditor() == true
+        val systemBars = insets.getInsets(WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor))
+        val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+        val desiredBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasFocusedTextEditor && imeVisible && measuredComposerImeBottom > minimumComposerImeHeight) {
+            maxOf(insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom, measuredComposerImeBottom)
+        } else systemBars.bottom
+        val bottom = when {
+            isImeAnimating && translateImeRooms -> {
+                imeAnimationTargetBottom = desiredBottom
+                val previousBase = imeAnimationBaseBottom
+                imeAnimationBaseBottom = minOf(imeAnimationBaseBottom, desiredBottom)
+                if (!imeAnimationLayoutPrepared || previousBase != imeAnimationBaseBottom) {
+                    imeAnimationRooms.forEach { it.setKeyboardTranslation((imeAnimationBaseBottom - imeAnimationStartBottom).toFloat()) }
+                    imeAnimationLayoutPrepared = true
+                }
+                imeAnimationBaseBottom
             }
+            isRestoringComposerKeyboard || holdImeSpace || (holdForSystemWindow && v.paddingBottom > desiredBottom) -> v.paddingBottom
+            else -> desiredBottom
+        }
+        systemBarsTopInset = systemBars.top
+        navigationBarBottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        return if (drawUnderSystemBars) {
+            v.updatePadding(0, 0, 0, 0)
+            insets
+        } else {
+            v.updatePadding(systemBars.left, if (drawUnderStatusBar) 0 else systemBars.top, systemBars.right, bottom)
+            WindowInsetsCompat.CONSUMED
         }
     }
 
@@ -631,36 +763,14 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (!insetsListenerInstalled) return
-        // Focus can move to or from a text editor without a new inset value, but the IME inset is the
-        // only one taken conditionally: without one the pass recomputes the padding it already has, at
-        // the price of a whole traversal just as a dialog is opening.
         val imeInset = ViewCompat.getRootWindowInsets(rootView)?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
-        if (imeInset) ViewCompat.requestApplyInsets(rootView)
+        // A system overlay can leave the held padding behind after the IME has disappeared.
+        if (imeInset || rootView.paddingBottom > navigationBarBottomInset) ViewCompat.requestApplyInsets(rootView)
     }
 
-    /**
-     * False once another task is on top — the app switcher, another app. Windows of our own (dialogs, bottom
-     * sheets) take the window focus without touching it. Always true below API 29, which never reports it.
-     */
-    var isTopResumedActivity = true
-        private set
-
-    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
-        super.onTopResumedActivityChanged(isTopResumedActivity)
-        this.isTopResumedActivity = isTopResumedActivity
-    }
-
-    /**
-     * Whether the window losing focus means the app itself is going away, rather than one of our own windows
-     * taking over. Below API 29 nothing reports the task change, so fall back to spotting our own dialogs —
-     * a plain framework dialog is missed there and reads as leaving, which only costs a late relayout.
-     */
-    val isLosingFocusToAnotherApp: Boolean
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            !isTopResumedActivity
-        } else {
-            !supportFragmentManager.hasShowingDialogFragment()
-        }
+    // System overlays can take window focus without changing the top-resumed activity.
+    val shouldHoldImeSpaceOnFocusLoss: Boolean
+        get() = !supportFragmentManager.hasShowingDialogFragment()
 
     override fun onPause() {
         super.onPause()
