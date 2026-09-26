@@ -15,16 +15,15 @@ import android.net.Uri
 import android.util.LruCache
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import com.vanniktech.blurhash.BlurHash
 import im.vector.app.core.extensions.useCompat
 import im.vector.app.features.home.AvatarRenderer
+import org.matrix.android.sdk.api.session.content.AudioCoverArt
 import timber.log.Timber
 import java.io.File
 import java.security.MessageDigest
 
-/**
- * What an audio file says about itself: its tags, the picture embedded in it, and the backdrop
- * built out of that — the art blurred and blown up far past its size.
- */
+/** Tags, embedded cover art, and a backdrop for the preview or timeline. */
 object AudioDetails {
 
     /** Rounded as a space's avatar is: a fraction of the shorter side, so any cover looks alike. */
@@ -55,14 +54,10 @@ object AudioDetails {
     /** Enough for a screenful of messages and then some, so scrolling back shows art at once. */
     private val cache = LruCache<String, Details>(32)
 
-    fun cached(source: Uri): Details? = cache.get(source.toString())
+    fun cached(source: Uri, forTimeline: Boolean = false): Details? = cache.get(cacheKey(source.toString(), forTimeline))
 
-    /**
-     * The same bytes under another name: what the send preview read off the file the user picked is
-     * what the message it becomes will read off its own copy, so the second read is skipped. Read
-     * the same way whatever the source is — a picked `content://` and the file it is copied to have
-     * to come out with the same answer for that to be worth anything.
-     */
+    private fun cacheKey(source: String, forTimeline: Boolean) = if (forTimeline) "timeline:$source" else source
+
     fun fingerprintOf(context: Context, source: Uri): String? = runCatching {
         val length = lengthOf(context, source)
         val window = ByteArray(FINGERPRINT_WINDOW)
@@ -86,26 +81,19 @@ object AudioDetails {
         }.getOrNull()?.takeIf { it >= 0 } ?: UNKNOWN_LENGTH
     }
 
-    /**
-     * Reads the file: never on the main thread. What it finds is kept both in memory and beside the
-     * media cache, since decoding artwork and blurring it is a second of work to repeat on every
-     * run for a file that has not changed.
-     */
-    fun load(context: Context, source: Uri): Details {
-        val key = source.toString()
+    fun load(context: Context, source: Uri, forTimeline: Boolean = false): Details {
+        val key = cacheKey(source.toString(), forTimeline)
         cache.get(key)?.let { return it }
         readFromDisk(context, key)?.let {
             cache.put(key, it)
             return it
         }
-        // Whatever was read from these bytes under another name — the copy the send preview had,
-        // most often — rather than reading the same file again.
-        val fingerprint = fingerprintOf(context, source)
+        val fingerprint = fingerprintOf(context, source)?.let { cacheKey(it, forTimeline) }
         fingerprint?.let { print ->
             cache.get(print)?.let { keep(key, print, it); return it }
             readFromDisk(context, print)?.let { keep(key, print, it); return it }
         }
-        val details = read(context, source)
+        val details = read(context, source, forTimeline)
         keep(key, fingerprint, details)
         writeToDisk(context, key, details)
         fingerprint?.let { writeToDisk(context, it, details) }
@@ -121,13 +109,14 @@ object AudioDetails {
         val directory = directoryFor(context, key).takeIf { it.isDirectory } ?: return null
         val tags = File(directory, TAGS_FILE).takeIf { it.isFile }?.readLines().orEmpty()
         val art = File(directory, ART_FILE).takeIf { it.isFile }?.let { BitmapFactory.decodeFile(it.path) }
+        val backdrop = File(directory, BACKDROP_FILE).takeIf { it.isFile }?.let { BitmapFactory.decodeFile(it.path) }
+        if (art != null && backdrop == null) return null
         Details(
                 title = tags.getOrNull(0)?.takeIf { it.isNotBlank() },
                 artist = tags.getOrNull(1)?.takeIf { it.isNotBlank() },
                 album = tags.getOrNull(2)?.takeIf { it.isNotBlank() },
                 art = art,
-                backdrop = File(directory, BACKDROP_FILE).takeIf { it.isFile }?.let { BitmapFactory.decodeFile(it.path) }
-                        ?: art?.let { blur(it) },
+                backdrop = backdrop,
         )
     }.onFailure { Timber.w(it, "AudioDetails: cannot read what was kept for $key") }.getOrNull()
 
@@ -157,18 +146,23 @@ object AudioDetails {
 
     private fun MediaMetadataRetriever.tag(key: Int) = extractMetadata(key)?.takeIf { it.isNotBlank() }
 
-    private fun read(context: Context, source: Uri): Details {
+    private fun read(context: Context, source: Uri, forTimeline: Boolean): Details {
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(context, source)
-            val art = retriever.embeddedPicture?.let { decodeScaled(it) }
+            val picture = retriever.embeddedPicture
+            val art = picture?.let { decodeScaled(it) }
             Details(
                     title = retriever.tag(MediaMetadataRetriever.METADATA_KEY_TITLE),
                     artist = retriever.tag(MediaMetadataRetriever.METADATA_KEY_ARTIST)
                             ?: retriever.tag(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST),
                     album = retriever.tag(MediaMetadataRetriever.METADATA_KEY_ALBUM),
                     art = art,
-                    backdrop = art?.let { blur(it) },
+                    backdrop = if (forTimeline) {
+                        picture?.let { AudioCoverArt.encode(it) }?.let { coverArtBackdrop(it) }
+                    } else {
+                        art?.let { blur(it) }
+                    },
             )
         } catch (error: Exception) {
             Timber.w(error, "AudioDetails: cannot read $source")
@@ -188,11 +182,6 @@ object AudioDetails {
         }.onFailure { Timber.w(it, "AudioDetails: cannot decode the artwork") }.getOrNull()
     }
 
-    /**
-     * Scaled down and really blurred, rather than scaled down far enough to look blurred: at the
-     * size a backdrop is stretched to, the second reads as a mosaic. Three box passes approximate
-     * a gaussian closely enough that nobody can tell, and at this size they cost nothing.
-     */
     private fun blur(art: Bitmap): Bitmap {
         val width = BACKDROP_DIMENSION
         val height = (art.height.toFloat() / art.width * width).toInt().coerceAtLeast(1)
@@ -207,7 +196,6 @@ object AudioDetails {
         return small
     }
 
-    /** One horizontal box pass over [pixels], in place, with a running sum per channel. */
     private fun boxBlur(pixels: IntArray, width: Int, height: Int, radius: Int) {
         val row = IntArray(width)
         for (y in 0 until height) {
@@ -243,7 +231,6 @@ object AudioDetails {
         }
     }
 
-    /** The same pass down the columns, by turning the image on its side and back again. */
     private fun boxBlurTransposed(pixels: IntArray, width: Int, height: Int, radius: Int) {
         val transposed = IntArray(pixels.size)
         for (y in 0 until height) {
@@ -253,6 +240,18 @@ object AudioDetails {
         for (y in 0 until height) {
             for (x in 0 until width) pixels[y * width + x] = transposed[x * height + y]
         }
+    }
+
+    private val coverArtBackdrops = LruCache<String, Bitmap>(32)
+
+    fun coverArtBackdrop(hash: String): Bitmap? {
+        coverArtBackdrops.get(hash)?.let { return it }
+        // The library's cosine-table cache is not thread-safe.
+        val backdrop = runCatching { BlurHash.decode(hash, COVER_ART_DIMENSION, COVER_ART_DIMENSION, useCache = false) }
+                .onFailure { Timber.w(it, "Cannot decode a cover art hash") }
+                .getOrNull() ?: return null
+        coverArtBackdrops.put(hash, backdrop)
+        return backdrop
     }
 
     /** Enough of a file to tell it apart from another, without reading all of it. */
@@ -265,8 +264,9 @@ object AudioDetails {
     private const val ART_FILE = "art.png"
     private const val BACKDROP_FILE = "backdrop.png"
 
-    private const val MAX_ART_DIMENSION = 512
+    private const val COVER_ART_DIMENSION = 48
     private const val BACKDROP_DIMENSION = 192
     private const val BLUR_RADIUS = 8
     private const val BLUR_PASSES = 3
+    private const val MAX_ART_DIMENSION = 512
 }

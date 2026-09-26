@@ -18,7 +18,6 @@ import android.graphics.RectF
 import android.net.Uri
 import android.text.format.DateUtils
 import android.text.method.MovementMethod
-import android.util.LruCache
 import android.view.MotionEvent
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
@@ -35,7 +34,6 @@ import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import com.vanniktech.blurhash.BlurHash
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
@@ -59,7 +57,6 @@ import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import io.noties.markwon.MarkwonPlugin
 import org.matrix.android.sdk.api.session.room.model.message.AudioMetadata
-import timber.log.Timber
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
@@ -220,7 +217,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         // rather than trusting what was known when the row was built.
         val source = localSource ?: localSourceProvider?.invoke()
         if (onlyIfSourceChanged && (holder.detailsSource == source || holder.loadingDetailsSource == source)) return
-        val known = source?.let { AudioDetails.cached(it) }
+        val known = source?.let { AudioDetails.cached(it, forTimeline = true) }
         showFileDetails(holder, known, reset = changed)
         if (source == null) return
         if (known != null) {
@@ -231,7 +228,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         holder.loadingDetailsSource = uri
         val context = holder.view.context.applicationContext
         detailsLoader.execute {
-            val details = AudioDetails.load(context, uri)
+            val details = AudioDetails.load(context, uri, forTimeline = true)
             holder.mainLayout.post {
                 // The row may have been recycled onto another message by now.
                 if (holder.mainLayout.tag == id && holder.loadingDetailsSource == uri) {
@@ -249,7 +246,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
      * lands under a message the eye has already settled on.
      */
     private fun bindEventDetails(holder: Holder, metadata: AudioMetadata) {
-        val backdrop = metadata.coverArt?.takeIf { it.isNotBlank() }?.let { coverArtBackdrop(it) }
+        val backdrop = metadata.coverArt?.takeIf { it.isNotBlank() }?.let { AudioDetails.coverArtBackdrop(it) }
         showFileDetails(holder, metadata.toDetails(backdrop), reset = true)
     }
 
@@ -545,26 +542,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
         /** Roughly this many pixels across is plenty to average a blur down to one number. */
         private const val LUMINANCE_SAMPLES = 24
-
-        /** A cover art hash decodes to this square; it is stretched across the message from there. */
-        private const val COVER_ART_DIMENSION = 48
-
-        /** A screenful of players' worth of backdrops; decoding a hash is not free. */
-        private val coverArtBackdrops = LruCache<String, Bitmap>(32)
-
-        /**
-         * A cover art BlurHash (MSC4549) at the size a player stretches it to. Small enough to
-         * decode in a bind — a few thousand terms — so a player never appears before its backdrop.
-         */
-        private fun coverArtBackdrop(hash: String): Bitmap? {
-            coverArtBackdrops.get(hash)?.let { return it }
-            // useCache = false: the library's cosine-table cache is not thread-safe.
-            val backdrop = runCatching { BlurHash.decode(hash, COVER_ART_DIMENSION, COVER_ART_DIMENSION, useCache = false) }
-                    .onFailure { Timber.w(it, "Cannot decode a cover art hash") }
-                    .getOrNull() ?: return null
-            coverArtBackdrops.put(hash, backdrop)
-            return backdrop
-        }
 
         /**
          * How far to darken [backdrop] to read white text on it. Bright artwork — a white sleeve, a
