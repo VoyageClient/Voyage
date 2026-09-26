@@ -43,6 +43,28 @@ class DefaultContentUrlResolverTest {
     )
 
     @Test
+    fun `authenticated downloads bypass scanners and capability detection`() {
+        every { scannerService.isScannerEnabled() } returns true
+        val resolver = DefaultContentUrlResolver(
+                homeServerConnectionConfig = HomeServerConnectionConfig.Builder().withHomeServerUri("https://example.org/base/").build(),
+                scannerService = scannerService,
+                isAuthenticatedMediaSupported = object : IsAuthenticatedMediaSupported {
+                    override fun invoke() = false
+                },
+        )
+
+        val url = resolver.resolveAuthenticatedDownload("mxc://remote.org:8448/media")
+        url shouldBeEqualTo "https://example.org/base/_matrix/client/v1/media/download/remote.org:8448/media"
+        resolver.requiresAuthentication(url!!) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `authenticated downloads reject non-mxc urls`() {
+        urlResolver.resolveAuthenticatedDownload("https://remote.org/media").shouldBeNull()
+        urlResolver.resolveAuthenticatedDownload(null).shouldBeNull()
+    }
+
+    @Test
     fun `an animated thumbnail is asked for explicitly`() {
         resolve(animated = true)!! shouldContain "animated=true"
     }

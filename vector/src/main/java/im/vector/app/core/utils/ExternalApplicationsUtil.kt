@@ -32,7 +32,9 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
 import im.vector.app.R
+import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.extensions.useCompat
+import im.vector.app.core.linkify.VectorAutoLinkPatterns
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.permalink.isMatrixUri
@@ -71,7 +73,18 @@ fun openUrlInExternalBrowser(context: Context, uri: Uri?) {
         // No browser opens a matrix: URI; handing it to the system only offers this app back through
         // a chooser, so take it here whatever the caller thought it had.
         if (it.toString().isMatrixUri() && openPermalinkInApp(context, it.toString())) return
-        val browserIntent = Intent(Intent.ACTION_VIEW, it).apply {
+        val browserUri = if (it.scheme == "mxc") {
+            if (!VectorAutoLinkPatterns.MXC_URI.matches(it.toString())) return
+            val session = context.singletonEntryPoint().activeSessionHolder().getSafeActiveSession() ?: return
+            val token = session.sessionParams.credentials.accessToken.takeIf { token -> token.isNotEmpty() } ?: return
+            val downloadUrl = session.contentUrlResolver().resolveAuthenticatedDownload(it.toString()) ?: return
+            Uri.parse(downloadUrl).buildUpon()
+                    .appendQueryParameter("access_token", token)
+                    .build()
+        } else {
+            it
+        }
+        val browserIntent = Intent(Intent.ACTION_VIEW, browserUri).apply {
             // Open activity on browser task and not on element task
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(Browser.EXTRA_APPLICATION_ID, context.packageName)

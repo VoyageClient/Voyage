@@ -73,6 +73,12 @@ internal class DefaultContentUrlResolver @Inject constructor(
                 }
     }
 
+    override fun resolveAuthenticatedDownload(contentUrl: String?): String? {
+        return contentUrl?.takeIf { it.isMxcUrl() }?.let {
+            resolve(contentUrl = it, toThumbnail = false, forceAuthenticated = true)
+        }
+    }
+
     override fun resolveThumbnail(contentUrl: String?, width: Int, height: Int, method: ContentUrlResolver.ThumbnailMethod, animated: Boolean): String? {
         return contentUrl
                 // do not allow non-mxc content URLs
@@ -94,12 +100,14 @@ internal class DefaultContentUrlResolver @Inject constructor(
     private fun resolve(
             contentUrl: String,
             toThumbnail: Boolean,
-            params: String = ""
+            params: String = "",
+            forceAuthenticated: Boolean = false
     ): String {
         var serverAndMediaId = contentUrl.removeMxcPrefix()
-        val apiPath = if (scannerService.isScannerEnabled()) {
+        val useScanner = !forceAuthenticated && scannerService.isScannerEnabled()
+        val apiPath = if (useScanner) {
             NetworkConstants.URI_API_PREFIX_PATH_MEDIA_PROXY_UNSTABLE
-        } else if (isAuthenticatedMediaSupported()) {
+        } else if (forceAuthenticated || isAuthenticatedMediaSupported()) {
             NetworkConstants.URI_API_PREFIX_PATH_V1 + "media/"
         } else {
             NetworkConstants.URI_API_MEDIA_PREFIX_PATH_V3
@@ -116,7 +124,7 @@ internal class DefaultContentUrlResolver @Inject constructor(
             serverAndMediaId = serverAndMediaId.substring(0, fragmentOffset)
         }
 
-        val resolvedUrl = if (scannerService.isScannerEnabled()) {
+        val resolvedUrl = if (useScanner) {
             scannerService.getContentScannerServer()!!.ensureTrailingSlash()
         } else {
             baseUrl

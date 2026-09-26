@@ -113,6 +113,10 @@ object VectorLinkify {
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
         }
 
+        VectorAutoLinkPatterns.MXC_URI.findAll(spannable).forEach { match ->
+            createdSpans.add(LinkSpec(NoUnderlineUrlSpan(match.value), match.range.first, match.range.last + 1))
+        }
+
         pruneOverlaps(createdSpans)
         for (spec in createdSpans) {
             spannable.setSpan(spec.span, spec.start, spec.end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)

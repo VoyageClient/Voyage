@@ -84,6 +84,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Link previews that work in encrypted rooms (MSC4095)**: messages you send carry the preview of their links with them, so nobody's homeserver ever sees what you linked. Previews can be off, fetched on-device or fetched server-side, chosen separately for encrypted and unencrypted rooms and per room.
 
+- **Matrix media links**: `mxc://` links are tappable and open in the browser through your homeserver's authenticated download endpoint, with your access token in the URL.
+
 - **Read receipts**: private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms, so they no longer desync from what the server holds.
 
 - **Steady jumps to a message**: jumping to a message waits for it to load rather than landing somewhere near it first, puts it in the middle of the screen, and holds it there while everything around it decrypts and loads in. Replies, search results, pinned messages and permalinks no longer leave the message you asked for shoved off screen.

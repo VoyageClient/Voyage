@@ -51,6 +51,9 @@ interface ContentUrlResolver {
      */
     fun resolveFullSize(contentUrl: String?): String?
 
+    /** Resolves a download through the homeserver's authenticated endpoint, bypassing the content scanner. */
+    fun resolveAuthenticatedDownload(contentUrl: String?): String?
+
     /**
      * Get the ResolvedMethod to download a URL.
      *

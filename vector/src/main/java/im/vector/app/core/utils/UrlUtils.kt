@@ -7,6 +7,7 @@
 
 package im.vector.app.core.utils
 
+import im.vector.app.core.linkify.VectorAutoLinkPatterns
 import im.vector.app.features.permalink.isMatrixUri
 import java.net.URL
 
@@ -19,11 +20,8 @@ fun String.isValidUrl(): Boolean {
     }
 }
 
-/**
- * What a tap or a long press on a span should be treated as a link. [isValidUrl] parses a URL, which
- * a `matrix:` URI is not — it is opaque, and has no protocol handler.
- */
-fun String.isTappableLink(): Boolean = isValidUrl() || isMatrixUri()
+// Java URL has no protocol handler for matrix: or mxc: URIs.
+fun String.isTappableLink(): Boolean = isValidUrl() || isMatrixUri() || VectorAutoLinkPatterns.MXC_URI.matches(this)
 
 /**
  * Ensure string starts with "http". If it is not the case, "https://" is added, only if the String is not empty
