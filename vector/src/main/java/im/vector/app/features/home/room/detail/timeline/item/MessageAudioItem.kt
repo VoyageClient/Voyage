@@ -28,6 +28,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import androidx.core.graphics.get
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -562,7 +563,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
             while (y < backdrop.height) {
                 var x = 0
                 while (x < backdrop.width) {
-                    val pixel = backdrop.getPixel(x, y)
+                    val pixel = backdrop[x, y]
                     total += 0.2126f * (pixel shr 16 and 0xFF) + 0.7152f * (pixel shr 8 and 0xFF) + 0.0722f * (pixel and 0xFF)
                     count++
                     x += step

@@ -16,6 +16,7 @@ import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
+import androidx.core.graphics.createBitmap
 
 /**
  * An avatar drawn as an animated shape.
@@ -101,7 +102,7 @@ class AnimatedAvatarDrawable(
     @UiThread
     private fun redrawAnimatedSource() {
         val moving = source ?: return
-        val target = spareTexture ?: Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val target = spareTexture ?: createBitmap(sizePx, sizePx)
         val canvas = Canvas(target)
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR)
         moving.setBounds(0, 0, sizePx, sizePx)

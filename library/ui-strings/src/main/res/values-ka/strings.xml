@@ -282,7 +282,6 @@
     <string name="action_proceed_to_reset">გადატვირთვის გაგრძელება</string>
     <string name="action_learn_more">გაიგეთ მეტი</string>
     <string name="action_got_it">მიღებულია</string>
-    <string name="action_deselect_all">მონიშვნის მოხსნა ყველა</string>
     <string name="action_thread_copy_link_to_thread">ბმულის კოპირება თემაზე</string>
     <string name="dialog_title_warning">გაფრთხილება</string>
     <string name="dialog_title_error">შეცდომა</string>
@@ -337,7 +336,6 @@
     <string name="action_send">გაგზავნა</string>
     <string name="action_rename">გადარქმევა</string>
     <string tools:ignore="UnusedResources" name="action_reset">გადატვირთვა</string>
-    <string name="action_select_all">მონიშვნა ყველა</string>
     <string name="copied_to_clipboard">კოპირებულია ბუფერში</string>
     <string name="action_thread_view_in_room">ნახვა ოთახში</string>
     <string name="dialog_title_confirmation">დადასტურება</string>
@@ -441,7 +439,6 @@
     <string name="room_permissions_change_history_visibility">ისტორიის ხილვადობის შეცვლა</string>
     <string name="room_permissions_change_room_name">ოთახის სახელის შეცვლა</string>
     <string name="room_permissions_change_permissions">ნებართვების შეცვლა</string>
-    <string name="room_permissions_send_m_room_server_acl_events">გაგზავნა m.room.server_acl მოვლენები</string>
     <string name="room_permissions_upgrade_the_room">ოთახის განახლება</string>
     <string name="room_permissions_change_topic">თემის შეცვლა</string>
     <string name="room_threads_filter">თემების გაფილტვრა ოთახში</string>
@@ -613,7 +610,6 @@
 \nგთხოვთ, შეამოწმოთ ანგარიშის პარამეტრები.</string>
     <string name="settings_troubleshoot_test_device_settings_failed">შეტყობინებები არ არის ჩართული ამ სესიისთვის. 
 \nგთხოვთ, შეამოწმოთ ${app_name} პარამეტრები.</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">ზოგიერთი შეტყობინება გამორთულია თქვენს მორგებულ პარამეტრებში.</string>
     <string name="settings_troubleshoot_test_play_services_failed">${app_name} იყენებს Google Play სერვისებს შეტყობინებების მიწოდებისთვის, მაგრამ როგორც ჩანს არასწორად არის კონფიგურირებული:
 \n%1$s</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
@@ -801,7 +797,6 @@
     <string name="settings_when_rooms_are_upgraded">როდესაც ოთახები განახლებულია</string>
     <string name="settings_messages_in_group_chat">შეტყობინებები ჯგუფურ ჩატებში</string>
     <string name="settings_invited_to_room">როდესაც მოწვეული ვარ ოთახში</string>
-    <string name="settings_encrypted_direct_messages">დაშიფრული პირდაპირი შეტყობინებები</string>
     <string name="settings_group_messages">ჯგუფური შეტყობინებები</string>
     <string name="settings_notification_ringtone">შეტყობინების ხმა</string>
     <string name="settings_enable_all_notif">შეტყობინებების ჩართვა ამ ანგარიშისთვის</string>
@@ -810,7 +805,6 @@
     <string name="settings_messages_in_one_to_one">შეტყობინებები ერთ-ერთ ჩატებში</string>
     <string name="settings_messages_sent_by_bot">ბოტის მიერ გაგზავნილი შეტყობინებები</string>
     <string name="settings_messages_direct_messages">პირდაპირი შეტყობინებები</string>
-    <string name="settings_encrypted_group_messages">დაშიფრული ჯგუფური შეტყობინებები</string>
     <string name="keys_backup_get_version_error">ბოლო აღდგენილი გასაღებების ვერსიის მიღება ვერ მოხერხდა (%s).</string>
     <string name="keys_backup_settings_delete_backup_button">სარეზერვო ასლის წაშლა</string>
     <string name="keys_backup_settings_status_ko">გასაღების სარეზერვო ასლი არ არის აქტიური ამ სესიაში.</string>
@@ -1194,7 +1188,6 @@
     <string name="room_list_quick_actions_low_priority_remove">დაბალი პრიორიტეტიდან ამოღება</string>
     <string name="room_list_quick_actions_leave">ოთახიდან გასვლა</string>
     <string name="notice_member_no_changes_by_you">თქვენ ცვლილებები არ შეგიყვანიათ</string>
-    <string name="spoiler">სპოილერი</string>
     <string name="reaction_search_type_hint">შეიყვანეთ საკვანძო სიტყვები რეაქციის მოსაძებნად.</string>
     <string name="room_join_rules_public">%1$s გახადა ოთახი საჯარო მათთვის, ვისაც აქვს ლინკი.</string>
     <string name="direct_room_join_rules_invite_by_you">თქვენ გააკეთეთ ეს მხოლოდ მოწვევით.</string>
@@ -1701,7 +1694,6 @@
     <string name="error_file_too_big_simple">ფაილი ძალიან დიდია ატვირთვისთვის.</string>
     <string name="attachment_type_dialog_title">გამოსახულების დამატება</string>
     <string name="attachment_type_poll">გამოკითხვა</string>
-    <string name="rotate_and_crop_screen_title">მობრუნება და დაჭრა</string>
     <string name="uploads_media_no_result">ამ ოთახში მედია არ არის</string>
     <string name="room_list_quick_actions_notifications_mentions">მხოლოდ აღნიშვნები</string>
     <string name="room_list_quick_actions_settings">პარამეტრები</string>
@@ -2114,7 +2106,6 @@
     <string name="room_upgrade_to_recommended_version">განახლება რეკომენდებულ ოთახის ვერსიაზე</string>
     <string name="error_failed_to_join_room">ბოდიში, შეცდომა მოხდა %s-ის გაწევრიანების მცდელობისას</string>
     <string name="a11y_start_voice_message">ხმოვანი შეტყობინების ჩაწერა</string>
-    <string name="voice_message_slide_to_cancel">გაუქმებისთვის გადააწიეთ</string>
     <string name="a11y_play_voice_message">ხმოვანი შეტყობინების დაკვრა</string>
     <string name="a11y_stop_voice_message">ჩაწერის შეწყვეტა</string>
     <string name="a11y_recording_voice_message">ხმოვანი შეტყობინების ჩაწერა</string>
@@ -2200,8 +2191,6 @@
     <string name="attachment_type_selector_camera">კამერა</string>
     <string name="message_reaction_show_less">აჩვენე ნაკლები</string>
     <string name="room_message_notify_everyone">შეატყობინეთ მთელი ოთახი</string>
-    <string name="room_message_autocomplete_users">მომხმარებლები</string>
-    <string name="room_message_autocomplete_notification">ოთახის შეტყობინება</string>
     <string name="unifiedpush_getdistributors_dialog_title">აირჩიეთ როგორ მიიღოთ შეტყობინებები</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google სერვისები</string>
     <string name="settings_notification_method">შეტყობინებების მეთოდი</string>

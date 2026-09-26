@@ -684,7 +684,6 @@
 \nPalun vaata need üle.</string>
     <string name="open_settings">Ava seadistused</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Pane tähele, et mõned teavitused on seadistatud vaiksetena (teavitus kuvatakse ilma helilise märguandeta).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Mõned teavitused on sinu kohandatud seadistustes kinni keeratud.</string>
     <string name="settings_troubleshoot_test_play_services_title">Goolge Play teenuste kontrollimine</string>
     <string name="settings_troubleshoot_test_play_services_success">Google Play Services APK on kättesaadav ja uuendatud.</string>
     <string name="settings_troubleshoot_test_play_services_failed">${app_name} kasutab Google Play teenuseid tõuketeavituste edastamiseks, kui see ei tundu olema korrektselt seadistatud:
@@ -1348,7 +1347,6 @@
     <string name="notice_member_no_changes">%1$s ei teinud muudatusi</string>
     <string name="notice_member_no_changes_by_you">Sina ei teinud muudatusi</string>
     <string name="command_description_spoiler">Saadab selle sõnumi rõõmurikkujana</string>
-    <string name="spoiler">Rõõmurikkuja</string>
     <string name="reaction_search_type_hint">Reageerimiste leidmiseks sisesta otsingusõnad.</string>
     <string name="login_splash_title">See on sinu vestlus, mida sa ka tegelikult kontrollid.</string>
     <string name="login_reset_password_mail_confirmation_notice_2">Salasõna kinnitamiseks klõpsi kirjas olnud linki. Kui oled avanud selles kirjas leidunud lingi, siis palun vajuta järgnevat nuppu.</string>
@@ -1565,7 +1563,6 @@
     <string name="warning_room_not_created_yet">See jututuba on veel loomata. Kas katkestame selle tegevuse\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Eemalda vähetähtsate jututubade seast</string>
     <string name="room_list_quick_actions_low_priority_add">Märgi vähetähtsaks</string>
-    <string name="rotate_and_crop_screen_title">Pööra ja kadreeri</string>
     <string name="attachment_type_dialog_title">Lisa pildid valitud asukohast</string>
     <string name="create_room_settings_section">Jututoa seadistused</string>
     <string name="create_room_topic_hint">Teema</string>
@@ -1647,7 +1644,6 @@
     <string name="settings_show_emoji_keyboard">Näita emoji klahvistikku</string>
     <string name="room_permissions_change_topic">Muuda teemat</string>
     <string name="room_permissions_upgrade_the_room">Uuenda jututuba uue versioonini</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Saada m.room.server_acl sündmusi</string>
     <string name="room_permissions_change_permissions">Muuda õigusi</string>
     <string name="room_permissions_change_room_name">Muuda jututoa nime</string>
     <string name="room_permissions_change_history_visibility">Muuda vestlusajaloo nähtavust</string>
@@ -1855,7 +1851,6 @@
     <string name="allow_space_member_to_find_and_access">Luba kogukonna liikmetel leida ja vaadata.</string>
     <string name="room_settings_room_access_private_invite_only_title">Privaatne (vaid kutse alusel)</string>
     <string name="a11y_start_voice_message">Salvesta häälsõnum</string>
-    <string name="voice_message_slide_to_cancel">Tühistamiseks viipa</string>
     <string name="a11y_pause_voice_message">Peata häälsõnumi esitus</string>
     <string name="a11y_play_voice_message">Esita häälsõnumit</string>
     <string name="a11y_recording_voice_message">Salvestan häälsõnumit</string>
@@ -1872,9 +1867,7 @@
     <string name="settings_room_upgrades">Jututubade versiooniuuendused</string>
     <string name="settings_messages_by_bot">Robotite saadetud sõnumid</string>
     <string name="settings_room_invitations">Kutsed jututubadesse</string>
-    <string name="settings_encrypted_group_messages">Krüptitud rühmavestlused</string>
     <string name="settings_group_messages">Rühmavestlused</string>
-    <string name="settings_encrypted_direct_messages">Krüptitud otsevestlused</string>
     <string name="settings_messages_direct_messages">Otsevestlused</string>
     <string name="settings_notification_notify_me_for">Teavita mind</string>
     <string name="settings_notification_other">Muud</string>
@@ -2072,8 +2065,6 @@
     <string name="action_thread_copy_link_to_thread">Kopeeri jutulõnga link</string>
     <string name="action_thread_view_in_room">Vaata jututoas</string>
     <string name="action_view_threads">Vaata jutulõngana</string>
-    <string name="room_message_autocomplete_notification">Jututoa teavitus</string>
-    <string name="room_message_autocomplete_users">Kasutajad</string>
     <string name="room_message_notify_everyone">Teavita kogu jututuba</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">veel %1$d</item>
@@ -2351,8 +2342,6 @@
     <string name="attachment_type_selector_file">Manused</string>
     <string name="attachment_type_selector_sticker">Kleepsud</string>
     <string name="attachment_type_selector_gallery">Fotode kogu</string>
-    <string name="action_deselect_all">Eemalda kõik valikud</string>
-    <string name="action_select_all">Vali kõik</string>
     <string name="attachment_type_selector_text_formatting">Tekstivorming</string>
     <string name="message_reply_to_prefix">Vastuseks kasutajale</string>
     <string name="message_reply_to_sender_sent_file">saatis faili.</string>

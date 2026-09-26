@@ -558,7 +558,6 @@
     <string name="settings_notification_by_event">Értesítés fontosságának beállítása eseménynél</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Egyéni beállítások.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Megjegyzés: néhány üzenettípus csendesre van állítva (csak hang nélkül fog értesíteni).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Az egyéni beállításaiban néhány értesítés ki van kapcsolva.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nEz a hiba a(z) ${app_name} alkalmazástól független és a Google szerint ez a hiba azt jelzi, hogy túl sok alkalmazás használja az FCM-et. Ez a hiba akkor szokott előfordulni, ha nagyon sok alkalmazás van ezért egy átlagos felhasználót nem nagyon érinthet.</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -888,7 +887,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_list_quick_actions_leave">Szoba elhagyása</string>
     <string name="notice_member_no_changes">%1$snem változtatott semmit</string>
     <string name="command_description_spoiler">A megadott üzenet szpojlerként küldése</string>
-    <string name="spoiler">Szpojler</string>
     <string name="reaction_search_type_hint">Adj meg kulcsszavakat a reakció megtalálásához.</string>
     <string name="no_ignored_users">Nem hagysz figyelmen kívül senkit</string>
     <string name="help_long_click_on_room_for_more_options">A szoba további beállításait egy hosszú kattintással érheted el</string>
@@ -1528,7 +1526,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="search_banned_user_hint">Kitiltott felhasználók szűrése</string>
     <string name="room_permissions_change_topic">Téma megváltoztatása</string>
     <string name="room_permissions_upgrade_the_room">Szoba fejlesztése</string>
-    <string name="room_permissions_send_m_room_server_acl_events">A következő esemény küldése: m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Jogosultságok megváltoztatása</string>
     <string name="room_permissions_change_room_name">Szoba nevének megváltoztatása</string>
     <string name="room_permissions_change_history_visibility">Régi üzenetek láthatóságának megváltoztatása</string>
@@ -1743,7 +1740,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_list_quick_actions_low_priority_remove">Alacsony prioritásúak közül kivesz</string>
     <string name="room_list_quick_actions_low_priority_add">Alacsony prioritásúakhoz ad</string>
     <string name="attachment_viewer_item_x_of_y">%1$d / %2$d</string>
-    <string name="rotate_and_crop_screen_title">Forgatás és vágás</string>
     <string name="error_file_too_big_simple">A fájl túl nagy a feltöltéshez.</string>
     <string name="settings_discovery_consent_action_give_consent">Beleegyezés adása</string>
     <string name="settings_discovery_consent_action_revoke">Beleegyezés visszavonása</string>
@@ -1855,9 +1851,7 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="settings_room_upgrades">Szoba fejlesztések</string>
     <string name="settings_messages_by_bot">Robotoktól származó üzenetek</string>
     <string name="settings_room_invitations">Szobameghívók</string>
-    <string name="settings_encrypted_group_messages">Titkosított csoport-üzenetek</string>
     <string name="settings_group_messages">Csoport-üzenetek</string>
-    <string name="settings_encrypted_direct_messages">Titkosított közvetlen beszélgetések</string>
     <string name="settings_messages_direct_messages">Közvetlen beszélgetések</string>
     <string name="settings_notification_notify_me_for">Értesítés a következőkor</string>
     <string name="settings_notification_other">Egyéb</string>
@@ -1877,7 +1871,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="a11y_recording_voice_message">Hang üzenet felvétel</string>
     <string name="a11y_pause_voice_message">Hang üzenet szüneteltetése</string>
     <string name="a11y_play_voice_message">Hang üzenet lejátszása</string>
-    <string name="voice_message_slide_to_cancel">Elhúzás a megszakításhoz</string>
     <string name="a11y_start_voice_message">Hang üzenet felvétele</string>
     <string name="link_this_email_with_your_account">%s a Beállításokba a közvetlen meghívások fogadásához az ${app_name}.</string>
     <string name="this_invite_to_this_space_was_sent">Ehhez a térhez a meghívó ide lett elküldve: %s, ami nincs összefüggésben a fiókoddal</string>
@@ -2069,8 +2062,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="action_thread_copy_link_to_thread">Üzenetszálra mutató hivatkozás másolása</string>
     <string name="action_thread_view_in_room">Megjelenítés szobában</string>
     <string name="action_view_threads">Üzenetszálak megtekintése</string>
-    <string name="room_message_autocomplete_notification">Szoba értesítések</string>
-    <string name="room_message_autocomplete_users">Felhasználók</string>
     <string name="room_message_notify_everyone">Az egész szoba értesítése</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d darabbal több</item>
@@ -2357,8 +2348,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="attachment_type_selector_file">Mellékletek</string>
     <string name="attachment_type_selector_sticker">Matricák</string>
     <string name="attachment_type_selector_gallery">Fénykép könyvtár</string>
-    <string name="action_deselect_all">Összes kiválasztásának megszüntetése</string>
-    <string name="action_select_all">Összes kiválasztása</string>
     <string name="attachment_type_selector_text_formatting">Szöveg formázás</string>
     <string name="message_reply_to_sender_created_poll">szavazás elkészítve.</string>
     <string name="message_reply_to_sender_sent_sticker">matrica elküldve.</string>

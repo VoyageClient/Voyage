@@ -46,7 +46,6 @@
     <string tools:ignore="UnusedResources" name="action_reset">Ташлату</string>
     <string name="action_learn_more">Күбрәк белү</string>
     <string name="action_got_it">Аңладым</string>
-    <string name="action_deselect_all">Берсен дә сайламау</string>
     <string name="copied_to_clipboard">Алмашу буферына күчермәләнде</string>
     <string name="dialog_title_warning">Кисәтү</string>
     <string name="dialog_title_error">Хата</string>
@@ -71,7 +70,6 @@
     <string name="action_remove">Бетерү</string>
     <string name="action_cancel">Баш тарту</string>
     <string name="action_rename">Исемен үзгәртү</string>
-    <string name="action_select_all">Барысын да сайлау</string>
     <string name="dialog_title_confirmation">Раслау</string>
     <string name="bottom_action_notification">Искәртүләр</string>
 </resources>

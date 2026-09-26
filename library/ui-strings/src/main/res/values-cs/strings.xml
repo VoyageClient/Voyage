@@ -416,7 +416,6 @@
     <string name="settings_troubleshoot_test_device_settings_quickfix">Zapnout</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Vlastní nastavení.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Všimněte si, že některé typy zpráv jsou ztišeny (vyvolají oznámeni bez zvuku).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Některá oznámení jsou vypnuta ve vlastním nastavení.</string>
     <string name="settings_troubleshoot_test_play_services_title">Kontrola služeb Play</string>
     <string name="settings_troubleshoot_test_play_services_success">Google Play Services APK je k dispozici a aktuální.</string>
     <string name="settings_troubleshoot_test_play_services_failed">${app_name} používá Google Play Services pro doručení zpráv push, ale patrně nejsou správně nastaveny:
@@ -977,7 +976,6 @@
     <string name="room_list_quick_actions_leave">Opustit místnost</string>
     <string name="notice_member_no_changes">%1$s neučinil žádné změny</string>
     <string name="command_description_spoiler">Odeslat danou zprávu jako spoiler</string>
-    <string name="spoiler">Spoiler</string>
     <string name="reaction_search_type_hint">Pro nalezení reakce zadejte klíčové slovo.</string>
     <string name="no_ignored_users">Neignorujete žádné uživatele</string>
     <string name="help_long_click_on_room_for_more_options">Více možností po dlouhém stisku na místnost</string>
@@ -1581,7 +1579,6 @@
     <string name="direct_room_join_rules_invite">%1$s omezili na pouze pro pozvané.</string>
     <string name="room_list_quick_actions_low_priority_remove">Odebrat z nízké priority</string>
     <string name="room_list_quick_actions_low_priority_add">Přidat do nízké priority</string>
-    <string name="rotate_and_crop_screen_title">Otočit a oříznout</string>
     <string name="attachment_type_dialog_title">Dodat obrázek z</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">V šifrovaných místnostech zobrazit úplnou historii</string>
     <string name="create_room_settings_section">Nastavení místnosti</string>
@@ -1641,7 +1638,6 @@
     <string name="add_by_qr_code">Přidat pomocí QR kódu</string>
     <string name="permissions_denied_add_contact">Udělte právo přístupu ke kontaktům.</string>
     <string name="no_more_results">Žádné další výsledky</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Odeslat události m.room.server_acl</string>
     <string name="settings_security_pin_code_change_pin_summary">Změnit nynější PIN</string>
     <string name="settings_security_pin_code_change_pin_title">Změnit PIN</string>
     <string name="login_clear_homeserver_history">Vymazat historii</string>
@@ -1901,7 +1897,6 @@
     <string name="a11y_recording_voice_message">Nahrát hlasovou zprávu</string>
     <string name="a11y_pause_voice_message">Pozastavit hlasovou zprávu</string>
     <string name="a11y_play_voice_message">Přehrát hlasovou zprávu</string>
-    <string name="voice_message_slide_to_cancel">Posunutím zrušíte</string>
     <string name="a11y_start_voice_message">Nahrát hlasovou zprávu</string>
     <string name="sent_a_voice_message">Hlasová zpráva.</string>
     <string name="spaces_which_can_access">Prostory, které mají přístup</string>
@@ -1911,9 +1906,7 @@
     <string name="settings_room_upgrades">Aktualizace místnosti</string>
     <string name="settings_messages_by_bot">Zprávy od bota</string>
     <string name="settings_room_invitations">Pozvánky do místnosti</string>
-    <string name="settings_encrypted_group_messages">Šifrované skupinové zprávy</string>
     <string name="settings_group_messages">Skupinové zprávy</string>
-    <string name="settings_encrypted_direct_messages">Šifrované přímé zprávy</string>
     <string name="settings_messages_direct_messages">Přímé zprávy</string>
     <string name="settings_notification_notify_me_for">Upozorněte mě na</string>
     <string name="settings_notification_other">Další</string>
@@ -2119,8 +2112,6 @@
         <item quantity="few">%d změny ACL serveru</item>
         <item quantity="other">%d změn ACL serveru</item>
     </plurals>
-    <string name="room_message_autocomplete_notification">Oznámení místnosti</string>
-    <string name="room_message_autocomplete_users">Uživatelé</string>
     <string name="room_message_notify_everyone">Upozornit celou místnost</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d další</item>
@@ -2406,8 +2397,6 @@
     <string name="attachment_type_selector_file">Přílohy</string>
     <string name="attachment_type_selector_sticker">Nálepky</string>
     <string name="attachment_type_selector_gallery">Knihovna fotografií</string>
-    <string name="action_deselect_all">Zrušit výběr všech</string>
-    <string name="action_select_all">Vybrat všechny</string>
     <string name="attachment_type_selector_text_formatting">Formátování textu</string>
     <string name="message_reply_to_sender_created_poll">vytvořil hlasování.</string>
     <string name="message_reply_to_sender_sent_sticker">poslal nálepku.</string>

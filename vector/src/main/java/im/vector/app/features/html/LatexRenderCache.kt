@@ -22,6 +22,7 @@ import android.os.Looper
 import android.text.Spanned
 import android.util.LruCache
 import android.widget.TextView
+import androidx.core.graphics.createBitmap
 import io.noties.markwon.ext.latex.JLatexAsyncDrawableSpan
 import ru.noties.jlatexmath.JLatexMathDrawable
 import timber.log.Timber
@@ -124,7 +125,7 @@ object LatexRenderCache {
         val height = drawable.intrinsicHeight
         if (width <= 0 || height <= 0 || width * height > MAX_PIXELS) return null
         return try {
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             drawable.setBounds(0, 0, width, height)
             drawable.draw(Canvas(bitmap))
             bitmap

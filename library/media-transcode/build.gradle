@@ -45,7 +45,8 @@ dependencies {
     implementation libs.jetbrains.coroutinesAndroid
     implementation libs.jakewharton.timber
 
-    // Annotations only — compileOnly keeps AndroidX out of this module's runtime graph.
+    // Keep annotations on the same AndroidX generation as the API 14 runtime stack.
+    //noinspection GradleDependency
     compileOnly "androidx.annotation:annotation:1.7.1"
 
     // TESTS

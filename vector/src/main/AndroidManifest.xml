@@ -32,9 +32,6 @@
     <!-- For LocationSharingAndroidService -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
-    <!-- For FetchPushForegroundService -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE" />
-
     <!-- Adding CAMERA permission prevents Chromebooks to see the application on the PlayStore -->
     <!-- Tell that the Camera is not mandatory to install the application -->
     <uses-feature
@@ -138,9 +135,11 @@
 
         <!-- Recreating the timeline on rotation re-inflates and re-binds every loaded message,
              which blanks the screen for many seconds on slow devices — relayout in place instead. -->
+        <!-- Older platforms keep the existing back dispatcher; this opts in only on API 33+. -->
         <activity
             android:name=".features.home.room.detail.RoomDetailActivity"
             android:enableOnBackInvokedCallback="true"
+            tools:ignore="UnusedAttribute"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:parentActivityName=".features.home.HomeActivity">
             <meta-data

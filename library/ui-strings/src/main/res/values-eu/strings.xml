@@ -523,7 +523,6 @@ Aplikazioa egiten saiatzen ari dena agresiboki murriztuko zaio bigarren planoan 
     <string name="keys_backup_settings_restore_backup_button">Berrezarri babes-kopia</string>
     <string name="keys_backup_settings_delete_backup_button">Ezabatu babes-kopia</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Kontuan izan mezu mota batzuk isilak izateko ezarri direla (soinurik gabeko jakinarazpena sortuko dute).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Jakinarazpen batzuk desgaituta daude zure ezarpen pertsonaletan.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 Errore hau ${app_name}-en kontroletik kanpo dago eta Google-en arabera, errore honek esan nahi du gailuko aplikazio gehiegik erabiltzen dutela FCM. Errore hau ezohiko aplikazio kopuru bat dagoenean gertatzen da, ez lioke erabiltzaile arrunt bati eragingo.</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">"[%1$s]
@@ -820,7 +819,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="room_list_quick_actions_leave">Atera gelatik</string>
     <string name="notice_member_no_changes">%1$s erabiltzaileak ez du aldaketarik egin</string>
     <string name="command_description_spoiler">Emandako mezua izorraki gisa bidaltzen du</string>
-    <string name="spoiler">Izorrakia</string>
     <string name="reaction_search_type_hint">Idatzi hitz gakoak erreakzio bat aurkitzeko.</string>
     <string name="no_ignored_users">Ez duzu erabiltzailerik ezikusten</string>
     <string name="help_long_click_on_room_for_more_options">Sakatu luze gela batean aukera gehiago ikusteko</string>

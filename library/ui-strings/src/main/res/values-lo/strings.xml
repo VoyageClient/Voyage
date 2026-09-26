@@ -14,7 +14,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_play_services_success">Google Play Services APK ສາມາດໃຊ້ໄດ້ ແລະ ອັບເດດແລ້ວ.</string>
     <string name="settings_troubleshoot_test_play_services_title">ກວດສອບບໍລິການການຫຼິ້ນ</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">ການແຈ້ງເຕືອນບາງລາຍການຖືກປິດໃຊ້ງານໃນການຕັ້ງຄ່າແບບກຳນົດເອງຂອງທ່ານ.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">ສັງເກດເຫັນວ່າຂໍ້ຄວາມບາງປະເພດໄດ້ຖືກຕັ້ງໃຫ້ເປັນແບບບໍ່ມີສຽງ (ຈະສ້າງການແຈ້ງການທີ່ບໍ່ມີສຽງ).</string>
     <string name="settings_troubleshoot_test_bing_settings_title">ການຕັ້ງຄ່າແບບກຳນົດເອງ.</string>
     <string name="settings_troubleshoot_test_device_settings_quickfix">ເປີດໃຊ້</string>
@@ -100,7 +99,6 @@
     <string name="room_permissions_change_topic">ປ່ຽນຫົວຂໍ້</string>
     <string name="room_permissions_upgrade_the_space">ຍົກລະດັບພື້ນທີ່</string>
     <string name="room_permissions_upgrade_the_room">ຍົກລະດັບຫ້ອງ</string>
-    <string name="room_permissions_send_m_room_server_acl_events">ສົ່ງເຫດການ m.room.server_acl</string>
     <string name="room_permissions_change_permissions">ປ່ຽນການອະນຸຍາດ</string>
     <string name="room_permissions_change_space_name">ປ່ຽນຊື່ພຶ້ນທີ່</string>
     <string name="room_permissions_change_room_name">ປ່ຽນຊື່ຫ້ອງ</string>
@@ -936,7 +934,6 @@
     <string name="uploads_media_title">ສື່ມວນຊົນ</string>
     <string name="attachment_viewer_item_x_of_y">%1$d ຂອງ%2$d</string>
     <string name="error_handling_incoming_share">ບໍ່ສາມາດຈັດການຂໍ້ມູນການແບ່ງປັນໄດ້</string>
-    <string name="rotate_and_crop_screen_title">ໝູນ ແລະຕັດ</string>
     <string name="attachment_type_location">ສະຖານທີ່</string>
     <string name="attachment_type_poll">ການສໍາຫຼວດ</string>
     <string name="attachment_type_sticker">ສະຕິກເກີ</string>
@@ -1038,9 +1035,7 @@
     <string name="settings_room_invitations">ການເຊີນດເຂົ້າຫ້ອງ</string>
     <string name="settings_messages_containing_keywords">ຄໍາສໍາຄັນ</string>
     <string name="settings_mentions_at_room">\@room</string>
-    <string name="settings_encrypted_group_messages">ເຂົ້າລະຫັດຂໍ້ຄວາມກຸ່ມ</string>
     <string name="settings_group_messages">ຂໍ້ຄວາມກຸ່ມ</string>
-    <string name="settings_encrypted_direct_messages">ເຂົ້າລະຫັດຂໍ້ຄວາມໂດຍກົງ</string>
     <string name="settings_messages_direct_messages">ຂໍ້ຄວາມໂດຍກົງ</string>
     <string name="settings_messages_sent_by_bot">ຂໍ້ຄວາມທີ່ສົ່ງໂດຍ bot</string>
     <string name="settings_invited_to_room">ເມື່ອຂ້ອຍຖືກເຊີນເຂົ້າຫ້ອງ</string>
@@ -1975,7 +1970,6 @@
     <string name="help_long_click_on_room_for_more_options">ລອງກົດໃສ່ຫ້ອງເພື່ອເບິ່ງຕົວເລືອກເພີ່ມເຕີມ</string>
     <string name="no_ignored_users">ທ່ານຍັງບໍ່ໄດ້ສົນໃຈຜູ້ໃຊ້ໃດໆ</string>
     <string name="reaction_search_type_hint">ພິມຄໍາຫຼັກເພື່ອຊອກຫາການໂຕ້ຕອບ.</string>
-    <string name="spoiler">ຜູ້ເຮັດໃຫ້ເຊື່ອມເສຍ</string>
     <string name="command_description_spoiler">ສົ່ງຂໍ້ຄວາມທີ່ໃຫ້ໄວ້ເປັນ spoiler</string>
     <string name="notice_member_no_changes_by_you">ທ່ານບໍ່ມີການປ່ຽນແປງ</string>
     <string name="notice_member_no_changes">%1$s ບໍ່ມີການປ່ຽນແປງ</string>
@@ -1992,12 +1986,9 @@
     <string name="room_list_quick_actions_notifications_all_noisy">ຂໍ້ຄວາມທັງໝົດ (ສຽງດັງ)</string>
     <string name="message_ignore_user">ບໍ່ສົນໃຈຜູ້ໃຊ້</string>
     <string name="voice_message_n_seconds_warning_toast">ເຫຼືອ %1$ds</string>
-    <string name="voice_message_slide_to_cancel">ເລື່ອນເພື່ອຍົກເລີກ</string>
     <string name="a11y_start_voice_message">ບັນທຶກຂໍ້ຄວາມສຽງ</string>
     <string name="error_failed_to_join_room">ຂໍອະໄພ, ເກີດຄວາມຜິດພາດຂຶ້ນໃນຂະນະທີ່ພະຍາຍາມເຂົ້າຮ່ວມ: %s</string>
     <string name="room_upgrade_to_recommended_version">ຍົກລະດັບເປັນເວີຊັນຫ້ອງທີ່ແນະນຳ</string>
-    <string name="room_message_autocomplete_notification">ການແຈ້ງເຕືອນຫ້ອງ</string>
-    <string name="room_message_autocomplete_users">ຜູ້ໃຊ້</string>
     <string name="room_message_notify_everyone">ແຈ້ງໃຫ້ຫ້ອງໍທັງຫມົດ</string>
     <plurals name="message_reaction_show_more">
         <item quantity="other">%1$d ເພີ່ມເຕີມ</item>

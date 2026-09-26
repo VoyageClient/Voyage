@@ -298,7 +298,6 @@
     <string name="settings_troubleshoot_test_device_settings_success">آگاهی‌ها برای این نشست به کار افتاده‌اند.</string>
     <string name="settings_troubleshoot_test_device_settings_failed">آگاهی‌ها برای این نشست به کار نیفتاده‌اند.
 \nلطفاً تنظیمات المنت را بررسی کنید.</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">برخی آگاهی‌ها در تنظیمات سفارشیتان از کار افتاده‌اند.</string>
     <string name="settings_enable_all_notif">به کار انداختن آگاهی‌ها برای این حساب</string>
     <string name="settings_enable_this_device">به کار انداختن آگاهی‌ها برای این نشست</string>
     <string name="settings_noisy_notifications_preferences">پیکربندی آگاهی‌های پرصدا</string>
@@ -1287,12 +1286,10 @@
     <string name="room_join_rules_public_by_you">اتاق را برای هرکسی که پیوندش را دارد عمومی کردید.</string>
     <string name="room_join_rules_public">%1$s اتاق را برای هرکسی که پیوندش را دارد عمومی کرد.</string>
     <string name="help_long_click_on_room_for_more_options">برای دیدن گزینه‌های بیشتر، روی یک اتاق کلیک طولانی کنید</string>
-    <string name="spoiler">تباه‌کننده</string>
     <string name="command_description_spoiler">ارسال به عنوان پیام تباه‌کننده</string>
     <string name="room_list_quick_actions_low_priority_remove">حذف‌کردن از اولویت پایین</string>
     <string name="room_list_quick_actions_low_priority_add">اضافه‌کردن به اولویت پایین</string>
     <string name="error_handling_incoming_share">نتوانست هم‌رسانی داده را مدیریت کند</string>
-    <string name="rotate_and_crop_screen_title">چرخش و برش</string>
     <string name="attachment_type_dialog_title">افزودن تصویر از</string>
     <plurals name="fallback_users_read">
         <item quantity="one">%d کاربر خواند</item>
@@ -1618,7 +1615,6 @@
     <string name="room_permissions_change_history_visibility">تغییر نمایانی تاریخچه</string>
     <string name="room_permissions_change_room_name">تغییر نام اتاق</string>
     <string name="room_permissions_change_permissions">تغییر اجازه‌ها</string>
-    <string name="room_permissions_send_m_room_server_acl_events">فرستادن رویدادهای m.room.server_acl</string>
     <string name="room_permissions_upgrade_the_room">ارتقای اتاق</string>
     <string name="room_permissions_change_topic">تغییر موضوع</string>
     <string name="settings_show_emoji_keyboard">نمایش صفحه‌کلید اموجی</string>
@@ -1853,7 +1849,6 @@
     <string name="a11y_recording_voice_message">ضبط کردن پیام صوتی</string>
     <string name="a11y_pause_voice_message">مکث پیام صوتی</string>
     <string name="a11y_play_voice_message">پخش پیام صوتی</string>
-    <string name="voice_message_slide_to_cancel">برای لغو، بکشید</string>
     <string name="a11y_start_voice_message">ضبط پیام صوتی</string>
     <string name="upgrade_required">نیازمند ارتقا</string>
     <string name="sent_a_voice_message">صدا.</string>
@@ -1873,8 +1868,6 @@
     <string name="settings_room_upgrades">ارتقاهای اتاق</string>
     <string name="settings_messages_by_bot">پیام‌ها از بات</string>
     <string name="settings_room_invitations">دعوت‌های اتاق</string>
-    <string name="settings_encrypted_direct_messages">پیام‌های مستقیم رمزنگاشته</string>
-    <string name="settings_encrypted_group_messages">پیام‌های گروهی رمزنگاشته</string>
     <string name="settings_group_messages">پیام‌های گروهی</string>
     <string name="settings_messages_direct_messages">پیام‌های مستقیم</string>
     <string name="settings_notification_notify_me_for">آگاهم کن از</string>
@@ -2076,8 +2069,6 @@
         <item quantity="one">%d تغییر سطح کنترل دسترسی</item>
         <item quantity="other">%d تغییر سطح کنترل دسترسی</item>
     </plurals>
-    <string name="room_message_autocomplete_notification">آگاهی اتاق</string>
-    <string name="room_message_autocomplete_users">کاربران</string>
     <string name="room_message_notify_everyone">آگاهی به تمام اتاق</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d بیش‌تر</item>
@@ -2344,8 +2335,6 @@
     <string name="two">۲</string>
     <string name="one">۱</string>
     <string name="push_gateway_item_enabled">به کار افتاده:</string>
-    <string name="action_deselect_all">ناگزینش همه</string>
-    <string name="action_select_all">گزینش همه</string>
     <string name="qr_code_login_header_connected_description">با بررسی افزاره‌های وارد شده‌تان باید کد زیر را ببینید. تأیید کنید که این کد با آن افزاره مطابق است:</string>
     <string name="some_devices_will_not_be_able_to_decrypt">⚠ افزاره‌های تأییدنشده‌ای در این اتاق وجود دارند. آن‌ها قادر به رمزگشایی پیام‌هایی که فرستاده‌اید نیستند.</string>
     <string name="qr_code_login_header_scan_qr_code_description">استفاده از دوربین روی این افزاره برای پویش کد QR نشان داده شده روی افزارهٔ دیگرتان:</string>

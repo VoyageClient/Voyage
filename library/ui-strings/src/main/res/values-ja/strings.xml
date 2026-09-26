@@ -617,7 +617,6 @@
     <string name="settings_troubleshoot_test_play_services_quickfix">Playサービスを修正</string>
     <string name="settings_troubleshoot_test_play_services_success">Google PlayサービスのAPKは利用可能で最新の状態になっています。</string>
     <string name="settings_troubleshoot_test_play_services_title">Playサービスのチェック</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">一部の通知はユーザー定義の設定で無効になっています。</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">一部のメッセージがサイレントに設定されていることに注意してください（音を出さずに通知します）。</string>
     <string name="settings_troubleshoot_diagnostic_failure_status_no_quickfix">1つ以上のテストが失敗しました。調査用のバグレポートを送信してください。</string>
     <string name="settings_troubleshoot_diagnostic_failure_status_with_quickfix">1つ以上のテストが失敗しました。提案された修正を試してください。</string>
@@ -631,7 +630,6 @@
     <string name="search_banned_user_hint">ブロックされたユーザーを絞り込む</string>
     <string name="room_permissions_change_topic">トピックの変更</string>
     <string name="room_permissions_upgrade_the_room">ルームのアップグレード</string>
-    <string name="room_permissions_send_m_room_server_acl_events">m.room.server_acl eventsの送信</string>
     <string name="room_permissions_change_permissions">権限の変更</string>
     <string name="room_permissions_change_room_name">ルーム名の変更</string>
     <string name="room_permissions_change_history_visibility">履歴の見え方の変更</string>
@@ -1201,9 +1199,7 @@
     <string name="settings_messages_by_bot">ボットによるメッセージ</string>
     <string name="settings_room_invitations">ルームへの招待</string>
     <string name="settings_when_rooms_are_upgraded">ルームがアップグレードされたとき</string>
-    <string name="settings_encrypted_group_messages">暗号化されたグループメッセージ</string>
     <string name="settings_group_messages">グループメッセージ</string>
-    <string name="settings_encrypted_direct_messages">暗号化されたダイレクトメッセージ</string>
     <string name="settings_messages_direct_messages">ダイレクトメッセージ</string>
     <string name="settings_messages_in_e2e_group_chat">グループチャットでの暗号化されたメッセージ</string>
     <string name="settings_messages_in_e2e_one_to_one">1対1のチャットでの暗号化されたメッセージ</string>
@@ -1558,13 +1554,11 @@
     <string name="a11y_create_menu_open">ルーム作成メニューを開く</string>
     <string name="error_network_timeout">サーバーの応答に時間がかかりすぎています。おそらく接続が遅すぎるからか、サーバー側でエラーが発生しているからです。後で再試行してください。</string>
     <string name="upgrade_public_room_from_to">このルームを%1$sから%2$sにアップグレードします。</string>
-    <string name="voice_message_slide_to_cancel">スライドしてキャンセル</string>
     <string name="a11y_recording_voice_message">音声メッセージを録音しています</string>
     <string name="a11y_delete_recorded_voice_message">録音を削除</string>
     <string name="error_voice_message_cannot_reply_or_edit">音声メッセージがアクティブの間は返信や編集はできません</string>
     <string name="delete_poll_dialog_content">このアンケートを削除してよろしいですか？一度削除すると復元することはできません。</string>
     <string name="error_handling_incoming_share">共有データを取り扱えませんでした</string>
-    <string name="rotate_and_crop_screen_title">回転とトリミング</string>
     <string name="space_explore_activity_title">ルームを探す</string>
     <string name="space_mark_as_suggested">おすすめに追加</string>
     <string name="space_mark_as_not_suggested">おすすめから除外</string>
@@ -1582,7 +1576,6 @@
     <string name="settings_server_room_versions">ルームのバージョン 👓</string>
     <string name="settings_server_room_version_unstable">不安定</string>
     <string name="settings_server_room_version_stable">安定</string>
-    <string name="spoiler">ネタバレ</string>
     <string name="settings_security_pin_code_use_biometrics_title">生体認証を有効にする</string>
     <string name="member_banned_by">%1$sによりブロック</string>
     <string name="three_pid_revoke_invite_dialog_title">招待を取り消す</string>
@@ -1913,7 +1906,6 @@
     <string name="room_member_profile_failed_to_get_devices">セッションの取得に失敗しました</string>
     <string name="invite_to_space_with_name_desc">%sを探せるようになります</string>
     <string name="share_space_link_message">私のスペース %1$s %2$s に参加してください</string>
-    <string name="room_message_autocomplete_notification">ルームの通知</string>
     <string name="finish_setting_up_discovery">ディスカバリーの設定を終了します。</string>
     <string name="space_leave_prompt_msg_only_you">ここの参加者はあなただけです。退出すると、今後あなたを含めて誰も参加できなくなります。</string>
     <string name="space_leave_prompt_msg_private">再び招待されない限り、再参加することはできません。</string>
@@ -1924,7 +1916,6 @@
     <string name="this_invite_to_this_room_was_sent">このルームへの招待が、アカウントに関連付けられていないメールアドレス %s に送られました</string>
     <string name="poll_no_votes_cast">投票がありません</string>
     <string name="room_message_notify_everyone">ルーム全体に通知</string>
-    <string name="room_message_autocomplete_users">ユーザー</string>
     <string name="discovery_section">ディスカバリー（%s）</string>
     <string name="disclaimer_negative_button">了解</string>
     <string name="dev_tools_event_content_hint">イベントの内容</string>
@@ -2146,8 +2137,6 @@
     <string name="room_list_filter_favourites">お気に入り</string>
     <string name="room_list_filter_unreads">未読あり</string>
     <string name="room_list_filter_all">全て</string>
-    <string name="action_deselect_all">全ての選択を解除</string>
-    <string name="action_select_all">全て選択</string>
     <string name="notice_voice_broadcast_ended_by_you">音声配信を終了しました。</string>
     <string name="notice_voice_broadcast_ended">%1$sが音声配信を終了しました。</string>
     <string name="settings_presence_user_always_appears_offline_summary">有効にすると、このアプリケーションを使用している際にも、他のユーザーにオフラインとして表示されます。</string>

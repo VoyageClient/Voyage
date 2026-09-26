@@ -651,7 +651,6 @@
     <string name="settings_notification_by_event">Значение уведомления по событию</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Пользовательские настройки.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Обратите внимание, для некоторых типов сообщений выбран беззвучный режим (уведомление будет, но без звука).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Некоторые уведомления отключены в настройках.</string>
     <string name="settings_troubleshoot_test_fcm_failed_account_missing_quick_fix">Добавить аккаунт</string>
     <string name="settings_noisy_notifications_preferences">Настроить шумные уведомления</string>
     <string name="settings_call_notifications_preferences">Настроить уведомления о вызовах</string>
@@ -978,7 +977,6 @@
     <string name="room_list_quick_actions_notifications_all_noisy">Все сообщения (громко)</string>
     <string name="room_list_quick_actions_notifications_mute">Заглушить</string>
     <string name="command_description_spoiler">Отправить данное сообщение под спойлером</string>
-    <string name="spoiler">Спойлер</string>
     <string name="reaction_search_type_hint">Введите ключевые слова, чтобы найти реакцию.</string>
     <string name="help_long_click_on_room_for_more_options">Долгий клик по комнате покажет дополнительные опции</string>
     <string name="timeline_unread_messages">Непрочитанные сообщения</string>
@@ -1615,7 +1613,6 @@
     <string name="settings_troubleshoot_test_push_loop_title">Тестирование push-уведомлений</string>
     <string name="warning_unsaved_change">Есть несохраненные изменения. Отменить изменения\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Удалить из маловажного</string>
-    <string name="rotate_and_crop_screen_title">Повернуть и обрезать</string>
     <string name="create_room_settings_section">Настройки комнаты</string>
     <string name="warning_unsaved_change_discard">Отменить изменения</string>
     <string name="warning_room_not_created_yet">Комната ещё не создана. Отменить создание комнаты\?</string>
@@ -1700,7 +1697,6 @@
     <string name="settings_show_emoji_keyboard">Показать клавиатуру эмодзи</string>
     <string name="room_permissions_change_topic">Изменить тему</string>
     <string name="room_permissions_upgrade_the_room">Обновить комнату</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Отправить событие m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Изменить разрешения</string>
     <string name="room_permissions_change_room_name">Изменить название комнаты</string>
     <string name="room_permissions_change_history_visibility">Изменить видимость истории</string>
@@ -1916,7 +1912,6 @@
     <string name="a11y_recording_voice_message">Запись голосового сообщения</string>
     <string name="a11y_pause_voice_message">Приостановить голосовое сообщение</string>
     <string name="a11y_play_voice_message">Прослушать голосовое сообщение</string>
-    <string name="voice_message_slide_to_cancel">Проведите для отмены</string>
     <string name="a11y_start_voice_message">Запись голосового сообщения</string>
     <string name="upgrade_required">Требуется обновление</string>
     <string name="sent_a_voice_message">Голосовое сообщение.</string>
@@ -1933,9 +1928,7 @@
     <string name="settings_room_upgrades">Обновлениях комнаты</string>
     <string name="settings_messages_by_bot">Сообщениях от бота</string>
     <string name="settings_room_invitations">Приглашениях в комнату</string>
-    <string name="settings_encrypted_group_messages">Зашифрованных групповых сообщениях</string>
     <string name="settings_group_messages">Групповых сообщениях</string>
-    <string name="settings_encrypted_direct_messages">Зашифрованных диалогах</string>
     <string name="settings_messages_direct_messages">Диалогах</string>
     <string name="settings_notification_notify_me_for">Уведомлять меня о</string>
     <string name="settings_notification_other">Другое</string>
@@ -2141,8 +2134,6 @@
     <string name="thread_timeline_title">Обсуждение</string>
     <string name="room_threads_filter">Фильтровать Обсуждения в комнате</string>
     <string name="action_thread_copy_link_to_thread">Скопировать ссылку на обсуждение</string>
-    <string name="room_message_autocomplete_notification">Уведомления комнаты</string>
-    <string name="room_message_autocomplete_users">Пользователи</string>
     <string name="room_message_notify_everyone">Оповестить всю комнату</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">И ещё %1$d</item>
@@ -2373,8 +2364,6 @@
     <string name="invites_title">Приглашения</string>
     <string name="labs_enable_deferred_dm_summary">Создавать личные сообщения только при отправке первого сообщения</string>
     <string name="labs_enable_deferred_dm_title">Включить отложенные личные сообщения</string>
-    <string name="action_deselect_all">Отменить выбор всего</string>
-    <string name="action_select_all">Выбрать всё</string>
     <string name="qr_code_login_confirm_security_code_description">Пожалуйста удостоверьтесь в том, что вы знаете откуда этот код. При соединении устройств, вы даёте кому-то полный доступ к вашей учётной записи.</string>
     <string name="qr_code_login_confirm_security_code">Подтвердить</string>
     <string name="qr_code_login_try_again">Попробовать снова</string>

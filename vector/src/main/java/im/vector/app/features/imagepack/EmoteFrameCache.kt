@@ -13,6 +13,8 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.LruCache
 import android.widget.ImageView
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -51,7 +53,7 @@ object EmoteFrameCache {
     private fun Bitmap.ownCopy(): Bitmap? = runCatching {
         val scale = min(1f, MAX_FRAME_PX.toFloat() / max(width, height))
         val copy = if (scale < 1f) {
-            Bitmap.createScaledBitmap(this, (width * scale).roundToInt().coerceAtLeast(1), (height * scale).roundToInt().coerceAtLeast(1), true)
+            this.scale((width * scale).roundToInt().coerceAtLeast(1), (height * scale).roundToInt().coerceAtLeast(1))
         } else {
             this
         }
@@ -80,7 +82,7 @@ object EmoteFrameCache {
         val width = (intrinsicW * scale).roundToInt().coerceAtLeast(1)
         val height = (intrinsicH * scale).roundToInt().coerceAtLeast(1)
         return runCatching {
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             val previousBounds = drawable.copyBounds()
             drawable.setBounds(0, 0, width, height)
             drawable.draw(Canvas(bitmap))

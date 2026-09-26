@@ -460,7 +460,6 @@
     <string name="uploads_files_title">FILER</string>
     <string name="uploads_files_subtitle">%1$s, kl. %2$s</string>
     <string name="message_ignore_user">Ignorer bruker</string>
-    <string name="spoiler">Spoiler</string>
     <string name="no_ignored_users">Du ignorerer ikke noen brukere</string>
     <string name="help_long_click_on_room_for_more_options">Langklikk på et rom for å se flere innstillinger</string>
     <string name="login_server_other_text">Tilpassede og avanserte innstillinger</string>
@@ -578,7 +577,6 @@
     <string name="settings_troubleshoot_test_play_services_failed">${app_name} bruker Google Play Services for å levere push-meldinger, men det ser ikke ut til å være konfigurert riktig:
 \n%1$s</string>
     <string name="settings_troubleshoot_test_play_services_success">Google Play Services APK er tilgjengelig og oppdatert.</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Noen varsler er deaktivert i dine tilpassede innstillinger.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Legg merke til at enkelte meldinger er satt til å være lydløse (gir et varsel uten lyd).</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Egendefinerte innstillinger.</string>
     <string name="settings_troubleshoot_test_device_settings_failed">Varsler er ikke aktivert for denne økten.
@@ -700,7 +698,6 @@
     <string name="a11y_create_direct_message">Lag en ny direkte samtale</string>
     <string name="a11y_jump_to_bottom">Gå til bunnen</string>
     <string name="attachment_type_dialog_title">Legg til bilde fra</string>
-    <string name="rotate_and_crop_screen_title">Roter og beskjær</string>
     <string name="error_handling_incoming_share">Kunne ikke håndtere delingsdata</string>
     <string name="attachment_viewer_item_x_of_y">%1$d av %2$d</string>
     <string name="uploads_media_no_result">Det er ingen medier i dette rommet</string>
@@ -1033,7 +1030,6 @@
     <string name="room_upgrade_to_recommended_version">Oppgrader til den anbefalte romversjonen</string>
     <string name="error_failed_to_join_room">Beklager, det oppstod en feil under forsøk på å bli med: %s</string>
     <string name="a11y_start_voice_message">Start talemelding</string>
-    <string name="voice_message_slide_to_cancel">Skyv for å avbryte</string>
     <string name="a11y_play_voice_message">Spill av talemelding</string>
     <string name="a11y_delete_recorded_voice_message">Slett innspilt talemelding</string>
     <string name="voice_message_release_to_send_toast">Hold inne for å spille inn, slipp for å sende</string>

@@ -400,7 +400,6 @@
 
     <string name="settings_troubleshoot_test_bing_settings_title">কাস্টম সেটিংস।</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">লক্ষ্য করুন যে কিছু বার্তা টাইপ নীরব করা হয়েছে (কোন শব্দ ছাড়াই একটি বিজ্ঞপ্তি তৈরি করবে)।</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">কিছু বিজ্ঞপ্তি আপনার কাস্টম সেটিংস এ নিষ্ক্রিয় করা হয়েছে।</string>
 
     <string name="settings_troubleshoot_test_play_services_title">Play Services পরীক্ষা</string>
     <string name="settings_troubleshoot_test_play_services_success">গুগল প্লে সার্ভিসেস APK পাওয়া গেছে এবং আপ টু ডেট রয়েছে।</string>

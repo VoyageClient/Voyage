@@ -9,6 +9,7 @@ package im.vector.app.features.home.avatar.effect
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import androidx.core.graphics.createBitmap
 import kotlin.math.PI
 import kotlin.math.acos
 import kotlin.math.atan2
@@ -134,7 +135,7 @@ class SphereMapper {
         val existing = surface
         if (existing != null && existing.width == sizePx) return existing
         if (pixels.size < sizePx * sizePx) pixels = IntArray(sizePx * sizePx)
-        return Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888).also { surface = it }
+        return createBitmap(sizePx, sizePx).also { surface = it }
     }
 
     private fun cacheTexels(texture: Bitmap) {

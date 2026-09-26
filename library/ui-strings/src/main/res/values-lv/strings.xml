@@ -852,7 +852,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_integrations">Integrācijas</string>
     <string name="open_settings">Atvērt iestatījumus</string>
     <string name="room_permissions_upgrade_the_room">Atjaunināt istabu</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Sūtīt m.room.server_acl notikumus</string>
     <string name="room_permissions_notice_read_only">Nav atļaujas atjaunināt lomas, kas nepieciešamas, lai mainītu dažādas istabas daļas</string>
     <string name="room_settings_permissions_subtitle">Skatiet un atjauniniet lomas, kas nepieciešamas, lai mainītu dažādas istabas daļas.</string>
     <string name="room_participants_unban_prompt_msg">Atceļot pieejas liegumu, lietotājam atkal būs iespēja pievienoties istabai.</string>
@@ -1321,7 +1320,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_troubleshoot_test_battery_title">Akumulatora Optimizācija</string>
     <string name="settings_troubleshoot_test_service_boot_quickfix">Ieslēgt Aplikācijas palaišanu kopā ar telefonu</string>
     <string name="settings_troubleshoot_test_play_services_title">Play Servisu Pārbaude</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Daži paziņojumi ir izslēgti pielāgotajos iestatījumos.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Ievērojiet, ka daži ziņojumi ir iestatīti kā klusi (paziņojumi pienāks bez skaņas).</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Pielāgoti Iestatījumi.</string>
     <string name="settings_troubleshoot_test_device_settings_failed">Šai sesijai nav iespējoti paziņojumi.
@@ -1381,8 +1379,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
         <item quantity="other">Ir nosūtīts pārāk daudz pieprasījumu. Pēc %1$d sekundēm var mēģināt vēlreiz…</item>
     </plurals>
     <string name="reaction_search_type_hint">Jāievada atslēgvārdi, lai atrastu reakciju.</string>
-    <string name="spoiler">Spoileris</string>
-    <string name="rotate_and_crop_screen_title">Rotēšana un apgriešana</string>
     <plurals name="fallback_users_read">
         <item quantity="zero">%d lietotāju izlasīja</item>
         <item quantity="one">%d lietotājs izlasīja</item>
@@ -1709,9 +1705,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_room_invitations">Istabu ielūgumi</string>
     <string name="settings_messages_containing_keywords">Atslēgvārdi</string>
     <string name="settings_mentions_at_room">\@istaba</string>
-    <string name="settings_encrypted_group_messages">Šifrētās grupu ziņas</string>
     <string name="settings_group_messages">Grupu ziņas</string>
-    <string name="settings_encrypted_direct_messages">Šifrētas tiešās ziņas</string>
     <string name="settings_messages_direct_messages">Tiešās ziņas</string>
     <string name="keys_backup_get_version_error">Neizdevās iegūt jaunāko atjaunošanas atslēgu versiju (%s).</string>
     <plurals name="keys_backup_restore_success_description_part2">
@@ -1815,8 +1809,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="home_layout_preferences_recents">Rādīt nesenos</string>
     <string name="home_layout_preferences_sort_by">Kārtot pēc</string>
     <string name="sign_out_anyway">Vienalga atteikties</string>
-    <string name="action_select_all">Atlasīt visu</string>
-    <string name="action_deselect_all">Noņemt visas atzīmes</string>
     <string name="command_description_leave_room">Pamest istabu ar norādīto identifikatoru (vai pašreizējo istabu, ja tāda nav)</string>
     <string name="space_leave_radio_button_all">Pamest visu</string>
     <string name="space_leave_prompt_msg_with_name">Vai tiešām pamest %s\?</string>
@@ -2213,7 +2205,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="a11y_play_voice_message">Atskaņot balss ziņu</string>
     <string name="a11y_pause_voice_message">Apturēt balss ziņu</string>
     <string name="voice_message_reply_content">Balss ziņa (%1$s)</string>
-    <string name="voice_message_slide_to_cancel">Slidināt, lai atceltu</string>
     <string name="a11y_rule_notify_noisy">Paziņot ar skaņu</string>
     <string name="a11y_error_some_message_not_sent">Dažas ziņas netika nosūtītas</string>
     <string name="user_invites_you">%s uzaicina Tevi</string>
@@ -2407,7 +2398,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="tooltip_attachment_file">Augšupielādēt datni</string>
     <string name="tooltip_attachment_poll">Izveidot aptauju</string>
     <string name="message_reaction_show_less">Rādīt mazāk</string>
-    <string name="room_message_autocomplete_notification">Istabas paziņojums</string>
     <string name="settings_troubleshoot_test_distributors_fdroid">Netika atrasts neviens cits veids bez sinhronizēšanas fonā.</string>
     <string name="settings_troubleshoot_test_current_endpoint_success">Pašreizējais galamērķis: %s</string>
     <string name="settings_troubleshoot_test_current_gateway_title">Vārteja</string>
@@ -2420,7 +2410,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="device_manager_sessions_sign_in_with_qr_code_title">Pieteikties ar kvadrātkodu</string>
     <string name="tooltip_attachment_location">Kopīgot atrašanās vietu</string>
     <string name="room_message_notify_everyone">Paziņot visai istabai</string>
-    <string name="room_message_autocomplete_users">Lietotāji</string>
     <string name="unifiedpush_distributor_background_sync">Sinhronizēšana fonā</string>
     <string name="settings_notification_method">Paziņojuma veids</string>
     <string name="settings_troubleshoot_test_current_endpoint_failed">Nevar atrast galamērķi.</string>

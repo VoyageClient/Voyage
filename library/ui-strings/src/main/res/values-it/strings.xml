@@ -633,7 +633,6 @@
     <string name="settings_notification_by_event">Importanza delle notifiche in base al tipo</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Impostazioni personalizzate.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Nota che alcuni tipi di messaggio sono impostati come silenziosi (ossia generano notifiche senza suono).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Alcune notifiche sono disattivate nelle tue impostazioni personalizzate.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nQuesto errore non dipende da ${app_name}. Secondo Google dipende dal fatto che questo dispositivo ha troppe App registrate con FCM. L\'errore si verifica solo in casi in cui ci sia un numero estremo di app, quindi non dovrebbe affliggere l\'utente medio.</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -949,7 +948,6 @@
     <string name="room_list_quick_actions_leave">Esci dalla stanza</string>
     <string name="notice_member_no_changes">%1$s non ha fatto modifiche</string>
     <string name="command_description_spoiler">Invia il messaggio come spoiler</string>
-    <string name="spoiler">Spoiler</string>
     <string name="reaction_search_type_hint">Digita parole chiave per trovare le reazioni.</string>
     <string name="no_ignored_users">Non stai ignorando alcun utente</string>
     <string name="help_long_click_on_room_for_more_options">Tieni premuto su una stanza per altre opzioni</string>
@@ -1556,7 +1554,6 @@
     <string name="warning_room_not_created_yet">La stanza non è ancora stata creata. Annullare la creazione della stanza\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Rimuovi da bassa priorità</string>
     <string name="room_list_quick_actions_low_priority_add">Imposta come bassa priorità</string>
-    <string name="rotate_and_crop_screen_title">Ruota e ritaglia</string>
     <string name="attachment_type_dialog_title">Aggiungi immagine da</string>
     <string name="create_room_settings_section">Impostazioni stanza</string>
     <string name="create_room_topic_hint">Argomento</string>
@@ -1638,7 +1635,6 @@
     <string name="settings_show_emoji_keyboard">Mostra tastiera emoji</string>
     <string name="room_permissions_change_topic">Modifica argomento</string>
     <string name="room_permissions_upgrade_the_room">Aggiorna la stanza</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Invia eventi m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Cambia autorizzazioni</string>
     <string name="room_permissions_change_room_name">Modifica nome stanza</string>
     <string name="room_permissions_change_history_visibility">Cambia visibilità cronologia</string>
@@ -1849,7 +1845,6 @@
     <string name="a11y_pause_voice_message">Pausa messaggio vocale</string>
     <string name="a11y_start_voice_message">Registra messaggio vocale</string>
     <string name="a11y_play_voice_message">Riproduci messaggio vocale</string>
-    <string name="voice_message_slide_to_cancel">Scorri per annullare</string>
     <string name="upgrade_required">Aggiornamento necessario</string>
     <string name="sent_a_voice_message">Vocale.</string>
     <string name="other_spaces_or_rooms_you_might_not_know">Altri spazi o stanze che potresti non conoscere</string>
@@ -1865,9 +1860,7 @@
     <string name="settings_room_upgrades">Aggiornamenti stanza</string>
     <string name="settings_messages_by_bot">Messaggi da bot</string>
     <string name="settings_room_invitations">Inviti a stanze</string>
-    <string name="settings_encrypted_group_messages">Messaggi di gruppo cifrati</string>
     <string name="settings_group_messages">Messaggi di gruppo</string>
-    <string name="settings_encrypted_direct_messages">Messaggi diretti cifrati</string>
     <string name="settings_messages_direct_messages">Messaggi diretti</string>
     <string name="settings_notification_notify_me_for">Notificami per</string>
     <string name="settings_notification_other">Altro</string>
@@ -2063,8 +2056,6 @@
     <string name="action_thread_copy_link_to_thread">Copia link nella conversazione</string>
     <string name="action_thread_view_in_room">Vedi nella stanza</string>
     <string name="action_view_threads">Vedi conversazioni</string>
-    <string name="room_message_autocomplete_notification">Notifica della stanza</string>
-    <string name="room_message_autocomplete_users">Utenti</string>
     <string name="room_message_notify_everyone">Notifica l\'intera stanza</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d altro</item>
@@ -2351,8 +2342,6 @@
     <string name="attachment_type_selector_file">Allegati</string>
     <string name="attachment_type_selector_sticker">Adesivi</string>
     <string name="attachment_type_selector_gallery">Album di foto</string>
-    <string name="action_deselect_all">Deseleziona tutto</string>
-    <string name="action_select_all">Seleziona tutto</string>
     <string name="attachment_type_selector_text_formatting">Formattazione testo</string>
     <string name="message_reply_to_sender_created_poll">creato un sondaggio.</string>
     <string name="message_reply_to_sender_sent_sticker">inviato un adesivo.</string>

@@ -390,7 +390,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_notification_by_event">Kepentingan pemberitahuan berdasarkan peristiwa</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Pengaturan Sesukanya.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Perhatikan bahwa sebagian jenis pesan disetel diam (mengeluarkan pemberitahuan tanpa suara).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Sebagian pemberitahuan dimatikan dalam pengaturan Anda.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nError ini di luar kendali ${app_name} dan menurut Google, error ini muncul ketika terlalu banyak aplikasi terdaftar dengan FCM pada perangkat tersebut. Error ini tidak seharusnya mempengaruhi pengguna biasa.</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -494,7 +493,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="search_banned_user_hint">Saring pengguna yang dicekal</string>
     <string name="room_permissions_change_topic">Mengubah topik</string>
     <string name="room_permissions_upgrade_the_room">Meng-upgrade ruangan ini</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Mengirim event m.room.server_acl</string>
     <string name="room_permissions_send_messages">Mengirim pesan</string>
     <string name="room_permissions_invite_users">Mengundang pengguna</string>
     <string name="room_permissions_ban_users">Mencekal pengguna</string>
@@ -888,9 +886,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_room_invitations">Undangan ruangan</string>
     <string name="settings_messages_containing_keywords">Kata kunci</string>
     <string name="settings_mentions_at_room">\@room</string>
-    <string name="settings_encrypted_group_messages">Pesan grup terenkripsi</string>
     <string name="settings_group_messages">Pesan grup</string>
-    <string name="settings_encrypted_direct_messages">Pesan terenkripsi langsung</string>
     <string name="settings_messages_direct_messages">Pesan langsung</string>
     <string name="settings_when_rooms_are_upgraded">Saat ruangan ditingkatkan</string>
     <string name="settings_messages_in_e2e_group_chat">Pesan terenkripsi di obrolan grup</string>
@@ -965,7 +961,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="help_long_click_on_room_for_more_options">Tekan lama pada sebuah ruangan untuk melihat lebih banyak pilihan</string>
     <string name="no_ignored_users">Anda tidak mengabaikan pengguna apa pun</string>
     <string name="reaction_search_type_hint">Ketik kata kunci untuk mencari sebuah reaksi.</string>
-    <string name="spoiler">Spoiler</string>
     <string name="command_description_spoiler">Mengirim pesan sebagai spoiler</string>
     <string name="notice_member_no_changes_by_you">Anda tidak membuat perubahan</string>
     <string name="notice_member_no_changes">%1$s tidak membuat perubahan</string>
@@ -988,7 +983,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="uploads_media_title">MEDIA</string>
     <string name="attachment_viewer_item_x_of_y">%1$d dari %2$d</string>
     <string name="error_handling_incoming_share">Tidak dapat menangani perbagian data</string>
-    <string name="rotate_and_crop_screen_title">Putar dan krop</string>
     <string name="attachment_type_sticker">Stiker</string>
     <string name="attachment_type_gallery">Galeri</string>
     <string name="attachment_type_camera">Kamera</string>
@@ -1484,7 +1478,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="a11y_recording_voice_message">Merekam pesan suara</string>
     <string name="a11y_pause_voice_message">Jeda Pesan Suara</string>
     <string name="a11y_play_voice_message">Mainkan Pesan Suara</string>
-    <string name="voice_message_slide_to_cancel">Geser untuk membatalkan</string>
     <string name="a11y_start_voice_message">Rekam Pesan Suara</string>
     <string name="error_failed_to_join_room">Maaf, sebuah kesalahan terjadi saat bergabung: %s</string>
     <string name="room_upgrade_to_recommended_version">Tingkatkan ke versi ruangan yang disarankan</string>
@@ -2032,8 +2025,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="action_thread_copy_link_to_thread">Salin tautan ke utasan</string>
     <string name="action_thread_view_in_room">Tampilkan di ruangan</string>
     <string name="action_view_threads">Tampilkan Utasan</string>
-    <string name="room_message_autocomplete_notification">Notifikasi ruangan</string>
-    <string name="room_message_autocomplete_users">Pengguna</string>
     <string name="room_message_notify_everyone">Beri tahu seluruh ruangan</string>
     <plurals name="message_reaction_show_more">
         <item quantity="other">%1$d lagi</item>
@@ -2316,8 +2307,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="attachment_type_selector_file">Lampiran</string>
     <string name="attachment_type_selector_sticker">Stiker</string>
     <string name="attachment_type_selector_gallery">Pustaka foto</string>
-    <string name="action_deselect_all">Batalkan semua pilihan</string>
-    <string name="action_select_all">Pilih semua</string>
     <string name="attachment_type_selector_text_formatting">Format teks</string>
     <string name="message_reply_to_sender_created_poll">membuat pemungutan suara.</string>
     <string name="message_reply_to_sender_sent_sticker">mengirim stiker.</string>

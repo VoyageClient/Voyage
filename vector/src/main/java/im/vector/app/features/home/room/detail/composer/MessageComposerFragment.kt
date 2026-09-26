@@ -28,6 +28,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -947,7 +948,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             )
             else -> {
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(Uri.parse(requireNotNull(action.externalUri)), action.mimeType ?: MimeTypes.Any)
+                    setDataAndType(requireNotNull(action.externalUri).toUri(), action.mimeType ?: MimeTypes.Any)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 requireContext().safeStartActivity(Intent.createChooser(intent, null))

@@ -20,6 +20,7 @@ import android.os.SystemClock
 import android.text.Spanned
 import android.text.style.ReplacementSpan
 import android.widget.TextView
+import androidx.core.graphics.drawable.toDrawable
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import im.vector.app.core.glide.GlideApp
@@ -99,7 +100,7 @@ class EmoteImageSpan(
         tv = WeakReference(textView)
         if (drawable == null) {
             EmoteFrameCache.get(mxcUrl)?.let {
-                drawable = BitmapDrawable(textView.resources, it)
+                drawable = it.toDrawable(textView.resources)
                 frameCached = true
             }
         }

@@ -17,6 +17,7 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.media.MediaMetadataRetriever
 import android.os.Build
+import androidx.core.graphics.createBitmap
 import com.caverock.androidsvg.SVG
 import com.vanniktech.blurhash.BlurHash
 import kotlinx.coroutines.sync.Semaphore
@@ -172,7 +173,7 @@ internal class AndroidAttachmentMediaProcessor @Inject constructor(
             val scale = BLURHASH_DECODE_MAX / max(docWidth, docHeight)
             val width = (docWidth * scale).roundToInt().coerceAtLeast(1)
             val height = (docHeight * scale).roundToInt().coerceAtLeast(1)
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
             canvas.drawPicture(svg.renderToPicture(bitmap.width, bitmap.height), Rect(0, 0, bitmap.width, bitmap.height))
             // Blurhash has no alpha. Fill transparent pixels with the artwork's average color to avoid black halos.

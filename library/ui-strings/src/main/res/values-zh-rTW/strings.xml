@@ -607,7 +607,6 @@
     <string name="settings_notification_by_event">事件通知的重要性</string>
     <string name="settings_troubleshoot_test_bing_settings_title">自訂設定</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">注意：某些類型的訊息通知不會有音效。</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">有一些通知在您的自訂設定中被停用了。</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \n這個錯誤並非 ${app_name} 所能控制，而是與 Google 有關，這個錯誤代表裝置註冊了太多使用 FCM 的應用程式。這個錯誤只會發生在有超大量的應用程式的裝置上，所以不應該影響一般的使用者。</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -931,7 +930,6 @@
     <string name="room_list_quick_actions_leave">離開聊天室</string>
     <string name="notice_member_no_changes">%1$s 未做出任何變更</string>
     <string name="command_description_spoiler">將指定的訊息作為劇透傳送</string>
-    <string name="spoiler">劇透</string>
     <string name="reaction_search_type_hint">輸入關鍵字以尋找反應。</string>
     <string name="no_ignored_users">您未忽略任何使用者</string>
     <string name="help_long_click_on_room_for_more_options">長按聊天室以檢視更多選項</string>
@@ -1531,7 +1529,6 @@
     <string name="warning_room_not_created_yet">聊天室尚未建立。取消建立聊天室？</string>
     <string name="room_list_quick_actions_low_priority_remove">從低優先度移除</string>
     <string name="room_list_quick_actions_low_priority_add">新增到低優先度</string>
-    <string name="rotate_and_crop_screen_title">旋轉並裁切</string>
     <string name="attachment_type_dialog_title">新增圖片從</string>
     <string name="create_room_settings_section">聊天室設定</string>
     <string name="create_room_topic_hint">主題</string>
@@ -1611,7 +1608,6 @@
     <string name="login_social_continue">或</string>
     <string name="room_permissions_change_topic">變更主題</string>
     <string name="room_permissions_upgrade_the_room">升級聊天室</string>
-    <string name="room_permissions_send_m_room_server_acl_events">傳送 m.room.server_acl 事件</string>
     <string name="room_permissions_change_permissions">變更權限</string>
     <string name="room_permissions_change_room_name">變更聊天室名稱</string>
     <string name="room_permissions_change_history_visibility">變更歷史紀錄可見性</string>
@@ -1820,7 +1816,6 @@
     <string name="a11y_recording_voice_message">正在錄製語音訊息</string>
     <string name="a11y_pause_voice_message">暫停語音訊息</string>
     <string name="a11y_play_voice_message">播放語音訊息</string>
-    <string name="voice_message_slide_to_cancel">滑動以取消</string>
     <string name="a11y_start_voice_message">錄製語音訊息</string>
     <string name="upgrade_required">必須升級</string>
     <string name="sent_a_voice_message">語音。</string>
@@ -1837,9 +1832,7 @@
     <string name="settings_room_upgrades">聊天室升級</string>
     <string name="settings_messages_by_bot">來自聊天機器人的訊息</string>
     <string name="settings_room_invitations">聊天室邀請</string>
-    <string name="settings_encrypted_group_messages">加密的群組訊息</string>
     <string name="settings_group_messages">群組訊息</string>
-    <string name="settings_encrypted_direct_messages">加密的私人訊息</string>
     <string name="settings_messages_direct_messages">私人訊息</string>
     <string name="settings_notification_notify_me_for">通知我</string>
     <string name="settings_notification_other">其他</string>
@@ -2030,8 +2023,6 @@
     <string name="action_thread_copy_link_to_thread">複製討論串連結</string>
     <string name="action_thread_view_in_room">在聊天室中檢視</string>
     <string name="action_view_threads">檢視討論串</string>
-    <string name="room_message_autocomplete_notification">聊天室通知</string>
-    <string name="room_message_autocomplete_users">使用者</string>
     <string name="room_message_notify_everyone">通知整個聊天室</string>
     <plurals name="message_reaction_show_more">
         <item quantity="other">還有 %1$d 個</item>
@@ -2314,8 +2305,6 @@
     <string name="attachment_type_selector_file">附件</string>
     <string name="attachment_type_selector_sticker">貼圖</string>
     <string name="attachment_type_selector_gallery">照片媒體庫</string>
-    <string name="action_deselect_all">取消選取全部</string>
-    <string name="action_select_all">選取全部</string>
     <string name="attachment_type_selector_text_formatting">文字格式</string>
     <string name="message_reply_to_sender_created_poll">已建立投票。</string>
     <string name="message_reply_to_sender_sent_sticker">已傳送貼圖。</string>

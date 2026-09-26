@@ -606,7 +606,6 @@
     <string name="login_set_email_mandatory_hint">ഈ - മെയിൽ</string>
     <string name="login_reset_password_warning_submit">തുടരുക</string>
     <string name="login_reset_password_email_hint">ഈമെയിൽ</string>
-    <string name="spoiler">സ്‌പോയിലർ</string>
     <string name="room_list_quick_actions_notifications_mute">നിശബ്ദമാക്കുക</string>
     <string name="uploads_files_title">ഫയലുകൾ</string>
     <string name="uploads_media_title">മീഡിയ</string>

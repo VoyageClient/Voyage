@@ -616,7 +616,6 @@
     <string name="settings_notification_by_event">Rëndësi njoftimi sipas aktesh</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Rregullime Vetjake.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Kini parasysh që disa lloje mesazhesh janë caktuar të jenë të heshtur (do të prodhohet një njoftim pa tingull).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Disa njoftime janë të çaktivizuara te rregullimet tuaja vetjake.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nKy gabim është jashtë kontrollit të ${app_name}-it dhe, sipas Google-it, ky gabim është shenjë se pajisja ka shumë aplikacione të regjistruar me FCM. Gabimi ndodh vetëm në raste kur ka një numër të skajshëm aplikacionesh, ndaj nuk duhet të prekë përdoruesin mesatar.</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -1556,7 +1555,6 @@
     <string name="warning_room_not_created_yet">Dhoma s’është krijuar ende. Të anulohet krijimi i dhomës\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Hiqe prej përparësie të ulët</string>
     <string name="room_list_quick_actions_low_priority_add">Shtoje te përparësi e ulët</string>
-    <string name="rotate_and_crop_screen_title">Rrotullojeni dhe qetheni</string>
     <string name="attachment_type_dialog_title">Shtoni figurë prej</string>
     <string name="create_room_settings_section">Rregullime dhome</string>
     <string name="create_room_topic_hint">Subjekt</string>
@@ -1643,7 +1641,6 @@
     <string name="settings_show_emoji_keyboard">Shfaq tastierë emoji-sh</string>
     <string name="room_permissions_change_topic">Të ndryshojë temë</string>
     <string name="room_permissions_upgrade_the_room">Të përmirësojë dhomën</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Të dërgojë akte m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Të ndryshojë leje</string>
     <string name="room_permissions_change_room_name">Të ndryshojë emër dhome</string>
     <string name="room_permissions_change_history_visibility">Të ndryshojë dukshmëri historiku</string>
@@ -1848,7 +1845,6 @@
     <string name="a11y_recording_voice_message">Po incizohet mesazh zanor</string>
     <string name="a11y_pause_voice_message">Ndalni Mesazh Zanor</string>
     <string name="a11y_play_voice_message">Luani Mesazh Zanor</string>
-    <string name="voice_message_slide_to_cancel">Rrëshqiteni që të anulohet</string>
     <string name="a11y_start_voice_message">Incizoni Mesazh Zanor</string>
     <string name="upgrade_required">Lypset Domosdo Përmirësim</string>
     <string name="sent_a_voice_message">Zë.</string>
@@ -1865,9 +1861,7 @@
     <string name="settings_room_upgrades">Përmirësime dhome</string>
     <string name="settings_messages_by_bot">Mesazhe nga roboti</string>
     <string name="settings_room_invitations">Ftesa për në dhoma</string>
-    <string name="settings_encrypted_group_messages">Mesazhe të fshehtëzuar grupi</string>
     <string name="settings_group_messages">Mesazhe grupi</string>
-    <string name="settings_encrypted_direct_messages">Mesazhe të drejtpërdrejtë të fshehtëzuar</string>
     <string name="settings_messages_direct_messages">Mesazhe të drejtpërdrejtë</string>
     <string name="settings_notification_notify_me_for">Njoftomë për</string>
     <string name="settings_notification_other">Tjetër</string>
@@ -2069,12 +2063,10 @@
         <item quantity="other">%1$d më tepër</item>
     </plurals>
     <string name="room_message_notify_everyone">Njofto krejt dhomën</string>
-    <string name="room_message_autocomplete_users">Përdorues</string>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="one">%d ndryshim ACL-sh shërbyesi</item>
         <item quantity="other">%d ndryshimë ACL-sh shërbyesi</item>
     </plurals>
-    <string name="room_message_autocomplete_notification">Njoftim dhome</string>
     <string name="message_reaction_show_less">Shfaq më pak</string>
     <string name="location_share_live_stop">Ndale</string>
     <string name="location_share_live_enabled">Vendndodhje Drejtpërsëdrejti e aktivizuar</string>
@@ -2329,8 +2321,6 @@
     <string name="home_layout_preferences_recents">Shfaq të freskëta</string>
     <string name="home_layout_preferences_filters">Shfaq filtra</string>
     <string name="home_layout_preferences">Parapëlqime skeme grafike</string>
-    <string name="action_deselect_all">Shpërzgjidhi krejt</string>
-    <string name="action_select_all">Përzgjidhi krejt</string>
     <string name="action_got_it">E mora</string>
     <string name="action_reset">Rifillo</string>
     <string name="time_unit_second_short">sek</string>

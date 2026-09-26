@@ -7,7 +7,7 @@
 
 package im.vector.app.features.roomprofile.acl
 
-import android.widget.Switch
+import androidx.appcompat.widget.SwitchCompat
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
@@ -20,6 +20,7 @@ abstract class RoomAclIpLiteralsItem : VectorEpoxyModel<RoomAclIpLiteralsItem.Ho
     @EpoxyAttribute var editable: Boolean = false
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onChanged: ((Boolean) -> Unit)? = null
     override fun bind(holder: Holder) {
+        super.bind(holder)
         holder.toggle.setOnCheckedChangeListener(null)
         holder.toggle.isChecked = checked
         holder.toggle.isEnabled = editable
@@ -27,6 +28,6 @@ abstract class RoomAclIpLiteralsItem : VectorEpoxyModel<RoomAclIpLiteralsItem.Ho
     }
 
     class Holder : VectorEpoxyHolder() {
-        val toggle by bind<Switch>(R.id.roomAclIpLiterals)
+        val toggle by bind<SwitchCompat>(R.id.roomAclIpLiterals)
     }
 }

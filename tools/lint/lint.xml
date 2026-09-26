@@ -96,6 +96,10 @@
     <issue id="UselessParent" severity="error" />
 
     <!-- Dependencies -->
+    <!-- Keep the lint override aligned with this project's AGP/Kotlin toolchain. -->
+    <issue id="GradleDependency">
+        <ignore regexp="Newer version of lint available" />
+    </issue>
     <issue id="KtxExtensionAvailable" severity="error" />
 
     <!-- Timber -->

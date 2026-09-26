@@ -9,7 +9,6 @@ package im.vector.app.features.media
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Parcelable
@@ -20,6 +19,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.Companion.PRIVATE
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.updateLayoutParams
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Transformation
@@ -979,7 +979,7 @@ class ImageContentRenderer @Inject constructor(
      */
     private fun pickerFrame(data: Data, mode: Mode): Drawable? {
         if (mode != Mode.STICKER) return null
-        return EmoteFrameCache.get(data.url)?.let { BitmapDrawable(context.resources, it) }
+        return EmoteFrameCache.get(data.url)?.let { it.toDrawable(context.resources) }
     }
 
     private fun placeholderFor(imageView: ImageView, data: Data, showGlyph: Boolean, square: Boolean = false): MediaPlaceholderDrawable {

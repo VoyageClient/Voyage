@@ -11,7 +11,6 @@ import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.database.DataSetObserver
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.LayerDrawable
 import android.view.View
@@ -20,6 +19,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.annotation.CallSuper
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.graphics.drawable.toDrawable
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.divider.MaterialDividerItemDecoration
@@ -90,8 +90,8 @@ abstract class RecyclerViewPresenter<T : Any>(context: Context) : AutocompletePr
         return MaxVisibleItemsRecyclerView(themedContext, maxVisibleItems).apply {
             backgroundCompat = LayerDrawable(
                     arrayOf(
-                            ColorDrawable(divider),
-                            InsetDrawable(ColorDrawable(background), 0, thickness, 0, 0)
+                            divider.toDrawable(),
+                            InsetDrawable(background.toDrawable(), 0, thickness, 0, 0)
                     )
             )
             addItemDecoration(

@@ -17,6 +17,7 @@ import android.os.Process
 import android.util.SparseArray
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
+import androidx.core.graphics.createBitmap
 
 /**
  * Renders effect frames off the main thread, into each drawable's spare buffer.
@@ -87,7 +88,7 @@ object AvatarEffectRenderer {
     /** Renders one frame synchronously, for stills and for the settings previews. */
     @AnyThread
     fun renderStill(effect: AvatarEffect, texture: Bitmap, sizePx: Int, frame: Int = effect.heroFrame): Bitmap {
-        val target = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val target = createBitmap(sizePx, sizePx)
         paint(stillPainter, target, effect, texture, sizePx, frame)
         return target
     }
@@ -100,7 +101,7 @@ object AvatarEffectRenderer {
      */
     @UiThread
     fun renderFirstFrame(effect: AvatarEffect, texture: Bitmap, sizePx: Int, frame: Int): Bitmap {
-        val target = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val target = createBitmap(sizePx, sizePx)
         val canvas = Canvas(target)
         canvas.drawColor(0, PorterDuff.Mode.CLEAR)
         firstFramePainter.paint(canvas, effect, texture, sizePx, frame)
@@ -141,7 +142,7 @@ object AvatarEffectRenderer {
     @AnyThread
     private fun obtain(sizePx: Int): Bitmap {
         val reused = synchronized(pool) { pool.get(sizePx)?.removeLastOrNull() }
-        return reused?.takeIf { !it.isRecycled } ?: Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        return reused?.takeIf { !it.isRecycled } ?: createBitmap(sizePx, sizePx)
     }
 
     /** A blank buffer to draw an avatar's picture into, for callers building a texture. */

@@ -7,18 +7,15 @@
 
 package im.vector.app.features.autocomplete
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
 
-/**
- * Caps the measured height at the first [maxVisibleItems] rows, so the rest scrolls. Rows are measured
- * rather than assumed uniform: an autocomplete row grows when its text wraps.
- */
+// Constructed only in code because the size limit is supplied by the caller.
+@SuppressLint("ViewConstructor")
 class MaxVisibleItemsRecyclerView(context: Context, private val maxVisibleItems: Int) : RecyclerView(context) {
 
-    // Measured with the spec we are given, never an unbounded one: a LinearLayoutManager fills whatever
-    // space it is offered, so an "infinite" AT_MOST makes it inflate and measure every row in the adapter.
-    // That is fine for a few dozen commands and an ANR for a room's whole member list.
+    // An unbounded spec makes LinearLayoutManager measure the entire member list and can cause an ANR.
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
         super.onMeasure(widthSpec, heightSpec)
         if (childCount <= maxVisibleItems) return

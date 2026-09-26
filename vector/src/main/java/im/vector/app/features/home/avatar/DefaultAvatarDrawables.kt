@@ -20,6 +20,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import androidx.core.graphics.withClip
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.settings.AvatarShape
 
@@ -52,10 +53,7 @@ abstract class ShapedAvatarDrawable(private val shape: AvatarShape) : Drawable()
     /** Runs [draw] with anything outside the avatar's shape erased, for content that overflows it. */
     protected fun clippedToShape(canvas: Canvas, draw: () -> Unit) {
         if (shape == AvatarShape.SQUARE) {
-            val saved = canvas.save()
-            canvas.clipRect(boundsF)
-            draw()
-            canvas.restoreToCount(saved)
+            canvas.withClip(boundsF) { draw() }
             return
         }
         @Suppress("DEPRECATION")

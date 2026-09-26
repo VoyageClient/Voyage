@@ -28,6 +28,7 @@ abstract class RoomAclSectionItem : VectorEpoxyModel<RoomAclSectionItem.Holder>(
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onExpandToggle: (() -> Unit)? = null
 
     override fun bind(holder: Holder) {
+        super.bind(holder)
         holder.title.text = title
         holder.add.visibility = if (addVisible) View.VISIBLE else View.GONE
         holder.add.contentDescription = addDescription

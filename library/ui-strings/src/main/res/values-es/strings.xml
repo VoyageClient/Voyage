@@ -580,7 +580,6 @@
     <string name="settings_troubleshoot_test_device_settings_quickfix">Activar</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Ajustes personalizados.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Ten en cuenta que algunos mensajes son silenciosos (producen una notificación sin sonido).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Algunas notificaciones están desactivadas en tus ajustes personalizados.</string>
     <string name="settings_troubleshoot_test_play_services_title">Prueba de servicios Google Play</string>
     <string name="settings_troubleshoot_test_play_services_success">APK de servicios de Google Play esta disponible y actualizado.</string>
     <string name="sign_out_bottom_sheet_warning_no_backup">Al cerrar la sesión se perderán los mensajes cifrados</string>
@@ -947,7 +946,6 @@
     <string name="room_list_quick_actions_leave">Abandonar sala</string>
     <string name="notice_member_no_changes">%1$s no ha hecho ningún cambio</string>
     <string name="command_description_spoiler">Envía el mensaje como spoiler</string>
-    <string name="spoiler">Revelación</string>
     <string name="reaction_search_type_hint">Escribe las palabras clave para encontrar una reacción.</string>
     <string name="no_ignored_users">No hay usuarios ignorados</string>
     <string name="help_long_click_on_room_for_more_options">Mantén pulsada una sala para ver más opciones</string>
@@ -1506,7 +1504,6 @@
     <string name="sent_a_poll">Encuesta.</string>
     <string name="room_list_quick_actions_low_priority_remove">Eliminar de baja prioridad</string>
     <string name="room_list_quick_actions_low_priority_add">Añadir a Baja prioridad</string>
-    <string name="rotate_and_crop_screen_title">Rotar y recortar</string>
     <plurals name="seconds">
         <item quantity="one">% segundo</item>
         <item quantity="other">%d segundos</item>
@@ -1618,7 +1615,6 @@
     <string name="room_permissions_invite_users">Invitar usuarios</string>
     <string name="room_permissions_default_role">Rol por defecto</string>
     <string name="room_permissions_title">Permisos</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Envía los eventos m.room.server_acl</string>
     <string name="room_permissions_notice_read_only">No tienes permiso para actualizar los roles necesarios para cambiar varias partes de la sala</string>
     <string name="room_permissions_notice">Seleciona los roles necesarios para cambiar varias partes de la sala</string>
     <string name="join_space">Únete a un Espacio</string>
@@ -1767,9 +1763,7 @@
     <string name="settings_room_upgrades">Actualizaciones de sala</string>
     <string name="settings_messages_by_bot">Mensajes de bots</string>
     <string name="settings_room_invitations">Invitaciones a salas</string>
-    <string name="settings_encrypted_group_messages">Mensajes de grupo encriptados</string>
     <string name="settings_group_messages">Mensajes de grupo</string>
-    <string name="settings_encrypted_direct_messages">Mensajes directos encriptados</string>
     <string name="settings_messages_direct_messages">Mensajes directos</string>
     <string name="settings_notification_notify_me_for">Notficarme para</string>
     <string name="settings_notification_other">Otros</string>
@@ -1934,7 +1928,6 @@
     <string name="a11y_stop_voice_message">Para de grabar</string>
     <string name="a11y_pause_voice_message">Pausar mensaje de voz</string>
     <string name="a11y_play_voice_message">Reproducir mensaje de voz</string>
-    <string name="voice_message_slide_to_cancel">Deslizar para cancelar</string>
     <string name="a11y_start_voice_message">Grabar mensaje de voz</string>
     <string name="error_failed_to_join_room">Lo sentimos, se produjo un error al intentar unirse: %s</string>
     <string name="room_upgrade_to_recommended_version">Actualiza la versión de sala recomendada</string>
@@ -2050,8 +2043,6 @@
     <string name="identity_server_consent_dialog_content_3">Para descubrir contactos ya existentes, tendrás que enviar información de contacto (emails y números de teléfono) a tu servidor de identidad. Aplicamos hashes en tus datos antes de enviarlos por privacidad.</string>
     <string name="settings_presence_user_always_appears_offline_summary">Si se activa, siempre aparecerás como fuera de línea para otros usuarios, incluso cuando uses la aplicación.</string>
     <string name="threads_beta_enable_notice_message">Los hilos ayudan a mantener tus conversaciones en el asunto y las hacen más fáciles de rastrear. %sHabilitar la función de hilos refrescará la aplicación. Esto podría tardar más en algunas cuentas.</string>
-    <string name="room_message_autocomplete_notification">Notificación de sala</string>
-    <string name="room_message_autocomplete_users">Usuarios</string>
     <string name="room_message_notify_everyone">Notificar a toda la sala</string>
     <string name="live_location_sharing_notification_description">La compartición de ubicación está en progreso</string>
     <string name="live_location_sharing_notification_title">${app_name} Ubicación en directo</string>
@@ -2282,7 +2273,6 @@
     <string name="create_room">Crear sala</string>
     <string name="start_chat">Iniciar conversación</string>
     <string name="all_chats">Todas las conversaciones</string>
-    <string name="action_select_all">Seleccionar todo</string>
     <string name="action_got_it">De acuerdo</string>
     <string name="settings_enable_direct_share_title">Habilitar compartición directa</string>
     <string name="grant_permission">Otorgar permiso</string>
@@ -2294,7 +2284,6 @@
     <string name="labs_enable_deferred_dm_summary">Crear MD únicamente al primer mensaje</string>
     <string name="labs_enable_new_app_layout_summary">Una versión simplificada de Element con pestañas opcionales</string>
     <string name="labs_enable_new_app_layout_title">Habilitar nueva disposición</string>
-    <string name="action_deselect_all">Deseleccionar todo</string>
     <string name="notice_voice_broadcast_ended_by_you">Has finalizado una transmisión de voz.</string>
     <string name="notice_voice_broadcast_ended">%1$s ha finalizado una transmisión de voz.</string>
     <string name="ftue_auth_choose_server_ems_subtitle">Element Matrix Services (EMS) es un servicio de alojamiento para tus comunicaciones en tiempo real. Robusto, confiable, rápido y seguro. Para saber cómo, ve a &lt;a href=\"${ftue_ems_url}\"&gt;element.io/ems&lt;/a&gt;</string>

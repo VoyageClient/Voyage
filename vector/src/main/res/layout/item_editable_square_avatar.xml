@@ -28,8 +28,10 @@
             app:srcCompat="@drawable/ic_attachment_camera"
             app:tint="?vctr_content_secondary" />
 
+        <!-- Decorative image; the parent supplies the accessible label on API 14 too. -->
         <ImageView
             android:id="@+id/itemEditableAvatarImage"
+            tools:ignore="UnusedAttribute"
             android:layout_width="128dp"
             android:layout_height="128dp"
             android:importantForAccessibility="no"

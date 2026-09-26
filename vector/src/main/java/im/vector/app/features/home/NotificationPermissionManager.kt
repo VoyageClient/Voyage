@@ -46,7 +46,7 @@ class NotificationPermissionManager @Inject constructor(
     ) {
         if (!sdkIntProvider.isAtLeast(Build.VERSION_CODES.TIRAMISU)) return
         if (!vectorPreferences.areNotificationEnabledForDevice() && !ignorePreference) return
-        if (isPostNotificationsGranted(activity)) {
+        if (isPermissionGranted(activity)) {
             // Granting it settles the question; if it is revoked later, that is worth asking about once.
             vectorPreferences.setNotificationPermissionAsked(false)
             return
@@ -66,15 +66,6 @@ class NotificationPermissionManager @Inject constructor(
         requestPermissionLauncher.launch(
                 arrayOf(Manifest.permission.POST_NOTIFICATIONS)
         )
-    }
-
-    // Not [isPermissionGranted]: the permission name is a compile-time constant and ContextCompat handles
-    // every API level, so this needs no version gate of its own.
-    private fun isPostNotificationsGranted(activity: Activity): Boolean {
-        return ContextCompat.checkSelfPermission(
-                activity,
-                Manifest.permission.POST_NOTIFICATIONS
-        ) == PackageManager.PERMISSION_GRANTED
     }
 
     fun eventuallyRevokePermission(

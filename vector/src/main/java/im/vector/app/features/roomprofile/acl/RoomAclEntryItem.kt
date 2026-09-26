@@ -29,6 +29,7 @@ abstract class RoomAclEntryItem : VectorEpoxyModel<RoomAclEntryItem.Holder>(R.la
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onTypeChanged: (() -> Unit)? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onDelete: (() -> Unit)? = null
     override fun bind(holder: Holder) {
+        super.bind(holder)
         holder.server.removeTextChangedListener(holder.watcher)
         if (holder.server.text.toString() != entry.server) holder.server.setText(entry.server)
         val typeLabel = if (entry.allowed) CommonStrings.room_acl_allow else CommonStrings.room_acl_deny
@@ -53,6 +54,7 @@ abstract class RoomAclEntryItem : VectorEpoxyModel<RoomAclEntryItem.Holder>(R.la
         holder.delete.setOnClickListener { onDelete?.invoke() }
     }
     override fun unbind(holder: Holder) {
+        super.unbind(holder)
         holder.server.removeTextChangedListener(holder.watcher)
         holder.watcher = null
     }

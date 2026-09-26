@@ -234,7 +234,6 @@
     <string name="settings_troubleshoot_test_device_settings_quickfix">켜기</string>
     <string name="settings_troubleshoot_test_bing_settings_title">맞춤 설정.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">일부 메시지 유형은 조용하게 설정되어 있습니다 (소리가 없는 알림을 생성합니다).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">일부 알림이 맞춤 설정에서 꺼집니다.</string>
     <string name="settings_troubleshoot_test_play_services_title">Play 서비스 확인</string>
     <string name="settings_troubleshoot_test_play_services_success">Google Play 서비스 APK는 최신 버전입니다.</string>
     <string name="settings_troubleshoot_test_play_services_failed">${app_name}은 Google Play 서비스를 사용해 푸시 메시지를 보내지만 올바르게 설정되지 않은 모양입니다:

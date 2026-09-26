@@ -228,7 +228,6 @@
     <string name="uploads_media_title">MÉDIA</string>
     <string name="attachment_viewer_item_x_of_y">%1$d de %2$d</string>
     <string name="error_handling_incoming_share">Impossible de traiter les données de partage</string>
-    <string name="rotate_and_crop_screen_title">Pivoter et rogner</string>
     <string name="attachment_type_sticker">Autocollants</string>
     <string name="attachment_type_gallery">Galerie</string>
     <string name="attachment_type_camera">Appareil photo</string>
@@ -468,7 +467,6 @@
     <string name="dev_tools_send_custom_state_event">Envoyer des évènements d’état personnalisés</string>
     <string name="dev_tools_send_state_event">Envoyer un évènement d’état</string>
     <string name="dev_tools_send_custom_event">Envoyer un évènement personnalisé</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Envoyer des évènements m.room.server_acl</string>
     <string name="settings_show_avatar_display_name_changes_messages">Afficher les évènements liés au compte</string>
     <plurals name="room_details_selected">
         <item quantity="one">%d sélectionné</item>
@@ -899,7 +897,6 @@
     <string name="help_long_click_on_room_for_more_options">Clic long sur un salon pour voir plus d’options</string>
     <string name="no_ignored_users">Vous n’ignorez aucun utilisateur</string>
     <string name="reaction_search_type_hint">Saisir des mots-clés pour trouver une réaction.</string>
-    <string name="spoiler">Spoiler</string>
     <string name="command_description_spoiler">Envoie le message fourni comme un spoiler</string>
     <string name="notice_member_no_changes_by_you">Vous n’avez rien changé</string>
     <string name="notice_member_no_changes">%1$s n’a effectué aucun changement</string>
@@ -975,7 +972,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_play_services_success">L’APK des services Google Play est disponible et à jour.</string>
     <string name="settings_troubleshoot_test_play_services_title">Vérification des services Google Play</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Certaines notifications sont désactivées dans vos paramètres personnalisés.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Remarquez que certains messages sont réglés pour être silencieux (ils produiront une notification sans son).</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Paramètres personnalisés.</string>
     <string name="settings_troubleshoot_test_device_settings_quickfix">Activer</string>

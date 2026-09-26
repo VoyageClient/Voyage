@@ -378,8 +378,6 @@
     <string name="action_proceed_to_reset">Proceed to reset</string>
     <string name="action_learn_more">Learn more</string>
     <string name="action_got_it">Got it</string>
-    <string name="action_select_all">Select all</string>
-    <string name="action_deselect_all">Deselect all</string>
 
     <string name="copied_to_clipboard">Copied to clipboard</string>
 
@@ -648,7 +646,6 @@
     <string name="room_permissions_change_room_name">Change room name</string>
     <string name="room_permissions_change_space_name">Change space name</string>
     <string name="room_permissions_change_permissions">Change permissions</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Send m.room.server_acl events</string>
     <string name="room_permissions_upgrade_the_room">Upgrade the room</string>
     <string name="room_permissions_upgrade_the_space">Upgrade the space</string>
     <string name="room_permissions_change_topic">Change topic</string>
@@ -766,7 +763,6 @@
 
     <string name="settings_troubleshoot_test_bing_settings_title">Custom Settings.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Notice that some messages type are set to be silent (will produce a notification with no sound).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Some notifications are disabled in your custom settings.</string>
 
     <string name="settings_troubleshoot_test_play_services_title">Play Services Check</string>
     <string name="settings_troubleshoot_test_play_services_success">Google Play Services APK is available and up-to-date.</string>
@@ -838,9 +834,7 @@
     <string name="settings_messages_sent_by_bot">Messages sent by bot</string>
 
     <string name="settings_messages_direct_messages">Direct messages</string>
-    <string name="settings_encrypted_direct_messages">Encrypted direct messages</string>
     <string name="settings_group_messages">Group messages</string>
-    <string name="settings_encrypted_group_messages">Encrypted group messages</string>
     <string name="settings_mentions_at_room">\@room</string>
     <string name="settings_messages_containing_keywords">Keywords</string>
     <string name="settings_room_invitations">Room invitations</string>
@@ -1729,7 +1723,6 @@
     <string name="attachment_type_sticker">"Sticker"</string>
     <string name="attachment_type_poll">Poll</string>
     <string name="attachment_type_location">Location</string>
-    <string name="rotate_and_crop_screen_title">Rotate and crop</string>
     <string name="error_handling_incoming_share">Couldn\'t handle share data</string>
 
     <string name="attachment_viewer_item_x_of_y">%1$d of %2$d</string>
@@ -1760,7 +1753,6 @@
     <string name="notice_member_no_changes">"%1$s made no changes"</string>
     <string name="notice_member_no_changes_by_you">"You made no changes"</string>
     <string name="command_description_spoiler">Sends the given message as a spoiler</string>
-    <string name="spoiler">Spoiler</string>
     <string name="reaction_search_type_hint">Type keywords to find a reaction.</string>
 
     <string name="no_ignored_users">You are not ignoring any users</string>
@@ -2797,7 +2789,6 @@
     <string name="error_failed_to_join_room">Sorry, an error occurred while trying to join: %s</string>
 
     <string name="a11y_start_voice_message">Record Voice Message</string>
-    <string name="voice_message_slide_to_cancel">Slide to cancel</string>
     <string name="a11y_play_voice_message">Play Voice Message</string>
     <string name="a11y_pause_voice_message">Pause Voice Message</string>
     <string name="a11y_stop_voice_message">Stop Recording</string>
@@ -2966,8 +2957,6 @@
     </plurals>
 
     <string name="room_message_notify_everyone">Notify the whole room</string>
-    <string name="room_message_autocomplete_users">Users</string>
-    <string name="room_message_autocomplete_notification">Room notification</string>
 
     <!-- Screen sharing -->
     <string name="unifiedpush_getdistributors_dialog_title">Choose how to receive notifications</string>

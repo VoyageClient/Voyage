@@ -579,7 +579,6 @@
     <string name="settings_notification_by_event">Важност на известията според типа събитие</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Собствени настройки.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Забележете, че някои типове съобщения са настроени да бъдат безшумни (има известие, но без звук).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Някои известия са изключени в собствените Ви настройки.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nТази грешка е извън контрола на ${app_name}. Според Google, грешката показва, че устройството има прекалено много приложения регистрирани към системата за известия FCM. Проблема се случва само в случай на огромен брой приложения, така че не би трябвало да повлияе средно-статистическия потребител.</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -909,7 +908,6 @@
     <string name="room_list_quick_actions_leave">Напусни стаята</string>
     <string name="notice_member_no_changes">%1$s не е направил промени</string>
     <string name="command_description_spoiler">Изпраща съобщението като spoiler</string>
-    <string name="spoiler">Spoiler</string>
     <string name="reaction_search_type_hint">Въведете ключови думи за да намерите реакция.</string>
     <string name="no_ignored_users">Не игнорирате потребители</string>
     <string name="help_long_click_on_room_for_more_options">Задръжте върху стая за да видите повече опции</string>
@@ -1522,7 +1520,6 @@
     <string name="warning_room_not_created_yet">Стаята все още не е създадена. Отказване създаването на стаята\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Премахни от нисък приоритет</string>
     <string name="room_list_quick_actions_low_priority_add">Добави към нисък приоритет</string>
-    <string name="rotate_and_crop_screen_title">Завъртане и изрязване</string>
     <string name="attachment_type_dialog_title">Добави изображение от</string>
     <string name="create_room_settings_section">Настройки на стаята</string>
     <string name="create_room_topic_hint">Тема</string>

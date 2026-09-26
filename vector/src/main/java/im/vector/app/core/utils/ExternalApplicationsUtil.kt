@@ -31,6 +31,7 @@ import androidx.browser.customtabs.CustomTabsSession
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
 import im.vector.app.R
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.extensions.useCompat
@@ -421,7 +422,7 @@ fun openApplicationStore(
         if (buildMeta.flavorDescription == "FDroid") {
             activity.safeStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://f-droid.org/packages/$appId")))
         } else {
-            activity.safeStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appId")))
+            activity.safeStartActivity(Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$appId".toUri()))
         }
     }
 }

@@ -923,7 +923,6 @@
     <string name="settings_messages_by_bot">رسائل آلي (Bot)</string>
     <string name="settings_messages_containing_keywords">الكلمات المفتاحيّة</string>
     <string name="settings_mentions_at_room">\@room</string>
-    <string name="settings_encrypted_direct_messages">الرسائل المباشرة المعماة</string>
     <string name="settings_messages_direct_messages">الرسائل المباشرة</string>
     <string name="settings_when_rooms_are_upgraded">عند ترقية الغرف</string>
     <string name="settings_messages_in_e2e_group_chat">الرسائل المعماة في المحادثات الجماعية</string>
@@ -1031,8 +1030,6 @@
     <string name="home_layout_preferences_sort_by">رتب حسب</string>
     <string name="home_layout_preferences_recents">أظهر الأخيرة</string>
     <string name="home_layout_preferences_filters">أظهر المرشحات</string>
-    <string name="action_deselect_all">ألغ تحديد الكل</string>
-    <string name="action_select_all">حدد الكل</string>
     <string name="action_got_it">فهمتُ</string>
     <string name="time_unit_second_short">ثا</string>
     <string name="time_unit_minute_short">د</string>

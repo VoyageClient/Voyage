@@ -594,7 +594,6 @@
 \nComprova la configuració d\'${app_name}.</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Configuració personalitzada.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Tingues en compte que alguns tipus de missatge estan configurats per ser silenciosos (es produirà una notificació sense so).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Algunes notificacions estan desactivades a la configuració personalitzada.</string>
     <string name="settings_troubleshoot_test_play_services_title">Comprovació dels serveis de Play</string>
     <string name="settings_troubleshoot_test_play_services_success">L\'APK dels Serveis de Google Play està disponible i està actualitzada.</string>
     <string name="settings_troubleshoot_test_play_services_failed">${app_name} utilitza els serveis de Google Play per lliurar missatges però sembla que no està configurat correctament:
@@ -1116,7 +1115,6 @@
     <string name="help_long_click_on_room_for_more_options">Manté clicada una sala per veure\'n més opcions</string>
     <string name="no_ignored_users">No estàs ignorant cap usuari</string>
     <string name="reaction_search_type_hint">Escriu paraules clau per buscar una reacció.</string>
-    <string name="spoiler">Revelació</string>
     <string name="command_description_spoiler">Envia el missatge proporcionat com a revelació</string>
     <string name="notice_member_no_changes_by_you">No has fet canvis</string>
     <string name="notice_member_no_changes">%1$s no ha fet canvis</string>
@@ -1127,7 +1125,6 @@
     <string name="room_list_quick_actions_favorite_add">Afegeix a preferits</string>
     <string name="room_list_quick_actions_settings">Configuració</string>
     <string name="message_ignore_user">Ignora usuari</string>
-    <string name="rotate_and_crop_screen_title">Gira i retalla</string>
     <string name="login_set_email_notice">Estableix una adreça de correu electrònic per recuperar el teu compte. Posterior i opcionalment, pots permetre que els usuaris que coneixes et puguin trobar a partir d\'aquesta adreça.</string>
     <string name="login_set_msisdn_submit">Següent</string>
     <string name="login_set_msisdn_optional_hint">Número de telèfon (opcional)</string>
@@ -1195,7 +1192,6 @@
     <string name="encryption_information_cross_signing_state">Signatura creuada</string>
     <string name="room_permissions_change_topic">Canviar el tema</string>
     <string name="room_permissions_upgrade_the_room">Actualitzar la sala</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Enviar esdeveniments m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Canviar els permisos</string>
     <string name="room_permissions_change_room_name">Canviar el nom de la sala</string>
     <string name="uploads_media_title">MITJANS</string>
@@ -1819,7 +1815,6 @@
     <string name="a11y_recording_voice_message">Enregistrant missatge de veu</string>
     <string name="a11y_stop_voice_message">Atura l\'enregistrament</string>
     <string name="a11y_play_voice_message">Reprodueix missatge de veu</string>
-    <string name="voice_message_slide_to_cancel">Llisca per cancel·lar</string>
     <string name="a11y_start_voice_message">Enregistra missatge de veu</string>
     <string name="error_failed_to_join_room">S\'ha produït un error en provar d\'entrar a: %s</string>
     <string name="room_upgrade_to_recommended_version">Actualitza a la versió de sala recomanada</string>
@@ -1841,7 +1836,6 @@
     <string name="invite_people_to_your_space">Convida gent al teu espai</string>
     <string name="invite_people_menu">Convida gent</string>
     <string name="settings_messages_direct_messages">Xats directes</string>
-    <string name="settings_encrypted_direct_messages">Xats directes xifrats</string>
     <string name="a11y_unchecked">Sense marcar</string>
     <string name="a11y_location_share_pin_on_map">Pin d\'ubicació seleccionada al mapa</string>
     <string name="upgrade_room_warning">L\'actualització d\'una sala és una acció avançada i normalment es recomana si la sala és inestable per culpa d\'errors, funcions que falten o vulnerabilitats de seguretat.
@@ -1873,9 +1867,7 @@
     <string name="this_invite_to_this_room_was_sent">La invitació a aquesta sala s\'ha enviat a %s que no està associat al teu compte</string>
     <string name="this_invite_to_this_space_was_sent">La invitació a aquest espai s\'ha enviat a %s que no està associat al teu compte</string>
     <string name="link_this_email_with_your_account">%s a la configuració per rebre invitacions directament a ${app_name}.</string>
-    <string name="room_message_autocomplete_notification">Notificació de sala</string>
     <string name="room_message_notify_everyone">Notifica a tota la sala</string>
-    <string name="room_message_autocomplete_users">Usuaris</string>
     <string name="a11y_location_share_option_user_live_icon">Comparteix ubicació en directe</string>
     <string name="location_share_option_user_live">Comparteix ubicació en directe</string>
     <string name="a11y_location_share_option_user_current_icon">Comparteix la meva ubicació actual</string>
@@ -2103,7 +2095,6 @@
     <string name="settings_messages_containing_keywords">Paraules clau</string>
     <string name="settings_mentions_at_room">\@sala</string>
     <string name="settings_group_messages">Missatges de grup</string>
-    <string name="settings_encrypted_group_messages">Missatges de grup xifrats</string>
     <string name="settings_notification_keyword_contains_invalid_character">Les paraules clau no poden contenir \'%s\'</string>
     <string name="settings_notification_keyword_contains_dot">Les paraules clau no poden començar amb \'.\'</string>
     <string name="settings_notification_new_keyword">Afegeix nova paraula clau</string>
@@ -2354,8 +2345,6 @@
 \nSi us plau, concedeix-li el permís.</string>
     <string name="device_manager_push_notifications_description">Rep notificacions en aquesta sessió.</string>
     <string name="device_manager_push_notifications_title">Notificacions</string>
-    <string name="action_deselect_all">Deselecciona-ho tot</string>
-    <string name="action_select_all">Selecciona-ho tot</string>
     <string name="attachment_type_selector_poll">Enquestes</string>
     <string name="attachment_type_selector_camera">Càmera</string>
     <string name="attachment_type_selector_location">Ubicació</string>

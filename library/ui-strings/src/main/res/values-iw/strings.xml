@@ -282,7 +282,6 @@
     <string name="room_participants_action_cancel_invite">בטל הזמנה</string>
     <string name="room_participants_action_invite">הזמן</string>
     <string name="room_participants_header_direct_chats">הודעות ישירות</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">חלק מההתראות מושבתות בהגדרות המותאמות אישית שלך.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">שים לב שחלק מסוגי ההודעות מוגדרים כשתיקים (יפיקו התראה ללא צליל).</string>
     <string name="settings_troubleshoot_test_bing_settings_title">הגדרות מותאמות אישית.</string>
     <string name="settings_troubleshoot_test_device_settings_quickfix">אפשר</string>
@@ -860,7 +859,6 @@
     <string name="help_long_click_on_room_for_more_options">לחץ לחיצה ארוכה על חדר כדי לראות אפשרויות נוספות</string>
     <string name="no_ignored_users">אתה לא מתעלם מאף משתמש</string>
     <string name="reaction_search_type_hint">הקלד מילות מפתח כדי למצוא תגובה.</string>
-    <string name="spoiler">ספויילר</string>
     <string name="command_description_spoiler">שולח את ההודעה הנתונה כספוילר</string>
     <string name="notice_member_no_changes_by_you">לא ביצעת שינויים</string>
     <string name="notice_member_no_changes">%1$s לא ביצע שינויים</string>
@@ -882,7 +880,6 @@
     <string name="uploads_media_title">מדיה</string>
     <string name="attachment_viewer_item_x_of_y">%1$d מ- %2$d</string>
     <string name="error_handling_incoming_share">לא ניתן היה לטפל בנתוני שיתוף</string>
-    <string name="rotate_and_crop_screen_title">סובב וחתוך</string>
     <string name="attachment_type_sticker">מדבקה</string>
     <string name="attachment_type_gallery">גלריה</string>
     <string name="attachment_type_camera">מצלמה</string>
@@ -1088,7 +1085,6 @@
     <string name="settings_troubleshoot_diagnostic_running_status">פועל … (%1$d מתוך%2$d)</string>
     <string name="room_permissions_change_topic">שנה נושא שיחה</string>
     <string name="room_permissions_upgrade_the_room">שדרג את החדר</string>
-    <string name="room_permissions_send_m_room_server_acl_events">שלח אירועים m.room.server_acl</string>
     <string name="room_permissions_change_permissions">שנה הרשאות</string>
     <string name="room_permissions_change_room_name">שנה את שם החדר</string>
     <string name="room_permissions_change_history_visibility">שינוי נראות ההיסטוריה</string>
@@ -1824,7 +1820,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">קיבלת את ההזמנה עבור %1$s. סיבה: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s קיבל את ההזמנה עבור %2$s. סיבה: %3$s</string>
     <string name="attachment_type_location">מיקום</string>
-    <string name="room_message_autocomplete_users">משתמשים</string>
     <string name="message_reaction_show_less">הצג פחות</string>
     <string name="ftue_auth_use_case_skip_partial">דלג על השאלה</string>
     <string name="login_splash_already_have_account">יש לי כבר חשבון</string>
@@ -1849,7 +1844,6 @@
     <string name="re_authentication_activity_title">יש צורך באימות מחדש</string>
     <string name="call_tile_other_declined">%1$s דחה את השיחה הזו</string>
     <string name="call_tile_you_declined_this_call">דחית את השיחה הזו</string>
-    <string name="room_message_autocomplete_notification">התראת חדר</string>
     <string name="room_message_notify_everyone">להודיע לכל החדר</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d יותר</item>
@@ -1890,7 +1884,6 @@
     <string name="join_space">הצטרף למרחב</string>
     <string name="create_space">יצירת מרחב</string>
     <string name="share_space_link_message">הצטרף למרחב שלי %1$s%2$s</string>
-    <string name="settings_encrypted_group_messages">הודעות קבוצה מוצפנות</string>
     <string name="settings_messages_direct_messages">הודעות ישירות</string>
     <string name="settings_room_upgrades">שידרוגי חדר</string>
     <string name="settings_room_invitations">הזמנות לחדר</string>
@@ -2081,7 +2074,6 @@
     <string name="settings_messages_by_bot">הודעות על ידי בוט</string>
     <string name="settings_mentions_at_room">חדר@</string>
     <string name="settings_group_messages">הודעות קבוצתיות</string>
-    <string name="settings_encrypted_direct_messages">הודעות ישירות מוצפנות</string>
     <string name="this_invite_to_this_space_was_sent">ההזמנה למרחב זה נשלחה מ%s אשר אינו משוייך לחשבונך</string>
     <string name="this_invite_to_this_room_was_sent">ההזמנה לחדר זה נשלחה מ%s אשר אינו משוייך לחשבונך</string>
     <string name="voice_message_reply_content">הודעה קולית (%1$s)</string>
@@ -2096,7 +2088,6 @@
     <string name="a11y_delete_recorded_voice_message">מחיקת הקלטה</string>
     <string name="a11y_recording_voice_message">מקליט הודעה קולית</string>
     <string name="a11y_stop_voice_message">עצור הקלטה</string>
-    <string name="voice_message_slide_to_cancel">החלק לביטול</string>
     <string name="a11y_start_voice_message">הקלט שיחה קולית</string>
     <string name="error_failed_to_join_room">סליחה , אירעה שגיאה בזמן נסיון ההצטרפות לחדר:%s</string>
     <string name="room_upgrade_to_recommended_version">שדרג לגרסת החדר המומלצת</string>

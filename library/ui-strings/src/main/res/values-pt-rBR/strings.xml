@@ -633,7 +633,6 @@
     <string name="settings_notification_by_event">Importância de notificação por evento</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Configurações Personalizadas.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Observe que alguns tipos de mensagens estão definidos para serem silenciosos (vão produzir uma notificação sem nenhum som).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Algumas notificações estão desabilitadas em suas configurações personalizadas.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nEste erro está fora do controle de ${app_name} e de acordo com Google, este erro indica que o dispositivo tem apps demais registrados com FCM. O erro somente ocorre em casos onde há números extremos de apps, então isso não devia afetar o usuário médio.</string>
     <string name="action_ignore">Ignorar</string>
@@ -1009,7 +1008,6 @@
     <string name="notice_member_no_changes">%1$s não fez nenhuma mudança</string>
     <string name="notice_member_no_changes_by_you">Você não fez nenhuma mudança</string>
     <string name="command_description_spoiler">Envia a dada mensagem como um spoiler</string>
-    <string name="spoiler">Spoiler</string>
     <string name="reaction_search_type_hint">Digite palavrachaves para encontrar uma reação.</string>
     <string name="no_ignored_users">Você não está ignorando nenhum usuário</string>
     <string name="help_long_click_on_room_for_more_options">Clique longo numa sala para ver mais opções</string>
@@ -1566,7 +1564,6 @@
     <string name="warning_unsaved_change_discard">Descartar mudanças</string>
     <string name="warning_unsaved_change">Existem mudanças não-salvas. Descartar as mudanças\?</string>
     <string name="warning_room_not_created_yet">A sala ainda não está criada. Cancelar a criação de sala\?</string>
-    <string name="rotate_and_crop_screen_title">Rotar e recortar</string>
     <string name="create_room_settings_section">Configurações de sala</string>
     <string name="create_room_topic_hint">Tópico</string>
     <string name="no_more_results">Mais nenhum resultado</string>
@@ -1648,7 +1645,6 @@
     <string name="settings_show_emoji_keyboard">Mostrar teclado de emoji</string>
     <string name="room_permissions_change_topic">Mudar tópico</string>
     <string name="room_permissions_upgrade_the_room">Fazer upgrade da sala</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Enviar eventos m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Mudar permissões</string>
     <string name="room_permissions_change_room_name">Mudar nome de sala</string>
     <string name="room_permissions_change_history_visibility">Mudar visibilidade do histórico</string>
@@ -1857,7 +1853,6 @@
     <string name="a11y_recording_voice_message">Gravando mensagem de voz</string>
     <string name="a11y_pause_voice_message">Pausar Mensagem de Voz</string>
     <string name="a11y_play_voice_message">Tocar Mensagem de Voz</string>
-    <string name="voice_message_slide_to_cancel">Deslize para cancelar</string>
     <string name="a11y_start_voice_message">Gravar Mensagem de Voz</string>
     <string name="upgrade_required">Upgrade Requerido</string>
     <string name="sent_a_voice_message">Voz.</string>
@@ -1875,9 +1870,7 @@
     <string name="settings_room_upgrades">Upgrades de sala</string>
     <string name="settings_messages_by_bot">Mensagens por bot</string>
     <string name="settings_room_invitations">Convites de sala</string>
-    <string name="settings_encrypted_group_messages">Mensagens em grupo criptografadas</string>
     <string name="settings_group_messages">Mensagens de grupo</string>
-    <string name="settings_encrypted_direct_messages">Mensagens diretas criptografadas</string>
     <string name="settings_messages_direct_messages">Mensagens diretas</string>
     <string name="settings_notification_other">Outras</string>
     <string name="settings_notification_mentions_and_keywords">Menções e Palavrachaves</string>
@@ -2072,8 +2065,6 @@
     <string name="action_thread_copy_link_to_thread">Copiar link para thread</string>
     <string name="action_thread_view_in_room">Visualizar em sala</string>
     <string name="action_view_threads">Visualizar Threads</string>
-    <string name="room_message_autocomplete_notification">Notificação de sala</string>
-    <string name="room_message_autocomplete_users">Usuárias(os)</string>
     <string name="room_message_notify_everyone">Notificar a sala toda</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d mais</item>
@@ -2360,8 +2351,6 @@
     <string name="attachment_type_selector_file">Anexos</string>
     <string name="attachment_type_selector_sticker">Stickers</string>
     <string name="attachment_type_selector_gallery">Biblioteca de fotos</string>
-    <string name="action_deselect_all">Desselecionar todos(as)</string>
-    <string name="action_select_all">Selecionar todos(as)</string>
     <string name="attachment_type_selector_text_formatting">Formatação de texto</string>
     <string name="message_reply_to_sender_created_poll">criou uma sondagem.</string>
     <string name="message_reply_to_sender_sent_sticker">enviou um sticker.</string>

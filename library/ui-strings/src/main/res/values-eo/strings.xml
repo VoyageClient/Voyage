@@ -587,7 +587,6 @@
     <string name="help_long_click_on_room_for_more_options">Longe klaku ĉambron por vidi pliajn elekteblojn</string>
     <string name="no_ignored_users">Vi malatentas neniun uzanton</string>
     <string name="reaction_search_type_hint">Entajpu ĉefvortojn por trovi reagon.</string>
-    <string name="spoiler">Malkaŝo de intrigo</string>
     <string name="command_description_spoiler">Sendas la donitan mesaĝon kiel malkaŝon de intrigo</string>
     <string name="notice_member_no_changes_by_you">Vi faris neniujn ŝanĝojn</string>
     <string name="notice_member_no_changes">%1$s faris neniujn ŝanĝojn</string>
@@ -1150,7 +1149,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_play_services_success">APK de servoj de Google Play estas ĝisdata kaj disponebla.</string>
     <string name="settings_troubleshoot_test_play_services_title">Kontrolo de servoj de Google Play</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Iuj sciigoj estas malŝaltitaj en viaj propraj agordoj.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Rimarku, ke iuj specoj de mesaĝoj estas silentaj (sciigas sensone).</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Propraj agordoj.</string>
     <string name="settings_troubleshoot_test_device_settings_quickfix">Ŝalti</string>
@@ -1510,7 +1508,6 @@
     <string name="warning_room_not_created_yet">La ĉambro ankoraŭ ne kreiĝis. Ĉu nuligi kreadon de la ĉambro\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Forigi de malalte prioritataj</string>
     <string name="room_list_quick_actions_low_priority_add">Aldoni al malalte prioritataj</string>
-    <string name="rotate_and_crop_screen_title">Turni kaj tondi</string>
     <string name="attachment_type_dialog_title">Aldoni bildon el</string>
     <string name="create_room_settings_section">Agordoj de ĉambro</string>
     <string name="create_room_topic_hint">Temo</string>
@@ -1532,7 +1529,6 @@
     <string name="room_alias_local_address_subtitle">Agordu adresojn por ĉi tiu ĉambro, por ke uzantoj ĝin facile trovu per via hejmservilo (%1$s)</string>
     <string name="room_permissions_change_topic">Ŝanĝi la temon</string>
     <string name="room_permissions_upgrade_the_room">Gradaltigi la ĉambron</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Sendi okazojn de la speco «m.room.server_acl»</string>
     <string name="room_permissions_change_permissions">Ŝanĝi permesojn</string>
     <string name="room_permissions_change_room_name">Ŝanĝi nomon de ĉambro</string>
     <string name="room_permissions_change_history_visibility">Ŝanĝi videblecon de historio</string>
@@ -1809,7 +1805,6 @@
     <string name="a11y_delete_recorded_voice_message">Forigi registritan voĉmesaĝon</string>
     <string name="a11y_pause_voice_message">Paŭzigi voĉmesaĝon</string>
     <string name="a11y_play_voice_message">Ludi voĉmesaĝon</string>
-    <string name="voice_message_slide_to_cancel">Ŝovu por nuligi</string>
     <string name="a11y_start_voice_message">Komenci voĉmesaĝon</string>
     <string name="error_failed_to_join_room">Pardonu, eraris aliĝo: %s</string>
     <string name="room_upgrade_to_recommended_version">Gradaltigi al rekomendata versio de ĉambro</string>
@@ -1858,9 +1853,7 @@
     <string name="settings_room_upgrades">Gradaltigoj de ĉambroj</string>
     <string name="settings_messages_by_bot">Mesaĝoj de robotoj</string>
     <string name="settings_room_invitations">Invitoj al ĉambroj</string>
-    <string name="settings_encrypted_group_messages">Grupaj babiloj ĉifritaj</string>
     <string name="settings_group_messages">Grupaj babiloj</string>
-    <string name="settings_encrypted_direct_messages">Individuaj babiloj ĉifritaj</string>
     <string name="settings_messages_direct_messages">Individuaj babiloj</string>
     <string name="settings_notification_notify_me_for">Sciigu min pri</string>
     <string name="settings_notification_other">Aliaj</string>
@@ -2035,8 +2028,6 @@
     <string name="action_try_it_out">Provi ĝin</string>
     <string name="action_not_now">Ne nun</string>
     <string name="action_got_it">Atingis</string>
-    <string name="action_select_all">Elekti ĉiujn</string>
-    <string name="action_deselect_all">Malelekti ĉiujn</string>
     <string name="updating_your_data">Ĝisdatigante viajn datumojn…</string>
     <string name="settings_notification_error_on_update">Okazis eraro dum la ĝisdatigo de viaj sciigaj preferoj. Bonvolu reprovi.</string>
 </resources>

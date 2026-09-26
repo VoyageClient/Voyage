@@ -313,7 +313,6 @@
     <string name="voice_message_release_to_send_toast">Laikykite, kad įrašytumėte, atleiskite, kad išsiųstumėte</string>
     <string name="a11y_delete_recorded_voice_message">Ištrinti įrašą</string>
     <string name="a11y_recording_voice_message">Balso žinutė įrašoma</string>
-    <string name="voice_message_slide_to_cancel">Pastumkite, kad atšauktumėte</string>
     <string name="a11y_play_voice_message">Paleisti balso žinutę</string>
     <string name="a11y_pause_voice_message">Pristabdyti balso žinutę</string>
     <string name="a11y_stop_voice_message">Stabdyti įrašymą</string>
@@ -551,7 +550,6 @@
     <string name="notice_room_server_acl_updated_banned">• Serveriai atitinkantys %s dabar yra uždrausti.</string>
     <string name="notice_room_server_acl_set_allowed">• Serveriai atitinkantys %s yra leidžiami.</string>
     <string name="notice_room_server_acl_set_banned">• Serveriai atitinkantys %s yra uždrausti.</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Siųsti m.room.server_acl įvykius</string>
     <string name="room_participants_ban_title">Užblokuoti naudotoją</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Ar tikrai norite atšaukti kvietimą šiam naudotojui\?</string>
     <string name="room_participants_action_cancel_invite_title">Atšaukti kvietimą</string>
@@ -627,8 +625,6 @@
     <string name="unifiedpush_distributor_background_sync">Foninis sinchronizavimas</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google Paslaugos</string>
     <string name="unifiedpush_getdistributors_dialog_title">Pasirinkite, kaip gauti pranešimus</string>
-    <string name="room_message_autocomplete_notification">Kambario pranešimas</string>
-    <string name="room_message_autocomplete_users">Naudotojai</string>
     <string name="room_message_notify_everyone">Pranešti visam kambariui</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d daugiau</item>
@@ -952,9 +948,7 @@
     <string name="settings_room_invitations">Kvietimai į kambarį</string>
     <string name="settings_messages_containing_keywords">Raktažodžiai</string>
     <string name="settings_mentions_at_room">\@kambarys</string>
-    <string name="settings_encrypted_group_messages">Šifruotos grupių žinutės</string>
     <string name="settings_group_messages">Grupių žinutės</string>
-    <string name="settings_encrypted_direct_messages">Šifruotos tiesioginės žinutės</string>
     <string name="settings_messages_direct_messages">Tiesioginės žinutės</string>
     <string name="settings_messages_sent_by_bot">Boto išsiųstos žinutės</string>
     <string name="settings_invited_to_room">Kai mane pakviečia į kambarį</string>
@@ -989,7 +983,6 @@
     <string name="settings_troubleshoot_test_notification_notice">Spustelėkite pranešimą. Jei pranešimo nematote, patikrinkite sistemos nustatymus.</string>
     <string name="settings_troubleshoot_test_notification_title">Pranešimo rodymas</string>
     <string name="settings_troubleshoot_test_push_notification_content">Jūs žiūrite pranešimą! Spausk ant manęs!</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Kai kurie pranešimai yra išjungti pasirinktiniuose nustatymuose.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Atkreipkite dėmesį, kad kai kurie pranešimų tipai nustatyti kaip tylūs (pranešimas bus be garso).</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Pasirinktiniai nustatymai.</string>
     <string name="settings_troubleshoot_test_device_settings_failed">Šioje sesijoje pranešimai neįjungti.
@@ -1587,7 +1580,6 @@
     <string name="uploads_media_title">MEDIJA</string>
     <string name="attachment_viewer_item_x_of_y">%1$d iš %2$d</string>
     <string name="error_handling_incoming_share">Nepavyko tvarkyti bendrinimo duomenų</string>
-    <string name="rotate_and_crop_screen_title">Pasukti ir apkarpyti</string>
     <string name="attachment_type_location">Vietovė</string>
     <string name="attachment_type_poll">Apklausa</string>
     <string name="attachment_type_sticker">Lipdukas</string>
@@ -1595,7 +1587,6 @@
     <string name="attachment_type_camera">Kamera</string>
     <string name="attachment_type_file">Failas</string>
     <string name="reaction_search_type_hint">Įveskite raktažodžius, reakcijos radimui.</string>
-    <string name="spoiler">Spoileris</string>
     <string name="command_description_spoiler">Siunčia duotą žinutę kaip spoilerį</string>
     <string name="notice_member_no_changes_by_you">Nepadarėte jokių pakeitimų</string>
     <string name="notice_member_no_changes">%1$s nepadarė jokių pakeitimų</string>
@@ -1892,8 +1883,6 @@
     <string name="threads_labs_enable_notice_message">Jūsų namų serveris šiuo metu nepalaiko temų, todėl ši funkcija gali veikti nekorektiškai. Kai kurie temų pranešimai gali būti nepasiekiami. %sAr vis tiek norite įjungti temas\?</string>
     <string name="sign_out_failed_dialog_message">Nepavyksta pasiekti namų serverio. Jei vis tiek atsijungsite, šis įrenginys nebus ištrintas iš įrenginių sąrašo. Galbūt norėsite jį pašalinti naudodami kitą klientą.</string>
     <string name="sign_out_anyway">Vistiek atsijungti</string>
-    <string name="action_select_all">Pasirinkti viską</string>
-    <string name="action_deselect_all">Panaikinti pasirinkimą</string>
     <string name="permissions_rationale_msg_notification">${app_name} reikia leidimo rodyti pranešimus. Pranešimuose gali būti rodomi jūsų pranešimai, kvietimai ir kt.
 \n
 \nLeiskite prieigą kituose languose, kad galėtumėte peržiūrėti pranešimą.</string>

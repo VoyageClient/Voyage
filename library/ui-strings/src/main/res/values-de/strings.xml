@@ -622,7 +622,6 @@
     <string name="settings_notification_advanced">Erweiterte Benachrichtigungseinstellungen</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Angepasste Einstellungen.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Beachte, dass einige Nachrichtentypen leise sind (erzeugen eine Benachrichtigung, aber keinen Ton).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Einige Benachrichtigungen sind in deinen erweiterten Einstellungen deaktiviert.</string>
     <string name="settings_troubleshoot_test_fcm_failed_account_missing_quick_fix">Konto hinzufügen</string>
     <string name="settings_noisy_notifications_preferences">Laute Benachrichtigungen einstellen</string>
     <string name="settings_call_notifications_preferences">Anrufbenachrichtigung einstellen</string>
@@ -1212,7 +1211,6 @@
         <item quantity="other">Sende Bilder in Originalgröße</item>
     </plurals>
     <string name="keys_backup_restore_success_title_already_up_to_date">Schlüssel sind bereits aktuell!</string>
-    <string name="spoiler">Spoiler</string>
     <string name="settings_key_requests">Schlüsselanforderungen</string>
     <string name="e2e_use_keybackup">Schalte den verschlüsselten Nachrichtenverlauf frei</string>
     <string name="refresh">Neu laden</string>
@@ -1567,7 +1565,6 @@
     <string name="warning_unsaved_change_discard">Änderungen verwerfen</string>
     <string name="warning_unsaved_change">Es gibt ungespeicherte Änderungen. Änderungen verwerfen\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Aus niedriger Priorität entfernen</string>
-    <string name="rotate_and_crop_screen_title">Rotieren und Zuschneiden</string>
     <string name="create_room_settings_section">Raumeinstellungen</string>
     <string name="settings_export_trail">Prüfung exportieren</string>
     <string name="room_member_open_or_create_dm">Direktnachricht</string>
@@ -1666,7 +1663,6 @@
     <string name="room_permissions_upgrade_the_room">Raum aktualisieren</string>
     <string name="room_permissions_notice">Rollen, die zum Ändern verschiedener Teile des Raums erforderlich sind, auswählen</string>
     <string name="room_settings_permissions_subtitle">Rollen, die zum Ändern verschiedener Teile des Raums erforderlich sind, anzeigen und aktualisieren.</string>
-    <string name="room_permissions_send_m_room_server_acl_events">m.room.server_acl-Ereignisse senden</string>
     <string name="room_permissions_change_permissions">Berechtigungen ändern</string>
     <string name="authentication_error">Authentifizierung fehlgeschlagen</string>
     <string name="re_authentication_default_confirm_text">Deine Anmeldeinformationen müssen für ${app_name} eingegeben werden, um diese Aktion auszuführen.</string>
@@ -1863,9 +1859,7 @@
     <string name="settings_room_upgrades">Raumaktualisierungen</string>
     <string name="settings_messages_by_bot">Nachrichten von Bots</string>
     <string name="settings_room_invitations">Raumeinladungen</string>
-    <string name="settings_encrypted_group_messages">Verschlüsselte Gruppennachrichten</string>
     <string name="settings_group_messages">Gruppennachrichten</string>
-    <string name="settings_encrypted_direct_messages">Verschlüsselten Direktnachrichten</string>
     <string name="settings_messages_direct_messages">Direktnachrichten</string>
     <string name="settings_notification_notify_me_for">Benachrichtige mich bei</string>
     <string name="settings_notification_other">Andere</string>
@@ -1874,7 +1868,6 @@
     <string name="hs_client_url">Heim-Server-API-Adresse</string>
     <string name="denied_permission_camera">Um fortzufahren, gewähre bitte in den Systemeinstellungen den Zugriff auf die Kamera.</string>
     <string name="denied_permission_generic">Für diese Aktion fehlen einige Berechtigungen, bitte gewähre diese in den Systemeinstellungen.</string>
-    <string name="voice_message_slide_to_cancel">Wische zum Abbrechen</string>
     <string name="spaces_which_can_access">Spaces mit Zugriff auf</string>
     <string name="allow_space_member_to_find_and_access">Space-Mitgliedern Auffinden und Zugriff erlauben.</string>
     <string name="upgrade_room_for_restricted_no_param">Alle im übergeordneten Space haben Zugriff auf den Raum - es ist nicht nötig jeden einzeln einzuladen. Du kannst dies in den Raumeinstellungen jederzeit ändern.</string>
@@ -2071,8 +2064,6 @@
     <string name="thread_list_modal_my_threads_title">Meine Threads</string>
     <string name="thread_list_title">Threads</string>
     <string name="thread_timeline_title">Thread</string>
-    <string name="room_message_autocomplete_notification">Raumbenachrichtigung</string>
-    <string name="room_message_autocomplete_users">Benutzer</string>
     <string name="room_message_notify_everyone">Den ganzen Raum benachrichtigen</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d mehr</item>
@@ -2359,8 +2350,6 @@
     <string name="attachment_type_selector_poll">Umfragen</string>
     <string name="attachment_type_selector_file">Anhänge</string>
     <string name="attachment_type_selector_gallery">Fotobibliothek</string>
-    <string name="action_deselect_all">Alle abwählen</string>
-    <string name="action_select_all">Alle auswählen</string>
     <string name="attachment_type_selector_text_formatting">Textformatierung</string>
     <string name="message_reply_to_sender_created_poll">erstellte eine Umfrage.</string>
     <string name="message_reply_to_sender_sent_sticker">sendete einen Sticker.</string>

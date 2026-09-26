@@ -7,14 +7,12 @@
 
 package im.vector.app.core.ui.colorpicker
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.LinearLayout
 
-/**
- * A row of square cells that share the width, for previewing a palette entry by entry. The cells
- * shrink to fit as a palette grows, but stop at [maxCellPx] so a three-color palette does not turn
- * into a row of huge squares.
- */
+// Constructed only in code because the size limit is supplied by the caller.
+@SuppressLint("ViewConstructor")
 class SquareCellStrip(context: Context, private val maxCellPx: Int) : LinearLayout(context) {
 
     init {
@@ -24,8 +22,7 @@ class SquareCellStrip(context: Context, private val maxCellPx: Int) : LinearLayo
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val cells = childCount.coerceAtLeast(1)
         val cell = minOf(MeasureSpec.getSize(widthMeasureSpec) / cells, maxCellPx)
-        // An exact width of cell * cells leaves no remainder for the weights to hand out, so every
-        // cell measures the same and matches the height.
+        // Exclude remainder pixels so weighted cells stay square.
         super.onMeasure(
                 MeasureSpec.makeMeasureSpec(cell * cells, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(cell, MeasureSpec.EXACTLY),

@@ -38,6 +38,7 @@ import androidx.core.text.toSpannable
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.core.view.forEach
+import androidx.core.view.isEmpty
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -549,7 +550,7 @@ class TimelineFragment :
         if (firstPaintTraced || !timelineEventController.hasBuiltTimelineModels) return
         val recyclerView = views.timelineRecyclerView
         recyclerView.post {
-            if (firstPaintTraced || recyclerView.childCount == 0) return@post
+            if (firstPaintTraced || recyclerView.isEmpty()) return@post
             firstPaintTraced = true
             RoomOpenTrace.end("timeline.painted", "children=${recyclerView.childCount}")
         }

@@ -576,7 +576,6 @@
     <string name="settings_notification_by_event">事件的通知重要程度</string>
     <string name="settings_troubleshoot_test_bing_settings_title">自定义设置。</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">请注意一些消息类型已设置为静音（将会生成一条没有铃声的通知）。</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">有些通知已在你的自定义设置中被禁用。</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \n此错误不受 ${app_name} 控制，根据 Google 的说法，此错误表示该设备在 FCM 中注册了太多应用。该错误仅在应用程序数量极多的情况下发生，因此不应影响普通用户。</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -1253,7 +1252,6 @@
 \n请安全地保管它。如果你丢失了全部活动会话你将需要使用它们解锁加密消息和安全信息。</string>
     <string name="bootstrap_crosssigning_print_it">将它打印出来并存放在安全的地方</string>
     <string name="command_description_spoiler">将给定信息作为剧透发送</string>
-    <string name="spoiler">剧透</string>
     <string name="reaction_search_type_hint">输入关键字以查找反应。</string>
     <string name="seen_by">已读</string>
     <string name="room_member_jump_to_read_receipt">跳至已读回执</string>
@@ -1529,7 +1527,6 @@
     <string name="room_list_quick_actions_low_priority_remove">从低优先级移除</string>
     <string name="room_list_quick_actions_low_priority_add">添加到低优先级</string>
     <string name="attachment_viewer_item_x_of_y">%1$d / %2$d</string>
-    <string name="rotate_and_crop_screen_title">旋转和裁剪</string>
     <string name="attachment_type_dialog_title">添加图像自</string>
     <string name="settings_discovery_consent_action_give_consent">授予许可</string>
     <string name="settings_discovery_consent_action_revoke">撤销我的许可</string>
@@ -1559,7 +1556,6 @@
     <string name="settings_show_emoji_keyboard">显示 emoji 键盘</string>
     <string name="room_permissions_change_topic">更改话题</string>
     <string name="room_permissions_upgrade_the_room">升级房间</string>
-    <string name="room_permissions_send_m_room_server_acl_events">发送 m.room.server_acl 事件</string>
     <string name="room_permissions_change_permissions">更改权限</string>
     <string name="room_permissions_change_room_name">更改房间名称</string>
     <string name="room_permissions_change_history_visibility">更改历史记录可见性</string>
@@ -1820,7 +1816,6 @@
     <string name="a11y_recording_voice_message">录制语音消息</string>
     <string name="a11y_pause_voice_message">暂停语音消息</string>
     <string name="a11y_play_voice_message">播放语音消息</string>
-    <string name="voice_message_slide_to_cancel">滑动取消</string>
     <string name="a11y_start_voice_message">录制语音消息</string>
     <string name="upgrade_required">需要升级</string>
     <string name="sent_a_voice_message">语音。</string>
@@ -1837,9 +1832,7 @@
     <string name="settings_room_upgrades">房间升级</string>
     <string name="settings_messages_by_bot">机器人消息</string>
     <string name="settings_room_invitations">房间邀请</string>
-    <string name="settings_encrypted_group_messages">加密的群组消息</string>
     <string name="settings_group_messages">群组消息</string>
-    <string name="settings_encrypted_direct_messages">加密的私信</string>
     <string name="settings_messages_direct_messages">私信</string>
     <string name="settings_notification_notify_me_for">通知事项</string>
     <string name="settings_notification_other">其它</string>
@@ -1977,7 +1970,6 @@
     <string name="room_threads_filter">过滤房间中的消息列</string>
     <string name="action_thread_copy_link_to_thread">复制消息列的链接</string>
     <string name="action_thread_view_in_room">在房间中查看</string>
-    <string name="room_message_autocomplete_notification">房间通知</string>
     <string name="threads_notice_migration_message">我们越来越接近发布消息列的公共 Beta 版。
 \n
 \n在我们为此做准备时，我们需要进行一些更改：在此之前创建的消息列将显示为常规回复。
@@ -2020,7 +2012,6 @@
     <string name="unifiedpush_distributor_background_sync">后台同步</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google 服务</string>
     <string name="unifiedpush_getdistributors_dialog_title">选择如何接收通知</string>
-    <string name="room_message_autocomplete_users">用户</string>
     <string name="room_message_notify_everyone">通知整个房间</string>
     <string name="message_reaction_show_less">显示更少</string>
     <string name="tooltip_attachment_location">共享位置</string>
@@ -2315,8 +2306,6 @@
     <string name="attachment_type_selector_file">附件</string>
     <string name="attachment_type_selector_sticker">贴纸</string>
     <string name="attachment_type_selector_gallery">照片库</string>
-    <string name="action_deselect_all">取消全选</string>
-    <string name="action_select_all">全选</string>
     <string name="message_reply_to_sender_created_poll">已创建投票。</string>
     <string name="message_reply_to_sender_sent_sticker">已发送贴纸。</string>
     <string name="message_reply_to_sender_sent_video">已发送视频。</string>

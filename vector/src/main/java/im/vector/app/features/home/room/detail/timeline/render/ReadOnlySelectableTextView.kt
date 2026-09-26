@@ -26,8 +26,8 @@ import im.vector.app.core.utils.clampSelectionToCodeSpans
 import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
-import im.vector.app.core.utils.replaySwallowedTap
 import im.vector.app.core.utils.setReadOnlySelectable
+import im.vector.app.core.utils.shouldReplaySwallowedTap
 import im.vector.app.core.utils.startActionModeGuarded
 
 /**
@@ -69,7 +69,7 @@ class ReadOnlySelectableTextView @JvmOverloads constructor(context: Context, sel
         val wasFocused = isFocused
         selectionFocus.beforeTouch(event)
         val handled = super.onTouchEvent(event)
-        replaySwallowedTap(event, wasFocused)
+        if (shouldReplaySwallowedTap(event, wasFocused)) performClick()
         selectionFocus.afterTouch(event)
         return handled
     }

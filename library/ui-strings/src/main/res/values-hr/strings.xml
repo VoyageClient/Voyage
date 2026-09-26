@@ -192,7 +192,6 @@
     <string name="settings_troubleshoot_test_device_settings_quickfix">Uključi</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Prilagođene postavke.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Uočite da su neke poruke postavljene na tiho (doći će do obavijesti bez zvuka).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Neke obavijesti su isključene u prilagođenim postavkama.</string>
     <string name="settings_troubleshoot_test_play_services_title">Provjera Usluga za Play</string>
     <string name="settings_troubleshoot_test_play_services_success">APK Usluga za Google Play je dostupan i ažuriran.</string>
     <string name="settings_troubleshoot_test_play_services_failed">${app_name} koristi Usluge za Google Play kako bi isporučio poruke, no čini se da nisu ispravno podešene.

@@ -168,16 +168,9 @@ fun TextView.clampSelectionToCodeSpans(active: IntRange?): IntRange? {
     return bounds
 }
 
-/**
- * A tap on a focusable-in-touch-mode view is swallowed by the focus grab (View.onTouchEvent
- * performs focus OR click, not both), killing the tap feedback/behavior on the first touch.
- * Call from onTouchEvent after super with the pre-super focus state to replay the lost click.
- */
-fun TextView.replaySwallowedTap(event: MotionEvent, wasFocused: Boolean) {
-    if (event.actionMasked == MotionEvent.ACTION_UP && !wasFocused && isFocused && !hasSelection()) {
-        performClick()
-    }
-}
+// A focus grab can swallow the first tap; replay it only when no selection was created.
+fun TextView.shouldReplaySwallowedTap(event: MotionEvent, wasFocused: Boolean): Boolean =
+        event.actionMasked == MotionEvent.ACTION_UP && !wasFocused && isFocused && !hasSelection()
 
 /** Gives [ReadOnlySelectionActionModeCallback] access to the view's [ReadOnlySelectionFocus]. */
 interface SelectionFocusHost {

@@ -31,7 +31,7 @@ import im.vector.app.core.utils.clampSelectionToCodeSpans
 import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
-import im.vector.app.core.utils.replaySwallowedTap
+import im.vector.app.core.utils.shouldReplaySwallowedTap
 import im.vector.app.core.utils.startActionModeGuarded
 import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.html.HtmlCodeSpan
@@ -127,7 +127,7 @@ class FooteredTextView @JvmOverloads constructor(
         val wasFocused = isFocused
         selectionFocus.beforeTouch(event)
         val handled = super.onTouchEvent(event)
-        replaySwallowedTap(event, wasFocused)
+        if (shouldReplaySwallowedTap(event, wasFocused)) performClick()
         selectionFocus.afterTouch(event)
         return handled
     }

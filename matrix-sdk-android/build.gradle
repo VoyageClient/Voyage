@@ -17,6 +17,8 @@ buildscript {
         }
     }
     dependencies {
+        // Keep generated code and drivers aligned with the other SDK modules.
+        //noinspection NewerVersionAvailable
         classpath "app.cash.sqldelight:gradle-plugin:2.0.2"
     }
 }
@@ -252,8 +254,10 @@ dependencies {
     // Paging 2 — public API exposes PagedList; was previously pulled in transitively via realm-monarchy.
     implementation libs.androidx.pagingRuntimeKtx
 
-    // SQLDelight (replacing Realm). runtime = generated-code support; coroutines-extensions = asFlow/mapToList.
+    // Keep SQLDelight generated code and drivers aligned across SDK modules.
+    //noinspection NewerVersionAvailable
     implementation "app.cash.sqldelight:runtime:2.0.2"
+    //noinspection NewerVersionAvailable
     implementation "app.cash.sqldelight:coroutines-extensions:2.0.2"
 
     // Shared Preferences
@@ -283,8 +287,11 @@ dependencies {
     implementation project(':library:external:libopus')
 
     testImplementation libs.tests.junit
-    // Plain-JVM (JDBC) SQLDelight driver: proves the schemas run off-Android (desktop target)
+    // Keep the JDBC test driver aligned with SQLDelight across SDK modules.
+    //noinspection NewerVersionAvailable
     testImplementation "app.cash.sqldelight:sqlite-driver:2.0.2"
+    // Match the API 14-compatible WorkManager used at runtime.
+    //noinspection GradleDependency
     testImplementation "androidx.work:work-testing:2.8.1"
     // Note: version sticks to 1.9.2 due to https://github.com/mockk/mockk/issues/281
     testImplementation libs.mockk.mockk

@@ -13,11 +13,6 @@ import android.text.style.MetricAffectingSpan
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import org.matrix.android.sdk.api.util.MatrixItem
 
-/**
- * Paints an emote's leading sender name like a display name: the sender's color, bold only while names
- * are colored. Re-resolved when [MatrixItemColorProvider] reports a change, so a recolor only needs the
- * view re-bound rather than the rendered text rebuilt.
- */
 class SenderNameSpan(
         private val matrixItem: MatrixItem,
         private val colorProvider: MatrixItemColorProvider,
@@ -46,10 +41,14 @@ class SenderNameSpan(
         applyBold(textPaint)
     }
 
-    // OR the weight in rather than setting it, so the emote's surrounding italic survives either order.
+    // Preserve surrounding italics regardless of span order.
     private fun applyBold(textPaint: TextPaint) {
         if (!bold) return
         val old = textPaint.typeface
-        textPaint.typeface = Typeface.create(old, (old?.style ?: Typeface.NORMAL) or Typeface.BOLD)
+        val style = when (old?.style) {
+            Typeface.ITALIC, Typeface.BOLD_ITALIC -> Typeface.BOLD_ITALIC
+            else -> Typeface.BOLD
+        }
+        textPaint.typeface = Typeface.create(old, style)
     }
 }

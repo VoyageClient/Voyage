@@ -465,9 +465,7 @@
     <string name="settings_room_invitations">Các lời mời vào phòng</string>
     <string name="settings_messages_containing_keywords">Các từ khóa</string>
     <string name="settings_mentions_at_room">\@room</string>
-    <string name="settings_encrypted_group_messages">Tin nhắn trong chat nhóm được mã hóa</string>
     <string name="settings_group_messages">Tin nhắn trong chat nhóm</string>
-    <string name="settings_encrypted_direct_messages">Tin nhắn trực tiếp 1–1 được mã hóa</string>
     <string name="settings_messages_direct_messages">Tin nhắn trực tiếp 1–1</string>
     <string name="settings_messages_sent_by_bot">Tin nhắn được gửi bởi bot</string>
     <string name="settings_invited_to_room">Khi tôi được mời vào phòng</string>
@@ -573,7 +571,6 @@
     <string name="help_long_click_on_room_for_more_options">Chạm lâu vào một phòng để thấy nhiều lựa chọn</string>
     <string name="no_ignored_users">Bạn đang không lơ ai cả</string>
     <string name="reaction_search_type_hint">Nhập từ khóa để tìm phản ứng.</string>
-    <string name="spoiler">Phá đám</string>
     <string name="command_description_spoiler">Gửi tin phá đám</string>
     <string name="notice_member_no_changes_by_you">Bạn không tạo thay đổi</string>
     <string name="notice_member_no_changes">%1$s không tạo thay đổi</string>
@@ -596,7 +593,6 @@
     <string name="uploads_media_title">ĐA PHƯƠNG TIỆN</string>
     <string name="attachment_viewer_item_x_of_y">%1$d của %2$d</string>
     <string name="error_handling_incoming_share">Không thể xử lý dữ liệu chia sẻ</string>
-    <string name="rotate_and_crop_screen_title">Xoay chiều và cắt bớt</string>
     <string name="attachment_type_sticker">Sticker</string>
     <string name="attachment_type_gallery">Bộ sưu tập</string>
     <string name="attachment_type_camera">Máy ảnh</string>
@@ -866,7 +862,6 @@
     </plurals>
     <string name="room_permissions_change_topic">Thay đổi chủ đề</string>
     <string name="room_permissions_upgrade_the_room">Nâng cấp phòng</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Gửi sự kiện m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Thay đổi quyền hạn</string>
     <string name="room_permissions_change_room_name">Thay đổi tên phòng</string>
     <string name="room_permissions_change_history_visibility">Thay đổi xem lịch sử phòng</string>
@@ -957,7 +952,6 @@
 \n%1$s</string>
     <string name="settings_troubleshoot_test_play_services_success">Dịch vụ của Google Play APK đang hoạt động và đã được nâng cấp lên phiên bản mới nhất.</string>
     <string name="settings_troubleshoot_test_play_services_title">Kiểm tra dịch vụ của Google Play</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Bạn đã tắt một vài thông báo trong cài đặt nâng cao.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Một vài thông báo tin nhắn đã được thiết lập thành im lặng (sẽ thông báo nhưng không có âm thanh).</string>
     <string name="settings_troubleshoot_diagnostic_failure_status_no_quickfix">Một hoặc nhiều phép thử đã thất bại, vui lòng gửi một bản báo cáo lỗi để giúp chúng tôi điều tra.</string>
     <string name="settings_troubleshoot_diagnostic_failure_status_with_quickfix">Một hoặc nhiều phép thử đã thất bại, hãy thử (các) phương pháp được đề xuất sau.</string>
@@ -1068,7 +1062,6 @@
     <string name="a11y_stop_voice_message">Dừng ghi âm</string>
     <string name="a11y_pause_voice_message">Tạm dừng Tin nhắn Thoại</string>
     <string name="a11y_play_voice_message">Phát Tin nhắn Thoại</string>
-    <string name="voice_message_slide_to_cancel">Vuốt để hủy</string>
     <string name="a11y_start_voice_message">Ghi âm tin nhắn thoại</string>
     <string name="error_failed_to_join_room">Xin lỗi, đã có lỗi đã xảy ra trong khi cố gắng gia nhập: %s</string>
     <string name="room_upgrade_to_recommended_version">Nâng cấp lên phiên bản phòng được đề xuất</string>
@@ -1989,8 +1982,6 @@
     <string name="home_layout_preferences_recents">Gần đây</string>
     <string name="home_layout_preferences_filters">Xem các bộ lọc</string>
     <string name="action_thread_view_in_room">Xem trong phòng</string>
-    <string name="action_deselect_all">Loại tất cả</string>
-    <string name="action_select_all">Chọn tất cả</string>
     <string name="action_got_it">Hiểu rồi</string>
     <string name="action_learn_more">Tìm hiểu thêm</string>
     <string name="action_try_it_out">Hãy thử nó</string>

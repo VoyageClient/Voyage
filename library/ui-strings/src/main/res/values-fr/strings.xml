@@ -600,7 +600,6 @@
     <string name="settings_notification_by_event">Importance des notifications par évènement</string>
     <string name="settings_troubleshoot_test_bing_settings_title">Paramètres personnalisés.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Remarquez que certains messages sont réglés pour être silencieux (ils produiront une notification sans son).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Certaines notifications sont désactivées dans vos paramètres personnalisés.</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nCette erreur est indépendante de ${app_name} et, selon Google, cette erreur indique que l’appareil a enregistré trop d’applications avec FCM. Cette erreur ne survient que s’il y a un nombre d’applications anormalement élevé, et ne devrait donc pas affecter un utilisateur normal.</string>
     <string name="settings_troubleshoot_test_fcm_failed_service_not_available">[%1$s]
@@ -930,7 +929,6 @@
     <string name="room_list_quick_actions_leave">Quitter le salon</string>
     <string name="notice_member_no_changes">%1$s n’a effectué aucun changement</string>
     <string name="command_description_spoiler">Envoie le message fourni comme un spoiler</string>
-    <string name="spoiler">Spoiler</string>
     <string name="reaction_search_type_hint">Saisir des mots-clés pour trouver une réaction.</string>
     <string name="no_ignored_users">Vous n’ignorez aucun utilisateur</string>
     <string name="help_long_click_on_room_for_more_options">Clic long sur un salon pour voir plus d’options</string>
@@ -1543,7 +1541,6 @@
     <string name="warning_room_not_created_yet">Le salon n\'est pas encore créé. Annuler la création du salon \?</string>
     <string name="room_list_quick_actions_low_priority_remove">Retirer de la priorité faible</string>
     <string name="room_list_quick_actions_low_priority_add">Ajouter à la priorité faible</string>
-    <string name="rotate_and_crop_screen_title">Pivoter et rogner</string>
     <string name="attachment_type_dialog_title">Ajouter une image à partir de</string>
     <string name="create_room_settings_section">Paramètres du salon</string>
     <string name="create_room_topic_hint">Sujet</string>
@@ -1674,7 +1671,6 @@
     <string name="settings_show_emoji_keyboard">Afficher le clavier des emojis</string>
     <string name="room_permissions_change_topic">Changer le sujet</string>
     <string name="room_permissions_upgrade_the_room">Mettre à niveau le salon</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Envoyer des événements m.room.server_acl</string>
     <string name="room_permissions_change_permissions">Changer les permissions</string>
     <string name="room_permissions_change_room_name">Changer le nom du salon</string>
     <string name="room_permissions_change_history_visibility">Changer la visibilité de l’historique</string>
@@ -1857,7 +1853,6 @@
     <string name="a11y_recording_voice_message">Enregistrement du message vocal</string>
     <string name="a11y_pause_voice_message">Mettre en pause le message vocal</string>
     <string name="a11y_play_voice_message">Lire le message vocal</string>
-    <string name="voice_message_slide_to_cancel">Glisser pour annuler</string>
     <string name="a11y_start_voice_message">Enregistrer un message vocal</string>
     <string name="upgrade_required">Mise-à-jour nécessaire</string>
     <string name="sent_a_voice_message">Vocal.</string>
@@ -1874,9 +1869,7 @@
     <string name="settings_room_upgrades">Les mises-à-jour de salon</string>
     <string name="settings_messages_by_bot">Les messages envoyés par un robot</string>
     <string name="settings_room_invitations">Les invitations à des salons</string>
-    <string name="settings_encrypted_group_messages">Les conversations de groupe chiffrées</string>
     <string name="settings_group_messages">Les conversations de groupe</string>
-    <string name="settings_encrypted_direct_messages">Les conversations à deux chiffrées</string>
     <string name="settings_messages_direct_messages">Les messages directs</string>
     <string name="settings_notification_notify_me_for">Me notifier pour</string>
     <string name="settings_notification_other">Autre</string>
@@ -2043,8 +2036,6 @@
     <string name="ftue_auth_carousel_secure_body">Communication indépendante et sécurisée qui vous donne le même niveau d\'intimité qu\'une discussion face-à-face dans votre maison.</string>
     <string name="attachment_type_location">Localisation</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">Le chiffrement a été mal configuré ce qui vous empêche d\'envoyer des messages. Cliquez pour ouvrir les paramètres.</string>
-    <string name="room_message_autocomplete_notification">Notification du salon</string>
-    <string name="room_message_autocomplete_users">Utilisateurs</string>
     <string name="room_message_notify_everyone">Notifier tout le salon</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d de plus</item>
@@ -2360,8 +2351,6 @@
     <string name="attachment_type_selector_file">Pièces jointes</string>
     <string name="attachment_type_selector_sticker">Autocollants</string>
     <string name="attachment_type_selector_gallery">Galerie photo</string>
-    <string name="action_deselect_all">Tout désélectionner</string>
-    <string name="action_select_all">Tout sélectionner</string>
     <string name="attachment_type_selector_text_formatting">Formatage de texte</string>
     <string name="message_reply_to_sender_created_poll">a créé un sondage.</string>
     <string name="message_reply_to_sender_sent_sticker">a envoyé un autocollant.</string>

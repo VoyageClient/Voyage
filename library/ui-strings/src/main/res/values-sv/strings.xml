@@ -419,7 +419,6 @@
     <string name="settings_troubleshoot_test_device_settings_failed">Aviseringar är inaktiverade för den här sessionen.
 \nVänligen kolla ${app_name}inställningarna.</string>
     <string name="settings_troubleshoot_test_bing_settings_success_with_warn">Observera att vissa meddelandetyper är satta till tyst (kommer att producera aviseringar utan ljud).</string>
-    <string name="settings_troubleshoot_test_bing_settings_failed">Vissa aviseringar är inaktiverade i dina anpassade inställningar.</string>
     <string name="settings_troubleshoot_test_service_boot_failed">Tjänsten kommer inte att starta när enheten startas om, så du kommer inte att få aviseringar förrens ${app_name} har öppnats en gång.</string>
     <string name="settings_troubleshoot_test_bg_restricted_failed">Bakgrundsbegränsningar är aktiverade för ${app_name}.
 \nSaker som appen försöker göra kommer att kraftigt begränsas när appen är bakgrunden, och detta kan påverka aviseringar.
@@ -1222,7 +1221,6 @@
     <string name="room_list_quick_actions_favorite_remove">Ta bort från favoriter</string>
     <string name="notice_member_no_changes">%1$s gjorde inga ändringar</string>
     <string name="notice_member_no_changes_by_you">Du gjorde inga ändringar</string>
-    <string name="spoiler">Spoiler</string>
     <string name="room_join_rules_public">%1$s gjorde rummet publikt för alla som har länken.</string>
     <string name="room_join_rules_public_by_you">Du gjorde rummet publikt för alla som har länken.</string>
     <string name="room_join_rules_invite_by_you">Du ändrade rummet till endast inbjudna.</string>
@@ -1566,7 +1564,6 @@
     <string name="warning_room_not_created_yet">Det här rummet har inte skapats än. Avbryt rumsskapande\?</string>
     <string name="room_list_quick_actions_low_priority_remove">Ta bort från lågprioriterade</string>
     <string name="room_list_quick_actions_low_priority_add">Lägg till i lågprioriterade</string>
-    <string name="rotate_and_crop_screen_title">Rotera och beskär</string>
     <string name="attachment_type_dialog_title">Lägg till bild från</string>
     <string name="create_room_settings_section">Rumsinställningar</string>
     <string name="settings_export_trail">Exportera granskning</string>
@@ -1647,7 +1644,6 @@
     <string name="settings_show_emoji_keyboard">Visa emojitangentbord</string>
     <string name="room_permissions_change_topic">Byta ämnet</string>
     <string name="room_permissions_upgrade_the_room">Uppgradera rummet</string>
-    <string name="room_permissions_send_m_room_server_acl_events">Skicka m.room.server_acl-händelser</string>
     <string name="room_permissions_change_permissions">Ändra behörigheter</string>
     <string name="room_permissions_change_room_name">Byta rumsnamn</string>
     <string name="room_permissions_change_history_visibility">Ändra historikens synlighet</string>
@@ -1830,7 +1826,6 @@
     <string name="a11y_recording_voice_message">Spelar in röstmeddelande</string>
     <string name="a11y_pause_voice_message">Pausa röstmeddelande</string>
     <string name="a11y_play_voice_message">Spela röstmeddelande</string>
-    <string name="voice_message_slide_to_cancel">Svep för att avbryta</string>
     <string name="a11y_start_voice_message">Spela in röstmeddelande</string>
     <string name="error_failed_to_join_room">Tyvärr så inträffade ett fel vid försök att gå med i: %s</string>
     <string name="room_upgrade_to_recommended_version">Uppgradera till rekommenderad rumsversion</string>
@@ -1872,9 +1867,7 @@
     <string name="settings_room_upgrades">Rumsuppgraderingar</string>
     <string name="settings_messages_by_bot">Meddelanden från bot</string>
     <string name="settings_room_invitations">Rumsinbjudningar</string>
-    <string name="settings_encrypted_group_messages">Krypterade gruppmeddelanden</string>
     <string name="settings_group_messages">Gruppmeddelanden</string>
-    <string name="settings_encrypted_direct_messages">Krypterade direktmeddelanden</string>
     <string name="settings_messages_direct_messages">Direktmeddelanden</string>
     <string name="settings_notification_notify_me_for">Avisera mig för</string>
     <string name="settings_notification_other">Andra</string>
@@ -2072,8 +2065,6 @@
     <string name="action_thread_copy_link_to_thread">Kopiera länk till tråd</string>
     <string name="action_thread_view_in_room">Visa i rum</string>
     <string name="action_view_threads">Visa trådar</string>
-    <string name="room_message_autocomplete_notification">Rumsaviseringar</string>
-    <string name="room_message_autocomplete_users">Användare</string>
     <string name="room_message_notify_everyone">Avisera hela rummet</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d till</item>
@@ -2360,8 +2351,6 @@
     <string name="attachment_type_selector_file">Bilagor</string>
     <string name="attachment_type_selector_sticker">Dekaler</string>
     <string name="attachment_type_selector_gallery">Fotobibliotek</string>
-    <string name="action_deselect_all">Avmarkera alla</string>
-    <string name="action_select_all">Välj alla</string>
     <string name="attachment_type_selector_text_formatting">Textformatering</string>
     <string name="message_reply_to_sender_created_poll">skickade en omröstning.</string>
     <string name="message_reply_to_sender_sent_sticker">skickade en dekal.</string>
