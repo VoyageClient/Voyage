@@ -11,10 +11,14 @@ import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.text.Spanned
 import android.text.style.ClickableSpan
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.widget.TextView
 import im.vector.app.core.utils.DebouncedClickListener
+import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.features.html.HtmlCodeSpan
+import kotlin.math.abs
 
 /**
  * View.OnClickListener lambda.
@@ -63,8 +67,49 @@ fun TextView.onLongClickIgnoringLinksSelectingCode(listener: View.OnLongClickLis
         return
     }
     val touch = PointF()
+    var tapCandidate: HtmlCodeSpan? = null
+    val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+    fun codeAt(x: Float, y: Float): HtmlCodeSpan? {
+        val spanned = text as? Spanned ?: return null
+        val textLayout = layout ?: return null
+        val localX = x - totalPaddingLeft + scrollX
+        val localY = (y - totalPaddingTop + scrollY).toInt()
+        if (localY < 0 || localY >= textLayout.height) return null
+        val line = textLayout.getLineForVertical(localY)
+        if (localX < textLayout.getLineLeft(line) || localX >= textLayout.getLineRight(line)) return null
+        val offset = textLayout.getOffsetForHorizontal(line, localX)
+        if (spanned.getSpans(offset, offset, ClickableSpan::class.java).isNotEmpty()) return null
+        return spanned.getSpans(offset, offset, HtmlCodeSpan::class.java).firstOrNull {
+            !it.isBlock && offset < spanned.getSpanEnd(it)
+        }
+    }
     setOnTouchListener { _, event ->
-        touch.set(event.x, event.y)
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> tapCandidate = codeAt(event.x, event.y)
+            MotionEvent.ACTION_MOVE -> if (abs(event.x - touch.x) > touchSlop ||
+                    abs(event.y - touch.y) > touchSlop) tapCandidate = null
+            MotionEvent.ACTION_POINTER_DOWN -> tapCandidate = null
+            MotionEvent.ACTION_CANCEL -> tapCandidate = null
+            MotionEvent.ACTION_UP -> {
+                val code = tapCandidate
+                tapCandidate = null
+                if (code != null && codeAt(event.x, event.y) === code &&
+                        event.eventTime - event.downTime < ViewConfiguration.getLongPressTimeout() && !hasSelection()) {
+                    val spanned = text as Spanned
+                    val cancel = MotionEvent.obtain(event)
+                    cancel.action = MotionEvent.ACTION_CANCEL
+                    try {
+                        onTouchEvent(cancel)
+                    } finally {
+                        cancel.recycle()
+                    }
+                    copyToClipboard(context, spanned.subSequence(spanned.getSpanStart(code), spanned.getSpanEnd(code)).toString())
+                    isPressed = false
+                    return@setOnTouchListener true
+                }
+            }
+        }
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) touch.set(event.x, event.y)
         false
     }
     setOnLongClickListener(object : View.OnLongClickListener {

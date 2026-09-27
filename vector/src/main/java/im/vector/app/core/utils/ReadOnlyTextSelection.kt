@@ -7,10 +7,16 @@
 
 package im.vector.app.core.utils
 
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import android.os.Build
 import android.text.Selection
 import android.text.Spannable
 import android.text.Spanned
+import android.text.TextPaint
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
@@ -22,10 +28,14 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.EditText
 import android.widget.TextView
+import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.withTranslation
 import im.vector.app.core.ui.views.SelectionAwareRelativeLayout
 import im.vector.app.features.html.HtmlCodeSpan
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import timber.log.Timber
+import kotlin.math.ceil
 
 /**
  * Trims a selectable (but not editable) TextView's selection menu to Copy / Share / Select all,
@@ -166,6 +176,87 @@ fun TextView.clampSelectionToCodeSpans(active: IntRange?): IntRange? {
     // would fire per touch event — a vibration storm. In-bounds moves keep their normal ticks.
     isHapticFeedbackEnabled = !clamped
     return bounds
+}
+
+internal fun codeOutlineColor(context: Context): Int = ColorUtils.setAlphaComponent(
+        ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary), 0x30
+)
+
+internal class InlineCodePadding(private val textView: TextView) {
+    private val left = textView.paddingLeft
+    private val top = textView.paddingTop
+    private val right = textView.paddingRight
+    private val bottom = textView.paddingBottom
+
+    fun update() {
+        val spanned = textView.text as? Spanned
+        val hasInlineCode = spanned?.getSpans(0, spanned.length, HtmlCodeSpan::class.java)?.any { !it.isBlock } == true
+        val density = textView.resources.displayMetrics.density
+        val horizontal = if (hasInlineCode) ceil(2f * density).toInt() else 0
+        val vertical = if (hasInlineCode) ceil(density).toInt() else 0
+        if (textView.paddingLeft != left + horizontal || textView.paddingTop != top + vertical ||
+                textView.paddingRight != right + horizontal || textView.paddingBottom != bottom + vertical) {
+            // The panel extends beyond the glyph bounds, including when code fills the whole view.
+            textView.setPadding(left + horizontal, top + vertical, right + horizontal, bottom + vertical)
+        }
+    }
+}
+
+// TextPaint backgrounds draw after selection. Paint code panels before TextView draws its selection and glyphs.
+@Suppress("DEPRECATION") // The replacement Path.computeBounds overload requires API 36.
+internal fun TextView.drawInlineCodeBackgrounds(canvas: Canvas, drawText: () -> Unit) {
+    val spanned = text as? Spanned
+    val textLayout = layout
+    val spans = spanned?.getSpans(0, spanned.length, HtmlCodeSpan::class.java)?.filter { !it.isBlock }.orEmpty()
+    if (spanned == null || textLayout == null || spans.isEmpty()) {
+        drawText()
+        return
+    }
+    val density = resources.displayMetrics.density
+    val horizontalPadding = 2f * density
+    val verticalPadding = density
+    val radius = 3f * density
+    val path = Path()
+    val bounds = RectF()
+    val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = density
+        color = codeOutlineColor(context)
+    }
+    val codePaint = TextPaint(paint)
+    canvas.withTranslation(totalPaddingLeft.toFloat(), (baseline - textLayout.getLineBaseline(0)).toFloat()) {
+        for (span in spans) {
+            val start = spanned.getSpanStart(span)
+            val end = spanned.getSpanEnd(span)
+            if (start >= end) continue
+            codePaint.set(paint)
+            span.updateMeasureState(codePaint)
+            val metrics = codePaint.fontMetrics
+            backgroundPaint.color = span.inlineBackgroundColor(codePaint)
+            for (line in textLayout.getLineForOffset(start)..textLayout.getLineForOffset(end - 1)) {
+                val lineStart = maxOf(start, textLayout.getLineStart(line))
+                val lineEnd = minOf(end, textLayout.getLineVisibleEnd(line))
+                if (lineStart >= lineEnd) continue
+                path.reset()
+                textLayout.getSelectionPath(lineStart, lineEnd, path)
+                path.computeBounds(bounds, true)
+                bounds.left -= horizontalPadding
+                bounds.right += horizontalPadding
+                bounds.top = textLayout.getLineBaseline(line) + metrics.ascent - verticalPadding
+                bounds.bottom = textLayout.getLineBaseline(line) + metrics.descent + verticalPadding
+                canvas.drawRoundRect(bounds, radius, radius, backgroundPaint)
+                bounds.inset(density / 2f, density / 2f)
+                canvas.drawRoundRect(bounds, radius - density / 2f, radius - density / 2f, outlinePaint)
+            }
+        }
+    }
+    spans.forEach { it.backgroundDrawnBehindSelection = true }
+    try {
+        drawText()
+    } finally {
+        spans.forEach { it.backgroundDrawnBehindSelection = false }
+    }
 }
 
 // A focus grab can swallow the first tap; replay it only when no selection was created.

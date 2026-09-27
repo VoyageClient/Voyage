@@ -26,6 +26,7 @@ import androidx.core.view.ViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.onLongClickIgnoringLinksSelectingCode
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.core.utils.codeOutlineColor
 import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
@@ -219,6 +220,7 @@ class RichMessageBodyRenderer @Inject constructor(
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dim.dpToPx(6).toFloat()
                 setColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.code_block_bg_color))
+                setStroke(dim.dpToPx(1), codeOutlineColor(ctx))
             })
             val padH = dim.dpToPx(10)
             val padV = dim.dpToPx(8)

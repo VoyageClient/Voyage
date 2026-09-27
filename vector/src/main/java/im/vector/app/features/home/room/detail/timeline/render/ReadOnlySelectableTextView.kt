@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.render
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.PointF
 import android.os.Build
 import android.view.ActionMode
@@ -18,11 +19,13 @@ import android.view.inputmethod.InputConnection
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatTextView
 import im.vector.app.core.utils.CodeSelectionBoundsHost
+import im.vector.app.core.utils.InlineCodePadding
 import im.vector.app.core.utils.ReadOnlySelectionFocus
 import im.vector.app.core.utils.SelectionFocusHost
 import im.vector.app.core.utils.TableSourceProvider
 import im.vector.app.core.utils.buildTableMarkdown
 import im.vector.app.core.utils.clampSelectionToCodeSpans
+import im.vector.app.core.utils.drawInlineCodeBackgrounds
 import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
@@ -42,6 +45,16 @@ class ReadOnlySelectableTextView @JvmOverloads constructor(context: Context, sel
     }
 
     override var codeSelectionBounds: IntRange? = null
+    private val inlineCodePadding by lazy { InlineCodePadding(this) }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        inlineCodePadding.update()
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        drawInlineCodeBackgrounds(canvas) { super.onDraw(canvas) }
+    }
 
     override val selectionFocus = ReadOnlySelectionFocus(this)
 

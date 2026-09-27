@@ -89,12 +89,13 @@ interface AbstractFooteredTextView {
         // getLineWidth excludes a LeadingMarginSpan indent (blockquote/list); add it back or the bubble
         // shrinks into the indent and the content re-wraps, and the footer overlaps the indented text.
         val leadingMargin = (text as? Spanned)?.let { it.getSpans<LeadingMarginSpan>(0, it.length).maxOfOrNull { span -> span.getLeadingMargin(true) } } ?: 0
-        maxLineWidth = min(maxLineWidth + leadingMargin, measuredWidth.toFloat())
+        val horizontalPadding = compoundPaddingLeft + compoundPaddingRight
+        maxLineWidth = min(maxLineWidth + leadingMargin + horizontalPadding, measuredWidth.toFloat())
 
         var newWidth = ceil(maxLineWidth).toInt()
         var newHeight = measuredHeight
 
-        val widthLastLine = layout.getLineWidth(lastLine) + leadingMargin
+        val widthLastLine = layout.getLineWidth(lastLine) + leadingMargin + horizontalPadding
 
         // Required width if putting footer in the same line as the last line
         val widthWithHorizontalFooter = (

@@ -20,12 +20,13 @@ class HtmlCodeSpan(private val theme: MarkwonTheme, var isBlock: Boolean) : Metr
 
     private val rect = Rect()
     private val paint = Paint()
+    internal var backgroundDrawnBehindSelection = false
+
+    internal fun inlineBackgroundColor(p: TextPaint): Int = theme.getCodeBackgroundColor(p)
 
     override fun updateDrawState(p: TextPaint) {
         applyTextStyle(p)
-        if (!isBlock) {
-            p.bgColor = theme.getCodeBackgroundColor(p)
-        }
+        if (!isBlock) p.bgColor = if (backgroundDrawnBehindSelection) 0 else inlineBackgroundColor(p)
     }
 
     override fun updateMeasureState(p: TextPaint) {

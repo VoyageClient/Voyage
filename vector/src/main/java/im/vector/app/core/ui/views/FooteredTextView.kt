@@ -25,9 +25,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.getSpans
 import im.vector.app.core.utils.CodeSelectionBoundsHost
+import im.vector.app.core.utils.InlineCodePadding
 import im.vector.app.core.utils.ReadOnlySelectionFocus
 import im.vector.app.core.utils.SelectionFocusHost
 import im.vector.app.core.utils.clampSelectionToCodeSpans
+import im.vector.app.core.utils.drawInlineCodeBackgrounds
 import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
@@ -47,6 +49,7 @@ class FooteredTextView @JvmOverloads constructor(
     override val footerState: AbstractFooteredTextView.FooterState = AbstractFooteredTextView.FooterState()
 
     private val lastTouch = PointF()
+    private val inlineCodePadding by lazy { InlineCodePadding(this) }
 
     override val selectionFocus = ReadOnlySelectionFocus(this)
 
@@ -59,6 +62,7 @@ class FooteredTextView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        inlineCodePadding.update()
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
         val mode = View.MeasureSpec.getMode(widthMeasureSpec)
@@ -70,7 +74,8 @@ class FooteredTextView @JvmOverloads constructor(
         // the layout. This applies in and out of bubbles (the collapse happens in super.onMeasure).
         val leadingMargin = maxLeadingMargin()
         if (leadingMargin > 0 && mode != View.MeasureSpec.UNSPECIFIED && size > 0) {
-            val target = min(ceil(Layout.getDesiredWidth(text, paint)).toInt() + leadingMargin + safetyPx(), size)
+            val target = min(ceil(Layout.getDesiredWidth(text, paint)).toInt() + leadingMargin +
+                    compoundPaddingLeft + compoundPaddingRight + safetyPx(), size)
             if (measuredWidth < target) {
                 super.onMeasure(View.MeasureSpec.makeMeasureSpec(target, View.MeasureSpec.EXACTLY), heightMeasureSpec)
             }
@@ -106,7 +111,7 @@ class FooteredTextView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         updateFooterOnPreDraw(canvas)
-        super.onDraw(canvas)
+        drawInlineCodeBackgrounds(canvas) { super.onDraw(canvas) }
     }
 
     override var codeSelectionBounds: IntRange? = null
