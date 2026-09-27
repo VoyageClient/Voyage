@@ -84,7 +84,9 @@ To quickly check that code compiles without building/installing the whole app (n
 
 # Before committing
 
-Always run the test suite and lint before committing to ensure there are no regressions in either. Fix any test or lint regressions, then rerun both checks before committing. A successful compile alone is not sufficient.
+Run the test suite and lint before committing substantive code changes to ensure there are no regressions in either. Fix any test or lint regressions, then rerun both checks before committing. A successful compile alone is not sufficient.
+
+Do not run pre-commit tests or lint for trivial changes of a couple of lines, documentation-only changes, media asset changes, or similarly low-impact edits. Review the diff and check formatting instead.
 
 # Debugging on device
 
@@ -113,6 +115,8 @@ Also during review, compact overly verbose comments down to the minimal non-obvi
 # Changelog
 
 The full per-commit changelog lives only in the commit message: a concise imperative subject line followed by a body describing the changes. Every body item MUST start with `- ` — NEVER write a paragraph that does not begin with `- `. Put a blank line between each `- ` entry. Do not write per-commit changelog fragments to any file (no `changelog.d/`).
+
+Never include test or lint pass results, test counts, or routine validation summaries in commit messages. Report those results in the conversation instead. This restriction does not apply when the commit itself changes tests or fixes lint issues.
 
 `CHANGES.md` is a separate, curated highlights list — NOT a per-commit log. When you land a change worth surfacing to users, add it there too:
 
