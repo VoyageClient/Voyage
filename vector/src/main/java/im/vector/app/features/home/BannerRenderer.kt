@@ -8,6 +8,8 @@
 package im.vector.app.features.home
 
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
+import android.view.View
 import android.widget.ImageView
 import androidx.annotation.UiThread
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
@@ -125,9 +127,10 @@ class BannerRenderer @Inject constructor(
      * shaped to match the avatar shape.
      */
     @UiThread
-    fun applyAvatarStroke(imageView: ImageView, matrixItem: MatrixItem?, enabled: Boolean) {
+    fun applyAvatarStroke(imageView: ImageView, matrixItem: MatrixItem?, enabled: Boolean, strokeHost: View = imageView) {
+        if (strokeHost !== imageView) imageView.backgroundCompat = null
         if (!enabled) {
-            imageView.backgroundCompat = null
+            strokeHost.backgroundCompat = null
             imageView.setPadding(0, 0, 0, 0)
             return
         }
@@ -135,7 +138,7 @@ class BannerRenderer @Inject constructor(
         val color = ThemeUtils.getColor(imageView.context, android.R.attr.colorBackground)
         val size = imageView.layoutParams.width
         val stroke = imageView.resources.displayMetrics.density * STROKE_DP
-        imageView.backgroundCompat = when {
+        strokeHost.backgroundCompat = when {
             // An animated shape tumbles, so it has no fixed silhouette to trace: it gets a circle,
             // and is inset by however far it reaches so that it stays inside that circle.
             shape.isAnimated || shape == AvatarShape.CIRCLE -> ringDrawable(color, 0.5f * size)
@@ -146,6 +149,7 @@ class BannerRenderer @Inject constructor(
         }
         val inset = shape.effect?.let { inscribedInset(size, stroke, it.reach) } ?: stroke.toInt()
         imageView.setPadding(inset, inset, inset, inset)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) imageView.invalidateOutline()
     }
 
     private fun ringDrawable(color: Int, radius: Float) = GradientDrawable().apply {

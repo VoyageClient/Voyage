@@ -284,6 +284,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
     }
 
     private fun saveSettings() = withState { state ->
+        if (state.isLoading) return@withState
         val operationList = mutableListOf<suspend () -> Unit>()
 
         val summary = state.roomSummary.invoke()
@@ -329,9 +330,13 @@ class RoomSettingsViewModel @AssistedInject constructor(
                     operation.invoke()
                 }
                 setState {
-                    deletePendingAvatar(this)
                     deletePendingBanner(this)
                     copy(
+                            savedAvatarPreviewUri = when (val action = state.avatarAction) {
+                                is RoomSettingsViewState.AvatarAction.UpdateAvatar -> action.newAvatarUri
+                                RoomSettingsViewState.AvatarAction.DeleteAvatar -> null
+                                RoomSettingsViewState.AvatarAction.None -> savedAvatarPreviewUri
+                            },
                             avatarAction = RoomSettingsViewState.AvatarAction.None,
                             bannerAction = RoomSettingsViewState.BannerAction.None,
                             newHistoryVisibility = null,

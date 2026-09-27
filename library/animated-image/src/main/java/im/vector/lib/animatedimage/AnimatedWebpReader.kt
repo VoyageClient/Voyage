@@ -27,55 +27,39 @@ import java.io.File
  */
 object AnimatedWebpReader {
 
-    fun readFrames(file: File): List<AnimatedFrame>? {
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+
+    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
         val image = try {
             WebpImage.create(file.readBytes())
-        } catch (t: Throwable) {
-            Timber.w(t, "WebP: cannot open source")
-            return null
+        } catch (error: Throwable) {
+            Timber.w(error, "WebP: cannot open source")
+            return false
         }
-        return try {
-            compose(image)
-        } catch (t: Throwable) {
-            Timber.w(t, "WebP: cannot decode frames")
-            null
-        } finally {
-            runCatching { image.dispose() }
-        }
-    }
-
-    private fun compose(image: WebpImage): List<AnimatedFrame>? {
-        if (image.frameCount <= 0 || image.width <= 0 || image.height <= 0) return null
-        val canvasBitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(canvasBitmap)
-        val clear = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
-        val output = ArrayList<AnimatedFrame>(image.frameCount)
-
         try {
-            for (index in 0 until image.frameCount) {
-                val frame = image.getFrame(index) ?: continue
-                try {
-                    // A frame that does not blend replaces its rectangle outright, alpha and all, so
-                    // whatever the previous frame left there has to go first.
-                    if (!frame.isBlendWithPreviousFrame) canvas.clearRect(frame, clear)
-                    frame.drawOnto(canvas)
-                    output.add(AnimatedFrame(
-                            bitmap = canvasBitmap.copy(Bitmap.Config.ARGB_8888, false),
-                            durationMs = frame.durationMs.coerceAtLeast(MIN_FRAME_DELAY_MS)
-                    ))
-                    if (frame.shouldDisposeToBackgroundColor()) canvas.clearRect(frame, clear)
-                } finally {
-                    runCatching { frame.dispose() }
+            if (image.frameCount <= 0 || image.width <= 0 || image.height <= 0) return false
+            val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            val clear = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
+            try {
+                for (index in 0 until image.frameCount) {
+                    val frame = image.getFrame(index) ?: return false
+                    try {
+                        if (!frame.isBlendWithPreviousFrame) canvas.clearRect(frame, clear)
+                        frame.drawOnto(canvas)
+                        onFrame(AnimatedFrame(bitmap, frame.durationMs.coerceAtLeast(MIN_FRAME_DELAY_MS)), index, image.frameCount)
+                        if (frame.shouldDisposeToBackgroundColor()) canvas.clearRect(frame, clear)
+                    } finally {
+                        frame.dispose()
+                    }
                 }
+                return true
+            } finally {
+                bitmap.recycle()
             }
-        } catch (t: Throwable) {
-            // Half a decode is a run of full-canvas bitmaps with nothing left holding them.
-            output.forEach { it.bitmap.recycle() }
-            throw t
         } finally {
-            canvasBitmap.recycle()
+            image.dispose()
         }
-        return output.takeIf { it.isNotEmpty() }
     }
 
     private fun WebpFrame.drawOnto(canvas: Canvas) {

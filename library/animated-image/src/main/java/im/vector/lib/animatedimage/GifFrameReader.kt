@@ -17,39 +17,44 @@ import java.nio.ByteBuffer
 
 object GifFrameReader {
 
-    fun readFrames(file: File): List<AnimatedFrame>? {
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+
+    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
         val data = try {
             file.readBytes()
-        } catch (t: Throwable) {
-            Timber.w(t, "GIF: cannot read source")
-            return null
+        } catch (error: Throwable) {
+            Timber.w(error, "GIF: cannot read source")
+            return false
         }
         val header = try {
             GifHeaderParser().setData(data).parseHeader()
-        } catch (t: Throwable) {
-            Timber.w(t, "GIF: cannot parse header")
-            return null
+        } catch (error: Throwable) {
+            Timber.w(error, "GIF: cannot parse header")
+            return false
         }
         val decoder = StandardGifDecoder(SimpleBitmapProvider, header, ByteBuffer.wrap(data), 1)
-        if (decoder.frameCount <= 0) return null
-        val out = ArrayList<AnimatedFrame>(decoder.frameCount)
-        for (i in 0 until decoder.frameCount) {
-            decoder.advance()
-            val frame = decoder.nextFrame ?: break
-            // StandardGifDecoder hands back the same Bitmap re-painted each step — copy it so
-            // the encoder can safely hold onto multiple frames at once.
-            val copy = frame.copy(Bitmap.Config.ARGB_8888, false) ?: continue
-            val delay = decoder.getDelay(i).coerceAtLeast(MIN_FRAME_DELAY_MS)
-            out.add(AnimatedFrame(copy, delay))
+        try {
+            if (decoder.frameCount <= 0) return false
+            for (index in 0 until decoder.frameCount) {
+                decoder.advance()
+                val bitmap = decoder.nextFrame ?: return false
+                try {
+                    onFrame(AnimatedFrame(bitmap, decoder.getDelay(index).coerceAtLeast(MIN_FRAME_DELAY_MS)), index, decoder.frameCount)
+                } finally {
+                    bitmap.recycle()
+                }
+            }
+            return true
+        } finally {
+            decoder.clear()
         }
-        return out.takeIf { it.isNotEmpty() }
     }
 
     private object SimpleBitmapProvider : GifDecoder.BitmapProvider {
         override fun obtain(width: Int, height: Int, config: Bitmap.Config): Bitmap =
                 Bitmap.createBitmap(width, height, config)
 
-        override fun release(bitmap: Bitmap) { /* the decoder reuses; we don't aggressively recycle */ }
+        override fun release(bitmap: Bitmap) { bitmap.recycle() }
 
         override fun obtainByteArray(size: Int): ByteArray = ByteArray(size)
         override fun release(bytes: ByteArray) { /* no-op */ }

@@ -12,14 +12,16 @@ import android.widget.ImageView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.settings.AvatarShape
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -45,17 +47,23 @@ abstract class FormEditableAvatarItem : VectorEpoxyModel<FormEditableAvatarItem.
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        holder.image.scaleType = ImageView.ScaleType.CENTER_CROP
         holder.imageContainer.onClick(clickListener?.takeIf { enabled })
         if (matrixItem != null) {
             avatarRenderer?.render(matrixItem!!, holder.image)
         } else {
             GlideApp.with(holder.image)
                     .load(imageUri)
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(holder.image)
+                    .optionalTransform(CircleCrop())
+                    .into(ClippedDrawableImageViewTarget(holder.image, AvatarShape.CIRCLE))
         }
         holder.delete.isVisible = enabled && (imageUri != null || matrixItem?.avatarUrl?.isNotEmpty() == true)
         holder.delete.onClick(deleteListener?.takeIf { enabled })
+    }
+
+    override fun unbind(holder: Holder) {
+        GlideApp.with(holder.image).clear(holder.image)
+        super.unbind(holder)
     }
 
     class Holder : VectorEpoxyHolder() {

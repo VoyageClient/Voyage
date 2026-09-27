@@ -10,6 +10,7 @@ package im.vector.app.features.attachments.editor.image
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
@@ -221,5 +222,19 @@ class ImageEditorViewTest {
         drag(200f, 400f, VIEW_SIZE / 2f - 5f, 500f)
 
         (view.currentEdits().censors.single().right < 0.5f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `drawable preview uses the same square crop as the bitmap preview`() {
+        view.cropAspectRatio = 1f
+        val drawable = BitmapDrawable(view.resources, Bitmap.createBitmap(IMAGE_WIDTH, IMAGE_HEIGHT, Bitmap.Config.ARGB_8888))
+        view.setAnimatedDrawable(drawable)
+        view.draw(Canvas(Bitmap.createBitmap(VIEW_SIZE, VIEW_SIZE, Bitmap.Config.ARGB_8888)))
+
+        view.currentEdits().crop shouldBeEqualTo RectF(0.25f, 0f, 0.75f, 1f)
+        drawable.bounds shouldBeEqualTo android.graphics.Rect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT)
+        (drawable.callback === view) shouldBeEqualTo true
+        view.setAnimatedDrawable(null)
+        drawable.callback shouldBeEqualTo null
     }
 }

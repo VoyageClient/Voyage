@@ -7,14 +7,19 @@
 
 package im.vector.app.core.glide
 
+import android.app.Activity
 import android.graphics.Bitmap
+import android.graphics.Outline
+import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
+import android.widget.FrameLayout
 import android.widget.ImageView
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.test.fakes.FakeAnimatedDrawable
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -87,5 +92,60 @@ class ClippedDrawableImageViewTargetTest {
 
         drawable.isRunning shouldBeEqualTo false
         imageView.drawable shouldBeEqualTo drawable
+    }
+
+    @Test
+    fun `masked avatar forwards animation invalidations`() {
+        val drawable = FakeAnimatedDrawable()
+        ClippedDrawableImageViewTarget(imageView, AvatarShape.HEXAGON).onResourceReady(drawable, null)
+
+        (imageView.drawable is ShapeClipDrawable) shouldBeEqualTo true
+        drawable.isRunning shouldBeEqualTo true
+        (drawable.callback === imageView.drawable) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `clearing one target leaves a second avatar playing`() {
+        val first = FakeAnimatedDrawable()
+        val second = FakeAnimatedDrawable()
+        val target = ClippedDrawableImageViewTarget(imageView, AvatarShape.CIRCLE)
+        val other = ClippedDrawableImageViewTarget(ImageView(context), AvatarShape.CIRCLE)
+        target.onResourceReady(first, null)
+        other.onResourceReady(second, null)
+
+        target.onLoadCleared(null)
+
+        first.isRunning shouldBeEqualTo false
+        second.isRunning shouldBeEqualTo true
+    }
+
+    @Test
+    fun `a detached row resumes animation when attached again`() {
+        val activity = Robolectric.buildActivity(Activity::class.java).setup().get()
+        val container = FrameLayout(activity)
+        val avatar = ImageView(activity)
+        activity.setContentView(container)
+        container.addView(avatar)
+        val drawable = FakeAnimatedDrawable()
+        ClippedDrawableImageViewTarget(avatar, AvatarShape.CIRCLE).onResourceReady(drawable, null)
+
+        container.removeView(avatar)
+        drawable.isRunning shouldBeEqualTo false
+        container.addView(avatar)
+        drawable.isRunning shouldBeEqualTo true
+    }
+
+    @Test
+    fun `animated avatar outline matches the padded image bounds`() {
+        imageView.layout(0, 0, 128, 128)
+        imageView.setPadding(4, 4, 4, 4)
+        ClippedDrawableImageViewTarget(imageView, AvatarShape.CIRCLE).onResourceReady(FakeAnimatedDrawable(), null)
+        val outline = Outline()
+        imageView.outlineProvider.getOutline(imageView, outline)
+        val bounds = Rect()
+
+        outline.getRect(bounds) shouldBeEqualTo true
+        bounds shouldBeEqualTo Rect(4, 4, 124, 124)
+        outline.radius shouldBeEqualTo 60f
     }
 }

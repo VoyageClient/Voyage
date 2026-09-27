@@ -26,6 +26,8 @@ import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
+import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.glide.RetainedAvatarPreview
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
@@ -68,6 +70,8 @@ class RoomSettingsFragment :
     private val roomProfileArgs: RoomProfileArgs by args()
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
     private lateinit var bannerGalleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
+
+    private var toolbarAvatarPreview: RetainedAvatarPreview? = null
 
     private val bannerListener = object : GalleryOrCameraDialogHelper.Listener {
         override fun onImageReady(uri: Uri?) {
@@ -151,6 +155,8 @@ class RoomSettingsFragment :
     }
 
     override fun onDestroyView() {
+        toolbarAvatarPreview?.clear()
+        toolbarAvatarPreview = null
         controller.callback = null
         views.roomSettingsRecyclerView.cleanup()
         super.onDestroyView()
@@ -182,7 +188,21 @@ class RoomSettingsFragment :
 
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
+            val item = it.toDisplayMatrixItem().updateAvatar(state.currentRoomAvatarUrl)
+            val preview = state.avatarPreviewUri
+            val imageView = views.roomSettingsToolbarAvatarImageView
+            val retained = toolbarAvatarPreview ?: RetainedAvatarPreview(imageView).also { toolbarAvatarPreview = it }
+            if (preview != null) {
+                val previewItem = item.updateAvatar(null)
+                retained.load(preview, avatarRenderer.avatarTarget(imageView, previewItem)) { target ->
+                    avatarRenderer.render(previewItem, preview, imageView, target)
+                }
+            } else {
+                val current = item.updateAvatar(if (state.avatarAction is RoomSettingsViewState.AvatarAction.DeleteAvatar) null else item.avatarUrl)
+                retained.load(current, avatarRenderer.avatarTarget(imageView, current), showFallback = current.avatarUrl.isNullOrEmpty()) { target ->
+                    avatarRenderer.render(GlideApp.with(imageView), current, target)
+                }
+            }
             views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }
 

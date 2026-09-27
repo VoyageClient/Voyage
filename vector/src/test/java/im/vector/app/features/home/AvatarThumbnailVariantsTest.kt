@@ -55,6 +55,9 @@ class AvatarThumbnailVariantsTest {
     }
     private val session = mockk<Session> {
         every { contentUrlResolver() } returns contentUrlResolver
+        every { fileService() } returns mockk {
+            every { getLocalFileFor(any(), any(), any(), any()) } returns null
+        }
     }
     private val activeSessionHolder = mockk<ActiveSessionHolder> {
         every { getSafeActiveSession() } returns session
@@ -183,6 +186,18 @@ class AvatarThumbnailVariantsTest {
 
         verify(exactly = 2) { request.onlyRetrieveFromCache(true) }
         verify(exactly = 1) { request.onlyRetrieveFromCache(false) }
+    }
+
+    @Test
+    fun `uploaded avatars use the local file with a remote fallback`() {
+        every { vectorPreferences.autoplayAnimatedImages() } returns true
+        val local = java.io.File("uploaded-avatar.webp")
+        every { session.fileService().getLocalFileFor(AVATAR_MXC_URL, null, null, false) } returns local
+
+        avatarRenderer.render(glideRequests, matrixItem, mockk(relaxed = true))
+
+        verify { glideRequests.load(local as Any) }
+        verify { request.error(request) }
     }
 
     @Test

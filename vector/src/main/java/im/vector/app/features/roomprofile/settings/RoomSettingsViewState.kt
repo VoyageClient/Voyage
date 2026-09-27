@@ -29,6 +29,7 @@ data class RoomSettingsViewState(
         val isLoading: Boolean = false,
         val currentRoomAvatarUrl: String? = null,
         val avatarAction: AvatarAction = AvatarAction.None,
+        val savedAvatarPreviewUri: Uri? = null,
         val currentRoomBannerUrl: String? = null,
         val bannerAction: BannerAction = BannerAction.None,
         val newName: String? = null,
@@ -44,6 +45,13 @@ data class RoomSettingsViewState(
 ) : MavericksState {
 
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)
+
+    val avatarPreviewUri: Uri?
+        get() = when (val action = avatarAction) {
+            AvatarAction.None -> savedAvatarPreviewUri
+            AvatarAction.DeleteAvatar -> null
+            is AvatarAction.UpdateAvatar -> action.newAvatarUri
+        }
 
     fun hasPendingChanges(): Boolean {
         return avatarAction !is AvatarAction.None ||

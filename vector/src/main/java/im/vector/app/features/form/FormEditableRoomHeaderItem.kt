@@ -13,15 +13,18 @@ import android.widget.ImageView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.glide.RetainedAvatarPreview
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.BannerRenderer
+import im.vector.app.features.settings.AvatarShape
 import org.matrix.android.sdk.api.util.MatrixItem
 
 /**
@@ -88,22 +91,36 @@ abstract class FormEditableRoomHeaderItem : VectorEpoxyModel<FormEditableRoomHea
         holder.bannerDelete.isVisible = bannerEnabled && hasBanner
         holder.bannerDelete.onClick(bannerDeleteListener?.takeIf { bannerEnabled })
 
+        holder.avatarImage.scaleType = ImageView.ScaleType.CENTER_CROP
         holder.avatarContainer.onClick(avatarClickListener?.takeIf { avatarEnabled })
-        if (matrixItem != null) {
-            avatarRenderer?.render(matrixItem!!, holder.avatarImage)
+        val renderer = avatarRenderer
+        val item = matrixItem
+        if (item != null && renderer != null) {
+            holder.avatarPreview.load(item, renderer.avatarTarget(holder.avatarImage, item), showFallback = item.avatarUrl.isNullOrEmpty()) { target ->
+                renderer.render(GlideApp.with(holder.avatarImage), item, target)
+            }
         } else {
-            GlideApp.with(holder.avatarImage)
-                    .load(avatarImageUri)
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(holder.avatarImage)
+            holder.avatarPreview.load(avatarImageUri ?: "empty", ClippedDrawableImageViewTarget(holder.avatarImage, AvatarShape.CIRCLE), showFallback = avatarImageUri == null) { target ->
+                GlideApp.with(holder.avatarImage)
+                        .load(avatarImageUri)
+                        .optionalTransform(CircleCrop())
+                        .into(target)
+            }
         }
         val hasAvatar = avatarImageUri != null || matrixItem != null
-        bannerRenderer?.applyAvatarStroke(holder.avatarImage, matrixItem, hasAvatar)
+        bannerRenderer?.applyAvatarStroke(holder.avatarImage, matrixItem, hasAvatar, holder.avatarContainer)
         holder.avatarDelete.isVisible = avatarEnabled && (avatarImageUri != null || hasRoomAvatar)
         holder.avatarDelete.onClick(avatarDeleteListener?.takeIf { avatarEnabled })
     }
 
+    override fun unbind(holder: Holder) {
+        holder.avatarPreview.clear()
+        GlideApp.with(holder.bannerImage).clear(holder.bannerImage)
+        super.unbind(holder)
+    }
+
     class Holder : VectorEpoxyHolder() {
+        val avatarPreview by lazy { RetainedAvatarPreview(avatarImage) }
         val bannerContainer by bind<View>(R.id.itemEditableRoomHeaderBannerContainer)
         val bannerAddIcon by bind<ImageView>(R.id.itemEditableRoomHeaderBannerAddIcon)
         val bannerImage by bind<ImageView>(R.id.itemEditableRoomHeaderBannerImage)

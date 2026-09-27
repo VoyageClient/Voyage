@@ -17,6 +17,8 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.drawable.Animatable
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -84,6 +86,9 @@ class ImageEditorView @JvmOverloads constructor(
         }
 
     private var bitmap: Bitmap? = null
+    private var animatedDrawable: Drawable? = null
+    private val imageWidth get() = animatedDrawable?.intrinsicWidth ?: bitmap?.width ?: 0
+    private val imageHeight get() = animatedDrawable?.intrinsicHeight ?: bitmap?.height ?: 0
     private var userRotation = 0
     private val crop = RectF(0f, 0f, 1f, 1f)
     private val censors = mutableListOf<CensorBox>()
@@ -195,11 +200,29 @@ class ImageEditorView @JvmOverloads constructor(
     private enum class DragMode { NONE, PAN, CROP_MOVE, CROP_RESIZE, CENSOR_MOVE, CENSOR_RESIZE, CENSOR_CREATE }
 
     fun setBitmap(value: Bitmap) {
+        setAnimatedDrawable(null)
         bitmap = value
         applyRatioAroundCenter(crop, cropAspectRatio)
         requestLayout()
         invalidate()
     }
+
+    fun setAnimatedDrawable(value: Drawable?) {
+        (animatedDrawable as? Animatable)?.stop()
+        animatedDrawable?.callback = null
+        animatedDrawable = value
+        if (value != null) {
+            bitmap = null
+            value.callback = this
+            value.setBounds(0, 0, imageWidth, imageHeight)
+            applyRatioAroundCenter(crop, cropAspectRatio)
+            (value as? Animatable)?.start()
+        }
+        requestLayout()
+        invalidate()
+    }
+
+    override fun verifyDrawable(who: Drawable): Boolean = who === animatedDrawable || super.verifyDrawable(who)
 
     fun rotateClockwise() {
         userRotation = (userRotation + 90) % 360
@@ -288,10 +311,9 @@ class ImageEditorView @JvmOverloads constructor(
 
     /** The size the image is shown at, which the normalised rectangles are measured against. */
     private fun displayedSize(): Pair<Float, Float>? {
-        val bmp = bitmap ?: return null
         val sideways = userRotation % 180 != 0
-        val width = (if (sideways) bmp.height else bmp.width).toFloat()
-        val height = (if (sideways) bmp.width else bmp.height).toFloat()
+        val width = (if (sideways) imageHeight else imageWidth).toFloat()
+        val height = (if (sideways) imageWidth else imageHeight).toFloat()
         return if (width > 0f && height > 0f) width to height else null
     }
 
@@ -333,8 +355,8 @@ class ImageEditorView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val bmp = bitmap ?: return
-        computeGeometry(bmp)
+        if (imageWidth <= 0 || imageHeight <= 0) return
+        computeGeometry()
 
         // Spin the whole composition, so the overlays stay locked to the image mid-animation.
         val spinning = animatedRotation != 0f
@@ -343,7 +365,15 @@ class ImageEditorView @JvmOverloads constructor(
             canvas.rotate(animatedRotation, width / 2f, height / 2f)
         }
 
-        canvas.drawBitmap(bmp, drawMatrix, bitmapPaint)
+        val drawable = animatedDrawable
+        if (drawable != null) {
+            val saved = canvas.save()
+            canvas.concat(drawMatrix)
+            drawable.draw(canvas)
+            canvas.restoreToCount(saved)
+        } else {
+            bitmap?.let { canvas.drawBitmap(it, drawMatrix, bitmapPaint) }
+        }
 
         censors.forEach { canvas.drawRect(it.rect.toScreen(), censorPaint) }
 
@@ -369,10 +399,10 @@ class ImageEditorView @JvmOverloads constructor(
         if (spinning) canvas.restore()
     }
 
-    private fun computeGeometry(bmp: Bitmap) {
+    private fun computeGeometry() {
         val sideways = userRotation % 180 != 0
-        val srcW = (if (sideways) bmp.height else bmp.width).toFloat()
-        val srcH = (if (sideways) bmp.width else bmp.height).toFloat()
+        val srcW = (if (sideways) imageHeight else imageWidth).toFloat()
+        val srcH = (if (sideways) imageWidth else imageHeight).toFloat()
         // Inset the image so handles sitting on its edge aren't jammed against the screen edge.
         // Pinching out below 1x gives more room than this when a shot needs it.
         val pad = max(dp(28f), min(width, height) * EDGE_INSET_FRACTION)
@@ -394,7 +424,7 @@ class ImageEditorView @JvmOverloads constructor(
         imageRect.set(cx - drawnW / 2f, cy - drawnH / 2f, cx + drawnW / 2f, cy + drawnH / 2f)
 
         drawMatrix.reset()
-        drawMatrix.postTranslate(-bmp.width / 2f, -bmp.height / 2f)
+        drawMatrix.postTranslate(-imageWidth / 2f, -imageHeight / 2f)
         drawMatrix.postRotate(userRotation.toFloat())
         drawMatrix.postScale(scale, scale)
         drawMatrix.postTranslate(cx, cy)
@@ -463,7 +493,7 @@ class ImageEditorView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (bitmap == null || imageRect.isEmpty) return false
+        if (imageWidth <= 0 || imageHeight <= 0 || imageRect.isEmpty) return false
         if (event.actionMasked == MotionEvent.ACTION_POINTER_DOWN && event.pointerCount >= 2) {
             // A second finger turns the gesture into zoom/pan; abandon any edit it started as.
             beginPinch(event)

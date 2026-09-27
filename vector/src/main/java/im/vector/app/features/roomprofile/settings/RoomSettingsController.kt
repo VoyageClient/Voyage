@@ -66,15 +66,22 @@ class RoomSettingsController @Inject constructor(
             when (val avatarAction = data.avatarAction) {
                 RoomSettingsViewState.AvatarAction.None -> {
                     // Only the room's own m.room.avatar: editing must not present a DM's derived peer avatar as the room's.
-                    avatarRenderer(host.avatarRenderer)
-                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(roomAvatarUrl))
-                    hasRoomAvatar(roomAvatarUrl != null)
+                    if (data.avatarPreviewUri != null) {
+                        avatarImageUri(data.avatarPreviewUri)
+                    } else {
+                        avatarRenderer(host.avatarRenderer)
+                        matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(roomAvatarUrl))
+                    }
+                    hasRoomAvatar(data.avatarPreviewUri != null || roomAvatarUrl != null)
                 }
                 RoomSettingsViewState.AvatarAction.DeleteAvatar -> {
                     avatarRenderer(host.avatarRenderer)
                     matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(null))
                 }
-                is RoomSettingsViewState.AvatarAction.UpdateAvatar -> avatarImageUri(avatarAction.newAvatarUri)
+                is RoomSettingsViewState.AvatarAction.UpdateAvatar -> {
+                    avatarImageUri(avatarAction.newAvatarUri)
+                    hasRoomAvatar(true)
+                }
             }
             when (val bannerAction = data.bannerAction) {
                 RoomSettingsViewState.BannerAction.None -> bannerMxcUrl(data.currentRoomBannerUrl)

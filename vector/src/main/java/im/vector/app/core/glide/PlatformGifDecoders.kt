@@ -44,6 +44,21 @@ internal object PlatformGifRegistrar {
 
 @RequiresApi(28)
 private fun decodeAnimated(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int): Resource<Drawable>? {
+    val drawable = decodeGif(bytes, requestedWidth, requestedHeight) ?: return null
+    if (drawable !is AnimatedImageDrawable) return null
+    return object : Resource<Drawable> {
+        override fun getResourceClass(): Class<Drawable> = Drawable::class.java
+
+        // AnimatedImageDrawable owns one callback and playback state, so each target needs its own instance.
+        override fun get(): Drawable = decodeGif(bytes, requestedWidth, requestedHeight)
+                ?: error("Unable to decode previously validated GIF")
+        override fun getSize(): Int = bytes.size
+        override fun recycle() = Unit
+    }
+}
+
+@RequiresApi(28)
+private fun decodeGif(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int): Drawable? {
     val drawable = try {
         ImageDecoder.decodeDrawable(ImageDecoder.createSource(ByteBuffer.wrap(bytes))) { decoder, info, _ ->
             decoder.isMutableRequired = false
@@ -54,17 +69,8 @@ private fun decodeAnimated(bytes: ByteArray, requestedWidth: Int, requestedHeigh
         Timber.w(t, "Platform GIF decode failed; falling back")
         return null
     }
-    // A single-frame GIF comes back as a plain bitmap drawable — leave those to the usual path.
-    if (drawable !is AnimatedImageDrawable) return null
-    // Glide's GifDrawable loops forever whatever the file says, so match it rather than change how
-    // existing GIFs behave.
-    drawable.repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
-    return object : Resource<Drawable> {
-        override fun getResourceClass(): Class<Drawable> = Drawable::class.java
-        override fun get(): Drawable = drawable
-        override fun getSize(): Int = bytes.size
-        override fun recycle() = Unit
-    }
+    if (drawable is AnimatedImageDrawable) drawable.repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
+    return drawable
 }
 
 /** Aspect-preserving box fit that never upscales. */

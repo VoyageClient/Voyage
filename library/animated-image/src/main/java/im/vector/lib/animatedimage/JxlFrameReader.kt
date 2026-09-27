@@ -35,29 +35,28 @@ internal object JxlFrameReader {
         }
     }
 
-    fun readFrames(file: File): List<AnimatedFrame>? {
-        if (!isAvailable) return null
-        val bytes = try {
-            file.readBytes()
-        } catch (t: Throwable) {
-            Timber.w(t, "JXL: cannot read source")
-            return null
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+
+    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
+        if (!isAvailable) return false
+        val animation = try {
+            open(file.readBytes())
+        } catch (error: Throwable) {
+            Timber.w(error, "JXL: cannot open source")
+            return false
         }
-        return try {
-            open(bytes).use { animation ->
-                val count = animation.numberOfFrames
-                if (count <= 0) return null
-                val out = ArrayList<AnimatedFrame>(count)
-                for (index in 0 until count) {
-                    val bitmap = animation.getFrame(index, 0, 0)
-                    val delay = animation.getFrameDuration(index).coerceAtLeast(MIN_FRAME_DELAY_MS)
-                    out.add(AnimatedFrame(bitmap, delay))
+        animation.use {
+            val count = it.numberOfFrames
+            if (count <= 0) return false
+            for (index in 0 until count) {
+                val bitmap = it.getFrame(index, 0, 0)
+                try {
+                    onFrame(AnimatedFrame(bitmap, it.getFrameDuration(index).coerceAtLeast(MIN_FRAME_DELAY_MS)), index, count)
+                } finally {
+                    bitmap.recycle()
                 }
-                out.takeIf { it.isNotEmpty() }
             }
-        } catch (t: Throwable) {
-            Timber.w(t, "JXL: cannot read frames")
-            null
+            return true
         }
     }
 

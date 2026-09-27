@@ -89,10 +89,14 @@ class ClippedDrawableImageViewTarget(
     private fun clipViewToShape(clip: Boolean) {
         view.outlineProvider = if (!clip) null else object : ViewOutlineProvider() {
             override fun getOutline(v: View, outline: Outline) {
+                val left = v.paddingLeft
+                val top = v.paddingTop
+                val right = v.width - v.paddingRight
+                val bottom = v.height - v.paddingBottom
                 if (shape == AvatarShape.CIRCLE) {
-                    outline.setOval(0, 0, v.width, v.height)
+                    outline.setOval(left, top, right, bottom)
                 } else {
-                    outline.setRoundRect(0, 0, v.width, v.height, minOf(v.width, v.height) * AvatarRenderer.ROUNDED_CORNER_PERCENT)
+                    outline.setRoundRect(left, top, right, bottom, minOf(right - left, bottom - top) * AvatarRenderer.ROUNDED_CORNER_PERCENT)
                 }
             }
         }
@@ -138,15 +142,19 @@ class ClippedDrawableImageViewTarget(
 
     override fun onLoadFailed(errorDrawable: Drawable?) = super.onLoadFailed(clip(errorDrawable))
 
-    // Recycling is the one point where the shape genuinely belongs to a different avatar.
-    override fun onLoadCleared(placeholder: Drawable?) {
+    override fun releaseResource() {
         animatedShape?.let {
             it.stop()
             // The request is going away and Glide may recycle what it was drawing.
             it.release()
         }
         animatedShape = null
-        super.onLoadCleared(clip(placeholder))
+        super.releaseResource()
+    }
+
+    override fun onLoadCleared(placeholder: Drawable?) {
+        super.onLoadCleared(null)
+        if (placeholder != null) super.onLoadStarted(clip(placeholder))
     }
 
     private fun Drawable.isSelfShaped() =

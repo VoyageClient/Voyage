@@ -10,6 +10,7 @@ package im.vector.app.features.attachments.editor.video
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
@@ -49,29 +50,30 @@ object AnimatedImageExporter {
             edits: VideoEditorEdits,
             targetSize: Pair<Int, Int>?,
             progressListener: VideoEditProgressListener?,
+            censors: List<RectF> = emptyList(),
     ): VideoEditorExporter.Result = withContext(Dispatchers.Default) {
         progressListener?.onProgress(0)
+        if (!edits.reversed) return@withContext exportStreaming(context, source, format, displayName, edits, targetSize, progressListener, censors)
         val decoded = AnimatedImageReader.readFrames(source, format) ?: throw AnimatedImageException()
         val destination = createOutputFile(context, displayName)
+        val output = ArrayList<AnimatedFrame>()
         try {
-            val kept = trim(decoded, edits).let { if (edits.reversed) it.reversed() else it }
+            val kept = trim(decoded, edits).reversed()
             if (kept.isEmpty()) throw AnimatedImageException()
             // Bitmap.compress(WEBP) gained alpha in 4.2.1; below that every transparent pixel comes
             // back black, so an export that would look wrong is refused rather than written.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1 && kept.anyTransparent()) {
                 throw TransparencyUnsupportedException()
             }
-            val geometry = Geometry.of(decoded[0].bitmap, edits, targetSize)
-            val output = ArrayList<AnimatedFrame>(kept.size)
+            val geometry = Geometry.of(decoded[0].bitmap, edits, targetSize, censors)
             kept.forEachIndexed { index, frame ->
                 coroutineContext.ensureActive()
                 output.add(AnimatedFrame(geometry.apply(frame.bitmap), scaleDuration(frame.durationMs, edits)))
                 progressListener?.onProgress(index * 100 / kept.size)
             }
             val written = runCatching {
-                destination.outputStream().use { AnimatedWebpEncoder.encode(output, DEFAULT_QUALITY, it) }
+                destination.outputStream().use { AnimatedWebpEncoder.encode(output, DEFAULT_QUALITY, it, parallel = true) }
             }.getOrDefault(false)
-            output.forEach { it.bitmap.recycle() }
             if (!written) throw AnimatedImageException()
             VideoEditorExporter.Result(
                     uri = FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, destination),
@@ -86,8 +88,81 @@ object AnimatedImageExporter {
             destination.parentFile?.deleteRecursively()
             throw throwable
         } finally {
+            output.forEach { it.bitmap.recycle() }
             decoded.forEach { if (!it.bitmap.isRecycled) it.bitmap.recycle() }
             progressListener?.onProgress(100)
+        }
+    }
+
+    private suspend fun exportStreaming(
+            context: Context,
+            source: File,
+            format: AnimatedImageFormat?,
+            displayName: String?,
+            edits: VideoEditorEdits,
+            targetSize: Pair<Int, Int>?,
+            progressListener: VideoEditProgressListener?,
+            censors: List<RectF>,
+    ): VideoEditorExporter.Result {
+        val destination = createOutputFile(context, displayName)
+        var writer: AnimatedWebpEncoder.StreamWriter? = null
+        var geometry: Geometry? = null
+        val pending = ArrayList<AnimatedFrame>(4)
+        var sourcePositionUs = 0L
+        var durationMs = 0L
+        var lastProgress = -1
+        val jobContext = coroutineContext
+        fun flush() {
+            jobContext.ensureActive()
+            try {
+                if (writer?.append(pending) != true) throw AnimatedImageException()
+            } finally {
+                pending.forEach { it.bitmap.recycle() }
+                pending.clear()
+            }
+        }
+        try {
+            val decoded = AnimatedImageReader.visitFrames(source, format) { frame, index, count ->
+                jobContext.ensureActive()
+                val endUs = sourcePositionUs + frame.durationMs * 1000L
+                val keep = edits.durationUs <= 0 || (endUs > edits.startUs && sourcePositionUs < edits.endUs)
+                sourcePositionUs = endUs
+                if (keep) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1 && listOf(frame).anyTransparent()) {
+                        throw TransparencyUnsupportedException()
+                    }
+                    val current = geometry ?: Geometry.of(frame.bitmap, edits, targetSize, censors).also { geometry = it }
+                    if (writer == null) writer = AnimatedWebpEncoder.StreamWriter(destination, current.width, current.height, DEFAULT_QUALITY)
+                    val delay = scaleDuration(frame.durationMs, edits)
+                    pending.add(AnimatedFrame(current.apply(frame.bitmap), delay))
+                    durationMs += delay
+                    val bytesPerFrame = current.width.toLong() * current.height * 4
+                    val batchSize = (Runtime.getRuntime().maxMemory() / 16 / bytesPerFrame.coerceAtLeast(1)).coerceIn(1, 4).toInt()
+                    if (pending.size >= batchSize) flush()
+                }
+                val progress = (index + 1) * 99 / count.coerceAtLeast(1)
+                if (progress != lastProgress) {
+                    progressListener?.onProgress(progress)
+                    lastProgress = progress
+                }
+            }
+            if (!decoded || writer == null) throw AnimatedImageException()
+            if (pending.isNotEmpty()) flush()
+            jobContext.ensureActive()
+            if (writer?.finish() != true) throw AnimatedImageException()
+            val finalGeometry = geometry ?: throw AnimatedImageException()
+            progressListener?.onProgress(100)
+            return VideoEditorExporter.Result(
+                    uri = FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, destination),
+                    width = finalGeometry.width, height = finalGeometry.height, size = destination.length(),
+                    mimeType = OUTPUT_MIME_TYPE, durationMs = durationMs, audioDropped = false
+            )
+        } catch (error: Throwable) {
+            destination.parentFile?.deleteRecursively()
+            throw error
+        } finally {
+            writer?.close()
+            pending.forEach { it.bitmap.recycle() }
         }
     }
 
@@ -114,6 +189,7 @@ object AnimatedImageExporter {
             val height: Int,
             private val rotationDegrees: Int,
             private val crop: RectF?,
+            private val censors: List<RectF>,
     ) {
 
         private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
@@ -131,6 +207,17 @@ object AnimatedImageExporter {
                 )
             }
             canvas.drawBitmap(rotated, sourceRect, Rect(0, 0, width, height), paint)
+            val region = crop ?: RectF(0f, 0f, 1f, 1f)
+            val censorPaint = Paint().apply { color = Color.BLACK }
+            censors.forEach {
+                canvas.drawRect(
+                        (it.left - region.left) / region.width() * width,
+                        (it.top - region.top) / region.height() * height,
+                        (it.right - region.left) / region.width() * width,
+                        (it.bottom - region.top) / region.height() * height,
+                        censorPaint
+                )
+            }
             if (rotated !== bitmap) rotated.recycle()
             return output
         }
@@ -141,7 +228,7 @@ object AnimatedImageExporter {
         }
 
         companion object {
-            fun of(first: Bitmap, edits: VideoEditorEdits, targetSize: Pair<Int, Int>?): Geometry {
+            fun of(first: Bitmap, edits: VideoEditorEdits, targetSize: Pair<Int, Int>?, censors: List<RectF>): Geometry {
                 val rotation = ((edits.rotationDegrees % 360) + 360) % 360
                 val swapped = rotation % 180 == 90
                 val displayWidth = if (swapped) first.height else first.width
@@ -154,7 +241,8 @@ object AnimatedImageExporter {
                         width = targetSize?.first ?: croppedWidth,
                         height = targetSize?.second ?: croppedHeight,
                         rotationDegrees = rotation,
-                        crop = edits.crop
+                        crop = edits.crop,
+                        censors = censors
                 )
             }
         }

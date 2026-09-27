@@ -26,17 +26,17 @@ import java.util.zip.CRC32
  */
 object ApngFrameReader {
 
-    fun readFrames(file: File): List<AnimatedFrame>? {
-        // A truncated or hand-made file reaches the chunk walk with payloads shorter than the
-        // fields it reads out of them, so parsing is inside the guard along with the read.
-        return try {
-            val parsed = parseChunks(file.readBytes()) ?: return null
-            if (parsed.frames.isEmpty()) return null
-            composeFrames(parsed)
-        } catch (t: Throwable) {
-            Timber.w(t, "APNG: cannot read $file")
+    fun readFrames(file: File): List<AnimatedFrame>? = collectFrames { visitFrames(file, it) }
+
+    fun visitFrames(file: File, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
+        val parsed = try {
+            parseChunks(file.readBytes())
+        } catch (error: Throwable) {
+            Timber.w(error, "APNG: cannot read source")
             null
-        }
+        } ?: return false
+        if (parsed.frames.isEmpty()) return false
+        return composeFrames(parsed, onFrame)
     }
 
     private data class FrameChunk(
@@ -124,64 +124,46 @@ object ApngFrameReader {
         return null
     }
 
-    private fun composeFrames(parsed: ParsedApng): List<AnimatedFrame>? {
-        val canvas = Bitmap.createBitmap(parsed.canvasWidth, parsed.canvasHeight, Bitmap.Config.ARGB_8888)
-        val c = Canvas(canvas)
+    private fun composeFrames(parsed: ParsedApng, onFrame: (AnimatedFrame, Int, Int) -> Unit): Boolean {
+        val bitmap = Bitmap.createBitmap(parsed.canvasWidth, parsed.canvasHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
         val srcPaint = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC) }
         var snapshot: Bitmap? = null
-        val output = ArrayList<AnimatedFrame>(parsed.frames.size)
-
-        fun abandon(): List<AnimatedFrame>? {
-            // Every frame here is a full-canvas ARGB bitmap; leaking a run of them is how a long
-            // animation exhausts a small heap.
-            output.forEach { it.bitmap.recycle() }
-            canvas.recycle()
+        try {
+            parsed.frames.forEachIndexed { index, frame ->
+                if (frame.disposeOp == DISPOSE_PREVIOUS) {
+                    snapshot?.recycle()
+                    snapshot = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+                }
+                val png = buildPng(parsed.ihdrPayload, parsed.ancillaries, frame) ?: return false
+                val patch = BitmapFactory.decodeByteArray(png, 0, png.size) ?: return false
+                val rect = Rect(frame.x, frame.y, frame.x + frame.width, frame.y + frame.height)
+                try {
+                    val saved = canvas.save()
+                    canvas.clipRect(rect)
+                    if (frame.blendOp == BLEND_SOURCE) canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+                    canvas.drawBitmap(patch, frame.x.toFloat(), frame.y.toFloat(), null)
+                    canvas.restoreToCount(saved)
+                } finally {
+                    patch.recycle()
+                }
+                onFrame(AnimatedFrame(bitmap, frame.delayMs), index, parsed.frames.size)
+                val saved = canvas.save()
+                canvas.clipRect(rect)
+                when (frame.disposeOp) {
+                    DISPOSE_BACKGROUND -> canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+                    DISPOSE_PREVIOUS -> snapshot?.let {
+                        canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+                        canvas.drawBitmap(it, 0f, 0f, srcPaint)
+                    }
+                }
+                canvas.restoreToCount(saved)
+            }
+            return true
+        } finally {
+            bitmap.recycle()
             snapshot?.recycle()
-            return null
         }
-
-        for (frame in parsed.frames) {
-            // Snapshot the soon-to-be-overwritten region if this frame wants DISPOSE_PREVIOUS.
-            if (frame.disposeOp == DISPOSE_PREVIOUS) {
-                snapshot?.recycle()
-                snapshot = canvas.copy(Bitmap.Config.ARGB_8888, true)
-            }
-
-            val framePng = buildPng(parsed.ihdrPayload, parsed.ancillaries, frame) ?: return abandon()
-            val frameBitmap = BitmapFactory.decodeByteArray(framePng, 0, framePng.size) ?: return abandon()
-
-            val rect = Rect(frame.x, frame.y, frame.x + frame.width, frame.y + frame.height)
-            c.save()
-            c.clipRect(rect)
-            if (frame.blendOp == BLEND_SOURCE) {
-                c.drawColor(0, PorterDuff.Mode.CLEAR)
-            }
-            c.drawBitmap(frameBitmap, frame.x.toFloat(), frame.y.toFloat(), null)
-            c.restore()
-
-            output.add(AnimatedFrame(canvas.copy(Bitmap.Config.ARGB_8888, false), frame.delayMs))
-
-            when (frame.disposeOp) {
-                DISPOSE_BACKGROUND -> {
-                    c.save()
-                    c.clipRect(rect)
-                    c.drawColor(0, PorterDuff.Mode.CLEAR)
-                    c.restore()
-                }
-                DISPOSE_PREVIOUS -> snapshot?.let { snap ->
-                    c.save()
-                    c.clipRect(rect)
-                    c.drawColor(0, PorterDuff.Mode.CLEAR)
-                    c.drawBitmap(snap, 0f, 0f, srcPaint)
-                    c.restore()
-                }
-                else -> Unit // DISPOSE_NONE
-            }
-            frameBitmap.recycle()
-        }
-        canvas.recycle()
-        snapshot?.recycle()
-        return output
     }
 
     private fun buildPng(ihdrPayload: ByteArray, ancillaries: List<Pair<String, ByteArray>>, frame: FrameChunk): ByteArray? {

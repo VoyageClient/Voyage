@@ -35,7 +35,6 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.NoTransition
 import com.bumptech.glide.request.transition.Transition
@@ -49,7 +48,6 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.glide.RememberServedVariant
-import im.vector.app.core.glide.RestartAnimationListener
 import im.vector.app.core.glide.RoundedCornersPercent
 import im.vector.app.core.glide.ShapeMaskTransformation
 import im.vector.app.core.glide.ThumbnailAttempt
@@ -73,7 +71,6 @@ import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.util.MatrixItem
-import java.io.File
 import javax.inject.Inject
 
 /**
@@ -242,7 +239,7 @@ class AvatarRenderer @Inject constructor(
             imageView: ImageView,
             matrixItem: MatrixItem,
             decodeSizePx: Int? = null,
-    ): DrawableImageViewTarget {
+    ): ClippedDrawableImageViewTarget {
         return ClippedDrawableImageViewTarget(
                 imageView, shapeFor(matrixItem), animate = vectorPreferences.autoplayAnimatedImages(), renderSizePx = decodeSizePx
         )
@@ -300,14 +297,14 @@ class AvatarRenderer @Inject constructor(
     }
 
     @UiThread
-    fun render(matrixItem: MatrixItem, localUri: Uri?, imageView: ImageView) {
+    fun render(matrixItem: MatrixItem, localUri: Uri?, imageView: ImageView, target: Target<Drawable>? = null) {
         imageView.setContentDescription(matrixItem)
-        val placeholder = getPlaceholderDrawable(matrixItem)
+        val placeholder = placeholderFor(imageView, matrixItem)
         GlideApp.with(imageView)
-                .load(localUri?.let { File(localUri.path!!) })
+                .load(localUri)
                 .optionalTransform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
-                .into(avatarTarget(imageView, matrixItem))
+                .into(target ?: avatarTarget(imageView, matrixItem))
     }
 
     @UiThread
@@ -497,16 +494,7 @@ class AvatarRenderer @Inject constructor(
                 .placeholder(placeholder)
                 .onlyRetrieveFromCache(retrieveFromCacheOnly)
                 .let { if (decodeSizePx != null) it.override(decodeSizePx) else it }
-                .let {
-                    when {
-                        !autoplay -> it.dontAnimate()
-                        // An animated shape shows the picture as a texture on a solid that is turning
-                        // on its own; playing it from the first frame every time the avatar is bound
-                        // would jump the picture while the shape carried on.
-                        shapeFor(matrixItem).isAnimated -> it
-                        else -> it.addListener(RestartAnimationListener)
-                    }
-                }
+                .let { if (autoplay) it else it.dontAnimate() }
                 .let {
                     if (crossfade && !PerformanceMode.enabled) {
                         it.transition(DrawableTransitionOptions.with(FadeOutPlaceholderFactory(FADE_MS, placeholder)))
@@ -524,11 +512,14 @@ class AvatarRenderer @Inject constructor(
                 ?.let { if (cacheOnly) it.distinctBy(ThumbnailAttempt::url) else it }
                 ?: return requestFor(null, cacheOnly)
         val remember = RememberServedVariant(thumbnailVariants, matrixItem.avatarUrl.orEmpty())
-        return chainAttempts(
+        val remote = chainAttempts(
                 attempts,
                 load = { requestFor(it.url, cacheOnly || it.cacheOnly).addListener(remember) },
                 fallingBackTo = { request, fallback -> request.error(fallback) },
         )
+        val local = activeSessionHolder.getSafeActiveSession()?.fileService()
+                ?.getLocalFileFor(matrixItem.avatarUrl, null, null)
+        return if (local != null) requestFor(local, cacheOnly).error(remote) else remote
     }
 
     @VisibleForTesting(otherwise = PRIVATE)

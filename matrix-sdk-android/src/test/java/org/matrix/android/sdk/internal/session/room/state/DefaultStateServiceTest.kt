@@ -8,16 +8,27 @@
 package org.matrix.android.sdk.internal.session.room.state
 
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
+import org.matrix.android.sdk.internal.session.content.ContentUploadResponse
+import org.matrix.android.sdk.internal.session.content.FileUploader
+import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
+import java.io.File
 
 class DefaultStateServiceTest {
+
+    private val fileUploader = mockk<FileUploader>()
+    private val uploadedMediaCache = mockk<UploadedMediaCache>(relaxed = true)
 
     private val sendStateTask = mockk<SendStateTask>()
 
@@ -26,8 +37,35 @@ class DefaultStateServiceTest {
             userId = "@alice:example.org",
             stateEventDataSource = mockk(),
             sendStateTask = sendStateTask,
-            fileUploader = mockk(),
+            fileUploader = fileUploader,
+            uploadedMediaCache = uploadedMediaCache,
+            coroutineDispatchers = mockk<MatrixCoroutineDispatchers> { every { io } returns Dispatchers.Unconfined },
     )
+
+    @Test
+    fun `uploaded avatar is cached before the prepared file is removed`() = runBlocking {
+        val file = File.createTempFile("avatar", ".webp")
+        val uploaded = ContentUploadResponse("mxc://example.org/avatar")
+        val bytes = byteArrayOf(1, 2, 3)
+        file.writeBytes(bytes)
+        coEvery { fileUploader.withPreparedUploadFile<ContentUploadResponse>(any(), any()) } coAnswers {
+            try {
+                secondArg<suspend (File) -> ContentUploadResponse>().invoke(file)
+            } finally {
+                file.delete()
+            }
+        }
+        coEvery { fileUploader.uploadFile(file, any(), any(), any()) } returns uploaded
+        every { uploadedMediaCache.storeDataFor(uploaded.contentUri, null, null, file, null) } answers {
+            org.junit.Assert.assertArrayEquals(bytes, file.readBytes())
+        }
+        coEvery { sendStateTask.executeRetry(any(), any()) } returns "event"
+
+        stateService.updateAvatar("content://avatar", "avatar.webp", false)
+
+        verify(exactly = 1) { uploadedMediaCache.storeDataFor(uploaded.contentUri, null, null, file, null) }
+        org.junit.Assert.assertFalse(file.exists())
+    }
 
     private fun sendTopic(topic: String, formattedTopic: String?): RoomTopicContent? {
         val params = slot<SendStateTask.Params>()

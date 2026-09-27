@@ -22,9 +22,11 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.RoundedCornersPercent
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -51,14 +53,15 @@ abstract class FormEditableSquareAvatarItem : VectorEpoxyModel<FormEditableSquar
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        holder.image.scaleType = ImageView.ScaleType.CENTER_CROP
         holder.imageContainer.onClick(clickListener?.takeIf { enabled })
         holder.imageContainer.backgroundCompat = spacePlaceholderBackground(holder)
         when {
             imageUri != null -> {
                 GlideApp.with(holder.image)
                         .load(imageUri)
-                        .transform(MultiTransformation(CenterCrop(), RoundedCornersPercent(AvatarRenderer.ROUNDED_CORNER_PERCENT)))
-                        .into(holder.image)
+                        .optionalTransform(MultiTransformation(CenterCrop(), RoundedCornersPercent(AvatarRenderer.ROUNDED_CORNER_PERCENT)))
+                        .into(ClippedDrawableImageViewTarget(holder.image, AvatarShape.ROUNDED))
             }
             matrixItem != null -> {
                 avatarRenderer?.render(matrixItem!!, holder.image)
@@ -74,7 +77,7 @@ abstract class FormEditableSquareAvatarItem : VectorEpoxyModel<FormEditableSquar
     }
 
     override fun unbind(holder: Holder) {
-        avatarRenderer?.clear(holder.image)
+        GlideApp.with(holder.image).clear(holder.image)
         super.unbind(holder)
     }
 

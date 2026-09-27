@@ -12,6 +12,7 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper.Listener
 import im.vector.app.core.extensions.registerStartForActivityResult
@@ -23,9 +24,13 @@ import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.features.attachments.editor.image.ImageEditorActivity
 import im.vector.app.features.attachments.editor.isRestoreOriginal
 import im.vector.app.features.attachments.editor.restoreOriginalUri
+import im.vector.lib.animatedimage.AnimatedImageFormat
 import im.vector.lib.multipicker.MultiPicker
 import im.vector.lib.multipicker.entity.MultiPickerImageType
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Use to let the user choose between Camera (with permission handling) and Gallery (with single image selection),
@@ -97,16 +102,19 @@ class GalleryOrCameraDialogHelper(
     }
 
     private fun startImageEditor(image: MultiPickerImageType) {
-        imageEditorActivityResultLauncher.launch(
-                ImageEditorActivity.newIntent(
-                        activity,
-                        image.contentUri,
-                        image.displayName,
-                        image.mimeType,
-                        edits = null,
-                        aspectRatio = if (aspect == Aspect.BANNER) BANNER_ASPECT_RATIO else 1f
-                )
-        )
+        fragment.lifecycleScope.launch {
+            val format = withContext(Dispatchers.IO) {
+                runCatching {
+                    activity.contentResolver.openInputStream(image.contentUri)?.use { AnimatedImageFormat.detect(it) }
+                }.getOrNull()
+            }
+            val ratio = if (aspect == Aspect.BANNER) BANNER_ASPECT_RATIO else 1f
+            val intent = ImageEditorActivity.newIntent(
+                    activity, image.contentUri, image.displayName, image.mimeType,
+                    edits = null, aspectRatio = ratio, animatedFormat = format
+            )
+            imageEditorActivityResultLauncher.launch(intent)
+        }
     }
 
     private enum class Type {

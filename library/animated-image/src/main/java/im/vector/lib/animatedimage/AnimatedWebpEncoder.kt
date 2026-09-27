@@ -9,7 +9,11 @@ package im.vector.lib.animatedimage
 
 import android.graphics.Bitmap
 import java.io.ByteArrayOutputStream
+import java.io.Closeable
+import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStream
+import java.util.concurrent.atomic.AtomicReference
 
 data class AnimatedFrame(val bitmap: Bitmap, val durationMs: Int)
 
@@ -35,18 +39,17 @@ object AnimatedWebpEncoder {
             out: OutputStream,
             loopCount: Int = 0,
             backgroundBgra: Int = 0,
+            parallel: Boolean = false,
     ): Boolean {
         if (frames.isEmpty()) return false
         val canvasW = frames[0].bitmap.width
         val canvasH = frames[0].bitmap.height
 
-        // Encode each frame and parse the inner image data chunks (VP8 / VP8L / optional ALPH).
-        val perFrame = frames.map { frame ->
-            val buf = ByteArrayOutputStream()
-            if (!frame.bitmap.compress(webpLossyFormat(), quality, buf)) return false
-            val bytes = buf.toByteArray()
-            val payload = extractInnerImagePayload(bytes) ?: return false
-            FrameEncoded(frame.bitmap.width, frame.bitmap.height, frame.durationMs, payload, frame.bitmap.hasAlpha())
+        val workers = if (parallel) minOf(4, Runtime.getRuntime().availableProcessors(), frames.size) else 1
+        val perFrame = if (workers <= 1) {
+            frames.map { encodeFrame(it, quality) ?: return false }
+        } else {
+            encodeParallel(frames, quality, workers) ?: return false
         }
 
         val anyAlpha = perFrame.any { it.hasAlpha }
@@ -62,6 +65,81 @@ object AnimatedWebpEncoder {
         out.write(ASCII_WEBP)
         out.write(bodyBytes)
         return true
+    }
+
+    class StreamWriter(file: File, private val width: Int, private val height: Int, private val quality: Int) : Closeable {
+        private val output = FileOutputStream(file)
+        private var frameCount = 0
+
+        init {
+            output.write(ASCII_RIFF)
+            writeUInt32LE(output, 0)
+            output.write(ASCII_WEBP)
+            writeVP8XChunk(output, width, height, animated = true, hasAlpha = true)
+            writeAnimChunk(output, 0, 0)
+        }
+
+        fun append(frames: List<AnimatedFrame>): Boolean {
+            if (frames.isEmpty()) return true
+            require(frames.all { it.bitmap.width == width && it.bitmap.height == height })
+            val workers = if (width.toLong() * height < 65536) 1 else minOf(4, Runtime.getRuntime().availableProcessors(), frames.size)
+            val encoded = if (workers <= 1) frames.map { encodeFrame(it, quality) ?: return false }
+                    else encodeParallel(frames, quality, workers) ?: return false
+            encoded.forEach { writeAnmfChunk(output, it) }
+            frameCount += encoded.size
+            return true
+        }
+
+        fun finish(): Boolean {
+            if (frameCount == 0) return false
+            val size = output.channel.position()
+            if (size - 8 > 0xFFFFFFFFL) return false
+            output.channel.position(4)
+            writeUInt32LE(output, size - 8)
+            output.channel.position(size)
+            output.flush()
+            return true
+        }
+
+        override fun close() = output.close()
+    }
+
+    private fun encodeFrame(frame: AnimatedFrame, quality: Int): FrameEncoded? {
+        val buffer = ByteArrayOutputStream()
+        if (!frame.bitmap.compress(webpLossyFormat(), quality, buffer)) return null
+        val payload = extractInnerImagePayload(buffer.toByteArray()) ?: return null
+        return FrameEncoded(frame.bitmap.width, frame.bitmap.height, frame.durationMs, payload, frame.bitmap.hasAlpha())
+    }
+
+    private fun encodeParallel(frames: List<AnimatedFrame>, quality: Int, workers: Int): List<FrameEncoded>? {
+        val encoded = arrayOfNulls<FrameEncoded>(frames.size)
+        val failure = AtomicReference<Throwable>()
+        val threads = List(workers) { worker ->
+            Thread({
+                try {
+                    for (index in worker until frames.size step workers) {
+                        encoded[index] = encodeFrame(frames[index], quality)
+                    }
+                } catch (error: Throwable) {
+                    failure.compareAndSet(null, error)
+                }
+            }, "webp-encoder-$worker")
+        }
+        threads.forEach { it.start() }
+        var interrupted = false
+        // The caller may recycle the frames on cancellation, so all encoders must finish first.
+        threads.forEach { thread ->
+            while (thread.isAlive) {
+                try {
+                    thread.join()
+                } catch (error: InterruptedException) {
+                    interrupted = true
+                }
+            }
+        }
+        if (interrupted) Thread.currentThread().interrupt()
+        failure.get()?.let { throw it }
+        return encoded.map { it ?: return null }
     }
 
     private fun webpLossyFormat(): Bitmap.CompressFormat =

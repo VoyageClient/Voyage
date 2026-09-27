@@ -20,6 +20,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -45,6 +47,7 @@ import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.FileUploader
+import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevelsFlow
 import org.matrix.android.sdk.internal.util.unescapeHtml
@@ -56,6 +59,8 @@ internal class DefaultStateService @AssistedInject constructor(
         private val stateEventDataSource: StateEventDataSource,
         private val sendStateTask: SendStateTask,
         private val fileUploader: FileUploader,
+        private val uploadedMediaCache: UploadedMediaCache,
+        private val coroutineDispatchers: MatrixCoroutineDispatchers,
 ) : StateService {
 
     @AssistedFactory
@@ -194,7 +199,17 @@ internal class DefaultStateService @AssistedInject constructor(
     }
 
     override suspend fun updateAvatar(avatarUri: String, fileName: String, forceStateEncryption: Boolean) {
-        val response = fileUploader.uploadFromUri(avatarUri, fileName, MimeTypes.Jpeg)
+        val response = fileUploader.withPreparedUploadFile(avatarUri) { file ->
+            val uploaded = fileUploader.uploadFile(file, fileName, MimeTypes.Jpeg)
+            withContext(coroutineDispatchers.io) {
+                try {
+                    uploadedMediaCache.storeDataFor(uploaded.contentUri, null, null, file, null)
+                } catch (failure: java.io.IOException) {
+                    Timber.w(failure, "Unable to cache uploaded room avatar")
+                }
+            }
+            uploaded
+        }
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_AVATAR,
                 body = mapOf("url" to response.contentUri),
