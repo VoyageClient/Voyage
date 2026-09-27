@@ -18,7 +18,7 @@ class RetainedAvatarPreview(private val view: ImageView) {
 
     fun load(key: Any, delegate: AnimatedContentImageViewTarget, showFallback: Boolean = false, start: (CustomTarget<Drawable>) -> Unit) {
         if (pending?.key == key || (pending == null && current?.key == key)) return
-        pending?.let { GlideApp.with(view).clear(it) }
+        pending?.let { GlideApp.with(view.context.applicationContext).clear(it) }
         val size = (view.layoutParams?.width ?: 0).takeIf { it > 0 } ?: 128
         val target = PreviewTarget(key, delegate, size, showFallback)
         pending = target
@@ -26,8 +26,8 @@ class RetainedAvatarPreview(private val view: ImageView) {
     }
 
     fun clear() {
-        pending?.let { GlideApp.with(view).clear(it) }
-        current?.let { GlideApp.with(view).clear(it) }
+        pending?.let { GlideApp.with(view.context.applicationContext).clear(it) }
+        current?.let { GlideApp.with(view.context.applicationContext).clear(it) }
         pending = null
         current = null
         view.setImageDrawable(null)
@@ -51,7 +51,7 @@ class RetainedAvatarPreview(private val view: ImageView) {
             current = this
             pending = null
             delegate.onResourceReady(resource, null)
-            previous?.let { GlideApp.with(view).clear(it) }
+            previous?.let { GlideApp.with(view.context.applicationContext).clear(it) }
         }
 
         override fun onLoadFailed(errorDrawable: Drawable?) {
@@ -62,7 +62,7 @@ class RetainedAvatarPreview(private val view: ImageView) {
                 previous?.delegate?.releaseResource()
                 current = this
                 delegate.onLoadFailed(errorDrawable)
-                previous?.let { GlideApp.with(view).clear(it) }
+                previous?.let { GlideApp.with(view.context.applicationContext).clear(it) }
             } else {
                 pending = this
             }

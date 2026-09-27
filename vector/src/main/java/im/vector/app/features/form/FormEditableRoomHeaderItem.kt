@@ -115,7 +115,7 @@ abstract class FormEditableRoomHeaderItem : VectorEpoxyModel<FormEditableRoomHea
 
     override fun unbind(holder: Holder) {
         holder.avatarPreview.clear()
-        GlideApp.with(holder.bannerImage).clear(holder.bannerImage)
+        GlideApp.with(holder.bannerImage.context.applicationContext).clear(holder.bannerImage)
         super.unbind(holder)
     }
 
