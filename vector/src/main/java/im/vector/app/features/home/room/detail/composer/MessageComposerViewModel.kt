@@ -79,6 +79,7 @@ import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
@@ -93,6 +94,7 @@ import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThread
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
+import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -123,7 +125,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
         private val downloadMediaUseCase: DownloadMediaUseCase,
         private val massRedactionManager: MassRedactionManager,
-) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialState) {
+) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialComposerState(initialState, session)) {
 
     private val room = session.getRoom(initialState.roomId)
 
@@ -609,22 +611,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 room.flow().liveRoomPowerLevels(),
                 room.flow().liveRoomSummary().unwrap()
         ) { pl, sum ->
-            val canSendMessage = pl.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE)
-            if (canSendMessage) {
-                val isE2E = sum.isEncrypted
-                if (isE2E) {
-                    val roomEncryptionAlgorithm = sum.roomEncryptionAlgorithm
-                    if (roomEncryptionAlgorithm is RoomEncryptionAlgorithm.UnsupportedAlgorithm) {
-                        CanSendStatus.UnSupportedE2eAlgorithm(roomEncryptionAlgorithm.name)
-                    } else {
-                        CanSendStatus.Allowed
-                    }
-                } else {
-                    CanSendStatus.Allowed
-                }
-            } else {
-                CanSendStatus.NoPermission
-            }
+            sendingStatus(pl, sum, session.myUserId)
         }.setOnEach {
             copy(canSendMessage = it)
         }
@@ -2798,6 +2785,22 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     companion object : MavericksViewModelFactory<MessageComposerViewModel, MessageComposerViewState> by hiltMavericksViewModelFactory() {
+        private fun initialComposerState(state: MessageComposerViewState, session: Session): MessageComposerViewState {
+            val room = session.getRoom(state.roomId) ?: return state.copy(isRoomError = true)
+            // Resolve before the first layout; the permission flow emits asynchronously.
+            return state.copy(canSendMessage = sendingStatus(room.stateService().getRoomPowerLevels(), room.roomSummary(), session.myUserId))
+        }
+
+        private fun sendingStatus(powerLevels: RoomPowerLevels, summary: RoomSummary?, userId: String): CanSendStatus {
+            if (!powerLevels.isUserAllowedToSend(userId, false, EventType.MESSAGE)) return CanSendStatus.NoPermission
+            val algorithm = summary?.roomEncryptionAlgorithm
+            return if (summary?.isEncrypted == true && algorithm is RoomEncryptionAlgorithm.UnsupportedAlgorithm) {
+                CanSendStatus.UnSupportedE2eAlgorithm(algorithm.name)
+            } else {
+                CanSendStatus.Allowed
+            }
+        }
+
         private const val LINK_PREVIEW_TYPING_DEBOUNCE_MS = 800L
     }
 }

@@ -18,6 +18,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
+import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.robolectric.RobolectricTestRunner
@@ -81,6 +83,31 @@ class MessageComposerEditStashTest {
             is SendMode.Quote -> mode.text
             is SendMode.Voice -> mode.text
         }.toString()
+    }
+
+    @Test
+    fun `read only room starts without reserving composer space`() {
+        every { session.myUserId } returns "@reader:example.org"
+        every { room.stateService().getRoomPowerLevels() } returns RoomPowerLevels(
+                PowerLevelsContent(eventsDefault = 50), null
+        )
+
+        com.airbnb.mvrx.withState(createViewModel()) { state ->
+            state.canSendMessage shouldBeEqualTo CanSendStatus.NoPermission
+            state.isComposerVisible shouldBeEqualTo false
+            state.isVoiceMessageRecorderVisible shouldBeEqualTo false
+        }
+    }
+
+    @Test
+    fun `writable room starts with composer visible`() {
+        every { session.myUserId } returns "@writer:example.org"
+        every { room.stateService().getRoomPowerLevels() } returns RoomPowerLevels(null, null)
+
+        com.airbnb.mvrx.withState(createViewModel()) { state ->
+            state.canSendMessage shouldBeEqualTo CanSendStatus.Allowed
+            state.isComposerVisible shouldBeEqualTo true
+        }
     }
 
     @Test

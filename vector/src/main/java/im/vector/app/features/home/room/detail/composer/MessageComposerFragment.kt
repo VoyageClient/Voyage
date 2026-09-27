@@ -227,7 +227,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             composer.sendButton.visibility = View.GONE
         }
 
-        views.composerLayout.isVisible = true
+        withState(messageComposerViewModel) { state ->
+            (composer as? View)?.isVisible = state.isComposerVisible
+        }
 
         if (vectorPreferences.useClassicComposer()) {
             val background = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)

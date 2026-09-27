@@ -125,7 +125,11 @@ class VectorActivityLifecycleCallbacks constructor(
                 "com.android.permissioncontroller",
                 // The permission module only exists as a mainline module, from Android 10.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    tryOrNull { packageManager.getModuleInfo("com.google.android.permission", 1).packageName }
+                    tryOrNull {
+                        // MODULE_APEX_NAME (1) is hidden from the public SDK.
+                        @Suppress("WrongConstant")
+                        packageManager.getModuleInfo("com.google.android.permission", 1).packageName
+                    }
                 } else {
                     null
                 },
