@@ -16,20 +16,20 @@ class WindowInsetTypesTest {
     private val ime = WindowInsetsCompat.Type.ime()
 
     @Test
-    fun `a focused text editor pads for the keyboard`() {
-        (WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor = true) and ime) shouldBeEqualTo ime
+    fun `a visible keyboard reserves space even when message selection has focus`() {
+        (WindowInsetTypes.rootPaddingTypes(reserveImeSpace = true) and ime) shouldBeEqualTo ime
     }
 
     @Test
-    fun `a window without a focused text editor ignores the keyboard inset`() {
-        (WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor = false) and ime) shouldBeEqualTo 0
+    fun `a dismissed keyboard does not reserve space`() {
+        (WindowInsetTypes.rootPaddingTypes(reserveImeSpace = false) and ime) shouldBeEqualTo 0
     }
 
     @Test
     fun `system bars and the cutout are padded either way`() {
         val always = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
 
-        (WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor = true) and always) shouldBeEqualTo always
-        (WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor = false) and always) shouldBeEqualTo always
+        (WindowInsetTypes.rootPaddingTypes(reserveImeSpace = true) and always) shouldBeEqualTo always
+        (WindowInsetTypes.rootPaddingTypes(reserveImeSpace = false) and always) shouldBeEqualTo always
     }
 }

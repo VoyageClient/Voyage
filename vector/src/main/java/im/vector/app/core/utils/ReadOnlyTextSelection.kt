@@ -284,7 +284,14 @@ class ReadOnlySelectionFocus(private val textView: TextView) {
     fun beforeTouch(event: MotionEvent) {
         if (event.actionMasked != MotionEvent.ACTION_DOWN) return
         // While we hold focus a selection is in progress, so keep the editor we already recorded
-        if (!textView.isFocused) focusBeforeSelection = textView.rootView?.findFocus() as? EditText
+        if (!textView.isFocused) {
+            val focused = textView.rootView?.findFocus()
+            focusBeforeSelection = when (focused) {
+                is EditText -> focused
+                is SelectionFocusHost -> focused.selectionFocus.focusBeforeSelection
+                else -> null
+            }
+        }
         textView.isFocusableInTouchMode = textView.isTextSelectable &&
                 event.eventTime - lastTapUpTime < ViewConfiguration.getDoubleTapTimeout()
     }

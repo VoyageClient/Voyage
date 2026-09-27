@@ -641,10 +641,11 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
     private fun applyRootInsets(v: View, insets: WindowInsetsCompat, holdImeSpace: Boolean = false): WindowInsetsCompat {
         val holdForSystemWindow = !hasWindowFocus() && shouldHoldImeSpaceOnFocusLoss
-        val hasFocusedTextEditor = (hasWindowFocus() || holdForSystemWindow) && currentFocus?.onCheckIsTextEditor() == true
-        val systemBars = insets.getInsets(WindowInsetTypes.rootPaddingTypes(hasFocusedTextEditor))
         val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-        val desiredBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasFocusedTextEditor && imeVisible && measuredComposerImeBottom > minimumComposerImeHeight) {
+        // Selecting message text transfers focus without dismissing the IME.
+        val reserveImeSpace = (hasWindowFocus() || holdForSystemWindow) && imeVisible
+        val systemBars = insets.getInsets(WindowInsetTypes.rootPaddingTypes(reserveImeSpace))
+        val desiredBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && reserveImeSpace && measuredComposerImeBottom > minimumComposerImeHeight) {
             maxOf(insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom, measuredComposerImeBottom)
         } else systemBars.bottom
         val bottom = when {

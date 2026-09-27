@@ -11,8 +11,8 @@ import androidx.core.view.WindowInsetsCompat
 
 object WindowInsetTypes {
 
-    fun rootPaddingTypes(hasFocusedTextEditor: Boolean): Int {
+    fun rootPaddingTypes(reserveImeSpace: Boolean): Int {
         val base = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-        return if (hasFocusedTextEditor) base or WindowInsetsCompat.Type.ime() else base
+        return if (reserveImeSpace) base or WindowInsetsCompat.Type.ime() else base
     }
 }

@@ -785,6 +785,16 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
     }
 
+    fun dismissKeyboard() {
+        composerHadFocus = false
+        composer.editText.clearFocus()
+        emojiKeyboard().close()
+    }
+
+    fun restoreKeyboardOnReturn() {
+        emojiKeyboard().restoreKeyboardOnReturn()
+    }
+
     private fun emojiKeyboard(): EmojiKeyboardController {
         return emojiKeyboardController ?: EmojiKeyboardController(
                 activity = requireActivity(),

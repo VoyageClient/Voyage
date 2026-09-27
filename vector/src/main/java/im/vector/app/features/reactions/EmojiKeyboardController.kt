@@ -54,6 +54,8 @@ class EmojiKeyboardController(
     private var keyboardVisible = false
     private var paused = false
     private var showKeyboardOnResume = false
+    private var keyboardRestoreSuppressed = false
+    private var restoreKeyboardOnNextResume = false
     private val hideKeyboardAfterPause = Runnable { if (paused) hideKeyboard() }
     private val restoreKeyboardAfterFocus = Runnable { restoreKeyboardIfReady() }
     private val releaseKeyboardRestoreHold = Runnable {
@@ -138,8 +140,9 @@ class EmojiKeyboardController(
     private fun updateKeyboardVisibility(height: Int) {
         val wasVisible = keyboardVisible
         keyboardVisible = height > MIN_KEYBOARD_HEIGHT
+        if (keyboardVisible && editText.hasFocus()) keyboardRestoreSuppressed = false
         if (keyboardVisible || panelOpen) {
-            if (keyboardVisible && !paused) {
+            if (keyboardVisible && !paused && !keyboardRestoreSuppressed) {
                 setAutomaticKeyboardRestore(true)
                 if (hostActivity?.isRestoringComposerKeyboard == true && activity.hasWindowFocus()) {
                     editText.removeCallbacks(releaseKeyboardRestoreHold)
@@ -181,6 +184,13 @@ class EmojiKeyboardController(
     /** Fully close: panel, keyboard, and the space they shared. */
     fun close() {
         val wasShowing = panelOpen
+        keyboardRestoreSuppressed = true
+        keyboardVisible = false
+        keyboardDismissalPending = false
+        editText.removeCallbacks(recordKeyboardDismissal)
+        editText.removeCallbacks(restoreKeyboardAfterFocus)
+        editText.removeCallbacks(releaseKeyboardRestoreHold)
+        hostActivity?.isRestoringComposerKeyboard = false
         panelOpen = false
         pickerView.isVisible = false
         hideKeyboard()
@@ -253,7 +263,8 @@ class EmojiKeyboardController(
     fun onPause() {
         editText.removeCallbacks(restoreKeyboardAfterFocus)
         paused = true
-        showKeyboardOnResume = keyboardVisible && (editText.hasFocus() || activity.currentFocus?.onCheckIsTextEditor() != true)
+        showKeyboardOnResume = !keyboardRestoreSuppressed && keyboardVisible &&
+                (editText.hasFocus() || activity.currentFocus?.onCheckIsTextEditor() != true)
         editText.removeCallbacks(releaseKeyboardRestoreHold)
         hostActivity?.isRestoringComposerKeyboard = showKeyboardOnResume
         val anotherEditorFocused = !editText.hasFocus() && activity.currentFocus?.onCheckIsTextEditor() == true
@@ -262,9 +273,18 @@ class EmojiKeyboardController(
         editText.postDelayed(hideKeyboardAfterPause, 500L)
     }
 
+    fun restoreKeyboardOnReturn() {
+        restoreKeyboardOnNextResume = true
+    }
+
     fun onResume() {
         paused = false
         editText.removeCallbacks(hideKeyboardAfterPause)
+        if (restoreKeyboardOnNextResume) {
+            restoreKeyboardOnNextResume = false
+            keyboardRestoreSuppressed = false
+            showKeyboardOnResume = true
+        }
         if (showKeyboardOnResume) setKeyboardRestoreState(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         restoreKeyboardIfReady()
     }

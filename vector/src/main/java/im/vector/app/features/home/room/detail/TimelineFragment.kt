@@ -37,6 +37,7 @@ import androidx.core.net.toUri
 import androidx.core.text.toSpannable
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.forEach
 import androidx.core.view.isEmpty
 import androidx.core.view.isInvisible
@@ -2027,21 +2028,57 @@ class TimelineFragment :
         vectorBaseActivity.notImplemented("encrypted message click")
     }
 
+    private var mediaOpening = false
+
+    private fun isKeyboardVisible(): Boolean {
+        keyboardStateUtils.onGlobalLayout()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            ViewCompat.getRootWindowInsets(requireView())?.isVisible(WindowInsetsCompat.Type.ime())
+                    ?: keyboardStateUtils.isKeyboardShowing
+        } else keyboardStateUtils.isKeyboardShowing
+    }
+
+    private fun openMediaAfterKeyboardDismissal(open: () -> Unit) {
+        if (mediaOpening) return
+        mediaOpening = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val keyboardWasVisible = isKeyboardVisible()
+                val composer = childFragmentManager.findFragmentById(R.id.composerContainer) as? MessageComposerFragment
+                composer?.dismissKeyboard()
+                this@TimelineFragment.view?.hideKeyboard()
+                // Shared-element transitions freeze the room layout, so let IME resizing finish first.
+                withTimeoutOrNull(2000L) {
+                    do {
+                        delay(32L)
+                    } while (isKeyboardVisible() || vectorBaseActivity.isImeAnimating)
+                    delay(32L)
+                }
+                if (keyboardWasVisible) composer?.restoreKeyboardOnReturn()
+                open()
+            } finally {
+                mediaOpening = false
+            }
+        }
+    }
+
     override fun onImageMessageClicked(
             messageImageContent: MessageImageInfoContent,
             mediaData: ImageContentRenderer.Data,
             view: View,
             inMemory: List<AttachmentData>
     ) {
-        navigator.openMediaViewer(
-                activity = requireActivity(),
-                roomId = timelineArgs.roomId,
-                mediaData = mediaData,
-                view = view,
-                inMemory = inMemory
-        ) { pairs ->
-            pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))
-            pairs.add(Pair(views.composerContainer, ViewCompat.getTransitionName(views.composerContainer) ?: ""))
+        openMediaAfterKeyboardDismissal {
+            navigator.openMediaViewer(
+                    activity = requireActivity(),
+                    roomId = timelineArgs.roomId,
+                    mediaData = mediaData,
+                    view = view,
+                    inMemory = inMemory
+            ) { pairs ->
+                pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))
+                pairs.add(Pair(views.composerContainer, ViewCompat.getTransitionName(views.composerContainer) ?: ""))
+            }
         }
     }
 
@@ -2051,16 +2088,18 @@ class TimelineFragment :
             view: View,
             inMemory: List<AttachmentData>
     ) {
-        navigator.openMediaViewer(
-                activity = requireActivity(),
-                roomId = timelineArgs.roomId,
-                mediaData = mediaData,
-                view = view,
-                inMemory = inMemory,
-                morphFromView = mediaData.hasPoster,
-        ) { pairs ->
-            pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))
-            pairs.add(Pair(views.composerContainer, ViewCompat.getTransitionName(views.composerContainer) ?: ""))
+        openMediaAfterKeyboardDismissal {
+            navigator.openMediaViewer(
+                    activity = requireActivity(),
+                    roomId = timelineArgs.roomId,
+                    mediaData = mediaData,
+                    view = view,
+                    inMemory = inMemory,
+                    morphFromView = mediaData.hasPoster,
+            ) { pairs ->
+                pairs.add(Pair(views.roomToolbar, ViewCompat.getTransitionName(views.roomToolbar) ?: ""))
+                pairs.add(Pair(views.composerContainer, ViewCompat.getTransitionName(views.composerContainer) ?: ""))
+            }
         }
     }
 
