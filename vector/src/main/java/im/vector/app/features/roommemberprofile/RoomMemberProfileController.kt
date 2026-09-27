@@ -27,6 +27,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovement
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
@@ -275,6 +276,12 @@ class RoomMemberProfileController @Inject constructor(
             title(host.stringProvider.getString(CommonStrings.settings_profile_color_per_theme))
             switchChecked(!state.profileColorSameForThemes)
             listener { host.callback?.onProfileColorPerThemeChanged(it) }
+            onBind { _, holder, _ ->
+                holder.view.setBackgroundColor(ThemeUtils.getColor(holder.view.context, android.R.attr.colorBackground))
+            }
+            onUnbind { _, holder ->
+                holder.view.setBackgroundColor(Color.TRANSPARENT)
+            }
         }
     }
 
@@ -303,7 +310,7 @@ class RoomMemberProfileController @Inject constructor(
                 editable = false,
                 title = stringProvider.getString(titleRes),
                 subtitle = ProfileColorPickerDialogFragment.describe(context, hex, light, origin),
-                divider = false,
+                divider = true,
                 accessoryColor = Color.parseColor(hex),
                 action = { callback?.onOverrideColorClicked(theme) }
         )
