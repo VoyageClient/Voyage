@@ -282,6 +282,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         providerInstalled = true
         val lastIndex = (sourceProvider.getItemCount() - 1).coerceAtLeast(0)
         val targetPosition = (if (restoredPosition >= 0) restoredPosition else initialIndex).coerceIn(0, lastIndex)
+        // The room's list names a just-sent page by its server id, not the local one the tap carried.
+        if (awaitedImageUid != null && sourceProvider.getItemCount() > 0) {
+            awaitedImageUid = sourceProvider.getAttachmentInfoAt(targetPosition).uid
+        }
         pager2.setCurrentItem(targetPosition, false)
         pager2.post {
             onSelectedPositionChanged(targetPosition)

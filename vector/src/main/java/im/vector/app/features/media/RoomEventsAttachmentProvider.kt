@@ -9,6 +9,7 @@ package im.vector.app.features.media
 
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.app.core.files.allowsLocalMediaUrl
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.attachmentviewer.AttachmentInfo
 import kotlinx.coroutines.CoroutineScope
@@ -86,7 +87,7 @@ class RoomEventsAttachmentProvider(
         val content = contentAt(position)
         return if (content is MessageImageContent || content is MessageStickerContent) {
             val info = (content as? MessageImageContent)?.info ?: (content as? MessageStickerContent)?.info
-            val allowNonMxcUrls = content is MessageImageContent && it.root.sendState.isSending()
+            val allowNonMxcUrls = content is MessageImageContent && it.root.sendState.allowsLocalMediaUrl(content.getFileUrl())
             val data = ImageContentRenderer.Data(
                     eventId = it.eventId,
                     stableId = item.uid,
@@ -127,7 +128,7 @@ class RoomEventsAttachmentProvider(
                     maxHeight = -1,
                     width = content.videoInfo?.width,
                     maxWidth = -1,
-                    allowNonMxcUrls = it.root.sendState.isSending(),
+                    allowNonMxcUrls = it.root.sendState.allowsLocalMediaUrl(content.videoInfo?.getThumbnailUrl()),
                     blurHash = content.videoInfo?.blurHash,
                     preservedFile = it.preservedFile(),
             )
@@ -138,7 +139,7 @@ class RoomEventsAttachmentProvider(
                     url = content.getFileUrl(),
                     elementToDecrypt = content.encryptedFileInfo?.toElementToDecrypt(),
                     thumbnailMediaData = thumbnailData,
-                    allowNonMxcUrls = it.root.sendState.isSending(),
+                    allowNonMxcUrls = it.root.sendState.allowsLocalMediaUrl(content.getFileUrl()),
                     preservedFile = it.preservedFile(),
                     durationMs = content.videoInfo?.duration?.toLong(),
             )

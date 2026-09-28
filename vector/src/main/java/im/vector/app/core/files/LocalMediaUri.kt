@@ -11,6 +11,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
+import org.matrix.android.sdk.api.session.room.send.SendState
 import timber.log.Timber
 import java.io.File
 
@@ -41,3 +42,10 @@ fun String?.isLocalMediaUri(): Boolean {
     this ?: return false
     return startsWith("content://") || startsWith("file://")
 }
+
+/**
+ * Whether media in an event in this state may be loaded from a non-mxc url. A SENT local echo still
+ * holds its local url until the remote echo replaces it, and that url is the only one it has.
+ */
+fun SendState.allowsLocalMediaUrl(vararg urls: String?): Boolean =
+        isSending() || (this == SendState.SENT && urls.any { it.isLocalMediaUri() })

@@ -161,9 +161,12 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 holder.imageView.setCornerRadii(r, r, r, r)
             }
         }
+        // A just-sent message is rebound when its remote echo lands, often while the viewer holds its
+        // thumbnail; only a different message may take the stand-in down.
+        val sameMessage = holder.alphaProbeKey == mediaData.stableId
         holder.alphaProbeKey = mediaData.stableId
         holder.alphaProbeCornerPx = cornerPx
-        holder.resetViewerHandover()
+        if (!sameMessage) holder.resetViewerHandover()
         holder.thumbnailBackdrop.backgroundCompat = GradientDrawable().apply {
             setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
             cornerRadius = if (isBubble) {
@@ -336,7 +339,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
         fun showDuration(enabled: Boolean) {
             wantsDuration = enabled
-            endViewerHandover()
             if (!enabled) {
                 durationView.isVisible = false
                 durationView.translationX = 0f

@@ -26,6 +26,7 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.files.LocalFilesHelper
+import im.vector.app.core.files.allowsLocalMediaUrl
 import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
@@ -689,7 +690,7 @@ class MessageItemFactory @Inject constructor(
                 maxHeight = maxHeight,
                 width = messageContent.info?.width,
                 maxWidth = maxWidth,
-                allowNonMxcUrls = informationData.sendState.isSending(),
+                allowNonMxcUrls = informationData.sendState.allowsLocalMediaUrl(messageContent.getFileUrl()),
                 blurHash = messageContent.info?.blurHash,
                 preservedFile = preservedMedia,
         )
@@ -790,7 +791,7 @@ class MessageItemFactory @Inject constructor(
                 maxHeight = maxHeight,
                 width = thumbnailInfo?.width ?: messageContent.videoInfo?.width,
                 maxWidth = maxWidth,
-                allowNonMxcUrls = informationData.sendState.isSending(),
+                allowNonMxcUrls = informationData.sendState.allowsLocalMediaUrl(messageContent.videoInfo?.getThumbnailUrl()),
                 blurHash = messageContent.videoInfo?.blurHash,
                 // The preserved copy is the full video, which also serves as its own poster frame.
                 preservedFile = preservedMediaFor(informationData),
@@ -858,6 +859,9 @@ class MessageItemFactory @Inject constructor(
             return buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
         }
         val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
+        val allowNonMxcUrls = informationData.sendState.allowsLocalMediaUrl(
+                *items.flatMap { listOf(it.getFileUrl(), (it as? MessageVideoContent)?.videoInfo?.getThumbnailUrl()) }.toTypedArray()
+        )
 
         fun thumbnailDataFor(item: MessageWithAttachmentContent, index: Int): ImageContentRenderer.Data {
             return galleryTileThumbnailData(
@@ -867,7 +871,7 @@ class MessageItemFactory @Inject constructor(
                     stableId = informationData.stableId,
                     maxWidth = maxWidth,
                     maxHeight = maxHeight,
-                    allowNonMxcUrls = informationData.sendState.isSending(),
+                    allowNonMxcUrls = allowNonMxcUrls,
             )
         }
 
@@ -889,7 +893,7 @@ class MessageItemFactory @Inject constructor(
                 stableId = informationData.stableId,
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
-                allowNonMxcUrls = informationData.sendState.isSending(),
+                allowNonMxcUrls = allowNonMxcUrls,
                 items = items,
         )
         val hideMedia = shouldHideMedia(informationData)

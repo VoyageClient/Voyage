@@ -833,8 +833,9 @@ class ImageContentRenderer @Inject constructor(
                     .load(android.net.Uri.parse(data.url))
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
         } else {
-            // Clear image
-            val resolvedUrl = resolveUrl(data)
+            // Clear image. The local fallback matches createGlideRequest: a tap can hand over a local
+            // echo's data after it stopped counting as sending, while its url is still the local file.
+            val resolvedUrl = resolveUrl(data) ?: data.url.takeIf { it.isLocalMediaUri() }
             GlideApp
                     .with(contextView)
                     .load(resolvedUrl)
@@ -859,8 +860,8 @@ class ImageContentRenderer @Inject constructor(
                     .load(data)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
         } else {
-            // Clear image
-            val resolvedUrl = resolveUrl(data)
+            // Clear image, with the same local fallback as the pager's load
+            val resolvedUrl = resolveUrl(data) ?: data.url.takeIf { it.isLocalMediaUri() }
             GlideApp
                     .with(imageView)
                     .load(resolvedUrl)
