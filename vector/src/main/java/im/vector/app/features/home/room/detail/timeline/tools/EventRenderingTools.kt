@@ -163,7 +163,20 @@ fun CharSequence.linkify(callback: TimelineEventController.UrlClickCallback?): C
     VectorLinkify.addLinks(spannable, true)
     spannable.removeLinksOverEmotes()
     spannable.removeLinksOverCode()
+    spannable.removeLinksOverSenderNames()
     return spannable
+}
+
+private fun SpannableStringBuilder.removeLinksOverSenderNames() {
+    val senderNames = getSpans(0, length, SenderNameSpan::class.java)
+    if (senderNames.isEmpty()) return
+    getSpans(0, length, ClickableSpan::class.java).filter { it !is SpoilerSpan }.forEach { link ->
+        val linkStart = getSpanStart(link)
+        val linkEnd = getSpanEnd(link)
+        if (senderNames.any { linkStart < getSpanEnd(it) && getSpanStart(it) < linkEnd }) {
+            removeSpan(link)
+        }
+    }
 }
 
 // Code is verbatim: a URL / matrix permalink inside inline code or a code block must not be linkified
