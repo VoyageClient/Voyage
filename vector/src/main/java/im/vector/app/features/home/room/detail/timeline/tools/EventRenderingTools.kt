@@ -12,6 +12,8 @@ import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ClickableSpan
+import android.text.style.LeadingMarginSpan
+import android.text.style.LineHeightSpan
 import android.text.style.StyleSpan
 import android.view.MotionEvent
 import android.view.View
@@ -60,6 +62,33 @@ var messageTopicRenderer: RoomTopicRenderer? = null
 fun CharSequence.formatTopic(roomId: String?, formattedTopic: String? = null, callback: TimelineEventController.UrlClickCallback? = null): CharSequence {
     return messageTopicRenderer?.render(this, formattedTopic, roomId, callback)
             ?: linkify(callback).prepareForDisplay()
+}
+
+fun CharSequence.formatTopicPreview(roomId: String?, formattedTopic: String? = null,
+                                    callback: TimelineEventController.UrlClickCallback? = null): CharSequence {
+    return formatTopic(roomId, formattedTopic, callback).flattenBlockFormattingForPreview()
+}
+
+fun CharSequence.flattenBlockFormattingForPreview(): CharSequence {
+    val text = SpannableStringBuilder(this)
+    text.getSpans(0, text.length, Any::class.java)
+            .filter {
+                (it is HtmlCodeSpan && it.isBlock) ||
+                        (it is LeadingMarginSpan && it !is HtmlCodeSpan) ||
+                        it is LineHeightSpan || it is io.noties.markwon.core.spans.HeadingSpan
+            }
+            .forEach(text::removeSpan)
+    var index = 0
+    while (index < text.length) {
+        if (text[index] == '\n' || text[index] == '\r') {
+            var end = index + 1
+            while (end < text.length && text[end].isWhitespace()) end++
+            text.replace(index, end, if (index == 0 || end == text.length) "" else " ")
+        } else {
+            index++
+        }
+    }
+    return text.trim()
 }
 
 /**

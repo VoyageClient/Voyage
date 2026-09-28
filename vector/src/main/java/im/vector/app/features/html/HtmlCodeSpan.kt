@@ -81,3 +81,5 @@ class HtmlCodeSpan(private val theme: MarkwonTheme, var isBlock: Boolean) : Metr
         c.drawRect(rect, paint)
     }
 }
+
+internal class InlineCodeSpacingSpan

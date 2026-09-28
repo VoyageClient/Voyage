@@ -12,6 +12,7 @@ import android.text.style.StrikethroughSpan
 import android.text.style.URLSpan
 import android.text.style.UnderlineSpan
 import im.vector.app.features.html.HtmlCodeSpan
+import im.vector.app.features.html.InlineCodeSpacingSpan
 import im.vector.app.features.html.ListMarkerSpan
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.QuoteMarginSpan
@@ -63,6 +64,9 @@ fun Spanned.toMarkdownSource(selStart: Int, selEnd: Int): String {
     }
     getSpans(start, end, ThematicBreakSpan::class.java).mapTo(replacements) {
         Replacement(maxOf(getSpanStart(it), start), minOf(getSpanEnd(it), end), "---")
+    }
+    getSpans(start, end, InlineCodeSpacingSpan::class.java).mapTo(replacements) {
+        Replacement(maxOf(getSpanStart(it), start), minOf(getSpanEnd(it), end), "")
     }
     // A paragraph break is drawn as VerticalPaddingSpan padding, so the characters between two
     // paragraphs are just a newline (or a stranded space) where markdown needs a blank line. Only

@@ -32,6 +32,7 @@ import im.vector.app.core.utils.styleMatchingText
 import im.vector.app.core.utils.tappableMatchingText
 import im.vector.app.databinding.FragmentRoomPreviewNoPreviewBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -60,6 +61,7 @@ class RoomPreviewNoPreviewFragment :
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var roomTopicRenderer: RoomTopicRenderer
 
     private val roomPreviewViewModel: RoomPreviewViewModel by fragmentViewModel()
     private val roomPreviewData: RoomPreviewData by args()
@@ -280,5 +282,13 @@ class RoomPreviewNoPreviewFragment :
         views.roomPreviewNoPreviewName.text = roomName.prepareForDisplay()
         views.roomPreviewNoPreviewTopic.setTextOrHide(topic?.formatTopic(matrixItem?.id))
         views.roomPreviewNoPreviewTopic.movementMethod = createLinkMovementMethod(null)
+        val segments = topic?.let { roomTopicRenderer.richSegments(it, null) }
+        views.roomPreviewNoPreviewTopic.isVisible = segments == null && !topic.isNullOrEmpty()
+        views.roomPreviewNoPreviewRichTopic.isVisible = segments != null
+        if (segments == null) {
+            views.roomPreviewNoPreviewRichTopic.removeAllViews()
+        } else {
+            roomTopicRenderer.renderRich(views.roomPreviewNoPreviewRichTopic, segments, matrixItem?.id, null, createLinkMovementMethod(null))
+        }
     }
 }

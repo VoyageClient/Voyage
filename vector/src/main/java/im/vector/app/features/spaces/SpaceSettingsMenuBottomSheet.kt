@@ -22,7 +22,7 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetSpaceSettingsBinding
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopicPreview
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.roomprofile.RoomProfileActivity
@@ -120,7 +120,7 @@ class SpaceSettingsMenuBottomSheet : VectorBaseBottomSheetDialogFragment<BottomS
         }
         views.spaceNameView.text = state.spaceSummary?.displayName?.prepareForDisplay()
         views.spaceDescription.setTextOrHide(
-                state.spaceSummary?.topic?.takeIf { it.isNotEmpty() }?.formatTopic(state.spaceSummary.roomId, state.spaceSummary.topicFormatted)
+                state.spaceSummary?.topic?.takeIf { it.isNotEmpty() }?.formatTopicPreview(state.spaceSummary.roomId, state.spaceSummary.topicFormatted)
         )
 
         views.spaceSettings.isVisible = state.canEditSettings

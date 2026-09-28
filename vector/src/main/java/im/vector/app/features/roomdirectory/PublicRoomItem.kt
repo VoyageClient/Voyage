@@ -21,7 +21,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.ButtonStateView
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopicPreview
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -60,7 +60,7 @@ abstract class PublicRoomItem : VectorEpoxyModel<PublicRoomItem.Holder>(R.layout
         avatarRenderer.render(matrixItem, holder.avatarView)
         holder.nameView.text = matrixItem.displayName?.prepareForDisplay()
         holder.aliasView.setTextOrHide(roomAlias)
-        holder.topicView.setTextOrHide(roomTopic?.formatTopic(matrixItem.id))
+        holder.topicView.setTextOrHide(roomTopic?.formatTopicPreview(matrixItem.id))
         // TODO Use formatter for big numbers?
         holder.counterView.text = "$nbOfMembers"
 

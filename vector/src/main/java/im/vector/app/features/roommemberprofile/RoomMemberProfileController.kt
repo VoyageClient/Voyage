@@ -23,6 +23,7 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.settings.VectorPreferences
@@ -45,6 +46,7 @@ class RoomMemberProfileController @Inject constructor(
         private val matrixItemColorProvider: MatrixItemColorProvider,
         private val themeProvider: ThemeProvider,
         private val context: Context,
+        private val roomTopicRenderer: RoomTopicRenderer,
 ) : TypedEpoxyController<RoomMemberProfileViewState>() {
 
     var callback: Callback? = null
@@ -139,6 +141,13 @@ class RoomMemberProfileController @Inject constructor(
         expandableTextItem {
             id("biography")
             content(host.formattedBio(bio))
+            bio.formattedBody?.let { formatted ->
+                host.roomTopicRenderer.richSegments(bio.body, formatted)?.let { segments ->
+                    renderRichContent { container, movement ->
+                        host.roomTopicRenderer.renderRich(container, segments, null, null, movement)
+                    }
+                }
+            }
             maxLines(3)
             expandedProvider { host.isBioExpanded }
             onExpandedChange { host.isBioExpanded = it }
@@ -174,6 +183,13 @@ class RoomMemberProfileController @Inject constructor(
                 id("personal_note")
                 noteSource(note?.body.orEmpty())
                 renderedNote(note?.let { host.formattedNote(it) })
+                note?.formattedBody?.let { formatted ->
+                    host.roomTopicRenderer.richSegments(note.body, formatted)?.let { segments ->
+                        renderRichContent { container, movement, onClick ->
+                            host.roomTopicRenderer.renderRich(container, segments, null, null, movement, onClick)
+                        }
+                    }
+                }
                 generation(state.personalNoteGeneration)
                 editingProvider { host.personalNoteEditing }
                 draftProvider { host.personalNoteDraft }

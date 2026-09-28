@@ -78,6 +78,7 @@ class RichTextRenderer(private val latexEnabled: Boolean = true) {
         var end = builder.length
         while (end > 0 && builder[end - 1].let { it == '\n' || it == ' ' || it == '\t' }) end--
         if (end < builder.length) builder.delete(end, builder.length)
+        spaceInlineCode(builder)
         postProcessors.forEach { it.afterRender(builder) }
         return builder.toRichText()
     }
@@ -173,6 +174,28 @@ class RichTextRenderer(private val latexEnabled: Boolean = true) {
     }
 
     // ---- Post-render passes, ported from EventHtmlRenderer ----
+
+    private fun spaceInlineCode(text: SpanBuffer) {
+        val ranges = text.spansOf<RichStyle.Code>()
+                .filter { !(it.style as RichStyle.Code).isBlock }
+                .map { Triple(it, it.start, it.end) }
+                .filter { (_, start, end) -> start >= 0 && end > start }
+                .sortedByDescending { it.second }
+        for ((span, start, end) in ranges) {
+            val before = start > 0 && !text[start - 1].isWhitespace()
+            val after = end < text.length && !text[end].isWhitespace()
+            if (after) {
+                text.insert(end, "\u2009")
+                text.setSpan(RichStyle.InlineCodeSpacing, end, end + 1)
+            }
+            if (before) {
+                text.insert(start, "\u2009")
+                text.setSpan(RichStyle.InlineCodeSpacing, start, start + 1)
+            }
+            span.start = start + if (before) 1 else 0
+            span.end = end + if (before) 1 else 0
+        }
+    }
 
     // Selection can only cover real characters, so replace the margin-drawn list markers with
     // literal ones ("● " / "1. ", space-indented when nested); ListMarker carries each marker's

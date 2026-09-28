@@ -30,7 +30,7 @@ import im.vector.app.core.utils.tappableMatchingText
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
-import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopicPreview
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
@@ -258,7 +258,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                         span(holder.view.resources.getString(CommonStrings.topic_prefix)) {
                             textStyle = "bold"
                         }
-                        +topic.formatTopic(roomSummary?.roomId, roomSummary?.topicFormatted, attributes.callback)
+                        +topic.formatTopicPreview(roomSummary?.roomId, roomSummary?.topicFormatted, attributes.callback)
                     }
             )
         }

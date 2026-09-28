@@ -36,6 +36,7 @@ object SpanDump {
         RichStyle.Subscript -> kind("subscript")
         RichStyle.Superscript -> kind("superscript")
         is RichStyle.Code -> kind(if (style.isBlock) "codeBlock" else "code")
+        RichStyle.InlineCodeSpacing -> kind("InlineCodeSpacingSpan", "raw" to true, "class" to "im.vector.app.features.html.InlineCodeSpacingSpan")
         is RichStyle.IntermediateCode -> kind("intermediateCode", "block" to style.isBlock)
         is RichStyle.Heading -> kind("heading", "level" to style.level)
         is RichStyle.ListItem -> if (style.number != null) kind("ordered", "number" to style.number) else kind("bullet", "level" to style.level)

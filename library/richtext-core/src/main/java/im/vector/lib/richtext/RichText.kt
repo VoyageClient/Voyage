@@ -38,6 +38,7 @@ sealed class RichStyle {
     object Subscript : RichStyle()
     object Superscript : RichStyle()
     data class Code(val isBlock: Boolean) : RichStyle()
+    object InlineCodeSpacing : RichStyle()
     data class Heading(val level: Int) : RichStyle()
     data class Link(val url: String) : RichStyle()
 

@@ -29,7 +29,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopicPreview
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.themes.ThemeUtils
@@ -86,7 +86,7 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
                 apply {
                     topic?.let {
                         +" - "
-                        +it.formatTopic(matrixItem.id)
+                        +it.formatTopicPreview(matrixItem.id)
                     }
                 }
             }

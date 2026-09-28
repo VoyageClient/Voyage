@@ -7,12 +7,15 @@
 
 package im.vector.app.core.epoxy
 
+import android.content.Context
 import android.text.SpannableString
 import android.text.TextUtils
 import android.text.method.MovementMethod
+import android.util.AttributeSet
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
@@ -45,6 +48,9 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var onExpandedChange: ((Boolean) -> Unit)? = null
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var renderRichContent: ((LinearLayout, MovementMethod?) -> Unit)? = null
+
     private var isExpanded = false
 
     override fun bind(holder: Holder) {
@@ -63,16 +69,20 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         holder.content.text = SpannableString(content)
         holder.content.bindEmoteImageSpans()
         holder.content.bindPillImageSpans()
+        holder.richContent.removeAllViews()
+        renderRichContent?.invoke(holder.richContent, movementMethod)
+        updateContentVisibility(holder)
 
         // Manual pre-draw listener (not doOnPreDraw) so the frame can be canceled when the toggle's
         // visibility changes — otherwise the first frame draws at the wrong height and then jumps.
         holder.content.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
             override fun onPreDraw(): Boolean {
                 holder.content.viewTreeObserver.removeOnPreDrawListener(this)
-                // Measure the full line count off-view (a selectable TextView doesn't reliably report ellipsis,
-                // and reading it off the live view would need a full-height pass — the flicker we're avoiding).
-                val fullLines = holder.content.fullLineCount()
-                val needsToggle = fullLines > maxLines
+                val needsToggle = if (renderRichContent != null) {
+                    holder.richContent.uncappedHeight > collapsedRichHeight(holder)
+                } else {
+                    holder.content.fullLineCount() > maxLines
+                }
                 val changed = holder.toggle.isVisible != needsToggle || setBottomPadding(holder, if (needsToggle) 0 else 16)
                 if (needsToggle) {
                     updateArrow(holder)
@@ -83,6 +93,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
                         // (DynamicLayout) TextView crashes in getLineTop(-1) when a re-measure races the animation,
                         // which rapid link taps rebinding the screen readily trigger.
                         applyMaxLines(holder.content)
+                        updateContentVisibility(holder)
                         updateArrow(holder)
                     }
                 } else {
@@ -100,6 +111,20 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         textView.maxLines = if (isExpanded) Integer.MAX_VALUE else maxLines
         textView.ellipsize = if (isExpanded) null else TextUtils.TruncateAt.END
     }
+
+    private fun updateContentVisibility(holder: Holder) {
+        val showRich = renderRichContent != null
+        holder.content.isVisible = !showRich
+        holder.richContent.isVisible = showRich
+        holder.richContent.heightLimitPx = if (showRich && !isExpanded) {
+            collapsedRichHeight(holder)
+        } else {
+            Int.MAX_VALUE
+        }
+    }
+
+    private fun collapsedRichHeight(holder: Holder): Int =
+            (maxLines * holder.content.paint.fontSpacing).toInt() + DimensionConverter(holder.view.resources).dpToPx(32)
 
     private fun updateArrow(holder: Holder) {
         val icon = if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
@@ -121,8 +146,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         return true
     }
 
-    // Full line count the text would occupy at the current width, independent of the view's own maxLines /
-    // selectable state — so expandability is detected without flashing the whole topic on screen.
+    // Measuring off-view avoids a full-height pass on the live selectable TextView.
     private fun TextView.fullLineCount(): Int {
         val available = width - compoundPaddingLeft - compoundPaddingRight
         if (available <= 0) return 0
@@ -137,7 +161,26 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
 
     class Holder : VectorEpoxyHolder() {
         val content by bind<TextView>(R.id.expandableContent)
+        val richContent by bind<CappedLinearLayout>(R.id.expandableRichContent)
         val toggle by bind<View>(R.id.expandableToggle)
         val arrow by bind<ImageView>(R.id.expandableArrow)
+    }
+}
+
+class CappedLinearLayout @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(context, attrs) {
+    var uncappedHeight: Int = 0
+        private set
+
+    var heightLimitPx: Int = Int.MAX_VALUE
+        set(value) {
+            if (field == value) return
+            field = value
+            requestLayout()
+        }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        uncappedHeight = measuredHeight
+        if (measuredHeight > heightLimitPx) setMeasuredDimension(measuredWidth, heightLimitPx)
     }
 }

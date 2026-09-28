@@ -39,6 +39,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoIt
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageVoiceItem_
+import im.vector.app.features.home.room.detail.timeline.tools.flattenBlockFormattingForPreview
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.media.AttachmentData
@@ -165,7 +166,7 @@ class ViewEditHistoryEpoxyController @Inject constructor(
                     genericItem {
                         id(timelineEvent.eventId)
                         title(host.dateFormatter.format(timelineEvent.originServerTs, DateFormatKind.EDIT_HISTORY_ROW).toEpoxyCharSequence())
-                        description(plain.prepareForDisplay().toEpoxyCharSequence())
+                        description(plain.flattenBlockFormattingForPreview().prepareForDisplay().toEpoxyCharSequence())
                     }
                     return@forEachIndexed
                 }

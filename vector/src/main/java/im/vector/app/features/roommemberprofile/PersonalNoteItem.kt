@@ -15,8 +15,10 @@ import android.text.Editable
 import android.text.method.MovementMethod
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -45,6 +47,9 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
     /** The rendered representation shown outside of edit mode. */
     @EpoxyAttribute
     var renderedNote: CharSequence? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var renderRichContent: ((LinearLayout, MovementMethod?, (View) -> Unit) -> Unit)? = null
 
     /** Bumped by the screen to force a rebind that re-syncs the editor with [noteSource]. */
     @EpoxyAttribute
@@ -105,6 +110,33 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
         // Async emote images can't surface through a span's invalidate(); they need the TextView bound
         holder.rendered.bindEmoteImageSpans()
         holder.rendered.bindPillImageSpans()
+        holder.richContent.removeAllViews()
+        holder.showRich = renderRichContent != null
+        var richTapHitSpan = false
+        renderRichContent?.invoke(holder.richContent, movementMethod) { view ->
+            if (!richTapHitSpan || view !is TextView) {
+                val source = holder.edit.text?.toString().orEmpty()
+                val visible = (view as? TextView)?.text?.toString()?.trim().orEmpty()
+                val offset = visible.takeIf { it.isNotEmpty() }?.let { source.indexOf(it).takeIf { index -> index >= 0 } }
+                        ?: source.length
+                startEditing(holder, offset)
+            }
+            richTapHitSpan = false
+        }
+        fun watchRichLinks(view: View) {
+            if (view is TextView) {
+                view.setOnTouchListener { touched, event ->
+                    if (event.actionMasked == MotionEvent.ACTION_DOWN) richTapHitSpan = false
+                    if (event.actionMasked == MotionEvent.ACTION_UP) {
+                        richTapHitSpan = (touched as TextView).hasClickableSpanAt(event)
+                    }
+                    false
+                }
+            } else if (view is ViewGroup) {
+                for (index in 0 until view.childCount) watchRichLinks(view.getChildAt(index))
+            }
+        }
+        if (holder.showRich) watchRichLinks(holder.richContent)
         val isEditing = editingProvider?.invoke() == true || holder.edit.hasFocus()
         if (!holder.edit.hasFocus()) {
             holder.edit.setText(draftProvider?.invoke() ?: noteSource)
@@ -129,13 +161,7 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
                 lastTapHitSpan = false
                 return@setOnClickListener
             }
-            setMode(holder, editing = true)
-            onEditingChanged?.invoke(true)
-            holder.edit.setSelection(sourceOffsetForTap(holder, lastTapX, lastTapY))
-            holder.edit.requestFocus()
-            startWatchingKeyboard(holder)
-            val imm = holder.edit.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-            imm?.showSoftInput(holder.edit, InputMethodManager.SHOW_IMPLICIT)
+            startEditing(holder, sourceOffsetForTap(holder, lastTapX, lastTapY))
         }
         // Multiline editing: Enter inserts newlines; dismissing the keyboard is what saves.
         // No exit on focus loss: scrolling the item off screen steals focus, and edit mode
@@ -243,11 +269,24 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
         stopWatchingKeyboard(holder)
         commit(holder)
         holder.edit.clearFocus()
-        setMode(holder, editing = false)
         onEditingChanged?.invoke(false)
         // Until the save round-trips into new state, show the plain source rather than a stale rendering
         val text = holder.edit.text?.toString().orEmpty()
-        if (text != noteSource) holder.rendered.text = text
+        if (text != noteSource) {
+            holder.rendered.text = text
+            holder.showRich = false
+        }
+        setMode(holder, editing = false)
+    }
+
+    private fun startEditing(holder: Holder, sourceOffset: Int) {
+        setMode(holder, editing = true)
+        onEditingChanged?.invoke(true)
+        holder.edit.setSelection(sourceOffset.coerceIn(0, holder.edit.text?.length ?: 0))
+        holder.edit.requestFocus()
+        startWatchingKeyboard(holder)
+        val imm = holder.edit.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.showSoftInput(holder.edit, InputMethodManager.SHOW_IMPLICIT)
     }
 
     /**
@@ -288,13 +327,16 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
     }
 
     private fun setMode(holder: Holder, editing: Boolean) {
-        holder.rendered.isVisible = !editing
+        holder.rendered.isVisible = !editing && !holder.showRich
+        holder.richContent.isVisible = !editing && holder.showRich
         holder.edit.isVisible = editing
     }
 
     class Holder : VectorEpoxyHolder() {
         val rendered by bind<TextView>(R.id.personalNoteRendered)
+        val richContent by bind<LinearLayout>(R.id.personalNoteRichContent)
         val edit by bind<PersonalNoteEditText>(R.id.personalNoteEdit)
+        var showRich = false
         var listenersWired = false
         var draftListener: ((String) -> Unit)? = null
 

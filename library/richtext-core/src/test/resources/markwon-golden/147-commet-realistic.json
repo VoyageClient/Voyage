@@ -1,7 +1,7 @@
 {
   "input": "<p>table time</p><table><thead><tr><th>col</th><th>val</th></tr></thead><tbody><tr><td><code>x</code></td><td>1</td></tr></tbody></table><p>and <span data-mx-color=\"#ff9900\">colour</span> and <sup>sup</sup><sub>sub</sub> and <a href=\"https://example.org\">link</a></p>",
   "compressed": "<p>table time</p><table><thead><tr><th>col</th><th>val</th></tr></thead><tbody><tr><td><code>x</code></td><td>1</td></tr></tbody></table><p>and <span data-mx-color=\"#ff9900\">colour</span> and <sup>sup</sup><sub>sub</sub> and <a href=\"https://example.org\">link</a></p>",
-  "text": "table time\ncolvalx1\nand \ncolour and supsub and link",
+  "text": "table time\ncolval x 1\nand \ncolour and supsub and link",
   "spans": [
     {
       "start": 0,
@@ -13,40 +13,54 @@
     {
       "start": 17,
       "end": 18,
+      "kind": "InlineCodeSpacingSpan",
+      "raw": true,
+      "class": "im.vector.app.features.html.InlineCodeSpacingSpan"
+    },
+    {
+      "start": 18,
+      "end": 19,
       "kind": "code"
     },
     {
-      "start": 20,
-      "end": 51,
+      "start": 19,
+      "end": 20,
+      "kind": "InlineCodeSpacingSpan",
+      "raw": true,
+      "class": "im.vector.app.features.html.InlineCodeSpacingSpan"
+    },
+    {
+      "start": 22,
+      "end": 53,
       "kind": "verticalPadding",
       "top": 4.0,
       "bottom": 4.0
     },
     {
-      "start": 24,
-      "end": 31,
+      "start": 26,
+      "end": 33,
       "kind": "color",
       "color": "#FFFF9900"
     },
     {
-      "start": 36,
-      "end": 39,
+      "start": 38,
+      "end": 41,
       "kind": "superscript"
     },
     {
-      "start": 39,
-      "end": 42,
+      "start": 41,
+      "end": 44,
       "kind": "subscript"
     },
     {
-      "start": 47,
-      "end": 51,
+      "start": 49,
+      "end": 53,
       "kind": "url",
       "url": "https://example.org"
     }
   ],
   "markwon": {
-    "text": "table time\ncolvalx1\nand \ncolour and supsub and link",
+    "text": "table time\ncolval x 1\nand \ncolour and supsub and link",
     "spans": [
       {
         "start": 0,
@@ -58,40 +72,54 @@
       {
         "start": 17,
         "end": 18,
+        "kind": "InlineCodeSpacingSpan",
+        "raw": true,
+        "class": "im.vector.app.features.html.InlineCodeSpacingSpan"
+      },
+      {
+        "start": 18,
+        "end": 19,
         "kind": "code"
       },
       {
-        "start": 17,
-        "end": 18,
+        "start": 18,
+        "end": 19,
         "kind": "intermediateCode",
         "block": false
       },
       {
-        "start": 20,
-        "end": 51,
+        "start": 19,
+        "end": 20,
+        "kind": "InlineCodeSpacingSpan",
+        "raw": true,
+        "class": "im.vector.app.features.html.InlineCodeSpacingSpan"
+      },
+      {
+        "start": 22,
+        "end": 53,
         "kind": "verticalPadding",
         "top": 4.0,
         "bottom": 4.0
       },
       {
-        "start": 24,
-        "end": 31,
+        "start": 26,
+        "end": 33,
         "kind": "color",
         "color": "#FFFF9900"
       },
       {
-        "start": 36,
-        "end": 39,
+        "start": 38,
+        "end": 41,
         "kind": "superscript"
       },
       {
-        "start": 39,
-        "end": 42,
+        "start": 41,
+        "end": 44,
         "kind": "subscript"
       },
       {
-        "start": 47,
-        "end": 51,
+        "start": 49,
+        "end": 53,
         "kind": "link",
         "url": "https://example.org"
       }

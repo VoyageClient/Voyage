@@ -20,6 +20,7 @@ import im.vector.app.core.ui.list.genericPositiveButtonItem
 import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.home.ShortcutCreator
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.settings.VectorPreferences
@@ -39,7 +40,8 @@ class RoomProfileController @Inject constructor(
         private val colorProvider: ColorProvider,
         private val vectorPreferences: VectorPreferences,
         private val drawableProvider: DrawableProvider,
-        private val shortcutCreator: ShortcutCreator
+        private val shortcutCreator: ShortcutCreator,
+        private val roomTopicRenderer: RoomTopicRenderer,
 ) : TypedEpoxyController<RoomProfileViewState>() {
 
     var callback: Callback? = null
@@ -117,6 +119,11 @@ class RoomProfileController @Inject constructor(
                     expandableTextItem {
                         id("topic")
                         content(host.formattedTopic(it, roomSummary.topicFormatted, roomSummary.roomId, topicCallback))
+                        host.roomTopicRenderer.richSegments(it, roomSummary.topicFormatted)?.let { segments ->
+                            renderRichContent { container, movement ->
+                                host.roomTopicRenderer.renderRich(container, segments, roomSummary.roomId, topicCallback, movement)
+                            }
+                        }
                         maxLines(2)
                         expandedProvider { host.isTopicExpanded }
                         onExpandedChange { host.isTopicExpanded = it }

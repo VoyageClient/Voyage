@@ -428,12 +428,35 @@ class EventHtmlRenderer @Inject constructor(
         var end = renderedText.length
         while (end > 0 && renderedText[end - 1].let { it == '\n' || it == ' ' || it == '\t' }) end--
         if (end < renderedText.length) renderedText.delete(end, renderedText.length)
+        spaceInlineCode(renderedText)
         im.vector.app.core.utils.PerfTrace.time("html.postProcess") {
             postProcessors.forEach {
                 it.afterRender(renderedText)
             }
         }
         renderedText
+    }
+
+    private fun spaceInlineCode(text: SpannableStringBuilder) {
+        val ranges = text.getSpans(0, text.length, HtmlCodeSpan::class.java)
+                .filter { !it.isBlock }
+                .map { Triple(it, text.getSpanStart(it), text.getSpanEnd(it)) }
+                .filter { (_, start, end) -> start >= 0 && end > start }
+                .sortedByDescending { it.second }
+        for ((span, start, end) in ranges) {
+            val before = start > 0 && !text[start - 1].isWhitespace()
+            val after = end < text.length && !text[end].isWhitespace()
+            if (after) {
+                text.insert(end, "\u2009")
+                text.setSpan(InlineCodeSpacingSpan(), end, end + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            if (before) {
+                text.insert(start, "\u2009")
+                text.setSpan(InlineCodeSpacingSpan(), start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            val offset = if (before) 1 else 0
+            text.setSpan(span, start + offset, end + offset, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
     }
 
     // The compressor turns the newlines markdown leaves between tags into single spaces

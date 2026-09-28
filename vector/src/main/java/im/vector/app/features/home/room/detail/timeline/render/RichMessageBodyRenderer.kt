@@ -222,8 +222,8 @@ class RichMessageBodyRenderer @Inject constructor(
                 setColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.code_block_bg_color))
                 setStroke(dim.dpToPx(1), codeOutlineColor(ctx))
             })
-            val padH = dim.dpToPx(10)
-            val padV = dim.dpToPx(8)
+            val padH = dim.dpToPx(if (lineCount == 1) 12 else 8)
+            val padV = dim.dpToPx(if (lineCount == 1) 10 else 6)
             setPadding(padH, padV, padH, padV)
             setOnClickListener { binding.onClick(it) }
             setOnLongClickListener { binding.onLongClick(it) }

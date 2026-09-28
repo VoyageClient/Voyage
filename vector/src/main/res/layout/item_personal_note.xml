@@ -23,6 +23,13 @@
         android:textColorHint="?vctr_content_secondary"
         tools:text="A note about this user" />
 
+    <LinearLayout
+        android:id="@+id/personalNoteRichContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone" />
+
     <im.vector.app.features.roommemberprofile.PersonalNoteEditText
         android:id="@+id/personalNoteEdit"
         style="@style/Widget.Vector.TextView.Body"

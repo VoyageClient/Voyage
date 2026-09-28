@@ -9,12 +9,18 @@ package im.vector.app.features.home.room.detail.timeline.tools
 
 import android.text.SpannableString
 import android.text.Spanned
+import android.text.method.MovementMethod
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
+import android.view.View
+import android.widget.LinearLayout
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
 import javax.inject.Inject
@@ -33,14 +39,39 @@ class RoomTopicRenderer @Inject constructor(
         private val htmlCompressor: VectorHtmlCompressor,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
         private val textRendererFactory: EventTextRenderer.Factory,
+        private val richBodyRenderer: RichMessageBodyRenderer,
 ) {
+    private fun htmlFor(topic: String, formattedTopic: String?): String? =
+            formattedTopic?.takeIf { it.isNotEmpty() }
+                    ?: activeSessionHolder.getSafeActiveSession()
+                            ?.roomService()
+                            ?.computeFormattedHtml(topic, autoMarkdown = true)
+
+    fun richSegments(topic: String, formattedTopic: String?): List<BodySegment>? {
+        val html = htmlFor(topic, formattedTopic) ?: return null
+        if (!html.contains("<pre", ignoreCase = true)) return null
+        return HtmlBodySegmenter.segment(htmlCompressor.compress(html))
+                .takeIf { segments -> segments.any { it is BodySegment.Code } }
+    }
+
+    fun renderRich(container: LinearLayout, segments: List<BodySegment>, roomId: String?,
+                   callback: TimelineEventController.UrlClickCallback?, movementMethod: MovementMethod?,
+                   onClick: (View) -> Unit = {}) {
+        richBodyRenderer.render(
+                container = container,
+                segments = segments,
+                postProcessors = arrayOf(pillsPostProcessorFactory.create(roomId)),
+                movementMethod = movementMethod,
+                onClick = onClick,
+                onLongClick = { false },
+                urlClickCallback = callback,
+        )
+    }
+
     fun render(topic: CharSequence, formattedTopic: String?, roomId: String?, callback: TimelineEventController.UrlClickCallback?): CharSequence {
         val plain = topic.toString()
         // A null result means the plain topic isn't markdown either, so it renders verbatim below.
-        val html = formattedTopic?.takeIf { it.isNotEmpty() }
-                ?: activeSessionHolder.getSafeActiveSession()
-                        ?.roomService()
-                        ?.computeFormattedHtml(plain, autoMarkdown = true)
+        val html = htmlFor(plain, formattedTopic)
         val base: CharSequence = if (html != null) {
             val pills = pillsPostProcessorFactory.create(roomId)
             val compressed = htmlCompressor.compress(html)

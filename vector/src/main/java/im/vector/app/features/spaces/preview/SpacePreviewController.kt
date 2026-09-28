@@ -15,13 +15,15 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericHeaderItem
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
 class SpacePreviewController @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
-        private val stringProvider: StringProvider
+        private val stringProvider: StringProvider,
+        private val roomTopicRenderer: RoomTopicRenderer,
 ) : TypedEpoxyController<SpacePreviewState>() {
 
     interface InteractionListener
@@ -36,6 +38,7 @@ class SpacePreviewController @Inject constructor(
             id("info")
             formattedMemberCount(host.stringProvider.getQuantityString(CommonPlurals.room_title_members, memberCount, memberCount))
             topic(data?.spaceInfo?.invoke()?.topic ?: data?.topic ?: "")
+            topicRenderer(host.roomTopicRenderer)
         }
 
         val result = data?.childInfoList?.invoke() ?: return

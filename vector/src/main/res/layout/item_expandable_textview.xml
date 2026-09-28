@@ -17,12 +17,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
-        app:layout_constraintBottom_toTopOf="@id/expandableToggle"
+        app:layout_constraintBottom_toTopOf="@id/expandableRichContent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:maxLines="2"
         tools:text="@sample/rooms.json/data/topic" />
+
+    <im.vector.app.core.epoxy.CappedLinearLayout
+        android:id="@+id/expandableRichContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/expandableContent" />
 
     <FrameLayout
         android:id="@+id/expandableToggle"
@@ -32,7 +42,7 @@
         android:contentDescription="@string/merged_events_expand"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/expandableContent">
+        app:layout_constraintTop_toBottomOf="@id/expandableRichContent">
 
         <ImageView
             android:id="@+id/expandableArrow"
