@@ -91,11 +91,11 @@ class RedactionPreservationSettingsTest {
     @Test
     fun `given no room override, then clearing with the app cache follows the account setting`() {
         settings.roomClearWithAppCacheOverride(A_ROOM_ID) shouldBe null
-        settings.clearsWithAppCache(A_ROOM_ID) shouldBe true
+        settings.clearsWithAppCache(A_ROOM_ID, A_USER_ID) shouldBe true
 
         settings.clearRedactionCacheWithAppCache = false
 
-        settings.clearsWithAppCache(A_ROOM_ID) shouldBe false
+        settings.clearsWithAppCache(A_ROOM_ID, A_USER_ID) shouldBe false
     }
 
     @Test
@@ -103,12 +103,12 @@ class RedactionPreservationSettingsTest {
         settings.clearRedactionCacheWithAppCache = true
 
         settings.setRoomClearWithAppCacheOverride(A_ROOM_ID, false)
-        settings.clearsWithAppCache(A_ROOM_ID) shouldBe false
-        settings.clearsWithAppCache(ANOTHER_ROOM_ID) shouldBe true
+        settings.clearsWithAppCache(A_ROOM_ID, A_USER_ID) shouldBe false
+        settings.clearsWithAppCache(ANOTHER_ROOM_ID, A_USER_ID) shouldBe true
 
         settings.setRoomClearWithAppCacheOverride(A_ROOM_ID, null)
         settings.roomClearWithAppCacheOverride(A_ROOM_ID) shouldBe null
-        settings.clearsWithAppCache(A_ROOM_ID) shouldBe true
+        settings.clearsWithAppCache(A_ROOM_ID, A_USER_ID) shouldBe true
     }
 
     @Test
@@ -117,8 +117,8 @@ class RedactionPreservationSettingsTest {
 
         settings.setRoomClearWithAppCacheOverride(A_ROOM_ID, true)
 
-        settings.clearsWithAppCache(A_ROOM_ID) shouldBe true
-        settings.clearsWithAppCache(ANOTHER_ROOM_ID) shouldBe false
+        settings.clearsWithAppCache(A_ROOM_ID, A_USER_ID) shouldBe true
+        settings.clearsWithAppCache(ANOTHER_ROOM_ID, A_USER_ID) shouldBe false
     }
 
     @Test
@@ -128,7 +128,8 @@ class RedactionPreservationSettingsTest {
         currentUserId = ANOTHER_USER_ID
 
         settings.roomClearWithAppCacheOverride(A_ROOM_ID) shouldBe null
-        settings.clearsWithAppCache(A_ROOM_ID) shouldBe true
+        settings.clearsWithAppCache(A_ROOM_ID, ANOTHER_USER_ID) shouldBe true
+        settings.clearsWithAppCache(A_ROOM_ID, A_USER_ID) shouldBe false
     }
 
     @Test

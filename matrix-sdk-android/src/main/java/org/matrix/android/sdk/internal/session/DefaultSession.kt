@@ -178,8 +178,11 @@ internal class DefaultSession @Inject constructor(
     }
 
     override suspend fun clearCache() {
-        syncService.get().stopSync()
+        if (sessionState.isOpen) syncService.get().stopSync()
         syncService.get().stopAnyBackgroundSync()
+        val indexService = eventIndexService.get()
+        val indexEnabled = indexService.isEnabled()
+        if (indexEnabled) indexService.setEnabled(false)
         mainScope.launch {
             lifecycleObservers.forEach {
                 it.onClearCache(this@DefaultSession)
@@ -188,8 +191,13 @@ internal class DefaultSession @Inject constructor(
                 listener.onClearCache(session)
             }
         }
-        withContext(NonCancellable) {
-            cacheService.get().clearCache()
+        try {
+            withContext(NonCancellable) {
+                cacheService.get().clearCache()
+                indexService.clearIndex()
+            }
+        } finally {
+            if (indexEnabled) indexService.setEnabled(true)
         }
         backgroundTaskScheduler.cancelAllTasks()
     }

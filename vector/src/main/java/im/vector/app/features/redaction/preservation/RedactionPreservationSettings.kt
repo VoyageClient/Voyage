@@ -31,9 +31,9 @@ class RedactionPreservationSettings @Inject constructor(
 
     private fun scope(): String = activeSessionHolder.get().getSafeActiveSession()?.myUserId ?: "default"
 
-    private fun key(name: String) = "SETTINGS_REDACTION_${name}_${scope()}"
+    private fun key(name: String, userId: String = scope()) = "SETTINGS_REDACTION_${name}_$userId"
 
-    private fun roomKey(name: String, roomId: String) = "${key(name)}_$roomId"
+    private fun roomKey(name: String, roomId: String, userId: String = scope()) = "${key(name, userId)}_$roomId"
 
     // -- Preservation ---------------------------------------------------------------------------
 
@@ -132,7 +132,14 @@ class RedactionPreservationSettings @Inject constructor(
         }
     }
 
-    fun clearsWithAppCache(roomId: String): Boolean = roomClearWithAppCacheOverride(roomId) ?: clearRedactionCacheWithAppCache
+    fun clearsWithAppCache(roomId: String, userId: String): Boolean {
+        val overrideKey = roomKey(CLEAR_INCLUDED, roomId, userId)
+        return if (preferences.contains(overrideKey)) {
+            preferences.getBoolean(overrideKey, true)
+        } else {
+            preferences.getBoolean(key(CLEAR_WITH_APP_CACHE, userId), true)
+        }
+    }
 
     companion object {
         private const val PRESERVE = "PRESERVE"

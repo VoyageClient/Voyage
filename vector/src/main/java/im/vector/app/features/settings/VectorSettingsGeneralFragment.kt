@@ -50,6 +50,7 @@ import im.vector.app.core.profile.PronounHelper
 import im.vector.app.core.profile.TimezoneFormatter
 import im.vector.app.core.ui.colorpicker.ProfileColorPreferenceBinder
 import im.vector.app.core.utils.TextUtils
+import im.vector.app.core.utils.getSizeOfFiles
 import im.vector.app.core.utils.leadingEmojiRunLength
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.core.utils.toast
@@ -64,7 +65,6 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.navigation.SettingsActivityPayload
-import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.redaction.preservation.PreservedMediaStore
 import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
@@ -80,6 +80,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.auth.AuthenticationService
+import org.matrix.android.sdk.api.auth.data.sessionId
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.isInvalidPassword
 import org.matrix.android.sdk.api.session.admin.ServerAdminStatus
@@ -93,6 +95,7 @@ import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
+import java.io.File
 import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
@@ -105,8 +108,8 @@ class VectorSettingsGeneralFragment :
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
     @Inject lateinit var preservedMediaStore: PreservedMediaStore
     @Inject lateinit var redactionCacheCleaner: RedactionCacheCleaner
-    @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
     @Inject lateinit var mediaCache: MediaCache
+    @Inject lateinit var authenticationService: AuthenticationService
     @Inject lateinit var timezoneFormatter: TimezoneFormatter
     @Inject lateinit var serverAdminStatusDataSource: ServerAdminStatusDataSource
     @Inject lateinit var emoteShortcodeProcessor: EmoteShortcodeProcessor
@@ -480,21 +483,15 @@ class VectorSettingsGeneralFragment :
 
         // clear cache
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_CLEAR_CACHE_PREFERENCE_KEY)!!.let {
-            /*
-            TODO
-            MXSession.getApplicationSizeCaches(activity, object : SimpleApiCallback<Long>() {
-                override fun onSuccess(size: Long) {
-                    if (null != activity) {
-                        it.summary = TextUtils.formatFileSize(activity, size)
-                    }
-                }
-            })
-             */
-
             it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
                 displayLoadingView()
                 MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = true))
                 false
+            }
+            it.summary = getString(CommonStrings.loading)
+            lifecycleScope.launch {
+                val size = getAppCacheSize()
+                if (isAdded) it.summary = TextUtils.formatFileSize(requireContext(), size)
             }
         }
 
@@ -521,26 +518,23 @@ class VectorSettingsGeneralFragment :
 
         // clear medias cache
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_CLEAR_MEDIA_CACHE_PREFERENCE_KEY)!!.let {
-            lifecycleScope.launch(Dispatchers.Main) {
-                it.summary = getString(CommonStrings.loading)
-                val size = getCacheSize()
-                it.summary = TextUtils.formatFileSize(requireContext(), size)
-                it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                    lifecycleScope.launch(Dispatchers.Main) {
-                        displayLoadingView()
-                        mediaCache.clear(session)
+            it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    displayLoadingView()
+                    val sessions = authenticationService.getAllSessionParams().map(authenticationService::getOrCreateSession)
+                    mediaCache.clear(sessions)
+                    if (isAdded) {
                         it.summary = TextUtils.formatFileSize(requireContext(), getCacheSize())
                         hideLoadingView()
                     }
-                    false
                 }
+                false
             }
-        }
-        // clear recent emoji
-        findPreference<VectorPreference>(VectorPreferences.SETTINGS_CLEAR_EMOJI_CACHE_PREFERENCE_KEY)!!
-                .onPreferenceClickListener = Preference.OnPreferenceClickListener {
-            recentEmojiDataSource.clear()
-            false
+            it.summary = getString(CommonStrings.loading)
+            lifecycleScope.launch {
+                val size = getCacheSize()
+                if (isAdded) it.summary = TextUtils.formatFileSize(requireContext(), size)
+            }
         }
         // Sits with the other cache actions rather than under Redactions: the preserved event data is
         // only ever dropped along with the app cache, so this file cache is the one thing to clear here.
@@ -590,7 +584,24 @@ class VectorSettingsGeneralFragment :
         mDeactivateAccountCategory.isVisible = homeServerCapabilities.delegatedOidcAuthEnabled.not()
     }
 
-    private suspend fun getCacheSize(): Long = mediaCache.size(session)
+    private fun accountSessionIds() = authenticationService.getAllSessionParams().map { it.credentials.sessionId() }
+
+    private suspend fun getCacheSize(): Long = mediaCache.sizeForAccounts(accountSessionIds())
+
+    private suspend fun getAppCacheSize(): Long {
+        val context = requireContext().applicationContext
+        val sessionIds = accountSessionIds()
+        return withContext(Dispatchers.IO) {
+            getSizeOfFiles(context.cacheDir) +
+                    getSizeOfFiles(MediaCache.editedMediaDirectory(context)) +
+                    getSizeOfFiles(File(context.filesDir, "send_cache")) +
+                    sessionIds.sumOf { sessionId ->
+                        val directory = File(context.filesDir, sessionId)
+                        listOf("event_index.db", "event_index.db-wal", "event_index.db-shm", "event_index.db-journal")
+                                .sumOf { name -> File(directory, name).length() }
+                    }
+        }
+    }
 
     override fun onResume() {
         super.onResume()

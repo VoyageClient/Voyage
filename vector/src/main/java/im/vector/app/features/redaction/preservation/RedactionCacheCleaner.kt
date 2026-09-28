@@ -7,8 +7,7 @@
 
 package im.vector.app.features.redaction.preservation
 
-import dagger.Lazy
-import im.vector.app.core.di.ActiveSessionHolder
+import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,18 +22,15 @@ import javax.inject.Singleton
  */
 @Singleton
 class RedactionCacheCleaner @Inject constructor(
-        // Lazy: ActiveSessionHolder builds ConfigureAndStartSessionUseCase, which injects this.
-        private val activeSessionHolder: Lazy<ActiveSessionHolder>,
         private val settings: RedactionPreservationSettings,
         private val mediaStore: PreservedMediaStore,
         private val repository: RedactedContentRepository,
 ) {
 
     /** The app's own Clear cache, applied to the preserved event data of every room that allows it. */
-    suspend fun onAppCacheCleared() {
-        val session = activeSessionHolder.get().getSafeActiveSession() ?: return
+    suspend fun onAppCacheCleared(session: Session) {
         val service = session.redactedContentService()
-        val kept = service.roomsWithPreservedContent().filterNot { settings.clearsWithAppCache(it) }
+        val kept = service.roomsWithPreservedContent().filterNot { settings.clearsWithAppCache(it, session.myUserId) }
         service.clearExcept(kept)
         // The in-memory copy is authoritative at bind time, so leaving it would keep rendering
         // content that has just been deleted for the rest of the process.

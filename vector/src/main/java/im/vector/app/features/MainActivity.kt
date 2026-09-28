@@ -340,11 +340,18 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             }
             args.clearCache -> {
                 lifecycleScope.launch {
-                    session.clearCache()
-                    // The redaction cache is a separate store the session wipe doesn't touch, and
-                    // whether it goes with the app cache is the user's choice.
-                    redactionCacheCleaner.onAppCacheCleared()
+                    val accounts = authenticationService.getAllSessionParams()
+                    accounts.forEach { params ->
+                        val accountSession = authenticationService.getOrCreateSession(params)
+                        redactionCacheCleaner.onAppCacheCleared(accountSession)
+                        accountSession.clearCache()
+                        withContext(Dispatchers.IO) { accountSession.fileService().clearCache() }
+                    }
                     doLocalCleanup(clearPreferences = false, onboardingStore)
+                    withContext(Dispatchers.IO) {
+                        MediaCache.editedMediaDirectory(this@MainActivity).deleteRecursively()
+                        java.io.File(filesDir, "send_cache").deleteRecursively()
+                    }
                     session.startSyncing(applicationContext)
                     startNextActivityAndFinish()
                 }

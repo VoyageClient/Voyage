@@ -244,7 +244,6 @@
     <string name="room_section_move_down" translatable="false">Move down</string>
     <string name="room_section_delete_prompt" translatable="false">Remove this section?</string>
     <string name="room_section_delete_warning" translatable="false">The rooms inside won\'t be deleted. They\'ll go back to the main list.</string>
-    <string name="settings_clear_emoji_cache" translatable="false">Clear remote emoji cache</string>
     <string name="settings_quick_reactions" translatable="false">Quick reactions</string>
     <string name="settings_quick_reactions_summary" translatable="false">Reactions shown when long-pressing a message.</string>
     <string name="quick_reactions_add" translatable="false">Add Reaction</string>

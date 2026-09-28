@@ -26,17 +26,17 @@ class MediaCache @Inject constructor(
         private val context: Context,
 ) {
 
-    suspend fun size(session: Session): Long = withContext(Dispatchers.IO) {
+    suspend fun sizeForAccounts(sessionIds: Collection<String>): Long = withContext(Dispatchers.IO) {
         getSizeOfFiles(File(context.cacheDir, DiskCache.Factory.DEFAULT_DISK_CACHE_DIR)) +
                 getSizeOfFiles(editedMediaDirectory(context)) +
-                session.fileService().getCacheSize()
+                sessionIds.sumOf { sessionId -> getSizeOfFiles(File(context.cacheDir, "downloads/$sessionId/F")) }
     }
 
     @MainThread
-    suspend fun clear(session: Session) {
+    suspend fun clear(sessions: Collection<Session>) {
         clearThumbnails()
-        session.fileService().clearCache()
         withContext(Dispatchers.IO) {
+            sessions.forEach { it.fileService().clearCache() }
             editedMediaDirectory(context).deleteRecursively()
         }
     }

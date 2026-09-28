@@ -17,7 +17,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -133,11 +132,6 @@ internal class EventIndexer @Inject constructor(
     override fun onSessionStopped(session: Session) {
         sessionStarted = false
         stop()
-    }
-
-    override fun onClearCache(session: Session) {
-        // The event table is dropped and its row ids restart, so the sweep watermark is stale.
-        runBlocking { indexStore.setSweepWatermark(0L) }
     }
 
     private fun start() {

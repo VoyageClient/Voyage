@@ -62,7 +62,7 @@ class MediaCacheTest {
         val edited = MediaCache.editedMediaDirectory(context).also { it.mkdirs() }
         edited.resolve("an-edited-attachment").writeBytes(ByteArray(size = 128))
 
-        mediaCache.clear(session)
+        mediaCache.clear(listOf(session))
 
         verify { glide.clearMemory() }
         verify { glide.clearDiskCache() }
@@ -72,14 +72,42 @@ class MediaCacheTest {
     }
 
     @Test
+    fun `clearing media for multiple accounts clears each file service`() = runTest {
+        val otherFileService = mockk<FileService>(relaxed = true)
+        val otherSession = mockk<Session> {
+            every { fileService() } returns otherFileService
+        }
+
+        mediaCache.clear(listOf(session, otherSession))
+
+        verify(exactly = 1) { glide.clearMemory() }
+        verify(exactly = 1) { glide.clearDiskCache() }
+        verify(exactly = 1) { fileService.clearCache() }
+        verify(exactly = 1) { otherFileService.clearCache() }
+    }
+
+    @Test
+    fun `media size includes downloads from all accounts and shared cache once`() = runTest {
+        val thumbnails = File(cacheDir.root, DiskCache.Factory.DEFAULT_DISK_CACHE_DIR).also { it.mkdirs() }
+        val firstDownloads = File(cacheDir.root, "downloads/first/F").also { it.mkdirs() }
+        val secondDownloads = File(cacheDir.root, "downloads/second/F").also { it.mkdirs() }
+        val emptySize = mediaCache.sizeForAccounts(listOf("first", "second"))
+
+        thumbnails.resolve("thumbnail").writeBytes(ByteArray(64))
+        firstDownloads.resolve("first-file").writeBytes(ByteArray(128))
+        secondDownloads.resolve("second-file").writeBytes(ByteArray(256))
+
+        mediaCache.sizeForAccounts(listOf("first", "second")) shouldBeEqualTo emptySize + 448
+    }
+
+    @Test
     fun `an edited attachment counts towards the reported size`() = runTest {
-        every { fileService.getCacheSize() } returns 0L
         val edited = MediaCache.editedMediaDirectory(context).also { it.mkdirs() }
-        val sizeWithoutEdits = mediaCache.size(session)
+        val sizeWithoutEdits = mediaCache.sizeForAccounts(emptyList())
 
         edited.resolve("an-edited-attachment").writeBytes(ByteArray(size = 256))
 
-        mediaCache.size(session) shouldBeEqualTo sizeWithoutEdits + 256
+        mediaCache.sizeForAccounts(emptyList()) shouldBeEqualTo sizeWithoutEdits + 256
     }
 
     @Test
@@ -105,30 +133,7 @@ class MediaCacheTest {
     }
 
     @Test
-    fun `a cached thumbnail counts towards the reported size`() = runTest {
-        every { fileService.getCacheSize() } returns 1024L
-        val thumbnails = File(cacheDir.root, DiskCache.Factory.DEFAULT_DISK_CACHE_DIR).also { it.mkdirs() }
-        val sizeWithoutThumbnails = mediaCache.size(session)
-
-        thumbnails.resolve("a-thumbnail").writeBytes(ByteArray(size = 512))
-
-        mediaCache.size(session) shouldBeEqualTo sizeWithoutThumbnails + 512
-    }
-
-    @Test
-    fun `a downloaded file counts towards the reported size`() = runTest {
-        every { fileService.getCacheSize() } returns 1024L
-        val sizeWithOneFile = mediaCache.size(session)
-
-        every { fileService.getCacheSize() } returns 2048L
-
-        mediaCache.size(session) shouldBeEqualTo sizeWithOneFile + 1024
-    }
-
-    @Test
     fun `an untouched cache has no size`() = runTest {
-        every { fileService.getCacheSize() } returns 0L
-
-        mediaCache.size(session) shouldBeEqualTo 0L
+        mediaCache.sizeForAccounts(emptyList()) shouldBeEqualTo 0L
     }
 }

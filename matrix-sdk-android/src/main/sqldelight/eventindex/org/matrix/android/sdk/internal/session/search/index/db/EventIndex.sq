@@ -120,9 +120,6 @@ INSERT OR REPLACE INTO mention_hit(event_id, room_id, origin_server_ts, kind) VA
 deleteMentionHit:
 DELETE FROM mention_hit WHERE event_id = ?;
 
-clearMentionHits:
-DELETE FROM mention_hit;
-
 selectMentionHits:
 SELECT h.event_id, h.room_id, e.sender, e.event_json
 FROM mention_hit h JOIN indexed_event e ON e.event_id = h.event_id
@@ -166,15 +163,3 @@ SELECT value FROM index_meta WHERE key = ?;
 
 upsertMeta:
 INSERT OR REPLACE INTO index_meta(key, value) VALUES (?, ?);
-
-clearEvents:
-DELETE FROM indexed_event;
-
-clearCheckpoints:
-DELETE FROM crawler_checkpoint;
-
-clearCrawledRooms:
-DELETE FROM crawled_room;
-
-clearMeta:
-DELETE FROM index_meta;

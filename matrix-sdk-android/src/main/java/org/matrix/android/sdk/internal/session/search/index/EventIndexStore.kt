@@ -19,6 +19,7 @@ import org.matrix.android.sdk.internal.session.search.ROOM_MENTION_SENTINEL
 import org.matrix.android.sdk.internal.session.search.index.db.EventIndexSqlDatabase
 import org.matrix.android.sdk.internal.session.search.index.db.Indexed_event
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.Executors
 import javax.inject.Inject
 
@@ -64,8 +65,6 @@ internal class EventIndexStore @Inject constructor(
 
     private val ownMention = userId.lowercase()
 
-    // Like the session database, the driver and its thread live as long as the session component:
-    // a stopped session may be reopened, so teardown happens on component release only.
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "event_index_db")
     }
@@ -74,7 +73,10 @@ internal class EventIndexStore @Inject constructor(
     @Volatile
     private var driver: SqlDriver? = null
 
-    private val database by lazy {
+    private var openedDatabase: EventIndexSqlDatabase? = null
+
+    private fun database(): EventIndexSqlDatabase {
+        openedDatabase?.let { return it }
         val opened = driverFactory.create(EventIndexSqlDatabase.Schema, File(directory, "event_index.db")).also { driver = it }
         // Added after the schema shipped: a version bump would drop the whole crawled index, so these
         // are applied idempotently instead (see SessionModule for the same pattern). Building the
@@ -89,7 +91,7 @@ internal class EventIndexStore @Inject constructor(
             )
         """.trimIndent(), 0)
         opened.execute(null, "CREATE INDEX IF NOT EXISTS mention_hit_ts ON mention_hit(origin_server_ts)", 0)
-        EventIndexSqlDatabase(opened)
+        return EventIndexSqlDatabase(opened).also { openedDatabase = it }
     }
 
     override fun onSessionReleased() {
@@ -98,7 +100,7 @@ internal class EventIndexStore @Inject constructor(
         executor.shutdown()
     }
 
-    private val queries get() = database.eventIndexQueries
+    private val queries get() = database().eventIndexQueries
 
     /** @return how many of [events] were new to the index. */
     suspend fun addEvents(events: List<IndexableEvent>): Int = withContext(dispatcher) {
@@ -292,12 +294,13 @@ internal class EventIndexStore @Inject constructor(
     }
 
     suspend fun clear() = withContext(dispatcher) {
-        queries.transaction {
-            queries.clearEvents()
-            queries.clearMentionHits()
-            queries.clearCheckpoints()
-            queries.clearCrawledRooms()
-            queries.clearMeta()
+        driver?.close()
+        driver = null
+        openedDatabase = null
+        // This database is entirely rebuildable; deleting it avoids a huge WAL and VACUUM copy.
+        listOf("event_index.db-wal", "event_index.db-shm", "event_index.db-journal", "event_index.db").forEach { name ->
+            val file = File(directory, name)
+            if (file.exists() && !file.delete()) throw IOException("Could not clear ${file.name}")
         }
     }
 
