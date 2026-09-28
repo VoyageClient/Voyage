@@ -14,7 +14,6 @@ import android.text.style.StyleSpan
 import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.epoxy.VisibilityState
-import im.vector.app.R
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.LoadingItem_
@@ -116,9 +115,6 @@ class SearchResultController @Inject constructor(
             LoadingItem_()
                     // Always use a different id, because we can be notified several times of visibility state changed
                     .id("loadMore${host.idx++}")
-                    // The stock loading layout is a ~130dp mostly-empty block; sitting at the top
-                    // of this bottom-anchored list for the whole crawl it reads as a blank band.
-                    .layout(R.layout.item_loading_compact)
                     .onVisibilityStateChanged { _, _, visibilityState ->
                         if (visibilityState == VisibilityState.VISIBLE) {
                             host.listener?.loadMore()

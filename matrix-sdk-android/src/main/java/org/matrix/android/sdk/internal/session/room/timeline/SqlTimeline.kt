@@ -255,6 +255,9 @@ internal class SqlTimeline(
             RoomOpenTrace.stageFor(roomId, "sdk.seeded")
             rebuildSnapshot()
             RoomOpenTrace.stageFor(roomId, "sdk.firstRebuild", "built=${builtEvents.size}")
+            if (seed == null && !isThreadTimeline) {
+                awaitLateSeed()
+            }
             // The UI only asks for older events once its loading item is on screen, which waits for the
             // first models to build — seconds in a room whose cache holds little. Fetch that page here
             // instead. Unconditionally: this runs only when the seed range is short of a screenful, and a
@@ -449,6 +452,21 @@ internal class SqlTimeline(
             contextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId))
         }
         return stores.chunk.findChunkIdIncludingEvent(roomId, eventId)
+    }
+
+    // A seed can be missing on open when the room has no stored range yet (initial sync still writing it,
+    // caches just cleared) and the target's /context couldn't land either. Nothing else would ever seed the
+    // timeline, so keep trying until a range exists or the timeline is disposed.
+    private suspend fun awaitLateSeed() {
+        var attempt = 0
+        while (loadedChunkIds.isEmpty()) {
+            attempt++
+            delay((LATE_SEED_BASE_DELAY_MS * attempt).coerceAtMost(LATE_SEED_MAX_DELAY_MS))
+            if (loadedChunkIds.isNotEmpty()) break
+            val seed = resolveSeedChunkId() ?: continue
+            seedFrom(seed)
+            rebuildSnapshot()
+        }
     }
 
     /** Clear any stale thread chunk and create a fresh empty one (forward thread chunk). */
@@ -1256,6 +1274,8 @@ internal class SqlTimeline(
         private const val DECRYPT_REBUILD_DEBOUNCE_MS = 150L
         private const val ROOM_MEMBER_LOAD_DELAY_MS = 5_000L
         private const val LOAD_MEMBERS_RETRY_DELAY_MS = 10_000L
+        private const val LATE_SEED_BASE_DELAY_MS = 2_000L
+        private const val LATE_SEED_MAX_DELAY_MS = 10_000L
 
         // Bounds the immediate follow-ups after token-progress-only pages; the UI's loading item
         // re-triggers for anything longer.

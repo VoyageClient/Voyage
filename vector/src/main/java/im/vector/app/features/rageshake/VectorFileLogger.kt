@@ -10,15 +10,14 @@ package im.vector.app.features.rageshake
 import android.content.Context
 import android.util.Log
 import im.vector.app.features.settings.VectorPreferences
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import timber.log.Timber
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.logging.FileHandler
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -34,6 +33,7 @@ class VectorFileLogger @Inject constructor(
     companion object {
         private const val SIZE_20MB = 20 * 1024 * 1024
         private const val SIZE_50MB = 50 * 1024 * 1024
+        private const val MAX_PENDING_LINES = 10_000
     }
 
     private val maxLogSizeByte = if (vectorPreferences.labAllowedExtendedLogging()) SIZE_50MB else SIZE_20MB
@@ -80,11 +80,20 @@ class VectorFileLogger @Inject constructor(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    // One writer thread: the handler serializes every write on its own lock anyway, and a task per line on
+    // Dispatchers.IO let a log flood (crypto during a search crawl) occupy the whole IO pool and starve
+    // unrelated work queued behind it. Bounded so a flood drops lines instead of growing without limit.
+    private val writer = ThreadPoolExecutor(
+            1, 1, 0L, TimeUnit.MILLISECONDS,
+            LinkedBlockingQueue(MAX_PENDING_LINES),
+            { runnable -> Thread(runnable, "file-logger").apply { isDaemon = true } },
+            ThreadPoolExecutor.DiscardPolicy()
+    )
+
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
         fileHandler ?: return
-        GlobalScope.launch(Dispatchers.IO) {
-            if (skipLog(priority)) return@launch
+        if (skipLog(priority)) return
+        writer.execute {
             if (t != null) {
                 logToFile(t)
             }
