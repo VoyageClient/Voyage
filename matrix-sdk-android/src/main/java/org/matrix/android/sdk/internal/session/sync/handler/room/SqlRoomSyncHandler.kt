@@ -572,7 +572,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         // Normalize after insertion, when both spans are final, so an open timeline can see retained history.
         if (demotedLiveRange != null) {
             stores.chunk.normaliseRanges(roomId, GAP_NORMALISE_THRESHOLD_MS, writtenRangeId = chunkId).let {
-                if (it > 0) DebugLog.w { "GAPDBG $roomId: limited sync left $it range(s) covering one period, merged" }
+                if (it > 0) DebugLog.w { "CHUNKDBG $roomId: limited sync left $it range(s) covering one period, merged" }
             }
         }
         MatrixPerf.time("tl.onNewTimelineEvents") { timelineInput.onNewTimelineEvents(roomId = roomId, eventIds = eventIds) }
@@ -645,7 +645,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         // flattened parent ids have to be recomputed after this sync.
         private val SPACE_RELATION_TYPES = setOf(EventType.STATE_SPACE_CHILD, EventType.STATE_SPACE_PARENT)
 
-        // The same day the timeline and the gap healer treat as a hole rather than a quiet spell.
+        // The same day used when checking timeline ranges for internal gaps.
         private const val GAP_NORMALISE_THRESHOLD_MS = 24 * 3600 * 1000L
     }
 }

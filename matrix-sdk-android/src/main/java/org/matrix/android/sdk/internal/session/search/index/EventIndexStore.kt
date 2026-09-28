@@ -218,25 +218,6 @@ internal class EventIndexStore @Inject constructor(
                 .map { IndexedRow(roomId = it.room_id, sender = it.sender, eventJson = it.event_json) }
     }
 
-    /** Indexed events with origin_server_ts strictly inside (olderTs, newerTs), newest first. */
-    suspend fun eventsInTsRange(roomId: String, olderTs: Long, newerTs: Long, limit: Int, newestFirst: Boolean = true): List<Pair<String, Long>> =
-            withContext(dispatcher) {
-                if (newestFirst) {
-                    queries.eventsInTsRangeNewestFirst(roomId, olderTs, newerTs, limit.toLong()).executeAsList()
-                            .map { it.event_id to it.origin_server_ts }
-                } else {
-                    queries.eventsInTsRangeOldestFirst(roomId, olderTs, newerTs, limit.toLong()).executeAsList()
-                            .map { it.event_id to it.origin_server_ts }
-                }
-            }
-
-    /** Indexed events inside (olderTs, newerTs), closest to [targetTs] first. */
-    suspend fun eventsNearestTsInRange(roomId: String, olderTs: Long, newerTs: Long, targetTs: Long, limit: Int): List<Pair<String, Long>> =
-            withContext(dispatcher) {
-                queries.eventsNearestTsInRange(roomId, olderTs, newerTs, targetTs, limit.toLong()).executeAsList()
-                        .map { it.event_id to it.origin_server_ts }
-            }
-
     suspend fun oldestTsInRoom(roomId: String): Long? = withContext(dispatcher) {
         queries.oldestTsInRoom(roomId).executeAsOneOrNull()
     }

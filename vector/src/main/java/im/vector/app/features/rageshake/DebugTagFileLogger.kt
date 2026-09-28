@@ -23,7 +23,7 @@ import javax.inject.Singleton
  *
  * One file per tag rather than one shared log: these traces are read days apart and a busy tag would
  * otherwise rotate a quiet one away long before anyone looked at it. The tag is taken from the message
- * rather than from a list, so a new one needs nothing here — `GAPDBG …` lands in `gapdbg.txt`.
+ * rather than from a list, so a new one needs nothing here — `PAGDBG …` lands in `pagdbg.txt`.
  *
  * Only planted for a debug build (see VectorApplication), alongside [org.matrix.android.sdk.api.debug.DebugLog].
  */

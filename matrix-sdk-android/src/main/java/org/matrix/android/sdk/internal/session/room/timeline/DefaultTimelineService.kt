@@ -62,7 +62,6 @@ internal class DefaultTimelineService @AssistedInject constructor(
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val timelineRedactionSignal: TimelineRedactionSignal,
         private val timelineDecryptionSignal: TimelineDecryptionSignal,
-        private val gapHealer: TimelineGapHealer,
         private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
 ) : TimelineService {
 
@@ -93,7 +92,6 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 redactionSignal = timelineRedactionSignal,
                 decryptionSignal = timelineDecryptionSignal,
                 loadRoomMembersTask = loadRoomMembersTask,
-                gapHealer = gapHealer,
                 slidingSyncRoomSubscriptions = slidingSyncRoomSubscriptions,
         )
     }
@@ -213,7 +211,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
     }
 
     private companion object {
-        // Same day threshold the gap healer works to.
+        // Same threshold used when splitting internal range gaps.
         private const val INTERNAL_GAP_THRESHOLD_MS = 24 * 3600 * 1000L
     }
 }

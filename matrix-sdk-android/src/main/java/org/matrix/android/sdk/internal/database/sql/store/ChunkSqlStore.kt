@@ -26,21 +26,6 @@ internal class ChunkSqlStore(private val database: SessionSqlDatabase) {
 
     private fun isGapUnfillable(roomId: String, olderSideMaxTs: Long) = "$roomId|$olderSideMaxTs" in unfillableGaps
 
-    // Boundaries a timestamp walk already failed to fill, for the rest of the session: the walk costs a
-    // /timestamp_to_event and a /context each time and its answer for a given boundary does not change,
-    // so repeating it only delays the timeline every time the room is opened.
-    private val unhealableBoundaries = java.util.Collections.synchronizedSet(HashSet<String>())
-
-    fun markBoundaryUnhealable(roomId: String, boundaryKey: String) {
-        unhealableBoundaries.add("$roomId|$boundaryKey")
-    }
-
-    fun isBoundaryUnhealable(roomId: String, boundaryKey: String) = "$roomId|$boundaryKey" in unhealableBoundaries
-
-    fun forgetUnhealableBoundaries(roomId: String) {
-        synchronized(unhealableBoundaries) { unhealableBoundaries.removeAll { it.startsWith("$roomId|") } }
-    }
-
     fun getById(id: Long): ChunkRow? = queries.selectById(id).executeAsOneOrNull()
 
     fun getByRoom(roomId: String): List<ChunkRow> = queries.selectByRoom(roomId).executeAsList()
@@ -195,8 +180,8 @@ internal class ChunkSqlStore(private val database: SessionSqlDatabase) {
     }
 
     /**
-     * The older side keeps the backward frontier. The newer side has no token for the gap
-     * and relies on timestamp healing. Returns the number of ranges split.
+     * The older side keeps the backward frontier. The newer side has no token for the gap;
+     * pagination takes in the next stored range when it reaches that boundary.
      */
     fun splitRangesAtGaps(roomId: String, gapThresholdMs: Long, onlyRangeIds: Set<Long>? = null): Int {
         var split = 0

@@ -51,21 +51,12 @@ internal class TokenChunkEventPersistor @Inject constructor(
 
     enum class Result { SHOULD_FETCH_MORE, REACHED_END, SUCCESS }
 
-    // A provably-artificial timestamp gap detected in the page (see TimelineGapHealer): the two
-    // sides must not be welded into one chunk, or the recovered history could never be spliced
-    // between them. Filled with the resulting chunk ids for the healer.
-    class GapSplit(val beforeEventId: String?) {
-        var newerChunkId: Long? = null
-        var olderChunkId: Long? = null
-    }
-
     // Out-params for the caller's pagination loop: how many timeline rows the page actually produced
     // (a page can be almost entirely overlap-skipped duplicates) and which chunk the walk landed in,
     // so the loop can keep fetching from that chunk's far token until real progress is made.
     class PageWriteStats {
         var written = 0
         var landedChunkId: Long? = null
-        var gapDetected = false
 
         /** Ranges this page proved already hold its history, and which were folded in as a result. */
         var folded = 0
@@ -79,7 +70,6 @@ internal class TokenChunkEventPersistor @Inject constructor(
             roomId: String,
             direction: PaginationDirection,
             originChunkId: Long? = null,
-            split: GapSplit? = null,
             stats: PageWriteStats? = null,
     ): Result {
         var tokenSlideOnly = false
@@ -109,57 +99,34 @@ internal class TokenChunkEventPersistor @Inject constructor(
                 return@awaitDbTransaction
             }
             // Prefer the origin range, then matching boundary tokens. Merge shared history after insertion.
-            val splitBeforeEventId = split?.beforeEventId
-            val splitIdx = if (splitBeforeEventId != null && direction == PaginationDirection.BACKWARDS) {
-                receivedChunk.events.indexOfFirst { it.eventId == splitBeforeEventId }.takeIf { it > 0 }
-            } else null
-
             val target = originChunkId?.let { stores.chunk.getById(it) }
                     ?: stores.chunk.findByTokens(roomId, prevToken, nextToken)
                     ?: stores.chunk.findByNextToken(roomId, prevToken)
                     ?: stores.chunk.findByPrevToken(roomId, nextToken)
-            val currentChunkId: Long
-            val splitChunkId: Long?
-            if (splitIdx != null) {
-                currentChunkId = target?.id ?: stores.chunk.insert(
-                        roomId, null, nextToken, isLastForward = false, isLastBackward = false,
-                        rootThreadEventId = null, isLastForwardThread = false,
-                )
-                stores.chunk.updatePrevToken(currentChunkId, null)
-                splitChunkId = stores.chunk.insert(
-                        roomId, prevToken, null,
-                        isLastForward = false, isLastBackward = false, rootThreadEventId = null, isLastForwardThread = false,
-                )
-                split?.newerChunkId = currentChunkId
-                split?.olderChunkId = splitChunkId
-            } else {
-                splitChunkId = null
-                currentChunkId = target?.id ?: stores.chunk.insert(
-                        roomId, prevToken, nextToken,
-                        isLastForward = false, isLastBackward = false, rootThreadEventId = null, isLastForwardThread = false,
-                )
-                // Advance the frontier we just fetched past, or the next page re-requests this one.
-                if (target != null) {
-                    if (direction == PaginationDirection.BACKWARDS) {
-                        stores.chunk.updatePrevToken(currentChunkId, prevToken)
-                    } else if (target.is_last_forward == 0L) {
-                        stores.chunk.updateNextToken(currentChunkId, nextToken)
-                    }
+            val currentChunkId = target?.id ?: stores.chunk.insert(
+                    roomId, prevToken, nextToken,
+                    isLastForward = false, isLastBackward = false, rootThreadEventId = null, isLastForwardThread = false,
+            )
+            // Advance the frontier we just fetched past, or the next page re-requests this one.
+            if (target != null) {
+                if (direction == PaginationDirection.BACKWARDS) {
+                    stores.chunk.updatePrevToken(currentChunkId, prevToken)
+                } else if (target.is_last_forward == 0L) {
+                    stores.chunk.updateNextToken(currentChunkId, nextToken)
                 }
-                split?.let { it.newerChunkId = originChunkId; it.olderChunkId = currentChunkId }
             }
 
             stats?.landedChunkId = currentChunkId
             if (receivedChunk.events.isEmpty() && !receivedChunk.hasMore()) {
                 handleReachEnd(roomId, direction, currentChunkId)
             } else {
-                handlePagination(roomId, direction, receivedChunk, currentChunkId, originChunkId, splitIdx, splitChunkId, stats)
+                handlePagination(roomId, direction, receivedChunk, currentChunkId, originChunkId, stats)
             }
             val folded = stores.chunk.mergeRangesSharingEvents(roomId, currentChunkId)
             val overlapping = stores.chunk.mergeOverlappingRanges(roomId)
             if (folded != null || overlapping > 0) {
                 stats?.rowsMoved = true
-                DebugLog.i { "GAPDBG $roomId: page into range $currentChunkId folded shared/overlapping ranges into ${folded ?: currentChunkId}" }
+                DebugLog.i { "pagination in $roomId folded shared/overlapping ranges into ${folded ?: currentChunkId}" }
             }
             // Any of those merges can retire the range the page was written to, so the walk continues from
             // wherever the page's own events ended up rather than from an id that may no longer exist.
@@ -171,27 +138,6 @@ internal class TokenChunkEventPersistor @Inject constructor(
             tokenSlideOnly -> Result.SHOULD_FETCH_MORE
             receivedChunk.events.isEmpty() -> if (receivedChunk.hasMore()) Result.SHOULD_FETCH_MORE else Result.REACHED_END
             else -> Result.SUCCESS
-        }
-    }
-
-    /** Joins ranges after the server proves that the older range immediately follows the newer one. */
-    suspend fun spliceBackward(newerChunkId: Long, olderChunkId: Long): Boolean {
-        return database.awaitDbTransaction(dispatcher) {
-            val newer = stores.chunk.getById(newerChunkId) ?: return@awaitDbTransaction false
-            stores.chunk.getById(olderChunkId) ?: return@awaitDbTransaction false
-            val roomId = newer.room_id
-            // That pass folds whatever shares an event with the newer range, which need not be this older
-            // one. The two are joined only when one of them ended up inside the other.
-            val survivor = stores.chunk.mergeRangesSharingEvents(roomId, newerChunkId)
-            if (survivor != null) {
-                if (stores.chunk.getById(olderChunkId) == null || survivor == olderChunkId) return@awaitDbTransaction true
-                if (stores.chunk.getById(newerChunkId) == null) return@awaitDbTransaction false
-            }
-            // The join spans a timestamp jump with no events in it, which is what the splitter cuts on —
-            // so record that this one is not a hole, or the next open strands that history again.
-            stores.timelineEvent.maxTsForChunk(olderChunkId)?.let { stores.chunk.markGapUnfillable(roomId, it) }
-            stores.chunk.mergeInto(newerChunkId, olderChunkId)
-            stores.chunk.getById(olderChunkId) == null
         }
     }
 
@@ -211,8 +157,6 @@ internal class TokenChunkEventPersistor @Inject constructor(
             receivedChunk: TokenChunkEvent,
             currentChunkId: Long,
             originChunkId: Long?,
-            splitIdx: Int? = null,
-            splitChunkId: Long? = null,
             stats: PageWriteStats? = null,
     ) {
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
@@ -231,8 +175,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
         }
         val threadCandidateIds = ArrayList<String>(receivedChunk.events.size)
         val sharedWithOtherRanges = LinkedHashSet<Long>()
-        for ((index, event) in receivedChunk.events.withIndex()) {
-            val targetChunkId = if (splitIdx != null && splitChunkId != null && index >= splitIdx) splitChunkId else currentChunkId
+        for (event in receivedChunk.events) {
             val eventId = event.eventId
             if (eventId == null || event.senderId == null || event.type == null) continue
             // A pagination response overlaps events already stored in another chunk (server token
@@ -244,13 +187,12 @@ internal class TokenChunkEventPersistor @Inject constructor(
             // event forever — the island never gets two-sidedly linked into the walk — so absorb it
             // into this chunk instead.
             val ownerChunkId = stores.chunk.findMainChunkIdIncludingEvent(roomId, eventId)
-            if (ownerChunkId != null && ownerChunkId != targetChunkId) {
+            if (ownerChunkId != null && ownerChunkId != currentChunkId) {
                 // Never absorb the chunk being paginated from: the caller (and an open timeline seeded
                 // on it) still holds its id.
-                if (ownerChunkId == originChunkId || ownerChunkId == currentChunkId ||
-                        !absorbIslandChunk(roomId, ownerChunkId, targetChunkId)) {
+                if (ownerChunkId == originChunkId || !absorbIslandChunk(roomId, ownerChunkId, currentChunkId)) {
                     // Remember duplicate ownership because no inserted row remains for overlap detection.
-                    if (ownerChunkId != currentChunkId) sharedWithOtherRanges.add(ownerChunkId)
+                    sharedWithOtherRanges.add(ownerChunkId)
                     continue
                 }
             }
@@ -270,7 +212,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             liveEventManager.get().dispatchPaginatedEventReceived(event, roomId)
             stats?.let { it.written++ }
             stores.timelineWriter.addTimelineEvent(
-                    targetChunkId, roomId, dbId, entity, isLastForward = false,
+                    currentChunkId, roomId, dbId, entity, isLastForward = false,
                     roomMemberContentsByUser = roomMemberContentsByUser,
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
             )
@@ -287,7 +229,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             // open timeline is reading, and folding it away leaves that timeline bound to a dead range.
             val survivor = stores.chunk.mergeKeepingLarger(landedChunkId, other)
             stats?.let { it.folded++; it.rowsMoved = true }
-            DebugLog.i { "GAPDBG $roomId: page it already held merged ranges $landedChunkId and $other into $survivor" }
+            DebugLog.i { "pagination in $roomId merged ranges $landedChunkId and $other into $survivor" }
             landedChunkId = survivor
         }
         // Threaded replies come back through /messages like any other event, so a cleared cache rebuilds a

@@ -130,26 +130,6 @@ internal class TokenChunkEventPersistorTest {
     }
 
     @Test
-    fun `a page split at a detected gap keeps its newer side in the origin range`() = runTest {
-        val originId = db.stores.chunk.insert(A_ROOM_ID, "page-start", null, true, false, null, false)
-        persistor.insertInDb(
-                receivedChunk = aChunk(
-                        "page-start",
-                        "page-end",
-                        listOf(anEvent("\$near", 10_000L), anEvent("\$far", 1_000L)),
-                ),
-                roomId = A_ROOM_ID,
-                direction = PaginationDirection.BACKWARDS,
-                originChunkId = originId,
-                split = TokenChunkEventPersistor.GapSplit(beforeEventId = "\$far"),
-        )
-
-        assertNotNull(db.stores.timelineEvent.getInChunkByEventId(originId, "\$near"))
-        assertNull(db.stores.timelineEvent.getInChunkByEventId(originId, "\$far"))
-        assertNull(db.stores.chunk.getById(originId)?.prev_token)
-    }
-
-    @Test
     fun `deleteDuplicatesInChunks keeps one copy per event and spares other chunks`() = runTest {
         // Two overlapping pages persisted the old way would duplicate; simulate directly
         persistor.insertInDb(aChunk("t1", "t2", listOf(anEvent("\$C"), anEvent("\$B"))), A_ROOM_ID, PaginationDirection.BACKWARDS)
@@ -179,39 +159,6 @@ internal class TokenChunkEventPersistorTest {
         val owner = db.stores.chunk.findChunkIdIncludingEvent(A_ROOM_ID, "\$T")
         assertNotNull("the jumped-to event must still resolve to a chunk", owner)
         assertNotEquals("it must resolve to the absorbing chunk, not the retired island", islandId, owner)
-    }
-
-    @Test
-    fun `splicing joins ranges that share an event`() = runTest {
-        val shared = anEvent("\$shared")
-        persistor.insertInDb(aChunk("o1", "o2", listOf(shared)), A_ROOM_ID, PaginationDirection.BACKWARDS)
-        val firstId = db.stores.chunk.getByRoom(A_ROOM_ID).single().id
-        val secondId = db.stores.chunk.insert(A_ROOM_ID, "r1", "r2", false, false, null, false)
-        persistor.insertInDb(aChunk("r2", "r1", listOf(shared)), A_ROOM_ID, PaginationDirection.BACKWARDS, originChunkId = secondId)
-
-        persistor.spliceBackward(firstId, secondId)
-
-        assertEquals("the two ranges hold the same history, so they are one", 1, db.stores.chunk.getByRoom(A_ROOM_ID).size)
-    }
-
-    /**
-     * Only the gap healer splices, and only once the server has said the older range is what lies
-     * immediately below the boundary. Leaving them apart there strands that history: nothing shares an
-     * event across a timestamp jump, so no later merge would ever join them.
-     */
-    @Test
-    fun `splicing joins a proven-adjacent range and keeps its frontier`() = runTest {
-        persistor.insertInDb(aChunk("o1", "o2", listOf(anEvent("\$old"))), A_ROOM_ID, PaginationDirection.BACKWARDS)
-        val olderId = db.stores.chunk.getByRoom(A_ROOM_ID).single().id
-        val newerId = db.stores.chunk.insert(A_ROOM_ID, "n1", null, true, false, null, false)
-        persistor.insertInDb(aChunk("n0", "n1", listOf(anEvent("\$new"))), A_ROOM_ID, PaginationDirection.BACKWARDS, originChunkId = newerId)
-
-        val joined = persistor.spliceBackward(newerId, olderId)
-
-        assertEquals("the ranges are now one", 1, db.stores.chunk.getByRoom(A_ROOM_ID).size)
-        assertEquals("the caller is told it worked", true, joined)
-        assertNotNull("the backward frontier of the older side survives", db.stores.chunk.getById(newerId)!!.prev_token)
-        assertNotNull("both pieces of history are reachable", db.stores.timelineEvent.getInChunkByEventId(newerId, "\$old"))
     }
 
     @Test

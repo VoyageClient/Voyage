@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
-import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -73,7 +72,6 @@ internal class SqlTimeline(
         private val redactionSignal: TimelineRedactionSignal,
         private val decryptionSignal: TimelineDecryptionSignal,
         private val loadRoomMembersTask: LoadRoomMembersTask,
-        private val gapHealer: TimelineGapHealer,
         private val slidingSyncRoomSubscriptions: SlidingSyncRoomSubscriptions,
 ) : Timeline, TimelineInput.Listener, UIEchoManager.Listener {
 
@@ -95,7 +93,6 @@ internal class SqlTimeline(
     // (hidden/redacted) events it stays on screen, so serialize the requests to avoid piling up fetches.
     private val backwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
     private val forwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
-    private val healsInFlight = java.util.Collections.synchronizedSet(HashSet<String>())
     private var observeJob: Job? = null
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
@@ -164,6 +161,7 @@ internal class SqlTimeline(
     @Volatile private var liveChunkFullyMapped = false
 
     private var pendingShowEventId: String? = initialEventId
+    @Volatile private var needsJumpPageRefresh = initialEventId != null
     private var oldestShownEventId: String? = null
 
     // Newer bound of the window, set when jumping deep into history: without it the window spans
@@ -323,6 +321,7 @@ internal class SqlTimeline(
 
     override fun restartWithEventId(eventId: String?) {
         timelineScope.launch {
+            needsJumpPageRefresh = eventId != null
             // Reset the window: null returns to the newest events; a target grows the window to include it.
             pendingShowEventId = eventId
             oldestShownEventId = null
@@ -624,41 +623,25 @@ internal class SqlTimeline(
                     }
                     oldestPrevToken != null -> {
                         val page = paginate(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
-                        val gapped = page.gapDetected
                         invalidateAfterServerPage(rowsMoved = page.rowsMoved)
-                        // Wait for healing before allowing the loading row to request the same refused page again.
-                        if (gapped && !healBoundary(oldest.id) && !frontierStalled(oldest.id)) {
-                            DebugLog.i { "GAPDBG $roomId: nothing more reachable below range ${oldest.id}, stopping the backward load" }
-                            stalledFrontier = withContext(sessionDispatcher) { boundaryKey(oldest.id) }
-                            updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
-                        }
                         // The page is written into this range, and any range it turned out to overlap has
                         // been folded into it, so the older history is simply part of the range now.
                         revealAfterBackwardFetch()
                     }
-                    // A split has no token into its gap. If timestamp healing fails, include the older range
-                    // so its history remains reachable despite the visible timestamp jump.
                     else -> {
-                        val healed = healBoundary(oldest.id)
-                        if (!healed) {
-                            val below = withContext(sessionDispatcher) { stores.chunk.rangeBelow(roomId, oldest.id) }
-                            if (below != null) {
-                                DebugLog.w { "GAPDBG $roomId: cannot fill the hole under range ${oldest.id}, taking #$below in so its history is reachable" }
-                                withContext(sessionDispatcher) {
-                                    database.awaitDbTransaction(sessionDispatcher) {
-                                        // Remember it, or the next room open splits the same gap straight
-                                        // back out and strands that history again.
-                                        stores.timelineEvent.maxTsForChunk(below)?.let { stores.chunk.markGapUnfillable(roomId, it) }
-                                        stores.chunk.mergeInto(oldest.id, below)
-                                    }
-                                    invalidateAfterServerPage()
+                        val below = withContext(sessionDispatcher) { stores.chunk.rangeBelow(roomId, oldest.id) }
+                        if (below != null) {
+                            withContext(sessionDispatcher) {
+                                database.awaitDbTransaction(sessionDispatcher) {
+                                    stores.timelineEvent.maxTsForChunk(below)?.let { stores.chunk.markGapUnfillable(roomId, it) }
+                                    stores.chunk.mergeInto(oldest.id, below)
                                 }
-                                revealAfterBackwardFetch()
-                                return
+                                invalidateAfterServerPage()
                             }
+                            revealAfterBackwardFetch()
+                        } else {
                             updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
                         }
-                        if (isWindowed) rebuildSnapshot(reuseLiveChunk = true)
                     }
                 }
             } finally {
@@ -702,18 +685,6 @@ internal class SqlTimeline(
         }
     }
 
-    private fun boundaryKey(chunkId: Long): String? {
-        val ourOldest = stores.timelineEvent.minTsForChunk(chunkId) ?: return null
-        return "$chunkId|$ourOldest"
-    }
-
-    // The frontier a refused backward page gave up on, keyed like a boundary: anything that later fills
-    // in under that chunk moves its oldest timestamp, which lifts the stall and lets loading resume.
-    private var stalledFrontier: String? = null
-
-    private suspend fun frontierStalled(chunkId: Long): Boolean =
-            stalledFrontier != null && stalledFrontier == withContext(sessionDispatcher) { boundaryKey(chunkId) }
-
     // A page can extend the chunk it was fetched from, or make the persistor absorb one chunk into
     // another, so the cached mappings (and the ids we hold) can describe rows that have moved or a
     // chunk that is gone.
@@ -722,9 +693,8 @@ internal class SqlTimeline(
     // still describe correctly — dropping them there costs a full re-map of the whole window per page, the
     // single largest cost of a long backward scroll.
     private fun invalidateAfterServerPage(rowsMoved: Boolean = true) {
-        // A page can land under a boundary and move it, which invalidates what a walk concluded about it.
-        stores.chunk.forgetUnhealableBoundaries(roomId)
-        if (rowsMoved) chunkSnapshotCache.clear()
+        // A jump initially caches only its target; reveal must re-read the new neighbors after a page.
+        if (rowsMoved || needsJumpPageRefresh) chunkSnapshotCache.clear()
         liveChunkFullyMapped = false
         val alive = loadedChunkIds.filterTo(LinkedHashSet()) { stores.chunk.getById(it) != null }
         if (alive.size != loadedChunkIds.size) {
@@ -756,10 +726,9 @@ internal class SqlTimeline(
     }
 
     /** What a round of paging did, beyond the rows it wrote. */
-    private class PageOutcome(val gapDetected: Boolean, val rowsMoved: Boolean)
+    private class PageOutcome(val rowsMoved: Boolean)
 
     private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null): PageOutcome {
-        var gapDetected = false
         var rowsMoved = false
         updateState(direction) { it.copy(loading = true) }
         try {
@@ -776,7 +745,7 @@ internal class SqlTimeline(
             while (rounds++ < MAX_PAGINATION_ROUNDS) {
                 val stats = TokenChunkEventPersistor.PageWriteStats()
                 val result = paginationTask.execute(
-                        PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, origin, stats, serverGapProbe = true)
+                        PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, origin, stats)
                 )
                 newRows += stats.written
                 rowsMoved = rowsMoved || stats.rowsMoved
@@ -784,11 +753,6 @@ internal class SqlTimeline(
                 // row: real progress, and the round must end or the walk re-fetches the same page.
                 if (stats.folded > 0) break
                 if (result == TokenChunkEventPersistor.Result.REACHED_END) break
-                // A detected gap ends the round: its recovery decides how the walk continues.
-                if (stats.gapDetected) {
-                    gapDetected = true
-                    break
-                }
                 val followChunkId = if (result == TokenChunkEventPersistor.Result.SHOULD_FETCH_MORE) origin else {
                     if (newRows >= minOf(count, MIN_NEW_ROWS_PER_LOAD)) break
                     stats.landedChunkId
@@ -815,61 +779,7 @@ internal class SqlTimeline(
             Timber.w(failure, "SqlTimeline $roomId pagination failed")
         }
         updateState(direction) { it.copy(loading = false) }
-        return PageOutcome(gapDetected = gapDetected, rowsMoved = rowsMoved)
-    }
-
-    // Keep visible event anchors while healing moves stored history.
-    private val windowPinCount = java.util.concurrent.atomic.AtomicInteger(0)
-    private val windowPinned: Boolean get() = windowPinCount.get() > 0
-
-    /** Prevent automatic window expansion during healing while preserving explicit user navigation. */
-    private suspend fun <T> withPinnedWindow(block: suspend () -> T): T {
-        windowPinCount.incrementAndGet()
-        return try {
-            block()
-        } finally {
-            windowPinCount.decrementAndGet()
-        }
-    }
-
-    /** Returns whether timestamp healing recovered history below the boundary. */
-    private suspend fun healBoundary(strandedChunkId: Long): Boolean {
-        val changed = withPinnedWindow { healBoundaryPinned(strandedChunkId) }
-        // Rebuild against the healed ranges after releasing this window pin.
-        rebuildSnapshot()
-        return changed
-    }
-
-    private suspend fun healBoundaryPinned(strandedChunkId: Long): Boolean {
-        if (isThreadTimeline) return false
-        // Per boundary, not one lock for the room: a jump heals the boundary above the target and the one
-        // below it, and making them queue behind each other left whichever lost the race unhealed.
-        val key = withContext(sessionDispatcher) { boundaryKey(strandedChunkId) } ?: return false
-        // Asked and answered this session: the walk's two round trips would only delay the reveal again.
-        if (withContext(sessionDispatcher) { stores.chunk.isBoundaryUnhealable(roomId, key) }) {
-            DebugLog.i { "GAPDBG $roomId: boundary under $strandedChunkId already known unhealable, not walking again" }
-            return false
-        }
-        if (!healsInFlight.add(key)) return false
-        try {
-            DebugLog.i { "GAPDBG $roomId: healing the boundary under chunk $strandedChunkId" }
-            val filled = gapHealer.fillBackwardByTimestamp(roomId, strandedChunkId)
-            if (filled > 0) {
-                withContext(sessionDispatcher) { invalidateAfterServerPage() }
-                rebuildSnapshot()
-                return true
-            }
-
-            DebugLog.i { "GAPDBG $roomId: timestamp walk filled nothing under $strandedChunkId" }
-            withContext(sessionDispatcher) { stores.chunk.markBoundaryUnhealable(roomId, key) }
-            return false
-        } catch (failure: Throwable) {
-            if (failure is CancellationException) throw failure
-            Timber.w(failure, "SqlTimeline $roomId boundary heal failed")
-            return false
-        } finally {
-            healsInFlight.remove(key)
-        }
+        return PageOutcome(rowsMoved = rowsMoved)
     }
 
     private fun toPaginationDirection(direction: Timeline.Direction) =
@@ -953,9 +863,6 @@ internal class SqlTimeline(
             }
         }
         val anchorIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
-        // Keep unresolved anchors during healing to avoid moving the visible window.
-        // A null anchor still means the live window and should render normally.
-        if (windowPinned && oldestShownEventId != null && (anchorIdx == null || anchorIdx < 0)) return builtEvents
         var oldestIdx = (anchorIdx?.takeIf { it >= 0 } ?: (initialWindowCount() - 1)).coerceIn(0, all.lastIndex)
         // Cap the live-edge window by the count of *message* events, not raw events: a flood of redactions
         // or state changes (e.g. a mass redaction) collapses to a single merged item, so a raw cap would
@@ -970,10 +877,8 @@ internal class SqlTimeline(
         // yet) must be KEPT — nulling it would re-expand the window over every event the next page
         // brings in. Only an id that vanished from the loaded set clears the bound.
         val newestIdx = boundIdx.coerceAtMost(oldestIdx).coerceAtLeast(0)
-        // Keep missing bounds while pinned so healing cannot expand the visible window.
         newestShownEventId = when {
             boundIdx >= 0 -> all[newestIdx].eventId
-            windowPinned -> newestShownEventId
             else -> null
         }
         return ArrayList(all.subList(newestIdx, oldestIdx + 1))

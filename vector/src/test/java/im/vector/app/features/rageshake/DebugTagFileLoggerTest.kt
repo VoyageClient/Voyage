@@ -47,28 +47,28 @@ class DebugTagFileLoggerTest {
 
     @Test
     fun `each tag is collected into its own file`() {
-        Timber.i("GAPDBG healing the boundary under chunk 4")
+        Timber.i("PAGDBG fetching page 4")
         Timber.i("MEDIADBG render start event=a")
         Timber.i("CHUNKDBG splitting a range")
 
-        fileFor("gapdbg.txt").readText().contains("healing the boundary").shouldBeTrue()
+        fileFor("pagdbg.txt").readText().contains("fetching page").shouldBeTrue()
         fileFor("mediadbg.txt").readText().contains("render start").shouldBeTrue()
         fileFor("chunkdbg.txt").readText().contains("splitting a range").shouldBeTrue()
         // A tag's file holds only its own lines.
-        fileFor("gapdbg.txt").readText().contains("MEDIADBG").shouldBeFalse()
+        fileFor("pagdbg.txt").readText().contains("MEDIADBG").shouldBeFalse()
     }
 
     @Test
     fun `a message with no tag is not collected at all`() {
         Timber.i("an ordinary log line")
-        Timber.i("not at the start: GAPDBG something")
+        Timber.i("not at the start: PAGDBG something")
 
         logsDirectory.exists().shouldBeFalse()
     }
 
     @Test
     fun `the tag must be a whole word`() {
-        Timber.i("GAPDBGX not really a tag")
+        Timber.i("PAGDBGX not really a tag")
 
         logsDirectory.exists().shouldBeFalse()
     }

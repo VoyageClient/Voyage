@@ -19,7 +19,7 @@ package org.matrix.android.sdk.internal.session.room.timeline
 import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
-import org.matrix.android.sdk.internal.session.filter.FilterRepository
+import org.matrix.android.sdk.internal.session.filter.FilterFactory
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
@@ -37,38 +37,28 @@ internal interface PaginationTask : Task<PaginationTask.Params, TokenChunkEventP
             val originChunkId: Long? = null,
             // Optional out-params for the caller's fetch loop (new-row count, landed chunk).
             val stats: TokenChunkEventPersistor.PageWriteStats? = null,
-            // Interactive timelines only: lets gap detection ask the server (/timestamp_to_event)
-            // when the local index can't classify a jump. Fills/seeds must leave this off.
-            val serverGapProbe: Boolean = false,
     )
 }
 
 internal class DefaultPaginationTask @Inject constructor(
         private val roomAPI: RoomAPI,
-        private val filterRepository: FilterRepository,
         private val tokenChunkEventPersistor: TokenChunkEventPersistor,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val dbPriority: SessionDbPriority,
-        private val gapHealer: TimelineGapHealer,
 ) : PaginationTask {
+
+    // Sync stores this same room filter; reading it here can queue behind a long sync transaction.
+    private val filter by lazy { FilterFactory.createDefaultRoomFilter().toJSONString() }
 
     // The user is watching a spinner until the page lands, so the whole fetch-and-persist round
     // counts as interactive: the persist must not queue behind a scan that started during the fetch.
     override suspend fun execute(params: PaginationTask.Params): TokenChunkEventPersistor.Result = dbPriority.interactive {
-        // An empty filter is not valid JSON, and the server rejects the whole request for it.
-        val filter = filterRepository.getRoomFilterBody().takeIf { it.isNotBlank() }
         val chunk = executeRequest(
                 globalErrorReceiver,
                 canRetry = true
         ) {
             roomAPI.getRoomMessagesFrom(params.roomId, params.from, params.direction.value, params.limit, filter)
         }
-        val detection = if (params.direction == PaginationDirection.BACKWARDS) {
-            gapHealer.detectArtificialGap(params.roomId, params.originChunkId, chunk, params.serverGapProbe)
-        } else null
-        params.stats?.gapDetected = detection != null
-        val result = tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId, detection?.split, params.stats)
-        gapHealer.recoverAfterPersist(params.roomId, detection)
-        result
+        tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId, stats = params.stats)
     }
 }

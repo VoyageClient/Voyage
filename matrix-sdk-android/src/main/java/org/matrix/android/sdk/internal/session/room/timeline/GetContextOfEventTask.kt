@@ -28,9 +28,6 @@ internal interface GetContextOfEventTask : Task<GetContextOfEventTask.Params, To
     data class Params(
             val roomId: String,
             val eventId: String,
-            // 0 = the target event alone (the default for jump-to-event, where merging must stay
-            // trivial); gap recovery asks for a window so the recovered chunk holds real history.
-            val limit: Int = 0,
     )
 }
 
@@ -46,7 +43,7 @@ internal class DefaultGetContextOfEventTask @Inject constructor(
         val filter = filterRepository.getRoomFilterBody()
         val eventId = localEchoRepository.get().resolveRemoteId(params.eventId) ?: params.eventId
         val response = executeRequest(globalErrorReceiver) {
-            roomAPI.getContextOfEvent(params.roomId, eventId, params.limit, filter)
+            roomAPI.getContextOfEvent(params.roomId, eventId, 0, filter)
         }
         return tokenChunkEventPersistor.insertInDb(response, params.roomId, PaginationDirection.FORWARDS)
     }
