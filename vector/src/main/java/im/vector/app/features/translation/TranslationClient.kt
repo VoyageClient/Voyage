@@ -157,27 +157,42 @@ class TranslationClient @Inject constructor(
     }
 
     private fun google(text: String, source: String, target: String): Pair<String, String?> {
-        val url = HttpUrl.parse("https://translate.googleapis.com/translate_a/single")!!.newBuilder()
-                .addQueryParameter("client", "gtx")
-                .addQueryParameter("dt", "t")
-                .addQueryParameter("dj", "1")
-                .addQueryParameter("source", "input")
-                .addQueryParameter("sl", TranslationEngine.GOOGLE.wireCode(source))
-                .addQueryParameter("tl", TranslationEngine.GOOGLE.wireCode(target))
+        val sl = TranslationEngine.GOOGLE.wireCode(source)
+        val tl = TranslationEngine.GOOGLE.wireCode(target)
+        if (text.length > GoogleTranslateWire.WEB_MAX_LENGTH) return googleDictionary(text, sl, tl)
+        return try {
+            googleWeb(text, sl, tl)
+        } catch (e: EngineError) {
+            // The dictionary endpoint's throttling is counted separately from the site's.
+            if (e.status != 429) throw e
+            Timber.i("Google web endpoint throttled, falling back to the dictionary endpoint")
+            googleDictionary(text, sl, tl)
+        }
+    }
+
+    private fun googleWeb(text: String, sl: String, tl: String): Pair<String, String?> {
+        val request = Request.Builder()
+                .url(GoogleTranslateWire.WEB_URL)
+                .header("User-Agent", BROWSER_UA)
+                .header("Referer", GoogleTranslateWire.WEB_REFERER)
+                .header("X-Same-Domain", "1")
+                .post(FormBody.Builder().add("f.req", GoogleTranslateWire.webRequest(text, sl, tl)).build())
+                .build()
+        return GoogleTranslateWire.parseWebResponse(execute(request))
+    }
+
+    private fun googleDictionary(text: String, sl: String, tl: String): Pair<String, String?> {
+        val url = HttpUrl.parse(GoogleTranslateWire.DICTIONARY_URL)!!.newBuilder()
+                .addQueryParameter("client", GoogleTranslateWire.DICTIONARY_CLIENT)
+                .addQueryParameter("sl", sl)
+                .addQueryParameter("tl", tl)
                 .build()
         val request = Request.Builder()
                 .url(url)
                 .header("User-Agent", BROWSER_UA)
                 .post(FormBody.Builder().add("q", text).build())
                 .build()
-        val body = JSONObject(execute(request))
-        val sentences = body.optJSONArray("sentences") ?: JSONArray()
-        val translated = buildString {
-            for (i in 0 until sentences.length()) {
-                append(sentences.optJSONObject(i)?.optString("trans").orEmpty())
-            }
-        }
-        return translated to body.optString("src").takeIf { it.isNotEmpty() }
+        return GoogleTranslateWire.parseDictionaryResponse(execute(request))
     }
 
     private fun microsoft(text: String, source: String, target: String): Pair<String, String?> {
