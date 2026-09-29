@@ -2277,7 +2277,10 @@ class TimelineFragment :
     }
 
     override fun onPreviewUrlImageClicked(sharedView: View?, mxcUrl: String?, title: String?) {
-        navigator.openBigImageViewer(requireActivity(), sharedView, mxcUrl, title)
+        if (mxcUrl.isNullOrBlank()) return
+        openMediaAfterKeyboardDismissal {
+            navigator.openBigImageViewer(requireActivity(), sharedView, mxcUrl, title)
+        }
     }
 
     override fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent) {
