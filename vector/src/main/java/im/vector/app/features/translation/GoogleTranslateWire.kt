@@ -49,7 +49,12 @@ internal object GoogleTranslateWire {
         val sentences = candidate.optJSONArray(5)
         val translated = if (sentences != null) {
             buildString {
-                for (i in 0 until sentences.length()) append(sentences.optJSONArray(i)?.stringAt(0).orEmpty())
+                for (i in 0 until sentences.length()) {
+                    val sentence = sentences.optJSONArray(i) ?: continue
+                    // Inter-sentence spaces aren't in the text; index 2 flags a sentence that needs one before it.
+                    if (sentence.optBoolean(2) && isNotEmpty() && !last().isWhitespace()) append(' ')
+                    append(sentence.stringAt(0).orEmpty())
+                }
             }
         } else {
             candidate.stringAt(0) ?: throw IOException("Empty response")

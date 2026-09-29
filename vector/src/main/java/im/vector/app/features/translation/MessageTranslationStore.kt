@@ -8,6 +8,7 @@
 package im.vector.app.features.translation
 
 import androidx.core.text.HtmlCompat
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,7 +36,9 @@ class MessageTranslationStore @Inject constructor(
     /** [formatted] is the translated formatted body (markup/pills preserved), when the message had one. */
     data class Translation(val text: String, val sourceLanguage: String?, val targetLanguage: String, val formatted: String? = null)
 
-    private val translations = ConcurrentHashMap<String, Translation>()
+    private class Entry(val translation: Translation, val source: String?)
+
+    private val translations = ConcurrentHashMap<String, Entry>()
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -44,17 +48,28 @@ class MessageTranslationStore @Inject constructor(
     private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val errors: SharedFlow<String> = _errors
 
+    /** Unchecked against edits; only for callers that already went through [get] with the event. */
     fun get(eventId: String): Translation? {
-        val translation = translations[eventId] ?: return null
+        val entry = translations[eventId] ?: return null
         // A language switch makes old translations stale — they targeted the previous app language.
-        if (translation.targetLanguage != TranslationLanguages.appLanguage()) {
-            translations.remove(eventId)
+        if (entry.translation.targetLanguage != TranslationLanguages.appLanguage()) {
+            translations.remove(eventId, entry)
             return null
         }
-        return translation
+        return entry.translation
     }
 
-    fun isTranslated(eventId: String): Boolean = get(eventId) != null
+    /** Also drops the translation once the message has been edited since it was translated. */
+    fun get(event: TimelineEvent): Translation? {
+        val entry = translations[event.eventId] ?: return null
+        if (entry.source != sourceOf(event)) {
+            translations.remove(event.eventId, entry)
+            return null
+        }
+        return get(event.eventId)
+    }
+
+    fun isTranslated(event: TimelineEvent): Boolean = get(event) != null
 
     fun isTranslating(eventId: String): Boolean = eventId in inFlight
 
@@ -67,7 +82,7 @@ class MessageTranslationStore @Inject constructor(
      * When [formattedBody] is given, it is translated instead — markup, mention pills and line
      * structure survive — and the plain text is derived from the result.
      */
-    fun translate(eventId: String, text: String, formattedBody: String? = null) {
+    fun translate(eventId: String, source: String?, text: String, formattedBody: String? = null) {
         if (!inFlight.add(eventId)) return
         scope.launch {
             try {
@@ -83,11 +98,12 @@ class MessageTranslationStore @Inject constructor(
                     is TranslationResult.Failure -> _errors.tryEmit(result.message)
                     is TranslationResult.Success -> {
                         val restored = exceptions.restore(result.text)
-                        translations[eventId] = if (htmlExceptions != null) {
+                        val translation = if (htmlExceptions != null) {
                             Translation(htmlToPlain(restored), result.detectedSource, TranslationLanguages.appLanguage(), formatted = restored)
                         } else {
                             Translation(restored, result.detectedSource, TranslationLanguages.appLanguage())
                         }
+                        translations[eventId] = Entry(translation, source)
                         _updates.tryEmit(eventId)
                     }
                 }
@@ -99,4 +115,9 @@ class MessageTranslationStore @Inject constructor(
 
     private fun htmlToPlain(html: String): String =
             HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
+
+    companion object {
+        /** What a translation was made from; a differing value means the message was edited since. */
+        fun sourceOf(event: TimelineEvent): String? = event.getVectorLastMessageContent()?.body
+    }
 }

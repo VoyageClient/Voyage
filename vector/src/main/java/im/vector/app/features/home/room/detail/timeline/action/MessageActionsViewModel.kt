@@ -363,7 +363,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (timelineEvent.root.isRedacted()) {
                 noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
             } else {
-                messageTranslationStore.get(timelineEvent.eventId)?.text
+                messageTranslationStore.get(timelineEvent)?.text
                         ?: computePgpDecryptedBody(timelineEvent) ?: when (timelineEvent.root.getClearType()) {
                     EventType.MESSAGE,
                     EventType.STICKER -> {
@@ -629,10 +629,11 @@ class MessageActionsViewModel @AssistedInject constructor(
                     }
                     if (restoredEvent != null && canTranslate(restoredMessageContent?.msgType, restoredMessageContent)) {
                         when {
-                            messageTranslationStore.isTranslated(eventId) -> add(EventSharedAction.Untranslate(eventId))
+                            messageTranslationStore.isTranslated(restoredEvent) -> add(EventSharedAction.Untranslate(eventId))
                             !messageTranslationStore.isTranslating(eventId) -> add(
                                     EventSharedAction.Translate(
                                             eventId,
+                                            MessageTranslationStore.sourceOf(restoredEvent),
                                             pgpCopyBody(restoredEvent, restoredMessageContent!!),
                                             translatableFormattedBody(restoredEvent, restoredMessageContent),
                                     )
@@ -690,11 +691,12 @@ class MessageActionsViewModel @AssistedInject constructor(
 
             if (canTranslate(msgType, messageContent)) {
                 when {
-                    messageTranslationStore.isTranslated(eventId) -> add(EventSharedAction.Untranslate(eventId))
+                    messageTranslationStore.isTranslated(timelineEvent) -> add(EventSharedAction.Untranslate(eventId))
                     !messageTranslationStore.isTranslating(eventId) ->
                         add(
                                 EventSharedAction.Translate(
                                         eventId,
+                                        MessageTranslationStore.sourceOf(timelineEvent),
                                         pgpCopyBody(timelineEvent, messageContent!!),
                                         translatableFormattedBody(timelineEvent, messageContent)
                                 )

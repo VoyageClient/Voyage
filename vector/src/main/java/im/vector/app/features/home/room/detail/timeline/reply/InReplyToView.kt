@@ -130,7 +130,7 @@ class InReplyToView @JvmOverloads constructor(
         // The translation/PGP plaintext substituted for the quoted body lives outside the state, so
         // an identical state can arrive after it changed — compare it too, or the old text stays up.
         val plainOverride = (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { s ->
-            retriever.messageTranslationStore.get(s.event.eventId)?.text
+            retriever.messageTranslationStore.get(s.event)?.text
                     ?: (s.event.getLastMessageContent() as? MessageContentWithFormattedBody)
                             ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
         }
@@ -266,7 +266,7 @@ class InReplyToView @JvmOverloads constructor(
         } else {
             views.expandableReplyView.setExpanded(false)
             // Translation / PGP: show the plaintext the timeline shows for the quoted message.
-            val plainOverride = retriever.messageTranslationStore.get(state.event.eventId)?.text
+            val plainOverride = retriever.messageTranslationStore.get(state.event)?.text
                     ?: (state.event.getLastMessageContent() as? MessageContentWithFormattedBody)
                             ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
             if (plainOverride != null) {

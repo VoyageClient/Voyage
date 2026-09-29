@@ -87,7 +87,7 @@ class LatexPreviewTest {
                 every { it.changes } returns kotlinx.coroutines.flow.MutableStateFlow(0L)
             },
             messageTranslationStore = mockk<im.vector.app.features.translation.MessageTranslationStore>(relaxed = true).also {
-                every { it.get(any()) } returns null
+                every { it.get(any<TimelineEvent>()) } returns null
             },
             pillsPostProcessorFactory = mockk(relaxed = true),
             textRendererFactory = mockk(relaxed = true),

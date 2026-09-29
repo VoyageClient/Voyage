@@ -44,6 +44,16 @@ class GoogleTranslateWireTest {
     }
 
     @Test
+    fun `sentences flagged as spaced get a space before them`() {
+        val payload = """[[null,null,"de",[],null,null,["x","auto","en",true,null,2]],""" +
+                """[[[null,null,null,null,null,[["Hello, how are you?",null,null,null,null,null,"Hallo, wie geht es dir?",1],""" +
+                """["I'm doing well.",null,true,null,null,null,"Mir geht es gut.",1],["Thanks!",null,true,null,null,null,"Danke!",1],""" +
+                """["\nSecond line.",null,null,null,null,null,"Zweite Zeile.",1]],null,null,null,[]]],"en",1,"de",["x","auto","en",true,null,2]],"de"]"""
+        GoogleTranslateWire.parseWebResponse(web(payload)) shouldBeEqualTo
+                ("Hello, how are you? I'm doing well. Thanks!\nSecond line." to "de")
+    }
+
+    @Test
     fun `gendered candidates take the first whole-text translation`() {
         val payload = """[[null,null,"en",[[[0,[[[null,13]],[true]]]],13],null,null,["I am a doctor","auto","es",true,null,2]],""" +
                 """[[["Soy doctora",null,"(feminine)",null,null,null,null,1,null,[]],["Soy doctor",null,"(masculine)",null,null,null,null,2,null,[]]],""" +

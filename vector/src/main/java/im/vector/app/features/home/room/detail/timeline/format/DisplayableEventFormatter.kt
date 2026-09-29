@@ -101,7 +101,7 @@ class DisplayableEventFormatter @Inject constructor(
         return when (timelineEvent.root.getClearType()) {
             EventType.MESSAGE -> {
                 timelineEvent.getVectorLastMessageContent()?.let { messageContent ->
-                    val translation = messageTranslationStore.get(timelineEvent.eventId)
+                    val translation = messageTranslationStore.get(timelineEvent)
                     if (translation != null) {
                         return@let simpleFormat(senderName, translation.text, appendAuthor)
                     }

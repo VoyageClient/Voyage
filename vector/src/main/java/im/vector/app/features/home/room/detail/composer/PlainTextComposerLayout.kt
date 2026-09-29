@@ -527,7 +527,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val messageContent: MessageContent? = event.getVectorLastMessageContent()
         // Translation / PGP: show the text the timeline shows for the quoted message (and skip HTML
         // rendering of the real formatted_body below).
-        val pgpPlain = messageTranslationStore.get(event.eventId)?.text
+        val pgpPlain = messageTranslationStore.get(event)?.text
                 ?: (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
         val nonFormattedBody = when {
             pgpPlain != null -> pgpPlain

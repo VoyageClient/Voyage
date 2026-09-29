@@ -2488,7 +2488,7 @@ class TimelineFragment :
                 redactedContentRevealManager.setRevealedWithEdits(timelineArgs.roomId, action.eventId, false)
             }
             is EventSharedAction.Translate -> {
-                messageTranslationStore.translate(action.eventId, action.text, action.formattedBody)
+                messageTranslationStore.translate(action.eventId, action.source, action.text, action.formattedBody)
             }
             is EventSharedAction.Untranslate -> {
                 messageTranslationStore.untranslate(action.eventId)

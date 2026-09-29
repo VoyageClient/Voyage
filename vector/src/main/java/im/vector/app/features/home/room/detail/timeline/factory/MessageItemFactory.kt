@@ -226,6 +226,8 @@ class MessageItemFactory @Inject constructor(
             val malformedText = stringProvider.getString(CommonStrings.malformed_message)
             return defaultItemFactory.create(malformedText, informationData, highlight, callback, params.reactionsSummaryEvents)
         }
+        // Drops a translation the message has since been edited out of; the builders below look it up by id.
+        messageTranslationStore.get(event)
         if (messageContent.relatesTo?.type == RelationType.REPLACE ||
                 event.isEncrypted() && event.root.content.toModel<EncryptedEventContent>()?.relatesTo?.type == RelationType.REPLACE
         ) {

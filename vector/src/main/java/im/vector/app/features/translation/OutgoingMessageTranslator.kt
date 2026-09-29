@@ -8,24 +8,29 @@
 package im.vector.app.features.translation
 
 import android.text.Spanned
+import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import javax.inject.Inject
 
 /**
  * Translates composer text before it is sent (`/translate`, or a room with auto-translate on).
- * Mention pills are swapped for placeholders so they come back as proper mention links.
+ * Mention pills and custom emotes are swapped for placeholders so they come back as mention links and
+ * `<img data-mx-emoticon>`s.
  */
 class OutgoingMessageTranslator @Inject constructor(
         private val client: TranslationClient,
 ) {
     sealed class Outcome {
-        /** [formatted] is non-null only when the text carried mention pills. */
+        /** [formatted] is non-null only when the text carried mention pills or emotes. */
         data class Translated(val text: String, val formatted: String?) : Outcome()
         object Unchanged : Outcome()
         data class Failed(val message: String) : Outcome()
     }
 
-    private class Pill(val id: String, val name: String)
+    private sealed class Pill(val text: String) {
+        class Mention(val id: String, text: String) : Pill(text)
+        class Emote(val span: MatrixEmoteSpan, text: String) : Pill(text)
+    }
 
     suspend fun translate(message: CharSequence, targetOverride: String? = null): Outcome {
         val pills = ArrayList<Pill>()
@@ -33,17 +38,27 @@ class OutgoingMessageTranslator @Inject constructor(
         // Seeding with the placeholders themselves keeps `{{i}}` in the restored text, so pills are
         // expanded last, into plain names or mention links depending on the body being built.
         val exceptions = TranslationExceptions.forSent(withPlaceholders, pills.indices.map { "{{$it}}" })
-        if (!exceptions.hasTranslatableText) return Outcome.Unchanged
-
-        val target = targetOverride ?: TranslationLanguages.APP
-        val translated = when (val result = client.translate(exceptions.text, TranslationLanguages.AUTO, target)) {
-            is TranslationResult.Failure -> return Outcome.Failed(result.message)
-            is TranslationResult.Success -> exceptions.restore(result.text)
+        val translated = if (!exceptions.hasTranslatableText) {
+            if (pills.isEmpty()) return Outcome.Unchanged
+            withPlaceholders
+        } else {
+            val target = targetOverride ?: TranslationLanguages.APP
+            when (val result = client.translate(exceptions.text, TranslationLanguages.AUTO, target)) {
+                is TranslationResult.Failure -> return Outcome.Failed(result.message)
+                is TranslationResult.Success -> exceptions.restore(result.text)
+            }
         }
-        val plain = expandPills(translated, pills) { it.name }
+        val plain = expandPills(translated, pills) { it.text }
         val formatted = if (pills.isNotEmpty()) {
-            expandPills(escape(translated), pills) { pill -> "<a href=\"https://matrix.to/#/${pill.id}\">${escape(pill.name)}</a>" }
-                    .replace("\n", "<br />")
+            expandPills(escape(translated), pills) { pill ->
+                when (pill) {
+                    is Pill.Mention -> "<a href=\"https://matrix.to/#/${pill.id}\">${escape(pill.text)}</a>"
+                    is Pill.Emote -> {
+                        val label = escape(":${pill.span.shortcode}:")
+                        "<img data-mx-emoticon src=\"${escape(pill.span.mxcUrl)}\" alt=\"$label\" title=\"$label\" height=\"32\" />"
+                    }
+                }
+            }.replace("\n", "<br />")
         } else {
             null
         }
@@ -52,7 +67,9 @@ class OutgoingMessageTranslator @Inject constructor(
 
     private fun extractPills(message: CharSequence, out: MutableList<Pill>): String {
         val spanned = message as? Spanned ?: return message.toString()
-        val spans = spanned.getSpans(0, message.length, MatrixItemSpan::class.java).sortedBy { spanned.getSpanStart(it) }
+        val spans = (spanned.getSpans(0, message.length, MatrixItemSpan::class.java).toList() +
+                spanned.getSpans(0, message.length, MatrixEmoteSpan::class.java))
+                .sortedBy { spanned.getSpanStart(it) }
         if (spans.isEmpty()) return message.toString()
         return buildString {
             var index = 0
@@ -62,7 +79,8 @@ class OutgoingMessageTranslator @Inject constructor(
                 if (start < index) return@forEach
                 append(message, index, start)
                 append("{{").append(out.size).append("}}")
-                out.add(Pill(span.matrixItem.id, message.subSequence(start, end).toString()))
+                val text = message.subSequence(start, end).toString()
+                out.add(if (span is MatrixItemSpan) Pill.Mention(span.matrixItem.id, text) else Pill.Emote(span as MatrixEmoteSpan, text))
                 index = end
             }
             append(message, index, message.length)
