@@ -363,7 +363,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (timelineEvent.root.isRedacted()) {
                 noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
             } else {
-                messageTranslationStore.get(timelineEvent)?.text
+                messageTranslationStore.get(timelineEvent)?.text?.takeIf { initialState.galleryItemIndex == null }
                         ?: computePgpDecryptedBody(timelineEvent) ?: when (timelineEvent.root.getClearType()) {
                     EventType.MESSAGE,
                     EventType.STICKER -> {
@@ -627,19 +627,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                     if (restoredEvent != null && canCopy(restoredMessageContent?.msgType, restoredMessageContent)) {
                         add(EventSharedAction.Copy(pgpCopyBody(restoredEvent, restoredMessageContent!!, mentionsAsIds = true)))
                     }
-                    if (restoredEvent != null && canTranslate(restoredMessageContent?.msgType, restoredMessageContent)) {
-                        when {
-                            messageTranslationStore.isTranslated(restoredEvent) -> add(EventSharedAction.Untranslate(eventId))
-                            !messageTranslationStore.isTranslating(eventId) -> add(
-                                    EventSharedAction.Translate(
-                                            eventId,
-                                            MessageTranslationStore.sourceOf(restoredEvent),
-                                            pgpCopyBody(restoredEvent, restoredMessageContent!!),
-                                            translatableFormattedBody(restoredEvent, restoredMessageContent),
-                                    )
-                            )
-                        }
-                    }
+                    if (restoredEvent != null) addTranslateAction(eventId, restoredEvent, restoredMessageContent)
                     if (restoredEvent != null && canForward(restoredEvent, restoredMessageContent?.msgType)) {
                         val baseContent = restoredEvent.getLastEditNewContent()
                                 ?: restoredEvent.root.getClearContent().orEmpty()
@@ -689,20 +677,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 )
             }
 
-            if (canTranslate(msgType, messageContent)) {
-                when {
-                    messageTranslationStore.isTranslated(timelineEvent) -> add(EventSharedAction.Untranslate(eventId))
-                    !messageTranslationStore.isTranslating(eventId) ->
-                        add(
-                                EventSharedAction.Translate(
-                                        eventId,
-                                        MessageTranslationStore.sourceOf(timelineEvent),
-                                        pgpCopyBody(timelineEvent, messageContent!!),
-                                        translatableFormattedBody(timelineEvent, messageContent)
-                                )
-                        )
-                }
-            }
+            addTranslateAction(eventId, timelineEvent, messageContent)
 
             if (timelineEvent.hasBeenEdited()) {
                 add(EventSharedAction.ViewEditHistory(informationData))
@@ -775,8 +750,23 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
+    private suspend fun ArrayList<EventSharedAction>.addTranslateAction(eventId: String, event: TimelineEvent, messageContent: MessageContent?) {
+        if (messageContent == null || !canTranslate(messageContent.msgType, messageContent)) return
+        when {
+            messageTranslationStore.isTranslated(event) -> add(EventSharedAction.Untranslate(eventId))
+            !messageTranslationStore.isTranslating(eventId) -> add(
+                    EventSharedAction.Translate(
+                            eventId,
+                            MessageTranslationStore.sourceOf(event),
+                            pgpCopyBody(event, messageContent),
+                            translatableFormattedBody(event, messageContent),
+                    )
+            )
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
-    private fun ArrayList<EventSharedAction>.addActionsForGalleryItem(
+    private suspend fun ArrayList<EventSharedAction>.addActionsForGalleryItem(
             timelineEvent: TimelineEvent,
             messageContent: MessageGalleryContent,
             index: Int,
@@ -785,6 +775,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         if (timelineEvent.root.isRedacted() || isFailedMedia(item)) return
         add(EventSharedAction.Save(timelineEvent.eventId, item))
         add(EventSharedAction.Share(timelineEvent.eventId, item))
+        // The caption belongs to the whole gallery, but a tile is where most long presses land.
+        addTranslateAction(timelineEvent.eventId, timelineEvent, messageContent)
         val itemContent = item.toAttachmentContentDict() ?: return
         val forwardContent = (coerceWholeDoublesToLongs(itemContent) as Map<String, Any?>) + timelineEvent.forwardedInfoUnlessDm()
         add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, forwardContent))
@@ -960,6 +952,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_LOCATION -> return true
         }
         // Media with an MSC2530 caption: body is the caption — copyable.
+        if (messageContent is MessageGalleryContent) return messageContent.galleryCaption() != null
         return (messageContent as? MessageWithAttachmentContent)?.getCaption() != null
     }
 
