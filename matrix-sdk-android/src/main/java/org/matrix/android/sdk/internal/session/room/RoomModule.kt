@@ -20,6 +20,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import org.commonmark.Extension
+import org.commonmark.ext.explicitlinks.ExplicitLinksExtension
 import org.commonmark.ext.gfm.tables.TablesExtension
 import org.commonmark.ext.maths.MathsExtension
 import org.commonmark.ext.subsupstrike.SubSupStrikeExtension
@@ -177,7 +178,8 @@ internal abstract class RoomModule {
                 MathsExtension.create(),
                 TablesExtension.create(),
                 SubSupStrikeExtension.create(),
-                UnderlineExtension.create()
+                UnderlineExtension.create(),
+                ExplicitLinksExtension.create()
         )
 
         @Provides

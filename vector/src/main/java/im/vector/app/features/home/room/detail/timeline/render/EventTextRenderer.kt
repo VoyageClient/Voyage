@@ -22,6 +22,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.app.features.html.PILL_PLACEHOLDER
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.overlapsExplicitLink
 import im.vector.app.features.html.setPillSpan
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -103,7 +104,8 @@ class EventTextRenderer @AssistedInject constructor(
             val boundaryAfter = end == text.length || !isWordChar(text[end])
             // Leave @room verbatim inside inline code or a code block.
             val inCode = codeSpans.any { text.getSpanStart(it) < end && foundIndex < text.getSpanEnd(it) }
-            if (boundaryBefore && boundaryAfter && !inCode) {
+            // An explicit link's label is the sender's text, not a notification.
+            if (boundaryBefore && boundaryAfter && !inCode && !text.overlapsExplicitLink(foundIndex, end)) {
                 foundIndices.add(foundIndex)
             }
             foundIndex = text.indexOf(MatrixItem.NOTIFY_EVERYONE, end)
@@ -118,9 +120,10 @@ class EventTextRenderer @AssistedInject constructor(
 
     private fun addPermalinksSpans(text: Spannable) {
         val placements = mutableListOf<PillPlacement>()
-        // A permalink inside inline code or a code block should stay verbatim, not become a pill.
+        // A permalink inside inline code, a code block or an MSC4550 explicit link should stay verbatim, not become a pill.
         val codeSpans = text.getSpans(0, text.length, HtmlCodeSpan::class.java)
-        fun inCode(start: Int, end: Int) = codeSpans.any { text.getSpanStart(it) < end && start < text.getSpanEnd(it) }
+        fun keepVerbatim(start: Int, end: Int) = codeSpans.any { text.getSpanStart(it) < end && start < text.getSpanEnd(it) } ||
+                text.overlapsExplicitLink(start, end)
         // Links carrying an explicit href (mentions/permalinks rendered as <a>), so labelled links —
         // whose visible text isn't the URL, e.g. a "Message in …" permalink — resolve too. LinkSpan
         // extends URLSpan, so this also catches Markwon's links. Skip ranges PillsPostProcessor already
@@ -130,7 +133,7 @@ class EventTextRenderer @AssistedInject constructor(
             val start = text.getSpanStart(span)
             val end = text.getSpanEnd(span)
             if (start < 0 || end < 0) continue
-            if (inCode(start, end)) continue
+            if (keepVerbatim(start, end)) continue
             if (existingPills.any { text.getSpanStart(it) < end && start < text.getSpanEnd(it) }) continue
             val item = permalinkToMatrixItem(span.url) ?: continue
             placements.add(PillPlacement(item, start, end, span.url))
@@ -142,7 +145,7 @@ class EventTextRenderer @AssistedInject constructor(
             val rawEnd = match.range.last + 1
             val end = trimTrailingUrlPunctuation(text, match.range.first, rawEnd)
             val start = match.range.first
-            if (inCode(start, end)) continue
+            if (keepVerbatim(start, end)) continue
             if (placements.any { it.start < end && start < it.end }) continue
             val url = text.substring(start, end)
             val item = permalinkToMatrixItem(url) ?: continue

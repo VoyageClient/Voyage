@@ -620,6 +620,7 @@ class MatrixHtmlPluginConfigure @Inject constructor(
                 .addHandler(DetailsTagHandler(DimensionConverter(resources)))
                 .addHandler(DescriptionListTagHandler(DimensionConverter(resources)))
                 .addHandler(MxReplyTagHandler())
+                .addHandler(ExplicitLinkTagHandler())
                 .addHandler(CodePostProcessorTagHandler())
                 .addHandler(CodePreTagHandler())
                 .addHandler(CodeTagHandler())

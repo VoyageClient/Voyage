@@ -98,9 +98,39 @@ class MentionPillRenderingTest {
         renderAsBio("""<a href="$url">a message</a>""").pillNames() shouldBeEqualTo emptyList()
     }
 
-    private fun renderAsBio(html: String): Spanned {
-        val pills = PillsPostProcessor(null, context, avatarRenderer, sessionHolder, mockk(relaxed = true))
-        val textRenderer = EventTextRenderer(null, context, avatarRenderer, sessionHolder, mockk(relaxed = true))
+    @Test
+    fun `given an explicit link, when rendering, then it stays a link with its own text`() {
+        val hrefs = listOf(
+                "https://matrix.to/#/$knownUser",
+                "https://matrix.to/#/$strangerUser",
+                "https://matrix.to/#/#support:example.org",
+                "https://matrix.to/#/$roomId/\$event",
+                "matrix:u/alice:example.org",
+                "matrix:r/support:example.org",
+        )
+        val markers = listOf("data-mx-link", "data-org.matrix.msc4550.link", "data-mx-link=\"\"", "data-org.matrix.msc4550.link=\"ignored\"")
+        hrefs.forEach { href ->
+            markers.forEach { marker ->
+                listOf(null, roomId).forEach { room ->
+                    val rendered = render("""Questions? <a $marker href="$href">DM me</a>""", room)
+                    rendered.pillNames() shouldBeEqualTo emptyList()
+                    rendered.toString() shouldBeEqualTo "Questions? DM me"
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `given @room inside an explicit link, when rendering in a room, then only the one outside is a pill`() {
+        render("""<a href="https://example.org" data-mx-link>ask <b>@room</b></a>""", roomId).pillNames() shouldBeEqualTo emptyList()
+        render("""<a href="https://example.org" data-mx-link>ask @room</a> @room""", roomId).pillNames().size shouldBeEqualTo 1
+    }
+
+    private fun renderAsBio(html: String): Spanned = render(html, null)
+
+    private fun render(html: String, roomId: String?): Spanned {
+        val pills = PillsPostProcessor(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true))
+        val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true))
         val rendered = renderer.render(html, pills) as Spanned
         val textView = TextView(context)
         renderer.setTextWithPlugins(textView, textRenderer.render(rendered).linkify(null))

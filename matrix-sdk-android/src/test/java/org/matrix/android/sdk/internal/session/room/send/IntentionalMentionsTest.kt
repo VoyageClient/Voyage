@@ -69,4 +69,37 @@ class IntentionalMentionsTest {
 
         mentions shouldBeEqualTo null
     }
+
+    @Test
+    fun `explicit links mention nobody, whichever prefix and value they carry`() {
+        listOf("data-mx-link", "data-org.matrix.msc4550.link", "data-mx-link=\"\"", "data-org.matrix.msc4550.link=\"true\"").forEach { marker ->
+            IntentionalMentions.build(
+                    body = "[DM me](https://matrix.to/#/@alice:example.org)",
+                    formattedBody = """<a href="https://matrix.to/#/@alice:example.org" $marker>DM me</a>""",
+            ) shouldBeEqualTo null
+        }
+    }
+
+    @Test
+    fun `an explicit link beside a pill of the same user still mentions them`() {
+        val mentions = IntentionalMentions.build(
+                body = "x",
+                formattedBody = """<a href="https://matrix.to/#/@alice:example.org" data-mx-link>DM me</a> """ +
+                        """<a href="https://matrix.to/#/@alice:example.org">Alice</a>""",
+        )
+
+        mentions?.userIds shouldBeEqualTo listOf("@alice:example.org")
+    }
+
+    @Test
+    fun `@room inside an explicit link label does not notify the room`() {
+        IntentionalMentions.build(
+                body = "[ask **@room**](https://example.org)",
+                formattedBody = """<a href="https://example.org" data-mx-link data-org.matrix.msc4550.link>ask <strong>@room</strong></a>""",
+        ) shouldBeEqualTo null
+        IntentionalMentions.build(
+                body = "[ask](https://example.org) @room",
+                formattedBody = """<a href="https://example.org" data-mx-link>ask</a> @room""",
+        )?.room shouldBeEqualTo true
+    }
 }

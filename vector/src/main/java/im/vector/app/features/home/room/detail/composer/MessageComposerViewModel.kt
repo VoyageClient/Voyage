@@ -570,7 +570,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun computeEditablePrefill(room: Room, timelineEvent: TimelineEvent): CharSequence {
         val body = computeEditableContent(timelineEvent)
         val formatted = (timelineEvent.getVectorLastMessageContent() as? MessageContentWithFormattedBody)?.matrixFormattedBody
-        return spliceMentionLinks(body.toString(), formatted) { userId ->
+        return spliceMentionLinks(guardAuthoredMentionLinks(body), formatted) { userId ->
             val member = room.membershipService().getRoomMember(userId)
             // Both, since the body may predate a local override being set or cleared.
             listOfNotNull(member?.bodyName(), member?.displayName).distinct()

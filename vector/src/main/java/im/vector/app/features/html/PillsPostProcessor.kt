@@ -90,6 +90,7 @@ class PillsPostProcessor @AssistedInject constructor(
             val endSpan = renderedText.getSpanEnd(linkSpan)
             // A mention/permalink inside inline code or a code block should stay verbatim, not become a pill.
             if (codeSpans.any { renderedText.getSpanStart(it) < endSpan && startSpan < renderedText.getSpanEnd(it) }) return@forEach
+            if (renderedText.overlapsExplicitLink(startSpan, endSpan)) return@forEach
             val pillSpan = linkSpan.createPillSpan(renderedText.subSequence(startSpan, endSpan).toString()) ?: return@forEach
             // GlideImagesPlugin causes duplicated pills if we have a nested spans in the pill span,
             // such as images or italic text.

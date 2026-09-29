@@ -11,6 +11,7 @@ import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.model.message.Mentions
+import org.matrix.android.sdk.api.session.room.send.ExplicitLinks
 
 /**
  * Builds the MSC3952 `m.mentions` block of an outgoing message.
@@ -40,13 +41,19 @@ internal object IntentionalMentions {
     ): Mentions? {
         val userIds = LinkedHashSet(extraUserIds)
         // Quoted content is someone else's text: pilling a user there is not mentioning them.
-        formattedBody?.replace(BLOCKQUOTE_REGEX, "")?.let { html ->
+        val unquotedHtml = formattedBody?.replace(BLOCKQUOTE_REGEX, "")
+        unquotedHtml?.let { html ->
             HREF_REGEX.findAll(html).forEach { match ->
+                val tagEnd = html.indexOf('>', match.range.last).takeIf { it >= 0 } ?: html.length
+                if (ExplicitLinks.isExplicitTag(html.substring(match.range.first, tagEnd))) return@forEach
                 userIdOf(match.groupValues[1].unescapeHtmlEntities())?.let { userIds.add(it) }
             }
         }
         selfUserId?.let { userIds.remove(it) }
-        val room = body?.replace(QUOTED_LINE_REGEX, "")?.let { ROOM_MENTION_REGEX.containsMatchIn(it) } == true
+        // The plain body is markdown source, so an explicit link's label can only be told apart in the HTML.
+        val htmlOutsideExplicitLinks = unquotedHtml?.let { ExplicitLinks.removeExplicitAnchors(it) }?.takeIf { it != unquotedHtml }
+        val room = body?.replace(QUOTED_LINE_REGEX, "")?.let { ROOM_MENTION_REGEX.containsMatchIn(it) } == true &&
+                (htmlOutsideExplicitLinks == null || ROOM_MENTION_REGEX.containsMatchIn(htmlOutsideExplicitLinks))
         if (userIds.isEmpty() && !room) return null
         return Mentions(
                 room = true.takeIf { room },

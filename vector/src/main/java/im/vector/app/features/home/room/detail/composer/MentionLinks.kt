@@ -12,6 +12,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import im.vector.app.features.command.Command
 import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.api.session.room.send.ExplicitLinks
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -25,6 +26,21 @@ private val ANY_MENTION_ANCHOR = Regex(
         """<a\s+[^>]*href="https://matrix\.to/#/([@#][^"?]+)[^"]*"[^>]*>([^<]*)</a>""",
         RegexOption.IGNORE_CASE
 )
+
+// Drafts and edit prefills carry pills as matrix.to markdown links, so a link the user wrote themselves
+// gets a word joiner after its "](" to keep the composer from reading it back as a pill.
+private const val AUTHORED_LINK_GUARD = "](\u2060"
+private val AUTHORED_MENTION_LINK = Regex("""]\((?=https://matrix\.to/#/)""")
+
+fun guardAuthoredMentionLinks(text: CharSequence): String = AUTHORED_MENTION_LINK.replace(text, AUTHORED_LINK_GUARD)
+
+fun SpannableStringBuilder.unguardAuthoredMentionLinks(): SpannableStringBuilder = apply {
+    var at = indexOf(AUTHORED_LINK_GUARD)
+    while (at >= 0) {
+        delete(at + 2, at + 3)
+        at = indexOf(AUTHORED_LINK_GUARD, at + 2)
+    }
+}
 
 /**
  * Rewrites the user mentions of [body] as markdown permalinks, reading each mention's target from the
@@ -105,6 +121,7 @@ fun findMentions(text: CharSequence, caret: Int = -1, requireTerminator: Boolean
     val spanned = text as? Spanned
     val existing = spanned?.getSpans(0, text.length, MatrixItemSpan::class.java).orEmpty()
     val code = codeRegions(text)
+    val linkLabels = MARKDOWN_LINK_LABEL.findAll(text).mapNotNull { it.groups[1]?.range }.toList()
     val found = mutableListOf<IntRange>()
 
     fun take(start: Int, matchEnd: Int, isValid: (String) -> Boolean) {
@@ -121,6 +138,8 @@ fun findMentions(text: CharSequence, caret: Int = -1, requireTerminator: Boolean
         if (existing.any { spanned!!.getSpanStart(it) < end && spanned.getSpanEnd(it) > start }) return
         if (found.any { it.first < end && it.last + 1 > start }) return
         if (code.any { it.first < end && it.last + 1 > start }) return
+        // A markdown link's target or text is link syntax; pilling it would break the link.
+        if (isLinkDestinationStart(text, start) || linkLabels.any { start in it }) return
         if (!isValid(text.substring(start, end))) return
         found += start until end
     }
@@ -273,6 +292,13 @@ private fun runOfBackticks(text: CharSequence, from: Int, length: Int): Int? {
 
 private const val TRAILING_PUNCTUATION = ".-"
 
+private val MARKDOWN_LINK_LABEL = Regex("""\[([^\[\]\n]*)]\(""")
+
+private fun isLinkDestinationStart(text: CharSequence, at: Int): Boolean {
+    val open = if (text.getOrNull(at - 1) == '<') at - 1 else at
+    return text.getOrNull(open - 1) == '(' && text.getOrNull(open - 2) == ']'
+}
+
 private fun isMentionStart(before: Char?) = before == null || before.isWhitespace() || before in "([{<\"'"
 
 private fun isMentionEnd(after: Char) = !after.isLetterOrDigit() && after != '_'
@@ -293,6 +319,12 @@ private inline fun forEachMention(
     var cursor = 0
     anchors.findAll(formattedBody).forEach { match ->
         val userId = match.groupValues[1]
+        if (ExplicitLinks.isExplicitTag(match.value.substringBefore('>'))) {
+            // Not a mention. Step over its markdown source so a later mention's name isn't found in its label.
+            val target = body.indexOf("https://matrix.to/#/$userId", cursor)
+            if (target >= 0) cursor = body.indexOf(')', target).takeIf { it >= 0 }?.plus(1) ?: cursor
+            return@forEach
+        }
         val label = match.groupValues[2].unescapeHtml()
         val candidates = (listOf(label, userId) + displayNamesOf(userId))
                 // A name carrying markdown link syntax can't round-trip through the composer.

@@ -381,21 +381,21 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val spannable = source.toSpannable()
         val spans = spannable.getSpans(0, spannable.length, MatrixItemSpan::class.java)
                 .sortedBy { spannable.getSpanStart(it) }
-        if (spans.isEmpty()) return source.toString()
+        if (spans.isEmpty()) return guardAuthoredMentionLinks(source)
         return buildString {
             var index = 0
             spans.forEach { span ->
                 val start = spannable.getSpanStart(span)
                 val end = spannable.getSpanEnd(span)
                 if (start < index) return@forEach
-                append(spannable, index, start)
+                append(guardAuthoredMentionLinks(spannable.subSequence(index, start)))
                 // The backing text is a placeholder char, so take the label from the span's body text —
                 // never the item's name, which may carry a local display-name override.
                 append("[").append((span as? PillImageSpan)?.bodyText ?: span.matrixItem.getBestName()).append("]")
                 append("(https://matrix.to/#/").append(span.matrixItem.id).append(")")
                 index = end
             }
-            append(spannable, index, spannable.length)
+            append(guardAuthoredMentionLinks(spannable.subSequence(index, spannable.length)))
         }
     }
 
@@ -404,7 +404,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     // Inverse of serializeMentionPills: turn matrix.to markdown links back into PillImageSpans.
     private fun reconstructMentionPills(source: CharSequence): CharSequence {
         if (!source.contains("https://matrix.to/#/")) return source
-        val session = activeSessionHolder.getSafeActiveSession() ?: return source
+        val session = activeSessionHolder.getSafeActiveSession() ?: return SpannableStringBuilder(source).unguardAuthoredMentionLinks()
         val out = SpannableStringBuilder()
         var index = 0
         mentionLinkRegex.findAll(source).forEach { match ->
@@ -431,7 +431,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             index = match.range.last + 1
         }
         out.append(source, index, source.length)
-        return out
+        return out.unguardAuthoredMentionLinks()
     }
 
     override fun renderComposerMode(mode: MessageComposerMode) {

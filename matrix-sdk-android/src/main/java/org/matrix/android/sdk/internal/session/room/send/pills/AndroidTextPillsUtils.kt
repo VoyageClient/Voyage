@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.room.send.pills
 
 import android.text.SpannableString
+import org.commonmark.ext.explicitlinks.ExplicitLinksExtension
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
@@ -25,10 +26,17 @@ internal class AndroidTextPillsUtils @Inject constructor(
     }
 
     override fun processSpecialSpansToMarkdown(text: CharSequence): String? {
-        return transformPills(text, permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.MARKDOWN)) { it.markdownEscape() }
+        val template = permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.MARKDOWN)
+                .removeSuffix(")") + " \"${ExplicitLinksExtension.MENTION_TITLE}\")"
+        return transformPills(text, template, markdownLinkContext = true) { it.markdownEscape() }
     }
 
-    private fun transformPills(text: CharSequence, template: String, escapeLabel: (String) -> String): String? {
+    private fun transformPills(
+            text: CharSequence,
+            template: String,
+            markdownLinkContext: Boolean = false,
+            escapeLabel: (String) -> String,
+    ): String? {
         val spannableString = SpannableString.valueOf(text) ?: return null
         val pills = spannableString
                 .getSpans(0, text.length, MatrixItemSpan::class.java)
@@ -39,11 +47,16 @@ internal class AndroidTextPillsUtils @Inject constructor(
                     val label = it.bodyText?.takeIf { name -> name.isNotBlank() }
                             ?: it.matrixItem.displayName?.takeIf { name -> name.isNotBlank() }
                             ?: it.matrixItem.id
-                    MentionLinkSpec(
-                            replacement = String.format(template, it.matrixItem.id, escapeLabel(label)),
-                            start = spannableString.getSpanStart(it),
-                            end = spannableString.getSpanEnd(it)
-                    )
+                    val start = spannableString.getSpanStart(it)
+                    val end = spannableString.getSpanEnd(it)
+                    // A link can't nest inside another link's text or target, so there the pill is just its text.
+                    val replacement = when {
+                        !markdownLinkContext -> String.format(template, it.matrixItem.id, escapeLabel(label))
+                        isMarkdownLinkDestination(text, start) -> label
+                        isInMarkdownLinkLabel(text, start) -> escapeLabel(label)
+                        else -> String.format(template, it.matrixItem.id, escapeLabel(label))
+                    }
+                    MentionLinkSpec(replacement = replacement, start = start, end = end)
                 }
         val emotes = spannableString
                 .getSpans(0, text.length, MatrixEmoteSpan::class.java)
@@ -89,6 +102,14 @@ internal class AndroidTextPillsUtils @Inject constructor(
         escaped.replace(char.toString(), "\\$char")
     }
 
+    private fun isMarkdownLinkDestination(text: CharSequence, at: Int): Boolean {
+        val open = if (text.getOrNull(at - 1) == '<') at - 1 else at
+        return text.getOrNull(open - 1) == '(' && text.getOrNull(open - 2) == ']'
+    }
+
+    private fun isInMarkdownLinkLabel(text: CharSequence, at: Int): Boolean =
+            MARKDOWN_LINK_LABEL.findAll(text).any { match -> match.groups[1]?.range?.let { at in it } == true }
+
     private fun pruneOverlaps(links: MutableList<MentionLinkSpec>) {
         Collections.sort(links, mentionLinkSpecComparator)
         var len = links.size
@@ -125,5 +146,6 @@ internal class AndroidTextPillsUtils @Inject constructor(
     companion object {
         // Backslash first, so escaping it does not double up the escapes added after it.
         private val MARKDOWN_PUNCTUATION = listOf('\\', '[', ']', '<', '>', '`', '*', '_', '~')
+        private val MARKDOWN_LINK_LABEL = Regex("""\[([^\[\]\n]*)]\(""")
     }
 }

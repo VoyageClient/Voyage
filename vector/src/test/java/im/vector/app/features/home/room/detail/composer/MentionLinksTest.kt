@@ -206,4 +206,34 @@ class MentionLinksTest {
         val text = "hey @alice:example.org"
         findMentions(text).map { text.substring(it.first, it.last + 1) } shouldBeEqualTo listOf("@alice:example.org")
     }
+
+    @Test
+    fun `given an explicit link, when splicing, then it is not a mention and a later mention skips its label`() {
+        val body = "[Alice]($alice) and Alice"
+        spliceMentionLinks(
+                body,
+                """<a href="$alice" data-org.matrix.msc4550.link>Alice</a> and <a href="$alice">Alice</a>""",
+        ) shouldBeEqualTo "[Alice]($alice) and [Alice]($alice)"
+        spliceMentionIds(body, """<a href="$alice" data-mx-link="">Alice</a>""") shouldBeEqualTo body
+    }
+
+    @Test
+    fun `given an id or alias as a markdown link target or text, when scanning, then it is not pilled`() {
+        listOf("@user:example.org", "#room:example.org").forEach { id ->
+            completed("Questions? [DM me]($id) ") shouldBeEqualTo emptyList()
+            completed("Questions? [DM me](<$id>) ") shouldBeEqualTo emptyList()
+            completed("[$id](https://example.org) ") shouldBeEqualTo emptyList()
+            completed("[ask $id here](https://example.org) ") shouldBeEqualTo emptyList()
+            completed("[x](https://example.org) ($id) ") shouldBeEqualTo listOf(id)
+            completed("[not a link] $id ") shouldBeEqualTo listOf(id)
+        }
+        completed("[ask @room](https://example.org) ") shouldBeEqualTo emptyList()
+    }
+
+    @Test
+    fun `given an authored matrix_to link, when guarding, then the pill pattern no longer matches it`() {
+        val guarded = guardAuthoredMentionLinks("[DM me]($alice) and [site](https://example.org)")
+        guarded shouldBeEqualTo "[DM me](\u2060$alice) and [site](https://example.org)"
+        spliceMentionLinks(guarded, """<a href="$alice" data-mx-link>DM me</a>""") shouldBeEqualTo guarded
+    }
 }
