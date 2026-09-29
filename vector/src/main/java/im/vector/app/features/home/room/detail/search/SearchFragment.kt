@@ -114,7 +114,7 @@ class SearchFragment :
                 .onEach(::handleSharedAction)
                 .launchIn(viewLifecycleOwner.lifecycleScope)
         messageTranslationStore.updates
-                .onEach { controller.requestModelBuild() }
+                .onEach { invalidate() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
         messageTranslationStore.errors
                 .onEach { requireActivity().toast(it) }

@@ -1080,6 +1080,12 @@ internal class SqlTimeline(
             liveChunkFullyMapped = true
             return snapshotLoader.chunkSnapshot(chunkId)
         }
+        // A remap (cache cleared by a redaction, row move, jump landing...) must still reach the oldest shown
+        // event, or the window loses its anchor and snaps back to the live edge under the reader.
+        builtEvents.lastOrNull()?.takeIf { oldestShownEventId != null }?.let { oldestShown ->
+            val shownDepth = snapshotLoader.chunkEventCountFrom(chunkId, oldestShown.root.originServerTs ?: 0L, oldestShown.eventId)
+            if (shownDepth > liveChunkRowCap) liveChunkRowCap = shownDepth.toInt()
+        }
         val slice = snapshotLoader.chunkSnapshotNewest(chunkId, liveChunkRowCap.toLong())
         liveChunkFullyMapped = slice.size >= storedCount
         return slice
