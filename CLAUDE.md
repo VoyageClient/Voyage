@@ -32,7 +32,11 @@ and check whether each hit's drawable file starts with `<vector`.
 
 # Strings
 
-New strings always go into `library/ui-strings/src/main/res/values/donottranslate.xml` with `translatable="false"`. Do not add them to `strings.xml` — that file is the source for translation pipelines and stale entries cause AAPT warnings ("removing resource X without required default value") across every locale.
+New user-facing strings go into `library/ui-strings/src/main/res/values/strings.xml`. `donottranslate.xml` (with `translatable="false"`) is only for text that must never be translated: brand/client names, preference key values, symbols.
+
+Every new or reworded string must be translated into every `values-*` locale before it is committed. Write only the English string while developing, and add the translations only when asked to commit, as the last step before the commit, never earlier, so that wording changes during iteration don't force a re-translation. Keep format placeholders (`%1$s`, `%d`) and escaping (`\'`) identical to the English string, and give plurals the quantity forms each language requires, not just English's `one`/`other`.
+
+When deleting a string, delete it from every locale too. Leftover locale entries without a default cause AAPT warnings ("removing resource X without required default value").
 
 # Copyright headers
 
