@@ -447,9 +447,10 @@ class ReplyPreviewRetriever(
      *  Warmed off-main by the retrieval coroutine, so [InReplyToView] normally just reads the cache. */
     fun renderedReplyBody(event: TimelineEvent): RenderedReplyBody? {
         val content = event.getLastMessageContent() as? MessageContentWithFormattedBody ?: return null
-        val key = "${event.eventId}:${event.getCacheId()}"
+        val translation = messageTranslationStore.get(event)
+        val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}"
         synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
-        val built = buildReplyBody(content, event)
+        val built = buildReplyBody(content, event, translation)
         synchronized(replyBodyCache) {
             if (replyBodyCache.size > REPLY_BODY_CACHE_MAX) replyBodyCache.clear()
             replyBodyCache[key] = built
@@ -457,18 +458,29 @@ class ReplyPreviewRetriever(
         return built
     }
 
-    private fun buildReplyBody(content: MessageContentWithFormattedBody, event: TimelineEvent): RenderedReplyBody {
+    private fun buildReplyBody(
+            content: MessageContentWithFormattedBody,
+            event: TimelineEvent,
+            translation: im.vector.app.features.translation.MessageTranslationStore.Translation?,
+    ): RenderedReplyBody {
         // If the replied-to event is itself a reply, strip its quoted portion so only its own message shows.
         val profile = event.renderPerMessageProfile(
                 event.senderInfo.disambiguatedDisplayName,
                 vectorPreferences.arePerMessageProfilesEnabled()
         )
-        val formattedBody = content.formattedBody
-                ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
-                ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+        // A translation was made from the already reply-stripped, fallback-free body.
+        val formattedBody = if (translation != null) {
+            translation.formatted
+        } else {
+            content.formattedBody
+                    ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
+                    ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+        }
         val compressed = formattedBody?.let { htmlCompressor.compress(it) }
         val text = (if (compressed != null) {
             textRenderer.render(htmlRenderer.render(compressed, pillsPostProcessor))
+        } else if (translation != null) {
+            textRenderer.render(translation.text)
         } else {
             textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)))
         }).linkify(null)

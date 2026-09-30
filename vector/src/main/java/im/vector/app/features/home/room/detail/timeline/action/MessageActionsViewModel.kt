@@ -363,8 +363,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (timelineEvent.root.isRedacted()) {
                 noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
             } else {
-                messageTranslationStore.get(timelineEvent)?.text?.takeIf { initialState.galleryItemIndex == null }
-                        ?: computePgpDecryptedBody(timelineEvent) ?: when (timelineEvent.root.getClearType()) {
+                val translation = messageTranslationStore.get(timelineEvent)?.takeIf { initialState.galleryItemIndex == null }
+                (if (translation == null) computePgpDecryptedBody(timelineEvent) else null) ?: when (timelineEvent.root.getClearType()) {
                     EventType.MESSAGE,
                     EventType.STICKER -> {
                         // An item-scoped gallery sheet previews exactly like that item sent alone,
@@ -383,7 +383,12 @@ class MessageActionsViewModel @AssistedInject constructor(
                                 ?.takeIf {
                                     messageContent is MessageTextContent || messageContent is MessageEmoteContent || messageContent is MessageNoticeContent
                                 }
-                        val body = if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
+                        val body = if (translation != null) {
+                            textRenderer.render(
+                                    translation.formatted?.let { eventHtmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor) }
+                                            ?: translation.text
+                            )
+                        } else if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
                             // Strip the legacy reply fallback ("In reply to" / "> <@user> …") that
                             // outdated clients embed in the body, so the preview shows only the message.
                             val html = formattedContent.formattedBody

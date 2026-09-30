@@ -47,6 +47,7 @@ import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
@@ -102,8 +103,9 @@ class InReplyToView @JvmOverloads constructor(
 
     private var state: PreviewReplyUiState = PreviewReplyUiState.NoReply
 
-    // The translation/PGP plaintext the current render substituted for the quoted body (null = none).
+    // What the current render substituted for the quoted body: PGP plaintext / a translation (null = none).
     private var renderedPlainOverride: String? = null
+    private var renderedTranslation: MessageTranslationStore.Translation? = null
 
     /** The renderer the gallery tiles were bound with, so a recycled header can let them go. */
     private var boundGalleryRenderer: ImageContentRenderer? = null
@@ -129,13 +131,11 @@ class InReplyToView @JvmOverloads constructor(
 
         // The translation/PGP plaintext substituted for the quoted body lives outside the state, so
         // an identical state can arrive after it changed — compare it too, or the old text stays up.
-        val plainOverride = (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { s ->
-            retriever.messageTranslationStore.get(s.event)?.text
-                    ?: (s.event.getLastMessageContent() as? MessageContentWithFormattedBody)
-                            ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
-        }
+        val translation = (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { retriever.messageTranslationStore.get(it.event) }
+        val plainOverride = (effectiveState as? PreviewReplyUiState.InReplyTo)?.let { s -> pgpPlainOverride(s.event, retriever, translation) }
 
-        if (effectiveState == state && revealed == quotesRevealedRedaction && plainOverride == renderedPlainOverride && !force) {
+        if (effectiveState == state && revealed == quotesRevealedRedaction && plainOverride == renderedPlainOverride &&
+                translation == renderedTranslation && !force) {
             // The sender's color can change under an otherwise identical state (override, palette).
             (effectiveState as? PreviewReplyUiState.InReplyTo)?.let {
                 applySenderColor(retriever.getMemberNameColor(it.event), retriever.isMemberNameColored())
@@ -145,6 +145,7 @@ class InReplyToView @JvmOverloads constructor(
 
         state = effectiveState
         renderedPlainOverride = plainOverride
+        renderedTranslation = translation
 
         // Only a *revealed* redaction is banded: the band marks content that a redaction took and we are
         // reading anyway, so the plain "Message removed" placeholder carries no mark. Painted by the item
@@ -265,10 +266,9 @@ class InReplyToView @JvmOverloads constructor(
             renderRedacted(retriever.formatRedacted(state.event))
         } else {
             views.expandableReplyView.setExpanded(false)
-            // Translation / PGP: show the plaintext the timeline shows for the quoted message.
-            val plainOverride = retriever.messageTranslationStore.get(state.event)?.text
-                    ?: (state.event.getLastMessageContent() as? MessageContentWithFormattedBody)
-                            ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
+            // PGP: show the plaintext the timeline shows for the quoted message. A translation needs no
+            // override here: the retriever's rendered body already carries it.
+            val plainOverride = pgpPlainOverride(state.event, retriever, retriever.messageTranslationStore.get(state.event))
             if (plainOverride != null) {
                 renderPgpReplyText(plainOverride)
             } else when (val content = state.event.getLastMessageContent()) {
@@ -277,7 +277,7 @@ class InReplyToView @JvmOverloads constructor(
                 // Files / voice / audio render as a non-interactive pill mirroring the timeline.
                 is MessageFileContent -> renderAttachmentPill(R.drawable.ic_paperclip, content.getFileName())
                 is MessageAudioContent -> renderAudioContent(content)
-                is MessageGalleryContent -> renderGalleryContent(content, state.event, retriever)
+                is MessageGalleryContent -> renderGalleryContent(content, state.event, retriever, coroutineScope)
                 is MessageContentWithFormattedBody -> {
                     // Outside bubbles, stretch a block-code reply to the full timeline width like the
                     // timeline does; inside a bubble it should hug its content instead.
@@ -287,6 +287,12 @@ class InReplyToView @JvmOverloads constructor(
                 else -> renderFallback(state.event, retriever)
             }
         }
+    }
+
+    // A translation of a PGP message is of its plaintext, and so replaces it.
+    private fun pgpPlainOverride(event: TimelineEvent, retriever: ReplyPreviewRetriever, translation: MessageTranslationStore.Translation?): String? {
+        if (translation != null) return null
+        return (event.getLastMessageContent() as? MessageContentWithFormattedBody)?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
     }
 
     private fun renderPgpReplyText(text: String) {
@@ -489,7 +495,12 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.movementMethod = null
     }
 
-    private fun renderGalleryContent(content: MessageGalleryContent, event: TimelineEvent, retriever: ReplyPreviewRetriever) {
+    private fun renderGalleryContent(
+            content: MessageGalleryContent,
+            event: TimelineEvent,
+            retriever: ReplyPreviewRetriever,
+            coroutineScope: CoroutineScope,
+    ) {
         views.replyGalleryView.isVisible = true
         boundGalleryRenderer = retriever.imageContentRenderer
         val items = content.galleryItems()
@@ -512,9 +523,7 @@ class InReplyToView @JvmOverloads constructor(
         if (caption == null) {
             views.replyTextView.isVisible = false
         } else {
-            views.replyTextView.isVisible = true
-            views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
-            views.replyTextView.text = caption.prepareForDisplay()
+            renderCaptionText(caption, event, retriever, coroutineScope)
         }
     }
 

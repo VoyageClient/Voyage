@@ -525,11 +525,15 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
 
         val messageContent: MessageContent? = event.getVectorLastMessageContent()
-        // Translation / PGP: show the text the timeline shows for the quoted message (and skip HTML
-        // rendering of the real formatted_body below).
-        val pgpPlain = messageTranslationStore.get(event)?.text
-                ?: (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
+        // Translation / PGP: show the text the timeline shows for the quoted message instead of the real body.
+        val translation = messageTranslationStore.get(event)
+        val pgpPlain = if (translation == null) {
+            (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
+        } else {
+            null
+        }
         val nonFormattedBody = when {
+            translation != null -> translation.text
             pgpPlain != null -> pgpPlain
             event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
             messageContent is MessageFileContent -> attachmentPreviewText(context, R.drawable.ic_paperclip, messageContent.getFileName().orEmpty())
@@ -571,11 +575,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val isFormattableText = messageContent?.msgType == MessageType.MSGTYPE_TEXT ||
                 messageContent?.msgType == MessageType.MSGTYPE_NOTICE ||
                 messageContent?.msgType == MessageType.MSGTYPE_EMOTE
-        if (pgpPlain == null && isFormattableText && messageContent is MessageContentWithFormattedBody &&
-                messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
-            val htmlToRender = messageContent.formattedBody
-                    ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
-                    ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+        val rendersRealHtml = translation == null && pgpPlain == null && isFormattableText &&
+                messageContent is MessageContentWithFormattedBody && messageContent.format == MessageFormat.FORMAT_MATRIX_HTML
+        if (translation?.formatted != null || rendersRealHtml) {
+            val htmlToRender = translation?.formatted
+                    ?: (messageContent as? MessageContentWithFormattedBody)?.formattedBody
+                            ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
+                            ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
             val compressed = htmlToRender?.let { htmlCompressor.compress(it) }
             val richSegments = if (compressed != null && (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true))) {
                 HtmlBodySegmenter.segment(compressed).takeIf { segs -> segs.any { it !is BodySegment.Html } }
@@ -593,7 +599,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 val parser = Parser.builder().build()
                 val document = parser.parse(
                         ContentUtils.extractUsefulTextFromReply(
-                                messageContent.body.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
+                                messageContent?.body.orEmpty().withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
                         )
                 )
                 formattedBody = eventHtmlRenderer.render(document, pillsPostProcessor)

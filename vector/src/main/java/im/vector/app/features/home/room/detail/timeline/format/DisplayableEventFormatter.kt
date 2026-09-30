@@ -102,17 +102,14 @@ class DisplayableEventFormatter @Inject constructor(
             EventType.MESSAGE -> {
                 timelineEvent.getVectorLastMessageContent()?.let { messageContent ->
                     val translation = messageTranslationStore.get(timelineEvent)
-                    if (translation != null) {
-                        return@let simpleFormat(senderName, translation.text, appendAuthor)
-                    }
-                    val pgp = (messageContent as? MessageTextContent)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
+                    val pgp = if (translation == null) (messageContent as? MessageTextContent)?.let { pgpDecryptor.peekDecryptedBody(it.body) } else null
                     if (pgp != null) {
                         return@let simpleFormat(senderName, pgp, appendAuthor)
                     }
                     when (messageContent.msgType) {
                         MessageType.MSGTYPE_TEXT,
                         MessageType.MSGTYPE_NOTICE -> {
-                            val preview = messageContent.previewText(profileFallback)
+                            val preview = messageContent.previewText(profileFallback, translation)
                             if (preview.formattedBody != null) {
                                 // Render the formatted HTML so custom emotes and inline colours survive.
                                 simpleFormat(senderName, renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody), appendAuthor)
@@ -121,7 +118,7 @@ class DisplayableEventFormatter @Inject constructor(
                             }
                         }
                         MessageType.MSGTYPE_EMOTE -> {
-                            val preview = messageContent.previewText(profileFallback)
+                            val preview = messageContent.previewText(profileFallback, translation)
                             val rendered = if (preview.formattedBody != null) {
                                 renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody)
                             } else {
@@ -317,7 +314,12 @@ class DisplayableEventFormatter @Inject constructor(
 
     // Strip the reply fallback so the preview shows the reply's own content, not the quoted message: the
     // <mx-reply> block from the formatted body, or the legacy "> <@user>" prefix from the plain body.
-    private fun MessageContent.previewText(profileFallback: String? = null): PreviewText {
+    private fun MessageContent.previewText(
+            profileFallback: String? = null,
+            translation: im.vector.app.features.translation.MessageTranslationStore.Translation? = null,
+    ): PreviewText {
+        // Translated from the reply-stripped, fallback-free body already.
+        if (translation != null) return PreviewText(translation.formatted, translation.text)
         val isReply = relatesTo?.inReplyTo?.eventId != null
         val formattedBody = (this as? MessageContentWithFormattedBody)?.matrixFormattedBody?.takeIf { it.isNotBlank() }
                 ?.withoutPerMessageProfileFallback(profileFallback)

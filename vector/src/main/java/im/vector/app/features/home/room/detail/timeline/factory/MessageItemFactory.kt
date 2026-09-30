@@ -1241,17 +1241,19 @@ class MessageItemFactory @Inject constructor(
             emoteSender: CharSequence? = null,
     ): MessageTextItem? {
         val formatted = translation.formatted
-        // Emotes keep the plain path: the sender prefix has no formatted-body counterpart here.
         if (formatted != null && emoteSender == null) {
             return buildFormattedTextItem(formatted, informationData, highlight, callback, attributes, noticeStyle = noticeStyle, translation = translation)
         }
+        val body: CharSequence = formatted
+                ?.let { htmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor) }
+                ?: translation.text
         return buildMessageTextItem(
                 if (emoteSender != null) {
-                    translation.text.asEmoteBody(emoteSender, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
+                    body.asEmoteBody(emoteSender, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
                 } else {
-                    translation.text
+                    body
                 },
-                false,
+                formatted != null,
                 informationData,
                 highlight,
                 callback,
