@@ -44,6 +44,37 @@ class ContentUtilsTest {
     }
 
     @Test
+    fun `given no formatted body and a legacy emote fallback, when extracting, then the fallback is stripped`() {
+        val body = "> * <@alice:example.org> waves\n\nhi"
+
+        ContentUtils.extractUsefulTextFromReply(body, null) shouldBeEqualTo "hi"
+    }
+
+    @Test
+    fun `given no formatted body and a body opening with the sender's own quote, when extracting, then the body is left untouched`() {
+        val body = "> Мнение буду с него выражать типа.\n\nя про вот это"
+
+        ContentUtils.extractUsefulTextFromReply(body, null) shouldBeEqualTo body
+        ContentUtils.extractUsefulTextFromReply(body) shouldBeEqualTo body
+    }
+
+    @Test
+    fun `given a sender quote that only resembles a fallback, when extracting, then the body is left untouched`() {
+        listOf(
+                "> <b> is bold\n\nright?",
+                "> <@nocolon> hi\n\nright?",
+                "> <@user:server hi\n\nright?",
+        ).forEach { ContentUtils.extractUsefulTextFromReply(it) shouldBeEqualTo it }
+    }
+
+    @Test
+    fun `given a fallback from a server with a port, when extracting, then the fallback is stripped`() {
+        val body = "> <@alice:example.org:8448> original\n\nmy answer"
+
+        ContentUtils.extractUsefulTextFromReply(body) shouldBeEqualTo "my answer"
+    }
+
+    @Test
     fun `given a fallback with no reply text, when extracting, then the body is left untouched`() {
         val body = "> <@alice:example.org> original"
 

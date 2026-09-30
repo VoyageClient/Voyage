@@ -22,8 +22,7 @@ import org.matrix.android.sdk.internal.util.unescapeHtml
 object ContentUtils {
     /**
      * @param formattedBody the event's formatted body, when it has one. Its fallback is explicitly
-     * delimited by <mx-reply>, so it settles whether the plain body carries one too — without it, a body
-     * that merely opens with a blockquote is indistinguishable from a legacy fallback.
+     * delimited by <mx-reply>, so it settles whether the plain body carries one too.
      */
     fun extractUsefulTextFromReply(repliedBody: String, formattedBody: String?): String {
         if (formattedBody != null && !formattedBody.startsWith(MX_REPLY_START_TAG)) return repliedBody
@@ -32,7 +31,7 @@ object ContentUtils {
 
     fun extractUsefulTextFromReply(repliedBody: String): String {
         val lines = repliedBody.lines()
-        var wellFormed = repliedBody.startsWith(">")
+        var wellFormed = LEGACY_FALLBACK_START.containsMatchIn(repliedBody)
         var endOfPreviousFound = false
         val usefulLines = ArrayList<String>()
         lines.forEach {
@@ -88,6 +87,9 @@ object ContentUtils {
                 .replace("(?<=<span data-mx-spoiler>).+?(?=</span>)".toRegex()) { SPOILER_CHAR.repeat(it.value.length) }
                 .unescapeHtml()
     }
+
+    // "> <@user:server> …", or "> * <@user:server> …" for emotes; any other leading quote is the sender's own.
+    private val LEGACY_FALLBACK_START = Regex("^> (\\* )?<@[^:\\s>]+:[^\\s>]+>")
 
     private const val SPOILER_CHAR = "█"
     private const val MX_REPLY_START_TAG = "<mx-reply>"
