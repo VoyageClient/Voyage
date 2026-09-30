@@ -691,9 +691,9 @@ class TimelineEventController @Inject constructor(
         buildCacheItemsIfNeeded()
         val models = ArrayList<EpoxyModel<*>>(modelCache.size)
         val renderCount = renderCount()
-        // Newest first, so the first receipts of a collapsed run are the ones that belong at its
-        // bottom edge. They move onto the run's header rather than vanishing with the events.
-        var collapsedReceipts: ReadReceiptsItem? = null
+        // Receipts on a collapsed run's members move onto its header as a single row rather than vanishing
+        // with the events.
+        val collapsedReceipts = CollapsedReceipts()
         // The run header (with its collapse toggle) sits at the oldest member = top of the group. For a
         // group taller than the screen, drop a matching "collapse" footer at the newest member = bottom
         // edge, so it stays reachable. Iteration is newest-first, so the newest member is seen first.
@@ -705,12 +705,16 @@ class TimelineEventController @Inject constructor(
             val collapsed = cacheItemData != null && mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)
             val eventModel = cacheItemData?.eventModel?.takeUnless { collapsed }
             if (collapsed) {
-                collapsedReceipts = collapsedReceipts ?: cacheItemData?.readReceiptsItem
+                val roomId = currentSnapshot.getOrNull(position)?.roomId
+                cacheItemData?.readReceiptsItem?.let { item ->
+                    if (roomId != null) collapsedReceipts.add(item, roomId, cacheItemData.enrichedReceipts.orEmpty())
+                }
             } else {
-                // Leaving a collapsed run: if it had no header to hoist onto, the receipts belong here
-                // rather than being carried into the next run.
-                collapsedReceipts?.let { models.add(it) }
-                collapsedReceipts = null
+                // A visible event past a run with no header to hoist onto takes its receipts, so they aren't
+                // carried into the next run. Hidden events (empty placeholders) sit inside runs and don't end them.
+                if (eventModel != null && (eventModel as? ItemWithEvents)?.isVisible() != false) {
+                    collapsedReceipts.flushInto(models)
+                }
                 cacheItemData?.readReceiptsItem?.let { models.add(it) }
             }
             val runAnchor = if (eventModel != null) mergedHeaderItemFactory.expandedRunAnchorOf(cacheItemData.localId) else null
@@ -722,8 +726,7 @@ class TimelineEventController @Inject constructor(
             }
             eventModel?.let { models.add(it) }
             cacheItemData?.mergedHeaderModel?.let { header ->
-                collapsedReceipts?.let { models.add(it) }
-                collapsedReceipts = null
+                collapsedReceipts.flushInto(models)
                 models.add(header)
             }
             val hasContent = eventModel != null || cacheItemData?.mergedHeaderModel != null
@@ -742,6 +745,36 @@ class TimelineEventController @Inject constructor(
             }
         }
         return models
+    }
+
+    private inner class CollapsedReceipts {
+        private var first: ReadReceiptsItem? = null
+        private var roomId: String? = null
+        private val receipts = ArrayList<ReadReceipt>()
+        private var count = 0
+
+        fun add(item: ReadReceiptsItem, roomId: String, itemReceipts: List<ReadReceipt>) {
+            if (first == null) {
+                first = item
+                this.roomId = roomId
+            }
+            receipts.addAll(itemReceipts)
+            count++
+        }
+
+        fun flushInto(models: MutableList<EpoxyModel<*>>) {
+            val item = first ?: return
+            val merged = if (count == 1) {
+                item
+            } else {
+                readReceiptsItemFactory.create(item.eventId, roomId!!, receipts, callback, partialState.isFromThreadTimeline())
+            }
+            merged?.let { models.add(it) }
+            first = null
+            roomId = null
+            receipts.clear()
+            count = 0
+        }
     }
 
     private fun renderCount(): Int {
