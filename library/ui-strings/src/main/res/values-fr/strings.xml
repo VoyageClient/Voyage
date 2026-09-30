@@ -1534,7 +1534,6 @@
     <string name="room_member_open_or_create_dm">Message direct</string>
     <string name="no_more_results">Plus aucun résultat</string>
     <string name="settings_export_trail">Exporter le rapport d’audit</string>
-    <string name="room_created_summary_no_topic_creation_text">%s pour permettre aux gens de connaître le sujet de ce salon.</string>
     <string name="this_is_the_beginning_of_dm">Ceci est le début de l’historique de votre message direct avec %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Ceci est le début de cette conversation.</string>
     <string name="this_is_the_beginning_of_room">Ceci est le début de %s.</string>
@@ -1563,8 +1562,6 @@
     <string name="invite_friends_text">Salut, parle-moi sur ${app_name} : %s</string>
     <string name="invite_friends">Ajouter des amis</string>
     <string name="add_people">Ajouter des personnes</string>
-    <string name="topic_prefix">"Sujet : "</string>
-    <string name="add_a_topic_link_text">Ajouter un sujet</string>
     <string name="create_room_disable_federation_description">Vous devriez l’activer si le salon n’est utilisé que pour collaborer avec des équipes internes sur votre serveur d’accueil. Ceci ne peut pas être changé plus tard.</string>
     <string name="create_room_disable_federation_title">Empêcher les personnes qui ne sont pas membres de %s de rejoindre ce salon</string>
     <string name="hide_advanced">Masquer les paramètres avancés</string>

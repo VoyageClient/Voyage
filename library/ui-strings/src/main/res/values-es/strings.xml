@@ -1564,9 +1564,6 @@
     <string name="authentication_error">Fallo al autenticar</string>
     <string name="this_is_the_beginning_of_room_no_name">Estes es el inicio de la conversacion.</string>
     <string name="this_is_the_beginning_of_room">Este es el comienzo de %s.</string>
-    <string name="topic_prefix">"Tema: "</string>
-    <string name="add_a_topic_link_text">Agregar un tema</string>
-    <string name="room_created_summary_no_topic_creation_text">%s para dar a saber de qué se trata la sala.</string>
     <string name="this_is_the_beginning_of_dm">Este es el inicio de mensajes con %s.</string>
     <string name="action_unpublish">Despublicar</string>
     <string name="action_add">Añadir</string>

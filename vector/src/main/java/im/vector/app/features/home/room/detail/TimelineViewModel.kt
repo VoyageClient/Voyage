@@ -742,7 +742,6 @@ class TimelineViewModel @AssistedInject constructor(
             RoomDetailAction.QuickActionInvitePeople -> handleInvitePeople()
             RoomDetailAction.QuickActionSetAvatar -> handleQuickSetAvatar()
             is RoomDetailAction.SetAvatarAction -> handleSetNewAvatar(action)
-            RoomDetailAction.QuickActionSetTopic -> _viewEvents.post(RoomDetailViewEvents.OpenRoomSettings)
             is RoomDetailAction.ShowRoomAvatarFullScreen -> {
                 _viewEvents.post(
                         RoomDetailViewEvents.ShowRoomAvatarFullScreen(action.matrixItem)

@@ -1304,9 +1304,6 @@
     <string name="qr_code_scanned_verif_waiting">ממתין ל-%s …</string>
     <string name="qr_code_scanned_verif_waiting_notice">כמעט שם! מחכה לאישור…</string>
     <string name="qr_code_scanned_self_verif_notice">כמעט שם! האם המכשיר השני מציג את אותו מגן\?</string>
-    <string name="topic_prefix">"נושא: "</string>
-    <string name="add_a_topic_link_text">הוספת נושא</string>
-    <string name="room_created_summary_no_topic_creation_text">%s כדי להודיע לאנשים על מה החדר הזה.</string>
     <string name="this_is_the_beginning_of_dm">זוהי ההתחלה של היסטוריית ההודעות הישירות שלך עם%s.</string>
     <string name="this_is_the_beginning_of_room_no_name">זו תחילתה של השיחה הזו.</string>
     <string name="this_is_the_beginning_of_room">זו ההתחלה ש ל%s.</string>

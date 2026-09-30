@@ -1619,8 +1619,6 @@
     <string name="invite_friends_text">Привет, поговори со мной в ${app_name}: %s</string>
     <string name="invite_friends">Пригласить друзей</string>
     <string name="add_people">Добавить людей</string>
-    <string name="topic_prefix">"Тема: "</string>
-    <string name="add_a_topic_link_text">Добавьте тему</string>
     <string name="this_is_the_beginning_of_room_no_name">Это начало беседы.</string>
     <string name="this_is_the_beginning_of_room">Это начало %s.</string>
     <string name="room_settings_enable_encryption_no_permission">У вас нет разрешения на включение шифрования в этой комнате.</string>
@@ -1639,7 +1637,6 @@
     <string name="direct_room_user_list_suggestions_title">Предложения</string>
     <string name="direct_room_user_list_known_title">Известные пользователи</string>
     <string name="qr_code">QR-код</string>
-    <string name="room_created_summary_no_topic_creation_text">%s чтобы люди знали, о чём эта комната.</string>
     <string name="this_is_the_beginning_of_dm">Это начало вашей переписки с %s.</string>
     <string name="settings_export_trail">Экспорт аудита</string>
     <string name="room_member_open_or_create_dm">Личное сообщение</string>

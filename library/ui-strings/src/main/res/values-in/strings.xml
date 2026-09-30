@@ -1755,9 +1755,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="qr_code_scanned_verif_waiting">Menunggu untuk %s…</string>
     <string name="qr_code_scanned_verif_waiting_notice">Hampir selesai! Menunggu untuk konfirmasi…</string>
     <string name="qr_code_scanned_self_verif_notice">Hampir selesai! Apakah perangkat yang lain menunjukkan sebuah centang\?</string>
-    <string name="topic_prefix">"Topik: "</string>
-    <string name="add_a_topic_link_text">Tambahkan topik</string>
-    <string name="room_created_summary_no_topic_creation_text">%s untuk memberi tahu orang-orang tentang ruangan ini.</string>
     <string name="this_is_the_beginning_of_dm">Ini adalah awalnya dari riwayat pesan langsung dengan %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Ini adalah awalnya dari percakapan ini.</string>
     <string name="this_is_the_beginning_of_room">Ini adalah awalnya dari %s.</string>

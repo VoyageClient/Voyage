@@ -88,7 +88,6 @@ sealed class RoomDetailAction : VectorViewModelAction {
     object QuickActionInvitePeople : RoomDetailAction()
     object QuickActionSetAvatar : RoomDetailAction()
     data class SetAvatarAction(val newAvatarUri: Uri, val newAvatarFileName: String) : RoomDetailAction()
-    object QuickActionSetTopic : RoomDetailAction()
     data class ShowRoomAvatarFullScreen(val matrixItem: MatrixItem?) : RoomDetailAction()
 
     // Preview URL

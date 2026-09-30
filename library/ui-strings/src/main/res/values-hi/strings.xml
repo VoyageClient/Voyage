@@ -1763,9 +1763,6 @@
     <string name="this_is_the_beginning_of_room_no_name">यह इस बातचीत की शुरुआत है।</string>
     <string name="this_is_the_beginning_of_dm">यह %s के साथ आपके डायरेक्ट मैसेज इतिहास की शुरुआत है।</string>
     <string name="send_your_first_msg_to_invite">%s को चैट के लिए आमंत्रित करने के लिए अपना पहला मैसेज भेजें</string>
-    <string name="room_created_summary_no_topic_creation_text">लोगों को बताने के लिए कि यह रूम किस बारे में है, %s।</string>
-    <string name="add_a_topic_link_text">विषय जोड़ें</string>
-    <string name="topic_prefix">"विषय: "</string>
     <string name="qr_code_scanned_self_verif_notice">बस हो गया! क्या दूसरे डिवाइस पर सही का निशान दिख रहा है?</string>
     <string name="qr_code_scanned_verif_waiting_notice">बस हो गया! पुष्टि की प्रतीक्षा की जा रही है…</string>
     <string name="qr_code_scanned_verif_waiting">%s की प्रतीक्षा की जा रही है…</string>

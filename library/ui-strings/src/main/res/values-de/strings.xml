@@ -1587,9 +1587,6 @@
     <string name="invite_friends_text">Hey, schreibe mit mir auf ${app_name}: %s</string>
     <string name="invite_friends">Freunde einladen</string>
     <string name="add_people">Leute hinzufügen</string>
-    <string name="topic_prefix">"Thema: "</string>
-    <string name="add_a_topic_link_text">Füge ein Thema hinzu</string>
-    <string name="room_created_summary_no_topic_creation_text">%s, um zu zeigen um was es in diesem Raum geht.</string>
     <string name="this_is_the_beginning_of_dm">Das ist der Anfang deiner Direktnachrichten mit %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Das ist der Anfang dieser Konversation.</string>
     <string name="this_is_the_beginning_of_room">Das ist der Anfang von %s.</string>

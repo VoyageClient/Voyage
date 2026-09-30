@@ -1768,9 +1768,6 @@
     <string name="this_is_the_beginning_of_room_no_name">یہ اس گفتگو کا آغاز ہے۔</string>
     <string name="this_is_the_beginning_of_dm">یہ %s کے ساتھ آپ کے براہِ راست پیغامات کی سرگزشت کا آغاز ہے۔</string>
     <string name="send_your_first_msg_to_invite">%s کو گفتگو کی دعوت دینے کے لیے اپنا پہلا پیغام بھیجیں</string>
-    <string name="room_created_summary_no_topic_creation_text">لوگوں کو بتانے کے لیے کہ یہ کمرہ کس بارے میں ہے، %s۔</string>
-    <string name="add_a_topic_link_text">موضوع شامل کریں</string>
-    <string name="topic_prefix">موضوع: </string>
     <string name="qr_code_scanned_self_verif_notice">تقریباً ہو گیا! کیا دوسرے آلے پر درستی کا نشان دکھائی دے رہا ہے؟</string>
     <string name="qr_code_scanned_verif_waiting_notice">تقریباً ہو گیا! تصدیق کا انتظار…</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">اپنے مرموز شدہ پیغامات تک رسائی کھونے سے بچنے کے لیے چابی کا پشتارہ آپ کے تمام جلسات پر فعال ہونا چاہیے۔</string>

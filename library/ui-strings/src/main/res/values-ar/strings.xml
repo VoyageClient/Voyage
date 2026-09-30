@@ -1952,9 +1952,6 @@
     <string name="this_is_the_beginning_of_room_no_name">هذه بداية هذه المحادثة.</string>
     <string name="this_is_the_beginning_of_dm">هذه بداية تأريخ رسائلك المباشرة مع %s.</string>
     <string name="send_your_first_msg_to_invite">أرسل رسالتك الأولى لدعوة %s إلى المحادثة</string>
-    <string name="room_created_summary_no_topic_creation_text">%s ليعرف الناس موضوع هذه الغرفة.</string>
-    <string name="add_a_topic_link_text">أضِف موضوعًا</string>
-    <string name="topic_prefix">"الموضوع: "</string>
     <string name="qr_code_scanned_self_verif_notice">أوشكنا! هل تظهر علامة صح على الجهاز الآخر؟</string>
     <string name="qr_code_scanned_verif_waiting_notice">أوشكنا! بانتظار التأكيد…</string>
     <string name="qr_code_scanned_verif_waiting">بانتظار %s…</string>

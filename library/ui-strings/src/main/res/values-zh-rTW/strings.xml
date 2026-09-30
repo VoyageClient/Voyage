@@ -1531,10 +1531,7 @@
     <string name="invite_friends_rich_title">🔐️ 在 ${app_name} 上加入我</string>
     <string name="invite_friends_text">嗨，和我在 ${app_name} 上聊天吧：%s</string>
     <string name="invite_friends">邀請朋友</string>
-    <string name="topic_prefix">"主題： "</string>
     <string name="add_people">新增夥伴</string>
-    <string name="add_a_topic_link_text">新增主題</string>
-    <string name="room_created_summary_no_topic_creation_text">%s 讓人們知道這個聊天室是做什麼用的。</string>
     <string name="this_is_the_beginning_of_dm">這是您與 %s 私人訊息紀錄的開頭。</string>
     <string name="this_is_the_beginning_of_room_no_name">這是此對話的開頭。</string>
     <string name="this_is_the_beginning_of_room">這是 %s 的開頭。</string>

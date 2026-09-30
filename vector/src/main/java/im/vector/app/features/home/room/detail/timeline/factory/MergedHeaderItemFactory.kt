@@ -22,7 +22,6 @@ import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationI
 import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationItem_
 import im.vector.app.features.home.room.detail.timeline.item.MergedSimilarEventsItem
 import im.vector.app.features.home.room.detail.timeline.item.MergedSimilarEventsItem_
-import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.lib.strings.CommonPlurals
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
@@ -438,7 +437,6 @@ class MergedHeaderItemFactory @Inject constructor(
                 roomSummary = partialState.roomSummary,
                 canInvite = roomPowerLevels?.isUserAbleToInvite(currentUserId) ?: false,
                 canChangeAvatar = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_AVATAR) ?: false,
-                canChangeTopic = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_TOPIC) ?: false,
                 canChangeName = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_NAME) ?: false
         )
         return MergedRoomCreationItem_()
@@ -446,7 +444,6 @@ class MergedHeaderItemFactory @Inject constructor(
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .highlighted(isCollapsed && highlighted)
                 .attributes(attributes)
-                .movementMethod(createLinkMovementMethod(callback))
                 .also {
                     it.setOnVisibilityStateChanged(MergedTimelineEventVisibilityStateChangedListener(callback, run.members))
                 }

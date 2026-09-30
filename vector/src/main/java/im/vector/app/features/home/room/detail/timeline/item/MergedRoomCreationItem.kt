@@ -7,9 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
-import android.text.SpannableString
-import android.text.method.MovementMethod
-import android.text.style.ClickableSpan
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -26,16 +23,13 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.marginEndCompat
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.extensions.textAlignmentCompat
-import im.vector.app.core.utils.tappableMatchingText
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
-import im.vector.app.features.home.room.detail.timeline.tools.formatTopicPreview
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
-import me.gujun.android.span.span
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
@@ -47,9 +41,6 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
 
     @EpoxyAttribute
     override lateinit var attributes: Attributes
-
-    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
-    var movementMethod: MovementMethod? = null
 
     private val roomSummary
         get() = attributes.roomSummary
@@ -175,7 +166,6 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
 
         holder.roomNameText.setTextOrHide(roomDisplayName?.prepareForDisplay())
         renderRoomDescription(holder)
-        renderRoomTopic(holder)
 
         val roomItem = roomSummary?.toDisplayMatrixItem()
         val shouldSetAvatar = attributes.canChangeAvatar &&
@@ -238,33 +228,6 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         }
     }
 
-    private fun renderRoomTopic(holder: Holder) {
-        val topic = roomSummary?.topic
-        if (topic.isNullOrBlank()) {
-            // do not show hint for DMs or group DMs
-            val canSetTopic = attributes.canChangeTopic && !isDirectRoom
-            if (canSetTopic) {
-                val addTopicLink = holder.view.resources.getString(CommonStrings.add_a_topic_link_text)
-                val styledText = SpannableString(holder.view.resources.getString(CommonStrings.room_created_summary_no_topic_creation_text, addTopicLink))
-                holder.roomTopicText.setTextOrHide(styledText.tappableMatchingText(addTopicLink, object : ClickableSpan() {
-                    override fun onClick(widget: View) {
-                        attributes.callback?.onTimelineItemAction(RoomDetailAction.QuickActionSetTopic)
-                    }
-                }))
-            }
-        } else {
-            holder.roomTopicText.setTextOrHide(
-                    span {
-                        span(holder.view.resources.getString(CommonStrings.topic_prefix)) {
-                            textStyle = "bold"
-                        }
-                        +topic.formatTopicPreview(roomSummary?.roomId, roomSummary?.topicFormatted, attributes.callback)
-                    }
-            )
-        }
-        holder.roomTopicText.movementMethod = movementMethod
-    }
-
     class Holder : BasedMergedItem.Holder(STUB_ID) {
         val mergedView by bind<View>(R.id.mergedSumContainer)
         val summaryView by bind<TextView>(R.id.itemNoticeTextView)
@@ -276,7 +239,6 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
 
         val roomNameText by bind<TextView>(R.id.roomNameTileText)
         val roomDescriptionText by bind<TextView>(R.id.roomNameDescriptionText)
-        val roomTopicText by bind<TextView>(R.id.roomNameTopicText)
         val roomAvatarImageView by bind<ImageView>(R.id.creationTileRoomAvatarImageView)
         val addPeopleButton by bind<View>(R.id.creationTileAddPeopleButton)
         val setAvatarButton by bind<View>(R.id.creationTileSetAvatarButton)
@@ -298,8 +260,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
             val roomSummary: RoomSummary?,
             val canInvite: Boolean = false,
             val canChangeAvatar: Boolean = false,
-            val canChangeName: Boolean = false,
-            val canChangeTopic: Boolean = false
+            val canChangeName: Boolean = false
     ) : BasedMergedItem.Attributes {
 
         val isLocalRoom = RoomLocalEcho.isLocalEchoId(roomSummary?.roomId.orEmpty())

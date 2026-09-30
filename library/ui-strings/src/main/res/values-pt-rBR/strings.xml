@@ -1558,7 +1558,6 @@
     <string name="room_member_open_or_create_dm">Mensagem direta</string>
     <string name="show_advanced">Mostrar avançadas</string>
     <string name="hide_advanced">Esconder avançadas</string>
-    <string name="room_created_summary_no_topic_creation_text">%s para deixar pessoas saberem do que esta sala se trata.</string>
     <string name="create_room_alias_empty">Por favor proveja um endereço de sala</string>
     <string name="qr_code_not_scanned">QR code não scannado!</string>
     <string name="share_by_text">Compartilhar por texto</string>
@@ -1570,8 +1569,6 @@
     <string name="invite_friends_text">Hey, fale comigo em ${app_name}: %s</string>
     <string name="invite_friends">Convidar amigos</string>
     <string name="add_people">Adicionar pessoas</string>
-    <string name="topic_prefix">"Tópico: "</string>
-    <string name="add_a_topic_link_text">Adicionar um tópico</string>
     <string name="this_is_the_beginning_of_dm">Este é o começo de seu histórico de mensagem direta com %s.</string>
     <string name="this_is_the_beginning_of_room_no_name">Este é o começo desta conversa.</string>
     <string name="this_is_the_beginning_of_room">Este é o começo de %s.</string>

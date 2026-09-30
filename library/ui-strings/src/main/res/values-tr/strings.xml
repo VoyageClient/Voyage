@@ -1846,9 +1846,6 @@
     <string name="this_is_the_beginning_of_room_no_name">Bu sohbet burada başlıyor.</string>
     <string name="this_is_the_beginning_of_dm">%s ile doğrudan mesaj geçmişiniz burada başlıyor.</string>
     <string name="send_your_first_msg_to_invite">%s kişisini sohbete davet etmek için ilk mesajınızı gönderin</string>
-    <string name="room_created_summary_no_topic_creation_text">Bu odanın ne hakkında olduğunu herkese bildirmek için %s.</string>
-    <string name="add_a_topic_link_text">Bir konu ekleyin</string>
-    <string name="topic_prefix">Konu: </string>
     <string name="qr_code_scanned_self_verif_notice">Neredeyse bitti! Diğer cihaz bir onay işareti gösteriyor mu?</string>
     <string name="qr_code_scanned_verif_waiting_notice">Neredeyse bitti! Onay bekleniyor…</string>
     <string name="qr_code_scanned_verif_waiting">%s bekleniyor…</string>

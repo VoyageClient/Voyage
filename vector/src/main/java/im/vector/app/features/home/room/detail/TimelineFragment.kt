@@ -533,7 +533,6 @@ class TimelineFragment :
                 }
                 RoomDetailViewEvents.OpenInvitePeople -> navigator.openInviteUsersToRoom(requireActivity(), timelineArgs.roomId)
                 RoomDetailViewEvents.OpenSetRoomAvatarDialog -> galleryOrCameraDialogHelper.show()
-                RoomDetailViewEvents.OpenRoomSettings -> handleOpenRoomSettings(RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_SETTINGS)
                 RoomDetailViewEvents.OpenRoomProfile -> handleOpenRoomSettings()
                 is RoomDetailViewEvents.ShowRoomAvatarFullScreen -> it.matrixItem?.let { item ->
                     navigator.openBigImageViewer(requireActivity(), item)

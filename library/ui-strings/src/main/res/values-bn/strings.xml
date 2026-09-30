@@ -1817,9 +1817,6 @@
     <string name="this_is_the_beginning_of_room_no_name">এটি এই কথোপকথনের শুরু।</string>
     <string name="this_is_the_beginning_of_dm">এটি %s-এর সাথে আপনার সরাসরি বার্তার ইতিহাসের শুরু।</string>
     <string name="send_your_first_msg_to_invite">%s-কে চ্যাটে আমন্ত্রণ জানাতে আপনার প্রথম বার্তা পাঠান</string>
-    <string name="room_created_summary_no_topic_creation_text">এই রুমটি কী নিয়ে তা সবাইকে জানাতে %s।</string>
-    <string name="add_a_topic_link_text">একটি বিষয় যোগ করুন</string>
-    <string name="topic_prefix">"বিষয়: "</string>
     <string name="qr_code_scanned_self_verif_notice">প্রায় হয়ে গেছে! অন্য ডিভাইসটি কি একটি টিক চিহ্ন দেখাচ্ছে?</string>
     <string name="qr_code_scanned_verif_waiting_notice">প্রায় হয়ে গেছে! নিশ্চিতকরণের অপেক্ষা করা হচ্ছে…</string>
     <string name="qr_code_scanned_verif_waiting">%s-এর জন্য অপেক্ষা করা হচ্ছে…</string>

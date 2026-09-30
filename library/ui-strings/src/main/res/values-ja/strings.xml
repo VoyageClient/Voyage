@@ -1390,7 +1390,6 @@
     <string name="action_thread_view_in_room">ルーム内で表示</string>
     <string name="action_view_threads">スレッドを表示</string>
     <string name="room_error_access_unauthorized">このルームへの参加は許可されていません</string>
-    <string name="topic_prefix">"トピック： "</string>
     <string name="settings_troubleshoot_title">トラブルシューティング</string>
     <string name="a11y_close_keys_backup_banner">鍵のバックアップのバナーを閉じる</string>
     <string name="settings_notification_keyword_contains_invalid_character">キーワードに「%s」を含めることはできません</string>
@@ -1529,7 +1528,6 @@
     <string name="invite_people_to_your_space">連絡先をスペースに招待</string>
     <string name="settings_discovery_no_terms_title">IDサーバーには利用規約がありません</string>
     <string name="settings_discovery_consent_notice_off_2">あなたの連絡先は非公開です。端末の連絡先からユーザーを発見するためには、連絡先の情報をIDサーバーに送信する許可が必要です。</string>
-    <string name="add_a_topic_link_text">トピックを追加</string>
     <string name="room_created_summary_item">%sがルームを作成し設定しました。</string>
     <string name="direct_room_created_summary_item_by_you">参加しました。</string>
     <string name="direct_room_created_summary_item">%sが参加しました。</string>
@@ -1612,7 +1610,6 @@
     <string name="upgrade_room_warning">ルームのアップグレードは高度な作業であり、不具合や欠けている機能、セキュリティー上の脆弱性がある場合に推奨されます。
 \nアップグレードは通常、ルームがサーバー上で処理される仕方にだけ影響します。</string>
     <string name="room_settings_enable_encryption_dialog_content">一度有効にしたルームの暗号化は無効にすることはできません。暗号化されたルームで送信されたメッセージは、サーバーからは閲覧できず、そのルームのメンバーだけが閲覧できます。暗号化を有効にすると、多くのボットやブリッジが正常に動作しなくなる可能性があります。</string>
-    <string name="room_created_summary_no_topic_creation_text">%sして、このルームを皆に紹介しましょう。</string>
     <string name="add_people">連絡先を追加</string>
     <plurals name="space_people_you_know">
         <item quantity="other">%d人の知人が既に参加しています</item>
