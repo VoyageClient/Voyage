@@ -46,7 +46,7 @@ class PreviewUrlViewUpdaterTest {
     )
     private val view = PreviewUrlView(context)
     private val imageContentRenderer = mockk<ImageContentRenderer> {
-        every { render(any<PreviewUrlData>(), any()) } returns false
+        every { render(any<PreviewUrlData>(), any(), any()) } returns false
     }
     private val messageLayout = TimelineMessageLayout.Default(showAvatar = true, showDisplayName = true, showTimestamp = true)
 

@@ -123,7 +123,7 @@ class ImageContentRenderer @Inject constructor(
     /**
      * For url preview.
      */
-    fun render(previewUrlData: PreviewUrlData, imageView: ImageView): Boolean {
+    fun render(previewUrlData: PreviewUrlData, imageView: ImageView, retainedThumbnail: Drawable? = null): Boolean {
         val encryptedImage = previewUrlData.encryptedImage
         val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
         val imageUrl = contentUrlResolver.resolveFullSize(previewUrlData.mxcUrl)
@@ -151,7 +151,8 @@ class ImageContentRenderer @Inject constructor(
             createGlideRequest(data, Mode.FULL_SIZE, GlideApp.with(imageView), Size(width, height), placeholder)
         }
         request.override(width, displayHeight)
-                .withWaitingState(placeholder)
+                .withWaitingState(retainedThumbnail ?: placeholder)
+                .let { if (retainedThumbnail == null) it else it.transition(DrawableTransitionOptions().dontTransition()) }
                 // The box is reserved before there is a picture for it; a preview whose image never
                 // arrives must give it back rather than leave an empty fill in the card.
                 .addListener(object : RequestListener<Drawable> {

@@ -400,13 +400,32 @@ internal class UrlPreviewBundlerTest {
 
     @Test
     fun `the text of a preview is still bundled when its image cannot be uploaded`() = runTest {
+        coEvery { urlPreviewFetcher.fetch(any()) } returns PREVIEW.copy(
+                fields = PREVIEW.fields + mapOf("og:image:width" to 1200, "og:image:height" to 600)
+        )
         coEvery { fileUploader.uploadByteArray(any(), any(), any(), any()) } throws IllegalStateException("upload failed")
 
         val preview = bundler.bundleUrlPreviews(textEvent(URL), encrypt = false).previews()!![0]
 
         preview["og:title"] shouldBeEqualTo "Matrix.org"
         preview["og:image"].shouldBeNull()
+        preview["og:image:width"].shouldBeNull()
+        preview["og:image:height"].shouldBeNull()
         preview["matrix:image:size"].shouldBeNull()
+    }
+
+    @Test
+    fun `image dimensions are omitted when the image fetch fails`() = runTest {
+        coEvery { urlPreviewFetcher.fetch(any()) } returns PREVIEW.copy(
+                fields = PREVIEW.fields + mapOf("og:image:width" to 1200, "og:image:height" to 600),
+                image = null
+        )
+
+        val preview = bundler.bundleUrlPreviews(textEvent(URL), encrypt = false).previews()!![0]
+
+        preview["og:image"].shouldBeNull()
+        preview["og:image:width"].shouldBeNull()
+        preview["og:image:height"].shouldBeNull()
     }
 
     @Test

@@ -170,7 +170,14 @@ internal class UrlPreviewBundler @Inject constructor(
         // upload lands under matrix:image:encrypted, which would otherwise leave the external og:image
         // in place for receivers to fetch from the site directly.
         preview.remove("og:image")
-        fetched.image?.let { uploadImage(it, encrypt) }?.let { preview += it }
+        val uploadedImage = fetched.image?.let { uploadImage(it, encrypt) }
+        if (uploadedImage == null) {
+            preview.remove("og:image:width")
+            preview.remove("og:image:height")
+            preview.remove(BundledUrlPreviews.IMAGE_SIZE)
+        } else {
+            preview += uploadedImage
+        }
         // An entry nobody can display is one the receiver would take as an invitation to ask their own
         // homeserver about the link — the very thing bundling is for.
         return preview.takeIf { it.keys.any { key -> key in DISPLAYABLE_KEYS } }

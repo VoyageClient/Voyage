@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.url
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.LruCache
 import android.view.View
@@ -66,6 +67,13 @@ class PreviewUrlView @JvmOverloads constructor(
             return
         }
 
+        val previous = state as? PreviewUrlUiState.Data
+        val retainedThumbnail = if (newState is PreviewUrlUiState.Data &&
+                previous?.eventId == newState.eventId && previous.url == newState.url) {
+            views.urlPreviewImage.drawable
+        } else {
+            null
+        }
         state = newState
 
         hideAll()
@@ -74,7 +82,7 @@ class PreviewUrlView @JvmOverloads constructor(
             PreviewUrlUiState.NoUrl -> renderHidden()
             is PreviewUrlUiState.Loading -> renderLoading(newState.url)
             is PreviewUrlUiState.Error -> renderHidden()
-            is PreviewUrlUiState.Data -> renderData(newState.previewUrlData, imageContentRenderer)
+            is PreviewUrlUiState.Data -> renderData(newState.previewUrlData, imageContentRenderer, retainedThumbnail)
         }
     }
 
@@ -187,12 +195,12 @@ class PreviewUrlView @JvmOverloads constructor(
         }
     }
 
-    private fun renderData(previewUrlData: PreviewUrlData, imageContentRenderer: ImageContentRenderer) {
+    private fun renderData(previewUrlData: PreviewUrlData, imageContentRenderer: ImageContentRenderer, retainedThumbnail: Drawable?) {
         setReservedHeight(null)
         isVisible = true
 
         views.urlPreviewTitle.setTextOrHide(previewUrlData.title)
-        val hasImage = imageContentRenderer.render(previewUrlData, views.urlPreviewImage)
+        val hasImage = imageContentRenderer.render(previewUrlData, views.urlPreviewImage, retainedThumbnail)
         views.urlPreviewImage.isVisible = hasImage
         views.urlPreviewDescription.setTextOrHide(previewUrlData.description)
         views.urlPreviewDescription.maxLines = when {

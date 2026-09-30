@@ -7,12 +7,17 @@
 
 package im.vector.app.features.home.room.detail.timeline.url
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import im.vector.app.R
 import im.vector.app.features.media.ImageContentRenderer
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeGreaterThan
 import org.junit.Test
@@ -35,7 +40,7 @@ class PreviewUrlViewTest {
             im.vector.lib.ui.styles.R.style.Theme_Vector_Light
     )
     private val imageContentRenderer = mockk<ImageContentRenderer> {
-        every { render(any<PreviewUrlData>(), any()) } returns false
+        every { render(any<PreviewUrlData>(), any(), any()) } returns false
     }
 
     @Test
@@ -74,6 +79,31 @@ class PreviewUrlViewTest {
 
         view.visibility shouldBeEqualTo View.VISIBLE
         view.layoutParams.height shouldBeEqualTo ViewGroup.LayoutParams.WRAP_CONTENT
+    }
+
+    @Test
+    fun `the same message retains its thumbnail while the preview image source changes`() {
+        every { imageContentRenderer.render(any<PreviewUrlData>(), any(), any()) } returns true
+        val view = aView()
+        val thumbnail = ColorDrawable(Color.RED)
+        view.render(PreviewUrlUiState.Data(A_STABLE_ID, A_KNOWN_URL, previewOf(A_KNOWN_URL)), imageContentRenderer)
+        view.findViewById<ImageView>(R.id.url_preview_image).setImageDrawable(thumbnail)
+
+        view.render(PreviewUrlUiState.Data(A_STABLE_ID, A_KNOWN_URL, previewOf(A_KNOWN_URL).copy(mxcUrl = "mxc://matrix.org/remote")), imageContentRenderer)
+
+        verify { imageContentRenderer.render(any<PreviewUrlData>(), any(), thumbnail) }
+    }
+
+    @Test
+    fun `a recycled card does not retain another message's thumbnail`() {
+        val view = aView()
+        val thumbnail = ColorDrawable(Color.RED)
+        view.render(PreviewUrlUiState.Data(A_STABLE_ID, A_KNOWN_URL, previewOf(A_KNOWN_URL)), imageContentRenderer)
+        view.findViewById<ImageView>(R.id.url_preview_image).setImageDrawable(thumbnail)
+
+        view.render(PreviewUrlUiState.Data("another-event", A_KNOWN_URL, previewOf(A_KNOWN_URL)), imageContentRenderer)
+
+        verify { imageContentRenderer.render(any<PreviewUrlData>(), any(), null) }
     }
 
     private fun aView() = PreviewUrlView(context).apply {
