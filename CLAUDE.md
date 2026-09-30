@@ -122,6 +122,12 @@ Also during review, compact overly verbose comments down to the minimal non-obvi
 
 The full per-commit changelog lives only in the commit message: a concise imperative subject line followed by a body describing the changes. Every body item MUST start with `- ` — NEVER write a paragraph that does not begin with `- `. Put a blank line between each `- ` entry. Do not write per-commit changelog fragments to any file (no `changelog.d/`).
 
+For multi-line commit messages, pass the subject and each body item as separate `-m` arguments. Git inserts the blank lines between them:
+
+    git commit -m "Describe the change" -m "- Explain the first change." -m "- Explain the second change."
+
+Never put literal `\n` or `\n\n` in a quoted `-m` argument; the shell passes those characters through into the commit message.
+
 Never include test or lint pass results, test counts, or routine validation summaries in commit messages. Report those results in the conversation instead. This restriction does not apply when the commit itself changes tests or fixes lint issues.
 
 `CHANGES.md` is a separate, curated highlights list — NOT a per-commit log. When you land a change worth surfacing to users, add it there too:
