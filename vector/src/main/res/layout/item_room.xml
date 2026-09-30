@@ -195,7 +195,7 @@
         tools:src="@drawable/ic_checkbox_selection_on"
         tools:visibility="visible" />
 
-    <TextView
+    <im.vector.app.core.ui.views.InlineCodeTextView
         android:id="@+id/subtitleView"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"

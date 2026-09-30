@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
+                <im.vector.app.core.ui.views.InlineCodeTextView
                     android:id="@+id/composerRelatedMessageContent"
                     style="@style/Widget.Vector.TextView.Body"
                     android:layout_width="match_parent"

@@ -49,7 +49,7 @@
         tools:textSize="14sp"
         tools:visibility="visible" />
 
-    <TextView
+    <im.vector.app.core.ui.views.InlineCodeTextView
         android:id="@+id/item_generic_description_text"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"

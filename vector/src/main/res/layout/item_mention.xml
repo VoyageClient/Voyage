@@ -52,7 +52,7 @@
         app:layout_constraintTop_toTopOf="@id/mentionSender"
         tools:text="10:32" />
 
-    <TextView
+    <im.vector.app.core.ui.views.InlineCodeTextView
         android:id="@+id/mentionBody"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"

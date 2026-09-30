@@ -44,7 +44,7 @@
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="@sample/rooms.json/data/name" />
 
-    <TextView
+    <im.vector.app.core.ui.views.InlineCodeTextView
         android:id="@+id/itemPublicRoomTopic"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"

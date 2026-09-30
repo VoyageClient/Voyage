@@ -48,7 +48,7 @@
             app:layout_constraintVertical_chainStyle="packed"
             tools:text="@sample/spaces.json/data/name" />
 
-        <TextView
+        <im.vector.app.core.ui.views.InlineCodeTextView
             android:id="@+id/spaceDescription"
             style="@style/Widget.Vector.TextView.Body"
             android:layout_width="0dp"

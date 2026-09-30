@@ -75,7 +75,7 @@
         app:layout_constraintStart_toStartOf="@id/roomNameView"
         app:layout_constraintTop_toBottomOf="@id/roomNameView" />
 
-    <TextView
+    <im.vector.app.core.ui.views.InlineCodeTextView
         android:id="@+id/roomDescription"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"

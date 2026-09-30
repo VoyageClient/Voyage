@@ -20,6 +20,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.inlineCodeBlocks
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
@@ -355,12 +356,13 @@ class DisplayableEventFormatter @Inject constructor(
 
     // Block-level spans don't render in a one-line preview: a blockquote draws its stripe/indent and a
     // code block fills a full-width background bar, so drop those (keeping inline content — pills,
-    // emotes, links, inline code, bold/italic). The spoiler span is kept so it stays hidden; its blur
-    // is made to render by giving the room-list TextView a software layer (see RoomSummaryItem).
+    // emotes, links, inline code, bold/italic) and show a code block as inline code. The spoiler span
+    // is kept so it stays hidden; its blur is made to render by giving the room-list TextView a
+    // software layer (see RoomSummaryItem).
     private fun CharSequence.sanitizeForPreview(): CharSequence {
         val spanned = this as? Spanned ?: return this
+        val codeBlocks = spanned.getSpans(0, spanned.length, im.vector.app.features.html.HtmlCodeSpan::class.java).filter { it.isBlock }
         val blocks = spanned.getSpans(0, spanned.length, im.vector.app.features.html.QuoteMarginSpan::class.java).toList() +
-                spanned.getSpans(0, spanned.length, im.vector.app.features.html.HtmlCodeSpan::class.java).filter { it.isBlock } +
                 // Paragraph vertical padding renders as a blank line above/below in the one-line preview.
                 spanned.getSpans(0, spanned.length, me.gujun.android.span.style.VerticalPaddingSpan::class.java).toList() +
                 // A heading scales the text and reserves its own line height, growing the whole row.
@@ -368,9 +370,10 @@ class DisplayableEventFormatter @Inject constructor(
                 // A formula is one atomic ReplacementSpan: an ellipsized preview too narrow to fit it
                 // whole drops it and shows only "…". Without the span its LaTeX source stays as text.
                 spanned.getSpans(0, spanned.length, io.noties.markwon.ext.latex.JLatexAsyncDrawableSpan::class.java).toList()
-        if (blocks.isEmpty()) return this
+        if (blocks.isEmpty() && codeBlocks.isEmpty()) return this
         val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
         blocks.forEach { builder.removeSpan(it) }
+        builder.inlineCodeBlocks(codeBlocks)
         return builder
     }
 

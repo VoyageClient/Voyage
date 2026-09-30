@@ -75,7 +75,7 @@
         tools:ignore="ContentDescription"
         tools:visibility="visible" />
 
-    <TextView
+    <im.vector.app.core.ui.views.InlineCodeTextView
         android:id="@+id/threadSummaryRootMessageTextView"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"

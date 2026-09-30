@@ -41,7 +41,7 @@
         tools:src="@sample/user_round_avatars" />
 
 
-    <TextView
+    <im.vector.app.core.ui.views.InlineCodeTextView
         android:id="@+id/messageThreadSummaryInfoTextView"
         style="@style/Widget.Vector.TextView.Caption"
         android:layout_width="wrap_content"

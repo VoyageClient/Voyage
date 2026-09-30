@@ -183,7 +183,7 @@ internal fun codeOutlineColor(context: Context): Int = ColorUtils.setAlphaCompon
         ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary), 0x30
 )
 
-internal class InlineCodePadding(private val textView: TextView) {
+internal class InlineCodePadding(private val textView: TextView, private val includeVertical: Boolean = true) {
     private val left = textView.paddingLeft
     private val top = textView.paddingTop
     private val right = textView.paddingRight
@@ -194,7 +194,7 @@ internal class InlineCodePadding(private val textView: TextView) {
         val hasInlineCode = spanned?.getSpans(0, spanned.length, HtmlCodeSpan::class.java)?.any { !it.isBlock } == true
         val density = textView.resources.displayMetrics.density
         val horizontal = if (hasInlineCode) ceil(2f * density).toInt() else 0
-        val vertical = if (hasInlineCode) ceil(density).toInt() else 0
+        val vertical = if (hasInlineCode && includeVertical) ceil(density).toInt() else 0
         if (textView.paddingLeft != left + horizontal || textView.paddingTop != top + vertical ||
                 textView.paddingRight != right + horizontal || textView.paddingBottom != bottom + vertical) {
             // The panel extends beyond the glyph bounds, including when code fills the whole view.
@@ -237,11 +237,17 @@ internal fun TextView.drawInlineCodeBackgrounds(canvas: Canvas, drawText: () -> 
             backgroundPaint.color = span.inlineBackgroundColor(codePaint)
             for (line in textLayout.getLineForOffset(start)..textLayout.getLineForOffset(end - 1)) {
                 val lineStart = maxOf(start, textLayout.getLineStart(line))
-                val lineEnd = minOf(end, textLayout.getLineVisibleEnd(line))
+                var lineEnd = minOf(end, textLayout.getLineVisibleEnd(line))
+                if (textLayout.getEllipsisCount(line) > 0) {
+                    lineEnd = minOf(lineEnd, textLayout.getLineStart(line) + textLayout.getEllipsisStart(line))
+                }
                 if (lineStart >= lineEnd) continue
                 path.reset()
                 textLayout.getSelectionPath(lineStart, lineEnd, path)
                 path.computeBounds(bounds, true)
+                // A range ending at a line break selects through to the layout width.
+                bounds.left = maxOf(bounds.left, textLayout.getLineLeft(line))
+                bounds.right = minOf(bounds.right, textLayout.getLineRight(line))
                 bounds.left -= horizontalPadding
                 bounds.right += horizontalPadding
                 bounds.top = textLayout.getLineBaseline(line) + metrics.ascent - verticalPadding

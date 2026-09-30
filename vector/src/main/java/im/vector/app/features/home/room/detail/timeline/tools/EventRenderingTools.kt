@@ -73,11 +73,11 @@ fun CharSequence.flattenBlockFormattingForPreview(): CharSequence {
     val text = SpannableStringBuilder(this)
     text.getSpans(0, text.length, Any::class.java)
             .filter {
-                (it is HtmlCodeSpan && it.isBlock) ||
-                        (it is LeadingMarginSpan && it !is HtmlCodeSpan) ||
+                (it is LeadingMarginSpan && it !is HtmlCodeSpan) ||
                         it is LineHeightSpan || it is io.noties.markwon.core.spans.HeadingSpan
             }
             .forEach(text::removeSpan)
+    text.inlineCodeBlocks(text.getSpans(0, text.length, HtmlCodeSpan::class.java).filter { it.isBlock })
     var index = 0
     while (index < text.length) {
         if (text[index] == '\n' || text[index] == '\r') {
@@ -89,6 +89,19 @@ fun CharSequence.flattenBlockFormattingForPreview(): CharSequence {
         }
     }
     return text.trim()
+}
+
+// Compact previews show a code block as inline code, trimmed of its edge whitespace.
+fun SpannableStringBuilder.inlineCodeBlocks(codeBlocks: List<HtmlCodeSpan>) {
+    codeBlocks.forEach { span ->
+        var start = getSpanStart(span)
+        var end = getSpanEnd(span)
+        removeSpan(span)
+        if (start < 0) return@forEach
+        while (start < end && this[start].isWhitespace()) start++
+        while (end > start && this[end - 1].isWhitespace()) end--
+        if (start < end) setSpan(span.asInline(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
 }
 
 /**

@@ -65,7 +65,7 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="@sample/rooms.json/data/name" />
 
-        <TextView
+        <im.vector.app.core.ui.views.InlineCodeTextView
             android:id="@+id/childRoomTopic"
             style="@style/Widget.Vector.TextView.Body"
             android:layout_width="0dp"

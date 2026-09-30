@@ -24,6 +24,8 @@ class HtmlCodeSpan(private val theme: MarkwonTheme, var isBlock: Boolean) : Metr
 
     internal fun inlineBackgroundColor(p: TextPaint): Int = theme.getCodeBackgroundColor(p)
 
+    fun asInline(): HtmlCodeSpan = if (isBlock) HtmlCodeSpan(theme, false) else this
+
     override fun updateDrawState(p: TextPaint) {
         applyTextStyle(p)
         if (!isBlock) p.bgColor = if (backgroundDrawnBehindSelection) 0 else inlineBackgroundColor(p)
