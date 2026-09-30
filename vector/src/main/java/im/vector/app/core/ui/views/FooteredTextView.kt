@@ -30,6 +30,7 @@ import im.vector.app.core.utils.ReadOnlySelectionFocus
 import im.vector.app.core.utils.SelectionFocusHost
 import im.vector.app.core.utils.clampSelectionToCodeSpans
 import im.vector.app.core.utils.drawInlineCodeBackgrounds
+import im.vector.app.core.utils.drawSurvivingStaleTextBlocks
 import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
@@ -111,7 +112,7 @@ class FooteredTextView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         updateFooterOnPreDraw(canvas)
-        drawInlineCodeBackgrounds(canvas) { super.onDraw(canvas) }
+        drawInlineCodeBackgrounds(canvas) { drawSurvivingStaleTextBlocks(canvas) { super.onDraw(canvas) } }
     }
 
     override var codeSelectionBounds: IntRange? = null

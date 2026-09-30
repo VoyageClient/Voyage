@@ -8,6 +8,7 @@
 package im.vector.app.core.ui.views
 
 import android.content.Context
+import android.graphics.Canvas
 import android.os.Build
 import android.util.AttributeSet
 import android.view.ActionMode
@@ -18,6 +19,7 @@ import androidx.annotation.RequiresApi
 import com.google.android.material.textview.MaterialTextView
 import im.vector.app.core.utils.ReadOnlySelectionFocus
 import im.vector.app.core.utils.SelectionFocusHost
+import im.vector.app.core.utils.drawSurvivingStaleTextBlocks
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.shouldReplaySwallowedTap
 import im.vector.app.core.utils.startActionModeGuarded
@@ -36,6 +38,10 @@ class NonScrollingTextView : MaterialTextView, SelectionFocusHost {
     override fun setTextIsSelectable(selectable: Boolean) {
         super.setTextIsSelectable(selectable)
         if (selectable) isFocusableInTouchMode = false
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        drawSurvivingStaleTextBlocks(canvas) { super.onDraw(canvas) }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -9,6 +9,7 @@ package im.vector.app.features.imagepack.picker
 
 import im.vector.app.ActiveSessionDataSource
 import im.vector.app.features.imagepack.ResolvedImage
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,6 +27,7 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,7 +41,9 @@ class RecentStickerDataSource @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(
+            SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e -> Timber.w(e, "Failed to write recent stickers") }
+    )
     private val writeMutex = Mutex()
     private val pending = mutableListOf<ResolvedImage>()
     private var flushJob: Job? = null

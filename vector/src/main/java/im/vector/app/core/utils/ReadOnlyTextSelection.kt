@@ -13,6 +13,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.os.Build
+import android.text.DynamicLayout
 import android.text.Selection
 import android.text.Spannable
 import android.text.Spanned
@@ -363,6 +364,20 @@ fun TextView.readOnlySelectionInputConnection(outAttrs: EditorInfo): InputConnec
 fun TextView.releasePressedRippleOnSelection(selStart: Int, selEnd: Int) {
     if (selStart != selEnd && isPressed) {
         isPressed = false
+    }
+}
+
+// Framework bug: Editor's block-cached drawing of a DynamicLayout can read stale block ends after a
+// reflow (IndexOutOfBoundsException in getLineTop). Skip the frame and rebuild the layout instead.
+fun TextView.drawSurvivingStaleTextBlocks(canvas: Canvas, draw: () -> Unit) {
+    val saveCount = canvas.saveCount
+    try {
+        draw()
+    } catch (e: IndexOutOfBoundsException) {
+        if (layout !is DynamicLayout) throw e
+        canvas.restoreToCount(saveCount)
+        Timber.w(e, "Rebuilding text layout after a stale DynamicLayout draw (framework bug)")
+        post { text = text }
     }
 }
 

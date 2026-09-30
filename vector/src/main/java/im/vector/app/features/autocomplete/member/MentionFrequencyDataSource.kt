@@ -8,6 +8,7 @@
 package im.vector.app.features.autocomplete.member
 
 import im.vector.app.ActiveSessionDataSource
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,6 +24,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.flow.flow
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,7 +38,9 @@ class MentionFrequencyDataSource @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(
+            SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e -> Timber.w(e, "Failed to sync mention frequencies") }
+    )
     private val writeMutex = Mutex()
     private val lock = Any()
 

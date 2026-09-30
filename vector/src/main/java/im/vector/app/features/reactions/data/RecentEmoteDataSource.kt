@@ -8,6 +8,7 @@
 package im.vector.app.features.reactions.data
 
 import im.vector.app.ActiveSessionDataSource
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,6 +22,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,7 +39,9 @@ class RecentEmoteDataSource @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(
+            SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e -> Timber.w(e, "Failed to write recent emotes") }
+    )
     private val writeMutex = Mutex()
     private val pending = mutableListOf<RecentEmote>()
     private var flushJob: Job? = null

@@ -26,6 +26,7 @@ import im.vector.app.core.utils.TableSourceProvider
 import im.vector.app.core.utils.buildTableMarkdown
 import im.vector.app.core.utils.clampSelectionToCodeSpans
 import im.vector.app.core.utils.drawInlineCodeBackgrounds
+import im.vector.app.core.utils.drawSurvivingStaleTextBlocks
 import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
@@ -53,7 +54,7 @@ class ReadOnlySelectableTextView @JvmOverloads constructor(context: Context, sel
     }
 
     override fun onDraw(canvas: Canvas) {
-        drawInlineCodeBackgrounds(canvas) { super.onDraw(canvas) }
+        drawInlineCodeBackgrounds(canvas) { drawSurvivingStaleTextBlocks(canvas) { super.onDraw(canvas) } }
     }
 
     override val selectionFocus = ReadOnlySelectionFocus(this)
