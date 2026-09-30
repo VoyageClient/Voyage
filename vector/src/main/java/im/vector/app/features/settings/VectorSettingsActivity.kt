@@ -9,9 +9,15 @@ package im.vector.app.features.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.preference.Preference
@@ -67,30 +73,97 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
                 .allowBack()
 
         if (isFirstCreation()) {
-            // display the fragment
-
-            when (val payload = readPayload<SettingsActivityPayload>(SettingsActivityPayload.Root)) {
-                SettingsActivityPayload.General ->
-                    replaceFragment(views.vectorSettingsPage, VectorSettingsGeneralFragment::class.java, null, FRAGMENT_TAG)
-                SettingsActivityPayload.AdvancedSettings ->
-                    replaceFragment(views.vectorSettingsPage, VectorSettingsAdvancedSettingsFragment::class.java, null, FRAGMENT_TAG)
-                SettingsActivityPayload.SecurityPrivacy ->
-                    replaceFragment(views.vectorSettingsPage, VectorSettingsSecurityPrivacyFragment::class.java, null, FRAGMENT_TAG)
-                SettingsActivityPayload.SecurityPrivacyManageSessions ->
-                    replaceFragment(views.vectorSettingsPage, VectorSettingsDevicesFragment::class.java, null, FRAGMENT_TAG)
-                SettingsActivityPayload.Notifications -> {
-                    requestHighlightPreferenceKeyOnResume(VectorPreferences.SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY)
-                    replaceFragment(views.vectorSettingsPage, VectorSettingsNotificationFragment::class.java, null, FRAGMENT_TAG)
-                }
-                is SettingsActivityPayload.DiscoverySettings -> {
-                    replaceFragment(views.vectorSettingsPage, DiscoverySettingsFragment::class.java, payload, FRAGMENT_TAG)
-                }
-                else ->
-                    replaceFragment(views.vectorSettingsPage, VectorSettingsRootFragment::class.java, null, FRAGMENT_TAG)
-            }
+            showInitialFragment()
         }
 
         supportFragmentManager.addOnBackStackChangedListener(this)
+    }
+
+    private fun showInitialFragment() {
+        when (val payload = readPayload<SettingsActivityPayload>(SettingsActivityPayload.Root)) {
+            SettingsActivityPayload.General ->
+                replaceFragment(views.vectorSettingsPage, VectorSettingsGeneralFragment::class.java, null, FRAGMENT_TAG)
+            SettingsActivityPayload.AdvancedSettings ->
+                replaceFragment(views.vectorSettingsPage, VectorSettingsAdvancedSettingsFragment::class.java, null, FRAGMENT_TAG)
+            SettingsActivityPayload.SecurityPrivacy ->
+                replaceFragment(views.vectorSettingsPage, VectorSettingsSecurityPrivacyFragment::class.java, null, FRAGMENT_TAG)
+            SettingsActivityPayload.SecurityPrivacyManageSessions ->
+                replaceFragment(views.vectorSettingsPage, VectorSettingsDevicesFragment::class.java, null, FRAGMENT_TAG)
+            SettingsActivityPayload.Notifications -> {
+                requestHighlightPreferenceKeyOnResume(VectorPreferences.SETTINGS_ENABLE_THIS_DEVICE_PREFERENCE_KEY)
+                replaceFragment(views.vectorSettingsPage, VectorSettingsNotificationFragment::class.java, null, FRAGMENT_TAG)
+            }
+            is SettingsActivityPayload.DiscoverySettings -> {
+                replaceFragment(views.vectorSettingsPage, DiscoverySettingsFragment::class.java, payload, FRAGMENT_TAG)
+            }
+            else ->
+                replaceFragment(views.vectorSettingsPage, VectorSettingsRootFragment::class.java, null, FRAGMENT_TAG)
+        }
+    }
+
+    // Fragments pushed on top of the initial one, mirroring the back stack, so the stack can be rebuilt.
+    // Empty after a recreate or process death, when it no longer matches the restored back stack.
+    private val pushedFragments = mutableListOf<Pair<Class<out Fragment>, Bundle?>>()
+
+    /**
+     * Leave the top fragment and rebuild the ones below it from scratch, so they pick up a locale that was
+     * switched in place (their preferences and texts were built with the old one). Recreates the activity
+     * instead when the back stack can't be reconstructed.
+     */
+    fun popAndRebuildBackStack() {
+        val fragmentManager = supportFragmentManager
+        val count = fragmentManager.backStackEntryCount
+        if (count == 0 || pushedFragments.size != count) {
+            acknowledgeConfigurationChange()
+            recreate()
+            return
+        }
+        val remaining = pushedFragments.dropLast(1)
+        // Swapping the fragments under the leaving one cuts its exit animation short, so replay it on a snapshot.
+        val leavingSnapshot = fragmentManager.findFragmentById(views.vectorSettingsPage.id)?.view?.let { snapshotOf(it) }
+        // Everything below runs before the next frame, so the intermediate screens are never drawn, and the
+        // rebuilt top fades in like on a normal back.
+        fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        showInitialFragment()
+        remaining.forEachIndexed { index, (fragmentClass, arguments) ->
+            val enterAnim = if (index == remaining.lastIndex) R.anim.fade_in else 0
+            pushFragment(fragmentClass, arguments, enterAnim = enterAnim, exitAnim = 0)
+        }
+        fragmentManager.executePendingTransactions()
+        leavingSnapshot?.let { playExitAnimation(it) }
+    }
+
+    private fun snapshotOf(view: View): Bitmap? {
+        if (view.width == 0 || view.height == 0) return null
+        return try {
+            Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888).also { view.draw(Canvas(it)) }
+        } catch (oom: OutOfMemoryError) {
+            null
+        }
+    }
+
+    private fun playExitAnimation(snapshot: Bitmap) {
+        val page = views.vectorSettingsPage
+        val overlay = ImageView(this).apply {
+            setImageBitmap(snapshot)
+            x = page.left.toFloat()
+            y = (page.parent as View).top + page.top.toFloat()
+        }
+        views.coordinatorLayout.addView(overlay, CoordinatorLayout.LayoutParams(page.width, page.height))
+        overlay.startAnimation(AnimationUtils.loadAnimation(this, R.anim.right_out).apply {
+            // Keep the end state until the overlay is removed, or it flashes back for a frame.
+            fillAfter = true
+            setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation) = Unit
+                override fun onAnimationRepeat(animation: Animation) = Unit
+                override fun onAnimationEnd(animation: Animation) {
+                    overlay.post {
+                        views.coordinatorLayout.removeView(overlay)
+                        snapshot.recycle()
+                    }
+                }
+            })
+        })
     }
 
     override fun onDestroy() {
@@ -99,7 +172,9 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
     }
 
     override fun onBackStackChanged() {
-        if (0 == supportFragmentManager.backStackEntryCount) {
+        val count = supportFragmentManager.backStackEntryCount
+        while (pushedFragments.size > count) pushedFragments.removeAt(pushedFragments.lastIndex)
+        if (0 == count) {
             supportActionBar?.title = getString(getTitleRes())
         }
     }
@@ -124,6 +199,7 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
                     .replace(views.vectorSettingsPage.id, oFragment, pref.title.toString())
                     .addToBackStack(null)
                     .commit()
+            pushedFragments.add(oFragment.javaClass to oFragment.arguments)
             return true
         }
         return false
@@ -150,11 +226,16 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
     }
 
     fun <T : Fragment> navigateTo(fragmentClass: Class<T>, arguments: Bundle? = null) {
+        pushFragment(fragmentClass, arguments, enterAnim = R.anim.right_in, exitAnim = R.anim.fade_out)
+    }
+
+    private fun pushFragment(fragmentClass: Class<out Fragment>, arguments: Bundle?, enterAnim: Int, exitAnim: Int) {
         supportFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.right_in, R.anim.fade_out, R.anim.fade_in, R.anim.right_out)
+                .setCustomAnimations(enterAnim, exitAnim, R.anim.fade_in, R.anim.right_out)
                 .replace(views.vectorSettingsPage.id, fragmentClass, arguments)
                 .addToBackStack(null)
                 .commit()
+        pushedFragments.add(fragmentClass to arguments)
     }
 
     override fun mxToBottomSheetNavigateToRoom(roomId: String) {

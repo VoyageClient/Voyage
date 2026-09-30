@@ -15,10 +15,8 @@ import com.airbnb.mvrx.Uninitialized
 import im.vector.app.core.epoxy.errorWithRetryItem
 import im.vector.app.core.epoxy.loadingItem
 import im.vector.app.core.epoxy.noResultItem
-import im.vector.app.core.epoxy.profiles.profileSectionItem
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.core.utils.safeCapitalize
 import im.vector.app.features.settings.VectorLocale
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
@@ -39,28 +37,11 @@ class LocalePickerController @Inject constructor(
         val currentLocale = data.currentLocale ?: return
         val host = this
 
-        profileSectionItem {
-            id("currentTitle")
-            title(host.stringProvider.getString(CommonStrings.choose_locale_current_locale_title))
-        }
-        localeItem {
-            id(currentLocale.toString())
-            title(host.vectorLocale.localeToLocalisedString(currentLocale).safeCapitalize(currentLocale))
-            if (host.vectorPreferences.developerMode()) {
-                subtitle(host.vectorLocale.localeToLocalisedStringInfo(currentLocale))
-            }
-            clickListener { host.listener?.onUseCurrentClicked() }
-        }
-        profileSectionItem {
-            id("otherTitle")
-            title(host.stringProvider.getString(CommonStrings.choose_locale_other_locales_title))
-        }
         when (list) {
             Uninitialized,
             is Loading -> {
                 loadingItem {
                     id("loading")
-                    loadingText(host.stringProvider.getString(CommonStrings.choose_locale_loading_locales))
                 }
             }
             is Success ->
@@ -70,18 +51,22 @@ class LocalePickerController @Inject constructor(
                         text(host.stringProvider.getString(CommonStrings.no_result_placeholder))
                     }
                 } else {
-                    list()
-                            .filter { it.toString() != currentLocale.toString() }
-                            .forEach { locale ->
-                                localeItem {
-                                    id(locale.toString())
-                                    title(host.vectorLocale.localeToLocalisedString(locale).safeCapitalize(locale))
-                                    if (host.vectorPreferences.developerMode()) {
-                                        subtitle(host.vectorLocale.localeToLocalisedStringInfo(locale))
-                                    }
-                                    clickListener { host.listener?.onLocaleClicked(locale) }
-                                }
+                    val selectedLocale = findSelected(list(), currentLocale)
+                    list().forEach { locale ->
+                        val isSelected = locale == selectedLocale
+                        localeItem {
+                            id(locale.toString())
+                            flag(host.vectorLocale.localeToFlagEmoji(locale))
+                            title(host.vectorLocale.localeToLocalisedString(locale))
+                            if (host.vectorPreferences.developerMode()) {
+                                subtitle(host.vectorLocale.localeToLocalisedStringInfo(locale))
                             }
+                            selected(isSelected)
+                            clickListener {
+                                if (!isSelected) host.listener?.onLocaleClicked(locale)
+                            }
+                        }
+                    }
                 }
             is Fail ->
                 errorWithRetryItem {
@@ -91,8 +76,14 @@ class LocalePickerController @Inject constructor(
         }
     }
 
+    // The saved locale is restored without its script, and a device-default one may carry a region we don't
+    // ship, so neither is guaranteed to equal a list entry.
+    private fun findSelected(locales: List<Locale>, current: Locale): Locale? {
+        return locales.firstOrNull { it.language == current.language && it.country == current.country && it.variant == current.variant }
+                ?: locales.firstOrNull { it.language == current.language }
+    }
+
     interface Listener {
-        fun onUseCurrentClicked()
         fun onLocaleClicked(locale: Locale)
     }
 }

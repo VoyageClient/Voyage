@@ -14,6 +14,7 @@ import android.os.Build
 import androidx.core.content.edit
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.core.utils.safeCapitalize
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,6 +39,14 @@ class VectorLocale @Inject constructor(
         const val APPLICATION_LOCALE_LANGUAGE_KEY = "APPLICATION_LOCALE_LANGUAGE_KEY"
         private const val APPLICATION_LOCALE_SCRIPT_KEY = "APPLICATION_LOCALE_SCRIPT_KEY"
         private const val ISO_15924_LATN = "Latn"
+        private const val REGIONAL_INDICATOR_A = 0x1F1E6
+
+        // Locales whose values-* folder has no region.
+        private val DEFAULT_LANGUAGE_COUNTRY = mapOf(
+                "ar" to "SA",
+                "bn" to "BD",
+                "ur" to "PK",
+        )
     }
 
     private val defaultLocale = Locale("en", "US")
@@ -45,7 +54,8 @@ class VectorLocale @Inject constructor(
     /**
      * The cache of supported application languages.
      */
-    private val supportedLocales = mutableListOf<Locale>()
+    @Volatile
+    private var supportedLocales: List<Locale> = emptyList()
 
     /**
      * Provides the current application locale.
@@ -187,8 +197,7 @@ class VectorLocale @Inject constructor(
                 // sort by human display names
                 .sortedBy { localeToLocalisedString(it).lowercase(it) }
 
-        supportedLocales.clear()
-        supportedLocales.addAll(list)
+        supportedLocales = list
     }
 
     /**
@@ -197,23 +206,7 @@ class VectorLocale @Inject constructor(
      * @param locale the locale to convert
      * @return the string
      */
-    fun localeToLocalisedString(locale: Locale): String {
-        return buildString {
-            append(locale.getDisplayLanguage(locale))
-
-            val displayScript = displayScriptOf(locale)
-            if (scriptOf(locale) != ISO_15924_LATN && displayScript.isNotEmpty()) {
-                append(" - ")
-                append(displayScript)
-            }
-
-            if (locale.getDisplayCountry(locale).isNotEmpty()) {
-                append(" (")
-                append(locale.getDisplayCountry(locale))
-                append(")")
-            }
-        }
-    }
+    fun localeToLocalisedString(locale: Locale): String = describe(locale, locale)
 
     /**
      * Information about the locale in the current locale.
@@ -221,21 +214,55 @@ class VectorLocale @Inject constructor(
      * @param locale the locale to get info from
      * @return the string
      */
-    fun localeToLocalisedStringInfo(locale: Locale): String {
+    fun localeToLocalisedStringInfo(locale: Locale): String = describe(locale, Locale.getDefault())
+
+    private fun describe(locale: Locale, inLocale: Locale): String {
         return buildString {
-            append("[")
-            append(locale.displayLanguage)
-            val displayScript = displayScriptOf(locale)
-            if (scriptOf(locale) != ISO_15924_LATN && displayScript.isNotEmpty()) {
+            append(locale.getDisplayLanguage(inLocale))
+
+            val displayScript = displayScriptOf(locale, inLocale)
+            if (needsScript(locale) && displayScript.isNotEmpty()) {
                 append(" - ")
                 append(displayScript)
             }
-            if (locale.displayCountry.isNotEmpty()) {
+
+            val displayCountry = locale.getDisplayCountry(inLocale)
+            if (needsCountry(locale) && displayCountry.isNotEmpty()) {
                 append(" (")
-                append(locale.displayCountry)
+                append(displayCountry)
                 append(")")
             }
-            append("]")
+        }.safeCapitalize(inLocale) // Many languages lowercase language names ("español", "anglais").
+    }
+
+    // Only name the script when it tells two supported locales of the same language apart (zh Hans/Hant);
+    // otherwise it just repeats the language ("العربية - العربية").
+    private fun needsScript(locale: Locale): Boolean {
+        val script = scriptOf(locale)
+        if (script.isEmpty() || script == ISO_15924_LATN) return false
+        return supportedLocales.any { it.language == locale.language && scriptOf(it) != script }
+    }
+
+    // Likewise the country only matters when we ship several regional variants of the language (en US/GB).
+    private fun needsCountry(locale: Locale): Boolean {
+        return supportedLocales.any { it.language == locale.language && it.country != locale.country }
+    }
+
+    /**
+     * Whether [getSupportedLocales] can run without touching shared state: below API 17 the scan swaps the
+     * application resources' locale from a background thread, which is only safe while nothing else is drawing.
+     */
+    val canLoadLocalesInBackground: Boolean
+        get() = supportedLocales.isNotEmpty() || Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
+
+    /**
+     * Flag emoji for the locale's country, or for the language's main country when the locale has none.
+     */
+    fun localeToFlagEmoji(locale: Locale): String? {
+        val country = locale.country.ifEmpty { DEFAULT_LANGUAGE_COUNTRY[locale.language].orEmpty() }
+        if (country.length != 2 || !country.all { it in 'A'..'Z' }) return null
+        return buildString {
+            country.forEach { appendCodePoint(REGIONAL_INDICATOR_A + (it - 'A')) }
         }
     }
 
@@ -245,8 +272,8 @@ class VectorLocale @Inject constructor(
     private fun scriptOf(locale: Locale): String =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) LocaleScriptCompat.script(locale) else ""
 
-    private fun displayScriptOf(locale: Locale): String =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) LocaleScriptCompat.displayScript(locale, locale) else ""
+    private fun displayScriptOf(locale: Locale, inLocale: Locale): String =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) LocaleScriptCompat.displayScript(locale, inLocale) else ""
 
     suspend fun getSupportedLocales(): List<Locale> {
         if (supportedLocales.isEmpty()) {

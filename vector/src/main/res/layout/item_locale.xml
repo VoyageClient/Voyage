@@ -9,18 +9,35 @@
     tools:viewBindingIgnore="true">
 
     <TextView
+        android:id="@+id/localeFlag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginLeft="@dimen/layout_horizontal_margin"
+        android:includeFontPadding="false"
+        android:textSize="24sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="🇺🇸"
+        tools:visibility="visible" />
+
+    <TextView
         android:id="@+id/localeTitle"
         style="@style/Widget.Vector.TextView.Subtitle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/layout_horizontal_margin"
         android:paddingLeft="@dimen/layout_horizontal_margin"
         android:paddingEnd="@dimen/layout_horizontal_margin"
         android:paddingRight="@dimen/layout_horizontal_margin"
         android:textColor="?vctr_content_primary"
+        app:layout_constrainedWidth="true"
         app:layout_constraintBottom_toTopOf="@id/localeSubtitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/localeRadio"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/localeFlag"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="English" />
@@ -28,7 +45,7 @@
     <TextView
         android:id="@+id/localeSubtitle"
         style="@style/Widget.Vector.TextView.Body"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/layout_horizontal_margin"
         android:paddingLeft="@dimen/layout_horizontal_margin"
@@ -36,11 +53,32 @@
         android:paddingRight="@dimen/layout_horizontal_margin"
         android:textColor="?vctr_content_secondary"
         android:visibility="gone"
+        app:layout_constrainedWidth="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/localeRadio"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/localeFlag"
         app:layout_constraintTop_toBottomOf="@id/localeTitle"
         tools:text="details"
+        tools:visibility="visible" />
+
+    <!-- The row handles taps. The drawable insets its circle 6dp, so 10dp puts it 16dp from the edge like the flag. -->
+    <RadioButton
+        android:id="@+id/localeRadio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:visibility="gone"
+        app:buttonTint="@color/radio_button_tint_selector"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:checked="true"
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -567,8 +567,6 @@
         <item quantity="other">%d秒</item>
     </plurals>
     <string name="settings_advanced_settings">高度な設定</string>
-    <string name="choose_locale_current_locale_title">現在の言語</string>
-    <string name="choose_locale_other_locales_title">他の利用可能な言語</string>
     <string name="settings_preferences">環境設定</string>
     <string name="settings_secure_backup_enter_to_setup">この端末で設定</string>
     <string name="creating_direct_room">ルームを作成しています…</string>
@@ -1476,7 +1474,6 @@
     <string name="room_settings_space_access_title">スペースへのアクセス</string>
     <string name="legals_no_policy_provided">このサーバーは運営方針を提供していません。</string>
     <string name="bootstrap_loading_text">数秒かかるかもしれません。少々お待ちください。</string>
-    <string name="choose_locale_loading_locales">利用可能な言語を読み込んでいます…</string>
     <string name="invite_users_to_room_title">ユーザーを招待</string>
     <string name="inviting_users_to_room">ユーザーを招待しています…</string>
     <string name="error_empty_field_choose_password">パスワードを選択してください。</string>

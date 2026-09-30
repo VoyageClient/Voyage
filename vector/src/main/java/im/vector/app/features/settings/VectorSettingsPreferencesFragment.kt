@@ -407,6 +407,13 @@ class VectorSettingsPreferencesFragment :
     private fun setUserInterfacePreferences() {
         // Selected language
         selectedLanguagePreference.summary = vectorLocale.localeToLocalisedString(vectorLocale.applicationLocale)
+        // The display name depends on which other locales we ship (country/script only when ambiguous).
+        if (vectorLocale.canLoadLocalesInBackground) {
+            lifecycleScope.launch {
+                vectorLocale.getSupportedLocales()
+                selectedLanguagePreference.summary = vectorLocale.localeToLocalisedString(vectorLocale.applicationLocale)
+            }
+        }
 
         // Text size
         textSizePreference.summary = getString(fontScalePreferences.getResolvedFontScaleValue().nameResId)

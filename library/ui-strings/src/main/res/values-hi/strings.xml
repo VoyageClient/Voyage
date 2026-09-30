@@ -1856,9 +1856,6 @@
     <string name="invite_unknown_users_dialog_content">नीचे दी गई Matrix ID के लिए प्रोफ़ाइल नहीं मिलीं। क्या आप फिर भी उन्हें आमंत्रित करना चाहते हैं?\n\n%s</string>
     <string name="invite_unknown_users_dialog_submit">फिर भी आमंत्रित करें</string>
     <string name="user_code_my_code">मेरा कोड</string>
-    <string name="choose_locale_current_locale_title">मौजूदा भाषा</string>
-    <string name="choose_locale_other_locales_title">अन्य उपलब्ध भाषाएं</string>
-    <string name="choose_locale_loading_locales">उपलब्ध भाषाएं लोड हो रही हैं…</string>
     <string name="open_terms_of">%s की शर्तें खोलें</string>
     <string name="disconnect_identity_server_dialog_content">पहचान सर्वर %s से डिस्कनेक्ट करें?</string>
     <string name="identity_server_error_outdated_identity_server">यह पहचान सर्वर पुराना है। ${app_name} केवल API V2 का समर्थन करता है।</string>

@@ -1010,9 +1010,6 @@
         <item quantity="other">Invitaciones enviadas a %1$s y a %2$d más</item>
     </plurals>
     <string name="invite_users_to_room_failure">No se pudo invitar el usuario. Por favor, intente nuevamente.</string>
-    <string name="choose_locale_current_locale_title">Idioma actual</string>
-    <string name="choose_locale_other_locales_title">Otros idiomas disponibles</string>
-    <string name="choose_locale_loading_locales">Cargando lenguajes disponibles…</string>
     <string name="open_terms_of">Leer los terminos de %s</string>
     <string name="disconnect_identity_server_dialog_content">Desconectarse del servidor de Identidad %s\?</string>
     <string name="identity_server_error_outdated_identity_server">Servidor de identidad desactualizado. ${app_name} solo soporta API V2.</string>

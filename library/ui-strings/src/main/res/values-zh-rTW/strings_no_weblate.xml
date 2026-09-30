@@ -3,6 +3,6 @@
 
     <string name="resources_language">zh</string>
     <string name="resources_country_code">TW</string>
-    <string name="resources_script">Latn</string>
+    <string name="resources_script">Hant</string>
 
 </resources>

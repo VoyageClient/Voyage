@@ -1313,9 +1313,6 @@
     <string name="login_signin_matrix_id_error_invalid_matrix_id">Ce n’est pas un identifiant d’utilisateur valide. Format attendu : « @utilisateur:serveuraccueil.org »</string>
     <string name="autodiscover_well_known_error">Impossible de trouver un serveur d’accueil valide. Veuillez vérifier votre identifiant</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Le mode avion est activé</string>
-    <string name="choose_locale_current_locale_title">Langue actuelle</string>
-    <string name="choose_locale_other_locales_title">Autres langues disponibles</string>
-    <string name="choose_locale_loading_locales">Chargement des langues disponibles…</string>
     <string name="open_terms_of">Ouvrir les termes de %s</string>
     <string name="disconnect_identity_server_dialog_content">Se déconnecter du serveur d’identité %s \?</string>
     <string name="identity_server_error_outdated_identity_server">Ce serveur d’identité est obsolète. ${app_name} ne prend en charge que l’API V2.</string>

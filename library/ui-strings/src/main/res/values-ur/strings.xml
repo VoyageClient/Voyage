@@ -1868,9 +1868,6 @@
     <string name="invite_unknown_users_dialog_content">نیچے درج Matrix IDs کے پروفائل نہیں مل سکے۔ کیا آپ پھر بھی انہیں مدعو کرنا چاہیں گے؟\n\n%s</string>
     <string name="invite_unknown_users_dialog_submit">پھر بھی مدعو کریں</string>
     <string name="user_code_my_code">میرا کوڈ</string>
-    <string name="choose_locale_current_locale_title">موجودہ زبان</string>
-    <string name="choose_locale_other_locales_title">دیگر دستیاب زبانیں</string>
-    <string name="choose_locale_loading_locales">دستیاب زبانیں لوڈ ہو رہی ہیں…</string>
     <string name="open_terms_of">%s کی شرائط کھولیں</string>
     <string name="disconnect_identity_server_dialog_content">شناختی سرور %s سے منقطع کریں؟</string>
     <string name="identity_server_error_outdated_identity_server">یہ شناختی سرور پرانا ہے۔ ${app_name} صرف API V2 کی معاونت کرتا ہے۔</string>

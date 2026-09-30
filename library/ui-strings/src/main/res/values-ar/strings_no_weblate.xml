@@ -3,5 +3,6 @@
 
     <string name="resources_language">ar</string>
     <string name="resources_country_code">""</string>
+    <string name="resources_script">Arab</string>
 
 </resources>

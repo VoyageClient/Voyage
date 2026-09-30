@@ -3,5 +3,6 @@
 
     <string name="resources_language">ja</string>
     <string name="resources_country_code">JP</string>
+    <string name="resources_script">Jpan</string>
 
 </resources>

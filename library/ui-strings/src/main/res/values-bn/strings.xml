@@ -1910,9 +1910,6 @@
     <string name="invite_unknown_users_dialog_content">নিচে তালিকাভুক্ত Matrix আইডিগুলির প্রোফাইল খুঁজে পাওয়া যায়নি। তবুও কি তাঁদের আমন্ত্রণ জানাতে চান?\n\n%s</string>
     <string name="invite_unknown_users_dialog_submit">তবুও আমন্ত্রণ জানান</string>
     <string name="user_code_my_code">আমার কোড</string>
-    <string name="choose_locale_current_locale_title">বর্তমান ভাষা</string>
-    <string name="choose_locale_other_locales_title">অন্যান্য উপলব্ধ ভাষা</string>
-    <string name="choose_locale_loading_locales">উপলব্ধ ভাষাগুলি লোড হচ্ছে…</string>
     <string name="open_terms_of">%s-এর শর্তাবলি খুলুন</string>
     <string name="disconnect_identity_server_dialog_content">%s আইডেন্টিটি সার্ভার থেকে সংযোগ বিচ্ছিন্ন করবেন?</string>
     <string name="identity_server_error_outdated_identity_server">এই আইডেন্টিটি সার্ভারটি পুরানো। ${app_name} শুধু API V2 সমর্থন করে।</string>

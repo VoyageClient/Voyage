@@ -1322,9 +1322,6 @@
         <item quantity="other">邀请已发送到 %1$s 和 %2$d等</item>
     </plurals>
     <string name="invite_users_to_room_failure">我们无法邀请用户，请检查你想要邀请的用户并重试。</string>
-    <string name="choose_locale_current_locale_title">当前语言</string>
-    <string name="choose_locale_other_locales_title">其它可用语言</string>
-    <string name="choose_locale_loading_locales">正在载入可用语言…</string>
     <string name="open_terms_of">打开 %s 条款</string>
     <string name="disconnect_identity_server_dialog_content">是否从身份服务器 %s 断开？</string>
     <string name="identity_server_error_outdated_identity_server">身份服务器已过期。${app_name} 仅支持 API V2。</string>

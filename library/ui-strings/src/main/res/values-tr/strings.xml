@@ -1939,9 +1939,6 @@
     <string name="invite_unknown_users_dialog_content">Aşağıda listelenen Matrix kimlikleri için profil bulunamadı. Yine de davet etmek istiyor musunuz?\n\n%s</string>
     <string name="invite_unknown_users_dialog_submit">Yine de davet et</string>
     <string name="user_code_my_code">Kodum</string>
-    <string name="choose_locale_current_locale_title">Geçerli dil</string>
-    <string name="choose_locale_other_locales_title">Diğer kullanılabilir diller</string>
-    <string name="choose_locale_loading_locales">Kullanılabilir diller yükleniyor…</string>
     <string name="open_terms_of">%s şartlarını aç</string>
     <string name="disconnect_identity_server_dialog_content">%s kimlik sunucusuyla bağlantı kesilsin mi?</string>
     <string name="identity_server_error_outdated_identity_server">Bu kimlik sunucusu güncel değil. ${app_name} yalnızca API V2\'yi destekler.</string>

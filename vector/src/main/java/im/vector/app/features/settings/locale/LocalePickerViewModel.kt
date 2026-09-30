@@ -58,6 +58,7 @@ class LocalePickerViewModel @AssistedInject constructor(
     private fun handleSelectLocale(action: LocalePickerAction.SelectLocale) {
         vectorLocale.saveApplicationLocale(action.locale)
         vectorConfiguration.applyToApplicationContext()
-        _viewEvents.post(LocalePickerViewEvents.RestartActivity)
+        setState { copy(currentLocale = action.locale) }
+        _viewEvents.post(LocalePickerViewEvents.LocaleApplied)
     }
 }

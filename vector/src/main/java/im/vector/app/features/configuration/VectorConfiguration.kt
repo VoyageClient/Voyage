@@ -9,6 +9,7 @@ package im.vector.app.features.configuration
 
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import androidx.annotation.RequiresApi
@@ -51,6 +52,25 @@ class VectorConfiguration @Inject constructor(
         config.fontScale = fontScale.scale
         @Suppress("DEPRECATION")
         context.resources.updateConfiguration(config, context.resources.displayMetrics)
+    }
+
+    /**
+     * Switch a live activity's resources to the current application locale, so views inflated or re-bound from
+     * now on pick it up without recreating the activity.
+     */
+    @Suppress("DEPRECATION")
+    fun applyToResources(resources: Resources) {
+        val locale = vectorLocale.applicationLocale
+        val configuration = Configuration(resources.configuration)
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> setLocaleForApi24(configuration, locale)
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 -> configuration.setLocale(locale)
+            else -> configuration.locale = locale
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            configuration.setLayoutDirection(locale)
+        }
+        resources.updateConfiguration(configuration, resources.displayMetrics)
     }
 
     /**
