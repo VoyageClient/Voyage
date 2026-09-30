@@ -37,6 +37,34 @@ class CommandParserTest {
     }
 
     @Test
+    fun parseRawMessageCommand() {
+        test(
+                """/rawmsg {"msgtype": "m.text", "body": "hi  there"}""",
+                ParsedCommand.SendRawEvent("m.room.message", """{"msgtype": "m.text", "body": "hi  there"}""")
+        )
+        test("/rawmsg", ParsedCommand.SendRawEvent("m.room.message", ""))
+    }
+
+    @Test
+    fun parseRawEventCommand() {
+        test("""/raw org.example.custom {"a": [1, 2.5]}""", ParsedCommand.SendRawEvent("org.example.custom", """{"a": [1, 2.5]}"""))
+        test("/raw org.example.custom", ParsedCommand.SendRawEvent("org.example.custom", ""))
+        test("""/raw {"a": 1}""", ParsedCommand.SendRawEvent(null, """{"a": 1}"""))
+        test("/raw", ParsedCommand.SendRawEvent(null, ""))
+    }
+
+    @Test
+    fun parseRawStateCommand() {
+        test("""/rawstate m.room.topic {"topic": "hi"}""", ParsedCommand.SendRawStateEvent("m.room.topic", "", """{"topic": "hi"}"""))
+        test(
+                """/rawstate org.example.state key:@a:b.c {"a": 1}""",
+                ParsedCommand.SendRawStateEvent("org.example.state", "@a:b.c", """{"a": 1}""")
+        )
+        test("/rawstate org.example.state key:", ParsedCommand.SendRawStateEvent("org.example.state", "", ""))
+        test("""/rawstate {"a": 1}""", ParsedCommand.SendRawStateEvent(null, "", """{"a": 1}"""))
+    }
+
+    @Test
     fun parseSlashAddToSpaceCommand() {
         test("/addToSpace $A_SPACE_ID", ParsedCommand.AddToSpace(A_SPACE_ID))
     }

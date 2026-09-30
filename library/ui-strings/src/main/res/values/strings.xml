@@ -3493,6 +3493,9 @@
     <string name="command_description_mass_redact">Redact messages from the given user in this room; type:all also redacts their other events</string>
     <string name="command_description_download">Download the file at the given mxc:// URL</string>
     <string name="command_description_view">Open the file at the given mxc:// URL</string>
+    <string name="command_description_rawmsg">Send a message event with the given JSON content</string>
+    <string name="command_description_raw">Send an event with the given JSON content</string>
+    <string name="command_description_rawstate">Send a state event with the given JSON content</string>
     <string name="file_has_been_downloaded">File has been downloaded!</string>
     <plurals name="steps_away_from_kitkat">
         <item quantity="one">You are now %1$d step away from GNU/KitKat.</item>

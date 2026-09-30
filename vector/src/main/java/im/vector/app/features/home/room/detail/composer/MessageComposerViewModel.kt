@@ -26,6 +26,7 @@ import im.vector.app.features.autocomplete.command.msc4391CommandContent
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.CommandParser
 import im.vector.app.features.command.ParsedCommand
+import im.vector.app.features.devtools.DevToolsJson
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.list.watched.WatchedRooms
@@ -103,6 +104,7 @@ import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import org.matrix.android.sdk.flow.flow
@@ -939,6 +941,12 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.SendCustomStateEvent -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
+                        }
+                        is ParsedCommand.SendRawEvent -> {
+                            handleSendRawEventSlashCommand(room, parsedCommand)
+                        }
+                        is ParsedCommand.SendRawStateEvent -> {
+                            handleSendRawStateEventSlashCommand(room, parsedCommand)
                         }
                         is ParsedCommand.ClearScalarToken -> {
                             // TODO
@@ -2733,6 +2741,32 @@ class MessageComposerViewModel @AssistedInject constructor(
             // The notification can be suppressed (no notification permission) — confirm in-app too.
             _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.file_has_been_downloaded)))
         }
+    }
+
+    private fun handleSendRawEventSlashCommand(room: Room, parsedCommand: ParsedCommand.SendRawEvent) {
+        launchSlashCommandFlowSuspendable(room, parsedCommand) {
+            val (eventType, content) = rawEventTypeAndContent(parsedCommand.eventType, parsedCommand.json)
+            withContext(Dispatchers.Default) { room.sendService().sendEvent(eventType, content) }
+        }
+    }
+
+    private fun handleSendRawStateEventSlashCommand(room: Room, parsedCommand: ParsedCommand.SendRawStateEvent) {
+        launchSlashCommandFlowSuspendable(room, parsedCommand) {
+            val (eventType, content) = rawEventTypeAndContent(parsedCommand.eventType, parsedCommand.json)
+            val encrypt = true.takeIf { session.cryptoService().isStateEncryptionEnabled(room.roomId) }
+            room.stateService().sendStateEvent(eventType, parsedCommand.stateKey, content, encrypt)
+        }
+    }
+
+    // Validated in the same order and with the same messages as the devtools send form.
+    private fun rawEventTypeAndContent(eventType: String?, json: String): Pair<String, JsonDict> {
+        val parsed = DevToolsJson.parseLeniently(json)
+                ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_content))
+        eventType ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_message_type))
+        // A whole event pasted from "View source" sends its content.
+        val eventContent = parsed["content"]
+        @Suppress("UNCHECKED_CAST")
+        return eventType to if (parsed["type"] is String && eventContent is Map<*, *>) eventContent as JsonDict else parsed
     }
 
     private fun handleViewSlashCommand(room: Room, parsedCommand: ParsedCommand.ViewFile) {

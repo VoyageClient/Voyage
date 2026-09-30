@@ -15,6 +15,7 @@ import im.vector.app.features.translation.TranslationLanguages
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.isEmail
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
@@ -406,6 +407,19 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.SEND_STATE)
                     }
                 }
+                Command.RAW_MESSAGE.matches(slashCommand) -> {
+                    ParsedCommand.SendRawEvent(EventType.MESSAGE, extractMessage(textMessage)?.second?.toString() ?: "")
+                }
+                Command.RAW_EVENT.matches(slashCommand) -> {
+                    val (eventType, json) = splitRawEventArgs(extractMessage(textMessage)?.second?.toString() ?: "")
+                    ParsedCommand.SendRawEvent(eventType, json)
+                }
+                Command.RAW_STATE.matches(slashCommand) -> {
+                    val (eventType, rest) = splitRawEventArgs(extractMessage(textMessage)?.second?.toString() ?: "")
+                    val keyArg = rest.takeWhile { !it.isWhitespace() }.takeIf { it.startsWith(STATE_KEY_OPTION, ignoreCase = true) }
+                    val json = if (keyArg != null) rest.substring(keyArg.length).trim() else rest
+                    ParsedCommand.SendRawStateEvent(eventType, keyArg?.substring(STATE_KEY_OPTION.length) ?: "", json)
+                }
                 Command.CLEAR_SCALAR_TOKEN.matches(slashCommand) -> {
                     if (messageParts.size == 1) {
                         ParsedCommand.ClearScalarToken
@@ -697,6 +711,11 @@ class CommandParser @Inject constructor(
         return ParsedCommand.MassRedact(userId, delayMs, MassRedactionRange(fromTs, toTs, messagesOnly ?: true))
     }
 
+    private fun splitRawEventArgs(args: String): Pair<String?, String> {
+        val eventType = args.takeWhile { !it.isWhitespace() }.takeIf { it.isNotEmpty() && !it.startsWith("{") }
+        return eventType to args.substring(eventType?.length ?: 0).trim()
+    }
+
     /** Splits a /ban or /kick tail into its reason and the `massredact` flag, which may sit on either side. */
     private fun parseModerationTail(textMessage: CharSequence, messageParts: List<String>): Pair<String?, Boolean> {
         val isFlag = { part: String? -> part?.lowercase() == REDACT_OPTION }
@@ -718,5 +737,6 @@ class CommandParser @Inject constructor(
 
     companion object {
         private const val REDACT_OPTION = "massredact"
+        private const val STATE_KEY_OPTION = "key:"
     }
 }

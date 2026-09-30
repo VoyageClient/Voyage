@@ -64,6 +64,8 @@ sealed interface ParsedCommand {
     object DevTools : ParsedCommand
     object SendCustomEvent : ParsedCommand
     object SendCustomStateEvent : ParsedCommand
+    data class SendRawEvent(val eventType: String?, val json: String) : ParsedCommand
+    data class SendRawStateEvent(val eventType: String?, val stateKey: String, val json: String) : ParsedCommand
     data class SendSpoiler(val message: CharSequence) : ParsedCommand
     data class SendShrug(val message: CharSequence) : ParsedCommand
     data class SendTableFlip(val message: CharSequence) : ParsedCommand

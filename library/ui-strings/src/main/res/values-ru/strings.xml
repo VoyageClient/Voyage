@@ -3598,4 +3598,7 @@
     <string name="timeline_history_unavailable_before_invite">У вас нет разрешения на просмотр сообщений, полученных до того, как вы были приглашены.</string>
     <string name="notice_power_levels_changed">%1$s изменил(а) разрешения комнаты.</string>
     <string name="notice_power_levels_changed_by_you">Вы изменили разрешения комнаты.</string>
+    <string name="command_description_rawmsg">Отправить событие сообщения с указанным JSON-содержимым</string>
+    <string name="command_description_raw">Отправить событие с указанным JSON-содержимым</string>
+    <string name="command_description_rawstate">Отправить событие состояния с указанным JSON-содержимым</string>
 </resources>

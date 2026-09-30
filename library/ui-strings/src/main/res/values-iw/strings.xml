@@ -3582,4 +3582,7 @@
     <string name="timeline_history_unavailable_before_invite">אין לך הרשאה לצפות בהודעות שנשלחו לפני שהוזמנת.</string>
     <string name="notice_power_levels_changed">%1$s שינה את הרשאות החדר.</string>
     <string name="notice_power_levels_changed_by_you">שינית את הרשאות החדר.</string>
+    <string name="command_description_rawmsg">שלח אירוע הודעה עם תוכן ה-JSON שצוין</string>
+    <string name="command_description_raw">שלח אירוע עם תוכן ה-JSON שצוין</string>
+    <string name="command_description_rawstate">שלח אירוע מצב עם תוכן ה-JSON שצוין</string>
 </resources>

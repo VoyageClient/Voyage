@@ -3636,4 +3636,7 @@
     <string name="timeline_history_unavailable_before_invite">ليس لديك إذن بعرض الرسائل المرسلة قبل دعوتك.</string>
     <string name="notice_power_levels_changed">غيّر %1$s أذونات الغرفة.</string>
     <string name="notice_power_levels_changed_by_you">غيّرت أذونات الغرفة.</string>
+    <string name="command_description_rawmsg">إرسال حدث رسالة بمحتوى JSON المحدد</string>
+    <string name="command_description_raw">إرسال حدث بمحتوى JSON المحدد</string>
+    <string name="command_description_rawstate">إرسال حدث حالة بمحتوى JSON المحدد</string>
 </resources>
