@@ -3432,4 +3432,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <plurals name="settings_ua_downloaded">
         <item quantity="other">%1$d dari %2$d sumber telah diunduh.</item>
     </plurals>
+    <string name="timeline_history_unavailable">Anda tidak dapat melihat pesan-pesan awal</string>
+    <string name="timeline_history_unavailable_before_join">Anda tidak memiliki izin untuk melihat pesan-pesan sebelum Anda bergabung.</string>
+    <string name="timeline_history_unavailable_before_invite">Anda tidak memiliki izin untuk melihat pesan-pesan sebelum Anda diundang.</string>
 </resources>

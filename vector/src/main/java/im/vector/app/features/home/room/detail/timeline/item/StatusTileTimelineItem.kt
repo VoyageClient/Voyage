@@ -11,8 +11,8 @@ import android.graphics.Typeface
 import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -55,7 +55,7 @@ abstract class StatusTileTimelineItem : AbsBaseMessageItem<StatusTileTimelineIte
         }
 
         holder.titleView.setCompoundDrawablesWithIntrinsicBounds(
-                ContextCompat.getDrawable(holder.view.context, startDrawable),
+                AppCompatResources.getDrawable(holder.view.context, startDrawable),
                 null, null, null
         )
 

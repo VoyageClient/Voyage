@@ -3445,4 +3445,7 @@
         <item quantity="one">%2$d টি উৎসের মধ্যে %1$d টি ডাউনলোড হয়েছে।</item>
         <item quantity="other">%2$d টি উৎসের মধ্যে %1$d টি ডাউনলোড হয়েছে।</item>
     </plurals>
+    <string name="timeline_history_unavailable">আপনি আগের বার্তাগুলো দেখতে পারবেন না</string>
+    <string name="timeline_history_unavailable_before_join">আপনার যোগ দেওয়ার আগের বার্তাগুলো দেখার অনুমতি আপনার নেই।</string>
+    <string name="timeline_history_unavailable_before_invite">আপনাকে আমন্ত্রণ জানানোর আগের বার্তাগুলো দেখার অনুমতি আপনার নেই।</string>
 </resources>

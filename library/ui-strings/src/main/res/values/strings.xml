@@ -1767,6 +1767,9 @@
     <string name="direct_room_join_rules_invite">%1$s made this invite only.</string>
     <string name="direct_room_join_rules_invite_by_you">You made this invite only.</string>
     <string name="timeline_unread_messages">Unread messages</string>
+    <string name="timeline_history_unavailable">You can\'t see earlier messages</string>
+    <string name="timeline_history_unavailable_before_join">You don\'t have permission to view messages from before you joined.</string>
+    <string name="timeline_history_unavailable_before_invite">You don\'t have permission to view messages from before you were invited.</string>
 
     <!--  Onboarding -->
     <string name="ftue_auth_carousel_secure_title">Own your conversations.</string>

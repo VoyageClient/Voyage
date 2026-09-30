@@ -3582,4 +3582,7 @@
     <string name="settings_security_pin_code_grace_period_summary_on">קוד PIN נדרש אחרי 2 דקות שבהן לא השתמשת ב-${app_name}.</string>
     <string name="settings_security_pin_code_grace_period_summary_off">קוד PIN נדרש בכל פעם שאתה פותח את ${app_name}.</string>
     <string name="identity_server_error_bulk_sha256_not_supported">למען פרטיותך, ${app_name} תומך רק בשליחת כתובות דוא\"ל ומספרי טלפון מגובבים.</string>
+    <string name="timeline_history_unavailable">לא ניתן לצפות בהודעות קודמות</string>
+    <string name="timeline_history_unavailable_before_join">אין לך הרשאה לצפות בהודעות שנשלחו לפני שהצטרפת.</string>
+    <string name="timeline_history_unavailable_before_invite">אין לך הרשאה לצפות בהודעות שנשלחו לפני שהוזמנת.</string>
 </resources>

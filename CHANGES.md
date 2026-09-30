@@ -24,6 +24,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Upgraded rooms stay in your list**: when a room is upgraded to a new version, the old room is no longer hidden. It keeps the history that never moved across, and stays reachable from the room list.
 
+- **Hidden history notice**: when a room's earlier messages are hidden from you, the top of the timeline says so, and why when it's because of when you joined or were invited.
+
 - **Room knocking**: request access to rooms that require it, including rooms that combine both rules (MSC3787), where members of a chosen space join directly and everyone else asks to join. Room settings offer it and the room preview shows the right action. Join-rule changes also read correctly in the timeline for knock and restricted rooms, which previously showed nothing at all.
 
 - **Room creation**: an overhauled room-creation wizard, with a per-room Personalization page alongside it.

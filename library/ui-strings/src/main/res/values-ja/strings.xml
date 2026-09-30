@@ -3426,4 +3426,7 @@
     <plurals name="settings_ua_downloaded">
         <item quantity="other">%2$d件中%1$d件のソースをダウンロードしました。</item>
     </plurals>
+    <string name="timeline_history_unavailable">以前のメッセージは表示できません</string>
+    <string name="timeline_history_unavailable_before_join">参加する前のメッセージを表示する権限がありません。</string>
+    <string name="timeline_history_unavailable_before_invite">招待される前のメッセージを表示する権限がありません。</string>
 </resources>

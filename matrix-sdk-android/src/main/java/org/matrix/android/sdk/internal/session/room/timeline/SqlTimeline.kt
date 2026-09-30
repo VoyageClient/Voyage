@@ -93,6 +93,15 @@ internal class SqlTimeline(
     // (hidden/redacted) events it stays on screen, so serialize the requests to avoid piling up fetches.
     private val backwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
     private val forwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    // Gave up paging through history hidden from us. Not the room start or the live edge: only this position
+    // stops asking, and the next seed or timeline resumes from the stored token.
+    @Volatile private var gaveUpOnHiddenOlder = false
+
+    // Room-start pages fetched by a jump are dropped on dispose unless they joined the live range, so a later
+    // open pages back from the live edge as if the jump never happened. Ranges from before the jump are kept.
+    private val jumpedStartEventIds = java.util.concurrent.CopyOnWriteArraySet<String>()
+    @Volatile private var rangesBeforeJump: Set<Long>? = null
     private var observeJob: Job? = null
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
@@ -319,6 +328,27 @@ internal class SqlTimeline(
             }
         } else {
             timelineScope.coroutineContext.cancelChildren()
+            dropJumpedStartRanges()
+        }
+    }
+
+    private fun dropJumpedStartRanges() {
+        val anchors = jumpedStartEventIds.toList().ifEmpty { return }
+        val keep = rangesBeforeJump.orEmpty()
+        jumpedStartEventIds.clear()
+        // Keep the scope alive just long enough to commit it, as for the thread chunk.
+        timelineScope.launch {
+            tryOrNull("SqlTimeline $roomId jumped room-start cleanup failed") {
+                database.awaitDbTransaction(sessionDispatcher) {
+                    val live = stores.chunk.lastForward(roomId)?.id
+                    anchors.mapNotNullTo(HashSet()) { stores.chunk.findMainChunkIdIncludingEvent(roomId, it) }
+                            .filter { it != live && it !in keep }
+                            .forEach { rangeId ->
+                                stores.timelineEvent.deleteByChunk(rangeId)
+                                stores.chunk.deleteById(rangeId)
+                            }
+                }
+            }
         }
     }
 
@@ -351,6 +381,8 @@ internal class SqlTimeline(
         // event — that fails outright on room v12, where its id is the room hash — and finally to the
         // oldest event we already hold.
         var anchor = targetEventId?.takeIf { stores.chunk.findChunkIdIncludingEvent(roomId, it) != null }
+        val rangesBefore = stores.chunk.getByRoom(roomId).mapTo(HashSet()) { it.id }
+        if (rangesBeforeJump == null) rangesBeforeJump = rangesBefore
         if (anchor == null) {
             anchor = tryOrNull("SqlTimeline $roomId room-start fetch failed") {
                 fetchRoomStartTask.execute(FetchRoomStartTask.Params(roomId, expectedFirstEventId = targetEventId))
@@ -364,6 +396,7 @@ internal class SqlTimeline(
             seedChunk = oldestLoadedChunkId()
             anchor = seedChunk?.let { oldestEventIdInChunk(it) }
         }
+        if (anchor != null && seedChunk != null && seedChunk !in rangesBefore) jumpedStartEventIds.add(anchor)
         pendingShowEventId = anchor
         oldestShownEventId = null
         newestShownEventId = null
@@ -494,6 +527,7 @@ internal class SqlTimeline(
         liveChunkRowCap = liveChunkRowStep
         liveChunkFullyMapped = false
         liveEdgeLoaded = false
+        gaveUpOnHiddenOlder = false
         if (seedChunkId == null) return
         loadedChunkIds.add(seedChunkId)
         // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
@@ -640,8 +674,7 @@ internal class SqlTimeline(
                         updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
                     }
                     oldestPrevToken != null -> {
-                        val page = paginate(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
-                        invalidateAfterServerPage(rowsMoved = page.rowsMoved)
+                        paginateThroughHidden(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
                         // The page is written into this range, and any range it turned out to overlap has
                         // been folded into it, so the older history is simply part of the range now.
                         revealAfterBackwardFetch()
@@ -691,8 +724,7 @@ internal class SqlTimeline(
                 when {
                     newest.is_last_forward != 0L -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
                     newestNextToken != null -> {
-                        val page = paginate(newestNextToken, Timeline.Direction.FORWARDS, count, newest.id)
-                        invalidateAfterServerPage(rowsMoved = page.rowsMoved)
+                        paginateThroughHidden(newestNextToken, Timeline.Direction.FORWARDS, count, newest.id)
                         rebuildSnapshot()
                     }
                     else -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
@@ -710,10 +742,12 @@ internal class SqlTimeline(
     // [rowsMoved] false means the page only appended history below what is mapped, which the cached slices
     // still describe correctly — dropping them there costs a full re-map of the whole window per page, the
     // single largest cost of a long backward scroll.
-    private fun invalidateAfterServerPage(rowsMoved: Boolean = true) {
+    // [wroteRows] false (only empty pages) leaves the live chunk fully mapped; marking it otherwise makes the
+    // window report older rows to reveal, which keeps the backward spinner up.
+    private fun invalidateAfterServerPage(rowsMoved: Boolean = true, wroteRows: Boolean = true) {
         // A jump initially caches only its target; reveal must re-read the new neighbors after a page.
         if (rowsMoved || needsJumpPageRefresh) chunkSnapshotCache.clear()
-        liveChunkFullyMapped = false
+        if (wroteRows) liveChunkFullyMapped = false
         val alive = loadedChunkIds.filterTo(LinkedHashSet()) { stores.chunk.getById(it) != null }
         if (alive.size != loadedChunkIds.size) {
             loadedChunkIds.clear()
@@ -743,11 +777,37 @@ internal class SqlTimeline(
         }
     }
 
+    // History visibility can hide thousands of events, each page of them coming back empty with only a new
+    // token, and a load that shows nothing posts no snapshot to re-arm the spinner. Keep asking until
+    // something lands. Backwards that is bounded; forwards it isn't, since it ends at the live edge at worst.
+    private suspend fun paginateThroughHidden(token: String, direction: Timeline.Direction, count: Int, rangeId: Long) {
+        val backwards = direction == Timeline.Direction.BACKWARDS
+        var from = token
+        var emptyPages = 0
+        while (!(backwards && gaveUpOnHiddenOlder)) {
+            val page = paginate(from, direction, count, rangeId)
+            invalidateAfterServerPage(rowsMoved = page.rowsMoved, wroteRows = page.progressed || page.failed)
+            if (page.progressed || page.failed) return
+            emptyPages += page.emptyPages
+            if (backwards && emptyPages >= MAX_EMPTY_HISTORY_PAGES) {
+                Timber.i("SqlTimeline $roomId gave up on hidden history after $emptyPages empty pages")
+                gaveUpOnHiddenOlder = true
+                return
+            }
+            val range = withContext(sessionDispatcher) { stores.chunk.getById(rangeId) } ?: return
+            if ((if (backwards) range.is_last_backward else range.is_last_forward) != 0L) return
+            from = (if (backwards) range.prev_token else range.next_token)?.takeIf { it != from } ?: return
+        }
+    }
+
     /** What a round of paging did, beyond the rows it wrote. */
-    private class PageOutcome(val rowsMoved: Boolean)
+    private class PageOutcome(val rowsMoved: Boolean, val progressed: Boolean, val failed: Boolean, val emptyPages: Int)
 
     private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null): PageOutcome {
         var rowsMoved = false
+        var progressed = false
+        var failed = false
+        var emptyPages = 0
         updateState(direction) { it.copy(loading = true) }
         try {
             // Keep fetching within one user-visible round until real progress is made:
@@ -765,8 +825,11 @@ internal class SqlTimeline(
                 val result = paginationTask.execute(
                         PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, origin, stats)
                 )
+                if (result == TokenChunkEventPersistor.Result.SHOULD_FETCH_MORE && stats.written == 0) emptyPages++
                 newRows += stats.written
                 rowsMoved = rowsMoved || stats.rowsMoved
+                progressed = progressed || newRows > 0 || stats.rowsMoved || stats.folded > 0 ||
+                        result == TokenChunkEventPersistor.Result.REACHED_END
                 // Folding in a range this page proved we already hold reveals history without writing a
                 // row: real progress, and the round must end or the walk re-fetches the same page.
                 if (stats.folded > 0) break
@@ -785,6 +848,7 @@ internal class SqlTimeline(
             }
         } catch (failure: Throwable) {
             if (failure is CancellationException) throw failure
+            failed = true
             // A removed (kicked/banned) room hit the limit of what the server will serve a departed
             // user. Persist it as the end of the room so the UI stops re-requesting an eternal
             // loading row; the once-per-open reprobe above keeps it from being final.
@@ -797,7 +861,7 @@ internal class SqlTimeline(
             Timber.w(failure, "SqlTimeline $roomId pagination failed")
         }
         updateState(direction) { it.copy(loading = false) }
-        return PageOutcome(rowsMoved = rowsMoved)
+        return PageOutcome(rowsMoved = rowsMoved, progressed = progressed, failed = failed, emptyPages = emptyPages)
     }
 
     private fun toPaginationDirection(direction: Timeline.Direction) =
@@ -1135,7 +1199,7 @@ internal class SqlTimeline(
         if (isThreadTimeline) return
         val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) }
         val moreBackward = windowHasMoreOlder ||
-                (oldest != null && oldest.is_last_backward == 0L &&
+                (!gaveUpOnHiddenOlder && oldest != null && oldest.is_last_backward == 0L &&
                         // A split range can have older stored history even without a pagination token.
                         (oldest.prev_token != null || stores.chunk.rangeBelow(roomId, oldest.id) != null))
         updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = moreBackward) }
@@ -1286,6 +1350,8 @@ internal class SqlTimeline(
         // Bounds the immediate follow-ups after token-progress-only pages; the UI's loading item
         // re-triggers for anything longer.
         private const val MAX_PAGINATION_ROUNDS = 10
+
+        private const val MAX_EMPTY_HISTORY_PAGES = 10
 
         // A pagination round keeps fetching until at least this many genuinely new rows landed (or
         // the round cap), so near-duplicate pages don't dribble one event per scroll.

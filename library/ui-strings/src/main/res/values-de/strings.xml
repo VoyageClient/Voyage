@@ -3490,4 +3490,7 @@
         <item quantity="one">%1$d von %2$d Quelle heruntergeladen.</item>
         <item quantity="other">%1$d von %2$d Quellen heruntergeladen.</item>
     </plurals>
+    <string name="timeline_history_unavailable">Du kannst keine älteren Nachrichten lesen</string>
+    <string name="timeline_history_unavailable_before_join">Du kannst keine Nachrichten lesen, die gesendet wurden, bevor du beigetreten bist.</string>
+    <string name="timeline_history_unavailable_before_invite">Du kannst keine Nachrichten lesen, die gesendet wurden, bevor du eingeladen wurdest.</string>
 </resources>

@@ -3430,4 +3430,7 @@
     <plurals name="settings_ua_downloaded">
         <item quantity="other">已下载 %2$d 个来源中的 %1$d 个。</item>
     </plurals>
+    <string name="timeline_history_unavailable">你无法查看之前的消息</string>
+    <string name="timeline_history_unavailable_before_join">你无权查看你加入前的消息。</string>
+    <string name="timeline_history_unavailable_before_invite">你无权查看你被邀请前的消息。</string>
 </resources>

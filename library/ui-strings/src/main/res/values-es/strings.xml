@@ -3479,4 +3479,7 @@
         <item quantity="one">Se descargó %1$d de %2$d fuente.</item>
         <item quantity="other">Se descargaron %1$d de %2$d fuentes.</item>
     </plurals>
+    <string name="timeline_history_unavailable">No puedes ver mensajes anteriores</string>
+    <string name="timeline_history_unavailable_before_join">No tienes permisos para ver mensajes enviados antes de que te unieras.</string>
+    <string name="timeline_history_unavailable_before_invite">No tienes permisos para ver mensajes enviados antes de que te invitaran.</string>
 </resources>

@@ -3373,4 +3373,7 @@
         <item quantity="one">%2$d में से %1$d स्रोत डाउनलोड हुआ।</item>
         <item quantity="other">%2$d में से %1$d स्रोत डाउनलोड हुए।</item>
     </plurals>
+    <string name="timeline_history_unavailable">आप पुराने मैसेज नहीं देख सकते</string>
+    <string name="timeline_history_unavailable_before_join">आपको अपने शामिल होने से पहले के मैसेज देखने की अनुमति नहीं है।</string>
+    <string name="timeline_history_unavailable_before_invite">आपको आमंत्रित किए जाने से पहले के मैसेज देखने की अनुमति नहीं है।</string>
 </resources>

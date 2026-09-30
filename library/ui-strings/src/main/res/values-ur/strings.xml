@@ -3385,4 +3385,7 @@
         <item quantity="one">%2$d میں سے %1$d ماخذ ڈاؤن لوڈ ہوا۔</item>
         <item quantity="other">%2$d میں سے %1$d ماخذ ڈاؤن لوڈ ہوئے۔</item>
     </plurals>
+    <string name="timeline_history_unavailable">آپ پرانے پیغامات نہیں دیکھ سکتے</string>
+    <string name="timeline_history_unavailable_before_join">آپ کو اپنے شامل ہونے سے پہلے کے پیغامات دیکھنے کی اجازت نہیں ہے۔</string>
+    <string name="timeline_history_unavailable_before_invite">آپ کو مدعو کیے جانے سے پہلے کے پیغامات دیکھنے کی اجازت نہیں ہے۔</string>
 </resources>

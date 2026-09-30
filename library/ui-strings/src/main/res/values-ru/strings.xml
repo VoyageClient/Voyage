@@ -3598,4 +3598,7 @@
         <item quantity="many">Загружено %1$d из %2$d источников.</item>
         <item quantity="other">Загружено %1$d из %2$d источника.</item>
     </plurals>
+    <string name="timeline_history_unavailable">Вы не можете просматривать более старые сообщения</string>
+    <string name="timeline_history_unavailable_before_join">У вас нет разрешения на просмотр сообщений, полученных до вашего присоединения.</string>
+    <string name="timeline_history_unavailable_before_invite">У вас нет разрешения на просмотр сообщений, полученных до того, как вы были приглашены.</string>
 </resources>

@@ -53,6 +53,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.home.room.detail.timeline.item.ReactionsSummaryEvents
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
+import im.vector.app.features.home.room.detail.timeline.item.TimelineHistoryStartItem_
 import im.vector.app.features.home.room.detail.timeline.item.TypingItem_
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.readreceipts.ReadReceiptsCache
@@ -65,15 +66,20 @@ import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
+import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
+import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
+import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibilityContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -586,11 +592,35 @@ class TimelineEventController @Inject constructor(
         // With events still unbuilt the list is shorter than what is loaded, so this loader must not request
         // history the timeline hasn't rendered yet — but it still has to be ADDED, or the list just ends at
         // the oldest built message and a scroll to the top stops there with no spinner and nothing above it.
-        LoadingItem_()
+        val showingBackwardLoader = LoadingItem_()
                 .id("backward_loading_item_$timestamp")
                 .setVisibilityStateChangedListener(Timeline.Direction.BACKWARDS, requestsMore = !hasUnbuiltEvents)
                 .showLoader(showBackwardsLoader)
                 .addWhenLoading(Timeline.Direction.BACKWARDS)
+        if (!showingBackwardLoader && !hasUnbuiltEvents) addHistoryStartItem()
+    }
+
+    // Reaching the room start without its create event means the server withheld what came before.
+    private fun addHistoryStartItem() {
+        if (partialState.isFromThreadTimeline()) return
+        val snapshot = currentSnapshot
+        val oldest = snapshot.lastOrNull() ?: return
+        if (snapshot.any { it.root.type == EventType.STATE_ROOM_CREATE }) return
+        val visibility = session.getRoom(oldest.roomId)
+                ?.stateService()
+                ?.getStateEvent(EventType.STATE_ROOM_HISTORY_VISIBILITY, QueryStringValue.IsEmpty)
+                ?.content.toModel<RoomHistoryVisibilityContent>()
+                ?.historyVisibility
+        TimelineHistoryStartItem_()
+                .id("history_start")
+                .reasonRes(
+                        when (visibility) {
+                            RoomHistoryVisibility.JOINED -> CommonStrings.timeline_history_unavailable_before_join
+                            RoomHistoryVisibility.INVITED -> CommonStrings.timeline_history_unavailable_before_invite
+                            else -> 0
+                        }
+                )
+                .addTo(this)
     }
 
 // Timeline.LISTENER ***************************************************************************

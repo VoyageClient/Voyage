@@ -3636,4 +3636,7 @@
         <item quantity="many">نُزّل %1$d من %2$d مصدرًا.</item>
         <item quantity="other">نُزّل %1$d من %2$d مصدر.</item>
     </plurals>
+    <string name="timeline_history_unavailable">لا يمكنك رؤية الرسائل السابقة</string>
+    <string name="timeline_history_unavailable_before_join">ليس لديك إذن بعرض الرسائل المرسلة قبل انضمامك.</string>
+    <string name="timeline_history_unavailable_before_invite">ليس لديك إذن بعرض الرسائل المرسلة قبل دعوتك.</string>
 </resources>

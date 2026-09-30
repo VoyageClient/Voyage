@@ -3449,4 +3449,7 @@
         <item quantity="one">%2$d kaynaktan %1$d tanesi indirildi.</item>
         <item quantity="other">%2$d kaynaktan %1$d tanesi indirildi.</item>
     </plurals>
+    <string name="timeline_history_unavailable">Önceki mesajları göremezsin</string>
+    <string name="timeline_history_unavailable_before_join">Katılmadan önceki mesajları görüntüleme iznin yok.</string>
+    <string name="timeline_history_unavailable_before_invite">Davet edilmeden önceki mesajları görüntüleme iznin yok.</string>
 </resources>

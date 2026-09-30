@@ -3491,4 +3491,7 @@
         <item quantity="one">%1$d source sur %2$d téléchargée.</item>
         <item quantity="other">%1$d sources sur %2$d téléchargées.</item>
     </plurals>
+    <string name="timeline_history_unavailable">Vous ne pouvez pas voir les messages plus anciens</string>
+    <string name="timeline_history_unavailable_before_join">Vous n’avez pas l’autorisation de voir les messages antérieurs à votre arrivée.</string>
+    <string name="timeline_history_unavailable_before_invite">Vous n’avez pas l’autorisation de voir les messages antérieurs à votre invitation.</string>
 </resources>

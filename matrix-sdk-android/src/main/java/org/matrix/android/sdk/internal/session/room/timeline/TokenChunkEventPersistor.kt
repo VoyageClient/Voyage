@@ -148,7 +148,19 @@ internal class TokenChunkEventPersistor @Inject constructor(
             stores.chunk.lastForward(roomId)?.id?.let { stores.chunk.mergeInto(it, currentChunkId) }
         } else {
             stores.chunk.setLastBackward(currentChunkId, true)
+            placeCreateEventAtStart(roomId, currentChunkId)
         }
+    }
+
+    // Paging back from the creator's join in a room v12 room can end without the create event that precedes
+    // it. The room start is where it belongs, and it is always visible to us, so take it from room state.
+    private fun placeCreateEventAtStart(roomId: String, chunkId: Long) {
+        val createId = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_CREATE, "")?.eventId ?: return
+        if (stores.chunk.findMainChunkIdIncludingEvent(roomId, createId) != null) return
+        val entity = stores.event.getByEventIdInRoom(roomId, createId) ?: return
+        val dbId = stores.event.getDbId(roomId, createId) ?: return
+        stores.timelineWriter.addTimelineEvent(chunkId, roomId, dbId, entity, isLastForward = false)
+        Timber.i("Placed the create event of $roomId at the start of range $chunkId")
     }
 
     private fun handlePagination(
