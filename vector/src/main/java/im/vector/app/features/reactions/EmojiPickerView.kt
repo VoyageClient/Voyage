@@ -8,6 +8,7 @@
 package im.vector.app.features.reactions
 
 import android.content.Context
+import android.text.Editable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.LinearLayout
@@ -50,6 +51,12 @@ class EmojiPickerView @JvmOverloads constructor(
             field = value
             views.emojiPickerTabRow.onFreeformSubmit = value
             views.emojiPickerTabRow.setFreeformEnabled(value != null)
+        }
+
+    var onFreeformTextChanged: ((Editable) -> Unit)? = null
+        set(value) {
+            field = value
+            views.emojiPickerTabRow.onFreeformTextChanged = value
         }
 
     private val views: ViewEmojiPickerBinding

@@ -50,6 +50,7 @@ class PickerTabRow @JvmOverloads constructor(
     var onQueryChanged: ((String) -> Unit)? = null
     var onSearchModeChanged: ((Boolean) -> Unit)? = null
     var onFreeformSubmit: ((String) -> Unit)? = null
+    var onFreeformTextChanged: ((Editable) -> Unit)? = null
 
     val isSearching: Boolean get() = mode == Mode.SEARCH
 
@@ -76,6 +77,10 @@ class PickerTabRow @JvmOverloads constructor(
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
             override fun afterTextChanged(s: Editable?) {
                 views.pickerClear.isVisible = mode == Mode.SEARCH && s?.isNotEmpty() == true
+                if (mode == Mode.FREEFORM) {
+                    s?.let { onFreeformTextChanged?.invoke(it) }
+                    return
+                }
                 if (mode != Mode.SEARCH) return
                 onQueryChanged?.invoke(s?.toString().orEmpty())
             }

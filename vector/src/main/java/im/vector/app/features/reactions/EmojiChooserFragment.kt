@@ -11,11 +11,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.EmojiSpanify
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.EmojiChooserFragmentBinding
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class EmojiChooserFragment : VectorBaseFragment<EmojiChooserFragmentBinding>() {
+
+    @Inject lateinit var emojiSpanify: EmojiSpanify
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): EmojiChooserFragmentBinding {
         return EmojiChooserFragmentBinding.inflate(inflater, container, false)
@@ -28,6 +32,7 @@ class EmojiChooserFragment : VectorBaseFragment<EmojiChooserFragmentBinding>() {
         viewModel = activityViewModelProvider.get(EmojiChooserViewModel::class.java)
         views.root.sectionFilter = { sections, query -> viewModel.filterSections(sections, query) }
         views.root.onFreeformSubmit = { reaction -> viewModel.onReactionSelected(reaction) }
+        views.root.onFreeformTextChanged = emojiSpanify::applyLive
         views.root.onEmojiClick = EmojiPickerView.OnEmojiClickListener { item ->
             viewModel.onReactionSelected(
                     when (item) {
