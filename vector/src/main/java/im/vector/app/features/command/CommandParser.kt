@@ -209,11 +209,13 @@ class CommandParser @Inject constructor(
                 Command.JOIN_ROOM.matches(slashCommand) -> {
                     if (messageParts.size >= 2) {
                         val roomAlias = messageParts[1]
+                        val roomLink = roomAlias.takeIf { isRoomPermalink(it) }?.let { PermalinkParser.parse(it) as PermalinkData.RoomLink }
 
                         if (roomAlias.isNotEmpty()) {
                             ParsedCommand.JoinRoom(
-                                    roomAlias,
-                                    trimParts(textMessage, messageParts.take(2))
+                                    roomLink?.roomIdOrAlias ?: roomAlias,
+                                    trimParts(textMessage, messageParts.take(2)),
+                                    roomLink?.viaParameters.orEmpty()
                             )
                         } else {
                             ParsedCommand.ErrorSyntax(Command.JOIN_ROOM)

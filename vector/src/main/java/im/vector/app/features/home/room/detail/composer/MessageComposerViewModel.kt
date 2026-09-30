@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -1576,11 +1577,17 @@ class MessageComposerViewModel @AssistedInject constructor(
         _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(command))
         viewModelScope.launch {
             try {
-                session.roomService().joinRoom(command.roomAlias, command.reason, emptyList())
+                session.roomService().joinRoom(command.roomAlias, command.reason, command.viaServers)
             } catch (failure: Throwable) {
                 // Couldn't join directly (e.g. invite-only or knock/ask-to-join): open the room's
                 // matrix.to sheet, which offers Join / Ask to join as appropriate.
-                val link = tryOrNull { session.permalinkService().createPermalink(command.roomAlias) }
+                val link = tryOrNull {
+                    if (command.viaServers.isNotEmpty() && MatrixPatterns.isRoomId(command.roomAlias)) {
+                        session.permalinkService().createRoomPermalink(command.roomAlias, command.viaServers)
+                    } else {
+                        session.permalinkService().createPermalink(command.roomAlias)
+                    }
+                }
                 if (link != null) {
                     _viewEvents.post(MessageComposerViewEvents.OpenRoomLink(link))
                 } else {

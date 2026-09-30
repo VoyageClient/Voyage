@@ -48,7 +48,7 @@ sealed interface ParsedCommand {
     data class ChangeRoomName(val name: String) : ParsedCommand
     data class Invite(val userId: String, val reason: String?) : ParsedCommand
     data class Invite3Pid(val threePid: ThreePid) : ParsedCommand
-    data class JoinRoom(val roomAlias: String, val reason: String?) : ParsedCommand
+    data class JoinRoom(val roomAlias: String, val reason: String?, val viaServers: List<String> = emptyList()) : ParsedCommand
     data class WatchRoom(val roomAlias: String) : ParsedCommand
     data class UnwatchRoom(val roomAlias: String) : ParsedCommand
     data class PartRoom(val roomAlias: String?) : ParsedCommand

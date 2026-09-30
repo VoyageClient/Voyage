@@ -41,6 +41,23 @@ class CommandParserTest {
         test("/addToSpace $A_SPACE_ID", ParsedCommand.AddToSpace(A_SPACE_ID))
     }
     @Test
+    fun parseSlashJoinCommand() {
+        test("/join #room:example.org", ParsedCommand.JoinRoom("#room:example.org", null))
+        test("/join #room:example.org because", ParsedCommand.JoinRoom("#room:example.org", "because"))
+        test("/join https://matrix.to/#/%23room:example.org", ParsedCommand.JoinRoom("#room:example.org", null))
+        test(
+                "/join https://matrix.to/#/!abc:example.org/\$event:example.org?via=example.org&via=other.org hi",
+                ParsedCommand.JoinRoom("!abc:example.org", "hi", listOf("example.org", "other.org"))
+        )
+        test(
+                "/join matrix:roomid/abc:example.org/e/event?via=example.org",
+                ParsedCommand.JoinRoom("!abc:example.org", null, listOf("example.org"))
+        )
+        test("/join matrix:r/room:example.org", ParsedCommand.JoinRoom("#room:example.org", null))
+        test("/join", ParsedCommand.ErrorSyntax(Command.JOIN_ROOM))
+    }
+
+    @Test
     fun parseSlashJoinSpaceCommand() {
         test("/joinSpace $A_SPACE_ID", ParsedCommand.JoinSpace(A_SPACE_ID))
     }
