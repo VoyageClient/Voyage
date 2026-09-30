@@ -3,6 +3,7 @@
 .gradle
 /local.properties
 /tools/__pycache__/
+/tools/translations/__pycache__/
 # idea files: exclude everything except dictionnaries
 .idea/caches
 .idea/copilot

@@ -23,6 +23,7 @@ import im.vector.app.features.settings.useragent.data.UaDataRepository
 import im.vector.app.features.settings.useragent.data.UaOption
 import im.vector.app.features.settings.useragent.data.UaProviderIds
 import im.vector.app.features.settings.useragent.data.mostPopularValue
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -475,7 +476,7 @@ class VectorSettingsUserAgentFragment : VectorSettingsBaseFragment(), UaVersionS
                     }
                 }
             } else {
-                append(getString(CommonStrings.settings_ua_downloaded, results.count { it.ok }, results.size))
+                append(resources.getQuantityString(CommonPlurals.settings_ua_downloaded, results.size, results.count { it.ok }, results.size))
             }
             if (failed.isNotEmpty()) {
                 append('\n').append(getString(CommonStrings.settings_ua_download_failed_header)).append('\n')

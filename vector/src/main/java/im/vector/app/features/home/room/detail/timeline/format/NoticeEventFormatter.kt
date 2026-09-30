@@ -57,6 +57,7 @@ import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetContent
 import timber.log.Timber
+import java.util.Locale
 import javax.inject.Inject
 
 // Types RedactionEventProcessor.computeAllowedKeys() filters down to a whitelist — the content
@@ -89,6 +90,8 @@ class NoticeEventFormatter @Inject constructor(
     // Best-effort from cache — a miss kicks off a background fetch that a later rebind picks up.
     private fun possessiveDeterminer(userId: String?): String? {
         userId ?: return null
+        // The determiner is an English word, so other UI languages use the neutral notices.
+        if (Locale.getDefault().language != "en") return null
         val session = activeSessionDataSource.currentValue?.orNull() ?: return null
         val pronouns = session.profileService().getCachedPronouns(userId)
         if (pronouns == null) {

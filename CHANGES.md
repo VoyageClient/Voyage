@@ -192,7 +192,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Block all room invites (MSC4380)**: one switch has your homeserver reject every invite sent to you, on all your devices at once. Requires server support.
 
-- **Hideable message shields**: toggles to hide the gray key-backup shield, on messages decrypted with a key restored from secure backup, and the red encryption-warning shield, on unencrypted messages in encrypted rooms or messages from unverified, unknown or deleted sessions. Reactions and redactions, which are always sent unencrypted, no longer get a red shield in encrypted rooms.
+- **Hideable message shields**: toggles to hide the gray key-backup shield, on messages decrypted with a key restored from key backup, and the red encryption-warning shield, on unencrypted messages in encrypted rooms or messages from unverified, unknown or deleted sessions. Reactions and redactions, which are always sent unencrypted, no longer get a red shield in encrypted rooms.
 
 - **Identity-change banner**: backported from Element Web. A banner at the top of an encrypted room warns when a member's cross-signing identity changes, in red for someone you had previously verified. Dismissing it, or "Withdraw verification" for the verified case, pins their current identity, so it only reappears if their identity resets again. Identity pinning is tracked in the crypto store, and a toggle can hide the banner outright while still accepting any current changes.
 

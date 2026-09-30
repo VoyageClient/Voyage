@@ -16,6 +16,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.BehaviorDataSource
 import im.vector.app.features.popup.DefaultVectorAlert
 import im.vector.app.features.popup.PopupAlertManager
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -427,7 +428,7 @@ class MassRedactionManager @Inject constructor(
                     stringProvider.getString(CommonStrings.mass_redaction_nothing_found, displayName)
         } else {
             stringProvider.getString(CommonStrings.mass_redaction_finished_title) to
-                    stringProvider.getString(CommonStrings.mass_redaction_finished, completed, displayName)
+                    stringProvider.getQuantityString(CommonPlurals.mass_redaction_finished, completed, completed, displayName)
         }
         popupAlertManager.postVectorAlert(
                 DefaultVectorAlert(

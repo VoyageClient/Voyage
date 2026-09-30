@@ -21,6 +21,7 @@ import im.vector.app.core.utils.toast
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.version.VersionProvider
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.getRoomSummary
@@ -126,11 +127,7 @@ class VectorSettingsHelpAboutFragment :
         kitkatCountdown--
         when {
             kitkatCountdown in 1..4 -> {
-                val message = if (kitkatCountdown == 1) {
-                    getString(CommonStrings.one_step_away_from_kitkat)
-                } else {
-                    getString(CommonStrings.steps_away_from_kitkat, kitkatCountdown)
-                }
+                val message = resources.getQuantityString(CommonPlurals.steps_away_from_kitkat, kitkatCountdown, kitkatCountdown)
                 kitkatToast?.cancel()
                 kitkatToast = Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).also { it.show() }
             }

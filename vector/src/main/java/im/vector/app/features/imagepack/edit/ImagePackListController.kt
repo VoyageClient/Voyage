@@ -14,6 +14,7 @@ import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
@@ -100,7 +101,7 @@ class ImagePackListController @Inject constructor(
     }
 
     private fun subtitleFor(pack: ManagedPack): String {
-        val count = stringProvider.getString(CommonStrings.image_pack_image_count, pack.imageCount)
+        val count = stringProvider.getQuantityString(CommonPlurals.image_pack_image_count, pack.imageCount, pack.imageCount)
         // In the per-room screen every pack is from this room, so the source label is redundant — show
         // only the image count. The settings list still shows which room a pack comes from.
         if (pack.kind == ManagedPackKind.THIS_ROOM) return count
