@@ -30,7 +30,7 @@ internal class AndroidAudioMetadataExtractor @Inject constructor(
                     artist = retriever.tag(MediaMetadataRetriever.METADATA_KEY_ARTIST)
                             ?: retriever.tag(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST),
                     album = retriever.tag(MediaMetadataRetriever.METADATA_KEY_ALBUM),
-                    coverArt = retriever.embeddedPicture?.let { AudioCoverArt.encode(it) },
+                    coverArtBlurhash = retriever.embeddedPicture?.let { AudioCoverArt.encode(it) },
             ).takeIfNotEmpty()
         } catch (error: Exception) {
             Timber.w(error, "Cannot read audio metadata")

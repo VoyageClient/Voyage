@@ -74,6 +74,20 @@ class AudioMessagePlaybackTracker @Inject constructor() {
         }
     }
 
+    /** Set by whichever player is running, so a redaction can silence the message it plays. */
+    @Volatile
+    var activePlayerStopper: ((id: String) -> Unit)? = null
+
+    /** Messages with a playback in progress or paused part-way, whose redaction must end it. */
+    fun activeIds(): Set<String> = states.filterValues { it is Listener.State.Playing || it is Listener.State.Paused }.keys.toSet()
+
+    fun stopRedacted(ids: Collection<String>) {
+        ids.forEach { id ->
+            activePlayerStopper?.invoke(id)
+            setState(id, Listener.State.Idle)
+        }
+    }
+
     fun startPlayback(id: String) {
         val currentPlaybackTime = getPlaybackTime(id) ?: 0
         val currentPercentage = getPercentage(id) ?: 0f
@@ -166,6 +180,30 @@ class AudioMessagePlaybackTracker @Inject constructor() {
             data class Playing(val playbackTime: Int, val percentage: Float) : State()
             data class Paused(val playbackTime: Int, val percentage: Float) : State()
             data class Recording(val amplitudeList: List<Int>) : State()
+        }
+    }
+
+    /**
+     * A row's single registration, kept on its view holder. Epoxy rebinds a changed model onto a view
+     * without unbinding the old one, so a listener kept on the model outlives it and paints its own
+     * message's playback onto the row, which then mirrors a different message.
+     */
+    class RowRegistration {
+        private var id: String? = null
+        private var listener: Listener? = null
+
+        fun track(tracker: AudioMessagePlaybackTracker, id: String, listener: Listener) {
+            release(tracker)
+            this.id = id
+            this.listener = listener
+            tracker.track(id, listener)
+        }
+
+        fun release(tracker: AudioMessagePlaybackTracker) {
+            val id = id ?: return
+            listener?.let { tracker.untrack(id, it) }
+            this.id = null
+            listener = null
         }
     }
 

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.factory
 
+import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.text.Spannable
@@ -32,6 +33,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.containsOnlyEmojisAndEmotes
+import im.vector.app.features.attachments.preview.AudioDetails
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -113,6 +115,7 @@ import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.message.AudioMetadata
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -420,6 +423,7 @@ class MessageItemFactory @Inject constructor(
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
                 .audioMetadata(messageContent.audioInfo?.metadata)
+                .coverArtHashLoader(coverArtHashLoader(messageContent.audioInfo?.metadata, informationData))
                 .localSource(localAudioSource(messageContent, fileUrl))
                 .localSourceProvider { localAudioSource(messageContent, fileUrl) }
                 .fileSize(messageContent.audioInfo?.size ?: 0L)
@@ -453,6 +457,12 @@ class MessageItemFactory @Inject constructor(
                 mimeType = messageContent.mimeType,
                 isEncrypted = messageContent.encryptedFileInfo != null
         )?.let { Uri.fromFile(it) }
+    }
+
+    private fun coverArtHashLoader(metadata: AudioMetadata?, informationData: MessageInformationData): ((Context) -> AudioDetails.CoverArtHash?)? {
+        val url = metadata?.coverArtUrl ?: return null
+        if (AudioDetails.isCoverArtHashKnown(url) || shouldHideMedia(informationData)) return null
+        return { context -> AudioDetails.fetchCoverArtHash(context, session, metadata) }
     }
 
     private fun getAudioFileUrl(

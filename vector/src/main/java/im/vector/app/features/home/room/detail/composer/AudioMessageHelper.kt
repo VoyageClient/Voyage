@@ -196,6 +196,7 @@ class AudioMessageHelper @Inject constructor(
             }
             currentPlayingId = id
             currentPlayingIsVoiceMessage = isVoiceMessage
+            playbackTracker.activePlayerStopper = stopper
         } catch (failure: Throwable) {
             Timber.e(failure, "Unable to start playback")
             throw VoiceFailure.UnableToPlay(failure)
@@ -250,9 +251,18 @@ class AudioMessageHelper @Inject constructor(
         currentPlayingId = null
     }
 
+    private val stopper: (String) -> Unit = { id ->
+        if (currentPlayingId == id) {
+            releasePlayer()
+            stopPlaybackTicker()
+            currentPlayingId = null
+        }
+    }
+
     private fun releasePlayer() {
         val player = mediaPlayer ?: return
         mediaPlayer = null
+        if (playbackTracker.activePlayerStopper === stopper) playbackTracker.activePlayerStopper = null
         tryOrNull { player.stop() }
         tryOrNull { player.release() }
     }

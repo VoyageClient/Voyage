@@ -98,8 +98,6 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     @EpoxyAttribute
     var previewUrlImageContentRenderer: ImageContentRenderer? = null
 
-    private var playbackTrackerListener: AudioMessagePlaybackTracker.Listener? = null
-
     private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
     override fun bind(holder: Holder) {
@@ -171,7 +169,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
             true
         }
 
-        playbackTrackerListener = AudioMessagePlaybackTracker.Listener { state ->
+        val listener = AudioMessagePlaybackTracker.Listener { state ->
             when (state) {
                 is AudioMessagePlaybackTracker.Listener.State.Error,
                 is AudioMessagePlaybackTracker.Listener.State.Idle -> renderIdleState(holder, waveformColorIdle, waveformColorPlayed)
@@ -179,7 +177,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
                 is AudioMessagePlaybackTracker.Listener.State.Paused -> renderPausedState(holder, state, waveformColorIdle, waveformColorPlayed)
                 is AudioMessagePlaybackTracker.Listener.State.Recording -> Unit
             }
-        }.also { audioMessagePlaybackTracker.track(attributes.informationData.stableId, it) }
+        }
+        holder.playbackRegistration.track(audioMessagePlaybackTracker, attributes.informationData.stableId, listener)
     }
 
     private fun getTouchedPositionPercentage(motionEvent: MotionEvent, view: View) = (motionEvent.x / view.width).coerceIn(0f, 1f)
@@ -212,8 +211,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
-        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.stableId, it) }
-        playbackTrackerListener = null
+        holder.playbackRegistration.release(audioMessagePlaybackTracker)
     }
 
     override fun getViewStubId() = STUB_ID
@@ -228,6 +226,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         val voicePlaybackControlButton by bind<ImageButton>(R.id.voicePlaybackControlButton)
         val voicePlaybackTime by bind<TextView>(R.id.voicePlaybackTime)
         val voicePlaybackWaveform by bind<AudioWaveformView>(R.id.voicePlaybackWaveform)
+        val playbackRegistration = AudioMessagePlaybackTracker.RowRegistration()
         val progressLayout by bind<ViewGroup>(R.id.messageFileUploadProgressLayout)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
         val previewUrlView by bind<PreviewUrlView>(R.id.messageUrlPreview)

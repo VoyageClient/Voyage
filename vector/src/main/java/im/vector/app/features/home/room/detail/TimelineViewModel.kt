@@ -44,7 +44,9 @@ import im.vector.app.features.home.room.detail.pinned.GetPinnedEventsUseCase
 import im.vector.app.features.home.room.detail.poll.VoteToPollUseCase
 import im.vector.app.features.home.room.detail.sticker.StickerPickerActionHandler
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineFactory
+import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
+import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
@@ -168,6 +170,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val redactedContentRepository: RedactedContentRepository,
         private val sendMediaMaterializer: SendMediaMaterializer,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
+        private val audioMessagePlaybackTracker: AudioMessagePlaybackTracker,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -1969,6 +1972,7 @@ private fun handleSelectStickerAttachment() {
     }
 
     override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
+        stopRedactedPlayback(snapshot)
         viewModelScope.launch {
             // tryEmit doesn't work with SharedFlow without cache
             timelineEvents.emit(snapshot)
@@ -1976,6 +1980,13 @@ private fun handleSelectStickerAttachment() {
             navigateToPermalinkEventIfNeeded(snapshot)
         }
         setState { if (timelineHasContent == snapshot.isNotEmpty()) this else copy(timelineHasContent = snapshot.isNotEmpty()) }
+    }
+
+    private fun stopRedactedPlayback(snapshot: List<TimelineEvent>) {
+        val active = audioMessagePlaybackTracker.activeIds().takeIf { it.isNotEmpty() } ?: return
+        snapshot.mapNotNull { event -> event.timelineStableId().takeIf { it in active && event.root.isRedacted() } }
+                .takeIf { it.isNotEmpty() }
+                ?.let { audioMessagePlaybackTracker.stopRedacted(it) }
     }
 
     // Opening the room AT an event (search result, permalink from elsewhere) seeds the timeline

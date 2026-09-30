@@ -17,8 +17,13 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import com.vanniktech.blurhash.BlurHash
 import im.vector.app.core.extensions.useCompat
+import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.home.AvatarRenderer
+import kotlinx.coroutines.runBlocking
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.AudioCoverArt
+import org.matrix.android.sdk.api.session.content.ContentUrlResolver
+import org.matrix.android.sdk.api.session.room.model.message.AudioMetadata
 import timber.log.Timber
 import java.io.File
 import java.security.MessageDigest
@@ -81,23 +86,26 @@ object AudioDetails {
         }.getOrNull()?.takeIf { it >= 0 } ?: UNKNOWN_LENGTH
     }
 
-    fun load(context: Context, source: Uri, forTimeline: Boolean = false): Details {
+    fun load(context: Context, source: Uri, forTimeline: Boolean = false): Details = loadTracked(context, source, forTimeline).first
+
+    /** Also says whether the file was read just now, rather than found in the cache. */
+    fun loadTracked(context: Context, source: Uri, forTimeline: Boolean = false): Pair<Details, Boolean> {
         val key = cacheKey(source.toString(), forTimeline)
-        cache.get(key)?.let { return it }
+        cache.get(key)?.let { return it to false }
         readFromDisk(context, key)?.let {
             cache.put(key, it)
-            return it
+            return it to false
         }
         val fingerprint = fingerprintOf(context, source)?.let { cacheKey(it, forTimeline) }
         fingerprint?.let { print ->
-            cache.get(print)?.let { keep(key, print, it); return it }
-            readFromDisk(context, print)?.let { keep(key, print, it); return it }
+            cache.get(print)?.let { keep(key, print, it); return it to false }
+            readFromDisk(context, print)?.let { keep(key, print, it); return it to false }
         }
         val details = read(context, source, forTimeline)
         keep(key, fingerprint, details)
         writeToDisk(context, key, details)
         fingerprint?.let { writeToDisk(context, it, details) }
-        return details
+        return details to true
     }
 
     private fun keep(key: String, fingerprint: String?, details: Details) {
@@ -253,6 +261,80 @@ object AudioDetails {
         coverArtBackdrops.put(hash, backdrop)
         return backdrop
     }
+
+    /** Keyed by mxc:// URI. An empty hash marks an image that could not be decoded, so it is not fetched again. */
+    private val coverArtHashes = LruCache<String, String>(64)
+
+    fun isCoverArtHashKnown(url: String) = coverArtHashes.get(url) != null
+
+    fun cachedCoverArtHash(url: String): String? = coverArtHashes.get(url)?.takeIf { it.isNotEmpty() }
+
+    /** [fresh] when the hash was generated just now rather than found in the cache. */
+    class CoverArtHash(val hash: String, val fresh: Boolean)
+
+    /**
+     * Blocking. A BlurHash of an event's cover art image, standing in for a `cover_art_blurhash` it
+     * lacks. The server cannot thumbnail an encrypted cover, so only that one is fetched whole.
+     */
+    fun fetchCoverArtHash(context: Context, session: Session, metadata: AudioMetadata): CoverArtHash? {
+        val url = metadata.coverArtUrl ?: return null
+        val known = coverArtHashes.get(url) ?: readCoverArtHash(context, url)?.also { coverArtHashes.put(url, it) }
+        known?.let { return it.takeIf { hash -> hash.isNotEmpty() }?.let { hash -> CoverArtHash(hash, fresh = false) } }
+        val hash = generateCoverArtHash(context, session, metadata, url) ?: return null
+        coverArtHashes.put(url, hash)
+        writeCoverArtHash(context, url, hash)
+        return hash.takeIf { it.isNotEmpty() }?.let { CoverArtHash(it, fresh = true) }
+    }
+
+    /** Empty when the image could not be decoded; null when it could not be fetched, so it is tried again. */
+    private fun generateCoverArtHash(context: Context, session: Session, metadata: AudioMetadata, url: String): String? {
+        val elementToDecrypt = metadata.coverArtElementToDecrypt
+        val image = runCatching {
+            if (elementToDecrypt == null) coverArtThumbnail(context, session, url) else null
+        }.onFailure { Timber.w(it, "AudioDetails: cannot fetch a cover art thumbnail") }.getOrNull()
+                ?: runCatching {
+                    if ((metadata.coverArtInfo?.size ?: 0L) > MAX_COVER_ART_BYTES) return ""
+                    runBlocking {
+                        session.fileService().downloadFile(
+                                fileName = "cover_art",
+                                mimeType = metadata.coverArtInfo?.mimeType,
+                                url = url,
+                                elementToDecrypt = elementToDecrypt,
+                        )
+                    }
+                }.onFailure { Timber.w(it, "AudioDetails: cannot fetch cover art") }.getOrNull()
+                ?: return null
+        return image.takeIf { it.length() in 1..MAX_COVER_ART_BYTES }?.let { AudioCoverArt.encode(it.readBytes()) }.orEmpty()
+    }
+
+    private fun readCoverArtHash(context: Context, url: String): String? = runCatching {
+        coverArtHashFile(context, url).takeIf { it.isFile }?.readText()
+    }.getOrNull()
+
+    private fun writeCoverArtHash(context: Context, url: String, hash: String) {
+        runCatching {
+            coverArtHashFile(context, url).apply { parentFile?.mkdirs() }.writeText(hash)
+        }.onFailure { Timber.w(it, "AudioDetails: cannot keep a cover art hash") }
+    }
+
+    private fun coverArtHashFile(context: Context, url: String): File {
+        val digest = MessageDigest.getInstance("SHA-1").digest(url.toByteArray())
+        return File(File(context.cacheDir, "audio-cover-art-v1"), digest.joinToString("") { "%02x".format(it) })
+    }
+
+    /** Glide's copy of the server thumbnail, so it is fetched with the session's auth and kept on disk. */
+    private fun coverArtThumbnail(context: Context, session: Session, url: String): File? {
+        val thumbnailUrl = session.contentUrlResolver()
+                .resolveThumbnail(url, COVER_ART_THUMBNAIL_SIZE, COVER_ART_THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE)
+                ?: return null
+        return GlideApp.with(context.applicationContext).asFile().load(thumbnailUrl).submit().get()
+    }
+
+    /** Covers are thumbnail-sized; anything far past that is not worth holding in memory to blur. */
+    private const val MAX_COVER_ART_BYTES = 10L * 1024 * 1024
+
+    /** AudioCoverArt samples down to 128px before hashing, so a bigger thumbnail adds nothing. */
+    private const val COVER_ART_THUMBNAIL_SIZE = 128
 
     /** Enough of a file to tell it apart from another, without reading all of it. */
     private const val FINGERPRINT_WINDOW = 64 * 1024

@@ -8,14 +8,20 @@
 package im.vector.app.features.home.room.detail.timeline.item
 
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorFilter
 import android.graphics.Paint
+import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.SystemClock
 import android.text.format.DateUtils
 import android.text.method.MovementMethod
 import android.view.MotionEvent
@@ -40,6 +46,7 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.setMediaPillColorCompat
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.attachments.preview.AudioDetails
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
@@ -85,6 +92,10 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
      */
     @EpoxyAttribute
     var audioMetadata: AudioMetadata? = null
+
+    /** Blocking; fetches the event's cover art image and hashes it, for when it sent no usable BlurHash. */
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var coverArtHashLoader: ((Context) -> AudioDetails.CoverArtHash?)? = null
 
     /**
      * Where the bytes are on this device: the file picked for a send that is still going out, or a
@@ -137,7 +148,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     var previewUrlImageContentRenderer: ImageContentRenderer? = null
 
     private var isUserSeeking = false
-    private var playbackTrackerListener: AudioMessagePlaybackTracker.Listener? = null
 
     private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
@@ -195,8 +205,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
     /**
      * A music file usually knows more about itself than its name. The sender may have said what it
-     * is (MSC4549), and otherwise the tags and the cover come off the file once it is downloaded;
-     * until then it reads as it always did.
+     * is (MSC4549); whatever it left out, the cover included, comes off the file once it is
+     * downloaded. Until then it reads as it always did.
      */
     private fun bindFileDetails(holder: Holder, onlyIfSourceChanged: Boolean = false) {
         // Tracked by message rather than by where its bytes are: an upload's source changes under
@@ -208,18 +218,20 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         if (changed) {
             holder.detailsSource = null
             holder.loadingDetailsSource = null
+            holder.coverFromFile = false
         }
-        audioMetadata?.let {
-            if (!changed && onlyIfSourceChanged) return
-            bindEventDetails(holder, it)
-            return
+        val metadata = audioMetadata
+        if (metadata != null) {
+            if (changed || !onlyIfSourceChanged) holder.coverFromFile = !bindEventDetails(holder, metadata)
+            // The event's tags stand; only the backdrop comes off the file, when the event has none to give.
+            if (!holder.coverFromFile) return
         }
         // Playing is what fetches a file that was never downloaded, so the provider is asked again
         // rather than trusting what was known when the row was built.
         val source = localSource ?: localSourceProvider?.invoke()
         if (onlyIfSourceChanged && (holder.detailsSource == source || holder.loadingDetailsSource == source)) return
         val known = source?.let { AudioDetails.cached(it, forTimeline = true) }
-        showFileDetails(holder, known, reset = changed)
+        showFileDetails(holder, known.withEventTags(), reset = changed)
         if (source == null) return
         if (known != null) {
             holder.detailsSource = source
@@ -229,27 +241,56 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         holder.loadingDetailsSource = uri
         val context = holder.view.context.applicationContext
         detailsLoader.execute {
-            val details = AudioDetails.load(context, uri, forTimeline = true)
+            val (details, fresh) = AudioDetails.loadTracked(context, uri, forTimeline = true)
             holder.mainLayout.post {
                 // The row may have been recycled onto another message by now.
                 if (holder.mainLayout.tag == id && holder.loadingDetailsSource == uri) {
                     holder.loadingDetailsSource = null
                     holder.detailsSource = uri
-                    if (!details.isEmpty) showFileDetails(holder, details, reset = true)
+                    if (!details.isEmpty) showFileDetails(holder, details.withEventTags(), reset = true, fade = fresh)
                 }
             }
         }
     }
 
     /**
-     * What the event says. Its cover art is decoded here rather than handed off to a thread: at the
+     * What the event says. A known BlurHash is decoded here rather than handed off to a thread: at the
      * size a pill stretches it to that is a fraction of a frame, and a backdrop that arrives later
-     * lands under a message the eye has already settled on.
+     * lands under a message the eye has already settled on. False when the event has no cover to
+     * give, so the file's embedded art is used instead.
      */
-    private fun bindEventDetails(holder: Holder, metadata: AudioMetadata) {
-        val backdrop = metadata.coverArt?.takeIf { it.isNotBlank() }?.let { AudioDetails.coverArtBackdrop(it) }
+    private fun bindEventDetails(holder: Holder, metadata: AudioMetadata): Boolean {
+        val hash = metadata.coverArtBlurhash?.takeIf { it.isNotBlank() }
+                ?: metadata.coverArtUrl?.let { AudioDetails.cachedCoverArtHash(it) }
+        val backdrop = hash?.let { AudioDetails.coverArtBackdrop(it) }
         showFileDetails(holder, metadata.toDetails(backdrop), reset = true)
+        if (backdrop != null) return true
+        val loader = coverArtHashLoader?.takeIf { metadata.coverArtUrl != null } ?: return false
+        loadCoverArt(holder, metadata, loader)
+        return true
     }
+
+    /** Falls back to the file's embedded art when the event's cover cannot be fetched or decoded. */
+    private fun loadCoverArt(holder: Holder, metadata: AudioMetadata, loader: (Context) -> AudioDetails.CoverArtHash?) {
+        val id = attributes.informationData.stableId
+        val context = holder.view.context.applicationContext
+        coverArtLoader.execute {
+            val hash = loader(context)
+            val backdrop = hash?.let { AudioDetails.coverArtBackdrop(it.hash) }
+            holder.mainLayout.post {
+                if (holder.mainLayout.tag != id) return@post
+                if (backdrop != null) {
+                    showFileDetails(holder, metadata.toDetails(backdrop), reset = true, fade = hash.fresh)
+                } else {
+                    holder.coverFromFile = true
+                    bindFileDetails(holder, onlyIfSourceChanged = true)
+                }
+            }
+        }
+    }
+
+    private fun AudioDetails.Details?.withEventTags(): AudioDetails.Details? =
+            audioMetadata?.toDetails(this?.backdrop) ?: this
 
     private fun AudioMetadata.toDetails(backdrop: Bitmap?) = AudioDetails.Details(
             title = title?.takeIf { it.isNotBlank() },
@@ -259,17 +300,18 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
             backdrop = backdrop,
     )
 
-    private fun showFileDetails(holder: Holder, details: AudioDetails.Details?, reset: Boolean) {
+    /** [fade] is for a backdrop generated just now, so it arrives the way timeline media does. */
+    private fun showFileDetails(holder: Holder, details: AudioDetails.Details?, reset: Boolean, fade: Boolean = false) {
         // Nothing to say and nothing to clear: leave the row showing what it already found.
         if (details == null && !reset) return
         holder.filenameView.text = (details?.title ?: filename).prepareForDisplay()
         holder.artistView.text = details?.credits?.prepareForDisplay()
         holder.artistView.isVisible = details?.credits != null
-        applyBackdrop(holder, details?.backdrop)
+        applyBackdrop(holder, details?.backdrop, fade && !PerformanceMode.enabled)
     }
 
     /** The cover, blurred and darkened, as the message's own background. */
-    private fun applyBackdrop(holder: Holder, backdrop: Bitmap?) {
+    private fun applyBackdrop(holder: Holder, backdrop: Bitmap?, fade: Boolean) {
         val context = holder.view.context
         if (backdrop == null) {
             holder.backdropKey = null
@@ -279,12 +321,16 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
             applyTextColors(holder, onBackdrop = false)
             return
         }
-        applyTextColors(holder, onBackdrop = true)
+        applyTextColors(holder, onBackdrop = true, fade = fade)
         // Cut to the shape it will be drawn at, which is only known once the message is laid out.
-        if (holder.mainLayout.width > 0) setBackdrop(holder, backdrop) else holder.mainLayout.doOnLayout { setBackdrop(holder, backdrop) }
+        if (holder.mainLayout.width > 0) {
+            setBackdrop(holder, backdrop, fade)
+        } else {
+            holder.mainLayout.doOnLayout { setBackdrop(holder, backdrop, fade) }
+        }
     }
 
-    private fun setBackdrop(holder: Holder, backdrop: Bitmap) {
+    private fun setBackdrop(holder: Holder, backdrop: Bitmap, fade: Boolean) {
         val context = holder.view.context
         // Setting a background lays the message out again, which would ask for another backdrop:
         // composing one only when the art or the shape has really changed is what stops that from
@@ -301,14 +347,21 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         // Cleared first: setting a background re-applies whatever tint the view is carrying, and
         // the pill's own tint would paint a flat colour over the artwork.
         ViewCompat.setBackgroundTintList(holder.mainLayout, null)
-        holder.mainLayout.backgroundCompat = drawable
+        val previous = holder.mainLayout.background
+        holder.mainLayout.backgroundCompat = if (fade && previous != null) {
+            BackdropFadeInDrawable(previous, drawable, ImageContentRenderer.CROSSFADE_MS)
+        } else {
+            drawable
+        }
     }
 
     /**
      * Over artwork the message's own text colours cannot be trusted — a light theme's near-black
      * on a darkened cover is unreadable — so everything on it goes white while it is there.
      */
-    private fun applyTextColors(holder: Holder, onBackdrop: Boolean) {
+    private fun applyTextColors(holder: Holder, onBackdrop: Boolean, fade: Boolean = false) {
+        holder.textColorAnimator?.cancel()
+        holder.textColorAnimator = null
         val context = holder.view.context
         val primary = if (onBackdrop) {
             Color.WHITE
@@ -325,6 +378,29 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         } else {
             ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
         }
+        if (!fade) {
+            setTextColors(holder, primary, secondary, tertiary)
+            return
+        }
+        val fromPrimary = holder.filenameView.currentTextColor
+        val fromSecondary = holder.audioPlaybackTime.currentTextColor
+        val fromTertiary = holder.fileSize.currentTextColor
+        holder.textColorAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = ImageContentRenderer.CROSSFADE_MS.toLong()
+            addUpdateListener {
+                val progress = it.animatedValue as Float
+                setTextColors(
+                        holder,
+                        ColorUtils.blendARGB(fromPrimary, primary, progress),
+                        ColorUtils.blendARGB(fromSecondary, secondary, progress),
+                        ColorUtils.blendARGB(fromTertiary, tertiary, progress),
+                )
+            }
+            start()
+        }
+    }
+
+    private fun setTextColors(holder: Holder, primary: Int, secondary: Int, tertiary: Int) {
         holder.filenameView.setTextColor(primary)
         holder.artistView.setTextColor(secondary)
         holder.audioPlaybackDuration.setTextColor(tertiary)
@@ -408,7 +484,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderStateBasedOnAudioPlayback(holder: Holder) {
-        playbackTrackerListener = AudioMessagePlaybackTracker.Listener { state ->
+        val listener = AudioMessagePlaybackTracker.Listener { state ->
             if (state is AudioMessagePlaybackTracker.Listener.State.Playing ||
                     state is AudioMessagePlaybackTracker.Listener.State.Paused) {
                 bindFileDetails(holder, onlyIfSourceChanged = true)
@@ -420,7 +496,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
                 is AudioMessagePlaybackTracker.Listener.State.Paused -> renderPausedState(holder, state)
                 is AudioMessagePlaybackTracker.Listener.State.Recording -> Unit
             }
-        }.also { audioMessagePlaybackTracker.track(attributes.informationData.stableId, it) }
+        }
+        holder.playbackRegistration.track(audioMessagePlaybackTracker, attributes.informationData.stableId, listener)
     }
 
     private fun renderIdleState(holder: Holder) {
@@ -490,6 +567,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     override fun unbind(holder: Holder) {
         previewUrlViewUpdater.unbind()
         holder.cancelProgressAnimation()
+        holder.textColorAnimator?.cancel()
+        holder.textColorAnimator = null
         holder.mainLayout.tag = null
         holder.backdropKey = null
         holder.detailsSource = null
@@ -497,8 +576,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
-        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.stableId, it) }
-        playbackTrackerListener = null
+        holder.playbackRegistration.release(audioMessagePlaybackTracker)
     }
 
     override fun getViewStubId() = STUB_ID
@@ -520,6 +598,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val audioSeekBar by bind<SeekBar>(R.id.audioSeekBar)
         var progressAnimator: ObjectAnimator? = null
         var backdropKey: String? = null
+        var textColorAnimator: ValueAnimator? = null
+        var coverFromFile = false
+        val playbackRegistration = AudioMessagePlaybackTracker.RowRegistration()
         var detailsSource: Uri? = null
         var loadingDetailsSource: Uri? = null
 
@@ -579,6 +660,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         /** One row at a time reads a file, rather than a thread each on a fast scroll. */
         private val detailsLoader = Executors.newSingleThreadExecutor()
 
+        /** Apart from [detailsLoader], so a slow download does not hold up reading files already on disk. */
+        private val coverArtLoader = Executors.newSingleThreadExecutor()
+
         /** White is the text; this is everything under it. */
         private const val ON_BACKDROP_SECONDARY = 0xCCFFFFFF.toInt()
 
@@ -594,4 +678,54 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         /** What the message is roughly shaped like before it has been laid out. */
         private const val DEFAULT_BACKDROP_ASPECT = 3.3f
     }
+}
+
+/**
+ * Fades [to] in over [from] once. Not a TransitionDrawable: the message's tinting mutate()s its
+ * background, which a LayerDrawable holding a rounded bitmap does not survive.
+ */
+private class BackdropFadeInDrawable(
+        private val from: Drawable,
+        private val to: Drawable,
+        private val durationMs: Int,
+) : Drawable() {
+
+    private var startMs = -1L
+    private var baseAlpha = 255
+
+    override fun draw(canvas: Canvas) {
+        val now = SystemClock.uptimeMillis()
+        if (startMs < 0) startMs = now
+        val progress = ((now - startMs).toFloat() / durationMs).coerceIn(0f, 1f)
+        if (progress < 1f) {
+            from.alpha = baseAlpha
+            from.draw(canvas)
+            to.alpha = (baseAlpha * progress).toInt()
+            to.draw(canvas)
+            invalidateSelf()
+        } else {
+            to.alpha = baseAlpha
+            to.draw(canvas)
+        }
+    }
+
+    override fun onBoundsChange(bounds: Rect) {
+        from.bounds = bounds
+        to.bounds = bounds
+    }
+
+    override fun getPadding(padding: Rect): Boolean = to.getPadding(padding)
+
+    override fun setAlpha(alpha: Int) {
+        baseAlpha = alpha
+        invalidateSelf()
+    }
+
+    override fun setColorFilter(colorFilter: ColorFilter?) {
+        from.colorFilter = colorFilter
+        to.colorFilter = colorFilter
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
 }

@@ -762,7 +762,7 @@ class ImageContentRenderer @Inject constructor(
 
         // Glide's withCrossFade() leaves the placeholder as an opaque layer under the image for good,
         // which a transparent picture then shows the waiting fill through. Fading it out instead.
-        private const val CROSSFADE_MS = 220
+        const val CROSSFADE_MS = 220
         private const val MIN_RETRY_FEEDBACK_MS = 550L
 
         // How long a render may be in flight before a rebind that restarts it re-fetches rather than
