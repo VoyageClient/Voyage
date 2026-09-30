@@ -63,12 +63,12 @@ class IncomingShareFragment :
         val enabled = withState(viewModel) { it.selectedRoomIds.isNotEmpty() }
         sendItem.isEnabled = enabled
         sendItem.icon?.mutate()?.setAlpha(if (enabled) 255 else 100)
-        // Long-press forwards without the MSC2723 metadata; the action view only exists post-layout.
+        // Long-press forwards as a quote instead of with MSC2723 metadata; the action view only exists post-layout.
         if (isForwardMode) {
             views.incomingShareToolbar.post {
                 views.incomingShareToolbar.findViewById<View>(R.id.incomingShareSend)?.setOnLongClickListener {
                     val allowed = withState(viewModel) { it.selectedRoomIds.isNotEmpty() }
-                    if (allowed) viewModel.handle(IncomingShareAction.ShareToSelectedRooms(stripForwardedInfo = true))
+                    if (allowed) viewModel.handle(IncomingShareAction.ShareToSelectedRooms(asQuote = true))
                     allowed
                 }
             }
