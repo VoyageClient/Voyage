@@ -3456,8 +3456,6 @@
     <string name="create_room_encrypted_state_title">Événements d’état chiffrés</string>
     <string name="create_room_encrypted_state_warning">Chiffre les détails du salon et les autres événements d’état éligibles via MSC4362. La plupart des clients ne le prennent pas encore en charge, certaines fonctionnalités peuvent donc manquer ou être inutilisables.</string>
     <string name="create_room_encrypted_state_dialog_summary">Les clients non compatibles risquent de ne pas afficher correctement les détails du salon.</string>
-    <string name="notice_power_levels_changed">%1$s a modifié les rangs.</string>
-    <string name="notice_power_levels_changed_by_you">Vous avez modifié les rangs.</string>
     <string name="notice_image_pack_changed">%1$s a modifié un pack d’images</string>
     <string name="notice_image_pack_changed_by_you">Vous avez modifié un pack d’images</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">La sauvegarde de clés devrait être active sur toutes vos sessions pour ne pas perdre l’accès à vos messages chiffrés.</string>
@@ -3491,4 +3489,6 @@
     <string name="timeline_history_unavailable">Vous ne pouvez pas voir les messages plus anciens</string>
     <string name="timeline_history_unavailable_before_join">Vous n’avez pas l’autorisation de voir les messages antérieurs à votre arrivée.</string>
     <string name="timeline_history_unavailable_before_invite">Vous n’avez pas l’autorisation de voir les messages antérieurs à votre invitation.</string>
+    <string name="notice_power_levels_changed">%1$s a modifié les permissions du salon.</string>
+    <string name="notice_power_levels_changed_by_you">Vous avez modifié les permissions du salon.</string>
 </resources>

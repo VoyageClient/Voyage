@@ -3426,8 +3426,6 @@
     <string name="create_room_encrypted_state_title">Şifreli durum olayları</string>
     <string name="create_room_encrypted_state_warning">Oda ayrıntılarını ve uygun diğer durum olaylarını MSC4362 ile şifreler. Çoğu istemci bunu henüz desteklemiyor, bu nedenle bazı özellikler eksik veya kullanılamaz olabilir.</string>
     <string name="create_room_encrypted_state_dialog_summary">Desteklemeyen istemciler oda ayrıntılarını doğru göstermeyebilir.</string>
-    <string name="notice_power_levels_changed">%1$s güç seviyelerini değiştirdi.</string>
-    <string name="notice_power_levels_changed_by_you">Güç seviyelerini değiştirdiniz.</string>
     <string name="notice_image_pack_changed">%1$s bir görsel paketini değiştirdi</string>
     <string name="notice_image_pack_changed_by_you">Bir görsel paketini değiştirdiniz</string>
     <plurals name="mass_redaction_finished">
@@ -3449,4 +3447,6 @@
     <string name="timeline_history_unavailable">Önceki mesajları göremezsin</string>
     <string name="timeline_history_unavailable_before_join">Katılmadan önceki mesajları görüntüleme iznin yok.</string>
     <string name="timeline_history_unavailable_before_invite">Davet edilmeden önceki mesajları görüntüleme iznin yok.</string>
+    <string name="notice_power_levels_changed">%1$s oda izinlerini değiştirdi.</string>
+    <string name="notice_power_levels_changed_by_you">Oda izinlerini değiştirdiniz.</string>
 </resources>

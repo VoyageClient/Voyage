@@ -3398,8 +3398,6 @@
     <string name="create_room_encrypted_state_title">加密的狀態事件</string>
     <string name="create_room_encrypted_state_warning">透過 MSC4362 加密聊天室詳細資料與其他符合條件的狀態事件。大多數客戶端尚未支援此功能，因此部分功能可能缺少或無法使用。</string>
     <string name="create_room_encrypted_state_dialog_summary">不支援的客戶端可能無法正確顯示聊天室詳細資料。</string>
-    <string name="notice_power_levels_changed">%1$s 已變更權限等級。</string>
-    <string name="notice_power_levels_changed_by_you">您已變更權限等級。</string>
     <string name="notice_image_pack_changed">%1$s 已變更圖片包</string>
     <string name="notice_image_pack_changed_by_you">您已變更圖片包</string>
     <string name="mentions_filter_room">提及 @room</string>
@@ -3430,4 +3428,6 @@
     <string name="timeline_history_unavailable">您看不到更早的訊息</string>
     <string name="timeline_history_unavailable_before_join">您沒有權限檢視加入前的訊息。</string>
     <string name="timeline_history_unavailable_before_invite">您沒有權限檢視您被邀請前的訊息。</string>
+    <string name="notice_power_levels_changed">%1$s 已變更聊天室權限。</string>
+    <string name="notice_power_levels_changed_by_you">您已變更聊天室權限。</string>
 </resources>

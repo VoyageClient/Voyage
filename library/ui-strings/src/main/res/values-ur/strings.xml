@@ -3361,8 +3361,6 @@
     <string name="create_room_encrypted_state_title">مرموز شدہ حالتی واقعات</string>
     <string name="create_room_encrypted_state_warning">MSC4362 کے ذریعے کمرے کی تفصیلات اور دیگر اہل حالتی واقعات کو مرموز کرتا ہے۔ زیادہ تر کلائنٹ ابھی اس کی معاونت نہیں کرتے، اس لیے کچھ خصوصیات غائب یا ناقابلِ استعمال ہو سکتی ہیں۔</string>
     <string name="create_room_encrypted_state_dialog_summary">غیر معاون کلائنٹ کمرے کی تفصیلات درست طریقے سے نہیں دکھا سکتے۔</string>
-    <string name="notice_power_levels_changed">%1$s نے اختیار کی سطحیں تبدیل کیں۔</string>
-    <string name="notice_power_levels_changed_by_you">آپ نے اختیار کی سطحیں تبدیل کیں۔</string>
     <string name="notice_image_pack_changed">%1$s نے ایک تصویری بستہ تبدیل کیا</string>
     <string name="notice_image_pack_changed_by_you">آپ نے ایک تصویری بستہ تبدیل کیا</string>
     <string name="mentions_filter_room">\@room ذکر</string>
@@ -3385,4 +3383,6 @@
     <string name="timeline_history_unavailable">آپ پرانے پیغامات نہیں دیکھ سکتے</string>
     <string name="timeline_history_unavailable_before_join">آپ کو اپنے شامل ہونے سے پہلے کے پیغامات دیکھنے کی اجازت نہیں ہے۔</string>
     <string name="timeline_history_unavailable_before_invite">آپ کو مدعو کیے جانے سے پہلے کے پیغامات دیکھنے کی اجازت نہیں ہے۔</string>
+    <string name="notice_power_levels_changed">%1$s نے کمرے کی اجازتیں تبدیل کیں۔</string>
+    <string name="notice_power_levels_changed_by_you">آپ نے کمرے کی اجازتیں تبدیل کیں۔</string>
 </resources>

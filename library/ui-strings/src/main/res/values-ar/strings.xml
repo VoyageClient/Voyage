@@ -3580,8 +3580,6 @@
     <string name="create_room_encrypted_state_title">أحداث حالة معمّاة</string>
     <string name="create_room_encrypted_state_warning">يعمّي تفاصيل الغرفة وأحداث الحالة المؤهلة الأخرى عبر MSC4362. لا تدعم معظم العملاء هذا بعد، لذا قد تكون بعض الميزات مفقودة أو غير قابلة للاستخدام.</string>
     <string name="create_room_encrypted_state_dialog_summary">قد لا تعرض العملاء غير الداعمة تفاصيل الغرفة بشكل صحيح.</string>
-    <string name="notice_power_levels_changed">غيّر %1$s مستويات الصلاحيات.</string>
-    <string name="notice_power_levels_changed_by_you">غيّرتَ مستويات الصلاحيات.</string>
     <string name="notice_image_pack_changed">غيّر %1$s حزمة صور</string>
     <string name="notice_image_pack_changed_by_you">غيّرتَ حزمة صور</string>
     <plurals name="notice_room_server_acl_changes">
@@ -3636,4 +3634,6 @@
     <string name="timeline_history_unavailable">لا يمكنك رؤية الرسائل السابقة</string>
     <string name="timeline_history_unavailable_before_join">ليس لديك إذن بعرض الرسائل المرسلة قبل انضمامك.</string>
     <string name="timeline_history_unavailable_before_invite">ليس لديك إذن بعرض الرسائل المرسلة قبل دعوتك.</string>
+    <string name="notice_power_levels_changed">غيّر %1$s أذونات الغرفة.</string>
+    <string name="notice_power_levels_changed_by_you">غيّرت أذونات الغرفة.</string>
 </resources>

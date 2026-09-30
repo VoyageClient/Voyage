@@ -3540,8 +3540,6 @@
     <string name="create_room_encrypted_state_title">אירועי מצב מוצפנים</string>
     <string name="create_room_encrypted_state_warning">מצפין את פרטי החדר ואירועי מצב מתאימים אחרים באמצעות MSC4362. רוב הלקוחות עדיין אינם תומכים בכך, ולכן ייתכן שתכונות מסוימות יחסרו או לא יהיו שמישות.</string>
     <string name="create_room_encrypted_state_dialog_summary">לקוחות שאינם תומכים בכך עשויים שלא להציג את פרטי החדר כראוי.</string>
-    <string name="notice_power_levels_changed">%1$s שינה את רמות ההרשאה.</string>
-    <string name="notice_power_levels_changed_by_you">שינית את רמות ההרשאה.</string>
     <string name="notice_image_pack_changed">%1$s שינה חבילת תמונות</string>
     <string name="notice_image_pack_changed_by_you">שינית חבילת תמונות</string>
     <string name="e2e_re_request_encryption_key_dialog_content">הפעל את ${app_name} במכשיר אחר שיכול לפענח את ההודעה, כדי שישלח את המפתחות למושב הזה.</string>
@@ -3582,4 +3580,6 @@
     <string name="timeline_history_unavailable">לא ניתן לצפות בהודעות קודמות</string>
     <string name="timeline_history_unavailable_before_join">אין לך הרשאה לצפות בהודעות שנשלחו לפני שהצטרפת.</string>
     <string name="timeline_history_unavailable_before_invite">אין לך הרשאה לצפות בהודעות שנשלחו לפני שהוזמנת.</string>
+    <string name="notice_power_levels_changed">%1$s שינה את הרשאות החדר.</string>
+    <string name="notice_power_levels_changed_by_you">שינית את הרשאות החדר.</string>
 </resources>

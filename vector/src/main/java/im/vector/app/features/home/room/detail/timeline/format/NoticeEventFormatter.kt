@@ -178,16 +178,15 @@ class NoticeEventFormatter @Inject constructor(
         }
     }
 
-    private fun formatRoomPowerLevels(event: Event, disambiguatedDisplayName: String): CharSequence? {
-        if (event.contentWithheld) {
-            return if (event.isSentByCurrentUser()) {
-                sp.getString(CommonStrings.notice_power_levels_changed_by_you)
-            } else {
-                sp.getString(CommonStrings.notice_power_levels_changed, disambiguatedDisplayName)
-            }
+    private fun formatRoomPowerLevels(event: Event, disambiguatedDisplayName: String): CharSequence {
+        val generalNotice = if (event.isSentByCurrentUser()) {
+            sp.getString(CommonStrings.notice_power_levels_changed_by_you)
+        } else {
+            sp.getString(CommonStrings.notice_power_levels_changed, disambiguatedDisplayName)
         }
-        val powerLevelsContent: PowerLevelsContent = event.content.toModel() ?: return null
-        val previousPowerLevelsContent: PowerLevelsContent = event.resolvedPrevContent().toModel() ?: return null
+        if (event.contentWithheld) return generalNotice
+        val powerLevelsContent: PowerLevelsContent = event.content.toModel() ?: return generalNotice
+        val previousPowerLevelsContent: PowerLevelsContent = event.resolvedPrevContent().toModel() ?: return generalNotice
         val roomService = activeSessionDataSource.currentValue?.orNull()?.roomService()
         val userIds = HashSet<String>()
         userIds.addAll(powerLevelsContent.users.orEmpty().keys)
@@ -204,9 +203,7 @@ class NoticeEventFormatter @Inject constructor(
                 diffs.add(diff)
             }
         }
-        if (diffs.isEmpty()) {
-            return null
-        }
+        if (diffs.isEmpty()) return generalNotice
         val diffStr = diffs.joinToString(separator = ", ")
         return if (event.isSentByCurrentUser()) {
             sp.getString(CommonStrings.notice_power_level_changed_by_you, diffStr)

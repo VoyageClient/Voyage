@@ -3395,8 +3395,6 @@
     <string name="create_room_encrypted_state_title">暗号化された状態イベント</string>
     <string name="create_room_encrypted_state_warning">MSC4362によりルームの詳細やその他の対象となる状態イベントを暗号化します。ほとんどのクライアントはまだ対応していないため、一部の機能が欠けたり使えなかったりする場合があります。</string>
     <string name="create_room_encrypted_state_dialog_summary">対応していないクライアントでは、ルームの詳細が正しく表示されない場合があります。</string>
-    <string name="notice_power_levels_changed">%1$sが権限レベルを変更しました。</string>
-    <string name="notice_power_levels_changed_by_you">権限レベルを変更しました。</string>
     <string name="notice_image_pack_changed">%1$sが画像パックを変更しました</string>
     <string name="notice_image_pack_changed_by_you">画像パックを変更しました</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">暗号化されたメッセージにアクセスできなくなるのを防ぐため、全てのセッションで鍵のバックアップを有効にしてください。</string>
@@ -3426,4 +3424,6 @@
     <string name="timeline_history_unavailable">以前のメッセージは表示できません</string>
     <string name="timeline_history_unavailable_before_join">参加する前のメッセージを表示する権限がありません。</string>
     <string name="timeline_history_unavailable_before_invite">招待される前のメッセージを表示する権限がありません。</string>
+    <string name="notice_power_levels_changed">%1$sがルームの権限を変更しました。</string>
+    <string name="notice_power_levels_changed_by_you">ルームの権限を変更しました。</string>
 </resources>

@@ -3456,8 +3456,6 @@
     <string name="create_room_encrypted_state_title">Eventos de estado criptografados</string>
     <string name="create_room_encrypted_state_warning">Criptografa os detalhes da sala e outros eventos de estado elegíveis via MSC4362. A maioria dos clientes ainda não oferece suporte a isso, então alguns recursos podem faltar ou ficar inutilizáveis.</string>
     <string name="create_room_encrypted_state_dialog_summary">Clientes sem suporte podem não mostrar os detalhes da sala corretamente.</string>
-    <string name="notice_power_levels_changed">%1$s mudou os níveis de poder.</string>
-    <string name="notice_power_levels_changed_by_you">Você mudou os níveis de poder.</string>
     <string name="notice_image_pack_changed">%1$s alterou um pacote de imagens</string>
     <string name="notice_image_pack_changed_by_you">Você alterou um pacote de imagens</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">O Backup de Chave deve estar ativo em todas as suas sessões para você não perder o acesso às suas mensagens criptografadas.</string>
@@ -3491,4 +3489,6 @@
     <string name="timeline_history_unavailable">Você não pode ver as mensagens anteriores</string>
     <string name="timeline_history_unavailable_before_join">Você não tem permissão para ver as mensagens de antes de entrar.</string>
     <string name="timeline_history_unavailable_before_invite">Você não tem permissão para ver as mensagens de antes de ser convidado.</string>
+    <string name="notice_power_levels_changed">%1$s alterou as permissões da sala.</string>
+    <string name="notice_power_levels_changed_by_you">Você alterou as permissões da sala.</string>
 </resources>

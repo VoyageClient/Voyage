@@ -3409,8 +3409,6 @@
     <string name="create_room_encrypted_state_title">এনক্রিপ্ট করা স্টেট ইভেন্ট</string>
     <string name="create_room_encrypted_state_warning">MSC4362-এর মাধ্যমে রুমের বিবরণ ও অন্যান্য উপযুক্ত স্টেট ইভেন্ট এনক্রিপ্ট করে। বেশিরভাগ ক্লায়েন্ট এখনও এটি সমর্থন করে না, তাই কিছু বৈশিষ্ট্য অনুপস্থিত বা অব্যবহারযোগ্য হতে পারে।</string>
     <string name="create_room_encrypted_state_dialog_summary">অসমর্থিত ক্লায়েন্ট রুমের বিবরণ সঠিকভাবে দেখাতে নাও পারে।</string>
-    <string name="notice_power_levels_changed">%1$s ক্ষমতার স্তর পরিবর্তন করেছেন।</string>
-    <string name="notice_power_levels_changed_by_you">আপনি ক্ষমতার স্তর পরিবর্তন করেছেন।</string>
     <string name="notice_image_pack_changed">%1$s একটি ইমেজ প্যাক পরিবর্তন করেছেন</string>
     <string name="notice_image_pack_changed_by_you">আপনি একটি ইমেজ প্যাক পরিবর্তন করেছেন</string>
     <string name="mentions_filter_room">\@room উল্লেখ</string>
@@ -3445,4 +3443,6 @@
     <string name="timeline_history_unavailable">আপনি আগের বার্তাগুলো দেখতে পারবেন না</string>
     <string name="timeline_history_unavailable_before_join">আপনার যোগ দেওয়ার আগের বার্তাগুলো দেখার অনুমতি আপনার নেই।</string>
     <string name="timeline_history_unavailable_before_invite">আপনাকে আমন্ত্রণ জানানোর আগের বার্তাগুলো দেখার অনুমতি আপনার নেই।</string>
+    <string name="notice_power_levels_changed">%1$s রুমের অনুমতি পরিবর্তন করেছেন।</string>
+    <string name="notice_power_levels_changed_by_you">আপনি রুমের অনুমতি পরিবর্তন করেছেন।</string>
 </resources>
