@@ -19,6 +19,7 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.AnyThread
+import androidx.annotation.ColorInt
 import androidx.annotation.DimenRes
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
@@ -446,7 +447,7 @@ class AvatarRenderer @Inject constructor(
                 .get()
     }
 
-    private data class ViewPlaceholder(val matrixItem: MatrixItem, val shape: AvatarShape, val drawable: Drawable)
+    private data class ViewPlaceholder(val matrixItem: MatrixItem, val shape: AvatarShape, @ColorInt val color: Int, val drawable: Drawable)
 
     /**
      * Glide decides whether a rebind is the request it is already serving by comparing placeholders
@@ -456,11 +457,13 @@ class AvatarRenderer @Inject constructor(
      */
     private fun placeholderFor(imageView: ImageView, matrixItem: MatrixItem): Drawable {
         val shape = shapeFor(matrixItem)
+        // The color is part of the key: a sender's chosen color can resolve after an unchanged item first bound.
+        val color = matrixItemColorProvider.getColor(matrixItem)
         (imageView.getTag(R.id.avatar_renderer_placeholder) as? ViewPlaceholder)
-                ?.takeIf { it.matrixItem == matrixItem && it.shape == shape }
+                ?.takeIf { it.matrixItem == matrixItem && it.shape == shape && it.color == color }
                 ?.let { return it.drawable }
-        return getPlaceholderDrawable(matrixItem).also {
-            imageView.setTag(R.id.avatar_renderer_placeholder, ViewPlaceholder(matrixItem, shape, it))
+        return defaultAvatarFactory.create(matrixItem, color, shape).also {
+            imageView.setTag(R.id.avatar_renderer_placeholder, ViewPlaceholder(matrixItem, shape, color, it))
         }
     }
 
