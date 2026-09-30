@@ -1191,11 +1191,14 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     override fun onTypeSelected(type: AttachmentType) {
-        if (checkPermissions(type.permissions, requireActivity(), typeSelectedActivityResultLauncher)) {
-            launchAttachmentProcess(type)
-        } else {
-            attachmentsHelper.pendingType = type
+        val select = {
+            if (checkPermissions(type.permissions, requireActivity(), typeSelectedActivityResultLauncher)) {
+                launchAttachmentProcess(type)
+            } else {
+                attachmentsHelper.pendingType = type
+            }
         }
+        (parentFragment as? TimelineFragment)?.openAfterKeyboardDismissal(select) ?: select()
     }
 
     private val attachmentFileActivityResultLauncher = registerStartForActivityResult {

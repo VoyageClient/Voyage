@@ -105,6 +105,7 @@ import im.vector.app.core.utils.colorizeMatchingText
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.core.utils.createUIHandler
+import im.vector.app.core.utils.hideImeQuickly
 import im.vector.app.core.utils.isTappableLink
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.core.utils.onPermissionDeniedDialog
@@ -2027,7 +2028,7 @@ class TimelineFragment :
         vectorBaseActivity.notImplemented("encrypted message click")
     }
 
-    private var mediaOpening = false
+    private var openingAfterKeyboardDismissal = false
 
     private fun isKeyboardVisible(): Boolean {
         keyboardStateUtils.onGlobalLayout()
@@ -2037,26 +2038,29 @@ class TimelineFragment :
         } else keyboardStateUtils.isKeyboardShowing
     }
 
-    private fun openMediaAfterKeyboardDismissal(open: () -> Unit) {
-        if (mediaOpening) return
-        mediaOpening = true
+    /** Slides the keyboard away before [open] covers the room, and brings it back once the room is on top again. */
+    fun openAfterKeyboardDismissal(open: () -> Unit) {
+        if (openingAfterKeyboardDismissal) return
+        openingAfterKeyboardDismissal = true
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val keyboardWasVisible = isKeyboardVisible()
+                if (keyboardWasVisible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    withTimeoutOrNull(1000L) { requireActivity().window.hideImeQuickly(requireView()) }
+                }
                 val composer = childFragmentManager.findFragmentById(R.id.composerContainer) as? MessageComposerFragment
                 composer?.dismissKeyboard()
                 this@TimelineFragment.view?.hideKeyboard()
                 // Shared-element transitions freeze the room layout, so let IME resizing finish first.
-                withTimeoutOrNull(2000L) {
-                    do {
-                        delay(32L)
-                    } while (isKeyboardVisible() || vectorBaseActivity.isImeAnimating)
-                    delay(32L)
+                withTimeoutOrNull(1000L) {
+                    while (isKeyboardVisible() || vectorBaseActivity.isImeAnimating) delay(16L)
                 }
+                // One frame for the post-IME relayout.
+                delay(16L)
                 if (keyboardWasVisible) composer?.restoreKeyboardOnReturn()
                 open()
             } finally {
-                mediaOpening = false
+                openingAfterKeyboardDismissal = false
             }
         }
     }
@@ -2067,7 +2071,7 @@ class TimelineFragment :
             view: View,
             inMemory: List<AttachmentData>
     ) {
-        openMediaAfterKeyboardDismissal {
+        openAfterKeyboardDismissal {
             navigator.openMediaViewer(
                     activity = requireActivity(),
                     roomId = timelineArgs.roomId,
@@ -2087,7 +2091,7 @@ class TimelineFragment :
             view: View,
             inMemory: List<AttachmentData>
     ) {
-        openMediaAfterKeyboardDismissal {
+        openAfterKeyboardDismissal {
             navigator.openMediaViewer(
                     activity = requireActivity(),
                     roomId = timelineArgs.roomId,
@@ -2277,7 +2281,7 @@ class TimelineFragment :
 
     override fun onPreviewUrlImageClicked(sharedView: View?, mxcUrl: String?, title: String?) {
         if (mxcUrl.isNullOrBlank()) return
-        openMediaAfterKeyboardDismissal {
+        openAfterKeyboardDismissal {
             navigator.openBigImageViewer(requireActivity(), sharedView, mxcUrl, title)
         }
     }

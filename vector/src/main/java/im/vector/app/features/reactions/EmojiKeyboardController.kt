@@ -97,6 +97,8 @@ class EmojiKeyboardController(
     init {
         if (usesNativeImeState) hostActivity?.addImeStateListener(imeStateListener)
         panelHost.onWindowFocusRestored = {
+            // Sheets and dialogs take focus without pausing the activity.
+            if (!paused) consumeRestoreOnReturn()
             // The input method receives window focus after the view hierarchy does.
             editText.removeCallbacks(restoreKeyboardAfterFocus)
             editText.post(restoreKeyboardAfterFocus)
@@ -263,7 +265,8 @@ class EmojiKeyboardController(
     fun onPause() {
         editText.removeCallbacks(restoreKeyboardAfterFocus)
         paused = true
-        showKeyboardOnResume = !keyboardRestoreSuppressed && keyboardVisible &&
+        // A restore still waiting for window focus (e.g. a permission prompt chained into a picker) must survive.
+        showKeyboardOnResume = showKeyboardOnResume || !keyboardRestoreSuppressed && keyboardVisible &&
                 (editText.hasFocus() || activity.currentFocus?.onCheckIsTextEditor() != true)
         editText.removeCallbacks(releaseKeyboardRestoreHold)
         hostActivity?.isRestoringComposerKeyboard = showKeyboardOnResume
@@ -280,13 +283,16 @@ class EmojiKeyboardController(
     fun onResume() {
         paused = false
         editText.removeCallbacks(hideKeyboardAfterPause)
-        if (restoreKeyboardOnNextResume) {
-            restoreKeyboardOnNextResume = false
-            keyboardRestoreSuppressed = false
-            showKeyboardOnResume = true
-        }
+        consumeRestoreOnReturn()
         if (showKeyboardOnResume) setKeyboardRestoreState(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         restoreKeyboardIfReady()
+    }
+
+    private fun consumeRestoreOnReturn() {
+        if (!restoreKeyboardOnNextResume) return
+        restoreKeyboardOnNextResume = false
+        keyboardRestoreSuppressed = false
+        showKeyboardOnResume = true
     }
 
     private fun restoreKeyboardIfReady() {
