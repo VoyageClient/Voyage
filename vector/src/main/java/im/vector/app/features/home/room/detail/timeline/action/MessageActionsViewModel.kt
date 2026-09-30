@@ -732,7 +732,9 @@ class MessageActionsViewModel @AssistedInject constructor(
 
         if (vectorPreferences.developerMode()) {
             add(EventSharedAction.CopyEventId(eventId))
-            relatedEventId(timelineEvent)?.let { add(EventSharedAction.JumpToRelation(eventId, it)) }
+            relatedEventId(timelineEvent)?.let {
+                add(EventSharedAction.JumpToRelation(eventId, it, timelineEvent.root.getRootThreadEventId()))
+            }
             if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
                 val keysBackupService = session.cryptoService().keysBackupService()
                 if (keysBackupService.getState() == KeysBackupState.NotTrusted ||

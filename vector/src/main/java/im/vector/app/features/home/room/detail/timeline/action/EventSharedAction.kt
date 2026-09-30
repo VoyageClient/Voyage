@@ -87,7 +87,7 @@ sealed class EventSharedAction(
     data class ViewDecryptedSource(val content: String) :
             EventSharedAction(CommonStrings.view_decrypted_source, R.drawable.ic_view_source)
 
-    data class JumpToRelation(val sourceEventId: String, val targetEventId: String) :
+    data class JumpToRelation(val sourceEventId: String, val targetEventId: String, val sourceThreadRootEventId: String? = null) :
             EventSharedAction(CommonStrings.message_action_jump_to_relation, R.drawable.ic_jump_to_relation)
 
     data class CopyPermalink(val eventId: String) :

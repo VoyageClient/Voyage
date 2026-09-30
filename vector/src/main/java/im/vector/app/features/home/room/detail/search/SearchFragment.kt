@@ -65,6 +65,8 @@ import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
+import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
@@ -215,16 +217,18 @@ class SearchFragment :
             event.getRootThreadEventId()
         }
 
-        rootThreadEventId?.let {
-            val threadTimelineArgs = ThreadTimelineArgs(
-                    roomId = roomId,
-                    displayName = fragmentArgs.roomDisplayName,
-                    avatarUrl = fragmentArgs.roomAvatarUrl,
-                    roomEncryptionTrustLevel = null,
-                    rootThreadEventId = it
-            )
-            navigator.openThread(requireContext(), threadTimelineArgs, event.eventId)
-        } ?: openRoom(roomId, event.eventId)
+        rootThreadEventId?.let { openThread(roomId, it, event.eventId) } ?: openRoom(roomId, event.eventId)
+    }
+
+    private fun openThread(roomId: String, rootThreadEventId: String, eventId: String?) {
+        val threadTimelineArgs = ThreadTimelineArgs(
+                roomId = roomId,
+                displayName = fragmentArgs.roomDisplayName,
+                avatarUrl = fragmentArgs.roomAvatarUrl,
+                roomEncryptionTrustLevel = null,
+                rootThreadEventId = rootThreadEventId
+        )
+        navigator.openThread(requireContext(), threadTimelineArgs, eventId)
     }
 
     private fun openRoom(roomId: String, eventId: String?) {
@@ -331,7 +335,19 @@ class SearchFragment :
             is EventSharedAction.ViewEditHistory ->
                 ViewEditHistoryBottomSheet.newInstance(fragmentArgs.roomId, action.messageInformationData)
                         .show(requireActivity().supportFragmentManager, "DISPLAY_EDITS")
-            is EventSharedAction.JumpToRelation -> openRoom(fragmentArgs.roomId, action.targetEventId)
+            is EventSharedAction.JumpToRelation -> {
+                val targetThreadRootId = session.getRoom(fragmentArgs.roomId)
+                        ?.getTimelineEvent(action.targetEventId)
+                        ?.root
+                        ?.getRootThreadEventId()
+                val threadRootId = targetThreadRootId ?: action.sourceThreadRootEventId?.takeIf { it == action.targetEventId }
+                if (threadRootId != null) {
+                    openThread(fragmentArgs.roomId, threadRootId,
+                            if (targetThreadRootId != null) action.targetEventId else action.sourceEventId)
+                } else {
+                    openRoom(fragmentArgs.roomId, action.targetEventId)
+                }
+            }
             is EventSharedAction.OnUrlClicked -> {
                 if (!openPermalinkInApp(requireContext(), action.url)) {
                     openUrlInExternalBrowser(requireContext(), action.url)

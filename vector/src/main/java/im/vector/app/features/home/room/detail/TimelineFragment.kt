@@ -2562,7 +2562,21 @@ class TimelineFragment :
                 }
             }
             is EventSharedAction.JumpToRelation -> {
-                onRepliedToEventClicked(action.sourceEventId, action.targetEventId)
+                val targetThreadRootId = session.getRoom(timelineArgs.roomId)
+                        ?.getTimelineEvent(action.targetEventId)
+                        ?.root
+                        ?.getRootThreadEventId()
+                val threadRootId = targetThreadRootId ?: action.sourceThreadRootEventId?.takeIf { it == action.targetEventId }
+                val eventIdToNavigate = if (targetThreadRootId != null) action.targetEventId else action.sourceEventId
+                if (threadRootId != null) {
+                    if (getRootThreadEventId() == threadRootId) {
+                        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventIdToNavigate, highlight = true))
+                    } else {
+                        navigateToThreadTimeline(threadRootId, eventIdToNavigate = eventIdToNavigate)
+                    }
+                } else {
+                    onRepliedToEventClicked(action.sourceEventId, action.targetEventId)
+                }
             }
             is EventSharedAction.CopyPermalink -> {
                 val permalink = permalinkFactory.createPermalink(timelineArgs.roomId, action.eventId)
@@ -2712,6 +2726,7 @@ class TimelineFragment :
             rootThreadEventId: String,
             startsThread: Boolean = false,
             showKeyboard: Boolean = false,
+            eventIdToNavigate: String? = null,
     ) = withState(timelineViewModel) { state ->
         context?.let {
             val roomThreadDetailArgs = ThreadTimelineArgs(
@@ -2723,7 +2738,7 @@ class TimelineFragment :
                     rootThreadEventId = rootThreadEventId,
                     showKeyboard = showKeyboard
             )
-            navigator.openThread(it, roomThreadDetailArgs)
+            navigator.openThread(it, roomThreadDetailArgs, eventIdToNavigate)
         }
     }
 
