@@ -16,6 +16,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryConte
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -56,7 +57,7 @@ private fun <T> TimelineEvent.imageRendererData(
     return ImageContentRenderer.Data(
             eventId = eventId,
             stableId = stableId,
-            filename = content.body,
+            filename = content.getFileName(),
             mimeType = content.mimeType,
             url = content.getFileUrl(),
             elementToDecrypt = content.encryptedFileInfo?.toElementToDecrypt(),
@@ -78,7 +79,7 @@ private fun TimelineEvent.videoThumbnailRendererData(
     return ImageContentRenderer.Data(
             eventId = eventId,
             stableId = stableId,
-            filename = content.body,
+            filename = content.getFileName(),
             mimeType = videoInfo?.thumbnailInfo?.mimeType,
             url = videoInfo?.getThumbnailUrl(),
             elementToDecrypt = videoInfo?.thumbnailFile?.toElementToDecrypt(),

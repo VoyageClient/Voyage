@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.util.file
 
 import android.webkit.MimeTypeMap
+import org.matrix.android.sdk.api.util.md5
 import org.matrix.android.sdk.internal.session.DefaultFileService.Companion.DEFAULT_FILENAME
 
 /**
@@ -24,7 +25,7 @@ import org.matrix.android.sdk.internal.session.DefaultFileService.Companion.DEFA
  * and update the file extension to match the mimeType.
  */
 fun safeFileName(fileName: String?, mimeType: String?): String {
-    return buildString {
+    val name = buildString {
         // filename has to be safe for the Android System
         val result = fileName
                 ?.replace("[\\\\/?%*:|\"<>\\s]".toRegex(), "_")
@@ -43,4 +44,27 @@ fun safeFileName(fileName: String?, mimeType: String?): String {
             }
         }
     }
+    // AtomicFileCreator adds ".part". Keep both names below the 255-byte component limit.
+    if (name.toByteArray(Charsets.UTF_8).size <= 250) return name
+
+    val extension = name.substringAfterLast('.', "")
+            .takeIf { it.isNotEmpty() && it.length <= 16 }
+            ?.let { ".$it" }
+            .orEmpty()
+    val stem = name.removeSuffix(extension)
+    val suffix = "_${name.md5()}$extension"
+    val maxStemBytes = 250 - suffix.toByteArray(Charsets.UTF_8).size
+    val shortened = StringBuilder()
+    var index = 0
+    var usedBytes = 0
+    while (index < stem.length) {
+        val codePoint = Character.codePointAt(stem, index)
+        val character = String(Character.toChars(codePoint))
+        val bytes = character.toByteArray(Charsets.UTF_8).size
+        if (usedBytes + bytes > maxStemBytes) break
+        shortened.append(character)
+        usedBytes += bytes
+        index += Character.charCount(codePoint)
+    }
+    return shortened.append(suffix).toString()
 }
