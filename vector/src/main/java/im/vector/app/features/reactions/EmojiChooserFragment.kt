@@ -32,7 +32,7 @@ class EmojiChooserFragment : VectorBaseFragment<EmojiChooserFragmentBinding>() {
         viewModel = activityViewModelProvider.get(EmojiChooserViewModel::class.java)
         views.root.sectionFilter = { sections, query -> viewModel.filterSections(sections, query) }
         views.root.onFreeformSubmit = { reaction -> viewModel.onReactionSelected(reaction) }
-        views.root.onFreeformTextChanged = emojiSpanify::applyLive
+        views.root.liveEmojiRenderer = emojiSpanify::applyLive
         views.root.onEmojiClick = EmojiPickerView.OnEmojiClickListener { item ->
             viewModel.onReactionSelected(
                     when (item) {

@@ -8,9 +8,11 @@
 package im.vector.app.features.imagepack.edit
 
 import android.net.Uri
+import android.os.Build
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ResolvedImagePack
+import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.ensureActive
@@ -46,6 +48,7 @@ class ImagePackRepository @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val imagePackProvider: ImagePackProvider,
         private val diskCache: ImagePackDiskCache,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     private val roomPackTypes = setOf(EventType.STATE_ROOM_IMAGE_PACK, EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE)
@@ -127,6 +130,8 @@ class ImagePackRepository @Inject constructor(
             canCreateRoomPack = canEditRoomPacks(roomId),
             hasAccountPack = true,
             inRoom = true,
+            // Sticker conversion needs a VP9 decoder and WebP alpha encoding, both KitKat+.
+            canImportTelegram = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && vectorPreferences.telegramBotToken() != null,
     )
 
     private fun roomManagedPack(
@@ -228,6 +233,13 @@ class ImagePackRepository @Inject constructor(
         return room.stateService().canonicalPackEvent(stateKey)?.content.toModel()
     }
 
+    /** The pack event's raw content, including keys [ImagePackContent] doesn't model. */
+    fun getRoomPackRawContent(roomId: String, stateKey: String): JsonDict? {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return null
+        val room = session.roomService().getRoom(roomId) ?: return null
+        return room.stateService().canonicalPackEvent(stateKey)?.content
+    }
+
     private fun Event.packHasImages(): Boolean = content.toModel<ImagePackContent>()?.effectiveImages().isNullOrEmpty().not()
 
     // Has any content at all — only a fully-cleared `{}` (a deleted pack) is empty.
@@ -265,8 +277,18 @@ class ImagePackRepository @Inject constructor(
                 .isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_IMAGE_PACK)
     }
 
-    /** [forceLegacy] writes a new pack with the unstable id, the only one that allows per-image usage. */
-    suspend fun saveRoomPack(roomId: String, stateKey: String, content: ImagePackContent, includeUsage: Boolean = false, forceLegacy: Boolean = false) {
+    /**
+     * [forceLegacy] writes a new pack with the unstable id, the only one that allows per-image usage.
+     * [extraTopLevel] keys are set on the event alongside the modelled ones.
+     */
+    suspend fun saveRoomPack(
+            roomId: String,
+            stateKey: String,
+            content: ImagePackContent,
+            includeUsage: Boolean = false,
+            forceLegacy: Boolean = false,
+            extraTopLevel: JsonDict? = null,
+    ) {
         val session = activeSessionHolder.getActiveSession()
         val room = session.roomService().getRoom(roomId) ?: return
         // Edit the pack in whichever event it already lives in (preserving its id AND its state key, which
@@ -274,7 +296,9 @@ class ImagePackRepository @Inject constructor(
         // (stable) copy. A brand-new pack is written with the stable id.
         val canonical = room.stateService().canonicalPackEvent(stateKey)
         val type = canonical?.type ?: if (forceLegacy) EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE else EventType.STATE_ROOM_IMAGE_PACK
-        room.stateService().sendStateEvent(type, stateKey, mergePackContent(canonical?.content, content, includeUsage))
+        val merged = mergePackContent(canonical?.content, content, includeUsage)
+        extraTopLevel?.forEach { (key, value) -> if (key !in droppedOnSaveKeys) merged[key] = value }
+        room.stateService().sendStateEvent(type, stateKey, merged)
         // A pack you create is enabled (usable in pickers) right away; packs from other rooms you're in
         // still have to be turned on from the settings list.
         if (canonical == null) setPackEnabledGlobally(roomId, stateKey, true)
@@ -292,7 +316,7 @@ class ImagePackRepository @Inject constructor(
     // key (pack `usage`, `attribution`, and any unknown top-level or pack field) is passed through untouched.
     // [includeUsage] additionally lets the new content own the pack `usage` (the zip import sets it; the
     // editor never does, so its saves keep passing existing usage through).
-    private fun mergePackContent(existing: JsonDict?, content: ImagePackContent, includeUsage: Boolean = false): JsonDict {
+    private fun mergePackContent(existing: JsonDict?, content: ImagePackContent, includeUsage: Boolean = false): MutableMap<String, Any> {
         val newMap = content.toContent()
         val result = LinkedHashMap<String, Any>()
         // Drop legacy image maps too: we re-write the pack under the current `images` key, so leaving the old

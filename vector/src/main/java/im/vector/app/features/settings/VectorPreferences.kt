@@ -242,6 +242,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_IMAGE_EDITOR_BRUSH_SIZE_KEY = "SETTINGS_IMAGE_EDITOR_BRUSH_SIZE_KEY"
         const val SETTINGS_CUSTOM_EMOJI_FONT_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_KEY"
         private const val SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY"
+        private const val SETTINGS_TELEGRAM_BOT_TOKEN_KEY = "SETTINGS_TELEGRAM_BOT_TOKEN_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         const val SETTINGS_LOOP_VIDEOS_KEY = "SETTINGS_LOOP_VIDEOS_KEY"
@@ -699,6 +700,14 @@ class VectorPreferences @Inject constructor(
     fun setCustomEmojiFontName(name: String?) {
         defaultPrefs.edit(commit = true) {
             if (name == null) remove(SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY) else putString(SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY, name)
+        }
+    }
+
+    fun telegramBotToken(): String? = defaultPrefs.getString(SETTINGS_TELEGRAM_BOT_TOKEN_KEY, null)?.takeIf { it.isNotBlank() }
+
+    fun setTelegramBotToken(token: String?) {
+        defaultPrefs.edit(commit = true) {
+            if (token.isNullOrBlank()) remove(SETTINGS_TELEGRAM_BOT_TOKEN_KEY) else putString(SETTINGS_TELEGRAM_BOT_TOKEN_KEY, token)
         }
     }
 

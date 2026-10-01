@@ -53,10 +53,10 @@ class EmojiPickerView @JvmOverloads constructor(
             views.emojiPickerTabRow.setFreeformEnabled(value != null)
         }
 
-    var onFreeformTextChanged: ((Editable) -> Unit)? = null
+    var liveEmojiRenderer: ((Editable) -> Unit)? = null
         set(value) {
             field = value
-            views.emojiPickerTabRow.onFreeformTextChanged = value
+            views.emojiPickerTabRow.liveEmojiRenderer = value
         }
 
     private val views: ViewEmojiPickerBinding

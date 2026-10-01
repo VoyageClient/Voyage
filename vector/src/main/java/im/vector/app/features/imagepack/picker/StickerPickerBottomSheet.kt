@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.mvrx.args
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.EmojiSpanify
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.cleanup
@@ -54,6 +55,7 @@ class StickerPickerBottomSheet :
     @Inject lateinit var imagePackProvider: ImagePackProvider
     @Inject lateinit var recentStickerDataSource: RecentStickerDataSource
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    @Inject lateinit var emojiSpanify: EmojiSpanify
 
     private val pickerArgs: StickerPickerArgs by args()
 
@@ -164,6 +166,7 @@ class StickerPickerBottomSheet :
     private fun setupSearch() {
         // Shrink the sheet for the keyboard rather than letting it cover the grid.
         dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        views.stickerPickerTabRow.liveEmojiRenderer = emojiSpanify::applyLive
         views.stickerPickerTabRow.onQueryChanged = { query ->
             controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs, searchQuery = query))
             views.stickerPickerRecyclerView.scrollToPosition(0)

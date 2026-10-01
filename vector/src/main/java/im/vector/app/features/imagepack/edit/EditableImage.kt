@@ -17,4 +17,6 @@ class EditableImage(
         val info: ImageInfo?,
         var emoticon: Boolean,
         var sticker: Boolean,
+        // Added by a re-import and not yet applied.
+        var importedHighlight: Boolean = false,
 )

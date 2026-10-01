@@ -87,6 +87,7 @@ enum class Command(
     ENCRYPT("/encrypt", null, "[message]", CommonStrings.command_description_encrypt, false, true),
     TRANSLATE("/translate", null, "[\$lang] [message]", CommonStrings.command_description_translate, false, true),
     DOWNLOAD("/download", null, "<mxc-url>", CommonStrings.command_description_download, false, true),
+    TG_EXPORT("/tgexport", null, "<pack-link>", CommonStrings.command_description_tg_export, false, true),
     VIEW("/view", null, "<mxc-url>", CommonStrings.command_description_view, false, true);
 
     val allAliases = arrayOf(command, *aliases.orEmpty())

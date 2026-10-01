@@ -9,6 +9,7 @@ package im.vector.app.features.imagepack.edit
 
 import androidx.lifecycle.ViewModel
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
+import org.matrix.android.sdk.api.util.JsonDict
 
 /**
  * Holds the in-progress edit state so it survives configuration changes (rotation). The fragment reads/writes
@@ -21,5 +22,6 @@ class ImagePackEditViewModel : ViewModel() {
     var packExists = false
     var packUsage: List<String>? = null
     var initialContent: ImagePackContent? = null
+    var extraTopLevel: JsonDict? = null
     var loaded = false
 }

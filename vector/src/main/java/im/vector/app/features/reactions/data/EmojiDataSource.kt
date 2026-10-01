@@ -88,7 +88,9 @@ class EmojiDataSource @Inject constructor(
         }
     }
 
-    suspend fun filterWith(query: String): List<EmojiItem> {
+    suspend fun filterWith(rawQuery: String): List<EmojiItem> {
+        // Shortcode-style names (angry_face) find the emoji they name ("Angry Face").
+        val query = rawQuery.replace('_', ' ')
         val words = query.split("\\s".toRegex())
         val rawData = this.rawData.await()
         // First add emojis with name matching query, sorted by name

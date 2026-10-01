@@ -39,6 +39,21 @@ class StickerSearchMatchTest {
     }
 
     @Test
+    fun `an emoji query matches images named after it`() {
+        image("angry_face_2").matchesQuery("😠", listOf("angry_face")).shouldBeTrue()
+        image("mad", body = "Angry-Face").matchesQuery("😠", listOf("angry_face")).shouldBeTrue()
+        image("happy").matchesQuery("😠", listOf("angry_face")).shouldBeFalse()
+    }
+
+    @Test
+    fun `a name query matches images whose body is the emoji`() {
+        val namesIn: (String?) -> List<String> = { if (it == "😠") listOf("angry_face") else emptyList() }
+        image("mad", body = "😠").matchesQuery("angry_face", namesIn = namesIn).shouldBeTrue()
+        image("mad", body = "😠").matchesQuery("angry", namesIn = namesIn).shouldBeTrue()
+        image("mad", body = "😀").matchesQuery("angry", namesIn = namesIn).shouldBeFalse()
+    }
+
+    @Test
     fun `does not match unrelated query`() {
         image("bc", body = "happy cat", packName = "Blobs").matchesQuery("dog").shouldBeFalse()
     }

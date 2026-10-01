@@ -51,6 +51,7 @@ class ImagePackEditController @Inject constructor(
                 // Stable id (object identity) so live shortcode edits don't recreate the row / lose focus.
                 id(System.identityHashCode(image).toLong())
                 image(image)
+                highlighted(image.importedHighlight)
                 editable(host.editable)
                 showUsageToggles(host.showUsageToggles)
                 resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))

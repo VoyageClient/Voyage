@@ -29,6 +29,7 @@ class ImagePackListController @Inject constructor(
             val canCreateRoomPack: Boolean,
             val hasAccountPack: Boolean,
             val inRoom: Boolean,
+            val canImportTelegram: Boolean = false,
     )
 
     interface Listener {
@@ -37,6 +38,7 @@ class ImagePackListController @Inject constructor(
         fun onCreateAccountPack()
         fun onCreateRoomPack()
         fun onImportPack()
+        fun onImportTelegram()
     }
 
     var listener: Listener? = null
@@ -96,6 +98,15 @@ class ImagePackListController @Inject constructor(
                 title(host.stringProvider.getString(CommonStrings.image_pack_import))
                 placeholderIconRes(R.drawable.ic_paperclip)
                 onClickListener { host.listener?.onImportPack() }
+            }
+            if (data.canImportTelegram) {
+                dividerItem { id("divider_import_telegram") }
+                imagePackListItem {
+                    id("import_telegram")
+                    title(host.stringProvider.getString(CommonStrings.image_pack_import_telegram))
+                    placeholderIconRes(R.drawable.ic_telegram)
+                    onClickListener { host.listener?.onImportTelegram() }
+                }
             }
         }
     }

@@ -6,7 +6,7 @@
          the androidTest manifest merge succeeds. None of this is shipped, and instrumentation tests only
          ever run on a device new enough for them. -->
     <uses-sdk tools:overrideLibrary="
-        android_libs.ub_uiautomator, androidx.browser, androidx.test.core, androidx.test.monitor,
+        com.airbnb.lottie, android_libs.ub_uiautomator,androidx.browser, androidx.test.core, androidx.test.monitor,
         androidx.test.rules, androidx.test.runner, androidx.test.services.storage,
         androidx.test.espresso.core, androidx.test.espresso.contrib, androidx.test.espresso.intent,
         androidx.test.espresso.idling.resource, com.adevinta.android.barista,

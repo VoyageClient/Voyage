@@ -10,12 +10,15 @@ package im.vector.app.features.imagepack.edit
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
+import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.RadioButton
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
+import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.flexbox.FlexboxLayout
 import im.vector.app.R
@@ -24,19 +27,36 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.features.media.ImageContentRenderer
 
 @EpoxyModelClass
 abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.layout.item_image_pack_edit) {
 
     @EpoxyAttribute lateinit var image: EditableImage
+    @EpoxyAttribute var highlighted: Boolean = false
     @EpoxyAttribute var resolvedUrl: String? = null
     @EpoxyAttribute var editable: Boolean = true
     @EpoxyAttribute var showUsageToggles: Boolean = true
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onDeleteClick: ClickListener? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onEdited: (() -> Unit)? = null
 
+    // A row losing its highlight while on screen (the pack was just applied) fades it out instead of snapping.
+    override fun bind(holder: Holder, previouslyBoundModel: EpoxyModel<*>) {
+        super.bind(holder, previouslyBoundModel)
+        if ((previouslyBoundModel as? ImagePackEditItem)?.highlighted == true && !highlighted) {
+            holder.highlight.isVisible = true
+            ViewCompat.animate(holder.highlight)
+                    .alpha(0f)
+                    .setDuration(ImageContentRenderer.CROSSFADE_MS.toLong())
+                    .withEndAction { holder.highlight.isVisible = false }
+        }
+    }
+
     override fun bind(holder: Holder) {
         super.bind(holder)
+        ViewCompat.animate(holder.highlight).cancel()
+        holder.highlight.alpha = 1f
+        holder.highlight.isVisible = highlighted
         // dontAnimate + fixed size: animated stickers (APNG/animated WebP) are what makes a large pack's
         // editor list janky to open and scroll; a static thumbnail is all we need here.
         GlideApp.with(holder.thumb).load(resolvedUrl).dontAnimate().override(96, 96).into(holder.thumb)
@@ -141,11 +161,15 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
     override fun unbind(holder: Holder) {
         holder.shortcode.removeTextChangedListener(holder.watcher)
         holder.watcher = null
+        ViewCompat.animate(holder.highlight).cancel()
+        holder.highlight.alpha = 1f
+        holder.highlight.isVisible = false
         GlideApp.with(holder.thumb.context.applicationContext).clear(holder.thumb)
         super.unbind(holder)
     }
 
     class Holder : VectorEpoxyHolder() {
+        val highlight by bind<View>(R.id.imagePackEditHighlight)
         val thumb by bind<ImageView>(R.id.imagePackEditThumb)
         val shortcode by bind<EditText>(R.id.imagePackEditShortcode)
         val usageRow by bind<FlexboxLayout>(R.id.imagePackEditUsageRow)

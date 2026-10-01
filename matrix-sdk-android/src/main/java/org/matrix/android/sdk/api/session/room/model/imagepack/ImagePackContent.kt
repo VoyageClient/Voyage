@@ -26,15 +26,19 @@ data class ImagePackContent(
 )
 
 /**
- * The pack's images, reading the current `images` key first and falling back to the legacy `emoticons` /
- * `short` keys so packs authored by older clients still load.
+ * The pack's images in display order, reading the current `images` key first and falling back to the legacy
+ * `emoticons` / `short` keys so packs authored by older clients still load. Sorted by MSC4389 order (missing
+ * = 0); servers return the map with its keys sorted, so ties stay alphabetical.
  */
 fun ImagePackContent.effectiveImages(): Map<String, ImagePackImage>? {
-    images?.takeIf { it.isNotEmpty() }?.let { return it }
-    emoticons?.takeIf { it.isNotEmpty() }?.let { return it }
-    return shortLegacy?.takeIf { it.isNotEmpty() }
-            ?.entries
-            ?.associate { (key, url) -> key.trim(':') to ImagePackImage(url = url) }
+    val raw = images?.takeIf { it.isNotEmpty() }
+            ?: emoticons?.takeIf { it.isNotEmpty() }
+            ?: shortLegacy?.takeIf { it.isNotEmpty() }
+                    ?.entries
+                    ?.associate { (key, url) -> key.trim(':') to ImagePackImage(url = url) }
+            ?: return null
+    if (raw.values.none { it.effectiveOrder != 0L }) return raw
+    return raw.entries.sortedBy { it.value.effectiveOrder }.associateTo(LinkedHashMap()) { it.key to it.value }
 }
 
 @JsonClass(generateAdapter = true)
@@ -44,7 +48,20 @@ data class ImagePackImage(
         @Json(name = "info") val info: ImageInfo? = null,
         // Legacy per-image usage (kept for read compatibility); the stable schema only carries usage on the pack.
         @Json(name = "usage") val usage: List<String>? = null,
-)
+        // MSC4389 position within the pack; written under both keys, stable read first.
+        @Json(name = "order") val order: Long? = null,
+        @Json(name = "fi.mau.msc4389.order") val orderUnstable: Long? = null,
+) {
+    val effectiveOrder: Long get() = order ?: orderUnstable ?: 0L
+
+    fun withOrder(position: Long): ImagePackImage = copy(order = position, orderUnstable = position)
+}
+
+/** Numbers [images] 1..n in their iteration order (MSC4389). */
+fun Map<String, ImagePackImage>.withSequentialOrder(): Map<String, ImagePackImage> {
+    var position = 0L
+    return entries.associateTo(LinkedHashMap()) { (shortcode, image) -> shortcode to image.withOrder(++position) }
+}
 
 @JsonClass(generateAdapter = true)
 data class ImagePackMeta(

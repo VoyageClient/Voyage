@@ -33,6 +33,7 @@ import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackImage
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackMeta
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
+import org.matrix.android.sdk.api.session.room.model.imagepack.withSequentialOrder
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -116,7 +117,7 @@ class ImagePackArchiver @Inject constructor(
                 else -> null
             }
             val content = ImagePackContent(
-                    images = images,
+                    images = images.withSequentialOrder(),
                     pack = ImagePackMeta(displayName = packName, avatarUrl = avatarUrl, usage = packUsage),
             )
             repository.saveRoomPack(roomId, UUID.randomUUID().toString(), content, includeUsage = true, forceLegacy = perImageUsage)
@@ -127,29 +128,45 @@ class ImagePackArchiver @Inject constructor(
     }
 
     private suspend fun uploadEntry(pending: PendingImage, perImageUsage: Boolean = false): ImagePackImage {
-        val sourceUri = Uri.fromFile(pending.file)
-        val sourceMime = mimeForExtension(pending.file.extension)
+        val image = uploadImageFile(pending.file, mimeForExtension(pending.file.extension), pending.shortcode, body = pending.shortcode)
+        return if (perImageUsage && pending.emoticon != pending.sticker) {
+            image.copy(usage = listOf(if (pending.emoticon) ImagePackUsage.EMOTICON else ImagePackUsage.STICKER))
+        } else {
+            image
+        }
+    }
+
+    /** Uploads [file] as a pack image named [shortcode]; [compress] = false for already-final encodes. */
+    suspend fun uploadImageFile(
+            file: File,
+            mimeType: String,
+            shortcode: String,
+            body: String?,
+            compress: Boolean = true,
+            knownSize: Pair<Int, Int>? = null,
+    ): ImagePackImage {
+        val sourceUri = Uri.fromFile(file)
         var compressedTemp: File? = null
         try {
-            val (uploadUri, uploadMime) = try {
-                repository.compressImage(sourceUri, sourceMime, COMPRESS_MAX_DIMENSION)
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (failure: Throwable) {
-                sourceUri to sourceMime
+            val (uploadUri, uploadMime) = if (!compress) {
+                sourceUri to mimeType
+            } else {
+                try {
+                    repository.compressImage(sourceUri, mimeType, COMPRESS_MAX_DIMENSION)
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (failure: Throwable) {
+                    sourceUri to mimeType
+                }
             }
             compressedTemp = uploadUri.takeIf { it != sourceUri && it.scheme == "file" }?.path?.let { File(it) }
-            val info = withContext(Dispatchers.IO) { imageInfoOf(uploadUri, uploadMime) }
-            val mxcUrl = repository.uploadImageWithRetry(uploadUri, "${pending.shortcode}.${pending.file.extension}", uploadMime)
+            var info = withContext(Dispatchers.IO) { imageInfoOf(uploadUri, uploadMime) }
+            if ((info.width <= 0 || info.height <= 0) && knownSize != null) info = info.copy(width = knownSize.first, height = knownSize.second)
+            val mxcUrl = repository.uploadImageWithRetry(uploadUri, "$shortcode.${file.extension}", uploadMime)
             return ImagePackImage(
                     url = mxcUrl,
-                    body = pending.shortcode,
+                    body = body,
                     info = info.takeIf { it.width > 0 && it.height > 0 },
-                    usage = if (perImageUsage && pending.emoticon != pending.sticker) {
-                        listOf(if (pending.emoticon) ImagePackUsage.EMOTICON else ImagePackUsage.STICKER)
-                    } else {
-                        null
-                    },
             )
         } finally {
             compressedTemp?.let { runCatching { it.delete() } }
@@ -327,62 +344,89 @@ class ImagePackArchiver @Inject constructor(
             throw IllegalStateException(context.getString(CommonStrings.image_pack_export_all_failed))
         }
 
-        val emojis = JSONArray()
-        val stickers = JSONArray()
+        val zipEntries = entries.mapIndexedNotNull { index, entry ->
+            val file = downloaded[index] ?: return@mapIndexedNotNull null
+            val image = entry.image
+            MisskeyZipEntry(
+                    file = file,
+                    fileName = entry.fileName,
+                    shortcode = entry.shortcode,
+                    emoticon = fixedUsage?.let { it == ImagePackUsage.EMOTICON } ?: (image.emoticon || !image.sticker),
+                    sticker = fixedUsage?.let { it == ImagePackUsage.STICKER } ?: (image.sticker || !image.emoticon),
+            )
+        }
         try {
-            ZipOutputStream(BufferedOutputStream(zipFile.outputStream())).use { zip ->
-                entries.forEachIndexed { index, entry ->
-                    val file = downloaded[index] ?: return@forEachIndexed
-                    coroutineContext.ensureActive()
-                    zip.putNextEntry(ZipEntry(entry.fileName))
-                    file.inputStream().use { it.copyTo(zip) }
-                    zip.closeEntry()
-                    fun detail() = JSONObject()
-                            .put("name", entry.shortcode)
-                            .putOpt("category", packName?.takeIf { it.isNotBlank() })
-                            .put("aliases", JSONArray())
-                    val image = entry.image
-                    val emoticon = fixedUsage?.let { it == ImagePackUsage.EMOTICON } ?: (image.emoticon || !image.sticker)
-                    val sticker = fixedUsage?.let { it == ImagePackUsage.STICKER } ?: (image.sticker || !image.emoticon)
-                    if (emoticon) emojis.put(JSONObject().put("downloaded", true).put("fileName", entry.fileName).put("emoji", detail()))
-                    if (sticker) stickers.put(JSONObject().put("downloaded", true).put("fileName", entry.fileName).put("sticker", detail()))
-                }
-                val avatarName = when {
-                    avatarEntryIndex != null -> entries[avatarEntryIndex].fileName.takeIf { downloaded[avatarEntryIndex] != null }
-                    avatarFile != null -> {
-                        // The icon can also be a byte-identical copy of an image (uploaded twice, so a different
-                        // mxc): reuse that entry rather than zipping the same bytes again.
-                        val twin = entries.indices.firstOrNull { downloaded[it]?.let { file -> sameContent(file, avatarFile) } == true }
-                        if (twin != null) {
-                            entries[twin].fileName
-                        } else {
-                            val extension = sniffExtension(avatarFile)
-                            var name = "pack_icon.$extension"
-                            var suffix = 2
-                            while (!usedNames.add(name)) name = "pack_icon_${suffix++}.$extension"
-                            zip.putNextEntry(ZipEntry(name))
-                            avatarFile.inputStream().use { it.copyTo(zip) }
-                            zip.closeEntry()
-                            name
-                        }
+            var separateAvatar: MisskeyZipEntry? = null
+            val avatarName = when {
+                avatarEntryIndex != null -> entries[avatarEntryIndex].fileName.takeIf { downloaded[avatarEntryIndex] != null }
+                avatarFile != null -> {
+                    // The icon can also be a byte-identical copy of an image (uploaded twice, so a different
+                    // mxc): reuse that entry rather than zipping the same bytes again.
+                    val twin = entries.indices.firstOrNull { downloaded[it]?.let { file -> sameContent(file, avatarFile) } == true }
+                    if (twin != null) {
+                        entries[twin].fileName
+                    } else {
+                        val extension = sniffExtension(avatarFile)
+                        var name = "pack_icon.$extension"
+                        var suffix = 2
+                        while (!usedNames.add(name)) name = "pack_icon_${suffix++}.$extension"
+                        separateAvatar = MisskeyZipEntry(avatarFile, name, "pack_icon", emoticon = false, sticker = false)
+                        name
                     }
-                    else -> null
                 }
-                val meta = JSONObject()
-                        .put("metaVersion", 2)
-                        .put("exportedAt", isoNow())
-                        .putOpt(META_PACK_AVATAR, avatarName?.let { JSONObject().put("fileName", it) })
-                        .put("emojis", emojis)
-                        .put("stickers", stickers)
-                zip.putNextEntry(ZipEntry("meta.json"))
-                zip.write(meta.toString(2).toByteArray(Charsets.UTF_8))
-                zip.closeEntry()
+                else -> null
             }
+            writeMisskeyZip(zipFile, packName, zipEntries, avatarName, separateAvatar)
         } catch (failure: Throwable) {
             runCatching { exportDir.deleteRecursively() }
             throw failure
         }
         ExportResult(zipFile, skipped)
+    }
+
+    class MisskeyZipEntry(val file: File, val fileName: String, val shortcode: String, val emoticon: Boolean, val sticker: Boolean)
+
+    /**
+     * Writes [entries] plus `meta.json` (see MISSKEY_IMAGE_PACKS.md) to [zipFile]. [avatarFileName] names the
+     * pack icon, either one of [entries] or [separateAvatar], which is zipped without a meta listing.
+     */
+    suspend fun writeMisskeyZip(
+            zipFile: File,
+            packName: String?,
+            entries: List<MisskeyZipEntry>,
+            avatarFileName: String?,
+            separateAvatar: MisskeyZipEntry? = null,
+    ) {
+        val emojis = JSONArray()
+        val stickers = JSONArray()
+        ZipOutputStream(BufferedOutputStream(zipFile.outputStream())).use { zip ->
+            entries.forEach { entry ->
+                coroutineContext.ensureActive()
+                zip.putNextEntry(ZipEntry(entry.fileName))
+                entry.file.inputStream().use { it.copyTo(zip) }
+                zip.closeEntry()
+                fun detail() = JSONObject()
+                        .put("name", entry.shortcode)
+                        .putOpt("category", packName?.takeIf { it.isNotBlank() })
+                        .put("aliases", JSONArray())
+                if (entry.emoticon) emojis.put(JSONObject().put("downloaded", true).put("fileName", entry.fileName).put("emoji", detail()))
+                if (entry.sticker) stickers.put(JSONObject().put("downloaded", true).put("fileName", entry.fileName).put("sticker", detail()))
+            }
+            separateAvatar?.let { avatar ->
+                zip.putNextEntry(ZipEntry(avatar.fileName))
+                avatar.file.inputStream().use { it.copyTo(zip) }
+                zip.closeEntry()
+            }
+            val meta = JSONObject()
+                    .put("metaVersion", 2)
+                    .put("exportedAt", isoNow())
+                    .putOpt(META_PACK_AVATAR, avatarFileName?.let { JSONObject().put("fileName", it) })
+                    .put("emojis", emojis)
+                    .put("stickers", stickers)
+            zip.putNextEntry(ZipEntry("meta.json"))
+            zip.write(meta.toString(2).toByteArray(Charsets.UTF_8))
+            zip.closeEntry()
+        }
     }
 
     // read() may stop short of the buffer at any point, so fill it explicitly before comparing block by block.

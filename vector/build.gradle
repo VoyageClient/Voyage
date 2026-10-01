@@ -331,6 +331,9 @@ dependencies {
     // bundles libwebp (minSdk 14) and decodes natively. Its @GlideModule WebpGlideLibraryModule is
     // picked up by the Glide annotation processor.
     implementation 'com.github.zjupure:webpdecoder:2.7.4.16.0'
+    // Renders Telegram .tgs (Lottie) stickers to frames for import. minSdk 16, and only reached from
+    // the KitKat-gated Telegram importer.
+    implementation 'com.airbnb.android:lottie:6.7.1'
     // No penfeizhou gif: it decodes LZW in a native lib that fails to load on KitKat. GIFs are
     // handled by Glide's built-in pure-Java decoder instead.
     // JPEG XL via libjxl. minSdk 21, so every use sits behind JxlSupport.isAvailable and reaches the

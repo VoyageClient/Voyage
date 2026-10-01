@@ -1267,14 +1267,14 @@
     <string name="command_problem_with_parameters">The command \"%s\" needs more parameters, or some parameters are incorrect.</string>
     <string name="command_not_supported_in_threads">The command \"%s\" is recognized but not supported in threads.</string>
     <string name="command_description_emote">Displays action</string>
-    <string name="command_description_ban_user">Bans user with given id</string>
-    <string name="command_description_unban_user">Unbans user with given id</string>
+    <string name="command_description_ban_user">Bans user with given ID</string>
+    <string name="command_description_unban_user">Unbans user with given ID</string>
     <string name="command_description_ignore_user">Ignores a user, hiding their messages from you</string>
     <string name="command_description_unignore_user">Stops ignoring a user, showing their messages going forward</string>
     <string name="command_description_op_user">Define the power level of a user</string>
-    <string name="command_description_deop_user">Deops user with given id</string>
+    <string name="command_description_deop_user">Deops user with given ID</string>
     <string name="command_description_room_name">Sets the room name</string>
-    <string name="command_description_invite_user">Invites user with given id to current room</string>
+    <string name="command_description_invite_user">Invites user with given ID to current room</string>
     <string name="command_description_join_room">Joins room with given address</string>
     <string name="command_description_part_room">Leave room</string>
     <string name="command_description_topic">Set the room topic</string>
@@ -2672,8 +2672,8 @@
 
     <string name="command_description_create_space">Create a Space</string>
     <string name="command_description_add_to_space">Add to the given Space</string>
-    <string name="command_description_join_space">Join the Space with the given id</string>
-    <string name="command_description_leave_room">Leave room with given id (or current room if null)</string>
+    <string name="command_description_join_space">Join the Space with the given ID</string>
+    <string name="command_description_leave_room">Leave room with given ID (or current room if null)</string>
     <string name="command_description_upgrade_room">Upgrades a room to a new version</string>
 
     <string name="event_status_a11y_sending">Sending</string>
@@ -3165,10 +3165,10 @@
     <string name="settings_hide_encryption_warning_shield_summary">Don\'t show the red shield on messages sent unencrypted in an encrypted room, or sent from an unverified, unknown or deleted session</string>
     <string name="action_show_media">Show</string>
     <string name="settings_enable_voice_message_button_summary">Show the microphone next to the message box.</string>
-    <string name="command_description_crash_application">Crash the application.</string>
-    <string name="command_description_greentext">Send a message as greentext.</string>
-    <string name="command_description_html">Send a message as HTML.</string>
-    <string name="command_description_blockquote">Send a message as a blockquote.</string>
+    <string name="command_description_crash_application">Crash the application</string>
+    <string name="command_description_greentext">Send a message as greentext</string>
+    <string name="command_description_html">Send a message as HTML</string>
+    <string name="command_description_blockquote">Send a message as a blockquote</string>
     <string name="command_description_converttodm">Converts the room to a DM</string>
     <string name="command_description_converttoroom">Converts the DM to a room</string>
     <string name="settings_render_blockquotes_as_greentext_title">Replace blockquotes with greentext</string>
@@ -3210,10 +3210,10 @@
     <string name="command_description_notice">Sends the given message as a notice</string>
     <string name="command_description_trans">Sends the given message colored as the trans flag</string>
     <string name="command_description_trans_emote">Sends the given emote colored as the trans flag</string>
-    <string name="command_description_jump_to_start">Jump to the first event in this room.</string>
+    <string name="command_description_jump_to_start">Jump to the first event in this room</string>
     <string name="command_description_send_event">Open the developer tools form to send a custom event</string>
     <string name="command_description_send_state">Open the developer tools form to send a custom state event</string>
-    <string name="command_description_jump_to">Jump to the event with the given ID, or to a matrix.to / matrix: link.</string>
+    <string name="command_description_jump_to">Jump to the event with the given ID, or to a matrix.to / matrix: link</string>
     <string name="command_description_jump_to_date">Jump to the event closest to the given date, e.g. YYYY-MM-DD, YYYYMMDD, YYYY-MM, yesterday or 7d</string>
     <string name="command_jump_to_start_unavailable">Could not locate the room\'s first event.</string>
     <string name="command_jump_to_date_no_event">Couldn\'t find an event near %1$s. The server may not support timestamp lookup, or there are no messages in that direction.</string>
@@ -3493,6 +3493,8 @@
     <string name="command_description_mass_redact">Redact messages from the given user in this room; type:all also redacts their other events</string>
     <string name="command_description_download">Download the file at the given mxc:// URL</string>
     <string name="command_description_view">Open the file at the given mxc:// URL</string>
+    <string name="command_description_tg_export">Export a Telegram sticker pack</string>
+    <string name="telegram_pack_has_been_downloaded">Telegram sticker pack has been downloaded!</string>
     <string name="command_description_rawmsg">Send a message event with the given JSON content</string>
     <string name="command_description_raw">Send an event with the given JSON content</string>
     <string name="command_description_rawstate">Send a state event with the given JSON content</string>
@@ -3506,7 +3508,7 @@
     <string name="room_participants_kick_prompt_msg">The user will be kicked from this room.\n\nTo prevent them from joining again, you should ban them instead.</string>
     <string name="space_participants_kick_prompt_msg">The user will be kicked from this space.\n\nTo prevent them from joining again, you should ban them instead.</string>
     <string name="room_permissions_kick_users">Kick users</string>
-    <string name="command_description_kick_user">Kicks user with given id from this room</string>
+    <string name="command_description_kick_user">Kicks user with given ID from this room</string>
     <string name="notice_room_kick">%1$s kicked %2$s</string>
     <string name="notice_room_kick_by_you">You kicked %1$s</string>
     <string name="notice_room_kick_with_reason">%1$s kicked %2$s. Reason: %3$s</string>
@@ -3755,6 +3757,20 @@
     <string name="image_pack_importing">Importing %1$s… (%2$d/%3$d)</string>
     <string name="image_pack_import_done">Imported %1$s</string>
     <string name="image_pack_import_empty">No images found in %1$s</string>
+    <string name="image_pack_import_telegram">Import from Telegram</string>
+    <string name="image_pack_telegram_link_invalid">That doesn\'t look like a Telegram sticker pack link</string>
+    <string name="image_pack_telegram_up_to_date">%1$s is already up to date</string>
+    <string name="image_pack_telegram_token">Telegram Bot Token</string>
+    <string name="image_pack_telegram_token_message">Importing Telegram sticker packs uses the Telegram Bot API. Message @BotFather on Telegram, send /newbot, and paste the token it gives you here.</string>
+    <string name="image_pack_telegram_token_clear">Clear</string>
+    <string name="image_pack_telegram_token_checking">Checking token…</string>
+    <string name="image_pack_telegram_token_invalid">Telegram rejected this bot token</string>
+    <string name="image_pack_telegram_token_missing">Set a Telegram bot token first, from the ⋮ menu in Settings › Image Packs</string>
+    <string name="image_pack_telegram_set_not_found">Telegram has no sticker pack named %1$s</string>
+    <string name="image_pack_telegram_error">Telegram error: %1$s</string>
+    <string name="image_pack_telegram_requires_kitkat">Importing Telegram sticker packs requires Android 4.4 or newer</string>
+    <string name="image_pack_telegram_downloading">Downloading %1$s… (%2$d/%3$d)</string>
+    <string name="image_pack_telegram_skipped">These stickers couldn\'t be converted and were left out: %1$s</string>
     <string name="image_pack_export">Export</string>
     <string name="image_pack_exporting_title">Exporting Pack</string>
     <string name="image_pack_exporting">Exporting… (%1$d/%2$d)</string>

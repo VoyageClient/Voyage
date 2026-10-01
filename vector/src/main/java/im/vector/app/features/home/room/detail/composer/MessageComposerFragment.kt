@@ -88,6 +88,7 @@ import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.expandPillSpans
 import im.vector.app.features.html.setPillSpan
+import im.vector.app.features.imagepack.edit.ImagePackProgressDialog
 import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.matrixto.OriginOfMatrixTo
@@ -265,6 +266,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             when (it) {
                 is MessageComposerViewEvents.JoinRoomCommandSuccess -> handleJoinedToAnotherRoom(it)
                 is MessageComposerViewEvents.SlashCommandConfirmationRequest -> handleSlashCommandConfirmationRequest(it)
+                is MessageComposerViewEvents.TelegramExportProgress -> renderTelegramExportProgress(it)
+                is MessageComposerViewEvents.TelegramExportEnded -> dismissTelegramExportDialog()
                 is MessageComposerViewEvents.SendMessageResult -> renderSendMessageResult(it)
                 is MessageComposerViewEvents.ShowMessage -> showSnackWithMessage(it.message)
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
@@ -378,6 +381,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     override fun onDestroyView() {
+        dismissTelegramExportDialog()
         // Before super: dismissing the autocomplete popups calls back into the composer views.
         emojiKeyboardController?.destroy()
         emojiKeyboardController = null
@@ -868,6 +872,22 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
+    }
+
+    private var telegramExportDialog: ImagePackProgressDialog? = null
+
+    private fun renderTelegramExportProgress(progress: MessageComposerViewEvents.TelegramExportProgress) {
+        val dialog = telegramExportDialog ?: ImagePackProgressDialog(requireContext(), CommonStrings.image_pack_exporting_title) {
+            messageComposerViewModel.handle(MessageComposerAction.CancelTelegramExport)
+        }.also { telegramExportDialog = it }
+        progress.packName?.let { name ->
+            dialog.update(getString(CommonStrings.image_pack_telegram_downloading, name, progress.done, progress.total), progress.done, progress.total)
+        }
+    }
+
+    private fun dismissTelegramExportDialog() {
+        telegramExportDialog?.dismiss()
+        telegramExportDialog = null
     }
 
     private fun renderSendMessageResult(sendMessageResult: MessageComposerViewEvents.SendMessageResult) {

@@ -45,6 +45,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.saveMedia
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentImagePackEditBinding
+import im.vector.app.features.imagepack.telegram.TelegramMarker
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
@@ -63,6 +64,7 @@ import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackImage
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackMeta
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
 import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
+import org.matrix.android.sdk.api.session.room.model.imagepack.withSequentialOrder
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import java.io.File
 import java.io.FileNotFoundException
@@ -140,6 +142,8 @@ class ImagePackEditFragment :
         if (firstLoad) {
             loadExisting()
             initialContent = buildContent()
+            // After the snapshot, so the additions count as unsaved changes.
+            pageArgs.importedAdditions?.let { appendImportedAdditions(it) }
             editViewModel.loaded = true
         }
         (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(
@@ -494,6 +498,29 @@ class ImagePackEditFragment :
         }
     }
 
+    private fun appendImportedAdditions(additions: ImportedAdditions) {
+        val used = images.map { it.shortcode }.toMutableSet()
+        val telegramIndexByUrl = additions.telegramOrder.withIndex()
+                .mapNotNull { (index, uniqueId) -> additions.telegramStickers[uniqueId]?.let { it to index } }
+                .toMap()
+        additions.images.sortedBy { it.telegramIndex }.forEach { added ->
+            var shortcode = added.shortcode
+            var suffix = 2
+            while (!used.add(shortcode)) shortcode = "${added.shortcode}_${suffix++}"
+            val image = EditableImage(
+                    shortcode = shortcode,
+                    mxcUrl = added.mxcUrl,
+                    body = added.body,
+                    info = ImageInfo(mimeType = added.mimeType, width = added.width, height = added.height, size = added.size),
+                    emoticon = true,
+                    sticker = true,
+                    importedHighlight = true,
+            )
+            images.add(TelegramMarker.insertionIndex(images.map { it.mxcUrl }, telegramIndexByUrl, added.telegramIndex), image)
+        }
+        editViewModel.extraTopLevel = TelegramMarker.toTopLevel(additions.telegramSet, additions.telegramStickers)
+    }
+
     private var uploadJob: Job? = null
     private val pendingUploads = ArrayDeque<Uri>()
 
@@ -636,7 +663,7 @@ class ImagePackEditFragment :
     }
 
     private fun canApply(): Boolean {
-        if (!isDirty()) return false
+        if (saveJob?.isActive == true || !isDirty()) return false
         if (pageArgs.roomId == null) return true
         // New packs must be named. A pack another client created unnamed stays editable and saveable
         // unnamed (its display falls back to the room name per MSC2545) — but clearing the name of a
@@ -645,7 +672,11 @@ class ImagePackEditFragment :
         return existedUnnamed || !packName.isNullOrBlank()
     }
 
-    private fun save() {
+    private var saveJob: Job? = null
+
+    // Apply keeps the editor open; only the leave-with-unsaved-changes prompt closes it after saving.
+    private fun save(finishAfter: Boolean = false) {
+        if (saveJob?.isActive == true) return
         val roomId = pageArgs.roomId
         if (roomId != null && !repository.canEditRoomPacks(roomId)) {
             showErrorInSnackbar(IllegalStateException(getString(CommonStrings.image_pack_no_permission_room)))
@@ -660,20 +691,35 @@ class ImagePackEditFragment :
             return
         }
         val content = buildContent()
-        lifecycleScope.launch {
+        saveJob = lifecycleScope.launch {
             try {
                 if (roomId == null) {
                     repository.saveAccountPack(content, includeUsage = true)
                 } else {
-                    repository.saveRoomPack(roomId, pageArgs.stateKey, content, includeUsage = true)
+                    repository.saveRoomPack(roomId, pageArgs.stateKey, content, includeUsage = true, extraTopLevel = editViewModel.extraTopLevel)
                 }
-                activity?.finish()
+                if (finishAfter) {
+                    activity?.finish()
+                } else if (view != null) {
+                    onSaved(content)
+                }
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (failure: Throwable) {
                 if (isAdded) showFailure(failure)
+            } finally {
+                if (view != null) requireActivity().invalidateOptionsMenu()
             }
         }
+        requireActivity().invalidateOptionsMenu()
+    }
+
+    private fun onSaved(saved: ImagePackContent) {
+        packExists = true
+        initialContent = saved
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(CommonStrings.image_pack_edit_title)
+        images.forEach { it.importedHighlight = false }
+        refresh()
     }
 
     private fun buildContent(): ImagePackContent {
@@ -687,7 +733,8 @@ class ImagePackEditFragment :
             )
         }
         return ImagePackContent(
-                images = imageMap,
+                // The server hands the map back with its keys sorted, so the on-screen order must be explicit.
+                images = imageMap.withSequentialOrder(),
                 pack = ImagePackMeta(displayName = packName, avatarUrl = packAvatarUrl, usage = packUsage),
         )
     }
@@ -762,10 +809,8 @@ class ImagePackEditFragment :
 
     private fun isDirty(): Boolean {
         if (!pageArgs.canEdit) return false
-        if (buildContent() != initialContent) return true
-        // Map equality ignores order, so detect a pure reorder separately.
-        val currentOrder = images.filter { it.shortcode.isNotBlank() }.map { it.shortcode }
-        return currentOrder != initialContent?.images?.keys?.toList().orEmpty()
+        // A pure reorder changes the images' MSC4389 order values, so content equality covers it.
+        return buildContent() != initialContent
     }
 
     override fun onBackPressed(toolbarButton: Boolean): Boolean {
@@ -786,7 +831,7 @@ class ImagePackEditFragment :
                 .apply {
                     // "Apply" only when there are committed, saveable changes (named pack, no upload in flight).
                     if (canApply() && !uploading) {
-                        setPositiveButton(CommonStrings.image_pack_apply) { _, _ -> save() }
+                        setPositiveButton(CommonStrings.image_pack_apply) { _, _ -> save(finishAfter = true) }
                     }
                 }
                 .setNegativeButton(CommonStrings.image_pack_unsaved_discard) { _, _ ->

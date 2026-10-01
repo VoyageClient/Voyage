@@ -37,6 +37,20 @@ class CommandParserTest {
     }
 
     @Test
+    fun parseTelegramPackDownloadCommand() {
+        test("/tgexport https://t.me/addstickers/AniColle", ParsedCommand.ExportTelegramPack("AniColle"))
+        test("/tgexport AniColle", ParsedCommand.ExportTelegramPack("AniColle"))
+        test("/tgexport", ParsedCommand.ErrorSyntax(Command.TG_EXPORT))
+        test("/tgexport https://example.org/x", ParsedCommand.ErrorSyntax(Command.TG_EXPORT))
+        val formatted = CommandParser(fakeVectorPreferences.instance).parseSlashCommand(
+                "/tgexport https://t.me/addstickers/AniColle",
+                """/tgexport <a href="https://t.me/addstickers/AniColle">https://t.me/addstickers/AniColle</a>""",
+                false,
+        )
+        formatted shouldBeEqualTo ParsedCommand.ExportTelegramPack("AniColle")
+    }
+
+    @Test
     fun parseRawMessageCommand() {
         test(
                 """/rawmsg {"msgtype": "m.text", "body": "hi  there"}""",

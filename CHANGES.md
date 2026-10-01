@@ -134,6 +134,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Custom emoticons & stickers (MSC2545 image packs)**: send custom emoji and stickers, author your own packs, import and export them as Misskey-style zip archives, react with emoticons, and use them in your profile biography.
 
+- **Telegram sticker packs**: import Telegram sticker packs into a room, or save one as a zip with `/tgexport`.
+
 - **SchildiChat themes & message bubbles**: SchildiChat Light/Dark/Black themes and opt-in message bubbles (None / Both sides / Same side) with configurable corner roundness, an optional tail, and accent tinting of your own bubbles. Timestamps sit inline in the bubble and overlay images and videos.
 
 - **Scroll animations**: choose an animation for room lists, timelines, settings and other app lists.

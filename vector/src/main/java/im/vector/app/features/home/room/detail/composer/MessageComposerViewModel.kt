@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.composer
 
+import android.os.Build
 import android.text.SpannableString
 import android.text.Spanned
 import com.airbnb.mvrx.MavericksViewModelFactory
@@ -31,6 +32,7 @@ import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
+import im.vector.app.features.imagepack.telegram.TelegramPackImporter
 import im.vector.app.features.media.domain.usecase.DownloadMediaUseCase
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.pgp.PgpKeyStore
@@ -110,6 +112,7 @@ import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
+import javax.inject.Provider
 
 class MessageComposerViewModel @AssistedInject constructor(
         @Assisted initialState: MessageComposerViewState,
@@ -128,6 +131,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
         private val downloadMediaUseCase: DownloadMediaUseCase,
         private val massRedactionManager: MassRedactionManager,
+        private val telegramPackImporter: Provider<TelegramPackImporter>,
 ) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialComposerState(initialState, session)) {
 
     private val room = session.getRoom(initialState.roomId)
@@ -190,6 +194,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             is MessageComposerAction.VoiceWaveformMovedTo -> handleVoiceWaveformMovedTo(action)
             is MessageComposerAction.AudioSeekBarMovedTo -> handleAudioSeekBarMovedTo(action)
             is MessageComposerAction.SlashCommandConfirmed -> handleSlashCommandConfirmed(room, action)
+            is MessageComposerAction.CancelTelegramExport -> telegramExportJob?.cancel()
             is MessageComposerAction.InsertUserDisplayName -> handleInsertUserDisplayName(action)
             is MessageComposerAction.SetFullScreen -> handleSetFullScreen(action)
             MessageComposerAction.OnAttachmentsSent -> handleOnAttachmentsSent(room)
@@ -772,6 +777,9 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.DownloadFile -> {
                             handleDownloadSlashCommand(room, parsedCommand)
+                        }
+                        is ParsedCommand.ExportTelegramPack -> {
+                            handleExportTelegramPackSlashCommand(room, parsedCommand)
                         }
                         is ParsedCommand.ViewFile -> {
                             handleViewSlashCommand(room, parsedCommand)
@@ -2740,6 +2748,41 @@ class MessageComposerViewModel @AssistedInject constructor(
             downloadMediaUseCase.execute(file, title = title).getOrThrow()
             // The notification can be suppressed (no notification permission) — confirm in-app too.
             _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.file_has_been_downloaded)))
+        }
+    }
+
+    private var telegramExportJob: Job? = null
+
+    // Nothing is uploaded: the pack is converted and zipped on the device.
+    private fun handleExportTelegramPackSlashCommand(room: Room, parsedCommand: ParsedCommand.ExportTelegramPack) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(
+                    IllegalStateException(stringProvider.getString(CommonStrings.image_pack_telegram_requires_kitkat))
+            ))
+            return
+        }
+        if (telegramExportJob?.isActive == true) return
+        _viewEvents.post(MessageComposerViewEvents.TelegramExportProgress(null, 0, 0))
+        telegramExportJob = viewModelScope.launch {
+            try {
+                val zip = telegramPackImporter.get().buildZip(parsedCommand.setName) { name, done, total ->
+                    _viewEvents.post(MessageComposerViewEvents.TelegramExportProgress(name, done, total))
+                }
+                try {
+                    downloadMediaUseCase.execute(zip, title = zip.name).getOrThrow()
+                } finally {
+                    zip.parentFile?.deleteRecursively()
+                }
+                popDraft(room)
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.telegram_pack_has_been_downloaded)))
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (failure: Throwable) {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
+            } finally {
+                _viewEvents.post(MessageComposerViewEvents.TelegramExportEnded)
+            }
         }
     }
 

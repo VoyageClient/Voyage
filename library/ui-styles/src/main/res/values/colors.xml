@@ -163,6 +163,9 @@
     <color name="shield_color_warning">#FF4B55</color>
     <color name="shield_color_unknown">@color/palette_gray_200</color>
 
+    <!-- Image-pack editor rows added by a re-import, until applied -->
+    <color name="image_pack_imported_highlight">#400DBD8B</color>
+
     <!-- Badge Colors -->
     <attr name="vctr_badge_color_border" format="color" />
     <color name="vctr_badge_color_border_light">@color/palette_white</color>

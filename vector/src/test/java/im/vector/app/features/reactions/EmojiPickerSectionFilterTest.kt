@@ -9,6 +9,7 @@ package im.vector.app.features.reactions
 
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.imagepack.EmojiShortNames
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.reactions.data.EmojiCatalogCache
 import im.vector.app.features.reactions.data.EmojiDataSource
@@ -16,6 +17,7 @@ import im.vector.app.features.reactions.data.EmojiItem
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.reactions.data.RecentEmoteDataSource
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
@@ -24,6 +26,10 @@ import org.junit.Test
 class EmojiPickerSectionFilterTest {
 
     private val emojiDataSource = mockk<EmojiDataSource>()
+    private val emojiShortNames = mockk<EmojiShortNames> {
+        every { searchTerms(any()) } answers { listOf(firstArg()) }
+        every { namesIn(any()) } returns emptyList()
+    }
     private val factory = EmojiPickerSectionFactory(
             emojiDataSource = emojiDataSource,
             imagePackProvider = mockk<ImagePackProvider>(),
@@ -32,6 +38,7 @@ class EmojiPickerSectionFilterTest {
             recentEmoteDataSource = mockk<RecentEmoteDataSource>(),
             catalogCache = mockk<EmojiCatalogCache>(),
             stringProvider = mockk<StringProvider>(),
+            emojiShortNames = emojiShortNames,
     )
 
     private fun section(name: String, vararg items: EmojiPickerItem) =
@@ -54,6 +61,25 @@ class EmojiPickerSectionFilterTest {
         filtered.map { it.name } shouldBeEqualTo listOf("Blobs", "Animals")
         filtered[0].items shouldBeEqualTo listOf(emote("blobcat"))
         filtered[1].items shouldBeEqualTo listOf(EmojiPickerItem.Unicode("🐱"))
+    }
+
+    @Test
+    fun `an emoji in the query finds emotes named after it`() = runTest {
+        coEvery { emojiDataSource.filterWith("😠") } returns emptyList()
+        every { emojiShortNames.searchTerms("😠") } returns listOf("😠", "angry_face")
+        val sections = listOf(section("Pack", emote("angry_face"), emote("Angry-Face_2"), emote("happy")))
+
+        factory.filterSections(sections, "😠")[0].items shouldBeEqualTo listOf(emote("angry_face"), emote("Angry-Face_2"))
+    }
+
+    @Test
+    fun `a name in the query finds emotes described by its emoji`() = runTest {
+        coEvery { emojiDataSource.filterWith("angry") } returns emptyList()
+        every { emojiShortNames.namesIn("😠") } returns listOf("angry_face")
+        val mad = EmojiPickerItem.Emote(key = "mxc://x/mad", shortcode = "mad", resolvedUrl = null, contentDescription = "😠")
+        val sections = listOf(section("Pack", mad, emote("happy")))
+
+        factory.filterSections(sections, "angry")[0].items shouldBeEqualTo listOf(mad)
     }
 
     @Test

@@ -24,6 +24,7 @@ sealed class MessageComposerAction : VectorViewModelAction {
     data class OnTextChanged(val text: CharSequence) : MessageComposerAction()
     data class OnEntersBackground(val composerText: String) : MessageComposerAction()
     data class SlashCommandConfirmed(val parsedCommand: ParsedCommand) : MessageComposerAction()
+    object CancelTelegramExport : MessageComposerAction()
     data class InsertUserDisplayName(val userId: String) : MessageComposerAction()
     data class SetFullScreen(val isFullScreen: Boolean) : MessageComposerAction()
     object OnAttachmentsSent : MessageComposerAction()

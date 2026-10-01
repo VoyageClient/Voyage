@@ -13,6 +13,7 @@ import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.imagepack.EmojiShortNames
 import im.vector.app.features.imagepack.ResolvedImage
 import im.vector.app.features.imagepack.ResolvedImagePack
 import im.vector.app.features.settings.VectorPreferences
@@ -24,6 +25,7 @@ class StickerPickerController @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
+        private val emojiShortNames: EmojiShortNames,
 ) : TypedEpoxyController<StickerPickerController.Data>(
         // A pack of any size is hundreds of models; building and diffing them on the main thread is
         // what the sheet used to wait for before it could draw.
@@ -66,10 +68,12 @@ class StickerPickerController @Inject constructor(
             return
         }
 
+        // Built on a background handler, so the first emoji lookup's data parse stays off the main thread.
+        val emojiNames = if (query.isEmpty()) emptyList() else emojiShortNames.searchTerms(query).drop(1)
         val packs = if (query.isEmpty()) allPacks else allPacks.mapNotNull { pack ->
-            pack.images.filter { it.matchesQuery(query) }.takeIf { it.isNotEmpty() }?.let { pack.copy(images = it) }
+            pack.images.filter { it.matchesQuery(query, emojiNames, emojiShortNames::namesIn) }.takeIf { it.isNotEmpty() }?.let { pack.copy(images = it) }
         }
-        val frequent = if (query.isEmpty()) allFrequent else allFrequent.filter { it.matchesQuery(query) }
+        val frequent = if (query.isEmpty()) allFrequent else allFrequent.filter { it.matchesQuery(query, emojiNames, emojiShortNames::namesIn) }
 
         if (packs.isEmpty() && frequent.isEmpty()) {
             genericFooterItem {
@@ -123,8 +127,18 @@ class StickerPickerController @Inject constructor(
     }
 }
 
-internal fun ResolvedImage.matchesQuery(query: String): Boolean {
+/**
+ * [emojiNames] are the names of emoji typed in [query] (see [EmojiShortNames.searchTerms]); [namesIn] gives
+ * the names of emoji in the image's own shortcode/body, so the match works both ways (😠 ↔ angry_face).
+ */
+internal fun ResolvedImage.matchesQuery(
+        query: String,
+        emojiNames: List<String> = emptyList(),
+        namesIn: (String?) -> List<String> = { emptyList() },
+): Boolean {
     return shortcode.contains(query, ignoreCase = true) ||
             body?.contains(query, ignoreCase = true) == true ||
-            packDisplayName?.contains(query, ignoreCase = true) == true
+            packDisplayName?.contains(query, ignoreCase = true) == true ||
+            emojiNames.any { EmojiShortNames.nameContains(shortcode, it) || EmojiShortNames.nameContains(body, it) } ||
+            (namesIn(shortcode) + namesIn(body)).any { EmojiShortNames.nameContains(it, query) }
 }

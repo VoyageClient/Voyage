@@ -110,4 +110,6 @@
     <string name="settings_ua_client_curl" translatable="false">curl</string>
     <string name="image_editor_minus_quarter_turn" translatable="false">-90</string>
     <string name="image_editor_plus_quarter_turn" translatable="false">+90</string>
+    <string name="image_pack_telegram_link_hint" translatable="false">t.me/addstickers/…</string>
+    <string name="image_pack_telegram_token_hint" translatable="false">123456789:AAE…</string>
 </resources>

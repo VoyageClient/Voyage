@@ -32,6 +32,10 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
 
     data class SlashCommandConfirmationRequest(val parsedCommand: ParsedCommand) : MessageComposerViewEvents()
 
+    /** /tgexport progress; [packName] null and [total] 0 until the set has been fetched. */
+    data class TelegramExportProgress(val packName: String?, val done: Int, val total: Int) : MessageComposerViewEvents()
+    object TelegramExportEnded : MessageComposerViewEvents()
+
     data class OpenRoomMemberProfile(val userId: String) : MessageComposerViewEvents()
 
     data class OpenMedia(val mxcUrl: String, val file: File, val mimeType: String?, val externalUri: String?) : MessageComposerViewEvents()

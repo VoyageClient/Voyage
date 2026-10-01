@@ -25,6 +25,30 @@ data class ImagePackEditArgs(
         val canEdit: Boolean,
         // Known from the list, so the name field can populate instantly while the images load.
         val displayName: String? = null,
+        // Already-uploaded images from a re-import, appended (highlighted, unsaved) on first load.
+        val importedAdditions: ImportedAdditions? = null,
+) : Parcelable
+
+@Parcelize
+data class ImportedImage(
+        val shortcode: String,
+        val mxcUrl: String,
+        val body: String?,
+        val mimeType: String?,
+        val width: Int,
+        val height: Int,
+        val size: Long,
+        val telegramIndex: Int,
+) : Parcelable
+
+@Parcelize
+data class ImportedAdditions(
+        val images: List<ImportedImage>,
+        val telegramSet: String,
+        // file_unique_id → mxc url, for every sticker of the set now in the pack.
+        val telegramStickers: Map<String, String>,
+        // The set's file_unique_ids in Telegram order.
+        val telegramOrder: List<String>,
 ) : Parcelable
 
 /**
@@ -48,9 +72,16 @@ class ImagePackEditActivity : SimpleFragmentActivity() {
     companion object {
         private const val EXTRA_ARGS = "EXTRA_ARGS"
 
-        fun newIntent(context: Context, roomId: String?, stateKey: String = "", canEdit: Boolean = true, displayName: String? = null): Intent {
+        fun newIntent(
+                context: Context,
+                roomId: String?,
+                stateKey: String = "",
+                canEdit: Boolean = true,
+                displayName: String? = null,
+                importedAdditions: ImportedAdditions? = null,
+        ): Intent {
             return Intent(context, ImagePackEditActivity::class.java).apply {
-                putExtra(EXTRA_ARGS, ImagePackEditArgs(roomId, stateKey, canEdit, displayName))
+                putExtra(EXTRA_ARGS, ImagePackEditArgs(roomId, stateKey, canEdit, displayName, importedAdditions))
             }
         }
     }

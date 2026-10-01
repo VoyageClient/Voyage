@@ -10,6 +10,7 @@ package im.vector.app.features.reactions
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.imagepack.EmojiShortNames
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackSource
 import im.vector.app.features.imagepack.ImagePackUsageFilter
@@ -40,6 +41,7 @@ class EmojiPickerSectionFactory @Inject constructor(
         private val recentEmoteDataSource: RecentEmoteDataSource,
         private val catalogCache: EmojiCatalogCache,
         private val stringProvider: StringProvider,
+        private val emojiShortNames: EmojiShortNames,
 ) {
 
     /** Resolves a reaction/emote `mxc` key to its shortcode, for recents bookkeeping. */
@@ -194,12 +196,18 @@ class EmojiPickerSectionFactory @Inject constructor(
     private suspend fun filterSectionsBlocking(sections: List<EmojiPickerSection>, query: String): List<EmojiPickerSection> {
         if (query.isBlank()) return sections
         val matchingGlyphs = emojiDataSource.filterWith(query).mapTo(HashSet()) { it.emoji }
+        val emojiNames = emojiShortNames.searchTerms(query).drop(1)
         return sections.mapNotNull { section ->
             val items = section.items.filter { item ->
                 when (item) {
                     is EmojiPickerItem.Unicode -> item.glyph in matchingGlyphs
                     is EmojiPickerItem.Emote -> item.shortcode.contains(query, ignoreCase = true) ||
-                            item.contentDescription.contains(query, ignoreCase = true)
+                            item.contentDescription.contains(query, ignoreCase = true) ||
+                            emojiNames.any {
+                                EmojiShortNames.nameContains(item.shortcode, it) || EmojiShortNames.nameContains(item.contentDescription, it)
+                            } ||
+                            (emojiShortNames.namesIn(item.shortcode) + emojiShortNames.namesIn(item.contentDescription))
+                                    .any { EmojiShortNames.nameContains(it, query) }
                 }
             }
             if (items.isEmpty()) null else section.copy(items = items)

@@ -10,6 +10,7 @@ package im.vector.app.features.command
 import androidx.core.text.HtmlCompat
 import im.vector.app.core.extensions.isMsisdn
 import im.vector.app.core.extensions.orEmpty
+import im.vector.app.features.imagepack.telegram.TelegramLinks
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.translation.TranslationLanguages
 import org.matrix.android.sdk.api.MatrixPatterns
@@ -592,6 +593,13 @@ class CommandParser @Inject constructor(
                     } else {
                         ParsedCommand.ErrorSyntax(Command.DOWNLOAD)
                     }
+                }
+                Command.TG_EXPORT.matches(slashCommand) -> {
+                    // Markdown may have turned the link into an <a> in the formatted body; the plain text never is.
+                    val plainArgument = textMessage.toString().trim().split(Regex("\\s+"), limit = 2).getOrNull(1)
+                    (TelegramLinks.parseSetName(message) ?: TelegramLinks.parseSetName(plainArgument))
+                            ?.let { ParsedCommand.ExportTelegramPack(setName = it) }
+                            ?: ParsedCommand.ErrorSyntax(Command.TG_EXPORT)
                 }
                 Command.VIEW.matches(slashCommand) -> {
                     val url = message.toString().trim()
