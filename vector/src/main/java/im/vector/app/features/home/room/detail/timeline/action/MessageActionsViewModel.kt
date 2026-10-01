@@ -71,6 +71,8 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.events.model.getRelationContentForType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
@@ -792,6 +794,7 @@ class MessageActionsViewModel @AssistedInject constructor(
     // Relation navigation is developer-only, except for pin changes.
     private fun relatedEventId(timelineEvent: TimelineEvent): String? {
         timelineEvent.root.getRootThreadEventId()?.let { return it }
+        timelineEvent.root.getRelationContentForType(RelationType.REPLACE)?.eventId?.let { return it }
         return when (timelineEvent.root.getClearType()) {
             // Room v11 (MSC2174) moved `redacts` from the event into its content.
             EventType.REDACTION -> timelineEvent.root.redacts ?: timelineEvent.root.content?.get("redacts") as? String
