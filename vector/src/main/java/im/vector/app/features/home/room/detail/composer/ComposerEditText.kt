@@ -107,6 +107,33 @@ class ComposerEditText @JvmOverloads constructor(
         }
     }
 
+    // Framework bug: SuggestionsPopupWindow keeps the previous misspelled span's range when no suggestion
+    // span is left under the cursor by the time Editor's delayed replace() runs, then setSpan()s it past
+    // the end of the now-shorter text. Editor posts that as a lambda through this view, so guard those.
+    // Nullable because TextView's constructor posts and removes callbacks before this is initialized.
+    private var guardedEditorRunnables: HashMap<Runnable, Runnable>? = null
+
+    override fun postDelayed(action: Runnable, delayMillis: Long): Boolean {
+        if (!action.javaClass.name.startsWith("android.widget.Editor$$")) return super.postDelayed(action, delayMillis)
+        val runnables = guardedEditorRunnables ?: HashMap<Runnable, Runnable>().also { guardedEditorRunnables = it }
+        val guarded = runnables.getOrPut(action) {
+            Runnable {
+                runnables.remove(action)
+                try {
+                    action.run()
+                } catch (e: IndexOutOfBoundsException) {
+                    Timber.w(e, "Suppressed suggestion popup crash (framework bug)")
+                }
+            }
+        }
+        return super.postDelayed(guarded, delayMillis)
+    }
+
+    override fun removeCallbacks(action: Runnable?): Boolean {
+        guardedEditorRunnables?.remove(action)?.let { super.removeCallbacks(it) }
+        return super.removeCallbacks(action)
+    }
+
     /** Set whether the keyboard should disable personalized learning. */
     @RequiresApi(Build.VERSION_CODES.O)
     fun setUseIncognitoKeyboard(useIncognitoKeyboard: Boolean) {
