@@ -3087,13 +3087,11 @@
     <string name="image_editor_rotate">ঘোরান</string>
     <string name="image_editor_reset">রিসেট করুন</string>
     <string name="image_editor_snap">কেন্দ্রে স্ন্যাপ করুন</string>
-    <string name="image_editor_snap_on">কেন্দ্ররেখায় স্ন্যাপ করা হচ্ছে</string>
     <string name="image_editor_snap_off">স্ন্যাপিং বন্ধ</string>
     <string name="aspect_ratio_title">আকার অনুপাত</string>
     <string name="aspect_ratio_freeform">মুক্ত আকার</string>
     <string name="aspect_ratio_custom">কাস্টম</string>
     <string name="aspect_ratio_invalid">শূন্যের বেশি একটি প্রস্থ ও উচ্চতা লিখুন</string>
-    <string name="image_editor_censor_hint">একটি কালো বাক্স যোগ করতে ছবির উপর টানুন</string>
     <string name="image_editor_load_failed">এই ছবিটি খোলা যায়নি</string>
     <string name="image_editor_save_failed">সম্পাদিত ছবিটি সংরক্ষণ করা যায়নি</string>
     <string name="video_editor_title">ভিডিও সম্পাদনা করুন</string>
@@ -3448,4 +3446,15 @@
     <string name="command_description_rawmsg">প্রদত্ত JSON কনটেন্ট দিয়ে একটি মেসেজ ইভেন্ট পাঠান</string>
     <string name="command_description_raw">প্রদত্ত JSON কনটেন্ট দিয়ে একটি ইভেন্ট পাঠান</string>
     <string name="command_description_rawstate">প্রদত্ত JSON কনটেন্ট দিয়ে একটি স্টেট ইভেন্ট পাঠান</string>
+    <string name="image_editor_snap_on">কেন্দ্ররেখা ও ৪৫° কোণে স্ন্যাপ হচ্ছে</string>
+    <string name="image_editor_draw">আঁকুন</string>
+    <string name="image_editor_brush_size">ব্রাশের আকার</string>
+    <string name="image_editor_color_custom">কাস্টম রং</string>
+    <string name="image_editor_rotate_left">ঘড়ির কাঁটার বিপরীতে ৯০° ঘোরান</string>
+    <string name="image_editor_rotate_right">ঘড়ির কাঁটার দিকে ৯০° ঘোরান</string>
+    <string name="editor_undo">পূর্বাবস্থায় ফেরান</string>
+    <string name="editor_redo">আবার করুন</string>
+    <string name="video_editor_capture_frame">ফ্রেম বের করুন</string>
+    <string name="video_editor_capture_frame_failed">এই ফ্রেমটি নেওয়া যায়নি</string>
+    <string name="video_editor_extracting_frame">ফ্রেম বের করা হচ্ছে…</string>
 </resources>

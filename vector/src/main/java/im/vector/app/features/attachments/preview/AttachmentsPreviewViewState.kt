@@ -35,6 +35,8 @@ data class AttachmentsPreviewViewState(
          */
         val captions: Map<String, String> = emptyMap(),
         val sharesOneCaption: Boolean = false,
+        /** Content that replaced an attachment outright (a still taken from a video) keeps its id. */
+        val stableIdAliases: Map<String, String> = emptyMap(),
 ) : MavericksState {
 
     constructor(args: AttachmentsPreviewArgs) : this(
@@ -52,6 +54,8 @@ data class AttachmentsPreviewViewState(
      * the result as a different item, removing and re-inserting it, which shifts the pager onto a
      * neighbour. The original uri stays put for the lifetime of the screen.
      */
-    fun stableIdOf(attachment: ContentAttachmentData): String =
-            editRecords[attachment.queryUri]?.originalUri ?: attachment.queryUri
+    fun stableIdOf(attachment: ContentAttachmentData): String {
+        val uri = editRecords[attachment.queryUri]?.originalUri ?: attachment.queryUri
+        return stableIdAliases[uri] ?: uri
+    }
 }

@@ -21,6 +21,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ProgressBar
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
@@ -30,6 +31,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
@@ -37,7 +39,10 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityImageEditorBinding
 import im.vector.app.databinding.ActivityVideoEditorBinding
 import im.vector.app.features.attachments.editor.AspectRatioPicker
+import im.vector.app.features.attachments.editor.EditorColorBar
+import im.vector.app.features.attachments.editor.EditorHistoryCache
 import im.vector.app.features.attachments.editor.restoreOriginalResult
+import im.vector.app.features.attachments.editor.setEnabledDimmed
 import im.vector.app.features.attachments.editor.video.AnimatedImageExporter
 import im.vector.app.features.attachments.editor.video.VideoEditorEdits
 import im.vector.app.features.themes.ActivityOtherThemes
@@ -80,6 +85,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     private var lastCustomAspectRatio: Pair<Int, Int>? = null
     private var activeToolFill: Int = Color.WHITE
     private var activeToolContent: Int = Color.WHITE
+    private lateinit var colorBar: EditorColorBar
 
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
 
@@ -107,22 +113,36 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         views.imageEditorRotateButton.backgroundTintList = ColorStateList.valueOf(INACTIVE_FAB_COLOR)
 
         views.imageEditorSaveButton.setOnClickListener { save() }
-        views.imageEditorCensorButton.setOnClickListener { toggleCensorTool() }
-        views.imageEditorRotateButton.setOnClickListener { views.imageEditorView.rotateClockwise() }
+        views.imageEditorCensorButton.setOnClickListener { toggleTool(ImageEditorView.Tool.CENSOR) }
+        views.imageEditorDrawButton.setOnClickListener { toggleTool(ImageEditorView.Tool.DRAW) }
+        views.imageEditorRotateButton.setOnClickListener { toggleTool(ImageEditorView.Tool.ROTATE) }
+        views.imageEditorRotateLeftButton.setOnClickListener { views.imageEditorView.rotateCounterClockwise() }
+        views.imageEditorRotateRightButton.setOnClickListener { views.imageEditorView.rotateClockwise() }
         views.imageEditorSnapButton.setOnClickListener { toggleSnapToCenter() }
         views.imageEditorAspectButton.setOnClickListener { showAspectRatioPicker() }
         views.imageEditorAspectButton.backgroundTintList = ColorStateList.valueOf(INACTIVE_FAB_COLOR)
 
+        setupToolOptions()
         views.imageEditorView.onToolChanged = { applyTool(it) }
+        views.imageEditorView.onRotationChanged = { views.imageEditorDial.value = it }
+        views.imageEditorView.onHistoryChanged = {
+            views.imageEditorDial.value = views.imageEditorView.rotationAngle
+            invalidateOptionsMenu()
+        }
+        views.imageEditorView.onCensorSelectionChanged = { color ->
+            if (views.imageEditorView.tool == ImageEditorView.Tool.CENSOR) colorBar.setSelected(color ?: views.imageEditorView.censorColor)
+        }
         applyTool(ImageEditorView.Tool.CROP)
         applySnapToCenter(vectorPreferences.imageEditorSnapToCenter())
         intent.getFloatExtra(EXTRA_ASPECT_RATIO, 0f).takeIf { it > 0f }?.let {
             views.imageEditorView.cropAspectRatio = it
+            views.imageEditorView.ratioTurnsWithImage = false
             // The caller needs this exact shape, so the ratio is not the user's to change.
             views.imageEditorAspectButton.isVisible = false
         }
         initialEdits = intent.getParcelableExtraCompat(EXTRA_EDITS)
         initialEdits?.let { views.imageEditorView.restoreEdits(it) }
+        EditorHistoryCache.find(sourceUri.toString(), initialEdits)?.let { views.imageEditorView.resumeHistory(it) }
         views.imageEditorSaveButton.isEnabled = false
         if (animatedFormat == null) loadBitmap() else loadAnimatedImage()
     }
@@ -152,8 +172,34 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         ).show()
     }
 
+    private fun setupToolOptions() {
+        val editor = views.imageEditorView
+        editor.brushSizeDp = vectorPreferences.imageEditorBrushSizeDp()
+        colorBar = EditorColorBar(
+                container = views.imageEditorColorRow,
+                dialogContext = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+        ) { color ->
+            if (editor.tool == ImageEditorView.Tool.DRAW) editor.brushColor = color else editor.applyCensorColor(color)
+        }
+        views.imageEditorBrushSize.max = (MAX_BRUSH_DP - MIN_BRUSH_DP).toInt()
+        views.imageEditorBrushSize.progress = (editor.brushSizeDp - MIN_BRUSH_DP).toInt()
+        views.imageEditorBrushSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                editor.brushSizeDp = MIN_BRUSH_DP + progress
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                vectorPreferences.setImageEditorBrushSizeDp(editor.brushSizeDp)
+            }
+        })
+        views.imageEditorDial.onChanged = { degrees, moving -> editor.setRotationAngle(degrees, final = !moving) }
+    }
+
     private fun applySnapToCenter(enabled: Boolean) {
         views.imageEditorView.snapToCenter = enabled
+        views.imageEditorDial.snapEnabled = enabled
         views.imageEditorSnapButton.backgroundTintList =
                 ColorStateList.valueOf(if (enabled) activeToolFill else INACTIVE_FAB_COLOR)
         ImageViewCompat.setImageTintList(
@@ -162,27 +208,32 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         )
     }
 
-    private fun toggleCensorTool() {
-        val next = if (views.imageEditorView.tool == ImageEditorView.Tool.CENSOR) {
-            ImageEditorView.Tool.CROP
-        } else {
-            ImageEditorView.Tool.CENSOR
-        }
-        applyTool(next)
-        if (next == ImageEditorView.Tool.CENSOR) {
-            Toast.makeText(this, getString(CommonStrings.image_editor_censor_hint), Toast.LENGTH_SHORT).show()
-        }
+    private fun toggleTool(tool: ImageEditorView.Tool) {
+        applyTool(if (views.imageEditorView.tool == tool) ImageEditorView.Tool.CROP else tool)
     }
 
     private fun applyTool(tool: ImageEditorView.Tool) {
-        views.imageEditorView.tool = tool
-        val active = tool == ImageEditorView.Tool.CENSOR
-        views.imageEditorCensorButton.backgroundTintList =
-                ColorStateList.valueOf(if (active) activeToolFill else INACTIVE_FAB_COLOR)
-        ImageViewCompat.setImageTintList(
-                views.imageEditorCensorButton,
-                ColorStateList.valueOf(if (active) activeToolContent else Color.WHITE)
-        )
+        val editor = views.imageEditorView
+        editor.tool = tool
+        styleToolButton(views.imageEditorCensorButton, tool == ImageEditorView.Tool.CENSOR)
+        styleToolButton(views.imageEditorDrawButton, tool == ImageEditorView.Tool.DRAW)
+        styleToolButton(views.imageEditorRotateButton, tool == ImageEditorView.Tool.ROTATE)
+        val colored = tool == ImageEditorView.Tool.DRAW || tool == ImageEditorView.Tool.CENSOR
+        views.imageEditorOptions.isVisible = colored || tool == ImageEditorView.Tool.ROTATE
+        views.imageEditorColorScroll.isVisible = colored
+        views.imageEditorBrushSize.isVisible = tool == ImageEditorView.Tool.DRAW
+        views.imageEditorRotateRow.isVisible = tool == ImageEditorView.Tool.ROTATE
+        when (tool) {
+            ImageEditorView.Tool.DRAW -> colorBar.setSelected(editor.brushColor)
+            ImageEditorView.Tool.CENSOR -> colorBar.setSelected(editor.censorColor)
+            ImageEditorView.Tool.ROTATE -> views.imageEditorDial.value = editor.rotationAngle
+            ImageEditorView.Tool.CROP -> Unit
+        }
+    }
+
+    private fun styleToolButton(button: FloatingActionButton, active: Boolean) {
+        button.backgroundTintList = ColorStateList.valueOf(if (active) activeToolFill else INACTIVE_FAB_COLOR)
+        ImageViewCompat.setImageTintList(button, ColorStateList.valueOf(if (active) activeToolContent else Color.WHITE))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -195,12 +246,21 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
             if (item.itemId == android.R.id.home) exportJob?.cancel()
             return true
         }
-        return if (item.itemId == R.id.imageEditorResetAction) {
-            views.imageEditorView.resetEdits()
-            applyTool(ImageEditorView.Tool.CROP)
-            true
-        } else {
-            super.onOptionsItemSelected(item)
+        return when (item.itemId) {
+            R.id.imageEditorResetAction -> {
+                views.imageEditorView.resetEdits()
+                applyTool(ImageEditorView.Tool.CROP)
+                true
+            }
+            R.id.imageEditorUndoAction -> {
+                views.imageEditorView.undo()
+                true
+            }
+            R.id.imageEditorRedoAction -> {
+                views.imageEditorView.redo()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -258,11 +318,11 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
             }
             val result = AnimatedImageExporter.export(
                     this, source, animatedFormat, displayName,
-                    VideoEditorEdits(rotationDegrees = edits.userRotation, crop = edits.crop),
+                    VideoEditorEdits(rotationDegrees = edits.userRotation, crop = edits.crop, tiltDegrees = edits.tiltDegrees),
                     targetSize = null,
                     progressListener = VideoEditProgressListener { percent ->
                         runOnUiThread { if (saving) exportOverlay.findViewById<ProgressBar>(R.id.videoEditorExportProgress).progress = percent }
-                    }, censors = edits.censors
+                    }, censors = edits.censors, strokes = edits.strokes
             )
             return ImageEditorExporter.Result(result.uri, result.width, result.height, result.size, result.mimeType)
         } finally {
@@ -280,10 +340,12 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         val edits = views.imageEditorView.currentEdits()
         // Left exactly as it was opened: the attachment already is this export.
         if (edits == initialEdits) {
+            keepHistory(initialEdits)
             finish()
             return
         }
         if (!edits.hasChanges) {
+            keepHistory(edits)
             setResult(RESULT_OK, restoreOriginalResult(sourceUri))
             finish()
             return
@@ -310,6 +372,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
                     putExtra(EXTRA_RESULT_MIME_TYPE, result.mimeType)
                     putExtra(EXTRA_RESULT_EDITS, edits)
                 })
+                keepHistory(edits)
                 finish()
             } catch (_: CancellationException) {
             } catch (error: Throwable) {
@@ -329,8 +392,13 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         }
     }
 
+    private fun keepHistory(edits: ImageEditorEdits?) =
+            EditorHistoryCache.put(sourceUri.toString(), edits, views.imageEditorView.historyToKeep())
+
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         for (index in 0 until menu.size()) menu.getItem(index).isEnabled = !saving
+        menu.findItem(R.id.imageEditorUndoAction)?.setEnabledDimmed(!saving && views.imageEditorView.canUndo)
+        menu.findItem(R.id.imageEditorRedoAction)?.setEnabledDimmed(!saving && views.imageEditorView.canRedo)
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -351,6 +419,8 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     companion object {
         /** Translucent dark, so the secondary tools read as controls without competing with save. */
         private const val INACTIVE_FAB_COLOR = 0xB0333333.toInt()
+        private const val MIN_BRUSH_DP = 2f
+        private const val MAX_BRUSH_DP = 40f
 
         private const val EXTRA_SOURCE_URI = "EXTRA_SOURCE_URI"
         private const val EXTRA_DISPLAY_NAME = "EXTRA_DISPLAY_NAME"

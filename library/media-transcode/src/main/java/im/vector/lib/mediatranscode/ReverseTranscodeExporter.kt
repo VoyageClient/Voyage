@@ -85,7 +85,7 @@ internal class ReverseTranscodeExporter(private val context: Context) {
             encoderSurface = encoder.createInputSurface()
             inputSurface = InputSurface(encoderSurface)
             inputSurface.makeCurrent()
-            outputSurface = OutputSurface(CropGeometry.textureCoords(geometry.crop, rotation), geometry.width, geometry.height)
+            outputSurface = OutputSurface(CropGeometry.textureCoords(geometry.crop, rotation, spec.tiltDegrees, displayWidth, displayHeight), geometry.width, geometry.height)
             offscreen = OffscreenTarget(geometry.width, geometry.height).apply { setup() }
             storedRenderer = StoredFrameRenderer(geometry.width, geometry.height).apply { setup() }
             encoder.start()

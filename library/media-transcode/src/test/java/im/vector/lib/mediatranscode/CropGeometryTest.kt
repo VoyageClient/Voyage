@@ -151,6 +151,35 @@ class CropGeometryTest {
         output.height shouldBeEqualTo 64
     }
 
+    @Test
+    fun `a zero tilt leaves the texture coordinates alone`() {
+        val crop = floatArrayOf(0.1f, 0.2f, 0.7f, 0.9f)
+        CropGeometry.textureCoords(crop, 90, 0f, 1920, 1080) shouldBeCloseTo CropGeometry.textureCoords(crop, 90)
+    }
+
+    @Test
+    fun `a crop inside the tilted picture samples only the texture`() {
+        // A centred third of the frame stays on the picture at any tilt within ±45°.
+        val third = floatArrayOf(1f / 3, 1f / 3, 2f / 3, 2f / 3)
+        for (tilt in listOf(-45f, -30f, -7.5f, 3f, 20f, 45f)) {
+            for (rotation in listOf(0, 90, 180, 270)) {
+                CropGeometry.textureCoords(third, rotation, tilt, 1920, 1080).forEach { value ->
+                    (value >= -TOLERANCE && value <= 1f + TOLERANCE) shouldBeEqualTo true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a tilt turns the sampled quad the other way`() {
+        // Turning the picture clockwise means the quad's top edge samples a line rising to the right
+        // (t runs upwards).
+        val coords = CropGeometry.textureCoords(whole, 0, 10f, 1000, 1000)
+        val topLeftT = coords[5]
+        val topRightT = coords[7]
+        (topRightT > topLeftT) shouldBeEqualTo true
+    }
+
     private infix fun FloatArray.shouldBeCloseTo(expected: FloatArray) {
         size shouldBeEqualTo expected.size
         forEachIndexed { index, value -> value shouldBeCloseToFloat expected[index] }

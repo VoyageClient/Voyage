@@ -10,14 +10,16 @@ package im.vector.app.features.attachments.editor.video
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Build
 import androidx.core.content.FileProvider
 import im.vector.app.core.glide.MediaCache
+import im.vector.app.features.attachments.editor.FrameTransform
+import im.vector.app.features.attachments.editor.image.BrushStroke
+import im.vector.app.features.attachments.editor.image.CensorEdit
+import im.vector.app.features.attachments.editor.image.ImageAnnotationPainter
 import im.vector.lib.animatedimage.AnimatedFrame
 import im.vector.lib.animatedimage.AnimatedImageFormat
 import im.vector.lib.animatedimage.AnimatedImageReader
@@ -50,10 +52,14 @@ object AnimatedImageExporter {
             edits: VideoEditorEdits,
             targetSize: Pair<Int, Int>?,
             progressListener: VideoEditProgressListener?,
-            censors: List<RectF> = emptyList(),
+            censors: List<CensorEdit> = emptyList(),
+            strokes: List<BrushStroke> = emptyList(),
     ): VideoEditorExporter.Result = withContext(Dispatchers.Default) {
         progressListener?.onProgress(0)
-        if (!edits.reversed) return@withContext exportStreaming(context, source, format, displayName, edits, targetSize, progressListener, censors)
+        val annotations = censors to strokes
+        if (!edits.reversed) {
+            return@withContext exportStreaming(context, source, format, displayName, edits, targetSize, progressListener, annotations)
+        }
         val decoded = AnimatedImageReader.readFrames(source, format) ?: throw AnimatedImageException()
         val destination = createOutputFile(context, displayName)
         val output = ArrayList<AnimatedFrame>()
@@ -65,7 +71,7 @@ object AnimatedImageExporter {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1 && kept.anyTransparent()) {
                 throw TransparencyUnsupportedException()
             }
-            val geometry = Geometry.of(decoded[0].bitmap, edits, targetSize, censors)
+            val geometry = Geometry.of(decoded[0].bitmap, edits, targetSize, annotations)
             kept.forEachIndexed { index, frame ->
                 coroutineContext.ensureActive()
                 output.add(AnimatedFrame(geometry.apply(frame.bitmap), scaleDuration(frame.durationMs, edits)))
@@ -102,7 +108,7 @@ object AnimatedImageExporter {
             edits: VideoEditorEdits,
             targetSize: Pair<Int, Int>?,
             progressListener: VideoEditProgressListener?,
-            censors: List<RectF>,
+            annotations: Pair<List<CensorEdit>, List<BrushStroke>>,
     ): VideoEditorExporter.Result {
         val destination = createOutputFile(context, displayName)
         var writer: AnimatedWebpEncoder.StreamWriter? = null
@@ -131,7 +137,7 @@ object AnimatedImageExporter {
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1 && listOf(frame).anyTransparent()) {
                         throw TransparencyUnsupportedException()
                     }
-                    val current = geometry ?: Geometry.of(frame.bitmap, edits, targetSize, censors).also { geometry = it }
+                    val current = geometry ?: Geometry.of(frame.bitmap, edits, targetSize, annotations).also { geometry = it }
                     if (writer == null) writer = AnimatedWebpEncoder.StreamWriter(destination, current.width, current.height, DEFAULT_QUALITY)
                     val delay = scaleDuration(frame.durationMs, edits)
                     pending.add(AnimatedFrame(current.apply(frame.bitmap), delay))
@@ -187,9 +193,9 @@ object AnimatedImageExporter {
     private class Geometry(
             val width: Int,
             val height: Int,
-            private val rotationDegrees: Int,
-            private val crop: RectF?,
-            private val censors: List<RectF>,
+            private val matrix: Matrix,
+            private val censors: List<CensorEdit>,
+            private val strokes: List<BrushStroke>,
     ) {
 
         private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
@@ -197,53 +203,38 @@ object AnimatedImageExporter {
         fun apply(bitmap: Bitmap): Bitmap {
             val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(output)
-            val rotated = if (rotationDegrees == 0) bitmap else bitmap.rotated(rotationDegrees)
-            val sourceRect = crop?.let {
-                Rect(
-                        (it.left * rotated.width).toInt(),
-                        (it.top * rotated.height).toInt(),
-                        (it.right * rotated.width).toInt(),
-                        (it.bottom * rotated.height).toInt()
-                )
+            canvas.concat(matrix)
+            canvas.drawBitmap(bitmap, 0f, 0f, paint)
+            if (censors.isNotEmpty() || strokes.isNotEmpty()) {
+                canvas.clipRect(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+                ImageAnnotationPainter.draw(canvas, bitmap.width.toFloat(), bitmap.height.toFloat(), censors, strokes)
             }
-            canvas.drawBitmap(rotated, sourceRect, Rect(0, 0, width, height), paint)
-            val region = crop ?: RectF(0f, 0f, 1f, 1f)
-            val censorPaint = Paint().apply { color = Color.BLACK }
-            censors.forEach {
-                canvas.drawRect(
-                        (it.left - region.left) / region.width() * width,
-                        (it.top - region.top) / region.height() * height,
-                        (it.right - region.left) / region.width() * width,
-                        (it.bottom - region.top) / region.height() * height,
-                        censorPaint
-                )
-            }
-            if (rotated !== bitmap) rotated.recycle()
             return output
         }
 
-        private fun Bitmap.rotated(degrees: Int): Bitmap {
-            val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
-            return Bitmap.createBitmap(this, 0, 0, this.width, this.height, matrix, true)
-        }
-
         companion object {
-            fun of(first: Bitmap, edits: VideoEditorEdits, targetSize: Pair<Int, Int>?, censors: List<RectF>): Geometry {
+            fun of(
+                    first: Bitmap,
+                    edits: VideoEditorEdits,
+                    targetSize: Pair<Int, Int>?,
+                    annotations: Pair<List<CensorEdit>, List<BrushStroke>>,
+            ): Geometry {
                 val rotation = ((edits.rotationDegrees % 360) + 360) % 360
                 val swapped = rotation % 180 == 90
                 val displayWidth = if (swapped) first.height else first.width
                 val displayHeight = if (swapped) first.width else first.height
-                val croppedWidth = ((edits.crop?.width() ?: 1f) * displayWidth).toInt().coerceAtLeast(1)
-                val croppedHeight = ((edits.crop?.height() ?: 1f) * displayHeight).toInt().coerceAtLeast(1)
+                val crop = edits.crop ?: RectF(0f, 0f, 1f, 1f)
+                val croppedWidth = (crop.width() * displayWidth).toInt().coerceAtLeast(1)
+                val croppedHeight = (crop.height() * displayHeight).toInt().coerceAtLeast(1)
                 // No 16-pixel alignment here: nothing is being handed to a video encoder, so the
                 // crop can be honoured to the pixel.
-                return Geometry(
-                        width = targetSize?.first ?: croppedWidth,
-                        height = targetSize?.second ?: croppedHeight,
-                        rotationDegrees = rotation,
-                        crop = edits.crop,
-                        censors = censors
-                )
+                val width = targetSize?.first ?: croppedWidth
+                val height = targetSize?.second ?: croppedHeight
+                val matrix = FrameTransform.sourceToFrame(first.width, first.height, rotation, edits.tiltDegrees).apply {
+                    postTranslate(-crop.left * displayWidth, -crop.top * displayHeight)
+                    postScale(width / (crop.width() * displayWidth), height / (crop.height() * displayHeight))
+                }
+                return Geometry(width, height, matrix, annotations.first, annotations.second)
             }
         }
     }

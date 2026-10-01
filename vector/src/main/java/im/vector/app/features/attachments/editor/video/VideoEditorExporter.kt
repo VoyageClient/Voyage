@@ -52,6 +52,7 @@ object VideoEditorExporter {
                             endUs = edits.endUs,
                             crop = edits.crop,
                             rotationDegrees = edits.rotationDegrees,
+                            tiltDegrees = edits.tiltDegrees,
                             muted = edits.volume.muted,
                             volume = edits.volume.gain,
                             reversed = edits.reversed,

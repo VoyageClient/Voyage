@@ -3027,13 +3027,11 @@
     <string name="image_editor_rotate">घुमाएं</string>
     <string name="image_editor_reset">रीसेट करें</string>
     <string name="image_editor_snap">बीच में स्नैप करें</string>
-    <string name="image_editor_snap_on">बीच की रेखाओं पर स्नैप हो रहा है</string>
     <string name="image_editor_snap_off">स्नैप बंद है</string>
     <string name="aspect_ratio_title">आस्पेक्ट रेशियो</string>
     <string name="aspect_ratio_freeform">मुक्त</string>
     <string name="aspect_ratio_custom">कस्टम</string>
     <string name="aspect_ratio_invalid">शून्य से ज़्यादा चौड़ाई और ऊंचाई डालें</string>
-    <string name="image_editor_censor_hint">काला बॉक्स जोड़ने के लिए इमेज पर खींचें</string>
     <string name="image_editor_load_failed">यह इमेज नहीं खुल सकी</string>
     <string name="image_editor_save_failed">संपादित इमेज सहेजी नहीं जा सकी</string>
     <string name="video_editor_title">वीडियो संपादित करें</string>
@@ -3376,4 +3374,15 @@
     <string name="command_description_rawmsg">दिए गए JSON कंटेंट के साथ एक मैसेज इवेंट भेजें</string>
     <string name="command_description_raw">दिए गए JSON कंटेंट के साथ एक इवेंट भेजें</string>
     <string name="command_description_rawstate">दिए गए JSON कंटेंट के साथ एक स्टेट इवेंट भेजें</string>
+    <string name="image_editor_snap_on">बीच की रेखाओं और 45° कोणों पर स्नैप हो रहा है</string>
+    <string name="image_editor_draw">ड्रॉ करें</string>
+    <string name="image_editor_brush_size">ब्रश का आकार</string>
+    <string name="image_editor_color_custom">कस्टम रंग</string>
+    <string name="image_editor_rotate_left">घड़ी की उलटी दिशा में 90° घुमाएं</string>
+    <string name="image_editor_rotate_right">घड़ी की दिशा में 90° घुमाएं</string>
+    <string name="editor_undo">पहले जैसा करें</string>
+    <string name="editor_redo">फिर से करें</string>
+    <string name="video_editor_capture_frame">फ़्रेम निकालें</string>
+    <string name="video_editor_capture_frame_failed">यह फ़्रेम कैप्चर नहीं हो सका</string>
+    <string name="video_editor_extracting_frame">फ़्रेम निकाला जा रहा है…</string>
 </resources>

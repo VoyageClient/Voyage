@@ -8,6 +8,7 @@
 package im.vector.app.features.attachments.preview
 
 import im.vector.app.core.platform.VectorViewModel
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.util.MimeTypes
 
 class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
@@ -114,7 +115,12 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
                         // Editing re-encodes (image -> jpg/png, video -> mp4, video -> animated webp),
                         // and the old extension would otherwise mislabel the uploaded file.
                         name = MimeTypes.renameForMimeType(contentAttachmentData.name, action.mimeType),
-                        duration = action.duration ?: contentAttachmentData.duration
+                        duration = if (action.replacementType == ContentAttachmentData.Type.IMAGE) {
+                            null
+                        } else {
+                            action.duration ?: contentAttachmentData.duration
+                        },
+                        type = action.replacementType ?: contentAttachmentData.type,
                 )
             } else {
                 contentAttachmentData
@@ -124,8 +130,21 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             previousUri?.let { uri -> remove(uri) }
             action.editRecord?.let { record -> put(action.newUri.toString(), record) }
         }
+        val replacedId = it.attachments.getOrNull(it.currentAttachmentIndex)
+                ?.takeIf { action.replacementType != null }
+                ?.let { current -> it.stableIdOf(current) }
         setState {
-            copy(attachments = attachments, editRecords = editRecords)
+            if (replacedId == null) {
+                copy(attachments = attachments, editRecords = editRecords)
+            } else {
+                copy(
+                        attachments = attachments,
+                        editRecords = editRecords,
+                        stableIdAliases = stableIdAliases + (action.newUri.toString() to replacedId),
+                        // Chosen for the old media; a video's bitrate and size mean nothing to a still.
+                        compressionSettings = compressionSettings - replacedId,
+                )
+            }
         }
     }
 

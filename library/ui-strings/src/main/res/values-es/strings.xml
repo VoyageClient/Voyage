@@ -3124,13 +3124,11 @@
     <string name="image_editor_rotate">Girar</string>
     <string name="image_editor_reset">Restablecer</string>
     <string name="image_editor_snap">Ajustar al centro</string>
-    <string name="image_editor_snap_on">Ajustando a las líneas centrales</string>
     <string name="image_editor_snap_off">Ajuste desactivado</string>
     <string name="aspect_ratio_title">Relación de aspecto</string>
     <string name="aspect_ratio_freeform">Libre</string>
     <string name="aspect_ratio_custom">Personalizada</string>
     <string name="aspect_ratio_invalid">Introduce un ancho y un alto mayores que cero</string>
-    <string name="image_editor_censor_hint">Arrastra sobre la imagen para añadir un recuadro negro</string>
     <string name="image_editor_load_failed">No se pudo abrir esta imagen</string>
     <string name="image_editor_save_failed">No se pudo guardar la imagen editada</string>
     <string name="video_editor_title">Editar vídeo</string>
@@ -3482,4 +3480,15 @@
     <string name="command_description_rawmsg">Enviar un evento de mensaje con el contenido JSON indicado</string>
     <string name="command_description_raw">Enviar un evento con el contenido JSON indicado</string>
     <string name="command_description_rawstate">Enviar un evento de estado con el contenido JSON indicado</string>
+    <string name="image_editor_snap_on">Ajustando a las líneas centrales y a ángulos de 45°</string>
+    <string name="image_editor_draw">Dibujar</string>
+    <string name="image_editor_brush_size">Tamaño del pincel</string>
+    <string name="image_editor_color_custom">Color personalizado</string>
+    <string name="image_editor_rotate_left">Girar 90° en sentido antihorario</string>
+    <string name="image_editor_rotate_right">Girar 90° en sentido horario</string>
+    <string name="editor_undo">Deshacer</string>
+    <string name="editor_redo">Rehacer</string>
+    <string name="video_editor_capture_frame">Extraer fotograma</string>
+    <string name="video_editor_capture_frame_failed">No se pudo capturar este fotograma</string>
+    <string name="video_editor_extracting_frame">Extrayendo fotograma…</string>
 </resources>

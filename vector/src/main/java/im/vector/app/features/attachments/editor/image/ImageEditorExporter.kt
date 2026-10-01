@@ -11,14 +11,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.RectF
 import android.net.Uri
 import androidx.core.content.FileProvider
 import im.vector.app.core.glide.JxlBitmaps
 import im.vector.app.core.glide.MediaCache
+import im.vector.app.features.attachments.editor.FrameTransform
 import im.vector.lib.multipicker.utils.ImageUtils
 import org.matrix.android.sdk.api.util.JxlSupport
 import org.matrix.android.sdk.api.util.MimeTypes
@@ -62,13 +61,13 @@ object ImageEditorExporter {
         val decoded = decodeSampled(context, source, pixelBudget()) ?: return null
         // The editor works in a space where EXIF rotation has already been applied, so replay it
         // here before the user's own rotation or the normalised rectangles will not line up.
-        var working = applyRotation(decoded, ImageUtils.getOrientation(context, source))
-        working = applyRotation(working, edits.userRotation)
+        val oriented = applyRotation(decoded, ImageUtils.getOrientation(context, source))
+        return exportBitmap(context, oriented, edits, displayName, usePng = sourceMimeType?.lowercase() == MimeTypes.Png)
+    }
 
-        working = drawCensors(working, edits.censors)
-        working = applyCrop(working, edits.crop)
-
-        val usePng = sourceMimeType?.lowercase() == MimeTypes.Png
+    /** Applies [edits] to [bitmap], which this takes ownership of and recycles, and writes the result. */
+    fun exportBitmap(context: Context, bitmap: Bitmap, edits: ImageEditorEdits, displayName: String?, usePng: Boolean): Result {
+        val working = render(bitmap, edits)
         val format = if (usePng) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
         val extension = if (usePng) ".png" else ".jpg"
         val destination = createOutputFile(context, displayName, extension)
@@ -130,37 +129,33 @@ object ImageEditorExporter {
         return rotated
     }
 
-    private fun drawCensors(bitmap: Bitmap, censors: List<RectF>): Bitmap {
-        if (censors.isEmpty()) return bitmap
-        // A decoded bitmap is immutable and Canvas() rejects it. copy(_, true) is the only call
-        // that actually guarantees mutability; createBitmap may hand back the immutable source.
-        val mutable = if (bitmap.isMutable) bitmap else {
-            val copy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true) ?: return bitmap
-            bitmap.recycle()
-            copy
-        }
-        val canvas = Canvas(mutable)
-        val paint = Paint().apply { color = Color.BLACK }
-        censors.forEach { censor ->
-            canvas.drawRect(
-                    censor.left * mutable.width,
-                    censor.top * mutable.height,
-                    censor.right * mutable.width,
-                    censor.bottom * mutable.height,
-                    paint
-            )
-        }
-        return mutable
-    }
+    /**
+     * Turns, tilts, annotates and crops in a single draw, so only the cropped output is allocated
+     * next to the source.
+     */
+    private fun render(bitmap: Bitmap, edits: ImageEditorEdits): Bitmap {
+        val sideways = edits.userRotation % 180 != 0
+        val frameWidth = if (sideways) bitmap.height else bitmap.width
+        val frameHeight = if (sideways) bitmap.width else bitmap.height
+        val crop = edits.crop
+        // Unclamped: with a tilt the crop may reach into the corners swung outside the frame.
+        val left = (crop.left * frameWidth).roundToInt()
+        val top = (crop.top * frameHeight).roundToInt()
+        val right = (crop.right * frameWidth).roundToInt().coerceAtLeast(left + 1)
+        val bottom = (crop.bottom * frameHeight).roundToInt().coerceAtLeast(top + 1)
+        val untouched = edits.userRotation % 360 == 0 && edits.tiltDegrees == 0f && !edits.hasAnnotations &&
+                left == 0 && top == 0 && right == frameWidth && bottom == frameHeight
+        if (untouched) return bitmap
 
-    private fun applyCrop(bitmap: Bitmap, crop: RectF): Bitmap {
-        val left = (crop.left * bitmap.width).roundToInt().coerceIn(0, bitmap.width - 1)
-        val top = (crop.top * bitmap.height).roundToInt().coerceIn(0, bitmap.height - 1)
-        val right = (crop.right * bitmap.width).roundToInt().coerceIn(left + 1, bitmap.width)
-        val bottom = (crop.bottom * bitmap.height).roundToInt().coerceIn(top + 1, bitmap.height)
-        if (left == 0 && top == 0 && right == bitmap.width && bottom == bitmap.height) return bitmap
-        val cropped = Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
-        if (cropped != bitmap) bitmap.recycle()
-        return cropped
+        val matrix = FrameTransform.sourceToFrame(bitmap.width, bitmap.height, edits.userRotation, edits.tiltDegrees)
+        matrix.postTranslate(-left.toFloat(), -top.toFloat())
+        val output = Bitmap.createBitmap(right - left, bottom - top, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        canvas.concat(matrix)
+        canvas.drawBitmap(bitmap, 0f, 0f, Paint(Paint.FILTER_BITMAP_FLAG))
+        canvas.clipRect(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+        ImageAnnotationPainter.draw(canvas, bitmap.width.toFloat(), bitmap.height.toFloat(), edits.censors, edits.strokes)
+        bitmap.recycle()
+        return output
     }
 }

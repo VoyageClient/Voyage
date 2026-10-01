@@ -3210,13 +3210,11 @@
     <string name="image_editor_rotate">סובב</string>
     <string name="image_editor_reset">אפס</string>
     <string name="image_editor_snap">הצמד למרכז</string>
-    <string name="image_editor_snap_on">הצמדה לקווי המרכז</string>
     <string name="image_editor_snap_off">ההצמדה כבויה</string>
     <string name="aspect_ratio_title">יחס גובה-רוחב</string>
     <string name="aspect_ratio_freeform">חופשי</string>
     <string name="aspect_ratio_custom">מותאם אישית</string>
     <string name="aspect_ratio_invalid">הזן רוחב וגובה גדולים מאפס</string>
-    <string name="image_editor_censor_hint">גרור על התמונה כדי להוסיף מלבן שחור</string>
     <string name="image_editor_load_failed">לא ניתן היה לפתוח תמונה זו</string>
     <string name="image_editor_save_failed">לא ניתן היה לשמור את התמונה הערוכה</string>
     <string name="video_editor_title">ערוך סרטון</string>
@@ -3585,4 +3583,15 @@
     <string name="command_description_rawmsg">שלח אירוע הודעה עם תוכן ה-JSON שצוין</string>
     <string name="command_description_raw">שלח אירוע עם תוכן ה-JSON שצוין</string>
     <string name="command_description_rawstate">שלח אירוע מצב עם תוכן ה-JSON שצוין</string>
+    <string name="image_editor_snap_on">הצמדה לקווי המרכז ולזוויות של 45°</string>
+    <string name="image_editor_draw">ציור</string>
+    <string name="image_editor_brush_size">גודל מכחול</string>
+    <string name="image_editor_color_custom">צבע מותאם אישית</string>
+    <string name="image_editor_rotate_left">סובב 90° נגד כיוון השעון</string>
+    <string name="image_editor_rotate_right">סובב 90° בכיוון השעון</string>
+    <string name="editor_undo">בטל</string>
+    <string name="editor_redo">בצע שוב</string>
+    <string name="video_editor_capture_frame">חלץ פריים</string>
+    <string name="video_editor_capture_frame_failed">לא ניתן היה לצלם פריים זה</string>
+    <string name="video_editor_extracting_frame">מחלץ פריים…</string>
 </resources>

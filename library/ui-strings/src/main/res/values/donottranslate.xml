@@ -108,4 +108,6 @@
     <string name="settings_ua_client_tammy" translatable="false">tammy</string>
     <string name="settings_ua_client_neochat" translatable="false">NeoChat/Quaternion</string>
     <string name="settings_ua_client_curl" translatable="false">curl</string>
+    <string name="image_editor_minus_quarter_turn" translatable="false">-90</string>
+    <string name="image_editor_plus_quarter_turn" translatable="false">+90</string>
 </resources>

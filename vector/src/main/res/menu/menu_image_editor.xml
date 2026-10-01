@@ -3,6 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/imageEditorUndoAction"
+        android:icon="@drawable/ic_editor_undo"
+        android:title="@string/editor_undo"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/imageEditorRedoAction"
+        android:icon="@drawable/ic_editor_redo"
+        android:title="@string/editor_redo"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/imageEditorResetAction"
         android:icon="@drawable/ic_refresh_cw"
         android:title="@string/image_editor_reset"

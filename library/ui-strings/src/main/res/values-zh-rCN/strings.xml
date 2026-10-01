@@ -3081,13 +3081,11 @@
     <string name="image_editor_rotate">旋转</string>
     <string name="image_editor_reset">重置</string>
     <string name="image_editor_snap">吸附到中心</string>
-    <string name="image_editor_snap_on">吸附到中心线</string>
     <string name="image_editor_snap_off">吸附已关闭</string>
     <string name="aspect_ratio_title">宽高比</string>
     <string name="aspect_ratio_freeform">自由</string>
     <string name="aspect_ratio_custom">自定义</string>
     <string name="aspect_ratio_invalid">请输入大于零的宽度和高度</string>
-    <string name="image_editor_censor_hint">在图片上拖动以添加黑框</string>
     <string name="image_editor_load_failed">无法打开此图片</string>
     <string name="image_editor_save_failed">无法保存编辑后的图片</string>
     <string name="video_editor_title">编辑视频</string>
@@ -3433,4 +3431,15 @@
     <string name="command_description_rawmsg">使用给定的 JSON 内容发送消息事件</string>
     <string name="command_description_raw">使用给定的 JSON 内容发送事件</string>
     <string name="command_description_rawstate">使用给定的 JSON 内容发送状态事件</string>
+    <string name="image_editor_snap_on">正在吸附到中心线和 45° 角</string>
+    <string name="image_editor_draw">绘制</string>
+    <string name="image_editor_brush_size">画笔大小</string>
+    <string name="image_editor_color_custom">自定义颜色</string>
+    <string name="image_editor_rotate_left">逆时针旋转 90°</string>
+    <string name="image_editor_rotate_right">顺时针旋转 90°</string>
+    <string name="editor_undo">撤销</string>
+    <string name="editor_redo">重做</string>
+    <string name="video_editor_capture_frame">提取帧</string>
+    <string name="video_editor_capture_frame_failed">无法截取此帧</string>
+    <string name="video_editor_extracting_frame">正在提取帧…</string>
 </resources>

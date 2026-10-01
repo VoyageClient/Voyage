@@ -3083,13 +3083,11 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_editor_rotate">Putar</string>
     <string name="image_editor_reset">Setel ulang</string>
     <string name="image_editor_snap">Tempelkan ke tengah</string>
-    <string name="image_editor_snap_on">Menempel ke garis tengah</string>
     <string name="image_editor_snap_off">Penempelan mati</string>
     <string name="aspect_ratio_title">Rasio aspek</string>
     <string name="aspect_ratio_freeform">Bebas</string>
     <string name="aspect_ratio_custom">Kustom</string>
     <string name="aspect_ratio_invalid">Masukkan lebar dan tinggi di atas nol</string>
-    <string name="image_editor_censor_hint">Seret pada gambar untuk menambahkan kotak hitam</string>
     <string name="image_editor_load_failed">Tidak dapat membuka gambar ini</string>
     <string name="image_editor_save_failed">Tidak dapat menyimpan gambar yang diedit</string>
     <string name="video_editor_title">Edit video</string>
@@ -3435,4 +3433,15 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="command_description_rawmsg">Kirim peristiwa pesan dengan konten JSON yang diberikan</string>
     <string name="command_description_raw">Kirim peristiwa dengan konten JSON yang diberikan</string>
     <string name="command_description_rawstate">Kirim peristiwa status dengan konten JSON yang diberikan</string>
+    <string name="image_editor_snap_on">Menempel ke garis tengah dan sudut 45°</string>
+    <string name="image_editor_draw">Gambar</string>
+    <string name="image_editor_brush_size">Ukuran kuas</string>
+    <string name="image_editor_color_custom">Warna kustom</string>
+    <string name="image_editor_rotate_left">Putar 90° berlawanan arah jarum jam</string>
+    <string name="image_editor_rotate_right">Putar 90° searah jarum jam</string>
+    <string name="editor_undo">Urungkan</string>
+    <string name="editor_redo">Ulangi</string>
+    <string name="video_editor_capture_frame">Ekstrak bingkai</string>
+    <string name="video_editor_capture_frame_failed">Tidak dapat mengambil bingkai ini</string>
+    <string name="video_editor_extracting_frame">Mengekstrak bingkai…</string>
 </resources>

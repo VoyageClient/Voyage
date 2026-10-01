@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import kotlin.math.abs
 
 private const val VIEW_SIZE = 1000
 private const val VIDEO_WIDTH = 200
@@ -84,6 +85,47 @@ class VideoCropOverlayViewTest {
         dragBySteps(500f, 500f, (1..2).map { 500f + it * 4f to 500f })
 
         (cropCenterX() > 0.5f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `a saved state is restored exactly`() {
+        givenVideo()
+        view.setRotationAngle(70f)
+        val saved = view.currentState()
+
+        view.resetEdits()
+        view.restoreState(saved)
+
+        val restored = view.currentState()
+        restored.rotationDegrees shouldBeEqualTo 90
+        restored.tiltDegrees shouldBeEqualTo -20f
+        (abs(restored.crop.left - saved.crop.left) < 0.0001f) shouldBeEqualTo true
+        (abs(restored.crop.bottom - saved.crop.bottom) < 0.0001f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `the 90 degree step from a quarter turns the crop with the picture`() {
+        givenVideo()
+
+        view.rotateClockwise()
+
+        view.rotationAngle shouldBeEqualTo 90f
+        // The kept middle half of a wide frame becomes the middle half of the tall one.
+        view.currentCrop()!!.run {
+            (abs(top - 0.25f) < 0.001f) shouldBeEqualTo true
+            (abs(bottom - 0.75f) < 0.001f) shouldBeEqualTo true
+        }
+    }
+
+    @Test
+    fun `a crop drag reports the edit once it ends`() {
+        givenVideo()
+        var finished = 0
+        view.onEditFinished = { finished++ }
+
+        dragBySteps(500f, 500f, (1..10).map { 500f + it * 4f to 500f })
+
+        finished shouldBeEqualTo 1
     }
 
     @Test

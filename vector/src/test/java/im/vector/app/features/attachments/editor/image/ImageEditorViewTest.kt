@@ -9,6 +9,7 @@ package im.vector.app.features.attachments.editor.image
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
@@ -116,7 +117,7 @@ class ImageEditorViewTest {
         // Ends just short of the view's horizontal middle, which the image is centered on.
         drag(200f, 400f, VIEW_SIZE / 2f - 5f, 500f)
 
-        view.currentEdits().censors.single().right shouldBeEqualTo 0.5f
+        view.currentEdits().censors.single().rect.right shouldBeEqualTo 0.5f
     }
 
     @Test
@@ -151,7 +152,7 @@ class ImageEditorViewTest {
         view.isCensorSelected() shouldBeEqualTo true
         view.applySelectionAspectRatio(1f)
 
-        val censor = view.currentEdits().censors.single()
+        val censor = view.currentEdits().censors.single().rect
         val ratio = (censor.width() * IMAGE_WIDTH) / (censor.height() * IMAGE_HEIGHT)
         (abs(ratio - 1f) < 0.001f) shouldBeEqualTo true
         view.currentEdits().crop.width() shouldBeEqualTo 1f
@@ -221,7 +222,164 @@ class ImageEditorViewTest {
 
         drag(200f, 400f, VIEW_SIZE / 2f - 5f, 500f)
 
-        (view.currentEdits().censors.single().right < 0.5f) shouldBeEqualTo true
+        (view.currentEdits().censors.single().rect.right < 0.5f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `a drawn stroke is recorded with the brush color`() {
+        givenImage()
+        view.tool = ImageEditorView.Tool.DRAW
+        view.brushColor = 0xFF00FF00.toInt()
+
+        dragBySteps(300f, 500f, (1..10).map { 300f + it * 30f to 500f })
+
+        val stroke = view.currentEdits().strokes.single()
+        stroke.color shouldBeEqualTo 0xFF00FF00.toInt()
+        (stroke.points.size >= 4) shouldBeEqualTo true
+        (stroke.width > 0f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `undo and redo step through edits`() {
+        givenImage()
+        view.tool = ImageEditorView.Tool.DRAW
+        drag(300f, 500f, 600f, 500f)
+        view.rotateClockwise()
+
+        view.canUndo shouldBeEqualTo true
+        view.undo()
+        view.currentEdits().userRotation shouldBeEqualTo 0
+        view.currentEdits().strokes.size shouldBeEqualTo 1
+        view.undo()
+        view.currentEdits().strokes.size shouldBeEqualTo 0
+        view.canUndo shouldBeEqualTo false
+
+        view.redo()
+        view.redo()
+        view.currentEdits().strokes.size shouldBeEqualTo 1
+        view.currentEdits().userRotation shouldBeEqualTo 90
+        view.canRedo shouldBeEqualTo false
+    }
+
+    @Test
+    fun `reset can be undone`() {
+        givenImage()
+        view.rotateClockwise()
+        view.resetEdits()
+
+        view.undo()
+
+        view.currentEdits().userRotation shouldBeEqualTo 90
+    }
+
+    @Test
+    fun `new censors take the censor color and recoloring the selected one changes it`() {
+        givenImage()
+        view.tool = ImageEditorView.Tool.CENSOR
+        view.censorColor = Color.RED
+        drag(200f, 350f, 400f, 650f)
+
+        view.currentEdits().censors.single().color shouldBeEqualTo Color.RED
+        view.applyCensorColor(Color.BLUE)
+        view.currentEdits().censors.single().color shouldBeEqualTo Color.BLUE
+    }
+
+    @Test
+    fun `a censor stays on the image content through a quarter turn`() {
+        givenImage()
+        view.tool = ImageEditorView.Tool.CENSOR
+        drag(200f, 350f, 400f, 650f)
+        val before = RectF(view.currentEdits().censors.single().rect)
+
+        view.rotateClockwise()
+
+        view.currentEdits().censors.single().rect shouldBeEqualTo before
+    }
+
+    @Test
+    fun `a tilt grows the image under the crop, which then covers less of it, until turned back`() {
+        givenImage()
+
+        view.setRotationAngle(12.5f, final = true)
+
+        view.currentEdits().tiltDegrees shouldBeEqualTo 12.5f
+        view.currentEdits().crop.run {
+            (width() < 1f) shouldBeEqualTo true
+            (abs(centerX() - 0.5f) < 0.001f) shouldBeEqualTo true
+            (abs(width() * IMAGE_WIDTH / (height() * IMAGE_HEIGHT) - 2f) < 0.01f) shouldBeEqualTo true
+        }
+        view.currentEdits().hasChanges shouldBeEqualTo true
+
+        view.setRotationAngle(0f, final = true)
+        view.currentEdits().crop.run {
+            (abs(width() - 1f) < 0.001f) shouldBeEqualTo true
+            (abs(height() - 1f) < 0.001f) shouldBeEqualTo true
+        }
+        view.undo()
+        view.currentEdits().tiltDegrees shouldBeEqualTo 12.5f
+    }
+
+    @Test
+    fun `a chosen ratio turns with the image, so the crop keeps its size`() {
+        view.cropAspectRatio = 2f
+        givenImage()
+
+        view.rotateClockwise()
+
+        view.cropAspectRatio shouldBeEqualTo 0.5f
+        (abs(croppedRatio() - 0.5f) < 0.001f) shouldBeEqualTo true
+        (abs(view.currentEdits().crop.height() - 1f) < 0.001f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `a ratio the caller fixed stays put through a quarter turn`() {
+        view.cropAspectRatio = 2f
+        view.ratioTurnsWithImage = false
+        givenImage()
+
+        view.rotateClockwise()
+
+        view.cropAspectRatio shouldBeEqualTo 2f
+        (abs(croppedRatio() - 2f) < 0.001f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `a crop can be moved into the corner a tilt swung out`() {
+        givenImage()
+        // A small crop in the middle, then a quarter-and-a-bit turn so the picture stands tall.
+        view.restoreEdits(ImageEditorEdits(crop = RectF(0.45f, 0.4f, 0.55f, 0.6f)))
+        view.setRotationAngle(80f, final = true)
+        view.draw(Canvas(Bitmap.createBitmap(VIEW_SIZE, VIEW_SIZE, Bitmap.Config.ARGB_8888)))
+
+        // Dragged straight up, far past where the unturned frame's top edge was.
+        dragBySteps(500f, 500f, (1..40).map { 500f to 500f - it * 10f })
+
+        // Normalised against the frame at the settled quarter turn, it now reaches past 0.
+        (view.currentEdits().crop.top < 0f) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `an angle past half a quarter turn flips the frame and wraps round`() {
+        givenImage()
+
+        view.setRotationAngle(100f, final = true)
+        view.currentEdits().userRotation shouldBeEqualTo 90
+        view.currentEdits().tiltDegrees shouldBeEqualTo 10f
+
+        view.setRotationAngle(350f, final = true)
+        view.currentEdits().userRotation shouldBeEqualTo 0
+        view.currentEdits().tiltDegrees shouldBeEqualTo -10f
+        view.rotationAngle shouldBeEqualTo 350f
+    }
+
+    @Test
+    fun `counterclockwise undoes clockwise`() {
+        givenImage()
+        view.rotateClockwise()
+        view.rotateCounterClockwise()
+
+        view.currentEdits().userRotation shouldBeEqualTo 0
+        view.currentEdits().crop shouldBeEqualTo RectF(0f, 0f, 1f, 1f)
     }
 
     @Test

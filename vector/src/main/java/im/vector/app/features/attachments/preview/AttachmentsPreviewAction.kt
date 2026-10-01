@@ -9,6 +9,7 @@ package im.vector.app.features.attachments.preview
 
 import android.net.Uri
 import im.vector.app.core.platform.VectorViewModelAction
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 
 sealed class AttachmentsPreviewAction : VectorViewModelAction {
     object RemoveCurrentAttachment : AttachmentsPreviewAction()
@@ -26,6 +27,8 @@ sealed class AttachmentsPreviewAction : VectorViewModelAction {
             val size: Long? = null,
             val mimeType: String? = null,
             val duration: Long? = null,
-            val editRecord: EditRecord? = null
+            val editRecord: EditRecord? = null,
+            /** Set when the new content is a different kind of media altogether, not an edit of the old. */
+            val replacementType: ContentAttachmentData.Type? = null,
     ) : AttachmentsPreviewAction()
 }

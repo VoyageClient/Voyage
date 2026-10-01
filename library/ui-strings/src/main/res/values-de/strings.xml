@@ -3135,13 +3135,11 @@
     <string name="image_editor_rotate">Drehen</string>
     <string name="image_editor_reset">Zurücksetzen</string>
     <string name="image_editor_snap">An Mitte ausrichten</string>
-    <string name="image_editor_snap_on">Einrasten an den Mittellinien</string>
     <string name="image_editor_snap_off">Einrasten aus</string>
     <string name="aspect_ratio_title">Seitenverhältnis</string>
     <string name="aspect_ratio_freeform">Frei</string>
     <string name="aspect_ratio_custom">Benutzerdefiniert</string>
     <string name="aspect_ratio_invalid">Gib eine Breite und eine Höhe größer als null ein</string>
-    <string name="image_editor_censor_hint">Ziehe auf dem Bild, um einen schwarzen Balken hinzuzufügen</string>
     <string name="image_editor_load_failed">Dieses Bild konnte nicht geöffnet werden</string>
     <string name="image_editor_save_failed">Das bearbeitete Bild konnte nicht gespeichert werden</string>
     <string name="video_editor_title">Video bearbeiten</string>
@@ -3493,4 +3491,15 @@
     <string name="command_description_rawmsg">Ein Nachrichtenereignis mit dem angegebenen JSON-Inhalt senden</string>
     <string name="command_description_raw">Ein Ereignis mit dem angegebenen JSON-Inhalt senden</string>
     <string name="command_description_rawstate">Ein Zustandsereignis mit dem angegebenen JSON-Inhalt senden</string>
+    <string name="image_editor_snap_on">Einrasten an Mittellinien und 45°-Winkeln</string>
+    <string name="image_editor_draw">Zeichnen</string>
+    <string name="image_editor_brush_size">Pinselgröße</string>
+    <string name="image_editor_color_custom">Eigene Farbe</string>
+    <string name="image_editor_rotate_left">Um 90° gegen den Uhrzeigersinn drehen</string>
+    <string name="image_editor_rotate_right">Um 90° im Uhrzeigersinn drehen</string>
+    <string name="editor_undo">Rückgängig</string>
+    <string name="editor_redo">Wiederholen</string>
+    <string name="video_editor_capture_frame">Einzelbild extrahieren</string>
+    <string name="video_editor_capture_frame_failed">Dieses Einzelbild konnte nicht erfasst werden</string>
+    <string name="video_editor_extracting_frame">Einzelbild wird extrahiert…</string>
 </resources>

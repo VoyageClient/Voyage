@@ -89,15 +89,22 @@ internal object CropGeometry {
      * The four quad corners as source-texture coordinates, in the order bottom-left, bottom-right,
      * top-left, top-right and in GL's convention with t running upwards. Rotation is inverted here
      * rather than baked into a matrix, so the encoded frame is already the right way up and the mp4
-     * needs no orientation hint.
+     * needs no orientation hint. A tilt keeps the mapping affine, so the four corners still suffice.
      */
-    fun textureCoords(crop: FloatArray, rotationDegrees: Int): FloatArray {
+    fun textureCoords(
+            crop: FloatArray,
+            rotationDegrees: Int,
+            tiltDegrees: Float = 0f,
+            displayWidth: Int = 1,
+            displayHeight: Int = 1,
+    ): FloatArray {
         val corners = floatArrayOf(0f, 1f, 1f, 1f, 0f, 0f, 1f, 0f)
         val result = FloatArray(corners.size)
         for (index in 0 until corners.size / 2) {
             val u = crop[0] + corners[index * 2] * (crop[2] - crop[0])
             val v = crop[1] + corners[index * 2 + 1] * (crop[3] - crop[1])
-            val coded = unrotate(u, v, rotationDegrees)
+            val untilted = TiltGeometry.untilt(u, v, tiltDegrees, displayWidth.toFloat(), displayHeight.toFloat())
+            val coded = unrotate(untilted[0], untilted[1], rotationDegrees)
             result[index * 2] = coded[0]
             result[index * 2 + 1] = 1f - coded[1]
         }

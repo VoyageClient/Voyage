@@ -14,7 +14,9 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.PorterDuff
+import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
@@ -37,9 +39,11 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.net.toUri
+import androidx.core.view.MenuItemCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
+import androidx.core.view.isVisible
 import androidx.core.view.marginBottom
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
@@ -51,7 +55,12 @@ import im.vector.app.core.extensions.thumbCompat
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityVideoEditorBinding
 import im.vector.app.features.attachments.editor.AspectRatioPicker
+import im.vector.app.features.attachments.editor.EditHistory
+import im.vector.app.features.attachments.editor.EditorHistoryCache
+import im.vector.app.features.attachments.editor.image.ImageEditorEdits
+import im.vector.app.features.attachments.editor.image.ImageEditorExporter
 import im.vector.app.features.attachments.editor.restoreOriginalResult
+import im.vector.app.features.attachments.editor.setEnabledDimmed
 import im.vector.app.features.attachments.preview.PlaybackPosition
 import im.vector.app.features.attachments.preview.VIDEO_PROGRESS_INTERVAL_MS
 import im.vector.app.features.themes.ActivityOtherThemes
@@ -62,6 +71,7 @@ import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.mediatranscode.MediaSourceInfo
 import im.vector.lib.mediatranscode.VideoEditException
 import im.vector.lib.mediatranscode.VideoEditProgressListener
+import im.vector.lib.mediatranscode.VideoFrameGrabber
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -72,6 +82,7 @@ import org.matrix.android.sdk.api.debug.DebugLog
 import timber.log.Timber
 import java.io.File
 import java.util.Locale
+import kotlin.math.abs
 
 /**
  * Editor for both videos and animated images. Only the video half needs API 18, and it is only
@@ -125,6 +136,16 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var speedAwaitingPlayback = false
     private var exporting = false
 
+    private var history = EditHistory<Snapshot>()
+    private var historyStarted = false
+    private var rotateMode = false
+    private var activeToolColor = Color.WHITE
+    private var inactiveToolColor = Color.WHITE
+
+    /** What the current frame's pixels are read from and how they were oriented, for capturing it. */
+    private var sourceInfo: MediaSourceInfo? = null
+    private var animatedPreview: AnimatedImageSource? = null
+
     /** Where playback was when the surface went away, so coming back does not start over. */
     private var resumePositionUs = 0L
     private var resumePlaying = false
@@ -177,6 +198,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             views.videoEditorTextureView.invalidate()
         }
         views.videoEditorCropOverlay.snapToCenter = vectorPreferences.imageEditorSnapToCenter()
+        setupRotationControls()
         setupPlaybackControls(accent)
 
         views.videoEditorTimeline.listener = VideoTimelineStripView.Listener { start, end, dragging ->
@@ -202,6 +224,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 // The last drag update may have been throttled out, so land the exact frame here.
                 endScrubbing(edited ?: pendingEditedUs, resume = false)
                 pendingEditedUs = null
+                commitHistory()
             }
         }
         views.videoEditorTimeline.onHandleHeld = { positionUs, held ->
@@ -277,10 +300,16 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
         menu.findItem(R.id.videoEditorReverseAction)?.isChecked = reversed
         menu.findItem(R.id.videoEditorSnapAction)?.isChecked = views.videoEditorCropOverlay.snapToCenter
+        menu.findItem(R.id.videoEditorRotateAction)?.let {
+            it.isChecked = rotateMode
+            MenuItemCompat.setIconTintList(it, ColorStateList.valueOf(if (rotateMode) activeToolColor else inactiveToolColor))
+        }
         // Changing an edit while it is being written would export something nobody asked for.
         for (index in 0 until menu.size()) {
             menu.getItem(index).isEnabled = !exporting
         }
+        menu.findItem(R.id.videoEditorUndoAction)?.setEnabledDimmed(!exporting && history.canUndo)
+        menu.findItem(R.id.videoEditorRedoAction)?.setEnabledDimmed(!exporting && history.canRedo)
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -291,7 +320,19 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 true
             }
             R.id.videoEditorRotateAction -> {
-                rotateClockwise()
+                setRotateMode(!rotateMode)
+                true
+            }
+            R.id.videoEditorUndoAction -> {
+                history.undo()?.let { restoreSnapshot(it) }
+                true
+            }
+            R.id.videoEditorRedoAction -> {
+                history.redo()?.let { restoreSnapshot(it) }
+                true
+            }
+            R.id.videoEditorCaptureFrameAction -> {
+                captureFrame()
                 true
             }
             R.id.videoEditorVolumeAction -> {
@@ -300,6 +341,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             R.id.videoEditorReverseAction -> {
                 setReversed(!reversed)
+                commitHistory()
                 true
             }
             R.id.videoEditorAspectAction -> {
@@ -309,6 +351,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             R.id.videoEditorSnapAction -> {
                 val enabled = !views.videoEditorCropOverlay.snapToCenter
                 views.videoEditorCropOverlay.snapToCenter = enabled
+                views.videoEditorDial.snapEnabled = enabled
                 vectorPreferences.setImageEditorSnapToCenter(enabled)
                 invalidateOptionsMenu()
                 true
@@ -329,6 +372,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         ) { ratio, custom ->
             custom?.let { lastCustomAspectRatio = it }
             views.videoEditorCropOverlay.aspectRatio = ratio
+            commitHistory()
         }
     }
 
@@ -343,6 +387,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                     playbackSpeed = speed
                     applyPlaybackSpeed()
                     updateDurationLabel()
+                    commitHistory()
                 }
         ).show()
     }
@@ -392,6 +437,172 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         applyTrimToAnimatedPlayer()
         updateDurationLabel()
         seekTo(startUs)
+        views.videoEditorDial.value = 0f
+        commitHistory()
+    }
+
+    private fun setupRotationControls() {
+        val overlay = views.videoEditorCropOverlay
+        views.videoEditorDial.snapEnabled = overlay.snapToCenter
+        views.videoEditorDial.onChanged = { degrees, moving ->
+            overlay.setRotationAngle(degrees)
+            if (!moving) commitHistory()
+        }
+        views.videoEditorRotateLeftButton.setOnClickListener { overlay.rotateCounterClockwise() }
+        views.videoEditorRotateRightButton.setOnClickListener { overlay.rotateClockwise() }
+        overlay.onRotationChanged = { views.videoEditorDial.value = it }
+        overlay.onEditFinished = { commitHistory() }
+        activeToolColor = ThemeUtils.accentFillOnDarkSurface(this).first
+        inactiveToolColor = ThemeUtils.getColor(this, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+    }
+
+    private fun setRotateMode(enabled: Boolean) {
+        rotateMode = enabled
+        views.videoEditorCropOverlay.rotateMode = enabled
+        views.videoEditorRotateRow.isVisible = enabled
+        views.videoEditorDial.value = views.videoEditorCropOverlay.rotationAngle
+        invalidateOptionsMenu()
+    }
+
+    private data class Snapshot(
+            val startUs: Long,
+            val endUs: Long,
+            val volume: PlaybackVolume,
+            val reversed: Boolean,
+            val speed: PlaybackSpeed,
+            val geometry: VideoCropOverlayView.State,
+    )
+
+    private fun snapshot() = Snapshot(startUs, endUs, volume, reversed, playbackSpeed, views.videoEditorCropOverlay.currentState())
+
+    /** Called once the loaded edits are in place, so undo stops at what the editor opened with. */
+    @Suppress("UNCHECKED_CAST")
+    private fun startHistory() {
+        historyStarted = true
+        // Carries on from the history these edits were saved with, if they were.
+        val resumed = EditorHistoryCache.find(sourceUri.toString(), initialEdits)
+                ?.takeIf { it.current is Snapshot } as EditHistory<Snapshot>?
+        if (resumed != null) {
+            history = resumed
+            resumed.current?.let { restoreSnapshot(it) }
+        } else {
+            history.reset(snapshot())
+        }
+        invalidateOptionsMenu()
+    }
+
+    private fun keepHistory(edits: VideoEditorEdits?) = EditorHistoryCache.put(sourceUri.toString(), edits, history)
+
+    private fun commitHistory() {
+        if (historyStarted && history.commit(snapshot())) invalidateOptionsMenu()
+    }
+
+    private fun restoreSnapshot(snapshot: Snapshot) {
+        startUs = snapshot.startUs
+        endUs = snapshot.endUs
+        views.videoEditorTimeline.setTrim(startUs, endUs)
+        updateScrubberRange()
+        applyTrimToAnimatedPlayer()
+        setVolume(snapshot.volume)
+        setReversed(snapshot.reversed, announce = false)
+        playbackSpeed = snapshot.speed
+        applyPlaybackSpeed()
+        views.videoEditorCropOverlay.restoreState(snapshot.geometry)
+        views.videoEditorDial.value = views.videoEditorCropOverlay.rotationAngle
+        updateDurationLabel()
+        if (playheadUs !in startUs..endUs) seekTo(startUs)
+        invalidateOptionsMenu()
+    }
+
+    /** Saves the frame under the playhead, framed as the editor shows it, as a still image. */
+    private fun captureFrame() {
+        if (exporting || exportJob?.isActive == true) return
+        pausePlayback()
+        // The animated player draws its own frames, so its playhead is already exact.
+        val positionUs = if (isAnimated) playheadUs else shownFrameUs()
+        val overlay = views.videoEditorCropOverlay
+        val edits = ImageEditorEdits(
+                userRotation = overlay.rotationDegrees,
+                crop = overlay.currentCrop() ?: RectF(0f, 0f, 1f, 1f),
+                tiltDegrees = overlay.tiltDegrees,
+        )
+        // Copied here: the preview's frames are recycled with the player, which may happen while the
+        // export below is still running.
+        val shownFrame = animatedPreview?.frameAt(positionUs)?.takeUnless { it.isRecycled }?.let {
+            it.copy(it.config ?: Bitmap.Config.ARGB_8888, false)
+        }
+        showExportOverlay(true)
+        views.videoEditorExportLabel.setText(CommonStrings.video_editor_extracting_frame)
+        exportJob = lifecycleScope.launch {
+            val result = try {
+                runCatching {
+                    withContext(Dispatchers.IO) {
+                        val frame = shownFrame ?: readVideoFrame(positionUs) ?: error("No frame at ${positionUs}us")
+                        ImageEditorExporter.exportBitmap(this@VideoEditorActivity, frame, edits, displayName, usePng = isAnimated)
+                    }
+                }
+            } finally {
+                showExportOverlay(false)
+                views.videoEditorExportLabel.setText(
+                        if (isAnimated) CommonStrings.animated_image_editor_exporting else CommonStrings.video_editor_exporting
+                )
+            }
+            if (result.exceptionOrNull() is CancellationException) return@launch
+            result.fold(
+                    onSuccess = { output ->
+                        setResult(RESULT_OK, Intent().apply {
+                            putExtra(EXTRA_RESULT_URI, output.uri.toString())
+                            putExtra(EXTRA_RESULT_WIDTH, output.width)
+                            putExtra(EXTRA_RESULT_HEIGHT, output.height)
+                            putExtra(EXTRA_RESULT_SIZE, output.size)
+                            putExtra(EXTRA_RESULT_MIME_TYPE, output.mimeType)
+                            putExtra(EXTRA_RESULT_CAPTURED_FRAME, true)
+                        })
+                        finish()
+                    },
+                    onFailure = { error ->
+                        Timber.w(error, "VideoEditor: frame capture failed")
+                        Toast.makeText(this@VideoEditorActivity, getString(CommonStrings.video_editor_capture_frame_failed), Toast.LENGTH_SHORT).show()
+                    }
+            )
+        }
+    }
+
+    /**
+     * The source time of the frame on screen, as the player rendered it. The playhead is the player's
+     * clock, which runs a frame or two apart from the picture: a different frame on a fast cut.
+     * Copying the surface itself is no better, since the copy includes the decoder's padding rows,
+     * which come out green. A time far from the playhead is on some other basis, and not trusted.
+     */
+    private fun shownFrameUs(): Long {
+        val shownUs = player?.shownFrameUs ?: return playheadUs
+        return if (abs(shownUs - playheadUs) <= SHOWN_FRAME_TOLERANCE_US) shownUs else playheadUs
+    }
+
+    /**
+     * The source frame the way it is displayed, i.e. with the container's orientation applied.
+     * Decoded exactly; the retriever is only the fallback, since some devices answer every time with
+     * the nearest sync frame.
+     */
+    @SuppressLint("NewApi") // The video editor only opens from API 18; see isVideoEditable().
+    private fun readVideoFrame(positionUs: Long): Bitmap? {
+        VideoFrameGrabber.grab(this, sourceUri, positionUs)?.let { return it }
+        val retriever = MediaMetadataRetriever()
+        val frame = try {
+            retriever.setDataSource(this, sourceUri)
+            retriever.getFrameAtTime(positionUs, MediaMetadataRetriever.OPTION_CLOSEST)
+        } finally {
+            runCatching { retriever.release() }
+        } ?: return null
+        val info = sourceInfo ?: return frame
+        // Newer retrievers hand the frame back already turned, older ones as coded; the shape tells
+        // them apart, except for a square frame or a half turn, which can only be taken as turned.
+        val asCoded = frame.width == info.width && frame.height == info.height && info.width != info.height
+        if (!asCoded || info.rotationDegrees % 360 == 0) return frame
+        val matrix = Matrix().apply { postRotate(info.rotationDegrees.toFloat()) }
+        val turned = Bitmap.createBitmap(frame, 0, 0, frame.width, frame.height, matrix, true)
+        if (turned !== frame) frame.recycle()
+        return turned
     }
 
     /** progressTintList is API 21+, and this screen runs from 18. */
@@ -429,10 +640,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             views.videoEditorCropOverlay.setVideoSize(info.displayWidth, info.displayHeight)
             // Whatever shape the previewer's compression settings will send it at.
             applyTargetSizeOverride()
-            views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop)
+            views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop, edits?.tiltDegrees ?: 0f)
             views.videoEditorTimeline.setTrim(startUs, endUs)
             updateScrubberRange()
             updateDurationLabel()
+            sourceInfo = info
+            startHistory()
             extractThumbnails()
         }
     }
@@ -467,10 +680,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             if (edits?.reversed == true) setReversed(true, announce = false)
             views.videoEditorCropOverlay.setVideoSize(source.width, source.height)
             applyTargetSizeOverride()
-            views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop)
+            views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop, edits?.tiltDegrees ?: 0f)
             views.videoEditorTimeline.setTrim(startUs, endUs)
             updateScrubberRange()
             updateDurationLabel()
+            animatedPreview = source
+            startHistory()
             addAnimatedThumbnails(source)
             animatedPlayer = AnimatedFramePlayer(source, views.videoEditorTextureView, handler) { positionUs ->
                 setPlayhead(positionUs)
@@ -653,8 +868,6 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    private fun rotateClockwise() = views.videoEditorCropOverlay.rotateClockwise()
-
     /** Only the animated player can run backwards; a video is reversed in the export alone. */
     private fun setReversed(next: Boolean, announce: Boolean = true) {
         reversed = next
@@ -671,7 +884,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 initial = volume,
                 canPreviewBoost = { playerBoost != null },
                 cappedMessage = CommonStrings.video_editor_volume_preview_capped,
-                onChanged = ::setVolume
+                onChanged = {
+                    setVolume(it)
+                    commitHistory()
+                }
         ).show()
     }
 
@@ -1100,6 +1316,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 endUs = endUs,
                 durationUs = durationUs,
                 rotationDegrees = views.videoEditorCropOverlay.rotationDegrees,
+                tiltDegrees = views.videoEditorCropOverlay.tiltDegrees,
                 volume = volume,
                 reversed = reversed,
                 crop = views.videoEditorCropOverlay.currentCrop(),
@@ -1107,10 +1324,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         )
         // Left exactly as it was opened: the attachment already is this export.
         if (edits == initialEdits) {
+            keepHistory(initialEdits)
             finish()
             return
         }
         if (!edits.hasChanges) {
+            keepHistory(edits)
             setResult(RESULT_OK, restoreOriginalResult())
             finish()
             return
@@ -1141,6 +1360,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                             putExtra(EXTRA_RESULT_MIME_TYPE, output.mimeType)
                             putExtra(EXTRA_RESULT_EDITS, edits)
                         })
+                        keepHistory(edits)
                         finish()
                     },
                     onFailure = { error ->
@@ -1258,7 +1478,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             val size: Long,
             val durationMs: Long,
             val mimeType: String,
-            val edits: VideoEditorEdits
+            val edits: VideoEditorEdits,
+            /** A still of one frame, which replaces the clip rather than being an edit of it. */
+            val isCapturedFrame: Boolean = false,
     )
 
     companion object {
@@ -1292,6 +1514,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         /** Above the save button's 6dp and the app bar's 4dp, so neither takes a touch. */
         private const val EXPORT_OVERLAY_ELEVATION = 16f
 
+        private const val SHOWN_FRAME_TOLERANCE_US = 1_000_000L
+
         private const val EXTRA_SOURCE_URI = "EXTRA_SOURCE_URI"
         private const val EXTRA_DISPLAY_NAME = "EXTRA_DISPLAY_NAME"
         private const val EXTRA_EDITS = "EXTRA_EDITS"
@@ -1305,6 +1529,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         private const val EXTRA_RESULT_DURATION = "EXTRA_RESULT_DURATION"
         private const val EXTRA_RESULT_MIME_TYPE = "EXTRA_RESULT_MIME_TYPE"
         private const val EXTRA_RESULT_EDITS = "EXTRA_RESULT_EDITS"
+        private const val EXTRA_RESULT_CAPTURED_FRAME = "EXTRA_RESULT_CAPTURED_FRAME"
 
         fun newIntent(
                 context: Context,
@@ -1335,7 +1560,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                     size = intent.getLongExtra(EXTRA_RESULT_SIZE, 0),
                     durationMs = intent.getLongExtra(EXTRA_RESULT_DURATION, 0),
                     mimeType = intent.getStringExtra(EXTRA_RESULT_MIME_TYPE).orEmpty(),
-                    edits = intent.getParcelableExtraCompat(EXTRA_RESULT_EDITS) ?: VideoEditorEdits()
+                    edits = intent.getParcelableExtraCompat(EXTRA_RESULT_EDITS) ?: VideoEditorEdits(),
+                    isCapturedFrame = intent.getBooleanExtra(EXTRA_RESULT_CAPTURED_FRAME, false)
             )
         }
     }

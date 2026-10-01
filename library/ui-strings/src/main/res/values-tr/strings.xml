@@ -3103,13 +3103,11 @@
     <string name="image_editor_rotate">Döndür</string>
     <string name="image_editor_reset">Sıfırla</string>
     <string name="image_editor_snap">Merkeze hizala</string>
-    <string name="image_editor_snap_on">Merkez çizgilerine hizalanıyor</string>
     <string name="image_editor_snap_off">Hizalama kapalı</string>
     <string name="aspect_ratio_title">En boy oranı</string>
     <string name="aspect_ratio_freeform">Serbest</string>
     <string name="aspect_ratio_custom">Özel</string>
     <string name="aspect_ratio_invalid">Sıfırdan büyük bir genişlik ve yükseklik girin</string>
-    <string name="image_editor_censor_hint">Siyah kutu eklemek için görselin üzerinde sürükleyin</string>
     <string name="image_editor_load_failed">Bu görsel açılamadı</string>
     <string name="image_editor_save_failed">Düzenlenen görsel kaydedilemedi</string>
     <string name="video_editor_title">Videoyu düzenle</string>
@@ -3452,4 +3450,15 @@
     <string name="command_description_rawmsg">Verilen JSON içeriğiyle bir mesaj olayı gönder</string>
     <string name="command_description_raw">Verilen JSON içeriğiyle bir olay gönder</string>
     <string name="command_description_rawstate">Verilen JSON içeriğiyle bir durum olayı gönder</string>
+    <string name="image_editor_snap_on">Merkez çizgilerine ve 45° açılara hizalanıyor</string>
+    <string name="image_editor_draw">Çiz</string>
+    <string name="image_editor_brush_size">Fırça boyutu</string>
+    <string name="image_editor_color_custom">Özel renk</string>
+    <string name="image_editor_rotate_left">Saat yönünün tersine 90° döndür</string>
+    <string name="image_editor_rotate_right">Saat yönünde 90° döndür</string>
+    <string name="editor_undo">Geri al</string>
+    <string name="editor_redo">Yinele</string>
+    <string name="video_editor_capture_frame">Kareyi çıkar</string>
+    <string name="video_editor_capture_frame_failed">Bu kare yakalanamadı</string>
+    <string name="video_editor_extracting_frame">Kare çıkarılıyor…</string>
 </resources>

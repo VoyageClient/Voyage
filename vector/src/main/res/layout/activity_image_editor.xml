@@ -11,7 +11,7 @@
         android:id="@+id/imageEditorView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/imageEditorControls"
+        app:layout_constraintBottom_toTopOf="@id/imageEditorOptions"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageEditorAppBar" />
@@ -35,6 +35,124 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <LinearLayout
+        android:id="@+id/imageEditorOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#40000000"
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/imageEditorControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible">
+
+        <HorizontalScrollView
+            android:id="@+id/imageEditorColorScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/imageEditorColorRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
+
+        </HorizontalScrollView>
+
+        <SeekBar
+            android:id="@+id/imageEditorBrushSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/image_editor_brush_size"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp" />
+
+        <LinearLayout
+            android:id="@+id/imageEditorRotateRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/imageEditorRotateLeftButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="bottom"
+                android:layout_marginStart="16dp"
+                android:layout_marginLeft="16dp"
+                android:clickable="true"
+                android:contentDescription="@string/image_editor_rotate_left"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_image_editor_rotate_left"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:text="@string/image_editor_minus_quarter_turn"
+                    android:textColor="@android:color/white"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+            <im.vector.app.features.attachments.editor.RotationDialView
+                android:id="@+id/imageEditorDial"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <FrameLayout
+                android:id="@+id/imageEditorRotateRightButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="bottom"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:clickable="true"
+                android:contentDescription="@string/image_editor_rotate_right"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_image_editor_rotate"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:text="@string/image_editor_plus_quarter_turn"
+                    android:textColor="@android:color/white"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/imageEditorControls"
         android:layout_width="match_parent"
@@ -50,8 +168,8 @@
             android:id="@+id/imageEditorCensorButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginLeft="12dp"
             android:contentDescription="@string/image_editor_censor"
             app:fabSize="mini"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -61,15 +179,29 @@
             app:tint="@android:color/white" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/imageEditorRotateButton"
+            android:id="@+id/imageEditorDrawButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginLeft="12dp"
-            android:contentDescription="@string/image_editor_rotate"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:contentDescription="@string/image_editor_draw"
             app:fabSize="mini"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/imageEditorCensorButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_image_editor_brush"
+            app:tint="@android:color/white" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/imageEditorRotateButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:contentDescription="@string/image_editor_rotate"
+            app:fabSize="mini"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imageEditorDrawButton"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_image_editor_rotate"
             app:tint="@android:color/white" />
@@ -78,8 +210,8 @@
             android:id="@+id/imageEditorAspectButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginLeft="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:contentDescription="@string/aspect_ratio_title"
             app:fabSize="mini"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -92,8 +224,8 @@
             android:id="@+id/imageEditorSnapButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginLeft="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:contentDescription="@string/image_editor_snap"
             app:fabSize="mini"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -106,8 +238,8 @@
             android:id="@+id/imageEditorSaveButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
             android:contentDescription="@string/action_save"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

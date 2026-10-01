@@ -38,6 +38,12 @@ interface EditorPreviewPlayer {
     /** Where playback is in the source, in microseconds. */
     val positionUs: Long
 
+    /**
+     * The source time of the frame last put on screen, or null where the player does not say.
+     * [positionUs] is the clock, which runs a frame or two apart from the picture.
+     */
+    val shownFrameUs: Long?
+
     val audioSessionId: Int
 
     /**
@@ -128,6 +134,13 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
 
     override val positionUs: Long get() = rangeStartUs + (player?.currentPosition ?: 0L) * 1000L
 
+    /** Written from the playback thread as each frame is released to the surface. */
+    @Volatile
+    private var lastRenderedUs: Long? = null
+
+    // A clipped item keeps the source's own sample times, so no range offset applies here.
+    override val shownFrameUs: Long? get() = lastRenderedUs
+
     override val audioSessionId: Int get() = player?.audioSessionId ?: 0
 
     override val enforcesRange = true
@@ -150,6 +163,8 @@ private class ExoEditorPreviewPlayer : EditorPreviewPlayer {
         val exo = ExoPlayer.Builder(context).build()
         player = exo
         exo.setVideoSurface(surface)
+        lastRenderedUs = null
+        exo.setVideoFrameMetadataListener { presentationTimeUs, _, _, _ -> lastRenderedUs = presentationTimeUs }
         // Frame-exact, for a per-frame view whose whole point is landing on one.
         exo.setSeekParameters(SeekParameters.EXACT)
         preciseSeeks = true
@@ -286,6 +301,8 @@ private class LegacyEditorPreviewPlayer : EditorPreviewPlayer {
     override val isPlaying: Boolean get() = runCatching { player?.isPlaying == true }.getOrDefault(false)
 
     override val positionUs: Long get() = runCatching { (player?.currentPosition ?: 0) * 1000L }.getOrDefault(0L)
+
+    override val shownFrameUs: Long? = null
 
     override val audioSessionId: Int get() = runCatching { player?.audioSessionId ?: 0 }.getOrDefault(0)
 

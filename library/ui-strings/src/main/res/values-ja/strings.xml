@@ -3074,13 +3074,11 @@
     <string name="image_editor_rotate">回転</string>
     <string name="image_editor_reset">リセット</string>
     <string name="image_editor_snap">中央に合わせる</string>
-    <string name="image_editor_snap_on">中央線に合わせています</string>
     <string name="image_editor_snap_off">スナップはオフです</string>
     <string name="aspect_ratio_title">アスペクト比</string>
     <string name="aspect_ratio_freeform">自由形式</string>
     <string name="aspect_ratio_custom">カスタム</string>
     <string name="aspect_ratio_invalid">0より大きい幅と高さを入力してください</string>
-    <string name="image_editor_censor_hint">画像上をドラッグして黒い四角を追加</string>
     <string name="image_editor_load_failed">この画像を開けませんでした</string>
     <string name="image_editor_save_failed">編集した画像を保存できませんでした</string>
     <string name="video_editor_title">動画を編集</string>
@@ -3429,4 +3427,15 @@
     <string name="command_description_rawmsg">指定した JSON コンテンツでメッセージイベントを送信</string>
     <string name="command_description_raw">指定した JSON コンテンツでイベントを送信</string>
     <string name="command_description_rawstate">指定した JSON コンテンツでステートイベントを送信</string>
+    <string name="image_editor_snap_on">中央線と45°の角度にスナップします</string>
+    <string name="image_editor_draw">描画</string>
+    <string name="image_editor_brush_size">ブラシのサイズ</string>
+    <string name="image_editor_color_custom">カスタムカラー</string>
+    <string name="image_editor_rotate_left">反時計回りに90°回転</string>
+    <string name="image_editor_rotate_right">時計回りに90°回転</string>
+    <string name="editor_undo">元に戻す</string>
+    <string name="editor_redo">やり直す</string>
+    <string name="video_editor_capture_frame">フレームを抽出</string>
+    <string name="video_editor_capture_frame_failed">このフレームを取得できませんでした</string>
+    <string name="video_editor_extracting_frame">フレームを抽出しています…</string>
 </resources>

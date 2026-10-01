@@ -3081,13 +3081,11 @@
     <string name="image_editor_rotate">旋轉</string>
     <string name="image_editor_reset">重設</string>
     <string name="image_editor_snap">對齊中心</string>
-    <string name="image_editor_snap_on">正在對齊中心線</string>
     <string name="image_editor_snap_off">對齊已關閉</string>
     <string name="aspect_ratio_title">長寬比</string>
     <string name="aspect_ratio_freeform">自由</string>
     <string name="aspect_ratio_custom">自訂</string>
     <string name="aspect_ratio_invalid">請輸入大於零的寬度與高度</string>
-    <string name="image_editor_censor_hint">在圖片上拖曳以新增黑色方塊</string>
     <string name="image_editor_load_failed">無法開啟此圖片</string>
     <string name="image_editor_save_failed">無法儲存編輯後的圖片</string>
     <string name="video_editor_title">編輯影片</string>
@@ -3433,4 +3431,15 @@
     <string name="command_description_rawmsg">使用指定的 JSON 內容傳送訊息事件</string>
     <string name="command_description_raw">使用指定的 JSON 內容傳送事件</string>
     <string name="command_description_rawstate">使用指定的 JSON 內容傳送狀態事件</string>
+    <string name="image_editor_snap_on">正在對齊中心線與 45° 角</string>
+    <string name="image_editor_draw">繪圖</string>
+    <string name="image_editor_brush_size">筆刷大小</string>
+    <string name="image_editor_color_custom">自訂顏色</string>
+    <string name="image_editor_rotate_left">逆時針旋轉 90°</string>
+    <string name="image_editor_rotate_right">順時針旋轉 90°</string>
+    <string name="editor_undo">復原</string>
+    <string name="editor_redo">重做</string>
+    <string name="video_editor_capture_frame">擷取影格</string>
+    <string name="video_editor_capture_frame_failed">無法擷取此影格</string>
+    <string name="video_editor_extracting_frame">正在擷取影格…</string>
 </resources>

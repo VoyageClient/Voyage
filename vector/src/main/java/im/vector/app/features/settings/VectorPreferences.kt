@@ -239,6 +239,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
         const val SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY = "SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY"
         private const val SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY = "SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY"
+        private const val SETTINGS_IMAGE_EDITOR_BRUSH_SIZE_KEY = "SETTINGS_IMAGE_EDITOR_BRUSH_SIZE_KEY"
         const val SETTINGS_CUSTOM_EMOJI_FONT_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_KEY"
         private const val SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
@@ -685,6 +686,10 @@ class VectorPreferences @Inject constructor(
             putBoolean(SETTINGS_IMAGE_EDITOR_SNAP_TO_CENTER_KEY, enabled)
         }
     }
+
+    fun imageEditorBrushSizeDp(): Float = defaultPrefs.getFloat(SETTINGS_IMAGE_EDITOR_BRUSH_SIZE_KEY, 6f)
+
+    fun setImageEditorBrushSizeDp(size: Float) = defaultPrefs.edit { putFloat(SETTINGS_IMAGE_EDITOR_BRUSH_SIZE_KEY, size) }
 
     // Display name of the imported custom emoji2 font, or null when the built-in font is in use.
     fun customEmojiFontName(): String? {

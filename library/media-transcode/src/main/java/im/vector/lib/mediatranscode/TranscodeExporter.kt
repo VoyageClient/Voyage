@@ -59,7 +59,7 @@ internal class TranscodeExporter(private val context: Context) {
         val timeMap = SpeedTimeMap(spec.startUs, spec.speed)
         // Any geometry change needs the GL stage, and so does re-timing — it is the only place a
         // frame's timestamp can be set. A crop-free resize just keeps the whole frame.
-        val geometry = if (spec.crop == null && spec.targetWidth == null && !spec.isRetimed) {
+        val geometry = if (spec.crop == null && spec.targetWidth == null && !spec.isRetimed && !spec.isTilted) {
             null
         } else {
             val crop = spec.crop?.let { floatArrayOf(it.left, it.top, it.right, it.bottom) } ?: WHOLE_FRAME
@@ -87,7 +87,7 @@ internal class TranscodeExporter(private val context: Context) {
             if (geometry != null) {
                 inputSurface = InputSurface(encoderSurface)
                 inputSurface.makeCurrent()
-                outputSurface = OutputSurface(CropGeometry.textureCoords(geometry.crop, rotation), outputWidth, outputHeight)
+                outputSurface = OutputSurface(CropGeometry.textureCoords(geometry.crop, rotation, spec.tiltDegrees, displayWidth, displayHeight), outputWidth, outputHeight)
             }
             encoder.start()
 

@@ -3231,13 +3231,11 @@
     <string name="image_editor_rotate">Повернуть</string>
     <string name="image_editor_reset">Сбросить</string>
     <string name="image_editor_snap">Привязка к центру</string>
-    <string name="image_editor_snap_on">Привязка к центральным линиям</string>
     <string name="image_editor_snap_off">Привязка выключена</string>
     <string name="aspect_ratio_title">Соотношение сторон</string>
     <string name="aspect_ratio_freeform">Свободное</string>
     <string name="aspect_ratio_custom">Своё</string>
     <string name="aspect_ratio_invalid">Введите ширину и высоту больше нуля</string>
-    <string name="image_editor_censor_hint">Проведите по изображению, чтобы добавить чёрный прямоугольник</string>
     <string name="image_editor_load_failed">Не удалось открыть изображение</string>
     <string name="image_editor_save_failed">Не удалось сохранить изменённое изображение</string>
     <string name="video_editor_title">Редактирование видео</string>
@@ -3601,4 +3599,15 @@
     <string name="command_description_rawmsg">Отправить событие сообщения с указанным JSON-содержимым</string>
     <string name="command_description_raw">Отправить событие с указанным JSON-содержимым</string>
     <string name="command_description_rawstate">Отправить событие состояния с указанным JSON-содержимым</string>
+    <string name="image_editor_snap_on">Привязка к центральным линиям и углам 45°</string>
+    <string name="image_editor_draw">Рисовать</string>
+    <string name="image_editor_brush_size">Размер кисти</string>
+    <string name="image_editor_color_custom">Свой цвет</string>
+    <string name="image_editor_rotate_left">Повернуть на 90° против часовой стрелки</string>
+    <string name="image_editor_rotate_right">Повернуть на 90° по часовой стрелке</string>
+    <string name="editor_undo">Отменить</string>
+    <string name="editor_redo">Повторить</string>
+    <string name="video_editor_capture_frame">Извлечь кадр</string>
+    <string name="video_editor_capture_frame_failed">Не удалось захватить этот кадр</string>
+    <string name="video_editor_extracting_frame">Извлечение кадра…</string>
 </resources>

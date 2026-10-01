@@ -3136,13 +3136,11 @@
     <string name="image_editor_rotate">Girar</string>
     <string name="image_editor_reset">Redefinir</string>
     <string name="image_editor_snap">Alinhar ao centro</string>
-    <string name="image_editor_snap_on">Alinhando às linhas centrais</string>
     <string name="image_editor_snap_off">Alinhamento desativado</string>
     <string name="aspect_ratio_title">Proporção</string>
     <string name="aspect_ratio_freeform">Livre</string>
     <string name="aspect_ratio_custom">Personalizada</string>
     <string name="aspect_ratio_invalid">Digite uma largura e uma altura maiores que zero</string>
-    <string name="image_editor_censor_hint">Arraste sobre a imagem para adicionar uma tarja preta</string>
     <string name="image_editor_load_failed">Não foi possível abrir esta imagem</string>
     <string name="image_editor_save_failed">Não foi possível salvar a imagem editada</string>
     <string name="video_editor_title">Editar vídeo</string>
@@ -3494,4 +3492,15 @@
     <string name="command_description_rawmsg">Enviar um evento de mensagem com o conteúdo JSON informado</string>
     <string name="command_description_raw">Enviar um evento com o conteúdo JSON informado</string>
     <string name="command_description_rawstate">Enviar um evento de estado com o conteúdo JSON informado</string>
+    <string name="image_editor_snap_on">Alinhando às linhas centrais e a ângulos de 45°</string>
+    <string name="image_editor_draw">Desenhar</string>
+    <string name="image_editor_brush_size">Tamanho do pincel</string>
+    <string name="image_editor_color_custom">Cor personalizada</string>
+    <string name="image_editor_rotate_left">Girar 90° no sentido anti-horário</string>
+    <string name="image_editor_rotate_right">Girar 90° no sentido horário</string>
+    <string name="editor_undo">Desfazer</string>
+    <string name="editor_redo">Refazer</string>
+    <string name="video_editor_capture_frame">Extrair quadro</string>
+    <string name="video_editor_capture_frame_failed">Não foi possível capturar este quadro</string>
+    <string name="video_editor_extracting_frame">Extraindo quadro…</string>
 </resources>

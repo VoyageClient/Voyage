@@ -63,8 +63,9 @@
     <string name="settings_randomize_upload_filenames_title">Randomise uploaded file names</string>
     <string name="settings_app_icon_color_title">App icon colour</string>
     <string name="image_editor_snap">Snap to centre</string>
-    <string name="image_editor_snap_on">Snapping to the centre lines</string>
     <string name="settings_troubleshoot_test_distributor_battery_title">Distributor battery optimisation</string>
     <string name="settings_troubleshoot_test_distributor_battery_success">%s is exempt from battery optimisation.</string>
     <string name="settings_troubleshoot_test_distributor_battery_failed">%s is subject to battery optimisation, so the system may cut the connection your pushes arrive on. Exempt it in its own settings.</string>
+    <string name="image_editor_snap_on">Snapping to the centre lines and 45° angles</string>
+    <string name="image_editor_color_custom">Custom colour</string>
 </resources>

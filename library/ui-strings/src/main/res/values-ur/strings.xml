@@ -3039,13 +3039,11 @@
     <string name="image_editor_rotate">گھمائیں</string>
     <string name="image_editor_reset">دوبارہ ترتیب دیں</string>
     <string name="image_editor_snap">مرکز پر جمائیں</string>
-    <string name="image_editor_snap_on">مرکزی لکیروں پر جم رہا ہے</string>
     <string name="image_editor_snap_off">جمانا بند</string>
     <string name="aspect_ratio_title">تناسبِ ابعاد</string>
     <string name="aspect_ratio_freeform">آزاد</string>
     <string name="aspect_ratio_custom">حسبِ ضرورت</string>
     <string name="aspect_ratio_invalid">صفر سے زیادہ چوڑائی اور اونچائی درج کریں</string>
-    <string name="image_editor_censor_hint">سیاہ خانہ شامل کرنے کے لیے تصویر پر گھسیٹیں</string>
     <string name="image_editor_load_failed">یہ تصویر نہیں کھل سکی</string>
     <string name="image_editor_save_failed">ترمیم شدہ تصویر محفوظ نہیں ہو سکی</string>
     <string name="video_editor_title">ویڈیو میں ترمیم کریں</string>
@@ -3388,4 +3386,15 @@
     <string name="command_description_rawmsg">دیے گئے JSON مواد کے ساتھ پیغام کا واقعہ بھیجیں</string>
     <string name="command_description_raw">دیے گئے JSON مواد کے ساتھ ایک واقعہ بھیجیں</string>
     <string name="command_description_rawstate">دیے گئے JSON مواد کے ساتھ اسٹیٹ واقعہ بھیجیں</string>
+    <string name="image_editor_snap_on">مرکزی لکیروں اور 45° زاویوں پر جمایا جا رہا ہے</string>
+    <string name="image_editor_draw">ڈرا کریں</string>
+    <string name="image_editor_brush_size">برش کا سائز</string>
+    <string name="image_editor_color_custom">حسبِ منشا رنگ</string>
+    <string name="image_editor_rotate_left">گھڑی کی مخالف سمت 90° گھمائیں</string>
+    <string name="image_editor_rotate_right">گھڑی کی سمت 90° گھمائیں</string>
+    <string name="editor_undo">کالعدم کریں</string>
+    <string name="editor_redo">دوبارہ کریں</string>
+    <string name="video_editor_capture_frame">فریم نکالیں</string>
+    <string name="video_editor_capture_frame_failed">یہ فریم حاصل نہیں ہو سکا</string>
+    <string name="video_editor_extracting_frame">فریم نکالا جا رہا ہے…</string>
 </resources>

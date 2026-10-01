@@ -4,6 +4,7 @@
 
     <item
         android:id="@+id/videoEditorRotateAction"
+        android:checkable="true"
         android:icon="@drawable/ic_image_editor_rotate"
         android:title="@string/video_editor_rotate"
         app:iconTint="?vctr_content_primary"
@@ -14,14 +15,14 @@
         android:icon="@drawable/ic_timer"
         android:title="@string/video_editor_speed"
         app:iconTint="?vctr_content_primary"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/videoEditorVolumeAction"
         android:icon="@drawable/ic_volume_up"
         android:title="@string/video_editor_volume"
         app:iconTint="?vctr_content_primary"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/videoEditorReverseAction"
@@ -30,6 +31,13 @@
         android:checkable="true"
         app:iconTint="?vctr_content_primary"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/videoEditorCaptureFrameAction"
+        android:icon="@drawable/ic_editor_capture_frame"
+        android:title="@string/video_editor_capture_frame"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/videoEditorSnapAction"
@@ -41,6 +49,20 @@
         android:id="@+id/videoEditorAspectAction"
         android:title="@string/aspect_ratio_title"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/videoEditorUndoAction"
+        android:icon="@drawable/ic_editor_undo"
+        android:title="@string/editor_undo"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/videoEditorRedoAction"
+        android:icon="@drawable/ic_editor_redo"
+        android:title="@string/editor_redo"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/videoEditorResetAction"

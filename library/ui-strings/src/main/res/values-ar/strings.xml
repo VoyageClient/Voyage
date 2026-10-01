@@ -3248,13 +3248,11 @@
     <string name="image_editor_rotate">دوّر</string>
     <string name="image_editor_reset">صفّر</string>
     <string name="image_editor_snap">المحاذاة إلى المنتصف</string>
-    <string name="image_editor_snap_on">المحاذاة إلى خطوط المنتصف مفعّلة</string>
     <string name="image_editor_snap_off">المحاذاة معطّلة</string>
     <string name="aspect_ratio_title">نسبة الأبعاد</string>
     <string name="aspect_ratio_freeform">حرّة</string>
     <string name="aspect_ratio_custom">مخصّصة</string>
     <string name="aspect_ratio_invalid">أدخل عرضًا وارتفاعًا أكبر من الصفر</string>
-    <string name="image_editor_censor_hint">اسحب على الصورة لإضافة مربع أسود</string>
     <string name="image_editor_load_failed">تعذّر فتح هذه الصورة</string>
     <string name="image_editor_save_failed">تعذّر حفظ الصورة المحرّرة</string>
     <string name="video_editor_title">حرّر الفيديو</string>
@@ -3639,4 +3637,15 @@
     <string name="command_description_rawmsg">إرسال حدث رسالة بمحتوى JSON المحدد</string>
     <string name="command_description_raw">إرسال حدث بمحتوى JSON المحدد</string>
     <string name="command_description_rawstate">إرسال حدث حالة بمحتوى JSON المحدد</string>
+    <string name="image_editor_snap_on">المحاذاة إلى خطوط المنتصف وزوايا 45°</string>
+    <string name="image_editor_draw">رسم</string>
+    <string name="image_editor_brush_size">حجم الفرشاة</string>
+    <string name="image_editor_color_custom">لون مخصّص</string>
+    <string name="image_editor_rotate_left">تدوير 90° عكس اتجاه عقارب الساعة</string>
+    <string name="image_editor_rotate_right">تدوير 90° باتجاه عقارب الساعة</string>
+    <string name="editor_undo">تراجع</string>
+    <string name="editor_redo">إعادة</string>
+    <string name="video_editor_capture_frame">استخراج إطار</string>
+    <string name="video_editor_capture_frame_failed">تعذّر التقاط هذا الإطار</string>
+    <string name="video_editor_extracting_frame">جارٍ استخراج الإطار…</string>
 </resources>

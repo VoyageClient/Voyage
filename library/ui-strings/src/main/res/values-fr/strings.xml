@@ -3136,13 +3136,11 @@
     <string name="image_editor_rotate">Pivoter</string>
     <string name="image_editor_reset">Réinitialiser</string>
     <string name="image_editor_snap">Aligner au centre</string>
-    <string name="image_editor_snap_on">Alignement sur les lignes centrales</string>
     <string name="image_editor_snap_off">Alignement désactivé</string>
     <string name="aspect_ratio_title">Format</string>
     <string name="aspect_ratio_freeform">Libre</string>
     <string name="aspect_ratio_custom">Personnalisé</string>
     <string name="aspect_ratio_invalid">Saisissez une largeur et une hauteur supérieures à zéro</string>
-    <string name="image_editor_censor_hint">Faites glisser sur l’image pour ajouter un rectangle noir</string>
     <string name="image_editor_load_failed">Impossible d’ouvrir cette image</string>
     <string name="image_editor_save_failed">Impossible d’enregistrer l’image modifiée</string>
     <string name="video_editor_title">Modifier la vidéo</string>
@@ -3494,4 +3492,15 @@
     <string name="command_description_rawmsg">Envoyer un évènement de message avec le contenu JSON indiqué</string>
     <string name="command_description_raw">Envoyer un évènement avec le contenu JSON indiqué</string>
     <string name="command_description_rawstate">Envoyer un évènement d\'état avec le contenu JSON indiqué</string>
+    <string name="image_editor_snap_on">Alignement sur les lignes centrales et les angles de 45°</string>
+    <string name="image_editor_draw">Dessiner</string>
+    <string name="image_editor_brush_size">Taille du pinceau</string>
+    <string name="image_editor_color_custom">Couleur personnalisée</string>
+    <string name="image_editor_rotate_left">Pivoter de 90° dans le sens antihoraire</string>
+    <string name="image_editor_rotate_right">Pivoter de 90° dans le sens horaire</string>
+    <string name="editor_undo">Annuler</string>
+    <string name="editor_redo">Rétablir</string>
+    <string name="video_editor_capture_frame">Extraire l’image</string>
+    <string name="video_editor_capture_frame_failed">Impossible de capturer cette image</string>
+    <string name="video_editor_extracting_frame">Extraction de l’image…</string>
 </resources>

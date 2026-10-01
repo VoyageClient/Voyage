@@ -27,6 +27,8 @@ import kotlin.math.abs
  * the frame survives a crop or a resize).
  * @property speed how much faster the result runs; 1 leaves the timing alone.
  * @property changePitch whether the audio pitch rides along with [speed], as tape does.
+ * @property tiltDegrees a further clockwise turn within ±45°, applied in display space before [crop].
+ * With a tilt, [crop] may run past 0..1 into the corners the turn swings out, staying on the picture.
  */
 data class VideoEditSpec(
         val sourceUri: Uri,
@@ -43,14 +45,17 @@ data class VideoEditSpec(
         val changePitch: Boolean = true,
         val volume: Float = 1f,
         val reversed: Boolean = false,
+        val tiltDegrees: Float = 0f,
 ) {
     val isAmplified get() = abs(volume - 1f) > VOLUME_TOLERANCE
 
     /** Re-timing needs the GL stage too: frame timestamps can only be set from there. */
     val isRetimed get() = SpeedTimeMap.retimes(speed)
 
+    val isTilted get() = tiltDegrees != 0f
+
     /** Only the GL stage can change geometry, and only re-encoding can change the bitrate. */
-    val needsTranscode get() = crop != null || targetWidth != null || targetBitrate != null || isRetimed
+    val needsTranscode get() = crop != null || targetWidth != null || targetBitrate != null || isRetimed || isTilted
 
     companion object {
         private const val VOLUME_TOLERANCE = 0.001f
