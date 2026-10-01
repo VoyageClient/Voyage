@@ -19,21 +19,27 @@ package org.matrix.android.sdk.internal.session.typing
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.typing.TypingUsersTracker
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import javax.inject.Inject
 
 @SessionScope
-internal class DefaultTypingUsersTracker @Inject constructor() : TypingUsersTracker {
+internal class DefaultTypingUsersTracker @Inject constructor(
+        private val previewInvalidation: RoomSummaryPreviewInvalidation,
+) : TypingUsersTracker {
 
     private val typingUsers = mutableMapOf<String, List<SenderInfo>>()
 
     /**
-     * Set all currently typing users for a room (excluding yourself).
+     * Set all currently typing users for a room (excluding yourself). Returns whether the list changed.
      */
-    fun setTypingUsersFromRoom(roomId: String, senderInfoList: List<SenderInfo>) {
+    fun setTypingUsersFromRoom(roomId: String, senderInfoList: List<SenderInfo>): Boolean {
         val hasNewValue = typingUsers[roomId] != senderInfoList
         if (hasNewValue) {
             typingUsers[roomId] = senderInfoList
+            // Mapped summaries are memoized by their row, which typing doesn't change.
+            previewInvalidation.onPreviewChanged(roomId)
         }
+        return hasNewValue
     }
 
     override fun getTypingUsers(roomId: String): List<SenderInfo> {

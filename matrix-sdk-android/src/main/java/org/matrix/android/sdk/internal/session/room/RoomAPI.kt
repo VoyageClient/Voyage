@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.room
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomStrippedState
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsParams
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsResponse
@@ -261,6 +262,12 @@ internal interface RoomAPI {
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "rooms/{roomId}/state")
     suspend fun getRoomState(@Path("roomId") roomId: String): List<Event>
+
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "rooms/{roomId}/state/m.room.member/{userId}")
+    suspend fun getRoomMemberContent(
+            @Path("roomId") roomId: String,
+            @Path("userId") userId: String,
+    ): RoomMemberContent
 
     /**
      * Deprecated v1 room initialSync, still served by homeservers. It is the only way to fetch

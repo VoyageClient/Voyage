@@ -73,6 +73,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         private val roomFullyReadHandler: SqlRoomFullyReadHandler,
         private val roomMarkedUnreadHandler: SqlRoomMarkedUnreadHandler,
         private val typingUsersTracker: org.matrix.android.sdk.internal.session.typing.DefaultTypingUsersTracker,
+        private val typingUserProfileResolver: org.matrix.android.sdk.internal.session.typing.TypingUserProfileResolver,
         @UserId private val userId: String,
         private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
         private val threadSummaryHelper: ThreadSummarySqlHelper,
@@ -607,12 +608,24 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val memberHelper = SqlRoomMemberHelper(stores, roomId)
         val senderInfo = typingUserIds.filter { it !in excluded }.map { typingUser ->
             val member = memberHelper.getLastRoomMember(typingUser)
-            overriddenSenderInfo(
-                    userId = typingUser,
-                    displayName = member?.displayName,
-                    isUniqueDisplayName = memberHelper.isUniqueDisplayName(member?.displayName),
-                    avatarUrl = member?.avatarUrl,
-            )
+            if (member != null) {
+                overriddenSenderInfo(
+                        userId = typingUser,
+                        displayName = member.displayName,
+                        isUniqueDisplayName = memberHelper.isUniqueDisplayName(member.displayName),
+                        avatarUrl = member.avatarUrl,
+                )
+            } else {
+                val fetched = typingUserProfileResolver.getOrFetch(roomId, typingUser)
+                val user = if (fetched?.displayName == null || fetched.avatarUrl == null) stores.user.getUser(typingUser) else null
+                val displayName = fetched?.displayName ?: user?.displayName
+                overriddenSenderInfo(
+                        userId = typingUser,
+                        displayName = displayName,
+                        isUniqueDisplayName = typingUserProfileResolver.isUniqueAmongMembers(roomId, displayName),
+                        avatarUrl = fetched?.avatarUrl ?: user?.avatarUrl,
+                )
+            }
         }
         typingUsersTracker.setTypingUsersFromRoom(roomId, senderInfo)
     }
