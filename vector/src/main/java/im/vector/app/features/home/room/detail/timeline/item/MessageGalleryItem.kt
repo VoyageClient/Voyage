@@ -68,9 +68,6 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
     @EpoxyAttribute
     var caption: EpoxyCharSequence? = null
 
-    @EpoxyAttribute
-    var captionBindingOptions: BindingOptions? = null
-
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
@@ -123,7 +120,6 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
         MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
-                bindingOptions = captionBindingOptions,
                 movementMethod = captionMovementMethod,
                 itemLongClickListener = attributes.itemLongClickListener,
                 markwonPlugins = captionMarkwonPlugins,

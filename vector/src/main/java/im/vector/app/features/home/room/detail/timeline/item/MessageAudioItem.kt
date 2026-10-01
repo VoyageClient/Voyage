@@ -126,9 +126,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute
     var caption: EpoxyCharSequence? = null
 
-    @EpoxyAttribute
-    var captionBindingOptions: BindingOptions? = null
-
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
@@ -166,7 +163,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
-                bindingOptions = captionBindingOptions,
                 movementMethod = captionMovementMethod,
                 itemLongClickListener = attributes.itemLongClickListener,
                 markwonPlugins = captionMarkwonPlugins,

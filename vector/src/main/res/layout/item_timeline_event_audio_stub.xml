@@ -144,7 +144,7 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <im.vector.app.core.ui.views.FooteredTextView
         android:id="@+id/messageCaptionView"
         style="@style/Widget.Vector.TextView.Body"
         android:textSize="15.5sp"
