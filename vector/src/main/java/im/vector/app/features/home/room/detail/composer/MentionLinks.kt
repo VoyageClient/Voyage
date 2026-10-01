@@ -16,16 +16,16 @@ import org.matrix.android.sdk.api.session.room.send.ExplicitLinks
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 
-private val MENTION_ANCHOR = Regex(
-        """<a\s+[^>]*href="https://matrix\.to/#/(@[^"?]+)[^"]*"[^>]*>([^<]*)</a>""",
+// A path after the id makes it an event permalink, not a mention.
+private fun mentionAnchor(sigils: String) = Regex(
+        """<a\s+[^>]*href="https://matrix\.to/#/([$sigils][^"?/]+)(?:\?[^"]*)?"[^>]*>([^<]*)</a>""",
         RegexOption.IGNORE_CASE
 )
 
-// Room pills as well as user ones, for the clipboard: pasting either back into a composer pills it again.
-private val ANY_MENTION_ANCHOR = Regex(
-        """<a\s+[^>]*href="https://matrix\.to/#/([@#][^"?]+)[^"]*"[^>]*>([^<]*)</a>""",
-        RegexOption.IGNORE_CASE
-)
+private val MENTION_ANCHOR = mentionAnchor("@#!")
+
+// Only ids the composer pills again when pasted; a bare room id does not.
+private val PASTEABLE_MENTION_ANCHOR = mentionAnchor("@#")
 
 // Drafts and edit prefills carry pills as matrix.to markdown links, so a link the user wrote themselves
 // gets a word joiner after its "](" to keep the composer from reading it back as a pill.
@@ -43,7 +43,7 @@ fun SpannableStringBuilder.unguardAuthoredMentionLinks(): SpannableStringBuilder
 }
 
 /**
- * Rewrites the user mentions of [body] as markdown permalinks, reading each mention's target from the
+ * Rewrites the user and room mentions of [body] as markdown permalinks, reading each mention's target from the
  * same message's [formattedBody]. A mention only exists as an anchor in the HTML — the plain body
  * spells it out as a name — so the composer needs this to rebuild the pills when editing.
  *
@@ -60,9 +60,9 @@ fun spliceMentionLinks(
 ): String {
     val out = StringBuilder()
     var cursor = 0
-    forEachMention(body, formattedBody, displayNamesOf) { start, name, userId ->
+    forEachMention(body, formattedBody, displayNamesOf) { start, name, id ->
         out.append(body, cursor, start)
-        out.append('[').append(name).append("](https://matrix.to/#/").append(userId).append(')')
+        out.append('[').append(name).append("](https://matrix.to/#/").append(id).append(')')
         cursor = start + name.length
     }
     if (cursor == 0) return body
@@ -78,7 +78,7 @@ fun spliceMentionLinks(
 fun spliceMentionIds(body: String, formattedBody: String?): String {
     val out = StringBuilder()
     var cursor = 0
-    forEachMention(body, formattedBody, { emptyList() }, ANY_MENTION_ANCHOR) { start, name, id ->
+    forEachMention(body, formattedBody, { emptyList() }, PASTEABLE_MENTION_ANCHOR) { start, name, id ->
         out.append(body, cursor, start).append(id)
         cursor = start + name.length
     }
@@ -98,10 +98,11 @@ fun spliceMentionSpans(
         displayNamesOf: (String) -> List<String> = { emptyList() },
 ): CharSequence {
     var spannable: SpannableStringBuilder? = null
-    forEachMention(body, formattedBody, displayNamesOf) { start, name, userId ->
+    forEachMention(body, formattedBody, displayNamesOf) { start, name, id ->
         val target = spannable ?: SpannableStringBuilder(body).also { spannable = it }
+        val item = if (id.startsWith('@')) MatrixItem.UserItem(id, name) else MatrixItem.RoomAliasItem(id, name)
         target.setSpan(
-                SendableMentionSpan(MatrixItem.UserItem(userId, name), name),
+                SendableMentionSpan(item, name),
                 start,
                 start + name.length,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -313,24 +314,24 @@ private inline fun forEachMention(
         formattedBody: String?,
         displayNamesOf: (String) -> List<String>,
         anchors: Regex = MENTION_ANCHOR,
-        onMatch: (start: Int, name: String, userId: String) -> Unit,
+        onMatch: (start: Int, name: String, id: String) -> Unit,
 ) {
     if (formattedBody == null || body.isEmpty() || !formattedBody.contains("matrix.to/#/")) return
     var cursor = 0
     anchors.findAll(formattedBody).forEach { match ->
-        val userId = match.groupValues[1]
+        val id = match.groupValues[1]
         if (ExplicitLinks.isExplicitTag(match.value.substringBefore('>'))) {
             // Not a mention. Step over its markdown source so a later mention's name isn't found in its label.
-            val target = body.indexOf("https://matrix.to/#/$userId", cursor)
+            val target = body.indexOf("https://matrix.to/#/$id", cursor)
             if (target >= 0) cursor = body.indexOf(')', target).takeIf { it >= 0 }?.plus(1) ?: cursor
             return@forEach
         }
         val label = match.groupValues[2].unescapeHtml()
-        val candidates = (listOf(label, userId) + displayNamesOf(userId))
+        val candidates = (listOf(label, id) + displayNamesOf(id))
                 // A name carrying markdown link syntax can't round-trip through the composer.
                 .filter { it.isNotBlank() && !it.contains('[') && !it.contains(']') }
         val at = candidates.firstNotNullOfOrNull { body.wordIndexOf(it, cursor)?.to(it) } ?: return@forEach
-        onMatch(at.first, at.second, userId)
+        onMatch(at.first, at.second, id)
         cursor = at.first + at.second.length
     }
 }

@@ -76,6 +76,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 import im.vector.lib.strings.CommonStrings
 import org.commonmark.parser.Parser
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoomSummary
@@ -100,6 +101,7 @@ import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.api.util.toEveryoneInRoomMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
 
@@ -416,7 +418,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 is PermalinkData.UserLink ->
                     roomId?.let { session.roomService().getRoomMember(data.userId, it)?.toMatrixItem() }
                             ?: session.getUserOrDefault(data.userId).toMatrixItem()
-                is PermalinkData.RoomLink -> session.getRoomSummary(data.roomIdOrAlias)?.toMatrixItem()
+                is PermalinkData.RoomLink -> if (data.eventId == null) roomMentionItem(session, data, label) else null
                 else -> null
             }
             if (matrixItem != null) {
@@ -432,6 +434,19 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
         out.append(source, index, source.length)
         return out.unguardAuthoredMentionLinks()
+    }
+
+    // The same items the autocomplete builds, so the restored pill sends, draws and backspaces like the original.
+    private fun roomMentionItem(session: Session, link: PermalinkData.RoomLink, label: String): MatrixItem? {
+        val summary = session.getRoomSummary(link.roomIdOrAlias)
+        if (label == MatrixItem.NOTIFY_EVERYONE && summary != null && summary.roomId == roomId) {
+            return summary.toEveryoneInRoomMatrixItem()
+        }
+        return when {
+            summary != null -> MatrixItem.RoomAliasItem(link.roomIdOrAlias, summary.displayName, summary.avatarUrl)
+            link.isRoomAlias -> MatrixItem.RoomAliasItem(link.roomIdOrAlias)
+            else -> null
+        }
     }
 
     override fun renderComposerMode(mode: MessageComposerMode) {

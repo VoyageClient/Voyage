@@ -71,9 +71,24 @@ class MentionLinksTest {
     }
 
     @Test
-    fun `given a room link, when splicing, then it is left alone`() {
-        val body = "see #room:example.org"
-        spliceMentionLinks(body, """see <a href="https://matrix.to/#/#room:example.org">#room:example.org</a>""") shouldBeEqualTo body
+    fun `given a room alias mention, when splicing, then it becomes a markdown permalink`() {
+        val room = "https://matrix.to/#/#room:example.org"
+        spliceMentionLinks("see My Room", """see <a href="$room">My Room</a>""") shouldBeEqualTo "see [My Room]($room)"
+        spliceMentionLinks("see #room:example.org", """see <a href="$room">My Room</a>""") shouldBeEqualTo "see [#room:example.org]($room)"
+    }
+
+    @Test
+    fun `given a room id mention, when splicing, then the room name locates it in the body`() {
+        val room = "https://matrix.to/#/!abc:example.org"
+        spliceMentionLinks("see Lobby", """see <a href="$room?via=example.org">!abc:example.org</a>""") { listOf("Lobby") } shouldBeEqualTo
+                "see [Lobby]($room)"
+    }
+
+    @Test
+    fun `given an event permalink, when splicing, then it is not a mention`() {
+        val body = "see My Room"
+        spliceMentionLinks(body, """see <a href="https://matrix.to/#/#room:example.org/${'$'}event">My Room</a>""") shouldBeEqualTo body
+        spliceMentionIds(body, """see <a href="https://matrix.to/#/!abc:example.org/${'$'}event">My Room</a>""") shouldBeEqualTo body
     }
 
     @Test

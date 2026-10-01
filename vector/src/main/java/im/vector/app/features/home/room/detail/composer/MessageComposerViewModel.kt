@@ -229,10 +229,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 val oldFormatted = ((messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
                         ?: (messageContent as? MessageWithAttachmentContent)?.getFormattedCaption())
                         ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
-                val withMentions = spliceMentionSpans(action.newBody, oldFormatted) { userId ->
-                    val member = room.membershipService().getRoomMember(userId)
-                    listOfNotNull(member?.bodyName(), member?.displayName).distinct()
-                }
+                val withMentions = spliceMentionSpans(action.newBody, oldFormatted) { mentionNamesOf(room, it) }
                 val newText = emoteShortcodeProcessor.process(room.roomId, withMentions)
                 val quote = maybeBuildQuoteRunsForEdit(newText, null, oldFormatted)
                 val repliedTo = inReplyTo?.let { room.getTimelineEvent(it) }
@@ -578,11 +575,14 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun computeEditablePrefill(room: Room, timelineEvent: TimelineEvent): CharSequence {
         val body = computeEditableContent(timelineEvent)
         val formatted = (timelineEvent.getVectorLastMessageContent() as? MessageContentWithFormattedBody)?.matrixFormattedBody
-        return spliceMentionLinks(guardAuthoredMentionLinks(body), formatted) { userId ->
-            val member = room.membershipService().getRoomMember(userId)
-            // Both, since the body may predate a local override being set or cleared.
-            listOfNotNull(member?.bodyName(), member?.displayName).distinct()
-        }
+        return spliceMentionLinks(guardAuthoredMentionLinks(body), formatted) { mentionNamesOf(room, it) }
+    }
+
+    private fun mentionNamesOf(room: Room, id: String): List<String> {
+        if (!id.startsWith('@')) return listOfNotNull(session.getRoomSummary(id)?.displayName)
+        val member = room.membershipService().getRoomMember(id)
+        // Both, since the body may predate a local override being set or cleared.
+        return listOfNotNull(member?.bodyName(), member?.displayName).distinct()
     }
 
     /**
