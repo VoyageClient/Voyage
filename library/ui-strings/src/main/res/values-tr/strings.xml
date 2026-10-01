@@ -96,7 +96,6 @@
     <string name="login_error_bad_json">Hatalı JSON</string>
     <string name="login_error_not_json">Geçerli JSON içermiyor</string>
     <string name="login_error_limit_exceeded">Çok fazla istek gönderildi</string>
-    <string name="e2e_re_request_encryption_key">Diğer oturumlardan <u>şifreleme anahtarlarını tekrar iste</u>.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">${app_name}\'i mesajları çözebilen farklı bir cihazda açarsanız ordan anahtarları bu oturuma gönderebilirsiniz.</string>
     <plurals name="membership_changes">
         <item quantity="one">%d üyelik değişikliği</item>
@@ -3477,4 +3476,5 @@
     <string name="image_pack_telegram_requires_kitkat">Telegram çıkartma paketlerini içe aktarmak Android 4.4 veya daha yenisini gerektirir</string>
     <string name="image_pack_telegram_downloading">%1$s indiriliyor… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">Bu çıkartmalar dönüştürülemedi ve dışarıda bırakıldı: %1$s</string>
+    <string name="e2e_re_request_encryption_key">Şifreleme anahtarlarını diğer oturumlarınızdan tekrar isteyin.</string>
 </resources>

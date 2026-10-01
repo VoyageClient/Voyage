@@ -94,7 +94,6 @@
 \n
 \nIngin tambah sekarang\?</string>
     <string name="error_no_external_application_found">Maaf, tidak ada aplikasi eksternal yang mendukung apa yang ingin dilakukan.</string>
-    <string name="e2e_re_request_encryption_key"><u>Meminta ulang kunci enkripsi</u> dari perangkat Anda yang lain.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Jalankan ${app_name} di perangkat yang dapat mendekripsi pesan tersebut agar kunci dapat dikirim ke perangkat ini.</string>
     <plurals name="membership_changes">
         <item quantity="other">%d perubahan keanggotaan</item>
@@ -2029,11 +2028,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="location_share_option_user_current">Bagikan lokasi saya saat ini</string>
     <string name="a11y_location_share_locate_button">Perbesar ke lokasi saat ini</string>
     <string name="a11y_location_share_pin_on_map">Pin dari lokasi yang terpilih pada peta</string>
-    <string name="threads_notice_migration_message">Kami hampir dekat untuk meriliskan sebuah Beta publik untuk Utasan.
-\n
-\nSaat kami mempersiapkan, kami harus membuat beberapa perubahan: utasan dibuat sebelum titik ini akan <strong>ditampilkan sebagai balasan biasa</strong>.
-\n
-\nIni hanya transisi sekali, utasan sekarang sebagai bagian dari spesifikasi Matrix.</string>
     <string name="threads_notice_migration_title">Utasan Mencapai Beta 🎉</string>
     <string name="live_location_sharing_notification_description">Penbagian lokasi sedang dilakukan</string>
     <string name="live_location_sharing_notification_title">${app_name} Lokasi langsung</string>
@@ -3460,4 +3454,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_pack_telegram_requires_kitkat">Mengimpor paket stiker Telegram memerlukan Android 4.4 atau yang lebih baru</string>
     <string name="image_pack_telegram_downloading">Mengunduh %1$s… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">Stiker ini tidak dapat dikonversi dan dilewati: %1$s</string>
+    <string name="e2e_re_request_encryption_key">Minta ulang kunci enkripsi dari sesi Anda yang lain.</string>
+    <string name="threads_notice_migration_message">Kami semakin dekat untuk merilis Beta publik untuk Utasan.\n\nSaat kami mempersiapkannya, kami perlu membuat beberapa perubahan: utasan yang dibuat sebelum titik ini akan ditampilkan sebagai balasan biasa.\n\nIni akan menjadi transisi satu kali karena Utasan sekarang merupakan bagian dari spesifikasi Matrix.</string>
 </resources>

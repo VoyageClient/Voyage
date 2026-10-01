@@ -547,9 +547,6 @@
     <string name="settings_troubleshoot_test_service_boot_failed">服务不会在设备重启后启动，在你打开 ${app_name} 一次之前你将不会收到消息通知。</string>
     <string name="settings_troubleshoot_test_bg_restricted_success">已禁用对 ${app_name} 的后台限制。此测试应使用移动数据（非Wi-Fi）进行。
 \n%1$s</string>
-    <string name="settings_troubleshoot_test_bg_restricted_failed">已启用对 ${app_name} 的后台限制。
-\n${app_name} 在后台时的工作将被显著地限制，这可能会影响消息通知。
-\n%1$s</string>
     <string name="settings_troubleshoot_test_bg_restricted_quickfix">关闭后台限制</string>
     <string name="settings_troubleshoot_test_battery_success">${app_name} 未被电池优化影响。</string>
     <string name="settings_troubleshoot_test_battery_failed">如果设备在未充电的情况下关屏静置一段时间，其将进入低电耗模式（Doze）。这将阻止应用访问网络并延后其运行、同步与响铃。</string>
@@ -3458,4 +3455,5 @@
     <string name="image_pack_telegram_requires_kitkat">导入 Telegram 贴纸包需要 Android 4.4 或更高版本</string>
     <string name="image_pack_telegram_downloading">正在下载 %1$s…（%2$d/%3$d）</string>
     <string name="image_pack_telegram_skipped">以下贴纸无法转换，已被略过：%1$s</string>
+    <string name="settings_troubleshoot_test_bg_restricted_failed">已启用对 ${app_name} 的后台限制。\n应用在后台时尝试进行的工作将被严格限制，这可能会影响消息通知。\n%1$s</string>
 </resources>

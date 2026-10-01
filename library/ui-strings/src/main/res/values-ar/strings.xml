@@ -362,8 +362,6 @@
     <string name="ssl_trust">ثِق</string>
     <string name="ssl_do_not_trust">لا تثق</string>
     <string name="ssl_remain_offline">تجاهل</string>
-    <string name="ssl_unexpected_existing_expl">تغيّرت الشهادة من تلك التي كنت تثق بها على هاتفك. هذا &lt;b&gt;غير طبيعي أبدا&lt;b/&gt;. من المستحسن &lt;b&gt;ألا تقبل&lt;b/&gt; الشهادة الجديدة.</string>
-    <string name="ssl_only_accept">اقبل <b>فقط</b> الشهادات التي نشر مدير الخادوم بصمة لها تطابق التي بالأعلى.</string>
     <string name="search_hint">ابحث</string>
     <string name="search_members_hint">رشّح أعضاء الغرفة</string>
     <string name="room_settings_all_messages">كل الرسائل</string>
@@ -422,7 +420,6 @@
     <string name="notification_noisy">مزعج</string>
     <string name="encryption_never_send_to_unverified_devices_summary">لا ترسل من هذا الجهاز الرسائل المشفرة إلى الأجهزة غير الموثقة.</string>
     <string name="encryption_never_send_to_unverified_devices_title">عمِّ إلى الأجهزة المؤكّدة فقط</string>
-    <string name="encryption_information_not_verified">&lt;b&gt;غير&lt;b/&gt; مؤكّدة</string>
     <string name="encryption_information_verified">مؤكّدة</string>
     <string name="encryption_information_verify">أكّد</string>
     <string name="list_members">أعضاء</string>
@@ -455,7 +452,6 @@
 \n|
 \nأتريد إضافة حزمة الآن؟</string>
     <string name="error_no_external_application_found">نأسف، لم نجد أي تطبيق خارجي لإكمال هذا الإجراء.</string>
-    <string name="e2e_re_request_encryption_key"><u>أعِد طلب مفاتيح التعمية</u>من أجهزتك الأخرى.</string>
     <string name="settings_messages_sent_by_bot">الرسائل التي أرسلها بوت</string>
     <string name="settings_set_sync_timeout">انتهت مهلة طلب المزامنة</string>
     <string name="settings_deactivate_account_section">ألغِ تنشيط الحساب</string>
@@ -3664,4 +3660,8 @@
     <string name="image_pack_telegram_requires_kitkat">يتطلب استيراد حزم ملصقات Telegram نظام Android 4.4 أو أحدث</string>
     <string name="image_pack_telegram_downloading">ينزّل %1$s… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">تعذّر تحويل هذه الملصقات فاستُبعدت: %1$s</string>
+    <string name="e2e_re_request_encryption_key">أعِد طلب مفاتيح التعمية من جلساتك الأخرى.</string>
+    <string name="ssl_unexpected_existing_expl">تغيّرت الشهادة عن تلك التي كان هاتفك يثق بها. هذا أمر غير معتاد إطلاقًا. يُنصح بعدم قبول هذه الشهادة الجديدة.</string>
+    <string name="ssl_only_accept">لا تقبل الشهادة إلا إذا نشر مدير الخادوم بصمةً تطابق البصمة أعلاه.</string>
+    <string name="encryption_information_not_verified">غير مؤكّدة</string>
 </resources>

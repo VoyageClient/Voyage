@@ -492,7 +492,6 @@
 \n單純停用帳號<b>不會讓我們移除您傳送過的訊息</b>。如果您希望同步刪除您的訊息，請勾選下面的選取盒。
 \n
 \nMatrix 中的訊息可見度類似電子郵件。刪除您的訊息只是代表您發送的訊息不會再顯示給任何新的或未註冊的使用者，但是已註冊並曾經取得訊息的使用者，仍然可以存取他們收到的訊息。</string>
-    <string name="deactivate_account_delete_checkbox">請在停用我的帳號時刪除我傳送過的所有訊息（<b>警告：</b>未來的使用者將無法看見完整對話紀錄）</string>
     <string name="deactivate_account_submit">停用帳號</string>
     <string name="error_empty_field_your_password">請輸入您的密碼。</string>
     <string name="settings_preview_media_before_sending">在傳送前預覽媒體</string>
@@ -3458,4 +3457,5 @@
     <string name="image_pack_telegram_requires_kitkat">匯入 Telegram 貼圖包需要 Android 4.4 或更新版本</string>
     <string name="image_pack_telegram_downloading">正在下載 %1$s…（%2$d/%3$d）</string>
     <string name="image_pack_telegram_skipped">以下貼圖無法轉換，已略過：%1$s</string>
+    <string name="deactivate_account_delete_checkbox">請在停用我的帳號時刪除我傳送過的所有訊息（警告：未來的使用者將無法看見完整的對話紀錄）</string>
 </resources>

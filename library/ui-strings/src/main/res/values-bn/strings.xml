@@ -323,7 +323,6 @@
         <item quantity="other">%d সদস্যাতা পরিবর্তন</item>
     </plurals>
     <string name="e2e_re_request_encryption_key_dialog_content">দয়া করে শুরু করুন ${app_name} অন্য সেশান যেটা পারে বর্ণনা করতে বার্তা কে সুতরাং এটা পারে পাঠাতে চাবিগুলো কে যন্ত্র তে.</string>
-    <string name="e2e_re_request_encryption_key"><u>পুনরায় অনুরোধ এনক্রিপশন চাবিগুলি</u>আপনার অন্য সেশানগুলি থেকে।</string>
     <string name="login_error_limit_exceeded">অনেকগুলো অনুরোধ পাঠানো হয়েছে</string>
     <string name="login_error_not_json">ধারণ করছে না সঠিক JSON</string>
     <string name="login_error_bad_json">বিকৃত JSON</string>
@@ -3473,4 +3472,5 @@
     <string name="image_pack_telegram_requires_kitkat">Telegram স্টিকার প্যাক আমদানি করতে Android 4.4 বা তার নতুন সংস্করণ প্রয়োজন</string>
     <string name="image_pack_telegram_downloading">%1$s ডাউনলোড হচ্ছে… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">এই স্টিকারগুলো রূপান্তর করা যায়নি, তাই বাদ দেওয়া হয়েছে: %1$s</string>
+    <string name="e2e_re_request_encryption_key">আপনার অন্যান্য সেশন থেকে এনক্রিপশন কী পুনরায় অনুরোধ করুন।</string>
 </resources>

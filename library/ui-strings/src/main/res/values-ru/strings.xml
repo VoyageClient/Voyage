@@ -66,16 +66,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s принял приглашение для %2$s. Причина: %3$s</string>
     <string name="notice_room_withdraw_with_reason">%1$s отозвал приглашение %2$s. Причина: %3$s</string>
     <string name="notice_room_created">%1$s создал(а) комнату</string>
-    <plurals name="notice_room_aliases_added">
-        <item quantity="one">%1$s добавил(а) %2$s в качестве адреса для этой комнаты.</item>
-        <item quantity="few">%1$s добавил(а) %2$s в качестве адресов для этой комнаты.</item>
-        <item quantity="many">%1$s добавил(а) %2$s в качестве адресов для этой комнаты.</item>
-    </plurals>
-    <plurals name="notice_room_aliases_removed">
-        <item quantity="one">%1$s удалил(а) адрес %2$s для комнаты.</item>
-        <item quantity="few">%1$s удалил(а) адреса %2$s для комнаты.</item>
-        <item quantity="many">%1$s удалил(а) адреса %2$s для комнаты.</item>
-    </plurals>
     <string name="notice_room_aliases_added_and_removed">%1$s добавил(а) адреса %2$s и удалил(а) %3$s для комнаты.</string>
     <string name="notice_room_canonical_alias_set">%1$s сделал(а) %2$s главным адресом комнаты.</string>
     <string name="notice_room_canonical_alias_unset">%1$s удалил(а) главный адрес комнаты.</string>
@@ -129,16 +119,6 @@
     <string name="notice_room_ban_with_reason_by_you">Вы забанили %1$s. Причина: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Вы приняли приглашение для %1$s. Причина: %2$s</string>
     <string name="notice_room_withdraw_with_reason_by_you">Вы отозвали приглашение %1$s. Причина: %2$s</string>
-    <plurals name="notice_room_aliases_added_by_you">
-        <item quantity="one">Вы добавили адрес %1$s для этой комнаты.</item>
-        <item quantity="few">Вы добавили %1$s в качестве адресов для этой комнаты.</item>
-        <item quantity="many">Вы добавили %1$s в качестве адресов для этой комнаты.</item>
-    </plurals>
-    <plurals name="notice_room_aliases_removed_by_you">
-        <item quantity="one">Вы удалили адрес этой комнаты: %1$s.</item>
-        <item quantity="few">Вы удалили адреса этой комнаты: %1$s.</item>
-        <item quantity="many">Вы удалили адреса этой комнаты: %1$s.</item>
-    </plurals>
     <string name="notice_room_aliases_added_and_removed_by_you">Вы добавили адреса %1$s и удалили %2$s для этой комнаты.</string>
     <string name="notice_room_canonical_alias_set_by_you">Вы задали главный адрес этой комнаты %1$s.</string>
     <string name="notice_room_canonical_alias_unset_by_you">Вы удалили главный адрес этой комнаты.</string>
@@ -474,44 +454,8 @@
     <string name="has_been_banned">Вас заблокировал %2$s в %1$s</string>
     <string name="reason_colon">Причина: %1$s</string>
     <string name="list_members">Участники</string>
-    <plurals name="notification_unread_notified_messages_in_room_rooms">
-        <item quantity="one">%d комната</item>
-        <item quantity="few">%d комнаты</item>
-        <item quantity="many">%d комнат</item>
-        <item quantity="other"/>
-    </plurals>
     <string name="notification_unread_notified_messages_in_room">%1$s в %2$s</string>
-    <plurals name="active_widgets">
-        <item quantity="one">%d активный виджет</item>
-        <item quantity="few">%d активных виджета</item>
-        <item quantity="many">%d активных виджетов</item>
-        <item quantity="other"/>
-    </plurals>
     <string name="avatar">Аватар</string>
-    <plurals name="room_title_members">
-        <item quantity="one">%d участник</item>
-        <item quantity="few">%d участника</item>
-        <item quantity="many">%d участников</item>
-        <item quantity="other"/>
-    </plurals>
-    <plurals name="room_new_messages_notification">
-        <item quantity="one">%d новое сообщение</item>
-        <item quantity="few">%d новых сообщения</item>
-        <item quantity="many">%d новых сообщений</item>
-        <item quantity="other"/>
-    </plurals>
-    <plurals name="membership_changes">
-        <item quantity="one">%d изменение членства</item>
-        <item quantity="few">%d изменения членства</item>
-        <item quantity="many">%d изменений членства</item>
-        <item quantity="other"/>
-    </plurals>
-    <plurals name="notification_unread_notified_messages">
-        <item quantity="one">%d непрочитанное уведомление</item>
-        <item quantity="few">%d непрочитанных уведомления</item>
-        <item quantity="many">%d непрочитанных уведомлений</item>
-        <item quantity="other"/>
-    </plurals>
     <string name="title_activity_choose_sticker">Отправить стикер</string>
     <string name="option_send_sticker">Отправить стикер</string>
     <string name="no_sticker_application_dialog_content">У вас сейчас нет доступных наклеек.
@@ -551,12 +495,6 @@
     <string name="room_tombstone_predecessor_link">Нажмите здесь для просмотра старых сообщений</string>
     <string name="command_description_join_room">Присоединиться к комнате с указанным адресом</string>
     <string name="command_description_clear_scalar_token">Для исправления управления приложениями Matrix</string>
-    <plurals name="room_details_selected">
-        <item quantity="one">%d выбран</item>
-        <item quantity="few">%d выбрано</item>
-        <item quantity="many">%d выбраны</item>
-        <item quantity="other"/>
-    </plurals>
     <string name="system_alerts_header">Системные оповещения</string>
     <string name="dialog_title_error">Ошибка</string>
     <string name="passphrase_create_passphrase">Создать мнемоническую фразу</string>
@@ -709,11 +647,6 @@
         <item quantity="many">%d новых ключей были добавлены к этим устройствам.</item>
         <item quantity="other">%d новых ключей были добавлены к этим устройствам.</item>
     </plurals>
-    <plurals name="keys_backup_restore_success_description_part1">
-        <item quantity="one">Восстановлена резервная копия с %d ключом.</item>
-        <item quantity="few">Восстановлены резервные копии с %d ключами.</item>
-        <item quantity="many">Восстановлены резервные копии с %d ключами.</item>
-    </plurals>
     <string name="keys_backup_recovery_code_error_decrypt">Невозможно расшифровать резервную копию с помощью этого бумажного ключа: пожалуйста, убедитесь, что вы ввели правильный бумажный ключ.</string>
     <string name="keys_backup_passphrase_error_decrypt">Невозможно расшифровать резервную копию с помощью этой мнемонической фразы: пожалуйста, убедитесь, что вы ввели правильную мнемоническую фразу.</string>
     <string name="keys_backup_setup_step3_generating_key_status">Создание бумажного ключа с использованием мнемонической фразы может занять несколько секунд.</string>
@@ -739,12 +672,6 @@
     <string name="keys_backup_info_title_signature">Подпись</string>
     <string name="keys_backup_info_title_algorithm">Алгоритм</string>
     <string name="keys_backup_info_title_version">Версия</string>
-    <plurals name="keys_backup_info_keys_backing_up">
-        <item quantity="one">Резервное копирование %d ключа…</item>
-        <item quantity="few">Резервное копирование %d ключей…</item>
-        <item quantity="many">Резервное копирование %d ключей…</item>
-        <item quantity="other"/>
-    </plurals>
     <string name="keys_backup_info_keys_all_backup_up">Все ключи сохранены</string>
     <string name="keys_backup_banner_in_progress">Резервное копирование ключей…</string>
     <string name="keys_backup_banner_recover_line1">Никогда не теряйте зашифрованные сообщения</string>
@@ -783,11 +710,6 @@
         <item quantity="few">%1$s: %2$d сообщения</item>
         <item quantity="many">%1$s: %2$d сообщений</item>
         <item quantity="other">%1$s: %2$d сообщений</item>
-    </plurals>
-    <plurals name="notification_compat_summary_title">
-        <item quantity="one">%d оповещение</item>
-        <item quantity="few">%d оповещения</item>
-        <item quantity="many">%d оповещений</item>
     </plurals>
     <string name="notification_unknown_new_event">Новое событие</string>
     <string name="notification_unknown_room_name">Комната</string>
@@ -1059,11 +981,6 @@
     <string name="login_wait_for_email_notice">Мы только что отправили письмо на %1$s.
 \nПожалуйста, нажмите на содержащуюся в нём ссылку, чтобы продолжить создание аккаунта.</string>
     <string name="login_error_outdated_homeserver_title">Домашний сервер устарел</string>
-    <plurals name="login_error_limit_exceeded_retry_after">
-        <item quantity="one">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунду…</item>
-        <item quantity="few">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунды…</item>
-        <item quantity="many">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунд…</item>
-    </plurals>
     <string name="signed_out_title">Вы вышли из системы</string>
     <string name="signed_out_notice">Это могло произойти по разным причинам: 
 \n 
@@ -1107,11 +1024,6 @@
     <string name="room_profile_section_security_learn_more">Узнать больше</string>
     <string name="room_profile_section_more_settings">Настройки комнаты</string>
     <string name="room_profile_section_more_notifications">Уведомления</string>
-    <plurals name="room_profile_section_more_member_list">
-        <item quantity="one">Один участник</item>
-        <item quantity="few">%1$d участника</item>
-        <item quantity="many">%1$d участников</item>
-    </plurals>
     <string name="room_profile_section_more_leave">Покинуть комнату</string>
     <string name="room_member_power_level_admins">Администраторы</string>
     <string name="room_member_power_level_moderators">Модераторы</string>
@@ -1188,11 +1100,6 @@
     <string name="reset_secure_backup_warning">Это заменит ваш текущий ключ или фразу.</string>
     <string name="disabled_integration_dialog_title">Интеграции отключены</string>
     <string name="disabled_integration_dialog_content">Включите «Управление интеграциями» в настройках, чтобы сделать это.</string>
-    <plurals name="room_settings_banned_users_count">
-        <item quantity="one">%d пользователь заблокирован</item>
-        <item quantity="few">%d пользователей заблокировано</item>
-        <item quantity="many">%d пользователей заблокировано</item>
-    </plurals>
     <string name="encryption_exported_successfully">Ключи успешно экспортированы</string>
     <string name="active_widget_view_action">ОБЗОР</string>
     <string name="active_widgets_title">Активные виджеты</string>
@@ -1305,11 +1212,6 @@
     <string name="settings_active_sessions_show_all">Показать все сеансы</string>
     <string name="settings_active_sessions_manage">Управление сеансами</string>
     <string name="settings_active_sessions_signout_device">Выйти из этого сеанса</string>
-    <plurals name="settings_active_sessions_count">
-        <item quantity="one">%d сессия активна</item>
-        <item quantity="few">%d сессии активны</item>
-        <item quantity="many">%d сессий активно</item>
-    </plurals>
     <string name="crosssigning_verify_this_session">Заверьте этот сеанс</string>
     <string name="verification_open_other_to_verify">Используйте существующую сессию для подтверждения этой, предоставив ей доступ к зашифрованным сообщениям.</string>
     <string name="settings_dev_tools">Инструменты для разработчиков</string>
@@ -1343,11 +1245,6 @@
     <string name="qr_code_scanned_by_other_no">Нет</string>
     <string name="no_connectivity_to_the_server_indicator_airplane">Активирован режим \"В самолёте\"</string>
     <string name="enter_secret_storage_invalid">Не удалось найти данные в хранилище</string>
-    <plurals name="send_images_with_original_size">
-        <item quantity="one">Отправить изображение в оригинальном размере</item>
-        <item quantity="few">Отправить изображения в оригинальном размере</item>
-        <item quantity="many">Отправить изображения в оригинальном размере</item>
-    </plurals>
     <string name="keys_backup_restore_success_title_already_up_to_date">Ключи успешно обновлены!</string>
     <string name="refresh">Обновить</string>
     <string name="new_session">Новый вход в вашу учётную запись. Это были Вы\?</string>
@@ -1429,11 +1326,6 @@
     <string name="invite_users_to_room_title">Пригласить пользователей</string>
     <string name="invitation_sent_to_one_user">Приглашение для %1$s отправлено</string>
     <string name="invitations_sent_to_two_users">Приглашения для %1$s и %2$s отправлены</string>
-    <plurals name="invitations_sent_to_one_and_more_users">
-        <item quantity="one">Приглашения отправлены %1$s и еще одному пользователю</item>
-        <item quantity="few">Приглашения отправлены %1$s и еще %2$d пользователям</item>
-        <item quantity="many">Приглашения отправлены %1$s и еще %2$d пользователям</item>
-    </plurals>
     <string name="invite_users_to_room_failure">Мы не могли пригласить этих пользователей. Пожалуйста, проверьте пользователей, которых вы хотите пригласить, и повторите попытку.</string>
     <string name="open_terms_of">Посмотреть условия %s</string>
     <string name="disconnect_identity_server_dialog_content">Отключиться от сервера идентификации %s\?</string>
@@ -1506,16 +1398,6 @@
     <string name="create_room_federation_error">Комната создана, но некоторые приглашения не отправлены по следующей причине:
 \n
 \n%s</string>
-    <plurals name="two_and_some_others_read">
-        <item quantity="one">%1$s, %2$s и %3$d читает</item>
-        <item quantity="few">%1$s, %2$s и %3$d других читают</item>
-        <item quantity="many">%1$s, %2$s и %3$d других читают</item>
-    </plurals>
-    <plurals name="wrong_pin_message_remaining_attempts">
-        <item quantity="one">Неверный код, осталась %d попытка</item>
-        <item quantity="few">Неверный код, осталось %d попытки</item>
-        <item quantity="many">Неверный код, осталось %d попыток</item>
-    </plurals>
     <string name="wrong_pin_message_last_remaining_attempt">Предупреждение! Последняя оставшаяся попытка перед выходом из системы!</string>
     <string name="too_many_pin_failures">Слишком много ошибок, вы вышли из системы</string>
     <string name="auth_msisdn_already_defined">Этот номер телефона уже используется.</string>
@@ -1532,11 +1414,6 @@
     <string name="confirm_your_identity_quad_s">Подтвердите свою личность, проверив этот логин, предоставив ему доступ к зашифрованным сообщениям.</string>
     <string name="error_opening_banned_room">Невозможно открыть комнату, в которую вам запрещён доступ.</string>
     <string name="room_error_not_found">Невозможно найти эту комнату. Убедитесь, что она существует.</string>
-    <plurals name="seconds">
-        <item quantity="one">%d секунда</item>
-        <item quantity="few">%d секунды</item>
-        <item quantity="many">%d секунд</item>
-    </plurals>
     <string name="sent_a_poll">Опрос.</string>
     <string name="sent_a_reaction">Отреагировал(а): %s</string>
     <string name="sent_verification_conclusion">Результат проверки.</string>
@@ -3626,4 +3503,142 @@
     <string name="image_pack_telegram_requires_kitkat">Для импорта наборов стикеров Telegram нужен Android 4.4 или новее</string>
     <string name="image_pack_telegram_downloading">Скачивание %1$s… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">Эти стикеры не удалось преобразовать, они пропущены: %1$s</string>
+    <plurals name="notice_room_aliases_added">
+        <item quantity="one">%1$s добавил(а) %2$s в качестве адреса для этой комнаты.</item>
+        <item quantity="few">%1$s добавил(а) %2$s в качестве адресов для этой комнаты.</item>
+        <item quantity="many">%1$s добавил(а) %2$s в качестве адресов для этой комнаты.</item>
+        <item quantity="other">%1$s добавил(а) %2$s в качестве адресов для этой комнаты.</item>
+    </plurals>
+    <plurals name="notice_room_aliases_added_by_you">
+        <item quantity="one">Вы добавили адрес %1$s для этой комнаты.</item>
+        <item quantity="few">Вы добавили %1$s в качестве адресов для этой комнаты.</item>
+        <item quantity="many">Вы добавили %1$s в качестве адресов для этой комнаты.</item>
+        <item quantity="other">Вы добавили %1$s в качестве адресов для этой комнаты.</item>
+    </plurals>
+    <plurals name="notice_room_aliases_removed">
+        <item quantity="one">%1$s удалил(а) адрес %2$s для комнаты.</item>
+        <item quantity="few">%1$s удалил(а) адреса %2$s для комнаты.</item>
+        <item quantity="many">%1$s удалил(а) адреса %2$s для комнаты.</item>
+        <item quantity="other">%1$s удалил(а) адреса %2$s для комнаты.</item>
+    </plurals>
+    <plurals name="notice_room_aliases_removed_by_you">
+        <item quantity="one">Вы удалили адрес этой комнаты: %1$s.</item>
+        <item quantity="few">Вы удалили адреса этой комнаты: %1$s.</item>
+        <item quantity="many">Вы удалили адреса этой комнаты: %1$s.</item>
+        <item quantity="other">Вы удалили адреса этой комнаты: %1$s.</item>
+    </plurals>
+    <plurals name="membership_changes">
+        <item quantity="one">%d изменение членства</item>
+        <item quantity="few">%d изменения членства</item>
+        <item quantity="many">%d изменений членства</item>
+        <item quantity="other">%d изменения членства</item>
+    </plurals>
+    <plurals name="room_title_members">
+        <item quantity="one">%d участник</item>
+        <item quantity="few">%d участника</item>
+        <item quantity="many">%d участников</item>
+        <item quantity="other">%d участника</item>
+    </plurals>
+    <plurals name="room_new_messages_notification">
+        <item quantity="one">%d новое сообщение</item>
+        <item quantity="few">%d новых сообщения</item>
+        <item quantity="many">%d новых сообщений</item>
+        <item quantity="other">%d новых сообщения</item>
+    </plurals>
+    <plurals name="room_details_selected">
+        <item quantity="one">%d выбран</item>
+        <item quantity="few">%d выбрано</item>
+        <item quantity="many">%d выбраны</item>
+        <item quantity="other">%d выбрано</item>
+    </plurals>
+    <plurals name="seconds">
+        <item quantity="one">%d секунда</item>
+        <item quantity="few">%d секунды</item>
+        <item quantity="many">%d секунд</item>
+        <item quantity="other">%d секунды</item>
+    </plurals>
+    <plurals name="room_settings_banned_users_count">
+        <item quantity="one">%d пользователь заблокирован</item>
+        <item quantity="few">%d пользователя заблокированы</item>
+        <item quantity="many">%d пользователей заблокировано</item>
+        <item quantity="other">%d пользователя заблокировано</item>
+    </plurals>
+    <plurals name="notification_unread_notified_messages">
+        <item quantity="one">%d непрочитанное уведомление</item>
+        <item quantity="few">%d непрочитанных уведомления</item>
+        <item quantity="many">%d непрочитанных уведомлений</item>
+        <item quantity="other">%d непрочитанных уведомления</item>
+    </plurals>
+    <plurals name="notification_unread_notified_messages_in_room_rooms">
+        <item quantity="one">%d комната</item>
+        <item quantity="few">%d комнаты</item>
+        <item quantity="many">%d комнат</item>
+        <item quantity="other">%d комнаты</item>
+    </plurals>
+    <plurals name="notification_compat_summary_title">
+        <item quantity="one">%d оповещение</item>
+        <item quantity="few">%d оповещения</item>
+        <item quantity="many">%d оповещений</item>
+        <item quantity="other">%d оповещения</item>
+    </plurals>
+    <plurals name="active_widgets">
+        <item quantity="one">%d активный виджет</item>
+        <item quantity="few">%d активных виджета</item>
+        <item quantity="many">%d активных виджетов</item>
+        <item quantity="other">%d активных виджета</item>
+    </plurals>
+    <plurals name="keys_backup_restore_success_description_part1">
+        <item quantity="one">Восстановлена резервная копия с %d ключом.</item>
+        <item quantity="few">Восстановлены резервные копии с %d ключами.</item>
+        <item quantity="many">Восстановлены резервные копии с %d ключами.</item>
+        <item quantity="other">Восстановлены резервные копии с %d ключами.</item>
+    </plurals>
+    <plurals name="keys_backup_info_keys_backing_up">
+        <item quantity="one">Резервное копирование %d ключа…</item>
+        <item quantity="few">Резервное копирование %d ключей…</item>
+        <item quantity="many">Резервное копирование %d ключей…</item>
+        <item quantity="other">Резервное копирование %d ключей…</item>
+    </plurals>
+    <plurals name="two_and_some_others_read">
+        <item quantity="one">%1$s, %2$s и %3$d читает</item>
+        <item quantity="few">%1$s, %2$s и %3$d других читают</item>
+        <item quantity="many">%1$s, %2$s и %3$d других читают</item>
+        <item quantity="other">%1$s, %2$s и %3$d других читают</item>
+    </plurals>
+    <plurals name="login_error_limit_exceeded_retry_after">
+        <item quantity="one">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунду…</item>
+        <item quantity="few">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунды…</item>
+        <item quantity="many">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунд…</item>
+        <item quantity="other">Отправлено слишком много запросов. Вы сможете повторить попытку через %1$d секунды…</item>
+    </plurals>
+    <plurals name="room_profile_section_more_member_list">
+        <item quantity="one">Один участник</item>
+        <item quantity="few">%1$d участника</item>
+        <item quantity="many">%1$d участников</item>
+        <item quantity="other">%1$d участника</item>
+    </plurals>
+    <plurals name="settings_active_sessions_count">
+        <item quantity="one">%d сессия активна</item>
+        <item quantity="few">%d сессии активны</item>
+        <item quantity="many">%d сессий активно</item>
+        <item quantity="other">%d сессии активны</item>
+    </plurals>
+    <plurals name="send_images_with_original_size">
+        <item quantity="one">Отправить изображение в оригинальном размере</item>
+        <item quantity="few">Отправить изображения в оригинальном размере</item>
+        <item quantity="many">Отправить изображения в оригинальном размере</item>
+        <item quantity="other">Отправить изображения в оригинальном размере</item>
+    </plurals>
+    <plurals name="invitations_sent_to_one_and_more_users">
+        <item quantity="one">Приглашения отправлены %1$s и еще одному пользователю</item>
+        <item quantity="few">Приглашения отправлены %1$s и еще %2$d пользователям</item>
+        <item quantity="many">Приглашения отправлены %1$s и еще %2$d пользователям</item>
+        <item quantity="other">Приглашения отправлены %1$s и еще %2$d пользователям</item>
+    </plurals>
+    <plurals name="wrong_pin_message_remaining_attempts">
+        <item quantity="one">Неверный код, осталась %d попытка</item>
+        <item quantity="few">Неверный код, осталось %d попытки</item>
+        <item quantity="many">Неверный код, осталось %d попыток</item>
+        <item quantity="other">Неверный код, осталось %d попытки</item>
+    </plurals>
 </resources>
