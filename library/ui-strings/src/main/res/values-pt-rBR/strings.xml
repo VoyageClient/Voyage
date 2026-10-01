@@ -1732,7 +1732,6 @@
     <string name="send_file_step_compressing_video">Comprimindo vídeo %d%%</string>
     <string name="send_file_step_compressing_image">Comprimindo imagem…</string>
     <string name="give_feedback">Dar Feedback</string>
-    <string name="command_description_join_space">Participar do Espaço com a dada id</string>
     <string name="a11y_public_room">Sala pública</string>
     <string name="a11y_unchecked">Não-checado</string>
     <string name="space_mark_as_not_suggested">Marcar como não sugerida(o)</string>

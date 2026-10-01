@@ -1714,7 +1714,6 @@
     <string name="public_space">Публичное пространство</string>
     <string name="command_description_upgrade_room">Обновляет комнату до новой версии</string>
     <string name="command_description_leave_room">Покинуть комнату с заданным id (или текущую комнату, если null)</string>
-    <string name="command_description_join_space">Присоединитесь к пространству с заданным id</string>
     <string name="command_description_create_space">Создать пространство</string>
     <string name="a11y_public_room">Публичная комната</string>
     <string name="a11y_unchecked">Непроверенные</string>

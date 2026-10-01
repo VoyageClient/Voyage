@@ -1705,7 +1705,6 @@
     <string name="space_type_private">私密</string>
     <string name="add_space">新增聊天空間</string>
     <string name="command_description_leave_room">離開指定 ID 的聊天室（如果是 null 的話則為目前聊天室）</string>
-    <string name="command_description_join_space">使用特定的 ID 加入聊天空間</string>
     <string name="command_description_create_space">建立聊天空間</string>
     <string name="a11y_unchecked">未檢查</string>
     <string name="search_hint_room_name">搜尋名稱</string>

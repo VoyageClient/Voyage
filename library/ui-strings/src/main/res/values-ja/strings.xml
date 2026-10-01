@@ -1718,7 +1718,6 @@
     <string name="add_space">スペースを追加</string>
     <string name="event_status_delete_all_failed_dialog_message">このルームの全ての未送信のメッセージを削除してよろしいですか？</string>
     <string name="command_description_leave_room">IDを指定してルームから退出（指定しない場合は現在のルームから退出）</string>
-    <string name="command_description_join_space">IDを指定してスペースに参加</string>
     <string name="dev_tools_menu_name">開発者ツール</string>
     <string name="a11y_rule_notify_silent">音を出さずに通知</string>
     <string name="a11y_rule_notify_noisy">音を出して通知</string>

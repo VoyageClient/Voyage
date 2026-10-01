@@ -1188,19 +1188,6 @@ class MessageComposerViewModel @AssistedInject constructor(
                             }
                             Unit
                         }
-                        is ParsedCommand.JoinSpace -> {
-                            _viewEvents.post(MessageComposerViewEvents.SlashCommandLoading)
-                            viewModelScope.launch(Dispatchers.IO) {
-                                try {
-                                    session.spaceService().joinSpace(parsedCommand.spaceIdOrAlias)
-                                    popDraft(room, state.sendMode)
-                                    _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                                } catch (failure: Throwable) {
-                                    _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
-                                }
-                            }
-                            Unit
-                        }
                         is ParsedCommand.LeaveRoom -> {
                             viewModelScope.launch(Dispatchers.IO) {
                                 try {
@@ -2418,7 +2405,6 @@ class MessageComposerViewModel @AssistedInject constructor(
             Command.LEAVE_ROOM,
             Command.TOMBSTONE,
             Command.ADD_TO_SPACE,
-            Command.JOIN_SPACE,
     )
 
     /**

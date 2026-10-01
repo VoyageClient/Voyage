@@ -1843,7 +1843,6 @@
     <string name="event_status_a11y_sending">שְׁלִיחָה</string>
     <string name="command_description_upgrade_room">משדרג חדר לגרסה חדשה</string>
     <string name="command_description_leave_room">עזוב את החדר עם מזהה נתון (או החדר הנוכחי אם ריק)</string>
-    <string name="command_description_join_space">הצטרף למרחב עם המזהה הנתון</string>
     <string name="command_description_add_to_space">הוסף למרחב הנתון</string>
     <string name="command_description_create_space">צור מרחב</string>
     <string name="dev_tools_event_content_hint">תוכן האירוע</string>

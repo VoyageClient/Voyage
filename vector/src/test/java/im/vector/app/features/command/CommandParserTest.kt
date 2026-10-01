@@ -100,8 +100,25 @@ class CommandParserTest {
     }
 
     @Test
-    fun parseSlashJoinSpaceCommand() {
-        test("/joinSpace $A_SPACE_ID", ParsedCommand.JoinSpace(A_SPACE_ID))
+    fun parseSlashJoinViaOption() {
+        test("/join !abc:example.org via:example.org", ParsedCommand.JoinRoom("!abc:example.org", null, listOf("example.org")))
+        test(
+                "/join !abc:example.org via:example.org let me in",
+                ParsedCommand.JoinRoom("!abc:example.org", "let me in", listOf("example.org"))
+        )
+        test(
+                "/join !abc:example.org let me via:example.org in",
+                ParsedCommand.JoinRoom("!abc:example.org", "let me in", listOf("example.org"))
+        )
+        test(
+                "/join !abc:example.org let me in VIA:a.org via:b.org",
+                ParsedCommand.JoinRoom("!abc:example.org", "let me in", listOf("a.org", "b.org"))
+        )
+        test(
+                "/join matrix:roomid/abc:example.org?via=example.org via:other.org via:example.org",
+                ParsedCommand.JoinRoom("!abc:example.org", null, listOf("other.org", "example.org"))
+        )
+        test("/join !abc:example.org via:", ParsedCommand.ErrorSyntax(Command.JOIN_ROOM))
     }
 
     @Test

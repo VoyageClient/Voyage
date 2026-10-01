@@ -1717,7 +1717,6 @@
     <string name="settings_category_room_directory">Répertoire des salons</string>
     <string name="add_space">Ajouter un espace</string>
     <string name="command_description_leave_room">Partir du salon correspondant à l’identifiant donné (ou le salon actuel si aucun n’est fourni)</string>
-    <string name="command_description_join_space">Rejoindre l’espace avec l’identifiant donné</string>
     <string name="command_description_create_space">Créer un espace</string>
     <string name="a11y_unchecked">Décoché</string>
     <string name="search_hint_room_name">Rechercher par nom</string>

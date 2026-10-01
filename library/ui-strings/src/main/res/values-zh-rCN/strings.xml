@@ -1679,7 +1679,6 @@
     <string name="space_type_private">私有</string>
     <string name="add_space">添加空间</string>
     <string name="command_description_leave_room">离开给定id的房间（如果为null则为当前所处的房间）</string>
-    <string name="command_description_join_space">使用给定的id加入空间</string>
     <string name="command_description_create_space">创建空间</string>
     <string name="a11y_public_room">公开房间</string>
     <string name="a11y_unchecked">未检查</string>

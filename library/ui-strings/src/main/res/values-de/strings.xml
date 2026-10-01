@@ -1744,7 +1744,6 @@
     <string name="invite_by_email">Mithilfe einer E-Mail-Adresse einladen</string>
     <string name="invite_people_menu">Personen einladen</string>
     <string name="invite_people_to_your_space">Lade Personen in deinen Space ein</string>
-    <string name="command_description_join_space">Betrete einen Space mit der angegebenen ID</string>
     <string name="create_space_topic_hint">Beschreibung</string>
     <string name="add_space">Space erstellen</string>
     <string name="command_description_create_space">Space erstellen</string>

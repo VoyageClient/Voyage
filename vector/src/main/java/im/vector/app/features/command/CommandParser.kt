@@ -209,21 +209,11 @@ class CommandParser @Inject constructor(
                     }
                 }
                 Command.JOIN_ROOM.matches(slashCommand) -> {
-                    if (messageParts.size >= 2) {
-                        val roomAlias = messageParts[1]
-                        val roomLink = roomAlias.takeIf { isRoomPermalink(it) }?.let { PermalinkParser.parse(it) as PermalinkData.RoomLink }
-
-                        if (roomAlias.isNotEmpty()) {
-                            ParsedCommand.JoinRoom(
-                                    roomLink?.roomIdOrAlias ?: roomAlias,
-                                    trimParts(textMessage, messageParts.take(2)),
-                                    roomLink?.viaParameters.orEmpty()
-                            )
-                        } else {
-                            ParsedCommand.ErrorSyntax(Command.JOIN_ROOM)
-                        }
-                    } else {
+                    val roomAlias = messageParts.getOrNull(1)
+                    if (roomAlias.isNullOrEmpty()) {
                         ParsedCommand.ErrorSyntax(Command.JOIN_ROOM)
+                    } else {
+                        parseJoinOptions(roomAlias, textMessage.toString().split("\\s+".toRegex()).filter { it.isNotEmpty() }.drop(2))
                     }
                 }
                 Command.PART.matches(slashCommand) -> {
@@ -481,13 +471,6 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.ADD_TO_SPACE)
                     }
                 }
-                Command.JOIN_SPACE.matches(slashCommand) -> {
-                    if (messageParts.size == 2) {
-                        ParsedCommand.JoinSpace(spaceIdOrAlias = messageParts.last())
-                    } else {
-                        ParsedCommand.ErrorSyntax(Command.JOIN_SPACE)
-                    }
-                }
                 Command.LEAVE_ROOM.matches(slashCommand) -> {
                     ParsedCommand.LeaveRoom(roomId = message.toString())
                 }
@@ -719,6 +702,27 @@ class CommandParser @Inject constructor(
         return ParsedCommand.MassRedact(userId, delayMs, MassRedactionRange(fromTs, toTs, messagesOnly ?: true))
     }
 
+    // [options] are the tokens after the room address: `via:<server>` (repeatable) anywhere, the rest is the reason.
+    private fun parseJoinOptions(roomAddress: String, options: List<String>): ParsedCommand {
+        val roomLink = roomAddress.takeIf { isRoomPermalink(it) }?.let { PermalinkParser.parse(it) as PermalinkData.RoomLink }
+        val viaServers = mutableListOf<String>()
+        val reasonParts = mutableListOf<String>()
+        for (option in options) {
+            if (option.startsWith(VIA_OPTION, ignoreCase = true)) {
+                val server = option.substring(VIA_OPTION.length)
+                if (server.isEmpty()) return ParsedCommand.ErrorSyntax(Command.JOIN_ROOM)
+                viaServers += server
+            } else {
+                reasonParts += option
+            }
+        }
+        return ParsedCommand.JoinRoom(
+                roomLink?.roomIdOrAlias ?: roomAddress,
+                reasonParts.joinToString(" ").takeIf { it.isNotEmpty() },
+                (viaServers + roomLink?.viaParameters.orEmpty()).distinct()
+        )
+    }
+
     private fun splitRawEventArgs(args: String): Pair<String?, String> {
         val eventType = args.takeWhile { !it.isWhitespace() }.takeIf { it.isNotEmpty() && !it.startsWith("{") }
         return eventType to args.substring(eventType?.length ?: 0).trim()
@@ -746,5 +750,6 @@ class CommandParser @Inject constructor(
     companion object {
         private const val REDACT_OPTION = "massredact"
         private const val STATE_KEY_OPTION = "key:"
+        private const val VIA_OPTION = "via:"
     }
 }

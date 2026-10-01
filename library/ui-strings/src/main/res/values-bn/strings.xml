@@ -2052,7 +2052,6 @@
     <string name="dev_tools_event_content_hint">ইভেন্টের বিষয়বস্তু</string>
     <string name="command_description_create_space">একটি স্পেস তৈরি করে</string>
     <string name="command_description_add_to_space">প্রদত্ত স্পেসে যোগ করে</string>
-    <string name="command_description_join_space">প্রদত্ত আইডির স্পেসে যোগ দেয়</string>
     <string name="command_description_leave_room">প্রদত্ত আইডির রুম (না দিলে বর্তমান রুম) ছেড়ে যায়</string>
     <string name="command_description_upgrade_room">রুমকে নতুন সংস্করণে আপগ্রেড করে</string>
     <string name="event_status_a11y_sending">পাঠানো হচ্ছে</string>
