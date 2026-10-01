@@ -116,7 +116,13 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
 
     private fun createNotificationSettingsAccountDataIfNeeded(session: Session) {
         session.coroutineScope.launch {
-            updateNotificationSettingsAccountDataUseCase.execute(session)
+            try {
+                updateNotificationSettingsAccountDataUseCase.execute(session)
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Throwable) {
+                Timber.w(failure, "Failed to update notification settings account data")
+            }
         }
     }
 }
