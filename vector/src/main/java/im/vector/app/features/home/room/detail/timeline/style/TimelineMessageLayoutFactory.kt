@@ -18,6 +18,8 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.BubbleThemeUtils
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -30,6 +32,7 @@ import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.isEdition
 import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import javax.inject.Inject
 
 class TimelineMessageLayoutFactory @Inject constructor(
@@ -38,7 +41,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
         private val localeProvider: LocaleProvider,
         private val resources: Resources,
         private val bubbleThemeUtils: BubbleThemeUtils,
-        private val vectorPreferences: VectorPreferences
+        private val vectorPreferences: VectorPreferences,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
 ) {
 
     companion object {
@@ -100,6 +104,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 nextDisplayableEvent?.root?.getClearType() !in listOf(EventType.MESSAGE, EventType.STICKER, EventType.ENCRYPTED) ||
                 isNextMessageReceivedMoreThanOneHourAgo ||
                 isTileTypeMessage(nextDisplayableEvent) ||
+                nextDisplayableEvent.rendersAsNotice(params) ||
                 (nextDisplayableEvent?.isRootThread() ?: false) ||
                 event.isRootThread() ||
                 (nextDisplayableEvent?.isEdition() ?: false)
@@ -137,9 +142,11 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 val shouldBuildBubbleLayout = event.shouldBuildBubbleLayout()
                 if (shouldBuildBubbleLayout) {
                     val isFirstFromThisSender = nextDisplayableEvent == null || !nextDisplayableEvent.shouldBuildBubbleLayout() ||
+                            nextDisplayableEvent.rendersAsNotice(params) ||
                             nextDisplayableEvent.senderIdentity() != event.senderIdentity() || addDaySeparator
 
                     val isLastFromThisSender = prevDisplayableEvent == null || !prevDisplayableEvent.shouldBuildBubbleLayout() ||
+                            prevDisplayableEvent.rendersAsNotice(params) ||
                             prevDisplayableEvent.senderIdentity() != event.senderIdentity() ||
                             prevDisplayableEvent.root.localDateTime().toLocalDate() != date.toLocalDate()
 
@@ -170,6 +177,16 @@ class TimelineMessageLayoutFactory @Inject constructor(
 
     private fun TimelineEvent?.senderIdentity(): List<Any?>? =
             perMessageSenderIdentity(vectorPreferences.arePerMessageProfilesEnabled())
+
+    // Mirrors MessageItemFactory's fallbacks to a notice/default tile for m.room.message events,
+    // which carry no avatar or name and so must not continue a sender's group.
+    private fun TimelineEvent?.rendersAsNotice(params: TimelineItemFactoryParams): Boolean {
+        if (this == null || root.isRedacted()) return false
+        if (root.getClearType() != EventType.MESSAGE) return false
+        val content = getVectorLastMessageContent() ?: return true
+        if (content.relatesTo?.type == RelationType.REPLACE) return true
+        return lightweightSettingsStorage.areThreadMessagesEnabled() && !params.isFromThreadTimeline() && root.isThread()
+    }
 
     /**
      * Dumb layout setting, so non-bubble classes (read receipts, merged headers) can still get basic ScBubble alignment.
