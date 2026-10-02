@@ -22,6 +22,7 @@ import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.settings.AvatarShape
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -62,7 +63,8 @@ abstract class FormEditableAvatarItem : VectorEpoxyModel<FormEditableAvatarItem.
     }
 
     override fun unbind(holder: Holder) {
-        GlideApp.with(holder.image).clear(holder.image)
+        // Unbind can run from the host fragment's onDestroyView after the activity is destroyed.
+        tryOrNull { GlideApp.with(holder.image).clear(holder.image) }
         super.unbind(holder)
     }
 

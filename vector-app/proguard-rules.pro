@@ -112,3 +112,7 @@
 -keepclassmembers class * extends androidx.constraintlayout.motion.widget.Key {
     <init>();
 }
+
+# onnxruntime's JNI layer builds TensorInfo/OnnxTensor/OrtException etc. by FindClass + GetMethodID,
+# so the shrinker drops or renames those constructors and native aborts with "mid == null".
+-keep class ai.onnxruntime.** { *; }

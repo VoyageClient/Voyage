@@ -26,24 +26,35 @@ class PendingAuthHandler @Inject constructor(
     var uiaContinuation: Continuation<UIABaseAuth>? = null
     var pendingAuth: UIABaseAuth? = null
 
+    // A continuation may only be resumed once; a repeated ReAuth result would otherwise crash.
+    private fun takeContinuation(): Continuation<UIABaseAuth>? = uiaContinuation.also { uiaContinuation = null }
+
     fun ssoAuthDone() {
+        val continuation = takeContinuation() ?: run {
+            Timber.d("ssoAuthDone, no pending continuation")
+            return
+        }
         pendingAuth?.let {
             Timber.d("ssoAuthDone, resuming action")
-            uiaContinuation?.resume(it)
+            continuation.resume(it)
         } ?: run {
             Timber.d("ssoAuthDone, cannot resume: no pendingAuth")
-            uiaContinuation?.resumeWithException(IllegalArgumentException())
+            continuation.resumeWithException(IllegalArgumentException())
         }
     }
 
     fun passwordAuthDone(password: String) {
         Timber.d("passwordAuthDone")
+        val continuation = takeContinuation() ?: run {
+            Timber.d("passwordAuthDone, no pending continuation")
+            return
+        }
         val decryptedPass = matrix.secureStorageService()
                 .loadSecureSecret<String>(
                         inputStream = password.fromBase64().inputStream(),
                         keyAlias = ReAuthActivity.DEFAULT_RESULT_KEYSTORE_ALIAS
                 )
-        uiaContinuation?.resume(
+        continuation.resume(
                 UserPasswordAuth(
                         session = pendingAuth?.session,
                         password = decryptedPass,
@@ -54,8 +65,7 @@ class PendingAuthHandler @Inject constructor(
 
     fun reAuthCancelled() {
         Timber.d("reAuthCancelled")
-        uiaContinuation?.resumeWithException(UiaCancelledException())
-        uiaContinuation = null
+        takeContinuation()?.resumeWithException(UiaCancelledException())
         pendingAuth = null
     }
 }
