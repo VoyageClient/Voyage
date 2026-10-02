@@ -826,7 +826,8 @@ class ImagePackEditFragment :
     }
 
     private fun refresh() {
-        controller.setData(images)
+        // Epoxy builds on a background thread while drag callbacks can reorder the mutable list.
+        controller.setData(images.toList())
         // The unset-avatar placeholder follows the pack's first image.
         if (packAvatarUrl == null && packAvatarDraft == null) renderAvatar()
     }
