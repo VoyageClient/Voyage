@@ -3001,8 +3001,6 @@
     <string name="image_pack_no_permission_room">এই রুমে প্যাক সম্পাদনা করার অনুমতি আপনার নেই</string>
     <string name="image_pack_duplicate_shortcode">\"%1$s\" শর্টকোডটি একাধিকবার আছে: একটি প্যাকের প্রতিটি শর্টকোড অনন্য হতে হবে</string>
     <string name="image_pack_import">প্যাক আমদানি করুন</string>
-    <string name="image_pack_importing">%1$s আমদানি করা হচ্ছে… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">%1$s আমদানি করা হয়েছে</string>
     <string name="image_pack_import_empty">%1$s-এ কোনো ছবি পাওয়া যায়নি</string>
     <string name="image_pack_export">রপ্তানি করুন</string>
     <string name="image_pack_exporting_title">প্যাক রপ্তানি করা হচ্ছে</string>
@@ -3455,8 +3453,6 @@
     <string name="video_editor_capture_frame">ফ্রেম বের করুন</string>
     <string name="video_editor_capture_frame_failed">এই ফ্রেমটি নেওয়া যায়নি</string>
     <string name="video_editor_extracting_frame">ফ্রেম বের করা হচ্ছে…</string>
-    <string name="command_description_tg_export">একটি Telegram স্টিকার প্যাক এক্সপোর্ট করুন</string>
-    <string name="telegram_pack_has_been_downloaded">Telegram স্টিকার প্যাক ডাউনলোড করা হয়েছে!</string>
     <string name="image_pack_import_telegram">Telegram থেকে আমদানি করুন</string>
     <string name="image_pack_telegram_link_invalid">এটি Telegram স্টিকার প্যাকের লিংক বলে মনে হচ্ছে না</string>
     <string name="image_pack_telegram_up_to_date">%1$s ইতিমধ্যেই হালনাগাদ আছে</string>
@@ -3472,4 +3468,13 @@
     <string name="image_pack_telegram_downloading">%1$s ডাউনলোড হচ্ছে… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">এই স্টিকারগুলো রূপান্তর করা যায়নি, তাই বাদ দেওয়া হয়েছে: %1$s</string>
     <string name="e2e_re_request_encryption_key">আপনার অন্যান্য সেশন থেকে এনক্রিপশন কী পুনরায় অনুরোধ করুন।</string>
+    <string name="command_description_tg_export">Telegram স্টিকার প্যাক এক্সপোর্ট করুন, প্রতি লিঙ্কে একটি zip</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="one">Telegram স্টিকার প্যাক ডাউনলোড করা হয়েছে!</item>
+        <item quantity="other">%dটি Telegram স্টিকার প্যাক ডাউনলোড করা হয়েছে!</item>
+    </plurals>
+    <string name="image_pack_remove_image">প্যাক থেকে সরান</string>
+    <string name="image_pack_keep_image">প্যাকে রাখুন</string>
+    <string name="image_pack_uploading_title">আপলোড হচ্ছে</string>
+    <string name="image_pack_uploading">ছবি আপলোড হচ্ছে… (%1$d/%2$d)</string>
 </resources>

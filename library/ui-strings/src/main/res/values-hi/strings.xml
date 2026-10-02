@@ -2942,8 +2942,6 @@
     <string name="image_pack_no_permission_room">आपको इस रूम में पैक संपादित करने की अनुमति नहीं है</string>
     <string name="image_pack_duplicate_shortcode">दोहराया गया shortcode \"%1$s\": पैक का हर shortcode अलग होना चाहिए</string>
     <string name="image_pack_import">पैक इम्पोर्ट करें</string>
-    <string name="image_pack_importing">%1$s इम्पोर्ट हो रहा है… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">%1$s इम्पोर्ट हुआ</string>
     <string name="image_pack_import_empty">%1$s में कोई इमेज नहीं मिली</string>
     <string name="image_pack_export">एक्सपोर्ट करें</string>
     <string name="image_pack_exporting_title">पैक एक्सपोर्ट हो रहा है</string>
@@ -3384,8 +3382,6 @@
     <string name="video_editor_capture_frame">फ़्रेम निकालें</string>
     <string name="video_editor_capture_frame_failed">यह फ़्रेम कैप्चर नहीं हो सका</string>
     <string name="video_editor_extracting_frame">फ़्रेम निकाला जा रहा है…</string>
-    <string name="command_description_tg_export">Telegram स्टिकर पैक एक्सपोर्ट करें</string>
-    <string name="telegram_pack_has_been_downloaded">Telegram स्टिकर पैक डाउनलोड हो गया है!</string>
     <string name="image_pack_import_telegram">Telegram से इम्पोर्ट करें</string>
     <string name="image_pack_telegram_link_invalid">यह Telegram स्टिकर पैक का लिंक नहीं लगता</string>
     <string name="image_pack_telegram_up_to_date">%1$s पहले से अप-टू-डेट है</string>
@@ -3400,4 +3396,13 @@
     <string name="image_pack_telegram_requires_kitkat">Telegram स्टिकर पैक इम्पोर्ट करने के लिए Android 4.4 या नया वर्शन चाहिए</string>
     <string name="image_pack_telegram_downloading">%1$s डाउनलोड हो रहा है… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">ये स्टिकर बदले नहीं जा सके और छोड़ दिए गए: %1$s</string>
+    <string name="command_description_tg_export">Telegram स्टिकर पैक एक्सपोर्ट करें, हर लिंक के लिए एक zip</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="one">Telegram स्टिकर पैक डाउनलोड हो गया है!</item>
+        <item quantity="other">%d Telegram स्टिकर पैक डाउनलोड हो गए हैं!</item>
+    </plurals>
+    <string name="image_pack_remove_image">पैक से हटाएं</string>
+    <string name="image_pack_keep_image">पैक में रखें</string>
+    <string name="image_pack_uploading_title">अपलोड हो रहा है</string>
+    <string name="image_pack_uploading">इमेज अपलोड हो रही हैं… (%1$d/%2$d)</string>
 </resources>

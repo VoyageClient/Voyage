@@ -2992,8 +2992,6 @@
     <string name="image_pack_no_permission_room">このルームのパックを編集する権限がありません</string>
     <string name="image_pack_duplicate_shortcode">ショートコード「%1$s」が重複しています：パック内の各ショートコードは一意である必要があります</string>
     <string name="image_pack_import">パックをインポート</string>
-    <string name="image_pack_importing">%1$sをインポートしています…（%2$d/%3$d）</string>
-    <string name="image_pack_import_done">%1$sをインポートしました</string>
     <string name="image_pack_import_empty">%1$sに画像が見つかりません</string>
     <string name="image_pack_export">エクスポート</string>
     <string name="image_pack_exporting_title">パックをエクスポートしています</string>
@@ -3437,8 +3435,6 @@
     <string name="video_editor_capture_frame">フレームを抽出</string>
     <string name="video_editor_capture_frame_failed">このフレームを取得できませんでした</string>
     <string name="video_editor_extracting_frame">フレームを抽出しています…</string>
-    <string name="command_description_tg_export">Telegramのステッカーパックをエクスポート</string>
-    <string name="telegram_pack_has_been_downloaded">Telegramのステッカーパックをダウンロードしました！</string>
     <string name="image_pack_import_telegram">Telegramからインポート</string>
     <string name="image_pack_telegram_link_invalid">Telegramのステッカーパックのリンクではないようです</string>
     <string name="image_pack_telegram_up_to_date">%1$sはすでに最新です</string>
@@ -3453,4 +3449,12 @@
     <string name="image_pack_telegram_requires_kitkat">Telegramのステッカーパックのインポートには、Android 4.4以降が必要です</string>
     <string name="image_pack_telegram_downloading">%1$sをダウンロードしています…（%2$d/%3$d）</string>
     <string name="image_pack_telegram_skipped">以下のステッカーは変換できなかったため、除外しました：%1$s</string>
+    <string name="command_description_tg_export">Telegramのステッカーパックをエクスポート(リンクごとにzip 1つ)</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="other">Telegramのステッカーパックを%d個ダウンロードしました！</item>
+    </plurals>
+    <string name="image_pack_remove_image">パックから削除</string>
+    <string name="image_pack_keep_image">パックに残す</string>
+    <string name="image_pack_uploading_title">アップロード中</string>
+    <string name="image_pack_uploading">画像をアップロードしています… (%1$d/%2$d)</string>
 </resources>

@@ -2992,8 +2992,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_pack_no_permission_room">Anda tidak memiliki izin untuk mengedit paket di ruangan ini</string>
     <string name="image_pack_duplicate_shortcode">Kode pendek ganda \"%1$s\": setiap kode pendek dalam paket harus unik</string>
     <string name="image_pack_import">Impor Paket</string>
-    <string name="image_pack_importing">Mengimpor %1$s… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">%1$s diimpor</string>
     <string name="image_pack_import_empty">Tidak ada gambar yang ditemukan di %1$s</string>
     <string name="image_pack_export">Ekspor</string>
     <string name="image_pack_exporting_title">Mengekspor Paket</string>
@@ -3437,8 +3435,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="video_editor_capture_frame">Ekstrak bingkai</string>
     <string name="video_editor_capture_frame_failed">Tidak dapat mengambil bingkai ini</string>
     <string name="video_editor_extracting_frame">Mengekstrak bingkai…</string>
-    <string name="command_description_tg_export">Ekspor paket stiker Telegram</string>
-    <string name="telegram_pack_has_been_downloaded">Paket stiker Telegram telah diunduh!</string>
     <string name="image_pack_import_telegram">Impor dari Telegram</string>
     <string name="image_pack_telegram_link_invalid">Itu tidak terlihat seperti tautan paket stiker Telegram</string>
     <string name="image_pack_telegram_up_to_date">%1$s sudah yang terbaru</string>
@@ -3455,4 +3451,12 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_pack_telegram_skipped">Stiker ini tidak dapat dikonversi dan dilewati: %1$s</string>
     <string name="e2e_re_request_encryption_key">Minta ulang kunci enkripsi dari sesi Anda yang lain.</string>
     <string name="threads_notice_migration_message">Kami semakin dekat untuk merilis Beta publik untuk Utasan.\n\nSaat kami mempersiapkannya, kami perlu membuat beberapa perubahan: utasan yang dibuat sebelum titik ini akan ditampilkan sebagai balasan biasa.\n\nIni akan menjadi transisi satu kali karena Utasan sekarang merupakan bagian dari spesifikasi Matrix.</string>
+    <string name="command_description_tg_export">Ekspor paket stiker Telegram, satu zip per tautan</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="other">%d paket stiker Telegram telah diunduh!</item>
+    </plurals>
+    <string name="image_pack_remove_image">Hapus dari paket</string>
+    <string name="image_pack_keep_image">Simpan di paket</string>
+    <string name="image_pack_uploading_title">Mengunggah</string>
+    <string name="image_pack_uploading">Mengunggah gambar… (%1$d/%2$d)</string>
 </resources>

@@ -2954,8 +2954,6 @@
     <string name="image_pack_no_permission_room">آپ کو اس کمرے میں بستوں میں ترمیم کرنے کی اجازت نہیں ہے</string>
     <string name="image_pack_duplicate_shortcode">دہرا shortcode \"%1$s\": بستے میں ہر shortcode منفرد ہونا چاہیے</string>
     <string name="image_pack_import">بستہ درآمد کریں</string>
-    <string name="image_pack_importing">%1$s درآمد ہو رہا ہے… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">%1$s درآمد ہو گیا</string>
     <string name="image_pack_import_empty">%1$s میں کوئی تصویر نہیں ملی</string>
     <string name="image_pack_export">برآمد کریں</string>
     <string name="image_pack_exporting_title">بستہ برآمد ہو رہا ہے</string>
@@ -3396,8 +3394,6 @@
     <string name="video_editor_capture_frame">فریم نکالیں</string>
     <string name="video_editor_capture_frame_failed">یہ فریم حاصل نہیں ہو سکا</string>
     <string name="video_editor_extracting_frame">فریم نکالا جا رہا ہے…</string>
-    <string name="command_description_tg_export">Telegram برچسب بستہ برآمد کریں</string>
-    <string name="telegram_pack_has_been_downloaded">Telegram برچسب بستہ ڈاؤن لوڈ ہو گیا!</string>
     <string name="image_pack_import_telegram">Telegram سے درآمد کریں</string>
     <string name="image_pack_telegram_link_invalid">یہ Telegram برچسب بستے کا لنک نہیں لگتا</string>
     <string name="image_pack_telegram_up_to_date">%1$s پہلے ہی تازہ ترین ہے</string>
@@ -3412,4 +3408,13 @@
     <string name="image_pack_telegram_requires_kitkat">Telegram برچسب بستے درآمد کرنے کے لیے Android 4.4 یا اس سے نیا ورژن درکار ہے</string>
     <string name="image_pack_telegram_downloading">%1$s ڈاؤن لوڈ ہو رہا ہے… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">یہ برچسب تبدیل نہیں ہو سکے اور چھوڑ دیے گئے: %1$s</string>
+    <string name="command_description_tg_export">Telegram برچسب بستے برآمد کریں، ہر لنک کے لیے ایک zip</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="one">Telegram برچسب بستہ ڈاؤن لوڈ ہو گیا!</item>
+        <item quantity="other">%d Telegram برچسب بستے ڈاؤن لوڈ ہو گئے!</item>
+    </plurals>
+    <string name="image_pack_remove_image">بستے سے ہٹائیں</string>
+    <string name="image_pack_keep_image">بستے میں رکھیں</string>
+    <string name="image_pack_uploading_title">اپ لوڈ ہو رہا ہے</string>
+    <string name="image_pack_uploading">تصاویر اپ لوڈ ہو رہی ہیں… (%1$d/%2$d)</string>
 </resources>

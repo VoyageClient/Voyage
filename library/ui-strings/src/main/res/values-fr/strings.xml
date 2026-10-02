@@ -3051,8 +3051,6 @@
     <string name="image_pack_no_permission_room">Vous n’avez pas la permission de modifier les packs dans ce salon</string>
     <string name="image_pack_duplicate_shortcode">Code court « %1$s » en double : chaque code court d’un pack doit être unique</string>
     <string name="image_pack_import">Importer un pack</string>
-    <string name="image_pack_importing">Importation de %1$s… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">%1$s importé</string>
     <string name="image_pack_import_empty">Aucune image trouvée dans %1$s</string>
     <string name="image_pack_export">Exporter</string>
     <string name="image_pack_exporting_title">Exportation du pack</string>
@@ -3502,8 +3500,6 @@
     <string name="video_editor_capture_frame">Extraire l’image</string>
     <string name="video_editor_capture_frame_failed">Impossible de capturer cette image</string>
     <string name="video_editor_extracting_frame">Extraction de l’image…</string>
-    <string name="command_description_tg_export">Exporter un pack de stickers Telegram</string>
-    <string name="telegram_pack_has_been_downloaded">Le pack de stickers Telegram a été téléchargé !</string>
     <string name="image_pack_import_telegram">Importer depuis Telegram</string>
     <string name="image_pack_telegram_link_invalid">Ce lien ne semble pas être celui d’un pack de stickers Telegram</string>
     <string name="image_pack_telegram_up_to_date">%1$s est déjà à jour</string>
@@ -3518,4 +3514,13 @@
     <string name="image_pack_telegram_requires_kitkat">L’importation de packs de stickers Telegram nécessite Android 4.4 ou version ultérieure</string>
     <string name="image_pack_telegram_downloading">Téléchargement de %1$s… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">Ces stickers n’ont pas pu être convertis et ont été ignorés : %1$s</string>
+    <string name="command_description_tg_export">Exporter des packs de stickers Telegram, un zip par lien</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="one">Le pack de stickers Telegram a été téléchargé !</item>
+        <item quantity="other">%d packs de stickers Telegram ont été téléchargés !</item>
+    </plurals>
+    <string name="image_pack_remove_image">Retirer du pack</string>
+    <string name="image_pack_keep_image">Garder dans le pack</string>
+    <string name="image_pack_uploading_title">Envoi en cours</string>
+    <string name="image_pack_uploading">Envoi des images… (%1$d/%2$d)</string>
 </resources>

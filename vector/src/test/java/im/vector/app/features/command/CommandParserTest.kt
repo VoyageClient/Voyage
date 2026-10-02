@@ -38,8 +38,8 @@ class CommandParserTest {
 
     @Test
     fun parseTelegramPackDownloadCommand() {
-        test("/tgexport https://t.me/addstickers/AniColle", ParsedCommand.ExportTelegramPack("AniColle"))
-        test("/tgexport AniColle", ParsedCommand.ExportTelegramPack("AniColle"))
+        test("/tgexport https://t.me/addstickers/AniColle", ParsedCommand.ExportTelegramPack(listOf("AniColle")))
+        test("/tgexport AniColle", ParsedCommand.ExportTelegramPack(listOf("AniColle")))
         test("/tgexport", ParsedCommand.ErrorSyntax(Command.TG_EXPORT))
         test("/tgexport https://example.org/x", ParsedCommand.ErrorSyntax(Command.TG_EXPORT))
         val formatted = CommandParser(fakeVectorPreferences.instance).parseSlashCommand(
@@ -47,7 +47,16 @@ class CommandParserTest {
                 """/tgexport <a href="https://t.me/addstickers/AniColle">https://t.me/addstickers/AniColle</a>""",
                 false,
         )
-        formatted shouldBeEqualTo ParsedCommand.ExportTelegramPack("AniColle")
+        formatted shouldBeEqualTo ParsedCommand.ExportTelegramPack(listOf("AniColle"))
+    }
+
+    @Test
+    fun parseTelegramPackDownloadCommandWithSeveralLinks() {
+        test(
+                "/tgexport https://t.me/addstickers/AniColle\nt.me/addemoji/Foo, tg://addstickers?set=Bar AniColle",
+                ParsedCommand.ExportTelegramPack(listOf("AniColle", "Foo", "Bar")),
+        )
+        test("/tgexport https://t.me/addstickers/AniColle https://example.org/x", ParsedCommand.ErrorSyntax(Command.TG_EXPORT))
     }
 
     @Test

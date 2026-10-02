@@ -34,8 +34,8 @@ class ImagePackEditController @Inject constructor(
     // Hidden when the pack declares a single usage (the usage is then decided by the pack).
     var showUsageToggles: Boolean = true
 
-    // Shows a spinner where the picked image will land while its upload is in flight.
-    var uploading: Boolean = false
+    // Shows a spinner where picked files will land while they're read in.
+    var loading: Boolean = false
 
     // Current image order as shown (the drag helper reorders the models, not our backing list).
     fun currentOrderedImages(): List<EditableImage> =
@@ -51,18 +51,19 @@ class ImagePackEditController @Inject constructor(
                 // Stable id (object identity) so live shortcode edits don't recreate the row / lose focus.
                 id(System.identityHashCode(image).toLong())
                 image(image)
-                highlighted(image.importedHighlight)
+                highlighted(image.added)
+                removed(image.pendingRemoval)
                 editable(host.editable)
                 showUsageToggles(host.showUsageToggles)
-                resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
+                thumbSource(image.local?.file ?: contentUrlResolver?.resolveFullSize(image.mxcUrl))
                 onDeleteClick { host.listener?.onDeleteImage(image) }
                 onEdited { host.listener?.onImageEdited() }
             }
         }
 
-        if (uploading) {
+        if (loading) {
             loadingItem {
-                id("uploading")
+                id("loading")
             }
         }
 

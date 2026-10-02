@@ -3492,8 +3492,11 @@
     <string name="command_description_mass_redact">Redact messages from the given user in this room; type:all also redacts their other events</string>
     <string name="command_description_download">Download the file at the given mxc:// URL</string>
     <string name="command_description_view">Open the file at the given mxc:// URL</string>
-    <string name="command_description_tg_export">Export a Telegram sticker pack</string>
-    <string name="telegram_pack_has_been_downloaded">Telegram sticker pack has been downloaded!</string>
+    <string name="command_description_tg_export">Export Telegram sticker packs, one zip per link</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="one">Telegram sticker pack has been downloaded!</item>
+        <item quantity="other">%d Telegram sticker packs have been downloaded!</item>
+    </plurals>
     <string name="command_description_rawmsg">Send a message event with the given JSON content</string>
     <string name="command_description_raw">Send an event with the given JSON content</string>
     <string name="command_description_rawstate">Send a state event with the given JSON content</string>
@@ -3724,6 +3727,10 @@
     <string name="image_pack_create_title">Create Pack</string>
     <string name="image_pack_name_hint">Pack name</string>
     <string name="image_pack_add_image">Add to Pack</string>
+    <string name="image_pack_remove_image">Remove from pack</string>
+    <string name="image_pack_keep_image">Keep in pack</string>
+    <string name="image_pack_uploading_title">Uploading</string>
+    <string name="image_pack_uploading">Uploading images… (%1$d/%2$d)</string>
     <string name="notice_image_pack_added_by_you">You added an image pack</string>
     <string name="notice_image_pack_added">%1$s added an image pack</string>
     <string name="notice_image_pack_added_named_by_you">You added the image pack \"%1$s\"</string>
@@ -3753,8 +3760,6 @@
     <string name="image_pack_no_permission_room">You don\'t have permission to edit packs in this room</string>
     <string name="image_pack_duplicate_shortcode">Duplicate shortcode \"%1$s\": each shortcode in a pack must be unique</string>
     <string name="image_pack_import">Import Pack</string>
-    <string name="image_pack_importing">Importing %1$s… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">Imported %1$s</string>
     <string name="image_pack_import_empty">No images found in %1$s</string>
     <string name="image_pack_import_telegram">Import from Telegram</string>
     <string name="image_pack_telegram_link_invalid">That doesn\'t look like a Telegram sticker pack link</string>

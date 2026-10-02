@@ -12,11 +12,14 @@ import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 /** A pack image being edited. Mutable so inline edits (shortcode, usage) don't require a list rebind. */
 class EditableImage(
         var shortcode: String,
-        val mxcUrl: String,
+        // Null until a local image has been uploaded on Apply.
+        var mxcUrl: String?,
         var body: String?,
-        val info: ImageInfo?,
+        var info: ImageInfo?,
         var emoticon: Boolean,
         var sticker: Boolean,
-        // Added by a re-import and not yet applied.
-        var importedHighlight: Boolean = false,
+        val local: DraftImage? = null,
+        // Not in the pack as applied: shown highlighted until the next Apply.
+        var added: Boolean = false,
+        var pendingRemoval: Boolean = false,
 )

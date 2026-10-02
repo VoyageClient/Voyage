@@ -3119,8 +3119,6 @@
     <string name="image_pack_no_permission_room">אין לך הרשאה לערוך חבילות בחדר זה</string>
     <string name="image_pack_duplicate_shortcode">קוד קצר כפול \"%1$s\": כל קוד קצר בחבילה חייב להיות ייחודי</string>
     <string name="image_pack_import">ייבא חבילה</string>
-    <string name="image_pack_importing">מייבא את %1$s… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">%1$s יובא</string>
     <string name="image_pack_import_empty">לא נמצאו תמונות ב-%1$s</string>
     <string name="image_pack_export">ייצא</string>
     <string name="image_pack_exporting_title">מייצא חבילה</string>
@@ -3593,8 +3591,6 @@
     <string name="video_editor_capture_frame">חלץ פריים</string>
     <string name="video_editor_capture_frame_failed">לא ניתן היה לצלם פריים זה</string>
     <string name="video_editor_extracting_frame">מחלץ פריים…</string>
-    <string name="command_description_tg_export">ייצא חבילת מדבקות של Telegram</string>
-    <string name="telegram_pack_has_been_downloaded">חבילת המדבקות של Telegram הורדה!</string>
     <string name="image_pack_import_telegram">ייבא מ-Telegram</string>
     <string name="image_pack_telegram_link_invalid">זה לא נראה כמו קישור לחבילת מדבקות של Telegram</string>
     <string name="image_pack_telegram_up_to_date">%1$s כבר מעודכנת</string>
@@ -3609,4 +3605,15 @@
     <string name="image_pack_telegram_requires_kitkat">ייבוא חבילות מדבקות של Telegram דורש Android 4.4 ומעלה</string>
     <string name="image_pack_telegram_downloading">מוריד את %1$s… (%2$d/%3$d)</string>
     <string name="image_pack_telegram_skipped">לא ניתן היה להמיר את המדבקות האלה והן הושמטו: %1$s</string>
+    <string name="command_description_tg_export">ייצא חבילות מדבקות של Telegram, קובץ zip אחד לכל קישור</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="one">חבילת המדבקות של Telegram הורדה!</item>
+        <item quantity="two">%d חבילות מדבקות של Telegram הורדו!</item>
+        <item quantity="many">%d חבילות מדבקות של Telegram הורדו!</item>
+        <item quantity="other">%d חבילות מדבקות של Telegram הורדו!</item>
+    </plurals>
+    <string name="image_pack_remove_image">הסר מהחבילה</string>
+    <string name="image_pack_keep_image">השאר בחבילה</string>
+    <string name="image_pack_uploading_title">מעלה</string>
+    <string name="image_pack_uploading">מעלה תמונות… (%1$d/%2$d)</string>
 </resources>

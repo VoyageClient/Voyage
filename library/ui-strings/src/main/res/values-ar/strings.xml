@@ -3160,8 +3160,6 @@
     <string name="image_pack_no_permission_room">ليس لديك إذن بتحرير الحزم في هذه الغرفة</string>
     <string name="image_pack_duplicate_shortcode">الرمز المختصر ”%1$s“ مكرر: يجب أن يكون كل رمز مختصر في الحزمة فريدًا</string>
     <string name="image_pack_import">استورد حزمة</string>
-    <string name="image_pack_importing">يستورد %1$s… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">استُورد %1$s</string>
     <string name="image_pack_import_empty">لم يُعثر على صور في %1$s</string>
     <string name="image_pack_export">صدّر</string>
     <string name="image_pack_exporting_title">يصدّر الحزمة</string>
@@ -3643,8 +3641,6 @@
     <string name="video_editor_capture_frame">استخراج إطار</string>
     <string name="video_editor_capture_frame_failed">تعذّر التقاط هذا الإطار</string>
     <string name="video_editor_extracting_frame">جارٍ استخراج الإطار…</string>
-    <string name="command_description_tg_export">صدّر حزمة ملصقات من Telegram</string>
-    <string name="telegram_pack_has_been_downloaded">نُزّلت حزمة ملصقات Telegram!</string>
     <string name="image_pack_import_telegram">استورد من Telegram</string>
     <string name="image_pack_telegram_link_invalid">لا يبدو هذا رابطًا لحزمة ملصقات من Telegram</string>
     <string name="image_pack_telegram_up_to_date">%1$s محدّثة بالفعل</string>
@@ -3663,4 +3659,17 @@
     <string name="ssl_unexpected_existing_expl">تغيّرت الشهادة عن تلك التي كان هاتفك يثق بها. هذا أمر غير معتاد إطلاقًا. يُنصح بعدم قبول هذه الشهادة الجديدة.</string>
     <string name="ssl_only_accept">لا تقبل الشهادة إلا إذا نشر مدير الخادوم بصمةً تطابق البصمة أعلاه.</string>
     <string name="encryption_information_not_verified">غير مؤكّدة</string>
+    <string name="command_description_tg_export">صدّر حزم ملصقات Telegram، ملف zip لكل رابط</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="zero">لم تُنزَّل أي حزمة ملصقات Telegram</item>
+        <item quantity="one">نُزّلت حزمة ملصقات Telegram!</item>
+        <item quantity="two">نُزّلت حزمتا ملصقات Telegram!</item>
+        <item quantity="few">نُزّلت %d حزم ملصقات Telegram!</item>
+        <item quantity="many">نُزّلت %d حزمة ملصقات Telegram!</item>
+        <item quantity="other">نُزّلت %d حزمة ملصقات Telegram!</item>
+    </plurals>
+    <string name="image_pack_remove_image">أزل من الحزمة</string>
+    <string name="image_pack_keep_image">أبقِ في الحزمة</string>
+    <string name="image_pack_uploading_title">يرفع</string>
+    <string name="image_pack_uploading">يرفع الصور… (%1$d/%2$d)</string>
 </resources>

@@ -2995,8 +2995,6 @@
     <string name="image_pack_no_permission_room">您沒有在此聊天室中編輯圖片包的權限</string>
     <string name="image_pack_duplicate_shortcode">短代碼「%1$s」重複：圖片包中的每個短代碼都必須是唯一的</string>
     <string name="image_pack_import">匯入圖片包</string>
-    <string name="image_pack_importing">正在匯入 %1$s…（%2$d/%3$d）</string>
-    <string name="image_pack_import_done">已匯入 %1$s</string>
     <string name="image_pack_import_empty">在 %1$s 中找不到圖片</string>
     <string name="image_pack_export">匯出</string>
     <string name="image_pack_exporting_title">正在匯出圖片包</string>
@@ -3440,8 +3438,6 @@
     <string name="video_editor_capture_frame">擷取影格</string>
     <string name="video_editor_capture_frame_failed">無法擷取此影格</string>
     <string name="video_editor_extracting_frame">正在擷取影格…</string>
-    <string name="command_description_tg_export">匯出 Telegram 貼圖包</string>
-    <string name="telegram_pack_has_been_downloaded">Telegram 貼圖包已下載！</string>
     <string name="image_pack_import_telegram">從 Telegram 匯入</string>
     <string name="image_pack_telegram_link_invalid">這看起來不像 Telegram 貼圖包連結</string>
     <string name="image_pack_telegram_up_to_date">%1$s 已是最新版本</string>
@@ -3457,4 +3453,12 @@
     <string name="image_pack_telegram_downloading">正在下載 %1$s…（%2$d/%3$d）</string>
     <string name="image_pack_telegram_skipped">以下貼圖無法轉換，已略過：%1$s</string>
     <string name="deactivate_account_delete_checkbox">請在停用我的帳號時刪除我傳送過的所有訊息（警告：未來的使用者將無法看見完整的對話紀錄）</string>
+    <string name="command_description_tg_export">匯出 Telegram 貼圖包，每個連結一個 zip</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="other">已下載 %d 個 Telegram 貼圖包！</item>
+    </plurals>
+    <string name="image_pack_remove_image">從圖片包移除</string>
+    <string name="image_pack_keep_image">保留在圖片包中</string>
+    <string name="image_pack_uploading_title">正在上傳</string>
+    <string name="image_pack_uploading">正在上傳圖片… (%1$d/%2$d)</string>
 </resources>

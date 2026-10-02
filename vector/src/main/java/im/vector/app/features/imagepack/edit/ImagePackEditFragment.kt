@@ -10,7 +10,6 @@ package im.vector.app.features.imagepack.edit
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -103,6 +102,9 @@ class ImagePackEditFragment :
     private var packAvatarUrl: String?
         get() = editViewModel.packAvatarUrl
         set(value) { editViewModel.packAvatarUrl = value }
+    private var packAvatarDraft: DraftImage?
+        get() = editViewModel.packAvatarDraft
+        set(value) { editViewModel.packAvatarDraft = value }
 
     // False for the create flow (no state event yet) — nothing to delete, so hide the trashcan.
     private var packExists: Boolean
@@ -142,8 +144,8 @@ class ImagePackEditFragment :
         if (firstLoad) {
             loadExisting()
             initialContent = buildContent()
-            // After the snapshot, so the additions count as unsaved changes.
-            pageArgs.importedAdditions?.let { appendImportedAdditions(it) }
+            // After the snapshot, so the draft counts as unsaved changes.
+            pageArgs.draft?.let { applyDraft(it) }
             editViewModel.loaded = true
         }
         (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(
@@ -188,6 +190,7 @@ class ImagePackEditFragment :
         }
         views.imagePackAvatarDelete.setOnClickListener {
             packAvatarUrl = null
+            packAvatarDraft = null
             renderAvatar()
             requireActivity().invalidateOptionsMenu()
         }
@@ -200,9 +203,12 @@ class ImagePackEditFragment :
     private fun renderAvatar() {
         val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
         // When no avatar is set, fall back to the pack's first image — pickers auto-use it as the avatar.
-        val explicit = packAvatarUrl != null
-        val mxc = packAvatarUrl ?: images.firstOrNull()?.mxcUrl
-        val resolved = mxc?.let { contentUrlResolver?.resolveFullSize(it) }
+        val explicit = packAvatarDraft != null || packAvatarUrl != null
+        val firstImage = images.firstOrNull { !it.pendingRemoval }
+        val resolved: Any? = packAvatarDraft?.file
+                ?: packAvatarUrl?.let { contentUrlResolver?.resolveFullSize(it) }
+                ?: firstImage?.local?.file
+                ?: firstImage?.mxcUrl?.let { contentUrlResolver?.resolveFullSize(it) }
         if (resolved != null) {
             androidx.core.widget.ImageViewCompat.setImageTintList(views.imagePackAvatarImage, null)
             // optionalTransform, NOT transform: Glide can't snapshot Animatable drawables (WebP/APNG), so a
@@ -227,26 +233,27 @@ class ImagePackEditFragment :
 
     override fun onImageReady(uri: Uri?) {
         uri ?: return
-        // Without a mime the server stores the avatar as octet-stream and can't thumbnail it (blank
-        // avatar), so fall back to the extension when the resolver has no type for the uri.
-        val mimeType = requireContext().contentResolver.getType(uri)
-                ?: android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                        android.webkit.MimeTypeMap.getFileExtensionFromUrl(uri.toString()))
-                ?: "image/png"
         lifecycleScope.launch {
-            val mxcUrl = try {
-                repository.uploadImage(uri, null, mimeType)
+            val avatar = try {
+                archiver.copyPickedImage(uri, localDir())
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (failure: Throwable) {
                 if (isAdded) showFailure(failure)
                 return@launch
             }
-            packAvatarUrl = mxcUrl
+            packAvatarDraft = avatar
+            if (view == null) return@launch
             renderAvatar()
-            activity?.invalidateOptionsMenu()
+            requireActivity().invalidateOptionsMenu()
         }
     }
+
+    private fun localDir(): File =
+            editViewModel.localDir ?: newDraftDir(requireContext()).also {
+                editViewModel.localDir = it
+                editViewModel.draftDirs += it
+            }
 
     override fun getMenuRes() = R.menu.menu_image_pack_edit
 
@@ -272,7 +279,7 @@ class ImagePackEditFragment :
         }
         menu.findItem(R.id.imagePackMenuExport)?.apply {
             // Read-only viewers can export too; hidden until the pack has actually been created (and has images).
-            isVisible = !exporting && packExists && images.isNotEmpty()
+            isVisible = !exporting && packExists && images.any { !it.pendingRemoval }
             icon?.mutate()?.let { DrawableCompat.setTint(it, enabledTint) }
         }
         menu.findItem(R.id.imagePackMenuType)?.apply {
@@ -374,11 +381,11 @@ class ImagePackEditFragment :
 
     private fun runExport(write: suspend (File) -> Unit, onAbort: () -> Unit = {}) {
         if (exportJob?.isActive == true) return
-        val exportImages = images.toList()
+        val exportImages = images.filter { !it.pendingRemoval }
         showExportScreen(exportImages.size)
         exportJob = lifecycleScope.launch {
             try {
-                val result = archiver.exportPack(exportName(), exportImages, packUsage, packAvatarUrl) { done, total ->
+                val result = archiver.exportPack(exportName(), exportImages, packUsage, packAvatarUrl, packAvatarDraft?.file) { done, total ->
                     // Progress arrives on IO; hop to main for the view.
                     lifecycleScope.launch {
                         if (view != null) views.imagePackExportProgress.text = getString(CommonStrings.image_pack_exporting, done, total)
@@ -449,7 +456,8 @@ class ImagePackEditFragment :
     // buildContent via isDirty on every menu invalidation).
     private val supportsPerImageUsage: Boolean by lazy {
         val roomId = pageArgs.roomId ?: return@lazy true
-        repository.isRoomPackLegacy(roomId, pageArgs.stateKey)
+        // A drafted pack whose images differ in usage will be written with the legacy id.
+        pageArgs.draft?.perImageUsage == true || repository.isRoomPackLegacy(roomId, pageArgs.stateKey)
     }
 
     private fun applyEditable() {
@@ -498,141 +506,97 @@ class ImagePackEditFragment :
         }
     }
 
-    private fun appendImportedAdditions(additions: ImportedAdditions) {
+    private fun applyDraft(draft: PackDraft) {
+        editViewModel.draftDirs += File(draft.dir)
+        if (!packExists) {
+            draft.packName?.let { packName = it }
+            draft.avatar?.let { packAvatarDraft = it }
+            draft.usage?.let { packUsage = it }
+            editViewModel.forceLegacy = draft.perImageUsage
+        }
+        draft.telegramSet?.let {
+            editViewModel.telegramSet = it
+            editViewModel.telegramStickers = draft.telegramStickers
+        }
+        appendDrafts(draft.images, draft.telegramOrder)
+    }
+
+    // With [telegramOrder], re-added stickers go back to their place in the set; anything else is appended.
+    private fun appendDrafts(drafts: List<DraftImage>, telegramOrder: List<String> = emptyList()) {
         val used = images.map { it.shortcode }.toMutableSet()
-        val telegramIndexByUrl = additions.telegramOrder.withIndex()
-                .mapNotNull { (index, uniqueId) -> additions.telegramStickers[uniqueId]?.let { it to index } }
-                .toMap()
-        additions.images.sortedBy { it.telegramIndex }.forEach { added ->
-            var shortcode = added.shortcode
+        val telegramIndexByImage = HashMap<EditableImage, Int>()
+        if (telegramOrder.isNotEmpty()) {
+            val indexByUrl = telegramOrder.withIndex()
+                    .mapNotNull { (index, uniqueId) -> editViewModel.telegramStickers[uniqueId]?.let { it to index } }
+                    .toMap()
+            images.forEach { image -> image.mxcUrl?.let { indexByUrl[it] }?.let { telegramIndexByImage[image] = it } }
+        }
+        val ordered = if (telegramOrder.isNotEmpty()) drafts.sortedBy { it.telegramIndex } else drafts
+        ordered.forEach { draft ->
+            var shortcode = draft.shortcode
             var suffix = 2
-            while (!used.add(shortcode)) shortcode = "${added.shortcode}_${suffix++}"
+            while (!used.add(shortcode)) shortcode = "${draft.shortcode}_${suffix++}"
             val image = EditableImage(
                     shortcode = shortcode,
-                    mxcUrl = added.mxcUrl,
-                    body = added.body,
-                    info = ImageInfo(mimeType = added.mimeType, width = added.width, height = added.height, size = added.size),
-                    emoticon = true,
-                    sticker = true,
-                    importedHighlight = true,
+                    mxcUrl = null,
+                    body = shortcode,
+                    info = ImageInfo(mimeType = draft.mimeType, width = draft.width, height = draft.height, size = draft.file.length()),
+                    emoticon = draft.emoticon,
+                    sticker = draft.sticker,
+                    local = draft,
+                    added = true,
             )
-            images.add(TelegramMarker.insertionIndex(images.map { it.mxcUrl }, telegramIndexByUrl, added.telegramIndex), image)
+            if (telegramOrder.isNotEmpty() && draft.telegramIndex >= 0) {
+                images.add(TelegramMarker.insertionIndex(images, telegramIndexByImage, draft.telegramIndex), image)
+                telegramIndexByImage[image] = draft.telegramIndex
+            } else {
+                images += image
+            }
         }
-        editViewModel.extraTopLevel = TelegramMarker.toTopLevel(additions.telegramSet, additions.telegramStickers)
     }
 
-    private var uploadJob: Job? = null
-    private val pendingUploads = ArrayDeque<Uri>()
+    private var pickJob: Job? = null
+    private val pendingPicks = ArrayDeque<Uri>()
 
-    // Uploads run in parallel (bounded), but a finished image is only appended once every
-    // earlier-selected one has been (prefix flush) — so the list order is the selection order,
-    // not upload-completion luck. Images picked mid-batch queue up for the next batch.
+    // Copied in on the device, in selection order; a zip contributes all of its images.
     private fun onImagesPicked(uris: List<Uri>) {
-        pendingUploads.addAll(uris)
-        if (uploadJob?.isActive == true) return
-        uploadJob = lifecycleScope.launch {
-            controller.uploading = true
+        pendingPicks.addAll(uris)
+        if (pickJob?.isActive == true) return
+        pickJob = lifecycleScope.launch {
+            controller.loading = true
             refresh()
             var firstFailure: Throwable? = null
-            while (pendingUploads.isNotEmpty()) {
-                val batch = pendingUploads.toList()
-                pendingUploads.clear()
-                val results = arrayOfNulls<EditableImage>(batch.size)
-                val completed = BooleanArray(batch.size)
-                var flushed = 0
-                val semaphore = Semaphore(UPLOAD_PARALLELISM)
-                coroutineScope {
-                    batch.forEachIndexed { index, uri ->
-                        launch {
-                            semaphore.withPermit {
-                                // Failures don't cancel the batch: record the first, skip the image.
-                                results[index] = try {
-                                    uploadOneImage(uri)
-                                } catch (cancellation: CancellationException) {
-                                    throw cancellation
-                                } catch (failure: Throwable) {
-                                    if (firstFailure == null) firstFailure = failure
-                                    null
-                                }
-                                // All state mutation happens on the main dispatcher — no locking needed.
-                                completed[index] = true
-                                while (flushed < batch.size && completed[flushed]) {
-                                    results[flushed]?.let { images += it }
-                                    flushed++
-                                }
-                                refresh()
-                                activity?.invalidateOptionsMenu()
-                            }
-                        }
+            while (pendingPicks.isNotEmpty()) {
+                val uri = pendingPicks.removeFirst()
+                try {
+                    if (isZip(uri)) {
+                        val draft = archiver.extractDraft(uri)
+                        editViewModel.draftDirs += File(draft.dir)
+                        appendDrafts(draft.images)
+                    } else {
+                        appendDrafts(listOf(archiver.copyPickedImage(uri, localDir())))
                     }
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (failure: Throwable) {
+                    if (firstFailure == null) firstFailure = failure
+                }
+                if (view != null) {
+                    refresh()
+                    requireActivity().invalidateOptionsMenu()
                 }
             }
-            controller.uploading = false
+            controller.loading = false
+            if (view == null) return@launch
             refresh()
-            activity?.invalidateOptionsMenu()
-            // Don't touch the UI if the user backed out mid-upload (fragment detached).
-            firstFailure?.let { if (isAdded) showFailure(it) }
+            requireActivity().invalidateOptionsMenu()
+            firstFailure?.let { showFailure(it) }
         }
     }
 
-    private suspend fun uploadOneImage(uri: Uri): EditableImage {
+    private fun isZip(uri: Uri): Boolean {
         val mimeType = requireContext().contentResolver.getType(uri)
-        val shortcode = shortcodeFromFileName(uri)
-        var compressedTemp: File? = null
-        try {
-            val (uploadUri, uploadMime) = withContext(Dispatchers.IO) { compressForUpload(uri, mimeType) }
-            // compressForUpload returns a file:// temp distinct from the content:// source; clean it up after.
-            compressedTemp = uploadUri.takeIf { it != uri && it.scheme == "file" }?.path?.let { File(it) }
-            val info = withContext(Dispatchers.IO) { computeImageInfo(uploadUri, uploadMime) }
-            val mxcUrl = repository.uploadImageWithRetry(uploadUri, null, uploadMime)
-            return EditableImage(
-                    shortcode = shortcode,
-                    mxcUrl = mxcUrl,
-                    body = shortcode,
-                    info = info,
-                    emoticon = true,
-                    sticker = true,
-            )
-        } finally {
-            compressedTemp?.let { runCatching { it.delete() } }
-        }
-    }
-
-    // Derive a valid shortcode from the picked file's name (strip extension, keep [A-Za-z0-9_-]).
-    private fun shortcodeFromFileName(uri: Uri): String {
-        val displayName = requireContext().queryDisplayName(uri)
-        return sanitizeShortcode(displayName?.substringBeforeLast('.').orEmpty())
-    }
-
-    // Decode the image's real dimensions and size; omit (0) any value we can't determine.
-    // Always compress before upload via the SDK compressor (handles animated GIF/APNG/WebP as well as static
-    // formats, downscaling within COMPRESS_MAX_DIMENSION and keeping the smaller of source/re-encode).
-    private suspend fun compressForUpload(uri: Uri, mimeType: String?): Pair<Uri, String?> {
-        return try {
-            repository.compressImage(uri, mimeType, COMPRESS_MAX_DIMENSION)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (failure: Throwable) {
-            // Fall back to the original on compression failure rather than blocking the upload.
-            uri to mimeType
-        }
-    }
-
-    private fun computeImageInfo(uri: Uri, mimeType: String?): ImageInfo {
-        var width = 0
-        var height = 0
-        runCatching {
-            requireContext().contentResolver.openInputStream(uri)?.use { input ->
-                val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeStream(input, null, opts)
-                width = opts.outWidth.coerceAtLeast(0)
-                height = opts.outHeight.coerceAtLeast(0)
-            }
-        }
-        val size = runCatching {
-            requireContext().contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length.takeIf { l -> l >= 0 } ?: 0L } ?: 0L
-        }.getOrDefault(0L)
-        return ImageInfo(mimeType = mimeType, width = width, height = height, size = size)
+        return mimeType in ZIP_MIME_TYPES || requireContext().queryDisplayName(uri)?.endsWith(".zip", ignoreCase = true) == true
     }
 
     private fun confirmDeletePack() {
@@ -663,7 +627,7 @@ class ImagePackEditFragment :
     }
 
     private fun canApply(): Boolean {
-        if (saveJob?.isActive == true || !isDirty()) return false
+        if (saveJob?.isActive == true || pickJob?.isActive == true || !isDirty()) return false
         if (pageArgs.roomId == null) return true
         // New packs must be named. A pack another client created unnamed stays editable and saveable
         // unnamed (its display falls back to the room name per MSC2545) — but clearing the name of a
@@ -682,7 +646,7 @@ class ImagePackEditFragment :
             showErrorInSnackbar(IllegalStateException(getString(CommonStrings.image_pack_no_permission_room)))
             return
         }
-        val duplicate = images.filter { it.shortcode.isNotBlank() }
+        val duplicate = images.filter { !it.pendingRemoval && it.shortcode.isNotBlank() }
                 .groupBy { it.shortcode }
                 .entries.firstOrNull { it.value.size > 1 }
                 ?.key
@@ -690,14 +654,24 @@ class ImagePackEditFragment :
             showErrorInSnackbar(IllegalStateException(getString(CommonStrings.image_pack_duplicate_shortcode, duplicate)))
             return
         }
-        val content = buildContent()
         saveJob = lifecycleScope.launch {
             try {
+                uploadLocalImages()
+                val content = buildContent()
+                val telegramStickers = telegramStickersToSave()
                 if (roomId == null) {
                     repository.saveAccountPack(content, includeUsage = true)
                 } else {
-                    repository.saveRoomPack(roomId, pageArgs.stateKey, content, includeUsage = true, extraTopLevel = editViewModel.extraTopLevel)
+                    repository.saveRoomPack(
+                            roomId,
+                            pageArgs.stateKey,
+                            content,
+                            includeUsage = true,
+                            forceLegacy = editViewModel.forceLegacy,
+                            extraTopLevel = editViewModel.telegramSet?.let { TelegramMarker.toTopLevel(it, telegramStickers) },
+                    )
                 }
+                editViewModel.telegramStickers = telegramStickers
                 if (finishAfter) {
                     activity?.finish()
                 } else if (view != null) {
@@ -714,24 +688,93 @@ class ImagePackEditFragment :
         requireActivity().invalidateOptionsMenu()
     }
 
+    // Uploads whatever is still only on the device. Images that made it keep their url, so a retry after a
+    // partial failure only re-sends the rest.
+    private suspend fun uploadLocalImages() {
+        val pending = images.filter { !it.pendingRemoval && it.mxcUrl == null && it.local != null }
+        val avatar = packAvatarDraft
+        val total = pending.size + if (avatar != null) 1 else 0
+        if (total == 0) return
+        val dialog = ImagePackProgressDialog(requireContext(), CommonStrings.image_pack_uploading_title) { saveJob?.cancel() }
+        try {
+            var done = 0
+            dialog.update(getString(CommonStrings.image_pack_uploading, done, total), done, total)
+            val onDone = {
+                done++
+                dialog.update(getString(CommonStrings.image_pack_uploading, done, total), done, total)
+            }
+            var firstFailure: Throwable? = null
+            val semaphore = Semaphore(UPLOAD_PARALLELISM)
+            coroutineScope {
+                pending.forEach { image ->
+                    launch {
+                        semaphore.withPermit {
+                            val local = image.local ?: return@withPermit
+                            try {
+                                val uploaded = archiver.uploadImageFile(
+                                        local.file,
+                                        local.mimeType,
+                                        image.shortcode,
+                                        body = image.body,
+                                        compress = local.compress,
+                                        knownSize = (local.width to local.height).takeIf { local.width > 0 && local.height > 0 },
+                                )
+                                image.mxcUrl = uploaded.url
+                                uploaded.info?.let { image.info = it }
+                            } catch (cancellation: CancellationException) {
+                                throw cancellation
+                            } catch (failure: Throwable) {
+                                if (firstFailure == null) firstFailure = failure
+                            }
+                            onDone()
+                        }
+                    }
+                }
+            }
+            firstFailure?.let { throw it }
+            if (avatar != null) {
+                // A zip's icon can be one of its images, which then needs no second upload.
+                packAvatarUrl = images.firstOrNull { it.local?.path == avatar.path }?.mxcUrl
+                        ?: archiver.uploadImageFile(avatar.file, avatar.mimeType, "pack_icon", body = null, compress = avatar.compress).url
+                packAvatarDraft = null
+                onDone()
+            }
+        } finally {
+            dialog.dismiss()
+        }
+    }
+
+    private fun telegramStickersToSave(): Map<String, String> {
+        val stickers = HashMap(editViewModel.telegramStickers)
+        images.forEach { image ->
+            val uniqueId = image.local?.telegramUniqueId ?: return@forEach
+            val url = image.mxcUrl ?: return@forEach
+            if (!image.pendingRemoval) stickers[uniqueId] = url
+        }
+        return stickers
+    }
+
     private fun onSaved(saved: ImagePackContent) {
         packExists = true
         initialContent = saved
         (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(CommonStrings.image_pack_edit_title)
-        images.forEach { it.importedHighlight = false }
+        images.removeAll { it.pendingRemoval }
+        images.forEach { it.added = false }
+        renderAvatar()
         refresh()
     }
 
     private fun buildContent(): ImagePackContent {
-        val imageMap = images.filter { it.shortcode.isNotBlank() }.associate { editable ->
+        val imageMap = images.filter { !it.pendingRemoval && it.shortcode.isNotBlank() }.mapNotNull { editable ->
+            val url = editable.mxcUrl ?: return@mapNotNull null
             editable.shortcode to ImagePackImage(
-                    url = editable.mxcUrl,
+                    url = url,
                     body = editable.body,
                     // Don't persist fabricated zero dimensions.
                     info = editable.info?.takeIf { it.width > 0 && it.height > 0 },
                     usage = usageList(editable),
             )
-        }
+        }.toMap()
         return ImagePackContent(
                 // The server hands the map back with its keys sorted, so the on-screen order must be explicit.
                 images = imageMap.withSequentialOrder(),
@@ -785,11 +828,16 @@ class ImagePackEditFragment :
     private fun refresh() {
         controller.setData(images)
         // The unset-avatar placeholder follows the pack's first image.
-        if (packAvatarUrl == null) renderAvatar()
+        if (packAvatarUrl == null && packAvatarDraft == null) renderAvatar()
     }
 
+    // Something added in this session just goes; anything already in the pack is marked and only goes on Apply.
     override fun onDeleteImage(image: EditableImage) {
-        images.remove(image)
+        if (image.added) {
+            images.remove(image)
+        } else {
+            image.pendingRemoval = !image.pendingRemoval
+        }
         refresh()
         requireActivity().invalidateOptionsMenu()
     }
@@ -797,9 +845,14 @@ class ImagePackEditFragment :
     override fun onAddImage() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
-                .setType("image/*")
                 .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent.setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*") + ZIP_MIME_TYPES)
+        } else {
+            // No multi-type filter before KitKat; anything that isn't an image or zip fails to load and is reported.
+            intent.setType("*/*")
+        }
         pickImagesLauncher.launch(intent)
     }
 
@@ -810,7 +863,9 @@ class ImagePackEditFragment :
     private fun isDirty(): Boolean {
         if (!pageArgs.canEdit) return false
         // A pure reorder changes the images' MSC4389 order values, so content equality covers it.
-        return buildContent() != initialContent
+        return packAvatarDraft != null ||
+                images.any { it.pendingRemoval || it.mxcUrl == null } ||
+                buildContent() != initialContent
     }
 
     override fun onBackPressed(toolbarButton: Boolean): Boolean {
@@ -823,19 +878,19 @@ class ImagePackEditFragment :
                     .show()
             return true
         }
-        val uploading = uploadJob?.isActive == true
-        if (!isDirty() && !uploading) return false
+        val picking = pickJob?.isActive == true
+        if (!isDirty() && !picking) return false
         MaterialAlertDialogBuilder(requireContext())
                 .setTitle(CommonStrings.image_pack_unsaved_title)
                 .setMessage(CommonStrings.image_pack_unsaved_message)
                 .apply {
-                    // "Apply" only when there are committed, saveable changes (named pack, no upload in flight).
-                    if (canApply() && !uploading) {
+                    // "Apply" only when there are saveable changes (named pack, nothing still being read in).
+                    if (canApply()) {
                         setPositiveButton(CommonStrings.image_pack_apply) { _, _ -> save(finishAfter = true) }
                     }
                 }
                 .setNegativeButton(CommonStrings.image_pack_unsaved_discard) { _, _ ->
-                    uploadJob?.cancel()
+                    pickJob?.cancel()
                     activity?.finish()
                 }
                 .setNeutralButton(CommonStrings.action_cancel, null)
@@ -844,7 +899,7 @@ class ImagePackEditFragment :
     }
 
     companion object {
-        private const val COMPRESS_MAX_DIMENSION = 1024
         private const val UPLOAD_PARALLELISM = 10
+        private val ZIP_MIME_TYPES = arrayOf("application/zip", "application/x-zip-compressed")
     }
 }

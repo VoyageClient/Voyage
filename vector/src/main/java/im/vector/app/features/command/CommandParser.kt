@@ -578,11 +578,14 @@ class CommandParser @Inject constructor(
                     }
                 }
                 Command.TG_EXPORT.matches(slashCommand) -> {
-                    // Markdown may have turned the link into an <a> in the formatted body; the plain text never is.
-                    val plainArgument = textMessage.toString().trim().split(Regex("\\s+"), limit = 2).getOrNull(1)
-                    (TelegramLinks.parseSetName(message) ?: TelegramLinks.parseSetName(plainArgument))
-                            ?.let { ParsedCommand.ExportTelegramPack(setName = it) }
-                            ?: ParsedCommand.ErrorSyntax(Command.TG_EXPORT)
+                    // Markdown may have turned the links into <a>s in the formatted body; the plain text never is.
+                    val arguments = textMessage.toString().trim().split(Regex("[\\s,]+")).drop(1).filter { it.isNotEmpty() }
+                    val setNames = arguments.map { TelegramLinks.parseSetName(it) }
+                    if (setNames.isNotEmpty() && setNames.none { it == null }) {
+                        ParsedCommand.ExportTelegramPack(setNames = setNames.filterNotNull().distinctBy { it.lowercase() })
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.TG_EXPORT)
+                    }
                 }
                 Command.VIEW.matches(slashCommand) -> {
                     val url = message.toString().trim()

@@ -44,6 +44,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Provider
@@ -242,62 +243,80 @@ class ImagePackListFragment :
             } finally {
                 dialog.dismiss()
             }
-            if (result == null || !isAdded) return@launch
+            if (result == null) return@launch
+            if (!isAdded) {
+                (result as? TelegramPackImporter.Result.Draft)?.let { File(it.draft.dir).deleteRecursively() }
+                return@launch
+            }
             when (result) {
-                is TelegramPackImporter.Result.Created ->
-                    requireContext().toast(getString(CommonStrings.image_pack_import_done, result.packName))
                 is TelegramPackImporter.Result.UpToDate ->
                     requireContext().toast(getString(CommonStrings.image_pack_telegram_up_to_date, result.packName))
-                is TelegramPackImporter.Result.Additions -> startActivity(
-                        ImagePackEditActivity.newIntent(
-                                requireContext(),
-                                roomId = roomId,
-                                stateKey = result.stateKey,
-                                canEdit = true,
-                                displayName = result.packName,
-                                importedAdditions = result.additions,
-                        )
-                )
-            }
-            if (result.skipped.isNotEmpty()) {
-                MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(CommonStrings.image_pack_import_telegram)
-                        .setMessage(getString(CommonStrings.image_pack_telegram_skipped, result.skipped.joinToString(", ")))
-                        .setPositiveButton(CommonStrings.ok, null)
-                        .show()
+                is TelegramPackImporter.Result.Draft -> {
+                    startActivity(
+                            ImagePackEditActivity.newIntent(
+                                    requireContext(),
+                                    roomId = roomId,
+                                    stateKey = result.stateKey,
+                                    canEdit = true,
+                                    displayName = result.packName,
+                                    draft = result.draft,
+                            )
+                    )
+                    if (result.skipped.isNotEmpty()) {
+                        MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(CommonStrings.image_pack_import_telegram)
+                                .setMessage(getString(CommonStrings.image_pack_telegram_skipped, result.skipped.joinToString(", ")))
+                                .setPositiveButton(CommonStrings.ok, null)
+                                .show()
+                    }
+                }
             }
         }
     }
 
     private var importJob: Job? = null
 
-    // Zips are processed one at a time, in selection order, so the packs land in that order too.
+    // Each zip opens as an unsaved pack; the first selected ends up on top.
     private fun importZips(uris: List<Uri>) {
         val roomId = listArgs.roomId ?: return
         if (importJob?.isActive == true) return
         val dialog = ImagePackProgressDialog(requireContext(), CommonStrings.image_pack_import) { importJob?.cancel() }
         importJob = lifecycleScope.launch {
-            val imported = mutableListOf<String>()
+            val drafts = mutableListOf<PackDraft>()
             var firstFailure: Throwable? = null
             try {
                 uris.forEach { uri ->
                     try {
-                        archiver.importPack(uri, roomId) { name, done, total ->
-                            dialog.update(getString(CommonStrings.image_pack_importing, name, done, total), done, total)
-                        }?.let { imported += it }
+                        drafts += archiver.extractDraft(uri)
                     } catch (cancellation: kotlinx.coroutines.CancellationException) {
                         throw cancellation
                     } catch (failure: Throwable) {
                         if (firstFailure == null) firstFailure = failure
                     }
                 }
+            } catch (cancellation: kotlinx.coroutines.CancellationException) {
+                drafts.forEach { File(it.dir).deleteRecursively() }
+                throw cancellation
             } finally {
                 dialog.dismiss()
             }
-            if (!isAdded) return@launch
+            if (!isAdded) {
+                drafts.forEach { File(it.dir).deleteRecursively() }
+                return@launch
+            }
             firstFailure?.let { showFailure(it) }
-            if (imported.isNotEmpty()) {
-                requireContext().toast(getString(CommonStrings.image_pack_import_done, imported.joinToString(", ")))
+            if (drafts.isNotEmpty()) {
+                val intents = drafts.reversed().map { draft ->
+                    ImagePackEditActivity.newIntent(
+                            requireContext(),
+                            roomId = roomId,
+                            stateKey = UUID.randomUUID().toString(),
+                            canEdit = true,
+                            displayName = draft.packName,
+                            draft = draft,
+                    )
+                }
+                requireActivity().startActivities(intents.toTypedArray())
             }
         }
     }

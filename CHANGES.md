@@ -132,9 +132,9 @@ New features, improvements, and notable removals in this fork.
 
 - **Faster sending for large videos**: a video sent at original size is rewritten in a single pass straight from the source instead of being copied and then rewritten in full.
 
-- **Custom emoticons & stickers (MSC2545 image packs)**: send custom emoji and stickers, author your own packs, import and export them as Misskey-style zip archives, react with emoticons, and use them in your profile biography.
+- **Custom emoticons & stickers (MSC2545 image packs)**: send custom emoji and stickers, author your own packs (merging in other packs' zips), import and export them as Misskey-style zip archives, react with emoticons, and use them in your profile biography.
 
-- **Telegram sticker packs**: import Telegram sticker packs into a room, or save one as a zip with `/tgexport`.
+- **Telegram sticker packs**: import Telegram sticker packs into a room, or save any number of them as zips with `/tgexport`.
 
 - **SchildiChat themes & message bubbles**: SchildiChat Light/Dark/Black themes and opt-in message bubbles (None / Both sides / Same side) with configurable corner roundness, an optional tail, and accent tinting of your own bubbles. Timestamps sit inline in the bubble and overlay images and videos.
 

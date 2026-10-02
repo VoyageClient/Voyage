@@ -2993,8 +2993,6 @@
     <string name="image_pack_no_permission_room">你无权编辑此房间中的图片包</string>
     <string name="image_pack_duplicate_shortcode">短代码“%1$s”重复：图片包中的每个短代码必须唯一</string>
     <string name="image_pack_import">导入图片包</string>
-    <string name="image_pack_importing">正在导入 %1$s…（%2$d/%3$d）</string>
-    <string name="image_pack_import_done">已导入 %1$s</string>
     <string name="image_pack_import_empty">在 %1$s 中未找到图片</string>
     <string name="image_pack_export">导出</string>
     <string name="image_pack_exporting_title">正在导出图片包</string>
@@ -3438,8 +3436,6 @@
     <string name="video_editor_capture_frame">提取帧</string>
     <string name="video_editor_capture_frame_failed">无法截取此帧</string>
     <string name="video_editor_extracting_frame">正在提取帧…</string>
-    <string name="command_description_tg_export">导出 Telegram 贴纸包</string>
-    <string name="telegram_pack_has_been_downloaded">Telegram 贴纸包已下载！</string>
     <string name="image_pack_import_telegram">从 Telegram 导入</string>
     <string name="image_pack_telegram_link_invalid">这看起来不是 Telegram 贴纸包链接</string>
     <string name="image_pack_telegram_up_to_date">%1$s 已是最新</string>
@@ -3455,4 +3451,12 @@
     <string name="image_pack_telegram_downloading">正在下载 %1$s…（%2$d/%3$d）</string>
     <string name="image_pack_telegram_skipped">以下贴纸无法转换，已被略过：%1$s</string>
     <string name="settings_troubleshoot_test_bg_restricted_failed">已启用对 ${app_name} 的后台限制。\n应用在后台时尝试进行的工作将被严格限制，这可能会影响消息通知。\n%1$s</string>
+    <string name="command_description_tg_export">导出 Telegram 贴纸包，每个链接一个 zip</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="other">已下载 %d 个 Telegram 贴纸包！</item>
+    </plurals>
+    <string name="image_pack_remove_image">从图片包中移除</string>
+    <string name="image_pack_keep_image">保留在图片包中</string>
+    <string name="image_pack_uploading_title">正在上传</string>
+    <string name="image_pack_uploading">正在上传图片… (%1$d/%2$d)</string>
 </resources>

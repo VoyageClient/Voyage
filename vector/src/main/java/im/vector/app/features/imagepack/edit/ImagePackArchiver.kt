@@ -29,11 +29,8 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackImage
-import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackMeta
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
-import org.matrix.android.sdk.api.session.room.model.imagepack.withSequentialOrder
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -63,77 +60,51 @@ class ImagePackArchiver @Inject constructor(
 ) {
 
     /**
-     * Parses [zipUri], uploads every image and saves the result as a new pack in [roomId] under a fresh
-     * state key. Returns the pack name. [onProgress] is invoked on the caller's context as
-     * (packName, uploadedCount, totalCount).
+     * Extracts [zipUri] (a pack export, or just a zip of images) into a new draft dir, in meta/zip order.
+     * Nothing is uploaded; the caller owns the returned draft's dir.
      */
-    suspend fun importPack(
-            zipUri: Uri,
-            roomId: String,
-            onProgress: (String, Int, Int) -> Unit,
-    ): String? {
+    suspend fun extractDraft(zipUri: Uri): PackDraft = withContext(Dispatchers.IO) {
         val zipBaseName = context.queryDisplayName(zipUri)?.removeSuffixIgnoreCase(".zip")?.takeIf { it.isNotBlank() }
-        val extraction = withContext(Dispatchers.IO) { extractZip(zipUri) }
+        val dir = newDraftDir(context)
         try {
+            val extraction = extractZip(zipUri, dir)
             val avatarImage = extraction.avatarImage()
             val pendings = resolveEntries(extraction, skip = avatarImage?.file)
             if (pendings.isEmpty()) {
                 throw IllegalStateException(context.getString(CommonStrings.image_pack_import_empty, zipBaseName ?: "zip"))
             }
-            // One shared non-blank category across every meta entry names the pack; otherwise the zip does.
-            val packName = extraction.categories.singleOrNull() ?: zipBaseName
             val packUsage = when {
                 pendings.all { it.emoticon && !it.sticker } -> listOf(ImagePackUsage.EMOTICON)
                 pendings.all { it.sticker && !it.emoticon } -> listOf(ImagePackUsage.STICKER)
                 else -> null
             }
-            // Entries differing in usage can't be expressed by the stable schema (usage is pack-level there),
-            // so such a pack is written with the legacy im.ponies id, which allows per-image usage.
-            val perImageUsage = packUsage == null && pendings.any { it.emoticon != it.sticker }
-            // The pack icon is only its own upload when it isn't one of the pack's images.
-            val avatarPending = avatarImage?.takeIf { image -> pendings.none { it.file == image.file } }
-                    ?.let { PendingImage(it.file, "pack_icon", emoticon = false, sticker = false) }
-            val total = pendings.size + if (avatarPending != null) 1 else 0
-            // Parallel uploads; the map is assembled by index afterwards, so pack order stays the
-            // meta/zip order no matter which uploads finish first.
-            val done = AtomicInteger(0)
-            val semaphore = Semaphore(TRANSFER_PARALLELISM)
-            val uploaded: List<ImagePackImage> = coroutineScope {
-                (pendings + listOfNotNull(avatarPending)).map { pending ->
-                    async {
-                        semaphore.withPermit {
-                            val image = uploadEntry(pending, perImageUsage)
-                            onProgress(packName ?: "", done.incrementAndGet(), total)
-                            image
-                        }
-                    }
-                }.awaitAll()
-            }
-            val images = LinkedHashMap<String, ImagePackImage>()
-            pendings.forEachIndexed { index, pending -> images[pending.shortcode] = uploaded[index] }
-            val avatarUrl = when {
-                avatarPending != null -> uploaded.last().url
-                avatarImage != null -> uploaded[pendings.indexOfFirst { it.file == avatarImage.file }].url
-                else -> null
-            }
-            val content = ImagePackContent(
-                    images = images.withSequentialOrder(),
-                    pack = ImagePackMeta(displayName = packName, avatarUrl = avatarUrl, usage = packUsage),
+            PackDraft(
+                    dir = dir.path,
+                    images = pendings.map { DraftImage(it.file.path, it.shortcode, mimeForExtension(it.file.extension), it.emoticon, it.sticker) },
+                    // One shared non-blank category across every meta entry names the pack; otherwise the zip does.
+                    packName = extraction.categories.singleOrNull() ?: zipBaseName,
+                    avatar = avatarImage?.let { DraftImage(it.file.path, "pack_icon", mimeForExtension(it.file.extension)) },
+                    usage = packUsage,
+                    perImageUsage = packUsage == null && pendings.any { it.emoticon != it.sticker },
             )
-            repository.saveRoomPack(roomId, UUID.randomUUID().toString(), content, includeUsage = true, forceLegacy = perImageUsage)
-            return packName
-        } finally {
-            extraction.tempDir.deleteRecursively()
+        } catch (failure: Throwable) {
+            dir.deleteRecursively()
+            throw failure
         }
     }
 
-    private suspend fun uploadEntry(pending: PendingImage, perImageUsage: Boolean = false): ImagePackImage {
-        val image = uploadImageFile(pending.file, mimeForExtension(pending.file.extension), pending.shortcode, body = pending.shortcode)
-        return if (perImageUsage && pending.emoticon != pending.sticker) {
-            image.copy(usage = listOf(if (pending.emoticon) ImagePackUsage.EMOTICON else ImagePackUsage.STICKER))
-        } else {
-            image
-        }
+    /** Copies a picked image into [dir] so it outlives the picker's grant until Apply. */
+    suspend fun copyPickedImage(uri: Uri, dir: File): DraftImage = withContext(Dispatchers.IO) {
+        val displayName = context.queryDisplayName(uri)
+        val resolvedType = context.contentResolver.getType(uri)
+        val mimeType = resolvedType?.takeIf { it.startsWith("image/") }
+                ?: displayName?.substringAfterLast('.', "")?.takeIf { it.lowercase() in IMAGE_EXTENSIONS }?.let { mimeForExtension(it) }
+                ?: resolvedType?.let { throw IllegalArgumentException(context.getString(CommonStrings.image_pack_import_empty, displayName ?: uri.toString())) }
+                ?: "image/png"
+        val file = File(dir, "pick_${UUID.randomUUID()}.${extensionForMime(mimeType)}")
+        val input = context.contentResolver.openInputStream(uri) ?: throw FileNotFoundException(uri.toString())
+        input.use { source -> file.outputStream().use { source.copyTo(it) } }
+        DraftImage(file.path, sanitizeShortcode(displayName?.substringBeforeLast('.').orEmpty()), mimeType)
     }
 
     /** Uploads [file] as a pack image named [shortcode]; [compress] = false for already-final encodes. */
@@ -178,7 +149,6 @@ class ImagePackArchiver @Inject constructor(
     private class PendingImage(val file: File, var shortcode: String, var emoticon: Boolean, var sticker: Boolean)
 
     private class Extraction(
-            val tempDir: File,
             val images: List<ExtractedImage>,
             val meta: JSONObject?,
             val categories: MutableSet<String> = mutableSetOf(),
@@ -189,8 +159,7 @@ class ImagePackArchiver @Inject constructor(
         }
     }
 
-    private fun extractZip(zipUri: Uri): Extraction {
-        val tempDir = File(context.cacheDir, "image_pack_import_${UUID.randomUUID()}").apply { mkdirs() }
+    private fun extractZip(zipUri: Uri, tempDir: File): Extraction {
         val images = mutableListOf<ExtractedImage>()
         var meta: JSONObject? = null
         val stream = context.contentResolver.openInputStream(zipUri) ?: throw FileNotFoundException(zipUri.toString())
@@ -217,7 +186,7 @@ class ImagePackArchiver @Inject constructor(
                 }
             }
         }
-        return Extraction(tempDir, images, meta)
+        return Extraction(images, meta)
     }
 
     // Meta-listed entries first (their order), then any images the meta didn't mention, in zip order.
@@ -284,6 +253,7 @@ class ImagePackArchiver @Inject constructor(
             images: List<EditableImage>,
             packUsage: List<String>?,
             packAvatarUrl: String?,
+            packAvatarFile: File?,
             onProgress: (Int, Int) -> Unit,
     ): ExportResult = withContext(Dispatchers.IO) {
         val session = activeSessionHolder.getActiveSession()
@@ -297,7 +267,7 @@ class ImagePackArchiver @Inject constructor(
         val usedNames = mutableSetOf("meta.json")
         val entries = images.map { image ->
             val shortcode = image.shortcode.takeIf { it.isNotBlank() } ?: "image"
-            val extension = extensionForMime(image.info?.mimeType)
+            val extension = extensionForMime(image.local?.mimeType ?: image.info?.mimeType)
             var fileName = "$shortcode.$extension"
             var suffix = 2
             while (!usedNames.add(fileName)) fileName = "${shortcode}_${suffix++}.$extension"
@@ -305,13 +275,22 @@ class ImagePackArchiver @Inject constructor(
         }
 
         // An icon that IS one of the pack's images is referenced by that image's zip entry rather than stored twice.
-        val avatarEntryIndex = packAvatarUrl?.let { url -> entries.indexOfFirst { it.image.mxcUrl == url }.takeIf { it >= 0 } }
-        val downloadAvatar = packAvatarUrl != null && avatarEntryIndex == null
+        val avatarEntryIndex = if (packAvatarFile != null) {
+            entries.indexOfFirst { it.image.local?.path == packAvatarFile.path }
+        } else {
+            packAvatarUrl?.let { url -> entries.indexOfFirst { it.image.mxcUrl == url } }
+        }?.takeIf { it >= 0 }
+        val downloadAvatar = packAvatarFile == null && packAvatarUrl != null && avatarEntryIndex == null
         val total = entries.size + if (downloadAvatar) 1 else 0
 
         val done = AtomicInteger(0)
         val semaphore = Semaphore(TRANSFER_PARALLELISM)
-        suspend fun download(fileName: String, mimeType: String?, url: String): File? = semaphore.withPermit {
+        suspend fun download(fileName: String, mimeType: String?, url: String?, local: File?): File? = semaphore.withPermit {
+            if (local != null) {
+                onProgress(done.incrementAndGet(), total)
+                return@withPermit local.takeIf { it.exists() }
+            }
+            url ?: return@withPermit null
             var file: File? = null
             var attempt = 0
             while (file == null && attempt < DOWNLOAD_MAX_ATTEMPTS) {
@@ -331,12 +310,12 @@ class ImagePackArchiver @Inject constructor(
 
         val downloaded: List<File?> = coroutineScope {
             val entryFiles = entries.map { entry ->
-                async { download(entry.fileName, entry.image.info?.mimeType, entry.image.mxcUrl) }
+                async { download(entry.fileName, entry.image.info?.mimeType, entry.image.mxcUrl, entry.image.local?.file) }
             }
-            val avatar = if (downloadAvatar) async { download("pack_icon", null, packAvatarUrl!!) } else null
+            val avatar = if (downloadAvatar) async { download("pack_icon", null, packAvatarUrl, null) } else null
             entryFiles.awaitAll() + listOfNotNull(avatar?.await())
         }
-        val avatarFile = if (downloadAvatar) downloaded.getOrNull(entries.size) else null
+        val avatarFile = if (downloadAvatar) downloaded.getOrNull(entries.size) else packAvatarFile?.takeIf { avatarEntryIndex == null && it.exists() }
 
         val skipped = entries.filterIndexed { index, _ -> downloaded[index] == null }.map { it.shortcode }
         if (entries.isNotEmpty() && skipped.size == entries.size) {

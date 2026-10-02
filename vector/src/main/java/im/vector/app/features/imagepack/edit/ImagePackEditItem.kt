@@ -7,6 +7,7 @@
 
 package im.vector.app.features.imagepack.edit
 
+import android.content.Context
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
@@ -15,6 +16,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.RadioButton
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -28,13 +31,17 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
 abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.layout.item_image_pack_edit) {
 
     @EpoxyAttribute lateinit var image: EditableImage
     @EpoxyAttribute var highlighted: Boolean = false
-    @EpoxyAttribute var resolvedUrl: String? = null
+    @EpoxyAttribute var removed: Boolean = false
+
+    // An http url for uploaded images, the local File for ones not uploaded yet.
+    @EpoxyAttribute var thumbSource: Any? = null
     @EpoxyAttribute var editable: Boolean = true
     @EpoxyAttribute var showUsageToggles: Boolean = true
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onDeleteClick: ClickListener? = null
@@ -43,8 +50,10 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
     // A row losing its highlight while on screen (the pack was just applied) fades it out instead of snapping.
     override fun bind(holder: Holder, previouslyBoundModel: EpoxyModel<*>) {
         super.bind(holder, previouslyBoundModel)
-        if ((previouslyBoundModel as? ImagePackEditItem)?.highlighted == true && !highlighted) {
+        val previous = previouslyBoundModel as? ImagePackEditItem
+        if (previous != null && (previous.highlighted || previous.removed) && !highlighted && !removed) {
             holder.highlight.isVisible = true
+            holder.highlight.setBackgroundColor(highlightColor(holder.highlight.context, previous.removed))
             ViewCompat.animate(holder.highlight)
                     .alpha(0f)
                     .setDuration(ImageContentRenderer.CROSSFADE_MS.toLong())
@@ -56,10 +65,12 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
         super.bind(holder)
         ViewCompat.animate(holder.highlight).cancel()
         holder.highlight.alpha = 1f
-        holder.highlight.isVisible = highlighted
+        holder.highlight.isVisible = highlighted || removed
+        holder.highlight.setBackgroundColor(highlightColor(holder.highlight.context, removed))
         // dontAnimate + fixed size: animated stickers (APNG/animated WebP) are what makes a large pack's
         // editor list janky to open and scroll; a static thumbnail is all we need here.
-        GlideApp.with(holder.thumb).load(resolvedUrl).dontAnimate().override(96, 96).into(holder.thumb)
+        GlideApp.with(holder.thumb).load(thumbSource).dontAnimate().override(96, 96).into(holder.thumb)
+        holder.thumb.alpha = if (removed) REMOVED_ALPHA else 1f
 
         // Inline, live-editable shortcode (mutates the model directly; no dialog).
         holder.shortcode.removeTextChangedListener(holder.watcher)
@@ -67,7 +78,7 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
         if (holder.shortcode.text.toString() != image.shortcode) {
             holder.shortcode.setText(image.shortcode)
         }
-        holder.shortcode.isEnabled = editable
+        holder.shortcode.isEnabled = editable && !removed
         val boundImage = image
         holder.watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -99,10 +110,14 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
         holder.usageRow.isVisible = showUsageToggles
         // FlexboxLayout isn't a RadioGroup, so drive the single-selection state ourselves.
         holder.syncUsage(image.emoticon, image.sticker)
-        holder.emoticon.isEnabled = editable
-        holder.sticker.isEnabled = editable
-        holder.both.isEnabled = editable
+        holder.emoticon.isEnabled = editable && !removed
+        holder.sticker.isEnabled = editable && !removed
+        holder.both.isEnabled = editable && !removed
         holder.delete.isVisible = editable
+        holder.delete.setImageDrawable(AppCompatResources.getDrawable(holder.delete.context, if (removed) R.drawable.ic_editor_undo else R.drawable.ic_close_24dp))
+        holder.delete.contentDescription = holder.delete.context.getString(
+                if (removed) CommonStrings.image_pack_keep_image else CommonStrings.image_pack_remove_image
+        )
         if (editable) {
             val select = { emoticon: Boolean, sticker: Boolean ->
                 boundImage.emoticon = emoticon
@@ -116,6 +131,11 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
             holder.delete.onClick(onDeleteClick)
         }
     }
+
+    private fun highlightColor(context: Context, removed: Boolean) = ContextCompat.getColor(
+            context,
+            if (removed) im.vector.lib.ui.styles.R.color.image_pack_removed_highlight else im.vector.lib.ui.styles.R.color.image_pack_imported_highlight
+    )
 
     // Size the field tightly to its text (measureText, not wrap_content which leaves a small trailing gap) so
     // the trailing ":" hugs the shortcode, but cap it at the space left in the row so a long shortcode scrolls
@@ -187,6 +207,8 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
     }
 
     companion object {
+        private const val REMOVED_ALPHA = 0.4f
+
         // MSC2545 shortcode grammar: ASCII [a-zA-Z0-9-_] only (not Unicode letters), max 100 bytes — which
         // for this ASCII-only set is the same as 100 chars.
         private fun isShortcodeChar(c: Char) = c in 'a'..'z' || c in 'A'..'Z' || c in '0'..'9' || c == '-' || c == '_'

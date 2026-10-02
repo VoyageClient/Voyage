@@ -57,6 +57,17 @@ class TelegramMarkerTest {
     }
 
     @Test
+    fun `stickers appended past the end of the set keep their order`() {
+        val indexByKey = mutableMapOf("a" to 0, "b" to 1)
+        val pack = mutableListOf("a", "b")
+        listOf("c" to 2, "d" to 3).forEach { (key, index) ->
+            pack.add(TelegramMarker.insertionIndex(pack, indexByKey, index), key)
+            indexByKey[key] = index
+        }
+        pack shouldBeEqualTo listOf("a", "b", "c", "d")
+    }
+
+    @Test
     fun `the marker round-trips through the event content`() {
         val content = TelegramMarker.toTopLevel("AniColle", mapOf("a" to "mxc://s/a"))
         TelegramMarker.read(content) shouldBeEqualTo TelegramMarker.Marker("AniColle", mapOf("a" to "mxc://s/a"))

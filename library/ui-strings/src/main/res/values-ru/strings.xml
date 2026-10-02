@@ -3023,8 +3023,6 @@
     <string name="image_pack_no_permission_room">У вас нет прав на изменение наборов в этой комнате</string>
     <string name="image_pack_duplicate_shortcode">Повторяющийся код «%1$s»: каждый код в наборе должен быть уникальным</string>
     <string name="image_pack_import">Импортировать набор</string>
-    <string name="image_pack_importing">Импорт %1$s… (%2$d/%3$d)</string>
-    <string name="image_pack_import_done">Импортировано: %1$s</string>
     <string name="image_pack_import_empty">В %1$s не найдено изображений</string>
     <string name="image_pack_export">Экспорт</string>
     <string name="image_pack_exporting_title">Экспорт набора</string>
@@ -3486,8 +3484,6 @@
     <string name="video_editor_capture_frame">Извлечь кадр</string>
     <string name="video_editor_capture_frame_failed">Не удалось захватить этот кадр</string>
     <string name="video_editor_extracting_frame">Извлечение кадра…</string>
-    <string name="command_description_tg_export">Экспортирует набор стикеров Telegram</string>
-    <string name="telegram_pack_has_been_downloaded">Набор стикеров Telegram скачан!</string>
     <string name="image_pack_import_telegram">Импорт из Telegram</string>
     <string name="image_pack_telegram_link_invalid">Это не похоже на ссылку на набор стикеров Telegram</string>
     <string name="image_pack_telegram_up_to_date">%1$s уже обновлён</string>
@@ -3640,4 +3636,15 @@
         <item quantity="many">Неверный код, осталось %d попыток</item>
         <item quantity="other">Неверный код, осталось %d попытки</item>
     </plurals>
+    <string name="command_description_tg_export">Экспортирует наборы стикеров Telegram, по одному zip на ссылку</string>
+    <plurals name="telegram_packs_downloaded">
+        <item quantity="one">%d набор стикеров Telegram скачан!</item>
+        <item quantity="few">%d набора стикеров Telegram скачаны!</item>
+        <item quantity="many">%d наборов стикеров Telegram скачано!</item>
+        <item quantity="other">%d набора стикеров Telegram скачано!</item>
+    </plurals>
+    <string name="image_pack_remove_image">Убрать из набора</string>
+    <string name="image_pack_keep_image">Оставить в наборе</string>
+    <string name="image_pack_uploading_title">Загрузка</string>
+    <string name="image_pack_uploading">Загрузка изображений… (%1$d/%2$d)</string>
 </resources>

@@ -44,6 +44,7 @@ import im.vector.app.features.translation.OutgoingMessageTranslator
 import im.vector.app.features.translation.TranslationLanguages
 import im.vector.app.features.translation.TranslationSettings
 import im.vector.lib.core.utils.timer.Clock
+import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -2751,21 +2752,36 @@ class MessageComposerViewModel @AssistedInject constructor(
         _viewEvents.post(MessageComposerViewEvents.TelegramExportProgress(null, 0, 0))
         telegramExportJob = viewModelScope.launch {
             try {
-                val zip = telegramPackImporter.get().buildZip(parsedCommand.setName) { name, done, total ->
-                    _viewEvents.post(MessageComposerViewEvents.TelegramExportProgress(name, done, total))
+                var downloaded = 0
+                var firstFailure: Throwable? = null
+                // One zip per pack; a pack that fails doesn't stop the rest.
+                parsedCommand.setNames.forEach { setName ->
+                    try {
+                        val zip = telegramPackImporter.get().buildZip(setName) { name, done, total ->
+                            _viewEvents.post(MessageComposerViewEvents.TelegramExportProgress(name, done, total))
+                        }
+                        try {
+                            downloadMediaUseCase.execute(zip, title = zip.name).getOrThrow()
+                        } finally {
+                            zip.parentFile?.deleteRecursively()
+                        }
+                        downloaded++
+                    } catch (cancellation: CancellationException) {
+                        throw cancellation
+                    } catch (failure: Throwable) {
+                        if (firstFailure == null) firstFailure = failure
+                    }
                 }
-                try {
-                    downloadMediaUseCase.execute(zip, title = zip.name).getOrThrow()
-                } finally {
-                    zip.parentFile?.deleteRecursively()
+                if (downloaded > 0) {
+                    popDraft(room)
+                    _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(
+                            stringProvider.getQuantityString(CommonPlurals.telegram_packs_downloaded, downloaded, downloaded)
+                    ))
                 }
-                popDraft(room)
-                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.telegram_pack_has_been_downloaded)))
+                firstFailure?.let { _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(it)) }
             } catch (cancellation: CancellationException) {
                 throw cancellation
-            } catch (failure: Throwable) {
-                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
             } finally {
                 _viewEvents.post(MessageComposerViewEvents.TelegramExportEnded)
             }
