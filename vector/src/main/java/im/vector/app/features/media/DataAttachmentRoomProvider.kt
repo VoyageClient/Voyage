@@ -89,16 +89,15 @@ class DataAttachmentRoomProvider(
     }
 
     override suspend fun getFileForSharing(position: Int): File? {
-        return getItem(position)
-                .let { item ->
-                    tryOrNull {
-                        fileService.downloadFile(
-                                fileName = item.filename,
-                                mimeType = item.mimeType,
-                                url = item.url,
-                                elementToDecrypt = item.elementToDecrypt
-                        )
-                    }
-                }
+        val item = getItem(position)
+        (item as? ImageContentRenderer.Data)?.preservedFile?.let { return it }
+        return tryOrNull {
+            fileService.downloadFile(
+                    fileName = item.filename,
+                    mimeType = item.mimeType,
+                    url = item.url,
+                    elementToDecrypt = item.elementToDecrypt
+            )
+        }
     }
 }

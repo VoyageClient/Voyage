@@ -3522,4 +3522,5 @@
     <string name="image_pack_keep_image">Im Paket behalten</string>
     <string name="image_pack_uploading_title">Wird hochgeladen</string>
     <string name="image_pack_uploading">Bilder werden hochgeladen… (%1$d/%2$d)</string>
+    <string name="image_pack_view_image">Bild anzeigen</string>
 </resources>

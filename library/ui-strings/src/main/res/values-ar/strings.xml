@@ -3672,4 +3672,5 @@
     <string name="image_pack_keep_image">أبقِ في الحزمة</string>
     <string name="image_pack_uploading_title">يرفع</string>
     <string name="image_pack_uploading">يرفع الصور… (%1$d/%2$d)</string>
+    <string name="image_pack_view_image">عرض الصورة</string>
 </resources>

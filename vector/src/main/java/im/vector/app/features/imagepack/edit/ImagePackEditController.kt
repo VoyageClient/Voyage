@@ -21,6 +21,7 @@ class ImagePackEditController @Inject constructor(
 ) : TypedEpoxyController<List<EditableImage>>() {
 
     interface Listener {
+        fun onViewImage(image: EditableImage)
         fun onDeleteImage(image: EditableImage)
         fun onAddImage()
 
@@ -56,6 +57,7 @@ class ImagePackEditController @Inject constructor(
                 editable(host.editable)
                 showUsageToggles(host.showUsageToggles)
                 thumbSource(image.local?.file ?: contentUrlResolver?.resolveFullSize(image.mxcUrl))
+                onImageClick { host.listener?.onViewImage(image) }
                 onDeleteClick { host.listener?.onDeleteImage(image) }
                 onEdited { host.listener?.onImageEdited() }
             }

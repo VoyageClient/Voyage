@@ -28,7 +28,9 @@
             android:id="@+id/imagePackEditThumb"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:contentDescription="@null"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/image_pack_view_image"
+            android:focusable="true"
             android:scaleType="fitCenter"
             tools:src="@tools:sample/avatars" />
 

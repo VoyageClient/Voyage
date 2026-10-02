@@ -3727,6 +3727,7 @@
     <string name="image_pack_create_title">Create Pack</string>
     <string name="image_pack_name_hint">Pack name</string>
     <string name="image_pack_add_image">Add to Pack</string>
+    <string name="image_pack_view_image">View image</string>
     <string name="image_pack_remove_image">Remove from pack</string>
     <string name="image_pack_keep_image">Keep in pack</string>
     <string name="image_pack_uploading_title">Uploading</string>

@@ -3457,4 +3457,5 @@
     <string name="image_pack_keep_image">パックに残す</string>
     <string name="image_pack_uploading_title">アップロード中</string>
     <string name="image_pack_uploading">画像をアップロードしています… (%1$d/%2$d)</string>
+    <string name="image_pack_view_image">画像を表示</string>
 </resources>

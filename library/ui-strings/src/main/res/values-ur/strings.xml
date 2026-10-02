@@ -3417,4 +3417,5 @@
     <string name="image_pack_keep_image">بستے میں رکھیں</string>
     <string name="image_pack_uploading_title">اپ لوڈ ہو رہا ہے</string>
     <string name="image_pack_uploading">تصاویر اپ لوڈ ہو رہی ہیں… (%1$d/%2$d)</string>
+    <string name="image_pack_view_image">تصویر دیکھیں</string>
 </resources>

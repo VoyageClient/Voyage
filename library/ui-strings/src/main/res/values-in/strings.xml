@@ -3459,4 +3459,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_pack_keep_image">Simpan di paket</string>
     <string name="image_pack_uploading_title">Mengunggah</string>
     <string name="image_pack_uploading">Mengunggah gambar… (%1$d/%2$d)</string>
+    <string name="image_pack_view_image">Lihat gambar</string>
 </resources>

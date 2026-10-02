@@ -3477,4 +3477,5 @@
     <string name="image_pack_keep_image">প্যাকে রাখুন</string>
     <string name="image_pack_uploading_title">আপলোড হচ্ছে</string>
     <string name="image_pack_uploading">ছবি আপলোড হচ্ছে… (%1$d/%2$d)</string>
+    <string name="image_pack_view_image">ছবি দেখুন</string>
 </resources>

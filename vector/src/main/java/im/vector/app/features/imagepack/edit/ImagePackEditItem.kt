@@ -44,6 +44,7 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
     @EpoxyAttribute var thumbSource: Any? = null
     @EpoxyAttribute var editable: Boolean = true
     @EpoxyAttribute var showUsageToggles: Boolean = true
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onImageClick: ClickListener? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onDeleteClick: ClickListener? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onEdited: (() -> Unit)? = null
 
@@ -71,6 +72,7 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
         // editor list janky to open and scroll; a static thumbnail is all we need here.
         GlideApp.with(holder.thumb).load(thumbSource).dontAnimate().override(96, 96).into(holder.thumb)
         holder.thumb.alpha = if (removed) REMOVED_ALPHA else 1f
+        holder.thumb.onClick(onImageClick)
 
         // Inline, live-editable shortcode (mutates the model directly; no dialog).
         holder.shortcode.removeTextChangedListener(holder.watcher)

@@ -3511,4 +3511,5 @@
     <string name="image_pack_keep_image">Mantener en el paquete</string>
     <string name="image_pack_uploading_title">Subiendo</string>
     <string name="image_pack_uploading">Subiendo imágenes… (%1$d/%2$d)</string>
+    <string name="image_pack_view_image">Ver imagen</string>
 </resources>
