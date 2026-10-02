@@ -7,6 +7,7 @@
 
 package im.vector.app.features.imagepack.picker
 
+import android.view.View
 import com.airbnb.epoxy.EpoxyAsyncUtil
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.R
@@ -41,6 +42,7 @@ class StickerPickerController @Inject constructor(
 
     interface Listener {
         fun onStickerClicked(image: ResolvedImage)
+        fun onStickerLongClicked(image: ResolvedImage, view: View)
     }
 
     var listener: Listener? = null
@@ -100,6 +102,7 @@ class StickerPickerController @Inject constructor(
                     contentDescription(image.body ?: image.shortcode)
                     autoplay(host.vectorPreferences.autoplayAnimatedImages())
                     onClickListener { host.listener?.onStickerClicked(image) }
+                    onLongClickListener { view -> host.listener?.onStickerLongClicked(image, view) }
                 }
             }
         }
@@ -121,6 +124,7 @@ class StickerPickerController @Inject constructor(
                     contentDescription(image.body ?: image.shortcode)
                     autoplay(host.vectorPreferences.autoplayAnimatedImages())
                     onClickListener { host.listener?.onStickerClicked(image) }
+                    onLongClickListener { view -> host.listener?.onStickerLongClicked(image, view) }
                 }
             }
         }

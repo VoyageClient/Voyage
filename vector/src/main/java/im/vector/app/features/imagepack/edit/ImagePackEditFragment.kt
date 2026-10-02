@@ -19,8 +19,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityOptionsCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -46,9 +44,8 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.saveMedia
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentImagePackEditBinding
+import im.vector.app.features.imagepack.ImagePackImageViewer
 import im.vector.app.features.imagepack.telegram.TelegramMarker
-import im.vector.app.features.media.ImageContentRenderer
-import im.vector.app.features.media.VectorAttachmentViewerActivity
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.use
@@ -837,35 +834,14 @@ class ImagePackEditFragment :
     }
 
     override fun onViewImage(image: EditableImage) {
-        val localFile = image.local?.file
-        val source = image.mxcUrl ?: localFile?.let { Uri.fromFile(it).toString() } ?: return
-        val imageData = ImageContentRenderer.Data(
-                eventId = "image_pack_${source.hashCode()}",
-                filename = image.body?.takeIf { it.isNotBlank() } ?: image.shortcode,
-                mimeType = image.info?.mimeType ?: image.local?.mimeType,
-                url = source,
-                elementToDecrypt = null,
-                height = image.info?.height,
-                maxHeight = -1,
-                width = image.info?.width,
-                maxWidth = -1,
-                allowNonMxcUrls = localFile != null,
-                preservedFile = localFile,
+        ImagePackImageViewer.open(
+                activity = requireActivity(),
+                mxcUrl = image.mxcUrl,
+                localFile = image.local?.file,
+                name = image.body?.takeIf { it.isNotBlank() } ?: image.shortcode,
+                info = image.info,
+                localMimeType = image.local?.mimeType,
         )
-        val activity = requireActivity()
-        val intent = VectorAttachmentViewerActivity.newIntent(
-                context = activity,
-                mediaData = imageData,
-                roomId = null,
-                eventId = imageData.eventId,
-                inMemoryData = listOf(imageData),
-                sharedTransitionName = null,
-                standalonePreview = true,
-                hideShowInChat = true,
-                hideForward = true,
-        )
-        val options = ActivityOptionsCompat.makeCustomAnimation(activity, R.anim.fade_in, R.anim.fade_out)
-        ActivityCompat.startActivity(activity, intent, options.toBundle())
     }
 
     // Something added in this session just goes; anything already in the pack is marked and only goes on Apply.

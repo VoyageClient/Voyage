@@ -28,6 +28,7 @@ import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.glide.GridImagePreloader
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetStickerPickerBinding
+import im.vector.app.features.imagepack.ImagePackImageViewer
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.imagepack.ResolvedImage
@@ -247,6 +248,17 @@ class StickerPickerBottomSheet :
                 )
         )
         dismiss()
+    }
+
+    override fun onStickerLongClicked(image: ResolvedImage, view: View) {
+        if (!isResumed) return
+        ImagePackImageViewer.open(
+                activity = requireActivity(),
+                mxcUrl = image.mxcUrl,
+                name = image.body?.takeIf { it.isNotBlank() } ?: image.shortcode,
+                info = image.info,
+                origin = view,
+        )
     }
 
     companion object {

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.imagepack.picker
 
+import android.view.View
 import android.widget.ImageView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -28,6 +29,7 @@ abstract class StickerItem : VectorEpoxyModel<StickerItem.Holder>(R.layout.item_
     @EpoxyAttribute var contentDescription: String? = null
     @EpoxyAttribute var autoplay: Boolean = true
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onClickListener: ClickListener? = null
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onLongClickListener: ClickListener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -51,6 +53,7 @@ abstract class StickerItem : VectorEpoxyModel<StickerItem.Holder>(R.layout.item_
             EmoteFrameCache.captureFrom(holder.image, mxcUrl)
             onClickListener?.invoke(view)
         }
+        holder.image.setOnLongClickListener(onLongClickListener?.let { listener -> View.OnLongClickListener { listener(it); true } })
     }
 
     override fun unbind(holder: Holder) {
