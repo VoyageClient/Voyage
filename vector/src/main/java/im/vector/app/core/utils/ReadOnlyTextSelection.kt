@@ -11,7 +11,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.Region
 import android.os.Build
 import android.text.DynamicLayout
 import android.text.Selection
@@ -37,6 +39,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import timber.log.Timber
 import kotlin.math.ceil
+import kotlin.math.floor
 
 /**
  * Trims a selectable (but not editable) TextView's selection menu to Copy / Share / Select all,
@@ -219,6 +222,9 @@ internal fun TextView.drawInlineCodeBackgrounds(canvas: Canvas, drawText: () -> 
     val radius = 3f * density
     val path = Path()
     val bounds = RectF()
+    val clipRegion = Region()
+    val lineRegion = Region()
+    val lineBounds = Rect()
     val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -245,7 +251,15 @@ internal fun TextView.drawInlineCodeBackgrounds(canvas: Canvas, drawText: () -> 
                 path.reset()
                 textLayout.getSelectionPath(lineStart, lineEnd, path)
                 path.computeBounds(bounds, true)
-                // A range ending at a line break selects through to the layout width.
+                // A selection ending at a soft wrap also covers the next line.
+                clipRegion.set(
+                        floor(bounds.left).toInt(), textLayout.getLineTop(line),
+                        ceil(bounds.right).toInt(), textLayout.getLineBottom(line)
+                )
+                lineRegion.setPath(path, clipRegion)
+                if (!lineRegion.getBounds(lineBounds)) continue
+                bounds.left = lineBounds.left.toFloat()
+                bounds.right = lineBounds.right.toFloat()
                 bounds.left = maxOf(bounds.left, textLayout.getLineLeft(line))
                 bounds.right = minOf(bounds.right, textLayout.getLineRight(line))
                 bounds.left -= horizontalPadding
