@@ -7,6 +7,7 @@
 
 package im.vector.app.features.crypto.recover
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -32,6 +33,9 @@ class BootstrapSetupRecoveryKeyFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        views.bootstrapSetupSecureUseSecurityKey.views.bottomSheetActionClickableZone.setBackgroundColor(Color.TRANSPARENT)
+        views.bootstrapSetupSecureUseSecurityPassphrase.views.bottomSheetActionClickableZone.setBackgroundColor(Color.TRANSPARENT)
 
         // Actions when a key backup exist
         views.bootstrapSetupSecureSubmit.views.bottomSheetActionClickableZone.debouncedClicks {
