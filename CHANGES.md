@@ -250,6 +250,8 @@ New features, improvements, and notable removals in this fork.
 
 ## Significant bugfixes
 
+- **Permalink crash**: Fixed a crash when a room link failed to open after leaving the conversation.
+
 - **Late messages' position**: Fixed messages from a slow or recovering server showing under the wrong date. A message delivered long after it was sent now sits where it was sent, even when that part of the history has to be loaded first.
 
 - Fixed rooms that stopped loading history. A fetched page whose boundary token didn't match the one stored was saved unreachable, so the timeline stayed at the handful of messages the last sync had cached until the room was reopened.

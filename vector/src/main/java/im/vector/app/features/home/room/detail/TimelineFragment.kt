@@ -212,6 +212,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -1910,8 +1911,9 @@ class TimelineFragment :
     // TimelineEventController.Callback ************************************************************
     override fun onUrlClicked(url: String, title: String): Boolean {
         viewLifecycleOwner.lifecycleScope.launch {
+            val hostActivity = activity ?: return@launch
             val isManaged = permalinkHandler
-                    .launch(requireActivity(), url, object : NavigationInterceptor {
+                    .launch(hostActivity, url, object : NavigationInterceptor {
                         override fun navToRoom(roomId: String?, eventId: String?, deepLink: Uri?, rootThreadEventId: String?): Boolean {
                             // Same room?
                             if (roomId != timelineArgs.roomId) return false
@@ -1951,6 +1953,7 @@ class TimelineFragment :
                             return true
                         }
                     })
+            if (!isActive || !isAdded) return@launch
             if (!isManaged) {
                 when {
                     // A matrix.to / permalink that we recognise but couldn't resolve (e.g. offline). Opening it in a
@@ -1988,7 +1991,7 @@ class TimelineFragment :
                                 .colorizeMatchingText(seenUrl, colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_tertiary))
                 )
                 .setPositiveButton(CommonStrings._continue) { _, _ ->
-                    openUrlInExternalBrowser(requireContext(), continueTo)
+                    context?.let { openUrlInExternalBrowser(it, continueTo) }
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
@@ -2003,7 +2006,9 @@ class TimelineFragment :
         MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(CommonStrings.dialog_title_error)
                 .setMessage(CommonStrings.permalink_open_failed)
-                .setPositiveButton(CommonStrings.global_retry) { _, _ -> onUrlClicked(url, title) }
+                .setPositiveButton(CommonStrings.global_retry) { _, _ ->
+                    if (isAdded && view != null) onUrlClicked(url, title)
+                }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
     }
