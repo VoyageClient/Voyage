@@ -27,7 +27,7 @@ class UaVersionListPreference(context: Context, attrs: AttributeSet) : ListPrefe
     private var rawSummary: CharSequence? = null
 
     init {
-        isIconSpaceReserved = true
+        isIconSpaceReserved = false
     }
 
     override fun setSummary(summary: CharSequence?) {
