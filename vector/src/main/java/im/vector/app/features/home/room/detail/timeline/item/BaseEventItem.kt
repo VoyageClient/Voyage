@@ -9,10 +9,13 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewStub
 import android.widget.FrameLayout
@@ -35,6 +38,25 @@ import im.vector.app.features.themes.ThemeUtils
  * Children must override getViewType().
  */
 abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: Int) : VectorEpoxyModel<H>(layoutId), ItemWithEvents {
+
+    @SuppressLint("ClickableViewAccessibility")
+    protected fun bindRelationDoubleTap(view: View, onDoubleTap: (() -> Unit)?) {
+        if (onDoubleTap == null) {
+            view.setOnTouchListener(null)
+            return
+        }
+        val detector = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean = true
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                onDoubleTap()
+                return true
+            }
+        })
+        view.setOnTouchListener { _, event ->
+            detector.onTouchEvent(event)
+            false
+        }
+    }
 
     // To use for instance when opening a permalink with an eventId
     @EpoxyAttribute

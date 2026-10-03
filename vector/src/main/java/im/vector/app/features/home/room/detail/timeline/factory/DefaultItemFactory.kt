@@ -42,6 +42,7 @@ class DefaultItemFactory @Inject constructor(
                 itemLongClickListener = { view ->
                     callback?.onEventLongClicked(informationData, null, view) ?: false
                 },
+                itemDoubleTapListener = { callback?.onEventDoubleTapped(informationData) },
                 reactionPillCallback = callback,
                 reactionsSummaryEvents = reactionsSummaryEvents,
         )

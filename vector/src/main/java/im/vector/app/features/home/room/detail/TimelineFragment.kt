@@ -138,6 +138,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageActionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
+import im.vector.app.features.home.room.detail.timeline.action.jumpToRelationAction
 import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHistoryBottomSheet
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -2142,6 +2143,14 @@ class TimelineFragment :
                 Timber.d("No click action defined for this message content")
             }
         }
+    }
+
+    override fun onEventDoubleTapped(informationData: MessageInformationData) {
+        val event = timelineEventController.findEventInSnapshot(informationData.eventId)
+                ?: session.getRoom(timelineArgs.roomId)?.getTimelineEvent(informationData.eventId)
+                ?: return
+        val action = event.jumpToRelationAction(vectorPreferences.developerMode()) ?: return
+        handleActions(action)
     }
 
     override fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean {

@@ -56,6 +56,7 @@ abstract class NoticeItem : BaseEventItem<NoticeItem.Holder>(R.layout.item_timel
         holder.noticeTextView.bindEmoteImageSpans()
         attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
         holder.view.setOnLongClickListener(attributes.itemLongClickListener)
+        bindRelationDoubleTap(holder.view, attributes.itemDoubleTapListener)
         holder.avatarImageView.onClick(attributes.avatarClickListener)
 
         holder.e2EDecorationView.renderE2EDecoration(attributes.informationData.e2eDecoration)
@@ -97,6 +98,7 @@ abstract class NoticeItem : BaseEventItem<NoticeItem.Holder>(R.layout.item_timel
             val informationData: MessageInformationData,
             val noticeText: EpoxyCharSequence,
             val itemLongClickListener: View.OnLongClickListener? = null,
+            val itemDoubleTapListener: (() -> Unit)? = null,
             val readReceiptsCallback: TimelineEventController.ReadReceiptsCallback? = null,
             val avatarClickListener: ClickListener? = null,
             val threadSummaryClickListener: ClickListener? = null,

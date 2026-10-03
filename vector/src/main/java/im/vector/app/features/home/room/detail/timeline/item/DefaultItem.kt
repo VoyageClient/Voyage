@@ -45,6 +45,7 @@ abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_tim
         holder.messageTextView.text = attributes.text.prepareForDisplay()
         attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
         holder.view.setOnLongClickListener(attributes.itemLongClickListener)
+        bindRelationDoubleTap(holder.view, attributes.itemDoubleTapListener)
 
         ReactionsContainerRenderer.render(
                 container = holder.reactionsContainer,
@@ -81,6 +82,7 @@ abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_tim
             val informationData: MessageInformationData,
             val text: CharSequence,
             val itemLongClickListener: View.OnLongClickListener? = null,
+            val itemDoubleTapListener: (() -> Unit)? = null,
             val reactionPillCallback: TimelineEventController.ReactionPillCallback? = null,
             val reactionsSummaryEvents: ReactionsSummaryEvents? = null,
     )

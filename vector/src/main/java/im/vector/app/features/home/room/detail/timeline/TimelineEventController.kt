@@ -215,6 +215,7 @@ class TimelineEventController @Inject constructor(
     interface BaseCallback {
         fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View)
         fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean
+        fun onEventDoubleTapped(informationData: MessageInformationData) {}
     }
 
     interface AvatarCallback {

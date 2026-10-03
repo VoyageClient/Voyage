@@ -791,26 +791,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, forwardContent))
     }
 
-    // Relation navigation is developer-only, except for pin changes.
-    private fun relatedEventId(timelineEvent: TimelineEvent): String? {
-        timelineEvent.root.getRootThreadEventId()?.let { return it }
-        timelineEvent.root.getRelationContentForType(RelationType.REPLACE)?.eventId?.let { return it }
-        return when (timelineEvent.root.getClearType()) {
-            // Room v11 (MSC2174) moved `redacts` from the event into its content.
-            EventType.REDACTION -> timelineEvent.root.redacts ?: timelineEvent.root.content?.get("redacts") as? String
-            EventType.REACTION -> timelineEvent.root.getClearContent().toModel<ReactionContent>()?.relatesTo?.eventId
-            else -> null
-        }
-    }
-
-    // The event a pin or unpin acted on: the single id that entered or left the pinned list.
-    private fun pinnedRelatedEventId(timelineEvent: TimelineEvent): String? {
-        if (timelineEvent.root.getClearType() != EventType.STATE_ROOM_PINNED_EVENT) return null
-        val pinned = timelineEvent.root.getClearContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
-        val previous = timelineEvent.root.resolvedPrevContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
-        return (pinned - previous.toSet()).singleOrNull() ?: (previous - pinned.toSet()).singleOrNull()
-    }
-
     private fun canReply(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {
         return checkIfCanReplyEventUseCase.execute(event, messageContent, actionPermissions)
     }
@@ -1067,4 +1047,28 @@ class MessageActionsViewModel @AssistedInject constructor(
                 event.annotations?.pollResponseSummary?.closedTime == null &&
                 (event.annotations?.pollResponseSummary?.aggregatedContent?.totalVotes ?: 0) == 0
     }
+}
+
+internal fun TimelineEvent.jumpToRelationAction(developerMode: Boolean): EventSharedAction.JumpToRelation? {
+    pinnedRelatedEventId(this)?.let { return EventSharedAction.JumpToRelation(eventId, it) }
+    if (!developerMode) return null
+    return relatedEventId(this)?.let { EventSharedAction.JumpToRelation(eventId, it, root.getRootThreadEventId()) }
+}
+
+private fun relatedEventId(timelineEvent: TimelineEvent): String? {
+    timelineEvent.root.getRootThreadEventId()?.let { return it }
+    timelineEvent.root.getRelationContentForType(RelationType.REPLACE)?.eventId?.let { return it }
+    return when (timelineEvent.root.getClearType()) {
+        // Room v11 moved redacts into the content.
+        EventType.REDACTION -> timelineEvent.root.redacts ?: timelineEvent.root.content?.get("redacts") as? String
+        EventType.REACTION -> timelineEvent.root.getClearContent().toModel<ReactionContent>()?.relatesTo?.eventId
+        else -> null
+    }
+}
+
+private fun pinnedRelatedEventId(timelineEvent: TimelineEvent): String? {
+    if (timelineEvent.root.getClearType() != EventType.STATE_ROOM_PINNED_EVENT) return null
+    val pinned = timelineEvent.root.getClearContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
+    val previous = timelineEvent.root.resolvedPrevContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
+    return (pinned - previous.toSet()).singleOrNull() ?: (previous - pinned.toSet()).singleOrNull()
 }

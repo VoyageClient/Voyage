@@ -37,6 +37,7 @@ class NoticeItemFactory @Inject constructor(
                 itemLongClickListener = { view ->
                     params.callback?.onEventLongClicked(informationData, null, view) ?: false
                 },
+                itemDoubleTapListener = { params.callback?.onEventDoubleTapped(informationData) },
                 readReceiptsCallback = params.callback,
                 avatarClickListener = { params.callback?.onAvatarClicked(informationData) },
                 reactionPillCallback = params.callback,
