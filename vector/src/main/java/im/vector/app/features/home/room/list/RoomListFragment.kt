@@ -833,7 +833,9 @@ class RoomListFragment :
         val isInitialSyncInProgress = withState(roomListViewModel) { it.isInitialSyncInProgress }
         val shouldShowEmpty = adapterInfosList.all { it.sectionHeaderAdapter.roomsSectionData.isHidden } &&
                 !adapterInfosList.any { it.sectionHeaderAdapter.roomsSectionData.isLoading } &&
-                !isInitialSyncInProgress
+                (!isInitialSyncInProgress ||
+                        roomListParams.displayMode == RoomListDisplayMode.ROOMS ||
+                        roomListParams.displayMode == RoomListDisplayMode.PEOPLE)
         if (shouldShowEmpty) {
             val emptyState = when (roomListParams.displayMode) {
                 RoomListDisplayMode.NOTIFICATIONS -> {
