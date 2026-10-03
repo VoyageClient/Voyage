@@ -209,7 +209,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {
         // Selectable views need a spannable buffer; don't hand them precomputed text.
-        if (bindingOptions?.canUseTextFuture.orFalse() && message != null && !isTextSelectable) {
+        // The footered view's parent uses its line count to size the bubble, so it must update synchronously.
+        if (bindingOptions?.canUseTextFuture.orFalse() &&
+                message != null &&
+                !isTextSelectable &&
+                this !is AbstractFooteredTextView
+        ) {
             val textFuture = PrecomputedTextCompat.getTextFuture(message, TextViewCompat.getTextMetricsParams(this), null)
             setTextFuture(textFuture)
         } else {
