@@ -3480,4 +3480,5 @@
     <string name="image_pack_view_image">ছবি দেখুন</string>
     <string name="settings_prevent_unintended_markdown">অনিচ্ছাকৃত Markdown বিন্যাস আটকান</string>
     <string name="settings_prevent_unintended_markdown_summary">যে লেখা সাধারণ টেক্সট হিসেবে থাকার কথা, তাতে বিন্যাস প্রয়োগ করা এড়িয়ে চলুন।</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">রুমের টাইমলাইনে লুকানো থ্রেড ইভেন্ট দেখান</string>
 </resources>

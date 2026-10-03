@@ -77,7 +77,7 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         if (latestPreviewableEvent != null) {
             entity.latestPreviewableEvent = latestPreviewableEvent
             latestPreviewableEvent.root?.originServerTs?.let { entity.lastActivityTime = it }
-        } else if (clearIfNone) {
+        } else if (clearIfNone || entity.latestPreviewableEvent?.let { roomSummaryEventsHelper.isHiddenThreadReaction(stores, it) } == true) {
             entity.latestPreviewableEvent = null
         }
         val unreadAnchor = roomSummaryEventsHelper.getLatestUnreadEvent(stores, roomId)
@@ -117,6 +117,9 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         entity.hasFailedSending = hasFailedSending(stores, roomId)
         roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId)?.let {
             entity.latestPreviewableEvent = it
+        }
+        if (entity.latestPreviewableEvent?.let { roomSummaryEventsHelper.isHiddenThreadReaction(stores, it) } == true) {
+            entity.latestPreviewableEvent = null
         }
         stores.roomSummary.upsert(entity)
     }
@@ -228,6 +231,8 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         // because the current chunk's newest events are non-previewable.
         if (latestPreviewableEvent != null) {
             entity.latestPreviewableEvent = latestPreviewableEvent
+        } else if (entity.latestPreviewableEvent?.let { roomSummaryEventsHelper.isHiddenThreadReaction(stores, it) } == true) {
+            entity.latestPreviewableEvent = null
         }
         entity.canonicalAlias = ContentMapper.map(lastCanonicalAliasEvent?.content).toModel<RoomCanonicalAliasContent>()?.canonicalAlias
 

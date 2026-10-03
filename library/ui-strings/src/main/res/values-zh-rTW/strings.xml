@@ -3464,4 +3464,5 @@
     <string name="image_pack_view_image">檢視圖片</string>
     <string name="settings_prevent_unintended_markdown">防止非預期的 Markdown 格式化</string>
     <string name="settings_prevent_unintended_markdown_summary">避免將原本可能希望保留為純文字的內容套用格式。</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">在聊天室時間軸中顯示隱藏的討論串事件</string>
 </resources>

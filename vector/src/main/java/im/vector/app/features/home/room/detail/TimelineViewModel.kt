@@ -99,6 +99,7 @@ import org.matrix.android.sdk.api.session.crypto.verification.EVerificationState
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
+import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isGalleryMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
@@ -1396,6 +1397,28 @@ private fun handleSelectStickerAttachment() {
             return
         }
         val targetEventId: String = action.eventId ?: return
+        if (initialState.rootThreadEventId == null && vectorPreferences.areThreadMessagesEnabled()) {
+            val cachedTarget = room?.getTimelineEvent(targetEventId)?.root
+                    ?: session.eventService().getEventFromCache(initialState.roomId, targetEventId)
+            cachedTarget?.getRootThreadEventId()?.let { rootId ->
+                _viewEvents.post(RoomDetailViewEvents.NavigateToThreadEvent(rootId, targetEventId))
+                return
+            }
+            if (timeline.getIndexOfEvent(targetEventId) != null) {
+                navigateToLandedEvent(targetEventId, action, restart = false)
+                return
+            }
+            viewModelScope.launch {
+                val target = cachedTarget ?: session.eventService().ensureEventCached(initialState.roomId, targetEventId)
+                val threadRootId = target?.getRootThreadEventId()
+                if (threadRootId != null) {
+                    _viewEvents.post(RoomDetailViewEvents.NavigateToThreadEvent(threadRootId, targetEventId))
+                } else {
+                    navigateToLandedEvent(targetEventId, action, restart = timeline.getIndexOfEvent(targetEventId) == null)
+                }
+            }
+            return
+        }
         val indexOfEvent = timeline.getIndexOfEvent(targetEventId)
         navigateToLandedEvent(targetEventId, action, restart = indexOfEvent == null)
     }

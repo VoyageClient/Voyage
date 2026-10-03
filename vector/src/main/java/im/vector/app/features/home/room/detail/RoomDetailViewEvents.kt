@@ -36,6 +36,7 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
     data class OpenRoomPreviewFallback(val roomPreviewData: RoomPreviewData) : RoomDetailViewEvents()
 
     data class NavigateToEvent(val eventId: String, val isFirstUnreadEvent: Boolean) : RoomDetailViewEvents()
+    data class NavigateToThreadEvent(val rootThreadEventId: String, val eventId: String) : RoomDetailViewEvents()
 
     object OpenInvitePeople : RoomDetailViewEvents()
     object OpenSetRoomAvatarDialog : RoomDetailViewEvents()

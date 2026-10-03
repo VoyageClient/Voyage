@@ -32,10 +32,10 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
     fun getLatestPreviewableEvent(stores: SessionStores, roomId: String, thorough: Boolean = false): TimelineEventEntity? {
         val ignored = stores.user.getIgnoredUserIds().toSet()
         val sendingEvents = stores.timelineEvent.getSendingByRoom(roomId)
-        val sending = sendingEvents.filter { it.isPreviewable(ignored) }
+        val sending = sendingEvents.filter { it.isPreviewable(stores, ignored) }
         val chunkId = stores.chunk.lastForward(roomId)?.id
         val liveEvents = chunkId?.let { stores.timelineEvent.getByChunkNewest(it, PREVIEW_SCAN_LIMIT) }.orEmpty()
-        val live = liveEvents.firstOrNull { it.isPreviewable(ignored) }
+        val live = liveEvents.firstOrNull { it.isPreviewable(stores, ignored) }
         // The live range holds the room's newest events, so once it has named one there is nothing newer
         // for a room-wide scan to find — and that scan runs for every touched room on every sync.
         val crossChunkEvents = if (thorough || live == null) {
@@ -44,14 +44,14 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         } else {
             emptyList()
         }
-        val crossChunk = crossChunkEvents.firstOrNull { it.isPreviewable(ignored) }
+        val crossChunk = crossChunkEvents.firstOrNull { it.isPreviewable(stores, ignored) }
         val candidates = listOfNotNull(sending.lastOrNull(), live, crossChunk)
         return candidates.maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.eventId }))
                 ?: listOf(
                         sendingEvents,
                         liveEvents,
                         crossChunkEvents,
-                ).mapNotNull { events -> events.firstOrNull { it.isPreviewableEdit(ignored) } }
+                ).mapNotNull { events -> events.firstOrNull { it.isPreviewableEdit(stores, ignored) } }
                         .maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.eventId }))
     }
 
@@ -60,6 +60,12 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         // A reaction is only something to read when the timeline actually shows it.
         val types = if (lightweightSettingsStorage.areReactionsShownInTimeline()) UNREAD_TYPES + EventType.REACTION else UNREAD_TYPES
         return stores.timelineEvent.getLatestUnreadEvent(roomId, types, excludedSenders)
+    }
+
+    fun isHiddenThreadReaction(stores: SessionStores, event: TimelineEventEntity): Boolean {
+        if (lightweightSettingsStorage.shouldShowHiddenThreadEvents() || event.root?.type != EventType.REACTION) return false
+        val targetId = event.root?.asDomain()?.getRelationContent()?.eventId ?: return false
+        return stores.event.getByEventIdInRoom(event.roomId, targetId)?.rootThreadEventId != null
     }
 
     companion object {
@@ -71,15 +77,15 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         private val UNREAD_TYPES = listOf(EventType.MESSAGE, EventType.ENCRYPTED, EventType.STICKER) + EventType.POLL_START.values
     }
 
-    private fun TimelineEventEntity.isPreviewable(ignored: Set<String>): Boolean {
-        return isPreviewableBase(ignored) && root?.asDomain()?.getRelationContent()?.type != RelationType.REPLACE
+    private fun TimelineEventEntity.isPreviewable(stores: SessionStores, ignored: Set<String>): Boolean {
+        return isPreviewableBase(stores, ignored) && root?.asDomain()?.getRelationContent()?.type != RelationType.REPLACE
     }
 
-    private fun TimelineEventEntity.isPreviewableEdit(ignored: Set<String>): Boolean {
-        return isPreviewableBase(ignored) && root?.asDomain()?.getRelationContent()?.type == RelationType.REPLACE
+    private fun TimelineEventEntity.isPreviewableEdit(stores: SessionStores, ignored: Set<String>): Boolean {
+        return isPreviewableBase(stores, ignored) && root?.asDomain()?.getRelationContent()?.type == RelationType.REPLACE
     }
 
-    private fun TimelineEventEntity.isPreviewableBase(ignored: Set<String>): Boolean {
+    private fun TimelineEventEntity.isPreviewableBase(stores: SessionStores, ignored: Set<String>): Boolean {
         val root = this.root ?: return false
         // An unknown custom type still previews (as the "not handled" notice) — it IS the room's
         // latest activity. Only known-but-unpreviewable types (reactions, state, calls) are skipped.
@@ -93,6 +99,7 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         // with itself, since the stale pointer showed the placeholder until something recomputed. Redacting a
         // reaction is an undo rather than a deletion, so those still fall through to the last real message.
         if (domain.isRedacted() && root.type == EventType.REACTION) return false
+        if (isHiddenThreadReaction(stores, this)) return false
         // thread replies belong to their own timeline, not the room's conversation
         if (domain.getRelationContent()?.type == RelationType.THREAD) return false
         return true

@@ -1597,6 +1597,7 @@
     <string name="give_feedback" tools:ignore="UnusedResources">Give Feedback</string>
 
     <string name="settings_labs_show_hidden_events_in_timeline">Show hidden events in timeline</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">Show hidden thread events in room timeline</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">"Show complete history in encrypted rooms"</string>
 
     <string name="bottom_action_people_x">Direct Messages</string>

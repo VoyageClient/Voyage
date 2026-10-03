@@ -7,7 +7,9 @@
 
 package im.vector.app.features.settings
 
+import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.preference.VectorPreference
@@ -18,6 +20,8 @@ import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.features.home.NightlyProxy
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.util.MatrixPerf
 import javax.inject.Inject
 
@@ -31,6 +35,16 @@ class VectorSettingsAdvancedSettingsFragment :
     @Inject lateinit var nightlyProxy: NightlyProxy
     @Inject lateinit var vectorPreferences: VectorPreferences
 
+    private val hiddenThreadPreviewListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY" ||
+                key == "SETTINGS_LABS_SHOW_HIDDEN_EVENTS_PREFERENCE_KEY" ||
+                key == "SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY") {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                session.roomService().refreshJoinedRoomSummaryPreviews(null)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -39,6 +53,16 @@ class VectorSettingsAdvancedSettingsFragment :
         setupNightlySection()
         setupDevToolsSection()
         setupPerfLoggingToggle()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        vectorPreferences.subscribeToChanges(hiddenThreadPreviewListener)
+    }
+
+    override fun onStop() {
+        vectorPreferences.unsubscribeToChanges(hiddenThreadPreviewListener)
+        super.onStop()
     }
 
     private fun setupPerfLoggingToggle() {

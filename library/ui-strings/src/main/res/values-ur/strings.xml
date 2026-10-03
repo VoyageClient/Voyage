@@ -3420,4 +3420,5 @@
     <string name="image_pack_view_image">تصویر دیکھیں</string>
     <string name="settings_prevent_unintended_markdown">غیر ارادی Markdown فارمیٹنگ روکیں</string>
     <string name="settings_prevent_unintended_markdown_summary">ایسے متن کو فارمیٹ ہونے سے بچائیں جو غالباً سادہ متن رہنا چاہیے۔</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">کمرے کی ٹائم لائن میں پوشیدہ دھاگوں کے واقعات دکھائیں</string>
 </resources>

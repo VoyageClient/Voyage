@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.helper
 
+import im.vector.app.ActiveSessionDataSource
 import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -24,7 +25,16 @@ import javax.inject.Inject
 class TimelineEventVisibilityHelper @Inject constructor(
         private val userPreferencesProvider: UserPreferencesProvider,
         private val redactedContentRestorer: RedactedContentRestorer,
+        private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
+
+    private fun TimelineEvent.threadRootId(): String? {
+        root.getRootThreadEventId()?.let { return it }
+        if (root.getClearType() != EventType.REACTION) return null
+        val targetId = root.getRelationContent()?.eventId ?: return null
+        return activeSessionDataSource.currentValue?.orNull()
+                ?.eventService()?.getEventFromCache(roomId, targetId)?.getRootThreadEventId()
+    }
 
     /**
      * An event is "hidden" when it is only surfaced because of the "show hidden events" developer
@@ -42,6 +52,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
         if (isFromThreadTimeline || !userPreferencesProvider.shouldShowHiddenEvents()) {
             return false
         }
+        if (timelineEvent.threadRootId() != null && !userPreferencesProvider.shouldShowHiddenThreadEvents()) return false
         return !timelineEvent.isDisplayable() || timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline)
     }
 
@@ -65,13 +76,17 @@ class TimelineEventVisibilityHelper @Inject constructor(
         if (timelineEvent.root.getClearType() == EventType.STATE_ROOM_SERVER_ACL && !userPreferencesProvider.shouldShowAclEvents()) {
             return false
         }
+        val threadRootId = timelineEvent.threadRootId()
+        if (isFromThreadTimeline && threadRootId != null && threadRootId != rootThreadEventId) return false
+        if (!isFromThreadTimeline && threadRootId != null && !userPreferencesProvider.shouldShowHiddenThreadEvents()) return false
         // A media "edit" that changed the media itself is rejected as an edit and shown as its own
         // message, so it must not be hidden by the replace-relation rule below.
         if (timelineEvent.eventId in forcedVisibleEventIds) {
             return true
         }
         // If show hidden events is true we should always display something
-        if (userPreferencesProvider.shouldShowHiddenEvents() && !isFromThreadTimeline) {
+        if (userPreferencesProvider.shouldShowHiddenEvents() &&
+                (!isFromThreadTimeline || timelineEvent.ownedByThreadChunk)) {
             return true
         }
         // We always show highlighted event
@@ -131,7 +146,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
             if (diff.isRepeatedKnock) return true
         }
 
-        if (userPreferencesProvider.areThreadMessagesEnabled() && !isFromThreadTimeline && root.isThread()) {
+        if (userPreferencesProvider.areThreadMessagesEnabled() && !isFromThreadTimeline && threadRootId() != null) {
             return true
         }
 
@@ -145,7 +160,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
 
         // Allow only the the threads within the rootThreadEventId along with the root event
         if (userPreferencesProvider.areThreadMessagesEnabled() && isFromThreadTimeline) {
-            return if (root.getRootThreadEventId() == rootThreadEventId) {
+            return if (threadRootId() == rootThreadEventId) {
                 false
             } else root.eventId != rootThreadEventId
         }

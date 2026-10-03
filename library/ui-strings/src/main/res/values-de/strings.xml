@@ -3525,4 +3525,5 @@
     <string name="image_pack_view_image">Bild anzeigen</string>
     <string name="settings_prevent_unintended_markdown">Unbeabsichtigte Markdown-Formatierung verhindern</string>
     <string name="settings_prevent_unintended_markdown_summary">Verhindern, dass vermutlich als Klartext gedachter Text formatiert wird.</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">Versteckte Thread-Ereignisse in der Raum-Zeitleiste anzeigen</string>
 </resources>

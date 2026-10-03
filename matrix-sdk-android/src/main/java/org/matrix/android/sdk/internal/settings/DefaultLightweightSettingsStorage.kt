@@ -49,6 +49,12 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         return sdkDefaultPrefs.getBoolean(SETTINGS_SHOW_REACTIONS, false)
     }
 
+    override fun shouldShowHiddenThreadEvents(): Boolean {
+        return sdkDefaultPrefs.getBoolean(SETTINGS_DEVELOPER_MODE, false) &&
+                sdkDefaultPrefs.getBoolean(SETTINGS_SHOW_HIDDEN_EVENTS, false) &&
+                sdkDefaultPrefs.getBoolean(SETTINGS_SHOW_HIDDEN_THREAD_EVENTS, false)
+    }
+
     // Backed by the app's "Media and avatars" toggle (shared default prefs); defaults to on.
     override fun shouldStripMediaMetadata(): Boolean {
         return sdkDefaultPrefs.getBoolean(SETTINGS_STRIP_MEDIA_METADATA, true)
@@ -94,6 +100,9 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
 
         // Must match the app-side preference key (im.vector.app VectorPreferences).
         private const val SETTINGS_SHOW_REACTIONS = "SETTINGS_SHOW_REACTIONS_KEY"
+        private const val SETTINGS_DEVELOPER_MODE = "SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY"
+        private const val SETTINGS_SHOW_HIDDEN_EVENTS = "SETTINGS_LABS_SHOW_HIDDEN_EVENTS_PREFERENCE_KEY"
+        private const val SETTINGS_SHOW_HIDDEN_THREAD_EVENTS = "SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY"
         private const val SETTINGS_STRIP_MEDIA_METADATA = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
         private const val SETTINGS_LABS_SLIDING_SYNC = "SETTINGS_LABS_SLIDING_SYNC_KEY"
         private const val SETTINGS_LINK_PREVIEW_ENCRYPTED = "SETTINGS_LINK_PREVIEW_ENCRYPTED_KEY"

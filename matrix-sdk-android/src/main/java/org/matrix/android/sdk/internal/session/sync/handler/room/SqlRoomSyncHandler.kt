@@ -528,6 +528,25 @@ internal class SqlRoomSyncHandler @Inject constructor(
             }
 
             if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
+                val reactionTarget = event.getRelationContent()?.takeIf {
+                    type == EventType.REACTION && it.type == RelationType.ANNOTATION
+                }?.eventId
+                val reactionThreadRootId = reactionTarget
+                        ?.let { stores.event.getDbId(roomId, it) }
+                        ?.let(stores.event::getById)
+                        ?.rootThreadEventId
+                reactionThreadRootId?.let { rootId ->
+                    stores.chunk.lastForwardThread(roomId, rootId)?.id?.let { threadChunkId ->
+                        if (stores.timelineEvent.getInChunkByEventId(threadChunkId, eventId) == null) {
+                            stores.timelineWriter.addTimelineEvent(
+                                    chunkId = threadChunkId, roomId = roomId, eventDbId = eventDbId, event = entity,
+                                    isLastForward = true, ownedByThreadChunk = true,
+                                    roomMemberContentsByUser = roomMemberContentsByUser,
+                                    roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                            )
+                        }
+                    }
+                }
                 entity.rootThreadEventId?.let { rootId ->
                     rootThreadEventIds.add(rootId)
                     // If the user has this thread open (its forward thread chunk exists), append the reply live.

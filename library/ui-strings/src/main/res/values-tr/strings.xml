@@ -3484,4 +3484,5 @@
     <string name="image_pack_view_image">Resmi görüntüle</string>
     <string name="settings_prevent_unintended_markdown">İstenmeyen Markdown biçimlendirmesini önle</string>
     <string name="settings_prevent_unintended_markdown_summary">Düz metin olarak kalması amaçlanan yazıların biçimlendirilmesini önle.</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">Gizli konu etkinliklerini oda zaman tünelinde göster</string>
 </resources>

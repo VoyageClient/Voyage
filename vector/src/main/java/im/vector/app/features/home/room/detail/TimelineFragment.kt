@@ -516,6 +516,7 @@ class TimelineFragment :
                 is RoomDetailViewEvents.ActionFailure -> displayRoomDetailActionFailure(it)
                 is RoomDetailViewEvents.ShowMessage -> showSnackWithMessage(it.message)
                 is RoomDetailViewEvents.NavigateToEvent -> navigateToEvent(it)
+                is RoomDetailViewEvents.NavigateToThreadEvent -> navigateToThreadTimeline(it.rootThreadEventId, eventIdToNavigate = it.eventId)
                 is RoomDetailViewEvents.DownloadFileState -> handleDownloadFileState(it)
                 is RoomDetailViewEvents.ShowE2EErrorMessage -> displayE2eError(it.withHeldCode)
                 RoomDetailViewEvents.DisplayPromptForIntegrationManager -> displayPromptForIntegrationManager()

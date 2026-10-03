@@ -3460,4 +3460,5 @@
     <string name="image_pack_view_image">画像を表示</string>
     <string name="settings_prevent_unintended_markdown">意図しないMarkdown書式を防ぐ</string>
     <string name="settings_prevent_unintended_markdown_summary">プレーンテキストとして残すつもりの文字が書式設定されるのを防ぎます。</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">ルームのタイムラインに非表示のスレッドイベントを表示</string>
 </resources>

@@ -3526,4 +3526,5 @@
     <string name="image_pack_view_image">Ver imagem</string>
     <string name="settings_prevent_unintended_markdown">Evitar formatação Markdown acidental</string>
     <string name="settings_prevent_unintended_markdown_summary">Evite formatar textos que provavelmente deveriam permanecer sem formatação.</string>
+    <string name="settings_labs_show_hidden_thread_events_in_timeline">Mostrar eventos ocultos de threads na linha do tempo da sala</string>
 </resources>

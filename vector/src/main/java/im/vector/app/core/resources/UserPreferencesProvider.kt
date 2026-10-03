@@ -16,6 +16,10 @@ class UserPreferencesProvider @Inject constructor(private val vectorPreferences:
         return vectorPreferences.shouldShowHiddenEvents()
     }
 
+    fun shouldShowHiddenThreadEvents(): Boolean {
+        return vectorPreferences.shouldShowHiddenThreadEvents()
+    }
+
     fun shouldShowReadReceipts(): Boolean {
         return vectorPreferences.showReadReceipts()
     }

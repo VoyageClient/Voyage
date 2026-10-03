@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -94,7 +95,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                     relationType = RelationType.THREAD,
                     from = params.from,
                     limit = params.limit,
-                    // MSC3981: also pull edits/reactions that hang off the threaded events
+                    // MSC3981: request edits and reactions attached to thread replies when the server supports it
                     recurse = true,
             )
         }
@@ -108,6 +109,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
             params: FetchThreadTimelineTask.Params
     ): Result {
         val threadList = response.chunks
+        val threadEventIds = threadList.filter { it.isThread() }.mapNotNullTo(HashSet()) { it.eventId }
         val hasReachEnd = response.nextBatch == null
 
         var threadRootEvent: Event? = null
@@ -138,9 +140,14 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                     continue
                 }
                 val (eventDbId, entity) = insertOrGetEvent(params.roomId, event)
-                // With recurse=true the chunk also carries edits/reactions of the thread replies. Inserting
-                // them above is enough for aggregation to pick them up; they must not become timeline rows.
-                if (!event.isThread()) continue
+                val relation = event.getRelationContent()
+                val reactionTargetId = relation?.eventId
+                val isThreadReaction = event.type == EventType.REACTION &&
+                        relation?.type == RelationType.ANNOTATION &&
+                        reactionTargetId != null &&
+                        (reactionTargetId in threadEventIds ||
+                                stores.event.getDbId(params.roomId, reactionTargetId)?.let(stores.event::getById)?.rootThreadEventId == params.rootThreadEventId)
+                if (!event.isThread() && !isThreadReaction) continue
                 addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, senderId)
                 // /relations answers newest-first, so indices must walk downwards for the root to land oldest.
                 stores.timelineWriter.addTimelineEvent(
@@ -150,6 +157,23 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                         event = entity,
                         isLastForward = true,
                         ownedByThreadChunk = true,
+                        roomMemberContentsByUser = roomMemberContentsByUser,
+                        roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                )
+            }
+
+            // Some homeservers ignore recurse=true, so restore synced reactions from their local annotations.
+            val cachedReactionIds = stores.annotations.getForEventIds(threadEventIds).values
+                    .flatMap { summary -> summary.reactionsSummary.flatMap { it.sourceEvents } }
+                    .distinct()
+            for (reactionId in cachedReactionIds) {
+                if (stores.timelineEvent.getInChunkByEventId(threadChunkId, reactionId) != null) continue
+                val reactionDbId = stores.event.getDbId(params.roomId, reactionId) ?: continue
+                val reaction = stores.event.getById(reactionDbId)?.takeIf { it.type == EventType.REACTION } ?: continue
+                reaction.sender?.let { addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, it) }
+                stores.timelineWriter.addTimelineEvent(
+                        chunkId = threadChunkId, roomId = params.roomId, eventDbId = reactionDbId, event = reaction,
+                        isLastForward = true, ownedByThreadChunk = true,
                         roomMemberContentsByUser = roomMemberContentsByUser,
                         roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                 )
