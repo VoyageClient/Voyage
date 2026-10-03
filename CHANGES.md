@@ -144,6 +144,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Markdown & HTML rendering overhaul**: added or improved tables (with a no-wrap option), blockquotes, spoilers, greentext, code blocks, underline (`__x__`), strikethrough (`~~x~~`), subscript (`~x~`) and superscript (`^x^`). Links and pills no longer render inside code blocks.
 
+- **Prevent unintended Markdown**: text emoticons and quote attributions stay as written instead of becoming formatting.
+
 - **Description lists**: messages containing HTML `<dl>`, `<dt>` and `<dd>` elements now render with bold terms and indented definitions.
 
 - **Greentext**: quote-style greentext rendering, with an option to send all blockquotes as greentext.

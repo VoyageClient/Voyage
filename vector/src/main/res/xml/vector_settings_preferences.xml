@@ -162,6 +162,12 @@
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
+            android:key="SETTINGS_PREVENT_UNINTENDED_MARKDOWN_KEY"
+            android:summary="@string/settings_prevent_unintended_markdown_summary"
+            android:title="@string/settings_prevent_unintended_markdown" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
             android:key="SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
             android:summary="@string/settings_linkify_msc_references_summary"
             android:title="@string/settings_linkify_msc_references" />

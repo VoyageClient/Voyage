@@ -3524,4 +3524,6 @@
     <string name="image_pack_uploading_title">Envoi en cours</string>
     <string name="image_pack_uploading">Envoi des images… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">Afficher l\'image</string>
+    <string name="settings_prevent_unintended_markdown">Éviter le Markdown involontaire</string>
+    <string name="settings_prevent_unintended_markdown_summary">Éviter la mise en forme du texte qui devait probablement rester brut.</string>
 </resources>

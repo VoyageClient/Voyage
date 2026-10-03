@@ -3648,4 +3648,6 @@
     <string name="image_pack_uploading_title">Загрузка</string>
     <string name="image_pack_uploading">Загрузка изображений… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">Просмотреть изображение</string>
+    <string name="settings_prevent_unintended_markdown">Предотвращать случайное форматирование Markdown</string>
+    <string name="settings_prevent_unintended_markdown_summary">Не форматировать текст, который, вероятно, должен остаться обычным.</string>
 </resources>

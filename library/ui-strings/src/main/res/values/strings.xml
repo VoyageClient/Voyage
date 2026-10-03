@@ -897,6 +897,8 @@
     <string name="settings_send_typing_notifs_summary">Let other users know that you are typing.</string>
     <string name="settings_send_markdown">Markdown formatting</string>
     <string name="settings_send_markdown_summary">Format messages using markdown syntax before they are sent. This allows for advanced formatting such as using asterisks to display italic text.</string>
+    <string name="settings_prevent_unintended_markdown">Prevent unintended Markdown</string>
+    <string name="settings_prevent_unintended_markdown_summary">Avoid formatting text that was likely meant to stay plain.</string>
     <string name="settings_always_show_timestamps">Show timestamps for all messages</string>
     <string name="settings_12_24_timestamps">Show timestamps in 12-hour format</string>
     <string name="settings_show_read_receipts">Show read receipts</string>

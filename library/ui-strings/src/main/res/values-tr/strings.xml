@@ -3482,4 +3482,6 @@
     <string name="image_pack_uploading_title">Yükleniyor</string>
     <string name="image_pack_uploading">Görseller yükleniyor… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">Resmi görüntüle</string>
+    <string name="settings_prevent_unintended_markdown">İstenmeyen Markdown biçimlendirmesini önle</string>
+    <string name="settings_prevent_unintended_markdown_summary">Düz metin olarak kalması amaçlanan yazıların biçimlendirilmesini önle.</string>
 </resources>

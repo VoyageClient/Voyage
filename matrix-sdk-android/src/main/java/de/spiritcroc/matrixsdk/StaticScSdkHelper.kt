@@ -11,5 +11,6 @@ object StaticScSdkHelper {
     interface ScSdkPreferenceProvider {
         fun includeSpaceMembersAsSpaceRooms(): Boolean
         fun linkifyMscReferencesOnSend(): Boolean = true
+        fun preventUnintendedMarkdown(): Boolean = true
     }
 }

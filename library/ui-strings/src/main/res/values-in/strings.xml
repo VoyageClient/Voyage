@@ -3460,4 +3460,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_pack_uploading_title">Mengunggah</string>
     <string name="image_pack_uploading">Mengunggah gambar… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">Lihat gambar</string>
+    <string name="settings_prevent_unintended_markdown">Cegah pemformatan Markdown yang tidak disengaja</string>
+    <string name="settings_prevent_unintended_markdown_summary">Hindari pemformatan teks yang kemungkinan dimaksudkan tetap polos.</string>
 </resources>

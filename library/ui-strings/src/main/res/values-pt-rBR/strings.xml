@@ -3524,4 +3524,6 @@
     <string name="image_pack_uploading_title">Enviando</string>
     <string name="image_pack_uploading">Enviando imagens… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">Ver imagem</string>
+    <string name="settings_prevent_unintended_markdown">Evitar formatação Markdown acidental</string>
+    <string name="settings_prevent_unintended_markdown_summary">Evite formatar textos que provavelmente deveriam permanecer sem formatação.</string>
 </resources>

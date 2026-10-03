@@ -3458,4 +3458,6 @@
     <string name="image_pack_uploading_title">アップロード中</string>
     <string name="image_pack_uploading">画像をアップロードしています… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">画像を表示</string>
+    <string name="settings_prevent_unintended_markdown">意図しないMarkdown書式を防ぐ</string>
+    <string name="settings_prevent_unintended_markdown_summary">プレーンテキストとして残すつもりの文字が書式設定されるのを防ぎます。</string>
 </resources>

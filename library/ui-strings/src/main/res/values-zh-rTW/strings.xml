@@ -3462,4 +3462,6 @@
     <string name="image_pack_uploading_title">正在上傳</string>
     <string name="image_pack_uploading">正在上傳圖片… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">檢視圖片</string>
+    <string name="settings_prevent_unintended_markdown">防止非預期的 Markdown 格式化</string>
+    <string name="settings_prevent_unintended_markdown_summary">避免將原本可能希望保留為純文字的內容套用格式。</string>
 </resources>

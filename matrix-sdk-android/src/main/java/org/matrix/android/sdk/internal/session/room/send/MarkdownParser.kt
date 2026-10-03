@@ -55,6 +55,10 @@ internal class MarkdownParser @Inject constructor(
         val fenceLine = Regex("""^ {0,3}(```|~~~)""")
         val spoilerDelimiters = Regex("""\|\|(?=\S)(.+?)(?<=\S)\|\|""")
         val codeSegment = Regex("""^ {0,3}(```|~~~)[\s\S]*?(?:^ {0,3}\1|\z)|(`+)[\s\S]+?\2""", RegexOption.MULTILINE)
+        val textEmoticon = Regex("""(?<![\p{L}\p{N}])(?:\^[_.oOwWvV3-]\^|~_~|>[_.]<|[\p{L};@*+=.-]_[\p{L};@*+=.-])(?![\p{L}\p{N}])""")
+        val emoticonMarkdownCharacters = Regex("""[\^~_*><]""")
+        val quoteLine = Regex("""^ {0,3}>(?:[ \t]|$)""")
+        val attributionLine = Regex("""^( {0,3})-([ \t]+\S.*)$""")
     }
 
     /**
@@ -72,7 +76,12 @@ internal class MarkdownParser @Inject constructor(
             return TextContent(source).linkifyMscReferences()
         }
 
-        val effectiveSource = if (advanced) preserveExtraBlankLinesBeforeListItems(source) else source
+        val protectedSource = if (StaticScSdkHelper.scSdkPreferenceProvider?.preventUnintendedMarkdown() != false) {
+            protectUnintendedMarkdown(source)
+        } else {
+            source
+        }
+        val effectiveSource = if (advanced) preserveExtraBlankLinesBeforeListItems(protectedSource) else protectedSource
         val document = if (advanced) advancedParser.parse(effectiveSource) else simpleParser.parse(effectiveSource)
         tightenSpuriouslyLooseLists(document)
         val htmlText = htmlRenderer.render(document)
@@ -100,6 +109,43 @@ internal class MarkdownParser @Inject constructor(
         } else {
             TextContent(source)
         }.linkifyMscReferences()
+    }
+
+    private fun protectUnintendedMarkdown(source: String): String {
+        val lines = source.split("\n").toMutableList()
+        var inFence = false
+        val fenced = BooleanArray(lines.size)
+        for (i in lines.indices) {
+            if (fenceLine.containsMatchIn(lines[i])) {
+                fenced[i] = true
+                inFence = !inFence
+            } else {
+                fenced[i] = inFence
+            }
+        }
+        for (i in lines.indices) {
+            if (fenced[i]) continue
+            val match = attributionLine.matchEntire(lines[i]) ?: continue
+            var previous = i - 1
+            while (previous >= 0 && lines[previous].isBlank()) previous--
+            if (previous < 0 || fenced[previous] || !quoteLine.containsMatchIn(lines[previous])) continue
+            if ((i + 1 until lines.size).any { !fenced[it] && listItemMarker.containsMatchIn(lines[it]) }) continue
+            lines[i] = match.groupValues[1] + "\\-" + match.groupValues[2]
+        }
+        val attributed = lines.joinToString("\n")
+        val result = StringBuilder(attributed.length)
+        var start = 0
+        codeSegment.findAll(attributed).forEach { code ->
+            result.append(escapeTextEmoticons(attributed.substring(start, code.range.first)))
+            result.append(code.value)
+            start = code.range.last + 1
+        }
+        result.append(escapeTextEmoticons(attributed.substring(start)))
+        return result.toString()
+    }
+
+    private fun escapeTextEmoticons(text: String): String = textEmoticon.replace(text) { match ->
+        match.value.replace(emoticonMarkdownCharacters) { "\\${it.value}" }
     }
 
     /**

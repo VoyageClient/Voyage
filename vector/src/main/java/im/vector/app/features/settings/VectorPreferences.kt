@@ -203,6 +203,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SEND_READ_RECEIPT_KEY = "SETTINGS_SEND_READ_RECEIPT_KEY"
         private const val SETTINGS_SEND_TYPING_NOTIF_KEY = "SETTINGS_SEND_TYPING_NOTIF_KEY"
         private const val SETTINGS_ENABLE_MARKDOWN_KEY = "SETTINGS_ENABLE_MARKDOWN_KEY"
+        private const val SETTINGS_PREVENT_UNINTENDED_MARKDOWN_KEY = "SETTINGS_PREVENT_UNINTENDED_MARKDOWN_KEY"
         private const val SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY = "SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY"
         private const val SETTINGS_ENABLE_SED_REPLACEMENT_KEY = "SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
         private const val SETTINGS_LINKIFY_MSC_REFERENCES_KEY = "SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
@@ -1881,6 +1882,10 @@ class VectorPreferences @Inject constructor(
 
     override fun linkifyMscReferencesOnSend(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_LINKIFY_MSC_REFERENCES_KEY, true)
+    }
+
+    override fun preventUnintendedMarkdown(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_PREVENT_UNINTENDED_MARKDOWN_KEY, true)
     }
 
     fun compactQuickReactions(): Boolean {

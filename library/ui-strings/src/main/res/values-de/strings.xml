@@ -3523,4 +3523,6 @@
     <string name="image_pack_uploading_title">Wird hochgeladen</string>
     <string name="image_pack_uploading">Bilder werden hochgeladen… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">Bild anzeigen</string>
+    <string name="settings_prevent_unintended_markdown">Unbeabsichtigte Markdown-Formatierung verhindern</string>
+    <string name="settings_prevent_unintended_markdown_summary">Verhindern, dass vermutlich als Klartext gedachter Text formatiert wird.</string>
 </resources>

@@ -3673,4 +3673,6 @@
     <string name="image_pack_uploading_title">يرفع</string>
     <string name="image_pack_uploading">يرفع الصور… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">عرض الصورة</string>
+    <string name="settings_prevent_unintended_markdown">منع تنسيق Markdown غير المقصود</string>
+    <string name="settings_prevent_unintended_markdown_summary">تجنب تنسيق النص الذي يُرجّح أن يبقى نصًا عاديًا.</string>
 </resources>

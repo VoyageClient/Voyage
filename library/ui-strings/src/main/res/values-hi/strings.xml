@@ -3406,4 +3406,6 @@
     <string name="image_pack_uploading_title">अपलोड हो रहा है</string>
     <string name="image_pack_uploading">इमेज अपलोड हो रही हैं… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">चित्र देखें</string>
+    <string name="settings_prevent_unintended_markdown">अनचाहे Markdown स्वरूपण को रोकें</string>
+    <string name="settings_prevent_unintended_markdown_summary">संभवतः सादे टेक्स्ट के रूप में रहने वाले पाठ को स्वरूपित होने से बचाएँ।</string>
 </resources>

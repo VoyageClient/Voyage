@@ -3460,4 +3460,6 @@
     <string name="image_pack_uploading_title">正在上传</string>
     <string name="image_pack_uploading">正在上传图片… (%1$d/%2$d)</string>
     <string name="image_pack_view_image">查看图片</string>
+    <string name="settings_prevent_unintended_markdown">防止意外的 Markdown 格式化</string>
+    <string name="settings_prevent_unintended_markdown_summary">避免将原本可能希望保持纯文本的内容格式化。</string>
 </resources>
