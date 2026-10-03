@@ -87,7 +87,7 @@ object GridImagePreloader {
                     val url = pending.removeAt(0)
                     if (animated) {
                         GlideApp.with(context).load(url).override(size, size).optionalFitCenter()
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE).preload(size, size)
+                                .diskCacheStrategy(DiskCacheStrategy.ALL).preload(size, size)
                     } else {
                         val mxcUrl = keepFrameFor?.invoke(url)
                         GlideApp.with(context).asBitmap().load(url).override(size, size)

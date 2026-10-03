@@ -7,7 +7,6 @@
 package im.vector.app.features.reactions
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
 import android.os.Build
 import android.text.Layout
 import android.text.StaticLayout
@@ -19,14 +18,12 @@ import android.widget.TextView
 import androidx.emoji2.text.EmojiCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import im.vector.app.R
+import im.vector.app.core.glide.AnimatedContentImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GridImagePreloader
+import im.vector.app.core.glide.RestartAnimationListener
 import im.vector.app.features.imagepack.EmoteFrameCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,14 +61,12 @@ class EmojiRecyclerAdapter @Inject constructor() :
         notifyDataSetChanged()
         mRecyclerView?.context?.let { context ->
             val emotes = sections.flatMap { section -> section.items }.filterIsInstance<EmojiPickerItem.Emote>()
-            val mxcByResolvedUrl = emotes.mapNotNull { emote -> emote.resolvedUrl?.let { it to emote.key } }.toMap()
             GridImagePreloader.warm(
                     key = "emotes",
                     context = context,
                     urls = emotes.mapNotNull { it.resolvedUrl },
                     size = EMOTE_CELL_PX,
-                    animated = false,
-                    keepFrameFor = { resolvedUrl -> mxcByResolvedUrl[resolvedUrl] },
+                    animated = true,
             )
         }
     }
@@ -237,40 +232,14 @@ class EmojiRecyclerAdapter @Inject constructor() :
 
         fun bind(item: EmojiPickerItem.Emote) {
             imageView.contentDescription = item.contentDescription
-            // Drawn straight from memory, like the unicode cells' sprites: a cell scrolled back to
-            // repaints in its bind rather than blanking and waiting for a fresh request.
-            EmoteFrameCache.get(item.key)?.let {
-                imageView.setImageBitmap(it)
-                return
-            }
             imageView.setImageDrawable(null)
-            // A still frame, at cell size. Animated emotes are the norm in a pack, and an animated
-            // drawable is delivered *synchronously* on a memory-cache hit — constructing one and
-            // starting it (which decodes a frame) cost 10-50ms of the bind, per cell. Unicode cells are
-            // fast for the same reason: they draw a ready bitmap.
             GlideApp.with(imageView.context)
-                    .asBitmap()
                     .load(item.resolvedUrl)
                     .override(EMOTE_CELL_PX, EMOTE_CELL_PX)
-                    // Keep the decoded cell, not just the original: a pack's files are full-size, and
-                    // the default strategy caches only those — so every rebind decoded one again.
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .addListener(object : RequestListener<Bitmap> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean) = false
-
-                        override fun onResourceReady(
-                                resource: Bitmap,
-                                model: Any,
-                                target: Target<Bitmap>?,
-                                dataSource: DataSource,
-                                isFirstResource: Boolean,
-                        ): Boolean {
-                            // Keep it for every later bind of this emote, here and in the timeline.
-                            EmoteFrameCache.put(item.key, resource)
-                            return false
-                        }
-                    })
-                    .into(imageView)
+                    .optionalFitCenter()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .addListener(RestartAnimationListener)
+                    .into(AnimatedContentImageViewTarget(imageView, animate = true))
         }
 
         fun clear() {
