@@ -299,7 +299,6 @@ class MergedHeaderItemFactory @Inject constructor(
             members.add(candidate)
             pos--
         }
-        if (members.size <= MIN_NUMBER_OF_MERGED_EVENTS) return null
         var hasEncryption = false
         var encryptionAlgorithm: String? = null
         members.forEach { member ->
