@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.helper
 
 import android.graphics.Color
+import android.os.SystemClock
 import androidx.annotation.ColorInt
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
@@ -24,6 +25,7 @@ import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.Optional
 import timber.log.Timber
+import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -45,6 +47,15 @@ class MatrixItemColorProvider @Inject constructor(
     // color lands, so a cached miss is never final.
     private val resolvedCache = ConcurrentHashMap<String, Int>()
     private val hexCache = ConcurrentHashMap<String, Int>()
+    private val uncachedProfileIds = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
+    private val changedProfileIds = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
+    private val changedProfileIdsByGeneration = LinkedHashMap<Long, Set<String>>()
+    @Volatile private var pendingProfileFade = false
+    @Volatile var profileFadeGeneration = -1L
+        private set
+    @Volatile private var profileFadeUntil = 0L
+    private val profileFadeUsers = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
+    private val profileFadeBoundUntil = ConcurrentHashMap<String, Long>()
 
     // im.vector.setting.override_colors: the pre-MSC4522 per-user override, kept as a fallback for
     // overrides written by older clients.
@@ -54,6 +65,8 @@ class MatrixItemColorProvider @Inject constructor(
     // in the same pass rather than waiting for the (two, out-of-order) account-data writes to land.
     // An absent value means "optimistically cleared". Reconciled away once the real data arrives.
     private val optimisticOverrides = ConcurrentHashMap<String, Optional<ColorPreference>>()
+
+    private val ownProfileColors = ConcurrentHashMap<String, Optional<ColorPreference>>()
 
     // Palettes are theme-dependent and user-selectable, so the computed cache is only valid for the
     // current (people palette, room palette, light?) combination. Drop it when any of them changes.
@@ -65,11 +78,73 @@ class MatrixItemColorProvider @Inject constructor(
     private val _changes = MutableStateFlow(0L)
     val changes: StateFlow<Long> = _changes.asStateFlow()
 
-    fun invalidate() {
+    fun invalidate() = invalidate(fade = false)
+
+    private fun invalidate(fade: Boolean) {
         cache.clear()
         resolvedCache.clear()
         cacheSignature = null
-        _changes.value++
+        if (fade) {
+            profileFadeGeneration = _changes.value + 1
+            profileFadeUntil = SystemClock.uptimeMillis() + PROFILE_COLOR_FADE_MS
+        }
+        val generation = _changes.value + 1
+        val changed = changedProfileIds.toSet()
+        changedProfileIds.clear()
+        synchronized(changedProfileIdsByGeneration) {
+            if (changed.isNotEmpty()) changedProfileIdsByGeneration[generation] = changed
+            while (changedProfileIdsByGeneration.size > 128) {
+                changedProfileIdsByGeneration.remove(changedProfileIdsByGeneration.keys.first())
+            }
+        }
+        _changes.value = generation
+    }
+
+    fun profileColorLoaded(userId: String) {
+        val session = activeSessionHolder.get().getSafeActiveSession()
+        if (userId == session?.myUserId) {
+            ownProfileColors[userId] = Optional.from(session.profileService().getCachedOwnColorPreference(userId))
+        }
+        if (uncachedProfileIds.remove(userId) || userId == session?.myUserId) {
+            changedProfileIds.add(userId)
+            markProfileForFade(userId)
+            pendingProfileFade = true
+        }
+    }
+
+    fun invalidateProfileColors() {
+        invalidate(pendingProfileFade)
+        pendingProfileFade = false
+    }
+
+    fun invalidateProfileColorsWithFade() {
+        profileFadeUsers.clear()
+        profileFadeBoundUntil.clear()
+        invalidate(fade = true)
+    }
+
+    fun changedProfileIdsSince(generation: Long): Set<String> = synchronized(changedProfileIdsByGeneration) {
+        changedProfileIdsByGeneration.filterKeys { it > generation }.values.flatten().toSet()
+    }
+
+    fun isProfileColorFadeRunning(): Boolean = SystemClock.uptimeMillis() < profileFadeUntil
+
+    fun shouldFadeProfile(userId: String): Boolean {
+        if (userId !in profileFadeUsers) return false
+        val until = profileFadeBoundUntil[userId] ?: return true
+        if (SystemClock.uptimeMillis() <= until) return true
+        profileFadeUsers.remove(userId)
+        profileFadeBoundUntil.remove(userId)
+        return false
+    }
+
+    fun profileFadeBound(userId: String) {
+        if (userId in profileFadeUsers) profileFadeBoundUntil.putIfAbsent(userId, SystemClock.uptimeMillis() + 2_000L)
+    }
+
+    private fun markProfileForFade(userId: String) {
+        profileFadeBoundUntil.remove(userId)
+        profileFadeUsers.add(userId)
     }
 
     /**
@@ -121,15 +196,21 @@ class MatrixItemColorProvider @Inject constructor(
         val userId = matrixItem.id
         val session = activeSessionHolder.get().getSafeActiveSession()
         if (userId != session?.myUserId && !vectorPreferences.showOthersProfileColors()) return null
+        if (userId == session?.myUserId) {
+            ownProfileColors[userId]?.let { return it.getOrNull()?.forTheme(light) }
+        }
         // A non-null preference is authoritative — an empty one means "known to have none"
         // (offline-only consumers like the account switcher), so don't fall through to the
         // profile cache and its network prefetch. Parsers never produce empty preferences.
         matrixItem.colorPreference?.let { return it.forTheme(light) }
         val profileService = session?.profileService() ?: return null
-        val global = profileService.getCachedColorPreference(userId)
+        val global = profileService.getCachedOwnColorPreference(userId)
         // prefetch dedups internally (in-flight set + already-cached check), so calling per bind is cheap
         // and lets a forgotten/failed profile be re-requested instead of staying colorless all session.
-        if (global == null) profileService.prefetchProfileFields(userId)
+        if (global == null) {
+            uncachedProfileIds.add(userId)
+            profileService.prefetchProfileFields(userId)
+        }
         return global?.forTheme(light)
     }
 
@@ -148,7 +229,16 @@ class MatrixItemColorProvider @Inject constructor(
 
     fun setOptimisticOverride(userId: String, color: ColorPreference?) {
         optimisticOverrides[userId] = Optional.from(color?.takeIf { !it.isEmpty() })
-        invalidate()
+        changedProfileIds.add(userId)
+        markProfileForFade(userId)
+        invalidate(fade = true)
+    }
+
+    fun setOwnProfileColor(userId: String, color: ColorPreference?) {
+        ownProfileColors[userId] = Optional.from(color?.takeIf { !it.isEmpty() })
+        changedProfileIds.add(userId)
+        markProfileForFade(userId)
+        invalidate(fade = true)
     }
 
     /** Drop an optimistic override (e.g. its account-data write failed) so the UI falls back to reality. */
@@ -257,6 +347,8 @@ class MatrixItemColorProvider @Inject constructor(
     }
 
     companion object {
+        private const val PROFILE_COLOR_FADE_MS = 220L
+
         fun toHex(@ColorInt color: Int): String = String.format(Locale.ROOT, "#%06X", color and 0xFFFFFF)
     }
 }

@@ -68,6 +68,9 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
     var highlightNonce: Long = 0
 
     @EpoxyAttribute
+    var profileColorGeneration: Long = 0
+
+    @EpoxyAttribute
     open var leftGuideline: Int = 0
 
     final override fun getViewType(): Int {

@@ -7,7 +7,12 @@
 
 package im.vector.app.core.epoxy.profiles
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -52,6 +57,9 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
 
     @EpoxyAttribute
     var accessoryMatrixItem: MatrixItem? = null
+
+    @EpoxyAttribute
+    var profileColorGeneration: Long = 0
 
     @EpoxyAttribute
     @ColorInt
@@ -105,6 +113,8 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
         }
 
         if (accessoryRes != 0) {
+            holder.clearAccessoryFade()
+            holder.accessoryColor = null
             holder.secondaryAccessory.updateLayoutParams {
                 width = ViewGroup.LayoutParams.WRAP_CONTENT
                 height = ViewGroup.LayoutParams.WRAP_CONTENT
@@ -112,6 +122,8 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
             holder.secondaryAccessory.setImageResource(accessoryRes)
             holder.secondaryAccessory.isVisible = true
         } else if (accessoryMatrixItem != null) {
+            holder.clearAccessoryFade()
+            holder.accessoryColor = null
             // Same size as the settings avatar widget; wrap_content can't size an async avatar load.
             val size = (40 * holder.view.resources.displayMetrics.density).toInt()
             holder.secondaryAccessory.updateLayoutParams {
@@ -126,9 +138,43 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
                 width = size
                 height = size
             }
-            holder.secondaryAccessory.setImageDrawable(ColorSwatches.round(accessoryColor!!))
+            val next = ColorSwatches.round(accessoryColor!!)
+            val previous = holder.secondaryAccessory.drawable
+            if (holder.accessoryFadeColor == accessoryColor && holder.secondaryAccessory.drawable === holder.accessoryFadeDrawable) {
+                // Keep the transition that a duplicate profile update is already showing.
+            } else if (holder.accessoryColor != null && holder.accessoryColor != accessoryColor && previous != null) {
+                holder.clearAccessoryFade()
+                val layered = LayerDrawable(arrayOf(next, previous))
+                holder.secondaryAccessory.setImageDrawable(layered)
+                lateinit var animator: ValueAnimator
+                animator = ValueAnimator.ofInt(255, 0).apply {
+                    duration = COLOR_FADE_MS
+                    addUpdateListener {
+                        previous.alpha = it.animatedValue as Int
+                        layered.invalidateSelf()
+                    }
+                    addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            if (holder.accessoryFadeAnimator !== animator) return
+                            holder.clearAccessoryFade()
+                            previous.alpha = 255
+                            if (holder.secondaryAccessory.drawable === layered) holder.secondaryAccessory.setImageDrawable(next)
+                        }
+                    })
+                }
+                holder.accessoryFadeColor = accessoryColor
+                holder.accessoryFadeDrawable = layered
+                holder.accessoryFadeAnimator = animator
+                animator.start()
+            } else {
+                holder.clearAccessoryFade()
+                holder.secondaryAccessory.setImageDrawable(next)
+            }
+            holder.accessoryColor = accessoryColor
             holder.secondaryAccessory.isVisible = true
         } else {
+            holder.clearAccessoryFade()
+            holder.accessoryColor = null
             holder.secondaryAccessory.isVisible = false
         }
 
@@ -154,6 +200,22 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
         val subtitle by bind<TextView>(R.id.actionSubtitle)
         val editable by bind<ImageView>(R.id.actionEditable)
         val secondaryAccessory by bind<ImageView>(R.id.actionSecondaryAccessory)
+        var accessoryColor: Int? = null
+        var accessoryFadeColor: Int? = null
+        var accessoryFadeDrawable: Drawable? = null
+        var accessoryFadeAnimator: ValueAnimator? = null
         val notificationBadge by bind<android.view.View>(R.id.actionNotificationBadge)
+
+        fun clearAccessoryFade() {
+            val animator = accessoryFadeAnimator
+            accessoryFadeAnimator = null
+            accessoryFadeColor = null
+            accessoryFadeDrawable = null
+            animator?.cancel()
+        }
+    }
+
+    private companion object {
+        const val COLOR_FADE_MS = 220L
     }
 }

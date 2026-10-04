@@ -48,6 +48,7 @@ import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -310,10 +311,16 @@ class ReplyPreviewRetriever(
     }
 
     private fun replySenderName(event: TimelineEvent): String {
+        val userId = event.senderInfo.userId
         return event.renderPerMessageProfile(
-                event.senderInfo.disambiguatedDisplayName,
+                currentReplySenderName(userId, event.senderInfo.disambiguatedDisplayName),
                 vectorPreferences.arePerMessageProfilesEnabled()
         ).senderName
+    }
+
+    private fun currentReplySenderName(userId: String, fallback: String): String {
+        val currentName = roomForColors?.membershipService()?.getRoomMember(userId)?.displayName ?: fallback
+        return ProfileOverrides.displayNameOr(userId, currentName) ?: userId
     }
 
     /**
@@ -347,20 +354,27 @@ class ReplyPreviewRetriever(
         }
     }
 
-    /** A preview resolves the replied-to sender once, when it is built, so a later override never reaches it. */
     fun onProfileOverridesChanged(userIds: Set<String>) {
         if (userIds.isEmpty()) return
-        val affectedKeys = synchronized(data) {
-            data.filterValues { (it.previewReplyUiState as? PreviewReplyUiState.InReplyTo)?.event?.senderInfo?.userId in userIds }
-                    .keys.toHashSet()
+        val affected = synchronized(data) {
+            data.mapNotNull { (key, cached) ->
+                val preview = cached.previewReplyUiState as? PreviewReplyUiState.InReplyTo ?: return@mapNotNull null
+                if (preview.event.senderInfo.userId in userIds) Triple(key, cached, preview) else null
+            }
         }
-        if (affectedKeys.isEmpty()) return
-        val replies = lastSnapshot.filter { it.timelineStableId() in affectedKeys }
+        val names = affected.map { it.third.event.senderInfo.userId to it.third.event.senderInfo.disambiguatedDisplayName }
+                .distinctBy { it.first }
+                .associate { (userId, fallback) -> userId to currentReplySenderName(userId, fallback) }
         synchronized(data) {
-            affectedKeys.forEach { data.remove(it) }
-            replies.forEach { lookedUpEvents.remove(it.eventId) }
+            affected.forEach { (key, cached, preview) ->
+                if (data[key] !== cached) return@forEach
+                val baseName = names[preview.event.senderInfo.userId] ?: return@forEach
+                val updatedName = preview.event.renderPerMessageProfile(baseName, vectorPreferences.arePerMessageProfilesEnabled()).senderName
+                if (updatedName != preview.senderName) {
+                    data[key] = cached.copy(previewReplyUiState = preview.copy(senderName = updatedName))
+                }
+            }
         }
-        replies.forEach { getReplyTo(it) }
     }
 
     fun onPermalinkSenderResolved(targetEventId: String) {

@@ -17,6 +17,7 @@ import com.google.android.flexbox.FlexboxLayout
 import im.vector.app.R
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.tools.bindSenderNameFades
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.reactions.widget.ReactionButton
 
@@ -43,6 +44,7 @@ abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_tim
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.messageTextView.text = attributes.text.prepareForDisplay()
+        holder.messageTextView.bindSenderNameFades()
         attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
         holder.view.setOnLongClickListener(attributes.itemLongClickListener)
         bindRelationDoubleTap(holder.view, attributes.itemDoubleTapListener)

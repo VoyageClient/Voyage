@@ -32,6 +32,12 @@ class MessageColorProvider @Inject constructor(
         return matrixItemColorProvider.isNameColored()
     }
 
+    fun isProfileColorFadeRunning(): Boolean = matrixItemColorProvider.isProfileColorFadeRunning()
+
+    fun shouldFadeProfile(matrixItem: MatrixItem): Boolean = matrixItemColorProvider.shouldFadeProfile(matrixItem.id)
+
+    fun profileFadeBound(matrixItem: MatrixItem) = matrixItemColorProvider.profileFadeBound(matrixItem.id)
+
     /** Emphasis for a sender name rendered inline in an emote body, matching the name header above it. */
     fun senderNameSpan(matrixItem: MatrixItem) = SenderNameSpan(matrixItem, matrixItemColorProvider)
 

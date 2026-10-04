@@ -27,6 +27,7 @@ import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.tools.bindSenderNameFades
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
@@ -155,7 +156,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         val showBlocked = blockedMessage != null &&
                 mediaRevealManager?.isRevealed(attributes.informationData.stableId) != true
-        val activeMessage = (if (showBlocked) blockedMessage else message)?.charSequence
+        val activeBody = if (showBlocked) blockedMessage else message
+        val activeMessage = activeBody?.charSequence
         val activeOptions = if (showBlocked) blockedBindingOptions else bindingOptions
         if (searchForPills) {
             val stableId = attributes.informationData.stableId
@@ -193,9 +195,22 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             messageView.onClick(attributes.itemClickListener)
         }
         messageView.onLongClickIgnoringLinksSelectingCode(attributes.itemLongClickListener)
-        im.vector.app.core.utils.PerfTrace.time("bind.text.setText") {
-            messageView.setTextWithEmojiSupport(activeMessage, activeOptions)
+        if (holder.renderedStableId != attributes.informationData.stableId ||
+                holder.renderedBody != activeBody ||
+                holder.renderedBindingOptions != activeOptions ||
+                holder.renderedNoticeStyle != noticeStyle ||
+                holder.renderedBigFont != useBigFont) {
+            im.vector.app.core.utils.PerfTrace.time("bind.text.setText") {
+                messageView.setTextWithEmojiSupport(activeMessage, activeOptions)
+            }
+            holder.renderedStableId = attributes.informationData.stableId
+            holder.renderedBody = activeBody
+            holder.renderedBindingOptions = activeOptions
+            holder.renderedNoticeStyle = noticeStyle
+            holder.renderedBigFont = useBigFont
         }
+        messageView.bindSenderNameFades()
+        messageView.post { messageView.bindSenderNameFades() }
         im.vector.app.core.utils.PerfTrace.time("bind.text.afterText") {
             markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
         }
@@ -250,6 +265,11 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             private set
         var richBodyContainer: LinearLayout? = null
             private set
+        var renderedStableId: String? = null
+        var renderedBody: EpoxyCharSequence? = null
+        var renderedBindingOptions: BindingOptions? = null
+        var renderedNoticeStyle = false
+        var renderedBigFont = false
 
         fun requireRichBodyContainer(): LinearLayout {
             val view = richBodyContainer ?: richBodyContainerStub.inflate().findViewById<LinearLayout>(R.id.richBodyContainer)

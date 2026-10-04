@@ -7,6 +7,8 @@
 
 package im.vector.app.core.platform
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -15,6 +17,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Build
 import android.os.Bundle
+import android.text.Spanned
 import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuInflater
@@ -86,6 +89,7 @@ import im.vector.app.features.VectorFeatures
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.consent.ConsentNotGivenHelper
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
 import im.vector.app.features.mdm.MdmService
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
@@ -109,10 +113,131 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.GlobalError
 import reactivecircus.flowbinding.android.view.clicks
 import timber.log.Timber
+import java.util.WeakHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
 
+internal object ProfileColorFadeRegistry {
+    private data class ColorAnimation(
+            val animator: ValueAnimator,
+            @ColorInt val target: Int,
+            @ColorInt var current: Int,
+    )
+
+    private val colorAnimators = WeakHashMap<TextView, ColorAnimation>()
+
+    private data class SharedAnimation(
+            val animator: ValueAnimator,
+            @ColorInt val target: Int,
+            @ColorInt var current: Int,
+            val textViews: WeakHashMap<TextView, Unit> = WeakHashMap(),
+            val spanViews: WeakHashMap<TextView, Unit> = WeakHashMap(),
+    )
+
+    private val sharedAnimations = mutableMapOf<String, SharedAnimation>()
+    private val sharedTextOwners = WeakHashMap<TextView, String>()
+    private val lastTimelineColors = mutableMapOf<String, Int>()
+    private val completedTimelineColors = mutableMapOf<String, Int>()
+
+    fun setTimelineColor(textView: TextView, userId: String, @ColorInt target: Int, fade: Boolean) {
+        val previousOwner = sharedTextOwners.put(textView, userId)
+        if (previousOwner != null && previousOwner != userId) {
+            sharedAnimations[previousOwner]?.textViews?.remove(textView)
+        }
+        val previous = if (previousOwner == userId) textView.currentTextColor else lastTimelineColors[userId] ?: target
+        lastTimelineColors[userId] = target
+        val current = joinShared(userId, target, previous, fade, textView, span = false)
+        textView.setTextColor(current)
+    }
+
+    fun bindTimelineSpan(textView: TextView, userId: String, @ColorInt target: Int, @ColorInt previous: Int?, fade: Boolean) {
+        joinShared(userId, target, previous ?: target, fade && previous != null, textView, span = true)
+        textView.invalidate()
+    }
+
+    @ColorInt
+    fun timelineColor(userId: String, @ColorInt target: Int): Int? =
+            sharedAnimations[userId]?.takeIf { it.target == target }?.current
+
+    @ColorInt
+    private fun joinShared(userId: String, @ColorInt target: Int, @ColorInt previous: Int, fade: Boolean, textView: TextView, span: Boolean): Int {
+        var from = previous
+        sharedAnimations[userId]?.let { active ->
+            if (active.target == target) {
+                if (span) active.spanViews[textView] = Unit else active.textViews[textView] = Unit
+                return active.current
+            }
+            from = active.current
+            sharedAnimations.remove(userId)
+            active.animator.cancel()
+        }
+        if (completedTimelineColors[userId] != target) completedTimelineColors.remove(userId)
+        if (!fade || from == target || completedTimelineColors[userId] == target) return target
+        lateinit var animation: SharedAnimation
+        val animator = ValueAnimator.ofObject(ArgbEvaluator(), from, target).apply {
+            duration = 220L
+            addUpdateListener {
+                animation.current = it.animatedValue as Int
+                animation.textViews.keys.forEach { view -> view.setTextColor(animation.current) }
+                animation.spanViews.keys.forEach { view -> view.invalidate() }
+            }
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animator: android.animation.Animator) {
+                    if (sharedAnimations[userId] !== animation) return
+                    sharedAnimations.remove(userId)
+                    completedTimelineColors[userId] = target
+                    animation.textViews.keys.forEach { view -> view.setTextColor(target) }
+                    animation.spanViews.keys.forEach { view -> view.invalidate() }
+                }
+            })
+        }
+        animation = SharedAnimation(animator, target, from)
+        if (span) animation.spanViews[textView] = Unit else animation.textViews[textView] = Unit
+        sharedAnimations[userId] = animation
+        animator.start()
+        return animation.current
+    }
+
+    fun setColor(textView: TextView, @ColorInt target: Int, fade: Boolean, @ColorInt from: Int = textView.currentTextColor) {
+        val active = colorAnimators[textView]
+        if (active != null && active.target == target) {
+            textView.setTextColor(active.current)
+            return
+        }
+        if (active != null) {
+            colorAnimators.remove(textView)
+            active.animator.cancel()
+        }
+        if (!fade || from == target) {
+            textView.setTextColor(target)
+            return
+        }
+        lateinit var animation: ColorAnimation
+        ValueAnimator.ofObject(ArgbEvaluator(), from, target).apply {
+            duration = 220L
+            addUpdateListener {
+                animation.current = it.animatedValue as Int
+                textView.setTextColor(animation.current)
+            }
+            animation = ColorAnimation(this, target, from)
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animator: android.animation.Animator) {
+                    if (colorAnimators[textView] === animation) colorAnimators.remove(textView)
+                }
+            })
+            colorAnimators[textView] = animation
+            start()
+        }
+    }
+}
+
 abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), MavericksView {
+    private val colorRefreshExclusions = WeakHashMap<View, Unit>()
+
+    private data class CapturedTextColors(
+            @ColorInt val text: Int,
+            val senderNames: List<Int>,
+    )
 
     private val touchObservers = CopyOnWriteArrayList<(MotionEvent) -> Unit>()
 
@@ -453,13 +578,26 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 matrixItemColorProvider.changes.collect { generation ->
                     if (generation == seenGeneration) return@collect
                     seenGeneration = generation
-                    rebindColoredViews(window.decorView)
+                    val fade = generation == matrixItemColorProvider.profileFadeGeneration
+                    // Account-data reconciliation can follow the optimistic update immediately. It
+                    // resolves to the same color, but a second bind would replace its active fade.
+                    if (!fade && matrixItemColorProvider.isProfileColorFadeRunning()) return@collect
+                    rebindColoredViews(window.decorView, fade)
                 }
             }
         }
     }
 
-    private fun rebindColoredViews(view: View) {
+    internal fun rebindColorViews(view: View, fade: Boolean) {
+        rebindColoredViews(view, fade, skipExcluded = false)
+    }
+
+    internal fun excludeFromGlobalColorRefresh(view: View) {
+        colorRefreshExclusions[view] = Unit
+    }
+
+    private fun rebindColoredViews(view: View, fade: Boolean, skipExcluded: Boolean = true) {
+        if (skipExcluded && colorRefreshExclusions.containsKey(view)) return
         if (view is ColorRefreshable) view.refreshColors()
         // ViewPager2's FragmentStateAdapter throws "Design assumption violated" on a manual re-bind;
         // its pages are ordinary fragments, so walk into them instead of rebinding.
@@ -469,7 +607,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             // and keeps its holder bookkeeping intact.
             if (view.isComputingLayout) {
                 // A resumed timeline can still be laying out when profile data arrives.
-                view.post { rebindColoredViews(view) }
+                view.post { rebindColoredViews(view, fade, skipExcluded) }
                 return
             }
             @Suppress("UNCHECKED_CAST")
@@ -480,11 +618,53 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 if (position == RecyclerView.NO_POSITION || position >= adapter.itemCount) continue
                 // A still-visible holder may belong to the previous list; rebinding it as a different type would crash.
                 if (adapter.getItemViewType(position) != holder.itemViewType) continue
+                val oldColors = if (fade) captureColors(holder.itemView) else emptyMap()
                 adapter.bindViewHolder(holder, position)
+                if (fade) fadeChangedColors(holder.itemView, oldColors)
             }
         } else if (view is ViewGroup) {
-            for (i in 0 until view.childCount) rebindColoredViews(view.getChildAt(i))
+            for (i in 0 until view.childCount) rebindColoredViews(view.getChildAt(i), fade, skipExcluded)
         }
+    }
+
+    private fun captureColors(view: View): Map<TextView, CapturedTextColors> {
+        val colors = mutableMapOf<TextView, CapturedTextColors>()
+        fun visit(child: View) {
+            when (child) {
+                is TextView -> colors[child] = CapturedTextColors(
+                        text = child.currentTextColor,
+                        senderNames = (child.text as? Spanned)
+                                ?.getSpans(0, child.length(), SenderNameSpan::class.java)
+                                ?.map { it.currentColor() }
+                                .orEmpty(),
+                )
+            }
+            if (child is ViewGroup) for (i in 0 until child.childCount) visit(child.getChildAt(i))
+        }
+        visit(view)
+        return colors
+    }
+
+    private fun fadeChangedColors(view: View, oldColors: Map<TextView, CapturedTextColors>) {
+        fun visit(child: View) {
+            when (child) {
+                is TextView -> {
+                    val captured = oldColors[child]
+                    val old = captured?.text
+                    val next = child.currentTextColor
+                    if (old != null) ProfileColorFadeRegistry.setColor(child, next, fade = old != next, from = old)
+                    val previousSenderNames = captured?.senderNames.orEmpty()
+                    val currentSenderNames = (child.text as? Spanned)
+                            ?.getSpans(0, child.length(), SenderNameSpan::class.java)
+                            .orEmpty()
+                    currentSenderNames.forEachIndexed { index, span ->
+                        previousSenderNames.getOrNull(index)?.let { span.fadeFrom(it, child) }
+                    }
+                }
+            }
+            if (child is ViewGroup) for (i in 0 until child.childCount) visit(child.getChildAt(i))
+        }
+        visit(view)
     }
 
     /**

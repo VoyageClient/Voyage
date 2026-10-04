@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.util.MatrixItem
 abstract class DisplayReadReceiptItem : VectorEpoxyModel<DisplayReadReceiptItem.Holder>(R.layout.item_display_read_receipt) {
 
     @EpoxyAttribute lateinit var matrixItem: MatrixItem
+    @EpoxyAttribute var colorGeneration: Long = 0L
     @EpoxyAttribute var timestamp: String? = null
     @EpoxyAttribute lateinit var avatarRenderer: AvatarRenderer
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var userClicked: ClickListener? = null

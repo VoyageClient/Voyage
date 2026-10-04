@@ -13,15 +13,16 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
+import im.vector.app.core.extensions.collectBatched
 import im.vector.app.core.platform.EmptyAction
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorDummyViewState
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -39,7 +40,9 @@ class UserColorAccountDataViewModel @AssistedInject constructor(
         override fun create(initialState: VectorDummyViewState): UserColorAccountDataViewModel
     }
 
-    companion object : MavericksViewModelFactory<UserColorAccountDataViewModel, VectorDummyViewState> by hiltMavericksViewModelFactory()
+    companion object : MavericksViewModelFactory<UserColorAccountDataViewModel, VectorDummyViewState> by hiltMavericksViewModelFactory() {
+        const val PROFILE_COLOR_MAX_DEFER_MS = 1_000L
+    }
 
     init {
         observeAccountData()
@@ -59,10 +62,13 @@ class UserColorAccountDataViewModel @AssistedInject constructor(
                 .launchIn(viewModelScope)
 
         // Per-sender MSC4522 colors land one profile fetch at a time; coalesce into one rebind.
-        session.profileService().getColorPreferenceUpdateFlow()
-                .debounce(300)
-                .onEach { matrixItemColorProvider.invalidate() }
-                .launchIn(viewModelScope)
+        viewModelScope.launch {
+            session.profileService().getColorPreferenceUpdateFlow()
+                    .collectBatched(quietMs = 300, maxDeferMs = PROFILE_COLOR_MAX_DEFER_MS) { userIds ->
+                        userIds.forEach { matrixItemColorProvider.profileColorLoaded(it) }
+                        matrixItemColorProvider.invalidateProfileColors()
+                    }
+        }
     }
 
     override fun handle(action: EmptyAction) {

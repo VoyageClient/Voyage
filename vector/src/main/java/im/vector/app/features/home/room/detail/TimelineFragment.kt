@@ -45,6 +45,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -320,6 +321,9 @@ class TimelineFragment :
     private val messageComposerViewModel: MessageComposerViewModel by fragmentViewModel()
     private val debouncer = Debouncer(createUIHandler())
     private val itemVisibilityTracker = EpoxyVisibilityTracker()
+    private val pendingProfileOverrideUsers = mutableSetOf<String>()
+    private val pendingProfileColorUsers = mutableSetOf<String>()
+    private val pendingPronounUsers = mutableSetOf<String>()
 
     private lateinit var scrollOnNewMessageCallback: ScrollOnNewMessageCallback
     private lateinit var scrollOnHighlightedEventCallback: ScrollOnHighlightedEventCallback
@@ -383,6 +387,7 @@ class TimelineFragment :
         setupToolbar(views.roomToolbar)
                 .allowBack()
         PerfTrace.time("timeline.setupRecyclerView") { setupRecyclerView() }
+        vectorBaseActivity.excludeFromGlobalColorRefresh(views.timelineRecyclerView)
         setupNotificationView()
         setupJumpToReadMarkerView()
         setupJumpToBottomView()
@@ -457,17 +462,29 @@ class TimelineFragment :
         viewLifecycleOwner.lifecycleScope.launch {
             session.profileService().getPronounsUpdateFlow()
                     .collectBatched(quietMs = 200, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
-                        timelineEventController.invalidateEventCachesForSenders(batch)
+                        pendingPronounUsers.addAll(batch)
+                        flushPendingProfileChanges()
                     }
         }
 
-        // A profile override re-resolves in the SDK's snapshot, but the reply previews resolved their
-        // sender when they were built, so they have to be dropped and rebuilt alongside it.
         ProfileOverrides.changes
                 .onEach { changedUsers ->
-                    timelineViewModel.replyPreviewRetriever.onProfileOverridesChanged(changedUsers)
-                    timelineEventController.invalidateEventCachesForSenders(changedUsers)
-                    timelineEventController.invalidateReplyEventCaches()
+                    pendingProfileOverrideUsers.addAll(changedUsers)
+                    flushPendingProfileChanges()
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Cached Epoxy models need invalidation to rebind sender colors without replacing their holders.
+        var lastProfileColorGeneration = matrixItemColorProvider.changes.value
+        matrixItemColorProvider.changes
+                .onEach { generation ->
+                    if (generation == lastProfileColorGeneration) return@onEach
+                    val changedProfiles = matrixItemColorProvider.changedProfileIdsSince(lastProfileColorGeneration)
+                    lastProfileColorGeneration = generation
+                    if (changedProfiles.isNotEmpty()) {
+                        pendingProfileColorUsers.addAll(changedProfiles)
+                        flushPendingProfileChanges()
+                    }
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -1318,12 +1335,30 @@ class TimelineFragment :
 
     override fun onResume() {
         super.onResume()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.withResumed { flushPendingProfileChanges() }
+        }
         itemVisibilityTracker.attach(views.timelineRecyclerView)
         notificationDrawerManager.setCurrentRoom(timelineArgs.roomId)
         notificationDrawerManager.setCurrentThread(timelineArgs.threadTimelineArgs?.rootThreadEventId)
         roomDetailPendingActionStore.data?.let { handlePendingAction(it) }
         roomDetailPendingActionStore.data = null
         refreshOnMediaVisibilityChange()
+    }
+
+    private fun flushPendingProfileChanges() {
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            return
+        }
+        if (pendingProfileOverrideUsers.isEmpty() && pendingProfileColorUsers.isEmpty() && pendingPronounUsers.isEmpty()) return
+        val overrides = pendingProfileOverrideUsers.toSet()
+        val refreshReplies = overrides.isNotEmpty() || pendingProfileColorUsers.isNotEmpty()
+        val senders = overrides + pendingProfileColorUsers + pendingPronounUsers
+        pendingProfileOverrideUsers.clear()
+        pendingProfileColorUsers.clear()
+        pendingPronounUsers.clear()
+        if (overrides.isNotEmpty()) timelineViewModel.replyPreviewRetriever.onProfileOverridesChanged(overrides)
+        timelineEventController.invalidateProfileEventCaches(senders, refreshReplies)
     }
 
     /**

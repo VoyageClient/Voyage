@@ -150,6 +150,10 @@ interface ProfileService {
 
     fun getCachedColorPreference(userId: String): ColorPreference?
 
+    fun getCachedOwnColorPreference(userId: String): ColorPreference?
+
+    fun clearCachedColorPreferences()
+
     /** The full profile dict this session last fetched for this user, or null when never fetched. */
     fun getCachedProfile(userId: String): JsonDict?
 

@@ -16,6 +16,11 @@ import im.vector.app.features.home.room.detail.timeline.item.toMatrixItem
 import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
+data class DisplayReadReceiptsData(
+        val readReceipts: List<ReadReceiptData>,
+        val colorGeneration: Long,
+)
+
 /**
  * Epoxy controller for read receipt event list.
  */
@@ -24,16 +29,17 @@ class DisplayReadReceiptsController @Inject constructor(
         private val session: Session,
         private val avatarRender: AvatarRenderer
 ) :
-        TypedEpoxyController<List<ReadReceiptData>>() {
+        TypedEpoxyController<DisplayReadReceiptsData>() {
 
     var listener: Listener? = null
 
-    override fun buildModels(readReceipts: List<ReadReceiptData>) {
-        readReceipts.forEach { readReceiptData ->
+    override fun buildModels(data: DisplayReadReceiptsData) {
+        data.readReceipts.forEach { readReceiptData ->
             val timestamp = dateFormatter.format(readReceiptData.timestamp, DateFormatKind.DEFAULT_DATE_AND_TIME)
             DisplayReadReceiptItem_()
                     .id(readReceiptData.userId)
                     .matrixItem(readReceiptData.toMatrixItem())
+                    .colorGeneration(data.colorGeneration)
                     .avatarRenderer(avatarRender)
                     .timestamp(timestamp)
                     .userClicked { listener?.didSelectUser(readReceiptData.userId) }

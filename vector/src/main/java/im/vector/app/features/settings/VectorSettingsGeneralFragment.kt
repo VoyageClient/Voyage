@@ -252,6 +252,7 @@ class VectorSettingsGeneralFragment :
     }
 
     private fun saveProfileColor(color: ColorPreference?) {
+        matrixItemColorProvider.setOwnProfileColor(session.myUserId, color)
         displayLoadingView()
         lifecycleScope.launch {
             val result = runCatching { session.profileService().setColorPreference(session.myUserId, color) }

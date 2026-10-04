@@ -22,12 +22,14 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.utils.lsFiles
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -45,6 +47,7 @@ class VectorDebugReceiver @Inject constructor(
         @DefaultPreferences
         private val sharedPreferences: SharedPreferences,
         private val activeSessionHolder: ActiveSessionHolder,
+        private val matrixItemColorProvider: MatrixItemColorProvider,
 ) : BroadcastReceiver(), DebugReceiver {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -89,6 +92,8 @@ class VectorDebugReceiver @Inject constructor(
                 it.endsWith(DEBUG_ACTION_SEARCH_ROOM) -> searchRoom(intent)
                 it.endsWith(DEBUG_ACTION_SEND_TEXT) -> sendText(intent)
                 it.endsWith(DEBUG_ACTION_FREEZE_MAIN) -> freezeMain(intent)
+                it.endsWith(DEBUG_ACTION_PROFILE_COLOR) -> changeProfileColor(intent)
+                it.endsWith(DEBUG_ACTION_CLEAR_PROFILE_COLORS) -> clearProfileColors()
             }
         }
     }
@@ -473,6 +478,22 @@ class VectorDebugReceiver @Inject constructor(
         block(0)
     }
 
+    private fun changeProfileColor(intent: Intent) {
+        val userId = intent.getStringExtra("user_id") ?: return Timber.w("Profile color debug: missing user_id")
+        val rawColor = intent.getStringExtra("color")
+        val color = rawColor?.let(ColorPreference::normalizeHex)?.let(ColorPreference::fromHex)
+        if (rawColor != null && color == null) return Timber.w("Profile color debug: invalid color $rawColor")
+        matrixItemColorProvider.setOptimisticOverride(userId, color)
+        Timber.i("Profile color debug: user=$userId color=$color")
+    }
+
+    private fun clearProfileColors() {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return Timber.w("Profile color debug: no active session")
+        session.profileService().clearCachedColorPreferences()
+        matrixItemColorProvider.invalidateProfileColorsWithFade()
+        Timber.i("Profile color debug: cleared cached profile colors")
+    }
+
     private fun dumpPreferences() {
         logPrefs("DefaultSharedPreferences", sharedPreferences)
     }
@@ -519,6 +540,8 @@ class VectorDebugReceiver @Inject constructor(
         // called every healthy walk BROKEN. Only a step no real lull explains is worth reporting.
         private const val SUSPICIOUS_GAP_MS = 7 * DAY_MS
         private const val DEBUG_ACTION_FREEZE_MAIN = ".DEBUG_ACTION_FREEZE_MAIN"
+        private const val DEBUG_ACTION_PROFILE_COLOR = ".DEBUG_ACTION_PROFILE_COLOR"
+        private const val DEBUG_ACTION_CLEAR_PROFILE_COLORS = ".DEBUG_ACTION_CLEAR_PROFILE_COLORS"
 
         fun getIntentFilter(context: Context) = IntentFilter().apply {
             addAction(context.packageName + DEBUG_ACTION_DUMP_CHUNKS)
@@ -535,6 +558,8 @@ class VectorDebugReceiver @Inject constructor(
             addAction(context.packageName + DEBUG_ACTION_SEND_TEXT)
             addAction(context.packageName + DEBUG_ACTION_FETCH_PUSH_RULES)
             addAction(context.packageName + DEBUG_ACTION_FREEZE_MAIN)
+            addAction(context.packageName + DEBUG_ACTION_PROFILE_COLOR)
+            addAction(context.packageName + DEBUG_ACTION_CLEAR_PROFILE_COLORS)
         }
     }
 }

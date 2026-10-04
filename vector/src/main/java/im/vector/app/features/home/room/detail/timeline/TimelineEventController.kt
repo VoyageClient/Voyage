@@ -35,6 +35,7 @@ import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFact
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.ReactionsSummaryFactory
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineControllerInterceptorHelper
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventDiffUtilCallback
@@ -111,6 +112,7 @@ class TimelineEventController @Inject constructor(
         private val clock: Clock,
         private val avatarRenderer: AvatarRenderer,
         private val permalinkEventResolver: PermalinkEventResolver,
+        private val matrixItemColorProvider: MatrixItemColorProvider,
 ) : EpoxyController(backgroundHandler, backgroundHandler), Timeline.Listener, EpoxyController.Interceptor {
 
     private companion object {
@@ -441,11 +443,7 @@ class TimelineEventController @Inject constructor(
         }
     }
 
-    /**
-     * Drop cached models of events sent by any of [userIds], then rebuild. Used when a sender's
-     * MSC4247 pronouns arrive after the fact, so their profile-change notices re-render gendered.
-     */
-    fun invalidateEventCachesForSenders(userIds: Collection<String>) {
+    fun invalidateProfileEventCaches(userIds: Collection<String>, refreshReplies: Boolean) {
         if (userIds.isEmpty()) return
         val ids = userIds.toHashSet()
         backgroundHandler.post {
@@ -454,7 +452,7 @@ class TimelineEventController @Inject constructor(
                 currentSnapshot.forEachIndexed { index, event ->
                     if (index >= modelCache.size) return@forEachIndexed
                     if (modelCache[index] == null) return@forEachIndexed
-                    if (event.senderInfo.userId in ids) {
+                    if (event.senderInfo.userId in ids || (refreshReplies && event.root.getRelationContent()?.inReplyTo?.eventId != null)) {
                         invalidateAt(index)
                         dirty = true
                     }
@@ -1062,7 +1060,10 @@ class TimelineEventController @Inject constructor(
             it.id(event.timelineStableId())
             it.setOnVisibilityStateChanged(TimelineEventVisibilityStateChangedListener(callback, event))
             // Central spot every event model passes through — spares each factory from threading it.
-            if (params.isHighlighted) (it as? BaseEventItem<*>)?.highlightNonce = params.highlightNonce
+            (it as? BaseEventItem<*>)?.let { item ->
+                if (params.isHighlighted) item.highlightNonce = params.highlightNonce
+                item.profileColorGeneration = matrixItemColorProvider.changes.value
+            }
         }
         // Do not cache blank gated rows; settling must rebuild them into media items.
         val heldByGate = sendingMediaGate.isHolding(event.root.eventId)

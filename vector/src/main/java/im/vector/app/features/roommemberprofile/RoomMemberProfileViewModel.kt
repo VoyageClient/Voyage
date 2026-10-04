@@ -210,8 +210,16 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 .onEach { refreshPersonalNote() }
                 .launchIn(viewModelScope)
 
+        var observedColorGeneration = matrixItemColorProvider.changes.value
         matrixItemColorProvider.changes
-                .onEach { generation -> setState { copy(colorGeneration = generation) } }
+                .onEach { generation ->
+                    if (generation == observedColorGeneration) return@onEach
+                    val changedUsers = matrixItemColorProvider.changedProfileIdsSince(observedColorGeneration)
+                    observedColorGeneration = generation
+                    if (changedUsers.isEmpty() || initialState.userId in changedUsers) {
+                        setState { copy(colorGeneration = generation) }
+                    }
+                }
                 .launchIn(viewModelScope)
 
         // The in-flight guards: all user account data shares one table, so each of our sequential
@@ -297,7 +305,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                                         if (hasOverrideName) overrideName else base.displayName,
                                         if (hasOverrideAvatar) overrideAvatar else base.avatarUrl,
                                         if (hasOverrideAvatar) ProfileOverrides.avatarDecryptionFor(initialState.userId) else null,
-                                        colorPreference = (base as? MatrixItem.UserItem)?.colorPreference,
+                                        colorPreference = session.profileService().getCachedOwnColorPreference(initialState.userId),
                                 )
                         )
                     } else {
@@ -897,7 +905,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 avatarUrl = ProfileOverrides.avatarUrlOr(initialState.userId, globalProfile.avatarUrl ?: fallback?.avatarUrl),
                 avatarDecryption = ProfileOverrides.avatarDecryptionFor(initialState.userId),
                 userDisplayName = fallbackUser?.userDisplayName,
-                colorPreference = ColorPreference.fromProfileFields(profile) ?: fallbackUser?.colorPreference,
+                colorPreference = session.profileService().getCachedOwnColorPreference(initialState.userId),
         )
     }
 

@@ -213,7 +213,15 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         timeView?.visibility = View.VISIBLE
         timeView?.text = attributes.informationData.time
         memberNameView?.text = attributes.informationData.memberName?.prepareForDisplay()
-        memberNameView?.setTextColor(attributes.getMemberNameColor())
+        memberNameView?.let {
+            im.vector.app.core.platform.ProfileColorFadeRegistry.setTimelineColor(
+                    it,
+                    attributes.informationData.senderId,
+                    attributes.getMemberNameColor(),
+                    attributes.messageColorProvider.shouldFadeProfile(attributes.informationData.matrixItem),
+            )
+            attributes.messageColorProvider.profileFadeBound(attributes.informationData.matrixItem)
+        }
         memberNameView?.setSenderNameEmphasis(attributes.isMemberNameColored())
         if (avatarImageView != null) {
             attributes.avatarRenderer.render(attributes.informationData.matrixItem, avatarImageView)

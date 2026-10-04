@@ -12,6 +12,7 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.args
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.cleanup
@@ -20,8 +21,11 @@ import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetGenericListWithTitleBinding
 import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 
@@ -39,6 +43,7 @@ class DisplayReadReceiptsBottomSheet :
         DisplayReadReceiptsController.Listener {
 
     @Inject lateinit var epoxyController: DisplayReadReceiptsController
+    @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
 
     private val displayReadReceiptArgs: DisplayReadReceiptArgs by args()
 
@@ -54,7 +59,10 @@ class DisplayReadReceiptsBottomSheet :
         views.bottomSheetRecyclerView.configureWith(epoxyController, hasFixedSize = false)
         views.bottomSheetTitle.text = getString(CommonStrings.seen_by)
         epoxyController.listener = this
-        epoxyController.setData(displayReadReceiptArgs.readReceipts)
+        epoxyController.setData(DisplayReadReceiptsData(displayReadReceiptArgs.readReceipts, matrixItemColorProvider.changes.value))
+        matrixItemColorProvider.changes
+                .onEach { epoxyController.setData(DisplayReadReceiptsData(displayReadReceiptArgs.readReceipts, it)) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     override fun onDestroyView() {

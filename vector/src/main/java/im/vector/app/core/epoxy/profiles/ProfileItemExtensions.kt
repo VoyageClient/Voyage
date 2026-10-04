@@ -35,6 +35,7 @@ fun EpoxyController.buildProfileAction(
         action: ClickListener? = null,
         @DrawableRes accessory: Int = 0,
         accessoryMatrixItem: MatrixItem? = null,
+        profileColorGeneration: Long = 0,
         @ColorInt accessoryColor: Int? = null,
         notificationBadge: Boolean = false,
         avatarRenderer: AvatarRenderer? = null
@@ -51,6 +52,7 @@ fun EpoxyController.buildProfileAction(
         title(title)
         accessoryRes(accessory)
         accessoryMatrixItem(accessoryMatrixItem)
+        profileColorGeneration(profileColorGeneration)
         accessoryColor(accessoryColor)
         avatarRenderer(avatarRenderer)
         listener(action)

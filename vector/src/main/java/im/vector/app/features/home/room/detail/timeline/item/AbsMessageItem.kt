@@ -27,6 +27,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setSenderNameEmphasis
+import im.vector.app.core.platform.ProfileColorFadeRegistry
 import im.vector.app.core.ui.views.SendStateImageView
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
@@ -122,7 +123,14 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         if (attributes.informationData.messageLayout.showDisplayName) {
             holder.memberNameView.isVisible = true
             holder.memberNameView.text = attributes.informationData.memberName?.prepareForDisplay()
-            holder.memberNameView.setTextColor(attributes.getMemberNameColor())
+            val memberNameColor = attributes.getMemberNameColor()
+            ProfileColorFadeRegistry.setTimelineColor(
+                    holder.memberNameView,
+                    attributes.informationData.senderId,
+                    memberNameColor,
+                    attributes.messageColorProvider.shouldFadeProfile(attributes.informationData.matrixItem),
+            )
+            attributes.messageColorProvider.profileFadeBound(attributes.informationData.matrixItem)
             holder.memberNameView.setSenderNameEmphasis(attributes.isMemberNameColored())
             holder.memberNameView.onClick(attributes.memberClickListener)
             holder.memberNameView.setOnLongClickListener(attributes.itemLongClickListener)

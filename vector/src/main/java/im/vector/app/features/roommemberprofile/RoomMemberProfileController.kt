@@ -270,6 +270,7 @@ class RoomMemberProfileController @Inject constructor(
                 title = stringProvider.getString(CommonStrings.avatar),
                 divider = true,
                 accessoryMatrixItem = state.userMatrixItem(),
+                profileColorGeneration = state.colorGeneration,
                 avatarRenderer = avatarRenderer,
                 action = { callback?.onOverrideAvatarClicked() }
         )

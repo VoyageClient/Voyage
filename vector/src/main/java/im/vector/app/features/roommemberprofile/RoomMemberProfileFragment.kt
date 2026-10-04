@@ -9,6 +9,8 @@ package im.vector.app.features.roommemberprofile
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.graphics.Rect
 import android.net.Uri
@@ -86,7 +88,6 @@ import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ColorPreference
-import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -124,6 +125,8 @@ class RoomMemberProfileFragment :
     private var bannerUiHelper: ProfileBannerUiHelper? = null
     private var currentBannerUrl: String? = null
     private var lastRenderedAvatarKey: List<Any?>? = null
+    private var nameColorAnimator: ValueAnimator? = null
+    private var nameColorTarget: Int? = null
 
     private var headerRevealed = true
     private var pendingReveal = false
@@ -164,6 +167,8 @@ class RoomMemberProfileFragment :
         }
         headerViews.memberProfileStateView.contentView = headerViews.memberProfileInfoContainer
         views.matrixProfileRecyclerView.configureWith(roomMemberProfileController, hasFixedSize = true, disableItemAnimation = true)
+        // The profile state rebuilds these rows; a global manual rebind doubles the work during a color fade.
+        vectorBaseActivity.excludeFromGlobalColorRefresh(views.matrixProfileRecyclerView)
         roomMemberProfileController.callback = this
         appBarStateChangeListener = MatrixItemAppBarStateChangeListener(
                 headerView,
@@ -286,6 +291,9 @@ class RoomMemberProfileFragment :
     }
 
     override fun onDestroyView() {
+        nameColorAnimator?.cancel()
+        nameColorAnimator = null
+        nameColorTarget = null
         headerViews.memberProfileAvatarView.removeCallbacks(avatarWaitTimeout)
         views.matrixProfileRecyclerView.removeCallbacks(revealTimeout)
         notesInputProxy?.let {
@@ -341,9 +349,26 @@ class RoomMemberProfileFragment :
                 headerViews.memberProfileIdView.text = userMatrixItem.id.neutralizeDirectionOverrides()
                 headerViews.memberProfileIdView.setCopySource(userMatrixItem.id)
                 val bestName = userMatrixItem.getBestName()
+                val previousName = headerViews.memberProfileNameView.text.toString()
+                val previousColor = headerViews.memberProfileNameView.currentTextColor
                 headerViews.memberProfileNameView.text = bestName.prepareForDisplay()
                 headerViews.memberProfileNameView.setCopySource(bestName)
-                headerViews.memberProfileNameView.setTextColor(matrixItemColorProvider.getNameColor(userMatrixItem))
+                val nameColor = matrixItemColorProvider.getNameColor(userMatrixItem)
+                if (nameColorTarget != nameColor || nameColorAnimator?.isRunning != true) {
+                    nameColorAnimator?.cancel()
+                    nameColorTarget = nameColor
+                    if (headerRevealed && previousName == bestName && previousColor != nameColor) {
+                        nameColorAnimator = ValueAnimator.ofObject(ArgbEvaluator(), previousColor, nameColor).apply {
+                            duration = 220L
+                            addUpdateListener {
+                                headerViews.memberProfileNameView.setTextColor(it.animatedValue as Int)
+                            }
+                            start()
+                        }
+                    } else {
+                        headerViews.memberProfileNameView.setTextColor(nameColor)
+                    }
+                }
                 views.matrixProfileToolbarTitleView.text = bestName.prepareForDisplay()
                 // In rooms that hide avatars, show the default placeholder here, but keep the real avatar
                 // available when the user taps it to open the full-screen viewer (see onAvatarClicked).
@@ -356,13 +381,12 @@ class RoomMemberProfileFragment :
                 // to the placeholder for a frame whenever Glide can't answer synchronously. With a real
                 // avatar the name/color only reach the invisible placeholder, so they stay out of the key.
                 val avatarKey = if (!displayedMatrixItem.avatarUrl.isNullOrEmpty()) {
-                    listOf(displayedMatrixItem.avatarUrl, ProfileOverrides.generation)
+                    listOf(displayedMatrixItem.avatarUrl, displayedMatrixItem.avatarDecryption)
                 } else {
                     listOf(
                             null,
                             displayedMatrixItem.getBestName(),
                             matrixItemColorProvider.getColor(displayedMatrixItem),
-                            state.colorGeneration,
                     )
                 }
                 if (avatarKey != lastRenderedAvatarKey) {

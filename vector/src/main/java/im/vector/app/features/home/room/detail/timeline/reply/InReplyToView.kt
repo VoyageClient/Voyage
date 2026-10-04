@@ -17,6 +17,8 @@
 
 package im.vector.app.features.home.room.detail.timeline.reply
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Typeface
 import android.text.SpannableString
@@ -102,6 +104,10 @@ class InReplyToView @JvmOverloads constructor(
     }
 
     private var state: PreviewReplyUiState = PreviewReplyUiState.NoReply
+    private var senderBarColor: Int? = null
+    private var senderBarRenderedColor: Int? = null
+    private var senderNameColor: Int? = null
+    private var senderBarColorAnimator: ValueAnimator? = null
 
     // What the current render substituted for the quoted body: PGP plaintext / a translation (null = none).
     private var renderedPlainOverride: String? = null
@@ -143,6 +149,20 @@ class InReplyToView @JvmOverloads constructor(
             return
         }
 
+        val previousReply = state as? PreviewReplyUiState.InReplyTo
+        val nextReply = effectiveState as? PreviewReplyUiState.InReplyTo
+        if (!force && previousReply != null && nextReply != null &&
+                previousReply.repliedToEventId == nextReply.repliedToEventId && previousReply.event == nextReply.event &&
+                revealed == quotesRevealedRedaction && plainOverride == renderedPlainOverride && translation == renderedTranslation) {
+            state = effectiveState
+            if (previousReply.senderName != nextReply.senderName) {
+                views.replyMemberNameView.text = nextReply.senderName.prepareForDisplay()
+            }
+            applySenderColor(retriever.getMemberNameColor(nextReply.event), retriever.isMemberNameColored())
+            return
+        }
+
+        val keepSenderColor = effectiveState is PreviewReplyUiState.InReplyTo && effectiveState.repliedToEventId == state.repliedToEventId
         state = effectiveState
         renderedPlainOverride = plainOverride
         renderedTranslation = translation
@@ -160,7 +180,7 @@ class InReplyToView @JvmOverloads constructor(
             PreviewReplyUiState.NoReply -> renderHidden()
             is PreviewReplyUiState.ReplyLoading -> renderLoading()
             is PreviewReplyUiState.Error -> renderError(effectiveState)
-            is PreviewReplyUiState.InReplyTo -> renderReplyTo(effectiveState, retriever, roomInformationData, coroutineScope, itemLongClickListener)
+            is PreviewReplyUiState.InReplyTo -> renderReplyTo(effectiveState, retriever, roomInformationData, coroutineScope, itemLongClickListener, keepSenderColor)
         }
 
         setOnLongClickListener(itemLongClickListener)
@@ -188,7 +208,14 @@ class InReplyToView @JvmOverloads constructor(
         views.replyThumbnailView.setCornerRadius(mediaPreviewCornerRadiusPx(context).toFloat())
     }
 
-    private fun hideViews() {
+    private fun hideViews(keepSenderColor: Boolean = false) {
+        if (!keepSenderColor) {
+            senderBarColorAnimator?.cancel()
+            senderBarColorAnimator = null
+            senderBarColor = null
+            senderBarRenderedColor = null
+            senderNameColor = null
+        }
         views.replyMemberNameView.isVisible = false
         views.replyTextView.isVisible = false
         // Clear stale text: the ExpandableViewLayout measures the text child even when hidden, so a
@@ -243,11 +270,33 @@ class InReplyToView @JvmOverloads constructor(
 
     // Uncolored names give the bar no sender color to echo, so it falls back to a neutral rule.
     private fun applySenderColor(color: Int, colored: Boolean) {
-        views.replyMemberNameView.setTextColor(color)
         views.replyMemberNameView.setSenderNameEmphasis(colored)
-        views.inReplyToBar.setBackgroundColor(
-                if (colored) color else ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        )
+        val nextBarColor = if (colored) color else ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+        if (senderNameColor == color && senderBarColor == nextBarColor && senderBarColorAnimator?.isRunning == true) return
+        val previousNameColor = views.replyMemberNameView.currentTextColor
+        val previousBarColor = senderBarRenderedColor
+        senderBarColorAnimator?.cancel()
+        if (previousBarColor != null && (previousBarColor != nextBarColor || previousNameColor != color)) {
+            val evaluator = ArgbEvaluator()
+            ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 220L
+                addUpdateListener {
+                    val fraction = it.animatedValue as Float
+                    val bar = evaluator.evaluate(fraction, previousBarColor, nextBarColor) as Int
+                    senderBarRenderedColor = bar
+                    views.inReplyToBar.setBackgroundColor(bar)
+                    views.replyMemberNameView.setTextColor(evaluator.evaluate(fraction, previousNameColor, color) as Int)
+                }
+                senderBarColorAnimator = this
+                start()
+            }
+        } else {
+            views.replyMemberNameView.setTextColor(color)
+            views.inReplyToBar.setBackgroundColor(nextBarColor)
+            senderBarRenderedColor = nextBarColor
+        }
+        senderBarColor = nextBarColor
+        senderNameColor = color
     }
 
     private fun renderReplyTo(
@@ -256,8 +305,9 @@ class InReplyToView @JvmOverloads constructor(
             roomInformationData: MessageInformationData,
             coroutineScope: CoroutineScope,
             itemLongClickListener: OnLongClickListener?,
+            keepSenderColor: Boolean,
     ) {
-        hideViews()
+        hideViews(keepSenderColor)
         isVisible = true
         views.replyMemberNameView.isVisible = true
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()

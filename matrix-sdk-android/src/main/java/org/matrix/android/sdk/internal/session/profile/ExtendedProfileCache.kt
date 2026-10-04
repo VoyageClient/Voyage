@@ -232,8 +232,11 @@ internal class ExtendedProfileCache @Inject constructor(
     fun getCachedColorPreference(userId: String): ColorPreference? = if (hasOverride(userId, ProfileKeys.COLOR_KEYS)) {
         resolvedProfile(userId).profileColorPreference()
     } else {
-        colorCache[userId]?.getOrNull() ?: profileColorStore.get(userId)
+        getCachedOwnColorPreference(userId)
     }
+
+    fun getCachedOwnColorPreference(userId: String): ColorPreference? =
+            colorCache[userId]?.getOrNull() ?: profileColorStore.get(userId)
 
     private fun hasOverride(userId: String, keys: Set<String>): Boolean =
             ProfileOverrides.fieldsFor(userId)?.let { fields -> keys.any { it in fields } } == true
@@ -256,6 +259,11 @@ internal class ExtendedProfileCache @Inject constructor(
         // restored from disk on the next start.
         profileColorStore.put(userId, updated.getOrNull())
         if (changed) colorUpdates.tryEmit(userId)
+    }
+
+    fun clearColorPreferences() {
+        colorCache.clear()
+        profileColorStore.clear()
     }
 
     fun notifyColorChanged(userId: String) {

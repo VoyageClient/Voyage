@@ -7,6 +7,9 @@
 
 package im.vector.app.features.home
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorFilter
@@ -72,6 +75,7 @@ import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.util.MatrixItem
+import java.util.WeakHashMap
 import javax.inject.Inject
 
 /**
@@ -86,6 +90,14 @@ class AvatarRenderer @Inject constructor(
         private val defaultAvatarFactory: DefaultAvatarFactory,
         private val thumbnailVariants: ThumbnailVariants,
 ) {
+
+    private data class LetterFade(
+            val entry: ViewPlaceholder,
+            val drawable: Drawable,
+            val animator: ValueAnimator,
+    )
+
+    private val letterFades = WeakHashMap<ImageView, LetterFade>()
 
     companion object {
         private const val THUMBNAIL_SIZE = 250
@@ -168,6 +180,32 @@ class AvatarRenderer @Inject constructor(
         override fun getIntrinsicHeight(): Int = inner.intrinsicHeight
     }
 
+    private class FadeOverlayDrawable(private val inner: Drawable) : Drawable() {
+        var overlayAlpha = 255
+            set(value) {
+                field = value
+                invalidateSelf()
+            }
+
+        override fun onBoundsChange(bounds: Rect) {
+            inner.bounds = bounds
+        }
+
+        override fun draw(canvas: Canvas) {
+            if (overlayAlpha == 0) return
+            val b = bounds
+            @Suppress("DEPRECATION")
+            val save = canvas.saveLayerAlpha(b.left.toFloat(), b.top.toFloat(), b.right.toFloat(), b.bottom.toFloat(), overlayAlpha, Canvas.ALL_SAVE_FLAG)
+            inner.draw(canvas)
+            canvas.restoreToCount(save)
+        }
+
+        override fun setAlpha(alpha: Int) = Unit
+        override fun setColorFilter(colorFilter: ColorFilter?) = inner.setColorFilter(colorFilter)
+        @Deprecated("Deprecated in Java")
+        override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
+    }
+
     /**
      * [crossfade] fades the letter placeholder out once the avatar lands, and only when the avatar
      * was not already in memory — a load that resolves in the same frame never showed a placeholder
@@ -206,12 +244,60 @@ class AvatarRenderer @Inject constructor(
             onSettled: (() -> Unit)?,
     ) {
         imageView.setContentDescription(matrixItem)
+        if (matrixItem.avatarUrl.isNullOrEmpty() && avatarDecryption(matrixItem) == null && shapeFor(matrixItem).effect == null) {
+            val previous = imageView.getTag(R.id.avatar_renderer_placeholder) as? ViewPlaceholder
+            val placeholder = placeholderFor(imageView, matrixItem)
+            val entry = imageView.getTag(R.id.avatar_renderer_placeholder) as? ViewPlaceholder
+            val activeFade = letterFades[imageView]
+            if (activeFade != null && activeFade.entry === entry && imageView.drawable === activeFade.drawable) {
+                onSettled?.invoke()
+                return
+            }
+            activeFade?.animator?.cancel()
+            val changedColor = previous != null && previous.matrixItem.id == matrixItem.id &&
+                    previous.matrixItem.getBestName() == matrixItem.getBestName() && previous.shape == shapeFor(matrixItem) &&
+                    previous.color != entry?.color && imageView.drawable === previous.drawable
+            if (changedColor) {
+                fadeLetterAvatar(imageView, requireNotNull(previous).drawable, placeholder, requireNotNull(entry))
+            } else if (imageView.drawable !== placeholder) {
+                GlideApp.with(imageView).clear(imageView)
+                imageView.setImageDrawable(placeholder)
+            }
+            onSettled?.invoke()
+            return
+        }
         GlideApp.with(imageView)
                 .loadAvatar(matrixItem, decodeSizePx = sizePx, crossfade = crossfade, reusablePlaceholder = placeholderFor(imageView, matrixItem))
                 .let { request ->
                     if (onSettled == null) request else request.addListener(SettledListener(onSettled))
                 }
                 .into(avatarTarget(imageView, matrixItem, sizePx))
+    }
+
+    private fun fadeLetterAvatar(imageView: ImageView, previous: Drawable, next: Drawable, entry: ViewPlaceholder) {
+        val fading = FadeOverlayDrawable(previous)
+        val layered = LayerDrawable(arrayOf(next, fading))
+        imageView.setImageDrawable(layered)
+        lateinit var animator: ValueAnimator
+        animator = ValueAnimator.ofInt(255, 0).apply {
+            duration = FADE_MS
+            addUpdateListener {
+                fading.overlayAlpha = it.animatedValue as Int
+                imageView.invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (letterFades[imageView]?.animator !== animator) return
+                    letterFades.remove(imageView)
+                    fading.overlayAlpha = 255
+                    if (imageView.getTag(R.id.avatar_renderer_placeholder) === entry && imageView.drawable === layered) {
+                        imageView.setImageDrawable(next)
+                    }
+                }
+            })
+        }
+        letterFades[imageView] = LetterFade(entry, layered, animator)
+        animator.start()
     }
 
     private class SettledListener(private val onSettled: () -> Unit) : RequestListener<Drawable> {
@@ -459,12 +545,13 @@ class AvatarRenderer @Inject constructor(
         val shape = shapeFor(matrixItem)
         // The color is part of the key: a sender's chosen color can resolve after an unchanged item first bound.
         val color = matrixItemColorProvider.getColor(matrixItem)
-        (imageView.getTag(R.id.avatar_renderer_placeholder) as? ViewPlaceholder)
+        val previous = imageView.getTag(R.id.avatar_renderer_placeholder) as? ViewPlaceholder
+        previous
                 ?.takeIf { it.matrixItem == matrixItem && it.shape == shape && it.color == color }
                 ?.let { return it.drawable }
-        return defaultAvatarFactory.create(matrixItem, color, shape).also {
-            imageView.setTag(R.id.avatar_renderer_placeholder, ViewPlaceholder(matrixItem, shape, color, it))
-        }
+        val next = defaultAvatarFactory.create(matrixItem, color, shape)
+        imageView.setTag(R.id.avatar_renderer_placeholder, ViewPlaceholder(matrixItem, shape, color, next))
+        return next
     }
 
     @AnyThread
