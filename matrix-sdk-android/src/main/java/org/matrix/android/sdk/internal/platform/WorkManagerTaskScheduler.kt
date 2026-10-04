@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.platform
 
 import androidx.work.BackoffPolicy
+import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ListenableWorker
 import androidx.work.OneTimeWorkRequest
@@ -135,8 +136,14 @@ internal class WorkManagerTaskScheduler @Inject constructor(
                 .build()
     }
 
-    private fun <P : SessionWorkerParams> BackgroundTaskRequest<P>.toData() =
-            WorkerParamsFactory.toData(paramsClass, params)
+    private fun <P : SessionWorkerParams> BackgroundTaskRequest<P>.toData(): Data {
+        val data = WorkerParamsFactory.toData(paramsClass, params)
+        return if (isolateInput) {
+            Data.Builder().putAll(data).putBoolean(NoMerger.OWN_INPUT_KEY, true).build()
+        } else {
+            data
+        }
+    }
 
     private fun BackgroundTaskType.workerClass(): Class<out ListenableWorker> = when (this) {
         BackgroundTaskType.ADD_PUSHER -> AddPusherWorker::class.java

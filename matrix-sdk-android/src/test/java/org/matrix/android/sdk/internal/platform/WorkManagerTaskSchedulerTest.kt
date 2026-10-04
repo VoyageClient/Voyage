@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.platform
 
 import androidx.work.Configuration
+import androidx.work.Data
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.testing.SynchronousExecutor
@@ -22,6 +23,7 @@ import org.junit.runner.RunWith
 import org.matrix.android.sdk.internal.di.WorkManagerProvider
 import org.matrix.android.sdk.internal.session.pushers.AddPusherWorkerParams
 import org.matrix.android.sdk.internal.session.pushers.JsonPusher
+import org.matrix.android.sdk.internal.session.room.send.NoMerger
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -110,5 +112,18 @@ class WorkManagerTaskSchedulerTest {
         // the handle cancels the second (dependent) stage, matching previous behavior
         handle.cancel()
         assertEquals(WorkInfo.State.CANCELLED, workManager.getWorkInfoById(handle.id).get().state)
+    }
+
+    @Test
+    fun `isolated work keeps its own parameters when earlier output comes first`() {
+        val earlier = Data.Builder().putString("WORKER_PARAMS_JSON", "first attachment").build()
+        val current = Data.Builder()
+                .putString("WORKER_PARAMS_JSON", "second attachment")
+                .putBoolean(NoMerger.OWN_INPUT_KEY, true)
+                .build()
+
+        val merged = NoMerger().merge(mutableListOf(earlier, current))
+
+        assertEquals("second attachment", merged.getString("WORKER_PARAMS_JSON"))
     }
 }

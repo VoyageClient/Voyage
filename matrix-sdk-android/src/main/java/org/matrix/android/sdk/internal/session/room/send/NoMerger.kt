@@ -18,11 +18,12 @@ package org.matrix.android.sdk.internal.session.room.send
 import androidx.work.Data
 import androidx.work.InputMerger
 
-/**
- * InputMerger which takes only the first input, to ensure an appended work will only have the specified parameters.
- */
 internal class NoMerger : InputMerger() {
     override fun merge(inputs: MutableList<Data>): Data {
-        return inputs.first()
+        return inputs.firstOrNull { it.getBoolean(OWN_INPUT_KEY, false) } ?: inputs.first()
+    }
+
+    companion object {
+        const val OWN_INPUT_KEY = "OWN_WORKER_INPUT"
     }
 }
