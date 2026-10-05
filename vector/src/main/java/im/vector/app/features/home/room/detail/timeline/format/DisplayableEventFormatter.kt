@@ -69,6 +69,10 @@ class DisplayableEventFormatter @Inject constructor(
     // built with, so a theme, palette or avatar-style change invalidates the cache.
     private var previewCacheGeneration = ThemeUtils.themeGeneration to matrixItemColorProvider.changes.value
 
+    fun invalidatePreviewCache() {
+        previewCache.evictAll()
+    }
+
     // Per-room pill processors, cached so the room list doesn't rebuild them on every summary render.
     private val pillProcessors = java.util.concurrent.ConcurrentHashMap<String, Pair<PillsPostProcessor, EventTextRenderer>>()
 

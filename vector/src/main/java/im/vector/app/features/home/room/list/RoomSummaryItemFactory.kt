@@ -45,6 +45,10 @@ class RoomSummaryItemFactory @Inject constructor(
         private val pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore,
 ) {
 
+    fun invalidatePreviewCache() {
+        displayableEventFormatter.invalidatePreviewCache()
+    }
+
     // PGP-send mode is on for this (non-Matrix-encrypted) room: show the lock decoration.
     private fun isRoomPgpOn(roomSummary: RoomSummary) =
             pgpKeyStore.isEnabled && !roomSummary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(roomSummary.roomId)

@@ -95,6 +95,12 @@ class HomeRoomListFragment :
         roomListViewModel.handle(HomeRoomListAction.DeleteAllLocalRoom)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Linked rooms can gain metadata while this list is paused without changing the source room summaries.
+        roomsController.refreshPreviews()
+    }
+
     private fun setupObservers() {
         sharedQuickActionsViewModel = activityViewModelProvider[RoomListQuickActionsSharedActionViewModel::class.java]
         sharedQuickActionsViewModel

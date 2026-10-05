@@ -218,6 +218,12 @@ class RoomListFragment :
         roomListViewModel.handle(RoomListAction.DeleteAllLocalRoom)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Linked rooms can gain metadata while this list is paused without changing the source room summaries.
+        adapterInfosList.forEach { (it.contentEpoxyController as? RoomSummaryPagedController)?.refreshPreviews() }
+    }
+
     private fun refreshCollapseStates() {
         // Everything is force-collapsed while a section drag is running; restore only when it ends.
         if (sectionReorderInProgress) return

@@ -60,6 +60,11 @@ class HomeFilteredRoomsController @Inject constructor(
         }
     }
 
+    fun refreshPreviews() {
+        roomSummaryItemFactory.invalidatePreviewCache()
+        requestForcedModelBuild()
+    }
+
     override fun addModels(models: List<EpoxyModel<*>>) {
         val emptyStateData = this.emptyStateData
         if (models.isEmpty() && emptyStateData != null) {
