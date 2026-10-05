@@ -7,11 +7,13 @@
 
 package im.vector.app.features.home.room.list
 
+import android.text.Spanned
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.doOnLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -32,6 +34,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.themes.ThemeUtils
@@ -171,12 +174,26 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         holder.subtitleView.text = lastFormattedEvent.charSequence
         if (lastEventRedacted) holder.subtitleView.setRedactedPreviewStyle()
         holder.subtitleView.bindEmoteImageSpans()
+        limitPreviewPillWidths(holder.subtitleView)
         if (loadMentionAvatars) holder.subtitleView.bindPillImageSpans()
         // A spoiler in the preview keeps its blur; the BlurMaskFilter only paints on a software layer.
         holder.subtitleView.applySpoilerRenderLayer()
         holder.lastEventTimeView.text = lastEventTime
         holder.typingView.setTextOrHide(typingMessage.prepareForDisplay())
         holder.subtitleView.isInvisible = holder.typingView.isVisible
+    }
+
+    private fun limitPreviewPillWidths(view: TextView) {
+        if (view.width == 0) {
+            view.doOnLayout { limitPreviewPillWidths(view) }
+            return
+        }
+        val text = view.text as? Spanned ?: return
+        // Android drops an oversized replacement span to "…" before the chip can shorten its label.
+        val maxWidth = (view.width - view.paddingLeft - view.paddingRight) / 2
+        if (text.getSpans(0, text.length, PillImageSpan::class.java).map { it.limitWidthTo(maxWidth) }.any { it }) {
+            view.requestLayout()
+        }
     }
 
     private fun renderForFilteredDisplayMode(holder: Holder) {

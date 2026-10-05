@@ -115,6 +115,8 @@ class PillImageSpan(
     private var rawIcon: Drawable? = null
 
     private var pillDrawable = createChipDrawable()
+    private var naturalWidth = pillDrawable.bounds.width()
+    private var maxWidth: Int? = null
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
     private val spoilerTextPaint = TextPaint()
@@ -130,6 +132,13 @@ class PillImageSpan(
         resolveItemIfNeeded()
         if (useGenericIcon || hasCachedAvatar) return
         avatarRenderer.render(glideRequests, matrixItem, target, forceCircle = true)
+    }
+
+    fun limitWidthTo(width: Int): Boolean {
+        val newWidth = width.takeIf { it > 0 }
+        if (maxWidth == newWidth) return false
+        maxWidth = newWidth
+        return true
     }
 
     private fun resolveItemIfNeeded() {
@@ -151,6 +160,7 @@ class PillImageSpan(
         hasCachedAvatar = false
         rawIcon = null
         pillDrawable = createChipDrawable()
+        naturalWidth = pillDrawable.bounds.width()
         pillDrawable.callback = chipCallback
         val textView = tv?.get() ?: return
         if (!useGenericIcon && !hasCachedAvatar) avatarRenderer.render(glideRequests, item, target, forceCircle = true)
@@ -184,7 +194,7 @@ class PillImageSpan(
             fm.bottom = top
             fm.descent = top
         }
-        return rect.right
+        return maxWidth?.let { minOf(naturalWidth, it) } ?: naturalWidth
     }
 
     override fun draw(
@@ -213,11 +223,10 @@ class PillImageSpan(
 
         val rect = Rect()
         canvas.getClipBounds(rect)
-        val maxWidth = rect.right
-        if (pillDrawable.bounds.width() > maxWidth) {
-            pillDrawable.setBounds(0, 0, maxWidth, pillDrawable.intrinsicHeight)
-            pillDrawable.ellipsize = TextUtils.TruncateAt.END
-        }
+        val availableWidth = maxWidth?.let { minOf(rect.right, it) } ?: rect.right
+        val drawWidth = minOf(naturalWidth, availableWidth)
+        pillDrawable.setBounds(0, 0, drawWidth, pillDrawable.intrinsicHeight)
+        pillDrawable.ellipsize = if (drawWidth < naturalWidth) TextUtils.TruncateAt.END else null
 
         // Being painted is what says the pill is on screen; take the animation back up if it was parked
         // while off it. Plain start(), not a rewind: the pill would otherwise jump to frame 0 on a scroll.

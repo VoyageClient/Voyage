@@ -7,6 +7,7 @@
 
 package im.vector.app.features.html
 
+import android.graphics.Paint
 import android.text.Spanned
 import android.widget.TextView
 import im.vector.app.core.di.ActiveSessionHolder
@@ -19,6 +20,8 @@ import im.vector.app.features.settings.VectorPreferences
 import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldBeEqualTo
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.Session
@@ -96,6 +99,24 @@ class MentionPillRenderingTest {
     fun `given an event permalink, when rendering in a biography, then it stays a link`() {
         val url = "https://matrix.to/#/$roomId/\$event"
         renderAsBio("""<a href="$url">a message</a>""").pillNames() shouldBeEqualTo emptyList()
+    }
+
+    @Test
+    fun `event and room permalink pills fit a room list preview`() {
+        val urls = listOf(
+                "https://matrix.to/#/!elsewhere:example.org/\$event",
+                "https://matrix.to/#/!elsewhere:example.org",
+        )
+        urls.forEach { url ->
+            val rendered = render("""<a href="$url">A long room name</a>""", roomId)
+            val pill = rendered.getSpans(0, rendered.length, PillImageSpan::class.java).single()
+            val start = rendered.getSpanStart(pill)
+            val end = rendered.getSpanEnd(pill)
+            val paint = Paint()
+            assertTrue(pill.getSize(paint, rendered, start, end, null) > 48)
+            pill.limitWidthTo(48)
+            assertEquals(48, pill.getSize(paint, rendered, start, end, null))
+        }
     }
 
     @Test
