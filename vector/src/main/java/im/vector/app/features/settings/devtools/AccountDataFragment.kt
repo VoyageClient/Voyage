@@ -62,7 +62,6 @@ class AccountDataFragment :
         settingsToolbar()?.padActionsFromScreenEdge()
     }
 
-    // Shared with every other settings screen, so the padding is undone in onDestroyView.
     private fun settingsToolbar() = activity?.findViewById<Toolbar>(R.id.settingsToolbar)
 
     override fun invalidate() = withState(viewModel) { state ->
@@ -117,7 +116,10 @@ class AccountDataFragment :
         epoxyController.interactionListener = null
         epoxyController.searchableContentProvider = null
         searchMenuItem = null
-        settingsToolbar()?.padActionsFromScreenEdge(false)
+        val activeFragment = parentFragmentManager.findFragmentById(R.id.vector_settings_page)
+        if (activeFragment !is AccountDataFragment && activeFragment !is AccountDataDetailFragment) {
+            settingsToolbar()?.padActionsFromScreenEdge(false)
+        }
         super.onDestroyView()
     }
 

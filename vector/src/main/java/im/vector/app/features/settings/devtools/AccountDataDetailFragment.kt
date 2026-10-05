@@ -137,16 +137,18 @@ class AccountDataDetailFragment :
     override fun onResume() {
         super.onResume()
         (activity as? AppCompatActivity)?.supportActionBar?.title = fragmentArgs.type.neutralizeDirectionOverrides()
-        settingsToolbar()?.padActionsFromScreenEdge()
+        settingsToolbar()?.padActionsFromScreenEdge(editing)
     }
 
     override fun onDestroyView() {
         searchMenuItem = null
-        settingsToolbar()?.padActionsFromScreenEdge(false)
+        val activeFragment = parentFragmentManager.findFragmentById(R.id.vector_settings_page)
+        if (activeFragment !is AccountDataFragment && activeFragment !is AccountDataDetailFragment) {
+            settingsToolbar()?.padActionsFromScreenEdge(false)
+        }
         super.onDestroyView()
     }
 
-    // Shared with every other settings screen, so the padding is undone in onDestroyView.
     private fun settingsToolbar() = activity?.findViewById<Toolbar>(R.id.settingsToolbar)
 
     override fun handlePostCreateMenu(menu: Menu) {
@@ -290,6 +292,7 @@ class AccountDataDetailFragment :
 
     private fun applyEditingMode() {
         if (editing) searchMenuItem?.collapseActionView()
+        if (isResumed) settingsToolbar()?.padActionsFromScreenEdge(editing)
         views.editorScrollView.isVisible = editing
         views.jsonViewerContainer.isVisible = !editing
         backCallback.isEnabled = editing
