@@ -3528,4 +3528,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Versteckte Thread-Ereignisse in der Raum-Zeitleiste anzeigen</string>
     <string name="debug_event_type">Debug: Ereignistyp „%1$s“</string>
     <string name="debug_thread_event_type">Debug: Thread-Ereignistyp „%1$s“</string>
+    <string name="image_pack_event_too_large">Dieses Bilderpaket ist zu groß zum Speichern. Entferne einige Bilder oder teile es in kleinere Pakete auf.</string>
 </resources>

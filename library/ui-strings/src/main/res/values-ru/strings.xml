@@ -3653,4 +3653,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Показывать скрытые события обсуждений в ленте комнаты</string>
     <string name="debug_event_type">Отладка: тип события «%1$s»</string>
     <string name="debug_thread_event_type">Отладка: тип события обсуждения «%1$s»</string>
+    <string name="image_pack_event_too_large">Этот набор изображений слишком велик для сохранения. Удалите часть изображений или разделите его на несколько меньших наборов.</string>
 </resources>

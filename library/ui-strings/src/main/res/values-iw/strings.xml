@@ -3622,4 +3622,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">הצג אירועי שרשור מוסתרים בציר הזמן של החדר</string>
     <string name="debug_event_type">ניפוי שגיאות: סוג האירוע „%1$s”</string>
     <string name="debug_thread_event_type">ניפוי שגיאות: סוג האירוע בשרשור „%1$s”</string>
+    <string name="image_pack_event_too_large">חבילת התמונות הזו גדולה מדי לשמירה. יש להסיר כמה תמונות או לפצל אותה לחבילות קטנות יותר.</string>
 </resources>

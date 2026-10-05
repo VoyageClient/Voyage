@@ -3465,4 +3465,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">在房间时间线中显示隐藏的消息列事件</string>
     <string name="debug_event_type">调试：事件类型“%1$s”</string>
     <string name="debug_thread_event_type">调试：消息列事件类型“%1$s”</string>
+    <string name="image_pack_event_too_large">这个图片包太大，无法保存。请移除部分图片，或将其拆分成多个较小的图片包。</string>
 </resources>

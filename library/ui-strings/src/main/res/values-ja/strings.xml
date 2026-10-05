@@ -3463,4 +3463,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">ルームのタイムラインに非表示のスレッドイベントを表示</string>
     <string name="debug_event_type">デバッグ: イベント種別「%1$s」</string>
     <string name="debug_thread_event_type">デバッグ: スレッドイベント種別「%1$s」</string>
+    <string name="image_pack_event_too_large">この画像パックは大きすぎて保存できません。画像をいくつか削除するか、複数の小さいパックに分けてください。</string>
 </resources>

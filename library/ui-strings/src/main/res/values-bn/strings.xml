@@ -3483,4 +3483,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">রুমের টাইমলাইনে লুকানো থ্রেড ইভেন্ট দেখান</string>
     <string name="debug_event_type">ডিবাগ: ইভেন্টের ধরন “%1$s”</string>
     <string name="debug_thread_event_type">ডিবাগ: থ্রেড ইভেন্টের ধরন “%1$s”</string>
+    <string name="image_pack_event_too_large">এই ছবির প্যাকটি সংরক্ষণ করার জন্য খুব বড়। কিছু ছবি সরান অথবা এটিকে ছোট প্যাকে ভাগ করুন।</string>
 </resources>

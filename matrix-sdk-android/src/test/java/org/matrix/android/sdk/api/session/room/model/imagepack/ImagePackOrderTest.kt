@@ -54,4 +54,28 @@ class ImagePackOrderTest {
         assertEquals(1L, z["fi.mau.msc4389.order"])
         assertEquals(listOf("z", "a"), written.toModel<ImagePackContent>()?.effectiveImages()?.keys?.toList())
     }
+
+    @Test
+    fun `compact pack keeps image order and distinct body`() {
+        val images = linkedMapOf(
+                "z" to ImagePackImage(url = "mxc://s/z", body = "z"),
+                "a" to ImagePackImage(url = "mxc://s/a", body = "description"),
+        ).withSequentialOrder()
+        val compact = ImagePackContent(images = images).compactForSizeLimit()
+        val written = compact.toContent()
+
+        @Suppress("UNCHECKED_CAST")
+        val entries = written["images"] as Map<String, Map<String, Any>>
+        assertEquals(null, entries["z"]?.get("body"))
+        assertEquals("description", entries["a"]?.get("body"))
+        assertEquals(null, entries["z"]?.get("fi.mau.msc4389.order"))
+        assertEquals(listOf("z", "a"), written.toModel<ImagePackContent>()?.effectiveImages()?.keys?.toList())
+
+        val legacy = ImagePackContent(images = images).compactForSizeLimit(preferUnstableOrder = true).toContent()
+        @Suppress("UNCHECKED_CAST")
+        val legacyEntries = legacy["images"] as Map<String, Map<String, Any>>
+        assertEquals(null, legacyEntries["z"]?.get("order"))
+        assertEquals(1L, legacyEntries["z"]?.get("fi.mau.msc4389.order"))
+        assertEquals(listOf("z", "a"), legacy.toModel<ImagePackContent>()?.effectiveImages()?.keys?.toList())
+    }
 }

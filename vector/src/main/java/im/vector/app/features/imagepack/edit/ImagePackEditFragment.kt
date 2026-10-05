@@ -681,7 +681,16 @@ class ImagePackEditFragment :
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (failure: Throwable) {
-                if (isAdded) showFailure(failure)
+                if (isAdded) {
+                    if (failure is ImagePackEventTooLarge) {
+                        MaterialAlertDialogBuilder(requireContext())
+                                .setMessage(CommonStrings.image_pack_event_too_large)
+                                .setPositiveButton(CommonStrings.ok, null)
+                                .show()
+                    } else {
+                        showFailure(failure)
+                    }
+                }
             } finally {
                 if (view != null) requireActivity().invalidateOptionsMenu()
             }

@@ -63,6 +63,16 @@ fun Map<String, ImagePackImage>.withSequentialOrder(): Map<String, ImagePackImag
     return entries.associateTo(LinkedHashMap()) { (shortcode, image) -> shortcode to image.withOrder(++position) }
 }
 
+fun ImagePackContent.compactForSizeLimit(preferUnstableOrder: Boolean = false): ImagePackContent = copy(
+        images = images?.mapValues { (shortcode, image) ->
+            image.copy(
+                    body = image.body?.takeUnless { it == shortcode },
+                    order = image.order?.takeUnless { preferUnstableOrder && it == image.orderUnstable },
+                    orderUnstable = image.orderUnstable?.takeUnless { !preferUnstableOrder && it == image.order },
+            )
+        },
+)
+
 @JsonClass(generateAdapter = true)
 data class ImagePackMeta(
         @Json(name = "display_name") val displayName: String? = null,

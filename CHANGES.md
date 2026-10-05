@@ -252,6 +252,8 @@ New features, improvements, and notable removals in this fork.
 
 ## Significant bugfixes
 
+- **Large image packs**: Saving a room pack retries with smaller pack data when the server rejects it for size, and explains when the pack still cannot fit.
+
 - **Permalink crash**: Fixed a crash when a room link failed to open after leaving the conversation.
 
 - **Late messages' position**: Fixed messages from a slow or recovering server showing under the wrong date. A message delivered long after it was sent now sits where it was sent, even when that part of the history has to be loaded first.

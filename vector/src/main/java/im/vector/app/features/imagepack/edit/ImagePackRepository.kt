@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -32,12 +34,15 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackRoomsContent
+import org.matrix.android.sdk.api.session.room.model.imagepack.compactForSizeLimit
 import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
 import org.matrix.android.sdk.api.session.room.state.StateService
 import org.matrix.android.sdk.api.util.JsonDict
 import java.io.IOException
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
+
+internal class ImagePackEventTooLarge(cause: Throwable) : Exception(cause)
 
 /**
  * Reads and writes MSC2545 image packs for the authoring UI. Reading tolerates legacy ids; writing targets
@@ -296,9 +301,23 @@ class ImagePackRepository @Inject constructor(
         // (stable) copy. A brand-new pack is written with the stable id.
         val canonical = room.stateService().canonicalPackEvent(stateKey)
         val type = canonical?.type ?: if (forceLegacy) EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE else EventType.STATE_ROOM_IMAGE_PACK
-        val merged = mergePackContent(canonical?.content, content, includeUsage)
-        extraTopLevel?.forEach { (key, value) -> if (key !in droppedOnSaveKeys) merged[key] = value }
-        room.stateService().sendStateEvent(type, stateKey, merged)
+        fun eventContent(pack: ImagePackContent): MutableMap<String, Any> = mergePackContent(canonical?.content, pack, includeUsage).also { merged ->
+            extraTopLevel?.forEach { (key, value) -> if (key !in droppedOnSaveKeys) merged[key] = value }
+        }
+        val merged = eventContent(content)
+        try {
+            room.stateService().sendStateEvent(type, stateKey, merged)
+        } catch (failure: Failure.ServerError) {
+            if (failure.error.code != MatrixError.M_TOO_LARGE) throw failure
+            val compact = content.compactForSizeLimit(preferUnstableOrder = type == EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE)
+            if (compact == content) throw ImagePackEventTooLarge(failure)
+            try {
+                room.stateService().sendStateEvent(type, stateKey, eventContent(compact))
+            } catch (retryFailure: Failure.ServerError) {
+                if (retryFailure.error.code == MatrixError.M_TOO_LARGE) throw ImagePackEventTooLarge(retryFailure)
+                throw retryFailure
+            }
+        }
         // A pack you create is enabled (usable in pickers) right away; packs from other rooms you're in
         // still have to be turned on from the settings list.
         if (canonical == null) setPackEnabledGlobally(roomId, stateKey, true)

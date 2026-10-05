@@ -3765,6 +3765,7 @@
     <string name="permalink_open_failed">Couldn\'t open this link. Check your connection and try again.</string>
     <string name="image_pack_no_permission_room">You don\'t have permission to edit packs in this room</string>
     <string name="image_pack_duplicate_shortcode">Duplicate shortcode \"%1$s\": each shortcode in a pack must be unique</string>
+    <string name="image_pack_event_too_large">This image pack is too large to save. Remove some images or split it into smaller packs.</string>
     <string name="image_pack_import">Import Pack</string>
     <string name="image_pack_import_empty">No images found in %1$s</string>
     <string name="image_pack_import_telegram">Import from Telegram</string>

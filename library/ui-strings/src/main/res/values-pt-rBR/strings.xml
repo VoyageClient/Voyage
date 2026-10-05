@@ -3529,4 +3529,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Mostrar eventos ocultos de threads na linha do tempo da sala</string>
     <string name="debug_event_type">Depuração: tipo de evento “%1$s”</string>
     <string name="debug_thread_event_type">Depuração: tipo de evento da thread “%1$s”</string>
+    <string name="image_pack_event_too_large">Este pacote de imagens é grande demais para salvar. Remova algumas imagens ou divida-o em pacotes menores.</string>
 </resources>

@@ -3487,4 +3487,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Gizli konu etkinliklerini oda zaman tünelinde göster</string>
     <string name="debug_event_type">Hata ayıklama: olay türü “%1$s”</string>
     <string name="debug_thread_event_type">Hata ayıklama: konu olayı türü “%1$s”</string>
+    <string name="image_pack_event_too_large">Bu görsel paketi kaydedilemeyecek kadar büyük. Bazı görselleri kaldırın veya paketi daha küçük paketlere bölün.</string>
 </resources>

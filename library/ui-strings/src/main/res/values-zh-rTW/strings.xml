@@ -3467,4 +3467,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">在聊天室時間軸中顯示隱藏的討論串事件</string>
     <string name="debug_event_type">偵錯：事件類型「%1$s」</string>
     <string name="debug_thread_event_type">偵錯：討論串事件類型「%1$s」</string>
+    <string name="image_pack_event_too_large">這個圖片包太大，無法儲存。請移除部分圖片，或將其拆分成多個較小的圖片包。</string>
 </resources>

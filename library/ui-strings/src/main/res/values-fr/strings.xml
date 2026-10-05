@@ -3529,4 +3529,5 @@
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Afficher les événements cachés des fils de discussion dans la chronologie du salon</string>
     <string name="debug_event_type">Débogage : type d’événement « %1$s »</string>
     <string name="debug_thread_event_type">Débogage : type d’événement du fil de discussion « %1$s »</string>
+    <string name="image_pack_event_too_large">Ce pack est trop volumineux pour être enregistré. Supprimez des images ou répartissez-le en plusieurs packs plus petits.</string>
 </resources>
