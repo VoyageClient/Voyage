@@ -1384,6 +1384,7 @@ class MessageItemFactory @Inject constructor(
                         }).prepareForDisplay().toEpoxyCharSequence()
                 )
                 .bindingOptions(bindingOptions)
+                .markwonPlugins(htmlRenderer.get().plugins)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .previewUrlRetriever(callback?.getPreviewUrlRetriever())
                 .imageContentRenderer(imageContentRenderer)
