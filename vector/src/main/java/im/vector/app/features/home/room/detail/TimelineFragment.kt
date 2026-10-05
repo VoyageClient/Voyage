@@ -2072,8 +2072,10 @@ class TimelineFragment :
     }
 
     private var openingAfterKeyboardDismissal = false
+    private var pendingOpenAfterKeyboardDismissal: (() -> Unit)? = null
+    private var pendingKeyboardRestore = false
 
-    private fun isKeyboardVisible(): Boolean {
+    fun isKeyboardVisible(): Boolean {
         keyboardStateUtils.onGlobalLayout()
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             ViewCompat.getRootWindowInsets(requireView())?.isVisible(WindowInsetsCompat.Type.ime())
@@ -2082,27 +2084,33 @@ class TimelineFragment :
     }
 
     /** Slides the keyboard away before [open] covers the room, and brings it back once the room is on top again. */
-    fun openAfterKeyboardDismissal(open: () -> Unit) {
-        if (openingAfterKeyboardDismissal) return
+    fun openAfterKeyboardDismissal(restoreKeyboardOnReturn: Boolean = false, open: () -> Unit) {
+        if (openingAfterKeyboardDismissal) {
+            pendingOpenAfterKeyboardDismissal = open
+            pendingKeyboardRestore = pendingKeyboardRestore || restoreKeyboardOnReturn
+            return
+        }
         openingAfterKeyboardDismissal = true
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val keyboardWasVisible = isKeyboardVisible()
+                val keyboardWasVisible = restoreKeyboardOnReturn || isKeyboardVisible()
                 if (keyboardWasVisible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     withTimeoutOrNull(1000L) { requireActivity().window.hideImeQuickly(requireView()) }
                 }
                 val composer = childFragmentManager.findFragmentById(R.id.composerContainer) as? MessageComposerFragment
                 composer?.dismissKeyboard()
                 this@TimelineFragment.view?.hideKeyboard()
-                // Shared-element transitions freeze the room layout, so let IME resizing finish first.
+                // Let IME resizing finish before another window covers the room.
                 withTimeoutOrNull(1000L) {
                     while (isKeyboardVisible() || vectorBaseActivity.isImeAnimating) delay(16L)
                 }
                 // One frame for the post-IME relayout.
                 delay(16L)
-                if (keyboardWasVisible) composer?.restoreKeyboardOnReturn()
-                open()
+                if (keyboardWasVisible || pendingKeyboardRestore) composer?.restoreKeyboardOnReturn()
+                (pendingOpenAfterKeyboardDismissal ?: open)()
             } finally {
+                pendingOpenAfterKeyboardDismissal = null
+                pendingKeyboardRestore = false
                 openingAfterKeyboardDismissal = false
             }
         }

@@ -42,6 +42,7 @@ import im.vector.app.R
 import im.vector.app.core.error.fatalError
 import im.vector.app.core.extensions.bodyName
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.showKeyboard
@@ -105,6 +106,7 @@ import im.vector.app.features.share.SharedData
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
@@ -117,7 +119,11 @@ import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isEdition
 import org.matrix.android.sdk.api.session.events.model.isThread
+import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -267,7 +273,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.JoinRoomCommandSuccess -> handleJoinedToAnotherRoom(it)
                 is MessageComposerViewEvents.SlashCommandConfirmationRequest -> handleSlashCommandConfirmationRequest(it)
                 is MessageComposerViewEvents.TelegramExportProgress -> renderTelegramExportProgress(it)
-                is MessageComposerViewEvents.TelegramExportEnded -> dismissTelegramExportDialog()
+                is MessageComposerViewEvents.TelegramExportEnded -> {
+                    telegramExportEnded = true
+                    if (!telegramExportErrorPending) dismissTelegramExportDialog()
+                }
                 is MessageComposerViewEvents.SendMessageResult -> renderSendMessageResult(it)
                 is MessageComposerViewEvents.ShowMessage -> showSnackWithMessage(it.message)
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
@@ -367,6 +376,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         super.onPause()
 
         emojiKeyboardController?.onPause()
+        if (dismissViewLoadingOnPause) {
+            dismissViewLoadingOnPause = false
+            dismissLoadingDialog()
+            slashCommandLoadingShown = false
+        }
 
         withState(messageComposerViewModel) {
             when {
@@ -382,6 +396,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     override fun onDestroyView() {
         dismissTelegramExportDialog()
+        slashCommandLoadingShown = false
         // Before super: dismissing the autocomplete popups calls back into the composer views.
         emojiKeyboardController?.destroy()
         emojiKeyboardController = null
@@ -852,8 +867,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     // joined case does: left in the composer, every later send re-runs it instead of sending a message.
     private fun handleOpenRoomLink(action: MessageComposerViewEvents.OpenRoomLink) {
         dismissLoadingDialog()
+        slashCommandLoadingShown = false
         composer.setTextIfDifferent("")
-        navigator.openMatrixToBottomSheet(requireActivity(), action.link, OriginOfMatrixTo.LINK)
+        showCommandPopup {
+            navigator.openMatrixToBottomSheet(requireActivity(), action.link, OriginOfMatrixTo.LINK)
+        }
     }
 
     private fun handleSlashCommandConfirmationRequest(action: MessageComposerViewEvents.SlashCommandConfirmationRequest) {
@@ -864,28 +882,51 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun promptUnignoreUser(command: ParsedCommand.UnignoreUser) {
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.room_participants_action_unignore_title)
-                .setMessage(getString(CommonStrings.settings_unignore_user, command.userId))
-                .setPositiveButton(CommonStrings.unignore) { _, _ ->
-                    messageComposerViewModel.handle(MessageComposerAction.SlashCommandConfirmed(command))
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
+        showCommandPopup {
+            MaterialAlertDialogBuilder(requireActivity())
+                    .setTitle(CommonStrings.room_participants_action_unignore_title)
+                    .setMessage(getString(CommonStrings.settings_unignore_user, command.userId))
+                    .setPositiveButton(CommonStrings.unignore) { _, _ ->
+                        messageComposerViewModel.handle(MessageComposerAction.SlashCommandConfirmed(command))
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
     }
 
     private var telegramExportDialog: ImagePackProgressDialog? = null
+    private var latestTelegramExportProgress: MessageComposerViewEvents.TelegramExportProgress? = null
+    private var telegramExportEnded = false
+    private var telegramExportErrorPending = false
+    private var keyboardWasVisibleBeforeCommandLoading = false
+    private var dismissViewLoadingOnPause = false
+    private var slashCommandLoadingShown = false
 
     private fun renderTelegramExportProgress(progress: MessageComposerViewEvents.TelegramExportProgress) {
-        val dialog = telegramExportDialog ?: ImagePackProgressDialog(requireContext(), CommonStrings.image_pack_exporting_title) {
-            messageComposerViewModel.handle(MessageComposerAction.CancelTelegramExport)
-        }.also { telegramExportDialog = it }
-        progress.packName?.let { name ->
-            dialog.update(getString(CommonStrings.image_pack_telegram_downloading, name, progress.done, progress.total), progress.done, progress.total)
+        telegramExportEnded = false
+        latestTelegramExportProgress = progress
+        if (telegramExportDialog == null) {
+            showCommandPopup {
+                val dialog = ImagePackProgressDialog(requireContext(), CommonStrings.image_pack_exporting_title) {
+                    messageComposerViewModel.handle(MessageComposerAction.CancelTelegramExport)
+                }.also { telegramExportDialog = it }
+                val latest = latestTelegramExportProgress
+                latest?.packName?.let { name ->
+                    dialog.update(getString(CommonStrings.image_pack_telegram_downloading, name, latest.done, latest.total), latest.done, latest.total)
+                }
+                if (telegramExportEnded) dismissTelegramExportDialog()
+            }
+        } else {
+            progress.packName?.let { name ->
+                telegramExportDialog?.update(getString(CommonStrings.image_pack_telegram_downloading, name, progress.done, progress.total), progress.done, progress.total)
+            }
         }
     }
 
     private fun dismissTelegramExportDialog() {
+        telegramExportEnded = true
+        telegramExportErrorPending = false
+        latestTelegramExportProgress = null
         telegramExportDialog?.dismiss()
         telegramExportDialog = null
     }
@@ -893,7 +934,14 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun renderSendMessageResult(sendMessageResult: MessageComposerViewEvents.SendMessageResult) {
         when (sendMessageResult) {
             is MessageComposerViewEvents.SlashCommandLoading -> {
+                keyboardWasVisibleBeforeCommandLoading = (parentFragment as TimelineFragment).isKeyboardVisible()
+                if (keyboardWasVisibleBeforeCommandLoading) {
+                    dismissKeyboard()
+                    view?.hideKeyboard()
+                    restoreKeyboardOnReturn()
+                }
                 showLoading(null)
+                slashCommandLoadingShown = true
             }
             is MessageComposerViewEvents.SlashCommandError -> {
                 displayCommandError(getString(CommonStrings.command_problem_with_parameters, sendMessageResult.command.command))
@@ -905,7 +953,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 handleSlashCommandResultOk(sendMessageResult.parsedCommand)
             }
             is MessageComposerViewEvents.SlashCommandResultError -> {
-                dismissLoadingDialog()
+                if (latestTelegramExportProgress != null) telegramExportErrorPending = true
                 displayCommandError(errorFormatter.toHumanReadable(sendMessageResult.throwable))
             }
             is MessageComposerViewEvents.SlashCommandNotImplemented -> {
@@ -918,7 +966,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun handleSlashCommandResultOk(parsedCommand: ParsedCommand) {
-        dismissLoadingDialog()
+        if (parsedCommand !is ParsedCommand.ViewFile) {
+            dismissLoadingDialog()
+            slashCommandLoadingShown = false
+        }
         composer.setTextIfDifferent("")
         when (parsedCommand) {
             is ParsedCommand.DevTools -> {
@@ -938,62 +989,92 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun openMedia(action: MessageComposerViewEvents.OpenMedia) {
-        val activity = requireActivity()
-        val imageData = ImageContentRenderer.Data(
-                eventId = action.mxcUrl,
-                filename = action.file.name,
-                mimeType = action.mimeType,
-                url = action.mxcUrl,
-                elementToDecrypt = null,
-                height = null,
-                maxHeight = 1024,
-                width = null,
-                maxWidth = 2048,
-        )
-        when {
-            action.mimeType.isMimeTypeImage() -> navigator.openMediaViewer(
-                    activity = activity,
-                    roomId = roomId,
-                    mediaData = imageData,
-                    view = views.root,
-                    standalonePreview = true,
-                    hideShowInChat = true,
-                    morphFromView = false,
-                    options = null,
+        val restoreKeyboard = keyboardWasVisibleBeforeCommandLoading
+        keyboardWasVisibleBeforeCommandLoading = false
+        (parentFragment as TimelineFragment).openAfterKeyboardDismissal(restoreKeyboardOnReturn = restoreKeyboard) {
+            if (!isAdded || view == null) return@openAfterKeyboardDismissal
+            val activity = requireActivity()
+            val imageData = ImageContentRenderer.Data(
+                    eventId = action.mxcUrl,
+                    filename = action.file.name,
+                    mimeType = action.mimeType,
+                    url = action.mxcUrl,
+                    elementToDecrypt = null,
+                    height = null,
+                    maxHeight = 1024,
+                    width = null,
+                    maxWidth = 2048,
             )
-            action.mimeType.isMimeTypeVideo() -> navigator.openMediaViewer(
-                    activity = activity,
-                    roomId = roomId,
-                    mediaData = VideoContentRenderer.Data(
-                            eventId = action.mxcUrl,
-                            filename = action.file.name,
-                            mimeType = action.mimeType,
-                            url = action.mxcUrl,
-                            elementToDecrypt = null,
-                            thumbnailMediaData = imageData,
-                    ),
-                    view = views.root,
-                    standalonePreview = true,
-                    hideShowInChat = true,
-                    morphFromView = false,
-                    options = null,
-            )
-            else -> {
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(requireNotNull(action.externalUri).toUri(), action.mimeType ?: MimeTypes.Any)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            when {
+                action.mimeType.isMimeTypeImage() -> {
+                    dismissViewLoadingOnPause = true
+                    navigator.openMediaViewer(
+                            activity = activity,
+                            roomId = roomId,
+                            mediaData = imageData,
+                            view = views.root,
+                            standalonePreview = true,
+                            hideShowInChat = true,
+                            morphFromView = false,
+                            options = null,
+                    )
                 }
-                requireContext().safeStartActivity(Intent.createChooser(intent, null))
+                action.mimeType.isMimeTypeVideo() -> {
+                    dismissViewLoadingOnPause = true
+                    navigator.openMediaViewer(
+                            activity = activity,
+                            roomId = roomId,
+                            mediaData = VideoContentRenderer.Data(
+                                    eventId = action.mxcUrl,
+                                    filename = action.file.name,
+                                    mimeType = action.mimeType,
+                                    url = action.mxcUrl,
+                                    elementToDecrypt = null,
+                                    thumbnailMediaData = imageData,
+                            ),
+                            view = views.root,
+                            standalonePreview = true,
+                            hideShowInChat = true,
+                            morphFromView = false,
+                            options = null,
+                    )
+                }
+                else -> {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(requireNotNull(action.externalUri).toUri(), action.mimeType ?: MimeTypes.Any)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    requireContext().safeStartActivity(Intent.createChooser(intent, null))
+                    dismissLoadingDialog()
+                    slashCommandLoadingShown = false
+                }
             }
         }
     }
 
     private fun displayCommandError(message: String) {
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.command_error)
-                .setMessage(message)
-                .setPositiveButton(CommonStrings.ok, null)
-                .show()
+        showCommandPopup {
+            MaterialAlertDialogBuilder(requireActivity())
+                    .setTitle(CommonStrings.command_error)
+                    .setMessage(message)
+                    .setPositiveButton(CommonStrings.ok, null)
+                    .show()
+            if (slashCommandLoadingShown) {
+                slashCommandLoadingShown = false
+                dismissLoadingDialog()
+            }
+            if (telegramExportErrorPending) {
+                telegramExportErrorPending = false
+                // Keep the export window focused until the error dialog owns focus.
+                dismissTelegramExportDialog()
+            }
+        }
+    }
+
+    private fun showCommandPopup(show: () -> Unit) {
+        (parentFragment as TimelineFragment).openAfterKeyboardDismissal {
+            if (isAdded && view != null) show()
+        }
     }
 
     private fun showSnackWithMessage(message: String) {
@@ -1002,29 +1083,33 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun handleShowRoomUpgradeDialog(roomDetailViewEvents: MessageComposerViewEvents.ShowRoomUpgradeDialog) {
-        val tag = MigrateRoomBottomSheet::javaClass.name
-        val roomId = withState(timelineViewModel) { it.roomId }
-        MigrateRoomBottomSheet.newInstance(roomId, roomDetailViewEvents.newVersion)
-                .show(parentFragmentManager, tag)
+        showCommandPopup {
+            val tag = MigrateRoomBottomSheet::javaClass.name
+            val roomId = withState(timelineViewModel) { it.roomId }
+            MigrateRoomBottomSheet.newInstance(roomId, roomDetailViewEvents.newVersion)
+                    .show(parentFragmentManager, tag)
+        }
     }
 
     private fun handleMassRedactConfirmation(event: MessageComposerViewEvents.ShowMassRedactConfirmation) {
         val target = if (event.displayName != event.userId) "${event.displayName} (${event.userId})" else event.userId
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.mass_redaction_confirmation_title)
-                .setMessage(massRedactionConfirmationMessage(target, event.range))
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    val result = massRedactionManager.start(roomId, event.userId, event.displayName, event.delayMs, event.range)
-                    if (result == MassRedactionManager.StartResult.AlreadyRunning) {
-                        MaterialAlertDialogBuilder(requireActivity())
-                                .setTitle(CommonStrings.dialog_title_error)
-                                .setMessage(CommonStrings.mass_redaction_already_running)
-                                .setPositiveButton(android.R.string.ok, null)
-                                .show()
+        showCommandPopup {
+            MaterialAlertDialogBuilder(requireActivity())
+                    .setTitle(CommonStrings.mass_redaction_confirmation_title)
+                    .setMessage(massRedactionConfirmationMessage(target, event.range))
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        val result = massRedactionManager.start(roomId, event.userId, event.displayName, event.delayMs, event.range)
+                        if (result == MassRedactionManager.StartResult.AlreadyRunning) {
+                            MaterialAlertDialogBuilder(requireActivity())
+                                    .setTitle(CommonStrings.dialog_title_error)
+                                    .setMessage(CommonStrings.mass_redaction_already_running)
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show()
+                        }
                     }
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
     }
 
     private fun massRedactionConfirmationMessage(target: String, range: MassRedactionRange): String {
@@ -1060,16 +1145,33 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun handleJumpToPermalink(event: MessageComposerViewEvents.JumpToPermalink) {
         viewLifecycleOwner.lifecycleScope.launch {
-            val isHandled = permalinkHandler.launch(requireActivity(), event.link, object : NavigationInterceptor {
-                override fun navToRoom(roomId: String?, eventId: String?, deepLink: Uri?, rootThreadEventId: String?): Boolean {
-                    if (roomId != this@MessageComposerFragment.roomId || eventId == null) return false
-                    timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
-                    return true
+            val link = PermalinkParser.parse(event.link) as? PermalinkData.RoomLink
+            val targetRoomId = if (link?.isRoomAlias == true) {
+                try {
+                    session.roomService().getRoomIdByAlias(link.roomIdOrAlias, true).getOrNull()?.roomId
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (_: Exception) {
+                    null
                 }
-            })
-            if (!isHandled) {
-                showSnackWithMessage(getString(CommonStrings.permalink_malformed))
+            } else link?.roomIdOrAlias
+            val summary = targetRoomId?.let { session.roomService().getRoomSummary(it) }
+            val opensSheet = targetRoomId != null && summary?.membership != Membership.BAN &&
+                    (summary?.membership != Membership.JOIN || summary.roomType == RoomType.SPACE)
+            val navigate = suspend {
+                val isHandled = permalinkHandler.launch(requireActivity(), event.link, object : NavigationInterceptor {
+                    override fun navToRoom(roomId: String?, eventId: String?, deepLink: Uri?, rootThreadEventId: String?): Boolean {
+                        if (roomId != this@MessageComposerFragment.roomId || eventId == null) return false
+                        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
+                        return true
+                    }
+                })
+                if (!isHandled) {
+                    showSnackWithMessage(getString(CommonStrings.permalink_malformed))
+                }
             }
+            if (opensSheet) showCommandPopup { viewLifecycleOwner.lifecycleScope.launch { navigate() } }
+            else navigate()
         }
     }
 
@@ -1218,7 +1320,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 attachmentsHelper.pendingType = type
             }
         }
-        (parentFragment as? TimelineFragment)?.openAfterKeyboardDismissal(select) ?: select()
+        (parentFragment as? TimelineFragment)?.openAfterKeyboardDismissal(open = select) ?: select()
     }
 
     private val attachmentFileActivityResultLauncher = registerStartForActivityResult {
