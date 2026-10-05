@@ -224,6 +224,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
@@ -2184,7 +2185,7 @@ class TimelineFragment :
         val event = timelineEventController.findEventInSnapshot(informationData.eventId)
                 ?: session.getRoom(timelineArgs.roomId)?.getTimelineEvent(informationData.eventId)
                 ?: return
-        val action = event.jumpToRelationAction(vectorPreferences.developerMode()) ?: return
+        val action = event.jumpToRelationAction(vectorPreferences.developerMode(), isThreadTimeLine()) ?: return
         handleActions(action)
     }
 
@@ -2616,12 +2617,18 @@ class TimelineFragment :
                 }
             }
             is EventSharedAction.JumpToRelation -> {
-                val targetThreadRootId = session.getRoom(timelineArgs.roomId)
-                        ?.getTimelineEvent(action.targetEventId)
-                        ?.root
-                        ?.getRootThreadEventId()
-                val threadRootId = targetThreadRootId ?: action.sourceThreadRootEventId?.takeIf { it == action.targetEventId }
-                val eventIdToNavigate = if (targetThreadRootId != null) action.targetEventId else action.sourceEventId
+                val room = session.getRoom(timelineArgs.roomId)
+                val target = room?.getTimelineEvent(action.targetEventId)?.root
+                val targetThreadRootId = target?.getRootThreadEventId() ?: target?.getRelationContent()?.eventId?.let { relatedId ->
+                    room.getTimelineEvent(relatedId)?.root?.getRootThreadEventId()
+                }
+                val threadRootId = targetThreadRootId
+                        ?: action.sourceThreadRootEventId?.takeIf { it == action.targetEventId }
+                        ?: getRootThreadEventId()?.takeIf {
+                            timelineEventController.findEventInSnapshot(action.targetEventId) != null ||
+                                    timelineEventController.findEventInSnapshot(action.sourceEventId)?.ownedByThreadChunk == true
+                        }
+                val eventIdToNavigate = if (action.targetEventId == action.sourceThreadRootEventId) action.sourceEventId else action.targetEventId
                 if (threadRootId != null) {
                     if (getRootThreadEventId() == threadRootId) {
                         timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventIdToNavigate, highlight = true))

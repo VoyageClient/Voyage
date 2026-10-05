@@ -172,6 +172,12 @@ SELECT DISTINCT redacts FROM event WHERE room_id = ? AND type = ? AND redacts IS
 selectHasRedactionOf:
 SELECT 1 FROM event WHERE room_id = ? AND type = ? AND redacts = ? LIMIT 1;
 
+selectThreadRelatedCandidatesInRoom:
+SELECT * FROM event WHERE room_id = ? AND
+    (type = ? OR (root_thread_event_id IS NULL AND
+        (content LIKE '%rel_type%' OR decryption_result_json LIKE '%rel_type%')))
+ORDER BY origin_server_ts DESC;
+
 -- COALESCE: a re-mark that cannot resolve a preview row (replies stored without a timeline row) must
 -- not blank out a preview that already works. unmarkEventAsRoot is the only intentional clear.
 markEventAsRoot:

@@ -110,6 +110,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
     ): Result {
         val threadList = response.chunks
         val threadEventIds = threadList.filter { it.isThread() }.mapNotNullTo(HashSet()) { it.eventId }
+        val responseEventIds = threadList.mapNotNullTo(HashSet()) { it.eventId }
         val hasReachEnd = response.nextBatch == null
 
         var threadRootEvent: Event? = null
@@ -131,25 +132,33 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
             val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
             val roomMemberEventIdsByUser = HashMap<String, String?>()
 
-            for (event in threadList) {
+            threadList.forEach { event ->
+                if (event.eventId != null && event.senderId != null && event.type != null) {
+                    insertOrGetEvent(params.roomId, event)
+                }
+            }
+            val cachedRelatedEvents = stores.event.getThreadRelatedEvents(params.roomId, params.rootThreadEventId)
+                    .map { it.asDomain() }
+            val threadEvents = (threadList + cachedRelatedEvents)
+                    .distinctBy { it.eventId }
+                    .sortedByDescending { it.originServerTs ?: 0L }
+            for (event in threadEvents) {
                 val eventId = event.eventId
                 val senderId = event.senderId
                 if (eventId == null || senderId == null || event.type == null) continue
-                if (stores.timelineEvent.getInChunkByEventId(threadChunkId, eventId) != null) {
-                    Timber.i("###THREADS event $eventId already in thread chunk, skip")
-                    continue
-                }
+                if (stores.timelineEvent.getInChunkByEventId(threadChunkId, eventId) != null) continue
                 val (eventDbId, entity) = insertOrGetEvent(params.roomId, event)
                 val relation = event.getRelationContent()
-                val reactionTargetId = relation?.eventId
-                val isThreadReaction = event.type == EventType.REACTION &&
-                        relation?.type == RelationType.ANNOTATION &&
-                        reactionTargetId != null &&
-                        (reactionTargetId in threadEventIds ||
-                                stores.event.getDbId(params.roomId, reactionTargetId)?.let(stores.event::getById)?.rootThreadEventId == params.rootThreadEventId)
-                if (!event.isThread() && !isThreadReaction) continue
+                val relatedTargetId = when (event.type) {
+                    EventType.REDACTION -> event.redacts ?: event.content?.get("redacts") as? String
+                    else -> relation?.takeUnless { it.type == RelationType.THREAD }?.eventId
+                }
+                val isThreadRelated = relatedTargetId != null &&
+                        (relatedTargetId in threadEventIds ||
+                                stores.event.resolveRelatedThreadRootId(params.roomId, relatedTargetId) == params.rootThreadEventId)
+                if (relatedTargetId == params.rootThreadEventId && !event.isThread()) continue
+                if (eventId !in responseEventIds && !event.isThread() && !isThreadRelated) continue
                 addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, senderId)
-                // /relations answers newest-first, so indices must walk downwards for the root to land oldest.
                 stores.timelineWriter.addTimelineEvent(
                         chunkId = threadChunkId,
                         roomId = params.roomId,
@@ -157,23 +166,6 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                         event = entity,
                         isLastForward = true,
                         ownedByThreadChunk = true,
-                        roomMemberContentsByUser = roomMemberContentsByUser,
-                        roomMemberEventIdsByUser = roomMemberEventIdsByUser,
-                )
-            }
-
-            // Some homeservers ignore recurse=true, so restore synced reactions from their local annotations.
-            val cachedReactionIds = stores.annotations.getForEventIds(threadEventIds).values
-                    .flatMap { summary -> summary.reactionsSummary.flatMap { it.sourceEvents } }
-                    .distinct()
-            for (reactionId in cachedReactionIds) {
-                if (stores.timelineEvent.getInChunkByEventId(threadChunkId, reactionId) != null) continue
-                val reactionDbId = stores.event.getDbId(params.roomId, reactionId) ?: continue
-                val reaction = stores.event.getById(reactionDbId)?.takeIf { it.type == EventType.REACTION } ?: continue
-                reaction.sender?.let { addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, it) }
-                stores.timelineWriter.addTimelineEvent(
-                        chunkId = threadChunkId, roomId = params.roomId, eventDbId = reactionDbId, event = reaction,
-                        isLastForward = true, ownedByThreadChunk = true,
                         roomMemberContentsByUser = roomMemberContentsByUser,
                         roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                 )

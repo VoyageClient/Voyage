@@ -7,8 +7,11 @@
 
 package org.matrix.android.sdk.internal.database.sql.store
 
+import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.read.ReadService
+import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.ReadReceiptEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
@@ -40,7 +43,21 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
         val ts = event.originServerTs ?: 0L
         val localId = stores.timelineEvent.nextLocalId()
         val senderId = event.sender ?: ""
-        handleReadReceiptsOfSender(roomId, event, senderId)
+        val relatedTargetId = when {
+            event.type == EventType.REDACTION -> event.redacts ?: event.asDomain().content?.get("redacts") as? String
+            event.content?.contains("m.relates_to") == true || event.decryptionResultJson?.contains("m.relates_to") == true ->
+                event.asDomain().getRelationContent()?.eventId
+            else -> null
+        }
+        val receiptThreadId = when {
+            ownedByThreadChunk -> stores.chunk.getById(chunkId)?.root_thread_event_id
+            event.rootThreadEventId != null -> event.rootThreadEventId
+            relatedTargetId != null -> stores.event.resolveRelatedThreadRootId(roomId, eventId)
+            else -> null
+        }
+        if (ownedByThreadChunk || relatedTargetId == null || stores.event.getDbId(roomId, relatedTargetId) != null) {
+            handleReadReceiptsOfSender(roomId, event, senderId, receiptThreadId)
+        }
 
         val roomMemberContent = roomMemberContentsByUser?.get(senderId)
         val isUnique = if (roomMemberContent?.displayName != null) {
@@ -65,11 +82,11 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
         return stores.timelineEvent.insert(entity, chunkId, eventDbId)
     }
 
-    private fun handleReadReceiptsOfSender(roomId: String, event: EventEntity, senderId: String) {
+    private fun handleReadReceiptsOfSender(roomId: String, event: EventEntity, senderId: String, rootThreadId: String?) {
         stores.readReceipt.upsertSummary(event.eventId, roomId)
         val originServerTs = event.originServerTs ?: return
         val timestampOfEvent = originServerTs.toDouble()
-        val threadId = event.rootThreadEventId ?: ReadService.THREAD_ID_MAIN
+        val threadId = rootThreadId ?: ReadService.THREAD_ID_MAIN
         val existing = stores.readReceipt.getReceipt(roomId, senderId, threadId)
         if (existing == null || timestampOfEvent > existing.originServerTs) {
             stores.readReceipt.upsertReceipt(

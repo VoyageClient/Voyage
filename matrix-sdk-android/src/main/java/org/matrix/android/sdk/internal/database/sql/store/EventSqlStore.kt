@@ -13,6 +13,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -105,6 +106,38 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
 
     fun hasRedactionOf(roomId: String, eventId: String): Boolean =
             queries.selectHasRedactionOf(roomId, EventType.REDACTION, eventId).executeAsOneOrNull() != null
+
+    fun getThreadRelatedEvents(roomId: String, rootThreadEventId: String): List<EventEntity> {
+        val candidates = queries.selectThreadRelatedCandidatesInRoom(roomId, EventType.REDACTION)
+                .executeAsList()
+                .map { it.toResolvedEntity() }
+                .filterNot { LocalEcho.isLocalEchoId(it.eventId) }
+        val cache = HashMap<String, EventEntity?>()
+        candidates.forEach { cache[it.eventId] = it }
+        val related = candidates.filter { resolveRelatedThreadRootId(roomId, it.eventId, cache) == rootThreadEventId }
+        return related
+    }
+
+    fun resolveRelatedThreadRootId(roomId: String, eventId: String): String? =
+            resolveRelatedThreadRootId(roomId, eventId, HashMap())
+
+    private fun resolveRelatedThreadRootId(roomId: String, eventId: String, cache: MutableMap<String, EventEntity?>): String? {
+        var targetId: String? = eventId
+        val visited = HashSet<String>()
+        while (targetId != null && visited.size < 64 && visited.add(targetId)) {
+            val currentId = targetId
+            val target = cache.getOrPut(currentId) { getByEventIdInRoom(roomId, currentId) }
+            if (target == null) return null
+            target.rootThreadEventId?.let { return it }
+            if (target.isRootThread) return null
+            targetId = if (target.type == EventType.REDACTION) {
+                target.redacts ?: target.asDomain().content?.get("redacts") as? String
+            } else {
+                target.asDomain().getRelationContent()?.eventId
+            }
+        }
+        return null
+    }
 
     fun getRedactableEventIdsBySender(roomId: String, senderId: String, range: MassRedactionRange = MassRedactionRange.ALL): List<String> {
         val redactedIds = getRedactionTargets(roomId)

@@ -189,4 +189,38 @@ class EventSqlStoreTest {
             it.numberOfThreads shouldBeEqualTo 0
         }
     }
+
+    @Test
+    fun `thread relation lookup follows nested reactions and redactions`() {
+        store.insert(event("\$root").also { it.isRootThread = true })
+        store.insert(event("\$reply").also { it.rootThreadEventId = "\$root" })
+        var targetId = "\$reply"
+        repeat(4) { index ->
+            val reactionId = "\$reaction$index"
+            store.insert(event(reactionId, type = EventType.REACTION).also {
+                it.content = """{"m.relates_to":{"rel_type":"m.annotation","event_id":"$targetId","key":"x"}}"""
+            })
+            targetId = reactionId
+        }
+        store.insert(event("\$redaction", type = EventType.REDACTION).also { it.redacts = targetId })
+        store.insert(event("\$local.redaction", type = EventType.REDACTION).also { it.redacts = targetId })
+
+        store.resolveRelatedThreadRootId("!room:hs", "\$redaction") shouldBeEqualTo "\$root"
+        store.getThreadRelatedEvents("!room:hs", "\$root").map { it.eventId } shouldContain "\$redaction"
+        ("\$local.redaction" in store.getThreadRelatedEvents("!room:hs", "\$root").map { it.eventId }) shouldBe false
+    }
+
+    @Test
+    fun `relations to a thread root remain in the room timeline`() {
+        val rootId = "\$root"
+        store.insert(event(rootId).also { it.isRootThread = true })
+        store.insert(event("\$rootReaction", type = EventType.REACTION).also {
+            it.content = """{"m.relates_to":{"rel_type":"m.annotation","event_id":"$rootId","key":"x"}}"""
+        })
+        store.insert(event("\$rootRedaction", type = EventType.REDACTION).also { it.redacts = rootId })
+
+        store.resolveRelatedThreadRootId("!room:hs", "\$rootReaction").shouldBeNull()
+        store.resolveRelatedThreadRootId("!room:hs", "\$rootRedaction").shouldBeNull()
+        store.getThreadRelatedEvents("!room:hs", rootId).map { it.eventId } shouldBeEqualTo emptyList()
+    }
 }

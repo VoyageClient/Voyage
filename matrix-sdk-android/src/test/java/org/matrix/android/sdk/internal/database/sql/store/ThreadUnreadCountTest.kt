@@ -102,6 +102,46 @@ class ThreadUnreadCountTest {
         counts(threadsEnabled = true).notificationCount shouldBeEqualTo 0
     }
 
+    @Test
+    fun `a relation in a thread chunk advances its thread receipt`() {
+        val threadChunkId = stores.chunk.insert(ROOM_ID, null, null, true, false, ROOT, true)
+        val replyId = "\$reply"
+        stores.event.insert(EventEntity(eventId = replyId, roomId = ROOM_ID, type = EventType.MESSAGE, rootThreadEventId = ROOT))
+        val reaction = EventEntity(
+                eventId = "\$reaction",
+                roomId = ROOM_ID,
+                type = EventType.REACTION,
+                sender = THEM,
+                originServerTs = 20 * HOUR,
+                content = """{"m.relates_to":{"rel_type":"m.annotation","event_id":"$replyId","key":"x"}}""",
+        )
+        val reactionDbId = stores.event.insert(reaction)
+
+        stores.timelineWriter.addTimelineEvent(chunkId, ROOM_ID, reactionDbId, reaction, true)
+        stores.timelineWriter.addTimelineEvent(threadChunkId, ROOM_ID, reactionDbId, reaction, true, ownedByThreadChunk = true)
+
+        stores.readReceipt.getReceipt(ROOM_ID, THEM, ROOT)?.eventId shouldBeEqualTo "\$reaction"
+        stores.readReceipt.getReceipt(ROOM_ID, THEM, ReadService.THREAD_ID_MAIN)?.eventId shouldBeEqualTo "\$read"
+    }
+
+    @Test
+    fun `a relation whose target has not arrived does not advance the room receipt`() {
+        val targetId = "\$later"
+        val reaction = EventEntity(
+                eventId = "\$earlyReaction",
+                roomId = ROOM_ID,
+                type = EventType.REACTION,
+                sender = THEM,
+                originServerTs = 20 * HOUR,
+                content = """{"m.relates_to":{"rel_type":"m.annotation","event_id":"$targetId","key":"x"}}""",
+        )
+        val reactionDbId = stores.event.insert(reaction)
+
+        stores.timelineWriter.addTimelineEvent(chunkId, ROOM_ID, reactionDbId, reaction, true)
+
+        stores.readReceipt.getReceipt(ROOM_ID, THEM, ReadService.THREAD_ID_MAIN)?.eventId shouldBeEqualTo "\$read"
+    }
+
     private fun counts(threadsEnabled: Boolean) = stores.localUnreadCounts(ME, ROOM_ID, threadsEnabled)
 
     private fun add(

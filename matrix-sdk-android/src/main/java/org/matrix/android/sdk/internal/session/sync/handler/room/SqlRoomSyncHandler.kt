@@ -479,6 +479,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
         val roomMemberEventIdsByUser = HashMap<String, String?>()
         val rootThreadEventIds = LinkedHashSet<String>()
+        val unresolvedRelatedEventIds = ArrayList<String>()
 
         for (rawEvent in eventList) {
             val ageLocalTs = syncTs - (rawEvent.unsignedData?.age ?: 0)
@@ -528,14 +529,13 @@ internal class SqlRoomSyncHandler @Inject constructor(
             }
 
             if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
-                val reactionTarget = event.getRelationContent()?.takeIf {
-                    type == EventType.REACTION && it.type == RelationType.ANNOTATION
-                }?.eventId
-                val reactionThreadRootId = reactionTarget
-                        ?.let { stores.event.getDbId(roomId, it) }
-                        ?.let(stores.event::getById)
-                        ?.rootThreadEventId
-                reactionThreadRootId?.let { rootId ->
+                val relatedTargetId = when (type) {
+                    EventType.REDACTION -> event.redacts ?: event.content?.get("redacts") as? String
+                    else -> event.getRelationContent()?.takeUnless { it.type == RelationType.THREAD }?.eventId
+                }
+                val relatedThreadRootId = relatedTargetId?.let { stores.event.resolveRelatedThreadRootId(roomId, it) }
+                if (relatedTargetId != null && relatedThreadRootId == null) unresolvedRelatedEventIds.add(eventId)
+                relatedThreadRootId?.let { rootId ->
                     stores.chunk.lastForwardThread(roomId, rootId)?.id?.let { threadChunkId ->
                         if (stores.timelineEvent.getInChunkByEventId(threadChunkId, eventId) == null) {
                             stores.timelineWriter.addTimelineEvent(
@@ -588,6 +588,18 @@ internal class SqlRoomSyncHandler @Inject constructor(
         // are candidates too: a root can arrive after the replies that point at it.
         if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
             MatrixPerf.time("sync.timeline.threadRoots") { stores.markThreadRoots(roomId, rootThreadEventIds + eventIds) }
+            unresolvedRelatedEventIds.forEach { relatedEventId ->
+                val rootId = stores.event.resolveRelatedThreadRootId(roomId, relatedEventId) ?: return@forEach
+                val threadChunkId = stores.chunk.lastForwardThread(roomId, rootId)?.id ?: return@forEach
+                val eventDbId = stores.event.getDbId(roomId, relatedEventId) ?: return@forEach
+                val entity = stores.event.getById(eventDbId) ?: return@forEach
+                stores.timelineWriter.addTimelineEvent(
+                        chunkId = threadChunkId, roomId = roomId, eventDbId = eventDbId, event = entity,
+                        isLastForward = true, ownedByThreadChunk = true,
+                        roomMemberContentsByUser = roomMemberContentsByUser,
+                        roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                )
+            }
         }
         // Normalize after insertion, when both spans are final, so an open timeline can see retained history.
         if (demotedLiveRange != null) {

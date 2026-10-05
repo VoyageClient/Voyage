@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -124,6 +125,17 @@ internal class SqlTimeline(
 
     private var threadRootId: String? = null
     private val isThreadTimeline get() = threadRootId != null
+
+    private fun belongsToThread(event: TimelineEvent): Boolean {
+        val rootId = threadRootId ?: return false
+        if (event.root.getRootThreadEventId() == rootId) return true
+        val targetId = if (event.root.getClearType() == EventType.REDACTION) {
+            event.root.redacts ?: event.root.content?.get("redacts") as? String
+        } else {
+            event.root.getRelationContent()?.eventId
+        }
+        return targetId?.let { stores.event.resolveRelatedThreadRootId(roomId, it) == rootId } == true
+    }
 
     // The loaded chunk ids, newest-first; index 0 is the newest loaded chunk.
     private val loadedChunkIds = ArrayList<Long>()
@@ -909,7 +921,7 @@ internal class SqlTimeline(
                     // Already in the chunk under its synced id — keeping the echo too would show it twice.
                     .filterNot { it.eventId in syncedTxnIds }
                     // Only the local echoes posted into this thread belong at its live edge.
-                    .let { if (isThreadTimeline) it.filter { e -> e.root.getRootThreadEventId() == threadRootId } else it }
+                    .let { if (isThreadTimeline) it.filter(::belongsToThread) else it }
                     .map { uiEchoManager.updateSentStateWithUiEcho(it) }
         } else {
             emptyList()
@@ -1219,7 +1231,7 @@ internal class SqlTimeline(
     override fun onLocalEchoCreated(roomId: String, timelineEvent: TimelineEvent) {
         if (roomId != this.roomId || !isStarted.get()) return
         timelineScope.launch(coroutineDispatchers.main) {
-            if (isThreadTimeline && timelineEvent.root.getRootThreadEventId() != threadRootId) return@launch
+            if (isThreadTimeline && !belongsToThread(timelineEvent)) return@launch
             // Forward-bounded window: the live edge isn't shown, so prepending the echo would place
             // it next to old history. Sending triggers a jump-to-bottom restart which shows it.
             if (!isThreadTimeline && (!liveEdgeLoaded || newestShownEventId != null)) return@launch

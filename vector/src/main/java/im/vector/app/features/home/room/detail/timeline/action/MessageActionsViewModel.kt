@@ -734,7 +734,7 @@ class MessageActionsViewModel @AssistedInject constructor(
 
         if (vectorPreferences.developerMode()) {
             add(EventSharedAction.CopyEventId(eventId))
-            relatedEventId(timelineEvent)?.let {
+            relatedEventId(timelineEvent, initialState.isFromThreadTimeline)?.let {
                 add(EventSharedAction.JumpToRelation(eventId, it, timelineEvent.root.getRootThreadEventId()))
             }
             if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
@@ -1049,21 +1049,21 @@ class MessageActionsViewModel @AssistedInject constructor(
     }
 }
 
-internal fun TimelineEvent.jumpToRelationAction(developerMode: Boolean): EventSharedAction.JumpToRelation? {
+internal fun TimelineEvent.jumpToRelationAction(developerMode: Boolean, isFromThreadTimeline: Boolean): EventSharedAction.JumpToRelation? {
     pinnedRelatedEventId(this)?.let { return EventSharedAction.JumpToRelation(eventId, it) }
     if (!developerMode) return null
-    return relatedEventId(this)?.let { EventSharedAction.JumpToRelation(eventId, it, root.getRootThreadEventId()) }
+    return relatedEventId(this, isFromThreadTimeline)?.let { EventSharedAction.JumpToRelation(eventId, it, root.getRootThreadEventId()) }
 }
 
-private fun relatedEventId(timelineEvent: TimelineEvent): String? {
-    timelineEvent.root.getRootThreadEventId()?.let { return it }
+private fun relatedEventId(timelineEvent: TimelineEvent, isFromThreadTimeline: Boolean): String? {
     timelineEvent.root.getRelationContentForType(RelationType.REPLACE)?.eventId?.let { return it }
-    return when (timelineEvent.root.getClearType()) {
+    val relatedEventId = when (timelineEvent.root.getClearType()) {
         // Room v11 moved redacts into the content.
         EventType.REDACTION -> timelineEvent.root.redacts ?: timelineEvent.root.content?.get("redacts") as? String
         EventType.REACTION -> timelineEvent.root.getClearContent().toModel<ReactionContent>()?.relatesTo?.eventId
         else -> null
     }
+    return relatedEventId ?: timelineEvent.root.getRootThreadEventId()?.takeUnless { isFromThreadTimeline }
 }
 
 private fun pinnedRelatedEventId(timelineEvent: TimelineEvent): String? {

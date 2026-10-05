@@ -20,6 +20,7 @@ import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -186,6 +187,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             }
         }
         val threadCandidateIds = ArrayList<String>(receivedChunk.events.size)
+        val unresolvedRelatedEventIds = ArrayList<String>()
         val sharedWithOtherRanges = LinkedHashSet<Long>()
         for (event in receivedChunk.events) {
             val eventId = event.eventId
@@ -228,11 +230,41 @@ internal class TokenChunkEventPersistor @Inject constructor(
                     roomMemberContentsByUser = roomMemberContentsByUser,
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
             )
+            if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
+                val relatedTargetId = if (event.type == EventType.REDACTION) {
+                    event.redacts ?: event.content?.get("redacts") as? String
+                } else {
+                    event.getRelationContent()?.eventId
+                }
+                val rootId = entity.rootThreadEventId
+                        ?: relatedTargetId?.let { stores.event.resolveRelatedThreadRootId(roomId, it) }
+                if (relatedTargetId != null && rootId == null) unresolvedRelatedEventIds.add(eventId)
+                rootId?.let { stores.chunk.lastForwardThread(roomId, it)?.id }?.let { threadChunkId ->
+                    stores.timelineWriter.addTimelineEvent(
+                            threadChunkId, roomId, dbId, entity, isLastForward = true, ownedByThreadChunk = true,
+                            roomMemberContentsByUser = roomMemberContentsByUser,
+                            roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                    )
+                }
+            }
             if (isOwnMemberEvent && direction == PaginationDirection.BACKWARDS && profileForOlderEvents != null) {
                 roomMemberContentsByUser[stateKey!!] = profileForOlderEvents
             }
             threadCandidateIds.add(eventId)
             entity.rootThreadEventId?.let { threadCandidateIds.add(it) }
+        }
+        if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
+            unresolvedRelatedEventIds.forEach { eventId ->
+                val rootId = stores.event.resolveRelatedThreadRootId(roomId, eventId) ?: return@forEach
+                val threadChunkId = stores.chunk.lastForwardThread(roomId, rootId)?.id ?: return@forEach
+                val dbId = stores.event.getDbId(roomId, eventId) ?: return@forEach
+                val entity = stores.event.getById(dbId) ?: return@forEach
+                stores.timelineWriter.addTimelineEvent(
+                        threadChunkId, roomId, dbId, entity, isLastForward = true, ownedByThreadChunk = true,
+                        roomMemberContentsByUser = roomMemberContentsByUser,
+                        roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                )
+            }
         }
         var landedChunkId = currentChunkId
         sharedWithOtherRanges.forEach { other ->

@@ -28,12 +28,39 @@ class TimelineEventVisibilityHelper @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
 
-    private fun TimelineEvent.threadRootId(): String? {
+    private val unknownThreadRootId = ""
+
+    private fun TimelineEvent.relationTargetId(): String? = if (root.getClearType() == EventType.REDACTION) {
+        root.redacts ?: root.content?.get("redacts") as? String
+    } else {
+        root.getRelationContent()?.eventId
+    }
+
+    private fun TimelineEvent.isNonThreadRelationToRoot(rootThreadEventId: String?): Boolean =
+            rootThreadEventId != null && relationTargetId() == rootThreadEventId && !root.isThread()
+
+    private fun TimelineEvent.threadRootId(rootThreadEventId: String?, isFromThreadTimeline: Boolean): String? {
+        if (isFromThreadTimeline && isNonThreadRelationToRoot(rootThreadEventId)) return null
+        if (isFromThreadTimeline && ownedByThreadChunk) return rootThreadEventId
         root.getRootThreadEventId()?.let { return it }
-        if (root.getClearType() != EventType.REACTION) return null
-        val targetId = root.getRelationContent()?.eventId ?: return null
-        return activeSessionDataSource.currentValue?.orNull()
-                ?.eventService()?.getEventFromCache(roomId, targetId)?.getRootThreadEventId()
+        var targetId = relationTargetId()
+        val eventService = activeSessionDataSource.currentValue?.orNull()?.eventService() ?: return null
+        val visited = HashSet<String>()
+        while (targetId != null && visited.size < 64 && visited.add(targetId)) {
+            val target = eventService.getEventFromCache(roomId, targetId)
+            if (target == null) return null
+            target.getRootThreadEventId()?.let { return it }
+            if (target.threadDetails?.isRootThread == true) return null
+            // Redaction can remove the relation while leaving the cached "is thread" flag intact.
+            if (target.threadDetails?.isThread == true) return unknownThreadRootId
+            val nextId = if (target.getClearType() == EventType.REDACTION) {
+                target.redacts ?: target.content?.get("redacts") as? String
+            } else {
+                target.getRelationContent()?.eventId
+            }
+            targetId = nextId
+        }
+        return null
     }
 
     /**
@@ -52,8 +79,9 @@ class TimelineEventVisibilityHelper @Inject constructor(
         if (isFromThreadTimeline || !userPreferencesProvider.shouldShowHiddenEvents()) {
             return false
         }
-        if (timelineEvent.threadRootId() != null && !userPreferencesProvider.shouldShowHiddenThreadEvents()) return false
-        return !timelineEvent.isDisplayable() || timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline)
+        val threadRootId = timelineEvent.threadRootId(rootThreadEventId, isFromThreadTimeline)
+        if (threadRootId != null && !userPreferencesProvider.shouldShowHiddenThreadEvents()) return false
+        return !timelineEvent.isDisplayable() || timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline, threadRootId)
     }
 
     /**
@@ -70,13 +98,14 @@ class TimelineEventVisibilityHelper @Inject constructor(
             rootThreadEventId: String?,
             forcedVisibleEventIds: Set<String> = emptySet()
     ): Boolean {
+        if (isFromThreadTimeline && timelineEvent.isNonThreadRelationToRoot(rootThreadEventId)) return false
         if (timelineEvent.root.getClearType() == EventType.REACTION && !userPreferencesProvider.shouldShowReactions()) {
             return false
         }
         if (timelineEvent.root.getClearType() == EventType.STATE_ROOM_SERVER_ACL && !userPreferencesProvider.shouldShowAclEvents()) {
             return false
         }
-        val threadRootId = timelineEvent.threadRootId()
+        val threadRootId = timelineEvent.threadRootId(rootThreadEventId, isFromThreadTimeline)
         if (isFromThreadTimeline && threadRootId != null && threadRootId != rootThreadEventId) return false
         if (!isFromThreadTimeline && threadRootId != null && !userPreferencesProvider.shouldShowHiddenThreadEvents()) return false
         // A media "edit" that changed the media itself is rejected as an edit and shown as its own
@@ -98,7 +127,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
         }
 
         // Check for special case where we should hide the event, like redacted, relation, memberships... according to user preferences.
-        return !timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline)
+        return !timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline, threadRootId)
     }
 
     private fun TimelineEvent.isDisplayable(): Boolean {
@@ -106,7 +135,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
                 TimelineDisplayableEvents.DISPLAYABLE_TYPES.contains(root.getClearType())
     }
 
-    private fun TimelineEvent.shouldBeHidden(rootThreadEventId: String?, isFromThreadTimeline: Boolean): Boolean {
+    private fun TimelineEvent.shouldBeHidden(rootThreadEventId: String?, isFromThreadTimeline: Boolean, threadRootId: String?): Boolean {
         // A revealed message is showing real content, so the "hide deleted messages" rules below
         // must not apply to it — they would make revealing appear to do nothing at all. Unless what
         // it reveals is an edit or reaction: their content shows applied on the target message, so
@@ -146,7 +175,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
             if (diff.isRepeatedKnock) return true
         }
 
-        if (userPreferencesProvider.areThreadMessagesEnabled() && !isFromThreadTimeline && threadRootId() != null) {
+        if (userPreferencesProvider.areThreadMessagesEnabled() && !isFromThreadTimeline && threadRootId != null) {
             return true
         }
 
@@ -158,9 +187,9 @@ class TimelineEventVisibilityHelper @Inject constructor(
             return true
         }
 
-        // Allow only the the threads within the rootThreadEventId along with the root event
+        // Allow only threads within the rootThreadEventId along with the root event
         if (userPreferencesProvider.areThreadMessagesEnabled() && isFromThreadTimeline) {
-            return if (threadRootId() == rootThreadEventId) {
+            return if (threadRootId == rootThreadEventId) {
                 false
             } else root.eventId != rootThreadEventId
         }
