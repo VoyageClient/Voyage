@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.view.View
+import android.view.WindowManager
 import android.widget.EditText
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
@@ -27,6 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.addFragment
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.core.utils.KeyboardStateUtils
 import im.vector.app.databinding.ActivitySearchBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
@@ -58,6 +60,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
     private lateinit var suggestionAdapter: SearchSuggestionAdapter
     private var members: List<RoomMemberSummary> = emptyList()
     private var heightAnimator: ValueAnimator? = null
+    private lateinit var keyboardStateUtils: KeyboardStateUtils
 
     private val searchEditText: EditText?
         get() = views.searchView.findViewById(androidx.appcompat.R.id.search_src_text)
@@ -71,8 +74,31 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        keyboardStateUtils = KeyboardStateUtils(this)
+        views.coordinatorLayout.isFocusableInTouchMode = true
         setupToolbar(views.searchToolbar)
                 .allowBack()
+    }
+
+    override fun onPause() {
+        keyboardStateUtils.onGlobalLayout()
+        if (!keyboardStateUtils.isKeyboardShowing) {
+            dismissSearchKeyboard()
+        } else {
+            setKeyboardRestoreState(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
+        }
+        super.onPause()
+    }
+
+    private fun dismissSearchKeyboard() {
+        views.searchView.clearFocus()
+        views.coordinatorLayout.requestFocus()
+        setKeyboardRestoreState(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+    }
+
+    private fun setKeyboardRestoreState(state: Int) {
+        val mode = window.attributes.softInputMode
+        window.setSoftInputMode((mode and WindowManager.LayoutParams.SOFT_INPUT_MASK_STATE.inv()) or state)
     }
 
     override fun initUiAndData() {
@@ -86,6 +112,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
             override fun onQueryTextSubmit(query: String): Boolean {
                 renderSuggestions(null)
                 searchFragment?.search(query)
+                dismissSearchKeyboard()
                 return true
             }
 
