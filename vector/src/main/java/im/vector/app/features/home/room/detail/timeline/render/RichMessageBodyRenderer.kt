@@ -68,6 +68,7 @@ class RichMessageBodyRenderer @Inject constructor(
             onLongClick: (View) -> Boolean,
             noticeStyle: Boolean = false,
             replyHeader: CharSequence? = null,
+            footer: CharSequence? = null,
             // Segments are rendered here rather than by the factory, so they need the same autolink
             // pass the single-TextView path applies to its body.
             urlClickCallback: TimelineEventController.UrlClickCallback? = null,
@@ -94,7 +95,12 @@ class RichMessageBodyRenderer @Inject constructor(
                 binding.fullBleed == fullBleed &&
                 binding.noticeStyle == noticeStyle &&
                 binding.hasMovement == (movementMethod != null) &&
-                binding.replyHeader?.toString() == replyHeader?.toString()) {
+                binding.replyHeader?.toString() == replyHeader?.toString() &&
+                binding.footer?.toString() == footer?.toString()) {
+            if (binding.footer !== footer) {
+                (container.getChildAt(container.childCount - 1) as? AppCompatTextView)?.text = footer
+                binding.footer = footer
+            }
             return
         }
         binding.segments = segments
@@ -103,6 +109,7 @@ class RichMessageBodyRenderer @Inject constructor(
         binding.noticeStyle = noticeStyle
         binding.hasMovement = movementMethod != null
         binding.replyHeader = replyHeader
+        binding.footer = footer
 
         container.removeAllViews()
         if (replyHeader != null) {
@@ -126,6 +133,17 @@ class RichMessageBodyRenderer @Inject constructor(
                     )
             }
         }
+        if (footer != null) {
+            container.addView(AppCompatTextView(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
+                setTextColor(themeColor(ctx, defaultColorAttr))
+                text = footer
+                this.movementMethod = movementMethod
+                setOnClickListener { binding.onClick(it) }
+                setOnLongClickListener { binding.onLongClick(it) }
+            })
+        }
     }
 
     private fun View.coveredIfSpoiler(spoiler: Boolean, interactive: Boolean, binding: RichBodyBinding): View {
@@ -144,6 +162,7 @@ class RichMessageBodyRenderer @Inject constructor(
         var noticeStyle = false
         var hasMovement = false
         var replyHeader: CharSequence? = null
+        var footer: CharSequence? = null
     }
 
     private fun buildReplyHeaderView(

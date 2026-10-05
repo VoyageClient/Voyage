@@ -1229,6 +1229,10 @@ class MessageItemFactory @Inject constructor(
                         richBodyRenderer(richMessageBodyRenderer)
                         htmlPostProcessors(arrayOf<EventHtmlRenderer.PostProcessor>(pillsPostProcessor))
                         richReplyHeader(richReplyHeader)
+                        if (informationData.hasBeenEdited) {
+                            val edited = annotateWithEdited("", callback, informationData)
+                            richFooter(edited.subSequence(1, edited.length))
+                        }
                         urlClickCallback(callback)
                     }
                 }

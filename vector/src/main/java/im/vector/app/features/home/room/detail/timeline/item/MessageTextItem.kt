@@ -78,6 +78,9 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     var richReplyHeader: CharSequence? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var richFooter: CharSequence? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var richBodyRenderer: RichMessageBodyRenderer? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
@@ -132,6 +135,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
                         onLongClick = { attributes.itemLongClickListener?.onLongClick(it) ?: false },
                         noticeStyle = noticeStyle,
                         replyHeader = richReplyHeader,
+                        footer = richFooter,
                         urlClickCallback = urlClickCallback,
                         fullBleed = attributes.informationData.messageLayout.let { l ->
                             // No visible bubble (modern layout, or SC with bubbles turned off): stretch
