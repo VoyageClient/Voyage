@@ -3526,4 +3526,6 @@
     <string name="settings_prevent_unintended_markdown">Unbeabsichtigte Markdown-Formatierung verhindern</string>
     <string name="settings_prevent_unintended_markdown_summary">Verhindern, dass vermutlich als Klartext gedachter Text formatiert wird.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Versteckte Thread-Ereignisse in der Raum-Zeitleiste anzeigen</string>
+    <string name="debug_event_type">Debug: Ereignistyp „%1$s“</string>
+    <string name="debug_thread_event_type">Debug: Thread-Ereignistyp „%1$s“</string>
 </resources>

@@ -3515,4 +3515,6 @@
     <string name="settings_prevent_unintended_markdown">Evitar el formato Markdown involuntario</string>
     <string name="settings_prevent_unintended_markdown_summary">Evita dar formato al texto que probablemente debía quedar sin formato.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Mostrar eventos ocultos de hilos en la cronología de la sala</string>
+    <string name="debug_event_type">Depuración: tipo de evento «%1$s»</string>
+    <string name="debug_thread_event_type">Depuración: tipo de evento de hilo «%1$s»</string>
 </resources>

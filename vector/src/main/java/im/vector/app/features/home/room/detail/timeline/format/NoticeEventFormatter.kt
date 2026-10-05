@@ -336,8 +336,8 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     private fun formatDebug(event: Event): CharSequence {
-        val threadPrefix = if (event.isThread()) "thread" else ""
-        return "Debug: $threadPrefix event type \"${event.getClearType()}\""
+        val stringId = if (event.isThread()) CommonStrings.debug_thread_event_type else CommonStrings.debug_event_type
+        return sp.getString(stringId, event.getClearType())
     }
 
     /**

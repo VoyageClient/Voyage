@@ -3463,4 +3463,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_prevent_unintended_markdown">Cegah pemformatan Markdown yang tidak disengaja</string>
     <string name="settings_prevent_unintended_markdown_summary">Hindari pemformatan teks yang kemungkinan dimaksudkan tetap polos.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Tampilkan peristiwa utasan tersembunyi di lini masa ruang</string>
+    <string name="debug_event_type">Debug: jenis peristiwa “%1$s”</string>
+    <string name="debug_thread_event_type">Debug: jenis peristiwa utasan “%1$s”</string>
 </resources>

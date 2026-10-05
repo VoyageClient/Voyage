@@ -3527,4 +3527,6 @@
     <string name="settings_prevent_unintended_markdown">Éviter le Markdown involontaire</string>
     <string name="settings_prevent_unintended_markdown_summary">Éviter la mise en forme du texte qui devait probablement rester brut.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Afficher les événements cachés des fils de discussion dans la chronologie du salon</string>
+    <string name="debug_event_type">Débogage : type d’événement « %1$s »</string>
+    <string name="debug_thread_event_type">Débogage : type d’événement du fil de discussion « %1$s »</string>
 </resources>

@@ -3676,4 +3676,6 @@
     <string name="settings_prevent_unintended_markdown">منع تنسيق Markdown غير المقصود</string>
     <string name="settings_prevent_unintended_markdown_summary">تجنب تنسيق النص الذي يُرجّح أن يبقى نصًا عاديًا.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">إظهار أحداث السلاسل المخفية في الخط الزمني للغرفة</string>
+    <string name="debug_event_type">التصحيح: نوع الحدث «%1$s»</string>
+    <string name="debug_thread_event_type">التصحيح: نوع حدث السلسلة «%1$s»</string>
 </resources>

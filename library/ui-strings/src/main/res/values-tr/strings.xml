@@ -3485,4 +3485,6 @@
     <string name="settings_prevent_unintended_markdown">İstenmeyen Markdown biçimlendirmesini önle</string>
     <string name="settings_prevent_unintended_markdown_summary">Düz metin olarak kalması amaçlanan yazıların biçimlendirilmesini önle.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Gizli konu etkinliklerini oda zaman tünelinde göster</string>
+    <string name="debug_event_type">Hata ayıklama: olay türü “%1$s”</string>
+    <string name="debug_thread_event_type">Hata ayıklama: konu olayı türü “%1$s”</string>
 </resources>

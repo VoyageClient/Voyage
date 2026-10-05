@@ -3409,4 +3409,6 @@
     <string name="settings_prevent_unintended_markdown">अनचाहे Markdown स्वरूपण को रोकें</string>
     <string name="settings_prevent_unintended_markdown_summary">संभवतः सादे टेक्स्ट के रूप में रहने वाले पाठ को स्वरूपित होने से बचाएँ।</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">रूम की टाइमलाइन में छिपे थ्रेड इवेंट दिखाएं</string>
+    <string name="debug_event_type">डीबग: इवेंट का प्रकार “%1$s”</string>
+    <string name="debug_thread_event_type">डीबग: थ्रेड इवेंट का प्रकार “%1$s”</string>
 </resources>

@@ -3527,4 +3527,6 @@
     <string name="settings_prevent_unintended_markdown">Evitar formatação Markdown acidental</string>
     <string name="settings_prevent_unintended_markdown_summary">Evite formatar textos que provavelmente deveriam permanecer sem formatação.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">Mostrar eventos ocultos de threads na linha do tempo da sala</string>
+    <string name="debug_event_type">Depuração: tipo de evento “%1$s”</string>
+    <string name="debug_thread_event_type">Depuração: tipo de evento da thread “%1$s”</string>
 </resources>

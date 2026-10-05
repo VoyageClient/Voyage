@@ -3620,4 +3620,6 @@
     <string name="settings_prevent_unintended_markdown">מניעת עיצוב Markdown לא מכוון</string>
     <string name="settings_prevent_unintended_markdown_summary">הימנעות מעיצוב טקסט שכנראה נועד להישאר פשוט.</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">הצג אירועי שרשור מוסתרים בציר הזמן של החדר</string>
+    <string name="debug_event_type">ניפוי שגיאות: סוג האירוע „%1$s”</string>
+    <string name="debug_thread_event_type">ניפוי שגיאות: סוג האירוע בשרשור „%1$s”</string>
 </resources>

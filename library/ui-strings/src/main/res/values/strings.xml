@@ -2160,6 +2160,8 @@
 
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
     <string name="rendering_event_error_type_of_event_not_handled">${app_name} does not handle events of type \'%1$s\'</string>
+    <string name="debug_event_type">Debug: event type \"%1$s\"</string>
+    <string name="debug_thread_event_type">Debug: thread event type \"%1$s\"</string>
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
     <string name="rendering_event_error_exception">${app_name} encountered an issue when rendering content of event with id \'%1$s\'</string>
 

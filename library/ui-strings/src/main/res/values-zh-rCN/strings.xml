@@ -3463,4 +3463,6 @@
     <string name="settings_prevent_unintended_markdown">防止意外的 Markdown 格式化</string>
     <string name="settings_prevent_unintended_markdown_summary">避免将原本可能希望保持纯文本的内容格式化。</string>
     <string name="settings_labs_show_hidden_thread_events_in_timeline">在房间时间线中显示隐藏的消息列事件</string>
+    <string name="debug_event_type">调试：事件类型“%1$s”</string>
+    <string name="debug_thread_event_type">调试：消息列事件类型“%1$s”</string>
 </resources>
