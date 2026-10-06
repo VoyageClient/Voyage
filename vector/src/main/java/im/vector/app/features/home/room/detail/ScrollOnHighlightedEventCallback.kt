@@ -51,7 +51,6 @@ class ScrollOnHighlightedEventCallback(
     private var anchorOffset = 0
     private var anchorDeadlineMs = 0L
     @Volatile private var lastAnchorActivityMs = 0L
-    private var consecutiveDrawSkips = 0
 
     // Where the row is held once the layout proves it cannot give it the offset we ask for (it is
     // against the end of the list), instead of asking for the same impossible place every frame.
@@ -73,8 +72,7 @@ class ScrollOnHighlightedEventCallback(
             }
         })
         // A url preview or an image resizing the view it is already bound to reaches no list-diff
-        // callback at all, so the anchor is enforced per frame — after layout, before draw, which is
-        // the last point a correction is still free.
+        // callback at all, so the anchor is checked after layout on each frame.
         recyclerView.viewTreeObserver.addOnPreDrawListener { holdAnchor() }
     }
 
@@ -158,11 +156,6 @@ class ScrollOnHighlightedEventCallback(
         onLanded()
     }
 
-    /**
-     * Keeps the landed row at its offset. Returns false to drop the frame when a correction was made,
-     * so the reader never sees the drifted position — bounded, since a correction that cannot converge
-     * would otherwise stop the timeline drawing at all.
-     */
     private fun holdAnchor(): Boolean {
         val safeAnchor = anchor ?: return true
         val now = SystemClock.uptimeMillis()
@@ -176,7 +169,7 @@ class ScrollOnHighlightedEventCallback(
             // A diff moved the row out of the laid-out range entirely; put it back at its last offset.
             layoutManager.scrollToPositionWithOffset(position, anchorOffset)
             lastAnchorActivityMs = now
-            return skipFrame()
+            return true
         }
         val desired = settledOffset ?: ScrollAnchorMath.desiredOffset(
                 safeAnchor.alignment, usableHeight(), layoutManager.getDecoratedMeasuredHeight(view)
@@ -184,7 +177,6 @@ class ScrollOnHighlightedEventCallback(
         val current = ScrollAnchorMath.currentOffset(endAfterPadding(), layoutManager.getDecoratedBottom(view))
         if (abs(desired - current) <= DRIFT_TOLERANCE_PX) {
             lastRequestedOffset = null
-            consecutiveDrawSkips = 0
             return true
         }
         if (lastRequestedOffset == desired && lastObservedOffset == current) {
@@ -192,7 +184,6 @@ class ScrollOnHighlightedEventCallback(
             // where it did land, which still keeps it still while its neighbors grow.
             settledOffset = current
             lastRequestedOffset = null
-            consecutiveDrawSkips = 0
             return true
         }
         lastRequestedOffset = desired
@@ -200,18 +191,8 @@ class ScrollOnHighlightedEventCallback(
         anchorOffset = desired
         layoutManager.scrollToPositionWithOffset(position, desired)
         lastAnchorActivityMs = now
-        // A correction of a pixel or two is not worth dropping a frame over; a neighbor that just grew
-        // by a paragraph is, or the row is drawn at the wrong place for a frame before it comes back.
-        return if (abs(desired - current) > DRAW_SKIP_DRIFT_PX) skipFrame() else true
-    }
-
-    private fun skipFrame(): Boolean {
-        if (consecutiveDrawSkips >= MAX_DRAW_SKIPS) {
-            consecutiveDrawSkips = 0
-            return true
-        }
-        consecutiveDrawSkips++
-        return false
+        // Cancelling pre-draw here blanks the whole list while RecyclerView waits for its next layout.
+        return true
     }
 
     private fun usableHeight() = recyclerView.height - recyclerView.paddingTop - recyclerView.paddingBottom
@@ -223,7 +204,6 @@ class ScrollOnHighlightedEventCallback(
         settledOffset = null
         lastRequestedOffset = null
         lastObservedOffset = null
-        consecutiveDrawSkips = 0
     }
 
     /** True while a jump is in flight or its target is still held (the timeline around it still moving). */
@@ -288,9 +268,5 @@ class ScrollOnHighlightedEventCallback(
         private const val ANCHOR_QUIET_MS = 400L
 
         private const val DRIFT_TOLERANCE_PX = 1
-
-        private const val DRAW_SKIP_DRIFT_PX = 8
-
-        private const val MAX_DRAW_SKIPS = 2
     }
 }
