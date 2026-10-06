@@ -20,7 +20,6 @@ import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.query.TimelineEventFilter
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
 import org.robolectric.RobolectricTestRunner
@@ -130,33 +129,6 @@ class EventSqlStoreTest {
         val read = store.getByEventId("\$enc")!!
         read.decryptionErrorCode shouldBeEqualTo "UNKNOWN_INBOUND_SESSION_ID"
         read.decryptionErrorReason shouldBeEqualTo "no session"
-    }
-
-    // Regression test: the uploads gallery feeds the Realm glob constant {*"file":*"url":*} to a SQL LIKE.
-    // Without translating the glob ('*' -> '%') it matches nothing and the gallery comes back empty.
-    @Test
-    fun `selectEncryptedWithUrlInRoom matches decrypted media via the translated glob`() {
-        val pattern = TimelineEventFilter.DecryptedContent.URL.globToSqlLike()
-        store.insert(event("\$media1", type = EventType.ENCRYPTED, originServerTs = 100L,
-                decryptionResultJson = """{"payload":{"content":{"file":{"url":"mxc://hs/a"}}}}"""))
-        store.insert(event("\$media2", type = EventType.ENCRYPTED, originServerTs = 200L,
-                decryptionResultJson = """{"payload":{"content":{"file":{"url":"mxc://hs/b"}}}}"""))
-        // encrypted but no file/url -> excluded
-        store.insert(event("\$text", type = EventType.ENCRYPTED, originServerTs = 300L,
-                decryptionResultJson = """{"payload":{"content":{"body":"hi"}}}"""))
-        // matching content but unencrypted type -> excluded
-        store.insert(event("\$plain", type = EventType.MESSAGE, originServerTs = 400L,
-                decryptionResultJson = """{"payload":{"content":{"file":{"url":"mxc://hs/c"}}}}"""))
-        // matching but different room -> excluded
-        store.insert(event("\$other", roomId = "!other:hs", type = EventType.ENCRYPTED, originServerTs = 500L,
-                decryptionResultJson = """{"payload":{"content":{"file":{"url":"mxc://hs/d"}}}}"""))
-
-        val rows = database.eventQueries
-                .selectEncryptedWithUrlInRoom("!room:hs", EventType.ENCRYPTED, pattern)
-                .executeAsList()
-
-        // newest first by origin_server_ts
-        rows.map { it.event_id } shouldBeEqualTo listOf("\$media2", "\$media1")
     }
 
     @Test

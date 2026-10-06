@@ -972,7 +972,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Semua pesan (brisik)</string>
     <string name="message_ignore_user">Abaikan pengguna</string>
     <string name="uploads_files_no_result">Tidak ada file di ruangan ini</string>
-    <string name="uploads_files_subtitle">%1$s di %2$s</string>
     <string name="uploads_files_title">FILE</string>
     <string name="uploads_media_no_result">Tidak ada media di ruangan ini</string>
     <string name="uploads_media_title">MEDIA</string>
@@ -3466,4 +3465,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="debug_event_type">Debug: jenis peristiwa “%1$s”</string>
     <string name="debug_thread_event_type">Debug: jenis peristiwa utasan “%1$s”</string>
     <string name="image_pack_event_too_large">Paket gambar ini terlalu besar untuk disimpan. Hapus beberapa gambar atau bagi menjadi beberapa paket yang lebih kecil.</string>
+    <string name="uploads_media_show_photos">Tampilkan foto</string>
+    <string name="uploads_media_show_videos">Tampilkan video</string>
 </resources>

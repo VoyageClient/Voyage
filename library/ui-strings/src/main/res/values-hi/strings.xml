@@ -1294,7 +1294,6 @@
     <string name="uploads_media_title">मीडिया</string>
     <string name="uploads_media_no_result">इस रूम में कोई मीडिया नहीं है</string>
     <string name="uploads_files_title">फ़ाइलें</string>
-    <string name="uploads_files_subtitle">%1$s, %2$s पर</string>
     <string name="uploads_files_no_result">इस रूम में कोई फ़ाइल नहीं है</string>
     <string name="message_ignore_user">उपयोगकर्ता को अनदेखा करें</string>
     <string name="room_list_quick_actions_notifications_all_noisy">सभी मैसेज (आवाज़ के साथ)</string>
@@ -3412,4 +3411,6 @@
     <string name="debug_event_type">डीबग: इवेंट का प्रकार “%1$s”</string>
     <string name="debug_thread_event_type">डीबग: थ्रेड इवेंट का प्रकार “%1$s”</string>
     <string name="image_pack_event_too_large">यह इमेज पैक सहेजने के लिए बहुत बड़ा है। कुछ इमेज हटाएँ या इसे छोटे पैक में बाँट दें।</string>
+    <string name="uploads_media_show_photos">फ़ोटो दिखाएँ</string>
+    <string name="uploads_media_show_videos">वीडियो दिखाएँ</string>
 </resources>

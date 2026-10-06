@@ -507,23 +507,41 @@ internal class EventIndexer @Inject constructor(
     suspend fun backfillRoom(roomId: String, maxBatches: Int): Boolean {
         if (!enabled.get()) return false
         repeat(maxBatches) {
-            val stepped = crawlMutex.withLock {
-                if (indexStore.isRoomFullyCrawled(roomId)) return false
-                val backwards = indexStore.loadCheckpoints().filter { it.roomId == roomId && it.backwards }
-                val checkpoint = backwards.firstOrNull { it.fullCrawl }
-                        ?: backwards.firstOrNull()
-                        ?: bootstrapRoomCheckpoints(roomId).firstOrNull { it.backwards }
-                        ?: return false
-                crawlCheckpoint(checkpoint) != CrawlOutcome.RETRY
-            }
-            if (!stepped) return roomHasMoreHistory(roomId)
+            val outcome = backfillStep(roomId, propagateFailure = false) ?: return false
+            if (outcome == CrawlOutcome.RETRY) return roomHasMoreHistory(roomId)
         }
         return roomHasMoreHistory(roomId)
     }
 
+    /** A single [backfillRoom] batch for a caller with its own retry UI: a failed fetch is thrown, not swallowed. */
+    suspend fun backfillRoomOrThrow(roomId: String): Boolean {
+        if (!enabled.get()) return false
+        backfillStep(roomId, propagateFailure = true) ?: return false
+        return roomHasMoreHistory(roomId)
+    }
+
+    private suspend fun backfillStep(roomId: String, propagateFailure: Boolean): CrawlOutcome? = crawlMutex.withLock {
+        if (indexStore.isRoomFullyCrawled(roomId)) return@withLock null
+        val backwards = indexStore.loadCheckpoints().filter { it.roomId == roomId && it.backwards }
+        val checkpoint = backwards.firstOrNull { it.fullCrawl }
+                ?: backwards.firstOrNull()
+                ?: bootstrapRoomCheckpoints(roomId).firstOrNull { it.backwards }
+                ?: return@withLock null
+        crawlCheckpoint(checkpoint, propagateFailure)
+    }
+
+    /**
+     * The timestamp from which [roomId]'s index is known complete. Older rows are only what the sweep
+     * found cached, which can skip whole stretches the crawl has yet to fill in.
+     */
+    suspend fun completeSince(roomId: String): Long {
+        if (indexStore.isRoomFullyCrawled(roomId) || !roomHasMoreHistory(roomId)) return Long.MIN_VALUE
+        return indexStore.getCrawlFrontier(roomId) ?: Long.MAX_VALUE
+    }
+
     private enum class CrawlOutcome { CONTINUE, DONE, RETRY }
 
-    private suspend fun crawlCheckpoint(checkpoint: IndexCheckpoint): CrawlOutcome {
+    private suspend fun crawlCheckpoint(checkpoint: IndexCheckpoint, propagateFailure: Boolean = false): CrawlOutcome {
         val response = try {
             executeRequest(globalErrorReceiver) {
                 roomAPI.getRoomMessagesFrom(
@@ -538,11 +556,14 @@ internal class EventIndexer @Inject constructor(
             throw e
         } catch (failure: Throwable) {
             return if (failure is Failure.ServerError && failure.httpCode == 403) {
-                // No permission to read that history; drop the checkpoint.
+                // No permission to read that history; drop the checkpoint, and stop a later bootstrap from
+                // planting it again.
                 indexStore.removeCheckpoint(checkpoint)
+                if (checkpoint.backwards) indexStore.markRoomFullyCrawled(checkpoint.roomId)
                 CrawlOutcome.DONE
             } else {
                 Timber.w(failure, "EventIndexer: error crawling ${checkpoint.roomId}")
+                if (propagateFailure) throw failure
                 CrawlOutcome.RETRY
             }
         }
@@ -573,6 +594,10 @@ internal class EventIndexer @Inject constructor(
             }
         }
         val added = if (indexables.isEmpty()) 0 else indexStore.addEvents(indexables)
+        // Only the full crawl walks history without skipping, so only it vouches for what lies above.
+        if (checkpoint.backwards && checkpoint.fullCrawl) {
+            events.mapNotNull { it.originServerTs }.minOrNull()?.let { indexStore.lowerCrawlFrontier(checkpoint.roomId, it) }
+        }
 
         indexStore.removeCheckpoint(checkpoint)
         val newToken = response.end ?: return CrawlOutcome.DONE

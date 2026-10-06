@@ -45,14 +45,13 @@ import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.share.ForwardPayloadHolder
 import im.vector.app.features.share.IncomingShareActivity
+import im.vector.app.features.share.forwardEventIntent
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentCommands
 import im.vector.lib.attachmentviewer.AttachmentInfo
 import im.vector.lib.attachmentviewer.AttachmentViewerActivity
-import im.vector.lib.core.utils.compat.getParcelableArrayListExtraCompat
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -63,13 +62,13 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.getRoom
-import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.model.message.toForwardedInfoContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -196,11 +195,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
         val room = args.roomId?.let { session.getRoom(it) }
 
-        val inMemoryData = intent.getParcelableArrayListExtraCompat<AttachmentData>(EXTRA_IN_MEMORY_DATA)
+        val tapped = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
+        // After process death the list is gone; the tapped item alone still opens.
+        val inMemoryData = intent.getStringExtra(EXTRA_IN_MEMORY_KEY)?.let { inMemoryStore[it] ?: listOfNotNull(tapped) }
         if (inMemoryData != null) {
             // Identity first: a gallery's items all share one eventId, so the eventId match alone
             // would always land on the first tile.
-            val tapped = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
             initialIndex = inMemoryData.indexOfFirst { it == tapped }.takeIf { it >= 0 }
                     ?: inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
             installSourceProvider(dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope))
@@ -226,7 +226,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             // The room query below is slow on a cold cache, and until a provider is installed
             // there is no overlay at all. The tapped attachment carries everything the first
             // page needs, so it opens alone immediately and the full list swaps in underneath.
-            val provisionalItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
+            val provisionalItem = tapped
             if (provisionalItem != null) {
                 initialIndex = 0
                 installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope))
@@ -314,6 +314,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     override fun onDestroy() {
         infoDialog?.dismiss()
         infoDialog = null
+        if (isFinishing) intent.getStringExtra(EXTRA_IN_MEMORY_KEY)?.let { inMemoryStore.remove(it) }
         super.onDestroy()
     }
 
@@ -576,14 +577,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     }
 
     private fun forward(event: Event, editedContent: Content?) {
-        val baseContent = editedContent ?: event.getClearContent().orEmpty()
-        // A DM's room id and sender are private to its members; a forwarded copy must not carry them.
-        val isDmSource = event.roomId?.let { activeSessionHolder.getSafeActiveSession()?.getRoomSummary(it)?.isDirect } == true
-        @Suppress("UNCHECKED_CAST")
-        val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
-                (if (isDmSource) emptyMap() else event.toForwardedInfoContent())
-        val payloadId = ForwardPayloadHolder.put(forwardContent)
-        startActivity(IncomingShareActivity.forwardIntent(this, event.getClearType(), payloadId))
+        startActivity(forwardEventIntent(this, activeSessionHolder.getSafeActiveSession(), event, editedContent))
     }
 
     override fun onShowInChat() {
@@ -645,18 +639,6 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         return provider.getFileForSharing(position)?.let { MediaSource.LocalFile(it) }
     }
 
-    // Whole-number numeric fields decode from JSON as Double; re-serializing emits e.g. "w":1080.0
-    // which Synapse rejects (M_BAD_JSON). Round-trip them back to Long.
-    private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
-        is Double -> if (value.isFinite() && value % 1.0 == 0.0 &&
-                value >= Long.MIN_VALUE.toDouble() && value <= Long.MAX_VALUE.toDouble()) {
-            value.toLong()
-        } else value
-        is Map<*, *> -> value.mapValues { coerceWholeDoublesToLongs(it.value) }
-        is List<*> -> value.map { coerceWholeDoublesToLongs(it) }
-        else -> value
-    }
-
     override fun onDownload() {
         lifecycleScope.launch(Dispatchers.IO) {
             val hasWritePermission = withContext(Dispatchers.Main) {
@@ -675,11 +657,15 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     companion object {
         private const val EXTRA_ARGS = "EXTRA_ARGS"
         private const val EXTRA_IMAGE_DATA = "EXTRA_IMAGE_DATA"
-        private const val EXTRA_IN_MEMORY_DATA = "EXTRA_IN_MEMORY_DATA"
+        private const val EXTRA_IN_MEMORY_KEY = "EXTRA_IN_MEMORY_KEY"
         private const val STATE_CURRENT_POSITION = "STATE_CURRENT_POSITION"
         private const val POSTPONED_TRANSITION_TIMEOUT_MS = 150L
         private const val IMAGE_HANDOFF_TIMEOUT_MS = 3000L
         private const val DEFAULT_TRANSITION_MS = 300L
+
+        // Kept in-process, only keyed in the intent: an uploads list paged deep into a room's history
+        // parcels past the binder limit, and the system kills the app over the failed launch.
+        private val inMemoryStore = ConcurrentHashMap<String, List<AttachmentData>>()
 
         fun newIntent(
                 context: Context,
@@ -700,7 +686,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             )
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
-                it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))
+                val key = UUID.randomUUID().toString()
+                inMemoryStore[key] = ArrayList(inMemoryData)
+                it.putExtra(EXTRA_IN_MEMORY_KEY, key)
             }
         }
     }

@@ -56,30 +56,31 @@
 
     <ImageView
         android:id="@+id/uploadsFileActionDownload"
-        android:layout_width="@dimen/layout_touch_size"
+        android:layout_width="36dp"
         android:layout_height="@dimen/layout_touch_size"
         android:contentDescription="@string/action_download"
         android:scaleType="center"
-        app:srcCompat="@drawable/ic_download"
+        app:srcCompat="@drawable/ic_material_save"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/uploadsFileActionShare"
+        app:layout_constraintEnd_toStartOf="@id/uploadsFileActionMore"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?colorSecondary"
+        app:tint="?vctr_content_secondary"
         tools:ignore="MissingPrefix" />
 
+    <!-- The touch target already pads the icon 6dp in from its edge. -->
     <ImageView
-        android:id="@+id/uploadsFileActionShare"
-        android:layout_width="@dimen/layout_touch_size"
+        android:id="@+id/uploadsFileActionMore"
+        android:layout_width="36dp"
         android:layout_height="@dimen/layout_touch_size"
-        android:layout_marginEnd="@dimen/layout_horizontal_margin"
-        android:layout_marginRight="@dimen/layout_horizontal_margin"
-        android:contentDescription="@string/action_share"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:contentDescription="@string/attachment_viewer_more_options"
         android:scaleType="center"
-        app:srcCompat="@drawable/ic_material_share"
+        app:srcCompat="@drawable/ic_more_horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?colorSecondary"
+        app:tint="?vctr_content_secondary"
         tools:ignore="MissingPrefix" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -18,6 +18,7 @@ import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.search.ROOM_MENTION_SENTINEL
 import org.matrix.android.sdk.internal.session.search.index.db.EventIndexSqlDatabase
 import org.matrix.android.sdk.internal.session.search.index.db.Indexed_event
+import org.matrix.android.sdk.internal.session.search.index.db.SelectUploads
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.Executors
@@ -224,6 +225,23 @@ internal class EventIndexStore @Inject constructor(
         queries.oldestTsInRoom(roomId).executeAsOneOrNull()
     }
 
+    suspend fun uploads(roomId: String, beforeTs: Long, beforeId: String, floorTs: Long, limit: Int): List<SelectUploads> =
+            withContext(dispatcher) {
+                queries.selectUploads(roomId, beforeTs, beforeId, floorTs, limit.toLong()).executeAsList()
+            }
+
+    /** The oldest timestamp the room's full backward crawl has reached; everything newer is indexed. */
+    suspend fun getCrawlFrontier(roomId: String): Long? = withContext(dispatcher) {
+        queries.selectMeta(KEY_CRAWL_FRONTIER_PREFIX + roomId).executeAsOneOrNull()?.toLongOrNull()
+    }
+
+    suspend fun lowerCrawlFrontier(roomId: String, ts: Long) = withContext(dispatcher) {
+        queries.transaction {
+            val current = queries.selectMeta(KEY_CRAWL_FRONTIER_PREFIX + roomId).executeAsOneOrNull()?.toLongOrNull()
+            if (current == null || ts < current) queries.upsertMeta(KEY_CRAWL_FRONTIER_PREFIX + roomId, ts.toString())
+        }
+    }
+
     suspend fun isRoomIndexed(roomId: String): Boolean = withContext(dispatcher) {
         queries.isRoomIndexed(roomId).executeAsOneOrNull() != null
     }
@@ -310,6 +328,7 @@ internal class EventIndexStore @Inject constructor(
         private const val KEY_SWEEP_WATERMARK = "sweep_watermark"
         private const val KEY_FORMAT_VERSION = "format_version"
         private const val KEY_FULLY_CRAWLED_PREFIX = "fully_crawled:"
+        private const val KEY_CRAWL_FRONTIER_PREFIX = "crawl_frontier:"
 
         /** LIKE pattern for a case-insensitive substring match; terms are stored lowercased. */
         fun likePattern(term: String): String {

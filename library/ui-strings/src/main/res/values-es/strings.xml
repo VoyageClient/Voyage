@@ -1197,7 +1197,6 @@
     </plurals>
     <string name="uploads_media_title">MEDIO</string>
     <string name="uploads_media_no_result">No hay medios en esta sala</string>
-    <string name="uploads_files_subtitle">%1$s a %2$s</string>
     <string name="room_list_quick_actions_favorite_add">Agregar a los favoritos</string>
     <string name="room_list_quick_actions_favorite_remove">Quitar de favoritos</string>
     <string name="notice_member_no_changes_by_you">No hiciste cambios</string>
@@ -3518,4 +3517,6 @@
     <string name="debug_event_type">Depuración: tipo de evento «%1$s»</string>
     <string name="debug_thread_event_type">Depuración: tipo de evento de hilo «%1$s»</string>
     <string name="image_pack_event_too_large">Este paquete de imágenes es demasiado grande para guardarlo. Elimina algunas imágenes o divídelo en paquetes más pequeños.</string>
+    <string name="uploads_media_show_photos">Mostrar fotos</string>
+    <string name="uploads_media_show_videos">Mostrar vídeos</string>
 </resources>

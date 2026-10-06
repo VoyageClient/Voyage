@@ -114,6 +114,22 @@ ORDER BY origin_server_ts DESC LIMIT ?;
 oldestTsInRoom:
 SELECT origin_server_ts FROM indexed_event WHERE room_id = ? ORDER BY origin_server_ts ASC LIMIT 1;
 
+-- The room's attachments, newest first, keyset-paginated below (beforeTs, beforeId) and no older than
+-- floorTs. A keyset rather than an OFFSET because the crawler keeps inserting rows while the list pages.
+selectUploads:
+SELECT event_id, origin_server_ts, event_json FROM indexed_event
+WHERE room_id = :roomId
+  AND (origin_server_ts < :beforeTs OR (origin_server_ts = :beforeTs AND event_id < :beforeId))
+  AND origin_server_ts >= :floorTs
+  AND msgtype IS NOT NULL
+  AND (' ' || msgtype || ' ' LIKE '% m.image %'
+    OR ' ' || msgtype || ' ' LIKE '% m.video %'
+    OR ' ' || msgtype || ' ' LIKE '% m.audio %'
+    OR ' ' || msgtype || ' ' LIKE '% m.file %'
+    OR ' ' || msgtype || ' ' LIKE '% m.sticker %')
+ORDER BY origin_server_ts DESC, event_id DESC
+LIMIT :limit;
+
 insertMentionHit:
 INSERT OR REPLACE INTO mention_hit(event_id, room_id, origin_server_ts, kind) VALUES (?, ?, ?, ?);
 

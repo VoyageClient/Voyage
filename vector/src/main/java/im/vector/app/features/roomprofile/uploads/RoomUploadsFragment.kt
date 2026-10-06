@@ -9,18 +9,23 @@ package im.vector.app.features.roomprofile.uploads
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.R
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.saveMedia
 import im.vector.app.core.utils.shareMedia
 import im.vector.app.databinding.FragmentRoomUploadsBinding
@@ -36,7 +41,8 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class RoomUploadsFragment :
-        VectorBaseFragment<FragmentRoomUploadsBinding>() {
+        VectorBaseFragment<FragmentRoomUploadsBinding>(),
+        VectorMenuProvider {
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var notificationUtils: NotificationUtils
@@ -66,6 +72,9 @@ class RoomUploadsFragment :
                 1 -> tab.text = getString(CommonStrings.uploads_files_title)
             }
         }.attach()
+        views.roomUploadsViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) = invalidateOptionsMenu()
+        })
 
         setupToolbar(views.roomUploadsToolbar)
                 .allowBack()
@@ -97,6 +106,46 @@ class RoomUploadsFragment :
             }
         }
     }
+
+    override fun getMenuRes() = R.menu.menu_room_uploads
+
+    override fun handlePostCreateMenu(menu: Menu) {
+        menu.findItem(R.id.menu_room_uploads_show_photos).keepMenuOpenOnTap(menu, R.id.menu_room_uploads_show_videos, RoomUploadsAction.ToggleShowPhotos)
+        menu.findItem(R.id.menu_room_uploads_show_videos).keepMenuOpenOnTap(menu, R.id.menu_room_uploads_show_photos, RoomUploadsAction.ToggleShowVideos)
+    }
+
+    // An item whose collapsible action view refuses to expand takes the tap without closing the overflow popup.
+    private fun MenuItem.keepMenuOpenOnTap(menu: Menu, otherId: Int, action: RoomUploadsAction) {
+        actionView = View(requireContext())
+        setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER or MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW)
+        setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                // One of the two always stays on.
+                if (item.isChecked && !menu.findItem(otherId).isChecked) return false
+                item.isChecked = !item.isChecked
+                viewModel.handle(action)
+                return false
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem) = true
+        })
+    }
+
+    override fun handlePrepareMenu(menu: Menu) {
+        withState(viewModel) { state ->
+            val onMediaTab = views.roomUploadsViewPager.currentItem == 0
+            menu.findItem(R.id.menu_room_uploads_show_photos).apply {
+                isVisible = onMediaTab
+                isChecked = state.showPhotos
+            }
+            menu.findItem(R.id.menu_room_uploads_show_videos).apply {
+                isVisible = onMediaTab
+                isChecked = state.showVideos
+            }
+        }
+    }
+
+    override fun handleMenuItemSelected(item: MenuItem) = false
 
     override fun invalidate() = withState(viewModel) { state ->
         renderRoomSummary(state)

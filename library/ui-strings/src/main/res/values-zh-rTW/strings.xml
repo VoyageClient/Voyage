@@ -1299,7 +1299,6 @@
     <string name="uploads_media_title">媒體</string>
     <string name="uploads_media_no_result">此聊天室中沒有媒體</string>
     <string name="uploads_files_title">檔案</string>
-    <string name="uploads_files_subtitle">由 %1$s 於 %2$s 上傳</string>
     <string name="uploads_files_no_result">此聊天室中沒有檔案</string>
     <string name="login_connect_using_matrix_id_submit">使用 Matrix ID 登入</string>
     <string name="login_signin_matrix_id_title">使用 Matrix ID 登入</string>
@@ -3468,4 +3467,6 @@
     <string name="debug_event_type">偵錯：事件類型「%1$s」</string>
     <string name="debug_thread_event_type">偵錯：討論串事件類型「%1$s」</string>
     <string name="image_pack_event_too_large">這個圖片包太大，無法儲存。請移除部分圖片，或將其拆分成多個較小的圖片包。</string>
+    <string name="uploads_media_show_photos">顯示照片</string>
+    <string name="uploads_media_show_videos">顯示影片</string>
 </resources>

@@ -1366,7 +1366,6 @@
     <string name="uploads_media_title">MEDIEN</string>
     <string name="uploads_media_no_result">Es gibt in diesem Raum keine Medien</string>
     <string name="uploads_files_title">DATEIEN</string>
-    <string name="uploads_files_subtitle">%1$s um %2$s</string>
     <string name="uploads_files_no_result">Es gibt in diesem Raum keine Dateien</string>
     <string name="room_list_quick_actions_favorite_add">Zu Favoriten hinzufügen</string>
     <string name="room_list_quick_actions_favorite_remove">Aus Favoriten entfernen</string>
@@ -3529,4 +3528,6 @@
     <string name="debug_event_type">Debug: Ereignistyp „%1$s“</string>
     <string name="debug_thread_event_type">Debug: Thread-Ereignistyp „%1$s“</string>
     <string name="image_pack_event_too_large">Dieses Bilderpaket ist zu groß zum Speichern. Entferne einige Bilder oder teile es in kleinere Pakete auf.</string>
+    <string name="uploads_media_show_photos">Fotos anzeigen</string>
+    <string name="uploads_media_show_videos">Videos anzeigen</string>
 </resources>

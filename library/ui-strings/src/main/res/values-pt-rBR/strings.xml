@@ -988,7 +988,6 @@
     <string name="uploads_media_title">MÍDIA</string>
     <string name="uploads_media_no_result">Não tem nenhuma mídia nesta sala</string>
     <string name="uploads_files_title">ARQUIVOS</string>
-    <string name="uploads_files_subtitle">%1$s a %2$s</string>
     <string name="uploads_files_no_result">Não tem nenhum arquivo nesta sala</string>
     <string name="message_ignore_user">Ignorar usuária(o)</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Todas as mensagens (barulhento)</string>
@@ -3530,4 +3529,6 @@
     <string name="debug_event_type">Depuração: tipo de evento “%1$s”</string>
     <string name="debug_thread_event_type">Depuração: tipo de evento da thread “%1$s”</string>
     <string name="image_pack_event_too_large">Este pacote de imagens é grande demais para salvar. Remova algumas imagens ou divida-o em pacotes menores.</string>
+    <string name="uploads_media_show_photos">Mostrar fotos</string>
+    <string name="uploads_media_show_videos">Mostrar vídeos</string>
 </resources>

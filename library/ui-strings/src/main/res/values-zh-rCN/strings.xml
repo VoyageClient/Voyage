@@ -922,7 +922,6 @@
     <string name="uploads_media_title">媒体</string>
     <string name="uploads_media_no_result">此房间中暂无媒体</string>
     <string name="uploads_files_title">文件</string>
-    <string name="uploads_files_subtitle">%1$s 于 %2$s</string>
     <string name="uploads_files_no_result">此房间中暂无文件</string>
     <string name="message_ignore_user">忽略用户</string>
     <string name="room_list_quick_actions_notifications_all_noisy">全部消息（嘈杂）</string>
@@ -3466,4 +3465,6 @@
     <string name="debug_event_type">调试：事件类型“%1$s”</string>
     <string name="debug_thread_event_type">调试：消息列事件类型“%1$s”</string>
     <string name="image_pack_event_too_large">这个图片包太大，无法保存。请移除部分图片，或将其拆分成多个较小的图片包。</string>
+    <string name="uploads_media_show_photos">显示照片</string>
+    <string name="uploads_media_show_videos">显示视频</string>
 </resources>

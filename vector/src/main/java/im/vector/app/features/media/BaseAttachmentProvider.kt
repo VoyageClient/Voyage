@@ -106,7 +106,7 @@ abstract class BaseAttachmentProvider<Type>(
 
     protected fun senderInfo(name: String, timestampMs: Long?): String {
         val dateString = dateFormatter.format(timestampMs, DateFormatKind.DEFAULT_DATE_AND_TIME)
-        return "${name.neutralizeDirectionOverrides()} $dateString"
+        return "${name.neutralizeDirectionOverrides()} • $dateString"
     }
 
     abstract fun getTimelineEventAtPosition(position: Int): TimelineEvent?

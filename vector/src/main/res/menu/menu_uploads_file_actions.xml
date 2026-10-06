@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/uploadsFileShare"
+        android:icon="@drawable/ic_share"
+        android:title="@string/action_share" />
+
+    <item
+        android:id="@+id/uploadsFileForward"
+        android:icon="@drawable/ic_forward"
+        android:title="@string/action_forward" />
+
+    <item
+        android:id="@+id/uploadsFileShowInChat"
+        android:icon="@drawable/ic_reveal_redacted"
+        android:title="@string/attachment_viewer_show_in_chat" />
+
+</menu>

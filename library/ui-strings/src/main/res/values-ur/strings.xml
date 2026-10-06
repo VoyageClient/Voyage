@@ -1315,7 +1315,6 @@
     <string name="uploads_media_title">میڈیا</string>
     <string name="uploads_media_no_result">اس کمرے میں کوئی میڈیا نہیں</string>
     <string name="uploads_files_title">فائلیں</string>
-    <string name="uploads_files_subtitle">%1$s بوقت %2$s</string>
     <string name="uploads_files_no_result">اس کمرے میں کوئی فائل نہیں</string>
     <string name="message_ignore_user">صارف کو نظر انداز کریں</string>
     <string name="room_list_quick_actions_notifications_all_noisy">تمام پیغامات (شور کے ساتھ)</string>
@@ -3424,4 +3423,6 @@
     <string name="debug_event_type">ڈیبگ: واقعے کی قسم ”%1$s“</string>
     <string name="debug_thread_event_type">ڈیبگ: دھاگے کے واقعے کی قسم ”%1$s“</string>
     <string name="image_pack_event_too_large">یہ تصویری بستہ محفوظ کرنے کے لیے بہت بڑا ہے۔ کچھ تصاویر ہٹا دیں یا اسے چھوٹے بستوں میں تقسیم کر دیں۔</string>
+    <string name="uploads_media_show_photos">تصاویر دکھائیں</string>
+    <string name="uploads_media_show_videos">ویڈیوز دکھائیں</string>
 </resources>

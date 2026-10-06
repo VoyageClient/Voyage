@@ -1568,7 +1568,6 @@
     <string name="uploads_media_title">الوسائط</string>
     <string name="uploads_media_no_result">لا وسائط في هذه الغرفة</string>
     <string name="uploads_files_title">الملفات</string>
-    <string name="uploads_files_subtitle">%1$s في %2$s</string>
     <string name="uploads_files_no_result">لا ملفات في هذه الغرفة</string>
     <string name="room_list_quick_actions_low_priority_add">أضِف إلى الأولوية المنخفضة</string>
     <string name="room_list_quick_actions_low_priority_remove">أزِل من الأولوية المنخفضة</string>
@@ -3679,4 +3678,6 @@
     <string name="debug_event_type">التصحيح: نوع الحدث «%1$s»</string>
     <string name="debug_thread_event_type">التصحيح: نوع حدث السلسلة «%1$s»</string>
     <string name="image_pack_event_too_large">حزمة الصور هذه كبيرة جدًا ولا يمكن حفظها. احذف بعض الصور أو قسّمها إلى حزم أصغر.</string>
+    <string name="uploads_media_show_photos">إظهار الصور</string>
+    <string name="uploads_media_show_videos">إظهار مقاطع الفيديو</string>
 </resources>

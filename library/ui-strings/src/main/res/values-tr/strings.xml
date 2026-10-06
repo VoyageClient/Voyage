@@ -1399,7 +1399,6 @@
     <string name="reaction_search_type_hint">Bir tepki bulmak için anahtar kelimeleri yazın.</string>
     <string name="command_description_spoiler">Verilen mesajı spoiler olarak gönderir</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Tüm mesajlar (gürültülü)</string>
-    <string name="uploads_files_subtitle">%1$s, %2$s konumunda</string>
     <string name="attachment_viewer_item_x_of_y">%1$d / %2$d</string>
     <string name="error_handling_incoming_share">Paylaşım verileri işlenemedi</string>
     <string name="attachment_type_location">Konum</string>
@@ -3488,4 +3487,6 @@
     <string name="debug_event_type">Hata ayıklama: olay türü “%1$s”</string>
     <string name="debug_thread_event_type">Hata ayıklama: konu olayı türü “%1$s”</string>
     <string name="image_pack_event_too_large">Bu görsel paketi kaydedilemeyecek kadar büyük. Bazı görselleri kaldırın veya paketi daha küçük paketlere bölün.</string>
+    <string name="uploads_media_show_photos">Fotoğrafları göster</string>
+    <string name="uploads_media_show_videos">Videoları göster</string>
 </resources>

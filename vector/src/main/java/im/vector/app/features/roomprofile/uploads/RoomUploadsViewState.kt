@@ -12,6 +12,7 @@ import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 
 data class RoomUploadsViewState(
@@ -23,8 +24,15 @@ data class RoomUploadsViewState(
         // Current pagination request
         val asyncEventsRequest: Async<Unit> = Uninitialized,
         // True if more result are available server side
-        val hasMore: Boolean = true
+        val hasMore: Boolean = true,
+        val showPhotos: Boolean = true,
+        val showVideos: Boolean = true,
 ) : MavericksState {
 
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)
+
+    val visibleMediaEvents: List<UploadEvent>
+        get() = if (showPhotos && showVideos) mediaEvents else mediaEvents.filter {
+            if (it.contentWithAttachmentContent.msgType == MessageType.MSGTYPE_VIDEO) showVideos else showPhotos
+        }
 }

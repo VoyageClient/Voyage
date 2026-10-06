@@ -7,21 +7,19 @@
 
 package im.vector.app.features.roomprofile.uploads.files
 
+import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.epoxy.VisibilityState
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.loadingItem
-import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.media.galleryPageId
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
-import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 import javax.inject.Inject
 
 class UploadsFileController @Inject constructor(
-        private val stringProvider: StringProvider,
         private val dateFormatter: VectorDateFormatter
 ) : TypedEpoxyController<RoomUploadsViewState>() {
 
@@ -29,10 +27,13 @@ class UploadsFileController @Inject constructor(
         fun loadMore()
         fun onOpenClicked(uploadEvent: UploadEvent)
         fun onDownloadClicked(uploadEvent: UploadEvent)
-        fun onShareClicked(uploadEvent: UploadEvent)
+        fun onMoreClicked(uploadEvent: UploadEvent, anchor: View)
     }
 
     var listener: Listener? = null
+
+    var isLoadMoreVisible = false
+        private set
 
     override fun buildModels(data: RoomUploadsViewState?) {
         data ?: return
@@ -42,14 +43,16 @@ class UploadsFileController @Inject constructor(
 
         if (data.hasMore) {
             loadingItem {
-                // Keyed on how much has loaded rather than on a counter: a fresh id every rebuild makes
-                // Epoxy recreate the view, restarting the spinner's animation, and the list rebuilds often
-                // while a sync is running. Loading more still changes the id, so the visibility callback
-                // fires again for the next page.
-                id("loadMore${data.fileEvents.size}")
+                // A stable id: a new one recreates the view, restarting the spinner. The fragment asks for
+                // the next page itself while the row stays visible, since this callback won't fire again.
+                id("loadMore")
                 onVisibilityStateChanged { _, _, visibilityState ->
-                    if (visibilityState == VisibilityState.VISIBLE) {
-                        host.listener?.loadMore()
+                    when (visibilityState) {
+                        VisibilityState.VISIBLE -> {
+                            host.isLoadMoreVisible = true
+                            host.listener?.loadMore()
+                        }
+                        VisibilityState.INVISIBLE -> host.isLoadMoreVisible = false
                     }
                 }
             }
@@ -63,11 +66,8 @@ class UploadsFileController @Inject constructor(
                 id(galleryPageId(uploadEvent.eventId, uploadEvent.galleryItemIndex))
                 title(uploadEvent.contentWithAttachmentContent.getFileName())
                 subtitle(
-                        host.stringProvider.getString(
-                                CommonStrings.uploads_files_subtitle,
-                                uploadEvent.senderInfo.disambiguatedDisplayName,
+                        uploadEvent.senderInfo.disambiguatedDisplayName + " • " +
                                 host.dateFormatter.format(uploadEvent.root.originServerTs, DateFormatKind.DEFAULT_DATE_AND_TIME)
-                        )
                 )
                 listener(object : UploadsFileItem.Listener {
                     override fun onItemClicked() {
@@ -78,8 +78,8 @@ class UploadsFileController @Inject constructor(
                         host.listener?.onDownloadClicked(uploadEvent)
                     }
 
-                    override fun onShareClicked() {
-                        host.listener?.onShareClicked(uploadEvent)
+                    override fun onMoreClicked(anchor: View) {
+                        host.listener?.onMoreClicked(uploadEvent, anchor)
                     }
                 })
             }

@@ -41,6 +41,15 @@ internal object FilterFactory {
         )
     }
 
+    // No contains_url: the server only sees the encrypted envelope, so attachments are told apart after decryption.
+    fun createEncryptedUploadsFilter(numberOfEvents: Int): RoomEventFilter {
+        return RoomEventFilter(
+                limit = numberOfEvents,
+                types = listOf(EventType.ENCRYPTED, EventType.MESSAGE, EventType.STICKER),
+                lazyLoadMembers = true,
+        )
+    }
+
     fun createDefaultFilter(): Filter {
         return FilterUtil.enableLazyLoading(Filter(), true)
     }

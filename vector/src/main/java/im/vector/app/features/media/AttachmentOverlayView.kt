@@ -21,18 +21,16 @@ import android.net.Uri
 import android.os.Build
 import android.text.format.DateUtils
 import android.util.AttributeSet
-import android.view.Menu
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
 import androidx.appcompat.view.ContextThemeWrapper
-import androidx.appcompat.widget.PopupMenu
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.extensions.iconPopupMenu
 import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.databinding.MergeImageAttachmentOverlayBinding
 import im.vector.app.features.attachments.editor.video.PlaybackSpeed
@@ -345,17 +343,13 @@ class AttachmentOverlayView @JvmOverloads constructor(
 
     private fun showMoreMenu() {
         val themed = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context))
-        val popup = PopupMenu(themed, views.overlayMoreButton)
-        popup.inflate(R.menu.menu_attachment_viewer_overlay)
+        val popup = iconPopupMenu(themed, views.overlayMoreButton, R.menu.menu_attachment_viewer_overlay)
         popup.menu.findItem(R.id.attachmentViewerShowInChat).isVisible = showInChat
         popup.menu.findItem(R.id.attachmentViewerForward).isVisible = showForward
         popup.menu.findItem(R.id.attachmentViewerVolume).isVisible = isVideo
         val speedItem = popup.menu.findItem(R.id.attachmentViewerPlaybackSpeed)
         // MediaPlayer only takes a speed from API 23, and nothing below it can stand in.
         speedItem.isVisible = isVideo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-        tintMenuIcons(themed, popup.menu)
-        // A popup menu hides its icons until forced to, on every level appcompat covers.
-        popup.setForceShowIcon(true)
         moreMenuOpen = true
         // The dismissing tap lands in the popup's own window, so the viewer never sees a touch
         // to restart its auto-hide countdown from — it has to be told.
@@ -375,16 +369,6 @@ class AttachmentOverlayView @JvmOverloads constructor(
             true
         }
         popup.show()
-    }
-
-    /** The icons are flat colours of their own, which the app's own theme may well not read against. */
-    private fun tintMenuIcons(themed: Context, menu: Menu) {
-        val tint = ThemeUtils.getColorFromContextTheme(themed, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
-        for (index in 0 until menu.size()) {
-            val icon = menu.getItem(index).icon?.mutate() ?: continue
-            DrawableCompat.setTint(icon, tint)
-            menu.getItem(index).icon = icon
-        }
     }
 
     private fun showSpeedDialog() {

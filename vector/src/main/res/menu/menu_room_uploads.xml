@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_room_uploads_show_photos"
+        android:checkable="true"
+        android:checked="true"
+        android:title="@string/uploads_media_show_photos" />
+
+    <item
+        android:id="@+id/menu_room_uploads_show_videos"
+        android:checkable="true"
+        android:checked="true"
+        android:title="@string/uploads_media_show_videos" />
+
+</menu>

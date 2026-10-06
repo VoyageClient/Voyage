@@ -16,4 +16,6 @@ sealed class RoomUploadsAction : VectorViewModelAction {
 
     object Retry : RoomUploadsAction()
     object LoadMore : RoomUploadsAction()
+    object ToggleShowPhotos : RoomUploadsAction()
+    object ToggleShowVideos : RoomUploadsAction()
 }

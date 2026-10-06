@@ -17,6 +17,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.GridLayoutManager
+import com.airbnb.epoxy.DiffResult
+import com.airbnb.epoxy.OnModelBuildFinishedListener
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.Success
@@ -120,7 +122,7 @@ class RoomUploadsMediaFragment :
     }
 
     private fun getItemsArgs(state: RoomUploadsViewState): List<AttachmentData> {
-        return state.mediaEvents.mapNotNull {
+        return state.visibleMediaEvents.mapNotNull {
             when (val content = it.contentWithAttachmentContent) {
                 is MessageImageInfoContent -> {
                     ImageContentRenderer.Data(
@@ -192,8 +194,13 @@ class RoomUploadsMediaFragment :
         uploadsViewModel.handle(RoomUploadsAction.Retry)
     }
 
+    private var renderedFilter: kotlin.Pair<Boolean, Boolean>? = null
+
     override fun invalidate() = withState(uploadsViewModel) { state ->
-        if (state.mediaEvents.isEmpty()) {
+        val filter = state.showPhotos to state.showVideos
+        val filterChanged = renderedFilter != null && renderedFilter != filter
+        renderedFilter = filter
+        if (state.visibleMediaEvents.isEmpty()) {
             when (state.asyncEventsRequest) {
                 is Loading -> {
                     views.genericStateViewListStateView.state = StateView.State.Loading
@@ -216,7 +223,30 @@ class RoomUploadsMediaFragment :
             }
         } else {
             views.genericStateViewListStateView.state = StateView.State.Content
+            if (filterChanged) scrollToTopAfterNextBuild()
+            views.genericStateViewListRecycler.post { loadMoreIfSpinnerShown() }
             controller.setData(state)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadMoreIfSpinnerShown()
+    }
+
+    // The spinner row only reports becoming visible, so a page that leaves it on screen is followed up here.
+    // Resumed only: the pager keeps the other tab's list attached, spinner and all.
+    private fun loadMoreIfSpinnerShown() = withState(uploadsViewModel) { state ->
+        if (isResumed && controller.isLoadMoreVisible && state.hasMore && state.asyncEventsRequest is Success) loadMore()
+    }
+
+    // After the diff lands, not before: the grid otherwise keeps whichever item it was anchored on.
+    private fun scrollToTopAfterNextBuild() {
+        controller.addModelBuildListener(object : OnModelBuildFinishedListener {
+            override fun onModelBuildFinished(result: DiffResult) {
+                controller.removeModelBuildListener(this)
+                views.genericStateViewListRecycler.scrollToPosition(0)
+            }
+        })
     }
 }

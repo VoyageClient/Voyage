@@ -31,19 +31,19 @@ abstract class UploadsFileItem : VectorEpoxyModel<UploadsFileItem.Holder>(R.layo
         holder.titleView.text = title?.prepareForDisplay()
         holder.subtitleView.setTextOrHide(subtitle?.prepareForDisplay())
         holder.downloadView.setOnClickListener { listener?.onDownloadClicked() }
-        holder.shareView.setOnClickListener { listener?.onShareClicked() }
+        holder.moreView.setOnClickListener { listener?.onMoreClicked(it) }
     }
 
     class Holder : VectorEpoxyHolder() {
         val titleView by bind<TextView>(R.id.uploadsFileTitle)
         val subtitleView by bind<TextView>(R.id.uploadsFileSubtitle)
         val downloadView by bind<View>(R.id.uploadsFileActionDownload)
-        val shareView by bind<View>(R.id.uploadsFileActionShare)
+        val moreView by bind<View>(R.id.uploadsFileActionMore)
     }
 
     interface Listener {
         fun onItemClicked()
         fun onDownloadClicked()
-        fun onShareClicked()
+        fun onMoreClicked(anchor: View)
     }
 }

@@ -1351,7 +1351,6 @@
     <string name="uploads_media_title">মিডিয়া</string>
     <string name="uploads_media_no_result">এই রুমে কোনো মিডিয়া নেই</string>
     <string name="uploads_files_title">ফাইল</string>
-    <string name="uploads_files_subtitle">%2$s-এ %1$s</string>
     <string name="uploads_files_no_result">এই রুমে কোনো ফাইল নেই</string>
     <string name="message_ignore_user">ব্যবহারকারীকে উপেক্ষা করুন</string>
     <string name="room_list_quick_actions_notifications_all_noisy">সব বার্তা (শব্দসহ)</string>
@@ -3484,4 +3483,6 @@
     <string name="debug_event_type">ডিবাগ: ইভেন্টের ধরন “%1$s”</string>
     <string name="debug_thread_event_type">ডিবাগ: থ্রেড ইভেন্টের ধরন “%1$s”</string>
     <string name="image_pack_event_too_large">এই ছবির প্যাকটি সংরক্ষণ করার জন্য খুব বড়। কিছু ছবি সরান অথবা এটিকে ছোট প্যাকে ভাগ করুন।</string>
+    <string name="uploads_media_show_photos">ছবি দেখান</string>
+    <string name="uploads_media_show_videos">ভিডিও দেখান</string>
 </resources>

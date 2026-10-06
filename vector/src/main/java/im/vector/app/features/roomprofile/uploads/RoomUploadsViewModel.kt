@@ -141,6 +141,8 @@ class RoomUploadsViewModel @AssistedInject constructor(
             is RoomUploadsAction.Share -> handleShare(action)
             RoomUploadsAction.Retry -> handleLoadMore()
             RoomUploadsAction.LoadMore -> handleLoadMore()
+            RoomUploadsAction.ToggleShowPhotos -> setState { if (showVideos) copy(showPhotos = !showPhotos) else this }
+            RoomUploadsAction.ToggleShowVideos -> setState { if (showPhotos) copy(showVideos = !showVideos) else this }
         }
     }
 

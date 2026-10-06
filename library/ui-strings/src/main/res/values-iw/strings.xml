@@ -846,7 +846,6 @@
     <string name="room_list_quick_actions_notifications_all_noisy">כל ההודעות (רועשות)</string>
     <string name="message_ignore_user">התעלם ממשתמש זה</string>
     <string name="uploads_files_no_result">אין קבצים בחדר זה</string>
-    <string name="uploads_files_subtitle">%1$s ב- %2$s</string>
     <string name="uploads_files_title">קבצים</string>
     <string name="uploads_media_no_result">אין מדיה בחדר זה</string>
     <string name="uploads_media_title">מדיה</string>
@@ -3623,4 +3622,6 @@
     <string name="debug_event_type">ניפוי שגיאות: סוג האירוע „%1$s”</string>
     <string name="debug_thread_event_type">ניפוי שגיאות: סוג האירוע בשרשור „%1$s”</string>
     <string name="image_pack_event_too_large">חבילת התמונות הזו גדולה מדי לשמירה. יש להסיר כמה תמונות או לפצל אותה לחבילות קטנות יותר.</string>
+    <string name="uploads_media_show_photos">הצגת תמונות</string>
+    <string name="uploads_media_show_videos">הצגת סרטונים</string>
 </resources>

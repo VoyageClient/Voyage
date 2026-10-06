@@ -45,24 +45,29 @@ class UploadsMediaController @Inject constructor(
 
     var listener: Listener? = null
 
+    var isLoadMoreVisible = false
+        private set
+
     private val itemSize = dimensionConverter.dpToPx(IMAGE_SIZE_DP)
 
     override fun buildModels(data: RoomUploadsViewState?) {
         data ?: return
         val host = this
 
-        buildMediaItems(data.mediaEvents, data.roomId)
+        buildMediaItems(data.visibleMediaEvents, data.roomId)
 
         if (data.hasMore) {
             squareLoadingItem {
-                // Keyed on how much has loaded rather than on a counter: a fresh id every rebuild makes
-                // Epoxy recreate the view, restarting the spinner's animation, and the list rebuilds often
-                // while a sync is running. Loading more still changes the id, so the visibility callback
-                // fires again for the next page.
-                id("loadMore${data.mediaEvents.size}")
+                // A stable id: a new one recreates the view, restarting the spinner. The fragment asks for
+                // the next page itself while the row stays visible, since this callback won't fire again.
+                id("loadMore")
                 onVisibilityStateChanged { _, _, visibilityState ->
-                    if (visibilityState == VisibilityState.VISIBLE) {
-                        host.listener?.loadMore()
+                    when (visibilityState) {
+                        VisibilityState.VISIBLE -> {
+                            host.isLoadMoreVisible = true
+                            host.listener?.loadMore()
+                        }
+                        VisibilityState.INVISIBLE -> host.isLoadMoreVisible = false
                     }
                 }
             }

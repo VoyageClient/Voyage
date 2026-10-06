@@ -120,6 +120,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Media viewer with pinch-to-zoom**: a reworked image and video viewer with pinch-to-zoom on still images, animated images and videos, an overhauled compression pipeline that compresses by the shorter side so long media isn't squished, and correct thumbnail stubs during upload.
 
+- **Full Uploads history in encrypted rooms**: a room's Uploads screen keeps loading older media and files in encrypted rooms instead of stopping at what the device had already decrypted. The Media tab can be filtered to photos or videos, and file rows can be forwarded or shown in the chat.
+
 - **Voice messages overhaul**: an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.
 
 - **Audio metadata (MSC4549)**: an audio file shows the track's title, artist and album, with its cover art blurred behind the player.

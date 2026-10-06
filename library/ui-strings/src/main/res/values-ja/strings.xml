@@ -1558,7 +1558,6 @@
 \n既存のスペースを別のスペースに追加できます。</string>
     <string name="spaces_no_server_support_title">あなたのホームサーバーはまだスペースをサポートしていないようです</string>
     <string name="attachment_type_dialog_title">画像を追加</string>
-    <string name="uploads_files_subtitle">%1$sが%2$sにアップロード</string>
     <string name="create_poll_question_hint">質問あるいはトピック</string>
     <string name="create_poll_question_title">アンケートの質問あるいはトピック</string>
     <string name="it_may_take_some_time">少々お待ちください。少し時間がかかるかもしれません。</string>
@@ -3464,4 +3463,6 @@
     <string name="debug_event_type">デバッグ: イベント種別「%1$s」</string>
     <string name="debug_thread_event_type">デバッグ: スレッドイベント種別「%1$s」</string>
     <string name="image_pack_event_too_large">この画像パックは大きすぎて保存できません。画像をいくつか削除するか、複数の小さいパックに分けてください。</string>
+    <string name="uploads_media_show_photos">写真を表示</string>
+    <string name="uploads_media_show_videos">動画を表示</string>
 </resources>

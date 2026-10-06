@@ -128,12 +128,6 @@ UPDATE event SET decryption_error_code = ?, decryption_error_reason = ? WHERE ev
 updateThreadNotificationStateByEventId:
 UPDATE event SET thread_notification_state_str = ? WHERE event_id = ?;
 
--- uploads gallery: encrypted media events (decrypted content carries a url), newest first. The pattern
--- is a SQL LIKE pattern (translated from the legacy glob via globToSqlLike) using '\' as escape char.
-selectEncryptedWithUrlInRoom:
-SELECT * FROM event WHERE room_id = ? AND type = ? AND decryption_result_json LIKE ('%' || ? || '%') ESCAPE '\'
-ORDER BY origin_server_ts DESC;
-
 markVerificationDirtyForSenders:
 UPDATE event SET is_verification_state_dirty = 1
 WHERE sender IN ? AND type = ? AND decryption_result_json IS NOT NULL;

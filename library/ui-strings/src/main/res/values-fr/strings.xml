@@ -1304,7 +1304,6 @@
     <string name="uploads_media_title">MÉDIA</string>
     <string name="uploads_media_no_result">Il n’y a aucun média dans ce salon</string>
     <string name="uploads_files_title">FICHIERS</string>
-    <string name="uploads_files_subtitle">%1$s à %2$s</string>
     <string name="uploads_files_no_result">Il n’y a aucun fichier dans ce salon</string>
     <string name="login_connect_using_matrix_id_submit">Me connecter avec mon identifiant Matrix</string>
     <string name="login_signin_matrix_id_title">Se connecter</string>
@@ -3530,4 +3529,6 @@
     <string name="debug_event_type">Débogage : type d’événement « %1$s »</string>
     <string name="debug_thread_event_type">Débogage : type d’événement du fil de discussion « %1$s »</string>
     <string name="image_pack_event_too_large">Ce pack est trop volumineux pour être enregistré. Supprimez des images ou répartissez-le en plusieurs packs plus petits.</string>
+    <string name="uploads_media_show_photos">Afficher les photos</string>
+    <string name="uploads_media_show_videos">Afficher les vidéos</string>
 </resources>
