@@ -20,8 +20,7 @@ fun String.isValidUrl(): Boolean {
     }
 }
 
-// Java URL has no protocol handler for matrix: or mxc: URIs.
-fun String.isTappableLink(): Boolean = isValidUrl() || isMatrixUri() || VectorAutoLinkPatterns.MXC_URI.matches(this)
+fun String.isTappableLink(): Boolean = isValidUrl() || isMatrixUri() || VectorAutoLinkPatterns.SCHEME_URI.matches(this)
 
 /**
  * Ensure string starts with "http". If it is not the case, "https://" is added, only if the String is not empty

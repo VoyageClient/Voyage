@@ -71,6 +71,7 @@ internal object VectorLinkify {
 
     private const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
     private val MSC: Pattern = Pattern.compile("\\bMSC(\\d{1,6})\\b", Pattern.CASE_INSENSITIVE)
+    private val SCHEME_URI: Pattern = Pattern.compile("(?<![A-Za-z0-9+._-])[A-Za-z][A-Za-z0-9+.-]*://[^\\s<>\"']+")
 
     private const val LAT_OR_LONG_OR_ALT_NUMBER = "-?\\d+(?:\\.\\d+)?"
     private const val COORDINATE_SYSTEM = ";crs=[\\w-]+"
@@ -134,6 +135,17 @@ internal object VectorLinkify {
         forEachUrlSpan(text) { span, url, start, end ->
             text.removeSpan(span)
             created.add(LinkSpec(url, start, end))
+        }
+
+        val schemeMatcher = SCHEME_URI.matcher(text.toString())
+        while (schemeMatcher.find()) {
+            val start = schemeMatcher.start()
+            var end = schemeMatcher.end()
+            while (end > start && text[end - 1] in ".,;:!?") end--
+            end = balanceParens(text, start, end)
+            if (end > start + schemeMatcher.group().indexOf("://") + 3) {
+                created.add(LinkSpec(text.substring(start, end), start, end))
+            }
         }
 
         pruneOverlaps(created)

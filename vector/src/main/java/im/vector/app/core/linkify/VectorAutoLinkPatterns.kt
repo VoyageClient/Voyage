@@ -19,6 +19,8 @@ object VectorAutoLinkPatterns {
 
     val MXC_URI: Regex = Regex("mxc://(?:\\[[0-9A-Fa-f:]+\\]|[A-Za-z0-9.-]+)(?::[0-9]+)?/[A-Za-z0-9_-]+")
 
+    val SCHEME_URI: Regex = Regex("(?<![A-Za-z0-9+._-])[A-Za-z][A-Za-z0-9+.-]*://[^\\s<>\"']+")
+
     val GEO_URI: Regex = Regex(
             "(?:geo:)?" +
                     "(" + LAT_OR_LONG_OR_ALT_NUMBER + ")" +

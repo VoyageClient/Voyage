@@ -117,6 +117,16 @@ object VectorLinkify {
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(match.value), match.range.first, match.range.last + 1))
         }
 
+        VectorAutoLinkPatterns.SCHEME_URI.findAll(spannable).forEach { match ->
+            val start = match.range.first
+            var end = match.range.last + 1
+            while (end > start && spannable[end - 1] in ".,;:!?") end--
+            end = balanceParens(spannable, start, end)
+            if (end > start + match.value.indexOf("://") + 3) {
+                createdSpans.add(LinkSpec(NoUnderlineUrlSpan(spannable.substring(start, end)), start, end))
+            }
+        }
+
         pruneOverlaps(createdSpans)
         for (spec in createdSpans) {
             spannable.setSpan(spec.span, spec.start, spec.end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
