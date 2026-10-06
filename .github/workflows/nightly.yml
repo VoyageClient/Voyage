@@ -92,6 +92,68 @@ jobs:
       - name: Set the nightly release date
         run: echo "VOYAGE_RELEASE_DATE=$(date --utc +%Y%m%d)" >> "$GITHUB_ENV"
 
+      - name: Find the previous nightly
+        run: |
+          set -euo pipefail
+          previous_tag=$(git ls-remote --tags --refs origin | grep -E 'refs/tags/[0-9]{8}$' | sed 's#.*refs/tags/##' | sort -r | head -n 1 || true)
+          previous_commit=
+          if [ -n "$previous_tag" ]; then
+            previous_commit=$(git ls-remote --tags origin "refs/tags/$previous_tag^{}" | awk 'NR == 1 { print $1 }')
+            previous_commit=${previous_commit:-$(git ls-remote --tags --refs origin "refs/tags/$previous_tag" | awk 'NR == 1 { print $1 }')}
+          fi
+          echo "PREVIOUS_TAG=$previous_tag" >> "$GITHUB_ENV"
+          echo "PREVIOUS_COMMIT=$previous_commit" >> "$GITHUB_ENV"
+
+      # F-Droid reads changelogs/<versionCode>.txt from the tagged source, so they are committed before the build.
+      - name: Commit the F-Droid changelogs
+        if: github.ref_type == 'branch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$VOYAGE_RELEASE_DATE" > /dev/null 2>&1; then
+            echo "The nightly release $VOYAGE_RELEASE_DATE already exists; leaving its changelogs alone."
+            exit 0
+          fi
+
+          # F-Droid and Play cap a changelog at 500 characters.
+          limit=500
+          changelog=
+          if [ -n "$PREVIOUS_COMMIT" ]; then
+            mapfile -t subjects < <(git log --no-merges --format='• %s' --invert-grep --grep='^Add F-Droid changelogs for ' "$PREVIOUS_COMMIT..HEAD")
+            for i in "${!subjects[@]}"; do
+              candidate="${changelog:+$changelog$'\n'}${subjects[$i]}"
+              remaining=$(( ${#subjects[@]} - i - 1 ))
+              more=
+              if [ "$remaining" -gt 0 ]; then
+                more=$'\n'"…and $remaining more"
+              fi
+              if [ $(( ${#candidate} + ${#more} )) -gt "$limit" ]; then
+                changelog="${changelog:+$changelog$'\n'}…and $(( remaining + 1 )) more"
+                break
+              fi
+              changelog=$candidate
+            done
+          fi
+          changelog=${changelog:-Initial release.}
+
+          dir=fastlane/metadata/android/en-US/changelogs
+          mkdir -p "$dir"
+          base=$(( (VOYAGE_RELEASE_DATE + 20000000) * 10 ))
+          for abi in 1 2 3 4; do
+            printf '%s\n' "$changelog" > "$dir/$(( base + abi )).txt"
+          done
+          cat "$dir/$(( base + 1 )).txt"
+
+          git add "$dir"
+          if git diff --cached --quiet; then
+            echo 'The changelogs are already committed.'
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "Add F-Droid changelogs for $VOYAGE_RELEASE_DATE"
+          git push origin "HEAD:refs/heads/${{ github.ref_name }}"
+
       - name: Free up disk space and add swap
         run: |
           sudo rm -rf /usr/share/dotnet &
@@ -158,15 +220,14 @@ jobs:
             exit 0
           fi
 
+          release_sha=$(git rev-parse HEAD)
           {
-            echo "Nightly build of Voyage at [$(git rev-parse --short HEAD)](${{ github.server_url }}/${{ github.repository }}/commit/${GITHUB_SHA})."
+            echo "Nightly build of Voyage at [$(git rev-parse --short HEAD)](${{ github.server_url }}/${{ github.repository }}/commit/$release_sha)."
             echo
-            previous_tag=$(git ls-remote --tags --refs origin | grep -E 'refs/tags/[0-9]{8}$' | sed 's#.*refs/tags/##' | sort -r | head -n 1 || true)
-            if [ -n "$previous_tag" ]; then
-              previous_commit=$(git ls-remote --tags origin "refs/tags/$previous_tag^{}" | awk 'NR == 1 { print $1 }')
-              previous_commit=${previous_commit:-$(git ls-remote --tags --refs origin "refs/tags/$previous_tag" | awk 'NR == 1 { print $1 }')}
-              echo "Changes since nightly $previous_tag:"
-              git log "$previous_commit..HEAD" --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
+            if [ -n "$PREVIOUS_COMMIT" ]; then
+              echo "Changes since nightly $PREVIOUS_TAG:"
+              git log "$PREVIOUS_COMMIT..HEAD" --invert-grep --grep='^Add F-Droid changelogs for ' \
+                --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
             else
               echo "Initial release."
             fi
@@ -175,11 +236,11 @@ jobs:
           gh release create "$release_tag" \
             --title "Nightly $release_tag" \
             --notes-file release-notes.md \
-            --target "${{ github.sha }}"
+            --target "$release_sha"
 
           gh release upload "$release_tag" artifacts/*.apk --clobber
 
           gh release view "$release_tag" --json isDraft,isPrerelease,tagName,assets --jq '{isDraft, isPrerelease, tagName, assets: [.assets[].name]}'
           [ "$(gh release view "$release_tag" --json isPrerelease --jq .isPrerelease)" = 'false' ]
           [ "$(gh release view "$release_tag" --json isDraft --jq .isDraft)" = 'false' ]
-          [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$release_tag" --jq .sha)" = "${{ github.sha }}" ]
+          [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$release_tag" --jq .sha)" = "$release_sha" ]
