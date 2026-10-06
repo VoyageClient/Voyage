@@ -45,6 +45,14 @@ class ListDividerDecoration(
     }
 
     override fun onDraw(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
+        if (!followItemTranslation) drawSeparators(canvas, parent)
+    }
+
+    override fun onDrawOver(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
+        if (followItemTranslation) drawSeparators(canvas, parent)
+    }
+
+    private fun drawSeparators(canvas: Canvas, parent: RecyclerView) {
         val left = parent.paddingLeft.toFloat()
         val right = (parent.width - parent.paddingRight).toFloat()
         for (i in 0 until parent.childCount) {

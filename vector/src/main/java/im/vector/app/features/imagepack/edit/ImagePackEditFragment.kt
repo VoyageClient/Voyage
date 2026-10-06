@@ -7,24 +7,34 @@
 
 package im.vector.app.features.imagepack.edit
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.epoxy.EpoxyModelTouchCallback
+import com.airbnb.epoxy.EpoxyViewHolder
 import com.airbnb.mvrx.args
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -69,6 +79,8 @@ import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import java.io.File
 import java.io.FileNotFoundException
 import javax.inject.Inject
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 // Same rounded-square ratio as space avatars (RoundedCornersPercent), so rounding stays proportional to size.
 private const val ROUNDED_CORNER_PERCENT = 0.20f
@@ -90,6 +102,7 @@ class ImagePackEditFragment :
     @Inject lateinit var clock: Clock
 
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
+    private var dragScrollRunnable: Runnable? = null
 
     private val pageArgs: ImagePackEditArgs by args()
 
@@ -138,7 +151,7 @@ class ImagePackEditFragment :
         controller.listener = this
         galleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(this)
         views.imagePackImagesRecycler.configureWith(controller, hasFixedSize = true)
-        views.imagePackImagesRecycler.addItemDecoration(im.vector.app.core.epoxy.ListDividerDecoration(requireContext()))
+        views.imagePackImagesRecycler.addItemDecoration(im.vector.app.core.epoxy.ListDividerDecoration(requireContext(), followItemTranslation = true))
         if (pageArgs.canEdit) enableDragReorder()
 
         val firstLoad = !editViewModel.loaded
@@ -420,16 +433,175 @@ class ImagePackEditFragment :
         }
     }
 
+    // The list sits below the scrolling header and is sized as if the header were gone, so its bottom edge
+    // is off-screen. ItemTouchHelper only edge-scrolls past the view's own bounds, so we drive the drag
+    // scroll from the on-screen bounds instead, as a nested scroll so the header moves like a finger scroll.
+    @SuppressLint("ClickableViewAccessibility")
     private fun enableDragReorder() {
-        com.airbnb.epoxy.EpoxyTouchHelper.initDragging(controller)
-                .withRecyclerView(views.imagePackImagesRecycler)
-                .forVerticalList()
-                // Only image rows are draggable; the "Add to pack" row is a different model type and stays put.
-                .withTarget(ImagePackEditItem_::class.java)
-                .andCallbacks(object : com.airbnb.epoxy.EpoxyTouchHelper.DragCallbacks<ImagePackEditItem_>() {
+        val recyclerView = views.imagePackImagesRecycler
+        ItemTouchHelper(object : EpoxyModelTouchCallback<ImagePackEditItem_>(controller, ImagePackEditItem_::class.java) {
+                    private var dragStartTop = 0
+                    private var edgeScrollOutOfBounds = 0
+                    private var edgeScrollZone = 0
+                    private var edgeScrollStart = 0L
+                    private var edgeScrollPosted = false
+                    private val visibleBounds = Rect()
+                    private val screenLocation = IntArray(2)
+                    private var lastMove: MotionEvent? = null
+                    private var lastMoveScreenX = 0
+                    private var lastMoveScreenY = 0
+                    private var replayingMove = false
+
+                    private val edgeScrollRunner = object : Runnable {
+                        override fun run() {
+                            edgeScrollPosted = false
+                            if (edgeScrollOutOfBounds == 0 || !ViewCompat.isAttachedToWindow(recyclerView)) return
+                            val oldTop = recyclerView.top
+                            val oldScroll = recyclerView.computeVerticalScrollOffset()
+                            recyclerView.nestedScrollBy(0, dragScrollStep(edgeScrollZone, edgeScrollOutOfBounds,
+                                    SystemClock.uptimeMillis() - edgeScrollStart))
+                            if (recyclerView.top != oldTop || recyclerView.computeVerticalScrollOffset() != oldScroll) {
+                                replayLastMove()
+                                scheduleEdgeScroll()
+                            } else {
+                                edgeScrollOutOfBounds = 0
+                            }
+                        }
+                    }
+
+                    // ItemTouchHelper only looks for swap targets on touch moves, so a stationary finger
+                    // over freshly scrolled-in rows needs its last move re-sent, re-based for the list's shift.
+                    private fun replayLastMove() {
+                        val move = lastMove ?: return
+                        recyclerView.getLocationOnScreen(screenLocation)
+                        val event = MotionEvent.obtain(move)
+                        event.action = MotionEvent.ACTION_MOVE
+                        event.offsetLocation((lastMoveScreenX - screenLocation[0]).toFloat(), (lastMoveScreenY - screenLocation[1]).toFloat())
+                        replayingMove = true
+                        try {
+                            recyclerView.dispatchTouchEvent(event)
+                        } finally {
+                            replayingMove = false
+                            event.recycle()
+                        }
+                    }
+
+                    private fun recordMove(event: MotionEvent) {
+                        if (replayingMove) return
+                        when (event.actionMasked) {
+                            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                                lastMove?.recycle()
+                                lastMove = MotionEvent.obtain(event)
+                                recyclerView.getLocationOnScreen(screenLocation)
+                                lastMoveScreenX = screenLocation[0]
+                                lastMoveScreenY = screenLocation[1]
+                            }
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                lastMove?.recycle()
+                                lastMove = null
+                            }
+                        }
+                    }
+
+                    private fun scheduleEdgeScroll() {
+                        if (edgeScrollOutOfBounds != 0 && !edgeScrollPosted) {
+                            edgeScrollPosted = true
+                            ViewCompat.postOnAnimation(recyclerView, edgeScrollRunner)
+                        }
+                    }
+
+                    private fun dragScrollStep(viewSize: Int, outOfBounds: Int, elapsedMs: Long): Int {
+                        val maxScroll = recyclerView.resources.getDimensionPixelSize(
+                                androidx.recyclerview.R.dimen.item_touch_helper_max_drag_scroll_per_frame)
+                        val outRatio = (abs(outOfBounds).toFloat() / viewSize).coerceAtMost(1f)
+                        val distanceFromCap = outRatio - 1f
+                        val cap = distanceFromCap * distanceFromCap * distanceFromCap * distanceFromCap * distanceFromCap + 1f
+                        val timeRatio = (elapsedMs / 500f).coerceIn(0f, 1f)
+                        val acceleration = timeRatio * timeRatio * timeRatio * timeRatio * timeRatio
+                        val step = (maxScroll * cap * acceleration).toInt().coerceAtLeast(1)
+                        return if (outOfBounds > 0) step else -step
+                    }
+
+                    init {
+                        dragScrollRunnable = edgeScrollRunner
+                        recyclerView.setOnTouchListener { _, event ->
+                            recordMove(event)
+                            false
+                        }
+                    }
+
+                    // Only image rows are draggable; the "Add to pack" row is a different model type and stays put.
+                    override fun getMovementFlagsForModel(model: ImagePackEditItem_, adapterPosition: Int): Int =
+                            ItemTouchHelper.Callback.makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
+
+                    override fun getMoveThreshold(viewHolder: RecyclerView.ViewHolder): Float = 0.25f
+
+                    override fun chooseDropTarget(
+                            selected: RecyclerView.ViewHolder,
+                            dropTargets: List<RecyclerView.ViewHolder>,
+                            curX: Int,
+                            curY: Int,
+                    ): EpoxyViewHolder? {
+                        // The selected row's layout position changes after each swap.
+                        val movingDown = curY > dragStartTop
+                        val movingUp = curY < dragStartTop
+                        val edge = if (movingDown) curY + selected.itemView.height else curY
+                        return dropTargets.asSequence()
+                                .filterIsInstance<EpoxyViewHolder>()
+                                .filter { target ->
+                                    val midpoint = (target.itemView.top + target.itemView.bottom) / 2
+                                    val position = target.bindingAdapterPosition
+                                    val selectedPosition = selected.bindingAdapterPosition
+                                    (movingDown && position > selectedPosition && edge >= midpoint) ||
+                                            (movingUp && position < selectedPosition && edge <= midpoint)
+                                }
+                                .let { targets -> if (movingDown) targets.maxByOrNull { it.bindingAdapterPosition } else targets.minByOrNull { it.bindingAdapterPosition } }
+                    }
+
+                    override fun interpolateOutOfBoundsScroll(
+                            recyclerView: RecyclerView,
+                            viewSize: Int,
+                            viewSizeOutOfBounds: Int,
+                            totalSize: Int,
+                            msSinceStartScroll: Long,
+                    ): Int = 0
+
+                    override fun onChildDrawOver(
+                            c: Canvas,
+                            recyclerView: RecyclerView,
+                            viewHolder: RecyclerView.ViewHolder,
+                            dX: Float,
+                            dY: Float,
+                            actionState: Int,
+                            isCurrentlyActive: Boolean,
+                    ) {
+                        super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        if (actionState != ItemTouchHelper.ACTION_STATE_DRAG || !isCurrentlyActive) return
+                        if (!recyclerView.getLocalVisibleRect(visibleBounds)) return
+                        val top = viewHolder.itemView.top + dY
+                        val zone = (96f * recyclerView.resources.displayMetrics.density).roundToInt()
+                        val visibleBottom = minOf(visibleBounds.bottom, recyclerView.height - recyclerView.paddingBottom)
+                        val bottomGap = visibleBottom - top - viewHolder.itemView.height
+                        val topGap = top - (visibleBounds.top + recyclerView.paddingTop)
+                        val direction = when {
+                            bottomGap < zone -> 1
+                            topGap < zone -> -1
+                            else -> 0
+                        }
+                        val gap = if (direction > 0) bottomGap else topGap
+                        val outOfBounds = if (direction == 0) 0 else direction * (zone - gap).roundToInt()
+                        if (outOfBounds.compareTo(0) != edgeScrollOutOfBounds.compareTo(0)) edgeScrollStart = SystemClock.uptimeMillis()
+                        edgeScrollOutOfBounds = outOfBounds
+                        edgeScrollZone = zone
+                        scheduleEdgeScroll()
+                    }
+
                     override fun onDragStarted(model: ImagePackEditItem_?, itemView: View?, adapterPosition: Int) {
+                        edgeScrollOutOfBounds = 0
+                        dragStartTop = itemView?.top ?: 0
+                        controller.cancelPendingModelBuild()
                         itemView?.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
-                        itemView?.let { androidx.core.view.ViewCompat.setElevation(it, 6f) }
+                        itemView?.let { ViewCompat.setElevation(it, 6f) }
                     }
 
                     override fun clearView(model: ImagePackEditItem_?, itemView: View?) {
@@ -438,17 +610,20 @@ class ImagePackEditFragment :
 
                     override fun onModelMoved(fromPosition: Int, toPosition: Int, modelBeingMoved: ImagePackEditItem_?, itemView: View?) {
                         itemView?.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
-                        // moveModel() schedules a delayed buildModels(); keep our backing list in step so that
-                        // rebuild (which can fire mid-drag) reproduces the on-screen order instead of fighting it.
                         images.clear()
                         images.addAll(controller.currentOrderedImages())
+                        // moveModel() schedules a rebuild from the pre-drag snapshot, which would undo the move.
+                        controller.cancelPendingModelBuild()
                     }
 
                     override fun onDragReleased(model: ImagePackEditItem_?, itemView: View?) {
+                        edgeScrollOutOfBounds = 0
+                        recyclerView.removeCallbacks(edgeScrollRunner)
+                        edgeScrollPosted = false
                         refresh()
                         requireActivity().invalidateOptionsMenu()
                     }
-                })
+                }).attachToRecyclerView(recyclerView)
     }
 
     // The account pack (im.ponies.user_emotes) and legacy im.ponies.room_emotes packs support per-image
@@ -473,6 +648,8 @@ class ImagePackEditFragment :
     }
 
     override fun onDestroyView() {
+        dragScrollRunnable?.let { views.imagePackImagesRecycler.removeCallbacks(it) }
+        dragScrollRunnable = null
         views.imagePackImagesRecycler.cleanup()
         controller.listener = null
         super.onDestroyView()
