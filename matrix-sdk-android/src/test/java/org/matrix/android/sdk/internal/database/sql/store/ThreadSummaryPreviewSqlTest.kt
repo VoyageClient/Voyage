@@ -180,4 +180,36 @@ class ThreadSummaryPreviewSqlTest {
         stores.event.unmarkEventAsRoot(rootDbId)
         stores.event.getByEventId(rootEventId)!!.threadSummaryLatestMessage.shouldBeNull()
     }
+
+    @Test
+    fun `preview survives its timeline row being deleted while another copy remains`() {
+        val rootDbId = insertRoot()
+        val replyDbId = insertReply("\$reply", ts = 2_000L)
+        val threadRowId = insertTimelineRow("\$reply", replyDbId, threadChunk(), ownedByThreadChunk = true)
+        stores.event.markEventAsRoot(rootDbId, numberOfThreads = 1, latestTimelineId = threadRowId)
+        insertTimelineRow("\$reply", replyDbId, mainChunk())
+
+        stores.timelineEvent.deleteById(threadRowId)
+
+        stores.event.getByEventId(rootEventId)!!.threadSummaryLatestMessage!!.let {
+            it.eventId shouldBeEqualTo "\$reply"
+            it.senderName shouldBeEqualTo "Bob"
+        }
+    }
+
+    @Test
+    fun `preview falls back to the reply event once its only timeline row is gone`() {
+        val rootDbId = insertRoot()
+        val replyDbId = insertReply("\$reply", ts = 2_000L)
+        val chunkId = threadChunk()
+        val threadRowId = insertTimelineRow("\$reply", replyDbId, chunkId, ownedByThreadChunk = true)
+        stores.event.markEventAsRoot(rootDbId, numberOfThreads = 1, latestTimelineId = threadRowId)
+
+        stores.timelineEvent.deleteByChunk(chunkId)
+
+        stores.event.getByEventId(rootEventId)!!.threadSummaryLatestMessage!!.let {
+            it.eventId shouldBeEqualTo "\$reply"
+            it.root?.sender shouldBeEqualTo "@bob:hs"
+        }
+    }
 }

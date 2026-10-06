@@ -168,9 +168,30 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
             queries.selectForIndexAfterId(afterId, limit.toLong()).executeAsList()
                     .map { it.id to it.toEntity().asDomain() }
 
-    /** [toEntity] plus the thread-root preview (latest in-thread message), resolved only when set. */
+    /** [toEntity] plus the thread-root preview (latest in-thread message). */
     private fun EventRow.toResolvedEntity(): EventEntity = toEntity().also { entity ->
-        thread_summary_latest_timeline_id?.let { entity.threadSummaryLatestMessage = resolveTimelineEvent(it) }
+        // Chunk merges/dedup and thread-chunk teardown delete timeline rows without re-pointing the root.
+        entity.threadSummaryLatestMessage = thread_summary_latest_timeline_id?.let { resolveTimelineEvent(it) }
+                ?: if (is_root_thread != 0L) resolveLatestThreadReply(room_id, event_id) else null
+    }
+
+    private fun resolveLatestThreadReply(roomId: String, rootId: String): TimelineEventEntity? {
+        database.timelineEventQueries.selectLatestThreadReplyId(roomId, rootId).executeAsOneOrNull()
+                ?.let { resolveTimelineEvent(it) }
+                ?.let { return it }
+        // Replies fetched only through the thread view have no timeline row left once it closes.
+        val reply = queries.selectLatestThreadReply(roomId, rootId).executeAsOneOrNull()?.toEntity() ?: return null
+        val member = reply.sender?.let {
+            database.roomMemberSummaryQueries.selectByRoomAndUser(roomId, it).executeAsOneOrNull()
+        }
+        return TimelineEventEntity(
+                eventId = reply.eventId,
+                roomId = roomId,
+                ts = reply.originServerTs ?: 0,
+                root = reply,
+                senderName = member?.display_name,
+                senderAvatar = member?.avatar_url,
+        )
     }
 
     private fun resolveTimelineEvent(timelineId: Long): TimelineEventEntity? {

@@ -136,6 +136,10 @@ WHERE sender IN ? AND type = ? AND decryption_result_json IS NOT NULL;
 selectThreadRepliesForRoot:
 SELECT event_id, unsigned_data FROM event WHERE room_id = ? AND root_thread_event_id = ? GROUP BY event_id;
 
+selectLatestThreadReply:
+SELECT * FROM event WHERE room_id = ? AND root_thread_event_id = ?
+ORDER BY origin_server_ts DESC, id ASC LIMIT 1;
+
 -- Which of the given event ids are thread roots we hold replies for. One query narrows a whole sync
 -- batch or pagination page down to the roots worth re-counting.
 selectThreadRootsAmong:
