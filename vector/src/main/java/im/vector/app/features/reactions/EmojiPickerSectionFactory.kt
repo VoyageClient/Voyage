@@ -52,8 +52,8 @@ class EmojiPickerSectionFactory @Inject constructor(
      * Cheap once the catalog is on disk; safe to call repeatedly.
      */
     suspend fun warm(roomId: String?) = withContext(Dispatchers.Default) {
-        emojiSections()
         imagePackProvider.warmImagePacks(roomId)
+        emojiSections()
     }
 
     /**

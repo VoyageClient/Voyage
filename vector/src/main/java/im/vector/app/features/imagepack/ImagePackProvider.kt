@@ -288,6 +288,7 @@ class ImagePackProvider @Inject constructor(
 
     private val emoticonCache = ConcurrentHashMap<String, List<ResolvedImage>>()
     private val packCache = ConcurrentHashMap<String, List<ResolvedImagePack>>()
+    private val packCacheLocks = ConcurrentHashMap<String, Any>()
 
     /**
      * The packs last resolved for [roomId], for a picker that has to draw before [getImagePacks] — a walk
@@ -296,14 +297,26 @@ class ImagePackProvider @Inject constructor(
      */
     fun cachedImagePacks(roomId: String?): List<ResolvedImagePack> = packCache[emoticonCacheKey(roomId)].orEmpty()
 
+    fun cachedCommonImagePacks(): List<ResolvedImagePack> {
+        val sessionId = activeSessionHolder.getSafeActiveSession()?.sessionId ?: return emptyList()
+        return packCache.entries.asSequence()
+                .filter { it.key.startsWith("$sessionId|") }
+                .map { entry -> entry.value.filter { it.source == ImagePackSource.ACCOUNT || it.source == ImagePackSource.GLOBAL_ROOM } }
+                .firstOrNull { it.isNotEmpty() }
+                .orEmpty()
+    }
+
     /** Fills [cachedImagePacks] from the stored copy, for the first open of a session. Off-main. */
     fun warmImagePacks(roomId: String?): List<ResolvedImagePack> {
         val key = emoticonCacheKey(roomId)
         packCache[key]?.let { return it }
-        val stored = diskCache.read(key).orEmpty()
-        // Don't cache an empty read as an answer: it is "nothing stored", not "no packs".
-        if (stored.isNotEmpty()) packCache[key] = stored
-        return stored
+        return synchronized(packCacheLocks.getOrPut(key) { Any() }) {
+            packCache[key]?.let { return@synchronized it }
+            val stored = diskCache.read(key).orEmpty()
+            // Don't cache an empty read as an answer: it is "nothing stored", not "no packs".
+            if (stored.isNotEmpty()) packCache[key] = stored
+            stored
+        }
     }
 
     /** Re-resolves the packs and stores them, for showing the cached copy and correcting it after. Off-main. */
@@ -311,9 +324,11 @@ class ImagePackProvider @Inject constructor(
 
     private fun store(roomId: String?, packs: List<ResolvedImagePack>) {
         val key = emoticonCacheKey(roomId)
-        if (packCache[key] == packs) return
-        packCache[key] = packs
-        diskCache.write(key, packs)
+        synchronized(packCacheLocks.getOrPut(key) { Any() }) {
+            if (packCache[key] == packs) return
+            packCache[key] = packs
+            diskCache.write(key, packs)
+        }
     }
 
     // Session-keyed: the cache includes the account's personal user_emotes pack, which must not

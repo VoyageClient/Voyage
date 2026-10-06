@@ -216,6 +216,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch { emojiPickerSectionFactory.warm(roomId) }
 
         sharedActionViewModel = activityViewModelProvider.get(MessageSharedActionViewModel::class.java)
 
@@ -225,9 +226,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         setupComposer()
         setupEmojiButton()
         setupStickerPicker()
-        // Both pickers read the same caches; filling them while the room opens is what makes either of
-        // them draw its content in the frame it is opened in.
-        viewLifecycleOwner.lifecycleScope.launch { emojiPickerSectionFactory.warm(roomId) }
 
         // Avoid a one-frame flash before renderRegularMode runs.
         if (!vectorPreferences.isVoiceMessageButtonEnabled()) {

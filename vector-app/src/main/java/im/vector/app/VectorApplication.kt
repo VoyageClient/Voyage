@@ -166,6 +166,12 @@ class VectorApplication :
         }
         Timber.plant(vectorFileLogger)
 
+        // Native initialization on a Glide worker can stall every sticker request behind it.
+        Thread({
+            runCatching { System.loadLibrary("glide-webp") }
+                    .onFailure { Timber.w(it, "Could not initialize WebP decoder") }
+        }, "webp-warmup").start()
+
         logInfo()
         LazyThreeTen.init(this)
         // A thread of its own for the state reducers. They are pure copies of a data class, but the

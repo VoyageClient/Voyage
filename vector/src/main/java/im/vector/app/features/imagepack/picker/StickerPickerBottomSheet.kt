@@ -37,6 +37,7 @@ import im.vector.app.features.reactions.EmojiPickerSection
 import im.vector.app.features.reactions.pauseImageAnimationsWhileScrolling
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
@@ -64,6 +65,8 @@ class StickerPickerBottomSheet :
 
     private var frequent: List<ResolvedImage> = emptyList()
     private var packs: List<ResolvedImagePack> = emptyList()
+    private var hasShownData = false
+    private var preloadJob: Job? = null
 
     // Adapter position of each section header, in order — used to scroll on tab tap and to pick the
     // current tab while scrolling.
@@ -75,6 +78,9 @@ class StickerPickerBottomSheet :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        packs = emptyList()
+        frequent = emptyList()
+        hasShownData = false
         // Full-screen, non-draggable panel dismissed via the back arrow (like the web sticker UI), rather than
         // a swipe-to-dismiss sheet.
         (dialog as? com.google.android.material.bottomsheet.BottomSheetDialog)?.behavior?.apply {
@@ -104,23 +110,31 @@ class StickerPickerBottomSheet :
         controller.listener = this
 
         setupSearch()
+        views.stickerPickerTabRow.isVisible = false
+        views.stickerPickerTabSeparator.isVisible = false
         // Whatever the room already resolved, drawn in this same frame.
-        show(fromPacks(imagePackProvider.cachedImagePacks(pickerArgs.roomId), prune = false), layoutManager)
+        val roomCached = imagePackProvider.cachedImagePacks(pickerArgs.roomId)
+        val cached = roomCached.ifEmpty { imagePackProvider.cachedCommonImagePacks() }
+        if (cached.isNotEmpty()) show(fromPacks(cached, prune = false), layoutManager)
         // Aggregating the packs walks account data, the room's state and its parent spaces' state, and
         // pruning the recents writes account data — none of it belongs on the thread drawing the sheet.
         viewLifecycleOwner.lifecycleScope.launch {
             // Cold caches fall back to the stored copy, then to the aggregation itself.
             val loaded = withContext(Dispatchers.Default) {
-                if (packs.isEmpty()) fromPacks(imagePackProvider.warmImagePacks(pickerArgs.roomId), prune = false) else null
+                if (roomCached.isEmpty()) fromPacks(imagePackProvider.warmImagePacks(pickerArgs.roomId), prune = false) else null
             }
-            loaded?.takeIf { it.packs.isNotEmpty() }?.let { show(it, layoutManager) }
-            val refreshed = withContext(Dispatchers.Default) { fromPacks(imagePackProvider.refreshImagePacks(pickerArgs.roomId), prune = true) }
-            if (refreshed.packs != packs || refreshed.frequent != frequent) show(refreshed, layoutManager)
+            loaded?.takeIf { it.packs.isNotEmpty() && (it.packs != packs || it.frequent != frequent) }
+                    ?.let { show(it, layoutManager) }
+            val refreshed = withContext(Dispatchers.Default) {
+                fromPacks(imagePackProvider.refreshImagePacks(pickerArgs.roomId), prune = true)
+            }
+            if (!hasShownData || refreshed.packs != packs || refreshed.frequent != frequent) show(refreshed, layoutManager)
         }
     }
 
     private fun show(loaded: LoadedStickers, layoutManager: GridLayoutManager) {
         if (loaded.packs.isEmpty() && loaded.frequent.isEmpty() && packs.isNotEmpty()) return
+        hasShownData = true
         packs = loaded.packs
         frequent = loaded.frequent
         controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs))
@@ -128,21 +142,24 @@ class StickerPickerBottomSheet :
         views.stickerPickerTabRow.isVisible = hasStickers
         views.stickerPickerTabSeparator.isVisible = hasStickers
         setupTabs(layoutManager)
-        val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
         val stickers = frequent + packs.flatMap { it.images }
-        val mxcByResolvedUrl = stickers.mapNotNull { sticker ->
-            contentUrlResolver?.resolveFullSize(sticker.mxcUrl)?.let { it to sticker.mxcUrl }
-        }.toMap()
-        GridImagePreloader.warm(
-                key = "stickers",
-                context = requireContext(),
-                urls = mxcByResolvedUrl.keys.toList(),
-                size = StickerItem.CELL_PX,
-                // Still frames: what a cell needs to draw something the instant it binds. The animation
-                // itself is decoded by the cell, from the file this also puts in the disk cache.
-                animated = false,
-                keepFrameFor = { resolvedUrl -> mxcByResolvedUrl[resolvedUrl] },
-        )
+        preloadJob?.cancel()
+        preloadJob = viewLifecycleOwner.lifecycleScope.launch {
+            val mxcByResolvedUrl = withContext(Dispatchers.Default) {
+                val resolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
+                stickers.mapNotNull { sticker ->
+                    resolver?.resolveFullSize(sticker.mxcUrl)?.let { it to sticker.mxcUrl }
+                }.toMap()
+            }
+            GridImagePreloader.warm(
+                    key = "stickers",
+                    context = requireContext(),
+                    urls = mxcByResolvedUrl.keys.toList(),
+                    size = StickerItem.CELL_PX,
+                    animated = false,
+                    keepFrameFor = { resolvedUrl -> mxcByResolvedUrl[resolvedUrl] },
+            )
+        }
     }
 
     private class LoadedStickers(val packs: List<ResolvedImagePack>, val frequent: List<ResolvedImage>)
@@ -228,6 +245,8 @@ class StickerPickerBottomSheet :
     }
 
     override fun onDestroyView() {
+        preloadJob?.cancel()
+        preloadJob = null
         GridImagePreloader.cancel("stickers")
         views.stickerPickerRecyclerView.cleanup()
         controller.listener = null
