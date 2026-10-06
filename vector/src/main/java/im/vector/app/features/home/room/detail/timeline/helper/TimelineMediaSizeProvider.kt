@@ -42,6 +42,9 @@ class TimelineMediaSizeProvider @Inject constructor(
     @Volatile
     private var cachedSize: Pair<Int, Int>? = null
 
+    /** Called on the main thread when the cap changes after it was first established. */
+    var onMaxSizeChanged: (() -> Unit)? = null
+
     // Models are built on a background thread, so getMaxSize() must not read the live RecyclerView
     // bounds there: with adjustResize the list height shrinks while the keyboard is up (e.g. when
     // sending), and a transient/shrunk read would get baked into the size and stick. Instead the
@@ -64,7 +67,11 @@ class TimelineMediaSizeProvider @Inject constructor(
         } else {
             return
         }
-        cachedSize = computeMaxSize(viewportWidth, viewportHeight)
+        val previous = cachedSize
+        val size = computeMaxSize(viewportWidth, viewportHeight)
+        cachedSize = size
+        // Built models carry the cap they were made with, so a rotation would leave them at the old one.
+        if (previous != null && previous != size) onMaxSizeChanged?.invoke()
     }
 
     fun getMaxSize(): Pair<Int, Int> {
@@ -75,16 +82,8 @@ class TimelineMediaSizeProvider @Inject constructor(
     }
 
     private fun computeMaxSize(width: Int, height: Int): Pair<Int, Int> {
-        val maxImageWidth: Int
-        val maxImageHeight: Int
-        // landscape / portrait
-        if (width < height) {
-            maxImageWidth = (width * 0.7f).roundToInt()
-            maxImageHeight = (height * 0.5f).roundToInt()
-        } else {
-            maxImageWidth = (width * 0.7f).roundToInt()
-            maxImageHeight = (height * 0.7f).roundToInt()
-        }
+        val maxImageWidth = (width * 0.7f).roundToInt()
+        val maxImageHeight = (height * 0.5f).roundToInt()
         return if (vectorPreferences.useMessageBubblesLayout()) {
             Pair(maxImageWidth.coerceAtMost(bubbleContentMaxWidth(resources, width)), maxImageHeight)
         } else {

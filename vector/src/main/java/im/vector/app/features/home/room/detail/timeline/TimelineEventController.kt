@@ -535,6 +535,7 @@ class TimelineEventController @Inject constructor(
         super.onAttachedToRecyclerView(recyclerView)
         timeline?.addListener(this)
         timelineMediaSizeProvider.recyclerView = recyclerView
+        timelineMediaSizeProvider.onMaxSizeChanged = { invalidateAllCache() }
         reactionListFactory.onRequestBuild = { requestModelBuild() }
         sendingMediaGate.onRequestBuild = { requestModelBuild() }
         permalinkEventResolver.addListener(permalinkSenderListener)
@@ -542,6 +543,7 @@ class TimelineEventController @Inject constructor(
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         timelineMediaSizeProvider.recyclerView = null
+        timelineMediaSizeProvider.onMaxSizeChanged = null
         contentUploadStateTrackerBinder.clear()
         contentDownloadStateTrackerBinder.clear()
         timeline?.removeListener(this)
