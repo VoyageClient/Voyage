@@ -20,7 +20,7 @@
     <!-- It is the push gateway for UnifiedPush -->
     <string name="default_push_gateway_http_url" translatable="false">https://matrix.gateway.unifiedpush.org/_matrix/push/v1/notify</string>
     <!-- Note: pusher_app_id cannot exceed 64 chars -->
-    <string name="pusher_app_id" translatable="false">im.vector.app.android</string>
+    <string name="pusher_app_id" translatable="false">im.voyage.app.android</string>
 
     <string-array name="room_directory_servers" translatable="false">
         <item>matrix.org</item>

@@ -18,6 +18,8 @@ import im.vector.app.test.fixtures.CredentialsFixture
 import im.vector.app.test.fixtures.CryptoDeviceInfoFixture.aCryptoDeviceInfo
 import im.vector.app.test.fixtures.PusherFixture
 import im.vector.app.test.fixtures.SessionParamsFixture
+import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
@@ -76,6 +78,40 @@ class PushersManagerTest {
 
         val httpPusher = pushersService.verifyEnqueueAddHttpPusher()
         httpPusher shouldBeEqualTo expectedHttpPusher
+    }
+
+    @Test
+    fun `given a pusher under Element's app id, when registerPusher, then it is removed before registering`() = runTest {
+        localeProvider.givenCurrent(Locale.UK)
+        appNameProvider.givenAppName("voyage")
+        getDeviceInfoUseCase.givenDeviceInfo(aCryptoDeviceInfo())
+        pushersService.givenGetPushers(listOf(PusherFixture.aPusher(pushKey = "endpoint", appId = "im.vector.app.android")))
+
+        pushersManager.registerPusher("endpoint", "gateway")
+
+        coVerifyOrder {
+            pushersService.removeHttpPusher("endpoint", "im.vector.app.android")
+            pushersService.addHttpPusher(any())
+        }
+    }
+
+    @Test
+    fun `given no legacy pusher, when registerPusher, then nothing is removed`() = runTest {
+        pushersService.givenGetPushers(listOf(PusherFixture.aPusher(pushKey = "endpoint", appId = "im.voyage.app.android")))
+
+        pushersManager.registerPusher("endpoint", "gateway")
+
+        coVerify(exactly = 0) { pushersService.removeHttpPusher(any(), any()) }
+    }
+
+    @Test
+    fun `when unregisterPusher, then the stored pusher's app id is used`() = runTest {
+        stringProvider.given(im.vector.app.config.R.string.pusher_app_id, "im.voyage.app.android")
+        pushersService.givenGetPushers(listOf(PusherFixture.aPusher(pushKey = "endpoint", appId = "im.vector.app.android")))
+
+        pushersManager.unregisterPusher("endpoint")
+
+        coVerify { pushersService.removeHttpPusher("endpoint", "im.vector.app.android") }
     }
 
     @Test

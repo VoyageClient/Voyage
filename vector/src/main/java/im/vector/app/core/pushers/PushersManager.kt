@@ -12,9 +12,11 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.AppNameProvider
 import im.vector.app.core.resources.LocaleProvider
 import im.vector.app.core.resources.StringProvider
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
 import org.matrix.android.sdk.api.session.pushers.Pusher
 import org.matrix.android.sdk.api.session.pushers.PusherState
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.abs
@@ -46,7 +48,9 @@ class PushersManager @Inject constructor(
      */
     suspend fun registerPusher(pushKey: String, gateway: String): Result<Unit> {
         return runCatching {
-            activeSessionHolder.getActiveSession().pushersService().addHttpPusher(createHttpPusher(pushKey, gateway))
+            val session = activeSessionHolder.getActiveSession()
+            removeLegacyPusher(session, pushKey)
+            session.pushersService().addHttpPusher(createHttpPusher(pushKey, gateway))
         }
     }
 
@@ -55,8 +59,18 @@ class PushersManager @Inject constructor(
             gateway: String
     ): UUID {
         val currentSession = activeSessionHolder.getActiveSession()
+        removeLegacyPusher(currentSession, pushKey)
         val pusher = createHttpPusher(pushKey, gateway)
         return currentSession.pushersService().enqueueAddHttpPusher(pusher)
+    }
+
+    // A pusher left under Element's app id keeps delivering alongside ours. It must go before registering:
+    // the local store is keyed by pushkey alone, so removing it afterwards would drop the new row too.
+    private suspend fun removeLegacyPusher(session: Session, pushKey: String) {
+        val pushersService = session.pushersService()
+        if (pushersService.getPushers().none { it.pushKey == pushKey && it.appId == LEGACY_PUSHER_APP_ID }) return
+        runCatching { pushersService.removeHttpPusher(pushKey, LEGACY_PUSHER_APP_ID) }
+                .onFailure { Timber.w(it, "Failed to remove the legacy pusher") }
     }
 
     private suspend fun createHttpPusher(
@@ -108,10 +122,14 @@ class PushersManager @Inject constructor(
 
     suspend fun unregisterPusher(pushKey: String) {
         val currentSession = activeSessionHolder.getSafeActiveSession() ?: return
-        currentSession.pushersService().removeHttpPusher(pushKey, stringProvider.getString(im.vector.app.config.R.string.pusher_app_id))
+        val pushersService = currentSession.pushersService()
+        val appId = pushersService.getPushers().firstOrNull { it.pushKey == pushKey }?.appId
+                ?: stringProvider.getString(im.vector.app.config.R.string.pusher_app_id)
+        pushersService.removeHttpPusher(pushKey, appId)
     }
 
     companion object {
         const val TEST_EVENT_ID = "\$THIS_IS_A_FAKE_EVENT_ID"
+        private const val LEGACY_PUSHER_APP_ID = "im.vector.app.android"
     }
 }
