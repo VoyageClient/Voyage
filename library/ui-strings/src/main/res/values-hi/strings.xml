@@ -3189,8 +3189,6 @@
     <string name="sed_error_target_gone">वह मैसेज अब उपलब्ध नहीं है।</string>
     <string name="labs_enable_sliding_sync_title">अगली पीढ़ी का सिंक इस्तेमाल करें</string>
     <string name="labs_enable_sliding_sync_summary">होमसर्वर समर्थन करे तो पेजिनेटेड सिंक या सरलीकृत स्लाइडिंग सिंक से सिंक करें, वरना सामान्य सिंक इस्तेमाल करें</string>
-    <string name="settings_security_stealth_mode_title">स्टेल्थ मोड</string>
-    <string name="settings_security_stealth_mode_summary">क्लाइंट से जुड़ी सेटिंग स्थानीय रखें, ताकि सर्वर एडमिनिस्ट्रेटर यह न पहचान सकें कि आप कौन सा क्लाइंट इस्तेमाल करते हैं। ये सेटिंग आपके दूसरे डिवाइस पर नहीं जाएंगी।</string>
     <string name="settings_messages_mentioning_me">मैसेज जिनमें मेरा उल्लेख हो</string>
     <string name="settings_mentions_at_room_advanced">मैसेज जिनमें @room का उल्लेख हो</string>
     <string name="labs_enable_media_galleries_title">मीडिया गैलरी भेजें</string>

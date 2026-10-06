@@ -3248,8 +3248,6 @@
     <string name="sed_error_target_gone">সেই বার্তাটি আর উপলব্ধ নেই।</string>
     <string name="labs_enable_sliding_sync_title">পরবর্তী প্রজন্মের সিঙ্ক ব্যবহার করুন</string>
     <string name="labs_enable_sliding_sync_summary">আপনার হোমসার্ভার সমর্থন করলে পেজিনেটেড সিঙ্ক বা সরলীকৃত স্লাইডিং সিঙ্কের মাধ্যমে সিঙ্ক করুন, অন্যথায় সাধারণ সিঙ্ক ব্যবহার করুন</string>
-    <string name="settings_security_stealth_mode_title">গোপন মোড</string>
-    <string name="settings_security_stealth_mode_summary">ক্লায়েন্ট-নির্দিষ্ট সেটিংস স্থানীয়ভাবে রাখুন, যাতে সার্ভার প্রশাসকেরা আপনি কোন ক্লায়েন্ট ব্যবহার করেন তা শনাক্ত করতে না পারেন। এই সেটিংস আপনার অন্য ডিভাইসে যাবে না।</string>
     <string name="settings_messages_mentioning_me">যেসব বার্তায় আমাকে উল্লেখ করা হয়</string>
     <string name="settings_mentions_at_room_advanced">যেসব বার্তায় @room উল্লেখ করা হয়</string>
     <string name="labs_enable_media_galleries_title">মিডিয়া গ্যালারি পাঠান</string>

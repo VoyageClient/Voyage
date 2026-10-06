@@ -3240,8 +3240,6 @@
     <string name="sed_error_target_gone">该消息已不可用。</string>
     <string name="labs_enable_sliding_sync_title">使用新一代同步</string>
     <string name="labs_enable_sliding_sync_summary">当家服务器支持时，使用分页同步或简化滑动同步，否则回退到标准同步</string>
-    <string name="settings_security_stealth_mode_title">隐身模式</string>
-    <string name="settings_security_stealth_mode_summary">将客户端专属设置保存在本地，使服务器管理员无法识别你使用的客户端。这些设置不会同步到你的其他设备。</string>
     <string name="settings_messages_mentioning_me">提及我的消息</string>
     <string name="settings_mentions_at_room_advanced">提及 @room 的消息</string>
     <string name="labs_enable_media_galleries_title">发送媒体相册</string>

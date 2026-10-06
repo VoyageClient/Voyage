@@ -3239,8 +3239,6 @@
     <string name="sed_error_target_gone">そのメッセージはもう利用できません。</string>
     <string name="labs_enable_sliding_sync_title">次世代の同期を使用</string>
     <string name="labs_enable_sliding_sync_summary">ホームサーバーが対応している場合はページ分割同期または簡易スライディング同期で同期し、対応していない場合は標準の同期を使用します</string>
-    <string name="settings_security_stealth_mode_title">ステルスモード</string>
-    <string name="settings_security_stealth_mode_summary">クライアント固有の設定をローカルに保存し、サーバー管理者が使用しているクライアントを特定できないようにします。これらの設定は他の端末には引き継がれません。</string>
     <string name="settings_messages_mentioning_me">自分へのメンションを含むメッセージ</string>
     <string name="labs_enable_media_galleries_title">メディアギャラリーを送信</string>
     <string name="labs_enable_media_galleries_summary">複数の添付ファイルを1つのギャラリーメッセージとして送信します（MSC4274）。ギャラリーに対応していないクライアントでは正しく表示されません。</string>

@@ -182,8 +182,6 @@ New features, improvements, and notable removals in this fork.
 
 - **Mutual Rooms in profiles**: a user's profile has a Mutual Rooms button opening a compact list of the rooms you share, grouped under their spaces and with DMs included. Tap a room to open it, or a space to filter the room list to it.
 
-- **Stealth mode**: keep this fork's own client-specific settings on your device instead of in account data, so a homeserver administrator can't use your choice of client to de-anonymize you. Opt-in per account.
-
 - **VPN protection**: opt-in warnings when your VPN is off. A full-screen warning blocks all network activity until you confirm, switching accounts asks first, and a per-account list decides which accounts are protected.
 
 - **Minimal User-Agent**: requests send just the app name, instead of the app version, phone manufacturer, model, Android version and build ID that the homeserver would otherwise store and show alongside your session.

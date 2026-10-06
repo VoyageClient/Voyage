@@ -3270,8 +3270,6 @@
     <string name="sed_error_target_gone">Это сообщение больше недоступно.</string>
     <string name="labs_enable_sliding_sync_title">Синхронизация нового поколения</string>
     <string name="labs_enable_sliding_sync_summary">Использовать постраничную или упрощённую скользящую синхронизацию, если их поддерживает домашний сервер, а иначе — обычную синхронизацию</string>
-    <string name="settings_security_stealth_mode_title">Скрытый режим</string>
-    <string name="settings_security_stealth_mode_summary">Хранить настройки клиента локально, чтобы администраторы сервера не могли определить, каким клиентом вы пользуетесь. Эти настройки не будут переноситься на другие устройства.</string>
     <string name="settings_messages_mentioning_me">Сообщения с упоминанием меня</string>
     <string name="settings_mentions_at_room_advanced">Сообщения с упоминанием @room</string>
     <string name="labs_enable_media_galleries_title">Отправка медиагалерей</string>

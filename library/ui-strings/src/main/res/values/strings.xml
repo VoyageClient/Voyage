@@ -4044,8 +4044,6 @@
     <string name="sed_error_target_gone">That message is no longer available.</string>
     <string name="labs_enable_sliding_sync_title">Use next-generation sync</string>
     <string name="labs_enable_sliding_sync_summary">Sync over paginated sync or simplified sliding sync when your homeserver supports them, falling back to the standard sync otherwise</string>
-    <string name="settings_security_stealth_mode_title">Stealth mode</string>
-    <string name="settings_security_stealth_mode_summary">Keep client-specific settings local, so server administrators cannot identify which client you use. These settings will not follow you to other devices.</string>
     <string name="settings_messages_mentioning_me">Messages that mention me</string>
     <string name="settings_mentions_at_room_advanced">Messages that mention @room</string>
     <string name="labs_enable_media_galleries_title">Send media galleries</string>

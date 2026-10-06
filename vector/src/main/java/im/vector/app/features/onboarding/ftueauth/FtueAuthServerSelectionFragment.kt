@@ -38,7 +38,6 @@ class FtueAuthServerSelectionFragment :
         views.loginServerChoiceOther.applyOptionCardBackground()
         views.loginServerChoiceMatrixId.setOnClickListener { loginWithMatrixId() }
         views.loginServerChoiceOther.setOnClickListener { selectOther() }
-        // Per-account settings that must be set before the first request reaches a homeserver (UA spoof, stealth).
         views.loginServerPreLoginSettings.setOnClickListener {
             startActivity(PreLoginSettingsActivity.newIntent(requireContext()))
         }

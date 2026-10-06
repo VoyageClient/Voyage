@@ -3201,8 +3201,6 @@
     <string name="sed_error_target_gone">وہ پیغام اب دستیاب نہیں ہے۔</string>
     <string name="labs_enable_sliding_sync_title">اگلی نسل کی ہم وقت سازی استعمال کریں</string>
     <string name="labs_enable_sliding_sync_summary">جب آپ کا منزلی خادم معاونت کرے تو صفحہ بند ہم وقت سازی یا سادہ sliding sync کے ذریعے ہم وقت سازی کریں، ورنہ معیاری ہم وقت سازی پر واپس جائیں</string>
-    <string name="settings_security_stealth_mode_title">خفیہ موڈ</string>
-    <string name="settings_security_stealth_mode_summary">کلائنٹ سے مخصوص ترتیبات مقامی رکھیں، تاکہ سرور کے منتظمین یہ نہ جان سکیں کہ آپ کون سا کلائنٹ استعمال کرتے ہیں۔ یہ ترتیبات آپ کے دوسرے آلات پر منتقل نہیں ہوں گی۔</string>
     <string name="settings_messages_mentioning_me">وہ پیغامات جن میں میرا ذکر ہو</string>
     <string name="settings_mentions_at_room_advanced">وہ پیغامات جن میں @room کا ذکر ہو</string>
     <string name="labs_enable_media_galleries_title">میڈیا گیلریاں بھیجیں</string>

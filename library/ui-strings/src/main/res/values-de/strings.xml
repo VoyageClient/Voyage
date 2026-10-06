@@ -3297,8 +3297,6 @@
     <string name="sed_error_target_gone">Diese Nachricht ist nicht mehr verfügbar.</string>
     <string name="labs_enable_sliding_sync_title">Sync der nächsten Generation verwenden</string>
     <string name="labs_enable_sliding_sync_summary">Über Paginated Sync oder Simplified Sliding Sync synchronisieren, wenn dein Homeserver sie unterstützt, andernfalls auf den Standard-Sync zurückgreifen</string>
-    <string name="settings_security_stealth_mode_title">Tarnmodus</string>
-    <string name="settings_security_stealth_mode_summary">Clientspezifische Einstellungen lokal behalten, damit Serveradministratoren nicht erkennen können, welchen Client du verwendest. Diese Einstellungen werden nicht auf deine anderen Geräte übertragen.</string>
     <string name="settings_messages_mentioning_me">Nachrichten, die mich erwähnen</string>
     <string name="settings_mentions_at_room_advanced">Nachrichten, die @room erwähnen</string>
     <string name="labs_enable_media_galleries_title">Mediengalerien senden</string>

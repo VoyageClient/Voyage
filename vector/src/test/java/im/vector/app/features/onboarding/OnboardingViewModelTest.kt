@@ -1090,7 +1090,6 @@ class OnboardingViewModelTest {
                 TestBuildVersionSdkIntProvider().also { it.value = Build.VERSION_CODES.O },
                 fakeConfigureAndStartSessionUseCase,
                 io.mockk.mockk(relaxed = true),
-                io.mockk.mockk(relaxed = true),
                 NoOpMdmService()
         ).also {
             viewModel = it

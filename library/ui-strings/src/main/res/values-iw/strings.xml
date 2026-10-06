@@ -3372,8 +3372,6 @@
     <string name="sed_error_target_gone">ההודעה הזו כבר אינה זמינה.</string>
     <string name="labs_enable_sliding_sync_title">השתמש בסנכרון מהדור הבא</string>
     <string name="labs_enable_sliding_sync_summary">סנכרן באמצעות סנכרון מדופדף או סנכרון מחליק מפושט כאשר שרת הבית שלך תומך בהם, ובחזרה לסנכרון הרגיל אחרת</string>
-    <string name="settings_security_stealth_mode_title">מצב חשאי</string>
-    <string name="settings_security_stealth_mode_summary">שמור הגדרות ספציפיות ללקוח באופן מקומי, כדי שמנהלי השרת לא יוכלו לזהות באיזה לקוח אתה משתמש. הגדרות אלה לא יעברו איתך למכשירים אחרים.</string>
     <string name="settings_messages_mentioning_me">הודעות שמזכירות אותי</string>
     <string name="settings_mentions_at_room_advanced">הודעות שמזכירות את @room</string>
     <string name="labs_enable_media_galleries_title">שלח גלריות מדיה</string>

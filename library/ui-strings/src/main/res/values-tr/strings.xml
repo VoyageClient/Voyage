@@ -3264,8 +3264,6 @@
     <string name="sed_error_target_gone">Bu mesaj artık mevcut değil.</string>
     <string name="labs_enable_sliding_sync_title">Yeni nesil eşitlemeyi kullan</string>
     <string name="labs_enable_sliding_sync_summary">Ana sunucunuz destekliyorsa sayfalanmış eşitleme veya basitleştirilmiş kayan eşitleme ile eşitle, aksi halde standart eşitlemeye geri dön</string>
-    <string name="settings_security_stealth_mode_title">Gizli mod</string>
-    <string name="settings_security_stealth_mode_summary">İstemciye özgü ayarları yerel tut, böylece sunucu yöneticileri hangi istemciyi kullandığınızı belirleyemez. Bu ayarlar diğer cihazlarınıza aktarılmaz.</string>
     <string name="settings_messages_mentioning_me">Benden bahseden mesajlar</string>
     <string name="labs_enable_media_galleries_title">Medya galerileri gönder</string>
     <string name="labs_enable_media_galleries_summary">Birden fazla eki tek bir galeri mesajı olarak gönder (MSC4274). Galeri desteği olmayan istemciler bunları düzgün görüntülemez.</string>

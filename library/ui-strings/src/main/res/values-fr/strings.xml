@@ -3298,8 +3298,6 @@
     <string name="sed_error_target_gone">Ce message n’est plus disponible.</string>
     <string name="labs_enable_sliding_sync_title">Utiliser la synchronisation de nouvelle génération</string>
     <string name="labs_enable_sliding_sync_summary">Synchroniser via la synchronisation paginée ou la synchronisation glissante simplifiée lorsque votre serveur d’accueil les prend en charge, sinon revenir à la synchronisation standard</string>
-    <string name="settings_security_stealth_mode_title">Mode furtif</string>
-    <string name="settings_security_stealth_mode_summary">Garder les paramètres propres au client en local, afin que les administrateurs du serveur ne puissent pas identifier le client que vous utilisez. Ces paramètres ne vous suivront pas sur vos autres appareils.</string>
     <string name="settings_messages_mentioning_me">Messages qui me mentionnent</string>
     <string name="settings_mentions_at_room_advanced">Messages qui mentionnent @room</string>
     <string name="labs_enable_media_galleries_title">Envoyer des galeries de médias</string>

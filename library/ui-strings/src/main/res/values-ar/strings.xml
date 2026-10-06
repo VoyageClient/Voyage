@@ -3407,8 +3407,6 @@
     <string name="sed_error_target_gone">لم تعد تلك الرسالة متاحة.</string>
     <string name="labs_enable_sliding_sync_title">استخدم مزامنة الجيل التالي</string>
     <string name="labs_enable_sliding_sync_summary">زامن عبر المزامنة المقسّمة إلى صفحات أو المزامنة المنزلقة المبسّطة حين يدعمها خادوم المنزل، مع الرجوع إلى المزامنة القياسية خلاف ذلك</string>
-    <string name="settings_security_stealth_mode_title">وضع التخفي</string>
-    <string name="settings_security_stealth_mode_summary">أبقِ الإعدادات الخاصة بالعميل محلية، كي لا يتمكن مدراء الخادوم من معرفة العميل الذي تستخدمه. لن تنتقل هذه الإعدادات معك إلى أجهزتك الأخرى.</string>
     <string name="settings_messages_mentioning_me">الرسائل التي تشير إليّ</string>
     <string name="settings_mentions_at_room_advanced">الرسائل التي تشير إلى ‎@room</string>
     <string name="labs_enable_media_galleries_title">أرسل معارض الوسائط</string>

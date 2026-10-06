@@ -3242,8 +3242,6 @@
     <string name="sed_error_target_gone">該訊息已無法使用。</string>
     <string name="labs_enable_sliding_sync_title">使用新一代同步</string>
     <string name="labs_enable_sliding_sync_summary">當您的家伺服器支援時，透過分頁同步或簡化滑動同步進行同步，否則改用標準同步</string>
-    <string name="settings_security_stealth_mode_title">隱身模式</string>
-    <string name="settings_security_stealth_mode_summary">將客戶端專屬的設定保留在本機，讓伺服器管理員無法辨識您使用的客戶端。這些設定將不會同步到您的其他裝置。</string>
     <string name="settings_messages_mentioning_me">提及我的訊息</string>
     <string name="settings_mentions_at_room_advanced">提及 @room 的訊息</string>
     <string name="labs_enable_media_galleries_title">傳送媒體相簿</string>

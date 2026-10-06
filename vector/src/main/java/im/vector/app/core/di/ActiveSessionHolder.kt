@@ -27,7 +27,6 @@ import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
 import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.SessionListener
-import im.vector.app.features.settings.StealthModeStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -68,7 +67,6 @@ class ActiveSessionHolder @Inject constructor(
         private val coroutineDispatchers: CoroutineDispatchers,
         private val lastActiveSessionStore: LastActiveSessionStore,
         private val vpnGateState: VpnGateState,
-        private val stealthModeStore: StealthModeStore,
 ) {
 
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
@@ -94,7 +92,6 @@ class ActiveSessionHolder @Inject constructor(
         pushRuleTriggerListener.startWithSession(session)
         imageManager.onSessionStarted(session)
         guardServiceStarter.start()
-        stealthModeStore.apply(session.myUserId)
     }
 
     suspend fun clearActiveSession() {
@@ -109,7 +106,6 @@ class ActiveSessionHolder @Inject constructor(
         activeSessionDataSource.post(Optional.empty())
         lastActiveSessionStore.set(null)
 
-        stealthModeStore.apply(null)
         keyRequestHandler.stop()
         incomingVerificationRequestHandler.stop()
         pushRuleTriggerListener.stop()

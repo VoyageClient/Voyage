@@ -19,7 +19,6 @@ package org.matrix.android.sdk.internal.session.user.accountdata
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
-import org.matrix.android.sdk.api.session.accountdata.StealthAccountData
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
@@ -71,24 +70,21 @@ internal class DefaultSessionAccountDataService @Inject constructor(
 
     override suspend fun updateUserAccountData(type: String, content: Content) {
         val previous = userAccountDataDataSource.getAccountDataEvent(type)?.content
-        // Local echo before the upload so the UI reacts instantly instead of after a server
-        // round-trip (and, under stealth mode, this local write is the only place it is ever stored).
+        // Local echo before the upload so the UI reacts instantly instead of after a server round-trip.
         persistUserAccountData(type, content)
-        if (!StealthAccountData.isLocalOnly(type)) {
-            val params = UpdateUserAccountDataTask.AnyParams(type = type, any = content)
-            try {
-                awaitCallback<Unit> { callback ->
-                    updateUserAccountDataTask.configureWith(params) {
-                        this.retryCount = 5
-                        this.callback = callback
-                    }
-                            .executeBy(taskExecutor)
+        val params = UpdateUserAccountDataTask.AnyParams(type = type, any = content)
+        try {
+            awaitCallback<Unit> { callback ->
+                updateUserAccountDataTask.configureWith(params) {
+                    this.retryCount = 5
+                    this.callback = callback
                 }
-            } catch (failure: Throwable) {
-                // The server rejected the change and won't echo it back on sync: roll the echo back.
-                persistUserAccountData(type, previous)
-                throw failure
+                        .executeBy(taskExecutor)
             }
+        } catch (failure: Throwable) {
+            // The server rejected the change and won't echo it back on sync: roll the echo back.
+            persistUserAccountData(type, previous)
+            throw failure
         }
     }
 
@@ -113,12 +109,6 @@ internal class DefaultSessionAccountDataService @Inject constructor(
             userAccountDataDataSource.getAccountDataEventsStartWith(type)
 
     override suspend fun deleteUserAccountData(type: String) {
-        if (StealthAccountData.isLocalOnly(type)) {
-            database.awaitDbTransaction(dispatcher) {
-                stores.accountData.deleteUserAccountData(type)
-            }
-            return
-        }
         deleteUserAccountDataTask.execute(DeleteUserAccountDataTask.Params(type))
     }
 }

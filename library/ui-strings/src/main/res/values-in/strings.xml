@@ -3239,8 +3239,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="sed_error_target_gone">Pesan tersebut tidak lagi tersedia.</string>
     <string name="labs_enable_sliding_sync_title">Gunakan sinkronisasi generasi berikutnya</string>
     <string name="labs_enable_sliding_sync_summary">Sinkronkan melalui paginated sync atau simplified sliding sync jika homeserver Anda mendukungnya, dan kembali ke sinkronisasi standar jika tidak</string>
-    <string name="settings_security_stealth_mode_title">Mode siluman</string>
-    <string name="settings_security_stealth_mode_summary">Simpan pengaturan khusus klien secara lokal, agar administrator server tidak dapat mengetahui klien yang Anda gunakan. Pengaturan ini tidak akan mengikuti Anda ke perangkat lain.</string>
     <string name="settings_messages_mentioning_me">Pesan yang menyebut saya</string>
     <string name="settings_mentions_at_room_advanced">Pesan yang menyebut @room</string>
     <string name="labs_enable_media_galleries_title">Kirim galeri media</string>

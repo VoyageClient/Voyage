@@ -17,9 +17,8 @@ import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
 /**
- * Standalone host for the per-account settings that can be set before signing in (stealth mode, the
- * User-Agent spoof). Unlike VectorSettingsActivity it injects no Session, so it works before
- * authentication. UA edits target the PENDING scope (never the current account, if any);
+ * Unlike VectorSettingsActivity, this host injects no Session so the User-Agent can be set before
+ * authentication. Edits target the PENDING scope (never the current account, if any);
  * [UserAgentSettings.migratePendingInto] moves the choice into the account on sign-in.
  */
 @AndroidEntryPoint
