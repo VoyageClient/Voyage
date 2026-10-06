@@ -1,1 +1,1 @@
-Matrix client for Android
+Matrix client for Android, based on Element Classic

@@ -1,1 +1,39 @@
-Voyage is a Matrix client for Android, based on Element Classic.
+Voyage is a Matrix client for Android, based on Element Classic. Many improvements to feature set and performance have been made on top of the now-sunsetted Element Classic.
+
+<b>Make it yours</b>
+• Custom emoji and stickers with image packs: build your own, share them in rooms, import and export them as zips, and import Telegram sticker packs
+• Lots of themes, including SchildiChat's light, dark and black themes, optional message bubbles and dozens of accent colors
+• Avatar shapes (some of them animated), name color palettes, custom emoji fonts and scrolling animations
+
+<b>Messaging</b>
+• Translate messages, both the ones you receive and the ones you send
+• Forward to many rooms at once, pin messages, browse your mentions, and fix typos with s/old/new/
+• Search your history, encrypted rooms included, with filters for sender, media type and date
+• Send several photos and videos as one gallery, and crop, trim, draw on, censor or speed up media before it goes out
+• Rich formatting: tables, spoilers, greentext, sub/superscript and more
+
+<b>Rooms and people</b>
+• Preview public rooms before you join, or watch them without ever joining
+• Keep the history of rooms you were kicked or banned from
+• Profiles with pronouns, time zone, status, bio and banner, plus private notes and personal nicknames for anyone
+• Several accounts in one app, and homeserver mirrors as fallbacks
+
+<b>Privacy</b>
+• No telemetry, no analytics and no Google services
+• Strip location and other metadata from photos and videos before upload
+• Minimal or custom User-Agent, private read receipts, and link previews that work in encrypted rooms
+• Optional VPN protection that blocks network activity while your VPN is off
+
+<b>Runs on old phones</b>
+Voyage supports Android 4.0 (Ice Cream Sandwich) and newer.
+
+<b>Network connections</b>
+Out of the box, Voyage talks to your homeserver (matrix.org unless you choose another) and to the UnifiedPush gateway at matrix.gateway.unifiedpush.org. When you send a link in an encrypted room, your device fetches its preview from that website, but this may be turned off.
+
+These optional features contact other services only when you use them:
+• Translation through Google Translate, or through Microsoft, DeepL, DeepSeek or an OpenAI-compatible service with your own API key
+• On-device translation downloads Meta's NLLB-200 model (about 1 GB) from GitHub and a language detection model from Facebook. The NLLB-200 weights are licensed CC-BY-NC-4.0 (non-commercial) and are not included in the app.
+• Telegram sticker import uses the Telegram Bot API (api.telegram.org)
+• User-Agent customisation can fetch version data from Google, GitHub, Mozilla, StatCounter and ipsw.me
+• Location sharing loads maps from MapTiler
+• The integration manager for widgets and bots defaults to scalar.vector.im
