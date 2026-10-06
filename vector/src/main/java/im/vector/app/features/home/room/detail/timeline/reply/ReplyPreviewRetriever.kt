@@ -21,6 +21,7 @@ import im.vector.app.core.extensions.toCachedTimelineEvent
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
+import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
@@ -85,6 +86,7 @@ class ReplyPreviewRetriever(
         val pgpDecryptor: PgpDecryptor,
         val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         val redactedContentRestorer: RedactedContentRestorer,
+        private val isThreadTimeline: Boolean = false,
 ) {
     private data class ReplyPreviewUiState(
             val latestRepliedToEventId: String?,
@@ -446,6 +448,10 @@ class ReplyPreviewRetriever(
     }
 
     fun formatRedacted(event: TimelineEvent): CharSequence = displayableEventFormatter.formatRedacted(event.root)
+
+    /** The "Debug" line the timeline shows for [event] in place of its content, if it shows one. */
+    fun formatDebugReply(event: TimelineEvent): CharSequence? =
+            if (event.rendersAsDebugMessage(threadsEnabled, isThreadTimeline)) displayableEventFormatter.formatDebugOrUnhandled(event.root) else null
 
     fun formatFallbackReply(event: TimelineEvent): CharSequence {
         return displayableEventFormatter.format(

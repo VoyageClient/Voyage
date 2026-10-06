@@ -44,6 +44,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvid
 import im.vector.app.features.home.room.detail.timeline.helper.MessageInformationDataFactory
 import im.vector.app.features.home.room.detail.timeline.helper.MessageItemAttributesFactory
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
+import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.BaseEventItem
@@ -109,9 +110,6 @@ import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.RelationType
-import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
-import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -231,15 +229,7 @@ class MessageItemFactory @Inject constructor(
         }
         // Drops a translation the message has since been edited out of; the builders below look it up by id.
         messageTranslationStore.get(event)
-        if (messageContent.relatesTo?.type == RelationType.REPLACE ||
-                event.isEncrypted() && event.root.content.toModel<EncryptedEventContent>()?.relatesTo?.type == RelationType.REPLACE
-        ) {
-            // This is an edit event, we should display it when debugging as a notice event
-            return noticeItemFactory.create(params)
-        }
-
-        if (lightweightSettingsStorage.areThreadMessagesEnabled() && !params.isFromThreadTimeline() && event.root.isThread()) {
-            // This is a thread event and we will [debug] display it when we are in the main timeline
+        if (event.rendersAsDebugMessage(lightweightSettingsStorage.areThreadMessagesEnabled(), params.isFromThreadTimeline())) {
             return noticeItemFactory.create(params)
         }
 

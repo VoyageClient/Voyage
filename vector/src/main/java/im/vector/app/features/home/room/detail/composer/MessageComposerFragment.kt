@@ -502,6 +502,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val composerEditText = composer.editText
         composerEditText.setHint(CommonStrings.room_message_placeholder)
         views.composerLayout.roomId = roomId
+        views.composerLayout.isThreadTimeline = isThreadTimeLine()
 
         initAutoCompleter(composer.editText)
 

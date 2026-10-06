@@ -70,7 +70,6 @@ import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
-import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
@@ -258,8 +257,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                 }
             }
         } else {
-            val showInThread = targetEvent.root.isThread() && state.rootThreadEventId == null
-            val rootThreadEventId = if (showInThread) targetEvent.root.getRootThreadEventId() else null
+            val rootThreadEventId = fallbackThreadRootFor(targetEvent, state)
+            val showInThread = rootThreadEventId != null
             offloadSend {
                 state.rootThreadEventId?.let {
                     room.relationService().replyInThread(
@@ -1315,9 +1314,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                 }
                 is SendMode.Reply -> {
                     val timelineEvent = state.sendMode.timelineEvent
-                    val showInThread = timelineEvent.root.isThread() && state.rootThreadEventId == null
-                    // If threads are disabled this will make the fallback replies visible to clients with threads enabled
-                    val rootThreadEventId = if (showInThread) timelineEvent.root.getRootThreadEventId() else null
+                    val rootThreadEventId = fallbackThreadRootFor(timelineEvent, state)
+                    val showInThread = rootThreadEventId != null
 
                     val parsedCommand = commandParser.parseSlashCommand(
                             textMessage = resolveComposerMentions(action.text),
@@ -1426,6 +1424,14 @@ class MessageComposerViewModel @AssistedInject constructor(
             }
         }
     }
+
+    /**
+     * The thread a main-timeline reply to a thread message still joins, as a fallback reply: only when
+     * threads are off, so clients that show them keep it with the rest of the thread. With threads on,
+     * replying from outside the thread is a plain reply to that message.
+     */
+    private fun fallbackThreadRootFor(target: TimelineEvent, state: MessageComposerViewState): String? =
+            target.root.getRootThreadEventId()?.takeIf { state.rootThreadEventId == null && !vectorPreferences.areThreadMessagesEnabled() }
 
     // Identifies which composer mode a send consumed, so a completed send only clears its own mode.
     private fun SendMode.modeKey(): String = when (this) {

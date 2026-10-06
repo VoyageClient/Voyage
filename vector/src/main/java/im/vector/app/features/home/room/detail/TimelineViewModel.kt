@@ -192,7 +192,7 @@ class TimelineViewModel @AssistedInject constructor(
     val timeline: Timeline?
 
     // Same lifecycle than the ViewModel (survive to screen rotation)
-    private val timelineRetrievers = timelineRetrieversFactory.create(initialState.roomId, viewModelScope)
+    private val timelineRetrievers = timelineRetrieversFactory.create(initialState.roomId, viewModelScope, initialState.isThreadTimeline())
     val previewUrlRetriever = timelineRetrievers.previewUrlRetriever
     val pgpDecryptionRetriever = timelineRetrievers.pgpDecryptionRetriever
     val replyPreviewRetriever = timelineRetrievers.replyPreviewRetriever

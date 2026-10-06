@@ -28,6 +28,7 @@ import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.room.detail.composer.spliceMentionIds
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
+import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
@@ -364,6 +365,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         return try {
             if (timelineEvent.root.isRedacted()) {
                 noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
+            } else if (timelineEvent.rendersAsDebugMessage(vectorPreferences.areThreadMessagesEnabled(), initialState.isFromThreadTimeline)) {
+                noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
             } else {
                 val translation = messageTranslationStore.get(timelineEvent)?.takeIf { initialState.galleryItemIndex == null }
                 (if (translation == null) computePgpDecryptedBody(timelineEvent) else null) ?: when (timelineEvent.root.getClearType()) {

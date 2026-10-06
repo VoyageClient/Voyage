@@ -62,7 +62,7 @@ class TimelineRetrieversFactory @Inject constructor(
         private val redactedContentRestorer: RedactedContentRestorer,
 ) {
 
-    fun create(roomId: String, coroutineScope: CoroutineScope): TimelineRetrievers {
+    fun create(roomId: String, coroutineScope: CoroutineScope, isThreadTimeline: Boolean = false): TimelineRetrievers {
         return TimelineRetrievers(
                 previewUrlRetriever = PreviewUrlRetriever(session, coroutineScope, buildMeta),
                 pgpDecryptionRetriever = PgpDecryptionRetriever(coroutineScope, pgpServiceManager, pgpKeyStore),
@@ -84,6 +84,7 @@ class TimelineRetrieversFactory @Inject constructor(
                         pgpDecryptor,
                         messageTranslationStore,
                         redactedContentRestorer,
+                        isThreadTimeline,
                 ),
         )
     }

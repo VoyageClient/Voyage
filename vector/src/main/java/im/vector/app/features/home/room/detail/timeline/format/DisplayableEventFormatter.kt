@@ -86,6 +86,8 @@ class DisplayableEventFormatter @Inject constructor(
     /** Who deleted the message, and why, for every surface that shows a deleted message. */
     fun formatRedacted(event: Event): String = noticeEventFormatter.formatRedactedEvent(event)
 
+    fun formatDebugOrUnhandled(event: Event): CharSequence = noticeEventFormatter.formatDebugOrUnhandled(event)
+
     fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean, unhandledFallback: Boolean = false): CharSequence {
         if (timelineEvent.root.isRedacted()) {
             return formatRedacted(timelineEvent.root)

@@ -30,6 +30,7 @@ import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.format.EventDetailsFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
+import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
@@ -121,7 +122,8 @@ class MessageActionsEpoxyController @Inject constructor(
         // a dotted event type in an unhandled/malformed placeholder. Anything without message content
         // is notice text, so leave it plain.
         val previewType = state.previewEvent?.root?.getClearType()
-        val previewContent = state.previewEvent?.getVectorLastMessageContent()
+        val isDebugPreview = state.previewEvent?.rendersAsDebugMessage(host.vectorPreferences.areThreadMessagesEnabled(), state.isFromThreadTimeline) == true
+        val previewContent = state.previewEvent?.takeUnless { isDebugPreview }?.getVectorLastMessageContent()
         val isNoticeTextPreview = previewContent == null ||
                 (previewType != null && !EventType.isKnownType(previewType))
         // An attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
@@ -135,7 +137,7 @@ class MessageActionsEpoxyController @Inject constructor(
             state.messageBody.linkify(host.listener)
         }
         val bindingOptions = spanUtils.getBindingOptions(body)
-        val locationUiData = buildLocationUiData(state)
+        val locationUiData = buildLocationUiData(state).takeUnless { isDebugPreview }
         // Everything above the first divider describes the message itself, so it all carries the mark —
         // but only once the redacted content is actually being shown, not over the placeholder.
         val showsRestoredContent = state.timelineEvent()?.let { host.redactedContentRestorer.isShowingRestoredContent(it) } == true
@@ -150,7 +152,7 @@ class MessageActionsEpoxyController @Inject constructor(
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             data(
-                    state.previewEvent?.takeIf { galleryContent == null }
+                    state.previewEvent?.takeIf { galleryContent == null && !isDebugPreview }
                             ?.buildImageContentRendererData(host.dimensionConverter.dpToPx(66), state.galleryItemIndex)
                             // A redaction purged the server copy; the local one is all that can render.
                             ?.copy(preservedFile = host.preservedAttachmentResolver.fileFor(state.roomId, state.eventId))
@@ -175,10 +177,10 @@ class MessageActionsEpoxyController @Inject constructor(
             body(body.prepareForDisplay().toEpoxyCharSequence())
             redacted(state.timelineEvent()?.let { it.root.isRedacted() && !host.redactedContentRestorer.isShowingRestoredContent(it) } == true)
             redactedTint(showsRestoredContent)
-            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent, state.galleryItemIndex)?.toEpoxyCharSequence())
+            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent?.takeUnless { isDebugPreview }, state.galleryItemIndex)?.toEpoxyCharSequence())
             time(formattedDate)
             locationUiData(locationUiData)
-            tableHtml(host.computeTableHtml(state.previewEvent))
+            tableHtml(state.previewEvent?.takeUnless { isDebugPreview }?.let { host.computeTableHtml(it) })
             richBodyRenderer(host.richMessageBodyRenderer)
             htmlPostProcessors(arrayOf(host.pillsPostProcessorFactory.create(state.roomId)))
         }

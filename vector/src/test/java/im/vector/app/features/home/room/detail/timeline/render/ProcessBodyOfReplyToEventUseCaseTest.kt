@@ -105,6 +105,7 @@ class ProcessBodyOfReplyToEventUseCaseTest {
             every { roomId } returns A_ROOM_ID
             every { senderId } returns A_SENDER_ID
             every { isRedacted() } returns false
+            every { isEncrypted() } returns false
             every { getClearType() } returns EventType.MESSAGE
             every { getClearContent() } returns null
             every { isFileMessage() } returns false

@@ -12,6 +12,7 @@ import im.vector.app.core.extensions.toCachedTimelineEvent
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.isEditEvent
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -231,6 +232,9 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             // fills in once decryption lands, rather than showing a notice/placeholder. We can't
             // tell whether it's a message or a reaction/etc until it's decrypted.
             getClearType() == EventType.ENCRYPTED -> null
+            // An edit event shows as a debug line in the timeline, so it does here too.
+            timelineEvent?.isEditEvent() == true ->
+                "<font color=\"${noticeColorHex()}\">" + escapeHtml(noticeEventFormatter.formatDebugOrUnhandled(this).toString()) + "</font>"
             // Any non-message clear type (membership change, reaction, redaction, state, …):
             // render the notice text the timeline shows, greyed to look muted.
             getClearType() != EventType.MESSAGE ->

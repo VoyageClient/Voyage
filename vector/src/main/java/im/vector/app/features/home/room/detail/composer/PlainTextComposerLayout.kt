@@ -46,6 +46,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
+import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
@@ -143,6 +144,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     // Lets a reconstructed pill resolve its member (and so its room display name) the way the timeline does.
     var roomId: String? = null
+    var isThreadTimeline = false
 
     override var callback: Callback? = null
 
@@ -539,15 +541,21 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             setSenderNameEmphasis(matrixItemColorProvider.isNameColored())
         }
 
-        val messageContent: MessageContent? = event.getVectorLastMessageContent()
+        val debugText = if (event.rendersAsDebugMessage(vectorPreferences.areThreadMessagesEnabled(), isThreadTimeline)) {
+            noticeEventFormatter.formatDebugOrUnhandled(event.root)
+        } else {
+            null
+        }
+        val messageContent: MessageContent? = event.takeIf { debugText == null }?.getVectorLastMessageContent()
         // Translation / PGP: show the text the timeline shows for the quoted message instead of the real body.
-        val translation = messageTranslationStore.get(event)
+        val translation = messageTranslationStore.get(event)?.takeIf { debugText == null }
         val pgpPlain = if (translation == null) {
             (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
         } else {
             null
         }
         val nonFormattedBody = when {
+            debugText != null -> debugText
             translation != null -> translation.text
             pgpPlain != null -> pgpPlain
             event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
@@ -670,7 +678,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         relatedMessageEvent = event
         // Preserved metadata outlives the picture, so a redaction with nothing restored would preview
         // an empty placeholder above "Message deleted".
-        val showsMedia = restored != null || !event.root.isRedacted()
+        val showsMedia = debugText == null && (restored != null || !event.root.isRedacted())
         if (!showsMedia) imageContentRenderer.clear(views.composerRelatedMessageImage)
         val isGalleryVisible = showsMedia && renderRelatedMessageGallery(event)
         views.composerRelatedMessageGallery.isVisible = isGalleryVisible

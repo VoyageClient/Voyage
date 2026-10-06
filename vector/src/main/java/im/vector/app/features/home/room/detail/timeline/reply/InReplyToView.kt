@@ -312,8 +312,11 @@ class InReplyToView @JvmOverloads constructor(
         views.replyMemberNameView.isVisible = true
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()
         applySenderColor(retriever.getMemberNameColor(state.event), retriever.isMemberNameColored())
+        val debugText = retriever.formatDebugReply(state.event)
         if (state.event.root.isRedacted()) {
             renderRedacted(retriever.formatRedacted(state.event))
+        } else if (debugText != null) {
+            renderNoticeText(debugText)
         } else {
             views.expandableReplyView.setExpanded(false)
             // PGP: show the plaintext the timeline shows for the quoted message. A translation needs no
@@ -577,10 +580,12 @@ class InReplyToView @JvmOverloads constructor(
         }
     }
 
-    private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) {
+    private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) = renderNoticeText(retriever.formatFallbackReply(event))
+
+    private fun renderNoticeText(text: CharSequence) {
         views.replyTextView.isVisible = true
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
-        views.replyTextView.text = retriever.formatFallbackReply(event)
+        views.replyTextView.text = text
     }
 
     private fun renderAudioContent(content: MessageAudioContent) {
