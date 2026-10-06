@@ -38,6 +38,7 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.composer.ComposerEditText
 import im.vector.app.features.home.room.detail.composer.findMentions
+import im.vector.app.features.home.room.detail.composer.sendsLiteralText
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.imagepack.ImagePackProvider
@@ -370,6 +371,7 @@ class AutoCompleter @AssistedInject constructor(
 
     private fun insertPill(editable: Editable, matrixItem: MatrixItem, start: Int, length: Int, bodyText: String?): PillImageSpan? {
         val editText = editText ?: return null
+        if (sendsLiteralText(editable)) return null
         val span = PillImageSpan(glideRequests, avatarRenderer, editText.context, matrixItem, bodyText = bodyText)
         span.bind(editText)
         editable.setPillSpan(span, start, start + length)
@@ -449,6 +451,7 @@ class AutoCompleter @AssistedInject constructor(
 
         val insert: () -> Unit = { editable.replace(startIndex, endIndex, "$displayName ") }
         (editText as? ComposerEditText)?.insertingPill(insert) ?: insert()
+        if (sendsLiteralText(editable)) return
 
         // Add the span
         val span = PillImageSpan(

@@ -26,6 +26,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
@@ -498,11 +499,11 @@ class ReplyPreviewRetriever(
         }
         val compressed = formattedBody?.let { htmlCompressor.compress(it) }
         val text = (if (compressed != null) {
-            textRenderer.render(htmlRenderer.render(compressed, pillsPostProcessor))
+            textRenderer.render(htmlRenderer.render(compressed, pillsPostProcessor), event.roomMentionSource())
         } else if (translation != null) {
-            textRenderer.render(translation.text)
+            textRenderer.render(translation.text, event.roomMentionSource())
         } else {
-            textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)))
+            textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)), event.roomMentionSource())
         }).linkify(null)
         val emoteBody = if (content.msgType == MessageType.MSGTYPE_EMOTE) {
             text.asEmoteBody(

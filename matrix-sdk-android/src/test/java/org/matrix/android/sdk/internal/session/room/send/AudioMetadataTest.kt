@@ -213,6 +213,7 @@ class AudioMetadataTest {
             localEchoRepository = FakeLocalEchoRepository().instance,
             permalinkFactory = FakePermalinkFactory().instance,
             clock = FakeClock().also { it.givenEpoch(1655210176L) },
+            stateEventDataSource = mockk(),
     )
 
     companion object {

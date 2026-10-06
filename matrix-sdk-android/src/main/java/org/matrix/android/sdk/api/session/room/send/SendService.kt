@@ -35,9 +35,11 @@ interface SendService {
      * The content is sent verbatim: no link previews are bundled onto it.
      * @param eventType the type of the event
      * @param content the optional body as a json dict.
+     * @param verbatim true for hand-written events (devtools, /raw): not even an `m.mentions.room`
+     * the user lacks the power level for is stripped.
      * @return a [Cancelable]
      */
-    fun sendEvent(eventType: String, content: Content?): Cancelable
+    fun sendEvent(eventType: String, content: Content?, verbatim: Boolean = false): Cancelable
 
     /**
      * Read the previews of the links in [text] ahead of sending it, so the send itself does not wait for
@@ -79,7 +81,7 @@ interface SendService {
      * @return a [Cancelable]
      */
     fun sendFormattedTextMessage(
-            text: String,
+            text: CharSequence,
             formattedText: String,
             msgType: String = MessageType.MSGTYPE_TEXT,
             additionalContent: Content? = null,
@@ -97,7 +99,7 @@ interface SendService {
      */
     fun sendQuotedTextMessage(
             quotedEvent: TimelineEvent,
-            text: String,
+            text: CharSequence,
             formattedText: String? = null,
             autoMarkdown: Boolean,
             rootThreadEventId: String? = null,

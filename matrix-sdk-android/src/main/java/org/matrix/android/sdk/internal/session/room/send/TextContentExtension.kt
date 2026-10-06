@@ -26,13 +26,22 @@ import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromHtmlRep
 import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromReply
 import org.matrix.android.sdk.api.util.TextContent
 
-internal fun TextContent.toMessageTextContent(msgType: String = MessageType.MSGTYPE_TEXT, selfUserId: String? = null): MessageTextContent {
+/**
+ * @param mentionSource the text as written, scanned for `@room` in place of the body.
+ * @param literalMentions ranges of [mentionSource] whose mentions are meant literally.
+ */
+internal fun TextContent.toMessageTextContent(
+        msgType: String = MessageType.MSGTYPE_TEXT,
+        selfUserId: String? = null,
+        mentionSource: CharSequence? = null,
+        literalMentions: List<IntRange> = emptyList(),
+): MessageTextContent {
     return MessageTextContent(
             msgType = msgType,
             format = MessageFormat.FORMAT_MATRIX_HTML.takeIf { formattedText != null },
             body = text,
             formattedBody = formattedText,
-            mentions = IntentionalMentions.build(text, formattedText, selfUserId = selfUserId),
+            mentions = IntentionalMentions.build(mentionSource ?: text, formattedText, selfUserId = selfUserId, literalMentions = literalMentions),
     )
 }
 
@@ -46,10 +55,12 @@ internal fun TextContent.toThreadTextContent(
         latestThreadEventId: String,
         msgType: String = MessageType.MSGTYPE_TEXT,
         selfUserId: String? = null,
+        mentionSource: CharSequence? = null,
+        literalMentions: List<IntRange> = emptyList(),
 ): MessageTextContent {
     return MessageTextContent(
             msgType = msgType,
-            mentions = IntentionalMentions.build(text, formattedText, selfUserId = selfUserId),
+            mentions = IntentionalMentions.build(mentionSource ?: text, formattedText, selfUserId = selfUserId, literalMentions = literalMentions),
             format = MessageFormat.FORMAT_MATRIX_HTML.takeIf { formattedText != null },
             body = text,
             relatesTo = RelationDefaultContent(

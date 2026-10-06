@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.room.send
 
 import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.model.message.Mentions
@@ -23,7 +24,7 @@ import org.matrix.android.sdk.api.session.room.send.ExplicitLinks
 internal object IntentionalMentions {
 
     private val HREF_REGEX = Regex("""<a\s[^>]*?href\s*=\s*["']([^"']*)["']""", RegexOption.IGNORE_CASE)
-    private val ROOM_MENTION_REGEX = Regex("""(^|\W)@room(\W|$)""")
+    private val ROOM_MENTION_REGEX = Regex("""(?<!\w)@room(?!\w)""")
     private val BLOCKQUOTE_REGEX = Regex("""<blockquote\b.*?</blockquote>""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
     private val QUOTED_LINE_REGEX = Regex("""(?m)^\s*>.*$""")
 
@@ -32,12 +33,14 @@ internal object IntentionalMentions {
      * @param formattedBody the HTML body, scanned for mention pills.
      * @param extraUserIds users to mention regardless of the body, e.g. the sender of a replied-to event.
      * @param selfUserId the current user, never mentioned by their own message.
+     * @param literalMentions ranges of [body] whose mentions are meant literally: an `@room` there doesn't count.
      */
     fun build(
-            body: String?,
+            body: CharSequence?,
             formattedBody: String?,
             extraUserIds: List<String> = emptyList(),
             selfUserId: String? = null,
+            literalMentions: List<IntRange> = emptyList(),
     ): Mentions? {
         val userIds = LinkedHashSet(extraUserIds)
         // Quoted content is someone else's text: pilling a user there is not mentioning them.
@@ -52,13 +55,45 @@ internal object IntentionalMentions {
         selfUserId?.let { userIds.remove(it) }
         // The plain body is markdown source, so an explicit link's label can only be told apart in the HTML.
         val htmlOutsideExplicitLinks = unquotedHtml?.let { ExplicitLinks.removeExplicitAnchors(it) }?.takeIf { it != unquotedHtml }
-        val room = body?.replace(QUOTED_LINE_REGEX, "")?.let { ROOM_MENTION_REGEX.containsMatchIn(it) } == true &&
+        val room = body != null && mentionsRoom(body, literalMentions) &&
                 (htmlOutsideExplicitLinks == null || ROOM_MENTION_REGEX.containsMatchIn(htmlOutsideExplicitLinks))
-        if (userIds.isEmpty() && !room) return null
+        // An empty block, so the server's legacy body-matching rules don't notify for the literal text either.
+        if (userIds.isEmpty() && !room) return Mentions().takeIf { literalMentions.isNotEmpty() }
         return Mentions(
                 room = true.takeIf { room },
                 userIds = userIds.toList().takeIf { it.isNotEmpty() },
         )
+    }
+
+    /**
+     * [content] without `m.mentions.room`, in an edit's `m.new_content` too. The emptied `m.mentions`
+     * stays, so the server's legacy body-matching `@room` rule doesn't fire either.
+     */
+    fun withoutRoomMention(content: Content): Content {
+        val newContent = (content[NEW_CONTENT_KEY] as? Map<*, *>)?.let { inner ->
+            @Suppress("UNCHECKED_CAST")
+            withoutRoomMention(inner as Content).takeIf { it !== inner }
+        }
+        val mentions = content[MENTIONS_KEY] as? Map<*, *>
+        val strippedMentions = mentions?.takeIf { it.containsKey("room") }?.filterKeys { it != "room" }
+        if (newContent == null && strippedMentions == null) return content
+        return content.toMutableMap().apply {
+            newContent?.let { put(NEW_CONTENT_KEY, it) }
+            strippedMentions?.let { put(MENTIONS_KEY, it) }
+        }
+    }
+
+    private const val MENTIONS_KEY = "m.mentions"
+    private const val NEW_CONTENT_KEY = "m.new_content"
+
+    private fun mentionsRoom(body: CharSequence, literal: List<IntRange>): Boolean {
+        val text = body.toString()
+        // Quoted content is someone else's text.
+        val quoted = QUOTED_LINE_REGEX.findAll(text).map { it.range }.toList()
+        return ROOM_MENTION_REGEX.findAll(text).any { match ->
+            val at = match.range.first
+            quoted.none { at in it } && literal.none { at in it }
+        }
     }
 
     private fun userIdOf(href: String): String? {

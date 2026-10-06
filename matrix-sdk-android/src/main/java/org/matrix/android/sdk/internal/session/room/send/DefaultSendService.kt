@@ -101,8 +101,8 @@ internal class DefaultSendService @AssistedInject constructor(
         fun create(roomId: String): DefaultSendService
     }
 
-    override fun sendEvent(eventType: String, content: JsonDict?): Cancelable {
-        return localEchoEventFactory.createEvent(roomId, eventType, content)
+    override fun sendEvent(eventType: String, content: JsonDict?, verbatim: Boolean): Cancelable {
+        return localEchoEventFactory.createEvent(roomId, eventType, content, verbatim = verbatim)
                 .also { createLocalEcho(it) }
                 .let { eventSenderProcessor.postEvent(it, cryptoStore.roomWasOnceEncrypted(roomId), bundleUrlPreviews = false) }
     }
@@ -125,15 +125,15 @@ internal class DefaultSendService @AssistedInject constructor(
         return localEchoEventFactory.computeFormattedHtml(text, autoMarkdown)
     }
 
-    override fun sendFormattedTextMessage(text: String, formattedText: String, msgType: String, additionalContent: Content?): Cancelable {
-        return localEchoEventFactory.createFormattedTextEvent(roomId, TextContent(text, formattedText), msgType, additionalContent)
+    override fun sendFormattedTextMessage(text: CharSequence, formattedText: String, msgType: String, additionalContent: Content?): Cancelable {
+        return localEchoEventFactory.createFormattedTextEvent(roomId, TextContent(text.toString(), formattedText), msgType, additionalContent, mentionSource = text)
                 .also { createLocalEcho(it) }
                 .let { sendEvent(it) }
     }
 
     override fun sendQuotedTextMessage(
             quotedEvent: TimelineEvent,
-            text: String,
+            text: CharSequence,
             formattedText: String?,
             autoMarkdown: Boolean,
             rootThreadEventId: String?,
@@ -400,7 +400,8 @@ internal class DefaultSendService @AssistedInject constructor(
         }
         val rootThreadForFactory = if (effectiveRelatesTo != null) null else rootThreadId
         val mentions = IntentionalMentions.build(
-                body = captionText?.toString(),
+                body = captionText,
+                literalMentions = localEchoEventFactory.literalMentions(captionText),
                 formattedBody = captionFormattedText,
                 extraUserIds = listOfNotNull(replyToEvent?.root?.senderId),
                 selfUserId = userId,
@@ -497,7 +498,8 @@ internal class DefaultSendService @AssistedInject constructor(
         }
         val rootThreadForFactory = if (effectiveRelatesTo != null) null else rootThreadId
         val mentions = IntentionalMentions.build(
-                body = captionText?.toString(),
+                body = captionText,
+                literalMentions = localEchoEventFactory.literalMentions(captionText),
                 formattedBody = captionFormattedText,
                 extraUserIds = listOfNotNull(replyToEvent?.root?.senderId),
                 selfUserId = userId,
@@ -532,7 +534,8 @@ internal class DefaultSendService @AssistedInject constructor(
             additionalContent: Content?,
     ): Cancelable {
         val mentions = IntentionalMentions.build(
-                body = captionText?.toString(),
+                body = captionText,
+                literalMentions = localEchoEventFactory.literalMentions(captionText),
                 formattedBody = captionFormattedText,
                 selfUserId = userId,
         )

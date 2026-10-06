@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.message.AudioInfo
 import org.matrix.android.sdk.api.session.room.model.message.AudioWaveformInfo
 import org.matrix.android.sdk.api.session.room.model.message.FileInfo
@@ -73,8 +74,10 @@ import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 import org.matrix.android.sdk.internal.session.permalinks.PermalinkFactory
+import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.send.model.EventRedactBody
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
+import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
 import org.matrix.android.sdk.internal.util.time.Clock
 import java.util.UUID
 import javax.inject.Inject
@@ -100,10 +103,11 @@ internal class LocalEchoEventFactory @Inject constructor(
         private val localEchoRepository: LocalEchoRepository,
         private val permalinkFactory: PermalinkFactory,
         private val clock: Clock,
+        private val stateEventDataSource: StateEventDataSource,
 ) {
     fun createTextEvent(roomId: String, msgType: String, text: CharSequence, autoMarkdown: Boolean, additionalContent: Content? = null): Event {
         if (msgType == MessageType.MSGTYPE_TEXT || msgType == MessageType.MSGTYPE_EMOTE) {
-            return createFormattedTextEvent(roomId, createTextContent(text, autoMarkdown), msgType, additionalContent)
+            return createFormattedTextEvent(roomId, createTextContent(text, autoMarkdown), msgType, additionalContent, mentionSource = text)
         }
         val content = MessageTextContent(msgType = msgType, body = text.toString())
         return createMessageEvent(roomId, content, additionalContent)
@@ -131,8 +135,20 @@ internal class LocalEchoEventFactory @Inject constructor(
     fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? =
             createTextContent(text, autoMarkdown).formattedText
 
-    fun createFormattedTextEvent(roomId: String, textContent: TextContent, msgType: String, additionalContent: Content? = null): Event {
-        return createMessageEvent(roomId, textContent.toMessageTextContent(msgType, selfUserId = userId), additionalContent)
+    fun createFormattedTextEvent(
+            roomId: String,
+            textContent: TextContent,
+            msgType: String,
+            additionalContent: Content? = null,
+            mentionSource: CharSequence? = null,
+    ): Event {
+        val content = textContent.toMessageTextContent(
+                msgType,
+                selfUserId = userId,
+                mentionSource = mentionSource,
+                literalMentions = literalMentions(mentionSource),
+        )
+        return createMessageEvent(roomId, content, additionalContent)
     }
 
     fun createReplaceTextEvent(
@@ -145,11 +161,17 @@ internal class LocalEchoEventFactory @Inject constructor(
             compatibilityText: String,
             additionalContent: Content? = null,
     ): Event {
-        val content = if (newBodyFormattedText != null) {
-            TextContent(newBodyText.toString(), newBodyFormattedText.toString()).toMessageTextContent(msgType, selfUserId = userId)
+        val textContent = if (newBodyFormattedText != null) {
+            TextContent(newBodyText.toString(), newBodyFormattedText.toString())
         } else {
-            createTextContent(newBodyText, newBodyAutoMarkdown).toMessageTextContent(msgType, selfUserId = userId)
-        }.toContent()
+            createTextContent(newBodyText, newBodyAutoMarkdown)
+        }
+        val content = textContent.toMessageTextContent(
+                msgType,
+                selfUserId = userId,
+                mentionSource = newBodyText,
+                literalMentions = literalMentions(newBodyText),
+        ).toContent()
         return createMessageEvent(
                 roomId,
                 MessageTextContent(
@@ -846,9 +868,10 @@ internal class LocalEchoEventFactory @Inject constructor(
         return createEvent(roomId, EventType.MESSAGE, content.toContent(), additionalContent)
     }
 
-    fun createEvent(roomId: String, type: String, content: Content?, additionalContent: Content? = null): Event {
+    fun createEvent(roomId: String, type: String, content: Content?, additionalContent: Content? = null, verbatim: Boolean = false): Event {
         val newContent = enhanceStickerIfNeeded(type, content) ?: content
-        val updatedNewContent = newContent?.plus(additionalContent.orEmpty()) ?: additionalContent
+        val updatedNewContent = (newContent?.plus(additionalContent.orEmpty()) ?: additionalContent)
+                ?.let { if (!verbatim && it.mentionsRoom() && !canMentionRoom(roomId)) IntentionalMentions.withoutRoomMention(it) else it }
         val localId = LocalEcho.createLocalEchoId()
         return Event(
                 roomId = roomId,
@@ -860,6 +883,15 @@ internal class LocalEchoEventFactory @Inject constructor(
                 unsignedData = UnsignedData(age = null, transactionId = localId)
         )
     }
+
+    private fun Content.mentionsRoom(): Boolean =
+            (get("m.mentions") as? Map<*, *>)?.get("room") == true ||
+                    ((get("m.new_content") as? Map<*, *>)?.get("m.mentions") as? Map<*, *>)?.get("room") == true
+
+    private fun canMentionRoom(roomId: String): Boolean =
+            stateEventDataSource.getRoomPowerLevels(roomId).isUserAbleToTriggerNotification(userId, PowerLevelsContent.NOTIFICATIONS_ROOM_KEY)
+
+    fun literalMentions(text: CharSequence?): List<IntRange> = text?.let { textPillsUtils.literalMentions(it) }.orEmpty()
 
     /**
      * Enhance sticker to support threads fallback if needed.
@@ -902,6 +934,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                         latestThreadEventId = localEchoRepository.getLatestThreadEvent(rootThreadEventId),
                         msgType = msgType,
                         selfUserId = userId,
+                        mentionSource = text,
+                        literalMentions = literalMentions(text),
                 ).toContent().plus(additionalContent.orEmpty())
         )
     }
@@ -952,10 +986,11 @@ internal class LocalEchoEventFactory @Inject constructor(
                         showInThread = showInThread
                 ),
                 mentions = IntentionalMentions.build(
-                        body = plainBody,
+                        body = replyText,
                         formattedBody = htmlBody,
                         extraUserIds = listOfNotNull(repliedSenderId),
                         selfUserId = userId,
+                        literalMentions = literalMentions(replyText),
                 ),
         )
     }
@@ -1129,7 +1164,7 @@ internal class LocalEchoEventFactory @Inject constructor(
     fun createQuotedTextEvent(
             roomId: String,
             quotedEvent: TimelineEvent,
-            text: String,
+            text: CharSequence,
             formattedText: String?,
             autoMarkdown: Boolean,
             rootThreadEventId: String?,
@@ -1137,7 +1172,7 @@ internal class LocalEchoEventFactory @Inject constructor(
     ): Event {
         val messageContent = quotedEvent.getLastMessageContent()
         val formattedQuotedText = (messageContent as? MessageContentWithFormattedBody)?.formattedBody
-        val textContent = createQuoteTextContent(messageContent?.body, formattedQuotedText, text, formattedText, autoMarkdown)
+        val textContent = createQuoteTextContent(messageContent?.body, formattedQuotedText, text.toString(), formattedText, autoMarkdown)
         return if (rootThreadEventId != null) {
             createMessageEvent(
                     roomId,
@@ -1146,6 +1181,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                             latestThreadEventId = localEchoRepository.getLatestThreadEvent(rootThreadEventId),
                             msgType = MessageType.MSGTYPE_TEXT,
                             selfUserId = userId,
+                            mentionSource = text,
+                            literalMentions = literalMentions(text),
                     ),
                     additionalContent,
             )
@@ -1155,6 +1192,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                     textContent,
                     MessageType.MSGTYPE_TEXT,
                     additionalContent,
+                    mentionSource = text,
             )
         }
     }

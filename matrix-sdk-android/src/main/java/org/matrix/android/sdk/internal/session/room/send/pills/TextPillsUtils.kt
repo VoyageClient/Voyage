@@ -27,4 +27,7 @@ internal interface TextPillsUtils {
 
     /** @return the transformed markdown or null if no transformable span is found. */
     fun processSpecialSpansToMarkdown(text: CharSequence): String?
+
+    /** The ranges of [text] under a [org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan]. */
+    fun literalMentions(text: CharSequence): List<IntRange>
 }

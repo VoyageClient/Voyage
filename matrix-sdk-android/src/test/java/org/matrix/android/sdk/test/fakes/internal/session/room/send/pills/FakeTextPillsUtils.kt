@@ -16,9 +16,12 @@
 
 package org.matrix.android.sdk.test.fakes.internal.session.room.send.pills
 
+import io.mockk.every
 import io.mockk.mockk
 import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 
 class FakeTextPillsUtils {
-    internal val instance = mockk<TextPillsUtils>()
+    internal val instance = mockk<TextPillsUtils> {
+        every { literalMentions(any()) } returns emptyList()
+    }
 }

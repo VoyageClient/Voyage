@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.session.room.send
 
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
+import org.matrix.android.sdk.api.session.room.model.message.Mentions
 
 class IntentionalMentionsTest {
 
@@ -101,5 +102,37 @@ class IntentionalMentionsTest {
                 body = "[ask](https://example.org) @room",
                 formattedBody = """<a href="https://example.org" data-mx-link>ask</a> @room""",
         )?.room shouldBeEqualTo true
+    }
+
+    @Test
+    fun `an escaped @room is sent with an empty block, so nothing notifies`() {
+        IntentionalMentions.build(body = "hey @room", formattedBody = null, literalMentions = listOf(4..8)) shouldBeEqualTo Mentions()
+    }
+
+    @Test
+    fun `an unescaped @room still mentions the room beside an escaped one`() {
+        IntentionalMentions.build(body = "@room and @room", formattedBody = null, literalMentions = listOf(0..4))?.room shouldBeEqualTo true
+    }
+
+    @Test
+    fun `stripping the room mention keeps the user mentions and an emptied block`() {
+        val content = mapOf(
+                "body" to "@room hi",
+                "m.mentions" to mapOf("room" to true, "user_ids" to listOf("@alice:example.org")),
+                "m.new_content" to mapOf("body" to "@room hi", "m.mentions" to mapOf("room" to true)),
+        )
+
+        IntentionalMentions.withoutRoomMention(content) shouldBeEqualTo mapOf(
+                "body" to "@room hi",
+                "m.mentions" to mapOf("user_ids" to listOf("@alice:example.org")),
+                "m.new_content" to mapOf("body" to "@room hi", "m.mentions" to emptyMap<String, Any>()),
+        )
+    }
+
+    @Test
+    fun `content without a room mention is returned as is`() {
+        val content = mapOf("body" to "hi", "m.mentions" to mapOf("user_ids" to listOf("@alice:example.org")))
+
+        (IntentionalMentions.withoutRoomMention(content) === content) shouldBeEqualTo true
     }
 }

@@ -18,6 +18,7 @@ import im.vector.app.features.home.room.detail.timeline.item.ForwardedInfoData
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.ReferencesInfoData
 import im.vector.app.features.home.room.detail.timeline.item.SendStateDecoration
+import im.vector.app.features.home.room.detail.timeline.render.mentionsRoom
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayoutFactory
 import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.media.isMediaSpoiler
@@ -194,6 +195,7 @@ class MessageInformationDataFactory @Inject constructor(
                 avatarUrl = renderedSenderAvatar,
                 avatarDecryption = renderedAvatarDecryption,
                 perMessageProfileFallback = renderedProfile.fallbackDisplayName,
+                mentionsRoom = event.mentionsRoom(),
                 memberName = renderedSenderName,
                 messageLayout = messageLayout,
                 reactionsSummary = reactionsSummaryFactory.create(event),

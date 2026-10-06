@@ -148,6 +148,8 @@ class IncomingShareViewModel @AssistedInject constructor(
         if (asQuote) {
             content = quoteForwardContent(forward.eventType, content) as Map<String, Any>
         }
+        // An empty block rather than none: the server's legacy body-matching rules would otherwise notify.
+        content = content + ("m.mentions" to emptyMap<String, Any>())
         roomIds.forEach { roomId ->
             session.getRoom(roomId)?.sendService()?.sendEvent(forward.eventType, content)
         }

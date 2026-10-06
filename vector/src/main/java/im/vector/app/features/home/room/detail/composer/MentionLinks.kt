@@ -13,6 +13,7 @@ import android.text.Spanned
 import im.vector.app.features.command.Command
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.session.room.send.ExplicitLinks
+import org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -182,7 +183,11 @@ fun CharSequence.pillifyRemainingMentions(resolveAlias: (String) -> MatrixItem?)
         out.setSpan(SendableMentionSpan(item, mention), range.first, range.last + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
     // Last first, so the earlier positions still hold.
-    escapes.asReversed().forEach { out.delete(it, it + 1) }
+    escapes.asReversed().forEach { at ->
+        out.delete(at, at + 1)
+        // The body text alone would read as a mention to the server, so tell the SDK this one isn't.
+        mentionLengthAt(out, at)?.let { out.setSpan(LiteralMentionSpan(), at, at + it, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) }
+    }
     return out
 }
 
@@ -204,25 +209,28 @@ private fun escapedMentionBackslashes(text: CharSequence): List<Int> {
             i += 2
             continue
         }
-        if (isMentionStart(text.getOrNull(i - 1)) && startsMention(text, i + 1)) found += i
+        if (isMentionStart(text.getOrNull(i - 1)) && mentionLengthAt(text, i + 1) != null) found += i
         i++
     }
     return found
 }
 
-private fun startsMention(text: CharSequence, at: Int): Boolean {
-    if (at >= text.length) return false
-    if (text.regionMatches(at, MatrixItem.NOTIFY_EVERYONE, 0, MatrixItem.NOTIFY_EVERYONE.length)) return true
-    return MatrixPatterns.PATTERN_CONTAIN_MATRIX_USER_IDENTIFIER.find(text, at)?.range?.first == at ||
-            MatrixPatterns.PATTERN_CONTAIN_MATRIX_ALIAS.find(text, at)?.range?.first == at
+private fun mentionLengthAt(text: CharSequence, at: Int): Int? {
+    if (at >= text.length) return null
+    if (text.regionMatches(at, MatrixItem.NOTIFY_EVERYONE, 0, MatrixItem.NOTIFY_EVERYONE.length)) return MatrixItem.NOTIFY_EVERYONE.length
+    return listOf(MatrixPatterns.PATTERN_CONTAIN_MATRIX_USER_IDENTIFIER, MatrixPatterns.PATTERN_CONTAIN_MATRIX_ALIAS)
+            .firstNotNullOfOrNull { pattern -> pattern.find(text, at)?.range?.takeIf { it.first == at } }
+            ?.let { it.last + 1 - at }
 }
 
-// /plain and /html send the composer text as it literally reads, so a mention in one stays plain text.
-private fun sendsLiteralText(text: CharSequence): Boolean {
+// /plain, /html and the raw-event commands send the composer text as it literally reads, so a mention in one stays plain text.
+fun sendsLiteralText(text: CharSequence): Boolean {
     if (text.isEmpty() || text[0] != '/') return false
     val firstWord = text.subSequence(0, text.indexOfFirst { it.isWhitespace() }.takeIf { it > 0 } ?: text.length)
-    return Command.PLAIN.matches(firstWord) || Command.HTML.matches(firstWord)
+    return LITERAL_TEXT_COMMANDS.any { it.matches(firstWord) }
 }
+
+private val LITERAL_TEXT_COMMANDS = listOf(Command.PLAIN, Command.HTML, Command.RAW_MESSAGE, Command.RAW_EVENT, Command.RAW_STATE)
 
 /**
  * The stretches of [text] that markdown reads as code — fenced blocks and inline spans — where a

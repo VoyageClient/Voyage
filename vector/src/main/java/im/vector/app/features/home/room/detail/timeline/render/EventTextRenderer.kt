@@ -19,6 +19,7 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.linkify.NoUnderlineUrlSpan
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.app.features.html.PILL_PLACEHOLDER
 import im.vector.app.features.html.PillImageSpan
@@ -26,12 +27,17 @@ import im.vector.app.features.html.overlapsExplicitLink
 import im.vector.app.features.html.setPillSpan
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
+import org.matrix.android.sdk.api.session.room.getRoomPowerLevels
+import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.RoomType
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 
@@ -59,14 +65,15 @@ class EventTextRenderer @AssistedInject constructor(
 
     /**
      * @param text the text to be rendered
+     * @param source the event [text] comes from; its `@room` only pills where it could notify the room.
      */
-    fun render(text: CharSequence): CharSequence = PerfTrace.time("text.render") {
+    fun render(text: CharSequence, source: RoomMentionSource? = null): CharSequence = PerfTrace.time("text.render") {
         val formattedText = renderPermalinks(text)
-        renderNotifyEveryone(formattedText)
+        renderNotifyEveryone(formattedText, source)
     }
 
-    private fun renderNotifyEveryone(text: CharSequence): CharSequence {
-        return if (roomId != null && text.contains(MatrixItem.NOTIFY_EVERYONE)) {
+    private fun renderNotifyEveryone(text: CharSequence, source: RoomMentionSource?): CharSequence {
+        return if (roomId != null && text.contains(MatrixItem.NOTIFY_EVERYONE) && (source == null || canPillRoomMention(roomId, source))) {
             SpannableStringBuilder(text).apply {
                 addNotifyEveryoneSpans(this, roomId)
             }
@@ -83,6 +90,14 @@ class EventTextRenderer @AssistedInject constructor(
         } else {
             text
         }
+    }
+
+    private fun canPillRoomMention(roomId: String, source: RoomMentionSource): Boolean {
+        if (!source.mentionsRoom) return false
+        val powerLevels = sessionHolder.getSafeActiveSession()?.getRoom(roomId)?.getRoomPowerLevels()
+        // Without the power levels yet, take the sender's word for it rather than leave it unpilled.
+        if (powerLevels?.powerLevelsContent == null || source.senderId == null) return true
+        return powerLevels.isUserAbleToTriggerNotification(source.senderId, PowerLevelsContent.NOTIFICATIONS_ROOM_KEY)
     }
 
     private fun addNotifyEveryoneSpans(text: Spannable, roomId: String) {
@@ -242,3 +257,18 @@ class EventTextRenderer @AssistedInject constructor(
         private const val TRAILING_URL_PUNCTUATION = ".,;:!?)]}>\"'"
     }
 }
+
+/** Who sent a text and whether it sets `m.mentions.room`; its `@room` pills only when it does and the sender may notify the room. */
+data class RoomMentionSource(val senderId: String?, val mentionsRoom: Boolean)
+
+fun TimelineEvent.roomMentionSource() = RoomMentionSource(root.senderId, mentionsRoom())
+
+fun MessageInformationData.roomMentionSource() = RoomMentionSource(senderId, mentionsRoom)
+
+fun Event.roomMentionSource() = RoomMentionSource(senderId, getClearContent().mentionsRoom())
+
+/** Whether the shown content (an edit's, when edited) sets `m.mentions.room`. */
+fun TimelineEvent.mentionsRoom(): Boolean =
+        ((annotations?.editSummary?.latestEdit?.getClearContent()?.get("m.new_content") as? Map<*, *>) ?: root.getClearContent()).mentionsRoom()
+
+private fun Map<*, *>?.mentionsRoom(): Boolean = (this?.get("m.mentions") as? Map<*, *>)?.get("room") == true

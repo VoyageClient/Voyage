@@ -75,6 +75,7 @@ import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriev
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
@@ -1149,7 +1150,7 @@ class MessageItemFactory @Inject constructor(
         } else {
             effectiveBody
         }
-        val rendered = textRenderer.render(initialBody)
+        val rendered = textRenderer.render(initialBody, informationData.roomMentionSource())
         val bindingOptions = spanUtils.getBindingOptions(rendered)
         val linkified = rendered.linkify(callback)
         val emoteRanges = linkified.emoteRanges()
@@ -1178,11 +1179,11 @@ class MessageItemFactory @Inject constructor(
             blockedBody: CharSequence? = null,
             translation: im.vector.app.features.translation.MessageTranslationStore.Translation? = null,
     ): MessageTextItem? {
-        val renderedBody = textRenderer.render(body)
+        val renderedBody = textRenderer.render(body, informationData.roomMentionSource())
         val bindingOptions = im.vector.app.core.utils.PerfTrace.time("build.text.bindingOptions") { spanUtils.getBindingOptions(renderedBody) }
         val linkifiedBody = im.vector.app.core.utils.PerfTrace.time("build.text.linkify") { renderedBody.linkify(callback) }
 
-        val blockedRendered = blockedBody?.let { textRenderer.render(it) }
+        val blockedRendered = blockedBody?.let { textRenderer.render(it, informationData.roomMentionSource()) }
         val blockedLinkified = blockedRendered?.linkify(callback)
 
         // A message of only emoji and/or custom emotes (+ spaces) renders large, like the emoji-only rule.

@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
+import io.mockk.mockk
 import org.amshove.kluent.internal.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -80,7 +81,8 @@ class LocalEchoEventFactoryTests {
             waveformSanitizer = fakeWaveFormSanitizer.instance,
             localEchoRepository = fakeLocalEchoRepository.instance,
             permalinkFactory = fakePermalinkFactory.instance,
-            clock = fakeClock
+            clock = fakeClock,
+            stateEventDataSource = mockk(),
     )
 
     @Before

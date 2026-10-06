@@ -321,7 +321,8 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     )
                     RoomDevToolViewState.SendTarget.MESSAGE -> room.sendService().sendEvent(
                             eventType,
-                            json
+                            json,
+                            verbatim = true,
                     )
                     RoomDevToolViewState.SendTarget.ACCOUNT_DATA -> room.roomAccountDataService().updateAccountData(
                             eventType,

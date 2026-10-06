@@ -8,8 +8,10 @@
 package org.matrix.android.sdk.internal.session.room.send.pills
 
 import android.text.SpannableString
+import android.text.Spanned
 import org.commonmark.ext.explicitlinks.ExplicitLinksExtension
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
+import org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -29,6 +31,12 @@ internal class AndroidTextPillsUtils @Inject constructor(
         val template = permalinkService.createMentionSpanTemplate(PermalinkService.SpanTemplateType.MARKDOWN)
                 .removeSuffix(")") + " \"${ExplicitLinksExtension.MENTION_TITLE}\")"
         return transformPills(text, template, markdownLinkContext = true) { it.markdownEscape() }
+    }
+
+    override fun literalMentions(text: CharSequence): List<IntRange> {
+        val spanned = text as? Spanned ?: return emptyList()
+        return spanned.getSpans(0, spanned.length, LiteralMentionSpan::class.java)
+                .map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) }
     }
 
     private fun transformPills(

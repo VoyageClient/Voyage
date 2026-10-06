@@ -332,7 +332,7 @@ internal class PeekedRoom(
     }
 
     private val sendService = object : SendService {
-        override fun sendEvent(eventType: String, content: Content?): Cancelable = readOnly()
+        override fun sendEvent(eventType: String, content: Content?, verbatim: Boolean): Cancelable = readOnly()
 
         override fun prefetchLinkPreviews(text: CharSequence) = Unit
 
@@ -340,11 +340,11 @@ internal class PeekedRoom(
 
         override fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? = null
 
-        override fun sendFormattedTextMessage(text: String, formattedText: String, msgType: String, additionalContent: Content?): Cancelable = readOnly()
+        override fun sendFormattedTextMessage(text: CharSequence, formattedText: String, msgType: String, additionalContent: Content?): Cancelable = readOnly()
 
         override fun sendQuotedTextMessage(
                 quotedEvent: TimelineEvent,
-                text: String,
+                text: CharSequence,
                 formattedText: String?,
                 autoMarkdown: Boolean,
                 rootThreadEventId: String?,

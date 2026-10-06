@@ -23,6 +23,7 @@ import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.inputmethod.InputConnectionCompat
 import im.vector.app.core.extensions.removeParagraphLayoutSpans
 import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.composer.images.UriContentListener
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.pillsToCopyText
@@ -177,7 +178,11 @@ class ComposerEditText @JvmOverloads constructor(
                         if (rewriting) return
                         rewriting = true
                         try {
-                            if (!restorePillText(s) && !suppressMentionHandling) pillifyCompletedMentions(s)
+                            if (sendsLiteralText(s)) {
+                                unpill(s)
+                            } else if (!restorePillText(s) && !suppressMentionHandling) {
+                                pillifyCompletedMentions(s)
+                            }
                         } finally {
                             rewriting = false
                         }
@@ -224,6 +229,19 @@ class ComposerEditText @JvmOverloads constructor(
         }
         Selection.setSelection(editable, at + text.length)
         return true
+    }
+
+    // A literal-text command sends each pill as its body text, so that is what the composer shows.
+    private fun unpill(editable: Editable) {
+        pillToRestore = null
+        editable.getSpans(0, editable.length, PillImageSpan::class.java)
+                .sortedByDescending { editable.getSpanStart(it) }
+                .forEach { span ->
+                    val start = editable.getSpanStart(span)
+                    val end = editable.getSpanEnd(span)
+                    editable.removeSpan(span)
+                    if (start in 0 until end) editable.replace(start, end, span.bodyText ?: span.matrixItem.getBestName())
+                }
     }
 
     private fun pillifyCompletedMentions(editable: Editable) {

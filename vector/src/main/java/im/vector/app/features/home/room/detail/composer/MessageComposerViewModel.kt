@@ -99,6 +99,7 @@ import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThre
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
+import org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -859,32 +860,34 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandNotSupportedInThreads(parsedCommand.command))
                         }
                         is ParsedCommand.SendPlainText -> {
+                            val text = asLiteralText(parsedCommand.message)
                             offloadSend {
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
-                                            replyInThreadText = parsedCommand.message,
+                                            replyInThreadText = text,
                                             autoMarkdown = false
                                     )
                                 } else {
-                                    room.sendService().sendTextMessage(parsedCommand.message, autoMarkdown = false)
+                                    room.sendService().sendTextMessage(text, autoMarkdown = false)
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendFormattedText -> {
+                            val text = asLiteralText(parsedCommand.message)
                             offloadSend {
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
-                                            replyInThreadText = parsedCommand.message,
+                                            replyInThreadText = text,
                                             formattedText = parsedCommand.formattedMessage,
                                             autoMarkdown = false
                                     )
                                 } else {
                                     room.sendService().sendFormattedTextMessage(
-                                            text = parsedCommand.message.toString(),
+                                            text = text,
                                             formattedText = parsedCommand.formattedMessage
                                     )
                                 }
@@ -1304,7 +1307,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 is SendMode.Quote -> {
                     room.sendService().sendQuotedTextMessage(
                             quotedEvent = state.sendMode.timelineEvent,
-                            text = action.text.toString(),
+                            text = action.text,
                             formattedText = action.formattedText,
                             autoMarkdown = action.autoMarkdown,
                             rootThreadEventId = state.rootThreadEventId
@@ -1432,6 +1435,10 @@ class MessageComposerViewModel @AssistedInject constructor(
      */
     private fun fallbackThreadRootFor(target: TimelineEvent, state: MessageComposerViewState): String? =
             target.root.getRootThreadEventId()?.takeIf { state.rootThreadEventId == null && !vectorPreferences.areThreadMessagesEnabled() }
+
+    // /plain and /html send their text as written, so nothing in it mentions anyone.
+    private fun asLiteralText(text: CharSequence): CharSequence =
+            SpannableString(text).apply { setSpan(LiteralMentionSpan(), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
 
     // Identifies which composer mode a send consumed, so a completed send only clears its own mode.
     private fun SendMode.modeKey(): String = when (this) {
@@ -2797,7 +2804,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handleSendRawEventSlashCommand(room: Room, parsedCommand: ParsedCommand.SendRawEvent) {
         launchSlashCommandFlowSuspendable(room, parsedCommand) {
             val (eventType, content) = rawEventTypeAndContent(parsedCommand.eventType, parsedCommand.json)
-            withContext(Dispatchers.Default) { room.sendService().sendEvent(eventType, content) }
+            withContext(Dispatchers.Default) { room.sendService().sendEvent(eventType, content, verbatim = true) }
         }
     }
 

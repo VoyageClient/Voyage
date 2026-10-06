@@ -53,6 +53,7 @@ import im.vector.app.features.home.room.detail.timeline.image.buildImageContentR
 import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
 import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
@@ -408,7 +409,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     // Inverse of serializeMentionPills: turn matrix.to markdown links back into PillImageSpans.
     private fun reconstructMentionPills(source: CharSequence): CharSequence {
         if (!source.contains("https://matrix.to/#/")) return source
-        val session = activeSessionHolder.getSafeActiveSession() ?: return SpannableStringBuilder(source).unguardAuthoredMentionLinks()
+        val session = activeSessionHolder.getSafeActiveSession()
+        if (session == null || sendsLiteralText(source)) return SpannableStringBuilder(source).unguardAuthoredMentionLinks()
         val out = SpannableStringBuilder()
         var index = 0
         mentionLinkRegex.findAll(source).forEach { match ->
@@ -642,7 +644,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // Notice text (membership change, policy server, reaction, …) is never linkified in the timeline,
         // and a matrix id or server name inside it would otherwise render as a spurious link.
         val isNoticePreview = messageContent == null
-        val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }
+        val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it, event.roomMentionSource()) }
                 ?.let { if (isFilenamePreview || isNoticePreview) it else it.linkify(null) }
         val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
             renderedBody.asEmoteBody(

@@ -54,7 +54,7 @@ internal class EventEditor @Inject constructor(
             // We create a new in memory event for the EventSenderProcessor but we keep the eventId of the failed event.
             val editedEvent = if (newBodyFormattedText != null) {
                 val content = TextContent(newBodyText.toString(), newBodyFormattedText.toString())
-                eventFactory.createFormattedTextEvent(roomId, content, msgType)
+                eventFactory.createFormattedTextEvent(roomId, content, msgType, mentionSource = newBodyText)
             } else {
                 eventFactory.createTextEvent(roomId, msgType, newBodyText, newBodyAutoMarkdown)
             }.copy(

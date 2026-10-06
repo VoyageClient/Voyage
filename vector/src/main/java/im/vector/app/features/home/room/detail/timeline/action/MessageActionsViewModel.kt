@@ -31,6 +31,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageP
 import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
+import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.html.EventHtmlRenderer
@@ -391,7 +392,8 @@ class MessageActionsViewModel @AssistedInject constructor(
                         val body = if (translation != null) {
                             textRenderer.render(
                                     translation.formatted?.let { eventHtmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor) }
-                                            ?: translation.text
+                                            ?: translation.text,
+                                    timelineEvent.roomMentionSource(),
                             )
                         } else if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
                             // Strip the legacy reply fallback ("In reply to" / "> <@user> …") that
@@ -405,7 +407,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                                             .withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
                                             .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
 
-                            textRenderer.render(eventHtmlRenderer.get().render(html, pillsPostProcessor))
+                            textRenderer.render(eventHtmlRenderer.get().render(html, pillsPostProcessor), timelineEvent.roomMentionSource())
                         } else if (messageContent is MessageVerificationRequestContent) {
                             stringProvider.getString(CommonStrings.verification_request_room_list_preview)
                         } else if (messageContent is MessageFileContent) {
@@ -440,7 +442,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                             messageContent.body
                                     .withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
                                     .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
-                                    .let { textRenderer.render(it) }
+                                    .let { textRenderer.render(it, timelineEvent.roomMentionSource()) }
                         }
                         if (isEmote) {
                             body.asEmoteBody(

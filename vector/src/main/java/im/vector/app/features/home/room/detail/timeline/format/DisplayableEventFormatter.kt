@@ -20,6 +20,8 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.render.RoomMentionSource
+import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.tools.inlineCodeBlocks
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -119,17 +121,17 @@ class DisplayableEventFormatter @Inject constructor(
                             val preview = messageContent.previewText(profileFallback, translation)
                             if (preview.formattedBody != null) {
                                 // Render the formatted HTML so custom emotes and inline colours survive.
-                                simpleFormat(senderName, renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody), appendAuthor)
+                                simpleFormat(senderName, renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody, timelineEvent.roomMentionSource()), appendAuthor)
                             } else {
-                                simpleFormat(senderName, renderPlainPreview(timelineEvent.root.roomId, preview.body), appendAuthor)
+                                simpleFormat(senderName, renderPlainPreview(timelineEvent.root.roomId, preview.body, timelineEvent.roomMentionSource()), appendAuthor)
                             }
                         }
                         MessageType.MSGTYPE_EMOTE -> {
                             val preview = messageContent.previewText(profileFallback, translation)
                             val rendered = if (preview.formattedBody != null) {
-                                renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody)
+                                renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody, timelineEvent.roomMentionSource())
                             } else {
-                                renderPlainPreview(timelineEvent.root.roomId, preview.body)
+                                renderPlainPreview(timelineEvent.root.roomId, preview.body, timelineEvent.roomMentionSource())
                             }
                             simpleFormat(senderName, rendered, appendAuthor, isEmote = true)
                         }
@@ -227,7 +229,7 @@ class DisplayableEventFormatter @Inject constructor(
 
         // There event have been edited
         if (latestEdition != null) {
-            return renderFormattedPreview(event.roomId, latestEdition)
+            return renderFormattedPreview(event.roomId, latestEdition, event.roomMentionSource())
         }
 
         // The event have been redacted
@@ -249,9 +251,9 @@ class DisplayableEventFormatter @Inject constructor(
                         MessageType.MSGTYPE_NOTICE -> {
                             val preview = messageContent.previewText()
                             if (preview.formattedBody != null) {
-                                renderFormattedPreview(event.roomId, preview.formattedBody)
+                                renderFormattedPreview(event.roomId, preview.formattedBody, event.roomMentionSource())
                             } else {
-                                renderPlainPreview(event.roomId, preview.body)
+                                renderPlainPreview(event.roomId, preview.body, event.roomMentionSource())
                             }
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
@@ -338,13 +340,13 @@ class DisplayableEventFormatter @Inject constructor(
 
     // Render a formatted preview the way the timeline does: mentions/rooms become pills (pillsPostProcessor),
     // matrix.to message links become "Message in Room" pills (EventTextRenderer), then bare links get coloured.
-    private fun renderFormattedPreview(roomId: String?, formattedBody: String): CharSequence {
+    private fun renderFormattedPreview(roomId: String?, formattedBody: String, source: RoomMentionSource): CharSequence {
         val generation = ThemeUtils.themeGeneration to matrixItemColorProvider.changes.value
         if (generation != previewCacheGeneration) {
             previewCacheGeneration = generation
             previewCache.evictAll()
         }
-        val key = "${roomId.orEmpty()}\u0000$formattedBody"
+        val key = "${roomId.orEmpty()}\u0000${source.senderId}\u0000${source.mentionsRoom}\u0000$formattedBody"
         // Copy on the way out: callers run the result through EmojiCompat.process(), which spans a
         // Spannable in place, so handing out the cached instance would mutate it from several threads.
         previewCache.get(key)?.let { return SpannableStringBuilder(it) }
@@ -354,7 +356,7 @@ class DisplayableEventFormatter @Inject constructor(
             htmlRenderer.get().render(formattedBody).colorLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
         } else {
             val (pills, textRenderer) = pillProcessorsFor(roomId)
-            textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).colorLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
+            textRenderer.render(htmlRenderer.get().render(formattedBody, pills), source).colorLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
         }
         previewCache.put(key, SpannableStringBuilder(rendered))
         return rendered
@@ -384,8 +386,8 @@ class DisplayableEventFormatter @Inject constructor(
     }
 
     // Plain-text preview: still run the text renderer so a bare permalink / @room pills, then colour links.
-    private fun renderPlainPreview(roomId: String?, plainBody: CharSequence): CharSequence {
-        val resolved = if (roomId == null) plainBody else pillProcessorsFor(roomId).second.render(plainBody)
+    private fun renderPlainPreview(roomId: String?, plainBody: CharSequence, source: RoomMentionSource): CharSequence {
+        val resolved = if (roomId == null) plainBody else pillProcessorsFor(roomId).second.render(plainBody, source)
         return resolved.colorLinks().flattenForPreview().trimForPreview()
     }
 
