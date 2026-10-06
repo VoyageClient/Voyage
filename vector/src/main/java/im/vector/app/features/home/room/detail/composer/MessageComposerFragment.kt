@@ -1176,10 +1176,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private val contentAttachmentActivityResultLauncher = registerStartForActivityResult { activityResult ->
         val data = activityResult.data ?: return@registerStartForActivityResult
         if (activityResult.resultCode == Activity.RESULT_OK) {
+            val attachments = AttachmentsPreviewActivity.getOutput(data)
             // Whichever attachments the sender wanted untouched say so themselves.
             dispatchSendMedia(
-                    attachments = AttachmentsPreviewActivity.getOutput(data),
-                    compressBeforeSending = true,
+                    attachments = attachments,
+                    compressBeforeSending = attachments.any { it.type != ContentAttachmentData.Type.VOICE_MESSAGE },
                     previewCaptions = AttachmentsPreviewActivity.getCaptionsOutput(data),
                     previewSpoilers = AttachmentsPreviewActivity.getSpoilersOutput(data),
             )
@@ -1330,32 +1331,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private val attachmentVoiceFileActivityResultLauncher = registerStartForActivityResult { result ->
         if (result.resultCode != Activity.RESULT_OK) return@registerStartForActivityResult
         val data = result.data ?: return@registerStartForActivityResult
-
-        val composerState = withState(messageComposerViewModel) { it }
-        val pendingReplyToEvent = (composerState.sendMode as? SendMode.Reply)?.timelineEvent
-        val pendingCaption = composer.text?.toString().orEmpty().takeIf { it.isNotBlank() }
-        val pendingFormatted = composer.formattedText?.takeIf { pendingCaption != null }
-        val pendingAutoMarkdown = pendingCaption != null && pendingFormatted == null && vectorPreferences.isMarkdownEnabled()
-        val resolved = resolveCaptionCommand(composerState, pendingCaption, pendingFormatted, pendingAutoMarkdown)
-        if (pendingReplyToEvent != null || pendingCaption != null) {
-            suppressStaleComposerRender = true
-            composer.setTextIfDifferent("")
-            composer.renderComposerMode(MessageComposerMode.Normal(""))
-            messageComposerViewModel.handle(MessageComposerAction.OnAttachmentsSent)
-        }
-
         val attachments = attachmentsHelper.processVoiceFileResult(data)
         if (attachments.isEmpty()) return@registerStartForActivityResult
-        timelineViewModel.handle(
-                RoomDetailAction.SendMedia(
-                        attachments = attachments,
-                        compressBeforeSending = false,
-                        replyToEvent = pendingReplyToEvent,
-                        captionText = resolved.text,
-                        captionFormattedText = resolved.formatted,
-                        autoMarkdown = resolved.autoMarkdown,
-                )
-        )
+        val args = AttachmentsPreviewArgs(attachments, composer.text?.toString())
+        contentAttachmentActivityResultLauncher.launch(AttachmentsPreviewActivity.newIntent(requireContext(), args))
     }
 
     /**

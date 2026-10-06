@@ -34,8 +34,11 @@ fun ContentAttachmentData.isVideoEditable(): Boolean {
 
 /** Audio editing writes an mp4 with MediaMuxer, so it is unavailable below API 18. */
 fun ContentAttachmentData.isAudioEditable(): Boolean {
-    return type == ContentAttachmentData.Type.AUDIO && AudioEditExporter.isSupported()
+    return isAudioPreview() && AudioEditExporter.isSupported()
 }
+
+fun ContentAttachmentData.isAudioPreview(): Boolean =
+        type == ContentAttachmentData.Type.AUDIO || type == ContentAttachmentData.Type.VOICE_MESSAGE
 
 /**
  * Animated images go through the video editor rather than the still one, which would flatten them

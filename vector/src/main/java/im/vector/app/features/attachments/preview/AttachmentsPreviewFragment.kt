@@ -555,7 +555,7 @@ class AttachmentsPreviewFragment :
      */
     private fun renderAudioBackdrop(state: AttachmentsPreviewViewState) {
         val current = state.attachments.getOrNull(state.currentAttachmentIndex)
-        val uri = current?.queryUriAndroid?.takeIf { current.type == ContentAttachmentData.Type.AUDIO }
+        val uri = current?.takeIf { it.isAudioPreview() }?.queryUriAndroid
         backdropUri = uri
         if (uri == null) {
             showAudioBackdrop(null)
@@ -653,8 +653,8 @@ class AttachmentsPreviewFragment :
 
     /** The preview already read the file's peaks, so a voice message can be sent carrying them. */
     private fun ContentAttachmentData.withPreviewedWaveform(): ContentAttachmentData {
-        if (waveform != null) return this
-        if (type != ContentAttachmentData.Type.AUDIO && type != ContentAttachmentData.Type.VOICE_MESSAGE) return this
+        if (waveform?.any { it != 0 } == true) return this
+        if (!isAudioPreview()) return this
         val levels = WaveformCache.get(queryUriAndroid) ?: return this
         return copy(waveform = WaveformCache.asMessageWaveform(levels))
     }

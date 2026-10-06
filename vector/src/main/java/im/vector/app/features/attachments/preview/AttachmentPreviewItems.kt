@@ -292,7 +292,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
     private fun applyPlaybackState(holder: Holder) {
         val isVideo = attachment.type == ContentAttachmentData.Type.VIDEO
-        val isAudio = attachment.type == ContentAttachmentData.Type.AUDIO
+        val isAudio = attachment.isAudioPreview()
         val playable = isVideo || isAudio
         // Before setVideo: a recycled holder still holding the controls would otherwise report the
         // position it is being reset to into a bar that another page owns by now.
