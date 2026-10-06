@@ -327,7 +327,6 @@
             android:contentDescription="@string/room_threads_filter"
             android:layoutDirection="locale"
             android:maxWidth="496dp"
-            android:minWidth="144dp"
             android:paddingStart="@dimen/sc_bubble_inner_padding_long_side"
             android:paddingLeft="@dimen/sc_bubble_inner_padding_long_side"
             android:paddingEnd="@dimen/sc_bubble_inner_padding_short_side"

@@ -213,7 +213,6 @@
         android:background="@drawable/rounded_rect_shape_8"
         android:contentDescription="@string/room_threads_filter"
         android:maxWidth="496dp"
-        android:minWidth="144dp"
         android:paddingStart="12dp"
         android:paddingLeft="12dp"
         android:paddingTop="8dp"
