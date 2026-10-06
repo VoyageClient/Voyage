@@ -23,6 +23,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <!-- Takes the texture view's place for animated images. -->
+        <im.vector.app.features.attachments.editor.video.AnimatedFrameView
+            android:id="@+id/videoEditorAnimatedFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
         <im.vector.app.features.attachments.editor.video.VideoCropOverlayView
             android:id="@+id/videoEditorCropOverlay"
             android:layout_width="match_parent"

@@ -52,8 +52,10 @@ object ImageEditorExporter {
     }
 
     /** Decodes at display resolution with the source EXIF rotation already applied. */
-    fun loadForDisplay(context: Context, source: Uri): Bitmap? {
-        val bitmap = decodeSampled(context, source, min(pixelBudget(), DISPLAY_PIXEL_CAP)) ?: return null
+    fun loadForDisplay(context: Context, source: Uri): Bitmap? = loadOriented(context, source, min(pixelBudget(), DISPLAY_PIXEL_CAP))
+
+    fun loadOriented(context: Context, source: Uri, maxPixels: Int): Bitmap? {
+        val bitmap = decodeSampled(context, source, maxPixels) ?: return null
         return applyRotation(bitmap, ImageUtils.getOrientation(context, source))
     }
 
@@ -121,7 +123,7 @@ object ImageEditorExporter {
         return sample
     }
 
-    private fun applyRotation(bitmap: Bitmap, degrees: Int): Bitmap {
+    internal fun applyRotation(bitmap: Bitmap, degrees: Int): Bitmap {
         if (degrees % 360 == 0) return bitmap
         val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
         val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)

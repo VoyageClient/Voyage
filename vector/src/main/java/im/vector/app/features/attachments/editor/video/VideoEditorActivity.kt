@@ -194,8 +194,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         views.videoEditorSaveButton.setOnClickListener { save() }
         views.videoEditorExportCancel.setOnClickListener { exportJob?.cancel() }
         views.videoEditorCropOverlay.onTransform = {
-            views.videoEditorTextureView.setTransform(it)
-            views.videoEditorTextureView.invalidate()
+            if (isAnimated) {
+                views.videoEditorAnimatedFrame.setTransform(it)
+            } else {
+                views.videoEditorTextureView.setTransform(it)
+                views.videoEditorTextureView.invalidate()
+            }
         }
         views.videoEditorCropOverlay.snapToCenter = vectorPreferences.imageEditorSnapToCenter()
         setupRotationControls()
@@ -257,7 +261,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
         }
 
-        views.videoEditorTextureView.surfaceTextureListener = surfaceListener
+        if (isAnimated) {
+            views.videoEditorTextureView.isVisible = false
+            views.videoEditorAnimatedFrame.isVisible = true
+        } else {
+            views.videoEditorTextureView.surfaceTextureListener = surfaceListener
+        }
         loadMetadata()
     }
 
@@ -687,7 +696,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             animatedPreview = source
             startHistory()
             addAnimatedThumbnails(source)
-            animatedPlayer = AnimatedFramePlayer(source, views.videoEditorTextureView, handler) { positionUs ->
+            animatedPlayer = AnimatedFramePlayer(source, file, animatedFormat, views.videoEditorAnimatedFrame, handler) { positionUs ->
                 setPlayhead(positionUs)
             }
             applyPlaybackSpeed()
@@ -768,11 +777,6 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private val surfaceListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-            if (isAnimated) {
-                // The surface only exists now, and an editor opened paused would show nothing.
-                animatedPlayer?.draw()
-                return
-            }
             surface = Surface(texture)
             preparePlayer()
         }

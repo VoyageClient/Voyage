@@ -30,6 +30,7 @@ import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
@@ -276,12 +277,16 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
                 views.imageEditorView.setBitmap(bitmap)
                 imageLoaded = true
                 views.imageEditorSaveButton.isEnabled = true
+                views.imageEditorView.detailDecoder = withContext(Dispatchers.IO) {
+                    runCatching { ImageDetailDecoder.create(this@ImageEditorActivity, sourceUri, bitmap) }.getOrNull()
+                }
             }
         }
     }
 
     private fun loadAnimatedImage() {
-        val target = object : CustomTarget<Drawable>(1080, 1080) {
+        // Native size, as the media viewer loads it, so zooming in shows the frames' real pixels.
+        val target = object : CustomTarget<Drawable>(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL) {
             private var drawable: Drawable? = null
 
             override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
@@ -332,6 +337,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
 
     override fun onDestroy() {
         animatedTarget?.let { animatedRequests.clear(it) }
+        views.imageEditorView.detailDecoder = null
         super.onDestroy()
     }
 

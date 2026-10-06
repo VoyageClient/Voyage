@@ -20,6 +20,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.view.ViewTreeObserver
 import android.view.animation.DecelerateInterpolator
 import im.vector.app.features.attachments.ZoomPanGesture
 import im.vector.app.features.attachments.editor.AngleSnap
@@ -473,6 +474,23 @@ class VideoCropOverlayView @JvmOverloads constructor(
             relayoutTo(rotationDegrees)
         }
         invalidate()
+    }
+
+    // The surface sits beneath this view and has already drawn by the time onDraw runs, so a transform
+    // handed over from there would only show a frame later, trailing the crop box.
+    private val transformBeforeDraw = ViewTreeObserver.OnPreDrawListener {
+        computeGeometry()
+        true
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        viewTreeObserver.addOnPreDrawListener(transformBeforeDraw)
+    }
+
+    override fun onDetachedFromWindow() {
+        viewTreeObserver.removeOnPreDrawListener(transformBeforeDraw)
+        super.onDetachedFromWindow()
     }
 
     override fun onDraw(canvas: Canvas) {

@@ -25,6 +25,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
+import androidx.core.graphics.withMatrix
 import im.vector.app.features.attachments.ZoomPanGesture
 import im.vector.app.features.attachments.editor.AngleSnap
 import im.vector.app.features.attachments.editor.CropRatio
@@ -55,6 +56,15 @@ private const val PAN_SLACK_FRACTION = 0.5f
 private const val EDGE_INSET_FRACTION = 0.06f
 
 private const val ROTATE_GRID_DIVISIONS = 6
+
+/** Waits for a zoom or pan to settle before re-decoding the region it shows. */
+private const val DETAIL_DELAY_MS = 150L
+
+/** Decoded around the visible region, so a small pan does not need another decode. */
+private const val DETAIL_MARGIN_FRACTION = 0.15f
+
+/** What the oldest GPUs this fork runs on accept, until a draw reports the real limit. */
+private const val DEFAULT_MAX_BITMAP_SIZE = 2048
 
 /**
  * Renders the image being edited plus its crop window, censors and brush strokes, and turns touches
@@ -183,6 +193,37 @@ class ImageEditorView @JvmOverloads constructor(
     private val drawMatrix = Matrix()
     private val toSourceSpace = Matrix()
     private val touchPoint = FloatArray(2)
+
+    /** Sharpens the still image past [bitmap]'s own resolution as the view zooms in. Owned by the view, which closes it. */
+    var detailDecoder: ImageDetailDecoder? = null
+        set(value) {
+            field?.close()
+            field = value
+            clearDetail()
+            invalidate()
+        }
+    private var detail: ImageDetailDecoder.Detail? = null
+    private val detailDrawRect = RectF()
+    private val screenToImage = Matrix()
+    private val visibleRegion = RectF()
+    private val pendingDetailRect = RectF()
+    private var pendingDetailSample = 0
+    private var maxBitmapSize = DEFAULT_MAX_BITMAP_SIZE
+    private val requestedDetailRect = RectF()
+    private var requestedDetailSample = 0
+    private val requestDetail = Runnable {
+        val decoder = detailDecoder ?: return@Runnable
+        requestedDetailRect.set(pendingDetailRect)
+        val sample = pendingDetailSample
+        requestedDetailSample = sample
+        decoder.request(pendingDetailRect, sample, maxBitmapSize) { result ->
+            // A failed decode leaves the previous detail up; its pixels are still right, just elsewhere.
+            if (result != null && requestedDetailSample == sample) {
+                detail = result
+                invalidate()
+            }
+        }
+    }
 
     private val bitmapPaint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
     private val censorPaint = Paint()
@@ -333,6 +374,7 @@ class ImageEditorView @JvmOverloads constructor(
 
     fun setBitmap(value: Bitmap) {
         setAnimatedDrawable(null)
+        clearDetail()
         bitmap = value
         onImageSized()
         requestLayout()
@@ -386,6 +428,7 @@ class ImageEditorView @JvmOverloads constructor(
         animatedDrawable = value
         if (value != null) {
             bitmap = null
+            detailDecoder = null
             value.callback = this
             value.setBounds(0, 0, imageWidth, imageHeight)
             onImageSized()
@@ -740,6 +783,8 @@ class ImageEditorView @JvmOverloads constructor(
             canvas.restoreToCount(saved)
         } else {
             bitmap?.let { canvas.drawBitmap(it, drawMatrix, bitmapPaint) }
+            drawDetail(canvas)
+            scheduleDetail()
         }
         drawAnnotations(canvas)
 
@@ -781,6 +826,51 @@ class ImageEditorView @JvmOverloads constructor(
         canvas.rotate(userRotation + tiltDegrees, imageRect.centerX(), imageRect.centerY())
         block()
         canvas.restoreToCount(saved)
+    }
+
+    private fun drawDetail(canvas: Canvas) {
+        maxBitmapSize = min(canvas.maximumBitmapWidth, canvas.maximumBitmapHeight)
+        val current = detail ?: return
+        val w = imageWidth.toFloat()
+        val h = imageHeight.toFloat()
+        detailDrawRect.set(current.rect.left * w, current.rect.top * h, current.rect.right * w, current.rect.bottom * h)
+        canvas.withMatrix(drawMatrix) { drawBitmap(current.bitmap, null, detailDrawRect, bitmapPaint) }
+    }
+
+    private fun scheduleDetail() {
+        val decoder = detailDecoder ?: return
+        val w = imageWidth.toFloat()
+        val h = imageHeight.toFloat()
+        val sample = decoder.sampleFor(w * drawMatrix.mapRadius(1f))
+        if (sample == null) {
+            clearDetail()
+            return
+        }
+        if (!drawMatrix.invert(screenToImage)) return
+        visibleRegion.set(0f, 0f, width.toFloat(), height.toFloat())
+        screenToImage.mapRect(visibleRegion)
+        if (!visibleRegion.intersect(0f, 0f, w, h)) return
+        visibleRegion.set(visibleRegion.left / w, visibleRegion.top / h, visibleRegion.right / w, visibleRegion.bottom / h)
+        val covered = { rect: RectF, rectSample: Int -> rectSample in 1..sample && rect.contains(visibleRegion) }
+        if (covered(requestedDetailRect, requestedDetailSample) || covered(pendingDetailRect, pendingDetailSample)) return
+        val marginX = visibleRegion.width() * DETAIL_MARGIN_FRACTION
+        val marginY = visibleRegion.height() * DETAIL_MARGIN_FRACTION
+        pendingDetailRect.set(
+                (visibleRegion.left - marginX).coerceAtLeast(0f),
+                (visibleRegion.top - marginY).coerceAtLeast(0f),
+                (visibleRegion.right + marginX).coerceAtMost(1f),
+                (visibleRegion.bottom + marginY).coerceAtMost(1f),
+        )
+        pendingDetailSample = sample
+        removeCallbacks(requestDetail)
+        postDelayed(requestDetail, DETAIL_DELAY_MS)
+    }
+
+    private fun clearDetail() {
+        removeCallbacks(requestDetail)
+        detail = null
+        pendingDetailSample = 0
+        requestedDetailSample = 0
     }
 
     private fun drawAnnotations(canvas: Canvas) {
