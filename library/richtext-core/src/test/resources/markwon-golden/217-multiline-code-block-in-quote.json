@@ -1,0 +1,98 @@
+{
+  "input": "<blockquote>\n<p>quoted intro</p>\n<pre><code>line one\n  indented line\nline three\n</code></pre>\n</blockquote>\n<p>after</p>\n",
+  "compressed": "<blockquote> <p>quoted intro</p> <pre><code>line one\n  indented line\nline three\n</code></pre> </blockquote> <p>after</p>",
+  "text": "quoted intro\n \nline one\nindented line\nline three\n\nafter",
+  "spans": [
+    {
+      "start": 0,
+      "end": 48,
+      "kind": "blockquote"
+    },
+    {
+      "start": 0,
+      "end": 12,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    },
+    {
+      "start": 15,
+      "end": 48,
+      "kind": "codeBlock"
+    },
+    {
+      "start": 50,
+      "end": 55,
+      "kind": "verticalPadding",
+      "top": 4.0,
+      "bottom": 4.0
+    }
+  ],
+  "markwon": {
+    "text": "quoted intro\n \nline one\nindented line\nline three\n\nafter",
+    "spans": [
+      {
+        "start": 0,
+        "end": 48,
+        "kind": "blockquote"
+      },
+      {
+        "start": 0,
+        "end": 12,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      },
+      {
+        "start": 15,
+        "end": 48,
+        "kind": "codeBlock"
+      },
+      {
+        "start": 15,
+        "end": 48,
+        "kind": "intermediateCode",
+        "block": true
+      },
+      {
+        "start": 50,
+        "end": 55,
+        "kind": "verticalPadding",
+        "top": 4.0,
+        "bottom": 4.0
+      }
+    ]
+  },
+  "segments": [
+    {
+      "kind": "html",
+      "html": "<blockquote><p>quoted intro</p></blockquote>",
+      "text": "quoted intro",
+      "spans": [
+        {
+          "start": 0,
+          "end": 12,
+          "kind": "blockquote"
+        },
+        {
+          "start": 0,
+          "end": 12,
+          "kind": "verticalPadding",
+          "top": 4.0,
+          "bottom": 4.0
+        }
+      ]
+    },
+    {
+      "kind": "code",
+      "code": "line one\n  indented line\nline three",
+      "quoteDepth": 1
+    },
+    {
+      "kind": "html",
+      "html": "<p>after</p>",
+      "text": "after",
+      "spans": []
+    }
+  ]
+}

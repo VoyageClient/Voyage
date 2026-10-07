@@ -18,5 +18,25 @@
         "kind": "blockquote"
       }
     ]
-  }
+  },
+  "segments": [
+    {
+      "kind": "table",
+      "rows": [
+        {
+          "header": false,
+          "cells": [
+            {
+              "header": false,
+              "align": "left",
+              "html": "in quote",
+              "text": "in quote",
+              "spans": []
+            }
+          ]
+        }
+      ],
+      "quoteDepth": 1
+    }
+  ]
 }

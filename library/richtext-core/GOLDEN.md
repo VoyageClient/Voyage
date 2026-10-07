@@ -40,11 +40,13 @@ profile; no room summaries / members exist; `roomId = !roomid:example.org`; `lat
    `removeLeadingNewlineForInlineElement` (issue #423), `IntermediateCodeSpan` cleanup, emote binding.
    → stored as the top-level `text` / `spans`: **this is what the timeline shows** and the target.
 
-When the compressed body has a top-level `<table>` or `<pre>`, the timeline doesn't show `text` at all;
+When the compressed body has a top-level `<table>` or `<pre>` (or one inside a `<blockquote>`), the timeline doesn't show `text` at all;
 it shows `segments` (`HtmlBodySegmenter.segment(compressed)`, rendered by `RichMessageBodyRenderer`).
 Each `html` segment and each table cell goes through steps 3, 6, 7 individually (no `EventTextRenderer`,
-no `trimUncoveredWhitespace`; cell html is `trim()`med first). A `<table>`/`<pre>` nested inside another
-element does not trigger segmentation (single `html` segment → no `segments` key, plain `text` is shown).
+no `trimUncoveredWhitespace`; cell html is `trim()`med first). A `<blockquote>` holding a `<table>`/`<pre>`
+is descended into: the block gets `quoteDepth` (its number of enclosing quotes, drawn as stripes) and the
+text around it is re-wrapped in the `<blockquote>`. A `<table>`/`<pre>` nested inside any other element does
+not trigger segmentation (single `html` segment → no `segments` key, plain `text` is shown).
 
 ## JSON schema
 
@@ -56,8 +58,8 @@ element does not trigger segmentation (single `html` segment → no `segments` k
   "spans":      [ {start, end, kind, ...attrs, flags?}, ... ],   // sorted start asc, end desc, kind asc
   "markwon":    { "text", "spans" },                              // after step 4
   "segments"?:  [ {kind:"html", html, text, spans}
-                | {kind:"code", code}
-                | {kind:"table", rows:[ {header, cells:[ {header, align:"left|center|right", html, text, spans} ]} ]} ],
+                | {kind:"code", code, quoteDepth?}
+                | {kind:"table", rows:[ {header, cells:[ {header, align:"left|center|right", html, text, spans} ]} ], quoteDepth?} ],
   "error"?:     exception text if the case threw (none currently)
 }
 ```

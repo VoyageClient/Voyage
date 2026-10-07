@@ -63,6 +63,50 @@ class HtmlBodySegmenterTest {
     }
 
     @Test
+    fun `a code block inside a quote keeps its indentation and the quote depth`() {
+        val segments = HtmlBodySegmenter.segment("<blockquote>\n<pre><code>one\n  two\n</code></pre>\n</blockquote>")
+
+        val code = segments.single() as BodySegment.Code
+        assertEquals("one\n  two", code.code)
+        assertEquals(1, code.quoteDepth)
+    }
+
+    @Test
+    fun `text around a quoted block stays quoted`() {
+        val segments = HtmlBodySegmenter.segment("<blockquote><p>before</p><pre><code>x</code></pre><p>after</p></blockquote><p>out</p>")
+
+        assertEquals(4, segments.size)
+        assertEquals("<blockquote><p>before</p></blockquote>", (segments[0] as BodySegment.Html).html)
+        assertEquals(1, (segments[1] as BodySegment.Code).quoteDepth)
+        assertEquals("<blockquote><p>after</p></blockquote>", (segments[2] as BodySegment.Html).html)
+        assertEquals("<p>out</p>", (segments[3] as BodySegment.Html).html)
+    }
+
+    @Test
+    fun `nested quotes and spoilers combine`() {
+        val segments = HtmlBodySegmenter.segment(
+                "<blockquote><blockquote><span data-mx-spoiler>hi<table><tr><td>c</td></tr></table></span></blockquote></blockquote>"
+        )
+
+        assertEquals(
+                """<blockquote><blockquote><span data-mx-spoiler="">hi</span></blockquote></blockquote>""",
+                (segments[0] as BodySegment.Html).html
+        )
+        val table = segments[1] as BodySegment.Table
+        assertEquals(2, table.quoteDepth)
+        assertTrue(table.spoiler)
+    }
+
+    @Test
+    fun `a quote without blocks is left whole for the spannable`() {
+        val html = "<blockquote><p>quoted</p></blockquote><pre><code>x</code></pre>"
+        val segments = HtmlBodySegmenter.segment(html)
+
+        assertEquals("<blockquote><p>quoted</p></blockquote>", (segments[0] as BodySegment.Html).html.replace(Regex("\\s"), ""))
+        assertEquals(0, (segments[1] as BodySegment.Code).quoteDepth)
+    }
+
+    @Test
     fun `blocks outside a spoiler are not covered`() {
         val segments = HtmlBodySegmenter.segment("<pre><code>x</code></pre>")
 

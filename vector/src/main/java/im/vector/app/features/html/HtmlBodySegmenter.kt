@@ -17,9 +17,9 @@ sealed class BodySegment {
     data class Html(val html: String) : BodySegment()
 
     // These leave the spannable for views of their own, so a spoiler over one is drawn as a cover
-    // rather than carried by the spoiler span.
-    data class Table(val rows: List<TableRowData>, val spoiler: Boolean = false) : BodySegment()
-    data class Code(val code: String, val spoiler: Boolean = false) : BodySegment()
+    // and an enclosing blockquote as a stripe, rather than carried by spans.
+    data class Table(val rows: List<TableRowData>, val spoiler: Boolean = false, val quoteDepth: Int = 0) : BodySegment()
+    data class Code(val code: String, val spoiler: Boolean = false, val quoteDepth: Int = 0) : BodySegment()
 }
 
 data class TableRowData(val isHeader: Boolean, val cells: List<TableCellData>)
@@ -38,38 +38,44 @@ object HtmlBodySegmenter {
         val doc = Jsoup.parseBodyFragment(html)
         val segments = mutableListOf<BodySegment>()
         val currentHtml = StringBuilder()
-        collect(doc.body().childNodes(), segments, currentHtml, spoiler = null)
-        flushHtml(segments, currentHtml, spoiler = null)
+        collect(doc.body().childNodes(), segments, currentHtml, wrappers = emptyList())
+        flushHtml(segments, currentHtml, wrappers = emptyList())
         return segments
     }
 
     /**
      * Splits [nodes] into inline runs and the blocks that need views of their own, descending through
-     * spoiler wrappers so a code block or table inside one is still rendered as a code block or table.
-     * [spoiler] is the wrapper's own tag, re-applied around the inline runs so they still blur.
+     * spoiler and blockquote wrappers so a code block or table inside one is still rendered as a code
+     * block or table. [wrappers] (outermost first) are re-applied around the inline runs so they still
+     * blur / keep their quote stripe.
      */
-    private fun collect(nodes: List<Node>, segments: MutableList<BodySegment>, currentHtml: StringBuilder, spoiler: Element?) {
+    private fun collect(nodes: List<Node>, segments: MutableList<BodySegment>, currentHtml: StringBuilder, wrappers: List<Element>) {
+        val spoiler = wrappers.any { it.isSpoiler() }
+        val quoteDepth = wrappers.count { it.isBlockQuote() }
         for (node in nodes) {
             when {
                 node is Element && node.tagName().equals("table", ignoreCase = true) -> {
-                    flushHtml(segments, currentHtml, spoiler)
-                    segments += BodySegment.Table(parseTable(node), spoiler = spoiler != null)
+                    flushHtml(segments, currentHtml, wrappers)
+                    segments += BodySegment.Table(parseTable(node), spoiler = spoiler, quoteDepth = quoteDepth)
                 }
                 node is Element && node.tagName().equals("pre", ignoreCase = true) -> {
-                    flushHtml(segments, currentHtml, spoiler)
-                    segments += BodySegment.Code(parsePre(node), spoiler = spoiler != null)
+                    flushHtml(segments, currentHtml, wrappers)
+                    segments += BodySegment.Code(parsePre(node), spoiler = spoiler, quoteDepth = quoteDepth)
                 }
-                // Only descend for a spoiler that actually wraps a block; anything else stays inline so
+                // Only descend for a wrapper that actually contains a block; anything else stays inline so
                 // the spannable keeps the structure Markwon gives it.
-                node is Element && spoiler == null && node.hasAttr(SPOILER_ATTRIBUTE) && node.wrapsBlock() -> {
-                    flushHtml(segments, currentHtml, spoiler = null)
-                    collect(node.childNodes(), segments, currentHtml, spoiler = node)
-                    flushHtml(segments, currentHtml, spoiler = node)
+                node is Element && (node.isSpoiler() || node.isBlockQuote()) && node.wrapsBlock() -> {
+                    flushHtml(segments, currentHtml, wrappers)
+                    collect(node.childNodes(), segments, currentHtml, wrappers + node)
+                    flushHtml(segments, currentHtml, wrappers + node)
                 }
                 else -> currentHtml.append(node.outerHtml())
             }
         }
     }
+
+    private fun Element.isSpoiler() = hasAttr(SPOILER_ATTRIBUTE)
+    private fun Element.isBlockQuote() = tagName().equals("blockquote", ignoreCase = true)
 
     private fun Element.wrapsBlock(): Boolean = select("pre, table").isNotEmpty()
 
@@ -81,14 +87,14 @@ object HtmlBodySegmenter {
         return codeEl.wholeText().removeSuffix("\n")
     }
 
-    private fun flushHtml(out: MutableList<BodySegment>, buf: StringBuilder, spoiler: Element?) {
+    private fun flushHtml(out: MutableList<BodySegment>, buf: StringBuilder, wrappers: List<Element>) {
         if (buf.isBlank()) {
             buf.clear()
             return
         }
-        val html = buf.toString()
-        // Re-wrap so the inline half of a spoiler still gets its span, with the reason it carried.
-        out += BodySegment.Html(if (spoiler == null) html else spoiler.reopened(html))
+        // Re-wrap so the inline half of a spoiler still gets its span (with the reason it carried) and
+        // the inline half of a quote its stripe.
+        out += BodySegment.Html(wrappers.foldRight(buf.toString()) { wrapper, inner -> wrapper.reopened(inner) })
         buf.clear()
     }
 

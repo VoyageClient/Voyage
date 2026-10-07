@@ -9,13 +9,14 @@ package im.vector.lib.richtext
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import org.jsoup.nodes.Entities
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 
 sealed class BodySegment {
     data class Html(val html: String) : BodySegment()
-    data class Table(val rows: List<TableRowData>) : BodySegment()
-    data class Code(val code: String) : BodySegment()
+    data class Table(val rows: List<TableRowData>, val quoteDepth: Int = 0) : BodySegment()
+    data class Code(val code: String, val quoteDepth: Int = 0) : BodySegment()
 }
 
 data class TableRowData(val isHeader: Boolean, val cells: List<TableCellData>)
@@ -30,24 +31,33 @@ object HtmlBodySegmenter {
             return listOf(BodySegment.Html(html))
         }
         val doc = Jsoup.parseBodyFragment(html)
-        val body = doc.body()
         val segments = mutableListOf<BodySegment>()
         val currentHtml = StringBuilder()
-        for (node in body.childNodes()) {
+        collect(doc.body().childNodes(), segments, currentHtml, quotes = emptyList())
+        flushHtml(segments, currentHtml, quotes = emptyList())
+        return segments
+    }
+
+    // Descends through a blockquote that wraps a block, re-wrapping the inline runs around it in [quotes].
+    private fun collect(nodes: List<Node>, segments: MutableList<BodySegment>, currentHtml: StringBuilder, quotes: List<Element>) {
+        for (node in nodes) {
             when {
                 node is Element && node.tagName().equals("table", ignoreCase = true) -> {
-                    flushHtml(segments, currentHtml)
-                    segments += BodySegment.Table(parseTable(node))
+                    flushHtml(segments, currentHtml, quotes)
+                    segments += BodySegment.Table(parseTable(node), quoteDepth = quotes.size)
                 }
                 node is Element && node.tagName().equals("pre", ignoreCase = true) -> {
-                    flushHtml(segments, currentHtml)
-                    segments += BodySegment.Code(parsePre(node))
+                    flushHtml(segments, currentHtml, quotes)
+                    segments += BodySegment.Code(parsePre(node), quoteDepth = quotes.size)
+                }
+                node is Element && node.tagName().equals("blockquote", ignoreCase = true) && node.select("pre, table").isNotEmpty() -> {
+                    flushHtml(segments, currentHtml, quotes)
+                    collect(node.childNodes(), segments, currentHtml, quotes + node)
+                    flushHtml(segments, currentHtml, quotes + node)
                 }
                 else -> currentHtml.append(node.outerHtml())
             }
         }
-        flushHtml(segments, currentHtml)
-        return segments
     }
 
     // wholeText() keeps the original whitespace/newlines (unlike text(), which collapses them), so a
@@ -58,13 +68,18 @@ object HtmlBodySegmenter {
         return codeEl.wholeText().removeSuffix("\n")
     }
 
-    private fun flushHtml(out: MutableList<BodySegment>, buf: StringBuilder) {
+    private fun flushHtml(out: MutableList<BodySegment>, buf: StringBuilder, quotes: List<Element>) {
         if (buf.isBlank()) {
             buf.clear()
             return
         }
-        out += BodySegment.Html(buf.toString())
+        out += BodySegment.Html(quotes.foldRight(buf.toString()) { quote, inner -> quote.reopened(inner) })
         buf.clear()
+    }
+
+    private fun Element.reopened(inner: String): String {
+        val attributes = attributes().joinToString("") { " ${it.key}=\"${Entities.escape(it.value)}\"" }
+        return "<${tagName()}$attributes>$inner</${tagName()}>"
     }
 
     private fun parseTable(table: Element): List<TableRowData> {

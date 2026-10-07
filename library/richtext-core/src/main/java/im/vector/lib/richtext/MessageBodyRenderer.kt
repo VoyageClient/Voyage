@@ -12,14 +12,14 @@ import im.vector.lib.richtext.linkify.MatrixIdentifiers
 
 sealed class RenderedSegment {
     data class Text(val html: String, val text: RichText) : RenderedSegment()
-    data class Code(val code: String) : RenderedSegment()
-    data class Table(val rows: List<Row>) : RenderedSegment() {
+    data class Code(val code: String, val quoteDepth: Int = 0) : RenderedSegment()
+    data class Table(val rows: List<Row>, val quoteDepth: Int = 0) : RenderedSegment() {
         data class Row(val isHeader: Boolean, val cells: List<Cell>)
         data class Cell(val isHeader: Boolean, val alignment: Alignment, val html: String, val text: RichText)
     }
 }
 
-/** What the timeline shows for a formatted body: [text], or [segments] when a top-level table / code block is present. */
+/** What the timeline shows for a formatted body: [text], or [segments] when a table / code block (top-level or quoted) is present. */
 data class FormattedBody(val compressed: String, val text: RichText, val segments: List<RenderedSegment>?)
 
 /**
@@ -89,7 +89,7 @@ class MessageBodyRenderer(
 
     private fun renderSegment(segment: BodySegment): RenderedSegment = when (segment) {
         is BodySegment.Html -> RenderedSegment.Text(segment.html, renderFragment(segment.html))
-        is BodySegment.Code -> RenderedSegment.Code(segment.code)
+        is BodySegment.Code -> RenderedSegment.Code(segment.code, segment.quoteDepth)
         is BodySegment.Table -> RenderedSegment.Table(
                 segment.rows.map { row ->
                     RenderedSegment.Table.Row(
@@ -104,7 +104,8 @@ class MessageBodyRenderer(
                                 )
                             }
                     )
-                }
+                },
+                segment.quoteDepth,
         )
     }
 

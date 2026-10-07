@@ -34,5 +34,12 @@
         "block": true
       }
     ]
-  }
+  },
+  "segments": [
+    {
+      "kind": "code",
+      "code": "quoted code",
+      "quoteDepth": 1
+    }
+  ]
 }

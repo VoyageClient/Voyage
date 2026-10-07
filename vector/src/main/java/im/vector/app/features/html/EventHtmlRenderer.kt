@@ -214,8 +214,8 @@ class EventHtmlRenderer @Inject constructor(
     private val blockQuotePlugin = object : AbstractMarkwonPlugin() {
         override fun configureSpansFactory(builder: MarkwonSpansFactory.Builder) {
             val density = context.resources.displayMetrics.density
-            val stripeWidth = (4 * density).toInt()
-            val margin = (8 * density).toInt()
+            val stripeWidth = (QuoteMarginSpan.STRIPE_WIDTH_DP * density).toInt()
+            val margin = (QuoteMarginSpan.MARGIN_DP * density).toInt()
             builder.setFactory(BlockQuote::class.java) { _, _ -> QuoteMarginSpan(stripeWidth, margin) }
         }
     }

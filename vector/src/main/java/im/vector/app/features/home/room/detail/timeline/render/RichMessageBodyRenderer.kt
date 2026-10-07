@@ -34,6 +34,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.Alignment
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.QuoteMarginSpan
 import im.vector.app.features.html.TableCellData
 import im.vector.app.features.html.TableRowData
 import im.vector.app.features.settings.VectorPreferences
@@ -125,11 +126,13 @@ class RichMessageBodyRenderer @Inject constructor(
                     container.addView(
                             buildTable(ctx, segment.rows, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback)
                                     .coveredIfSpoiler(segment.spoiler, interactive, binding)
+                                    .quoted(segment.quoteDepth, defaultColorAttr)
                     )
                 is BodySegment.Code ->
                     container.addView(
                             buildCodeBlock(ctx, segment.code, interactive, fullBleed, binding)
                                     .coveredIfSpoiler(segment.spoiler, interactive, binding)
+                                    .quoted(segment.quoteDepth, defaultColorAttr)
                     )
             }
         }
@@ -149,6 +152,12 @@ class RichMessageBodyRenderer @Inject constructor(
     private fun View.coveredIfSpoiler(spoiler: Boolean, interactive: Boolean, binding: RichBodyBinding): View {
         if (!spoiler) return this
         return SpoilerBlockLayout.cover(this, interactive) { binding.onLongClick(it) }
+    }
+
+    private fun View.quoted(depth: Int, colorAttr: Int): View {
+        if (depth == 0) return this
+        val stripeColor = ColorUtils.setAlphaComponent(themeColor(context, colorAttr), QuoteMarginSpan.BLOCK_QUOTE_ALPHA)
+        return QuoteBlockLayout.wrap(this, depth, dim.dpToPx(QuoteMarginSpan.STRIPE_WIDTH_DP), dim.dpToPx(QuoteMarginSpan.MARGIN_DP), stripeColor)
     }
 
     // Per-container render state: the current click lambdas (read at click time so an unchanged

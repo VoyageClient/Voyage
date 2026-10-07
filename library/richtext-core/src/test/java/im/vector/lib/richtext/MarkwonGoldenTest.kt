@@ -90,7 +90,7 @@ class MarkwonGoldenTest {
     private fun dumpSegments(segments: List<RenderedSegment>): List<Map<String, Any?>> = segments.map { segment ->
         when (segment) {
             is RenderedSegment.Text -> linkedMapOf<String, Any?>("kind" to "html", "html" to segment.html) + SpanDump.dump(segment.text)
-            is RenderedSegment.Code -> linkedMapOf<String, Any?>("kind" to "code", "code" to segment.code)
+            is RenderedSegment.Code -> linkedMapOf<String, Any?>("kind" to "code", "code" to segment.code) + quoteDepth(segment.quoteDepth)
             is RenderedSegment.Table -> linkedMapOf<String, Any?>(
                     "kind" to "table",
                     "rows" to segment.rows.map { row ->
@@ -105,9 +105,11 @@ class MarkwonGoldenTest {
                                 }
                         )
                     }
-            )
+            ) + quoteDepth(segment.quoteDepth)
         }
     }
+
+    private fun quoteDepth(depth: Int): Map<String, Any?> = if (depth > 0) mapOf("quoteDepth" to depth) else emptyMap()
 
     private fun goldens(): List<Pair<String, Map<String, Any?>>> =
             goldenDir.listFiles { f -> f.extension == "json" }!!.sortedBy { it.name }.map { file ->

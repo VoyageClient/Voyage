@@ -43,7 +43,10 @@ class QuoteMarginSpan(
     }
 
     companion object {
+        const val STRIPE_WIDTH_DP = 4
+        const val MARGIN_DP = 8
+
         // Matches Markwon's default blockquote stripe translucency.
-        private const val BLOCK_QUOTE_ALPHA = 25
+        const val BLOCK_QUOTE_ALPHA = 25
     }
 }

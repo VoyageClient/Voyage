@@ -140,7 +140,7 @@ class MarkwonGoldenDumpTest {
                 out["segments"] = segments.map { segment ->
                     when (segment) {
                         is BodySegment.Html -> linkedMapOf<String, Any?>("kind" to "html", "html" to segment.html) + renderFragment(segment.html)
-                        is BodySegment.Code -> linkedMapOf<String, Any?>("kind" to "code", "code" to segment.code)
+                        is BodySegment.Code -> linkedMapOf<String, Any?>("kind" to "code", "code" to segment.code) + quoteDepth(segment.quoteDepth)
                         is BodySegment.Table -> linkedMapOf<String, Any?>(
                                 "kind" to "table",
                                 "rows" to segment.rows.map { row ->
@@ -156,13 +156,15 @@ class MarkwonGoldenDumpTest {
                                             }
                                     )
                                 }
-                        )
+                        ) + quoteDepth(segment.quoteDepth)
                     }
                 }
             }
         }
         return out
     }
+
+    private fun quoteDepth(depth: Int): Map<String, Any?> = if (depth > 0) mapOf("quoteDepth" to depth) else emptyMap()
 
     // RichMessageBodyRenderer.buildTextView / buildCellView: render(html, pills).linkify(...)
     private fun renderFragment(html: String): Map<String, Any?> {
