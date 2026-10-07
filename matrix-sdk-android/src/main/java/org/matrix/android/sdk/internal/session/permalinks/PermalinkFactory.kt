@@ -166,7 +166,7 @@ internal class PermalinkFactory @Inject constructor(
     }
 
     companion object {
-        private const val VIA_PARAMS_MAX = 3
+        const val VIA_PARAMS_MAX = 3
         private const val ROOM_PATH = "room/"
         private const val USER_PATH = "user/"
         private const val GROUP_PATH = "group/"

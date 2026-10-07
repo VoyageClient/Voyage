@@ -22,8 +22,13 @@ import org.matrix.android.sdk.internal.util.uriHost
 import javax.inject.Inject
 
 internal class DefaultPermalinkService @Inject constructor(
-        private val permalinkFactory: PermalinkFactory
+        private val permalinkFactory: PermalinkFactory,
+        private val viaParameterFinder: ViaParameterFinder,
 ) : PermalinkService {
+
+    override fun computeViaServers(roomId: String): List<String> {
+        return viaParameterFinder.computeViaParams(roomId, PermalinkFactory.VIA_PARAMS_MAX)
+    }
 
     override fun createPermalink(event: Event, forceMatrixTo: Boolean): String? {
         return permalinkFactory.createPermalink(event, forceMatrixTo)

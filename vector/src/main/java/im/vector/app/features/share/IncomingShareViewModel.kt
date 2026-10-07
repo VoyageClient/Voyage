@@ -88,7 +88,7 @@ class IncomingShareViewModel @AssistedInject constructor(
     override fun handle(action: IncomingShareAction) {
         when (action) {
             is IncomingShareAction.SelectRoom -> handleSelectRoom(action)
-            is IncomingShareAction.ShareToSelectedRooms -> handleShareToSelectedRooms(action.asQuote)
+            is IncomingShareAction.ShareToSelectedRooms -> handleShareToSelectedRooms(action.silent)
             is IncomingShareAction.ShareToRoom -> handleShareToRoom(action)
             is IncomingShareAction.ShareMedia -> handleShareMediaToSelectedRooms(action)
             is IncomingShareAction.FilterWith -> handleFilter(action)
@@ -104,7 +104,7 @@ class IncomingShareViewModel @AssistedInject constructor(
         filterStream.tryEmit(action.filter)
     }
 
-    private fun handleShareToSelectedRooms(asQuote: Boolean = false) = withState { state ->
+    private fun handleShareToSelectedRooms(silent: Boolean = false) = withState { state ->
         val sharedData = state.sharedData ?: return@withState
         if (state.selectedRoomIds.isEmpty()) return@withState
         // A forward is sent straight away, so it never goes through the room screen.
@@ -133,25 +133,23 @@ class IncomingShareViewModel @AssistedInject constructor(
                     )
                 }
                 is SharedData.Forward -> {
-                    forwardToRooms(sharedData, state.selectedRoomIds, asQuote)
+                    forwardToRooms(sharedData, state.selectedRoomIds, silent)
                 }
             }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun forwardToRooms(forward: SharedData.Forward, roomIds: Set<String>, asQuote: Boolean) {
-        var content = ForwardPayloadHolder.take(forward.payloadId) as? Map<String, Any> ?: run {
+    private fun forwardToRooms(forward: SharedData.Forward, roomIds: Set<String>, silent: Boolean) {
+        val payload = ForwardPayloadHolder.take(forward.payloadId) as? Map<String, Any> ?: run {
             _viewEvents.post(IncomingShareViewEvents.ForwardFailed)
             return
         }
-        if (asQuote) {
-            content = quoteForwardContent(forward.eventType, content) as Map<String, Any>
-        }
-        // An empty block rather than none: the server's legacy body-matching rules would otherwise notify.
-        content = content + ("m.mentions" to emptyMap<String, Any>())
-        roomIds.forEach { roomId ->
-            session.getRoom(roomId)?.sendService()?.sendEvent(forward.eventType, content)
+        viewModelScope.launch(Dispatchers.IO) {
+            val content = session.buildForwardContent(forward.eventType, payload, silent)
+            roomIds.forEach { roomId ->
+                session.getRoom(roomId)?.sendService()?.sendEvent(forward.eventType, content)
+            }
         }
         // Opening a room only makes sense when there is exactly one to open.
         _viewEvents.post(IncomingShareViewEvents.ForwardDone(roomIds.singleOrNull()))

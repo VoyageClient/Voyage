@@ -12,6 +12,7 @@ import android.text.Spanned
 import android.text.style.StyleSpan
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import io.mockk.every
 import io.mockk.mockk
@@ -58,6 +59,7 @@ class EmoteFormattingTest {
             },
             pillsPostProcessorFactory = mockk(relaxed = true),
             textRendererFactory = mockk(relaxed = true),
+            forwardedMessages = ForwardedMessagePresenter(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true)),
     )
 
     // No room id, so the preview skips the per-room pill processors and renders the body as is.

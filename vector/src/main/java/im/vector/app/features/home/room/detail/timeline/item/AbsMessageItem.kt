@@ -9,8 +9,13 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.annotation.SuppressLint
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.method.MovementMethod
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -18,14 +23,20 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.MarginLayoutParamsCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.core.widget.TextViewCompat
 import com.airbnb.epoxy.EpoxyAttribute
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.core.platform.ProfileColorFadeRegistry
 import im.vector.app.core.ui.views.SendStateImageView
@@ -37,14 +48,20 @@ import im.vector.app.features.home.room.detail.timeline.reply.PreviewReplyUiStat
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.LinkClickSourceHolder
+import im.vector.app.features.home.room.detail.timeline.tools.bindSenderNameFades
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.home.room.detail.timeline.view.canHideAvatars
 import im.vector.app.features.home.room.detail.timeline.view.infoInBubbles
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
 import org.matrix.android.sdk.api.util.MatrixItem
+import kotlin.math.ceil
+
+private const val FORWARDED_ICON_SCALE = 1.15f
+private const val FORWARDED_ICON_PADDING_DP = 4
 
 /**
  * Base timeline item that adds an optional information bar with the sender avatar, name, time, send state.
@@ -153,7 +170,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         // Indentation kept flat for easy diffing against upstream - end
         }
 
-        bindForwardedNotice(holder)
+        bindForwardedFrame(holder)
 
         // Threads
         val threadsMarker = im.vector.app.core.utils.PerfTrace.mark("bind.super.threads")
@@ -210,45 +227,135 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         replyMarker.end()
     }
 
-    // MSC2723
-    private fun bindForwardedNotice(holder: Holder) {
-        val noticeView = holder.forwardedNoticeView ?: return
+    // A forward is framed by a bar down the start edge beside a "Forwarded" header, the message, and a
+    // footer naming where and when it was first sent.
+    // The touch listener only records where the tap landed; performClick still runs the click listener.
+    @SuppressLint("ClickableViewAccessibility")
+    private fun bindForwardedFrame(holder: Holder) {
+        val header = holder.forwardedNoticeView ?: return
+        val footer = holder.forwardedFooterView
+        val bar = holder.forwardedBar
         val forwardedInfo = attributes.informationData.forwardedInfo
-        noticeView.setOnClickListener(null)
-        noticeView.setOnLongClickListener(null)
+        listOfNotNull(header, footer).forEach {
+            it.setOnClickListener(null)
+            it.setOnLongClickListener(null)
+            it.isClickable = false
+        }
+        header.setOnTouchListener(null)
+        val isBubble = attributes.informationData.messageLayout is TimelineMessageLayout.ScBubble
+        val res = header.resources
+        val indent = if (forwardedInfo == null) {
+            0
+        } else if (isBubble) {
+            res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bubble_text_inset)
+        } else {
+            // The content container brings its own start padding.
+            res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_text_inset) - holder.viewStubContainer.paddingLeft
+        }
+        holder.viewStubContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            if (MarginLayoutParamsCompat.getMarginStart(this) != indent) {
+                MarginLayoutParamsCompat.setMarginStart(this, indent)
+            }
+        }
+        if (!isBubble) {
+            // The send state belongs at the end of the whole forward, not of the quoted content.
+            val anchor = if (forwardedInfo != null && footer != null) R.id.messageForwardedFooterView else R.id.viewStubContainer
+            listOf(holder.sendStateImageView, holder.eventSendingIndicator).forEach { indicator ->
+                indicator.updateLayoutParams<RelativeLayout.LayoutParams> { addRule(RelativeLayout.ALIGN_BOTTOM, anchor) }
+            }
+        }
         if (forwardedInfo == null) {
-            noticeView.isVisible = false
+            header.isVisible = false
+            footer?.isVisible = false
+            bar?.isVisible = false
             return
         }
-        val context = noticeView.context
-        noticeView.isVisible = true
-        val label = when {
-            forwardedInfo.senderId != null -> context.getString(CommonStrings.forwarded_message_from_user, forwardedInfo.senderId)
-            forwardedInfo.fromThisRoom -> context.getString(CommonStrings.forwarded_message_from_this_room)
-            else -> context.getString(CommonStrings.forwarded_message)
+        val context = header.context
+        val sender = forwardedInfo.senderMatrixItem
+        header.isVisible = true
+        val senderRange = if (sender != null) {
+            val name = (sender.displayName ?: sender.id).prepareForDisplay()
+            val text = context.getString(CommonStrings.forwarded_message_from_user, name).prepareForDisplay()
+            val start = text.indexOf(name.toString())
+            header.text = SpannableStringBuilder(text).apply {
+                if (start >= 0) setSpan(attributes.messageColorProvider.senderNameSpan(sender), start, start + name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            header.bindSenderNameFades()
+            if (start >= 0) start until start + name.length else null
+        } else {
+            header.text = context.getString(CommonStrings.forwarded_message)
+            null
         }
-        noticeView.text = forwardedInfo.formattedDate
-                ?.let { context.getString(CommonStrings.forwarded_message_with_date, label, it) }
-                ?: label
+        bindForwardedIcon(header)
+
+        val roomName = forwardedInfo.roomName?.prepareForDisplay() ?: context.getString(CommonStrings.forwarded_unknown_room)
+        footer?.isVisible = true
+        footer?.text = listOfNotNull(roomName, forwardedInfo.formattedDate)
+                .joinToString(context.getString(CommonStrings.forwarded_footer_separator))
+
+        if (bar != null) {
+            bar.isVisible = true
+            if (bar.background == null) {
+                bar.backgroundCompat = GradientDrawable().apply {
+                    setColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary))
+                    cornerRadius = res.getDimension(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width) / 2
+                }
+            }
+            bar.updateLayoutParams<RelativeLayout.LayoutParams> {
+                addRule(RelativeLayout.ALIGN_BOTTOM, if (footer != null) R.id.messageForwardedFooterView else R.id.viewStubContainer)
+            }
+        }
+
+        if (isBubble) {
+            // The header and footer are clamped to the content column; widen it rather than cut them short.
+            val needed = listOfNotNull(header, footer).maxOf { it.naturalWidth() }
+            holder.viewStubContainer.minimumWidth = maxOf(ViewCompat.getMinimumWidth(holder.viewStubContainer), needed)
+        }
+
         val permalink = forwardedInfo.permalink
-        // Inside a bubble the accent reads as a stray highlight, so links keep the message text colour there.
-        val linkColor = if (attributes.informationData.messageLayout is TimelineMessageLayout.ScBubble) {
-            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
-        } else {
-            im.vector.lib.ui.styles.R.attr.vctr_accent
-        }
-        if (permalink == null) {
-            noticeView.isClickable = false
-            noticeView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
-        } else {
-            noticeView.setTextColor(ThemeUtils.getColor(context, linkColor))
-            noticeView.setOnClickListener {
+        val openOriginal = permalink?.let {
+            View.OnClickListener {
                 // Same-room jumps offer a way back to this message, as body permalinks do.
                 LinkClickSourceHolder.record(attributes.informationData.eventId)
-                attributes.callback?.onUrlClicked(permalink, noticeView.text.toString())
+                attributes.callback?.onUrlClicked(permalink, header.text.toString())
             }
-            noticeView.setOnLongClickListener(attributes.itemLongClickListener)
         }
+        footer?.setOnClickListener(openOriginal)
+        if (openOriginal != null) footer?.setOnLongClickListener(attributes.itemLongClickListener)
+
+        if (sender != null && senderRange != null) {
+            // A ClickableSpan would fire the header's own click too, so the tap position decides instead.
+            header.setOnTouchListener { _, event ->
+                if (event.actionMasked == MotionEvent.ACTION_DOWN) holder.lastForwardHeaderTouch = event.x to event.y
+                false
+            }
+            header.setOnClickListener {
+                val (x, y) = holder.lastForwardHeaderTouch ?: (-1f to -1f)
+                if (header.getOffsetForPosition(x, y) in senderRange) {
+                    attributes.callback?.onUrlClicked(PermalinkService.MATRIX_TO_URL_BASE + sender.id, sender.id)
+                } else {
+                    openOriginal?.onClick(header)
+                }
+            }
+            header.setOnLongClickListener(attributes.itemLongClickListener)
+        } else {
+            header.setOnClickListener(openOriginal)
+            if (openOriginal != null) header.setOnLongClickListener(attributes.itemLongClickListener)
+        }
+    }
+
+    private fun bindForwardedIcon(header: TextView) {
+        val icon = DrawableCompat.wrap(AppCompatResources.getDrawable(header.context, R.drawable.ic_forward)?.mutate() ?: return)
+        DrawableCompat.setTint(icon, header.currentTextColor)
+        val size = (header.textSize * FORWARDED_ICON_SCALE).toInt()
+        icon.setBounds(0, 0, size, size)
+        TextViewCompat.setCompoundDrawablesRelative(header, icon, null, null, null)
+        header.compoundDrawablePadding = (header.resources.displayMetrics.density * FORWARDED_ICON_PADDING_DP).toInt()
+    }
+
+    private fun TextView.naturalWidth(): Int {
+        val icon = TextViewCompat.getCompoundDrawablesRelative(this)[0]?.bounds?.width()?.plus(compoundDrawablePadding) ?: 0
+        return ceil(paint.measureText(text.toString())).toInt() + icon + paddingLeft + paddingRight
     }
 
     /**
@@ -330,6 +437,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         holder.replyToView?.onBandStateChanged = null
         holder.forwardedNoticeView?.setOnClickListener(null)
         holder.forwardedNoticeView?.setOnLongClickListener(null)
+        holder.forwardedNoticeView?.setOnTouchListener(null)
+        holder.forwardedFooterView?.setOnClickListener(null)
+        holder.forwardedFooterView?.setOnLongClickListener(null)
         holder.redactionTint.clearBand()
         super.unbind(holder)
     }
@@ -367,6 +477,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         val eventSendingIndicator by bind<ProgressBar>(R.id.eventSendingIndicator)
         val replyToView: InReplyToView? by lazy { view.findViewById(R.id.inReplyToContainer) }
         val forwardedNoticeView: TextView? by lazy { view.findViewById(R.id.messageForwardedNoticeView) }
+        val forwardedFooterView: TextView? by lazy { view.findViewById(R.id.messageForwardedFooterView) }
+        val forwardedBar: View? by lazy { view.findViewById(R.id.messageForwardedBar) }
+        var lastForwardHeaderTouch: Pair<Float, Float>? = null
         var replyBandListener: View.OnLayoutChangeListener? = null
 
         // The message this holder's views currently show, for guarding async work posted by an earlier bind.

@@ -3306,8 +3306,6 @@
     <string name="sent_a_gallery">Mediengalerie.</string>
     <string name="action_save_all">Alle speichern</string>
     <string name="event_status_failed_message_warning">Nachricht konnte nicht gesendet werden</string>
-    <string name="forwarded_message">Weitergeleitete Nachricht</string>
-    <string name="forwarded_message_from_this_room">Weitergeleitet von weiter oben in diesem Raum</string>
     <string name="forwarded_message_from_user">Weitergeleitet von %1$s</string>
     <string name="error_rejected_by_policy_server">Vom Richtlinienserver dieses Raums abgelehnt, der Nachrichten automatisch auf Spam prüft.</string>
     <string name="settings_link_previews">Linkvorschauen</string>
@@ -3529,4 +3527,7 @@
     <string name="uploads_media_show_photos">Fotos anzeigen</string>
     <string name="uploads_media_show_videos">Videos anzeigen</string>
     <string name="home_init_sync">Erste Synchronisation</string>
+    <string name="forwarded_message">Weitergeleitet</string>
+    <string name="forwarded_emote_generic_sender">Absender</string>
+    <string name="forwarded_unknown_room">Unbekannter Raum</string>
 </resources>

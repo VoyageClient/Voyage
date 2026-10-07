@@ -19,6 +19,12 @@
 
     <dimen name="quote_gap">8dp</dimen>
 
+    <dimen name="forwarded_bar_width">4dp</dimen>
+    <!-- Bar margin + bar width + gap: where a forward's header, content and footer text starts. -->
+    <dimen name="forwarded_text_inset">20dp</dimen>
+    <!-- The same, for content that sits flush with its container (SC bubbles). -->
+    <dimen name="forwarded_bubble_text_inset">12dp</dimen>
+
     <item name="dialog_width_ratio" format="float" type="dimen">0.75</item>
 
     <dimen name="pill_avatar_size">20sp</dimen>

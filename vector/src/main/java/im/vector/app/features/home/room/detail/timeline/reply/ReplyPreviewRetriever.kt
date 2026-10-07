@@ -27,7 +27,6 @@ import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessage
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
-import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
@@ -469,7 +468,9 @@ class ReplyPreviewRetriever(
     fun renderedReplyBody(event: TimelineEvent): RenderedReplyBody? {
         val content = event.getLastMessageContent() as? MessageContentWithFormattedBody ?: return null
         val translation = messageTranslationStore.get(event)
-        val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}"
+        // A forward's original sender resolves to a name later than the body itself does.
+        val forwardedFrom = displayableEventFormatter.forwardedMessages.origin(event)?.name
+        val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}:$forwardedFrom"
         synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
         val built = buildReplyBody(content, event, translation)
         synchronized(replyBodyCache) {
@@ -505,15 +506,13 @@ class ReplyPreviewRetriever(
         } else {
             textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)), event.roomMentionSource())
         }).linkify(null)
-        val emoteBody = if (content.msgType == MessageType.MSGTYPE_EMOTE) {
-            text.asEmoteBody(
-                    profile.senderName,
-                    messageColorProvider.senderNameSpan(senderMatrixItem(event)),
-            )
+        val forwardedMessages = displayableEventFormatter.forwardedMessages
+        val body = if (content.msgType == MessageType.MSGTYPE_EMOTE) {
+            forwardedMessages.emoteBody(event, text, profile.senderName, senderMatrixItem(event))
         } else {
             text
         }
-        return RenderedReplyBody(compressed, emoteBody)
+        return RenderedReplyBody(compressed, forwardedMessages.framed(event, body))
     }
 
     private fun warmReplyBodyCache(event: TimelineEvent) {

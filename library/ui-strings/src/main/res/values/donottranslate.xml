@@ -90,7 +90,7 @@
     <string name="media_info_exposure_fraction_value" translatable="false">1/%1$d s</string>
     <string name="media_info_exposure_value" translatable="false">%1$s s</string>
     <string name="event_status_failed_messages_warning_with_reason" translatable="false">%1$s: %2$s</string>
-    <string name="forwarded_message_with_date" translatable="false">%1$s - %2$s</string>
+    <string name="forwarded_footer_separator" translatable="false">" • "</string>
     <string name="settings_ua_client_chrome" translatable="false">Google Chrome (Element Web, SchildiChat Web, Cinny, Sable)</string>
     <string name="settings_ua_client_firefox" translatable="false">Firefox (Element Web, SchildiChat Web, Cinny, Sable)</string>
     <string name="settings_ua_client_element_x_android" translatable="false">Element X Android</string>

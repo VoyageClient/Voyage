@@ -141,6 +141,7 @@ import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
 import java.io.File
 import javax.inject.Inject
@@ -1238,6 +1239,8 @@ class MessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes,
             noticeStyle: Boolean = false,
             emoteSender: CharSequence? = null,
+            emoteSenderItem: MatrixItem? = informationData.matrixItem,
+            emoteSenderBold: Boolean = false,
     ): MessageTextItem? {
         val formatted = translation.formatted
         if (formatted != null && emoteSender == null) {
@@ -1248,7 +1251,7 @@ class MessageItemFactory @Inject constructor(
                 ?: translation.text
         return buildMessageTextItem(
                 if (emoteSender != null) {
-                    body.asEmoteBody(emoteSender, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
+                    body.asEmoteBody(emoteSender, emoteSenderItem?.let { attributes.messageColorProvider.senderNameSpan(it) }, emoteSenderBold)
                 } else {
                     body
                 },
@@ -1356,12 +1359,26 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): MessageTextItem? {
-        val senderName = informationData.memberName ?: ""
+        // A forwarded emote is the original sender's action, never the forwarder's.
+        val forwarded = informationData.forwardedInfo
+        val actor = if (forwarded != null) forwarded.senderMatrixItem else informationData.matrixItem
+        val senderName = when {
+            forwarded == null -> informationData.memberName ?: ""
+            actor != null -> actor.displayName ?: actor.id
+            else -> stringProvider.getString(CommonStrings.forwarded_emote_generic_sender)
+        }
         messageTranslationStore.get(informationData.eventId)?.let { translation ->
-            return buildTranslatedItem(translation, informationData, highlight, callback, attributes, emoteSender = senderName)
+            return buildTranslatedItem(
+                    translation, informationData, highlight, callback, attributes,
+                    emoteSender = senderName, emoteSenderItem = actor, emoteSenderBold = forwarded != null,
+            )
         }
         val formattedBody = SpannableStringBuilder(
-                messageContent.getHtmlBody(informationData).asEmoteBody(senderName, attributes.messageColorProvider.senderNameSpan(informationData.matrixItem))
+                messageContent.getHtmlBody(informationData).asEmoteBody(
+                        senderName,
+                        actor?.let { attributes.messageColorProvider.senderNameSpan(it) },
+                        boldSender = forwarded != null,
+                )
         )
         val bindingOptions = spanUtils.getBindingOptions(formattedBody)
         val message = formattedBody.linkify(callback)

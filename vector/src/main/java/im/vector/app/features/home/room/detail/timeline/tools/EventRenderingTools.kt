@@ -165,10 +165,11 @@ fun attachmentPreviewText(context: Context, @DrawableRes iconRes: Int, label: Ch
  * Prefix an m.emote body with its sender and italicize the whole line, the way the timeline renders it:
  * the body reads as an action attributed to its sender, so a preview without the name is left dangling.
  */
-fun CharSequence.asEmoteBody(senderName: CharSequence, senderNameSpan: SenderNameSpan? = null): CharSequence {
+fun CharSequence.asEmoteBody(senderName: CharSequence, senderNameSpan: SenderNameSpan? = null, boldSender: Boolean = false): CharSequence {
     return SpannableStringBuilder()
             .append(senderName)
             .apply { senderNameSpan?.let { setSpan(it, 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) } }
+            .apply { if (boldSender) setSpan(StyleSpan(Typeface.BOLD), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
             .append(" ")
             .append(this)
             .apply { setSpan(StyleSpan(Typeface.ITALIC), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }

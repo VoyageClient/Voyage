@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.format
 
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.strings.CommonStrings
@@ -62,6 +63,7 @@ class TranslatedPreviewTest {
             messageTranslationStore = translationStore,
             pillsPostProcessorFactory = mockk(relaxed = true),
             textRendererFactory = mockk(relaxed = true),
+            forwardedMessages = ForwardedMessagePresenter(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true)),
     )
 
     // No room id, so the preview skips the per-room pill processors.

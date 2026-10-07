@@ -95,25 +95,41 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
+    <!-- Spans the forward header, content and footer; its bottom anchor is set from code. -->
+    <View
+        android:id="@+id/messageForwardedBar"
+        android:layout_width="@dimen/forwarded_bar_width"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/messageForwardedNoticeView"
+        android:layout_alignBottom="@+id/viewStubContainer"
+        android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <TextView
         android:id="@+id/messageForwardedNoticeView"
         style="@style/Widget.Vector.TextView.Caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/messageMemberNameView"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
+        android:layout_marginStart="@dimen/forwarded_text_inset"
+        android:layout_marginLeft="@dimen/forwarded_text_inset"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:layout_toEndOf="@id/messageStartGuideline"
         android:layout_toRightOf="@id/messageStartGuideline"
-        android:layout_marginBottom="6dp"
+        android:layout_marginTop="2dp"
         android:ellipsize="end"
+        android:gravity="start|center_vertical"
         android:maxLines="1"
         android:textAlignment="viewStart"
         android:textColor="?vctr_content_secondary"
+        android:textStyle="italic"
         android:visibility="gone"
-        tools:text="Forwarded message"
+        tools:text="Forwarded"
         tools:visibility="visible" />
 
     <include
@@ -166,11 +182,32 @@
         tools:ignore="MissingPrefix"
         tools:visibility="visible" />
 
+    <TextView
+        android:id="@+id/messageForwardedFooterView"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/viewStubContainer"
+        android:layout_marginStart="@dimen/forwarded_text_inset"
+        android:layout_marginLeft="@dimen/forwarded_text_inset"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="4dp"
+        android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAlignment="viewStart"
+        android:textColor="?vctr_content_secondary"
+        android:visibility="gone"
+        tools:text="Test room • 7 Oct 2026, 15:12"
+        tools:visibility="visible" />
+
     <LinearLayout
         android:id="@+id/informationBottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/viewStubContainer"
+        android:layout_below="@id/messageForwardedFooterView"
         android:layout_toEndOf="@id/messageStartGuideline"
         android:layout_toRightOf="@id/messageStartGuideline"
         android:addStatesFromChildren="true"

@@ -3210,8 +3210,6 @@
     <string name="sent_a_gallery">میڈیا گیلری۔</string>
     <string name="action_save_all">سب محفوظ کریں</string>
     <string name="event_status_failed_message_warning">پیغام بھیجنے میں ناکامی</string>
-    <string name="forwarded_message">آگے بھیجا گیا پیغام</string>
-    <string name="forwarded_message_from_this_room">اسی کمرے میں پہلے سے آگے بھیجا گیا</string>
     <string name="forwarded_message_from_user">%1$s سے آگے بھیجا گیا</string>
     <string name="error_rejected_by_policy_server">اس کمرے کے پالیسی سرور نے مسترد کر دیا، جو اسپام کے لیے پیغامات کی خودکار جانچ کرتا ہے۔</string>
     <string name="settings_link_previews">ربط کے پیش منظر</string>
@@ -3424,4 +3422,7 @@
     <string name="uploads_media_show_photos">تصاویر دکھائیں</string>
     <string name="uploads_media_show_videos">ویڈیوز دکھائیں</string>
     <string name="home_init_sync">ابتدائی مطابقت پذیری</string>
+    <string name="forwarded_message">آگے بھیجا گیا</string>
+    <string name="forwarded_emote_generic_sender">بھیجنے والا</string>
+    <string name="forwarded_unknown_room">نامعلوم کمرہ</string>
 </resources>

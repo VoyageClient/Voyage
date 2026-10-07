@@ -3381,8 +3381,6 @@
     <string name="sent_a_gallery">גלריית מדיה.</string>
     <string name="action_save_all">שמור הכל</string>
     <string name="event_status_failed_message_warning">שליחת ההודעה נכשלה</string>
-    <string name="forwarded_message">הודעה שהועברה</string>
-    <string name="forwarded_message_from_this_room">הועברה ממקום מוקדם יותר בחדר זה</string>
     <string name="forwarded_message_from_user">הועברה מ-%1$s</string>
     <string name="error_rejected_by_policy_server">נדחתה על ידי שרת המדיניות של חדר זה, שמסנן הודעות ספאם באופן אוטומטי.</string>
     <string name="settings_link_previews">תצוגות מקדימות של קישורים</string>
@@ -3623,4 +3621,7 @@
     <string name="uploads_media_show_photos">הצגת תמונות</string>
     <string name="uploads_media_show_videos">הצגת סרטונים</string>
     <string name="home_init_sync">סנכרון ראשוני</string>
+    <string name="forwarded_message">הועברה</string>
+    <string name="forwarded_emote_generic_sender">השולח</string>
+    <string name="forwarded_unknown_room">חדר לא ידוע</string>
 </resources>

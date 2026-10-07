@@ -26,6 +26,7 @@ import im.vector.app.features.permalink.PermalinkFactory
 import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.share.forwardViaServers
 import im.vector.app.features.themes.BubbleThemeUtils
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -67,6 +68,7 @@ class MessageInformationDataFactory @Inject constructor(
         private val pgpKeyStore: PgpKeyStore,
         private val permalinkFactory: PermalinkFactory,
         private val stringArrayProvider: StringArrayProvider,
+        private val forwardedMessages: ForwardedMessagePresenter,
 ) {
 
     fun create(params: TimelineItemFactoryParams): MessageInformationData {
@@ -161,15 +163,17 @@ class MessageInformationDataFactory @Inject constructor(
             SendStateDecoration.NONE
         }
 
-        val forwardedInfo = event.root.getClearContent().getForwardedInfo()?.let { info ->
-            val originalRoomId = info.roomId
-            val originalEventId = info.eventId
+        val forwardedInfo = forwardedMessages.describe(event)?.let { description ->
+            val info = event.root.getClearContent().getForwardedInfo()
+            val originalRoomId = info?.roomId
+            val originalEventId = info?.eventId
             ForwardedInfoData(
-                    senderId = info.sender,
-                    formattedDate = info.originServerTs?.let { dateFormatter.format(it, DateFormatKind.DEFAULT_DATE_AND_TIME) },
-                    fromThisRoom = originalRoomId != null && originalRoomId == event.root.roomId,
+                    senderId = description.origin.user?.id,
+                    senderDisplayName = description.origin.user?.displayName,
+                    roomName = description.roomName,
+                    formattedDate = description.formattedDate,
                     permalink = if (originalRoomId != null && originalEventId != null) {
-                        permalinkFactory.createPermalink(originalRoomId, originalEventId, forwardViaServers(event))
+                        permalinkFactory.createPermalink(originalRoomId, originalEventId, forwardViaServers(event, originalRoomId, info.sender))
                     } else {
                         null
                     }
@@ -233,10 +237,12 @@ class MessageInformationDataFactory @Inject constructor(
     private fun TimelineEvent?.senderIdentity(): List<Any?>? =
             perMessageSenderIdentity(vectorPreferences.arePerMessageProfilesEnabled())
 
-    // MSC2723 carries no via servers, and our own server may know nothing about a room we were never in.
-    // Whoever sent us this copy could see the room it came from, so route through their server.
-    private fun forwardViaServers(event: TimelineEvent): List<String> {
-        return listOfNotNull(event.root.senderId?.getServerName()?.takeIf { it.isNotEmpty() })
+    // A forward carries no via servers. Whoever sent us this copy could see the room it came from, so their
+    // server goes in alongside the original sender's.
+    private fun forwardViaServers(event: TimelineEvent, originalRoomId: String, originalSender: String?): List<String> {
+        return (session.forwardViaServers(originalRoomId, originalSender) +
+                listOfNotNull(event.root.senderId?.getServerName()?.takeIf { it.isNotEmpty() }))
+                .distinct()
                 .ifEmpty { fallbackViaServers }
     }
 

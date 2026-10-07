@@ -325,6 +325,7 @@ class TimelineFragment :
     private val pendingProfileOverrideUsers = mutableSetOf<String>()
     private val pendingProfileColorUsers = mutableSetOf<String>()
     private val pendingPronounUsers = mutableSetOf<String>()
+    private val pendingProfileUsers = mutableSetOf<String>()
 
     private lateinit var scrollOnNewMessageCallback: ScrollOnNewMessageCallback
     private lateinit var scrollOnHighlightedEventCallback: ScrollOnHighlightedEventCallback
@@ -464,6 +465,18 @@ class TimelineFragment :
             session.profileService().getPronounsUpdateFlow()
                     .collectBatched(quietMs = 200, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
                         pendingPronounUsers.addAll(batch)
+                        flushPendingProfileChanges()
+                    }
+        }
+
+        // A forward's original sender may share no room with us, so their name only arrives with their profile.
+        viewLifecycleOwner.lifecycleScope.launch {
+            session.profileService().getProfileUpdateFlow()
+                    .collectBatched(quietMs = 200, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
+                        // The same fetch brings their color; mark it for fading now, or this rebind would
+                        // snap it in ahead of the color pipeline's own (later) batch.
+                        batch.forEach { matrixItemColorProvider.profileColorLoaded(it) }
+                        pendingProfileUsers.addAll(batch)
                         flushPendingProfileChanges()
                     }
         }
@@ -1350,6 +1363,10 @@ class TimelineFragment :
     private fun flushPendingProfileChanges() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             return
+        }
+        if (pendingProfileUsers.isNotEmpty()) {
+            timelineEventController.invalidateForwardsFrom(pendingProfileUsers.toSet())
+            pendingProfileUsers.clear()
         }
         if (pendingProfileOverrideUsers.isEmpty() && pendingProfileColorUsers.isEmpty() && pendingPronounUsers.isEmpty()) return
         val overrides = pendingProfileOverrideUsers.toSet()

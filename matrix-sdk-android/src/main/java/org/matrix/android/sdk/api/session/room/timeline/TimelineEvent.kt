@@ -42,8 +42,10 @@ import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.forwardedDisplayContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
+import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -113,7 +115,7 @@ data class TimelineEvent(
 /**
  * Tells if the event has been edited.
  */
-fun TimelineEvent.hasBeenEdited() = annotations?.editSummary != null
+fun TimelineEvent.hasBeenEdited() = annotations?.editSummary != null && !root.getClearContent().isForward()
 
 /**
  * Get the latest known eventId for an edited event, or the eventId for an Event which has not been edited.
@@ -154,13 +156,15 @@ fun TimelineEvent.getLastMessageContent(): MessageContent? {
         in EventType.POLL_END.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
         in EventType.STATE_ROOM_BEACON_INFO.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconInfoContent>()
         in EventType.BEACON_LOCATION_DATA.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
-        else -> (getLastEditNewContent() ?: root.getClearContent()).toModel()
+        else -> (root.getClearContent().forwardedDisplayContent() ?: getLastEditNewContent() ?: root.getClearContent()).toModel()
     }
 }
 
 fun TimelineEvent.getLastEditNewContent(): Content? {
     // A redaction prunes the root but not the edit aggregation, whose new_content still holds the text.
     if (root.isRedacted()) return null
+    // MSC4553: a forward can't be edited.
+    if (root.getClearContent().isForward()) return null
     val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
             ?.takeUnless { it.isMediaStillUploading() }
     return when {
@@ -188,7 +192,7 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
 
 // A sticker edit has no msgtype to parse the generic content model with.
 private fun TimelineEvent.getLastStickerEditNewContent(): Content? {
-    if (root.isRedacted()) return null
+    if (root.isRedacted() || root.getClearContent().isForward()) return null
     return annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageStickerContent>()?.newContent
             ?.takeUnless { it.isMediaStillUploading() }
 }

@@ -404,7 +404,27 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                 val footerLayoutParams = views.bubbleFootView.layoutParams as RelativeLayout.LayoutParams
                 var footerMarginStartDp = views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_margin_start)
                 var footerMarginEndDp = views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_margin_end)
-                if (bubbleDependentView.allowFooterOverlay(holder, this)) {
+                views.messageForwardedFooterView.setPadding(0, 0, 0, 0)
+                if (informationData?.forwardedInfo != null) {
+                    // A forward ends with its own footer line; the time and receipt close that line instead.
+                    footerLayoutParams.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.messageForwardedFooterView)
+                    footerLayoutParams.addRule(alignEnd, R.id.viewStubContainer)
+                    footerLayoutParams.removeRuleCompat(alignStart)
+                    footerLayoutParams.removeRuleCompat(RelativeLayout.BELOW)
+                    footerLayoutParams.removeRuleCompat(endOf)
+                    footerLayoutParams.removeRuleCompat(startOf)
+                    footerLayoutParams.removeRuleCompat(RelativeLayout.START_OF)
+                    removeFooterOverlayStyle()
+                    if (bubbleDependentView.needsFooterReservation()) {
+                        bubbleDependentView.reserveFooterSpace(holder, 0, 0)
+                    }
+                    val reserved = getFooterMeasures(informationData, anonymousReadReceipt)[0] + footerMarginStartDp + footerMarginEndDp
+                    if (defaultRtl) {
+                        views.messageForwardedFooterView.setPadding(reserved, 0, 0, 0)
+                    } else {
+                        views.messageForwardedFooterView.setPadding(0, 0, reserved, 0)
+                    }
+                } else if (bubbleDependentView.allowFooterOverlay(holder, this)) {
                     footerLayoutParams.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.viewStubContainer)
                     footerLayoutParams.addRule(alignEnd, R.id.viewStubContainer)
                     footerLayoutParams.removeRuleCompat(alignStart)
@@ -428,7 +448,8 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                 } else {
                     when {
                         bubbleDependentView.allowFooterBelow(holder) -> {
-                            footerLayoutParams.addRule(RelativeLayout.BELOW, R.id.viewStubContainer)
+                            // Resolves to the content itself while the forward footer is gone.
+                            footerLayoutParams.addRule(RelativeLayout.BELOW, R.id.messageForwardedFooterView)
                             footerLayoutParams.addRule(alignEnd, R.id.viewStubContainer)
                             footerLayoutParams.removeRuleCompat(alignStart)
                             footerLayoutParams.removeRuleCompat(RelativeLayout.ALIGN_BOTTOM)

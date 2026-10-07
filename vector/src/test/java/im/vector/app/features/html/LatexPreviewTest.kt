@@ -13,6 +13,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.settings.VectorPreferences
 import io.mockk.every
 import io.mockk.mockk
@@ -91,6 +92,7 @@ class LatexPreviewTest {
             },
             pillsPostProcessorFactory = mockk(relaxed = true),
             textRendererFactory = mockk(relaxed = true),
+            forwardedMessages = ForwardedMessagePresenter(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true)),
     )
 
     // No room id, so the preview skips the per-room pill processors and renders the HTML as is.

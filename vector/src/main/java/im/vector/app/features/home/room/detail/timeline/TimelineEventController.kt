@@ -87,6 +87,8 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
+import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
@@ -446,20 +448,32 @@ class TimelineEventController @Inject constructor(
     fun invalidateProfileEventCaches(userIds: Collection<String>, refreshReplies: Boolean) {
         if (userIds.isEmpty()) return
         val ids = userIds.toHashSet()
-        backgroundHandler.post {
-            var dirty = false
-            synchronized(modelCache) {
-                currentSnapshot.forEachIndexed { index, event ->
-                    if (index >= modelCache.size) return@forEachIndexed
-                    if (modelCache[index] == null) return@forEachIndexed
-                    if (event.senderInfo.userId in ids || (refreshReplies && event.root.getRelationContent()?.inReplyTo?.eventId != null)) {
-                        invalidateAt(index)
-                        dirty = true
-                    }
+        invalidateCachedWhere { event ->
+            event.senderInfo.userId in ids ||
+                    (refreshReplies && event.root.getRelationContent()?.inReplyTo?.eventId != null) ||
+                    event.forwardedSenderId() in ids
+        }
+    }
+
+    /** Rebuild forwards whose original sender is one of [userIds], once something about them is known. */
+    fun invalidateForwardsFrom(userIds: Set<String>) {
+        if (userIds.isEmpty()) return
+        invalidateCachedWhere { event -> event.forwardedSenderId() in userIds }
+    }
+
+    private fun invalidateCachedWhere(predicate: (TimelineEvent) -> Boolean) = backgroundHandler.post {
+        var dirty = false
+        synchronized(modelCache) {
+            currentSnapshot.forEachIndexed { index, event ->
+                if (index >= modelCache.size) return@forEachIndexed
+                if (modelCache[index] == null) return@forEachIndexed
+                if (predicate(event)) {
+                    invalidateAt(index)
+                    dirty = true
                 }
             }
-            if (dirty) requestModelBuild()
         }
+        if (dirty) requestModelBuild()
     }
 
     /**
@@ -1339,3 +1353,6 @@ class TimelineEventController @Inject constructor(
         }
     }
 }
+
+private fun TimelineEvent.forwardedSenderId(): String? =
+        root.getClearContent().takeIf { it.isForward() }?.getForwardedInfo()?.sender

@@ -3257,8 +3257,6 @@
     <string name="sent_a_gallery">মিডিয়া গ্যালারি।</string>
     <string name="action_save_all">সব সংরক্ষণ করুন</string>
     <string name="event_status_failed_message_warning">বার্তা পাঠানো যায়নি</string>
-    <string name="forwarded_message">ফরোয়ার্ড করা বার্তা</string>
-    <string name="forwarded_message_from_this_room">এই রুমের আগের বার্তা থেকে ফরোয়ার্ড করা</string>
     <string name="forwarded_message_from_user">%1$s থেকে ফরোয়ার্ড করা</string>
     <string name="error_rejected_by_policy_server">এই রুমের নীতি সার্ভার প্রত্যাখ্যান করেছে, যা স্প্যামের জন্য বার্তাগুলি স্বয়ংক্রিয়ভাবে যাচাই করে।</string>
     <string name="settings_link_previews">লিংকের প্রিভিউ</string>
@@ -3484,4 +3482,7 @@
     <string name="uploads_media_show_photos">ছবি দেখান</string>
     <string name="uploads_media_show_videos">ভিডিও দেখান</string>
     <string name="home_init_sync">প্রাথমিক সিঙ্ক</string>
+    <string name="forwarded_message">ফরোয়ার্ড করা</string>
+    <string name="forwarded_emote_generic_sender">প্রেরক</string>
+    <string name="forwarded_unknown_room">অজানা রুম</string>
 </resources>

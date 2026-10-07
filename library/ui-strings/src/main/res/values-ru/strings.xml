@@ -3279,8 +3279,6 @@
     <string name="sent_a_gallery">Медиагалерея.</string>
     <string name="action_save_all">Сохранить все</string>
     <string name="event_status_failed_message_warning">Сообщение не удалось отправить</string>
-    <string name="forwarded_message">Пересланное сообщение</string>
-    <string name="forwarded_message_from_this_room">Переслано из более ранних сообщений этой комнаты</string>
     <string name="forwarded_message_from_user">Переслано от %1$s</string>
     <string name="error_rejected_by_policy_server">Отклонено сервером политик этой комнаты, который автоматически проверяет сообщения на спам.</string>
     <string name="settings_link_previews">Предпросмотр ссылок</string>
@@ -3654,4 +3652,7 @@
     <string name="uploads_media_show_photos">Показывать фото</string>
     <string name="uploads_media_show_videos">Показывать видео</string>
     <string name="home_init_sync">Начальная синхронизация</string>
+    <string name="forwarded_message">Переслано</string>
+    <string name="forwarded_emote_generic_sender">Отправитель</string>
+    <string name="forwarded_unknown_room">Неизвестная комната</string>
 </resources>

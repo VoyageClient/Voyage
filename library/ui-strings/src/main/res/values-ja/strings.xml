@@ -3247,8 +3247,6 @@
     <string name="sent_a_gallery">メディアギャラリー。</string>
     <string name="action_save_all">全て保存</string>
     <string name="event_status_failed_message_warning">メッセージを送信できませんでした</string>
-    <string name="forwarded_message">転送されたメッセージ</string>
-    <string name="forwarded_message_from_this_room">このルームの以前のメッセージから転送</string>
     <string name="forwarded_message_from_user">%1$sから転送</string>
     <string name="error_rejected_by_policy_server">このルームのポリシーサーバーによって拒否されました。ポリシーサーバーはスパムを自動的に審査します。</string>
     <string name="settings_link_previews">リンクのプレビュー</string>
@@ -3464,4 +3462,7 @@
     <string name="uploads_media_show_photos">写真を表示</string>
     <string name="uploads_media_show_videos">動画を表示</string>
     <string name="home_init_sync">初回同期</string>
+    <string name="forwarded_message">転送</string>
+    <string name="forwarded_emote_generic_sender">送信者</string>
+    <string name="forwarded_unknown_room">不明なルーム</string>
 </resources>

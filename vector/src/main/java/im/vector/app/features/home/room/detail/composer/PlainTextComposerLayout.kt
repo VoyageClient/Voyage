@@ -55,8 +55,6 @@ import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
-import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
-import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -134,6 +132,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var twemojiProvider: TwemojiProvider
+    @Inject lateinit var forwardedMessages: im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 
     private val views: ComposerLayoutBinding
 
@@ -647,13 +646,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it, event.roomMentionSource()) }
                 ?.let { if (isFilenamePreview || isNoticePreview) it else it.linkify(null) }
         val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
-            renderedBody.asEmoteBody(
-                    renderedProfile.senderName,
-                    SenderNameSpan(senderItem, matrixItemColorProvider),
-            )
+            forwardedMessages.emoteBody(event, renderedBody, renderedProfile.senderName, senderItem)
         } else {
             renderedBody
-        }
+        }?.let { forwardedMessages.framed(event, it) }
         eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.prepareForDisplay())
         // Without this the preview's pills only ever show what the synchronous avatar lookup found, so
         // a re-render that misses the cache leaves them stuck on the placeholder.

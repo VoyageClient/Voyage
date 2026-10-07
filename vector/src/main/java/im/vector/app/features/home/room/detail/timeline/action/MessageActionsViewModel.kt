@@ -32,7 +32,6 @@ import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMes
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
-import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
@@ -51,6 +50,7 @@ import im.vector.app.features.redaction.preservation.RedactedContentRevealManage
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
+import im.vector.app.features.share.isDirectRoom
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
@@ -87,7 +87,6 @@ import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
-import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
@@ -104,12 +103,15 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.forwardOrigin
 import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
+import org.matrix.android.sdk.api.session.room.model.message.isForward
+import org.matrix.android.sdk.api.session.room.model.message.messageForwardPayload
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
-import org.matrix.android.sdk.api.session.room.model.message.toForwardedInfoContent
+import org.matrix.android.sdk.api.session.room.model.message.toForwardPayload
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -154,7 +156,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val serverAdminStatusDataSource: ServerAdminStatusDataSource,
         private val messageTranslationStore: MessageTranslationStore,
         private val translationSettings: im.vector.app.features.translation.TranslationSettings,
-        private val messageColorProvider: im.vector.app.features.home.room.detail.timeline.MessageColorProvider,
+        private val forwardedMessages: im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -466,14 +468,12 @@ class MessageActionsViewModel @AssistedInject constructor(
                                     .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
                                     .let { textRenderer.render(it, timelineEvent.roomMentionSource()) }
                         }
-                        if (isEmote) {
-                            body.asEmoteBody(
-                                    renderedProfile.senderName,
-                                    messageColorProvider.senderNameSpan(timelineEvent.senderInfo.toMatrixItem()),
-                            )
+                        val shown = if (isEmote) {
+                            forwardedMessages.emoteBody(timelineEvent, body, renderedProfile.senderName, timelineEvent.senderInfo.toMatrixItem())
                         } else {
                             body
                         }
+                        forwardedMessages.framed(timelineEvent, shown)
                     }
                     EventType.STATE_ROOM_NAME,
                     EventType.STATE_ROOM_TOPIC,
@@ -663,12 +663,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                     }
                     if (restoredEvent != null) addTranslateAction(eventId, restoredEvent, restoredMessageContent)
                     if (restoredEvent != null && canForward(restoredEvent, restoredMessageContent?.msgType)) {
-                        val baseContent = restoredEvent.getLastEditNewContent()
-                                ?: restoredEvent.root.getClearContent().orEmpty()
-                        @Suppress("UNCHECKED_CAST")
-                        val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
-                                restoredEvent.forwardedInfoUnlessDm()
-                        add(EventSharedAction.Forward(eventId, restoredEvent.root.getClearType(), forwardContent))
+                        add(EventSharedAction.Forward(eventId, restoredEvent.root.getClearType(), restoredEvent.forwardPayload()))
                     }
                     if (restoredMessageContent != null && canShare(restoredMessageContent.msgType) && !isFailedMedia(restoredMessageContent)) {
                         add(EventSharedAction.Share(eventId, restoredMessageContent))
@@ -729,16 +724,11 @@ class MessageActionsViewModel @AssistedInject constructor(
             }
 
             if (canForward(timelineEvent, msgType)) {
-                val baseContent = timelineEvent.getLastEditNewContent()
-                        ?: timelineEvent.root.getClearContent().orEmpty()
-                @Suppress("UNCHECKED_CAST")
-                val forwardContent = (coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>) +
-                        timelineEvent.forwardedInfoUnlessDm()
                 add(
                         EventSharedAction.Forward(
                                 eventId = timelineEvent.eventId,
                                 eventType = timelineEvent.root.getClearType(),
-                                content = forwardContent
+                                content = timelineEvent.forwardPayload()
                         )
                 )
             }
@@ -801,7 +791,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private suspend fun ArrayList<EventSharedAction>.addActionsForGalleryItem(
             timelineEvent: TimelineEvent,
             messageContent: MessageGalleryContent,
@@ -814,8 +803,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         // The caption belongs to the whole gallery, but a tile is where most long presses land.
         addTranslateAction(timelineEvent.eventId, timelineEvent, messageContent)
         val itemContent = item.toAttachmentContentDict() ?: return
-        val forwardContent = (coerceWholeDoublesToLongs(itemContent) as Map<String, Any?>) + timelineEvent.forwardedInfoUnlessDm()
-        add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, forwardContent))
+        val origin = if (session.isDirectRoom(timelineEvent.roomId)) emptyMap() else timelineEvent.root.forwardOrigin()
+        add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, messageForwardPayload(itemContent, origin)))
     }
 
     private fun canReply(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {
@@ -937,6 +926,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         if (!actionPermissions.canSendMessage) return false
         // TODO if user is admin or moderator
         if (event.root.senderId != myUserId) return false
+        // MSC4553: readers ignore edits to a forward.
+        if (event.root.getClearContent().isForward()) return false
         // Stickers: edit/add a caption.
         if (event.root.getClearType() == EventType.STICKER) return true
         // Only event of type EventType.MESSAGE and EventType.POLL_START are supported for the moment
@@ -973,22 +964,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         return (messageContent as? MessageWithAttachmentContent)?.getCaption() != null
     }
 
-    // Decrypted event content goes through Moshi's Any adapter, which parses every JSON number
-    // as Double. Re-serializing would emit "w":1080.0 — Synapse strictly rejects that
-    // (M_BAD_JSON "Bad JSON value: float"). Round-trip whole-number Doubles back to Long.
-    private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
-        is Double -> if (value.isFinite() && value % 1.0 == 0.0 &&
-                value >= Long.MIN_VALUE.toDouble() && value <= Long.MAX_VALUE.toDouble()) {
-            value.toLong()
-        } else value
-        is Map<*, *> -> value.mapValues { coerceWholeDoublesToLongs(it.value) }
-        is List<*> -> value.map { coerceWholeDoublesToLongs(it) }
-        else -> value
-    }
-
-    // A DM's room id and sender are private to its members; a forwarded copy must not carry them.
-    private fun TimelineEvent.forwardedInfoUnlessDm(): Map<String, Any> =
-            if (session.getRoomSummary(roomId)?.isDirect == true) emptyMap() else toForwardedInfoContent()
+    private fun TimelineEvent.forwardPayload(): Map<String, Any?> =
+            root.toForwardPayload(getLastEditNewContent(), includeOrigin = !session.isDirectRoom(roomId))
 
     private fun canForward(event: TimelineEvent, msgType: String?): Boolean {
         if (event.root.getClearType() == EventType.STICKER) return true

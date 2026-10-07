@@ -3307,8 +3307,6 @@
     <string name="sent_a_gallery">Galeria de mídia.</string>
     <string name="action_save_all">Salvar tudo</string>
     <string name="event_status_failed_message_warning">Falha ao enviar a mensagem</string>
-    <string name="forwarded_message">Mensagem encaminhada</string>
-    <string name="forwarded_message_from_this_room">Encaminhada de antes nesta sala</string>
     <string name="forwarded_message_from_user">Encaminhada de %1$s</string>
     <string name="error_rejected_by_policy_server">Rejeitada pelo servidor de políticas desta sala, que filtra automaticamente mensagens de spam.</string>
     <string name="settings_link_previews">Prévias de links</string>
@@ -3530,4 +3528,7 @@
     <string name="uploads_media_show_photos">Mostrar fotos</string>
     <string name="uploads_media_show_videos">Mostrar vídeos</string>
     <string name="home_init_sync">Sincronização inicial</string>
+    <string name="forwarded_message">Encaminhada</string>
+    <string name="forwarded_emote_generic_sender">Remetente</string>
+    <string name="forwarded_unknown_room">Sala desconhecida</string>
 </resources>

@@ -57,7 +57,7 @@ data class MessageInformationData(
         val isRevealedRedaction: Boolean = false,
         // MSC4268: the user who gave us the key to this message, who is also the only one vouching for who sent it.
         val sharedByUserId: String? = null,
-        // MSC2723: set when the message carries metadata about the message it was forwarded from.
+        // MSC4553: set when the message is a forward.
         val forwardedInfo: ForwardedInfoData? = null,
         // MSC4522 per-room profile color for the sender, split into its two theme axes so this stays Parcelable.
         val senderColorOnLight: String? = null,
@@ -81,11 +81,16 @@ data class MessageInformationData(
 @Parcelize
 data class ForwardedInfoData(
         val senderId: String?,
+        val senderDisplayName: String?,
+        /** Name of the room the original was sent in, when we know it. */
+        val roomName: String?,
         val formattedDate: String?,
-        val fromThisRoom: Boolean,
         /** Permalink to the message this one was forwarded from, when it identified itself. */
         val permalink: String?
-) : Parcelable
+) : Parcelable {
+    val senderMatrixItem: MatrixItem.UserItem?
+        get() = senderId?.let { MatrixItem.UserItem(it, senderDisplayName) }
+}
 
 @Parcelize
 data class ReferencesInfoData(

@@ -17,6 +17,7 @@ import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
@@ -61,6 +62,7 @@ class DisplayableEventFormatter @Inject constructor(
         private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
         private val textRendererFactory: EventTextRenderer.Factory,
+        val forwardedMessages: ForwardedMessagePresenter,
 ) {
 
     // Rendered previews, keyed by room + source HTML. The room list re-renders every visible summary
@@ -133,7 +135,7 @@ class DisplayableEventFormatter @Inject constructor(
                             } else {
                                 renderPlainPreview(timelineEvent.root.roomId, preview.body, timelineEvent.roomMentionSource())
                             }
-                            simpleFormat(senderName, rendered, appendAuthor, isEmote = true)
+                            simpleFormat(forwardedMessages.origin(timelineEvent)?.name ?: senderName, rendered, appendAuthor, isEmote = true)
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.verification_request_room_list_preview), appendAuthor)

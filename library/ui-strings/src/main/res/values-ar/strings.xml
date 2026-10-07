@@ -3416,8 +3416,6 @@
     <string name="sent_a_gallery">معرض وسائط.</string>
     <string name="action_save_all">احفظ الكل</string>
     <string name="event_status_failed_message_warning">فشل إرسال الرسالة</string>
-    <string name="forwarded_message">رسالة مُمرَّرة</string>
-    <string name="forwarded_message_from_this_room">مُمرَّرة من وقت سابق في هذه الغرفة</string>
     <string name="forwarded_message_from_user">مُمرَّرة من %1$s</string>
     <string name="error_rejected_by_policy_server">رفضها خادوم سياسة هذه الغرفة، الذي يفحص الرسائل تلقائيًا بحثًا عن الرسائل المزعجة.</string>
     <string name="settings_link_previews">معاينات الروابط</string>
@@ -3679,4 +3677,7 @@
     <string name="uploads_media_show_photos">إظهار الصور</string>
     <string name="uploads_media_show_videos">إظهار مقاطع الفيديو</string>
     <string name="home_init_sync">مزامنة أولية</string>
+    <string name="forwarded_message">مُمرَّرة</string>
+    <string name="forwarded_emote_generic_sender">المرسِل</string>
+    <string name="forwarded_unknown_room">غرفة غير معروفة</string>
 </resources>

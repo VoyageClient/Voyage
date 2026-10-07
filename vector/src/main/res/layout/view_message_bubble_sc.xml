@@ -151,8 +151,19 @@
                 android:textSize="12sp"
                 tools:text="@tools:sample/date/hhmm" />
 
-            <!-- Clamped to the content column: a long "Forwarded from @user - date" would otherwise
-                 widen the bubble past the message it belongs to. It ellipsizes instead. -->
+            <!-- Spans the forward header, content and footer; its bottom anchor is set from code. -->
+            <View
+                android:id="@+id/messageForwardedBar"
+                android:layout_width="@dimen/forwarded_bar_width"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignTop="@+id/messageForwardedNoticeView"
+                android:layout_alignBottom="@+id/viewStubContainer"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- Header and footer are clamped to the content column, which is widened from code to fit them. -->
             <TextView
                 android:id="@+id/messageForwardedNoticeView"
                 style="@style/Widget.Vector.TextView.Caption"
@@ -163,13 +174,15 @@
                 android:layout_alignLeft="@id/viewStubContainer"
                 android:layout_alignEnd="@id/viewStubContainer"
                 android:layout_alignRight="@id/viewStubContainer"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="4dp"
                 android:ellipsize="end"
+                android:gravity="start|center_vertical"
                 android:maxLines="1"
                 android:textAlignment="viewStart"
                 android:textColor="?vctr_content_secondary"
+                android:textStyle="italic"
                 android:visibility="gone"
-                tools:text="Forwarded message"
+                tools:text="Forwarded"
                 tools:visibility="visible" />
 
             <include
@@ -185,6 +198,25 @@
                 android:layout_marginRight="0dp"
                 android:layout_marginBottom="0dp"
                 android:addStatesFromChildren="true" />
+
+            <TextView
+                android:id="@+id/messageForwardedFooterView"
+                style="@style/Widget.Vector.TextView.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/viewStubContainer"
+                android:layout_alignStart="@id/viewStubContainer"
+                android:layout_alignLeft="@id/viewStubContainer"
+                android:layout_alignEnd="@id/viewStubContainer"
+                android:layout_alignRight="@id/viewStubContainer"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAlignment="viewStart"
+                android:textColor="?vctr_content_secondary"
+                android:visibility="gone"
+                tools:text="Test room • 7 Oct 2026, 15:12"
+                tools:visibility="visible" />
 
             <LinearLayout
                 android:id="@+id/bubbleFootView"

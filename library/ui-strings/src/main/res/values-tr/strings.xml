@@ -3272,8 +3272,6 @@
     <string name="sent_a_gallery">Medya Galerisi.</string>
     <string name="action_save_all">Tümünü kaydet</string>
     <string name="event_status_failed_message_warning">Mesaj gönderilemedi</string>
-    <string name="forwarded_message">İletilen mesaj</string>
-    <string name="forwarded_message_from_this_room">Bu odada daha önceki bir mesajdan iletildi</string>
     <string name="forwarded_message_from_user">%1$s kullanıcısından iletildi</string>
     <string name="error_rejected_by_policy_server">Mesajları otomatik olarak spam için tarayan bu odanın ilke sunucusu tarafından reddedildi.</string>
     <string name="settings_link_previews">Bağlantı önizlemeleri</string>
@@ -3488,4 +3486,7 @@
     <string name="uploads_media_show_photos">Fotoğrafları göster</string>
     <string name="uploads_media_show_videos">Videoları göster</string>
     <string name="home_init_sync">İlk eşitleme</string>
+    <string name="forwarded_message">İletildi</string>
+    <string name="forwarded_emote_generic_sender">Gönderen</string>
+    <string name="forwarded_unknown_room">Bilinmeyen oda</string>
 </resources>

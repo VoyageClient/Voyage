@@ -3198,8 +3198,6 @@
     <string name="sent_a_gallery">मीडिया गैलरी।</string>
     <string name="action_save_all">सभी सहेजें</string>
     <string name="event_status_failed_message_warning">मैसेज नहीं भेजा जा सका</string>
-    <string name="forwarded_message">फ़ॉरवर्ड किया गया मैसेज</string>
-    <string name="forwarded_message_from_this_room">इसी रूम में पहले से फ़ॉरवर्ड किया गया</string>
     <string name="forwarded_message_from_user">%1$s से फ़ॉरवर्ड किया गया</string>
     <string name="error_rejected_by_policy_server">इस रूम के पॉलिसी सर्वर ने अस्वीकार किया, जो स्पैम के लिए मैसेज की अपने-आप जांच करता है।</string>
     <string name="settings_link_previews">लिंक प्रीव्यू</string>
@@ -3412,4 +3410,7 @@
     <string name="uploads_media_show_photos">फ़ोटो दिखाएँ</string>
     <string name="uploads_media_show_videos">वीडियो दिखाएँ</string>
     <string name="home_init_sync">प्रारंभिक सिंक</string>
+    <string name="forwarded_message">फ़ॉरवर्ड किया गया</string>
+    <string name="forwarded_emote_generic_sender">प्रेषक</string>
+    <string name="forwarded_unknown_room">अज्ञात रूम</string>
 </resources>

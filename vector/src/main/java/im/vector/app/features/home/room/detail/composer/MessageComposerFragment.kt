@@ -128,6 +128,7 @@ import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionRange
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
@@ -698,6 +699,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun TimelineEvent.sedSourceBody(): String? {
         if (root.getClearType() != EventType.MESSAGE || root.isRedacted()) return null
+        // MSC4553: readers ignore edits to a forward.
+        if (root.getClearContent().isForward()) return null
         // Edit events sit in the snapshot (they are only hidden at render time). Substituting on one
         // would replace the "* new text" fallback and relate to the edit rather than to the message —
         // target the original instead, whose content already resolves to the latest edit.

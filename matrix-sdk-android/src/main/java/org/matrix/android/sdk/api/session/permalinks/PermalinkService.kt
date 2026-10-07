@@ -87,6 +87,11 @@ interface PermalinkService {
     fun createPermalink(roomId: String, eventId: String, forceMatrixTo: Boolean = false, viaServers: List<String> = emptyList()): String
 
     /**
+     * The servers a permalink into [roomId] would offer as join candidates, most representative first.
+     */
+    fun computeViaServers(roomId: String): List<String> = emptyList()
+
+    /**
      * Extract the linked id from the universal link.
      *
      * @param url the universal link, Ex: "https://matrix.to/#/@benoit:matrix.org"
