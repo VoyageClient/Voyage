@@ -3519,4 +3519,6 @@
     <string name="forwarded_message">Reenviado</string>
     <string name="forwarded_emote_generic_sender">Remitente</string>
     <string name="forwarded_unknown_room">Sala desconocida</string>
+    <string name="external_link_destination_title">¿Abrir este enlace?</string>
+    <string name="external_link_destination_message">Este enlace te llevará a %1$s.\n\n¿Quieres continuar?</string>
 </resources>

@@ -3413,4 +3413,6 @@
     <string name="forwarded_message">फ़ॉरवर्ड किया गया</string>
     <string name="forwarded_emote_generic_sender">प्रेषक</string>
     <string name="forwarded_unknown_room">अज्ञात रूम</string>
+    <string name="external_link_destination_title">यह लिंक खोलें?</string>
+    <string name="external_link_destination_message">यह लिंक आपको %1$s पर ले जाएगा।\n\nक्या आप जारी रखना चाहते हैं?</string>
 </resources>

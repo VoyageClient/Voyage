@@ -3465,4 +3465,6 @@
     <string name="forwarded_message">転送</string>
     <string name="forwarded_emote_generic_sender">送信者</string>
     <string name="forwarded_unknown_room">不明なルーム</string>
+    <string name="external_link_destination_title">このリンクを開きますか？</string>
+    <string name="external_link_destination_message">このリンクを開くと %1$s に移動します。\n\n続行しますか？</string>
 </resources>

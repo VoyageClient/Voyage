@@ -3467,4 +3467,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="forwarded_message">Diteruskan</string>
     <string name="forwarded_emote_generic_sender">Pengirim</string>
     <string name="forwarded_unknown_room">Ruangan tidak dikenal</string>
+    <string name="external_link_destination_title">Buka tautan ini?</string>
+    <string name="external_link_destination_message">Tautan ini akan membawa Anda ke %1$s.\n\nApakah Anda ingin melanjutkan?</string>
 </resources>

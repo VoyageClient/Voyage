@@ -43,6 +43,7 @@ internal class DefaultMediaService @Inject constructor(
 
     override fun extractBundledUrlPreviews(event: TimelineEvent): List<BundledUrlPreview>? {
         return BundledUrlPreviews.parse(event.getLastEditNewContent() ?: event.root.getClearContent())
+                ?.filter { it.matchedUrl in extractUrls(event) }
     }
 
     // Use the id of the latest Event edition

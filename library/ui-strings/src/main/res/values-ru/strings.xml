@@ -3655,4 +3655,6 @@
     <string name="forwarded_message">Переслано</string>
     <string name="forwarded_emote_generic_sender">Отправитель</string>
     <string name="forwarded_unknown_room">Неизвестная комната</string>
+    <string name="external_link_destination_title">Открыть эту ссылку?</string>
+    <string name="external_link_destination_message">Эта ссылка ведёт на %1$s.\n\nПродолжить?</string>
 </resources>

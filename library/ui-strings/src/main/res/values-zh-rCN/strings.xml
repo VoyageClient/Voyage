@@ -3467,4 +3467,6 @@
     <string name="forwarded_message">转发</string>
     <string name="forwarded_emote_generic_sender">发送者</string>
     <string name="forwarded_unknown_room">未知房间</string>
+    <string name="external_link_destination_title">打开此链接？</string>
+    <string name="external_link_destination_message">此链接将带你前往 %1$s。\n\n是否继续？</string>
 </resources>

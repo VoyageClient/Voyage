@@ -3624,4 +3624,6 @@
     <string name="forwarded_message">הועברה</string>
     <string name="forwarded_emote_generic_sender">השולח</string>
     <string name="forwarded_unknown_room">חדר לא ידוע</string>
+    <string name="external_link_destination_title">לפתוח את הקישור הזה?</string>
+    <string name="external_link_destination_message">הקישור הזה יוביל אותך אל %1$s.\n\nהאם ברצונך להמשיך?</string>
 </resources>

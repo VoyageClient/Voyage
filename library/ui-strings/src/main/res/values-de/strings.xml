@@ -3530,4 +3530,6 @@
     <string name="forwarded_message">Weitergeleitet</string>
     <string name="forwarded_emote_generic_sender">Absender</string>
     <string name="forwarded_unknown_room">Unbekannter Raum</string>
+    <string name="external_link_destination_title">Diesen Link öffnen?</string>
+    <string name="external_link_destination_message">Dieser Link führt dich zu %1$s.\n\nMöchtest du fortfahren?</string>
 </resources>

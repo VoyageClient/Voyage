@@ -25,6 +25,7 @@ import org.commonmark.node.Link
 import org.commonmark.node.Text
 import org.commonmark.parser.Parser
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import org.jsoup.select.NodeTraversor
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -64,7 +65,13 @@ internal class UrlsExtractor @Inject constructor(
         val urls = mutableListOf<String>()
         NodeTraversor.traverse({ node, _ ->
             when (node) {
-                is TextNode -> urls += extract(node.text())
+                is Element -> if (node.normalName() == "a") {
+                    val label = node.text().trim()
+                    if (label == node.attr("href")) urls += extract(label).filter { it == label }
+                }
+                is TextNode -> if (generateSequence(node.parent()) { it.parent() }.none { it.normalName() == "a" }) {
+                    urls += extract(node.text())
+                }
             }
         }, body)
         return urls.distinct()
@@ -74,9 +81,10 @@ internal class UrlsExtractor @Inject constructor(
         val urls = mutableListOf<String>()
         markdownParser.parse(text).accept(object : AbstractVisitor() {
             var htmlCodeDepth = 0
+            var htmlLinkDepth = 0
 
             override fun visit(text: Text) {
-                if (htmlCodeDepth == 0) urls += extract(text.literal)
+                if (htmlCodeDepth == 0 && htmlLinkDepth == 0) urls += extract(text.literal)
             }
 
             override fun visit(link: Link) {
@@ -91,6 +99,13 @@ internal class UrlsExtractor @Inject constructor(
                         (htmlCodeDepth - 1).coerceAtLeast(0)
                     } else {
                         htmlCodeDepth + 1
+                    }
+                }
+                LINK_TAG.findAll(htmlInline.literal).forEach { match ->
+                    htmlLinkDepth = if (match.value.startsWith("</")) {
+                        (htmlLinkDepth - 1).coerceAtLeast(0)
+                    } else {
+                        htmlLinkDepth + 1
                     }
                 }
             }
@@ -134,6 +149,7 @@ internal class UrlsExtractor @Inject constructor(
 
     companion object {
         private val CODE_TAG = Regex("</?(?:pre|code)\\b[^>]*>", RegexOption.IGNORE_CASE)
+        private val LINK_TAG = Regex("</?a\\b[^>]*>", RegexOption.IGNORE_CASE)
 
         /** The user-typed text of a message that may carry links: a text body or a media caption (MSC2530 / MSC4274). */
         fun MessageContent.previewableText(isReply: Boolean): String? {

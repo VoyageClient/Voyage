@@ -3489,4 +3489,6 @@
     <string name="forwarded_message">İletildi</string>
     <string name="forwarded_emote_generic_sender">Gönderen</string>
     <string name="forwarded_unknown_room">Bilinmeyen oda</string>
+    <string name="external_link_destination_title">Bu bağlantı açılsın mı?</string>
+    <string name="external_link_destination_message">Bu bağlantı sizi %1$s adresine götürecek.\n\nDevam etmek istiyor musunuz?</string>
 </resources>

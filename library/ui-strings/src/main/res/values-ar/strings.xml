@@ -3680,4 +3680,6 @@
     <string name="forwarded_message">مُمرَّرة</string>
     <string name="forwarded_emote_generic_sender">المرسِل</string>
     <string name="forwarded_unknown_room">غرفة غير معروفة</string>
+    <string name="external_link_destination_title">فتح هذا الرابط؟</string>
+    <string name="external_link_destination_message">سينقلك هذا الرابط إلى %1$s.\n\nهل تريد المتابعة؟</string>
 </resources>

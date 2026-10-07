@@ -3469,4 +3469,6 @@
     <string name="forwarded_message">轉傳</string>
     <string name="forwarded_emote_generic_sender">傳送者</string>
     <string name="forwarded_unknown_room">未知的聊天室</string>
+    <string name="external_link_destination_title">開啟此連結？</string>
+    <string name="external_link_destination_message">此連結將帶您前往 %1$s。\n\n要繼續嗎？</string>
 </resources>

@@ -3531,4 +3531,6 @@
     <string name="forwarded_message">Transféré</string>
     <string name="forwarded_emote_generic_sender">Expéditeur</string>
     <string name="forwarded_unknown_room">Salon inconnu</string>
+    <string name="external_link_destination_title">Ouvrir ce lien ?</string>
+    <string name="external_link_destination_message">Ce lien vous mènera à %1$s.\n\nVoulez-vous continuer ?</string>
 </resources>

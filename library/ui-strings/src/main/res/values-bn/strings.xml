@@ -3485,4 +3485,6 @@
     <string name="forwarded_message">ফরোয়ার্ড করা</string>
     <string name="forwarded_emote_generic_sender">প্রেরক</string>
     <string name="forwarded_unknown_room">অজানা রুম</string>
+    <string name="external_link_destination_title">এই লিংকটি খুলবেন?</string>
+    <string name="external_link_destination_message">এই লিংকটি আপনাকে %1$s-এ নিয়ে যাবে।\n\nআপনি কি চালিয়ে যেতে চান?</string>
 </resources>

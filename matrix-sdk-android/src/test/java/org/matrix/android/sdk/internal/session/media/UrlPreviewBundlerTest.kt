@@ -268,6 +268,33 @@ internal class UrlPreviewBundlerTest {
     }
 
     @Test
+    fun `a displayed url linking elsewhere is not previewed`() = runTest {
+        val event = textEvent(
+                body = URL,
+                extra = mapOf(
+                        "format" to "org.matrix.custom.html",
+                        "formatted_body" to "<a href=\"https://not-matrix.org\" data-mx-link data-org.matrix.msc4550.link>$URL</a>"
+                )
+        )
+
+        bundler.bundleUrlPreviews(event, encrypt = false) shouldBeEqualTo event
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
+    }
+
+    @Test
+    fun `a displayed url linking to itself is previewed`() = runTest {
+        val event = textEvent(
+                body = URL,
+                extra = mapOf(
+                        "format" to "org.matrix.custom.html",
+                        "formatted_body" to "<a href=\"$URL\" data-mx-link>$URL</a>"
+                )
+        )
+
+        bundler.bundleUrlPreviews(event, encrypt = false).previews()!!.single()["matrix:matched_url"] shouldBeEqualTo URL
+    }
+
+    @Test
     fun `generated MSC links are not previewed`() = runTest {
         val event = textEvent(
                 body = "MSC1234",
@@ -284,6 +311,13 @@ internal class UrlPreviewBundlerTest {
     @Test
     fun `links in markdown code are not prefetched`() = runTest {
         bundler.prefetch(A_ROOM_ID, "`$URL`\n\n```\nhttps://example.org\n```", encrypt = false)
+
+        coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
+    }
+
+    @Test
+    fun `a url label inside raw html anchor is not prefetched`() = runTest {
+        bundler.prefetch(A_ROOM_ID, "<a href=\"https://not-matrix.org\">$URL</a>", encrypt = false)
 
         coVerify(exactly = 0) { urlPreviewFetcher.fetch(any()) }
     }

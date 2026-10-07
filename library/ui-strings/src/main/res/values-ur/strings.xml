@@ -3425,4 +3425,6 @@
     <string name="forwarded_message">آگے بھیجا گیا</string>
     <string name="forwarded_emote_generic_sender">بھیجنے والا</string>
     <string name="forwarded_unknown_room">نامعلوم کمرہ</string>
+    <string name="external_link_destination_title">کیا یہ ربط کھولیں؟</string>
+    <string name="external_link_destination_message">یہ ربط آپ کو %1$s پر لے جائے گا۔\n\nکیا آپ جاری رکھنا چاہتے ہیں؟</string>
 </resources>

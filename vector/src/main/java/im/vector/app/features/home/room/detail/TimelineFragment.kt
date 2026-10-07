@@ -2026,6 +2026,9 @@ class TimelineFragment :
                     title.isValidUrl() && url.isValidUrl() && URL(title).host != URL(url).host -> {
                         displayUrlConfirmationDialog(title, url)
                     }
+                    !title.isValidUrl() && url.isValidUrl() -> {
+                        displayLinkDestinationDialog(url)
+                    }
                     else -> {
                         openUrlInExternalBrowser(requireContext(), url)
                     }
@@ -2047,6 +2050,17 @@ class TimelineFragment :
                 )
                 .setPositiveButton(CommonStrings._continue) { _, _ ->
                     context?.let { openUrlInExternalBrowser(it, continueTo) }
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    private fun displayLinkDestinationDialog(url: String) {
+        MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(CommonStrings.external_link_destination_title)
+                .setMessage(getString(CommonStrings.external_link_destination_message, url))
+                .setPositiveButton(CommonStrings._continue) { _, _ ->
+                    context?.let { openUrlInExternalBrowser(it, url) }
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
