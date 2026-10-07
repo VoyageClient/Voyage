@@ -175,6 +175,8 @@ internal class LocalEchoRepository @Inject constructor(
                 val remoteId = remoteIdsByLocalEcho[event.eventId]
                 if (remoteId != null && stores.timelineEvent.getByRoomAndEventId(roomId, remoteId) != null) {
                     Timber.i("## Send: skip local echo insert of ${event.eventId}, remote copy $remoteId already synced")
+                    // Without unsigned.transaction_id the open timeline can't match its in-memory copy itself.
+                    timelineInput.onLocalEchoDeleted(roomId, eventId)
                 } else {
                     val dbId = stores.event.insert(eventEntity)
                     stores.eventInsert.insert(eventId, eventType, canBeProcessed = true, insertType = EventInsertType.LOCAL_ECHO)

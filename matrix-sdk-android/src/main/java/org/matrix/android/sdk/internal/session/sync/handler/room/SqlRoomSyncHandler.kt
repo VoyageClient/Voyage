@@ -52,6 +52,7 @@ import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberEven
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.read.FullyReadContent
 import org.matrix.android.sdk.internal.session.room.read.MarkedUnreadContent
+import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
 import org.matrix.android.sdk.internal.session.sync.ProgressReporter
@@ -82,6 +83,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         private val liveEventService: Lazy<StreamEventsManager>,
         private val clock: Clock,
         private val unRequestedForwardManager: UnRequestedForwardManager,
+        private val localEchoRepository: Lazy<LocalEchoRepository>,
 ) {
 
     fun handle(
@@ -576,9 +578,13 @@ internal class SqlRoomSyncHandler @Inject constructor(
 
             // Remove local echo if this is the remote copy.
             MatrixPerf.time("tl.deleteSending") {
-                event.unsignedData?.transactionId?.let { txId ->
+                val txId = event.unsignedData?.transactionId
+                if (txId != null) {
                     stores.timelineEvent.deleteSending(roomId, txId)
                     fixUpEditLocalEcho(stores, event, txId)
+                } else if (senderId == userId) {
+                    // Some servers (Zendrite) omit unsigned.transaction_id; match by the id the send returned.
+                    localEchoRepository.get().deleteSentEcho(roomId, eventId)
                 }
                 stores.timelineEvent.deleteSending(roomId, eventId)
             }
