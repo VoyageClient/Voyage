@@ -17,11 +17,14 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.home.resolveRoomBannerUrl
+import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.settings.VectorPreferences
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -41,6 +44,7 @@ import org.matrix.android.sdk.flow.unwrap
 class RoomSettingsViewModel @AssistedInject constructor(
         @Assisted initialState: RoomSettingsViewState,
         private val vectorPreferences: VectorPreferences,
+        private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
         private val session: Session
 ) :
         VectorViewModel<RoomSettingsViewState, RoomSettingsAction, RoomSettingsViewEvents>(initialState) {
@@ -312,8 +316,14 @@ class RoomSettingsViewModel @AssistedInject constructor(
         }
         if (state.currentTopicSource != state.newTopic) {
             val newTopic = state.newTopic ?: ""
-            val formattedTopic = newTopic.takeIf { it.isNotEmpty() }?.let { room.sendService().computeFormattedHtml(it, autoMarkdown = true) }
-            operationList.add { room.stateService().updateTopic(newTopic, formattedTopic) }
+            operationList.add {
+                val formattedTopic = newTopic.takeIf { it.isNotEmpty() }?.let { topic ->
+                    // Resolving the emotes reads the image packs from the database
+                    val withEmotes = withContext(Dispatchers.IO) { emoteShortcodeProcessor.process(room.roomId, topic) }
+                    room.sendService().computeFormattedHtml(withEmotes, autoMarkdown = true)
+                }
+                room.stateService().updateTopic(newTopic, formattedTopic)
+            }
         }
 
         if (state.newHistoryVisibility != null) {

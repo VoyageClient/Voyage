@@ -1645,8 +1645,10 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleChangeTopicSlashCommand(room: Room, changeTopic: ParsedCommand.ChangeTopic) {
         launchSlashCommandFlowSuspendable(room, changeTopic) {
-            val formattedTopic = changeTopic.topic.takeIf { it.isNotEmpty() }
-                    ?.let { room.sendService().computeFormattedHtml(it, autoMarkdown = true) }
+            val formattedTopic = changeTopic.topic.takeIf { it.isNotEmpty() }?.let { topic ->
+                val withEmotes = withContext(Dispatchers.IO) { emoteShortcodeProcessor.process(room.roomId, topic) }
+                room.sendService().computeFormattedHtml(withEmotes, autoMarkdown = true)
+            }
             room.stateService().updateTopic(changeTopic.topic, formattedTopic)
         }
     }

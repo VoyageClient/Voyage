@@ -134,7 +134,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Faster sending for large videos**: a video sent at original size is rewritten in a single pass straight from the source instead of being copied and then rewritten in full.
 
-- **Custom emoticons & stickers (MSC2545 image packs)**: send custom emoji and stickers, author your own packs (merging in other packs' zips), import and export them as Misskey-style zip archives, react with emoticons, and use them in your profile biography.
+- **Custom emoticons & stickers (MSC2545 image packs)**: send custom emoji and stickers, author your own packs (merging in other packs' zips), import and export them as Misskey-style zip archives, react with emoticons, and use them in your profile biography and room topics.
 
 - **Telegram sticker packs**: import Telegram sticker packs into a room, or save any number of them as zips with `/tgexport`.
 
