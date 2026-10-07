@@ -280,7 +280,10 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
         val hasOverrideAvatar = fields?.containsKey(ProfileOverrides.FIELD_AVATAR_URL) == true
         val overrideColor = ColorPreference.parse(fields?.get(ProfileKeys.COLOR_PREFERENCE))
-        val base = bestKnownMatrixItem()
+        // The fetched global profile first: a user we share no room with is known from nowhere else.
+        val base = cachedGlobalProfile()?.let { User.fromJson(initialState.userId, it) }
+                ?.let { MatrixItem.UserItem(initialState.userId, it.displayName, it.avatarUrl) }
+                ?: bestKnownMatrixItem()
         val sameForThemes = if (profileColorSameInitialized) {
             null
         } else {

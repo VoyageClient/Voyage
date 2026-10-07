@@ -196,8 +196,9 @@ internal class ExtendedProfileCache @Inject constructor(
         return false
     }
 
+    // A sync delta alone leaves a partial entry (no displayname, say); callers want the whole profile.
     fun getCachedProfile(userId: String): Map<String, Any>? =
-            rawProfiles[userId]?.let { ProfileOverrides.mergedOver(userId, it) }
+            rawProfiles[userId]?.takeIf { userId in fullProfiles }?.let { ProfileOverrides.mergedOver(userId, it) }
 
     fun getRawProfile(userId: String): Map<String, Any>? = rawProfiles[userId]
 
