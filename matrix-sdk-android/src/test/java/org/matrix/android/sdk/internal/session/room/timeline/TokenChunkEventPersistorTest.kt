@@ -137,7 +137,7 @@ internal class TokenChunkEventPersistorTest {
         val otherChunkId = db.stores.chunk.insert(A_ROOM_ID, "x1", "x2", false, false, null, false)
         // Manually duplicate B into the other chunk (as legacy data would have it)
         val eventDbId = db.stores.event.getDbId(A_ROOM_ID, "\$B")!!
-        db.database.timelineEventQueries.insert(99L, "\$B", A_ROOM_ID, otherChunkId, 0L, eventDbId, null, 0L, null, null, 0L)
+        db.database.timelineEventQueries.insert(99L, "\$B", A_ROOM_ID, otherChunkId, 0L, eventDbId, null, 0L, null, null, 0L, 99L)
 
         db.stores.timelineEvent.deleteDuplicatesInChunks(A_ROOM_ID, listOf(chunk.id, otherChunkId))
 

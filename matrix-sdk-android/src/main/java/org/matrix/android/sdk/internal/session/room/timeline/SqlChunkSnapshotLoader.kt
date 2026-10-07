@@ -57,8 +57,8 @@ internal class SqlChunkSnapshotLoader(
             stores.timelineEvent.getByRoomAndEventIdForTimeline(roomId, eventId)?.let { timelineEventMapper.map(it) }
 
     /** The chunk's events strictly newer than the given row, most-recent first. */
-    fun chunkSnapshotAfter(chunkId: Long, afterTs: Long, afterEventId: String): List<TimelineEvent> =
-            stores.timelineEvent.getByChunkNewerThan(chunkId, afterTs, afterEventId).map { timelineEventMapper.map(it) }
+    fun chunkSnapshotAfter(chunkId: Long, afterTs: Long, afterSeq: Long): List<TimelineEvent> =
+            stores.timelineEvent.getByChunkNewerThan(chunkId, afterTs, afterSeq).map { timelineEventMapper.map(it) }
 
     /** The [limit] newest rows of a chunk, most-recent first — used to bound the live-chunk mapping. */
     fun chunkSnapshotNewest(chunkId: Long, limit: Long): List<TimelineEvent> {
@@ -72,14 +72,14 @@ internal class SqlChunkSnapshotLoader(
 
     /** The [limit] rows just older than the given one, most-recent first — appends to a bounded slice as the
      *  window grows, so widening it costs O(step) instead of re-mapping the whole slice. */
-    fun chunkSnapshotOlderThan(chunkId: Long, beforeTs: Long, beforeEventId: String, limit: Long): List<TimelineEvent> =
-            stores.timelineEvent.getByChunkOlderThan(chunkId, beforeTs, beforeEventId, limit).map { timelineEventMapper.map(it) }
+    fun chunkSnapshotOlderThan(chunkId: Long, beforeTs: Long, beforeSeq: Long, limit: Long): List<TimelineEvent> =
+            stores.timelineEvent.getByChunkOlderThan(chunkId, beforeTs, beforeSeq, limit).map { timelineEventMapper.map(it) }
 
     fun chunkEventCount(chunkId: Long): Long = stores.timelineEvent.countByChunk(chunkId)
 
     /** The chunk's row count from a cursor upward, for checking a cached slice is still whole. */
-    fun chunkEventCountFrom(chunkId: Long, ts: Long, eventId: String): Long =
-            stores.timelineEvent.countByChunkFrom(chunkId, ts, eventId)
+    fun chunkEventCountFrom(chunkId: Long, ts: Long, seq: Long): Long =
+            stores.timelineEvent.countByChunkFrom(chunkId, ts, seq)
 
     /** The room's sending (local-echo) events — timeline_event rows with chunk_id NULL — newest first. */
     fun sendingEvents(roomId: String): List<TimelineEvent> =

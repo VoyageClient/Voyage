@@ -160,7 +160,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
         if (stores.chunk.findMainChunkIdIncludingEvent(roomId, createId) != null) return
         val entity = stores.event.getByEventIdInRoom(roomId, createId) ?: return
         val dbId = stores.event.getDbId(roomId, createId) ?: return
-        stores.timelineWriter.addTimelineEvent(chunkId, roomId, dbId, entity, isLastForward = false)
+        stores.timelineWriter.addTimelineEvent(chunkId, roomId, dbId, entity, isLastForward = false, atOlderEnd = true)
         Timber.i("Placed the create event of $roomId at the start of range $chunkId")
     }
 
@@ -229,6 +229,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
                     currentChunkId, roomId, dbId, entity, isLastForward = false,
                     roomMemberContentsByUser = roomMemberContentsByUser,
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                    atOlderEnd = direction == PaginationDirection.BACKWARDS,
             )
             if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
                 val relatedTargetId = if (event.type == EventType.REDACTION) {
@@ -244,6 +245,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
                             threadChunkId, roomId, dbId, entity, isLastForward = true, ownedByThreadChunk = true,
                             roomMemberContentsByUser = roomMemberContentsByUser,
                             roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                            atOlderEnd = direction == PaginationDirection.BACKWARDS,
                     )
                 }
             }
@@ -263,6 +265,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
                         threadChunkId, roomId, dbId, entity, isLastForward = true, ownedByThreadChunk = true,
                         roomMemberContentsByUser = roomMemberContentsByUser,
                         roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                        atOlderEnd = direction == PaginationDirection.BACKWARDS,
                 )
             }
         }

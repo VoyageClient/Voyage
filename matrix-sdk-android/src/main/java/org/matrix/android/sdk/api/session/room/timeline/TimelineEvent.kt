@@ -64,7 +64,9 @@ data class TimelineEvent(
         val ownedByThreadChunk: Boolean = false,
         val senderInfo: SenderInfo,
         val annotations: EventAnnotationsSummary? = null,
-        val readReceipts: List<ReadReceipt> = emptyList()
+        val readReceipts: List<ReadReceipt> = emptyList(),
+        /** Breaks timeline-order ties between events sharing an origin_server_ts. */
+        val seq: Long = 0,
 ) {
 
     init {

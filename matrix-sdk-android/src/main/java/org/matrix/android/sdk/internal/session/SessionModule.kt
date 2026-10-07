@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session
 
+import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import dagger.Binds
 import dagger.Lazy
@@ -223,7 +224,33 @@ internal abstract class SessionModule {
             // (full re-sync), so additive indexes are applied idempotently here instead.
             driver.execute(null, "CREATE INDEX IF NOT EXISTS event_room_event ON event(room_id, event_id)", 0)
             driver.execute(null, "CREATE INDEX IF NOT EXISTS timeline_event_room_event ON timeline_event(room_id, event_id)", 0)
+            addTimelineEventSeq(driver)
             return driver
+        }
+
+        // timeline_event.seq postdates shipped databases. The ordering index is created last, so its
+        // presence also says the backfill finished.
+        internal fun addTimelineEventSeq(driver: SqlDriver) {
+            val hasSeq = driver.executeQuery(null, "PRAGMA table_info(timeline_event)", { cursor ->
+                var found = false
+                while (cursor.next().value) if (cursor.getString(1) == "seq") found = true
+                QueryResult.Value(found)
+            }, 0).value
+            if (!hasSeq) driver.execute(null, "ALTER TABLE timeline_event ADD COLUMN seq INTEGER NOT NULL DEFAULT 0", 0)
+            val backfilled = driver.executeQuery(
+                    null,
+                    "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = 'timeline_event_chunk_seq_order'",
+                    { cursor -> QueryResult.Value(cursor.next().value) },
+                    0,
+            ).value
+            if (backfilled) return
+            // Insertion order: right for everything sync wrote, which is where same-millisecond runs come from.
+            driver.execute(null, "UPDATE timeline_event SET seq = id", 0)
+            driver.execute(null, "DROP INDEX IF EXISTS timeline_event_chunk_order", 0)
+            driver.execute(null, "DROP INDEX IF EXISTS timeline_event_room_order", 0)
+            driver.execute(null, "CREATE INDEX IF NOT EXISTS timeline_event_seq ON timeline_event(seq)", 0)
+            driver.execute(null, "CREATE INDEX IF NOT EXISTS timeline_event_room_seq_order ON timeline_event(room_id, ts, seq)", 0)
+            driver.execute(null, "CREATE INDEX IF NOT EXISTS timeline_event_chunk_seq_order ON timeline_event(chunk_id, ts, seq)", 0)
         }
 
         @JvmStatic

@@ -93,6 +93,7 @@ internal class TimelineEventMapper @Inject constructor(
                         colorPreference = timelineEventEntity.root?.sender?.let { roomMemberColorCache.get(timelineEventEntity.roomId, it) },
                 ),
                 ownedByThreadChunk = timelineEventEntity.ownedByThreadChunk,
+                seq = timelineEventEntity.seq,
         )
     }
 

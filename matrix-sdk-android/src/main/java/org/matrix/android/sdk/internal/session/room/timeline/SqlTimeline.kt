@@ -426,9 +426,9 @@ internal class SqlTimeline(
         return ranges.minByOrNull { stores.timelineEvent.minTsForChunk(it.id) ?: Long.MAX_VALUE }?.id
     }
 
-    // Rows are read newest-first, so the oldest is the minimum timestamp.
+    // Rows are read newest-first, so the oldest is the last one.
     private fun oldestEventIdInChunk(chunkId: Long): String? =
-            stores.timelineEvent.getByChunk(chunkId).minByOrNull { it.ts }?.eventId
+            stores.timelineEvent.getByChunk(chunkId).lastOrNull()?.eventId
 
     override fun setViewAtLiveEdge(atLiveEdge: Boolean) {
         viewAtLiveEdge = atLiveEdge
@@ -1132,11 +1132,11 @@ internal class SqlTimeline(
         }
         val newest = cached.first()
         val oldest = cached.last()
-        val newEvents = snapshotLoader.chunkSnapshotAfter(chunkId, newest.root.originServerTs ?: 0L, newest.eventId)
+        val newEvents = snapshotLoader.chunkSnapshotAfter(chunkId, newest.root.originServerTs ?: 0L, newest.seq)
         // Counted from the slice's own oldest row rather than over the whole chunk: an event that landed
         // inside the mapped window (or was removed from it) shows up as a count that no longer matches, while
         // a backward page — which only ever appends BELOW that row — leaves the slice intact and cheap.
-        val countFromOldest = snapshotLoader.chunkEventCountFrom(chunkId, oldest.root.originServerTs ?: 0L, oldest.eventId)
+        val countFromOldest = snapshotLoader.chunkEventCountFrom(chunkId, oldest.root.originServerTs ?: 0L, oldest.seq)
         if (countFromOldest != (cached.size + newEvents.size).toLong() ||
                 newEvents.any { it.root.getClearType() == EventType.REDACTION }) {
             loadedChunkIds.forEach { if (it != chunkId) chunkSnapshotCache.remove(it) }
@@ -1159,7 +1159,7 @@ internal class SqlTimeline(
         // A remap (cache cleared by a redaction, row move, jump landing...) must still reach the oldest shown
         // event, or the window loses its anchor and snaps back to the live edge under the reader.
         builtEvents.lastOrNull()?.takeIf { oldestShownEventId != null }?.let { oldestShown ->
-            val shownDepth = snapshotLoader.chunkEventCountFrom(chunkId, oldestShown.root.originServerTs ?: 0L, oldestShown.eventId)
+            val shownDepth = snapshotLoader.chunkEventCountFrom(chunkId, oldestShown.root.originServerTs ?: 0L, oldestShown.seq)
             if (shownDepth > liveChunkRowCap) liveChunkRowCap = shownDepth.toInt()
         }
         val slice = snapshotLoader.chunkSnapshotNewest(chunkId, liveChunkRowCap.toLong())
@@ -1180,7 +1180,7 @@ internal class SqlTimeline(
         }
         val oldest = cached.last()
         val older = snapshotLoader.chunkSnapshotOlderThan(
-                liveChunkId, oldest.root.originServerTs ?: 0L, oldest.eventId, liveChunkRowStep.toLong()
+                liveChunkId, oldest.root.originServerTs ?: 0L, oldest.seq, liveChunkRowStep.toLong()
         )
         liveChunkRowCap += liveChunkRowStep
         if (older.isEmpty()) {

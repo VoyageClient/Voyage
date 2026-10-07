@@ -168,6 +168,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                         ownedByThreadChunk = true,
                         roomMemberContentsByUser = roomMemberContentsByUser,
                         roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                        atOlderEnd = true,
                 )
             }
 
@@ -183,6 +184,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                                     isLastForward = true, ownedByThreadChunk = true,
                                     roomMemberContentsByUser = roomMemberContentsByUser,
                                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                                    atOlderEnd = true,
                             )
                         }
                     }
@@ -194,6 +196,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                                 isLastForward = true, ownedByThreadChunk = true,
                                 roomMemberContentsByUser = roomMemberContentsByUser,
                                 roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+                                atOlderEnd = true,
                         )
                     }
                 }

@@ -46,13 +46,13 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         }
         val crossChunk = crossChunkEvents.firstOrNull { it.isPreviewable(stores, ignored) }
         val candidates = listOfNotNull(sending.lastOrNull(), live, crossChunk)
-        return candidates.maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.eventId }))
+        return candidates.maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.seq }))
                 ?: listOf(
                         sendingEvents,
                         liveEvents,
                         crossChunkEvents,
                 ).mapNotNull { events -> events.firstOrNull { it.isPreviewableEdit(stores, ignored) } }
-                        .maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.eventId }))
+                        .maxWithOrNull(compareBy<TimelineEventEntity>({ it.ts }, { it.seq }))
     }
 
     fun getLatestUnreadEvent(stores: SessionStores, roomId: String): TimelineEventEntity? {

@@ -154,7 +154,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
             // Read back in the order the timeline renders them; anything out of order here is stored wrong,
             // not sorted wrong, since the query is what defines the order.
             val descending = rows.zipWithNext().none { (newer, older) ->
-                newer.ts < older.ts || (newer.ts == older.ts && newer.eventId < older.eventId)
+                newer.ts < older.ts || (newer.ts == older.ts && newer.seq < older.seq)
             }
             if (!descending) failures.add("#$chunkId does not read back newest first")
             rows.count { it.ts == 0L }.takeIf { it > 0 }?.let { failures.add("$it events with no timestamp in #$chunkId") }

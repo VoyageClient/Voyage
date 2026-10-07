@@ -198,7 +198,7 @@ internal class SqlReadReceiptHandler @Inject constructor(
         val existingEvent = stores.timelineEvent.getByRoomAndEventId(roomId, existing.eventId)
         return if (incomingEvent != null && existingEvent != null) {
             incomingEvent.ts > existingEvent.ts ||
-                    (incomingEvent.ts == existingEvent.ts && incomingEvent.eventId > existingEvent.eventId)
+                    (incomingEvent.ts == existingEvent.ts && incomingEvent.seq > existingEvent.seq)
         } else {
             receivedTs > existing.originServerTs
         }

@@ -207,6 +207,7 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
                 senderName = te.sender_name,
                 isUniqueDisplayName = te.is_unique_display_name != 0L,
                 senderAvatar = te.sender_avatar,
+                seq = te.seq,
         )
     }
 

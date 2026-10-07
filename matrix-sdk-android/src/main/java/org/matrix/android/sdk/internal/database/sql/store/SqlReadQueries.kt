@@ -40,7 +40,7 @@ internal fun SessionStores.latestSyncedEventId(roomId: String): String? =
         }
 
 // Local echoes and own events are read by definition. Otherwise the receipt must sit at or past the
-// event in the room's order, which is (ts, event_id).
+// event in the room's order, which is (ts, seq).
 internal fun SessionStores.isEventRead(userId: String, roomId: String, eventId: String, threadId: String? = null): Boolean {
     if (LocalEcho.isLocalEchoId(eventId)) return true
     val eventToCheck = timelineEvent.getByRoomAndEventId(roomId, eventId) ?: return false
@@ -49,7 +49,7 @@ internal fun SessionStores.isEventRead(userId: String, roomId: String, eventId: 
     val receiptRow = timelineEvent.getByRoomAndEventId(roomId, receipt.eventId)
     return when {
         receiptRow != null -> eventToCheck.ts < receiptRow.ts ||
-                (eventToCheck.ts == receiptRow.ts && eventToCheck.eventId <= receiptRow.eventId)
+                (eventToCheck.ts == receiptRow.ts && eventToCheck.seq <= receiptRow.seq)
         // Sliding sync may omit the receipt event; use its timestamp when no stored row can be compared.
         else -> (eventToCheck.root?.originServerTs ?: 0L) <= receipt.originServerTs.toLong()
     }
@@ -126,7 +126,7 @@ internal fun SessionStores.localUnreadCounts(userId: String, roomId: String, thr
 }
 
 /**
- * The slice of the live chunk past our read receipt, bounded by the order itself — `(ts, event_id)`. No
+ * The slice of the live chunk past our read receipt, bounded by the order itself — `(ts, seq)`. No
  * receipt at all means nothing in the room has been read, so everything the chunk holds counts.
  */
 private class UnreadWindow(
@@ -135,17 +135,17 @@ private class UnreadWindow(
         /** Us, plus everyone we ignore: their stored messages are hidden, so they must not count. */
         private val excludedSenders: Collection<String>,
         private val readTs: Long,
-        private val readEventId: String,
+        private val readSeq: Long,
 ) {
 
     fun messageCount(countThreads: Boolean): Int = queries
             .countUnreadInChunkAfterTs(
-                    chunkId, readTs, readTs, readEventId, excludedSenders, UNREAD_COUNTABLE_TYPES, if (countThreads) 1L else 0L
+                    chunkId, readTs, readTs, readSeq, excludedSenders, UNREAD_COUNTABLE_TYPES, if (countThreads) 1L else 0L
             )
             .executeAsOne().toInt()
 
     fun mentionCandidates(): List<Event> = queries
-            .selectMentionCandidatesInChunkAfterTs(chunkId, readTs, readTs, readEventId, excludedSenders, UNREAD_COUNTABLE_TYPES)
+            .selectMentionCandidatesInChunkAfterTs(chunkId, readTs, readTs, readSeq, excludedSenders, UNREAD_COUNTABLE_TYPES)
             .executeAsList().map { it.toEntity().asDomain() }
 
     /** Narrowed by a substring of the keyword; the rule's own matcher has the final say. */
@@ -153,7 +153,7 @@ private class UnreadWindow(
         val pattern = "%${keyword.globToSqlLike()}%"
         return queries
                 .selectKeywordCandidatesInChunkAfterTs(
-                        chunkId, readTs, readTs, readEventId, excludedSenders, UNREAD_COUNTABLE_TYPES, pattern, pattern
+                        chunkId, readTs, readTs, readSeq, excludedSenders, UNREAD_COUNTABLE_TYPES, pattern, pattern
                 )
                 .executeAsList().map { it.toEntity().asDomain() }
     }
@@ -168,7 +168,9 @@ private fun SessionStores.unreadWindow(userId: String, roomId: String): UnreadWi
             excludedSenders = user.getIgnoredUserIds() + userId,
             // No receipt means nothing in the room has been read, so everything it holds counts.
             readTs = receipt?.originServerTs?.toLong() ?: Long.MIN_VALUE,
-            readEventId = receipt?.eventId.orEmpty(),
+            // A receipt on an event this chunk never stored can't be placed among rows sharing its
+            // millisecond; count those as read rather than show an unread badge nothing explains.
+            readSeq = receipt?.let { timelineEvent.getInChunkByEventId(liveChunkId, it.eventId)?.seq } ?: Long.MAX_VALUE,
     )
 }
 
@@ -241,5 +243,5 @@ internal fun SessionStores.isReadMarkerMoreRecent(roomId: String, eventId: Strin
     val marker = timelineEvent.getByRoomAndEventId(roomId, currentMarker) ?: return false
     val target = timelineEvent.getByRoomAndEventId(roomId, eventId) ?: return false
 
-    return if (marker.ts != target.ts) marker.ts > target.ts else marker.eventId >= target.eventId
+    return if (marker.ts != target.ts) marker.ts > target.ts else marker.seq >= target.seq
 }

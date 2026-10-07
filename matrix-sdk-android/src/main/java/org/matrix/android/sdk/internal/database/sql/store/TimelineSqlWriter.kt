@@ -36,6 +36,8 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
             // invalidate every row it fed. Absent for callers that don't track it; those rows simply
             // keep their cached profile.
             roomMemberEventIdsByUser: Map<String, String?>? = null,
+            // Written below the rows it may tie with on ts: backward pages arrive newest first.
+            atOlderEnd: Boolean = false,
     ): Long? {
         val eventId = event.eventId
         if (stores.timelineEvent.getInChunkByEventId(chunkId, eventId) != null) return null
@@ -79,7 +81,7 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
                 senderMembershipEventId = roomMemberEventIdsByUser?.get(senderId),
                 ownedByThreadChunk = ownedByThreadChunk,
         )
-        return stores.timelineEvent.insert(entity, chunkId, eventDbId)
+        return stores.timelineEvent.insert(entity, chunkId, eventDbId, atOlderEnd)
     }
 
     private fun handleReadReceiptsOfSender(roomId: String, event: EventEntity, senderId: String, rootThreadId: String?) {

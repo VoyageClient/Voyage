@@ -7,22 +7,28 @@ CREATE TABLE timeline_event (
     event_id TEXT NOT NULL DEFAULT '',
     room_id TEXT NOT NULL DEFAULT '',
     chunk_id INTEGER,
-    -- Denormalized origin_server_ts for stable keyset pagination by (ts, event_id).
+    -- Denormalized origin_server_ts; rows are ordered and paged by (ts, seq).
     ts INTEGER NOT NULL DEFAULT 0,
     root_event_db_id INTEGER,
     sender_name TEXT,
     is_unique_display_name INTEGER NOT NULL DEFAULT 0,
     sender_avatar TEXT,
     sender_membership_event_id TEXT,
-    owned_by_thread_chunk INTEGER NOT NULL DEFAULT 0
+    owned_by_thread_chunk INTEGER NOT NULL DEFAULT 0,
+    -- Arrival order, counting up at the newer end and down at the older end: breaks ties between rows
+    -- sharing a millisecond (some servers stamp a whole room creation with one ts). Last column because
+    -- SessionModule adds it to existing databases with ALTER TABLE.
+    seq INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX timeline_event_event_id ON timeline_event(event_id);
 CREATE INDEX timeline_event_room_id ON timeline_event(room_id);
-CREATE INDEX timeline_event_chunk_order ON timeline_event(chunk_id, ts, event_id);
+CREATE INDEX timeline_event_chunk_seq_order ON timeline_event(chunk_id, ts, seq);
 -- Room-wide reads in the same order (room-list preview, latest unread). Without it every one of those
 -- sorts the room's whole timeline in a temp B-tree, once per room per sync.
-CREATE INDEX timeline_event_room_order ON timeline_event(room_id, ts, event_id);
+CREATE INDEX timeline_event_room_seq_order ON timeline_event(room_id, ts, seq);
+-- nextNewerSeq/nextOlderSeq take max/min(seq) before every insert.
+CREATE INDEX timeline_event_seq ON timeline_event(seq);
 -- See event_room_event: same room-scan trap for getByRoomAndEventId.
 CREATE INDEX timeline_event_room_event ON timeline_event(room_id, event_id);
 -- nextLocalId takes max(local_id) before every insert; unindexed that is a full table scan per row written.
@@ -32,15 +38,15 @@ CREATE INDEX timeline_event_local_id ON timeline_event(local_id);
 CREATE INDEX timeline_event_sender_membership ON timeline_event(sender_membership_event_id);
 
 selectByChunk:
-SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY ts DESC, event_id DESC;
+SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY ts DESC, seq DESC;
 
 selectByChunkNewest:
-SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY ts DESC, event_id DESC LIMIT ?;
+SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY ts DESC, seq DESC LIMIT ?;
 
--- Keyset cursors over the same (ts, event_id) order the index carries.
+-- Keyset cursors over the same (ts, seq) order the index carries.
 selectByChunkNewerThan:
-SELECT * FROM timeline_event WHERE chunk_id = ? AND (ts > ? OR (ts = ? AND event_id > ?))
-ORDER BY ts DESC, event_id DESC;
+SELECT * FROM timeline_event WHERE chunk_id = ? AND (ts > ? OR (ts = ? AND seq > ?))
+ORDER BY ts DESC, seq DESC;
 
 -- Same, for when the receipt points at an event the chunk never received (see isEventRead).
 -- Local unread count used when sliding sync supplies dummy notification counts.
@@ -49,7 +55,7 @@ countUnreadInChunkAfterTs:
 SELECT COUNT(*) FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ?
-AND (timeline_event.ts > ? OR (timeline_event.ts = ? AND timeline_event.event_id > ?))
+AND (timeline_event.ts > ? OR (timeline_event.ts = ? AND timeline_event.seq > ?))
 AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 AND (event.content IS NULL OR event.content NOT LIKE '%"rel_type":"m.replace"%')
@@ -62,7 +68,7 @@ selectMentionCandidatesInChunkAfterTs:
 SELECT event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ?
-AND (timeline_event.ts > ? OR (timeline_event.ts = ? AND timeline_event.event_id > ?))
+AND (timeline_event.ts > ? OR (timeline_event.ts = ? AND timeline_event.seq > ?))
 AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 AND (event.content IS NULL OR event.content NOT LIKE '%"rel_type":"m.replace"%')
@@ -74,17 +80,17 @@ selectKeywordCandidatesInChunkAfterTs:
 SELECT event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.chunk_id = ?
-AND (timeline_event.ts > ? OR (timeline_event.ts = ? AND timeline_event.event_id > ?))
+AND (timeline_event.ts > ? OR (timeline_event.ts = ? AND timeline_event.seq > ?))
 AND (event.sender IS NULL OR event.sender NOT IN ?) AND event.type IN ?
 AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 AND (event.content IS NULL OR event.content NOT LIKE '%"rel_type":"m.replace"%')
 AND (event.decryption_result_json IS NULL OR event.decryption_result_json NOT LIKE '%"rel_type":"m.replace"%')
 AND (event.content LIKE ? ESCAPE '\' OR event.decryption_result_json LIKE ? ESCAPE '\');
 
--- the [limit] rows just older than a (ts, event_id) cursor, newest-first — for growing the mapped slice.
+-- the [limit] rows just older than a (ts, seq) cursor, newest-first — for growing the mapped slice.
 selectByChunkOlderThan:
-SELECT * FROM timeline_event WHERE chunk_id = ? AND (ts < ? OR (ts = ? AND event_id < ?))
-ORDER BY ts DESC, event_id DESC LIMIT ?;
+SELECT * FROM timeline_event WHERE chunk_id = ? AND (ts < ? OR (ts = ? AND seq < ?))
+ORDER BY ts DESC, seq DESC LIMIT ?;
 
 selectById:
 SELECT * FROM timeline_event WHERE id = ? LIMIT 1;
@@ -127,7 +133,7 @@ JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.room_id = ? AND event.type IN ?
     AND event.root_thread_event_id IS NULL
     AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
-ORDER BY timeline_event.ts DESC, timeline_event.event_id DESC LIMIT ?;
+ORDER BY timeline_event.ts DESC, timeline_event.seq DESC LIMIT ?;
 
 selectLatestUnreadEvent:
 SELECT timeline_event.* FROM timeline_event
@@ -139,7 +145,7 @@ WHERE timeline_event.room_id = ? AND event.type IN ?
     AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
     AND (event.content IS NULL OR event.content NOT LIKE '%"rel_type":"m.replace"%')
     AND (event.decryption_result_json IS NULL OR event.decryption_result_json NOT LIKE '%"rel_type":"m.replace"%')
-ORDER BY timeline_event.ts DESC, timeline_event.event_id DESC LIMIT 1;
+ORDER BY timeline_event.ts DESC, timeline_event.seq DESC LIMIT 1;
 
 selectAttachmentsByRoom:
 SELECT timeline_event.* FROM timeline_event
@@ -165,10 +171,10 @@ SELECT * FROM timeline_event WHERE room_id = ? AND chunk_id IS NULL ORDER BY id;
 selectAllSending:
 SELECT * FROM timeline_event WHERE chunk_id IS NULL;
 
--- How many rows the chunk holds from a (ts, event_id) cursor upward — the exact size the cached slice
+-- How many rows the chunk holds from a (ts, seq) cursor upward — the exact size the cached slice
 -- should still be. Rows appended BELOW the cursor (a backward page) do not disturb it.
 countByChunkFrom:
-SELECT count(*) FROM timeline_event WHERE chunk_id = ? AND (ts > ? OR (ts = ? AND event_id >= ?));
+SELECT count(*) FROM timeline_event WHERE chunk_id = ? AND (ts > ? OR (ts = ? AND seq >= ?));
 
 countByChunk:
 SELECT count(*) FROM timeline_event WHERE chunk_id = ?;
@@ -176,14 +182,20 @@ SELECT count(*) FROM timeline_event WHERE chunk_id = ?;
 insert:
 INSERT INTO timeline_event(
     local_id, event_id, room_id, chunk_id, ts, root_event_db_id, sender_name,
-    is_unique_display_name, sender_avatar, sender_membership_event_id, owned_by_thread_chunk
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    is_unique_display_name, sender_avatar, sender_membership_event_id, owned_by_thread_chunk, seq
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 lastInsertRowId:
 SELECT last_insert_rowid();
 
 nextLocalId:
 SELECT coalesce(max(local_id), 0) + 1 FROM timeline_event;
+
+nextNewerSeq:
+SELECT coalesce(max(seq), 0) + 1 FROM timeline_event;
+
+nextOlderSeq:
+SELECT coalesce(min(seq), 0) - 1 FROM timeline_event;
 
 -- Move the newer side of a context window into an adjacent range.
 moveRowsFromTs:
@@ -227,17 +239,17 @@ JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
 WHERE te.chunk_id = ?;
 
 -- Timestamps at the two ends of a chunk, ignoring one row, for comparing a row just inserted at one
--- end against the rest. Walks the (ts, event_id) index instead of aggregating over the whole chunk,
+-- end against the rest. Walks the (ts, seq) index instead of aggregating over the whole chunk,
 -- since this runs for every synced event.
 selectTsAtNewestRowExcluding:
 SELECT e.origin_server_ts AS ts FROM timeline_event te
 JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
-WHERE te.chunk_id = ? AND te.id != ? ORDER BY te.ts DESC, te.event_id DESC LIMIT 1;
+WHERE te.chunk_id = ? AND te.id != ? ORDER BY te.ts DESC, te.seq DESC LIMIT 1;
 
 selectTsAtOldestRowExcluding:
 SELECT e.origin_server_ts AS ts FROM timeline_event te
 JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
-WHERE te.chunk_id = ? AND te.id != ? ORDER BY te.ts ASC, te.event_id ASC LIMIT 1;
+WHERE te.chunk_id = ? AND te.id != ? ORDER BY te.ts ASC, te.seq ASC LIMIT 1;
 
 deleteById:
 DELETE FROM timeline_event WHERE id = ?;

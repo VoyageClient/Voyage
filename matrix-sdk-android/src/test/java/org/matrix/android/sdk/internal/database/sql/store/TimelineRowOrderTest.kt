@@ -62,13 +62,32 @@ class TimelineRowOrderTest {
         ids() shouldBeEqualTo listOf("\$newest", "\$late", "\$newer")
     }
 
+    /** Some servers stamp a whole room creation with one millisecond; event ids are hashes and say nothing. */
     @Test
-    fun `events sharing a timestamp still have one definite order`() {
-        add("\$aaa", ts = 10 * HOUR)
-        add("\$ccc", ts = 10 * HOUR)
-        add("\$bbb", ts = 10 * HOUR)
+    fun `events sharing a timestamp keep the order sync delivered them in`() {
+        add("\$zzzCreate", ts = 10 * HOUR)
+        add("\$mmmMember", ts = 10 * HOUR)
+        add("\$aaaPowerLevels", ts = 10 * HOUR)
 
-        ids() shouldBeEqualTo listOf("\$ccc", "\$bbb", "\$aaa")
+        ids() shouldBeEqualTo listOf("\$aaaPowerLevels", "\$mmmMember", "\$zzzCreate")
+    }
+
+    @Test
+    fun `a backward page sharing a timestamp lands in order below what is already stored`() {
+        add("\$newest", ts = 10 * HOUR)
+        // A backward page is delivered newest first.
+        add("\$middle", ts = 10 * HOUR, atOlderEnd = true)
+        add("\$oldest", ts = 10 * HOUR, atOlderEnd = true)
+
+        ids() shouldBeEqualTo listOf("\$newest", "\$middle", "\$oldest")
+    }
+
+    @Test
+    fun `the tie-breaker only applies within a millisecond`() {
+        add("\$older", ts = 10 * HOUR)
+        add("\$newer", ts = 20 * HOUR, atOlderEnd = true)
+
+        ids() shouldBeEqualTo listOf("\$newer", "\$older")
     }
 
     @Test
@@ -83,8 +102,8 @@ class TimelineRowOrderTest {
     fun `the older-than cursor walks back without repeating or skipping`() {
         (1..10).forEach { add("\$e$it", ts = it * HOUR) }
 
-        val firstPage = stores.timelineEvent.getByChunkOlderThan(chunkId, 8 * HOUR, "\$e8", limit = 3)
-        val secondPage = firstPage.last().let { stores.timelineEvent.getByChunkOlderThan(chunkId, it.ts, it.eventId, limit = 3) }
+        val firstPage = stores.timelineEvent.getByChunkOlderThan(chunkId, 8 * HOUR, seqOf("\$e8"), limit = 3)
+        val secondPage = firstPage.last().let { stores.timelineEvent.getByChunkOlderThan(chunkId, it.ts, it.seq, limit = 3) }
 
         firstPage.map { it.eventId } shouldBeEqualTo listOf("\$e7", "\$e6", "\$e5")
         secondPage.map { it.eventId } shouldBeEqualTo listOf("\$e4", "\$e3", "\$e2")
@@ -94,7 +113,7 @@ class TimelineRowOrderTest {
     fun `the newer-than cursor reports only what arrived above it`() {
         (1..5).forEach { add("\$e$it", ts = it * HOUR) }
 
-        val since = stores.timelineEvent.getByChunkNewerThan(chunkId, 3 * HOUR, "\$e3")
+        val since = stores.timelineEvent.getByChunkNewerThan(chunkId, 3 * HOUR, seqOf("\$e3"))
 
         since.map { it.eventId } shouldBeEqualTo listOf("\$e5", "\$e4")
     }
@@ -104,9 +123,11 @@ class TimelineRowOrderTest {
     fun `cursors are stable across a run of equal timestamps`() {
         listOf("\$a", "\$b", "\$c", "\$d").forEach { add(it, ts = 10 * HOUR) }
 
-        val older = stores.timelineEvent.getByChunkOlderThan(chunkId, 10 * HOUR, "\$c", limit = 10)
+        val older = stores.timelineEvent.getByChunkOlderThan(chunkId, 10 * HOUR, seqOf("\$c"), limit = 10)
+        val newer = stores.timelineEvent.getByChunkNewerThan(chunkId, 10 * HOUR, seqOf("\$b"))
 
         older.map { it.eventId } shouldBeEqualTo listOf("\$b", "\$a")
+        newer.map { it.eventId } shouldBeEqualTo listOf("\$d", "\$c")
     }
 
     @Test
@@ -127,24 +148,27 @@ class TimelineRowOrderTest {
         add("\$mid", ts = 20 * HOUR)
         add("\$new", ts = 30 * HOUR)
 
-        stores.timelineEvent.countByChunkFrom(chunkId, 20 * HOUR, "\$mid") shouldBeEqualTo 2L
+        val mid = seqOf("\$mid")
+        stores.timelineEvent.countByChunkFrom(chunkId, 20 * HOUR, mid) shouldBeEqualTo 2L
 
         // A backward page lands below the cursor: the window is untouched.
-        add("\$old", ts = 10 * HOUR)
-        stores.timelineEvent.countByChunkFrom(chunkId, 20 * HOUR, "\$mid") shouldBeEqualTo 2L
+        add("\$old", ts = 10 * HOUR, atOlderEnd = true)
+        stores.timelineEvent.countByChunkFrom(chunkId, 20 * HOUR, mid) shouldBeEqualTo 2L
 
         // A late event inside the window moves it.
         add("\$late", ts = 25 * HOUR)
-        stores.timelineEvent.countByChunkFrom(chunkId, 20 * HOUR, "\$mid") shouldBeEqualTo 3L
+        stores.timelineEvent.countByChunkFrom(chunkId, 20 * HOUR, mid) shouldBeEqualTo 3L
     }
 
     private fun ids() = stores.timelineEvent.getByChunk(chunkId).map { it.eventId }
 
-    private fun add(eventId: String, ts: Long, chunk: Long = chunkId) {
+    private fun seqOf(eventId: String) = stores.timelineEvent.getInChunkByEventId(chunkId, eventId)!!.seq
+
+    private fun add(eventId: String, ts: Long, chunk: Long = chunkId, atOlderEnd: Boolean = false) {
         val entity = EventEntity(eventId = eventId, roomId = ROOM_ID, type = EventType.MESSAGE, sender = "@a:hs", originServerTs = ts)
         val dbId = stores.event.insert(entity)
         stores.timelineWriter.addTimelineEvent(
-                chunkId = chunk, roomId = ROOM_ID, eventDbId = dbId, event = entity, isLastForward = false,
+                chunkId = chunk, roomId = ROOM_ID, eventDbId = dbId, event = entity, isLastForward = false, atOlderEnd = atOlderEnd,
         )
     }
 }

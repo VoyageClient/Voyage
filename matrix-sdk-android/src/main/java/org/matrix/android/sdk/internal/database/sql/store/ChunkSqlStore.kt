@@ -12,7 +12,7 @@ import org.matrix.android.sdk.internal.database.model.ChunkEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.Chunk as ChunkRow
 
-/** Room history is stored as independent ranges, each ordered by (ts, event_id). */
+/** Room history is stored as independent ranges, each ordered by (ts, seq). */
 internal class ChunkSqlStore(private val database: SessionSqlDatabase) {
 
     private val queries get() = database.chunkQueries

@@ -32,12 +32,12 @@ internal class TimelineEventSqlStore(
             queries.selectByChunkNewest(chunkId, limit).executeAsList().toEntities(forTimeline = true)
 
     /** Everything the chunk has gained above a known row — what a live append adds to an open timeline. */
-    fun getByChunkNewerThan(chunkId: Long, ts: Long, eventId: String): List<TimelineEventEntity> =
-            queries.selectByChunkNewerThan(chunkId, ts, ts, eventId).executeAsList().toEntities(forTimeline = true)
+    fun getByChunkNewerThan(chunkId: Long, ts: Long, seq: Long): List<TimelineEventEntity> =
+            queries.selectByChunkNewerThan(chunkId, ts, ts, seq).executeAsList().toEntities(forTimeline = true)
 
     /** The rows immediately below a known one, newest first. Keyset, so it stays an index-only scan. */
-    fun getByChunkOlderThan(chunkId: Long, ts: Long, eventId: String, limit: Long): List<TimelineEventEntity> =
-            queries.selectByChunkOlderThan(chunkId, ts, ts, eventId, limit).executeAsList().toEntities(forTimeline = true)
+    fun getByChunkOlderThan(chunkId: Long, ts: Long, seq: Long, limit: Long): List<TimelineEventEntity> =
+            queries.selectByChunkOlderThan(chunkId, ts, ts, seq, limit).executeAsList().toEntities(forTimeline = true)
 
     fun getInChunkByEventId(chunkId: Long, eventId: String): TimelineEventEntity? =
             queries.selectInChunkByEventId(chunkId, eventId).executeAsOneOrNull()?.toEntity()
@@ -87,9 +87,9 @@ internal class TimelineEventSqlStore(
 
     fun countByChunk(chunkId: Long): Long = queries.countByChunk(chunkId).executeAsOne()
 
-    /** Rows at or newer than a (ts, event_id) cursor. */
-    fun countByChunkFrom(chunkId: Long, ts: Long, eventId: String): Long =
-            queries.countByChunkFrom(chunkId, ts, ts, eventId).executeAsOne()
+    /** Rows at or newer than a (ts, seq) cursor. */
+    fun countByChunkFrom(chunkId: Long, ts: Long, seq: Long): Long =
+            queries.countByChunkFrom(chunkId, ts, ts, seq).executeAsOne()
 
     fun minTsForChunk(chunkId: Long): Long? =
             queries.selectMinTsForChunk(chunkId).executeAsOneOrNull()?.ts
@@ -105,7 +105,9 @@ internal class TimelineEventSqlStore(
     fun tsAtOldestRow(chunkId: Long, excludedRowId: Long): Long? =
             queries.selectTsAtOldestRowExcluding(chunkId, excludedRowId).executeAsOneOrNull()?.ts
 
-    fun insert(entity: TimelineEventEntity, chunkId: Long?, rootEventDbId: Long?): Long {
+    /** [atOlderEnd]: the row is written below rows it may tie with on ts (a backward page), not above them. */
+    fun insert(entity: TimelineEventEntity, chunkId: Long?, rootEventDbId: Long?, atOlderEnd: Boolean = false): Long {
+        entity.seq = if (atOlderEnd) queries.nextOlderSeq().executeAsOne() else queries.nextNewerSeq().executeAsOne()
         queries.insert(
                 local_id = entity.localId,
                 event_id = entity.eventId,
@@ -118,6 +120,7 @@ internal class TimelineEventSqlStore(
                 sender_avatar = entity.senderAvatar,
                 sender_membership_event_id = entity.senderMembershipEventId,
                 owned_by_thread_chunk = if (entity.ownedByThreadChunk) 1L else 0L,
+                seq = entity.seq,
         )
         return queries.lastInsertRowId().executeAsOne()
     }
@@ -172,6 +175,7 @@ internal class TimelineEventSqlStore(
                     senderMembershipEventId = row.sender_membership_event_id,
                     ownedByThreadChunk = row.owned_by_thread_chunk != 0L,
                     readReceipts = receipts[row.event_id],
+                    seq = row.seq,
             )
         }
     }
@@ -189,5 +193,6 @@ internal class TimelineEventSqlStore(
             senderMembershipEventId = sender_membership_event_id,
             ownedByThreadChunk = owned_by_thread_chunk != 0L,
             readReceipts = readReceiptStore.getSummary(event_id),
+            seq = seq,
     )
 }
