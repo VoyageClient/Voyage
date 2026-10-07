@@ -120,6 +120,19 @@ class MentionPillRenderingTest {
     }
 
     @Test
+    fun `a long room pill is capped to the pill max width`() {
+        val name = "A very long room name ".repeat(20)
+        val rendered = render("""<a href="https://matrix.to/#/!elsewhere:example.org">$name</a>""", roomId)
+        val pill = rendered.getSpans(0, rendered.length, PillImageSpan::class.java).single()
+        val width = pill.getSize(Paint(), rendered, rendered.getSpanStart(pill), rendered.getSpanEnd(pill), null)
+        val cap = minOf(
+                context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.pill_max_width),
+                (context.resources.displayMetrics.widthPixels * 0.7f).toInt()
+        )
+        assertTrue(width in cap / 2..cap)
+    }
+
+    @Test
     fun `given an explicit link, when rendering, then it stays a link with its own text`() {
         val hrefs = listOf(
                 "https://matrix.to/#/$knownUser",

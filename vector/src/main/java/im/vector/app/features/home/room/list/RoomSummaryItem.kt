@@ -190,7 +190,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         }
         val text = view.text as? Spanned ?: return
         // Android drops an oversized replacement span to "…" before the chip can shorten its label.
-        val maxWidth = (view.width - view.paddingLeft - view.paddingRight) / 2
+        val maxWidth = view.width - view.paddingLeft - view.paddingRight
         if (text.getSpans(0, text.length, PillImageSpan::class.java).map { it.limitWidthTo(maxWidth) }.any { it }) {
             view.requestLayout()
         }

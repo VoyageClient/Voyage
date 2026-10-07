@@ -14,7 +14,6 @@ import android.content.res.ColorStateList
 import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Rect
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -55,6 +54,7 @@ import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 import java.lang.ref.WeakReference
+import java.text.BreakIterator
 import kotlin.math.ceil
 
 /**
@@ -83,6 +83,7 @@ class PillImageSpan(
     // ChipDrawable draws its label straight to the canvas, so Twemoji sprite spans can't render
     // through it. When the name spanifies to sprites, the chip gets empty text (bounds widened by
     // the label width) and [drawEmojiLabel] draws the spanned label at the chip's text position.
+    private var fullEmojiLabel: CharSequence? = null
     private var emojiLabel: CharSequence? = null
     private var emojiLabelPaint: TextPaint? = null
     private var emojiLabelLayout: StaticLayout? = null
@@ -117,6 +118,7 @@ class PillImageSpan(
     private var pillDrawable = createChipDrawable()
     private var naturalWidth = pillDrawable.bounds.width()
     private var maxWidth: Int? = null
+    private var fittedCap = -1
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
     private val spoilerTextPaint = TextPaint()
@@ -152,6 +154,7 @@ class PillImageSpan(
     private fun applyResolvedItem(item: MatrixItem) {
         matrixItem = item
         displayName = item.getBestName().neutralizeDirectionOverrides()
+        fullEmojiLabel = null
         emojiLabel = null
         emojiLabelPaint = null
         emojiLabelLayout = null
@@ -161,6 +164,7 @@ class PillImageSpan(
         rawIcon = null
         pillDrawable = createChipDrawable()
         naturalWidth = pillDrawable.bounds.width()
+        fittedCap = -1
         pillDrawable.callback = chipCallback
         val textView = tv?.get() ?: return
         if (!useGenericIcon && !hasCachedAvatar) avatarRenderer.render(glideRequests, item, target, forceCircle = true)
@@ -194,7 +198,73 @@ class PillImageSpan(
             fm.bottom = top
             fm.descent = top
         }
-        return maxWidth?.let { minOf(naturalWidth, it) } ?: naturalWidth
+        return fittedWidth()
+    }
+
+    private fun fittedWidth(): Int {
+        val res = context.resources
+        // The screen bound only matters at very large font scales, where the sp cap outgrows a line.
+        val defaultCap = minOf(
+                res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.pill_max_width),
+                (res.displayMetrics.widthPixels * MAX_SCREEN_FRACTION).toInt()
+        )
+        fitTo(maxWidth?.let { minOf(it, defaultCap) } ?: defaultCap)
+        return pillDrawable.bounds.width()
+    }
+
+    // Not the chip's own ellipsize: it keeps the chip at the full cap, leaving a gap after the "…".
+    private fun fitTo(cap: Int) {
+        if (cap == fittedCap) return
+        fittedCap = cap
+        val chip = pillDrawable
+        val callback = chip.callback
+        // Changing the chip's text invalidates it, which would repaint the span in the middle of a layout.
+        chip.callback = null
+        val manual = fullEmojiLabel != null
+        val label: CharSequence = fullEmojiLabel ?: displayName
+        val manualChromeWidth = if (manual) chip.intrinsicWidth else 0
+        fun widthOf(text: CharSequence) = if (manual) {
+            manualChromeWidth + ceil(Layout.getDesiredWidth(text, emojiLabelPaint!!)).toInt()
+        } else {
+            chip.text = text
+            chip.intrinsicWidth
+        }
+
+        var fitted: CharSequence = label
+        if (naturalWidth > cap) {
+            val boundaries = graphemeBoundaries(label)
+            fun candidate(end: Int): CharSequence =
+                    SpannableStringBuilder(label.subSequence(0, end).trimEnd()).append(ELLIPSIS)
+            var low = 0
+            var high = boundaries.size - 1
+            while (low < high) {
+                val mid = (low + high + 1) / 2
+                if (widthOf(candidate(boundaries[mid])) <= cap) low = mid else high = mid - 1
+            }
+            fitted = candidate(boundaries[low])
+        }
+        val width = if (fitted === label) naturalWidth else widthOf(fitted)
+        if (manual) {
+            emojiLabel = fitted
+            emojiLabelLayout = null
+        } else {
+            chip.text = fitted
+        }
+        chip.ellipsize = if (width > cap) TextUtils.TruncateAt.END else null
+        chip.setBounds(0, 0, minOf(width, cap), chip.intrinsicHeight)
+        chip.callback = callback
+    }
+
+    private fun graphemeBoundaries(text: CharSequence): List<Int> {
+        val iterator = BreakIterator.getCharacterInstance()
+        iterator.setText(text.toString())
+        val boundaries = mutableListOf<Int>()
+        var boundary = iterator.first()
+        while (boundary != BreakIterator.DONE) {
+            boundaries.add(boundary)
+            boundary = iterator.next()
+        }
+        return boundaries
     }
 
     override fun draw(
@@ -221,12 +291,8 @@ class PillImageSpan(
         canvas.save()
         canvas.translate(x, transY.toFloat())
 
-        val rect = Rect()
-        canvas.getClipBounds(rect)
-        val availableWidth = maxWidth?.let { minOf(rect.right, it) } ?: rect.right
-        val drawWidth = minOf(naturalWidth, availableWidth)
-        pillDrawable.setBounds(0, 0, drawWidth, pillDrawable.intrinsicHeight)
-        pillDrawable.ellipsize = if (drawWidth < naturalWidth) TextUtils.TruncateAt.END else null
+        // Not sized from the clip bounds: a partial redraw clips to the dirty region, squeezing the chip to its avatar.
+        fittedWidth()
 
         // Being painted is what says the pill is on screen; take the animation back up if it was parked
         // while off it. Plain start(), not a rewind: the pill would otherwise jump to frame 0 on a scroll.
@@ -394,6 +460,7 @@ class PillImageSpan(
                 setTextAppearanceResource(im.vector.lib.ui.styles.R.style.TextAppearance_Vector_Body_OnError)
             }
             if (needsManualLabel) {
+                fullEmojiLabel = spanified
                 emojiLabel = spanified
                 val paint = createChipLabelPaint(context).also { emojiLabelPaint = it }
                 // With empty chip text, intrinsicWidth is the base (paddings + avatar) width; widen
@@ -409,6 +476,9 @@ class PillImageSpan(
     companion object {
         // Keep in sync with SpoilerSpan's text blur so a hidden mention matches the surrounding text.
         private const val SPOILER_BLUR_RATIO = 0.4f
+
+        private const val MAX_SCREEN_FRACTION = 0.7f
+        private const val ELLIPSIS = "…"
     }
 }
 
