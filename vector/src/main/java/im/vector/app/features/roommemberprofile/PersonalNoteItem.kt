@@ -270,13 +270,11 @@ abstract class PersonalNoteItem : VectorEpoxyModel<PersonalNoteItem.Holder>(R.la
         commit(holder)
         holder.edit.clearFocus()
         onEditingChanged?.invoke(false)
-        // Until the save round-trips into new state, show the plain source rather than a stale rendering
-        val text = holder.edit.text?.toString().orEmpty()
-        if (text != noteSource) {
-            holder.rendered.text = text
-            holder.showRich = false
+        // A changed note stays in the editor until the optimistic re-render rebinds this item, rather than
+        // flashing the stale rendering in between
+        if (holder.edit.text?.toString().orEmpty().trim() == noteSource.trim()) {
+            setMode(holder, editing = false)
         }
-        setMode(holder, editing = false)
     }
 
     private fun startEditing(holder: Holder, sourceOffset: Int) {

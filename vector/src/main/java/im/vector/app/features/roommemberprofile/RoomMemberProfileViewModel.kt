@@ -27,6 +27,7 @@ import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
+import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
@@ -88,6 +89,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         private val massRedactionManager: MassRedactionManager,
         private val profileFieldsFormatter: ProfileFieldsFormatter,
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
+        private val imagePackProvider: ImagePackProvider,
         private val vectorPreferences: VectorPreferences,
         private val session: Session,
         private val matrix: Matrix
@@ -168,6 +170,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         // concurrent fetch splits the reveal into staggered partial updates.
         observeIgnoredState()
         observeAccountData()
+        // Keeps the room-less emote cache warm, so a saved note resolves :shortcodes: without the multi-second pack walk
+        imagePackProvider.getEmoticonsLive(roomId = null).launchIn(viewModelScope)
         viewModelScope.launch(Dispatchers.Main) {
             // Do we have a room member for this id.
             val roomMember = withContext(Dispatchers.Default) {
@@ -415,6 +419,11 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
 
     private fun handleSetPersonalNote(action: RoomMemberProfileAction.SetPersonalNote) {
         viewModelScope.launch {
+            // Optimistic, before the ADK and the save; a failure rolls back through refreshPersonalNote().
+            // Cached emotes only: a cold pack lookup takes seconds.
+            val optimistic = action.note?.trim()?.takeIf { it.isNotEmpty() }
+                    ?.let { parsePersonalNote(mapOf("m.text" to noteRepresentations(it, cachedEmotesOnly = true))) }
+            setState { copy(personalNote = optimistic, personalNoteLocked = false) }
             accountDataWriteMutex.withLock {
                 try {
                     val service = session.encryptedAccountDataService()
@@ -446,7 +455,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                         entry["m.text"] = noteRepresentations(note)
                         annotations[initialState.userId] = entry
                     }
-                    // Optimistic: render the new note now rather than after the server round-trip
+                    // Same as the optimistic rendering unless the emote cache was still cold
                     setState { copy(personalNote = parsePersonalNote(annotations[initialState.userId]), personalNoteLocked = false) }
                     UserAccountDataTypes.TYPES_PROFILE_ANNOTATIONS.forEach { type ->
                         val payload = if (encryptWrites) service.encrypt(type, annotations) else annotations
@@ -476,10 +485,10 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
      * actually carries formatting — markdown and `:shortcode:` emotes resolved exactly as a
      * message's (and a biography's) are.
      */
-    private suspend fun noteRepresentations(source: String): List<Map<String, String>> {
+    private suspend fun noteRepresentations(source: String, cachedEmotesOnly: Boolean = false): List<Map<String, String>> {
         val plain = mapOf("body" to source)
         val withEmotes = withContext(Dispatchers.IO) {
-            emoteShortcodeProcessor.process(roomId = null, text = source.withBlankLinesKept())
+            emoteShortcodeProcessor.process(roomId = null, text = source.withBlankLinesKept(), cachedOnly = cachedEmotesOnly)
         }
         val html = tryOrNull { session.roomService().computeFormattedHtml(withEmotes, autoMarkdown = true) }
                 ?: return listOf(plain)

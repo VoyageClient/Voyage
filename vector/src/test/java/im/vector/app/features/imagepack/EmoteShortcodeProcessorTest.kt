@@ -10,6 +10,7 @@ package im.vector.app.features.imagepack
 import android.text.Spanned
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeTrue
 import org.junit.Test
@@ -102,5 +103,31 @@ class EmoteShortcodeProcessorTest {
         givenEmotes(null, anImage("blobcat/mine", BLOBCAT_MXC), anImage("blobcat/theirs", PARTY_MXC))
 
         processor.process(roomId = null, text = ":blobcat/theirs:").emotes().map { it.first } shouldBeEqualTo listOf(PARTY_MXC)
+    }
+
+    @Test
+    fun `text without any shortcode never reads the packs`() {
+        givenEmotes(null, anImage("blobcat", BLOBCAT_MXC))
+
+        processor.process(roomId = null, text = "just words: no emotes") shouldBeEqualTo "just words: no emotes"
+
+        verify(exactly = 0) { imagePackProvider.cachedEmoticons(any()) }
+        verify(exactly = 0) { imagePackProvider.getEmoticons(any()) }
+    }
+
+    @Test
+    fun `cached-only resolves from the cache`() {
+        every { imagePackProvider.cachedEmoticons(null) } returns listOf(anImage("blobcat", BLOBCAT_MXC))
+
+        processor.process(roomId = null, text = ":blobcat:", cachedOnly = true).emotes().map { it.first } shouldBeEqualTo listOf(BLOBCAT_MXC)
+    }
+
+    @Test
+    fun `cached-only with a cold cache leaves the text and skips the pack walk`() {
+        givenEmotes(null, anImage("blobcat", BLOBCAT_MXC))
+
+        processor.process(roomId = null, text = ":blobcat:", cachedOnly = true).emotes() shouldBeEqualTo emptyList()
+
+        verify(exactly = 0) { imagePackProvider.getEmoticons(any()) }
     }
 }
