@@ -58,7 +58,7 @@ class ForwardContentBuilderTest {
                 "format" to "org.matrix.custom.html",
                 "formatted_body" to "<strong>Forwarded from <a href=\"$alice\">@alice:example.org</a> - " +
                         "<a href=\"${link("\$original:example.org")}\">view original message</a></strong>" +
-                        "<blockquote><p>Meeting starts at noon.</p></blockquote>",
+                        "<br><blockquote><p>Meeting starts at noon.</p></blockquote>",
         ) + keys(forwarded)
         assertEquals(expected, build(forwarded))
         assertEquals("https://matrix.to/#/!source%3Aexample.org/%24original%3Aexample.org?via=example.org", link("\$original:example.org"))
@@ -78,7 +78,7 @@ class ForwardContentBuilderTest {
                 "msgtype" to "m.text",
                 "body" to "Forwarded message\nMeeting starts at noon.",
                 "format" to "org.matrix.custom.html",
-                "formatted_body" to "<strong>Forwarded message</strong><blockquote><p>Meeting starts at noon.</p></blockquote>",
+                "formatted_body" to "<strong>Forwarded message</strong><br><blockquote><p>Meeting starts at noon.</p></blockquote>",
         ) + keys(forwarded)
         assertEquals(expected, build(forwarded))
     }
@@ -93,7 +93,7 @@ class ForwardContentBuilderTest {
                 "format" to "org.matrix.custom.html",
                 "formatted_body" to "<strong>Forwarded from <a href=\"$alice\">@alice:example.org</a> - " +
                         "<a href=\"${link("\$emote:example.org")}\">view original message</a></strong>" +
-                        "<blockquote><em><strong><a href=\"$alice\">Alice</a></strong> waves</em></blockquote>",
+                        "<br><blockquote><em><strong><a href=\"$alice\">Alice</a></strong> waves</em></blockquote>",
         ) + keys(forwarded)
         assertEquals(expected, build(forwarded, displayName = "Alice"))
     }
@@ -106,7 +106,7 @@ class ForwardContentBuilderTest {
                 "msgtype" to "m.text",
                 "body" to "Forwarded message\nSender waves",
                 "format" to "org.matrix.custom.html",
-                "formatted_body" to "<strong>Forwarded message</strong><blockquote><em><strong>Sender</strong> waves</em></blockquote>",
+                "formatted_body" to "<strong>Forwarded message</strong><br><blockquote><em><strong>Sender</strong> waves</em></blockquote>",
         ) + keys(forwarded)
         assertEquals(expected, build(forwarded))
     }
@@ -138,7 +138,7 @@ class ForwardContentBuilderTest {
 
         assertEquals("cat.png", result["filename"])
         assertEquals("Forwarded message\nlook <here>", result["body"])
-        assertEquals("<strong>Forwarded message</strong><blockquote>look &lt;here&gt;</blockquote>", result["formatted_body"])
+        assertEquals("<strong>Forwarded message</strong><br><blockquote>look &lt;here&gt;</blockquote>", result["formatted_body"])
     }
 
     @Test

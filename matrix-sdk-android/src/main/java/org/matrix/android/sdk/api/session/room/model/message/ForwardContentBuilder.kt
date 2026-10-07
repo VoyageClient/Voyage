@@ -107,7 +107,7 @@ object ForwardContentBuilder {
         return top +
                 ("body" to (shown?.let { "$header\n${it.first}" } ?: header)) +
                 ("format" to MessageFormat.FORMAT_MATRIX_HTML) +
-                ("formatted_body" to (shown?.let { "$headerHtml<blockquote>${it.second}</blockquote>" } ?: headerHtml))
+                ("formatted_body" to (shown?.let { "$headerHtml<br><blockquote>${it.second}</blockquote>" } ?: headerHtml))
     }
 
     private fun eventPermalink(roomId: String?, eventId: String?, via: List<String>): String? {
