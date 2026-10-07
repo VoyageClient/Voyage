@@ -220,7 +220,9 @@ internal class SyncThread @Inject constructor(
             if (!isStarted) {
                 Timber.tag(loggerTag.value).d("Sync is Paused. Waiting...")
                 updateStateTo(SyncState.Paused)
-                synchronized(lock) { lock.wait() }
+                synchronized(lock) {
+                    if (!isStarted && state != SyncState.Killing) lock.wait()
+                }
                 Timber.tag(loggerTag.value).d("...unlocked")
             } else if (!canReachServer) {
                 Timber.tag(loggerTag.value).d("No network. Waiting...")
@@ -232,7 +234,7 @@ internal class SyncThread @Inject constructor(
                         lock.notify()
                     }
                 }
-                synchronized(lock) { lock.wait() }
+                synchronized(lock) { if (!canReachServer && state != SyncState.Killing) lock.wait() }
                 Timber.tag(loggerTag.value).d("...retry")
             } else if (!isTokenValid) {
                 if (state == SyncState.Killing) {
@@ -240,7 +242,9 @@ internal class SyncThread @Inject constructor(
                 }
                 Timber.tag(loggerTag.value).d("Token is invalid. Waiting...")
                 updateStateTo(SyncState.InvalidToken)
-                synchronized(lock) { lock.wait() }
+                synchronized(lock) {
+                    if (!isTokenValid && state != SyncState.Killing) lock.wait()
+                }
                 Timber.tag(loggerTag.value).d("...unlocked")
             } else {
                 if (forceImmediateSync || state !is SyncState.Running) {
