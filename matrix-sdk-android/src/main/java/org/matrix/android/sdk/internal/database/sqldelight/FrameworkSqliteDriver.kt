@@ -73,7 +73,8 @@ internal class FrameworkSqliteDriver private constructor(
     private val transactions = ThreadLocal<Transaction?>()
 
     // Shared per database file so outgoing and incoming session drivers cannot race beginTransaction.
-    private val transactionLock: java.util.concurrent.locks.ReentrantLock by lazy { transactionLockFor(database.path) }
+    private val transactionLockDelegate = lazy { transactionLockFor(database.path) }
+    private val transactionLock: java.util.concurrent.locks.ReentrantLock by transactionLockDelegate
     private val listeners = linkedMapOf<String, MutableSet<Query.Listener>>()
 
     // SQLDelight hands each prepared statement a stable [identifier]; caching the compiled
@@ -248,17 +249,28 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     override fun close() {
-        closed = true
-        statementCache.get()!!.values.forEach { runCatching { it.close() } }
-        statementCache.remove()
-        openHelper?.close()
-        if (closeSuppliedDatabase) suppliedDatabase?.close()
+        // Closing under a transaction strands its connection, and with it SQLite's write lock on the file,
+        // so the next driver on this database gets SQLITE_BUSY until that connection is finalized. A
+        // transaction holds [transactionLock] throughout, so taking it waits for one in flight to end.
+        val onMainThread = android.os.Looper.myLooper() == android.os.Looper.getMainLooper()
+        val waited = transactionLockDelegate.isInitialized() &&
+                transactionLock.tryLock(if (onMainThread) 0L else CLOSE_TRANSACTION_WAIT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+        try {
+            closed = true
+            statementCache.get()!!.values.forEach { runCatching { it.close() } }
+            statementCache.remove()
+            openHelper?.close()
+            if (closeSuppliedDatabase) suppliedDatabase?.close()
+        } finally {
+            if (waited) transactionLock.unlock()
+        }
     }
 
     companion object {
 
         private const val BEGIN_BUSY_TIMEOUT_MS = 30_000L
         private const val BEGIN_BUSY_MAX_BACKOFF_MS = 25L
+        private const val CLOSE_TRANSACTION_WAIT_MS = 30_000L
         private val transactionLocks = mutableMapOf<String, java.util.concurrent.locks.ReentrantLock>()
 
         private fun transactionLockFor(path: String): java.util.concurrent.locks.ReentrantLock = synchronized(transactionLocks) {
