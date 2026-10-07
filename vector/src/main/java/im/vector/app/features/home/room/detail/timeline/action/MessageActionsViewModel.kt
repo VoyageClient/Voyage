@@ -61,14 +61,18 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
@@ -220,6 +224,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             }
 
             observeEvent()
+            if (seededEvent == null) fetchMissingEvent()
             observeReactions()
             observePowerLevel()
             observeTimelineEventState()
@@ -264,6 +269,23 @@ class MessageActionsViewModel @AssistedInject constructor(
                 .execute {
                     copy(timelineEvent = it)
                 }
+    }
+
+    // Server-side search results aren't in the timeline DB until something fetches them.
+    private fun fetchMissingEvent() {
+        val room = room ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            tryOrNull { session.eventService().ensureEventCached(room.roomId, initialState.eventId, requireTimelineEvent = true) }
+            val event = room.getTimelineEvent(initialState.eventId) ?: return@launch
+            if (event.root.getClearType() != EventType.ENCRYPTED) return@launch
+            // Decryption only touches the event table, which liveTimelineEvent doesn't watch.
+            session.eventService().requestDecryption(event.root)
+            val decrypted = session.eventService().decryptionUpdates(room.roomId)
+                    .onStart { emit(Unit) }
+                    .mapNotNull { room.getTimelineEvent(initialState.eventId)?.takeIf { it.root.getClearType() != EventType.ENCRYPTED } }
+                    .first()
+            setState { copy(timelineEvent = Success(decrypted)) }
+        }
     }
 
     private fun observeReactions() {
