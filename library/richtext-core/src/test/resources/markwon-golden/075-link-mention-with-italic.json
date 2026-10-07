@@ -6,6 +6,11 @@
     {
       "start": 0,
       "end": 1,
+      "kind": "italic"
+    },
+    {
+      "start": 0,
+      "end": 1,
       "kind": "pill",
       "id": "@alice:example.org",
       "itemType": "UserItem",
@@ -21,6 +26,11 @@
   "markwon": {
     "text": "￼ mentioned",
     "spans": [
+      {
+        "start": 0,
+        "end": 1,
+        "kind": "italic"
+      },
       {
         "start": 0,
         "end": 1,

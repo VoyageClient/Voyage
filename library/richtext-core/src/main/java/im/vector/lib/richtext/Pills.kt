@@ -37,13 +37,21 @@ class PillsPostProcessor(private val resolver: PillResolver) : RichTextRenderer.
             val url = (linkSpan.style as RichStyle.Link).url
             val label = text.toString().substring(startSpan, endSpan).trim().takeUnless { it.isBlank() || it == url }
             val target = resolver.resolveLink(url, label) ?: continue
-            // Spans nested inside the link would draw on top of the pill; drop everything the link contains.
+            // Spans nested inside the link would draw on top of the pill; drop everything the link contains
+            // except the text styling the pill draws its label with.
             text.getSpans(startSpan, endSpan).forEach {
-                if (it.style !is RichStyle.Link && it.start >= startSpan && it.end <= endSpan) text.removeSpan(it)
+                if (it.style !is RichStyle.Link && !it.style.stylesPillLabel() && it.start >= startSpan && it.end <= endSpan) text.removeSpan(it)
             }
             text.setPillSpan(RichStyle.Pill(target), startSpan, endSpan)
         }
     }
+}
+
+// The styles Android applies as MetricAffectingSpans, which reach a pill's label.
+private fun RichStyle.stylesPillLabel() = when (this) {
+    RichStyle.Bold, RichStyle.Italic, RichStyle.Subscript, RichStyle.Superscript,
+    is RichStyle.Heading, is RichStyle.RelativeSize -> true
+    else -> false
 }
 
 /** Collapses the backing text to one object-replacement char (a display name with emoji would get split by layout). */

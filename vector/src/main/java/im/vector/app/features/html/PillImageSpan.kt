@@ -14,6 +14,7 @@ import android.content.res.ColorStateList
 import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Typeface
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -26,6 +27,7 @@ import android.text.Spanned
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
+import android.text.style.MetricAffectingSpan
 import android.text.style.ReplacementSpan
 import android.text.style.TextAppearanceSpan
 import android.widget.TextView
@@ -88,6 +90,7 @@ class PillImageSpan(
     private var emojiLabelPaint: TextPaint? = null
     private var emojiLabelLayout: StaticLayout? = null
     private var emojiLabelLayoutWidth = -1
+    private var textStyle: LabelStyle? = null
 
     // Display-only; the outgoing body built by [expandPillSpans] uses [bodyText].
     private var displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
@@ -159,6 +162,7 @@ class PillImageSpan(
         emojiLabelPaint = null
         emojiLabelLayout = null
         emojiLabelLayoutWidth = -1
+        textStyle = null
         useGenericIcon = false
         hasCachedAvatar = false
         rawIcon = null
@@ -186,6 +190,7 @@ class PillImageSpan(
             fm?.let { paint.getFontMetricsInt(it) }
             return ceil(paint.measureText(displayName)).toInt()
         }
+        applyTextStyle(textStyleOf(paint))
         val rect = pillDrawable.bounds
         if (fm != null) {
             val fmPaint = paint.fontMetricsInt
@@ -254,6 +259,53 @@ class PillImageSpan(
         chip.setBounds(0, 0, minOf(width, cap), chip.intrinsicHeight)
         chip.callback = callback
     }
+
+    // The paint handed to a replacement span already carries the surrounding bold and italic spans. They
+    // combine as a typeface plus fake-bold and skew flags, so all three are copied rather than re-derived.
+    private fun textStyleOf(paint: Paint): LabelStyle? {
+        val typeface = paint.typeface?.takeIf { it.style != Typeface.NORMAL }
+        if (typeface == null && !paint.isFakeBoldText && paint.textSkewX == 0f) return null
+        return LabelStyle(typeface, paint.isFakeBoldText, paint.textSkewX)
+    }
+
+    // ChipDrawable's label paint can't be styled, so a bold or italic pill draws its label by hand.
+    private fun applyTextStyle(style: LabelStyle?) {
+        if (style == textStyle) return
+        textStyle = style
+        val chip = pillDrawable
+        val callback = chip.callback
+        chip.callback = null
+        val label = fullEmojiLabel ?: displayName.prepareForDisplay()
+        if (style == null && !hasTwemoji(label)) {
+            fullEmojiLabel = null
+            emojiLabel = null
+            emojiLabelPaint = null
+            chip.text = displayName
+            chip.setBounds(0, 0, chip.intrinsicWidth, chip.intrinsicHeight)
+        } else {
+            val paint = createChipLabelPaint(context).apply {
+                style?.let {
+                    if (it.typeface != null) typeface = it.typeface
+                    isFakeBoldText = it.fakeBold
+                    textSkewX = it.skewX
+                }
+                if (matrixItem is MatrixItem.EveryoneInRoomItem) color = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorOnError)
+            }
+            fullEmojiLabel = label
+            emojiLabel = label
+            emojiLabelPaint = paint
+            chip.text = ""
+            chip.setBounds(0, 0, chip.intrinsicWidth + ceil(Layout.getDesiredWidth(label, paint)).toInt(), chip.intrinsicHeight)
+        }
+        emojiLabelLayout = null
+        emojiLabelLayoutWidth = -1
+        naturalWidth = chip.bounds.width()
+        fittedCap = -1
+        chip.callback = callback
+    }
+
+    private fun hasTwemoji(label: CharSequence) =
+            (label as? Spanned)?.getSpans(0, label.length, TwemojiSpan::class.java)?.isNotEmpty() == true
 
     private fun graphemeBoundaries(text: CharSequence): List<Int> {
         val iterator = BreakIterator.getCharacterInstance()
@@ -498,6 +550,8 @@ internal fun createChipLabelPaint(context: Context): TextPaint {
     return paint
 }
 
+private data class LabelStyle(val typeface: Typeface?, val fakeBold: Boolean, val skewX: Float)
+
 // A pill's display name (with emoji) as backing text gets split by the layout at emoji-cluster
 // boundaries, so the chip is drawn for one run and the emoji rendered as plain glyphs for the next.
 // Back the span with a single object-replacement char instead - it can't be split, and the chip
@@ -507,7 +561,13 @@ const val PILL_PLACEHOLDER = "￼"
 fun Spannable.setPillSpan(span: PillImageSpan, start: Int, end: Int) {
     if (start < 0 || end > length || end < start) return
     if (this is Editable && end > start) {
+        // Replacing all of a span's text drops the span, so a <strong> around just the mention would
+        // vanish; carry those styles over to the placeholder.
+        val enclosed = getSpans(start, end, MetricAffectingSpan::class.java)
+                .filter { it !is ReplacementSpan && getSpanStart(it) >= start && getSpanEnd(it) <= end }
+                .map { it to getSpanFlags(it) }
         replace(start, end, PILL_PLACEHOLDER)
+        enclosed.forEach { (style, flags) -> setSpan(style, start, start + PILL_PLACEHOLDER.length, flags) }
         setSpan(span, start, start + PILL_PLACEHOLDER.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
     } else {
         setSpan(span, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)

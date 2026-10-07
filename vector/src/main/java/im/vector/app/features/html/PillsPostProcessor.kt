@@ -9,6 +9,8 @@ package im.vector.app.features.html
 
 import android.content.Context
 import android.text.Spannable
+import android.text.style.MetricAffectingSpan
+import android.text.style.ReplacementSpan
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -93,9 +95,10 @@ class PillsPostProcessor @AssistedInject constructor(
             if (renderedText.overlapsExplicitLink(startSpan, endSpan)) return@forEach
             val pillSpan = linkSpan.createPillSpan(renderedText.subSequence(startSpan, endSpan).toString()) ?: return@forEach
             // GlideImagesPlugin causes duplicated pills if we have a nested spans in the pill span,
-            // such as images or italic text.
-            // Accordingly, it's better to remove all spans that are contained in this span before rendering.
+            // such as images. Accordingly, it's better to remove all spans that are contained in this span
+            // before rendering, except bold/italic styling, which the pill draws its label with.
             renderedText.getSpans(startSpan, endSpan, Any::class.java).forEach remove@{
+                if (it is MetricAffectingSpan && it !is ReplacementSpan) return@remove
                 if (it !is LinkSpan) {
                     // Make sure to only remove spans that are contained in this link, and not are bigger than this link, e.g. like reply-blocks
                     val start = renderedText.getSpanStart(it)
