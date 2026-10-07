@@ -1,0 +1,10 @@
+• Describe Voyage's features and network connections in the store listing
+• Generate F-Droid changelogs for each nightly
+• Register pushers under Voyage's own app id
+• Remove Element's leftover Sentry analytics config
+• Drop the implied call-log permission and post-Pie storage writes
+• Only show and send room mentions the sender is allowed to make
+• Show debug message events as debug everywhere
+• Remove stealth mode
+• Sharpen zoomed media in the image and video editors
+…and 32 more
