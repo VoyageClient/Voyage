@@ -21,6 +21,8 @@ class SenderNameSpan(
         private val colorProvider: MatrixItemColorProvider,
 ) : MetricAffectingSpan() {
 
+    val userId: String get() = matrixItem.id
+
     private var generation = -1L
     private var color = 0
     private var bold = false

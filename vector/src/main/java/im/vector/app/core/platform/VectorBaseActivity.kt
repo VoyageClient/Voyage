@@ -90,6 +90,7 @@ import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.consent.ConsentNotGivenHelper
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
+import im.vector.app.features.html.repaintSpan
 import im.vector.app.features.mdm.MdmService
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
@@ -152,7 +153,16 @@ internal object ProfileColorFadeRegistry {
 
     fun bindTimelineSpan(textView: TextView, userId: String, @ColorInt target: Int, @ColorInt previous: Int?, fade: Boolean) {
         joinShared(userId, target, previous ?: target, fade && previous != null, textView, span = true)
-        textView.invalidate()
+        repaintNameSpans(textView, userId)
+    }
+
+    // A selectable TextView draws its text from cached render nodes that invalidate() leaves as they were.
+    private fun repaintNameSpans(view: TextView, userId: String) {
+        val spanned = view.text as? Spanned
+        if (!view.isTextSelectable || spanned == null) return view.invalidate()
+        spanned.getSpans(0, spanned.length, SenderNameSpan::class.java)
+                .filter { it.userId == userId }
+                .forEach { view.repaintSpan(it) }
     }
 
     @ColorInt
@@ -179,7 +189,7 @@ internal object ProfileColorFadeRegistry {
             addUpdateListener {
                 animation.current = it.animatedValue as Int
                 animation.textViews.keys.forEach { view -> view.setTextColor(animation.current) }
-                animation.spanViews.keys.forEach { view -> view.invalidate() }
+                animation.spanViews.keys.forEach { view -> repaintNameSpans(view, userId) }
             }
             addListener(object : android.animation.AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animator: android.animation.Animator) {
@@ -187,7 +197,7 @@ internal object ProfileColorFadeRegistry {
                     sharedAnimations.remove(userId)
                     completedTimelineColors[userId] = target
                     animation.textViews.keys.forEach { view -> view.setTextColor(target) }
-                    animation.spanViews.keys.forEach { view -> view.invalidate() }
+                    animation.spanViews.keys.forEach { view -> repaintNameSpans(view, userId) }
                 }
             })
         }
