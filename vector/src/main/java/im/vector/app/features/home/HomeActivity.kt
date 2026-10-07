@@ -79,9 +79,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
-import org.matrix.android.sdk.api.session.sync.InitialSyncStrategy
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
-import org.matrix.android.sdk.api.session.sync.initialSyncStrategy
 import org.matrix.android.sdk.api.util.MatrixItem
 import timber.log.Timber
 import javax.inject.Inject
@@ -575,24 +573,13 @@ class HomeActivity :
     override fun getMenuRes() = if (vectorPreferences.isNewAppLayoutEnabled()) R.menu.menu_new_home else R.menu.menu_home
 
     override fun handlePrepareMenu(menu: Menu) {
-        menu.findItem(R.id.menu_home_init_sync_legacy).isVisible = vectorPreferences.developerMode()
-        menu.findItem(R.id.menu_home_init_sync_optimized).isVisible = vectorPreferences.developerMode()
+        menu.findItem(R.id.menu_home_init_sync).isVisible = vectorPreferences.developerMode()
     }
 
     override fun handleMenuItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.menu_home_init_sync_legacy -> {
-                // Configure the SDK
-                initialSyncStrategy = InitialSyncStrategy.Legacy
-                // And clear cache
-                MainActivity.restartApp(this, MainActivityArgs(clearCache = true))
-                true
-            }
-            R.id.menu_home_init_sync_optimized -> {
-                // Configure the SDK
-                initialSyncStrategy = InitialSyncStrategy.Optimized()
-                // And clear cache
-                MainActivity.restartApp(this, MainActivityArgs(clearCache = true))
+            R.id.menu_home_init_sync -> {
+                MainActivity.restartApp(this, MainActivityArgs(initSyncActiveAccount = true))
                 true
             }
             R.id.menu_home_filter -> {

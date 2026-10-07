@@ -3423,4 +3423,5 @@
     <string name="image_pack_event_too_large">یہ تصویری بستہ محفوظ کرنے کے لیے بہت بڑا ہے۔ کچھ تصاویر ہٹا دیں یا اسے چھوٹے بستوں میں تقسیم کر دیں۔</string>
     <string name="uploads_media_show_photos">تصاویر دکھائیں</string>
     <string name="uploads_media_show_videos">ویڈیوز دکھائیں</string>
+    <string name="home_init_sync">ابتدائی مطابقت پذیری</string>
 </resources>

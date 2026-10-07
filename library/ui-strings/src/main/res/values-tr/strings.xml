@@ -3487,4 +3487,5 @@
     <string name="image_pack_event_too_large">Bu görsel paketi kaydedilemeyecek kadar büyük. Bazı görselleri kaldırın veya paketi daha küçük paketlere bölün.</string>
     <string name="uploads_media_show_photos">Fotoğrafları göster</string>
     <string name="uploads_media_show_videos">Videoları göster</string>
+    <string name="home_init_sync">İlk eşitleme</string>
 </resources>

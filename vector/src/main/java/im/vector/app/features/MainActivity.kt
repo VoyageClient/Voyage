@@ -73,6 +73,7 @@ import javax.inject.Inject
 @Parcelize
 data class MainActivityArgs(
         val clearCache: Boolean = false,
+        val initSyncActiveAccount: Boolean = false,
         val clearCredentials: Boolean = false,
         val ignoreLogoutServerError: Boolean = false,
         val keepServerSession: Boolean = false,
@@ -276,7 +277,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                 clearNotifications()
             }
             // Handle some wanted cleanup
-            if (args.clearCache || args.clearCredentials) {
+            if (args.clearCache || args.clearCredentials || args.initSyncActiveAccount) {
                 doCleanUp()
             } else {
                 startSyncing()
@@ -306,6 +307,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
 
         return MainActivityArgs(
                 clearCache = argsFromIntent?.clearCache ?: false,
+                initSyncActiveAccount = argsFromIntent?.initSyncActiveAccount ?: false,
                 clearCredentials = argsFromIntent?.clearCredentials ?: false,
                 ignoreLogoutServerError = argsFromIntent?.ignoreLogoutServerError ?: false,
                 keepServerSession = argsFromIntent?.keepServerSession ?: false,
@@ -352,6 +354,14 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                         MediaCache.editedMediaDirectory(this@MainActivity).deleteRecursively()
                         java.io.File(filesDir, "send_cache").deleteRecursively()
                     }
+                    session.startSyncing(applicationContext)
+                    startNextActivityAndFinish()
+                }
+            }
+            args.initSyncActiveAccount -> {
+                lifecycleScope.launch {
+                    session.clearCache()
+                    withContext(Dispatchers.IO) { session.fileService().clearCache() }
                     session.startSyncing(applicationContext)
                     startNextActivityAndFinish()
                 }

@@ -3529,4 +3529,5 @@
     <string name="image_pack_event_too_large">Ce pack est trop volumineux pour être enregistré. Supprimez des images ou répartissez-le en plusieurs packs plus petits.</string>
     <string name="uploads_media_show_photos">Afficher les photos</string>
     <string name="uploads_media_show_videos">Afficher les vidéos</string>
+    <string name="home_init_sync">Synchronisation initiale</string>
 </resources>

@@ -3467,4 +3467,5 @@
     <string name="image_pack_event_too_large">這個圖片包太大，無法儲存。請移除部分圖片，或將其拆分成多個較小的圖片包。</string>
     <string name="uploads_media_show_photos">顯示照片</string>
     <string name="uploads_media_show_videos">顯示影片</string>
+    <string name="home_init_sync">初始同步</string>
 </resources>

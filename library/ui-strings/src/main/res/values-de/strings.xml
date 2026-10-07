@@ -3528,4 +3528,5 @@
     <string name="image_pack_event_too_large">Dieses Bilderpaket ist zu groß zum Speichern. Entferne einige Bilder oder teile es in kleinere Pakete auf.</string>
     <string name="uploads_media_show_photos">Fotos anzeigen</string>
     <string name="uploads_media_show_videos">Videos anzeigen</string>
+    <string name="home_init_sync">Erste Synchronisation</string>
 </resources>

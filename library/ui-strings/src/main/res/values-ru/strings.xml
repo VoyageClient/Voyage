@@ -3653,4 +3653,5 @@
     <string name="image_pack_event_too_large">Этот набор изображений слишком велик для сохранения. Удалите часть изображений или разделите его на несколько меньших наборов.</string>
     <string name="uploads_media_show_photos">Показывать фото</string>
     <string name="uploads_media_show_videos">Показывать видео</string>
+    <string name="home_init_sync">Начальная синхронизация</string>
 </resources>

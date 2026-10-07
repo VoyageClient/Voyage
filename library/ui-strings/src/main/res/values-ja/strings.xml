@@ -3463,4 +3463,5 @@
     <string name="image_pack_event_too_large">この画像パックは大きすぎて保存できません。画像をいくつか削除するか、複数の小さいパックに分けてください。</string>
     <string name="uploads_media_show_photos">写真を表示</string>
     <string name="uploads_media_show_videos">動画を表示</string>
+    <string name="home_init_sync">初回同期</string>
 </resources>

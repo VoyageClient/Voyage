@@ -3678,4 +3678,5 @@
     <string name="image_pack_event_too_large">حزمة الصور هذه كبيرة جدًا ولا يمكن حفظها. احذف بعض الصور أو قسّمها إلى حزم أصغر.</string>
     <string name="uploads_media_show_photos">إظهار الصور</string>
     <string name="uploads_media_show_videos">إظهار مقاطع الفيديو</string>
+    <string name="home_init_sync">مزامنة أولية</string>
 </resources>

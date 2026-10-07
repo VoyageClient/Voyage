@@ -3465,4 +3465,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="image_pack_event_too_large">Paket gambar ini terlalu besar untuk disimpan. Hapus beberapa gambar atau bagi menjadi beberapa paket yang lebih kecil.</string>
     <string name="uploads_media_show_photos">Tampilkan foto</string>
     <string name="uploads_media_show_videos">Tampilkan video</string>
+    <string name="home_init_sync">Sinkronisasi awal</string>
 </resources>

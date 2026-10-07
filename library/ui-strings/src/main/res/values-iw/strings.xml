@@ -3622,4 +3622,5 @@
     <string name="image_pack_event_too_large">חבילת התמונות הזו גדולה מדי לשמירה. יש להסיר כמה תמונות או לפצל אותה לחבילות קטנות יותר.</string>
     <string name="uploads_media_show_photos">הצגת תמונות</string>
     <string name="uploads_media_show_videos">הצגת סרטונים</string>
+    <string name="home_init_sync">סנכרון ראשוני</string>
 </resources>
