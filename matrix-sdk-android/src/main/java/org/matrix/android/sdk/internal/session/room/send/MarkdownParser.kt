@@ -51,7 +51,9 @@ internal class MarkdownParser @Inject constructor(
     private companion object {
         const val CUSTOM_EMOTICON_MARKER = "data-mx-emoticon"
         const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
-        val listItemMarker = Regex("""^( {0,3})((?:[-*+]|\d{1,9}[.)])[ \t]+)""")
+        val listItemMarker = Regex("""^( {0,3})((?:[-*]|\d{1,9}[.)])[ \t]+)""")
+        val plusListMarker = Regex("""^((?: {0,3}>[ \t]*)*)([ \t]*)\+(?=[ \t])""")
+        val anyListItemMarker = Regex("""^(?: {0,3}>[ \t]*)*([ \t]*)((?:[-*]|\d{1,9}[.)])[ \t]+)""")
         val fenceLine = Regex("""^ {0,3}(```|~~~)""")
         val spoilerDelimiters = Regex("""\|\|(?=\S)(.+?)(?<=\S)\|\|""")
         val codeSegment = Regex("""^ {0,3}(```|~~~)[\s\S]*?(?:^ {0,3}\1|\z)|(`+)[\s\S]+?\2""", RegexOption.MULTILINE)
@@ -76,10 +78,11 @@ internal class MarkdownParser @Inject constructor(
             return TextContent(source).linkifyMscReferences()
         }
 
+        val withoutPlusLists = escapePlusListMarkers(source)
         val protectedSource = if (StaticScSdkHelper.scSdkPreferenceProvider?.preventUnintendedMarkdown() != false) {
-            protectUnintendedMarkdown(source)
+            protectUnintendedMarkdown(withoutPlusLists)
         } else {
-            source
+            withoutPlusLists
         }
         val effectiveSource = if (advanced) preserveExtraBlankLinesBeforeListItems(protectedSource) else protectedSource
         val document = if (advanced) advancedParser.parse(effectiveSource) else simpleParser.parse(effectiveSource)
@@ -109,6 +112,43 @@ internal class MarkdownParser @Inject constructor(
         } else {
             TextContent(source)
         }.linkifyMscReferences()
+    }
+
+    private fun escapePlusListMarkers(source: String): String {
+        val result = StringBuilder(source.length)
+        var start = 0
+        var listIndent = -1
+        var listMaxIndent = -1
+        fun appendSegment(end: Int) {
+            val segment = source.substring(start, end)
+            segment.split("\n").forEachIndexed { index, line ->
+                if (index > 0) result.append('\n')
+                val atLineStart = index > 0 || start == 0 || source[start - 1] == '\n'
+                val marker = if (atLineStart) plusListMarker.find(line) else null
+                val indent = marker?.groupValues?.get(2)?.length ?: -1
+                if (marker != null && (indent < 4 || listIndent >= 0 && indent in listIndent..listMaxIndent)) {
+                    result.append(line.replaceRange(marker.range.last, marker.range.last + 1, "\\+"))
+                    listIndent = indent
+                    listMaxIndent = indent + 5
+                } else {
+                    result.append(line)
+                    val list = if (atLineStart) anyListItemMarker.find(line) else null
+                    if (list != null) {
+                        listIndent = list.groupValues[1].length
+                        listMaxIndent = listIndent + list.groupValues[2].length + 3
+                    } else if (line.isNotBlank() && !line.startsWith(' ') && !line.startsWith('>')) {
+                        listIndent = -1
+                    }
+                }
+            }
+        }
+        codeSegment.findAll(source).forEach { code ->
+            appendSegment(code.range.first)
+            result.append(code.value)
+            start = code.range.last + 1
+        }
+        appendSegment(source.length)
+        return result.toString()
     }
 
     private fun protectUnintendedMarkdown(source: String): String {

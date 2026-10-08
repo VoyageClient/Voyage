@@ -76,11 +76,48 @@ class MarkdownParserUnintendedFormattingTest {
     }
 
     @Test
+    fun `plus never starts a list in outgoing markdown`() {
+        listOf(
+                "+ item\n**bold**",
+                "> + item\n**bold**",
+                "> - parent\n>     + child\n**bold**",
+                "- parent\n  + child\n**bold**",
+                "- parent\n    + child\n**bold**",
+                "100. parent\n       + child\n**bold**",
+        ).forEach { source ->
+            val html = parser.parse(source).formattedText.orEmpty()
+            assertFalse("$source: $html", html.contains("<li>item</li>") || html.contains("<li>child</li>"))
+            assertTrue("$source: $html", html.contains("+ item") || html.contains("+ child"))
+            assertTrue("$source: $html", html.contains("<strong>bold</strong>"))
+            assertEquals(source, parser.parse(source).text)
+        }
+        assertFalse(parser.parse("+ item", force = true).formattedText.orEmpty().contains("<li>"))
+        val siblings = parser.parse("- parent\n    + child\n    + sibling\n**bold**").formattedText.orEmpty()
+        assertTrue(siblings.contains("+ child"))
+        assertTrue(siblings.contains("+ sibling"))
+    }
+
+    @Test
+    fun `plus in code remains literal and other list markers still work`() {
+        val source = "    + code\n\n```\n+ fenced\n```\n\n- item\n- next\n      + indented code\n\n**bold**"
+        val html = parser.parse(source).formattedText.orEmpty()
+        assertTrue(html.contains("<li>"))
+        assertTrue(html.contains("next"))
+        assertTrue(html.contains("+ code"))
+        assertTrue(html.contains("+ fenced"))
+        assertTrue(html.contains("+ indented code"))
+        assertFalse(html.contains("\\+ code"))
+        assertFalse(html.contains("\\+ fenced"))
+        assertFalse(html.contains("\\+ indented code"))
+    }
+
+    @Test
     fun `toggle restores ordinary markdown parsing`() {
         StaticScSdkHelper.scSdkPreferenceProvider = object : StaticScSdkHelper.ScSdkPreferenceProvider {
             override fun includeSpaceMembersAsSpaceRooms() = true
             override fun preventUnintendedMarkdown() = false
         }
         assertTrue(parser.parse("> Words words\n\n- Aristotle").formattedText.orEmpty().contains("<li>Aristotle</li>"))
+        assertFalse(parser.parse("+ item\n**bold**").formattedText.orEmpty().contains("<li>"))
     }
 }
