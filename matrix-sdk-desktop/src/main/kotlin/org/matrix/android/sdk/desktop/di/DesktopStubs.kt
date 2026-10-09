@@ -66,6 +66,7 @@ internal class DesktopAudioMetadataExtractor @Inject constructor() : AudioMetada
 internal class DesktopTextPillsUtils @Inject constructor() : TextPillsUtils {
     override fun processSpecialSpansToHtml(text: CharSequence): String? = null
     override fun processSpecialSpansToMarkdown(text: CharSequence): String? = null
+    override fun literalMentions(text: CharSequence): List<IntRange> = emptyList()
 }
 
 internal class DesktopImageDimensionsReader @Inject constructor() : ImageDimensionsReader {
