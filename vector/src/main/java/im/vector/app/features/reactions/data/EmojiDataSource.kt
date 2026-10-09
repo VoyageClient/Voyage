@@ -12,6 +12,7 @@ import androidx.core.graphics.PaintCompat
 import com.squareup.moshi.Moshi
 import im.vector.app.R
 import im.vector.app.features.emoji.TwemojiProvider
+import im.vector.app.features.imagepack.EmojiShortNames
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -42,13 +43,9 @@ class EmojiDataSource @Inject constructor(
                                 parsedRawData.emojis.keys.forEach { key ->
                                     val origin = parsedRawData.emojis[key] ?: return@forEach
 
-                                    // Do not add keys containing '_'
                                     if (isEmojiRenderable(origin.emoji)) {
-                                        if (origin.keywords.contains(key) || key.contains("_")) {
-                                            put(key, origin)
-                                        } else {
-                                            put(key, origin.copy(keywords = origin.keywords + key))
-                                        }
+                                        val keywords = if (origin.keywords.contains(key)) origin.keywords else origin.keywords + key
+                                        put(key, origin.copy(keywords = keywords))
                                     }
                                 }
                             },
@@ -88,16 +85,29 @@ class EmojiDataSource @Inject constructor(
         }
     }
 
+    @Volatile private var itemsByCodepoints: Map<String, EmojiItem>? = null
+
+    /** The renderable emoji item for [emoji], whatever its variation selectors. */
+    suspend fun itemFor(emoji: String): EmojiItem? {
+        val items = itemsByCodepoints
+                ?: rawData.await().emojis.values.associateBy { EmojiShortNames.normalizeHex(it.unicode) }.also { itemsByCodepoints = it }
+        return items[EmojiShortNames.codepointKey(emoji)]
+    }
+
     suspend fun filterWith(rawQuery: String): List<EmojiItem> {
+        // Spaces and underscores don't matter for a partial match: `fingerscross` finds fingers_crossed.
+        val shortcodeNeedle = rawQuery.trim().removeSuffix(":").removeSuffix(EmojiShortNames.UNICODE_SUFFIX).lowercase()
+                .replace(" ", "").replace("_", "")
         // Shortcode-style names (angry_face) find the emoji they name ("Angry Face").
         val query = rawQuery.replace('_', ' ')
         val words = query.split("\\s".toRegex())
         val rawData = this.rawData.await()
-        // First add emojis with name matching query, sorted by name
+        // First add emojis with a shortcode or name matching query, sorted by name
         return (rawData.emojis.values
                 .asSequence()
                 .filter { emojiItem ->
-                    emojiItem.name.contains(query, true)
+                    (shortcodeNeedle.isNotEmpty() && emojiItem.shortcodes.any { it.replace("_", "").contains(shortcodeNeedle) }) ||
+                            emojiItem.name.contains(query, true)
                 }
                 .sortedBy { it.name } +
                 // Then emojis with keyword matching any of the word in the query, sorted by name

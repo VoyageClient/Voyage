@@ -35,7 +35,8 @@ object UserAccountDataTypes {
     const val TYPE_PROFILE_ANNOTATIONS_UNSTABLE = "dev.zirco.msc4441.profile_annotations"
     val TYPES_PROFILE_ANNOTATIONS = listOf(TYPE_PROFILE_ANNOTATIONS, TYPE_PROFILE_ANNOTATIONS_UNSTABLE)
 
-    // Frequently-used unicode emojis. Element Web migrated to the stable type but still writes both.
+    // MSC4356 recently used emojis. The unstable type predates the MSC and holds `[emoji, total]` arrays
+    // rather than `{"emoji", "total"}` objects.
     const val TYPE_RECENT_EMOJI = "m.recent_emoji"
     const val TYPE_RECENT_EMOJI_UNSTABLE = "io.element.recent_emoji"
 
@@ -56,14 +57,15 @@ object UserAccountDataTypes {
     const val TYPE_IMAGE_PACK_ROOMS = "m.image_pack.rooms"
     const val TYPE_IMAGE_PACK_ROOMS_UNSTABLE = "im.ponies.emote_rooms"
 
-    // Frequently-used stickers, mirroring the recent-emoji shape. No stable id exists for these.
+    // Our former frequently-used stickers and emoticons, only read to migrate them into TYPE_FRECENCY.
     const val TYPE_RECENT_STICKERS = "io.element.recent_stickers"
-
-    // Frequently-used custom emoticons (separate from the unicode recent emojis).
     const val TYPE_RECENT_EMOTICONS = "io.element.recent_emoticons"
 
     // The message long-press quick-reaction row, as an ordered list of emojis / emote mxc urls.
     const val TYPE_QUICK_REACTIONS = "im.voyage.setting.quick_reactions"
+
+    // Frecency (use counts + recent timestamps) of unicode emojis, custom emotes and stickers.
+    const val TYPE_FRECENCY = "im.voyage.setting.frecency"
 
     // Per-room mention counts (roomId -> userId -> count), used to rank the @-autocomplete list.
     const val TYPE_MENTION_FREQUENCY = "im.voyage.setting.mention_frequency"

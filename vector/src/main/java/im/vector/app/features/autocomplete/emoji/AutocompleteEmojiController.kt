@@ -44,6 +44,7 @@ class AutocompleteEmojiController @Inject constructor(
                             autocompleteEmojiItem {
                                 id("emoji_${item.emojiItem.name}_$index")
                                 emojiItem(item.emojiItem)
+                                shortcode(item.shortcode)
                                 emojiTypeFace(host.emojiTypeface)
                                 onClickListener { host.listener?.onItemClick(item) }
                             }

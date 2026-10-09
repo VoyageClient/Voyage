@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 private const val A_ROOM_ID = "!room:example.org"
@@ -28,7 +29,7 @@ private const val PARTY_MXC = "mxc://example.org/party"
 class EmoteShortcodeProcessorTest {
 
     private val imagePackProvider = mockk<ImagePackProvider>()
-    private val processor = EmoteShortcodeProcessor(imagePackProvider)
+    private val processor = EmoteShortcodeProcessor(imagePackProvider, EmojiShortNames(RuntimeEnvironment.getApplication().resources))
 
     private fun anImage(shortcode: String, mxcUrl: String) = ResolvedImage(
             shortcode = shortcode,
@@ -103,6 +104,30 @@ class EmoteShortcodeProcessorTest {
         givenEmotes(null, anImage("blobcat/mine", BLOBCAT_MXC), anImage("blobcat/theirs", PARTY_MXC))
 
         processor.process(roomId = null, text = ":blobcat/theirs:").emotes().map { it.first } shouldBeEqualTo listOf(PARTY_MXC)
+    }
+
+    @Test
+    fun `a unicode emoji shortcode becomes the emoji`() {
+        givenEmotes(null)
+
+        processor.process(roomId = null, text = ":fire: hot :+1: :fingers_crossed:").toString() shouldBeEqualTo "🔥 hot 👍️ 🤞"
+    }
+
+    @Test
+    fun `a bare shortcode an emote shares resolves to the emote, the emoji form to the emoji`() {
+        givenEmotes(null, anImage("fire/pack", BLOBCAT_MXC))
+
+        val result = processor.process(roomId = null, text = ":fire: :fire@emoji: :grinning:")
+
+        result.toString() shouldBeEqualTo ":fire: 🔥 😀"
+        result.emotes() shouldBeEqualTo listOf(Triple(BLOBCAT_MXC, 0, 6))
+    }
+
+    @Test
+    fun `a unicode emoji shortcode inside inline code is left as text`() {
+        givenEmotes(null)
+
+        processor.process(roomId = null, text = "`:fire:`").toString() shouldBeEqualTo "`:fire:`"
     }
 
     @Test

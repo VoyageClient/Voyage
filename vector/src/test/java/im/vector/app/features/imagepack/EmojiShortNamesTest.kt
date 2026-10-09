@@ -29,6 +29,27 @@ class EmojiShortNamesTest {
     }
 
     @Test
+    fun `joypixels shortcodes and their aliases resolve to their emoji`() {
+        names.emojiFor("grinning") shouldBeEqualTo "😀"
+        names.emojiFor("heart") shouldBeEqualTo "❤️"
+        names.emojiFor("+1") shouldBeEqualTo "👍️"
+        names.emojiFor("-1") shouldBeEqualTo "👎️"
+        names.emojiFor("fingers_crossed") shouldBeEqualTo "🤞"
+        names.emojiFor("orca") shouldBeEqualTo "🫍"
+        names.emojiFor("crossed_fingers") shouldBeEqualTo null
+        names.emojiFor("fire@emoji") shouldBeEqualTo "🔥"
+        names.emojiFor("Grinning") shouldBeEqualTo null
+        names.emojiFor("not_an_emoji") shouldBeEqualTo null
+    }
+
+    @Test
+    fun `emojis in a message are found once each, in their canonical form`() {
+        names.emojisIn("hi ❤ there 🔥🔥 and ❤️‍🔥") shouldBeEqualTo listOf("❤️", "🔥", "❤️‍🔥")
+        names.emojisIn("plain text") shouldBeEqualTo emptyList()
+        names.canonical("❤") shouldBeEqualTo "❤️"
+    }
+
+    @Test
     fun `search terms add the name of every emoji in the query`() {
         names.searchTerms("cat") shouldBeEqualTo listOf("cat")
         names.searchTerms("😠") shouldBeEqualTo listOf("😠", "angry_face")

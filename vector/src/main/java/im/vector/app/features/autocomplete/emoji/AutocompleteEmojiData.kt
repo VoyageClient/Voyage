@@ -14,6 +14,6 @@ import im.vector.app.features.reactions.data.EmojiItem
  * An entry in the `:` autocomplete popup, which mixes unicode emojis with MSC2545 custom emotes.
  */
 sealed interface AutocompleteEmojiData {
-    data class Emoji(val emojiItem: EmojiItem) : AutocompleteEmojiData
+    data class Emoji(val emojiItem: EmojiItem, val shortcode: String = emojiItem.shortcode) : AutocompleteEmojiData
     data class Emote(val image: ResolvedImage) : AutocompleteEmojiData
 }

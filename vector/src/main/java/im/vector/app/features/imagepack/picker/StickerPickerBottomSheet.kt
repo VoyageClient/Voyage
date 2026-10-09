@@ -34,6 +34,7 @@ import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.imagepack.ResolvedImage
 import im.vector.app.features.imagepack.ResolvedImagePack
 import im.vector.app.features.reactions.EmojiPickerSection
+import im.vector.app.features.reactions.data.FrecencyDataSource
 import im.vector.app.features.reactions.pauseImageAnimationsWhileScrolling
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +56,7 @@ class StickerPickerBottomSheet :
 
     @Inject lateinit var controller: StickerPickerController
     @Inject lateinit var imagePackProvider: ImagePackProvider
-    @Inject lateinit var recentStickerDataSource: RecentStickerDataSource
+    @Inject lateinit var frecencyDataSource: FrecencyDataSource
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var emojiSpanify: EmojiSpanify
 
@@ -172,10 +173,10 @@ class StickerPickerBottomSheet :
         val packs = imagePackProvider.sortForDisplay(ImagePackUsageFilter.stickerPacks(imagePackProvider.enabledPacksOf(resolved)))
                 .filter { it.images.isNotEmpty() }
         val packImagesByMxc = packs.flatMap { it.images }.associateBy { it.mxcUrl }
-        // Drop deleted stickers from both the displayed list and the remote recent_stickers account data.
-        if (prune) recentStickerDataSource.pruneToValidMxcs(packImagesByMxc.keys)
+        // Drop deleted stickers from both the displayed list and the stored frecency.
+        if (prune) frecencyDataSource.pruneStickers(packImagesByMxc.keys)
         // Re-resolve against the packs: the account data doesn't round-trip shortcode/info.
-        val frequent = recentStickerDataSource.getRecentStickersSnapshot()
+        val frequent = frecencyDataSource.snapshot().frequentStickers()
                 .mapNotNull { packImagesByMxc[it.mxcUrl] }
         return LoadedStickers(packs, frequent)
     }
@@ -254,7 +255,7 @@ class StickerPickerBottomSheet :
     }
 
     override fun onStickerClicked(image: ResolvedImage) {
-        recentStickerDataSource.recordStickerUse(image)
+        frecencyDataSource.recordStickerUse(image)
         setFragmentResult(
                 RESULT_KEY,
                 bundleOf(

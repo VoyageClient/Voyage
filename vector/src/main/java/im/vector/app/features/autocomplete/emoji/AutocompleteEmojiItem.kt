@@ -7,6 +7,7 @@
 
 package im.vector.app.features.autocomplete.emoji
 
+import android.annotation.SuppressLint
 import android.graphics.Typeface
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
@@ -16,7 +17,6 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
-import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.reactions.data.EmojiItem
 
@@ -25,6 +25,9 @@ abstract class AutocompleteEmojiItem : VectorEpoxyModel<AutocompleteEmojiItem.Ho
 
     @EpoxyAttribute
     lateinit var emojiItem: EmojiItem
+
+    @EpoxyAttribute
+    lateinit var shortcode: String
 
     @EpoxyAttribute
     var emojiTypeFace: Typeface? = null
@@ -36,14 +39,16 @@ abstract class AutocompleteEmojiItem : VectorEpoxyModel<AutocompleteEmojiItem.Ho
         super.bind(holder)
         holder.emojiText.text = emojiItem.emoji.prepareForDisplay()
         holder.emojiText.typeface = emojiTypeFace ?: Typeface.DEFAULT
+        // A shortcode, which is an identifier rather than prose.
+        @SuppressLint("SetTextI18n")
+        holder.shortcodeText.text = ":$shortcode:"
         holder.emojiNameText.text = emojiItem.name
-        holder.emojiKeywordText.setTextOrHide(emojiItem.keywords.joinToString())
         holder.view.onClick(onClickListener)
     }
 
     class Holder : VectorEpoxyHolder() {
         val emojiText by bind<TextView>(R.id.itemAutocompleteEmoji)
+        val shortcodeText by bind<TextView>(R.id.itemAutocompleteEmojiShortcode)
         val emojiNameText by bind<TextView>(R.id.itemAutocompleteEmojiName)
-        val emojiKeywordText by bind<TextView>(R.id.itemAutocompleteEmojiSubname)
     }
 }

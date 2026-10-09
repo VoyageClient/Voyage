@@ -2,7 +2,8 @@
 """Regenerate the bundled emoji assets.
 
 Three independent steps (run all by default, or pick with flags):
-  --datasource  emoji_picker_datasource.json   (unicode.org list + emojilib keywords)
+  --datasource  emoji_picker_datasource.json   (unicode.org list + emojilib keywords + emojibase shortcodes)
+                (--shortcodes refreshes only the shortcodes of the existing file)
   --twemoji     the Twemoji colour PNG set      (vector/src/main/assets/twemoji/)
   --font        the emoji2 NotoColorEmojiCompat font (vector/src/main/assets/emoji2/),
                 refreshed from the latest androidx.emoji2:emoji2-bundled when newer.
@@ -155,15 +156,79 @@ def build_datasource():
     # Filter out components (e.g. skin-tone modifiers) as they are not suitable for single-emoji reactions
     emoji_picker_datasource['categories'] = [x for x in emoji_picker_datasource['categories'] if x['id'] != 'component']
 
+    add_shortcodes(emoji_picker_datasource)
+    write_datasource(emoji_picker_datasource)
+
+
+DATASOURCE_PATH = os.path.join(REPO_ROOT, "vector/src/main/res/raw/emoji_picker_datasource.json")
+DATASOURCE_FORMATTED_PATH = os.path.join(REPO_ROOT, "tools/emojis/emoji_picker_datasource_formatted.json")
+
+
+def write_datasource(emoji_picker_datasource):
     # Write result to file (overwrite previous), without escaping unicode characters
     print("Writing emoji_picker_datasource.json...")
-    with open(os.path.join(REPO_ROOT, "vector/src/main/res/raw/emoji_picker_datasource.json"), "w") as outfile:
+    with open(DATASOURCE_PATH, "w") as outfile:
         json.dump(emoji_picker_datasource, outfile, ensure_ascii=False, separators=(',', ':'))
 
     # Also export a formatted version
     print("Writing emoji_picker_datasource_formatted.json...")
-    with open(os.path.join(REPO_ROOT, "tools/emojis/emoji_picker_datasource_formatted.json"), "w") as outfile:
+    with open(DATASOURCE_FORMATTED_PATH, "w") as outfile:
         json.dump(emoji_picker_datasource, outfile, ensure_ascii=False, indent=4)
+
+
+# --------------------------------------------------------------------------------------------------
+# 1b. :shortcodes: ("n" of each emoji)
+# --------------------------------------------------------------------------------------------------
+#
+# JoyPixels' names; the first is the one the app shows, the rest are accepted when typed. Emoji it doesn't
+# cover yet fall back to their id, so every emoji has at least one.
+
+EMOJIBASE_VERSION = "17.0.0"
+EMOJIBASE_SHORTCODES_URL = "https://cdn.jsdelivr.net/npm/emojibase-data@%s/en/shortcodes/%s.json"
+SHORTCODE_PRESET = "joypixels"
+# Our own names for a few emoji, replacing JoyPixels' entirely (by emoji id).
+SHORTCODE_OVERRIDES = {
+    "troll": ["green_goblin"],
+}
+
+
+def _hex_key(unicode):
+    return "-".join(p for p in unicode.upper().split("-") if p != "FE0F")
+
+
+def _load_shortcodes(emojibase_dir):
+    if emojibase_dir:
+        with open(os.path.join(emojibase_dir, "en", "shortcodes", SHORTCODE_PRESET + ".json")) as fh:
+            raw = json.load(fh)
+    else:
+        raw = requests.get(EMOJIBASE_SHORTCODES_URL % (EMOJIBASE_VERSION, SHORTCODE_PRESET)).json()
+    return {_hex_key(k): (v if isinstance(v, list) else [v]) for k, v in raw.items()}
+
+
+def add_shortcodes(emoji_picker_datasource, emojibase_dir=None):
+    print("Adding %s shortcodes from emojibase %s..." % (SHORTCODE_PRESET, EMOJIBASE_VERSION))
+    shortcodes = _load_shortcodes(emojibase_dir)
+    owner = {}
+    missing = []
+    for emoji_id, item in emoji_picker_datasource["emojis"].items():
+        names = SHORTCODE_OVERRIDES.get(emoji_id) or shortcodes.get(_hex_key(item["b"]))
+        if not names:
+            names = [emoji_id.replace("-", "_")]
+            missing.append(emoji_id)
+        for name in names:
+            # A shortcode has to name a single emoji, or typing it couldn't resolve.
+            if owner.setdefault(name, emoji_id) != emoji_id:
+                raise SystemExit("Shortcode %s names both %s and %s" % (name, owner[name], emoji_id))
+        item["n"] = names
+    if missing:
+        print("* No emojibase shortcode, using the id for:", ", ".join(missing))
+
+
+def update_shortcodes(emojibase_dir):
+    with open(DATASOURCE_PATH) as fh:
+        emoji_picker_datasource = json.load(fh, object_pairs_hook=OrderedDict)
+    add_shortcodes(emoji_picker_datasource, emojibase_dir)
+    write_datasource(emoji_picker_datasource)
 
 
 # --------------------------------------------------------------------------------------------------
@@ -289,14 +354,18 @@ def update_emoji2_font():
 def main():
     parser = argparse.ArgumentParser(description="Regenerate bundled emoji assets.")
     parser.add_argument("--datasource", action="store_true", help="rebuild emoji_picker_datasource.json")
+    parser.add_argument("--shortcodes", action="store_true", help="only refresh the shortcodes in emoji_picker_datasource.json")
+    parser.add_argument("--emojibase-dir", help="read the shortcodes from a local emojibase-data package instead of the CDN")
     parser.add_argument("--twemoji", action="store_true", help="download the Twemoji PNG set")
     parser.add_argument("--font", action="store_true", help="refresh the emoji2 NotoColorEmojiCompat font")
     args = parser.parse_args()
-    run_all = not (args.datasource or args.twemoji or args.font)
+    run_all = not (args.datasource or args.shortcodes or args.twemoji or args.font)
 
     ok = True
     if run_all or args.datasource:
         build_datasource()
+    elif args.shortcodes:
+        update_shortcodes(args.emojibase_dir)
     if run_all or args.font:
         ok = update_emoji2_font() and ok
     if run_all or args.twemoji:

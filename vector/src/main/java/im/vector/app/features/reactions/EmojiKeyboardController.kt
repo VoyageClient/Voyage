@@ -336,12 +336,6 @@ class EmojiKeyboardController(
         val from = minOf(start, end)
         editText.text.replace(from, maxOf(start, end), text)
         editText.setSelection((from + text.length).coerceAtMost(editText.text.length))
-        sectionFactory.recordUse(
-                when (item) {
-                    is EmojiPickerItem.Unicode -> item.glyph
-                    is EmojiPickerItem.Emote -> item.key
-                }
-        )
     }
 
     private fun backspace() {

@@ -32,8 +32,13 @@ import com.squareup.moshi.JsonClass
 data class EmojiItem(
         @Json(name = "a") val name: String,
         @Json(name = "b") val unicode: String,
-        @Json(name = "j") val keywords: List<String> = emptyList()
+        @Json(name = "j") val keywords: List<String> = emptyList(),
+        // JoyPixels' names, each resolving `:name:` to this emoji; only the first is ever shown.
+        @Json(name = "n") val shortcodes: List<String> = emptyList(),
 ) {
+    val shortcode: String
+        get() = shortcodes.firstOrNull().orEmpty()
+
     // Cannot be private...
     var cache: String? = null
 

@@ -31,12 +31,14 @@ import im.vector.app.features.devtools.DevToolsJson
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.list.watched.WatchedRooms
+import im.vector.app.features.imagepack.EmojiShortNames
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.imagepack.telegram.TelegramPackImporter
 import im.vector.app.features.media.domain.usecase.DownloadMediaUseCase
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpRoomEncryptor
+import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
@@ -100,6 +102,7 @@ import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneCont
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan
+import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -130,6 +133,8 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val translationSettings: TranslationSettings,
         private val outgoingMessageTranslator: OutgoingMessageTranslator,
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
+        private val emojiShortNames: EmojiShortNames,
+        private val recentEmojiDataSource: RecentEmojiDataSource,
         private val downloadMediaUseCase: DownloadMediaUseCase,
         private val massRedactionManager: MassRedactionManager,
         private val telegramPackImporter: Provider<TelegramPackImporter>,
@@ -160,9 +165,17 @@ class MessageComposerViewModel @AssistedInject constructor(
             observePowerLevelAndEncryption(room)
             subscribeToStateInternal(room)
             observeTypedLinks(room)
+            // Shortcode resolution on send needs the emoji names; parse them before the first send does.
+            viewModelScope.launch(Dispatchers.IO) { emojiShortNames.prime() }
         } else {
             onRoomError()
         }
+    }
+
+    // Each emoji and emote a message carries counts once towards the recents and frecency.
+    private fun recordEmojiUses(text: CharSequence) {
+        val emotes = (text as? Spanned)?.getSpans(0, text.length, MatrixEmoteSpan::class.java).orEmpty().map { it.mxcUrl }
+        recentEmojiDataSource.recordEmojiUse(emojiShortNames.emojisIn(text.toString()) + emotes.distinct())
     }
 
     // Long enough that a link is not fetched letter by letter as it is pasted or typed out.
@@ -662,6 +675,8 @@ class MessageComposerViewModel @AssistedInject constructor(
             } else {
                 action
             }
+            // An edit's emoji were counted when it was first sent.
+            if (state.sendMode !is SendMode.Edit) recordEmojiUses(action.text)
             when (state.sendMode) {
                 is SendMode.Regular -> {
                     when (val parsedCommand = commandParser.parseSlashCommand(

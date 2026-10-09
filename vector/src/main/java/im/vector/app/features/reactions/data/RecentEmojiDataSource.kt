@@ -15,10 +15,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,20 +22,20 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
-import org.matrix.android.sdk.flow.flow
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Reads and updates the user's frequently used emojis, persisted as a list of `[emoji, count]`
- * pairs. The stable `m.recent_emoji` type wins when present, falling back to the unstable type
- * older clients wrote; writes go to both. Recorded uses are buffered and written in a single
- * debounced request so rapid taps don't spam the server.
+ * The user's recently used emojis (MSC4356 `m.recent_emoji`): `{"emoji", "total"}` entries, most recently used
+ * first, where an "emoji" is a unicode emoji or a custom emote's mxc URI. Like Element Web, entries of the older
+ * `io.element.recent_emoji` (`[emoji, total]` arrays) are merged in on read and only the stable type is written.
+ * Every use is also handed to [FrecencyDataSource], which is what ranks them.
  */
 @Singleton
 class RecentEmojiDataSource @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
+        private val frecencyDataSource: FrecencyDataSource,
 ) {
 
     private val coroutineScope = CoroutineScope(
@@ -49,29 +45,22 @@ class RecentEmojiDataSource @Inject constructor(
     private val pending = mutableListOf<String>()
     private var flushJob: Job? = null
 
-    fun stream(): Flow<List<Pair<String, Int>>> {
-        return activeSessionDataSource.stream()
-                .flatMapLatest { optionalSession ->
-                    val session = optionalSession.orNull() ?: return@flatMapLatest flowOf(emptyList())
-                    session.flow().liveUserAccountData(setOf(UserAccountDataTypes.TYPE_RECENT_EMOJI, UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE))
-                            .map { events ->
-                                val stable = events.firstOrNull { it.type == UserAccountDataTypes.TYPE_RECENT_EMOJI }
-                                val unstable = events.firstOrNull { it.type == UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE }
-                                parse((stable ?: unstable)?.content)
-                            }
-                }
-    }
-
     fun getRecentEmojisSnapshot(): List<Pair<String, Int>> {
-        val current = readFromAccountData().toMutableList()
-        // Reflect not-yet-flushed taps so the keyboard shows them immediately.
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return emptyList()
+        val current = session.readRecentEmojis().toMutableList()
+        // Reflect not-yet-flushed uses so the pickers show them immediately.
         synchronized(pending) { pending.toList() }.forEach { applyUse(current, it) }
         return current
     }
 
+    /** Emojis and emote mxcs used here or counted by another client, highest frecency first. */
+    fun frequentlyUsed(): List<Pair<String, Int>> = frecencyDataSource.snapshot().rank(getRecentEmojisSnapshot())
+
+    /** Records uses of unicode emojis and/or custom emotes (by mxc URI). */
     fun recordEmojiUse(emojis: List<String>) {
         if (emojis.isEmpty()) return
         val session = activeSessionDataSource.currentValue?.orNull() ?: return
+        frecencyDataSource.recordUses(emojis)
         synchronized(pending) {
             pending.addAll(emojis)
             flushJob?.cancel()
@@ -90,7 +79,11 @@ class RecentEmojiDataSource @Inject constructor(
             pending.clear()
         }
         coroutineScope.launch {
-            writeMutex.withLock { session.writeRecentEmojis(emptyList()) }
+            writeMutex.withLock {
+                session.writeRecentEmojis(emptyList())
+                // Read merges the unstable type in, so it has to go too or the entries come back.
+                session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE, mapOf(CONTENT_KEY to emptyList<Any>()))
+            }
         }
     }
 
@@ -111,20 +104,14 @@ class RecentEmojiDataSource @Inject constructor(
     }
 
     private suspend fun Session.writeRecentEmojis(emojis: List<Pair<String, Int>>) {
-        val content = mapOf(CONTENT_KEY to emojis.map { listOf(it.first, it.second) })
+        val content = mapOf(CONTENT_KEY to emojis.map { (emoji, total) -> mapOf(EMOJI_KEY to emoji, TOTAL_KEY to total) })
         accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_RECENT_EMOJI, content)
-        accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE, content)
     }
 
     private fun Session.readRecentEmojis(): List<Pair<String, Int>> {
-        val stable = accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI)
-        val unstable = accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE)
-        return parse((stable ?: unstable)?.content)
-    }
-
-    private fun readFromAccountData(): List<Pair<String, Int>> {
-        val session = activeSessionDataSource.currentValue?.orNull() ?: return emptyList()
-        return session.readRecentEmojis()
+        val stable = parse(accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI)?.content).orEmpty()
+        val unstable = parse(accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOJI_UNSTABLE)?.content)
+        return if (unstable == null) stable else merge(stable, unstable)
     }
 
     private fun applyUse(current: MutableList<Pair<String, Int>>, emoji: String) {
@@ -133,19 +120,41 @@ class RecentEmojiDataSource @Inject constructor(
         current.add(0, emoji to newCount)
     }
 
-    private fun parse(content: Content?): List<Pair<String, Int>> {
-        val pairs = content?.get(CONTENT_KEY) as? List<*> ?: return emptyList()
-        return pairs.mapNotNull { entry ->
-            val pair = entry as? List<*> ?: return@mapNotNull null
-            val emoji = pair.getOrNull(0) as? String ?: return@mapNotNull null
-            val count = (pair.getOrNull(1) as? Number)?.toInt() ?: return@mapNotNull null
-            emoji to count
-        }
-    }
-
     companion object {
         private const val CONTENT_KEY = "recent_emoji"
+        private const val EMOJI_KEY = "emoji"
+        private const val TOTAL_KEY = "total"
         private const val STORAGE_LIMIT = 100
         private const val FLUSH_DEBOUNCE_MS = 2_000L
+        private const val MAX_TOTAL = 9_007_199_254_740_991.0
+
+        /**
+         * Either shape, in either type: the stable `{"emoji", "total"}` objects or the older `[emoji, total]`
+         * arrays, which we used to write to `m.recent_emoji` as well. Invalid entries are dropped (MSC4356);
+         * emojis we can't show are kept, so writing the list back preserves them.
+         */
+        internal fun parse(content: Content?): List<Pair<String, Int>>? {
+            val entries = content?.get(CONTENT_KEY) as? List<*> ?: return null
+            return entries.mapNotNull { entry ->
+                val (emoji, total) = when (entry) {
+                    is Map<*, *> -> entry[EMOJI_KEY] to entry[TOTAL_KEY]
+                    is List<*> -> entry.getOrNull(0) to entry.getOrNull(1)
+                    else -> return@mapNotNull null
+                }
+                val value = (total as? Number)?.toDouble() ?: return@mapNotNull null
+                if (emoji !is String || emoji.isEmpty() || value < 0 || value > MAX_TOTAL || value % 1.0 != 0.0) return@mapNotNull null
+                emoji to value.coerceAtMost(Int.MAX_VALUE.toDouble()).toInt()
+            }
+        }
+
+        /** Element Web's merge: every emoji once, at its first position, with the higher of its totals. */
+        internal fun merge(stable: List<Pair<String, Int>>, unstable: List<Pair<String, Int>>): List<Pair<String, Int>> {
+            val merged = LinkedHashMap<String, Int>()
+            (stable + unstable).forEach { (emoji, total) ->
+                val existing = merged[emoji]
+                if (existing == null || total > existing) merged[emoji] = total
+            }
+            return merged.map { it.key to it.value }
+        }
     }
 }

@@ -17,9 +17,8 @@ import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.reactions.data.EmojiCatalogCache
 import im.vector.app.features.reactions.data.EmojiCatalogCategory
 import im.vector.app.features.reactions.data.EmojiDataSource
+import im.vector.app.features.reactions.data.FrecencyDataSource
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
-import im.vector.app.features.reactions.data.RecentEmote
-import im.vector.app.features.reactions.data.RecentEmoteDataSource
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -38,13 +37,13 @@ class EmojiPickerSectionFactory @Inject constructor(
         private val imagePackProvider: ImagePackProvider,
         private val activeSessionHolder: ActiveSessionHolder,
         private val recentEmojiDataSource: RecentEmojiDataSource,
-        private val recentEmoteDataSource: RecentEmoteDataSource,
+        private val frecencyDataSource: FrecencyDataSource,
         private val catalogCache: EmojiCatalogCache,
         private val stringProvider: StringProvider,
         private val emojiShortNames: EmojiShortNames,
 ) {
 
-    /** Resolves a reaction/emote `mxc` key to its shortcode, for recents bookkeeping. */
+    /** Resolves an emote's `mxc` key to its shortcode, for the frequently used row. */
     private val mxcToShortcode = HashMap<String, String>()
 
     /**
@@ -130,51 +129,30 @@ class EmojiPickerSectionFactory @Inject constructor(
             )
         }
 
-        // Keep the recents' stored shortcodes current now that we know each enabled emote's disambiguated form.
-        recentEmoteDataSource.migrateShortcodes(mxcToShortcode.toMap())
-        // Drop recents whose emote was deleted from the packs (so they don't send an empty :: shortcode).
-        recentEmoteDataSource.pruneToValidMxcs(validEmoteMxcs)
+        // Forget the frecency of emotes deleted from the packs.
+        frecencyDataSource.pruneEmotes(validEmoteMxcs)
 
         val frequent = buildFrequentlyUsed(contentUrlResolver, validEmoteMxcs)
         return listOfNotNull(frequent) + emoteSections + emojiSections
     }
 
     private fun buildFrequentlyUsed(contentUrlResolver: ContentUrlResolver?, validEmoteMxcs: Set<String>): EmojiPickerSection? {
-        // Legacy recent_emoji entries can hold mxc emote keys — render those as emote images, and drop any
-        // whose emote is no longer in a pack.
-        val emojiRecents = recentEmojiDataSource.getRecentEmojisSnapshot()
-                .filter { (value, _) -> !value.isMxcUrl() || value in validEmoteMxcs }
-                .map { (value, count) ->
-                    val item: EmojiPickerItem = if (value.isMxcUrl()) {
+        val items = recentEmojiDataSource.frequentlyUsed()
+                .mapNotNull { (emojiOrMxc, _) ->
+                    if (emojiOrMxc.isMxcUrl()) {
+                        // Only emotes still in a pack: a deleted one renders blank and sends an empty `::`.
+                        val shortcode = mxcToShortcode[emojiOrMxc]?.takeIf { emojiOrMxc in validEmoteMxcs } ?: return@mapNotNull null
                         EmojiPickerItem.Emote(
-                                key = value,
-                                shortcode = mxcToShortcode[value].orEmpty(),
-                                resolvedUrl = contentUrlResolver?.fullSize(value),
-                                contentDescription = mxcToShortcode[value].orEmpty(),
+                                key = emojiOrMxc,
+                                shortcode = shortcode,
+                                resolvedUrl = contentUrlResolver?.fullSize(emojiOrMxc),
+                                contentDescription = shortcode,
                         )
                     } else {
-                        EmojiPickerItem.Unicode(value)
+                        EmojiPickerItem.Unicode(emojiOrMxc)
                     }
-                    item to count
                 }
-        val emoteRecents = recentEmoteDataSource.getRecentEmotesSnapshot()
-                // Only emotes still in a pack — a deleted one renders blank / sends an empty :: shortcode.
-                .filter { (emote, _) -> emote.mxcUrl in validEmoteMxcs }
-                .map { (emote, count) ->
-                    // Re-resolve to the emote's CURRENT (possibly disambiguated) shortcode by its stable mxc.
-                    val shortcode = mxcToShortcode[emote.mxcUrl] ?: emote.shortcode
-                    EmojiPickerItem.Emote(
-                            key = emote.mxcUrl,
-                            shortcode = shortcode,
-                            resolvedUrl = contentUrlResolver?.fullSize(emote.mxcUrl),
-                            contentDescription = shortcode,
-                    ) as EmojiPickerItem to count
-                }
-        val items = (emojiRecents + emoteRecents)
-                .sortedByDescending { it.second }
-                .distinctBy { (it.first as? EmojiPickerItem.Emote)?.key ?: (it.first as EmojiPickerItem.Unicode).glyph }
                 .take(FREQUENT_LIMIT)
-                .map { it.first }
         if (items.isEmpty()) return null
         return EmojiPickerSection(
                 name = stringProvider.getString(CommonStrings.sticker_picker_frequently_used),
@@ -211,16 +189,6 @@ class EmojiPickerSectionFactory @Inject constructor(
                 }
             }
             if (items.isEmpty()) null else section.copy(items = items)
-        }
-    }
-
-    /** Records a tap on a reaction/emote key (mxc) or unicode glyph into the relevant recents store. */
-    fun recordUse(reaction: String) {
-        if (reaction.isMxcUrl()) {
-            val shortcode = mxcToShortcode[reaction] ?: return
-            recentEmoteDataSource.recordEmoteUse(RecentEmote(reaction, shortcode))
-        } else {
-            recentEmojiDataSource.recordEmojiUse(listOf(reaction))
         }
     }
 

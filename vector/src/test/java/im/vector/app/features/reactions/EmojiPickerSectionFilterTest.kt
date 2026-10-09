@@ -14,8 +14,8 @@ import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.reactions.data.EmojiCatalogCache
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.reactions.data.EmojiItem
+import im.vector.app.features.reactions.data.FrecencyDataSource
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
-import im.vector.app.features.reactions.data.RecentEmoteDataSource
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -35,7 +35,7 @@ class EmojiPickerSectionFilterTest {
             imagePackProvider = mockk<ImagePackProvider>(),
             activeSessionHolder = mockk<ActiveSessionHolder>(),
             recentEmojiDataSource = mockk<RecentEmojiDataSource>(),
-            recentEmoteDataSource = mockk<RecentEmoteDataSource>(),
+            frecencyDataSource = mockk<FrecencyDataSource>(),
             catalogCache = mockk<EmojiCatalogCache>(),
             stringProvider = mockk<StringProvider>(),
             emojiShortNames = emojiShortNames,

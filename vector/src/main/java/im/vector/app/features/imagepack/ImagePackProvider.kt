@@ -44,6 +44,7 @@ import javax.inject.Singleton
 class ImagePackProvider @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val diskCache: ImagePackDiskCache,
+        private val emojiShortNames: EmojiShortNames,
 ) {
 
     private val roomPackTypes = setOf(EventType.STATE_ROOM_IMAGE_PACK, EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE)
@@ -207,13 +208,16 @@ class ImagePackProvider @Inject constructor(
     //  - the account pack uses `name@personal` (it's where the emote lives, not a pack name; can never collide),
     //  - a room pack uses `name/<pack-name-slug>`, falling back to `name/<pack-name-slug>@<room-id-slug>` when
     //    two packs share a name (rooms differ), and a `-N` tiebreaker only if even that collides.
+    // Unicode emoji count as one more pack here (see EmojiShortNames.UNICODE_SUFFIX).
     // `/` and `@` are stripped from real shortcodes on read so the suffix stays unambiguous; on send the
     // resolved emote's shortcode is used as-is (plain when unique, suffixed only when needed).
     private fun disambiguate(packs: List<ResolvedImagePack>): List<ResolvedImagePack> {
         val occurrences = HashMap<String, Int>()
         packs.forEach { pack ->
-            pack.images.forEach { image ->
-                if (ImagePackUsage.EMOTICON in image.usages) occurrences[image.shortcode] = (occurrences[image.shortcode] ?: 0) + 1
+            pack.images.forEach imageCount@{ image ->
+                if (ImagePackUsage.EMOTICON !in image.usages) return@imageCount
+                val unicodeOccurrence = if (emojiShortNames.isEmojiShortcode(image.shortcode)) 1 else 0
+                occurrences[image.shortcode] = (occurrences[image.shortcode] ?: unicodeOccurrence) + 1
             }
         }
         // How many room packs share each (shortcode, pack-name-slug): when more than one, qualify by room id so
@@ -309,6 +313,8 @@ class ImagePackProvider @Inject constructor(
     /** Fills [cachedImagePacks] from the stored copy, for the first open of a session. Off-main. */
     fun warmImagePacks(roomId: String?): List<ResolvedImagePack> {
         val key = emoticonCacheKey(roomId)
+        // Disambiguation consults the emoji names, so have them parsed before a picker filters on main.
+        emojiShortNames.prime()
         packCache[key]?.let { return it }
         return synchronized(packCacheLocks.getOrPut(key) { Any() }) {
             packCache[key]?.let { return@synchronized it }

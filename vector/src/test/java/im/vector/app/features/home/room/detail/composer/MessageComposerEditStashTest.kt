@@ -69,6 +69,8 @@ class MessageComposerEditStashTest {
             translationSettings = mockk(relaxed = true),
             outgoingMessageTranslator = mockk(relaxed = true),
             emoteShortcodeProcessor = mockk(relaxed = true),
+            emojiShortNames = mockk(relaxed = true),
+            recentEmojiDataSource = mockk(relaxed = true),
             downloadMediaUseCase = mockk(relaxed = true),
             massRedactionManager = mockk(relaxed = true),
             telegramPackImporter = mockk(relaxed = true),

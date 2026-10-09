@@ -20,6 +20,7 @@ import com.bumptech.glide.integration.webp.decoder.WebpDownsampler
 import com.bumptech.glide.load.engine.executor.GlideExecutor
 import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestOptions
+import com.github.penfeizhou.animation.apng.APNGDrawable
 import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.util.JxlSupport
 import java.io.InputStream
@@ -77,6 +78,8 @@ class MyAppGlideModule : AppGlideModule() {
         val byteBufferAnimated = AnimatedDrawableDecoder()
         registry.prepend(ByteBuffer::class.java, Drawable::class.java, byteBufferAnimated)
         registry.prepend(InputStream::class.java, Drawable::class.java, AnimatedStreamDrawableDecoder(byteBufferAnimated))
+        // Without an encoder a DiskCacheStrategy.ALL load (the pickers) fails outright on an APNG.
+        registry.append(APNGDrawable::class.java, ApngSourceEncoder())
         // Give Glide a Uri -> ByteBuffer path so attachment-preview loads can hand bytes straight
         // to penfeizhou's ByteBufferAnimationDecoder without us blocking the main thread to read
         // them ourselves. The fetcher runs on Glide's source executor.

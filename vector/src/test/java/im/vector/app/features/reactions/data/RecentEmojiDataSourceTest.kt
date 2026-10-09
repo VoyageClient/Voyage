@@ -55,7 +55,7 @@ class RecentEmojiDataSourceTest {
         }
         val activeSession = FakeActiveSessionDataSource().apply { setActiveSession(session) }
 
-        RecentEmojiDataSource(activeSession.instance).clear()
+        RecentEmojiDataSource(activeSession.instance, mockk(relaxed = true)).clear()
 
         attempted.await(5, TimeUnit.SECONDS).shouldBeTrue()
         // Let the failed coroutine finish completing before checking for an escaped exception.

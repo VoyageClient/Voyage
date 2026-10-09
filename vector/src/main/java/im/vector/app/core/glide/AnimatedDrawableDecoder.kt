@@ -8,14 +8,20 @@
 package im.vector.app.core.glide
 
 import android.graphics.drawable.Drawable
+import com.bumptech.glide.load.EncodeStrategy
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
+import com.bumptech.glide.load.ResourceEncoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.resource.gif.GifOptions
+import com.bumptech.glide.util.ByteBufferUtil
 import com.github.penfeizhou.animation.apng.APNGDrawable
 import com.github.penfeizhou.animation.apng.decode.APNGParser
 import com.github.penfeizhou.animation.io.ByteBufferReader
 import com.github.penfeizhou.animation.loader.ByteBufferLoader
+import timber.log.Timber
+import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
 
@@ -58,10 +64,35 @@ internal class AnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
         // penfeizhou's autoPlay restarts the animation on every setVisible(true), outliving a target's stop().
         val autoPlay = options.get(GifOptions.DISABLE_ANIMATION) != true
         return object : Resource<Drawable> {
-            override fun getResourceClass(): Class<Drawable> = Drawable::class.java
-            override fun get(): Drawable = APNGDrawable(loader).apply { setAutoPlay(autoPlay) }
+            // The real class, since Glide picks the cache encoder by it (ApngSourceEncoder).
+            @Suppress("UNCHECKED_CAST")
+            override fun getResourceClass(): Class<Drawable> = SourceApngDrawable::class.java as Class<Drawable>
+            override fun get(): Drawable = SourceApngDrawable(loader, buffer).apply { setAutoPlay(autoPlay) }
             override fun getSize(): Int = buffer.capacity()
             override fun recycle() = Unit
+        }
+    }
+}
+
+/** Keeps the APNG's bytes, which are what [ApngSourceEncoder] stores as its resource-cache entry. */
+internal class SourceApngDrawable(loader: ByteBufferLoader, val source: ByteBuffer) : APNGDrawable(loader)
+
+/**
+ * Caches a decoded APNG as its original bytes, which [AnimatedDrawableDecoder] reads back on a cache hit.
+ * The drawable has no downsampled form to store; without any encoder Glide fails the whole load instead.
+ */
+internal class ApngSourceEncoder : ResourceEncoder<APNGDrawable> {
+
+    override fun getEncodeStrategy(options: Options): EncodeStrategy = EncodeStrategy.SOURCE
+
+    override fun encode(data: Resource<APNGDrawable>, file: File, options: Options): Boolean {
+        val drawable = data.get() as? SourceApngDrawable ?: return false
+        return try {
+            ByteBufferUtil.toFile(drawable.source.asReadOnlyBuffer(), file)
+            true
+        } catch (e: IOException) {
+            Timber.w(e, "Failed to cache an APNG")
+            false
         }
     }
 }
