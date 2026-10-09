@@ -30,7 +30,9 @@ class VoteToPollUseCase @Inject constructor(
                         ?.pollResponseSummary
                         ?.aggregatedContent
                         ?.myVote
-                if (currentVote != optionId) {
+                if (currentVote == optionId) {
+                    room.sendService().withdrawPollVote(pollEventId)
+                } else {
                     room.sendService().voteToPoll(
                             pollEventId = pollEventId,
                             answerId = optionId

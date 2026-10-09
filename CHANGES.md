@@ -54,6 +54,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Message forwarding**: forward messages, using their most recent edit, to as many rooms as you like at once; the same picker handles content shared from other apps. Forwards follow MSC4553 and are framed with the original sender, room and date, linking back to the original. Long-pressing send forwards without saying where the message came from.
 
+- **Polls**: create polls in the stable MSC3381 format, read both formats, and match votes, closure and edits to the original poll's format. Tap your selected answer to retract your votes; tallies update when responses are redacted.
+
 - **Message pinning**: pin and unpin messages, sorted by most recent, with a pinned-messages banner you can turn off.
 
 - **Mentions list**: a searchable, filterable list of everything that has mentioned you across your rooms, newest first.

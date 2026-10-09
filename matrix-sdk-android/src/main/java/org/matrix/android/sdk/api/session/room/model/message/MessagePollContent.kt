@@ -32,7 +32,9 @@ data class MessagePollContent(
         @Json(name = "m.relates_to") override val relatesTo: RelationDefaultContent? = null,
         @Json(name = "m.new_content") override val newContent: Content? = null,
         @Json(name = "org.matrix.msc3381.poll.start") val unstablePollCreationInfo: PollCreationInfo? = null,
-        @Json(name = "m.poll.start") val pollCreationInfo: PollCreationInfo? = null
+        @Json(name = "m.poll") val pollCreationInfo: PollCreationInfo? = null,
+        @Json(name = "m.text") val text: List<PollText>? = null,
+        @Json(name = "org.matrix.msc1767.text") val unstableText: String? = null
 ) : MessageContent {
 
     fun getBestPollCreationInfo() = pollCreationInfo ?: unstablePollCreationInfo

@@ -66,7 +66,7 @@ internal class VoteToPollUseCaseTest {
     }
 
     @Test
-    fun `given a poll event when voting for the same option then the vote is aborted`() {
+    fun `given a poll event when voting for the same option then the vote is withdrawn`() {
         // Given
         val aPollEventId = AN_EVENT_ID
         val aVoteId = AN_EXISTING_OPTION_ID
@@ -81,6 +81,9 @@ internal class VoteToPollUseCaseTest {
                     .getRoom(A_ROOM_ID)
                     ?.sendService()
                     ?.voteToPoll(aPollEventId, aVoteId)
+        }
+        verify(exactly = 1) {
+            fakeActiveSessionHolder.fakeSession.getRoom(A_ROOM_ID)?.sendService()?.withdrawPollVote(aPollEventId)
         }
     }
 

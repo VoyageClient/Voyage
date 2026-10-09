@@ -1536,6 +1536,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/call/CallEventProcessor.kt',
         'org/matrix/android/sdk/internal/session/room/send/queue/EventSenderProcessorCoroutine.kt',
         'org/matrix/android/sdk/internal/session/room/aggregation/poll/DefaultPollAggregationProcessor.kt',
+        'org/matrix/android/sdk/internal/session/room/aggregation/poll/PollResponseSummaryRefresher.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

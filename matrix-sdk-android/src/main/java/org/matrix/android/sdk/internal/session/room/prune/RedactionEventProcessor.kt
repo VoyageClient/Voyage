@@ -30,6 +30,7 @@ import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
+import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollResponseSummaryRefresher
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineRedactionSignal
@@ -46,6 +47,7 @@ internal class RedactionEventProcessor @Inject constructor(
         private val eventIndexer: EventIndexer,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
         private val timelineRedactionSignal: TimelineRedactionSignal,
+        private val pollResponseSummaryRefresher: PollResponseSummaryRefresher,
 ) : EventInsertLiveProcessor {
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {
@@ -80,6 +82,7 @@ internal class RedactionEventProcessor @Inject constructor(
         val pruneDbId = stores.event.getDbId(roomId, redacts) ?: return
         val eventToPrune = stores.event.getById(pruneDbId) ?: return
 
+        pollResponseSummaryRefresher.remove(stores, eventToPrune.asDomain())
         if (discardEditionOfRedactedReplace(stores, eventToPrune)) {
             // A redacted edit must not become the room-list preview: what the room now shows is the original
             // message with that edit discarded. The relation this is derived from is about to be pruned away,

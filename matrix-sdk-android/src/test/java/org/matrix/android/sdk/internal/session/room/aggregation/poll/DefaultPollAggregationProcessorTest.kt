@@ -31,10 +31,14 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.PollSummaryContent
+import org.matrix.android.sdk.api.session.room.model.VoteInfo
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
+import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.model.PollResponseAggregatedSummaryEntity
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollEventsTestData.AN_EVENT_ID
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollEventsTestData.AN_INVALID_POLL_RESPONSE_EVENT
@@ -88,6 +92,14 @@ class DefaultPollAggregationProcessorTest {
 
     private fun persistedPoll(): PollResponseAggregatedSummaryEntity =
             db.stores.annotations.get(AN_EVENT_ID)!!.pollResponseSummary!!
+
+    @Test
+    fun `older responses remain tracked for redaction without replacing the current vote`() {
+        val current = PollSummaryContent(votes = listOf(VoteInfo(A_USER_ID_1, "current", A_POLL_RESPONSE_EVENT.originServerTs!! + 1)))
+        givenPollSummary(PollResponseAggregatedSummaryEntity(aggregatedContent = ContentMapper.map(current.toContent())))
+        pollAggregationProcessor.handlePollResponseEvent(session, db.stores, A_POLL_RESPONSE_EVENT).shouldBeFalse()
+        persistedPoll().sourceEvents.shouldContain(A_POLL_RESPONSE_EVENT.eventId!!)
+    }
 
     @Test
     fun `given a poll start event, when processing, then is ignored and returns false`() {

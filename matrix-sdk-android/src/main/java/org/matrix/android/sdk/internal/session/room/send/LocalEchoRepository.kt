@@ -44,6 +44,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.SessionDbPriority
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollResponseSummaryRefresher
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
@@ -66,6 +67,7 @@ internal class LocalEchoRepository @Inject constructor(
         private val sessionDbPriority: SessionDbPriority,
         private val sendOutcomeTracker: SendOutcomeTracker,
         private val clock: Clock,
+        private val pollResponseSummaryRefresher: PollResponseSummaryRefresher,
 ) {
 
     private val sentEchoesByRemoteId = java.util.Collections.synchronizedMap(HashMap<String, String>())
@@ -302,6 +304,7 @@ internal class LocalEchoRepository @Inject constructor(
         pendingEchoes.remove(eventId)
         sendOutcomeTracker.onEchoDeleted(eventId)
         database.awaitDbTransaction(dispatcher) {
+            stores.event.getByEventIdInRoom(roomId, eventId)?.asDomain()?.let { pollResponseSummaryRefresher.remove(stores, it) }
             stores.timelineEvent.deleteSending(roomId, eventId)
             stores.event.deleteByEventIdInRoom(roomId, eventId)
             roomSummaryUpdater.updateSendingInformation(stores, roomId)
@@ -317,6 +320,7 @@ internal class LocalEchoRepository @Inject constructor(
         sendOutcomeTracker.onEchoDeleted(eventId)
         enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {
+                stores.event.getByEventIdInRoom(roomId, eventId)?.asDomain()?.let { pollResponseSummaryRefresher.remove(stores, it) }
                 stores.timelineEvent.deleteSending(roomId, eventId)
                 stores.event.deleteByEventIdInRoom(roomId, eventId)
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
@@ -381,6 +385,19 @@ internal class LocalEchoRepository @Inject constructor(
                 // Newest first. Not localId: a local echo's is a random UUID half, not a sequence.
                 .sortedByDescending { it.ts }
                 .map { timelineEventMapper.map(it) }
+    }
+
+    fun getEvent(roomId: String, eventId: String): Event? =
+            pendingEchoes[eventId]?.root?.takeIf { it.roomId == roomId }
+                    ?: stores.event.getByEventIdInRoom(roomId, eventId)?.asDomain()
+
+    fun getPollVoteEvents(roomId: String, pollEventId: String, senderId: String): List<Event> {
+        val summary = stores.annotations.get(pollEventId)?.takeIf { it.roomId == roomId } ?: return emptyList()
+        val poll = summary.pollResponseSummary ?: return emptyList()
+        return (poll.sourceEvents + poll.sourceLocalEchoEvents).distinct()
+                .mapNotNull { getEvent(roomId, it) }
+                .filter { it.senderId == senderId && it.getClearType() in EventType.POLL_RESPONSE.values }
+                .sortedBy { it.originServerTs ?: 0 }
     }
 
     fun getLatestThreadEvent(rootThreadEventId: String): String =

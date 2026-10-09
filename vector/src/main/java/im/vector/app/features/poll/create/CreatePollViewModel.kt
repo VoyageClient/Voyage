@@ -66,7 +66,7 @@ class CreatePollViewModel @AssistedInject constructor(
         val content = event.getVectorLastMessageContent() as? MessagePollContent ?: return
 
         val pollCreationInfo = content.getBestPollCreationInfo()
-        val pollType = pollCreationInfo?.kind ?: PollType.DISCLOSED_UNSTABLE
+        val pollType = if (pollCreationInfo?.isUndisclosed() != false) PollType.UNDISCLOSED else PollType.DISCLOSED
         val question = pollCreationInfo?.question?.getBestQuestion() ?: ""
         val options = pollCreationInfo?.answers?.mapNotNull { it.getBestAnswer() } ?: List(MIN_OPTIONS_COUNT) { "" }
 

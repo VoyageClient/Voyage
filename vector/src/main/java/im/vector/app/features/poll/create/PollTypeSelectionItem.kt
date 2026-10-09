@@ -19,7 +19,7 @@ import org.matrix.android.sdk.api.session.room.model.message.PollType
 abstract class PollTypeSelectionItem : VectorEpoxyModel<PollTypeSelectionItem.Holder>(R.layout.item_poll_type_selection) {
 
     @EpoxyAttribute
-    var pollType: PollType = PollType.DISCLOSED_UNSTABLE
+    var pollType: PollType = PollType.DISCLOSED
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var pollTypeChangedListener: RadioGroup.OnCheckedChangeListener? = null

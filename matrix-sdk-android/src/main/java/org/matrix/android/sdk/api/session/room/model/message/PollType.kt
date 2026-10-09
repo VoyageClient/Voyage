@@ -27,7 +27,7 @@ enum class PollType {
     @Json(name = "org.matrix.msc3381.poll.disclosed")
     DISCLOSED_UNSTABLE,
 
-    @Json(name = "m.poll.disclosed")
+    @Json(name = "m.disclosed")
     DISCLOSED,
 
     /**
@@ -36,6 +36,6 @@ enum class PollType {
     @Json(name = "org.matrix.msc3381.poll.undisclosed")
     UNDISCLOSED_UNSTABLE,
 
-    @Json(name = "m.poll.undisclosed")
+    @Json(name = "m.undisclosed")
     UNDISCLOSED
 }

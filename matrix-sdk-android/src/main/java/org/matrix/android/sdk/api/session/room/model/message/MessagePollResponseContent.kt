@@ -32,8 +32,9 @@ data class MessagePollResponseContent(
         @Json(name = "m.relates_to") override val relatesTo: RelationDefaultContent? = null,
         @Json(name = "m.new_content") override val newContent: Content? = null,
         @Json(name = "org.matrix.msc3381.poll.response") val unstableResponse: PollResponse? = null,
-        @Json(name = "m.response") val response: PollResponse? = null
+        @Json(name = "m.response") val response: PollResponse? = null,
+        @Json(name = "m.selections") val selections: List<String>? = null
 ) : MessageContent {
 
-    fun getBestResponse() = response ?: unstableResponse
+    fun getBestResponse() = selections?.let { PollResponse(answers = it) } ?: response ?: unstableResponse
 }

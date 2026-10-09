@@ -17,9 +17,10 @@ class PollOptionViewStateFactory @Inject constructor() {
     fun createPollEndedOptions(pollCreationInfo: PollCreationInfo?, pollResponseData: PollResponseData?): List<PollOptionViewState.PollEnded> {
         val winnerVoteCount = pollResponseData?.winnerVoteCount
         return pollCreationInfo?.answers?.map { answer ->
-            val voteSummary = pollResponseData?.getVoteSummaryOfAnOption(answer.id ?: "")
+            val optionId = answer.getBestId().orEmpty()
+            val voteSummary = pollResponseData?.getVoteSummaryOfAnOption(optionId)
             PollOptionViewState.PollEnded(
-                    optionId = answer.id.orEmpty(),
+                    optionId = optionId,
                     optionAnswer = answer.getBestAnswer().orEmpty(),
                     voteCount = voteSummary?.total ?: 0,
                     votePercentage = voteSummary?.percentage ?: 0.0,
@@ -30,8 +31,9 @@ class PollOptionViewStateFactory @Inject constructor() {
 
     fun createPollSendingOptions(pollCreationInfo: PollCreationInfo?): List<PollOptionViewState.PollSending> {
         return pollCreationInfo?.answers?.map { answer ->
+            val optionId = answer.getBestId().orEmpty()
             PollOptionViewState.PollSending(
-                    optionId = answer.id.orEmpty(),
+                    optionId = optionId,
                     optionAnswer = answer.getBestAnswer().orEmpty(),
             )
         } ?: emptyList()
@@ -39,9 +41,10 @@ class PollOptionViewStateFactory @Inject constructor() {
 
     fun createPollUndisclosedOptions(pollCreationInfo: PollCreationInfo?, pollResponseData: PollResponseData?): List<PollOptionViewState.PollUndisclosed> {
         return pollCreationInfo?.answers?.map { answer ->
-            val isMyVote = pollResponseData?.myVote == answer.id
+            val optionId = answer.getBestId().orEmpty()
+            val isMyVote = pollResponseData?.myVote == optionId
             PollOptionViewState.PollUndisclosed(
-                    optionId = answer.id.orEmpty(),
+                    optionId = optionId,
                     optionAnswer = answer.getBestAnswer().orEmpty(),
                     isSelected = isMyVote
             )
@@ -50,10 +53,11 @@ class PollOptionViewStateFactory @Inject constructor() {
 
     fun createPollVotedOptions(pollCreationInfo: PollCreationInfo?, pollResponseData: PollResponseData?): List<PollOptionViewState.PollVoted> {
         return pollCreationInfo?.answers?.map { answer ->
-            val isMyVote = pollResponseData?.myVote == answer.id
-            val voteSummary = pollResponseData?.getVoteSummaryOfAnOption(answer.id ?: "")
+            val optionId = answer.getBestId().orEmpty()
+            val isMyVote = pollResponseData?.myVote == optionId
+            val voteSummary = pollResponseData?.getVoteSummaryOfAnOption(optionId)
             PollOptionViewState.PollVoted(
-                    optionId = answer.id.orEmpty(),
+                    optionId = optionId,
                     optionAnswer = answer.getBestAnswer().orEmpty(),
                     voteCount = voteSummary?.total ?: 0,
                     votePercentage = voteSummary?.percentage ?: 0.0,
@@ -64,8 +68,9 @@ class PollOptionViewStateFactory @Inject constructor() {
 
     fun createPollReadyOptions(pollCreationInfo: PollCreationInfo?): List<PollOptionViewState.PollReady> {
         return pollCreationInfo?.answers?.map { answer ->
+            val optionId = answer.getBestId().orEmpty()
             PollOptionViewState.PollReady(
-                    optionId = answer.id ?: "",
+                    optionId = optionId,
                     optionAnswer = answer.getBestAnswer() ?: ""
             )
         } ?: emptyList()

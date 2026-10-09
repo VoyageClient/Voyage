@@ -299,7 +299,7 @@ class DisplayableEventFormatter @Inject constructor(
                 } ?: span { }
             }
             in EventType.POLL_START.values -> {
-                event.getClearContent().toModel<MessagePollContent>(catchError = true)?.pollCreationInfo?.question?.question
+                event.getClearContent().toModel<MessagePollContent>(catchError = true)?.getBestPollCreationInfo()?.question?.getBestQuestion()
                         ?: stringProvider.getString(CommonStrings.sent_a_poll)
             }
             in EventType.POLL_RESPONSE.values -> {

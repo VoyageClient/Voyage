@@ -212,6 +212,8 @@ interface SendService {
      */
     fun voteToPoll(pollEventId: String, answerId: String, additionalContent: Content? = null): Cancelable
 
+    fun withdrawPollVote(pollEventId: String): Cancelable
+
     /**
      * End a poll in the room.
      * @param pollEventId event id of the poll

@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.di
 
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.adapters.EnumJsonAdapter
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -33,6 +34,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.internal.network.parsing.CipherSuiteMoshiAdapter
 import org.matrix.android.sdk.internal.network.parsing.ForceToBooleanJsonAdapter
 import org.matrix.android.sdk.internal.network.parsing.RuntimeJsonAdapterFactory
@@ -44,6 +46,7 @@ internal object MoshiProvider {
 
     private val moshi: Moshi = Moshi.Builder()
             .add(ForceToBooleanJsonAdapter())
+            .add(PollType::class.java, EnumJsonAdapter.create(PollType::class.java).withUnknownFallback(PollType.UNDISCLOSED))
             .add(CipherSuiteMoshiAdapter())
             .add(TlsVersionMoshiAdapter())
             .add(TopicContentJsonAdapterFactory)

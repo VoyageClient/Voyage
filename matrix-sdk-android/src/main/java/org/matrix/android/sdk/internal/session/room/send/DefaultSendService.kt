@@ -164,6 +164,17 @@ internal class DefaultSendService @AssistedInject constructor(
                 .let { sendEvent(it) }
     }
 
+    override fun withdrawPollVote(pollEventId: String): Cancelable {
+        val cancelables = CancelableBag()
+        // Redact older votes first, otherwise removing the latest vote restores an earlier choice.
+        localEchoRepository.getPollVoteEvents(roomId, pollEventId, userId).forEach { vote ->
+            val remoteId = vote.eventId?.let { localEchoRepository.getRemoteEchoId(it) }
+            val target = if (remoteId != null) vote.copy(eventId = remoteId) else vote
+            cancelables.add(redactEvent(target, reason = null))
+        }
+        return cancelables
+    }
+
     override fun endPoll(pollEventId: String, additionalContent: Content?): Cancelable {
         return localEchoEventFactory.createEndPollEvent(roomId, pollEventId, additionalContent)
                 .also { createLocalEcho(it) }

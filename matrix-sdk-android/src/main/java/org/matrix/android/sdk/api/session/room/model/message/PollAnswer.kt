@@ -23,8 +23,11 @@ import com.squareup.moshi.JsonClass
 data class PollAnswer(
         @Json(name = "id") val id: String? = null,
         @Json(name = "org.matrix.msc1767.text") val unstableAnswer: String? = null,
-        @Json(name = "m.text") val answer: String? = null
+        @Json(name = "m.text") val answer: List<PollText>? = null,
+        @Json(name = "m.id") val stableId: String? = null
 ) {
 
-    fun getBestAnswer() = answer ?: unstableAnswer
+    fun getBestAnswer() = answer?.plainText() ?: unstableAnswer
+
+    fun getBestId() = stableId ?: id
 }

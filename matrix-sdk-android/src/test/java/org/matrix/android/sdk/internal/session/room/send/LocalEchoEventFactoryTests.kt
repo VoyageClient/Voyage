@@ -16,11 +16,15 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
+import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.internal.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -30,6 +34,7 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.TextContent
@@ -84,6 +89,80 @@ class LocalEchoEventFactoryTests {
             clock = fakeClock,
             stateEventDataSource = mockk(),
     )
+
+    @Test
+    fun `poll writes use stable types and content even with an unstable kind`() {
+        every { fakeLocalEchoRepository.instance.getEvent(A_ROOM_ID, AN_EVENT_ID) } returns Event(type = EventType.POLL_START.stable)
+        val event = localEchoEventFactory.createPollEvent(A_ROOM_ID, PollType.DISCLOSED_UNSTABLE, "Lunch?", listOf("Pizza"))
+        assertEquals("m.poll.start", event.type)
+        val content = event.content!!
+        assertTrue(content["m.text"] is List<*>)
+        assertFalse(content.containsKey("org.matrix.msc3381.poll.start"))
+        val poll = content["m.poll"] as Map<*, *>
+        assertEquals("m.disclosed", poll["kind"])
+        val answer = (poll["answers"] as List<*>).single() as Map<*, *>
+        assertTrue(answer["m.id"] is String)
+        assertTrue(answer["m.text"] is List<*>)
+        assertFalse(answer.containsKey("id"))
+
+        val edit = localEchoEventFactory.createPollReplaceEvent(A_ROOM_ID, PollType.UNDISCLOSED, AN_EVENT_ID, "Dinner?", listOf("Pizza"))
+        assertEquals("m.poll.start", edit.type)
+        val editedContent = edit.content!!["m.new_content"] as Map<*, *>
+        assertEquals(edit.content!!["m.poll"], editedContent["m.poll"])
+
+        val vote = localEchoEventFactory.createPollReplyEvent(A_ROOM_ID, AN_EVENT_ID, "pizza")
+        assertEquals("m.poll.response", vote.type)
+        assertEquals(listOf("pizza"), vote.content!!["m.selections"])
+        assertFalse(vote.content!!.containsKey("org.matrix.msc3381.poll.response"))
+
+        val end = localEchoEventFactory.createEndPollEvent(A_ROOM_ID, AN_EVENT_ID)
+        assertEquals("m.poll.end", end.type)
+        assertTrue(end.content!!["m.text"] is List<*>)
+        assertFalse(end.content!!.containsKey("org.matrix.msc1767.text"))
+    }
+
+    @Test
+    fun `votes closure and edits of unstable polls preserve the unstable format`() {
+        every { fakeLocalEchoRepository.instance.getEvent(A_ROOM_ID, AN_EVENT_ID) } returns Event(type = EventType.POLL_START.unstable)
+        assertUnstablePollResponses()
+        val edit = localEchoEventFactory.createPollReplaceEvent(A_ROOM_ID, PollType.DISCLOSED, AN_EVENT_ID, "Dinner?", listOf("Pizza"))
+        assertEquals(EventType.POLL_START.unstable, edit.type)
+        val content = edit.content!!["m.new_content"] as Map<*, *>
+        assertFalse(content.containsKey("m.poll"))
+        val poll = content[EventType.POLL_START.unstable] as Map<*, *>
+        assertEquals("org.matrix.msc3381.poll.disclosed", poll["kind"])
+        val answer = (poll["answers"] as List<*>).single() as Map<*, *>
+        assertTrue(answer["id"] is String)
+        assertEquals("Pizza", answer["org.matrix.msc1767.text"])
+        assertFalse(answer.containsKey("m.id"))
+    }
+
+    @Test
+    fun `unknown poll targets use unstable responses`() {
+        every { fakeLocalEchoRepository.instance.getEvent(A_ROOM_ID, AN_EVENT_ID) } returns null
+        assertUnstablePollResponses()
+    }
+
+    @Test
+    fun `encrypted poll responses use the decrypted event type`() {
+        val poll = Event(type = EventType.ENCRYPTED).apply {
+            mxDecryptionResult = OlmDecryptionResult(payload = mapOf("type" to EventType.POLL_START.unstable))
+        }
+        every { fakeLocalEchoRepository.instance.getEvent(A_ROOM_ID, AN_EVENT_ID) } returns poll
+        assertUnstablePollResponses()
+    }
+
+    private fun assertUnstablePollResponses() {
+        val vote = localEchoEventFactory.createPollReplyEvent(A_ROOM_ID, AN_EVENT_ID, "pizza")
+        assertEquals(EventType.POLL_RESPONSE.unstable, vote.type)
+        assertFalse(vote.content!!.containsKey("m.selections"))
+        assertEquals(mapOf("answers" to listOf("pizza")), vote.content!![EventType.POLL_RESPONSE.unstable])
+        val end = localEchoEventFactory.createEndPollEvent(A_ROOM_ID, AN_EVENT_ID)
+        assertEquals(EventType.POLL_END.unstable, end.type)
+        assertFalse(end.content!!.containsKey("m.text"))
+        assertEquals("Ended poll", end.content!!["org.matrix.msc1767.text"])
+        assertEquals(emptyMap<String, Any>(), end.content!![EventType.POLL_END.unstable])
+    }
 
     @Before
     fun setup() {

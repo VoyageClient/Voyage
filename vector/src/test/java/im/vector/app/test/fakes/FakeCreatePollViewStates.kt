@@ -18,6 +18,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.PollAnswer
 import org.matrix.android.sdk.api.session.room.model.message.PollCreationInfo
 import org.matrix.android.sdk.api.session.room.model.message.PollQuestion
+import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import kotlin.random.Random
@@ -39,6 +40,7 @@ object FakeCreatePollViewStates {
                     question = PollQuestion(
                             unstableQuestion = A_FAKE_QUESTION
                     ),
+                    kind = PollType.DISCLOSED_UNSTABLE,
                     maxSelections = 1,
                     answers = listOf(
                             PollAnswer(

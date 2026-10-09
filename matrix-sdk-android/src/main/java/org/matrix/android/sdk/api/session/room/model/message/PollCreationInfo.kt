@@ -22,10 +22,10 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class PollCreationInfo(
         @Json(name = "question") val question: PollQuestion? = null,
-        @Json(name = "kind") val kind: PollType? = PollType.DISCLOSED_UNSTABLE,
+        @Json(name = "kind") val kind: PollType? = PollType.UNDISCLOSED,
         @Json(name = "max_selections") val maxSelections: Int = 1,
         @Json(name = "answers") val answers: List<PollAnswer>? = null
 ) {
 
-    fun isUndisclosed() = kind in listOf(PollType.UNDISCLOSED_UNSTABLE, PollType.UNDISCLOSED)
+    fun isUndisclosed() = kind !in listOf(PollType.DISCLOSED_UNSTABLE, PollType.DISCLOSED)
 }

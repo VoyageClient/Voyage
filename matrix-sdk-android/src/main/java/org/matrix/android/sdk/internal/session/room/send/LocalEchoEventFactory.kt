@@ -56,6 +56,7 @@ import org.matrix.android.sdk.api.session.room.model.message.PollAnswer
 import org.matrix.android.sdk.api.session.room.model.message.PollCreationInfo
 import org.matrix.android.sdk.api.session.room.model.message.PollQuestion
 import org.matrix.android.sdk.api.session.room.model.message.PollResponse
+import org.matrix.android.sdk.api.session.room.model.message.PollText
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.message.ThumbnailInfo
 import org.matrix.android.sdk.api.session.room.model.message.VideoInfo
@@ -298,20 +299,37 @@ internal class LocalEchoEventFactory @Inject constructor(
         else -> value
     }
 
+    private fun usesUnstablePollFormat(roomId: String, pollEventId: String): Boolean {
+        // Unknown targets use the older format so clients without stable poll support can still read our response.
+        return localEchoRepository.getEvent(roomId, pollEventId)?.getClearType() != EventType.POLL_START.stable
+    }
+
     private fun createPollContent(
             question: String,
             options: List<String>,
             pollType: PollType,
+            unstable: Boolean = false,
     ): MessagePollContent {
-        return MessagePollContent(
-                unstablePollCreationInfo = PollCreationInfo(
-                        question = PollQuestion(unstableQuestion = question),
-                        kind = pollType,
-                        answers = options.map { option ->
-                            PollAnswer(id = UUID.randomUUID().toString(), unstableAnswer = option)
-                        }
-                )
+        val fallback = (listOf(question) + options.mapIndexed { index, option -> "${index + 1}. $option" }).joinToString("\n")
+        val disclosed = pollType in listOf(PollType.DISCLOSED, PollType.DISCLOSED_UNSTABLE)
+        val poll = PollCreationInfo(
+                question = if (unstable) PollQuestion(unstableQuestion = question) else PollQuestion(question = listOf(PollText(question))),
+                kind = when {
+                    unstable && disclosed -> PollType.DISCLOSED_UNSTABLE
+                    unstable -> PollType.UNDISCLOSED_UNSTABLE
+                    disclosed -> PollType.DISCLOSED
+                    else -> PollType.UNDISCLOSED
+                },
+                answers = options.map { option ->
+                    val id = UUID.randomUUID().toString()
+                    if (unstable) PollAnswer(id = id, unstableAnswer = option) else PollAnswer(stableId = id, answer = listOf(PollText(option)))
+                }
         )
+        return if (unstable) {
+            MessagePollContent(unstablePollCreationInfo = poll, unstableText = fallback)
+        } else {
+            MessagePollContent(pollCreationInfo = poll, text = listOf(PollText(fallback)))
+        }
     }
 
     fun createPollReplaceEvent(
@@ -322,9 +340,11 @@ internal class LocalEchoEventFactory @Inject constructor(
             options: List<String>,
             additionalContent: Content? = null,
     ): Event {
-        val newContent = MessagePollContent(
+        val unstable = usesUnstablePollFormat(roomId, targetEventId)
+        val pollContent = createPollContent(question, options, pollType, unstable)
+        val newContent = pollContent.copy(
                 relatesTo = RelationDefaultContent(RelationType.REPLACE, targetEventId),
-                newContent = createPollContent(question, options, pollType).toContent()
+                newContent = pollContent.toContent()
         )
         val localId = LocalEcho.createLocalEchoId()
         return Event(
@@ -332,7 +352,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                 originServerTs = dummyOriginServerTs(),
                 senderId = userId,
                 eventId = localId,
-                type = EventType.POLL_START.unstable,
+                type = if (unstable) EventType.POLL_START.unstable else EventType.POLL_START.stable,
                 content = newContent.toContent().plus(additionalContent.orEmpty())
         )
     }
@@ -343,13 +363,15 @@ internal class LocalEchoEventFactory @Inject constructor(
             answerId: String,
             additionalContent: Content? = null,
     ): Event {
+        val unstable = usesUnstablePollFormat(roomId, pollEventId)
         val content = MessagePollResponseContent(
                 body = answerId,
                 relatesTo = RelationDefaultContent(
                         type = RelationType.REFERENCE,
                         eventId = pollEventId
                 ),
-                unstableResponse = PollResponse(answers = listOf(answerId))
+                unstableResponse = if (unstable) PollResponse(answers = listOf(answerId)) else null,
+                selections = if (unstable) null else listOf(answerId)
         )
         val localId = LocalEcho.createLocalEchoId()
         return Event(
@@ -357,7 +379,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                 originServerTs = dummyOriginServerTs(),
                 senderId = userId,
                 eventId = localId,
-                type = EventType.POLL_RESPONSE.unstable,
+                type = if (unstable) EventType.POLL_RESPONSE.unstable else EventType.POLL_RESPONSE.stable,
                 content = content.toContent().plus(additionalContent.orEmpty()),
                 unsignedData = UnsignedData(age = null, transactionId = localId)
         )
@@ -377,7 +399,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                 originServerTs = dummyOriginServerTs(),
                 senderId = userId,
                 eventId = localId,
-                type = EventType.POLL_START.unstable,
+                type = EventType.POLL_START.stable,
                 content = content.toContent().plus(additionalContent.orEmpty()),
                 unsignedData = UnsignedData(age = null, transactionId = localId)
         )
@@ -388,12 +410,14 @@ internal class LocalEchoEventFactory @Inject constructor(
             eventId: String,
             additionalContent: Content? = null,
     ): Event {
+        val unstable = usesUnstablePollFormat(roomId, eventId)
         val content = MessageEndPollContent(
                 relatesTo = RelationDefaultContent(
                         type = RelationType.REFERENCE,
                         eventId = eventId
                 ),
-                unstableText = "Ended poll",
+                unstableText = if (unstable) "Ended poll" else null,
+                text = if (unstable) null else listOf(PollText("Ended poll")),
         )
         val localId = LocalEcho.createLocalEchoId()
         return Event(
@@ -401,8 +425,10 @@ internal class LocalEchoEventFactory @Inject constructor(
                 originServerTs = dummyOriginServerTs(),
                 senderId = userId,
                 eventId = localId,
-                type = EventType.POLL_END.unstable,
-                content = content.toContent().plus(additionalContent.orEmpty()),
+                type = if (unstable) EventType.POLL_END.unstable else EventType.POLL_END.stable,
+                content = content.toContent()
+                        .plus(if (unstable) mapOf(EventType.POLL_END.unstable to emptyMap<String, Any>()) else emptyMap())
+                        .plus(additionalContent.orEmpty()),
                 unsignedData = UnsignedData(age = null, transactionId = localId)
         )
     }

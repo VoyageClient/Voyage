@@ -21,9 +21,6 @@ import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 
-/**
- * Class representing the org.matrix.msc3381.poll.end event content.
- */
 @JsonClass(generateAdapter = true)
 data class MessageEndPollContent(
         /**
@@ -35,7 +32,7 @@ data class MessageEndPollContent(
         @Json(name = "m.new_content") override val newContent: Content? = null,
         @Json(name = "m.relates_to") override val relatesTo: RelationDefaultContent? = null,
         @Json(name = "org.matrix.msc1767.text") val unstableText: String? = null,
-        @Json(name = "m.text") val text: String? = null,
+        @Json(name = "m.text") val text: List<PollText>? = null,
 ) : MessageContent {
-    fun getBestText() = text ?: unstableText
+    fun getBestText() = text?.plainText() ?: unstableText
 }

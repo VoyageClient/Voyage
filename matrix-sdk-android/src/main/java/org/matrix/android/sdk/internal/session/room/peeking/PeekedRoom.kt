@@ -402,6 +402,8 @@ internal class PeekedRoom(
 
         override fun voteToPoll(pollEventId: String, answerId: String, additionalContent: Content?): Cancelable = readOnly()
 
+        override fun withdrawPollVote(pollEventId: String): Cancelable = readOnly()
+
         override fun endPoll(pollEventId: String, additionalContent: Content?): Cancelable = readOnly()
 
         override fun redactEvent(event: Event, reason: String?, withRelTypes: List<String>?, additionalContent: Content?): Cancelable = readOnly()

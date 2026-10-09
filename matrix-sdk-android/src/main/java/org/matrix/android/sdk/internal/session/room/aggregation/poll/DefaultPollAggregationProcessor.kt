@@ -107,9 +107,9 @@ internal class DefaultPollAggregationProcessor @Inject constructor(
             return false
         }
 
-        val vote = content.getBestResponse()?.answers?.first() ?: return false
+        val vote = content.getBestResponse()?.answers?.firstOrNull() ?: return false
         val targetPollContent = getPollContent(session, roomId, targetEventId)
-        if (targetPollContent != null && !targetPollContent.getBestPollCreationInfo()?.answers?.map { it.id }?.contains(vote).orFalse()) {
+        if (targetPollContent != null && !targetPollContent.getBestPollCreationInfo()?.answers?.map { it.getBestId() }?.contains(vote).orFalse()) {
             return false
         }
 
@@ -120,6 +120,13 @@ internal class DefaultPollAggregationProcessor @Inject constructor(
         if (existingVoteIndex != -1) {
             val existingVote = existingVotes[existingVoteIndex]
             if (existingVote.voteTimestamp > responseTime) {
+                // Keep earlier responses so redacting a newer vote can restore the previous choice.
+                if (isLocalEcho) {
+                    event.eventId?.let { aggregatedPollSummaryEntity.sourceLocalEchoEvents.add(it) }
+                } else {
+                    event.eventId?.let { aggregatedPollSummaryEntity.sourceEvents.add(it) }
+                }
+                persist(stores, targetEventId, roomId, annotationsSummaryEntity)
                 return false
             }
             existingVotes[existingVoteIndex] = VoteInfo(senderId, vote, responseTime)
