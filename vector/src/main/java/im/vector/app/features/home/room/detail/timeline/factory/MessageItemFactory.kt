@@ -288,11 +288,11 @@ class MessageItemFactory @Inject constructor(
             highlight: Boolean,
             attributes: AbsMessageItem.Attributes,
     ): MessageLocationItem? {
-        val width = timelineMediaSizeProvider.getMaxSize().first
-        val height = dimensionConverter.dpToPx(MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP)
+        val width = timelineMediaSizeProvider.getLocationMapSize()
+        val height = width
 
         val locationUrl = locationContent.toLocationData()?.let {
-            urlMapProvider.get().buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, width, height)
+            urlMapProvider.get().buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, width, height, timelineMediaSizeProvider.getLocationPinTipOffset())
         }
 
         val pinMatrixItem = if (locationContent.isSelfLocation()) informationData.matrixItem else null
@@ -1447,7 +1447,6 @@ class MessageItemFactory @Inject constructor(
 
     companion object {
         private const val MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT = 5
-        const val MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP = 200
         private val IMG_TAG_REGEX = Regex("<img\\b[^>]*>", RegexOption.IGNORE_CASE)
         private const val OBJECT_REPLACEMENT_CHAR = '￼'
         private const val OBJECT_REPLACEMENT_STRING = "￼"

@@ -27,7 +27,6 @@ import im.vector.app.core.extensions.addChildFragment
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
-import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.PERMISSIONS_FOR_FOREGROUND_LOCATION_SHARING
 import im.vector.app.core.utils.checkPermissions
@@ -35,6 +34,7 @@ import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.openLocation
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.databinding.FragmentLiveLocationMapViewBinding
+import im.vector.app.features.location.LocationAccent
 import im.vector.app.features.location.LocationData
 import im.vector.app.features.location.UrlMapProvider
 import im.vector.app.features.location.showUserLocationNotAvailableErrorDialog
@@ -70,7 +70,6 @@ class LiveLocationMapViewFragment :
     @Inject lateinit var urlMapProvider: UrlMapProvider
     @Inject lateinit var bottomSheetController: LiveLocationBottomSheetController
     @Inject lateinit var dimensionConverter: DimensionConverter
-    @Inject lateinit var drawableProvider: DrawableProvider
 
     private val viewModel: LiveLocationMapViewModel by fragmentViewModel()
 
@@ -78,7 +77,7 @@ class LiveLocationMapViewFragment :
     private var mapView: MapView? = null
     private var symbolManager: SymbolManager? = null
     private var mapStyle: Style? = null
-    private val userLocationDrawable by lazy { drawableProvider.getDrawable(R.drawable.ic_location_user) }
+    private val userLocationDrawable by lazy { LocationAccent.userLocation(requireContext()) }
     private var isMapFirstUpdate = true
     private var onSymbolClickListener: OnSymbolClickListener? = null
     private var mapLoadingErrorListener: MapView.OnDidFailLoadingMapListener? = null
@@ -163,6 +162,7 @@ class LiveLocationMapViewFragment :
     }
 
     private fun initLocateButton() {
+        views.liveLocationMapLocateButton.setImageDrawable(LocationAccent.locateButton(requireContext()))
         views.liveLocationMapLocateButton.setOnClickListener {
             if (checkPermissions(PERMISSIONS_FOR_FOREGROUND_LOCATION_SHARING, requireActivity(), foregroundLocationResultLauncher)) {
                 zoomToUserLocation()
@@ -323,7 +323,7 @@ class LiveLocationMapViewFragment :
     }
 
     private fun createOrUpdateUserSymbol(locationData: LocationData, symbolManager: SymbolManager) {
-        userLocationDrawable?.let { pinDrawable -> createOrUpdateSymbol(USER_LOCATION_PIN_ID, pinDrawable, locationData, symbolManager) }
+        createOrUpdateSymbol(USER_LOCATION_PIN_ID, userLocationDrawable, locationData, symbolManager)
     }
 
     private fun removeUserSymbol(symbolManager: SymbolManager) = withState(viewModel) { state ->

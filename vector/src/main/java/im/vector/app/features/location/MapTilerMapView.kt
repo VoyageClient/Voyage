@@ -13,13 +13,11 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.Gravity
 import android.widget.ImageView
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.use
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
-import im.vector.app.R
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.lib.strings.CommonStrings
 import org.maplibre.android.geometry.LatLng
@@ -48,7 +46,7 @@ class MapTilerMapView @JvmOverloads constructor(
     )
 
     private val userLocationDrawable by lazy {
-        ContextCompat.getDrawable(context, R.drawable.ic_location_user)
+        LocationAccent.userLocation(context)
     }
     val locateButton by lazy { createLocateButton() }
     private var mapRefs: MapRefs? = null
@@ -117,7 +115,7 @@ class MapTilerMapView @JvmOverloads constructor(
 
     private fun createLocateButton(): ImageView =
             ImageView(context).apply {
-                setImageDrawable(ContextCompat.getDrawable(context, R.drawable.btn_locate))
+                setImageDrawable(LocationAccent.locateButton(context))
                 contentDescription = context.getString(CommonStrings.a11y_location_share_locate_button)
                 layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
                 updateLayoutParams<MarginLayoutParams> {
@@ -174,16 +172,14 @@ class MapTilerMapView @JvmOverloads constructor(
                 initZoomDone = true
             }
 
-            if (pinDrawable != null && state.showPin) {
+            if (state.showPin) {
                 createSymbol(locationData, state.pinId, safeMapRefs)
             }
         }
 
         state.userLocationData?.let { locationData ->
             addImageToMapStyle(userLocationDrawable, USER_PIN_ID, safeMapRefs)
-            if (userLocationDrawable != null) {
-                createSymbol(locationData, USER_PIN_ID, safeMapRefs)
-            }
+            createSymbol(locationData, USER_PIN_ID, safeMapRefs)
         }
     }
 

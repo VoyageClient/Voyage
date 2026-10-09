@@ -9,6 +9,7 @@
 
     <item android:drawable="?selectableItemBackground" />
     <item
+        android:id="@+id/locate_icon"
         android:bottom="8dp"
         android:drawable="@drawable/ic_locate"
         android:left="8dp"

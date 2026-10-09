@@ -13,3 +13,6 @@ const val DEFAULT_PIN_ID = "DEFAULT_PIN_ID"
 
 const val INITIAL_MAP_ZOOM_IN_PREVIEW = 15.0
 const val INITIAL_MAP_ZOOM_IN_TIMELINE = 17.0
+
+/** The height of a pin drawn over a static map, whose tip is its bottom edge; its views are this tall. */
+const val STATIC_MAP_PIN_HEIGHT_DP = 55

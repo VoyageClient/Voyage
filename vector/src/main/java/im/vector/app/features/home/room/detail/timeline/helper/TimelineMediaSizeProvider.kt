@@ -11,6 +11,7 @@ import android.content.res.Resources
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.scopes.ActivityScoped
+import im.vector.app.features.location.STATIC_MAP_PIN_HEIGHT_DP
 import im.vector.app.features.settings.VectorPreferences
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -74,6 +75,13 @@ class TimelineMediaSizeProvider @Inject constructor(
         if (previous != null && previous != size) onMaxSizeChanged?.invoke()
     }
 
+    /** A location message's square map: [LOCATION_MAP_SIZE_DP], or the media width cap when that is narrower. */
+    fun getLocationMapSize(): Int =
+            minOf(getMaxSize().first, (LOCATION_MAP_SIZE_DP * resources.displayMetrics.density).roundToInt())
+
+    /** How far below a static map's centre its location lands, under the tip of the pin centred over it. */
+    fun getLocationPinTipOffset(): Int = (STATIC_MAP_PIN_HEIGHT_DP * resources.displayMetrics.density / 2).roundToInt()
+
     fun getMaxSize(): Pair<Int, Int> {
         cachedSize?.let { return it }
         // Not laid out yet: fall back to the display size so media built during the initial pass gets
@@ -112,3 +120,5 @@ fun bubbleContentMaxWidth(resources: Resources, availableWidth: Int = resources.
 /** Avatar plus its start margin, as laid out in item_timeline_event_base. */
 private const val AVATAR_COLUMN_DP = 44f + 8f
 private const val SEND_STATE_MARGINS_DP = 8f + 8f
+
+private const val LOCATION_MAP_SIZE_DP = 200

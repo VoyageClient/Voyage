@@ -164,7 +164,7 @@ class LocationSharingFragment :
         if (state.locationTargetDrawable != null) {
             updateLocationTargetPin(state.locationTargetDrawable)
         }
-        views.shareLocationGpsLoading.isGone = state.lastKnownUserLocation != null
+        views.shareLocationGpsLoading.isGone = !state.isTrackingLocation || state.lastKnownUserLocation != null
     }
 
     private fun handleLocationNotAvailableError() {
@@ -181,7 +181,17 @@ class LocationSharingFragment :
 
     private fun initLocateButton() {
         views.mapView.locateButton.setOnClickListener {
+            if (checkPermissions(PERMISSIONS_FOR_FOREGROUND_LOCATION_SHARING, requireActivity(), locatePermissionResultLauncher)) {
+                viewModel.handle(LocationSharingAction.ZoomToUserLocation)
+            }
+        }
+    }
+
+    private val locatePermissionResultLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
+        if (allGranted) {
             viewModel.handle(LocationSharingAction.ZoomToUserLocation)
+        } else if (deniedPermanently) {
+            activity?.onPermissionDeniedDialog(CommonStrings.denied_permission_generic)
         }
     }
 
@@ -260,10 +270,10 @@ class LocationSharingFragment :
             views.shareLocationMapLoadingError.isVisible = true
         } else {
             // first, update the options view
+            // Without a known position (no permission, or no fix yet) the target can only be a pinned spot.
             val options: Set<LocationSharingOption> = when (state.areTargetAndUserLocationEqual) {
                 true -> setOf(LocationSharingOption.USER_CURRENT, LocationSharingOption.USER_LIVE)
-                false -> setOf(LocationSharingOption.PINNED)
-                else -> emptySet()
+                false, null -> setOf(LocationSharingOption.PINNED)
             }
             views.shareLocationOptionsPicker.render(options)
 

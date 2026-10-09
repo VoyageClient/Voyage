@@ -29,6 +29,7 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.location.MapLoadingErrorView
 import im.vector.app.features.location.MapLoadingErrorViewState
+import im.vector.app.features.media.MediaPlaceholderDrawable
 import org.matrix.android.sdk.api.util.MatrixItem
 
 abstract class AbsMessageLocationItem<H : AbsMessageLocationItem.Holder>(
@@ -69,10 +70,20 @@ abstract class AbsMessageLocationItem<H : AbsMessageLocationItem.Holder>(
             width = mapWidth
             height = mapHeight
         }
+        // A rebind of the same map keeps what is drawn; anything else waits behind the media placeholder,
+        // with no pin or attribution over a map that isn't there yet.
+        val sameMap = holder.staticMapImageView.getTag(R.id.static_map_location_url) == location
+        holder.staticMapImageView.setTag(R.id.static_map_location_url, location)
+        val placeholder = holder.staticMapImageView.drawable.takeIf { sameMap }
+                ?: MediaPlaceholderDrawable(holder.view.context, showGlyph = false)
+        if (!sameMap) {
+            holder.staticMapPinImageView.setImageDrawable(null)
+            holder.staticMapCopyrightTextView.isVisible = false
+        }
         GlideApp.with(holder.staticMapImageView)
                 .load(location)
                 .apply(RequestOptions.centerCropTransform())
-                .placeholder(holder.staticMapImageView.drawable)
+                .placeholder(placeholder)
                 .listener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(
                             e: GlideException?,

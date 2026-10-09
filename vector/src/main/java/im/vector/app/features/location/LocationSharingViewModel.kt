@@ -64,9 +64,10 @@ class LocationSharingViewModel @AssistedInject constructor(
     companion object : MavericksViewModelFactory<LocationSharingViewModel, LocationSharingViewState> by hiltMavericksViewModelFactory()
 
     init {
-        initLocationTracking()
+        val tracking = initLocationTracking()
         setUserItem()
-        updatePin()
+        // The map only opens on the user when it knows where they are.
+        updatePin(isUserPin = tracking)
         compareTargetAndUserLocation()
         observePowerLevelsForLiveLocationSharing()
     }
@@ -84,20 +85,27 @@ class LocationSharingViewModel @AssistedInject constructor(
                 }
     }
 
-    private fun initLocationTracking() {
+    private fun initLocationTracking(): Boolean {
         locationTracker.addCallback(this)
         locationTracker.locations
                 .onEach(::onLocationUpdate)
                 .launchIn(viewModelScope)
+        return startTracking()
+    }
+
+    /** Whether tracking could start: it needs the location permission. */
+    private fun startTracking(): Boolean {
         if (permissionChecker.checkPermission(
                         Manifest.permission.ACCESS_COARSE_LOCATION,
                         Manifest.permission.ACCESS_FINE_LOCATION,
                 )
         ) {
             locationTracker.start()
-        } else {
-            Timber.w("Not allowed to use location api.")
+            setState { copy(isTrackingLocation = true) }
+            return true
         }
+        Timber.w("Not allowed to use location api.")
+        return false
     }
 
     private fun setUserItem() {
@@ -198,9 +206,16 @@ class LocationSharingViewModel @AssistedInject constructor(
         }
     }
 
+    // Asked for before the first fix (or the permission) arrived: zoom as soon as there is one.
+    private var zoomOnNextLocation = false
+
     private fun handleZoomToUserLocationAction() = withState { state ->
-        state.lastKnownUserLocation?.let { location ->
+        val location = state.lastKnownUserLocation
+        if (location != null) {
             _viewEvents.post(LocationSharingViewEvents.ZoomToUserLocation(location))
+        } else {
+            zoomOnNextLocation = true
+            if (!state.isTrackingLocation) startTracking()
         }
     }
 
@@ -222,6 +237,10 @@ class LocationSharingViewModel @AssistedInject constructor(
         Timber.d("onLocationUpdate()")
         setState {
             copy(lastKnownUserLocation = locationData)
+        }
+        if (zoomOnNextLocation) {
+            zoomOnNextLocation = false
+            _viewEvents.post(LocationSharingViewEvents.ZoomToUserLocation(locationData))
         }
         viewModelScope.launch {
             // recompute location comparison using last received target location

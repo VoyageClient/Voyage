@@ -154,9 +154,14 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
+import im.vector.app.features.home.room.detail.timeline.item.MessageLiveLocationInactiveItem
+import im.vector.app.features.home.room.detail.timeline.item.MessageLiveLocationItem
+import im.vector.app.features.home.room.detail.timeline.item.MessageLiveLocationStartItem
+import im.vector.app.features.home.room.detail.timeline.item.MessageLocationItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageVoiceItem
 import im.vector.app.features.home.room.detail.timeline.item.NoticeItem
+import im.vector.app.features.home.room.detail.timeline.item.PollItem
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
@@ -1599,6 +1604,11 @@ class TimelineFragment :
                         is MessageImageVideoItem,
                         is MessageGalleryItem,
                         is MessageTextItem,
+                        is MessageLocationItem,
+                        is MessageLiveLocationItem,
+                        is MessageLiveLocationStartItem,
+                        is MessageLiveLocationInactiveItem,
+                        is PollItem,
                         // Deleted messages can still be replied to.
                         is RedactedMessageItem -> {
                             (model as AbsMessageItem).attributes.informationData.sendState == SendState.SYNCED

@@ -25,6 +25,8 @@ data class LocationSharingViewState(
         val userItem: MatrixItem.UserItem? = null,
         val areTargetAndUserLocationEqual: Boolean? = null,
         val lastKnownUserLocation: LocationData? = null,
+        /** Off until the location permission is granted, which only locating the user asks for. */
+        val isTrackingLocation: Boolean = false,
         val locationTargetDrawable: Drawable? = null,
         val canShareLiveLocation: Boolean = false,
         val loadingMapHasFailed: Boolean = false

@@ -8,7 +8,6 @@
 package im.vector.app.features.attachments
 
 import im.vector.app.core.utils.PERMISSIONS_EMPTY
-import im.vector.app.core.utils.PERMISSIONS_FOR_FOREGROUND_LOCATION_SHARING
 import im.vector.app.core.utils.PERMISSIONS_FOR_TAKING_PHOTO
 
 /**
@@ -22,5 +21,7 @@ enum class AttachmentType(val permissions: List<String>) {
     STICKER_LOCAL(PERMISSIONS_EMPTY),
     VOICE_FILE(PERMISSIONS_EMPTY),
     POLL(PERMISSIONS_EMPTY),
-    LOCATION(PERMISSIONS_FOR_FOREGROUND_LOCATION_SHARING),
+
+    // A pin can be dropped anywhere without knowing where the user is; only locating them asks.
+    LOCATION(PERMISSIONS_EMPTY),
 }

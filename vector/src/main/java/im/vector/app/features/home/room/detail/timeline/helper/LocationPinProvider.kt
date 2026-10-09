@@ -19,6 +19,7 @@ import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.location.LocationAccent
 import org.matrix.android.sdk.api.util.MatrixItem
 import timber.log.Timber
 import javax.inject.Inject
@@ -49,7 +50,7 @@ class LocationPinProvider @Inject constructor(
      */
     fun create(matrixUser: MatrixItem?, callback: (Drawable) -> Unit) {
         if (matrixUser == null) {
-            callback(ContextCompat.getDrawable(context, R.drawable.ic_location_pin)!!)
+            callback(LocationAccent.pin(context))
             return
         }
         val size = dimensionConverter.dpToPx(44)

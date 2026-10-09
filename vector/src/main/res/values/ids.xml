@@ -9,6 +9,7 @@
     <item name="image_renderer_failed_data" type="id" />
     <item name="image_renderer_failure_apply" type="id" />
     <item name="image_renderer_placeholder" type="id" />
+    <item name="static_map_location_url" type="id" />
     <item name="rich_body_binding" type="id" />
     <item name="image_renderer_pending_render" type="id" />
     <item name="avatar_renderer_placeholder" type="id" />

@@ -10,7 +10,6 @@ package im.vector.app.features.home.room.detail.timeline.factory
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.resources.DateProvider
-import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
@@ -31,7 +30,6 @@ import javax.inject.Inject
 
 class LiveLocationShareMessageItemFactory @Inject constructor(
         private val session: Session,
-        private val dimensionConverter: DimensionConverter,
         private val timelineMediaSizeProvider: TimelineMediaSizeProvider,
         private val avatarSizeProvider: AvatarSizeProvider,
         private val urlMapProvider: UrlMapProvider,
@@ -60,8 +58,8 @@ class LiveLocationShareMessageItemFactory @Inject constructor(
             highlight: Boolean,
             attributes: AbsMessageItem.Attributes,
     ): MessageLiveLocationInactiveItem {
-        val width = timelineMediaSizeProvider.getMaxSize().first
-        val height = dimensionConverter.dpToPx(MessageItemFactory.MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP)
+        val width = timelineMediaSizeProvider.getLocationMapSize()
+        val height = width
 
         return MessageLiveLocationInactiveItem_()
                 // disable the click on this state item
@@ -76,8 +74,8 @@ class LiveLocationShareMessageItemFactory @Inject constructor(
             highlight: Boolean,
             attributes: AbsMessageItem.Attributes,
     ): MessageLiveLocationStartItem {
-        val width = timelineMediaSizeProvider.getMaxSize().first
-        val height = dimensionConverter.dpToPx(MessageItemFactory.MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP)
+        val width = timelineMediaSizeProvider.getLocationMapSize()
+        val height = width
 
         return MessageLiveLocationStartItem_()
                 // disable the click on this state item
@@ -93,11 +91,11 @@ class LiveLocationShareMessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes,
             runningState: LiveLocationShareViewState.Running,
     ): MessageLiveLocationItem {
-        val width = timelineMediaSizeProvider.getMaxSize().first
-        val height = dimensionConverter.dpToPx(MessageItemFactory.MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP)
+        val width = timelineMediaSizeProvider.getLocationMapSize()
+        val height = width
 
         val locationUrl = runningState.lastGeoUri.toLocationData()?.let {
-            urlMapProvider.buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, width, height)
+            urlMapProvider.buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, width, height, timelineMediaSizeProvider.getLocationPinTipOffset())
         }
 
         return MessageLiveLocationItem_()
