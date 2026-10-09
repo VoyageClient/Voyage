@@ -15,7 +15,7 @@ import java.util.Locale
 
 class VectorLocaleFlagTest {
 
-    private val vectorLocale = VectorLocale(mockk(), mockk(), mockk())
+    private val vectorLocale = VectorLocale(mockk(), mockk(), mockk(), mockk())
 
     @Test
     fun `country code maps to regional indicator pair`() {

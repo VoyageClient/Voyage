@@ -16,7 +16,9 @@ import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.safeCapitalize
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
@@ -32,12 +34,15 @@ class VectorLocale @Inject constructor(
         private val buildMeta: BuildMeta,
         @DefaultPreferences
         private val preferences: SharedPreferences,
+        private val appCoroutineScope: CoroutineScope,
 ) {
     companion object {
         const val APPLICATION_LOCALE_COUNTRY_KEY = "APPLICATION_LOCALE_COUNTRY_KEY"
         const val APPLICATION_LOCALE_VARIANT_KEY = "APPLICATION_LOCALE_VARIANT_KEY"
         const val APPLICATION_LOCALE_LANGUAGE_KEY = "APPLICATION_LOCALE_LANGUAGE_KEY"
         private const val APPLICATION_LOCALE_SCRIPT_KEY = "APPLICATION_LOCALE_SCRIPT_KEY"
+        private const val SUPPORTED_LOCALES_CACHE_KEY = "SUPPORTED_LOCALES_CACHE_KEY"
+        private const val SUPPORTED_LOCALES_CACHE_BUILD_KEY = "SUPPORTED_LOCALES_CACHE_BUILD_KEY"
         private const val ISO_15924_LATN = "Latn"
         private const val REGIONAL_INDICATOR_A = 0x1F1E6
 
@@ -83,6 +88,37 @@ class VectorLocale @Inject constructor(
             }
 
             saveApplicationLocale(applicationLocale)
+        }
+
+        // Display names depend on this multi-second scan; reuse the last result so they don't change after first draw.
+        loadCachedSupportedLocales()
+        if (supportedLocales.isEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            appCoroutineScope.launch { getSupportedLocales() }
+        }
+    }
+
+    private val cacheBuildId: String
+        get() = "${buildMeta.versionName}/${buildMeta.gitRevision}"
+
+    private fun loadCachedSupportedLocales() {
+        if (preferences.getString(SUPPORTED_LOCALES_CACHE_BUILD_KEY, null) != cacheBuildId) return
+        val cached = preferences.getString(SUPPORTED_LOCALES_CACHE_KEY, null) ?: return
+        supportedLocales = cached.split(',').mapNotNull { entry ->
+            val parts = entry.split('_')
+            if (parts.size != 3 || parts[0].isEmpty()) return@mapNotNull null
+            val (language, country, script) = parts
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                LocaleScriptCompat.build(language, country, script, false)
+            } else {
+                Locale(language, country)
+            }
+        }
+    }
+
+    private fun saveSupportedLocalesCache(locales: List<Locale>) {
+        preferences.edit {
+            putString(SUPPORTED_LOCALES_CACHE_KEY, locales.joinToString(",") { "${it.language}_${it.country}_${scriptOf(it)}" })
+            putString(SUPPORTED_LOCALES_CACHE_BUILD_KEY, cacheBuildId)
         }
     }
 
@@ -198,6 +234,7 @@ class VectorLocale @Inject constructor(
                 .sortedBy { localeToLocalisedString(it).lowercase(it) }
 
         supportedLocales = list
+        saveSupportedLocalesCache(list)
     }
 
     /**
