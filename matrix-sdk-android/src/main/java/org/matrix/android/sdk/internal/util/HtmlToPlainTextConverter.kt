@@ -27,7 +27,25 @@ internal object HtmlToPlainTextConverter {
     var converter: (String) -> String = ::basicHtmlToPlainText
 }
 
-internal fun String.unescapeHtml(): String = HtmlToPlainTextConverter.converter(this)
+internal fun String.unescapeHtml(): String = HtmlToPlainTextConverter.converter(withImagesAsAltText())
+
+/**
+ * An image's plain text is its alt text (a custom emote's `:shortcode:`); left to the converter it
+ * would become U+FFFC, the object replacement character.
+ */
+private fun String.withImagesAsAltText(): String {
+    if (!contains("<img", ignoreCase = true)) return this
+    return replace(IMG_TAG_REGEX) { tag ->
+        val attributes = tag.value
+        ALT_ATTR_REGEX.find(attributes)?.attributeValue() ?: TITLE_ATTR_REGEX.find(attributes)?.attributeValue() ?: ""
+    }
+}
+
+private fun MatchResult.attributeValue(): String = groupValues[2].ifEmpty { groupValues[3] }
+
+private val IMG_TAG_REGEX = "<img\\b[^>]*>".toRegex(RegexOption.IGNORE_CASE)
+private val ALT_ATTR_REGEX = "\\salt\\s*=\\s*(\"([^\"]*)\"|'([^']*)')".toRegex(RegexOption.IGNORE_CASE)
+private val TITLE_ATTR_REGEX = "\\stitle\\s*=\\s*(\"([^\"]*)\"|'([^']*)')".toRegex(RegexOption.IGNORE_CASE)
 
 private val TAG_REGEX = "<[^>]*>".toRegex()
 private val NUMERIC_ENTITY_REGEX = "&#(x[0-9a-fA-F]+|[0-9]+);".toRegex()
