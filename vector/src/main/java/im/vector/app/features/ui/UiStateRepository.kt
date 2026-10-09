@@ -26,6 +26,8 @@ interface UiStateRepository {
     // TODO Handle SharedPreference per session in a better way, also to cleanup when login out
     fun storeSelectedSpace(spaceId: String?, sessionId: String)
     fun getSelectedSpace(sessionId: String): String?
+    fun storeSelectedTag(tag: String?, sessionId: String)
+    fun getSelectedTag(sessionId: String): String?
 
     fun setCustomRoomDirectoryHomeservers(sessionId: String, servers: Set<String>)
     fun getCustomRoomDirectoryHomeservers(sessionId: String): Set<String>

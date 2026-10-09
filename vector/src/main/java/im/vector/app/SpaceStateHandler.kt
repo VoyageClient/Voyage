@@ -37,7 +37,7 @@ interface SpaceStateHandler : DefaultLifecycleObserver {
     fun setCurrentSpace(
             spaceId: String?,
             session: Session? = null,
-            persistNow: Boolean = false,
+            persistNow: Boolean = true,
             isForwardNavigation: Boolean = true,
     )
 

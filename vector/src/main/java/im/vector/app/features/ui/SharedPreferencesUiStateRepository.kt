@@ -62,6 +62,12 @@ class SharedPreferencesUiStateRepository @Inject constructor(
         return sharedPreferences.getString("$KEY_SELECTED_SPACE@$sessionId", null)
     }
 
+    override fun storeSelectedTag(tag: String?, sessionId: String) {
+        sharedPreferences.edit { putString("$KEY_SELECTED_TAG@$sessionId", tag) }
+    }
+
+    override fun getSelectedTag(sessionId: String): String? = sharedPreferences.getString("$KEY_SELECTED_TAG@$sessionId", null)
+
     override fun setCustomRoomDirectoryHomeservers(sessionId: String, servers: Set<String>) {
         sharedPreferences.edit {
             putStringSet("$KEY_CUSTOM_DIRECTORY_HOMESERVER@$sessionId", servers)
@@ -80,6 +86,7 @@ class SharedPreferencesUiStateRepository @Inject constructor(
         private const val VALUE_DISPLAY_MODE_PEOPLE = 1
         private const val VALUE_DISPLAY_MODE_ROOMS = 2
 
+        private const val KEY_SELECTED_TAG = "UI_STATE_SELECTED_TAG"
         private const val KEY_SELECTED_SPACE = "UI_STATE_SELECTED_SPACE"
 
         private const val KEY_CUSTOM_DIRECTORY_HOMESERVER = "KEY_CUSTOM_DIRECTORY_HOMESERVER"

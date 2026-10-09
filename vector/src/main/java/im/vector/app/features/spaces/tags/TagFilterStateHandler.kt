@@ -7,8 +7,17 @@
 
 package im.vector.app.features.spaces.tags
 
+import im.vector.app.ActiveSessionDataSource
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.utils.BehaviorDataSource
+import im.vector.app.features.ui.UiStateRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOption
 import javax.inject.Inject
@@ -30,13 +39,25 @@ interface TagFilterStateHandler {
 }
 
 @Singleton
-class TagFilterStateHandlerImpl @Inject constructor() : TagFilterStateHandler {
+class TagFilterStateHandlerImpl @Inject constructor(
+        sessionDataSource: ActiveSessionDataSource,
+        private val activeSessionHolder: ActiveSessionHolder,
+        private val uiStateRepository: UiStateRepository,
+) : TagFilterStateHandler {
 
     private val selectedTagDataSource = BehaviorDataSource<Optional<String>>(Optional.empty())
+
+    init {
+        sessionDataSource.stream().distinctUntilChanged().onEach { optionalSession ->
+            val tag = optionalSession.orNull()?.let { uiStateRepository.getSelectedTag(it.sessionId) }
+            selectedTagDataSource.post(tag.toOption())
+        }.launchIn(CoroutineScope(SupervisorJob() + Dispatchers.Main))
+    }
 
     override fun getSelectedTag(): String? = selectedTagDataSource.currentValue?.orNull()
 
     override fun setSelectedTag(tag: String?) {
+        activeSessionHolder.getSafeActiveSession()?.let { uiStateRepository.storeSelectedTag(tag, it.sessionId) }
         if (selectedTagDataSource.currentValue?.orNull() == tag) return
         selectedTagDataSource.post(tag.toOption())
     }

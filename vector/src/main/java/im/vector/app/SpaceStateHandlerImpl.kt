@@ -64,16 +64,16 @@ class SpaceStateHandlerImpl @Inject constructor(
         val spaceToSet = spaceId?.let { activeSession.getRoomSummary(spaceId) }
         val sameSpaceSelected = spaceId == spaceToLeave?.roomId
 
+        if (persistNow) {
+            uiStateRepository.storeSelectedSpace(spaceToSet?.roomId, activeSession.sessionId)
+        }
+
         if (sameSpaceSelected) {
             return
         }
 
         if (isForwardNavigation) {
             addToBackstack(spaceToLeave, spaceToSet)
-        }
-
-        if (persistNow) {
-            uiStateRepository.storeSelectedSpace(spaceToSet?.roomId, activeSession.sessionId)
         }
 
         selectedSpaceDataSource.post(spaceToSet.toOption())
@@ -109,7 +109,7 @@ class SpaceStateHandlerImpl @Inject constructor(
                         // filter the next account's room list by a space it may not be in.
                         selectedSpaceDataSource.post(Optional.empty())
                     } else {
-                        setCurrentSpace(uiStateRepository.getSelectedSpace(session.sessionId), session)
+                        setCurrentSpace(uiStateRepository.getSelectedSpace(session.sessionId), session, persistNow = false, isForwardNavigation = false)
                     }
                 }
                 .launchIn(coroutineScope)
@@ -138,7 +138,5 @@ class SpaceStateHandlerImpl @Inject constructor(
 
     override fun onPause(owner: LifecycleOwner) {
         coroutineScope.coroutineContext.cancelChildren()
-        val session = activeSessionHolder.getSafeActiveSession() ?: return
-        uiStateRepository.storeSelectedSpace(selectedSpaceDataSource.currentValue?.orNull()?.roomId, session.sessionId)
     }
 }
