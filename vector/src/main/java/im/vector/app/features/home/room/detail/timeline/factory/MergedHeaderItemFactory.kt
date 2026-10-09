@@ -463,7 +463,7 @@ class MergedHeaderItemFactory @Inject constructor(
     }
 
     companion object {
-        private const val MIN_NUMBER_OF_MERGED_EVENTS = 2
+        private const val MIN_NUMBER_OF_MERGED_EVENTS = 10
 
         // Only groups taller than this get a bottom "collapse" footer; shorter ones keep the top toggle on screen.
         private const val COLLAPSE_FOOTER_MIN_MEMBERS = 51
