@@ -2090,13 +2090,11 @@
     <string name="error_voice_message_unable_to_play">यह वॉइस मैसेज नहीं चल सकता</string>
     <string name="error_voice_message_unable_to_record">वॉइस मैसेज रिकॉर्ड नहीं हो सकता</string>
     <string name="error_voice_message_cannot_reply_or_edit">वॉइस मैसेज चालू रहते जवाब या संपादन नहीं किया जा सकता</string>
-    <string name="voice_message_reply_content">वॉइस मैसेज (%1$s)</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
     <string name="a11y_audio_playback_duration">%1$d मिनट %2$d सेकंड</string>
     <string name="a11y_play_audio_message">%1$s चलाएं</string>
     <string name="a11y_pause_audio_message">%1$s रोकें</string>
     <string name="error_audio_message_unable_to_play">%1$s नहीं चल सका</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="upgrade_room_for_restricted">%s का कोई भी व्यक्ति इस रूम को ढूंढकर इसमें शामिल हो सकेगा - हर किसी को मैन्युअल रूप से आमंत्रित करने की ज़रूरत नहीं। आप इसे रूम सेटिंग में कभी भी बदल सकते हैं।</string>
     <string name="upgrade_room_for_restricted_no_param">पैरेंट स्पेस का कोई भी व्यक्ति इस रूम को ढूंढकर इसमें शामिल हो सकेगा - हर किसी को मैन्युअल रूप से आमंत्रित करने की ज़रूरत नहीं। आप इसे रूम सेटिंग में कभी भी बदल सकते हैं।</string>

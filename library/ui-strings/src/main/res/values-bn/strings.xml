@@ -2150,13 +2150,11 @@
     <string name="error_voice_message_unable_to_play">এই ভয়েস বার্তাটি চালানো যাচ্ছে না</string>
     <string name="error_voice_message_unable_to_record">ভয়েস বার্তা রেকর্ড করা যাচ্ছে না</string>
     <string name="error_voice_message_cannot_reply_or_edit">ভয়েস বার্তা সক্রিয় থাকা অবস্থায় উত্তর বা সম্পাদনা করা যাবে না</string>
-    <string name="voice_message_reply_content">ভয়েস বার্তা (%1$s)</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
     <string name="a11y_audio_playback_duration">%1$d মিনিট %2$d সেকেন্ড</string>
     <string name="a11y_play_audio_message">%1$s চালান</string>
     <string name="a11y_pause_audio_message">%1$s থামান</string>
     <string name="error_audio_message_unable_to_play">%1$s চালানো যায়নি</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="upgrade_room_for_restricted">%s-এর যে কেউ এই রুমটি খুঁজে পেতে ও এতে যোগ দিতে পারবেন - সবাইকে আলাদাভাবে আমন্ত্রণ জানানোর দরকার নেই। আপনি যেকোনো সময় রুমের সেটিংসে এটি পরিবর্তন করতে পারবেন।</string>
     <string name="upgrade_room_for_restricted_no_param">প্যারেন্ট স্পেসের যে কেউ এই রুমটি খুঁজে পেতে ও এতে যোগ দিতে পারবেন - সবাইকে আলাদাভাবে আমন্ত্রণ জানানোর দরকার নেই। আপনি যেকোনো সময় রুমের সেটিংসে এটি পরিবর্তন করতে পারবেন।</string>

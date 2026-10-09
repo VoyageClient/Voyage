@@ -1453,7 +1453,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="upgrade_room_for_restricted_note">Dicatat bahwa meningkatkan akan membuat versi baru dari ruangannya. Semua pesan saat ini akan tetap di ruangan yang diarsip.</string>
     <string name="upgrade_room_for_restricted_no_param">Siapa saja di induk ruangan dapat menemukan dan bergabung ke ruangan ini — tidak perlu mengundang semua secara manual. Anda dapat mengubahnya di pengaturan ruangan kapan saja.</string>
     <string name="upgrade_room_for_restricted">Siapa saja di %s dapat menemukan dan bergabung ke ruangan ini — tidak perlu mengundang semua secara manual. Anda dapat mengubahnya di pengaturan ruangan kapan saja.</string>
-    <string name="voice_message_reply_content">Pesan Suara (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">Tidak dapat membalas atau mengedit saat pesan suara aktif</string>
     <string name="error_voice_message_unable_to_record">Tidak dapat merekam sebuah pesan suara</string>
     <string name="error_voice_message_unable_to_play">Tidak dapat memainkan pesan suara ini</string>
@@ -2043,7 +2042,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="location_share_live_select_duration_option_1">15 menit</string>
     <string name="location_share_live_select_duration_title">Bagikan lokasi langsung Anda untuk</string>
     <string name="audio_message_file_size">(%1$s)</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="error_audio_message_unable_to_play">Tidak dapat memainkan %1$s</string>
     <string name="a11y_pause_audio_message">Jeda %1$s</string>
     <string name="a11y_play_audio_message">Mainkan %1$s</string>

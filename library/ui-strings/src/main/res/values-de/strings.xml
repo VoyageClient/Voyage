@@ -1798,7 +1798,6 @@
     <string name="missing_permissions_title">Fehlende Berechtigungen</string>
     <string name="upgrade_room_for_restricted_note">Beachte, dass das Raumupgrade einen neuen Raum erstellt. Alte Nachrichten verbleiben in diesem archivierten Raum.</string>
     <string name="upgrade_room_for_restricted">Alle in %s können diesen Raum finden und betreten - du musst niemanden mehr manuell einladen. Du kannst dies jederzeit in den Raumeinstellungen ändern.</string>
-    <string name="voice_message_reply_content">Sprachnachricht (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">Antworten und Bearbeiten ist während einer aktiven Sprachnachricht nicht möglich</string>
     <string name="error_voice_message_unable_to_record">Fehler beim Aufnehmen der Sprachnachricht</string>
     <string name="error_voice_message_unable_to_play">Sprachnachricht kann nicht abgespielt werden</string>
@@ -2105,7 +2104,6 @@
     <string name="a11y_location_share_locate_button">Auf aktuellen Standort zoomen</string>
     <string name="a11y_location_share_pin_on_map">Pin des ausgewählten Ortes auf der Karte</string>
     <string name="audio_message_file_size">(%1$s)</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="error_audio_message_unable_to_play">Kann %1$s nicht abspielen</string>
     <string name="a11y_pause_audio_message">Pausieren %1$s</string>
     <string name="a11y_play_audio_message">Abspielen %1$s</string>

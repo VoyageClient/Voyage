@@ -29,10 +29,12 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.format.EventDetailsFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
@@ -66,6 +68,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryConte
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import javax.inject.Inject
 
 /**
@@ -88,6 +91,7 @@ class MessageActionsEpoxyController @Inject constructor(
         private val urlMapProvider: UrlMapProvider,
         private val locationPinProvider: LocationPinProvider,
         private val activeSessionHolder: ActiveSessionHolder,
+        private val forwardedMessages: ForwardedMessagePresenter,
         private val mediaContentRevealManager: MediaContentRevealManager,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
@@ -126,12 +130,19 @@ class MessageActionsEpoxyController @Inject constructor(
         val previewContent = state.previewEvent?.takeUnless { isDebugPreview }?.getVectorLastMessageContent()
         val isNoticeTextPreview = previewContent == null ||
                 (previewType != null && !EventType.isKnownType(previewType))
-        // An attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
-        val isFilenamePreview = previewContent is MessageWithAttachmentContent || state.galleryItemIndex != null
+        // An item-scoped gallery sheet previews that item as if it were sent alone.
+        val itemContent = (previewContent as? MessageGalleryContent)
+                ?.let { gallery -> state.galleryItemIndex?.let { gallery.galleryItems().getOrNull(it) } }
+                ?: previewContent
+        val mediaPill = MediaPillPreview.of(itemContent, activeSessionHolder.getSafeActiveSession())
+        // Must match MessageActionsViewModel, which leaves these bodies the tail of the forward frame.
+        val framesMedia = itemContent is MessageWithAttachmentContent || itemContent is MessageGalleryContent
+        // On its own line, so a name like "Screenshot-…@2x.png" is never linkified as an e-mail address. A file's pill already shows it.
+        val attachmentName = (itemContent as? MessageWithAttachmentContent)?.takeUnless { mediaPill is MediaPillPreview.File }?.getFileName()
         val isLocationPreview = previewContent?.msgType == MessageType.MSGTYPE_LOCATION
         // A whole-gallery sheet previews as the real grid; an item-scoped one as that item's thumbnail.
         val galleryContent = (previewContent as? MessageGalleryContent)?.takeIf { state.galleryItemIndex == null }
-        val body = if (isNoticeTextPreview || isFilenamePreview) {
+        val body = if (isNoticeTextPreview) {
             state.messageBody
         } else {
             state.messageBody.linkify(host.listener)
@@ -148,7 +159,7 @@ class MessageActionsEpoxyController @Inject constructor(
             matrixItem(state.informationData.matrixItem)
             senderColor(host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
             senderIsColored(host.messageColorProvider.isMemberNameColored())
-            bodyIsNotice(host.isNoticeStylePreview(state) || isNoticeTextPreview || isFilenamePreview || isLocationPreview)
+            bodyIsNotice(host.isNoticeStylePreview(state) || isNoticeTextPreview || isLocationPreview)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             data(
@@ -166,6 +177,9 @@ class MessageActionsEpoxyController @Inject constructor(
                     )
             )
             galleryMaxWidth(host.dimensionConverter.dpToPx(220))
+            mediaPill(mediaPill)
+            attachmentName(attachmentName)
+            mediaForward(state.previewEvent?.takeIf { framesMedia }?.let { host.forwardedMessages.previewFrame(it) })
             hideMedia(
                     host.activeSessionHolder.getSafeActiveSession()?.let { session ->
                         state.previewEvent?.let { shouldHideMediaPreview(it, session, host.vectorPreferences, host.mediaContentRevealManager) }

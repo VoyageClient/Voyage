@@ -2006,7 +2006,6 @@
     <string name="settings_group_messages">הודעות קבוצתיות</string>
     <string name="this_invite_to_this_space_was_sent">ההזמנה למרחב זה נשלחה מ%s אשר אינו משוייך לחשבונך</string>
     <string name="this_invite_to_this_room_was_sent">ההזמנה לחדר זה נשלחה מ%s אשר אינו משוייך לחשבונך</string>
-    <string name="voice_message_reply_content">הודעה קולית (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">לא ניתן להשיב או לערוך במהלך הודעה קולית</string>
     <string name="error_voice_message_unable_to_record">לא ניתן להקליט את ההודעה הקולית</string>
     <string name="error_voice_message_unable_to_play">לא ניתן לנגן את ההודעה הקולית</string>
@@ -2325,7 +2324,6 @@
     <string name="a11y_play_audio_message">נגן את %1$s</string>
     <string name="a11y_pause_audio_message">השהה את %1$s</string>
     <string name="error_audio_message_unable_to_play">לא ניתן לנגן את %1$s</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="upgrade_room_for_restricted_no_param">כל מי שנמצא במרחב אב יוכל למצוא את החדר הזה ולהצטרף אליו, ללא צורך להזמין את כולם ידנית. תוכל לשנות זאת בהגדרות החדר בכל עת.</string>
     <string name="upgrade_room_for_restricted_note">שים לב ששדרוג ייצור גרסה חדשה של החדר. כל ההודעות הנוכחיות יישארו בחדר המאורכב הזה.</string>

@@ -1778,7 +1778,6 @@
     <string name="upgrade_room_for_restricted_note">请注意，升级将使房间焕然一新。 所有当前消息都将保留在此存档的房间中。</string>
     <string name="upgrade_room_for_restricted_no_param">主空间中的任何人都可以找到并加入此房间 - 无需手动邀请所有人。 你可以随时在房间设置中更改此设置。</string>
     <string name="upgrade_room_for_restricted">%s 中的任何人将可以查找并加入此房间 - 无需手动邀请所有人。 你可以随时在房间设置中更改此设置。</string>
-    <string name="voice_message_reply_content">语音消息 (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">语音消息处于活动状态时无法回复或编辑</string>
     <string name="error_voice_message_unable_to_record">无法录制语音消息</string>
     <string name="error_voice_message_unable_to_play">无法播放此语音消息</string>
@@ -2077,7 +2076,6 @@
     <string name="threads_beta_enable_notice_message">消息列有助于使你的对话保持话题并易于跟踪。%s 创建消息列将刷新应用程序。对于某些账户，这可能需要更长的时间。</string>
     <string name="restart_the_application_to_apply_changes">重启应用以使更改生效。</string>
     <string name="audio_message_file_size">（%1$s）</string>
-    <string name="audio_message_reply_content">%1$s（%2$s）</string>
     <string name="error_audio_message_unable_to_play">无法播放%1$s</string>
     <string name="a11y_pause_audio_message">暂停%1$s</string>
     <string name="a11y_play_audio_message">播放%1$s</string>

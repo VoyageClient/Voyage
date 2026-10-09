@@ -2159,13 +2159,11 @@
     <string name="error_voice_message_unable_to_play">Bu sesli mesaj oynatılamıyor</string>
     <string name="error_voice_message_unable_to_record">Sesli mesaj kaydedilemiyor</string>
     <string name="error_voice_message_cannot_reply_or_edit">Sesli mesaj etkinken yanıtlanamaz veya düzenlenemez</string>
-    <string name="voice_message_reply_content">Sesli Mesaj (%1$s)</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
     <string name="a11y_audio_playback_duration">%1$d dakika %2$d saniye</string>
     <string name="a11y_play_audio_message">%1$s oynat</string>
     <string name="a11y_pause_audio_message">%1$s duraklat</string>
     <string name="error_audio_message_unable_to_play">%1$s oynatılamıyor</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="upgrade_room_for_restricted">%s içindeki herkes bu odayı bulup katılabilecek; herkesi elle davet etmenize gerek yok. Bunu istediğiniz zaman oda ayarlarından değiştirebilirsiniz.</string>
     <string name="upgrade_room_for_restricted_no_param">Üst alandaki herkes bu odayı bulup katılabilecek; herkesi elle davet etmenize gerek yok. Bunu istediğiniz zaman oda ayarlarından değiştirebilirsiniz.</string>

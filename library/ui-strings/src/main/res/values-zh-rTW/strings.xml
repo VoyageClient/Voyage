@@ -1780,7 +1780,6 @@
     <string name="upgrade_room_for_restricted_note">請注意，升級會讓聊天室變為新的版本。目前的所有訊息都將保留在此被封存的聊天室中。</string>
     <string name="upgrade_room_for_restricted_no_param">母聊天空間中的任何人都可以找到並加入此聊天室，不需要手動邀請所有人。您隨時都可以在聊天室設定中變更此設定。</string>
     <string name="upgrade_room_for_restricted">任何在 %s 中的人都可以找到並加入此聊天室，不需要手動邀請所有人。您隨時都可以在聊天室設定中變更此設定。</string>
-    <string name="voice_message_reply_content">語音訊息（%1$s）</string>
     <string name="error_voice_message_cannot_reply_or_edit">播放語音訊息時無法回覆或編輯</string>
     <string name="error_voice_message_unable_to_record">無法錄製語音訊息</string>
     <string name="error_voice_message_unable_to_play">無法播放此語音訊息</string>
@@ -2046,7 +2045,6 @@
     <string name="location_share_live_select_duration_option_1">15 分鐘</string>
     <string name="location_share_live_select_duration_title">分享您的即時位置</string>
     <string name="audio_message_file_size">（%1$s）</string>
-    <string name="audio_message_reply_content">%1$s（%2$s）</string>
     <string name="error_audio_message_unable_to_play">無法播放 %1$s</string>
     <string name="a11y_pause_audio_message">暫停 %1$s</string>
     <string name="a11y_play_audio_message">播放 %1$s</string>

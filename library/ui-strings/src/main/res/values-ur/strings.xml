@@ -2102,13 +2102,11 @@
     <string name="error_voice_message_unable_to_play">یہ صوتی پیغام نہیں چلایا جا سکتا</string>
     <string name="error_voice_message_unable_to_record">صوتی پیغام ریکارڈ نہیں کیا جا سکتا</string>
     <string name="error_voice_message_cannot_reply_or_edit">صوتی پیغام فعال ہونے کے دوران جواب یا ترمیم نہیں کی جا سکتی</string>
-    <string name="voice_message_reply_content">صوتی پیغام (%1$s)</string>
     <string name="a11y_audio_message_item">%1$s، %2$s، %3$s</string>
     <string name="a11y_audio_playback_duration">%1$d منٹ %2$d سیکنڈ</string>
     <string name="a11y_play_audio_message">%1$s چلائیں</string>
     <string name="a11y_pause_audio_message">%1$s روکیں</string>
     <string name="error_audio_message_unable_to_play">%1$s نہیں چلایا جا سکا</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="upgrade_room_for_restricted">%s میں کوئی بھی اس کمرے کو تلاش کر کے اس میں شامل ہو سکے گا، سب کو دستی طور پر مدعو کرنے کی ضرورت نہیں۔ آپ اسے کسی بھی وقت کمرے کی ترتیبات میں تبدیل کر سکیں گے۔</string>
     <string name="upgrade_room_for_restricted_no_param">بالائی جگہ میں کوئی بھی اس کمرے کو تلاش کر کے اس میں شامل ہو سکے گا، سب کو دستی طور پر مدعو کرنے کی ضرورت نہیں۔ آپ اسے کسی بھی وقت کمرے کی ترتیبات میں تبدیل کر سکیں گے۔</string>

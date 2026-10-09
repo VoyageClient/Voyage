@@ -11,7 +11,6 @@ import android.content.Context
 import android.net.Uri
 import android.text.Editable
 import android.text.SpannableStringBuilder
-import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
@@ -51,11 +50,12 @@ import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewBinder
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
-import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.BodySegment
@@ -83,12 +83,10 @@ import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
-import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
@@ -96,7 +94,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
-import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -560,15 +557,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             translation != null -> translation.text
             pgpPlain != null -> pgpPlain
             event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
-            messageContent is MessageFileContent -> attachmentPreviewText(context, R.drawable.ic_paperclip, messageContent.getFileName().orEmpty())
-            messageContent is MessageAudioContent -> {
-                val icon = if (messageContent.voiceMessageIndicator != null) R.drawable.ic_microphone else R.drawable.ic_music_note
-                attachmentPreviewText(context, icon, getAudioContentBodyText(messageContent))
-            }
             // The grid preview carries the content, so the text slot is caption-only.
             messageContent is MessageGalleryContent -> messageContent.galleryCaption().orEmpty()
+            // The media is drawn above, so the text slot is caption-only, as in the timeline.
             messageContent is MessageWithAttachmentContent ->
-                messageContent.getCaption(messageContent.relatesTo?.inReplyTo?.eventId != null) ?: messageContent.getFileName()
+                messageContent.getCaption(messageContent.relatesTo?.inReplyTo?.eventId != null).orEmpty()
             messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
             messageContent is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
             messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
@@ -633,23 +626,34 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             views.composerRelatedMessageRichContainer.isVisible = false
             views.composerRelatedMessageRichContainer.removeAllViews()
         }
-        views.composerRelatedMessageContent.isVisible = !renderedTable
+        // Preserved metadata outlives the picture, so a redaction with nothing restored would preview
+        // an empty placeholder above "Message deleted".
+        val showsMedia = debugText == null && (restored != null || !event.root.isRedacted())
+        val mediaPill = messageContent.takeIf { showsMedia }?.let { MediaPillPreview.of(it, activeSessionHolder.getSafeActiveSession()) }
+        if (!showsMedia) imageContentRenderer.clear(views.composerRelatedMessageImage)
+        val isGalleryVisible = showsMedia && renderRelatedMessageGallery(event)
+        views.composerRelatedMessageGallery.isVisible = isGalleryVisible
+        val isImageVisible = showsMedia && !isGalleryVisible && renderRelatedMessageImage(event)
+        views.composerRelatedMessageImage.isVisible = isImageVisible
+        MediaPillPreviewBinder.bind(views.composerRelatedMessagePill, mediaPill)
+        // A forward's header goes around the media, and the text below carries the rest of its frame.
+        val framesMedia = isGalleryVisible || isImageVisible || mediaPill != null
+        views.composerRelatedMessageMedia.setForwardFrame(if (framesMedia) forwardedMessages.previewFrame(event) else null)
         // Resolve mentions/permalinks (incl. message links -> "Message in Room") into pills for the
         // preview only; the un-pilled [formattedBody] still feeds the edit box below. Linkified like the
         // timeline's reply header, or a bare URL in a plaintext body carries no span and renders as
         // ordinary text here while showing blue everywhere else.
-        // An uncaptioned attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
-        val isFilenamePreview = messageContent is MessageWithAttachmentContent && messageContent.getCaption() == null
         // Notice text (membership change, policy server, reaction, …) is never linkified in the timeline,
         // and a matrix id or server name inside it would otherwise render as a spurious link.
         val isNoticePreview = messageContent == null
         val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it, event.roomMentionSource()) }
-                ?.let { if (isFilenamePreview || isNoticePreview) it else it.linkify(null) }
+                ?.let { if (isNoticePreview) it else it.linkify(null) }
         val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
             forwardedMessages.emoteBody(event, renderedBody, renderedProfile.senderName, senderItem)
         } else {
             renderedBody
-        }?.let { forwardedMessages.framed(event, it) }
+        }?.let { if (framesMedia) forwardedMessages.framedTail(event, it) else forwardedMessages.framed(event, it) }
+        views.composerRelatedMessageContent.isVisible = !renderedTable && !(framesMedia && previewBody.isNullOrEmpty())
         eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.prepareForDisplay())
         // Without this the preview's pills only ever show what the synchronous avatar lookup found, so
         // a re-render that misses the cache leaves them stuck on the placeholder.
@@ -657,10 +661,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none; the
         // preview's links stay inert, as they are in the reply header.
         views.composerRelatedMessageContent.movementMethod = null
-        // Muted grey for non-message notices, m.notice messages (which render grey in the timeline)
-        // and bare attachment names, normal text colour for everything else.
+        // Muted grey for non-message notices and m.notice messages (which render grey in the timeline),
+        // normal text colour for everything else.
         views.composerRelatedMessageContent.setTextColor(
-                if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE || isFilenamePreview) {
+                if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {
                     ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
                 } else {
                     ThemeUtils.getMessageTextColor(context)
@@ -674,14 +678,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         // Image Event
         relatedMessageEvent = event
-        // Preserved metadata outlives the picture, so a redaction with nothing restored would preview
-        // an empty placeholder above "Message deleted".
-        val showsMedia = debugText == null && (restored != null || !event.root.isRedacted())
-        if (!showsMedia) imageContentRenderer.clear(views.composerRelatedMessageImage)
-        val isGalleryVisible = showsMedia && renderRelatedMessageGallery(event)
-        views.composerRelatedMessageGallery.isVisible = isGalleryVisible
-        val isImageVisible = showsMedia && !isGalleryVisible && renderRelatedMessageImage(event)
-        views.composerRelatedMessageImage.isVisible = isImageVisible
 
         views.composerRelatedMessageActionIcon.setImageDrawable(ContextCompat.getDrawable(context, iconRes))
 
@@ -735,15 +731,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             views.composerShield.renderRoomShield(trustLevel, isPgp)
         } else {
             views.composerShield.isVisible = false
-        }
-    }
-
-    private fun getAudioContentBodyText(messageContent: MessageAudioContent): String {
-        val formattedDuration = DateUtils.formatElapsedTime(((messageContent.audioInfo?.duration ?: 0) / 1000).toLong())
-        return if (messageContent.voiceMessageIndicator != null) {
-            resources.getString(CommonStrings.voice_message_reply_content, formattedDuration)
-        } else {
-            resources.getString(CommonStrings.audio_message_reply_content, messageContent.getFileName(), formattedDuration)
         }
     }
 

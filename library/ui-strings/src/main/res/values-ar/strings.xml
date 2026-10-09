@@ -2253,13 +2253,11 @@
     <string name="error_voice_message_unable_to_play">تعذّر تشغيل هذه الرسالة الصوتية</string>
     <string name="error_voice_message_unable_to_record">تعذّر تسجيل رسالة صوتية</string>
     <string name="error_voice_message_cannot_reply_or_edit">لا يمكن الرد أو التعديل أثناء نشاط رسالة صوتية</string>
-    <string name="voice_message_reply_content">رسالة صوتية (%1$s)</string>
     <string name="a11y_audio_message_item">%1$s، %2$s، %3$s</string>
     <string name="a11y_audio_playback_duration">%1$d دقيقة %2$d ثانية</string>
     <string name="a11y_play_audio_message">شغّل %1$s</string>
     <string name="a11y_pause_audio_message">ألبِث %1$s</string>
     <string name="error_audio_message_unable_to_play">تعذّر تشغيل %1$s</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="upgrade_room_for_restricted">سيتمكّن أي أحد في %s من العثور على هذه الغرفة والانضمام إليها، دون الحاجة لدعوة الجميع يدويًا. يمكنك تغيير هذا في إعدادات الغرفة في أي وقت.</string>
     <string name="upgrade_room_for_restricted_no_param">سيتمكّن أي أحد في مساحة أم من العثور على هذه الغرفة والانضمام إليها، دون الحاجة لدعوة الجميع يدويًا. يمكنك تغيير هذا في إعدادات الغرفة في أي وقت.</string>

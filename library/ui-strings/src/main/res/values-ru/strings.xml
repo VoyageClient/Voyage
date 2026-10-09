@@ -1754,7 +1754,6 @@
     <string name="upgrade_room_for_restricted_note">Обратите внимание, что при обновлении будет создана новая версия комнаты. Все текущие сообщения останутся в этой архивной комнате.</string>
     <string name="upgrade_room_for_restricted_no_param">Любой человек в родительском пространстве сможет найти и присоединиться к этой комнате - нет необходимости вручную приглашать всех. Вы сможете изменить это в настройках комнаты в любое время.</string>
     <string name="upgrade_room_for_restricted">Любой человек в %s сможет найти и присоединиться к этой комнате - нет необходимости вручную приглашать всех. Вы сможете изменить это в настройках комнаты в любое время.</string>
-    <string name="voice_message_reply_content">Голосовое сообщение (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">Вы не можете отвечать или редактировать, пока активно голосовое сообщение</string>
     <string name="error_voice_message_unable_to_record">Не удалось записать голосовое сообщение</string>
     <string name="error_voice_message_unable_to_play">Не удалось воспроизвести это голосовое сообщение</string>
@@ -2071,7 +2070,6 @@
     <string name="a11y_pause_audio_message">Пауза %1$s</string>
     <string name="a11y_play_audio_message">Играть %1$s</string>
     <string name="audio_message_file_size">(%1$s)</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="a11y_audio_playback_duration">%1$d минут %2$d секунд</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
     <string name="space_leave_radio_button_none">Не выходить</string>

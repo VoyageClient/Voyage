@@ -1818,7 +1818,6 @@
     <string name="upgrade_room_for_restricted_note">Veuillez noter que la mise-à-jour créera une nouvelle version de ce salon. Tous les messages existants seront conservés dans ce salon archivé.</string>
     <string name="upgrade_room_for_restricted_no_param">Quiconque dans l’espace parent pourra trouver et rejoindre ce salon – pas besoin d’inviter les gens un par un. Vous pourrez changer cela à n’importe quel moment dans les réglages du salon.</string>
     <string name="upgrade_room_for_restricted">Quiconque dans %s pourra trouver et rejoindre ce salon – pas besoin d’inviter les gens un par un. Vous pourrez changer cela à n’importe quel moment dans les réglages du salon.</string>
-    <string name="voice_message_reply_content">Message vocal (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">Impossible de répondre ou d’éditer tant qu’un message vocal est actif</string>
     <string name="error_voice_message_unable_to_record">Impossible d’enregistrer un message vocal</string>
     <string name="error_voice_message_unable_to_play">Impossible de lire ce message vocal</string>
@@ -2091,7 +2090,6 @@
     <string name="location_share_live_select_duration_option_1">15 minutes</string>
     <string name="location_share_live_select_duration_title">Partager votre position en direct pendant</string>
     <string name="audio_message_file_size">(%1$s)</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="error_audio_message_unable_to_play">Impossible de lire %1$s</string>
     <string name="a11y_pause_audio_message">Pause %1$s</string>
     <string name="a11y_play_audio_message">Lire %1$s</string>

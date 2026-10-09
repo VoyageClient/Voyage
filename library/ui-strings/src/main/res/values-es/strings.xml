@@ -1892,7 +1892,6 @@
     <string name="upgrade_room_for_restricted_note">Tenga en cuenta que la mejora creará una nueva versión de la habitación. Todos los mensajes actuales permanecerán en esta sala archivada.</string>
     <string name="upgrade_room_for_restricted_no_param">Cualquiera en un espacio para padres podrá encontrar y unirse a esta sala, sin necesidad de invitar a todos manualmente. Podrás cambiar esto en la configuración de la habitación en cualquier momento.</string>
     <string name="upgrade_room_for_restricted">Cualquiera en %s podrá encontrar y unirse a esta sala, sin necesidad de invitar a todos manualmente. Podrás cambiar esto en la configuración de la habitación en cualquier momento.</string>
-    <string name="voice_message_reply_content">Mensaje de voz (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">No se puede responder ni editar mientras el mensaje de voz está activo</string>
     <string name="error_voice_message_unable_to_record">No se puede grabar un mensaje de voz</string>
     <string name="error_voice_message_unable_to_play">No se puede reproducir este mensaje de voz</string>
@@ -2079,7 +2078,6 @@
     <string name="create_poll_title">Crear Encuesta</string>
     <string name="restart_the_application_to_apply_changes">Reinicia la aplicación para que el cambio surta efecto.</string>
     <string name="audio_message_file_size">(%1$s)</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="error_audio_message_unable_to_play">Ocurrió un error al reproducir %1$s</string>
     <string name="a11y_pause_audio_message">Pausar %1$s</string>
     <string name="a11y_play_audio_message">Reproducir %1$s</string>

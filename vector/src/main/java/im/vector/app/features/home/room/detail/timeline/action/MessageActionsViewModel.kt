@@ -6,16 +6,12 @@
  */
 package im.vector.app.features.home.room.detail.timeline.action
 
-import android.content.Context
-import android.text.format.DateUtils
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
 import dagger.Lazy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dagger.hilt.android.qualifiers.ApplicationContext
-import im.vector.app.R
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
@@ -32,7 +28,6 @@ import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMes
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
-import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -90,15 +85,14 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
@@ -106,8 +100,8 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachme
 import org.matrix.android.sdk.api.session.room.model.message.forwardOrigin
 import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
-import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
+import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.model.message.messageForwardPayload
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
@@ -131,7 +125,6 @@ import timber.log.Timber
  */
 class MessageActionsViewModel @AssistedInject constructor(
         @Assisted private val initialState: MessageActionState,
-        @ApplicationContext private val context: Context,
         private val eventHtmlRenderer: Lazy<EventHtmlRenderer>,
         private val htmlCompressor: VectorHtmlCompressor,
         private val session: Session,
@@ -434,25 +427,16 @@ class MessageActionsViewModel @AssistedInject constructor(
                             textRenderer.render(eventHtmlRenderer.get().render(html, pillsPostProcessor), timelineEvent.roomMentionSource())
                         } else if (messageContent is MessageVerificationRequestContent) {
                             stringProvider.getString(CommonStrings.verification_request_room_list_preview)
-                        } else if (messageContent is MessageFileContent) {
-                            attachmentPreviewText(context, R.drawable.ic_paperclip, messageContent.getFileName().orEmpty())
-                        } else if (messageContent is MessageAudioContent) {
-                            val formattedDuration = DateUtils.formatElapsedTime(((messageContent.audioInfo?.duration ?: 0) / 1000).toLong())
-                            if (messageContent.voiceMessageIndicator != null) {
-                                attachmentPreviewText(
-                                        context,
-                                        R.drawable.ic_microphone,
-                                        stringProvider.getString(CommonStrings.voice_message_reply_content, formattedDuration)
-                                )
-                            } else {
-                                attachmentPreviewText(context, R.drawable.ic_music_note, messageContent.getFileName().orEmpty())
-                            }
+                        } else if (messageContent is MessageStickerContent) {
+                            // A sticker's body describes it rather than captioning it; the sheet shows its name line.
+                            ""
+                        } else if (messageContent is MessageWithAttachmentContent) {
+                            // The sheet shows the media and its file name; the text slot only carries the caption.
+                            renderCaption(timelineEvent, messageContent.getFormattedCaption(isReply), messageContent.getCaption(isReply))
                         } else if (messageContent is MessageGalleryContent) {
                             // The sheet shows the real grid; the text slot only carries the caption.
-                            messageContent.galleryCaption().orEmpty()
-                        } else if (messageContent is MessageWithAttachmentContent) {
-                            // Image/video: the thumbnail is shown separately, so just the filename here.
-                            messageContent.getFileName()
+                            val caption = messageContent.galleryCaption()
+                            renderCaption(timelineEvent, messageContent.formattedBody?.takeIf { caption != null }, caption)
                         } else if (messageContent?.msgType == MessageType.MSGTYPE_LOCATION) {
                             // The text representation of a location is the same on every API; only the
                             // long-press preview's map (buildLocationUiData) is gated to Lollipop+.
@@ -473,7 +457,12 @@ class MessageActionsViewModel @AssistedInject constructor(
                         } else {
                             body
                         }
-                        forwardedMessages.framed(timelineEvent, shown)
+                        // The sheet draws a forward's header around the media itself; the text carries the rest.
+                        if (messageContent is MessageWithAttachmentContent || messageContent is MessageGalleryContent) {
+                            forwardedMessages.framedTail(timelineEvent, shown)
+                        } else {
+                            forwardedMessages.framed(timelineEvent, shown)
+                        }
                     }
                     EventType.STATE_ROOM_NAME,
                     EventType.STATE_ROOM_TOPIC,
@@ -514,6 +503,16 @@ class MessageActionsViewModel @AssistedInject constructor(
         } catch (failure: Throwable) {
             errorFormatter.toHumanReadable(failure)
         }
+    }
+
+    /** A media caption as the timeline renders it: its HTML when it has some, with pills and emotes. */
+    private fun renderCaption(timelineEvent: TimelineEvent, formatted: String?, plain: String?): CharSequence {
+        val caption = formatted?.takeIf { it.isNotBlank() }
+                ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
+                ?.let { eventHtmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor) }
+                ?: plain
+                ?: return ""
+        return textRenderer.render(caption, timelineEvent.roomMentionSource())
     }
 
     private suspend fun actionsForEvent(

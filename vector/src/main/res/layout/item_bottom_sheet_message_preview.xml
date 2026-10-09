@@ -56,29 +56,43 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="Friday 8pm" />
 
-    <im.vector.app.core.ui.views.RoundedCornerImageView
-        android:id="@+id/bottom_sheet_message_preview_image"
-        android:layout_width="100dp"
-        android:layout_height="66dp"
-        android:layout_marginTop="6dp"
-        android:importantForAccessibility="no"
-        android:scaleType="centerCrop"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_sender"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_sender"
-        tools:ignore="MissingPrefix"
-        tools:src="@tools:sample/backgrounds/scenic"
-        tools:visibility="visible" />
-
-    <im.vector.app.core.ui.views.GalleryGridLayout
-        android:id="@+id/bottom_sheet_message_preview_gallery"
-        android:layout_width="wrap_content"
+    <!-- The media, inside a forward's header and bar when it is one. -->
+    <im.vector.app.core.ui.views.ForwardFrameLayout
+        android:id="@+id/bottom_sheet_message_preview_media"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_expandable"
         app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_sender"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_image"
-        tools:visibility="gone" />
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_sender">
+
+        <im.vector.app.core.ui.views.RoundedCornerImageView
+            android:id="@+id/bottom_sheet_message_preview_image"
+            android:layout_width="100dp"
+            android:layout_height="66dp"
+            android:layout_marginTop="6dp"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            tools:ignore="MissingPrefix"
+            tools:src="@tools:sample/backgrounds/scenic"
+            tools:visibility="visible" />
+
+        <im.vector.app.core.ui.views.GalleryGridLayout
+            android:id="@+id/bottom_sheet_message_preview_gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:visibility="gone"
+            tools:visibility="gone" />
+
+        <im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewView
+            android:id="@+id/bottom_sheet_message_preview_pill"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:visibility="gone" />
+
+    </im.vector.app.core.ui.views.ForwardFrameLayout>
 
     <!-- Caps the preview height and fades long content (text or tables) out instead of clipping it
          with a trailing ellipsis, matching the reply header / composer previews. -->
@@ -95,10 +109,10 @@
         app:expanded="false"
         app:allowExpand="false"
         app:maxHeight="@dimen/reply_text_max_height"
-        app:layout_constraintBottom_toTopOf="@id/bottom_sheet_message_preview_body_details"
+        app:layout_constraintBottom_toTopOf="@id/bottom_sheet_message_preview_attachment_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/bottom_sheet_message_preview_avatar"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_gallery"
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_media"
         app:layout_goneMarginBottom="4dp">
 
         <LinearLayout
@@ -135,6 +149,27 @@
             android:layout_gravity="bottom" />
     </com.ruesga.rview.widget.ExpandableViewLayout>
 
+    <!-- An attachment's file name, outside any forward frame, above its details line. -->
+    <TextView
+        android:id="@+id/bottom_sheet_message_preview_attachment_name"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:gravity="start"
+        android:textColor="?vctr_content_secondary"
+        android:textIsSelectable="false"
+        android:visibility="gone"
+        android:textAlignment="viewStart"
+        app:layout_constraintBottom_toTopOf="@id/bottom_sheet_message_preview_body_details"
+        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_expandable"
+        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_expandable"
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_expandable"
+        tools:text="IMG_20261009_084310.jpg"
+        tools:visibility="visible" />
+
     <TextView
         android:id="@+id/bottom_sheet_message_preview_body_details"
         style="@style/Widget.Vector.TextView.Caption"
@@ -150,7 +185,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_expandable"
         app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_expandable"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_expandable"
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_attachment_name"
         tools:text="1080 x 1024 - 43s - 12kB"
         tools:visibility="visible" />
 

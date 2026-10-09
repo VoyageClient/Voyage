@@ -2797,14 +2797,12 @@
     <string name="error_voice_message_unable_to_play">Cannot play this voice message</string>
     <string name="error_voice_message_unable_to_record">Cannot record a voice message</string>
     <string name="error_voice_message_cannot_reply_or_edit">Cannot reply or edit while voice message is active</string>
-    <string name="voice_message_reply_content">Voice Message (%1$s)</string>
 
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string> <!-- filename, duration, file size -->
     <string name="a11y_audio_playback_duration" tools:ignore="PluralsCandidate">%1$d minutes %2$d seconds</string>
     <string name="a11y_play_audio_message">Play %1$s</string>
     <string name="a11y_pause_audio_message">Pause %1$s</string>
     <string name="error_audio_message_unable_to_play">Unable to play %1$s</string>
-    <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="audio_message_file_size">(%1$s)</string>
 
     <!-- Examples of usage: 6h 15min 30sec left / 15min 30sec left / 30sec left -->

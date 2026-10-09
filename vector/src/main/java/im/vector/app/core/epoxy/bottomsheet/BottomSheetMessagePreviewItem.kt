@@ -28,6 +28,8 @@ import im.vector.app.core.extensions.setRedactedTint
 import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.ui.views.ForwardFrame
+import im.vector.app.core.ui.views.ForwardFrameLayout
 import im.vector.app.core.ui.views.GalleryGridLayout
 import im.vector.app.core.ui.views.RoundedCornerImageView
 import im.vector.app.core.utils.nonScrolling
@@ -36,6 +38,9 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.action.LocationUiData
 import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
 import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewBinder
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewView
 import im.vector.app.features.home.room.detail.timeline.item.MessageGalleryItem
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
@@ -98,6 +103,16 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
 
     @EpoxyAttribute
     var galleryMaxWidth: Int = 0
+
+    @EpoxyAttribute
+    var mediaPill: MediaPillPreview? = null
+
+    @EpoxyAttribute
+    var attachmentName: String? = null
+
+    /** A forward's header and bar, drawn around whatever media the preview shows. */
+    @EpoxyAttribute
+    var mediaForward: ForwardFrame? = null
 
     @EpoxyAttribute
     var hideMedia: Boolean = false
@@ -167,6 +182,10 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
                     hideMediaSolidColor = hideMediaSolidColor,
             )
         }
+        val pill = mediaPill.takeUnless { redacted }
+        MediaPillPreviewBinder.bind(holder.pillPreview, pill)
+        val showsMedia = holder.imagePreview.isVisible || holder.galleryPreview.isVisible || holder.pillPreview.isVisible
+        holder.media.setForwardFrame(mediaForward?.takeIf { showsMedia })
         holder.body.movementMethod = movementMethod?.nonScrolling()
         // The bottom-sheet theme tree doesn't inherit the app theme's textColorHighlight, so give a pressed
         // link a translucent tint matching the link colour here instead of Material's stray teal default.
@@ -190,6 +209,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             holder.body.setTextColor(bodyColor)
             holder.body.clearDrawables()
         }
+        holder.attachmentName.setTextOrHide(attachmentName?.takeUnless { redacted }?.prepareForDisplay())
         holder.bodyDetails.setTextOrHide(bodyDetails?.charSequence)
         holder.body.bindEmoteImageSpans()
         body.charSequence.findPillsAndProcess(coroutineScope) { it.bind(holder.body) }
@@ -217,7 +237,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             holder.richBody.removeAllViews()
         }
 
-        holder.body.isVisible = locationUiData == null && !showTable
+        holder.body.isVisible = locationUiData == null && !showTable && !(showsMedia && body.charSequence.isEmpty())
         holder.mapViewContainer.isVisible = locationUiData != null
         locationUiData?.let { safeLocationUiData ->
             GlideApp.with(holder.staticMapImageView)
@@ -245,9 +265,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         val body by bind<TextView>(R.id.bottom_sheet_message_preview_body)
         val richBody by bind<LinearLayout>(R.id.bottom_sheet_message_preview_rich_body)
         val bodyDetails by bind<TextView>(R.id.bottom_sheet_message_preview_body_details)
+        val attachmentName by bind<TextView>(R.id.bottom_sheet_message_preview_attachment_name)
         val timestamp by bind<TextView>(R.id.bottom_sheet_message_preview_timestamp)
         val imagePreview by bind<RoundedCornerImageView>(R.id.bottom_sheet_message_preview_image)
         val galleryPreview by bind<GalleryGridLayout>(R.id.bottom_sheet_message_preview_gallery)
+        val pillPreview by bind<MediaPillPreviewView>(R.id.bottom_sheet_message_preview_pill)
+        val media by bind<ForwardFrameLayout>(R.id.bottom_sheet_message_preview_media)
         val mapViewContainer by bind<FrameLayout>(R.id.mapViewContainer)
         val staticMapImageView by bind<ImageView>(R.id.staticMapImageView)
         val staticMapPinImageView by bind<ImageView>(R.id.staticMapPinImageView)

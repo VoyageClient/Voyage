@@ -1425,7 +1425,6 @@
     <string name="settings_agree_to_terms">メールアドレスか電話番号でアカウントを検出可能にするには、IDサーバー（%s）の利用規約への同意が必要です。</string>
     <string name="location_not_available_dialog_title">${app_name}は位置情報にアクセスできませんでした</string>
     <string name="location_not_available_dialog_content">${app_name}は位置情報にアクセスできませんでした。後でもう一度やり直してください。</string>
-    <string name="voice_message_reply_content">音声メッセージ（%1$s）</string>
     <string name="room_upgrade_to_recommended_version">推奨のルームバージョンにアップグレード</string>
     <string name="a11y_start_voice_message">音声メッセージを録音</string>
     <string name="legals_home_server_title">あなたのホームサーバーの運営方針</string>
@@ -2198,7 +2197,6 @@
     <string name="ended_poll_indicator">アンケートを終了しました。</string>
     <string name="poll_undisclosed_not_ended">アンケートが終了するまで結果は表示できません</string>
     <string name="audio_message_file_size">（%1$s）</string>
-    <string name="audio_message_reply_content">%1$s（%2$s）</string>
     <string name="error_audio_message_unable_to_play">%1$sを再生できません</string>
     <string name="a11y_pause_audio_message">%1$sを一時停止</string>
     <string name="a11y_play_audio_message">%1$sを再生</string>

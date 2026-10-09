@@ -337,9 +337,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         // One drawable rather than art with a colour layered over it: the message's own tinting
         // calls mutate() on whatever background it finds, and a LayerDrawable holding a rounded
         // bitmap does not survive that.
-        val drawable = RoundedBitmapDrawableFactory
-                .create(context.resources, compose(backdrop, holder.mainLayout.width, holder.mainLayout.height))
-                .apply { cornerRadius = PILL_CORNER_RADIUS_DP * context.resources.displayMetrics.density }
+        val drawable = backdropDrawable(context, backdrop, holder.mainLayout.width, holder.mainLayout.height)
         // Cleared first: setting a background re-applies whatever tint the view is carrying, and
         // the pill's own tint would paint a flat colour over the artwork.
         ViewCompat.setBackgroundTintList(holder.mainLayout, null)
@@ -403,31 +401,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         holder.fileSize.setTextColor(tertiary)
         holder.audioPlaybackTime.setTextColor(secondary)
         ImageViewCompat.setImageTintList(holder.audioPlaybackControlButton, ColorStateList.valueOf(secondary))
-    }
-
-    /**
-     * The blurred cover cut to [width] x [height]'s shape — the middle of it, scaled to cover the
-     * whole message as a wallpaper would — darkened enough to read white text on.
-     */
-    private fun compose(backdrop: Bitmap, width: Int, height: Int): Bitmap {
-        val aspect = if (width > 0 && height > 0) width.toFloat() / height else DEFAULT_BACKDROP_ASPECT
-        val outputWidth = backdrop.width
-        val outputHeight = (outputWidth / aspect).toInt().coerceAtLeast(1)
-        val output = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
-        val scale = maxOf(outputWidth.toFloat() / backdrop.width, outputHeight.toFloat() / backdrop.height)
-        val scaledWidth = backdrop.width * scale
-        val scaledHeight = backdrop.height * scale
-        val destination = RectF(
-                (outputWidth - scaledWidth) / 2f,
-                (outputHeight - scaledHeight) / 2f,
-                (outputWidth + scaledWidth) / 2f,
-                (outputHeight + scaledHeight) / 2f,
-        )
-        Canvas(output).apply {
-            drawBitmap(backdrop, null, destination, Paint(Paint.FILTER_BITMAP_FLAG))
-            drawColor(ColorUtils.setAlphaComponent(Color.BLACK, (scrimAlpha(backdrop) * 255).toInt()))
-        }
-        return output
     }
 
     private fun bindViewAttributes(holder: Holder) {
@@ -611,6 +584,37 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     companion object {
         private val STUB_ID = R.id.messageContentAudioStub
 
+        /** The cover as a pill [width] x [height] in size draws it behind its text. */
+        fun backdropDrawable(context: Context, backdrop: Bitmap, width: Int, height: Int): Drawable =
+                RoundedBitmapDrawableFactory
+                        .create(context.resources, compose(backdrop, width, height))
+                        .apply { cornerRadius = PILL_CORNER_RADIUS_DP * context.resources.displayMetrics.density }
+
+        /**
+         * The blurred cover cut to [width] x [height]'s shape — the middle of it, scaled to cover the
+         * whole message as a wallpaper would — darkened enough to read white text on.
+         */
+        private fun compose(backdrop: Bitmap, width: Int, height: Int): Bitmap {
+            val aspect = if (width > 0 && height > 0) width.toFloat() / height else DEFAULT_BACKDROP_ASPECT
+            val outputWidth = backdrop.width
+            val outputHeight = (outputWidth / aspect).toInt().coerceAtLeast(1)
+            val output = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
+            val scale = maxOf(outputWidth.toFloat() / backdrop.width, outputHeight.toFloat() / backdrop.height)
+            val scaledWidth = backdrop.width * scale
+            val scaledHeight = backdrop.height * scale
+            val destination = RectF(
+                    (outputWidth - scaledWidth) / 2f,
+                    (outputHeight - scaledHeight) / 2f,
+                    (outputWidth + scaledWidth) / 2f,
+                    (outputHeight + scaledHeight) / 2f,
+            )
+            Canvas(output).apply {
+                drawBitmap(backdrop, null, destination, Paint(Paint.FILTER_BITMAP_FLAG))
+                drawColor(ColorUtils.setAlphaComponent(Color.BLACK, (scrimAlpha(backdrop) * 255).toInt()))
+            }
+            return output
+        }
+
         /** Dark enough to read white text on, light enough to leave the artwork its colour. */
         private const val BACKDROP_SCRIM_ALPHA = 0.6f
 
@@ -660,7 +664,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         private val coverArtLoader = Executors.newSingleThreadExecutor()
 
         /** White is the text; this is everything under it. */
-        private const val ON_BACKDROP_SECONDARY = 0xCCFFFFFF.toInt()
+        const val ON_BACKDROP_SECONDARY = 0xCCFFFFFF.toInt()
 
         /** One report's worth of travel, so the bar arrives just as the next one lands. */
         private const val PROGRESS_GLIDE_MS = 120L

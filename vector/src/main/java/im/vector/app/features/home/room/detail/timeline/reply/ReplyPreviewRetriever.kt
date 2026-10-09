@@ -24,6 +24,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageP
 import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
@@ -51,8 +52,14 @@ import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
@@ -453,6 +460,23 @@ class ReplyPreviewRetriever(
     fun formatDebugReply(event: TimelineEvent): CharSequence? =
             if (event.rendersAsDebugMessage(threadsEnabled, isThreadTimeline)) displayableEventFormatter.formatDebugOrUnhandled(event.root) else null
 
+    fun mediaPillPreview(content: MessageContent) = MediaPillPreview.of(content, session)
+
+    fun mediaForwardFrame(event: TimelineEvent) = displayableEventFormatter.forwardedMessages.previewFrame(event)
+
+    /** A forward's footer alone, for media shown without its caption. Empty for anything else. */
+    fun mediaForwardFooter(event: TimelineEvent) = displayableEventFormatter.forwardedMessages.framedTail(event, "")
+
+    /** The (formatted, plain) caption of an attachment or gallery, or null when it has none. */
+    private fun mediaCaption(content: MessageContent): Pair<String?, String>? {
+        val isReply = content.relatesTo?.inReplyTo?.eventId != null
+        return when (content) {
+            is MessageWithAttachmentContent -> content.getCaption(isReply)?.let { content.getFormattedCaption(isReply) to it }
+            is MessageGalleryContent -> content.galleryCaption()?.let { content.formattedBody to it }
+            else -> null
+        }
+    }
+
     fun formatFallbackReply(event: TimelineEvent): CharSequence {
         return displayableEventFormatter.format(
                 event,
@@ -490,6 +514,17 @@ class ReplyPreviewRetriever(
                 event.senderInfo.disambiguatedDisplayName,
                 vectorPreferences.arePerMessageProfilesEnabled()
         )
+        // The header draws the media itself, so the text is its caption alone (none without one), and a
+        // forward's header goes around that media, leaving the text the rest of the frame.
+        val isMedia = content is MessageWithAttachmentContent || content is MessageGalleryContent
+        if (isMedia && translation == null) {
+            val caption = mediaCaption(content)?.let { (formatted, plain) ->
+                formatted?.let { htmlCompressor.compress(ContentUtils.extractUsefulTextFromHtmlReply(it)) }
+                        ?.let { textRenderer.render(htmlRenderer.render(it, pillsPostProcessor), event.roomMentionSource()) }
+                        ?: textRenderer.render(plain, event.roomMentionSource())
+            }
+            return RenderedReplyBody(null, displayableEventFormatter.forwardedMessages.framedTail(event, caption?.linkify(null) ?: ""))
+        }
         // A translation was made from the already reply-stripped, fallback-free body.
         val formattedBody = if (translation != null) {
             translation.formatted
@@ -512,7 +547,7 @@ class ReplyPreviewRetriever(
         } else {
             text
         }
-        return RenderedReplyBody(compressed, forwardedMessages.framed(event, body))
+        return RenderedReplyBody(compressed, if (isMedia) forwardedMessages.framedTail(event, body) else forwardedMessages.framed(event, body))
     }
 
     private fun warmReplyBodyCache(event: TimelineEvent) {

@@ -23,7 +23,6 @@ import android.content.Context
 import android.graphics.Typeface
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.format.DateUtils
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.AttributeSet
@@ -38,11 +37,11 @@ import im.vector.app.databinding.ViewInReplyToBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
+import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewBinder
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
-import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.BodySegment
@@ -61,14 +60,15 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoCon
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
-import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
-import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import timber.log.Timber
+
+private const val REPLY_PLAYER_SCALE = 0.85f
 
 /**
  * A View to render a replied-to event.
@@ -206,6 +206,8 @@ class InReplyToView @JvmOverloads constructor(
         // renderHidden() draws the blurhash/solid drawable directly without a corner transform, so the
         // view shapes whatever it is given.
         views.replyThumbnailView.setCornerRadius(mediaPreviewCornerRadiusPx(context).toFloat())
+        // A quote is smaller than the message it quotes, as its thumbnails are.
+        views.replyMediaPill.playerScale = REPLY_PLAYER_SCALE
     }
 
     private fun hideViews(keepSenderColor: Boolean = false) {
@@ -232,6 +234,8 @@ class InReplyToView @JvmOverloads constructor(
         boundGalleryRenderer?.let { GalleryGridBinder.unbind(views.replyGalleryView, it) }
         boundGalleryRenderer = null
         views.replyGalleryView.isVisible = false
+        MediaPillPreviewBinder.bind(views.replyMediaPill, null)
+        views.replyMediaFrame.setForwardFrame(null)
         views.expandableReplyView.isVisible = true
         views.replyTextView.isVisible = true
         views.replyRichContainer.isVisible = false
@@ -327,9 +331,8 @@ class InReplyToView @JvmOverloads constructor(
             } else when (val content = state.event.getLastMessageContent()) {
                 is MessageImageInfoContent -> renderImageThumbnailContent(content, state.event, retriever, coroutineScope)
                 is MessageVideoContent -> renderVideoThumbnailContent(content, state.event, retriever, coroutineScope)
-                // Files / voice / audio render as a non-interactive pill mirroring the timeline.
-                is MessageFileContent -> renderAttachmentPill(R.drawable.ic_paperclip, content.getFileName())
-                is MessageAudioContent -> renderAudioContent(content)
+                is MessageFileContent -> renderMediaPillContent(content, state.event, retriever, coroutineScope)
+                is MessageAudioContent -> renderMediaPillContent(content, state.event, retriever, coroutineScope)
                 is MessageGalleryContent -> renderGalleryContent(content, state.event, retriever, coroutineScope)
                 is MessageContentWithFormattedBody -> {
                     // Outside bubbles, stretch a block-code reply to the full timeline width like the
@@ -469,7 +472,7 @@ class InReplyToView @JvmOverloads constructor(
                 blurHash = content.info?.blurHash,
         )
         val mode = ImageContentRenderer.previewMode(content is MessageStickerContent, content.mimeType)
-        renderThumbnailContent(data, content.getCaption(), event, retriever, coroutineScope, mode)
+        renderThumbnailContent(data, event, retriever, coroutineScope, mode)
     }
 
     private fun renderVideoThumbnailContent(
@@ -494,19 +497,19 @@ class InReplyToView @JvmOverloads constructor(
                 allowNonMxcUrls = false,
                 blurHash = content.videoInfo?.blurHash,
         )
-        renderThumbnailContent(thumbnailData, content.getCaption(), event, retriever, coroutineScope)
+        renderThumbnailContent(thumbnailData, event, retriever, coroutineScope)
     }
 
     private fun renderThumbnailContent(
             mediaData: ImageContentRenderer.Data,
-            caption: String?,
             event: TimelineEvent,
             retriever: ReplyPreviewRetriever,
             coroutineScope: CoroutineScope,
             mode: ImageContentRenderer.Mode = ImageContentRenderer.Mode.THUMBNAIL,
     ) {
         views.replyThumbnailView.isVisible = true
-        if (retriever.shouldHideMediaPreview(event)) {
+        val hidden = retriever.shouldHideMediaPreview(event)
+        if (hidden) {
             // Mirror the timeline's hidden-media state: blurhash or solid grey, and no caption text
             // (it would be illegible at this size). Tapping the preview jumps to the source.
             retriever.imageContentRenderer.renderHidden(
@@ -523,18 +526,25 @@ class InReplyToView @JvmOverloads constructor(
                     // The view rounds the picture; a bitmap-baked radius would scale with the decode size.
                     cornerTransformation = null,
             )
-            if (caption == null) {
-                views.replyTextView.isVisible = false
-            } else {
-                renderCaptionText(caption, event, retriever, coroutineScope)
-            }
+        }
+        renderMediaText(event, retriever, coroutineScope, captionHidden = hidden)
+    }
+
+    // The caption, then a forward's footer under the header framing the media; nothing at all for an
+    // uncaptioned attachment that isn't a forward.
+    private fun renderMediaText(event: TimelineEvent, retriever: ReplyPreviewRetriever, coroutineScope: CoroutineScope, captionHidden: Boolean = false) {
+        views.replyMediaFrame.setForwardFrame(retriever.mediaForwardFrame(event))
+        val text = if (captionHidden) retriever.mediaForwardFooter(event) else retriever.renderedReplyBody(event)?.text
+        if (text.isNullOrEmpty()) {
+            views.replyTextView.isVisible = false
+        } else {
+            renderCaptionText(text, coroutineScope, retriever)
         }
     }
 
     // Captions carry the same pills / custom emoticons as text bodies; render through the retriever's
     // cached pipeline and bind the spans — the raw string would show emotes as literal :shortcode:.
-    private fun renderCaptionText(caption: String, event: TimelineEvent, retriever: ReplyPreviewRetriever, coroutineScope: CoroutineScope) {
-        val text = retriever.renderedReplyBody(event)?.text ?: caption
+    private fun renderCaptionText(text: CharSequence, coroutineScope: CoroutineScope, retriever: ReplyPreviewRetriever) {
         views.replyTextView.isVisible = true
         views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
         val markwonPlugins = retriever.htmlRenderer.plugins
@@ -572,12 +582,7 @@ class InReplyToView @JvmOverloads constructor(
                 hideMedia = retriever.shouldHideMediaPreview(event),
                 hideMediaSolidColor = retriever.useSolidColorForHiddenMedia,
         )
-        val caption = content.galleryCaption(items)
-        if (caption == null) {
-            views.replyTextView.isVisible = false
-        } else {
-            renderCaptionText(caption, event, retriever, coroutineScope)
-        }
+        renderMediaText(event, retriever, coroutineScope)
     }
 
     private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) = renderNoticeText(retriever.formatFallbackReply(event))
@@ -588,22 +593,13 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.text = text
     }
 
-    private fun renderAudioContent(content: MessageAudioContent) {
-        val formattedDuration = DateUtils.formatElapsedTime(((content.audioInfo?.duration ?: 0) / 1000).toLong())
-        if (content.voiceMessageIndicator != null) {
-            renderAttachmentPill(R.drawable.ic_microphone, context.getString(CommonStrings.voice_message_reply_content, formattedDuration))
-        } else {
-            renderAttachmentPill(
-                    R.drawable.ic_music_note,
-                    context.getString(CommonStrings.audio_message_reply_content, content.getFileName(), formattedDuration)
-            )
-        }
-    }
-
-    private fun renderAttachmentPill(iconRes: Int, label: String?) {
-        // Use the same inline pill as the composer / long-press preview so all three match.
-        views.replyTextView.isVisible = true
-        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
-        views.replyTextView.text = attachmentPreviewText(context, iconRes, label.orEmpty())
+    private fun renderMediaPillContent(
+            content: MessageWithAttachmentContent,
+            event: TimelineEvent,
+            retriever: ReplyPreviewRetriever,
+            coroutineScope: CoroutineScope,
+    ) {
+        MediaPillPreviewBinder.bind(views.replyMediaPill, retriever.mediaPillPreview(content))
+        renderMediaText(event, retriever, coroutineScope)
     }
 }

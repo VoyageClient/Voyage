@@ -23,12 +23,15 @@ import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.views.ForwardFrame
+import im.vector.app.core.ui.views.ForwardFrameLayout
 import im.vector.app.features.home.room.detail.timeline.tools.SenderNameSpan
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.ForwardBarSpan
 import im.vector.app.features.share.forwardedSenderDisplayName
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.getForwardedInfo
@@ -86,11 +89,47 @@ class ForwardedMessagePresenter @Inject constructor(
     /** [body] inside the frame the timeline draws around a forward, or [body] alone for anything else. */
     fun framed(event: TimelineEvent, body: CharSequence): CharSequence {
         val description = describe(event) ?: return body
-        val themed = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context))
-        val secondary = ThemeUtils.getColor(themed, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        val captionSize = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.text_size_caption)
-        val text = SpannableStringBuilder()
+        val text = header(description).append("\n").append(body).append("\n").append(footer(description))
+        text.setSpan(barSpan(), 0, text.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+        return text
+    }
 
+    /**
+     * The frame for a preview that draws its media as views above its text: the header and bar go around
+     * the media ([ForwardFrameLayout]), and the text carries the rest of the frame ([framedTail]).
+     */
+    fun previewFrame(event: TimelineEvent): ForwardFrame? {
+        val description = describe(event) ?: return null
+        val res = context.resources
+        return ForwardFrame(
+                header = header(description).toEpoxyCharSequence(),
+                barWidth = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width),
+                gap = barGap(),
+                color = barColor(),
+        )
+    }
+
+    /** The text under a [previewFrame]: [body] (empty for uncaptioned media) then the footer, on the same bar. */
+    fun framedTail(event: TimelineEvent, body: CharSequence): CharSequence {
+        val description = describe(event) ?: return body
+        val text = SpannableStringBuilder()
+        if (body.isNotEmpty()) text.append(body).append("\n")
+        text.append(footer(description))
+        text.setSpan(barSpan(), 0, text.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+        return text
+    }
+
+    private fun themed() = ContextThemeWrapper(context, ThemeUtils.getApplicationThemeRes(context))
+
+    private fun secondaryColor() = ThemeUtils.getColor(themed(), im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+
+    private fun captionSize() = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.text_size_caption)
+
+    private fun header(description: Description): SpannableStringBuilder {
+        val themed = themed()
+        val secondary = secondaryColor()
+        val captionSize = captionSize()
+        val text = SpannableStringBuilder()
         val user = description.origin.user
         val header = if (user != null) {
             stringProvider.getString(CommonStrings.forwarded_message_from_user, description.origin.name)
@@ -115,29 +154,32 @@ class ForwardedMessagePresenter @Inject constructor(
             nameStart?.let { text.setSpan(SenderNameSpan(user, matrixItemColorProvider), it, it + description.origin.name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
         }
         text.setSpan(AbsoluteSizeSpan(captionSize), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-        text.append("\n").append(body).append("\n")
-
-        val footerStart = text.length
-        text.append(listOfNotNull(description.roomName ?: stringProvider.getString(CommonStrings.forwarded_unknown_room), description.formattedDate)
-                .joinToString(stringProvider.getString(CommonStrings.forwarded_footer_separator)))
-        text.setSpan(ForegroundColorSpan(secondary), footerStart, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        text.setSpan(AbsoluteSizeSpan(captionSize), footerStart, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-        val res = context.resources
-        text.setSpan(
-                ForwardBarSpan(
-                        barWidth = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width),
-                        gap = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bubble_text_inset) -
-                                res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width),
-                        color = ThemeUtils.getColor(themed, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary),
-                ),
-                0,
-                text.length,
-                Spanned.SPAN_INCLUSIVE_INCLUSIVE,
-        )
         return text
     }
+
+    private fun footer(description: Description): CharSequence {
+        val text = SpannableStringBuilder(
+                listOfNotNull(description.roomName ?: stringProvider.getString(CommonStrings.forwarded_unknown_room), description.formattedDate)
+                        .joinToString(stringProvider.getString(CommonStrings.forwarded_footer_separator))
+        )
+        text.setSpan(ForegroundColorSpan(secondaryColor()), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        text.setSpan(AbsoluteSizeSpan(captionSize()), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return text
+    }
+
+    private fun barGap(): Int {
+        val res = context.resources
+        return res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bubble_text_inset) -
+                res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width)
+    }
+
+    private fun barColor() = ThemeUtils.getColor(themed(), im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
+
+    private fun barSpan() = ForwardBarSpan(
+            barWidth = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.forwarded_bar_width),
+            gap = barGap(),
+            color = barColor(),
+    )
 
     /** [body] as an emote, by the original sender when [event] is a forward and otherwise by [ownName]. */
     fun emoteBody(event: TimelineEvent, body: CharSequence, ownName: CharSequence, ownItem: MatrixItem): CharSequence {

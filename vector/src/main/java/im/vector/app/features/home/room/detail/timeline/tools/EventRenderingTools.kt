@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.tools
 
-import android.content.Context
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -18,7 +17,6 @@ import android.text.style.StyleSpan
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
-import androidx.annotation.DrawableRes
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyViewHolder
 import im.vector.app.EmojiSpanify
@@ -29,7 +27,6 @@ import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.isTappableLink
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
-import im.vector.app.features.html.AttachmentPillSpan
 import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.app.features.html.PillImageSpan
@@ -147,17 +144,6 @@ fun androidx.preference.EditTextPreference.setupLiveEmojiInput() {
     setOnBindEditTextListener { editText ->
         editText.setupLiveEmojiInput()
         messageEmojiSpanify?.applyLive(editText.text)
-    }
-}
-
-/**
- * Build an inline attachment pill (rounded background + icon + label) for a file / voice / audio,
- * matching the reply header's pill, for the long-press sheet and reply composer where only a TextView
- * is available.
- */
-fun attachmentPreviewText(context: Context, @DrawableRes iconRes: Int, label: CharSequence): CharSequence {
-    return SpannableStringBuilder(" ").apply {
-        setSpan(AttachmentPillSpan(context, iconRes, label), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 }
 
