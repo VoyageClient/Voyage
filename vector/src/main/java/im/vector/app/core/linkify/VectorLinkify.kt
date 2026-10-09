@@ -107,7 +107,7 @@ object VectorLinkify {
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
         }
 
-        LinkifyCompat.addLinks(spannable, VectorAutoLinkPatterns.MSC.toPattern(), MSC_PULL_URL, null, mscTransformFilter)
+        LinkifyCompat.addLinks(spannable, VectorAutoLinkPatterns.MSC.toPattern(), VectorAutoLinkPatterns.MSC_PULL_URL, null, mscTransformFilter)
         spannable.forEachUrlSpanIndexed { _, urlSpan, start, end ->
             spannable.removeSpan(urlSpan)
             createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
@@ -214,8 +214,6 @@ object VectorLinkify {
             -1
         } else 0
     }
-
-    private const val MSC_PULL_URL = "https://github.com/matrix-org/matrix-spec-proposals/pull/"
 
     private val mscTransformFilter = Linkify.TransformFilter { match, _ -> match.group(1) }
 

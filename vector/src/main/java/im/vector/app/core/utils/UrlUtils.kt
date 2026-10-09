@@ -22,6 +22,11 @@ fun String.isValidUrl(): Boolean {
 
 fun String.isTappableLink(): Boolean = isValidUrl() || isMatrixUri() || VectorAutoLinkPatterns.SCHEME_URI.matches(this)
 
+fun String.isExpectedMscLink(title: String): Boolean {
+    val proposal = VectorAutoLinkPatterns.MSC.matchEntire(title)?.groupValues?.get(1) ?: return false
+    return this == "${VectorAutoLinkPatterns.MSC_PULL_URL}$proposal"
+}
+
 /**
  * Ensure string starts with "http". If it is not the case, "https://" is added, only if the String is not empty
  */

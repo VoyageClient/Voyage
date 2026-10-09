@@ -107,6 +107,7 @@ import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.core.utils.createUIHandler
 import im.vector.app.core.utils.hideImeQuickly
+import im.vector.app.core.utils.isExpectedMscLink
 import im.vector.app.core.utils.isTappableLink
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.core.utils.onPermissionDeniedDialog
@@ -2026,7 +2027,7 @@ class TimelineFragment :
                     title.isValidUrl() && url.isValidUrl() && URL(title).host != URL(url).host -> {
                         displayUrlConfirmationDialog(title, url)
                     }
-                    !title.isValidUrl() && url.isValidUrl() -> {
+                    !title.isValidUrl() && url.isValidUrl() && !url.isExpectedMscLink(title) -> {
                         displayLinkDestinationDialog(url)
                     }
                     else -> {
