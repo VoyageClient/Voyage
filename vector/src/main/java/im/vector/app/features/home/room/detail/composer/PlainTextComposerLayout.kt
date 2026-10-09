@@ -28,43 +28,26 @@ import androidx.transition.TransitionSet
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.core.extensions.clearDrawables
-import im.vector.app.core.extensions.getVectorLastMessageContent
-import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.core.ui.ColorRefreshable
 import im.vector.app.core.utils.DimensionConverter
-import im.vector.app.core.utils.nonScrollingLinkMovementMethod
 import im.vector.app.databinding.ComposerLayoutBinding
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
-import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
-import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
-import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
-import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
-import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
-import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
-import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewBinder
-import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContentBuilder
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewView
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
-import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
-import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
-import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.html.BodySegment
-import im.vector.app.features.html.EventHtmlRenderer
-import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
-import im.vector.app.features.html.VectorHtmlCompressor
-import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.html.expandPillSpans
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.media.ImageContentRenderer
@@ -75,28 +58,13 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 import im.vector.lib.strings.CommonStrings
-import org.commonmark.parser.Parser
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
-import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
-import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
-import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
-import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
-import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
-import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
-import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toEveryoneInRoomMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -114,30 +82,24 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
-    @Inject lateinit var noticeEventFormatter: NoticeEventFormatter
-    @Inject lateinit var eventHtmlRenderer: EventHtmlRenderer
-    @Inject lateinit var htmlCompressor: VectorHtmlCompressor
     @Inject lateinit var richMessageBodyRenderer: RichMessageBodyRenderer
     @Inject lateinit var dimensionConverter: DimensionConverter
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var pillsPostProcessorFactory: PillsPostProcessor.Factory
-    @Inject lateinit var textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var redactedContentRestorer: RedactedContentRestorer
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
-    @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
-    @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var twemojiProvider: TwemojiProvider
-    @Inject lateinit var forwardedMessages: im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
+    @Inject lateinit var previewBuilder: MessagePreviewContentBuilder
+    @Inject lateinit var locationPinProvider: LocationPinProvider
 
     private val views: ComposerLayoutBinding
 
     private val classic = vectorPreferences.useClassicComposer()
 
-    // The replied-to/related event currently shown in the preview, so its media can be re-rendered
-    // in place when revealed elsewhere.
-    private var relatedMessageEvent: TimelineEvent? = null
+    // Kept so the media can be re-rendered in place when revealed elsewhere.
+    private var relatedMessagePreview: MessagePreviewContent? = null
 
     // Lets a reconstructed pill resolve its member (and so its room display name) the way the timeline does.
     var roomId: String? = null
@@ -189,12 +151,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // flip the field; the Editable and the sent text keep the real characters.
         views.composerEditText.transformationMethod = DirectionOverridesTransformation
 
-        // Must precede any text: Markwon only installs its own (scrolling) LinkMovementMethod when the view has none.
-        views.composerRelatedMessageContent.movementMethod = nonScrollingLinkMovementMethod
-
-        // Round the replied-to image corners. Glide's RoundedCorners only transforms the loaded
-        // bitmap, so a still-loading blurhash placeholder (Drawable) would otherwise show square.
-        views.composerRelatedMessageImage.setCornerRadius(mediaPreviewCornerRadiusPx(context).toFloat())
+        views.composerRelatedMessagePreview.style = MessagePreviewView.Style(mediaMarginTop = dimensionConverter.dpToPx(6))
 
         collapse(animate = false)
 
@@ -322,56 +279,20 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         return views.composerEditText.setTextProgrammatically(text)
     }
 
-    private fun renderRelatedMessageGallery(event: TimelineEvent): Boolean {
-        val gallery = event.getVectorLastMessageContent() as? MessageGalleryContent ?: run {
-            GalleryGridBinder.unbind(views.composerRelatedMessageGallery, imageContentRenderer)
-            return false
-        }
-        val session = activeSessionHolder.getSafeActiveSession()
-        val maxWidth = dimensionConverter.dpToPx(160)
-        val items = gallery.galleryItems()
-        GalleryGridBinder.bind(
-                grid = views.composerRelatedMessageGallery,
-                tiles = gallery.toGalleryTiles(event.eventId, event.timelineStableId(), maxWidth, maxWidth, items = items),
-                maxWidth = maxWidth,
-                cornerRadiusPx = dimensionConverter.dpToPx(8),
-                imageContentRenderer = imageContentRenderer,
-                hideMedia = session != null && shouldHideMediaPreview(event, session, vectorPreferences, mediaContentRevealManager),
-                hideMediaSolidColor = vectorPreferences.useSolidColorForHiddenMedia(),
-        )
-        return true
-    }
-
-    private fun renderRelatedMessageImage(event: TimelineEvent, crossFade: Boolean = false): Boolean {
-        val data = event.buildImageContentRendererData(dimensionConverter.dpToPx(66))
-        return if (data != null) {
-            val session = activeSessionHolder.getSafeActiveSession()
-            val hidden = session != null && shouldHideMediaPreview(event, session, vectorPreferences, mediaContentRevealManager)
-            // Full image for transparent-capable content (server thumbnails can bake in a background).
-            val mode = ImageContentRenderer.previewMode(isSticker = false, mimeType = data.mimeType)
-            if (hidden) {
-                imageContentRenderer.renderHidden(data, mode, views.composerRelatedMessageImage, vectorPreferences.useSolidColorForHiddenMedia())
-            } else {
-                // The view rounds the picture; a bitmap-baked radius would scale with the decode size.
-                imageContentRenderer.render(data, mode, views.composerRelatedMessageImage, cornerTransformation = null, crossFade = crossFade)
-            }
-            true
-        } else {
-            imageContentRenderer.clear(views.composerRelatedMessageImage)
-            false
-        }
+    private fun isMediaHidden(preview: MessagePreviewContent): Boolean {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return false
+        return shouldHideMediaPreview(preview.event, session, vectorPreferences, mediaContentRevealManager)
     }
 
     override fun refreshRelatedMessageMedia() {
-        val event = relatedMessageEvent ?: return
+        val preview = relatedMessagePreview ?: return
         if (!views.relatedMessageGroup.isVisible) return
-        if (views.composerRelatedMessageGallery.isVisible) {
-            renderRelatedMessageGallery(event)
-            return
-        }
-        // Cross-fade from the blurhash/solid placeholder to the revealed image.
-        val showsMedia = redactedContentRestorer.restoreEvent(event) != null || !event.root.isRedacted()
-        views.composerRelatedMessageImage.isVisible = showsMedia && renderRelatedMessageImage(event, crossFade = true)
+        views.composerRelatedMessagePreview.refreshMedia(
+                preview,
+                hidden = isMediaHidden(preview),
+                hiddenAsSolidColor = vectorPreferences.useSolidColorForHiddenMedia(),
+                imageContentRenderer = imageContentRenderer,
+        )
     }
 
     override fun getDraftContent(): CharSequence = serializeMentionPills(text ?: "")
@@ -517,9 +438,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             is MessageComposerMode.Quote -> R.drawable.ic_quote
         }
 
-        val pillsPostProcessor = pillsPostProcessorFactory.create(event.roomId)
-        val textRenderer = textRendererFactory.create(event.roomId)
-
         val renderedProfile = event.renderPerMessageProfile(
                 event.senderInfo.disambiguatedDisplayName,
                 vectorPreferences.arePerMessageProfilesEnabled()
@@ -539,145 +457,29 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             setSenderNameEmphasis(matrixItemColorProvider.isNameColored())
         }
 
-        val debugText = if (event.rendersAsDebugMessage(vectorPreferences.areThreadMessagesEnabled(), isThreadTimeline)) {
-            noticeEventFormatter.formatDebugOrUnhandled(event.root)
-        } else {
-            null
-        }
-        val messageContent: MessageContent? = event.takeIf { debugText == null }?.getVectorLastMessageContent()
-        // Translation / PGP: show the text the timeline shows for the quoted message instead of the real body.
-        val translation = messageTranslationStore.get(event)?.takeIf { debugText == null }
-        val pgpPlain = if (translation == null) {
-            (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
-        } else {
-            null
-        }
-        val nonFormattedBody = when {
-            debugText != null -> debugText
-            translation != null -> translation.text
-            pgpPlain != null -> pgpPlain
-            event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
-            // The grid preview carries the content, so the text slot is caption-only.
-            messageContent is MessageGalleryContent -> messageContent.galleryCaption().orEmpty()
-            // The media is drawn above, so the text slot is caption-only, as in the timeline.
-            messageContent is MessageWithAttachmentContent ->
-                messageContent.getCaption(messageContent.relatesTo?.inReplyTo?.eventId != null).orEmpty()
-            messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
-            messageContent is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
-            messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
-            // The composer preview never shows a map, so location is always the notice text.
-            messageContent?.msgType == MessageType.MSGTYPE_LOCATION ->
-                noticeEventFormatter.formatLocationNotice(event.root, renderedProfile.senderName)
-            // A message whose content can't be parsed previews as the timeline's malformed placeholder.
-            messageContent == null && event.root.getClearType() in listOf(EventType.MESSAGE, EventType.STICKER) ->
-                noticeEventFormatter.formatMalformedMessage()
-            // Non-message event (membership change, reaction, …): show the notice text, falling back
-            // to a debug line (known type) or the accent "not handled" notice (unknown type).
-            messageContent == null -> noticeEventFormatter.format(event, isDm = false)
-                    ?: noticeEventFormatter.formatDebugOrUnhandled(event.root)
-            // Text / notice / emote without a formatted body: drop the legacy "> <@user:server> …"
-            // reply fallback, which the formatted path below strips via <mx-reply>.
-            messageContent.relatesTo?.inReplyTo?.eventId != null ->
-                ContentUtils.extractUsefulTextFromReply(
-                        messageContent.body.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName),
-                        (messageContent as? MessageContentWithFormattedBody)?.formattedBody
-                                ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
+        val preview = previewBuilder.build(
+                specialMode.event,
+                MessagePreviewContentBuilder.Options(
+                        thumbnailMaxWidth = dimensionConverter.dpToPx(132),
+                        thumbnailMaxHeight = dimensionConverter.dpToPx(66),
+                        galleryMaxWidth = dimensionConverter.dpToPx(160),
+                        galleryMaxHeight = dimensionConverter.dpToPx(160),
+                        isThreadTimeline = isThreadTimeline,
+                        senderItem = senderItem,
                 )
-            else -> messageContent.body.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
-        }
-        var formattedBody: CharSequence? = null
-        var renderedTable = false
-        // m.text, m.notice and m.emote all carry a formatted_body; render it so HTML-only bodies
-        // (common for bot m.notice messages) aren't shown blank or as raw markup.
-        val isFormattableText = messageContent?.msgType == MessageType.MSGTYPE_TEXT ||
-                messageContent?.msgType == MessageType.MSGTYPE_NOTICE ||
-                messageContent?.msgType == MessageType.MSGTYPE_EMOTE
-        val rendersRealHtml = translation == null && pgpPlain == null && isFormattableText &&
-                messageContent is MessageContentWithFormattedBody && messageContent.format == MessageFormat.FORMAT_MATRIX_HTML
-        if (translation?.formatted != null || rendersRealHtml) {
-            val htmlToRender = translation?.formatted
-                    ?: (messageContent as? MessageContentWithFormattedBody)?.formattedBody
-                            ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
-                            ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
-            val compressed = htmlToRender?.let { htmlCompressor.compress(it) }
-            val richSegments = if (compressed != null && (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true))) {
-                HtmlBodySegmenter.segment(compressed).takeIf { segs -> segs.any { it !is BodySegment.Html } }
-            } else {
-                null
-            }
-            if (richSegments != null) {
-                renderRichPreview(richSegments, pillsPostProcessor)
-                renderedTable = true
-            } else if (compressed != null) {
-                // Render the HTML string (not a pre-parsed commonmark Node) so the root-tag
-                // post-processor runs and code blocks / nested tags render, as in the timeline.
-                formattedBody = eventHtmlRenderer.render(compressed, pillsPostProcessor)
-            } else {
-                val parser = Parser.builder().build()
-                val document = parser.parse(
-                        ContentUtils.extractUsefulTextFromReply(
-                                messageContent?.body.orEmpty().withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
-                        )
-                )
-                formattedBody = eventHtmlRenderer.render(document, pillsPostProcessor)
-            }
-        }
-        if (!renderedTable) {
-            views.composerRelatedMessageRichContainer.isVisible = false
-            views.composerRelatedMessageRichContainer.removeAllViews()
-        }
-        // Preserved metadata outlives the picture, so a redaction with nothing restored would preview
-        // an empty placeholder above "Message deleted".
-        val showsMedia = debugText == null && (restored != null || !event.root.isRedacted())
-        val mediaPill = messageContent.takeIf { showsMedia }?.let { MediaPillPreview.of(it, activeSessionHolder.getSafeActiveSession()) }
-        if (!showsMedia) imageContentRenderer.clear(views.composerRelatedMessageImage)
-        val isGalleryVisible = showsMedia && renderRelatedMessageGallery(event)
-        views.composerRelatedMessageGallery.isVisible = isGalleryVisible
-        val isImageVisible = showsMedia && !isGalleryVisible && renderRelatedMessageImage(event)
-        views.composerRelatedMessageImage.isVisible = isImageVisible
-        MediaPillPreviewBinder.bind(views.composerRelatedMessagePill, mediaPill)
-        // A forward's header goes around the media, and the text below carries the rest of its frame.
-        val framesMedia = isGalleryVisible || isImageVisible || mediaPill != null
-        views.composerRelatedMessageMedia.setForwardFrame(if (framesMedia) forwardedMessages.previewFrame(event) else null)
-        // Resolve mentions/permalinks (incl. message links -> "Message in Room") into pills for the
-        // preview only; the un-pilled [formattedBody] still feeds the edit box below. Linkified like the
-        // timeline's reply header, or a bare URL in a plaintext body carries no span and renders as
-        // ordinary text here while showing blue everywhere else.
-        // Notice text (membership change, policy server, reaction, …) is never linkified in the timeline,
-        // and a matrix id or server name inside it would otherwise render as a spurious link.
-        val isNoticePreview = messageContent == null
-        val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it, event.roomMentionSource()) }
-                ?.let { if (isNoticePreview) it else it.linkify(null) }
-        val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
-            forwardedMessages.emoteBody(event, renderedBody, renderedProfile.senderName, senderItem)
-        } else {
-            renderedBody
-        }?.let { if (framesMedia) forwardedMessages.framedTail(event, it) else forwardedMessages.framed(event, it) }
-        views.composerRelatedMessageContent.isVisible = !renderedTable && !(framesMedia && previewBody.isNullOrEmpty())
-        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.prepareForDisplay())
-        // Without this the preview's pills only ever show what the synchronous avatar lookup found, so
-        // a re-render that misses the cache leaves them stuck on the placeholder.
-        views.composerRelatedMessageContent.bindPillImageSpans()
-        // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none; the
-        // preview's links stay inert, as they are in the reply header.
-        views.composerRelatedMessageContent.movementMethod = null
-        // Muted grey for non-message notices and m.notice messages (which render grey in the timeline),
-        // normal text colour for everything else.
-        views.composerRelatedMessageContent.setTextColor(
-                if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {
-                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                } else {
-                    ThemeUtils.getMessageTextColor(context)
-                }
         )
-        if (event.root.isRedacted()) {
-            views.composerRelatedMessageContent.setRedactedPreviewStyle()
-        } else {
-            views.composerRelatedMessageContent.clearDrawables()
-        }
-
-        // Image Event
-        relatedMessageEvent = event
+        relatedMessagePreview = preview
+        views.composerRelatedMessagePreview.bind(
+                preview,
+                hidden = isMediaHidden(preview),
+                hiddenAsSolidColor = vectorPreferences.useSolidColorForHiddenMedia(),
+                renderers = MessagePreviewView.Renderers(
+                        imageContentRenderer,
+                        richMessageBodyRenderer,
+                        arrayOf(pillsPostProcessorFactory.create(event.roomId)),
+                        locationPinProvider,
+                ),
+        )
 
         views.composerRelatedMessageActionIcon.setImageDrawable(ContextCompat.getDrawable(context, iconRes))
 
@@ -705,24 +507,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             if (!isRefresh) {
                 views.composerEditText.post(::requestSpecialModeKeyboard)
             }
-            views.composerRelatedMessageImage.isVisible = isImageVisible
         }
-    }
-
-    // Render a table/code-containing reply/edit preview via the timeline's renderer, instead of the
-    // single-line TextView that collapses table cells to plaintext and wraps code (losing scroll +
-    // line numbers).
-    private fun renderRichPreview(segments: List<BodySegment>, pillsPostProcessor: PillsPostProcessor) {
-        views.composerRelatedMessageRichContainer.isVisible = true
-        richMessageBodyRenderer.render(
-                container = views.composerRelatedMessageRichContainer,
-                segments = segments,
-                postProcessors = arrayOf(pillsPostProcessor),
-                movementMethod = null,
-                onClick = {},
-                onLongClick = { false },
-                interactive = false,
-        )
     }
 
     override fun renderRoomEncryption(isEncrypted: Boolean, trustLevel: RoomEncryptionTrustLevel?, isPgp: Boolean) {

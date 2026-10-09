@@ -488,8 +488,9 @@ class MessageComposerViewModel @AssistedInject constructor(
             combine(room.flow().liveTimelineEvent(it), room.flow().liveAnnotationSummary(it)) { _, _ -> }
                     .map { withContext(Dispatchers.IO) { room.getTimelineEvent(eventId) } }
                     .filterNotNull()
-                    // The table-level query re-fires on every sync; only content changes warrant a re-render.
-                    .distinctUntilChangedBy { it.root to it.annotations?.editSummary }
+                    // The table-level query re-fires on every sync; only content changes (and a poll's votes)
+                    // warrant a re-render.
+                    .distinctUntilChangedBy { Triple(it.root, it.annotations?.editSummary, it.annotations?.pollResponseSummary) }
                     .onEach { updated ->
                         setState {
                             if (sendMode is SendMode.Reply && sendMode.timelineEvent.eventId == updated.eventId) {

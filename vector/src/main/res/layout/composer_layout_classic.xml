@@ -67,47 +67,13 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="@tools:sample/first_names" />
 
-        <com.ruesga.rview.widget.ExpandableViewLayout
-            android:id="@+id/composerRelatedMessageExpandable"
+        <im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewView
+            android:id="@+id/composerRelatedMessagePreview"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
-            app:expanded="false"
-            app:allowExpand="false"
-            app:maxHeight="@dimen/reply_text_max_height"
             app:layout_constraintEnd_toEndOf="@id/composerRelatedMessageTitle"
             app:layout_constraintStart_toStartOf="@id/composerRelatedMessageTitle"
-            app:layout_constraintTop_toBottomOf="@id/composerRelatedMessageMedia">
-
-            <LinearLayout
-                android:id="@+id/composerRelatedMessageColumn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <im.vector.app.core.ui.views.InlineCodeTextView
-                    android:id="@+id/composerRelatedMessageContent"
-                    style="@style/Widget.Vector.TextView.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:text="@tools:sample/lorem/random" />
-
-                <LinearLayout
-                    android:id="@+id/composerRelatedMessageRichContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    tools:visibility="gone" />
-
-            </LinearLayout>
-
-            <View
-                android:id="@+id/composerRelatedMessageFade"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/reply_fade_out_height"
-                android:layout_gravity="bottom" />
-        </com.ruesga.rview.widget.ExpandableViewLayout>
+            app:layout_constraintTop_toBottomOf="@id/composerRelatedMessageTitle" />
 
         <ImageView
             android:id="@+id/composerRelatedMessageActionIcon"
@@ -125,42 +91,6 @@
             tools:ignore="MissingPrefix"
             tools:src="@drawable/ic_edit" />
 
-        <!-- The media, inside a forward's header and bar when it is one. -->
-        <im.vector.app.core.ui.views.ForwardFrameLayout
-            android:id="@+id/composerRelatedMessageMedia"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="@id/composerRelatedMessageTitle"
-            app:layout_constraintStart_toStartOf="@id/composerRelatedMessageTitle"
-            app:layout_constraintTop_toBottomOf="@id/composerRelatedMessageTitle">
-
-            <im.vector.app.core.ui.views.RoundedCornerImageView
-                android:id="@+id/composerRelatedMessageImage"
-                android:layout_width="100dp"
-                android:layout_height="66dp"
-                android:layout_marginTop="6dp"
-                android:importantForAccessibility="no"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                tools:ignore="MissingPrefix"
-                tools:src="@tools:sample/backgrounds/scenic"
-                tools:visibility="visible" />
-
-            <im.vector.app.core.ui.views.GalleryGridLayout
-                android:id="@+id/composerRelatedMessageGallery"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:visibility="gone" />
-
-            <im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewView
-                android:id="@+id/composerRelatedMessagePill"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:visibility="gone" />
-
-        </im.vector.app.core.ui.views.ForwardFrameLayout>
 
         <ImageButton
             android:id="@+id/composerRelatedMessageCloseButton"
@@ -181,7 +111,7 @@
             android:layout_height="0dp"
             app:barrierDirection="bottom"
             app:barrierMargin="8dp"
-            app:constraint_referenced_ids="composerRelatedMessageExpandable,composerRelatedMessageActionIcon"
+            app:constraint_referenced_ids="composerRelatedMessagePreview,composerRelatedMessageActionIcon"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 

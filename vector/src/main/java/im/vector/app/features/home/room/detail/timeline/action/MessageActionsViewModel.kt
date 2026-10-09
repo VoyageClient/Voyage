@@ -8,7 +8,6 @@ package im.vector.app.features.home.room.detail.timeline.action
 
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
-import dagger.Lazy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -20,17 +19,13 @@ import im.vector.app.core.platform.EmptyAction
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.room.detail.composer.spliceMentionIds
-import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
-import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
-import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
-import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
-import im.vector.app.features.html.EventHtmlRenderer
-import im.vector.app.features.html.PillsPostProcessor
-import im.vector.app.features.html.VectorHtmlCompressor
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContentBuilder
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.media.FailedMediaTracker
@@ -47,6 +42,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
 import im.vector.app.features.share.isDirectRoom
 import im.vector.app.features.translation.MessageTranslationStore
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
@@ -66,7 +62,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
-import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -87,21 +82,14 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
-import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
-import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.forwardOrigin
 import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
-import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.model.message.isForward
 import org.matrix.android.sdk.api.session.room.model.message.messageForwardPayload
 import org.matrix.android.sdk.api.session.room.model.message.toAttachmentContentDict
@@ -115,7 +103,6 @@ import org.matrix.android.sdk.api.session.room.timeline.isPoll
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
 import org.matrix.android.sdk.api.session.room.timeline.isSticker
 import org.matrix.android.sdk.api.util.ContentUtils
-import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -125,18 +112,12 @@ import timber.log.Timber
  */
 class MessageActionsViewModel @AssistedInject constructor(
         @Assisted private val initialState: MessageActionState,
-        private val eventHtmlRenderer: Lazy<EventHtmlRenderer>,
-        private val htmlCompressor: VectorHtmlCompressor,
         private val session: Session,
-        private val noticeEventFormatter: NoticeEventFormatter,
         private val errorFormatter: ErrorFormatter,
         private val stringProvider: StringProvider,
-        private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
-        private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
         private val vectorPreferences: VectorPreferences,
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
-        private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
         private val failedMediaTracker: FailedMediaTracker,
         private val pgpServiceManager: PgpServiceManager,
         private val pgpKeyStore: PgpKeyStore,
@@ -149,17 +130,12 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val serverAdminStatusDataSource: ServerAdminStatusDataSource,
         private val messageTranslationStore: MessageTranslationStore,
         private val translationSettings: im.vector.app.features.translation.TranslationSettings,
-        private val forwardedMessages: im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter,
+        private val previewBuilder: MessagePreviewContentBuilder,
+        private val dimensionConverter: DimensionConverter,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
     private val room = session.getRoom(initialState.roomId)
-    private val pillsPostProcessor by lazy {
-        pillsPostProcessorFactory.create(initialState.roomId)
-    }
-    private val textRenderer by lazy {
-        textRendererFactory.create(initialState.roomId)
-    }
 
     private val eventIdFlow = MutableStateFlow(initialState.eventId)
 
@@ -365,11 +341,10 @@ class MessageActionsViewModel @AssistedInject constructor(
                             actions = events
                     )
                 }
-                val body = PerfTrace.timeSuspending("longpress.body") {
-                    computeMessageBody(restored ?: nonNullTimelineEvent)
+                val preview = PerfTrace.timeSuspending("longpress.body") {
+                    computePreview(nonNullTimelineEvent, restored)
                 }
-                // By text: every render is a fresh Spannable, so an unchanged body would republish anyway.
-                setState { if (messageBody.toString() == body.toString()) this else copy(messageBody = body) }
+                setState { if (this.preview?.rendersSameAs(preview) == true) this else copy(preview = preview) }
             } catch (failure: CancellationException) {
                 throw failure
             } catch (failure: Throwable) {
@@ -379,141 +354,47 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun computeMessageBody(timelineEvent: TimelineEvent): CharSequence {
+    private suspend fun computePreview(timelineEvent: TimelineEvent, restored: TimelineEvent?): MessagePreviewContent {
+        val shown = restored ?: timelineEvent
         return try {
-            if (timelineEvent.root.isRedacted()) {
-                noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
-            } else if (timelineEvent.rendersAsDebugMessage(vectorPreferences.areThreadMessagesEnabled(), initialState.isFromThreadTimeline)) {
-                noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
-            } else {
-                val translation = messageTranslationStore.get(timelineEvent)?.takeIf { initialState.galleryItemIndex == null }
-                (if (translation == null) computePgpDecryptedBody(timelineEvent) else null) ?: when (timelineEvent.root.getClearType()) {
-                    EventType.MESSAGE,
-                    EventType.STICKER -> {
-                        // An item-scoped gallery sheet previews exactly like that item sent alone,
-                        // so substitute it and let the regular per-type branches below do the work.
-                        val rawContent: MessageContent? = timelineEvent.getVectorLastMessageContent()
-                        val messageContent: MessageContent? = (rawContent as? MessageGalleryContent)
-                                ?.let { gallery -> initialState.galleryItemIndex?.let { gallery.galleryItems().getOrNull(it) } }
-                                ?: rawContent
-                        val isReply = messageContent?.relatesTo?.inReplyTo?.eventId != null
-                        val isEmote = messageContent?.msgType == MessageType.MSGTYPE_EMOTE
-                        val renderedProfile = timelineEvent.renderPerMessageProfile(
-                                timelineEvent.senderInfo.disambiguatedDisplayName,
-                                vectorPreferences.arePerMessageProfilesEnabled()
-                        )
-                        val formattedContent = (messageContent as? MessageContentWithFormattedBody)
-                                ?.takeIf {
-                                    messageContent is MessageTextContent || messageContent is MessageEmoteContent || messageContent is MessageNoticeContent
-                                }
-                        val body = if (translation != null) {
-                            textRenderer.render(
-                                    translation.formatted?.let { eventHtmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor) }
-                                            ?: translation.text,
-                                    timelineEvent.roomMentionSource(),
-                            )
-                        } else if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
-                            // Strip the legacy reply fallback ("In reply to" / "> <@user> …") that
-                            // outdated clients embed in the body, so the preview shows only the message.
-                            val html = formattedContent.formattedBody
-                                    ?.takeIf { it.isNotBlank() }
-                                    ?.withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
-                                    ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
-                                    ?.let { htmlCompressor.compress(it) }
-                                    ?: messageContent.body
-                                            .withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
-                                            .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
-
-                            textRenderer.render(eventHtmlRenderer.get().render(html, pillsPostProcessor), timelineEvent.roomMentionSource())
-                        } else if (messageContent is MessageVerificationRequestContent) {
-                            stringProvider.getString(CommonStrings.verification_request_room_list_preview)
-                        } else if (messageContent is MessageStickerContent) {
-                            // A sticker's body describes it rather than captioning it; the sheet shows its name line.
-                            ""
-                        } else if (messageContent is MessageWithAttachmentContent) {
-                            // The sheet shows the media and its file name; the text slot only carries the caption.
-                            renderCaption(timelineEvent, messageContent.getFormattedCaption(isReply), messageContent.getCaption(isReply))
-                        } else if (messageContent is MessageGalleryContent) {
-                            // The sheet shows the real grid; the text slot only carries the caption.
-                            val caption = messageContent.galleryCaption()
-                            renderCaption(timelineEvent, messageContent.formattedBody?.takeIf { caption != null }, caption)
-                        } else if (messageContent?.msgType == MessageType.MSGTYPE_LOCATION) {
-                            // The text representation of a location is the same on every API; only the
-                            // long-press preview's map (buildLocationUiData) is gated to Lollipop+.
-                            noticeEventFormatter.formatLocationNotice(timelineEvent.root, renderedProfile.senderName)
-                        } else if (messageContent == null) {
-                            // Same placeholder the timeline shows for an unparseable message, instead
-                            // of a blank preview.
-                            noticeEventFormatter.formatMalformedMessage()
-                        } else {
-                            // Run the text renderer so bare permalinks / @room in a plain body pill too.
-                            messageContent.body
-                                    .withoutPerMessageProfileFallback(renderedProfile.fallbackDisplayName)
-                                    .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
-                                    .let { textRenderer.render(it, timelineEvent.roomMentionSource()) }
-                        }
-                        val shown = if (isEmote) {
-                            forwardedMessages.emoteBody(timelineEvent, body, renderedProfile.senderName, timelineEvent.senderInfo.toMatrixItem())
-                        } else {
-                            body
-                        }
-                        // The sheet draws a forward's header around the media itself; the text carries the rest.
-                        if (messageContent is MessageWithAttachmentContent || messageContent is MessageGalleryContent) {
-                            forwardedMessages.framedTail(timelineEvent, shown)
-                        } else {
-                            forwardedMessages.framed(timelineEvent, shown)
-                        }
-                    }
-                    EventType.STATE_ROOM_NAME,
-                    EventType.STATE_ROOM_TOPIC,
-                    EventType.STATE_ROOM_AVATAR,
-                    EventType.STATE_ROOM_MEMBER,
-                    EventType.STATE_ROOM_ALIASES,
-                    EventType.STATE_ROOM_CANONICAL_ALIAS,
-                    EventType.STATE_ROOM_HISTORY_VISIBILITY,
-                    EventType.STATE_ROOM_SERVER_ACL,
-                    EventType.CALL_INVITE,
-                    EventType.CALL_CANDIDATES,
-                    EventType.CALL_HANGUP,
-                    EventType.CALL_ANSWER -> {
-                        // A null notice (e.g. a repeated knock that is hidden as a debug event) falls back
-                        // to the debug line so the long-press / reply preview is not blank.
-                        noticeEventFormatter.format(timelineEvent, room?.roomSummary()?.isDirect.orFalse())
-                                ?: noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
-                    }
-                    in EventType.POLL_START.values -> {
-                        (timelineEvent.getVectorLastMessageContent() as? MessagePollContent)?.getBestPollCreationInfo()?.question?.getBestQuestion()
-                                ?: stringProvider.getString(CommonStrings.message_reply_to_poll_preview)
-                    }
-                    in EventType.POLL_END.values -> {
-                        stringProvider.getString(CommonStrings.message_reply_to_ended_poll_preview)
-                    }
-                    in EventType.ELEMENT_CALL_NOTIFY.values -> {
-                        stringProvider.getString(CommonStrings.call_unsupported)
-                    }
-                    else -> {
-                        // Reactions, redactions, verification, … — show the same notice text the
-                        // timeline uses. Anything unrenderable falls back to a debug line (known type)
-                        // or the accent "not handled" notice (unknown type), matching the timeline.
-                        noticeEventFormatter.format(timelineEvent, room?.roomSummary()?.isDirect.orFalse())
-                                ?: noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
-                    }
-                }
-            }
+            previewBuilder.build(
+                    timelineEvent,
+                    MessagePreviewContentBuilder.Options(
+                            thumbnailMaxWidth = dimensionConverter.dpToPx(132),
+                            thumbnailMaxHeight = dimensionConverter.dpToPx(66),
+                            galleryMaxWidth = dimensionConverter.dpToPx(220),
+                            galleryMaxHeight = dimensionConverter.dpToPx(220),
+                            isThreadTimeline = initialState.isFromThreadTimeline,
+                            galleryItemIndex = initialState.galleryItemIndex,
+                            // Decrypted for real here, where the preview cache may not have it yet.
+                            pgpPlaintext = if (messageTranslationStore.get(shown) == null) computePgpDecryptedBody(shown) else null,
+                            linkify = false,
+                            senderItem = initialState.informationData.matrixItem,
+                    )
+            )
+        } catch (failure: CancellationException) {
+            throw failure
         } catch (failure: Throwable) {
-            errorFormatter.toHumanReadable(failure)
+            previewBuilder.notice(shown, errorFormatter.toHumanReadable(failure))
         }
     }
 
-    /** A media caption as the timeline renders it: its HTML when it has some, with pills and emotes. */
-    private fun renderCaption(timelineEvent: TimelineEvent, formatted: String?, plain: String?): CharSequence {
-        val caption = formatted?.takeIf { it.isNotBlank() }
-                ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
-                ?.let { eventHtmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor) }
-                ?: plain
-                ?: return ""
-        return textRenderer.render(caption, timelineEvent.roomMentionSource())
-    }
+    // liveTimelineEvent re-emits an event equal in everything the sheet reads but not by `equals`, and every
+    // render is a fresh Spannable, so compare what is drawn.
+    private fun MessagePreviewContent.rendersSameAs(other: MessagePreviewContent): Boolean =
+            drawnText() == other.drawnText() && withoutText(other.event) == other.withoutText(other.event)
+
+    private fun MessagePreviewContent.drawnText() =
+            listOf(text, captionlessText, richFooter, forwardFrame?.header, poll?.question).map { it?.charSequence?.toString() }
+
+    private fun MessagePreviewContent.withoutText(event: TimelineEvent) = copy(
+            event = event,
+            text = null,
+            captionlessText = null,
+            richFooter = null,
+            forwardFrame = forwardFrame?.copy(header = NO_TEXT),
+            poll = poll?.copy(question = NO_TEXT),
+    )
 
     private suspend fun actionsForEvent(
             timelineEvent: TimelineEvent,
@@ -1076,3 +957,5 @@ private fun pinnedRelatedEventId(timelineEvent: TimelineEvent): String? {
     val previous = timelineEvent.root.resolvedPrevContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
     return (pinned - previous.toSet()).singleOrNull() ?: (previous - pinned.toSet()).singleOrNull()
 }
+
+private val NO_TEXT = EpoxyCharSequence("")

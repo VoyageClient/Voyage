@@ -8,17 +8,15 @@
 package im.vector.app.features.home.room.detail.timeline.helper
 
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
-import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContentBuilder
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
-import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
-import im.vector.app.features.html.SpanUtils
-import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.pgp.PgpDecryptor
@@ -47,12 +45,8 @@ class TimelineRetrieversFactory @Inject constructor(
         private val vectorPreferences: VectorPreferences,
         private val displayableEventFormatter: DisplayableEventFormatter,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
-        private val textRendererFactory: EventTextRenderer.Factory,
         private val mediaContentRevealManager: MediaContentRevealManager,
         private val messageColorProvider: MessageColorProvider,
-        private val htmlCompressor: VectorHtmlCompressor,
-        private val htmlRenderer: EventHtmlRenderer,
-        private val spanUtils: SpanUtils,
         private val imageContentRenderer: ImageContentRenderer,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val pgpDecryptor: PgpDecryptor,
@@ -60,6 +54,9 @@ class TimelineRetrieversFactory @Inject constructor(
         private val pgpServiceManager: PgpServiceManager,
         private val pgpKeyStore: PgpKeyStore,
         private val redactedContentRestorer: RedactedContentRestorer,
+        private val previewBuilder: MessagePreviewContentBuilder,
+        private val dimensionConverter: DimensionConverter,
+        private val locationPinProvider: LocationPinProvider,
 ) {
 
     fun create(roomId: String, coroutineScope: CoroutineScope, isThreadTimeline: Boolean = false): TimelineRetrievers {
@@ -73,17 +70,16 @@ class TimelineRetrieversFactory @Inject constructor(
                         coroutineScope,
                         displayableEventFormatter,
                         pillsPostProcessorFactory,
-                        textRendererFactory,
                         mediaContentRevealManager,
                         messageColorProvider,
-                        htmlCompressor,
-                        htmlRenderer,
-                        spanUtils,
                         imageContentRenderer,
                         richMessageBodyRenderer,
                         pgpDecryptor,
                         messageTranslationStore,
                         redactedContentRestorer,
+                        previewBuilder,
+                        dimensionConverter,
+                        locationPinProvider,
                         isThreadTimeline,
                 ),
         )

@@ -18,25 +18,19 @@
 package im.vector.app.features.home.room.detail.timeline.reply
 
 import im.vector.app.core.extensions.toCachedTimelineEvent
+import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.renderPerMessageProfile
-import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
-import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
-import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
-import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContentBuilder
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
-import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
-import im.vector.app.features.home.room.detail.timeline.tools.linkify
-import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
-import im.vector.app.features.html.SpanUtils
-import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
-import im.vector.app.features.media.isMediaHiddenInRoom
-import im.vector.app.features.media.isMediaSpoiler
+import im.vector.app.features.media.shouldHideMediaPreview
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
@@ -52,18 +46,10 @@ import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
-import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.galleryCaption
-import org.matrix.android.sdk.api.session.room.model.message.getCaption
-import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
-import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
@@ -82,17 +68,16 @@ class ReplyPreviewRetriever(
         private val coroutineScope: CoroutineScope,
         private val displayableEventFormatter: DisplayableEventFormatter,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
-        private val textRendererFactory: EventTextRenderer.Factory,
         private val mediaContentRevealManager: MediaContentRevealManager,
-        val messageColorProvider: MessageColorProvider,
-        val htmlCompressor: VectorHtmlCompressor,
-        val htmlRenderer: EventHtmlRenderer,
-        val spanUtils: SpanUtils,
+        private val messageColorProvider: MessageColorProvider,
         val imageContentRenderer: ImageContentRenderer,
         val richMessageBodyRenderer: RichMessageBodyRenderer,
         val pgpDecryptor: PgpDecryptor,
         val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         val redactedContentRestorer: RedactedContentRestorer,
+        private val previewBuilder: MessagePreviewContentBuilder,
+        private val dimensionConverter: DimensionConverter,
+        val locationPinProvider: LocationPinProvider,
         private val isThreadTimeline: Boolean = false,
 ) {
     private data class ReplyPreviewUiState(
@@ -111,7 +96,8 @@ class ReplyPreviewRetriever(
         return if (root.isRedacted() && !redactedContentRestorer.isShowingRestoredContent(this)) {
             "REDACTED"
         } else {
-            "L:${getLatestEventId()}"
+            // A poll's votes change what the preview draws without changing the event.
+            "L:${getLatestEventId()}:${annotations?.pollResponseSummary?.hashCode() ?: 0}"
         }
     }
 
@@ -137,14 +123,10 @@ class ReplyPreviewRetriever(
     @Volatile
     private var ignoredUserIds: Set<String> = emptySet()
 
-    // Pre-rendered reply body, keyed by "eventId:cacheId" (so an edit/redaction re-renders). The HTML
-    // compress/render/linkify pipeline is the per-message main-thread cost during a scroll, so build it in
-    // the (off-main) retrieval coroutine and let [InReplyToView] reuse it; a re-bind is then just a cache hit.
-    private val replyBodyCache = mutableMapOf<String, RenderedReplyBody>()
-
-    // compressed: the HTML-compressed formatted body (null for a plaintext-only body) — kept so the view can
-    // still detect a table/code block to route to the rich renderer. text: the final linkified CharSequence.
-    class RenderedReplyBody(val compressed: String?, val text: CharSequence)
+    // Built previews, keyed from "eventId:cacheId" (so an edit/redaction re-renders). Rendering is the
+    // per-message main-thread cost during a scroll, so it is built in the (off-main) retrieval coroutine
+    // and [InReplyToView] reuses it; a re-bind is then just a cache hit.
+    private val replyBodyCache = mutableMapOf<String, MessagePreviewContent>()
 
     private val threadsEnabled = vectorPreferences.areThreadMessagesEnabled()
 
@@ -169,10 +151,6 @@ class ReplyPreviewRetriever(
 
     val pillsPostProcessor by lazy {
         pillsPostProcessorFactory.create(roomId)
-    }
-
-    val textRenderer by lazy {
-        textRendererFactory.create(roomId)
     }
 
     fun getReplyTo(rawEvent: TimelineEvent) {
@@ -399,7 +377,10 @@ class ReplyPreviewRetriever(
         }
         if (affected.isEmpty()) return
         synchronized(replyBodyCache) {
-            affected.forEach { (_, state) -> replyBodyCache.remove("${state.event.eventId}:${state.event.getCacheId()}") }
+            affected.forEach { (_, state) ->
+                val prefix = "${state.event.eventId}:${state.event.getCacheId()}:"
+                replyBodyCache.keys.removeAll { it.startsWith(prefix) }
+            }
         }
         coroutineScope.launch(Dispatchers.Main) {
             affected.forEach { (key, state) ->
@@ -445,58 +426,31 @@ class ReplyPreviewRetriever(
     val useSolidColorForHiddenMedia: Boolean
         get() = vectorPreferences.useSolidColorForHiddenMedia()
 
-    /** Whether a media thumbnail in a reply preview should be hidden (blurhash / solid) per the
-     *  room's media-preview setting, mirroring the main timeline. Honours a prior in-timeline reveal. */
-    fun shouldHideMediaPreview(event: TimelineEvent): Boolean {
-        if (event.isMediaSpoiler()) return !mediaContentRevealManager.isRevealed(event.timelineStableId())
-        if (event.senderInfo.userId == session.myUserId) return false
-        val hideByMode = isMediaHiddenInRoom(session.roomService().getRoomSummary(roomId), vectorPreferences)
-        return hideByMode && !mediaContentRevealManager.isRevealed(event.timelineStableId())
-    }
+    fun isMediaHidden(event: TimelineEvent): Boolean = shouldHideMediaPreview(event, session, vectorPreferences, mediaContentRevealManager)
 
-    fun formatRedacted(event: TimelineEvent): CharSequence = displayableEventFormatter.formatRedacted(event.root)
-
-    /** The "Debug" line the timeline shows for [event] in place of its content, if it shows one. */
-    fun formatDebugReply(event: TimelineEvent): CharSequence? =
-            if (event.rendersAsDebugMessage(threadsEnabled, isThreadTimeline)) displayableEventFormatter.formatDebugOrUnhandled(event.root) else null
-
-    fun mediaPillPreview(content: MessageContent) = MediaPillPreview.of(content, session)
-
-    fun mediaForwardFrame(event: TimelineEvent) = displayableEventFormatter.forwardedMessages.previewFrame(event)
-
-    /** A forward's footer alone, for media shown without its caption. Empty for anything else. */
-    fun mediaForwardFooter(event: TimelineEvent) = displayableEventFormatter.forwardedMessages.framedTail(event, "")
-
-    /** The (formatted, plain) caption of an attachment or gallery, or null when it has none. */
-    private fun mediaCaption(content: MessageContent): Pair<String?, String>? {
-        val isReply = content.relatesTo?.inReplyTo?.eventId != null
-        return when (content) {
-            is MessageWithAttachmentContent -> content.getCaption(isReply)?.let { content.getFormattedCaption(isReply) to it }
-            is MessageGalleryContent -> content.galleryCaption()?.let { content.formattedBody to it }
-            else -> null
-        }
-    }
-
-    fun formatFallbackReply(event: TimelineEvent): CharSequence {
-        return displayableEventFormatter.format(
-                event,
-                // Sender information is rendered separately, so omit it from the text.
-                isDm = false,
-                appendAuthor = false,
-                unhandledFallback = true,
+    private val previewOptions by lazy {
+        val res = dimensionConverter.resources
+        val maxWidth = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.reply_thumbnail_max_width)
+        val maxHeight = res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.reply_thumbnail_height)
+        MessagePreviewContentBuilder.Options(
+                thumbnailMaxWidth = maxWidth,
+                thumbnailMaxHeight = maxHeight,
+                galleryMaxWidth = maxWidth,
+                galleryMaxHeight = maxHeight,
+                isThreadTimeline = isThreadTimeline,
         )
     }
 
-    /** The pre-rendered reply body for [event], building (and caching) it on the calling thread on a miss.
+    /** The preview of [event], building (and caching) it on the calling thread on a miss.
      *  Warmed off-main by the retrieval coroutine, so [InReplyToView] normally just reads the cache. */
-    fun renderedReplyBody(event: TimelineEvent): RenderedReplyBody? {
-        val content = event.getLastMessageContent() as? MessageContentWithFormattedBody ?: return null
+    fun preview(event: TimelineEvent): MessagePreviewContent {
         val translation = messageTranslationStore.get(event)
         // A forward's original sender resolves to a name later than the body itself does.
         val forwardedFrom = displayableEventFormatter.forwardedMessages.origin(event)?.name
-        val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}:$forwardedFrom"
+        val pgpPlain = (event.getLastMessageContent() as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
+        val key = "${event.eventId}:${event.getCacheId()}:${translation?.hashCode() ?: 0}:$forwardedFrom:${pgpPlain?.hashCode() ?: 0}"
         synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
-        val built = buildReplyBody(content, event, translation)
+        val built = previewBuilder.build(event, previewOptions.copy(senderItem = senderMatrixItem(event)))
         synchronized(replyBodyCache) {
             if (replyBodyCache.size > REPLY_BODY_CACHE_MAX) replyBodyCache.clear()
             replyBodyCache[key] = built
@@ -504,54 +458,7 @@ class ReplyPreviewRetriever(
         return built
     }
 
-    private fun buildReplyBody(
-            content: MessageContentWithFormattedBody,
-            event: TimelineEvent,
-            translation: im.vector.app.features.translation.MessageTranslationStore.Translation?,
-    ): RenderedReplyBody {
-        // If the replied-to event is itself a reply, strip its quoted portion so only its own message shows.
-        val profile = event.renderPerMessageProfile(
-                event.senderInfo.disambiguatedDisplayName,
-                vectorPreferences.arePerMessageProfilesEnabled()
-        )
-        // The header draws the media itself, so the text is its caption alone (none without one), and a
-        // forward's header goes around that media, leaving the text the rest of the frame.
-        val isMedia = content is MessageWithAttachmentContent || content is MessageGalleryContent
-        if (isMedia && translation == null) {
-            val caption = mediaCaption(content)?.let { (formatted, plain) ->
-                formatted?.let { htmlCompressor.compress(ContentUtils.extractUsefulTextFromHtmlReply(it)) }
-                        ?.let { textRenderer.render(htmlRenderer.render(it, pillsPostProcessor), event.roomMentionSource()) }
-                        ?: textRenderer.render(plain, event.roomMentionSource())
-            }
-            return RenderedReplyBody(null, displayableEventFormatter.forwardedMessages.framedTail(event, caption?.linkify(null) ?: ""))
-        }
-        // A translation was made from the already reply-stripped, fallback-free body.
-        val formattedBody = if (translation != null) {
-            translation.formatted
-        } else {
-            content.formattedBody
-                    ?.withoutPerMessageProfileFallback(profile.fallbackDisplayName)
-                    ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
-        }
-        val compressed = formattedBody?.let { htmlCompressor.compress(it) }
-        val text = (if (compressed != null) {
-            textRenderer.render(htmlRenderer.render(compressed, pillsPostProcessor), event.roomMentionSource())
-        } else if (translation != null) {
-            textRenderer.render(translation.text, event.roomMentionSource())
-        } else {
-            textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body.withoutPerMessageProfileFallback(profile.fallbackDisplayName)), event.roomMentionSource())
-        }).linkify(null)
-        val forwardedMessages = displayableEventFormatter.forwardedMessages
-        val body = if (content.msgType == MessageType.MSGTYPE_EMOTE) {
-            forwardedMessages.emoteBody(event, text, profile.senderName, senderMatrixItem(event))
-        } else {
-            text
-        }
-        return RenderedReplyBody(compressed, if (isMedia) forwardedMessages.framedTail(event, body) else forwardedMessages.framed(event, body))
-    }
-
     private fun warmReplyBodyCache(event: TimelineEvent) {
-        if (event.root.isRedacted()) return
-        runCatching { renderedReplyBody(event) }
+        runCatching { preview(redactedContentRestorer.restoreEvent(event) ?: event) }
     }
 }

@@ -26,7 +26,11 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
  * For an MSC4274 gallery, [galleryItemIndex] targets one item; when null the first visual
  * item stands in for the whole gallery.
  */
-fun TimelineEvent.buildImageContentRendererData(maxHeight: Int, galleryItemIndex: Int? = null): ImageContentRenderer.Data? {
+fun TimelineEvent.buildImageContentRendererData(
+        maxWidth: Int,
+        maxHeight: Int,
+        galleryItemIndex: Int? = null,
+): ImageContentRenderer.Data? {
     // The media as it stands now: an edit may have replaced it, or given a text message media.
     val content = getVectorLastMessageContent()
     if (content is MessageGalleryContent) {
@@ -36,15 +40,15 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int, galleryItemIndex
                 ?: return null
         val stableId = galleryPageId(timelineStableId(), index)
         return when (val item = items.getOrNull(index)) {
-            is MessageVideoContent -> videoThumbnailRendererData(item, stableId, maxHeight)
-            is MessageImageInfoContent -> imageRendererData(item, stableId, maxHeight)
+            is MessageVideoContent -> videoThumbnailRendererData(item, stableId, maxWidth, maxHeight)
+            is MessageImageInfoContent -> imageRendererData(item, stableId, maxWidth, maxHeight)
             else -> null
         }
     }
     return when (content) {
-        is MessageVideoContent -> videoThumbnailRendererData(content, timelineStableId(), maxHeight)
+        is MessageVideoContent -> videoThumbnailRendererData(content, timelineStableId(), maxWidth, maxHeight)
         // Covers stickers too, which are image content without a msgtype.
-        is MessageImageInfoContent -> imageRendererData(content, timelineStableId(), maxHeight)
+        is MessageImageInfoContent -> imageRendererData(content, timelineStableId(), maxWidth, maxHeight)
         else -> null
     }
 }
@@ -52,6 +56,7 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int, galleryItemIndex
 private fun <T> TimelineEvent.imageRendererData(
         content: T,
         stableId: String,
+        maxWidth: Int,
         maxHeight: Int,
 ): ImageContentRenderer.Data where T : MessageImageInfoContent, T : MessageWithAttachmentContent {
     return ImageContentRenderer.Data(
@@ -64,7 +69,7 @@ private fun <T> TimelineEvent.imageRendererData(
             height = content.info?.height,
             maxHeight = maxHeight,
             width = content.info?.width,
-            maxWidth = maxHeight * 2,
+            maxWidth = maxWidth,
             allowNonMxcUrls = false,
             blurHash = content.info?.blurHash,
     )
@@ -73,6 +78,7 @@ private fun <T> TimelineEvent.imageRendererData(
 private fun TimelineEvent.videoThumbnailRendererData(
         content: MessageVideoContent,
         stableId: String,
+        maxWidth: Int,
         maxHeight: Int,
 ): ImageContentRenderer.Data {
     val videoInfo = content.videoInfo
@@ -88,7 +94,7 @@ private fun TimelineEvent.videoThumbnailRendererData(
             height = videoInfo?.thumbnailInfo?.height?.takeIf { it > 0 } ?: videoInfo?.height,
             maxHeight = maxHeight,
             width = videoInfo?.thumbnailInfo?.width?.takeIf { it > 0 } ?: videoInfo?.width,
-            maxWidth = maxHeight * 2,
+            maxWidth = maxWidth,
             allowNonMxcUrls = false,
             blurHash = videoInfo?.blurHash,
     )

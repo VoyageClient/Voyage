@@ -18,6 +18,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 
@@ -57,6 +58,11 @@ abstract class PollItem : AbsMessageItem<PollItem.Holder>() {
         super.bind(holder)
 
         renderSendState(holder.view, holder.questionTextView)
+        val compact = attributes.informationData.messageLayout !is TimelineMessageLayout.Default
+        holder.pollRoot.setSizing(
+                compact = compact,
+                minWidth = holder.view.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_fixed_size),
+        )
 
         holder.questionTextView.text = pollTitle?.charSequence?.prepareForDisplay()
         holder.votesStatusTextView.setTextOrHide(votesStatus)
@@ -95,6 +101,7 @@ abstract class PollItem : AbsMessageItem<PollItem.Holder>() {
         val votesStatusTextView by bind<TextView>(R.id.optionsVotesStatusTextView)
         val endedPollTextView by bind<TextView>(R.id.endedPollTextView)
         val pollIcon by bind<ImageView>(R.id.timelinePollIcon)
+        val pollRoot: PollLayout get() = questionTextView.parent as PollLayout
     }
 
     companion object {

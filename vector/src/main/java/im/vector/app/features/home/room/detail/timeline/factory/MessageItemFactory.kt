@@ -10,13 +10,8 @@ package im.vector.app.features.home.room.detail.timeline.factory
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.TextPaint
-import android.text.style.AbsoluteSizeSpan
-import android.text.style.ClickableSpan
-import android.text.style.ForegroundColorSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.view.View
@@ -43,6 +38,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MessageInformationDataFactory
 import im.vector.app.features.home.room.detail.timeline.helper.MessageItemAttributesFactory
+import im.vector.app.features.home.room.detail.timeline.helper.MessageSuffixFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
 import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
 import im.vector.app.features.home.room.detail.timeline.helper.withoutPerMessageProfileFallback
@@ -182,6 +178,7 @@ class MessageItemFactory @Inject constructor(
         private val pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor,
         private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         private val displayableEventFormatter: im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter,
+        private val messageSuffixFormatter: MessageSuffixFormatter,
 ) {
 
     // MapLibre (and the whole location UI) is unavailable pre-Lollipop; never touch the location
@@ -1155,11 +1152,7 @@ class MessageItemFactory @Inject constructor(
         val bindingOptions = spanUtils.getBindingOptions(rendered)
         val linkified = rendered.linkify(callback)
         val emoteRanges = linkified.emoteRanges()
-        val final = (if (informationData.hasBeenEdited) {
-            annotateWithEdited(linkified, callback, informationData)
-        } else {
-            linkified
-        }).let { annotated -> translation?.let { annotateWithTranslated(annotated, it) } ?: annotated }
+        val final = annotateWithSuffixes(linkified, callback, informationData, translation)
         return RenderedCaption(
                 epoxy = final.prepareForDisplay().toEpoxyCharSequence(),
                 bindingOptions = bindingOptions,
@@ -1190,11 +1183,7 @@ class MessageItemFactory @Inject constructor(
         // A message of only emoji and/or custom emotes (+ spaces) renders large, like the emoji-only rule.
         val emoteRanges = linkifiedBody.emoteRanges()
 
-        val annotatedBody = (if (informationData.hasBeenEdited) {
-            annotateWithEdited(linkifiedBody, callback, informationData)
-        } else {
-            linkifiedBody
-        }).let { annotated -> translation?.let { annotateWithTranslated(annotated, it) } ?: annotated }
+        val annotatedBody = annotateWithSuffixes(linkifiedBody, callback, informationData, translation)
 
         return MessageTextItem_()
                 .message(annotatedBody.prepareForDisplay().toEpoxyCharSequence())
@@ -1221,10 +1210,9 @@ class MessageItemFactory @Inject constructor(
                         richBodyRenderer(richMessageBodyRenderer)
                         htmlPostProcessors(arrayOf<EventHtmlRenderer.PostProcessor>(pillsPostProcessor))
                         richReplyHeader(richReplyHeader)
-                        if (informationData.hasBeenEdited) {
-                            val edited = annotateWithEdited("", callback, informationData)
-                            richFooter(edited.subSequence(1, edited.length))
-                        }
+                        messageSuffixFormatter.footer(informationData.hasBeenEdited, translation) {
+                            callback?.onEditedDecorationClicked(informationData)
+                        }?.let { richFooter(it) }
                         urlClickCallback(callback)
                     }
                 }
@@ -1265,70 +1253,21 @@ class MessageItemFactory @Inject constructor(
         )
     }
 
-    private fun annotateWithTranslated(
+    private fun annotateWithSuffixes(
             body: CharSequence,
-            translation: im.vector.app.features.translation.MessageTranslationStore.Translation,
-    ): Spannable {
-        val spannable = SpannableStringBuilder()
-        spannable.append(body)
-        val sourceName = im.vector.app.features.translation.TranslationLanguages.nameOf(translation.sourceLanguage)
-        val suffix = if (sourceName != null) {
-            stringProvider.getString(CommonStrings.message_translated_from_suffix, sourceName)
-        } else {
-            stringProvider.getString(CommonStrings.message_translated_suffix)
-        }
-        spannable.append(" ").append(suffix)
-        val start = spannable.length - suffix.length
-        spannable.setSpan(
-                ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)),
-                start, spannable.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE
-        )
-        spannable.setSpan(AbsoluteSizeSpan(dimensionConverter.spToPx(13)), start, spannable.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
-        return spannable
+            callback: TimelineEventController.Callback?,
+            informationData: MessageInformationData,
+            translation: im.vector.app.features.translation.MessageTranslationStore.Translation?,
+    ): CharSequence = messageSuffixFormatter.annotate(body, informationData.hasBeenEdited, translation) {
+        callback?.onEditedDecorationClicked(informationData)
     }
 
     private fun annotateWithEdited(
             linkifiedBody: CharSequence,
             callback: TimelineEventController.Callback?,
             informationData: MessageInformationData,
-    ): Spannable {
-        val spannable = SpannableStringBuilder()
-        spannable.append(linkifiedBody)
-        val editedSuffix = stringProvider.getString(CommonStrings.edited_suffix)
-        spannable.append(" ").append(editedSuffix)
-        val color = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        val editStart = spannable.lastIndexOf(editedSuffix)
-        val editEnd = editStart + editedSuffix.length
-        spannable.setSpan(
-                ForegroundColorSpan(color),
-                editStart,
-                editEnd,
-                Spanned.SPAN_INCLUSIVE_EXCLUSIVE
-        )
-
-        // Note: text size is set to 14sp
-        spannable.setSpan(
-                AbsoluteSizeSpan(dimensionConverter.spToPx(13)),
-                editStart,
-                editEnd,
-                Spanned.SPAN_INCLUSIVE_EXCLUSIVE
-        )
-
-        spannable.setSpan(
-                object : ClickableSpan() {
-                    override fun onClick(widget: View) {
-                        callback?.onEditedDecorationClicked(informationData)
-                    }
-
-                    override fun updateDrawState(ds: TextPaint) {
-                        // nop
-                    }
-                },
-                editStart,
-                editEnd,
-                Spanned.SPAN_INCLUSIVE_EXCLUSIVE
-        )
-        return spannable
+    ): CharSequence = messageSuffixFormatter.annotate(linkifiedBody, edited = true, translation = null) {
+        callback?.onEditedDecorationClicked(informationData)
     }
 
     private fun buildNoticeMessageItem(

@@ -11,6 +11,7 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
@@ -38,7 +39,7 @@ data class MessageActionState(
         // because the sheet still has to know the message was deleted — which actions to offer, and how
         // to mark the header.
         val restoredEvent: TimelineEvent? = null,
-        val messageBody: CharSequence = "",
+        val preview: MessagePreviewContent? = null,
         // For quick reactions
         val quickStates: Async<List<ToggleState>> = Uninitialized,
         // For actions

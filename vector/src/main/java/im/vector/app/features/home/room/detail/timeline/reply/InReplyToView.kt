@@ -22,53 +22,30 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Typeface
 import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
-import im.vector.app.core.extensions.clearDrawables
-import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setSenderNameEmphasis
 import im.vector.app.databinding.ViewInReplyToBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
-import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
-import im.vector.app.features.home.room.detail.timeline.item.GalleryGridBinder
-import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewBinder
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
-import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent
+import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewView
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
-import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
-import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.html.BodySegment
-import im.vector.app.features.html.HtmlBodySegmenter
-import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.translation.MessageTranslationStore
 import im.vector.lib.strings.CommonStrings
-import kotlinx.coroutines.CoroutineScope
-import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
-import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
-import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.getFileName
-import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
-import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import timber.log.Timber
 
 private const val REPLY_PLAYER_SCALE = 0.85f
+private const val REPLY_MEDIA_MARGIN_TOP_DP = 6
 
 /**
  * A View to render a replied-to event.
@@ -113,18 +90,11 @@ class InReplyToView @JvmOverloads constructor(
     private var renderedPlainOverride: String? = null
     private var renderedTranslation: MessageTranslationStore.Translation? = null
 
-    /** The renderer the gallery tiles were bound with, so a recycled header can let them go. */
-    private var boundGalleryRenderer: ImageContentRenderer? = null
-
-    private val maxThumbnailWidth = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.reply_thumbnail_max_width)
-    private val maxThumbnailHeight = context.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.reply_thumbnail_height)
-
     fun render(
             newState: PreviewReplyUiState,
             retriever: ReplyPreviewRetriever,
             roomInformationData: MessageInformationData,
             itemLongClickListener: OnLongClickListener?,
-            coroutineScope: CoroutineScope,
             force: Boolean = false
     ) {
         // Substituted before the equality check, not inside renderReplyTo: revealing a redaction leaves
@@ -180,12 +150,12 @@ class InReplyToView @JvmOverloads constructor(
             PreviewReplyUiState.NoReply -> renderHidden()
             is PreviewReplyUiState.ReplyLoading -> renderLoading()
             is PreviewReplyUiState.Error -> renderError(effectiveState)
-            is PreviewReplyUiState.InReplyTo -> renderReplyTo(effectiveState, retriever, roomInformationData, coroutineScope, itemLongClickListener, keepSenderColor)
+            is PreviewReplyUiState.InReplyTo -> renderReplyTo(effectiveState, retriever, roomInformationData, itemLongClickListener, keepSenderColor)
         }
 
         setOnLongClickListener(itemLongClickListener)
         // Somehow this one needs it additionally?
-        views.replyTextView.setOnLongClickListener(itemLongClickListener)
+        views.replyPreview.textView.setOnLongClickListener(itemLongClickListener)
     }
 
     override fun onClick(v: View?) {
@@ -201,13 +171,8 @@ class InReplyToView @JvmOverloads constructor(
 
         setOnClickListener(this)
         // Somehow this one needs it additionally?
-        views.replyTextView.setOnClickListener(this)
-
-        // renderHidden() draws the blurhash/solid drawable directly without a corner transform, so the
-        // view shapes whatever it is given.
-        views.replyThumbnailView.setCornerRadius(mediaPreviewCornerRadiusPx(context).toFloat())
-        // A quote is smaller than the message it quotes, as its thumbnails are.
-        views.replyMediaPill.playerScale = REPLY_PLAYER_SCALE
+        views.replyPreview.textView.setOnClickListener(this)
+        views.replyPreview.onRichClick = { onClick(it) }
     }
 
     private fun hideViews(keepSenderColor: Boolean = false) {
@@ -219,57 +184,27 @@ class InReplyToView @JvmOverloads constructor(
             senderNameColor = null
         }
         views.replyMemberNameView.isVisible = false
-        views.replyTextView.isVisible = false
-        // Clear stale text: the ExpandableViewLayout measures the text child even when hidden, so a
-        // recycled view's old text would otherwise re-introduce the fade band over e.g. a thumbnail.
-        views.replyTextView.text = null
-        // Reset colour in case this recycled view previously rendered a (muted) notice.
-        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
-        views.replyTextView.clearDrawables()
-        views.replyTextView.movementMethod = null
-        // A recycled reply must not keep a previous message's full-width-code stretch.
-        views.replyTextView.fullWidthBlockCode = false
-        views.replyThumbnailView.isVisible = false
-        // Recycled reply headers would otherwise keep the tiles' Glide targets and listeners.
-        boundGalleryRenderer?.let { GalleryGridBinder.unbind(views.replyGalleryView, it) }
-        boundGalleryRenderer = null
-        views.replyGalleryView.isVisible = false
-        MediaPillPreviewBinder.bind(views.replyMediaPill, null)
-        views.replyMediaFrame.setForwardFrame(null)
-        views.expandableReplyView.isVisible = true
-        views.replyTextView.isVisible = true
-        views.replyRichContainer.isVisible = false
-        views.replyRichContainer.removeAllViews()
-        views.expandableReplyView.setExpanded(true)
     }
 
     private fun renderHidden() {
         isVisible = false
     }
 
-    private fun renderLoading() {
-        hideViews()
-        isVisible = true
-        views.replyTextView.isVisible = true
-        val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        views.replyTextView.text = SpannableString(context.getString(CommonStrings.in_reply_to_loading)).apply {
-            setSpan(StyleSpan(Typeface.ITALIC), 0, length, 0)
-            setSpan(ForegroundColorSpan(color), 0, length, 0)
-        }
-        views.inReplyToBar.setBackgroundColor(color)
-    }
+    private fun renderLoading() = renderStatus(context.getString(CommonStrings.in_reply_to_loading))
 
     private fun renderError(state: PreviewReplyUiState.Error) {
+        Timber.w(state.throwable, "Error rendering reply")
+        renderStatus(context.getString(CommonStrings.in_reply_to_error))
+    }
+
+    private fun renderStatus(text: String) {
         hideViews()
         isVisible = true
-        Timber.w(state.throwable, "Error rendering reply")
-        views.replyTextView.isVisible = true
-        val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        views.replyTextView.text = SpannableString(context.getString(CommonStrings.in_reply_to_error)).apply {
-            setSpan(StyleSpan(Typeface.ITALIC), 0, length, 0)
-            setSpan(ForegroundColorSpan(color), 0, length, 0)
-        }
-        views.inReplyToBar.setBackgroundColor(color)
+        views.replyPreview.showText(
+                SpannableString(text).apply { setSpan(StyleSpan(Typeface.ITALIC), 0, length, 0) },
+                MessagePreviewContent.TextStyle.NOTICE,
+        )
+        views.inReplyToBar.setBackgroundColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
     }
 
     // Uncolored names give the bar no sender color to echo, so it falls back to a neutral rule.
@@ -303,11 +238,12 @@ class InReplyToView @JvmOverloads constructor(
         senderNameColor = color
     }
 
+    // No movement method anywhere in the preview: links/pills/spoilers stay inert so a tap anywhere on the
+    // reply header jumps to the replied-to message instead.
     private fun renderReplyTo(
             state: PreviewReplyUiState.InReplyTo,
             retriever: ReplyPreviewRetriever,
             roomInformationData: MessageInformationData,
-            coroutineScope: CoroutineScope,
             itemLongClickListener: OnLongClickListener?,
             keepSenderColor: Boolean,
     ) {
@@ -316,290 +252,35 @@ class InReplyToView @JvmOverloads constructor(
         views.replyMemberNameView.isVisible = true
         views.replyMemberNameView.text = state.senderName.prepareForDisplay()
         applySenderColor(retriever.getMemberNameColor(state.event), retriever.isMemberNameColored())
-        val debugText = retriever.formatDebugReply(state.event)
-        if (state.event.root.isRedacted()) {
-            renderRedacted(retriever.formatRedacted(state.event))
-        } else if (debugText != null) {
-            renderNoticeText(debugText)
-        } else {
-            views.expandableReplyView.setExpanded(false)
-            // PGP: show the plaintext the timeline shows for the quoted message. A translation needs no
-            // override here: the retriever's rendered body already carries it.
-            val plainOverride = pgpPlainOverride(state.event, retriever, retriever.messageTranslationStore.get(state.event))
-            if (plainOverride != null) {
-                renderPgpReplyText(plainOverride)
-            } else when (val content = state.event.getLastMessageContent()) {
-                is MessageImageInfoContent -> renderImageThumbnailContent(content, state.event, retriever, coroutineScope)
-                is MessageVideoContent -> renderVideoThumbnailContent(content, state.event, retriever, coroutineScope)
-                is MessageFileContent -> renderMediaPillContent(content, state.event, retriever, coroutineScope)
-                is MessageAudioContent -> renderMediaPillContent(content, state.event, retriever, coroutineScope)
-                is MessageGalleryContent -> renderGalleryContent(content, state.event, retriever, coroutineScope)
-                is MessageContentWithFormattedBody -> {
-                    // Outside bubbles, stretch a block-code reply to the full timeline width like the
-                    // timeline does; inside a bubble it should hug its content instead.
-                    val fullWidthBlockCode = roomInformationData.messageLayout is TimelineMessageLayout.Default
-                    renderTextContent(content, state.event, retriever, coroutineScope, itemLongClickListener, fullWidthBlockCode)
-                }
-                else -> renderFallback(state.event, retriever)
-            }
-        }
+        views.replyPreview.style = MessagePreviewView.Style(
+                fillWidth = false,
+                mediaMarginTop = (REPLY_MEDIA_MARGIN_TOP_DP * resources.displayMetrics.density).toInt(),
+                // A quote is smaller than the message it quotes, as its thumbnails are.
+                playerScale = REPLY_PLAYER_SCALE,
+                // Outside bubbles, stretch block code to the full timeline width like the timeline does;
+                // inside a bubble it should hug its content instead.
+                fullWidthBlockCode = roomInformationData.messageLayout is TimelineMessageLayout.Default,
+                hideCaptionWithHiddenMedia = true,
+                showAttachmentInfo = false,
+                compactPolls = true,
+        )
+        views.replyPreview.onRichLongClick = { itemLongClickListener?.onLongClick(it) ?: false }
+        views.replyPreview.bind(
+                retriever.preview(state.event),
+                hidden = retriever.isMediaHidden(state.event),
+                hiddenAsSolidColor = retriever.useSolidColorForHiddenMedia,
+                renderers = MessagePreviewView.Renderers(
+                        retriever.imageContentRenderer,
+                        retriever.richMessageBodyRenderer,
+                        arrayOf(retriever.pillsPostProcessor),
+                        retriever.locationPinProvider,
+                ),
+        )
     }
 
     // A translation of a PGP message is of its plaintext, and so replaces it.
     private fun pgpPlainOverride(event: TimelineEvent, retriever: ReplyPreviewRetriever, translation: MessageTranslationStore.Translation?): String? {
         if (translation != null) return null
         return (event.getLastMessageContent() as? MessageContentWithFormattedBody)?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
-    }
-
-    private fun renderPgpReplyText(text: String) {
-        views.replyTextView.isVisible = true
-        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
-        views.replyTextView.text = text.prepareForDisplay()
-    }
-
-    private fun renderRedacted(text: CharSequence) {
-        views.replyTextView.isVisible = true
-        views.replyTextView.text = text
-        views.replyTextView.setRedactedPreviewStyle()
-    }
-
-    // No movement method anywhere in the preview: links/pills/spoilers stay inert so a tap anywhere
-    // on the reply header jumps to the replied-to message instead.
-    private fun renderTextContent(
-            content: MessageContentWithFormattedBody,
-            event: TimelineEvent,
-            retriever: ReplyPreviewRetriever,
-            coroutineScope: CoroutineScope,
-            itemLongClickListener: OnLongClickListener?,
-            fullWidthBlockCode: Boolean,
-    ) {
-        views.replyTextView.isVisible = true
-        views.replyTextView.fullWidthBlockCode = fullWidthBlockCode
-
-        // Quoted notices/system messages render muted (secondary), matching the timeline. Not italic
-        // — this fork removed notice italics.
-        val isNotice = content.msgType == MessageType.MSGTYPE_NOTICE
-        views.replyTextView.setTextColor(
-                if (isNotice) {
-                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                } else {
-                    ThemeUtils.getMessageTextColor(context)
-                }
-        )
-
-        // Reuse the reply body pre-rendered (off the main thread) by the retriever; a re-bind during a scroll
-        // is a cache hit, so the HTML compress/render/linkify pipeline doesn't run on the UI thread.
-        val rendered = retriever.renderedReplyBody(event)
-        val compressed = rendered?.compressed
-        if (compressed != null && (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true))) {
-            val segments = HtmlBodySegmenter.segment(compressed)
-            // Only use the rich container when a real table/code block was extracted; otherwise fall
-            // through so the text keeps its pill / linkify treatment.
-            if (segments.any { it !is BodySegment.Html }) {
-                renderRichContent(segments, retriever, isNotice, itemLongClickListener)
-                return
-            }
-        }
-
-        val text = rendered?.text ?: retriever.formatFallbackReply(event)
-        val markwonPlugins = retriever.htmlRenderer.plugins
-
-        val hostStableId = sourceStableId
-        text.findPillsAndProcess(coroutineScope) { pillImageSpan ->
-            // Posted to the main thread: by the time it runs the row may have been recycled onto another
-            // message, and pointing the span at a view that no longer holds it strands the pill's avatar
-            // on the row that does (a cached reply body shares its spans across every view quoting it).
-            if (sourceStableId == hostStableId) pillImageSpan.bind(views.replyTextView)
-        }
-        text.let { charSequence ->
-            if (charSequence is Spanned) {
-                markwonPlugins.forEach { plugin -> plugin.beforeSetText(views.replyTextView, charSequence) }
-            }
-        }
-
-        // Set synchronously (not via PrecomputedTextCompat future): the async path measured the
-        // ExpandableViewLayout before the text landed, leaving a recycled view stuck showing the
-        // multi-line fade over a single-line reply.
-        views.replyTextView.text = text.prepareForDisplay()
-        markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
-        // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none;
-        // links here must stay inert so a tap snaps to the source message instead.
-        views.replyTextView.movementMethod = null
-    }
-
-    // A reply to a message that contains a table or code block: render the full body into the rich
-    // container via the same renderer the timeline uses, instead of the single TextView where table
-    // cells collapse to plaintext and code wraps/loses its scroll + line numbers.
-    private fun renderRichContent(
-            segments: List<BodySegment>,
-            retriever: ReplyPreviewRetriever,
-            isNotice: Boolean,
-            itemLongClickListener: OnLongClickListener?,
-    ) {
-        // Keep the expandable host (and its fade-out) visible; just swap the text view for the
-        // rich container so long content fades out the same way long text does.
-        views.replyTextView.isVisible = false
-        views.replyRichContainer.isVisible = true
-        retriever.richMessageBodyRenderer.render(
-                container = views.replyRichContainer,
-                segments = segments,
-                postProcessors = arrayOf(retriever.pillsPostProcessor),
-                movementMethod = null,
-                onClick = { onClick(it) },
-                onLongClick = { itemLongClickListener?.onLongClick(it) ?: false },
-                noticeStyle = isNotice,
-                interactive = false,
-        )
-    }
-
-    private fun renderImageThumbnailContent(
-            content: MessageImageInfoContent,
-            event: TimelineEvent,
-            retriever: ReplyPreviewRetriever,
-            coroutineScope: CoroutineScope,
-    ) {
-        val data = ImageContentRenderer.Data(
-                eventId = event.eventId,
-                filename = content.getFileName(),
-                mimeType = content.mimeType,
-                url = content.getFileUrl(),
-                elementToDecrypt = content.encryptedFileInfo?.toElementToDecrypt(),
-                height = content.info?.height,
-                maxHeight = maxThumbnailHeight,
-                width = content.info?.width,
-                maxWidth = maxThumbnailWidth,
-                allowNonMxcUrls = false,
-                blurHash = content.info?.blurHash,
-        )
-        val mode = ImageContentRenderer.previewMode(content is MessageStickerContent, content.mimeType)
-        renderThumbnailContent(data, event, retriever, coroutineScope, mode)
-    }
-
-    private fun renderVideoThumbnailContent(
-            content: MessageVideoContent,
-            event: TimelineEvent,
-            retriever: ReplyPreviewRetriever,
-            coroutineScope: CoroutineScope,
-    ) {
-        val thumbnailData = ImageContentRenderer.Data(
-                eventId = event.eventId,
-                filename = content.getFileName(),
-                mimeType = content.mimeType,
-                url = content.videoInfo?.getThumbnailUrl(),
-                elementToDecrypt = content.videoInfo?.thumbnailFile?.toElementToDecrypt(),
-                // The thumbnail's own dimensions, not the video's: this box holds the thumbnail, and a
-                // sideways-rotated video declares its unrotated track dims, so sizing from those boxes
-                // a portrait still inside a landscape frame — a header far taller than what it shows.
-                height = content.videoInfo?.thumbnailInfo?.height?.takeIf { it > 0 } ?: content.videoInfo?.height,
-                maxHeight = maxThumbnailHeight,
-                width = content.videoInfo?.thumbnailInfo?.width?.takeIf { it > 0 } ?: content.videoInfo?.width,
-                maxWidth = maxThumbnailWidth,
-                allowNonMxcUrls = false,
-                blurHash = content.videoInfo?.blurHash,
-        )
-        renderThumbnailContent(thumbnailData, event, retriever, coroutineScope)
-    }
-
-    private fun renderThumbnailContent(
-            mediaData: ImageContentRenderer.Data,
-            event: TimelineEvent,
-            retriever: ReplyPreviewRetriever,
-            coroutineScope: CoroutineScope,
-            mode: ImageContentRenderer.Mode = ImageContentRenderer.Mode.THUMBNAIL,
-    ) {
-        views.replyThumbnailView.isVisible = true
-        val hidden = retriever.shouldHideMediaPreview(event)
-        if (hidden) {
-            // Mirror the timeline's hidden-media state: blurhash or solid grey, and no caption text
-            // (it would be illegible at this size). Tapping the preview jumps to the source.
-            retriever.imageContentRenderer.renderHidden(
-                    mediaData,
-                    mode,
-                    views.replyThumbnailView,
-                    retriever.useSolidColorForHiddenMedia,
-            )
-        } else {
-            retriever.imageContentRenderer.render(
-                    mediaData,
-                    mode,
-                    views.replyThumbnailView,
-                    // The view rounds the picture; a bitmap-baked radius would scale with the decode size.
-                    cornerTransformation = null,
-            )
-        }
-        renderMediaText(event, retriever, coroutineScope, captionHidden = hidden)
-    }
-
-    // The caption, then a forward's footer under the header framing the media; nothing at all for an
-    // uncaptioned attachment that isn't a forward.
-    private fun renderMediaText(event: TimelineEvent, retriever: ReplyPreviewRetriever, coroutineScope: CoroutineScope, captionHidden: Boolean = false) {
-        views.replyMediaFrame.setForwardFrame(retriever.mediaForwardFrame(event))
-        val text = if (captionHidden) retriever.mediaForwardFooter(event) else retriever.renderedReplyBody(event)?.text
-        if (text.isNullOrEmpty()) {
-            views.replyTextView.isVisible = false
-        } else {
-            renderCaptionText(text, coroutineScope, retriever)
-        }
-    }
-
-    // Captions carry the same pills / custom emoticons as text bodies; render through the retriever's
-    // cached pipeline and bind the spans — the raw string would show emotes as literal :shortcode:.
-    private fun renderCaptionText(text: CharSequence, coroutineScope: CoroutineScope, retriever: ReplyPreviewRetriever) {
-        views.replyTextView.isVisible = true
-        views.replyTextView.setTextColor(ThemeUtils.getMessageTextColor(context))
-        val markwonPlugins = retriever.htmlRenderer.plugins
-        val hostStableId = sourceStableId
-        text.findPillsAndProcess(coroutineScope) { if (sourceStableId == hostStableId) it.bind(views.replyTextView) }
-        if (text is Spanned) {
-            markwonPlugins.forEach { plugin -> plugin.beforeSetText(views.replyTextView, text) }
-        }
-        views.replyTextView.text = text.prepareForDisplay()
-        markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
-        views.replyTextView.movementMethod = null
-    }
-
-    private fun renderGalleryContent(
-            content: MessageGalleryContent,
-            event: TimelineEvent,
-            retriever: ReplyPreviewRetriever,
-            coroutineScope: CoroutineScope,
-    ) {
-        views.replyGalleryView.isVisible = true
-        boundGalleryRenderer = retriever.imageContentRenderer
-        val items = content.galleryItems()
-        GalleryGridBinder.bind(
-                grid = views.replyGalleryView,
-                tiles = content.toGalleryTiles(
-                        eventId = event.eventId,
-                        stableId = event.timelineStableId(),
-                        maxWidth = maxThumbnailWidth,
-                        maxHeight = maxThumbnailHeight,
-                        items = items,
-                ),
-                maxWidth = maxThumbnailWidth,
-                cornerRadiusPx = (8 * resources.displayMetrics.density).toInt(),
-                imageContentRenderer = retriever.imageContentRenderer,
-                hideMedia = retriever.shouldHideMediaPreview(event),
-                hideMediaSolidColor = retriever.useSolidColorForHiddenMedia,
-        )
-        renderMediaText(event, retriever, coroutineScope)
-    }
-
-    private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) = renderNoticeText(retriever.formatFallbackReply(event))
-
-    private fun renderNoticeText(text: CharSequence) {
-        views.replyTextView.isVisible = true
-        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
-        views.replyTextView.text = text
-    }
-
-    private fun renderMediaPillContent(
-            content: MessageWithAttachmentContent,
-            event: TimelineEvent,
-            retriever: ReplyPreviewRetriever,
-            coroutineScope: CoroutineScope,
-    ) {
-        MediaPillPreviewBinder.bind(views.replyMediaPill, retriever.mediaPillPreview(content))
-        renderMediaText(event, retriever, coroutineScope)
     }
 }

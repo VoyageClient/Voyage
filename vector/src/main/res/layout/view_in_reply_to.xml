@@ -33,92 +33,10 @@
             android:textSize="12sp"
             tools:text="@sample/users.json/data/displayName" />
 
-        <!-- The media, inside a forward's header and bar when it is one. -->
-        <im.vector.app.core.ui.views.ForwardFrameLayout
-            android:id="@+id/replyMediaFrame"
+        <im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewView
+            android:id="@+id/replyPreview"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start">
-
-            <im.vector.app.core.ui.views.RoundedCornerImageView
-                android:id="@+id/replyThumbnailView"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/reply_thumbnail_height"
-                android:maxWidth="@dimen/reply_thumbnail_max_width"
-                android:contentDescription="@string/a11y_image"
-                android:layout_marginTop="8dp"
-                android:layout_gravity="start"
-                android:scaleType="fitStart"
-                android:adjustViewBounds="true"
-                app:layout_goneMarginTop="0dp"
-                tools:layout_width="200dp"
-                tools:src="@tools:sample/backgrounds/scenic" />
-
-            <im.vector.app.core.ui.views.GalleryGridLayout
-                android:id="@+id/replyGalleryView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_gravity="start"
-                android:visibility="gone" />
-
-            <im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewView
-                android:id="@+id/replyMediaPill"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_gravity="start"
-                android:visibility="gone" />
-
-        </im.vector.app.core.ui.views.ForwardFrameLayout>
-
-        <com.ruesga.rview.widget.ExpandableViewLayout
-            android:id="@+id/expandableReplyView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            app:expanded="false"
-            app:allowExpand="false"
-            app:maxHeight="@dimen/reply_text_max_height">
-            <!-- Layout gravity left: fixes long display name pills moving text out:
-                https://github.com/SchildiChat/SchildiChat-android/issues/66
-                Interestingly, this not only fixes it for LTR texts for RTL locales,
-                but it also makes it align better for RTL texts in RTL locales - at least
-                until the user pill is touched...
-            -->
-            <LinearLayout
-                android:id="@+id/replyContentColumn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_gravity="left"
-                tools:ignore="RtlHardcoded">
-
-                <im.vector.app.core.ui.views.FooteredTextView
-                    android:id="@+id/replyTextView"
-                    style="@style/Widget.Vector.TextView.Body"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="0dp"
-                    android:textColor="?vctr_content_primary" />
-
-                <!-- Hosts table-containing replies, rendered as real tables (RichMessageBodyRenderer)
-                     rather than the flattened plaintext a single TextView would show. Inside the
-                     expandable so it shares the same height cap + fade-out as long text. -->
-                <LinearLayout
-                    android:id="@+id/replyRichContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    tools:visibility="gone" />
-
-            </LinearLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/reply_fade_out_height"
-                android:layout_gravity="bottom" />
-        </com.ruesga.rview.widget.ExpandableViewLayout>
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 

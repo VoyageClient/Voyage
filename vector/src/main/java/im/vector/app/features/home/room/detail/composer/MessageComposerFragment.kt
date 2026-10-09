@@ -101,6 +101,7 @@ import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.poll.PollMode
 import im.vector.app.features.reactions.EmojiKeyboardController
 import im.vector.app.features.redaction.MassRedactionManager
+import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.SharedData
 import im.vector.app.features.themes.ThemeUtils
@@ -112,6 +113,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
@@ -165,6 +167,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var massRedactionManager: MassRedactionManager
+    @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var permalinkHandler: PermalinkHandler
 
@@ -316,21 +319,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 .onEach { composer.refreshRelatedMessageMedia() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
-        // Re-render the reply/quote/edit preview when its target gets translated or untranslated.
-        messageTranslationStore.updates
-                .onEach { eventId ->
-                    withState(messageComposerViewModel) { state ->
-                        when (val mode = state.sendMode) {
-                            is SendMode.Edit -> mode.timelineEvent.takeIf { it.eventId == eventId }
-                                    ?.let { renderSpecialMode(MessageComposerMode.Edit(it, mode.text)) }
-                            is SendMode.Quote -> mode.timelineEvent.takeIf { it.eventId == eventId }
-                                    ?.let { renderSpecialMode(MessageComposerMode.Quote(it, mode.text)) }
-                            is SendMode.Reply -> mode.timelineEvent.takeIf { it.eventId == eventId }
-                                    ?.let { renderSpecialMode(MessageComposerMode.Reply(it, mode.text)) }
-                            else -> Unit
-                        }
-                    }
-                }
+        // The preview's target can change without its event changing: translated or untranslated, or a
+        // redaction revealed or hidden again.
+        merge(messageTranslationStore.updates, redactedContentRevealManager.revealChanges)
+                .onEach { eventId -> rerenderSpecialModeFor(eventId) }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         attachmentActionsViewModel.stream()
@@ -740,6 +732,18 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         composerInSpecialMode = false
         autoCompleters.values.forEach(AutoCompleter::exitSpecialMode)
         composer.renderComposerMode(MessageComposerMode.Normal(content))
+    }
+
+    private fun rerenderSpecialModeFor(eventId: String) = withState(messageComposerViewModel) { state ->
+        when (val mode = state.sendMode) {
+            is SendMode.Edit -> mode.timelineEvent.takeIf { it.eventId == eventId }
+                    ?.let { renderSpecialMode(MessageComposerMode.Edit(it, mode.text)) }
+            is SendMode.Quote -> mode.timelineEvent.takeIf { it.eventId == eventId }
+                    ?.let { renderSpecialMode(MessageComposerMode.Quote(it, mode.text)) }
+            is SendMode.Reply -> mode.timelineEvent.takeIf { it.eventId == eventId }
+                    ?.let { renderSpecialMode(MessageComposerMode.Reply(it, mode.text)) }
+            else -> Unit
+        }
     }
 
     private fun renderSpecialMode(mode: MessageComposerMode.Special) {

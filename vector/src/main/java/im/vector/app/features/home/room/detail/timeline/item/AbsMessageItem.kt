@@ -461,7 +461,6 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                         it,
                         attributes.informationData,
                         attributes.itemLongClickListener,
-                        coroutineScope,
                         force,
                 )
             }

@@ -56,48 +56,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="Friday 8pm" />
 
-    <!-- The media, inside a forward's header and bar when it is one. -->
-    <im.vector.app.core.ui.views.ForwardFrameLayout
-        android:id="@+id/bottom_sheet_message_preview_media"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_expandable"
-        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_sender"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_sender">
-
-        <im.vector.app.core.ui.views.RoundedCornerImageView
-            android:id="@+id/bottom_sheet_message_preview_image"
-            android:layout_width="100dp"
-            android:layout_height="66dp"
-            android:layout_marginTop="6dp"
-            android:importantForAccessibility="no"
-            android:scaleType="centerCrop"
-            android:visibility="gone"
-            tools:ignore="MissingPrefix"
-            tools:src="@tools:sample/backgrounds/scenic"
-            tools:visibility="visible" />
-
-        <im.vector.app.core.ui.views.GalleryGridLayout
-            android:id="@+id/bottom_sheet_message_preview_gallery"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:visibility="gone"
-            tools:visibility="gone" />
-
-        <im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewView
-            android:id="@+id/bottom_sheet_message_preview_pill"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:visibility="gone" />
-
-    </im.vector.app.core.ui.views.ForwardFrameLayout>
-
-    <!-- Caps the preview height and fades long content (text or tables) out instead of clipping it
-         with a trailing ellipsis, matching the reply header / composer previews. -->
-    <com.ruesga.rview.widget.ExpandableViewLayout
-        android:id="@+id/bottom_sheet_message_preview_expandable"
+    <im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewView
+        android:id="@+id/bottom_sheet_message_preview_content"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -105,118 +65,9 @@
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
         android:layout_marginRight="@dimen/layout_horizontal_margin"
         android:layout_marginBottom="4dp"
-        android:scrollbars="none"
-        app:expanded="false"
-        app:allowExpand="false"
-        app:maxHeight="@dimen/reply_text_max_height"
-        app:layout_constraintBottom_toTopOf="@id/bottom_sheet_message_preview_attachment_name"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/bottom_sheet_message_preview_avatar"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_media"
-        app:layout_goneMarginBottom="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <im.vector.app.core.ui.views.InlineCodeTextView
-                android:id="@+id/bottom_sheet_message_preview_body"
-                style="@style/Widget.Vector.TextView.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?vctr_content_secondary"
-                android:textIsSelectable="false"
-                android:textAlignment="viewStart"
-                tools:text="Quis harum id autem cumque consequatur laboriosam aliquam sed. Sint accusamus dignissimos nobis ullam earum debitis aspernatur. Sint accusamus dignissimos nobis ullam earum debitis aspernatur." />
-
-            <!-- Hosts table-containing message previews, rendered as real tables rather than the
-                 flattened plaintext a single TextView would show. -->
-            <LinearLayout
-                android:id="@+id/bottom_sheet_message_preview_rich_body"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="gone" />
-
-        </LinearLayout>
-
-        <View
-            android:id="@+id/bottom_sheet_message_preview_fade"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/reply_fade_out_height"
-            android:layout_gravity="bottom" />
-    </com.ruesga.rview.widget.ExpandableViewLayout>
-
-    <!-- An attachment's file name, outside any forward frame, above its details line. -->
-    <TextView
-        android:id="@+id/bottom_sheet_message_preview_attachment_name"
-        style="@style/Widget.Vector.TextView.Body"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="2dp"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:gravity="start"
-        android:textColor="?vctr_content_secondary"
-        android:textIsSelectable="false"
-        android:visibility="gone"
-        android:textAlignment="viewStart"
-        app:layout_constraintBottom_toTopOf="@id/bottom_sheet_message_preview_body_details"
-        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_expandable"
-        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_expandable"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_expandable"
-        tools:text="IMG_20261009_084310.jpg"
-        tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/bottom_sheet_message_preview_body_details"
-        style="@style/Widget.Vector.TextView.Caption"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="?vctr_content_tertiary"
-        android:textIsSelectable="false"
-        android:visibility="gone"
-        android:textAlignment="viewStart"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_expandable"
-        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_expandable"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_attachment_name"
-        tools:text="1080 x 1024 - 43s - 12kB"
-        tools:visibility="visible" />
-
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/mapViewContainer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:visibility="gone"
-        app:cardCornerRadius="8dp"
-        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_timestamp"
-        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_sender"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_sender"
-        tools:alpha="0.3"
-        tools:visibility="visible">
-
-        <ImageView
-            android:id="@+id/staticMapImageView"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:contentDescription="@string/a11y_static_map_image" />
-
-        <ImageView
-            android:id="@+id/staticMapPinImageView"
-            android:layout_width="51dp"
-            android:layout_height="55dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="28dp"
-            android:importantForAccessibility="no"
-            app:srcCompat="@drawable/bg_map_user_pin" />
-    </androidx.cardview.widget.CardView>
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_sender" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

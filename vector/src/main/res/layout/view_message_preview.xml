@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2026 Voyage Client
+
+  SPDX-License-Identifier: AGPL-3.0-only
+  Please see LICENSE files in the repository root for full details.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <!-- The media, inside a forward's header and bar when it is one. -->
+    <im.vector.app.core.ui.views.ForwardFrameLayout
+        android:id="@+id/messagePreviewMedia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start">
+
+        <im.vector.app.core.ui.views.RoundedCornerImageView
+            android:id="@+id/messagePreviewThumbnail"
+            android:layout_width="100dp"
+            android:layout_height="66dp"
+            android:layout_gravity="start"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            tools:src="@tools:sample/backgrounds/scenic"
+            tools:visibility="visible" />
+
+        <im.vector.app.core.ui.views.GalleryGridLayout
+            android:id="@+id/messagePreviewGallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:visibility="gone" />
+
+        <im.vector.app.features.home.room.detail.timeline.item.MediaPillPreviewView
+            android:id="@+id/messagePreviewPill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:visibility="gone" />
+
+    </im.vector.app.core.ui.views.ForwardFrameLayout>
+
+    <!-- Caps the height and fades long content (text or tables) out instead of clipping it. -->
+    <com.ruesga.rview.widget.ExpandableViewLayout
+        android:id="@+id/messagePreviewExpandable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        app:allowExpand="false"
+        app:expanded="false"
+        app:maxHeight="@dimen/reply_text_max_height">
+
+        <!-- Left, not start: keeps a long display-name pill from pushing the text out
+             (SchildiChat-android#66), and aligns RTL text better too. -->
+        <LinearLayout
+            android:id="@+id/messagePreviewColumn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:orientation="vertical"
+            tools:ignore="RtlHardcoded">
+
+            <im.vector.app.core.ui.views.FooteredTextView
+                android:id="@+id/messagePreviewText"
+                style="@style/Widget.Vector.TextView.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="0dp"
+                android:gravity="start"
+                android:textAlignment="viewStart"
+                android:textColor="?vctr_content_primary"
+                tools:text="@tools:sample/lorem" />
+
+            <!-- Tables and code blocks, rendered as the timeline renders them. -->
+            <LinearLayout
+                android:id="@+id/messagePreviewRich"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone" />
+
+            <!-- A location's square static map, the size of a reply thumbnail, shown whole. The pin is centred,
+                 tip at its bottom edge, and the map is drawn shifted so the location lands under that tip. -->
+            <FrameLayout
+                android:id="@+id/messagePreviewMap"
+                android:layout_width="@dimen/reply_thumbnail_height"
+                android:layout_height="@dimen/reply_thumbnail_height"
+                android:visibility="gone">
+
+                <im.vector.app.core.ui.views.RoundedCornerImageView
+                    android:id="@+id/messagePreviewMapImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/a11y_static_map_image"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
+                    android:id="@+id/messagePreviewMapPin"
+                    android:layout_width="51dp"
+                    android:layout_height="55dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitEnd" />
+
+            </FrameLayout>
+
+            <!-- The timeline's own poll layout, so the preview can't drift from it. -->
+            <include
+                android:id="@+id/messagePreviewPoll"
+                layout="@layout/item_timeline_event_poll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/reply_fade_out_height"
+            android:layout_gravity="bottom" />
+
+    </com.ruesga.rview.widget.ExpandableViewLayout>
+
+    <!-- An attachment's file name, outside any forward frame, above its details line. -->
+    <TextView
+        android:id="@+id/messagePreviewAttachmentName"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:ellipsize="end"
+        android:gravity="start"
+        android:maxLines="2"
+        android:textAlignment="viewStart"
+        android:textColor="?vctr_content_secondary"
+        android:visibility="gone"
+        tools:text="IMG_20261009_084310.jpg"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/messagePreviewDetails"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="start"
+        android:maxLines="1"
+        android:textAlignment="viewStart"
+        android:textColor="?vctr_content_tertiary"
+        android:visibility="gone"
+        tools:text="1080 x 1024 - 43s - 12kB"
+        tools:visibility="visible" />
+
+</merge>

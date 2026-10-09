@@ -6,7 +6,6 @@
  */
 package im.vector.app.features.home.room.detail.timeline.action
 
-import android.os.Build
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Success
 import im.vector.app.EmojiCompatFontProvider
@@ -21,37 +20,20 @@ import im.vector.app.core.epoxy.bottomsheet.bottomSheetMessagePreviewItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetQuickReactionsItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetSendStateItem
 import im.vector.app.core.error.ErrorFormatter
-import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.sendFailureReason
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
-import im.vector.app.features.home.room.detail.timeline.format.EventDetailsFormatter
-import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
-import im.vector.app.features.home.room.detail.timeline.helper.rendersAsDebugMessage
-import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
-import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
-import im.vector.app.features.home.room.detail.timeline.item.toGalleryTiles
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.html.BodySegment
-import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillsPostProcessor
-import im.vector.app.features.html.SpanUtils
-import im.vector.app.features.html.VectorHtmlCompressor
-import im.vector.app.features.location.INITIAL_MAP_ZOOM_IN_TIMELINE
-import im.vector.app.features.location.UrlMapProvider
-import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.shouldHideMediaPreview
-import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
@@ -59,16 +41,6 @@ import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
-import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.isLocationMessage
-import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
-import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
-import org.matrix.android.sdk.api.session.room.model.message.MessageGalleryContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import javax.inject.Inject
 
 /**
@@ -80,39 +52,16 @@ class MessageActionsEpoxyController @Inject constructor(
         private val messageColorProvider: MessageColorProvider,
         private val fontProvider: EmojiCompatFontProvider,
         private val imageContentRenderer: ImageContentRenderer,
-        private val dimensionConverter: DimensionConverter,
         private val errorFormatter: ErrorFormatter,
-        private val spanUtils: SpanUtils,
-        private val eventDetailsFormatter: EventDetailsFormatter,
         val redactedContentRestorer: RedactedContentRestorer,
-        val preservedAttachmentResolver: PreservedAttachmentResolver,
         private val vectorPreferences: VectorPreferences,
         private val dateFormatter: VectorDateFormatter,
-        private val urlMapProvider: UrlMapProvider,
         private val locationPinProvider: LocationPinProvider,
         private val activeSessionHolder: ActiveSessionHolder,
-        private val forwardedMessages: ForwardedMessagePresenter,
         private val mediaContentRevealManager: MediaContentRevealManager,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
-        private val htmlCompressor: VectorHtmlCompressor,
 ) : TypedEpoxyController<MessageActionState>() {
-
-    // The compressed HTML for a non-redacted text message whose body contains a table, so the
-    // long-press preview can render real tables instead of the flattened plaintext a TextView shows.
-    // Returns the compressed body to render via the rich renderer (real tables, scrollable code blocks)
-    // when it holds a top-level table or code block, else null so the plain preview text is used.
-    private fun computeTableHtml(timelineEvent: org.matrix.android.sdk.api.session.room.timeline.TimelineEvent?): String? {
-        timelineEvent ?: return null
-        if (timelineEvent.root.isRedacted()) return null
-        val content = timelineEvent.getVectorLastMessageContent()
-        // m.text, m.notice and m.emote all carry a formatted_body that may hold a table/code block.
-        if (content !is MessageContentWithFormattedBody || content.format != MessageFormat.FORMAT_MATRIX_HTML) return null
-        val html = content.formattedBody?.takeIf { it.isNotBlank() } ?: return null
-        val compressed = htmlCompressor.compress(html)
-        if (!compressed.contains("<table", ignoreCase = true) && !compressed.contains("<pre", ignoreCase = true)) return null
-        return compressed.takeIf { HtmlBodySegmenter.segment(it).any { seg -> seg !is BodySegment.Html } }
-    }
 
     var listener: MessageActionsEpoxyControllerListener? = null
 
@@ -121,34 +70,10 @@ class MessageActionsEpoxyController @Inject constructor(
         // Message preview
         val date = state.timelineEvent()?.root?.originServerTs
         val formattedDate = dateFormatter.format(date, DateFormatKind.MESSAGE_DETAIL)
-        // Notice text is never linkified in the timeline, and it routinely holds things the linkifier
-        // would claim: a raw matrix id in a membership notice, a server name in a policy-server notice,
-        // a dotted event type in an unhandled/malformed placeholder. Anything without message content
-        // is notice text, so leave it plain.
-        val previewType = state.previewEvent?.root?.getClearType()
-        val isDebugPreview = state.previewEvent?.rendersAsDebugMessage(host.vectorPreferences.areThreadMessagesEnabled(), state.isFromThreadTimeline) == true
-        val previewContent = state.previewEvent?.takeUnless { isDebugPreview }?.getVectorLastMessageContent()
-        val isNoticeTextPreview = previewContent == null ||
-                (previewType != null && !EventType.isKnownType(previewType))
-        // An item-scoped gallery sheet previews that item as if it were sent alone.
-        val itemContent = (previewContent as? MessageGalleryContent)
-                ?.let { gallery -> state.galleryItemIndex?.let { gallery.galleryItems().getOrNull(it) } }
-                ?: previewContent
-        val mediaPill = MediaPillPreview.of(itemContent, activeSessionHolder.getSafeActiveSession())
-        // Must match MessageActionsViewModel, which leaves these bodies the tail of the forward frame.
-        val framesMedia = itemContent is MessageWithAttachmentContent || itemContent is MessageGalleryContent
-        // On its own line, so a name like "Screenshot-…@2x.png" is never linkified as an e-mail address. A file's pill already shows it.
-        val attachmentName = (itemContent as? MessageWithAttachmentContent)?.takeUnless { mediaPill is MediaPillPreview.File }?.getFileName()
-        val isLocationPreview = previewContent?.msgType == MessageType.MSGTYPE_LOCATION
-        // A whole-gallery sheet previews as the real grid; an item-scoped one as that item's thumbnail.
-        val galleryContent = (previewContent as? MessageGalleryContent)?.takeIf { state.galleryItemIndex == null }
-        val body = if (isNoticeTextPreview) {
-            state.messageBody
-        } else {
-            state.messageBody.linkify(host.listener)
+        // Linkified here, not by the builder: only the sheet's links are live, and they need the listener.
+        val preview = state.preview?.let { preview ->
+            if (preview.linkifiable) preview.copy(text = preview.text?.charSequence?.linkify(host.listener)?.toEpoxyCharSequence()) else preview
         }
-        val bindingOptions = spanUtils.getBindingOptions(body)
-        val locationUiData = buildLocationUiData(state).takeUnless { isDebugPreview }
         // Everything above the first divider describes the message itself, so it all carries the mark —
         // but only once the redacted content is actually being shown, not over the placeholder.
         val showsRestoredContent = state.timelineEvent()?.let { host.redactedContentRestorer.isShowingRestoredContent(it) } == true
@@ -159,27 +84,9 @@ class MessageActionsEpoxyController @Inject constructor(
             matrixItem(state.informationData.matrixItem)
             senderColor(host.messageColorProvider.getMemberNameTextColor(state.informationData.matrixItem))
             senderIsColored(host.messageColorProvider.isMemberNameColored())
-            bodyIsNotice(host.isNoticeStylePreview(state) || isNoticeTextPreview || isLocationPreview)
+            preview(preview)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
-            data(
-                    state.previewEvent?.takeIf { galleryContent == null && !isDebugPreview }
-                            ?.buildImageContentRendererData(host.dimensionConverter.dpToPx(66), state.galleryItemIndex)
-                            // A redaction purged the server copy; the local one is all that can render.
-                            ?.copy(preservedFile = host.preservedAttachmentResolver.fileFor(state.roomId, state.eventId))
-            )
-            galleryTiles(
-                    galleryContent?.toGalleryTiles(
-                            eventId = state.eventId,
-                            stableId = state.informationData.stableId,
-                            maxWidth = host.dimensionConverter.dpToPx(220),
-                            maxHeight = host.dimensionConverter.dpToPx(220),
-                    )
-            )
-            galleryMaxWidth(host.dimensionConverter.dpToPx(220))
-            mediaPill(mediaPill)
-            attachmentName(attachmentName)
-            mediaForward(state.previewEvent?.takeIf { framesMedia }?.let { host.forwardedMessages.previewFrame(it) })
             hideMedia(
                     host.activeSessionHolder.getSafeActiveSession()?.let { session ->
                         state.previewEvent?.let { shouldHideMediaPreview(it, session, host.vectorPreferences, host.mediaContentRevealManager) }
@@ -187,14 +94,9 @@ class MessageActionsEpoxyController @Inject constructor(
             )
             hideMediaSolidColor(host.vectorPreferences.useSolidColorForHiddenMedia())
             userClicked { host.listener?.didSelectMenuAction(EventSharedAction.OpenUserProfile(state.informationData.senderId)) }
-            bindingOptions(bindingOptions)
-            body(body.prepareForDisplay().toEpoxyCharSequence())
-            redacted(state.timelineEvent()?.let { it.root.isRedacted() && !host.redactedContentRestorer.isShowingRestoredContent(it) } == true)
             redactedTint(showsRestoredContent)
-            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent?.takeUnless { isDebugPreview }, state.galleryItemIndex)?.toEpoxyCharSequence())
             time(formattedDate)
-            locationUiData(locationUiData)
-            tableHtml(state.previewEvent?.takeUnless { isDebugPreview }?.let { host.computeTableHtml(it) })
+            locationPinProvider(host.locationPinProvider)
             richBodyRenderer(host.richMessageBodyRenderer)
             htmlPostProcessors(arrayOf(host.pillsPostProcessorFactory.create(state.roomId)))
         }
@@ -332,34 +234,6 @@ class MessageActionsEpoxyController @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun buildLocationUiData(state: MessageActionState): LocationUiData? {
-        // No map renderer on KitKat (maplibre needs API 21); the preview falls back to the notice
-        // body ("… sent a location."), matching how the timeline renders location there.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null
-        if (state.previewEvent?.root?.isLocationMessage() != true) return null
-
-        val locationContent = state.previewEvent?.root?.getClearContent().toModel<MessageLocationContent>(catchError = true)
-                ?: return null
-        val locationUrl = locationContent.toLocationData()
-                ?.let { urlMapProvider.buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, 1200, 800) }
-                ?: return null
-        val locationOwnerId = if (locationContent.isSelfLocation()) state.informationData.senderId else null
-
-        return LocationUiData(
-                locationUrl = locationUrl,
-                locationOwnerId = locationOwnerId,
-                locationPinProvider = locationPinProvider,
-        )
-    }
-
-    // A preview mirrors the timeline: a message body renders primary, everything else (m.notice, state,
-    // call and other notice events) renders in the secondary "notice" colour.
-    private fun isNoticeStylePreview(state: MessageActionState): Boolean {
-        val type = state.previewEvent?.root?.getClearType()
-        val isMessage = type == EventType.MESSAGE || type == EventType.STICKER
-        return !isMessage || state.informationData.messageType == MessageType.MSGTYPE_NOTICE
     }
 
     private fun EventSharedAction.shouldShowBetaLabel(): Boolean =
