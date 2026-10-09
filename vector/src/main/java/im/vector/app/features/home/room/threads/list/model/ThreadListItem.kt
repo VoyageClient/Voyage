@@ -23,7 +23,10 @@ import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.html.bindEmoteImageSpans
+import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -34,6 +37,7 @@ import org.matrix.android.sdk.api.util.MatrixItem
 abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout.item_thread) {
 
     @EpoxyAttribute lateinit var avatarRenderer: AvatarRenderer
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @EpoxyAttribute lateinit var matrixItem: MatrixItem
     @EpoxyAttribute lateinit var title: String
     @EpoxyAttribute lateinit var date: String
@@ -51,6 +55,7 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
         avatarRenderer.render(matrixItem, holder.avatarImageView)
         holder.avatarImageView.contentDescription = matrixItem.getBestName()
         holder.titleTextView.text = title.prepareForDisplay()
+        holder.titleTextView.setTextColor(matrixItemColorProvider.getNameColor(matrixItem))
         holder.dateTextView.text = date
         if (rootMessageDeleted) {
             holder.rootMessageTextView.text = holder.view.context.getString(CommonStrings.event_redacted)
@@ -59,6 +64,8 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
             holder.rootMessageTextView.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
             holder.rootMessageTextView.text = rootMessage.charSequence.prepareForDisplay()
             holder.rootMessageTextView.clearDrawables()
+            holder.rootMessageTextView.bindEmoteImageSpans()
+            holder.rootMessageTextView.bindPillImageSpans()
         }
         // Last message summary
         lastMessageMatrixItem?.let {
@@ -66,6 +73,8 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
         }
         holder.lastMessageAvatarImageView.contentDescription = lastMessageMatrixItem?.getBestName()
         holder.lastMessageTextView.text = lastMessage.charSequence.prepareForDisplay()
+        holder.lastMessageTextView.bindEmoteImageSpans()
+        holder.lastMessageTextView.bindPillImageSpans()
         holder.lastMessageCounterTextView.text = lastMessageCounter
         renderNotificationState(holder)
     }

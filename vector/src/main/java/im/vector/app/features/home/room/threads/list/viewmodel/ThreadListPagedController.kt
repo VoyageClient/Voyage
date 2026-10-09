@@ -14,6 +14,7 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.utils.createUIHandler
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.threads.list.model.ThreadListItem_
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
@@ -26,6 +27,7 @@ class ThreadListPagedController @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
         private val dateFormatter: VectorDateFormatter,
         private val displayableEventFormatter: DisplayableEventFormatter,
+        private val matrixItemColorProvider: MatrixItemColorProvider,
 ) : PagedListEpoxyController<ThreadSummary>(
         // Important it must match the PageList builder notify Looper
         modelBuildingHandler = createUIHandler()
@@ -53,6 +55,7 @@ class ThreadListPagedController @Inject constructor(
         return ThreadListItem_()
                 .id(item.rootEvent?.eventId)
                 .avatarRenderer(host.avatarRenderer)
+                .matrixItemColorProvider(host.matrixItemColorProvider)
                 .matrixItem(item.rootThreadSenderInfo.toMatrixItem())
                 .title(item.rootThreadSenderInfo.displayName.orEmpty())
                 .date(date)

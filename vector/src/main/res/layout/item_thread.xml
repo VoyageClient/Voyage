@@ -36,7 +36,6 @@
         android:layout_marginRight="8dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="@color/element_name_04"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@id/threadSummaryDateTextView"
         app:layout_constraintStart_toEndOf="@id/threadSummaryAvatarImageView"

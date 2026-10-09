@@ -12,6 +12,7 @@ import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.threads.list.model.threadListItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -23,6 +24,7 @@ class ThreadListController @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
         private val dateFormatter: VectorDateFormatter,
         private val displayableEventFormatter: DisplayableEventFormatter,
+        private val matrixItemColorProvider: MatrixItemColorProvider,
 ) : EpoxyController() {
 
     var listener: Listener? = null
@@ -61,6 +63,7 @@ class ThreadListController @Inject constructor(
                     threadListItem {
                         id(timelineEvent.eventId)
                         avatarRenderer(host.avatarRenderer)
+                        matrixItemColorProvider(host.matrixItemColorProvider)
                         matrixItem(timelineEvent.senderInfo.toMatrixItem())
                         title(timelineEvent.senderInfo.displayName.orEmpty())
                         date(date)
