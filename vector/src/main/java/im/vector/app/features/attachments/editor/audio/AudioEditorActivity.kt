@@ -44,6 +44,7 @@ import im.vector.app.core.extensions.resourcesFor
 import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityAudioEditorBinding
+import im.vector.app.features.attachments.editor.finishWithPreview
 import im.vector.app.features.attachments.editor.restoreOriginalResult
 import im.vector.app.features.attachments.editor.video.PlaybackSpeed
 import im.vector.app.features.attachments.editor.video.PlaybackSpeedDialog
@@ -66,6 +67,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -92,6 +94,7 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var exportJob: Job? = null
+    private var exportOverlayDelayJob: Job? = null
     private var fineMode = false
     private var scrubbing = false
     private var resumeAfterScrub = false
@@ -642,8 +645,7 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
             return
         }
         if (!edits.hasChanges) {
-            setResult(RESULT_OK, restoreOriginalResult())
-            finish()
+            finishWithPreview(restoreOriginalResult())
             return
         }
         pausePlayback()
@@ -658,14 +660,14 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
             if (result.exceptionOrNull() is CancellationException) return@launch
             result.fold(
                     onSuccess = { output ->
-                        setResult(RESULT_OK, Intent().apply {
+                        val editorResult = Intent().apply {
                             putExtra(EXTRA_RESULT_URI, output.uri.toString())
                             putExtra(EXTRA_RESULT_SIZE, output.size)
                             putExtra(EXTRA_RESULT_DURATION, output.durationMs)
                             putExtra(EXTRA_RESULT_MIME_TYPE, AudioEditExporter.OUTPUT_MIME_TYPE)
                             putExtra(EXTRA_RESULT_EDITS, edits)
-                        })
-                        finish()
+                        }
+                        finishWithPreview(editorResult)
                     },
                     onFailure = { error ->
                         Timber.w(error, "AudioEditor: export failed")
@@ -727,7 +729,15 @@ class AudioEditorActivity : VectorBaseActivity<ActivityAudioEditorBinding>() {
 
     private fun showExportOverlay(visible: Boolean) {
         exporting = visible
+        exportOverlayDelayJob?.cancel()
+        views.audioEditorExportOverlay.alpha = if (visible) 0f else 1f
         views.audioEditorExportOverlay.visibility = if (visible) View.VISIBLE else View.GONE
+        if (visible) {
+            exportOverlayDelayJob = lifecycleScope.launch {
+                delay(300)
+                views.audioEditorExportOverlay.alpha = 1f
+            }
+        }
         // The overlay covers everything, but the save button and the app bar are raised above it on
         // API 21+, where elevation decides what a touch lands on rather than the order in the layout.
         ViewCompat.setElevation(views.audioEditorExportOverlay, if (visible) EXPORT_OVERLAY_ELEVATION else 0f)

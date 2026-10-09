@@ -45,6 +45,14 @@ data class CompressionSettings(
     }
 
     companion object {
+        /** An SVG with no intrinsic size falls back to 300x150, as browsers size one. */
+        fun recommendedRasterization(width: Int?, height: Int?): CompressionSettings {
+            val w = width?.takeIf { it > 0 } ?: 300
+            val h = height?.takeIf { it > 0 } ?: 150
+            val scale = minOf(1f, 800f / minOf(w, h), 2048f / maxOf(w, h))
+            return CompressionSettings(width = (w * scale).roundToInt().coerceAtLeast(1), height = (h * scale).roundToInt().coerceAtLeast(1))
+        }
+
         const val MAX_QUALITY = 100
 
         /** Reproduces what compression did before the slider existed — see UploadContentWorker. */

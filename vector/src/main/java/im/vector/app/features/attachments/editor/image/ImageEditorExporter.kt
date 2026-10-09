@@ -13,19 +13,25 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Picture
+import android.graphics.Rect
 import android.net.Uri
 import androidx.core.content.FileProvider
 import im.vector.app.core.glide.JxlBitmaps
 import im.vector.app.core.glide.MediaCache
+import im.vector.app.core.glide.SvgDecoder
+import im.vector.app.core.glide.SvgPictureCache
 import im.vector.app.features.attachments.editor.FrameTransform
 import im.vector.lib.multipicker.utils.ImageUtils
 import org.matrix.android.sdk.api.util.JxlSupport
 import org.matrix.android.sdk.api.util.MimeTypes
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.ByteBuffer
 import java.util.UUID
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * Applies the edits collected by [ImageEditorView] to the full-resolution source and writes the
@@ -36,10 +42,11 @@ object ImageEditorExporter {
     data class Result(val uri: Uri, val width: Int, val height: Int, val size: Long, val mimeType: String)
 
     private const val JPEG_QUALITY = 90
-    private const val FILE_PROVIDER_SUFFIX = ".multipicker.fileprovider"
+    internal const val FILE_PROVIDER_SUFFIX = ".multipicker.fileprovider"
     private const val BYTES_PER_PIXEL = 4
     private const val HARD_PIXEL_CAP = 16_000_000
     private const val DISPLAY_PIXEL_CAP = 2_073_600
+    private const val DISPLAY_MAX_DIMENSION = 2048
 
     /**
      * Rotating and cropping each allocate a second bitmap, so a single decode may only claim a
@@ -52,14 +59,41 @@ object ImageEditorExporter {
     }
 
     /** Decodes at display resolution with the source EXIF rotation already applied. */
-    fun loadForDisplay(context: Context, source: Uri): Bitmap? = loadOriented(context, source, min(pixelBudget(), DISPLAY_PIXEL_CAP))
+    fun loadForDisplay(context: Context, source: Uri, targetSize: Pair<Int, Int>? = null): Bitmap? {
+        val budget = min(pixelBudget(), DISPLAY_PIXEL_CAP)
+        val picture = readSvgPicture(context, source)
+        if (picture != null) {
+            val aspect = (targetSize?.first ?: picture.width).toDouble() / (targetSize?.second ?: picture.height)
+            val width = minOf(sqrt(budget * aspect), DISPLAY_MAX_DIMENSION.toDouble(), DISPLAY_MAX_DIMENSION * aspect)
+                    .toInt().coerceAtLeast(1)
+            val height = minOf(width / aspect, budget.toDouble() / width, DISPLAY_MAX_DIMENSION.toDouble()).toInt().coerceAtLeast(1)
+            return renderSvg(picture, ImageEditorEdits(), width to height)
+        }
+        return loadOriented(context, source, budget)
+    }
+
+    internal fun readSvgPicture(context: Context, source: Uri): Picture? {
+        return context.contentResolver.openInputStream(source)?.buffered()?.use { input ->
+            input.mark(256)
+            val header = ByteArray(256)
+            val count = input.read(header)
+            if (!SvgDecoder.looksLikeSvg(header, count)) return@use null
+            input.reset()
+            SvgPictureCache.decode(ByteBuffer.wrap(input.readBytes()))
+        }
+    }
 
     fun loadOriented(context: Context, source: Uri, maxPixels: Int): Bitmap? {
         val bitmap = decodeSampled(context, source, maxPixels) ?: return null
         return applyRotation(bitmap, ImageUtils.getOrientation(context, source))
     }
 
-    fun export(context: Context, source: Uri, edits: ImageEditorEdits, displayName: String?, sourceMimeType: String?): Result? {
+    fun export(context: Context, source: Uri, edits: ImageEditorEdits, displayName: String?, sourceMimeType: String?, targetSize: Pair<Int, Int>? = null): Result? {
+        val picture = readSvgPicture(context, source)
+        if (picture != null) {
+            val bitmap = renderSvg(picture, edits, targetSize ?: (picture.width to picture.height))
+            return exportBitmap(context, bitmap, ImageEditorEdits(), displayName, usePng = true)
+        }
         val decoded = decodeSampled(context, source, pixelBudget()) ?: return null
         // The editor works in a space where EXIF rotation has already been applied, so replay it
         // here before the user's own rotation or the normalised rectangles will not line up.
@@ -72,26 +106,53 @@ object ImageEditorExporter {
         val working = render(bitmap, edits)
         val format = if (usePng) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
         val extension = if (usePng) ".png" else ".jpg"
-        val destination = createOutputFile(context, displayName, extension)
-        FileOutputStream(destination).use { output ->
-            working.compress(format, JPEG_QUALITY, output)
+        var destination: File? = null
+        try {
+            val outputFile = createOutputFile(context, displayName, extension)
+            destination = outputFile
+            FileOutputStream(outputFile).use { output ->
+                check(working.compress(format, JPEG_QUALITY, output)) { "Unable to encode edited image" }
+            }
+            return Result(
+                    // Local echo and the upload worker stat the file via DocumentFile, which cannot read file:// URIs.
+                    uri = FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, outputFile),
+                    width = working.width,
+                    height = working.height,
+                    size = outputFile.length(),
+                    mimeType = if (usePng) MimeTypes.Png else MimeTypes.Jpeg
+            )
+        } catch (error: Throwable) {
+            destination?.delete()
+            throw error
+        } finally {
+            working.recycle()
         }
-        val result = Result(
-                // Everything downstream (local echo rendering, the upload worker) resolves media
-                // through the content resolver, and DocumentFile cannot stat a file:// URI, so the
-                // edited image must be published through our FileProvider or it stays invisible
-                // until the upload completes.
-                uri = FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, destination),
-                width = working.width,
-                height = working.height,
-                size = destination.length(),
-                mimeType = if (usePng) MimeTypes.Png else MimeTypes.Jpeg
-        )
-        working.recycle()
-        return result
     }
 
-    private fun createOutputFile(context: Context, displayName: String?, extension: String): File {
+    private fun renderSvg(picture: Picture, edits: ImageEditorEdits, sourceSize: Pair<Int, Int>): Bitmap {
+        val (sourceWidth, sourceHeight) = sourceSize
+        val sideways = edits.userRotation % 180 != 0
+        val frameWidth = if (sideways) sourceHeight else sourceWidth
+        val frameHeight = if (sideways) sourceWidth else sourceHeight
+        val cropWidth = (edits.crop.width() * frameWidth).coerceAtLeast(1f)
+        val cropHeight = (edits.crop.height() * frameHeight).coerceAtLeast(1f)
+        val width = cropWidth.roundToInt().coerceAtLeast(1)
+        val height = cropHeight.roundToInt().coerceAtLeast(1)
+        require(width > 0 && height > 0 && width.toLong() * height <= pixelBudget()) { "SVG rasterization exceeds the image memory budget" }
+        val matrix = FrameTransform.sourceToFrame(sourceWidth, sourceHeight, edits.userRotation, edits.tiltDegrees).apply {
+            postTranslate(-edits.crop.left * frameWidth, -edits.crop.top * frameHeight)
+            postScale(width / cropWidth, height / cropHeight)
+        }
+        return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { bitmap ->
+            val canvas = Canvas(bitmap)
+            canvas.concat(matrix)
+            canvas.drawPicture(picture, Rect(0, 0, sourceWidth, sourceHeight))
+            canvas.clipRect(0f, 0f, sourceWidth.toFloat(), sourceHeight.toFloat())
+            ImageAnnotationPainter.draw(canvas, sourceWidth.toFloat(), sourceHeight.toFloat(), edits.censors, edits.strokes)
+        }
+    }
+
+    internal fun createOutputFile(context: Context, displayName: String?, extension: String): File {
         val directory = File(MediaCache.editedMediaDirectory(context), UUID.randomUUID().toString()).also { it.mkdirs() }
         val baseName = displayName?.substringBeforeLast('.')?.takeIf { it.isNotBlank() } ?: "image"
         return File(directory, baseName + extension)

@@ -77,6 +77,19 @@ class AttachmentsPreviewCaptionTest {
         }
     }
 
+    @Test
+    fun `rasterization is remembered separately for each attachment`() {
+        val viewModel = viewModel(null)
+        viewModel.handle(AttachmentsPreviewAction.SetRasterize(true))
+        viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(1))
+        withState(viewModel) { state ->
+            state.rasterize shouldBeEqualTo setOf(state.stableIdOf(attachments.first()))
+        }
+        viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(0))
+        viewModel.handle(AttachmentsPreviewAction.SetRasterize(false))
+        withState(viewModel) { state -> state.rasterize shouldBeEqualTo emptySet<String>() }
+    }
+
     private fun viewModel(caption: String?) =
             AttachmentsPreviewViewModel(AttachmentsPreviewViewState(AttachmentsPreviewArgs(attachments, caption)))
 }

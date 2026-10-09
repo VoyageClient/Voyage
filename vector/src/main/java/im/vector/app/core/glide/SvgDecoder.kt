@@ -17,15 +17,22 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.Base64
+import android.util.LruCache
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.util.ByteBufferUtil
 import com.caverock.androidsvg.SVG
 import com.caverock.androidsvg.SVGParseException
-import java.io.BufferedInputStream
+import com.caverock.androidsvg.SvgDocumentIndex
+import timber.log.Timber
+import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
+import java.security.MessageDigest
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.FutureTask
 
 /**
  * Renders an SVG source into a picture-backed Drawable so it stays a vector. Glide hands the
@@ -49,7 +56,7 @@ internal class SvgDecoder : ResourceDecoder<InputStream, Drawable> {
     }
 
     override fun decode(source: InputStream, width: Int, height: Int, options: Options): Resource<Drawable>? {
-        return decodeSvg(BufferedInputStream(source))
+        return decodeSvg(ByteBuffer.wrap(source.readBytes()))
     }
 
     companion object {
@@ -76,17 +83,74 @@ internal class SvgByteBufferDecoder : ResourceDecoder<ByteBuffer, Drawable> {
     }
 
     override fun decode(source: ByteBuffer, width: Int, height: Int, options: Options): Resource<Drawable>? {
-        return decodeSvg(ByteBufferUtil.toStream(source))
+        return decodeSvg(source)
     }
 }
 
-private fun decodeSvg(source: InputStream): Resource<Drawable>? {
+private fun decodeSvg(source: ByteBuffer): Resource<Drawable>? =
+        SvgPictureCache.decode(source)?.let { PictureDrawableResource(it) }
+
+internal object SvgPictureCache {
+    private data class Entry(val picture: Picture, val estimatedBytes: Int)
+
+    private val budget = (Runtime.getRuntime().maxMemory() / 16).coerceIn(1L, 16L * 1024 * 1024).toInt()
+    private val cache = object : LruCache<String, Entry>(budget) {
+        override fun sizeOf(key: String, value: Entry): Int = value.estimatedBytes
+    }
+    private val pending = HashMap<String, FutureTask<Entry?>>()
+    private var generation = 0
+
+    fun clear() = synchronized(pending) {
+        generation++
+        cache.evictAll()
+    }
+
+    fun decode(source: ByteBuffer): Picture? {
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(source.asReadOnlyBuffer())
+        val key = Base64.encodeToString(digest.digest(), Base64.NO_WRAP)
+        val task = synchronized(pending) {
+            cache.get(key)?.let {
+                return it.picture
+            }
+            pending.getOrPut(key) {
+                val recordingGeneration = generation
+                FutureTask {
+                    recordSvg(ByteBufferUtil.toStream(source.asReadOnlyBuffer()))?.let { picture ->
+                        // Picture has no byte-size API on ICS; bound retained drawing commands by source size.
+                        Entry(picture, (source.remaining().toLong() * 4).coerceIn(1L, Int.MAX_VALUE.toLong()).toInt()).also {
+                            synchronized(pending) {
+                                if (recordingGeneration == generation && it.estimatedBytes <= budget) cache.put(key, it)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Only the first caller executes; other Glide keys for the same bytes share that recording.
+        task.run()
+        return try {
+            task.get()?.picture
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            throw IOException("Interrupted while recording SVG", e)
+        } catch (e: ExecutionException) {
+            throw IOException("Unable to record SVG", e.cause)
+        } finally {
+            synchronized(pending) { if (pending[key] === task && task.isDone) pending.remove(key) }
+        }
+    }
+}
+
+private fun recordSvg(source: InputStream): Picture? {
     val svg = try {
         SVG.getFromInputStream(source)
     } catch (e: SVGParseException) {
+        Timber.w(e, "Unable to parse SVG")
         return null
     }
 
+    SvgDocumentIndex.prepare(svg)
     val (intrinsicW, intrinsicH) = intrinsicSize(svg)
     // Record the picture at the SVG's intrinsic dimensions so the drawable reports those
     // as its intrinsic size (FIT_CENTER on PhotoView then fits-with-aspect into the view).
@@ -94,8 +158,7 @@ private fun decodeSvg(source: InputStream): Resource<Drawable>? {
     // transform at zoom time produces crisp output at any scale.
     svg.documentWidth = intrinsicW.toFloat()
     svg.documentHeight = intrinsicH.toFloat()
-    val picture = svg.renderToPicture(intrinsicW, intrinsicH)
-    return PictureDrawableResource(picture)
+    return svg.renderToPicture(intrinsicW, intrinsicH)
 }
 
 /** Each Glide target needs its own drawable bounds; the recorded Picture can be shared. */
@@ -107,7 +170,7 @@ private class PictureDrawableResource(private val picture: Picture) : Resource<D
 
     // A picture holds recorded drawing ops, not pixels; its footprint is not knowable, so report the
     // area it would rasterise to and let Glide size its cache from that.
-    override fun getSize(): Int = (picture.width * picture.height * BYTES_PER_PIXEL).coerceAtLeast(1)
+    override fun getSize(): Int = (picture.width.toLong() * picture.height * BYTES_PER_PIXEL).coerceIn(1L, Int.MAX_VALUE.toLong()).toInt()
 
     override fun recycle() = Unit
 
@@ -148,6 +211,8 @@ internal class ScaledPictureDrawable(private val picture: Picture) : Drawable() 
     override fun draw(canvas: Canvas) {
         val b = bounds
         if (b.isEmpty || alpha == 0) return
+        val saved = canvas.save()
+        canvas.clipRect(b)
         // drawPicture takes no paint, so a partly transparent picture is composited through a layer.
         val layer = if (alpha < OPAQUE) canvas.saveLayerAlpha(RectF(b), alpha, Canvas.ALL_SAVE_FLAG) else -1
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M && canvas.isHardwareAccelerated) {
@@ -161,6 +226,7 @@ internal class ScaledPictureDrawable(private val picture: Picture) : Drawable() 
             canvas.drawPicture(picture, b)
         }
         if (layer != -1) canvas.restoreToCount(layer)
+        canvas.restoreToCount(saved)
     }
 
     override fun setAlpha(alpha: Int) {

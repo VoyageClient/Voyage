@@ -3427,4 +3427,7 @@
     <string name="forwarded_unknown_room">نامعلوم کمرہ</string>
     <string name="external_link_destination_title">کیا یہ ربط کھولیں؟</string>
     <string name="external_link_destination_message">یہ ربط آپ کو %1$s پر لے جائے گا۔\n\nکیا آپ جاری رکھنا چاہتے ہیں؟</string>
+    <string name="attachment_rasterize">راسٹرائز کریں</string>
+    <string name="attachment_rasterization_title">راسٹرائزیشن</string>
+    <string name="attachment_rasterization_recommended">تجویز کردہ: %1$d × %2$d</string>
 </resources>

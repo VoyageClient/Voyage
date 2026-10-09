@@ -10,12 +10,17 @@ package im.vector.app.features.attachments.preview
 import com.airbnb.mvrx.MavericksState
 import im.vector.app.features.attachments.editor.AttachmentEdits
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.util.MimeTypes
 
 /**
  * What an edited attachment was made from, so the editor can reopen against the original — and so
  * undoing every edit can put the original attachment back, metadata and all.
  */
-data class EditRecord(val original: ContentAttachmentData, val edits: AttachmentEdits) {
+data class EditRecord(
+        val original: ContentAttachmentData,
+        val edits: AttachmentEdits,
+        val sourceRasterSize: Pair<Int, Int>? = null,
+) {
     val originalUri: String get() = original.queryUri
 }
 
@@ -25,6 +30,7 @@ data class AttachmentsPreviewViewState(
         /** Keyed by [stableIdOf]: sending untouched is a choice per attachment, not per send. */
         val keepOriginalSize: Set<String> = emptySet(),
         val sendAsSpoiler: Set<String> = emptySet(),
+        val rasterize: Set<String> = emptySet(),
         /** Keyed by the attachment's current queryUri. */
         val editRecords: Map<String, EditRecord> = emptyMap(),
         /** Keyed by [stableIdOf], so editing an attachment does not lose its compression choice. */
@@ -46,6 +52,15 @@ data class AttachmentsPreviewViewState(
                     ?.let { mapOf(it.queryUri to args.caption.orEmpty()) }
                     .orEmpty(),
     )
+
+    fun originalOf(attachment: ContentAttachmentData): ContentAttachmentData = editRecords[attachment.queryUri]?.original ?: attachment
+
+    fun isSvg(attachment: ContentAttachmentData): Boolean = originalOf(attachment).let {
+        it.type == ContentAttachmentData.Type.IMAGE && it.getSafeMimeType() == MimeTypes.Svg
+    }
+
+    fun previewOf(attachment: ContentAttachmentData): ContentAttachmentData =
+            if (isSvg(attachment) && !rasterize.contains(stableIdOf(attachment))) originalOf(attachment) else attachment
 
     fun captionOf(attachment: ContentAttachmentData): String = captions[stableIdOf(attachment)].orEmpty()
 

@@ -3532,4 +3532,7 @@
     <string name="forwarded_unknown_room">Unbekannter Raum</string>
     <string name="external_link_destination_title">Diesen Link öffnen?</string>
     <string name="external_link_destination_message">Dieser Link führt dich zu %1$s.\n\nMöchtest du fortfahren?</string>
+    <string name="attachment_rasterize">Rastern</string>
+    <string name="attachment_rasterization_title">Rasterung</string>
+    <string name="attachment_rasterization_recommended">Empfohlen: %1$d × %2$d</string>
 </resources>

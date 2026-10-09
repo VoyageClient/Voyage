@@ -141,23 +141,25 @@ internal class ImageCompressor @Inject constructor(
             exactSize: Boolean,
     ): CompressedImage {
         val compressedBitmap = scaleBitmapToFit(sourceBitmap, desiredWidth, desiredHeight, exactSize)
-        // Transparent images must not become WebP: homeservers thumbnail WebP as JPEG (no alpha),
-        // blacking out the background wherever a server thumbnail is shown — and Bitmap.compress(WEBP)
-        // can't even write alpha before 4.2.1. PNG avoids both.
-        val (format, mimeType) = if (hasTransparency(compressedBitmap)) {
-            Bitmap.CompressFormat.PNG to "image/png"
-        } else {
-            webpLossyFormat() to "image/webp"
-        }
-        val destinationFile = temporaryFileCreator.create()
-        runCatching {
-            destinationFile.outputStream().use {
-                compressedBitmap.compress(format, desiredQuality, it)
+        return try {
+            val (format, mimeType) = if (hasTransparency(compressedBitmap)) {
+                Bitmap.CompressFormat.PNG to "image/png"
+            } else {
+                Bitmap.CompressFormat.JPEG to "image/jpeg"
             }
-        }.onFailure {
-            return CompressedImage(originalFile, mimeType = null)
+            val destinationFile = temporaryFileCreator.create()
+            val encoded = runCatching {
+                destinationFile.outputStream().use { compressedBitmap.compress(format, desiredQuality, it) }
+            }.getOrDefault(false)
+            if (encoded) {
+                CompressedImage(destinationFile, mimeType = mimeType)
+            } else {
+                destinationFile.delete()
+                CompressedImage(originalFile, mimeType = null)
+            }
+        } finally {
+            compressedBitmap.recycle()
         }
-        return CompressedImage(destinationFile, mimeType = mimeType)
     }
 
     private suspend fun compressGif(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
@@ -186,9 +188,8 @@ internal class ImageCompressor @Inject constructor(
             if (out !== frame.bitmap) frame.bitmap.recycle()
             AnimatedFrame(out, frame.durationMs)
         }
-        // Transparent animations must not become WebP either (see encodeBitmap), and frames
-        // can't individually fall back to PNG — keep the original GIF/APNG instead.
-        if (scaled.any { hasTransparency(it.bitmap) }) {
+        // The platform WebP encoder cannot preserve alpha before API 18; retain the source animation there.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2 && scaled.any { hasTransparency(it.bitmap) }) {
             scaled.forEach { it.bitmap.recycle() }
             return CompressedImage(originalFile, mimeType = null)
         }
@@ -199,7 +200,10 @@ internal class ImageCompressor @Inject constructor(
             }
         }.getOrDefault(false)
         scaled.forEach { it.bitmap.recycle() }
-        if (!ok) return CompressedImage(originalFile, mimeType = null)
+        if (!ok) {
+            destinationFile.delete()
+            return CompressedImage(originalFile, mimeType = null)
+        }
         // Safety net: if re-encoding made the file bigger (rare with already-efficient sources),
         // throw the result away and keep the original.
         if (destinationFile.length() >= originalFile.length()) {
@@ -208,14 +212,6 @@ internal class ImageCompressor @Inject constructor(
         }
         return CompressedImage(destinationFile, mimeType = "image/webp")
     }
-
-    private fun webpLossyFormat(): Bitmap.CompressFormat =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                Bitmap.CompressFormat.WEBP_LOSSY
-            } else {
-                @Suppress("DEPRECATION")
-                Bitmap.CompressFormat.WEBP
-            }
 
     // hasAlpha() alone over-reports (any ARGB_8888 bitmap has an alpha channel, e.g. opaque
     // screenshots); scan for an actually-transparent pixel, bailing out on the first hit.

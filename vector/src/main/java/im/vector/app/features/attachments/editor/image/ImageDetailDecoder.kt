@@ -11,6 +11,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
+import android.graphics.Canvas
+import android.graphics.Picture
 import android.graphics.Rect
 import android.graphics.RectF
 import android.net.Uri
@@ -34,6 +36,8 @@ class ImageDetailDecoder private constructor(
         private val rotation: Int,
         private val fullWidth: Int,
         private val baseWidth: Int,
+        private val vectorPicture: Picture? = null,
+        private val baseHeight: Int = 0,
 ) {
 
     class Detail(val bitmap: Bitmap, val rect: RectF, val sample: Int)
@@ -84,6 +88,7 @@ class ImageDetailDecoder private constructor(
     private fun improvesOnBase(sample: Int) = fullWidth / sample > baseWidth * MIN_GAIN
 
     private fun decode(rect: RectF, sample: Int, maxSize: Int): Detail? {
+        vectorPicture?.let { return decodeVector(it, rect, sample, maxSize) }
         val decoder = regionDecoder ?: return decodeWhole(sample, maxSize)
         val rawWidth = decoder.width
         val rawHeight = decoder.height
@@ -112,6 +117,22 @@ class ImageDetailDecoder private constructor(
         return Detail(ImageEditorExporter.applyRotation(decoded, rotation), rawToOriented(decodedRect, rotation), sample)
     }
 
+    private fun decodeVector(picture: Picture, rect: RectF, sample: Int, maxSize: Int): Detail? {
+        var actualSample = sample
+        val fullHeight = fullWidth.toDouble() * baseHeight / baseWidth
+        fun width() = ceil(rect.width() * fullWidth / actualSample).toInt().coerceAtLeast(1)
+        fun height() = ceil(rect.height() * fullHeight / actualSample).toInt().coerceAtLeast(1)
+        while (width().toLong() * height() > pixelBudget() || maxOf(width(), height()) > maxSize) actualSample *= 2
+        if (!improvesOnBase(actualSample)) return null
+        val bitmap = Bitmap.createBitmap(width(), height(), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val renderWidth = fullWidth.toFloat() / actualSample
+        val renderHeight = fullHeight.toFloat() / actualSample
+        canvas.translate(-rect.left * renderWidth, -rect.top * renderHeight)
+        canvas.drawPicture(picture, RectF(0f, 0f, renderWidth, renderHeight))
+        return Detail(bitmap, rect, sample)
+    }
+
     private fun decodeWhole(sample: Int, maxSize: Int): Detail? {
         whole?.let { return Detail(it.bitmap, it.rect, sample) }
         if (wholeUseless) return null
@@ -136,6 +157,9 @@ class ImageDetailDecoder private constructor(
 
         /** Null when the source is not larger than [base], which then already shows every pixel there is. */
         fun create(context: Context, source: Uri, base: Bitmap): ImageDetailDecoder? {
+            ImageEditorExporter.readSvgPicture(context, source)?.let { picture ->
+                return ImageDetailDecoder(context.applicationContext, source, null, 0, 1 shl 24, base.width, picture, base.height)
+            }
             val rotation = ImageUtils.getOrientation(context, source).mod(360)
             val regionDecoder = try {
                 // The replacement overload is API 31; this one works on every version.

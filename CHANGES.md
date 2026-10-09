@@ -116,6 +116,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Audio preview & editor before sending**: sound files stop at the attachment preview instead of uploading straight away, showing a SoundCloud-style waveform you can swipe through, with the file's cover art blurred behind it and its title and artist above. The editor trims on that waveform and can change the speed, set the volume from silent to 500%, or play the whole thing backwards. A plain trim is copied rather than re-encoded, so it is near-instant and costs no quality.
 
+- **SVG rasterization**: send an SVG as a regular image at a size you choose, for clients that cannot display vectors.
+
 - **Compression controls before sending**: set the quality and the exact output resolution of a photo or video from the attachment preview, with width and height linked to the source aspect ratio until you break the link. The preview reshapes to what will be sent, and the editor opens on that same shape.
 
 - **Video playback controls**: Telegram-style playback in the full-screen viewer and the attachment preview, with an on-video play/pause button, controls that hide themselves during playback, double-tap on either side to jump 10 seconds, a frame preview while scrubbing, and a millisecond seekbar with elapsed and total time. Videos loop unless the new "Loop videos" setting is off, and a video's length shows on its timeline thumbnail. The overflow menu sets playback from 0.1x to 3x with the pitch either following or holding, and the volume from silent to 500%, boosting the sound above its own loudness rather than scaling it. Speed and volume belong to that video and reset when you swipe away.

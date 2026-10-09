@@ -71,3 +71,8 @@
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
 }
+
+# SvgDocumentIndex primes AndroidSVG 1.4's private ID cache before rendering.
+-keepclassmembers class com.caverock.androidsvg.SVG {
+    java.util.Map idToElementMap;
+}

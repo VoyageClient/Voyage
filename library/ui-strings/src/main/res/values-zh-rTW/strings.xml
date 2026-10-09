@@ -3471,4 +3471,7 @@
     <string name="forwarded_unknown_room">未知的聊天室</string>
     <string name="external_link_destination_title">開啟此連結？</string>
     <string name="external_link_destination_message">此連結將帶您前往 %1$s。\n\n要繼續嗎？</string>
+    <string name="attachment_rasterize">點陣化</string>
+    <string name="attachment_rasterization_title">點陣化</string>
+    <string name="attachment_rasterization_recommended">建議：%1$d × %2$d</string>
 </resources>

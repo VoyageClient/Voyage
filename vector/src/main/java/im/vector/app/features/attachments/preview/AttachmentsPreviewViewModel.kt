@@ -20,6 +20,7 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             is AttachmentsPreviewAction.UpdateCurrentAttachment -> handleUpdateCurrentAttachment(action)
             AttachmentsPreviewAction.RemoveCurrentAttachment -> handleRemoveCurrentAttachment()
             AttachmentsPreviewAction.RestoreOriginalAttachment -> handleRestoreOriginalAttachment()
+            is AttachmentsPreviewAction.SetRasterize -> handleSetRasterize(action)
             is AttachmentsPreviewAction.SetCompression -> handleSetCompression(action)
             is AttachmentsPreviewAction.SetKeepOriginalSize -> handleSetKeepOriginalSize(action)
             is AttachmentsPreviewAction.SetSendAsSpoiler -> handleSetSendAsSpoiler(action)
@@ -63,6 +64,32 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         }
     }
 
+    private fun handleSetRasterize(action: AttachmentsPreviewAction.SetRasterize) = withState {
+        val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
+        val key = it.stableIdOf(current)
+        val record = it.editRecords[current.queryUri]?.takeUnless { action.rasterize }
+        setState {
+            val settings = when {
+                record?.sourceRasterSize != null -> {
+                    val (width, height) = record.sourceRasterSize
+                    compressionSettings + (key to (compressionSettings[key] ?: CompressionSettings()).copy(width = width, height = height))
+                }
+                action.rasterize && !compressionSettings.containsKey(key) -> compressionSettings + (key to CompressionSettings.recommendedRasterization(
+                        current.displayWidth?.toInt(), current.displayHeight?.toInt()
+                ))
+                else -> compressionSettings
+            }
+            copy(
+                    attachments = if (record == null) attachments else attachments.map { attachment ->
+                        if (attachment.queryUri == current.queryUri) record.original else attachment
+                    },
+                    editRecords = if (record == null) editRecords else editRecords - current.queryUri,
+                    rasterize = if (action.rasterize) rasterize + key else rasterize - key,
+                    compressionSettings = settings
+            )
+        }
+    }
+
     private fun handleSetKeepOriginalSize(action: AttachmentsPreviewAction.SetKeepOriginalSize) = withState {
         val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
         val key = it.stableIdOf(current)
@@ -93,8 +120,13 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
         val record = it.editRecords[current.queryUri] ?: return@withState
         val attachments = it.attachments.toMutableList().apply { set(it.currentAttachmentIndex, record.original) }
+        val key = it.stableIdOf(current)
         setState {
-            copy(attachments = attachments, editRecords = editRecords - current.queryUri)
+            val settings = record.sourceRasterSize?.let { (width, height) ->
+                (compressionSettings[key] ?: CompressionSettings()).copy(width = width, height = height)
+            }
+            copy(attachments = attachments, editRecords = editRecords - current.queryUri,
+                    compressionSettings = if (settings == null) compressionSettings else compressionSettings + (key to settings))
         }
     }
 
@@ -133,9 +165,16 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         val replacedId = it.attachments.getOrNull(it.currentAttachmentIndex)
                 ?.takeIf { action.replacementType != null }
                 ?.let { current -> it.stableIdOf(current) }
+        val currentId = it.attachments.getOrNull(it.currentAttachmentIndex)?.let { current -> it.stableIdOf(current) }
+        val rasterSize = if (action.editRecord?.original?.getSafeMimeType() == MimeTypes.Svg && action.width != null && action.height != null) {
+            currentId?.let { key -> key to (it.compressionSettings[key] ?: CompressionSettings()).copy(
+                    width = action.width.toInt(), height = action.height.toInt()
+            ) }
+        } else null
         setState {
             if (replacedId == null) {
-                copy(attachments = attachments, editRecords = editRecords)
+                copy(attachments = attachments, editRecords = editRecords,
+                        compressionSettings = if (rasterSize == null) compressionSettings else compressionSettings + rasterSize)
             } else {
                 copy(
                         attachments = attachments,

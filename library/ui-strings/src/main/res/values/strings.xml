@@ -3921,6 +3921,9 @@
     <string name="animated_image_editor_load_failed">Couldn\'t open this animated image</string>
     <string name="animated_image_editor_export_failed">Couldn\'t save the edited animated image</string>
     <string name="animated_image_editor_no_transparency">This version of Android can\'t save an animated image with transparency</string>
+    <string name="attachment_rasterize">Rasterize</string>
+    <string name="attachment_rasterization_title">Rasterization</string>
+    <string name="attachment_rasterization_recommended">Recommended: %1$d × %2$d</string>
     <string name="attachment_compression_title">Compression</string>
     <string name="attachment_compression_quality">Quality</string>
     <string name="attachment_compression_resolution">Resolution</string>

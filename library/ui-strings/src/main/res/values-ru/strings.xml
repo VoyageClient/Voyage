@@ -3657,4 +3657,7 @@
     <string name="forwarded_unknown_room">Неизвестная комната</string>
     <string name="external_link_destination_title">Открыть эту ссылку?</string>
     <string name="external_link_destination_message">Эта ссылка ведёт на %1$s.\n\nПродолжить?</string>
+    <string name="attachment_rasterize">Растрировать</string>
+    <string name="attachment_rasterization_title">Растрирование</string>
+    <string name="attachment_rasterization_recommended">Рекомендуется: %1$d × %2$d</string>
 </resources>

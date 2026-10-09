@@ -3533,4 +3533,7 @@
     <string name="forwarded_unknown_room">Salon inconnu</string>
     <string name="external_link_destination_title">Ouvrir ce lien ?</string>
     <string name="external_link_destination_message">Ce lien vous mènera à %1$s.\n\nVoulez-vous continuer ?</string>
+    <string name="attachment_rasterize">Pixelliser</string>
+    <string name="attachment_rasterization_title">Pixellisation</string>
+    <string name="attachment_rasterization_recommended">Recommandé : %1$d × %2$d</string>
 </resources>

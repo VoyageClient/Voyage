@@ -3467,4 +3467,7 @@
     <string name="forwarded_unknown_room">不明なルーム</string>
     <string name="external_link_destination_title">このリンクを開きますか？</string>
     <string name="external_link_destination_message">このリンクを開くと %1$s に移動します。\n\n続行しますか？</string>
+    <string name="attachment_rasterize">ラスタライズ</string>
+    <string name="attachment_rasterization_title">ラスタライズ</string>
+    <string name="attachment_rasterization_recommended">推奨：%1$d × %2$d</string>
 </resources>

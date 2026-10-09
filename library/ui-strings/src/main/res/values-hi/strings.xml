@@ -3415,4 +3415,7 @@
     <string name="forwarded_unknown_room">अज्ञात रूम</string>
     <string name="external_link_destination_title">यह लिंक खोलें?</string>
     <string name="external_link_destination_message">यह लिंक आपको %1$s पर ले जाएगा।\n\nक्या आप जारी रखना चाहते हैं?</string>
+    <string name="attachment_rasterize">रास्टराइज़ करें</string>
+    <string name="attachment_rasterization_title">रास्टराइज़ेशन</string>
+    <string name="attachment_rasterization_recommended">अनुशंसित: %1$d × %2$d</string>
 </resources>

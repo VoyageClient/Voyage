@@ -42,6 +42,7 @@ import im.vector.app.databinding.ActivityVideoEditorBinding
 import im.vector.app.features.attachments.editor.AspectRatioPicker
 import im.vector.app.features.attachments.editor.EditorColorBar
 import im.vector.app.features.attachments.editor.EditorHistoryCache
+import im.vector.app.features.attachments.editor.finishWithPreview
 import im.vector.app.features.attachments.editor.restoreOriginalResult
 import im.vector.app.features.attachments.editor.setEnabledDimmed
 import im.vector.app.features.attachments.editor.video.AnimatedImageExporter
@@ -55,6 +56,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -73,6 +75,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     private var imageLoaded = false
     private var saving = false
     private var exportJob: Job? = null
+    private var exportOverlayDelayJob: Job? = null
     private val exportOverlay by lazy {
         val editor = ActivityVideoEditorBinding.inflate(layoutInflater)
         val overlay = editor.videoEditorExportOverlay
@@ -265,10 +268,16 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         }
     }
 
+    private fun rasterTargetSize(): Pair<Int, Int>? {
+        val width = intent.getIntExtra(EXTRA_TARGET_WIDTH, 0)
+        val height = intent.getIntExtra(EXTRA_TARGET_HEIGHT, 0)
+        return if (width > 0 && height > 0) width to height else null
+    }
+
     private fun loadBitmap() {
         lifecycleScope.launch {
             val bitmap = withContext(Dispatchers.IO) {
-                runCatching { ImageEditorExporter.loadForDisplay(this@ImageEditorActivity, sourceUri) }.getOrNull()
+                runCatching { ImageEditorExporter.loadForDisplay(this@ImageEditorActivity, sourceUri, rasterTargetSize()) }.getOrNull()
             }
             if (bitmap == null) {
                 Toast.makeText(this@ImageEditorActivity, getString(CommonStrings.image_editor_load_failed), Toast.LENGTH_SHORT).show()
@@ -352,34 +361,42 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         }
         if (!edits.hasChanges) {
             keepHistory(edits)
-            setResult(RESULT_OK, restoreOriginalResult(sourceUri))
-            finish()
+            finishWithPreview(restoreOriginalResult(sourceUri))
             return
         }
         saving = true
         animatedTarget?.onStop()
         views.imageEditorSaveButton.isEnabled = false
         exportOverlay.findViewById<ProgressBar>(R.id.videoEditorExportProgress).progress = 0
+        exportOverlay.alpha = 0f
         exportOverlay.isVisible = true
+        exportOverlayDelayJob = lifecycleScope.launch {
+            delay(300)
+            exportOverlay.alpha = 1f
+        }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         invalidateOptionsMenu()
         exportJob = lifecycleScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
                     if (animatedFormat != null) exportAnimatedImage(edits) else {
-                        ImageEditorExporter.export(this@ImageEditorActivity, sourceUri, edits, displayName, sourceMimeType)
+                        if (intent.getBooleanExtra(EXTRA_VECTOR_PREVIEW, false)) {
+                            SvgEditorExporter.export(this@ImageEditorActivity, sourceUri, edits, displayName, rasterTargetSize())
+                        } else {
+                            ImageEditorExporter.export(this@ImageEditorActivity, sourceUri, edits, displayName, sourceMimeType, rasterTargetSize())
+                        }
                     }
                 } ?: error("Unable to export edited image")
-                setResult(RESULT_OK, Intent().apply {
+                val editorResult = Intent().apply {
                     putExtra(EXTRA_RESULT_URI, result.uri.toString())
                     putExtra(EXTRA_RESULT_WIDTH, result.width)
                     putExtra(EXTRA_RESULT_HEIGHT, result.height)
                     putExtra(EXTRA_RESULT_SIZE, result.size)
                     putExtra(EXTRA_RESULT_MIME_TYPE, result.mimeType)
                     putExtra(EXTRA_RESULT_EDITS, edits)
-                })
+                }
                 keepHistory(edits)
-                finish()
+                finishWithPreview(editorResult)
             } catch (_: CancellationException) {
             } catch (error: Throwable) {
                 Timber.w(error, "Failed to export edited image")
@@ -389,7 +406,9 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
                 Toast.makeText(this@ImageEditorActivity, getString(message), Toast.LENGTH_SHORT).show()
             } finally {
                 saving = false
+                exportOverlayDelayJob?.cancel()
                 exportOverlay.isVisible = false
+                exportOverlay.alpha = 1f
                 views.imageEditorSaveButton.isEnabled = true
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 invalidateOptionsMenu()
@@ -439,6 +458,9 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         private const val EXTRA_EDITS = "EXTRA_EDITS"
         private const val EXTRA_RESULT_EDITS = "EXTRA_RESULT_EDITS"
         private const val EXTRA_ANIMATED_FORMAT = "EXTRA_ANIMATED_FORMAT"
+        private const val EXTRA_VECTOR_PREVIEW = "EXTRA_VECTOR_PREVIEW"
+        private const val EXTRA_TARGET_WIDTH = "EXTRA_TARGET_WIDTH"
+        private const val EXTRA_TARGET_HEIGHT = "EXTRA_TARGET_HEIGHT"
         private const val EXTRA_ASPECT_RATIO = "EXTRA_ASPECT_RATIO"
 
         fun newIntent(
@@ -449,13 +471,20 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
                 edits: ImageEditorEdits?,
                 aspectRatio: Float? = null,
                 animatedFormat: AnimatedImageFormat? = null,
+                targetSize: Pair<Int, Int>? = null,
+                vectorPreview: Boolean = false,
         ): Intent {
             return Intent(context, ImageEditorActivity::class.java).apply {
                 putExtra(EXTRA_SOURCE_URI, source.toString())
+                putExtra(EXTRA_VECTOR_PREVIEW, vectorPreview)
                 putExtra(EXTRA_DISPLAY_NAME, displayName)
                 putExtra(EXTRA_MIME_TYPE, mimeType)
                 putExtra(EXTRA_ANIMATED_FORMAT, animatedFormat?.name)
                 putExtra(EXTRA_EDITS, edits)
+                targetSize?.let {
+                    putExtra(EXTRA_TARGET_WIDTH, it.first)
+                    putExtra(EXTRA_TARGET_HEIGHT, it.second)
+                }
                 aspectRatio?.let { putExtra(EXTRA_ASPECT_RATIO, it) }
             }
         }

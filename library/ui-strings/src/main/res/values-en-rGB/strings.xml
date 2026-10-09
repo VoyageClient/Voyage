@@ -68,4 +68,6 @@
     <string name="settings_troubleshoot_test_distributor_battery_failed">%s is subject to battery optimisation, so the system may cut the connection your pushes arrive on. Exempt it in its own settings.</string>
     <string name="image_editor_snap_on">Snapping to the centre lines and 45° angles</string>
     <string name="image_editor_color_custom">Custom colour</string>
+    <string name="attachment_rasterize">Rasterise</string>
+    <string name="attachment_rasterization_title">Rasterisation</string>
 </resources>

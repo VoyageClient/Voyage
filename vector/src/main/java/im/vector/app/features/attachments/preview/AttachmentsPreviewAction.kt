@@ -14,6 +14,7 @@ import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 sealed class AttachmentsPreviewAction : VectorViewModelAction {
     object RemoveCurrentAttachment : AttachmentsPreviewAction()
     object RestoreOriginalAttachment : AttachmentsPreviewAction()
+    data class SetRasterize(val rasterize: Boolean) : AttachmentsPreviewAction()
     data class SetCompression(val settings: CompressionSettings) : AttachmentsPreviewAction()
     data class SetKeepOriginalSize(val keep: Boolean) : AttachmentsPreviewAction()
     data class SetSendAsSpoiler(val sendAsSpoiler: Boolean) : AttachmentsPreviewAction()

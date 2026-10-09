@@ -13,9 +13,12 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import android.util.Xml
 import androidx.exifinterface.media.ExifInterface
 import com.caverock.androidsvg.SVG
+import org.xmlpull.v1.XmlPullParser
 import timber.log.Timber
+import java.io.StringWriter
 
 // android.util.Size is API 21+; this local equivalent keeps multipicker working on KitKat.
 data class ImageSize(val width: Int, val height: Int)
@@ -66,7 +69,21 @@ object ImageUtils {
     /** BitmapFactory cannot measure SVGs; fall back to declared dimensions or the view box. */
     private fun svgSize(context: Context, uri: Uri): ImageSize? {
         return try {
-            val svg = context.contentResolver.openInputStream(uri)?.use { SVG.getFromInputStream(it) } ?: return null
+            val svg = context.contentResolver.openInputStream(uri)?.use { input ->
+                // Only the root attributes determine dimensions; parsing paths and gradients blocks the picker.
+                val parser = Xml.newPullParser().apply { setInput(input, null) }
+                parser.nextTag()
+                parser.require(XmlPullParser.START_TAG, null, "svg")
+                val header = StringWriter()
+                val serializer = Xml.newSerializer().apply { setOutput(header) }
+                serializer.startTag(null, "svg")
+                for (attribute in arrayOf("width", "height", "viewBox", "preserveAspectRatio")) {
+                    parser.getAttributeValue(null, attribute)?.let { serializer.attribute(null, attribute, it) }
+                }
+                serializer.endTag(null, "svg")
+                serializer.flush()
+                SVG.getFromString(header.toString())
+            } ?: return null
             val declared = ImageSize(svg.documentWidth.toInt(), svg.documentHeight.toInt())
             if (declared.width > 0 && declared.height > 0) return declared
             val viewBox = svg.documentViewBox ?: return null

@@ -3626,4 +3626,7 @@
     <string name="forwarded_unknown_room">חדר לא ידוע</string>
     <string name="external_link_destination_title">לפתוח את הקישור הזה?</string>
     <string name="external_link_destination_message">הקישור הזה יוביל אותך אל %1$s.\n\nהאם ברצונך להמשיך?</string>
+    <string name="attachment_rasterize">המרה לרסטר</string>
+    <string name="attachment_rasterization_title">רסטריזציה</string>
+    <string name="attachment_rasterization_recommended">מומלץ: %1$d × %2$d</string>
 </resources>

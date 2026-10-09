@@ -26,6 +26,12 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/attachmentsPreviewRasterizeAction"
+        android:checkable="true"
+        android:title="@string/attachment_rasterize"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/attachmentsPreviewSendAsSpoilerAction"
         android:checkable="true"
         android:title="@string/send_as_spoiler"

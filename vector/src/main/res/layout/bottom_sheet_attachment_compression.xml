@@ -11,6 +11,7 @@
     android:paddingBottom="24dp">
 
     <TextView
+        android:id="@+id/compressionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/attachment_compression_title"

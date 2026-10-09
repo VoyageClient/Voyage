@@ -14,6 +14,7 @@ import javax.inject.Inject
 class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyController<AttachmentsPreviewViewState>() {
 
     var playbackListener: VideoPlaybackListener? = null
+    var previewReadyListener: ((String) -> Unit)? = null
     var loopVideos: Boolean = false
 
     /** Orientation-dependent sizing; the screen keeps its views across a rotation, so it is pushed. */
@@ -44,13 +45,15 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
         val host = this
         data.attachments.forEachIndexed { index, contentAttachmentData ->
             val settings = data.compressionSettings[data.stableIdOf(contentAttachmentData)]
+                    .takeIf { !data.isSvg(contentAttachmentData) || data.rasterize.contains(data.stableIdOf(contentAttachmentData)) }
             attachmentBigPreviewItem {
                 id(data.stableIdOf(contentAttachmentData))
-                attachment(contentAttachmentData)
+                attachment(data.previewOf(contentAttachmentData))
                 activePage(data.currentAttachmentIndex == index)
                 playbackAllowed(host.playbackAllowed)
                 loopVideos(host.loopVideos)
                 playbackListener(host.playbackListener)
+                previewReadyListener(host.previewReadyListener)
                 showInlineArt(host.showInlineArt)
                 waveformHeightPx(host.waveformHeightPx)
                 // So the preview is shaped like what will actually be sent.
@@ -73,7 +76,7 @@ class AttachmentMiniaturePreviewController @Inject constructor() : TypedEpoxyCon
         data.attachments.forEachIndexed { index, contentAttachmentData ->
             attachmentMiniaturePreviewItem {
                 id(data.stableIdOf(contentAttachmentData))
-                attachment(contentAttachmentData)
+                attachment(data.previewOf(contentAttachmentData))
                 checked(data.currentAttachmentIndex == index)
                 clickListener { _ ->
                     host.callback?.onAttachmentClicked(index, contentAttachmentData)

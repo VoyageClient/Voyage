@@ -3682,4 +3682,7 @@
     <string name="forwarded_unknown_room">غرفة غير معروفة</string>
     <string name="external_link_destination_title">فتح هذا الرابط؟</string>
     <string name="external_link_destination_message">سينقلك هذا الرابط إلى %1$s.\n\nهل تريد المتابعة؟</string>
+    <string name="attachment_rasterize">تحويل إلى نقطية</string>
+    <string name="attachment_rasterization_title">التحويل إلى نقطية</string>
+    <string name="attachment_rasterization_recommended">المُوصى به: %1$d × %2$d</string>
 </resources>

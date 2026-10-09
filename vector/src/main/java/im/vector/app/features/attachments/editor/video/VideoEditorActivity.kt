@@ -57,6 +57,7 @@ import im.vector.app.databinding.ActivityVideoEditorBinding
 import im.vector.app.features.attachments.editor.AspectRatioPicker
 import im.vector.app.features.attachments.editor.EditHistory
 import im.vector.app.features.attachments.editor.EditorHistoryCache
+import im.vector.app.features.attachments.editor.finishWithPreview
 import im.vector.app.features.attachments.editor.image.ImageEditorEdits
 import im.vector.app.features.attachments.editor.image.ImageEditorExporter
 import im.vector.app.features.attachments.editor.restoreOriginalResult
@@ -76,6 +77,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.debug.DebugLog
@@ -109,6 +111,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var exportJob: Job? = null
+    private var exportOverlayDelayJob: Job? = null
     private var fineMode = false
     private var scrubbing = false
     private var playheadAnimator: ValueAnimator? = null
@@ -559,15 +562,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             if (result.exceptionOrNull() is CancellationException) return@launch
             result.fold(
                     onSuccess = { output ->
-                        setResult(RESULT_OK, Intent().apply {
+                        val editorResult = Intent().apply {
                             putExtra(EXTRA_RESULT_URI, output.uri.toString())
                             putExtra(EXTRA_RESULT_WIDTH, output.width)
                             putExtra(EXTRA_RESULT_HEIGHT, output.height)
                             putExtra(EXTRA_RESULT_SIZE, output.size)
                             putExtra(EXTRA_RESULT_MIME_TYPE, output.mimeType)
                             putExtra(EXTRA_RESULT_CAPTURED_FRAME, true)
-                        })
-                        finish()
+                        }
+                        finishWithPreview(editorResult)
                     },
                     onFailure = { error ->
                         Timber.w(error, "VideoEditor: frame capture failed")
@@ -1334,8 +1337,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
         if (!edits.hasChanges) {
             keepHistory(edits)
-            setResult(RESULT_OK, restoreOriginalResult())
-            finish()
+            finishWithPreview(restoreOriginalResult())
             return
         }
         pausePlayback()
@@ -1355,7 +1357,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                                     this@VideoEditorActivity, getString(CommonStrings.video_editor_audio_dropped), Toast.LENGTH_SHORT
                             ).show()
                         }
-                        setResult(RESULT_OK, Intent().apply {
+                        val editorResult = Intent().apply {
                             putExtra(EXTRA_RESULT_URI, output.uri.toString())
                             putExtra(EXTRA_RESULT_WIDTH, output.width)
                             putExtra(EXTRA_RESULT_HEIGHT, output.height)
@@ -1363,9 +1365,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                             putExtra(EXTRA_RESULT_DURATION, output.durationMs)
                             putExtra(EXTRA_RESULT_MIME_TYPE, output.mimeType)
                             putExtra(EXTRA_RESULT_EDITS, edits)
-                        })
+                        }
                         keepHistory(edits)
-                        finish()
+                        finishWithPreview(editorResult)
                     },
                     onFailure = { error ->
                         Timber.w(error, "VideoEditor: export failed")
@@ -1409,7 +1411,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private fun showExportOverlay(visible: Boolean) {
         exporting = visible
+        exportOverlayDelayJob?.cancel()
+        views.videoEditorExportOverlay.alpha = if (visible) 0f else 1f
         views.videoEditorExportOverlay.visibility = if (visible) View.VISIBLE else View.GONE
+        if (visible) {
+            exportOverlayDelayJob = lifecycleScope.launch {
+                delay(300)
+                views.videoEditorExportOverlay.alpha = 1f
+            }
+        }
         // The overlay covers everything, but the save button and the app bar are raised above it on
         // API 21+, where elevation decides what a touch lands on rather than the order in the layout.
         ViewCompat.setElevation(views.videoEditorExportOverlay, if (visible) EXPORT_OVERLAY_ELEVATION else 0f)

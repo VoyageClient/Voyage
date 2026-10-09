@@ -3469,4 +3469,7 @@
     <string name="forwarded_unknown_room">未知房间</string>
     <string name="external_link_destination_title">打开此链接？</string>
     <string name="external_link_destination_message">此链接将带你前往 %1$s。\n\n是否继续？</string>
+    <string name="attachment_rasterize">栅格化</string>
+    <string name="attachment_rasterization_title">栅格化</string>
+    <string name="attachment_rasterization_recommended">推荐：%1$d × %2$d</string>
 </resources>

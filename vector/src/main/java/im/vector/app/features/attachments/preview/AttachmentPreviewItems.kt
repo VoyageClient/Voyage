@@ -91,6 +91,15 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
      */
     protected open val defaultScaleType: ImageView.ScaleType? = null
 
+    protected open fun onPreviewReady(uri: String) = Unit
+
+    private fun notifyPreviewReady(holder: H) {
+        val uri = attachment.queryUri
+        holder.imageView.post {
+            onPreviewReady(uri)
+        }
+    }
+
     override fun bind(holder: H) {
         super.bind(holder)
         defaultScaleType?.let { holder.imageView.scaleType = it }
@@ -112,6 +121,18 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                         .load(uri)
                         .apply(RequestOptions().frame(0))
                         .placeholder(currentPoster)
+                        .listener(object : RequestListener<Bitmap> {
+                            override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
+                                bindFileCard(holder)
+                                return true
+                            }
+
+                            override fun onResourceReady(resource: Bitmap, model: Any, target: Target<Bitmap>?,
+                                                         dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                                notifyPreviewReady(holder)
+                                return false
+                            }
+                        })
                         .thumbnail(
                                 Glide.with(holder.view.context)
                                         .asBitmap()
@@ -145,12 +166,16 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                                     target: Target<Drawable>?,
                                     dataSource: DataSource,
                                     isFirstResource: Boolean
-                            ) = false
+                            ): Boolean {
+                                notifyPreviewReady(holder)
+                                return false
+                            }
                         })
                         .into(holder.imageView)
             }
             ContentAttachmentData.Type.AUDIO, ContentAttachmentData.Type.VOICE_MESSAGE -> {
                 bindAudioThumbnail(holder)
+                notifyPreviewReady(holder)
             }
             else -> bindFileCard(holder)
         }
@@ -158,6 +183,7 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
 
     /** What an attachment with nothing to show for itself looks like. */
     private fun bindFileCard(holder: H) {
+        notifyPreviewReady(holder)
         holder.imageView.setImageResource(R.drawable.ic_paperclip_card)
         ImageViewCompat.setImageTintList(holder.imageView, ColorStateList.valueOf(Color.WHITE))
         holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
@@ -258,6 +284,11 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
     @EpoxyAttribute var targetSize: Pair<Int, Int>? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var playbackListener: VideoPlaybackListener? = null
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var previewReadyListener: ((String) -> Unit)? = null
+
+    override fun onPreviewReady(uri: String) {
+        previewReadyListener?.invoke(uri)
+    }
 
     override fun bind(holder: Holder) {
         super.bind(holder)

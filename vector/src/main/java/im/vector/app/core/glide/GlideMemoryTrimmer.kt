@@ -21,6 +21,7 @@ object GlideMemoryTrimmer {
      */
     fun onAppBackgrounded(context: Context) {
         Glide.get(context).clearMemory()
+        SvgPictureCache.clear()
         Timber.i("Cleared Glide memory cache on entering background")
     }
 }

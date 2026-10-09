@@ -19,6 +19,7 @@ import android.media.MediaMetadataRetriever
 import android.os.Build
 import androidx.core.graphics.createBitmap
 import com.caverock.androidsvg.SVG
+import com.caverock.androidsvg.SvgDocumentIndex
 import com.vanniktech.blurhash.BlurHash
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -166,6 +167,7 @@ internal class AndroidAttachmentMediaProcessor @Inject constructor(
     private fun rasterizeSvgForBlurHash(file: File): Bitmap? {
         return tryOrNull {
             val svg = file.inputStream().use { SVG.getFromInputStream(it) }
+            SvgDocumentIndex.prepare(svg)
             // documentAspectRatio requires explicit width and height; viewBox also supports implicit SVG sizes.
             val viewBox = svg.documentViewBox
             val docWidth = svg.documentWidth.takeIf { it > 0f } ?: viewBox?.width() ?: 1f
