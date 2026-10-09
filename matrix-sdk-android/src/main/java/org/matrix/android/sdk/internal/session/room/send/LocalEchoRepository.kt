@@ -259,13 +259,24 @@ internal class LocalEchoRepository @Inject constructor(
         stores.annotations.delete(localEchoId)
     }
 
+    // Queued so it can't beat the echo's deferred insert and be silently lost. Never call from a queued task.
     suspend fun updateEcho(eventId: String, block: (EventEntity) -> Unit) {
-        database.awaitDbTransaction(dispatcher) {
-            stores.event.getByEventId(eventId)?.let { entity ->
-                block(entity)
-                stores.event.updateEcho(entity)
+        val done = CompletableDeferred<Unit>()
+        enqueueDbTask {
+            try {
+                database.awaitDbTransaction(dispatcher) {
+                    stores.event.getByEventId(eventId)?.let { entity ->
+                        block(entity)
+                        stores.event.updateEcho(entity)
+                    }
+                }
+                done.complete(Unit)
+            } catch (failure: Throwable) {
+                done.completeExceptionally(failure)
+                throw failure
             }
         }
+        done.await()
     }
 
     fun updateEchoAsync(eventId: String, block: (EventEntity) -> Unit) {
