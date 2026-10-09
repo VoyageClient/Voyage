@@ -1107,14 +1107,10 @@
     <string name="login_signin_sso">シングルサインオンで続行</string>
     <string name="login_signin">サインイン</string>
     <string name="login_signup">サインアップ</string>
-    <string name="login_connect_to_modular">Element Matrix Servicesに接続</string>
     <string name="login_signin_matrix_id_title">Matrix IDでサインイン</string>
     <string name="login_connect_using_matrix_id_submit">Matrix IDでサインイン</string>
-    <string name="login_server_modular_learn_more">詳細を表示</string>
     <string name="login_server_other_title">その他</string>
     <string name="login_server_other_text">ユーザー定義と高度な設定</string>
-    <string name="login_server_url_form_modular_text">組織向けのプレミアムホスティング</string>
-    <string name="login_server_modular_text">組織向けのプレミアムホスティング</string>
     <string name="login_server_matrix_org_text">最大の公開サーバーで、数百万人に無料で参加</string>
     <string name="login_server_text">電子メールと同じように、アカウントには1つのホームがありますが、誰とでも話すことができます</string>
     <string name="login_server_title">サーバーを選択</string>
@@ -1663,7 +1659,6 @@
     <string name="login_set_msisdn_title">電話番号を設定</string>
     <string name="login_reset_password_success_notice">パスワードを再設定しました。</string>
     <string name="login_reset_password_on">%1$sでパスワードを再設定</string>
-    <string name="login_server_url_form_modular_hint">Element Matrix Servicesのアドレス</string>
     <string name="login_signin_to">%1$sにサインイン</string>
     <string name="ftue_auth_use_case_title">誰と最もよく会話しますか？</string>
     <string name="this_space_has_no_rooms_not_admin">非公開で招待が必要なルームは表示されていません。
@@ -1705,7 +1700,6 @@
 \nウェブクライアントを使用してサインインしますか？</string>
     <string name="login_sso_error_message">ページ %1$s を読み込んでいる際にエラーが発生しました（%2$d）</string>
     <string name="login_server_url_form_common_notice">使用したいサーバーのアドレスを入力してください</string>
-    <string name="login_server_url_form_modular_notice">使用したいModular Elementまたはサーバーのアドレスを入力してください</string>
     <string name="ftue_auth_use_case_skip">迷っていますか？%s</string>
     <string name="ftue_auth_use_case_subtitle">みんなと繋がる手助けをいたします</string>
     <string name="user_code_my_code">自分のコード</string>

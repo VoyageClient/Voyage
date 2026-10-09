@@ -16,7 +16,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,7 +23,6 @@ import im.vector.app.R
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.ensureProtocol
-import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.FragmentLoginServerUrlFormBinding
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
@@ -55,7 +53,6 @@ class LoginServerUrlFormFragment :
     }
 
     private fun setupViews() {
-        views.loginServerUrlFormLearnMore.debouncedClicks { learnMore() }
         views.loginServerUrlFormClearHistory.debouncedClicks { clearHistory() }
         views.loginServerUrlFormSubmit.debouncedClicks { submit() }
     }
@@ -79,24 +76,10 @@ class LoginServerUrlFormFragment :
     }
 
     private fun setupUi(state: LoginViewState) {
-        when (state.serverType) {
-            ServerType.EMS -> {
-                views.loginServerUrlFormIcon.isVisible = true
-                views.loginServerUrlFormTitle.text = getString(CommonStrings.login_connect_to_modular)
-                views.loginServerUrlFormText.text = getString(CommonStrings.login_server_url_form_modular_text)
-                views.loginServerUrlFormLearnMore.isVisible = true
-                views.loginServerUrlFormHomeServerUrlTil.hint = getText(CommonStrings.login_server_url_form_modular_hint)
-                views.loginServerUrlFormNotice.text = getString(CommonStrings.login_server_url_form_modular_notice)
-            }
-            else -> {
-                views.loginServerUrlFormIcon.isVisible = false
-                views.loginServerUrlFormTitle.text = getString(CommonStrings.login_server_other_title)
-                views.loginServerUrlFormText.text = getString(CommonStrings.login_connect_to_a_custom_server)
-                views.loginServerUrlFormLearnMore.isVisible = false
-                views.loginServerUrlFormHomeServerUrlTil.hint = getText(CommonStrings.login_server_url_form_other_hint)
-                views.loginServerUrlFormNotice.text = getString(CommonStrings.login_server_url_form_common_notice)
-            }
-        }
+        views.loginServerUrlFormTitle.text = getString(CommonStrings.login_server_other_title)
+        views.loginServerUrlFormText.text = getString(CommonStrings.login_connect_to_a_custom_server)
+        views.loginServerUrlFormHomeServerUrlTil.hint = getText(CommonStrings.login_server_url_form_other_hint)
+        views.loginServerUrlFormNotice.text = getString(CommonStrings.login_server_url_form_common_notice)
         val completions = state.knownCustomHomeServersUrls + if (buildMeta.isDebug) listOf("http://10.0.2.2:8080") else emptyList()
         views.loginServerUrlFormHomeServerUrl.setAdapter(
                 ArrayAdapter(
@@ -108,10 +91,6 @@ class LoginServerUrlFormFragment :
         views.loginServerUrlFormHomeServerUrlTil.endIconMode = TextInputLayout.END_ICON_DROPDOWN_MENU
                 .takeIf { completions.isNotEmpty() }
                 ?: TextInputLayout.END_ICON_NONE
-    }
-
-    private fun learnMore() {
-        openUrlInChromeCustomTab(requireActivity(), null, EMS_LINK)
     }
 
     private fun clearHistory() {

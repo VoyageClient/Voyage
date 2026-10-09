@@ -15,16 +15,6 @@
                 style="@style/LoginLogo"
                 tools:ignore="ContentDescription" />
 
-            <!-- Displayed only for EMS -->
-            <ImageView
-                android:id="@+id/loginServerUrlFormIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:importantForAccessibility="no"
-                app:srcCompat="@drawable/ic_logo_element_matrix_services"
-                app:tint="?vctr_content_primary"
-                tools:ignore="MissingPrefix" />
-
             <TextView
                 android:id="@+id/loginServerUrlFormTitle"
                 style="@style/Widget.Vector.TextView.Title"
@@ -32,7 +22,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="27dp"
                 android:textColor="?vctr_content_primary"
-                tools:text="@string/login_connect_to_modular" />
+                tools:text="@string/login_server_other_title" />
 
             <TextView
                 android:id="@+id/loginServerUrlFormText"
@@ -42,16 +32,7 @@
                 android:layout_marginTop="@dimen/layout_vertical_margin"
                 android:gravity="start"
                 android:textColor="?vctr_content_secondary"
-                tools:text="@string/login_server_url_form_modular_text" />
-
-            <TextView
-                android:id="@+id/loginServerUrlFormLearnMore"
-                style="@style/Widget.Vector.TextView.Body"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/login_server_modular_learn_more"
-                android:textColor="?colorPrimary" />
+                tools:text="@string/login_connect_to_a_custom_server" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/loginServerUrlFormHomeServerUrlTil"
@@ -60,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="26dp"
                 app:errorEnabled="true"
-                tools:hint="@string/login_server_url_form_modular_hint">
+                tools:hint="@string/login_server_url_form_other_hint">
 
                 <AutoCompleteTextView
                     android:id="@+id/loginServerUrlFormHomeServerUrl"

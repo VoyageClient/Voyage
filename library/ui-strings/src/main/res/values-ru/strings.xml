@@ -906,21 +906,15 @@
     <string name="login_splash_submit">Начнем</string>
     <string name="login_server_title">Выберите сервер</string>
     <string name="login_server_text">Как и у электронной почты, у учётных записей один дом, не смотря на это вы можете общаться с кем угодно</string>
-    <string name="login_server_modular_text">Премиум-хостинг для организаций</string>
-    <string name="login_server_modular_learn_more">Узнать больше</string>
     <string name="login_server_other_title">Другой</string>
     <string name="login_server_other_text">Пользовательские и расширенные настройки</string>
     <string name="login_continue">Продолжить</string>
     <string name="login_connect_to">Подключиться к %1$s</string>
-    <string name="login_connect_to_modular">Подключиться к Element Matrix Services</string>
     <string name="login_connect_to_a_custom_server">Подключиться к пользовательскому серверу</string>
     <string name="login_signup">Зарегистрироваться</string>
     <string name="login_signin">Войти в систему</string>
     <string name="login_signin_sso">Продолжить с SSO</string>
-    <string name="login_server_url_form_modular_hint">Element Matrix Services Адрес</string>
     <string name="login_server_url_form_other_hint">Адрес</string>
-    <string name="login_server_url_form_modular_text">Премиум-хостинг для организаций</string>
-    <string name="login_server_url_form_modular_notice">Введите адрес Modular Element или Сервер, который вы хотите использовать</string>
     <string name="login_sso_error_message">Произошла ошибка при загрузке страницы: %1$s (%2$d)</string>
     <string name="login_mode_not_supported">Приложение не может войти на этот домашний сервер. Домашний сервер поддерживает следующие типы входа: %1$s.
 \n

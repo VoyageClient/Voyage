@@ -843,14 +843,11 @@
     <string name="login_signin_to">%1$s sunucusuna giriş yap</string>
     <string name="login_connect_to_a_custom_server">Özel bir sunucuya bağlan</string>
     <string name="login_connect_to">%1$s sunucusuna bağlan</string>
-    <string name="login_connect_to_modular">Element Matrix Hizmetlerine bağlan</string>
     <string name="login_social_sso">tek seferlik giriş</string>
     <string name="login_social_signup_with">%s ile kayıt ol</string>
     <string name="login_social_signin_with">%s ile giriş yap</string>
     <string name="login_social_continue">Ya da</string>
     <string name="login_server_other_text">Özel ve gelişmiş ayarlar</string>
-    <string name="login_server_modular_learn_more">Daha fazlasını öğrenin</string>
-    <string name="login_server_modular_text">Kuruluşlar için premium sunucu(hosting)</string>
     <string name="login_server_matrix_org_text">En büyük genel sunucuda ücretsiz olarak milyonlara katılın</string>
     <string name="login_server_text">Tıpkı e-posta gibi, hesapların da bir sunucusu vardır, ancak tüm sunuculardaki kişilerle konuşabilirsiniz</string>
     <string name="login_server_title">Bir sunucu seçin</string>
@@ -952,7 +949,6 @@
 \nİnternet istemcisi ile kayıt olmak ister misiniz\?</string>
     <string name="login_registration_disabled">Üzgünüm, bu sunucu artık yeni hesap kabul etmiyor.</string>
     <string name="login_login_with_email_error">Bu e-posta herhangi bir hesapla ilişkili değil.</string>
-    <string name="login_server_url_form_modular_hint">Element Matrix Hizmetleri Adresi</string>
     <string name="login_server_url_form_other_hint">Adres</string>
     <string name="login_clear_homeserver_history">Geçmişi temizle</string>
     <string name="login_signin">Giriş yap</string>
@@ -1378,8 +1374,6 @@
 \n Bir web istemcisi kullanarak oturum açmak istiyor musunuz\?</string>
     <string name="login_sso_error_message">Sayfa yüklenirken bir hata oluştu: %1$s (%2$d)</string>
     <string name="login_server_url_form_common_notice">Kullanmak istediğiniz sunucunun adresini girin</string>
-    <string name="login_server_url_form_modular_notice">Kullanmak istediğiniz Modüler Öğe veya Sunucunun adresini girin</string>
-    <string name="login_server_url_form_modular_text">Kuruluşlar için premium barındırma</string>
     <string name="login_signin_sso">SSO ile devam et</string>
     <string name="login_social_continue_with">%s ile devam et</string>
     <string name="login_splash_already_have_account">zaten bir hesabım var</string>

@@ -1461,8 +1461,6 @@
     <string name="login_server_title">একটি সার্ভার বেছে নিন</string>
     <string name="login_server_text">ইমেলের মতোই, অ্যাকাউন্টের একটি বাড়ি থাকে, যদিও আপনি যে কারও সাথে কথা বলতে পারেন</string>
     <string name="login_server_matrix_org_text">সবচেয়ে বড় সর্বজনীন সার্ভারে লাখো মানুষের সাথে বিনামূল্যে যোগ দিন</string>
-    <string name="login_server_modular_text">প্রতিষ্ঠানের জন্য প্রিমিয়াম হোস্টিং</string>
-    <string name="login_server_modular_learn_more">আরও জানুন</string>
     <string name="login_server_other_title">অন্যান্য</string>
     <string name="login_server_other_text">কাস্টম ও উন্নত সেটিংস</string>
     <string name="login_social_continue">অথবা</string>
@@ -1472,17 +1470,13 @@
     <string name="login_social_sso">সিঙ্গল সাইন-অন</string>
     <string name="login_continue">চালিয়ে যান</string>
     <string name="login_connect_to">%1$s-এ সংযোগ করুন</string>
-    <string name="login_connect_to_modular">Element Matrix Services-এ সংযোগ করুন</string>
     <string name="login_connect_to_a_custom_server">একটি কাস্টম সার্ভারে সংযোগ করুন</string>
     <string name="login_signin_to">%1$s-এ সাইন ইন করুন</string>
     <string name="login_signup">সাইন আপ</string>
     <string name="login_signin">সাইন ইন</string>
     <string name="login_signin_sso">SSO দিয়ে চালিয়ে যান</string>
     <string name="login_clear_homeserver_history">ইতিহাস মুছুন</string>
-    <string name="login_server_url_form_modular_hint">Element Matrix Services ঠিকানা</string>
     <string name="login_server_url_form_other_hint">ঠিকানা</string>
-    <string name="login_server_url_form_modular_text">প্রতিষ্ঠানের জন্য প্রিমিয়াম হোস্টিং</string>
-    <string name="login_server_url_form_modular_notice">আপনি যে Modular Element বা সার্ভার ব্যবহার করতে চান তার ঠিকানা লিখুন</string>
     <string name="login_server_url_form_common_notice">আপনি যে সার্ভার ব্যবহার করতে চান তার ঠিকানা লিখুন</string>
     <string name="login_sso_error_message">পৃষ্ঠা লোড করার সময় একটি ত্রুটি হয়েছে: %1$s (%2$d)</string>
     <string name="login_mode_not_supported">অ্যাপ্লিকেশনটি এই হোমসার্ভারে সাইন ইন করতে পারছে না। হোমসার্ভারটি নিচের সাইন ইন পদ্ধতি সমর্থন করে: %1$s।\n\nআপনি কি ওয়েব ক্লায়েন্ট ব্যবহার করে সাইন ইন করতে চান?</string>

@@ -942,22 +942,16 @@
     <string name="login_server_title">選取伺服器</string>
     <string name="login_server_text">就像電子郵件，帳號也有一個家，不過您還是可以跟任何人交談</string>
     <string name="login_server_matrix_org_text">在最大的公開伺服器上免費加入數百萬人之中</string>
-    <string name="login_server_modular_text">組織級需求，另提供專業代管服務</string>
-    <string name="login_server_modular_learn_more">了解更多</string>
     <string name="login_server_other_title">其他</string>
     <string name="login_server_other_text">自訂與進階設定</string>
     <string name="login_continue">繼續</string>
     <string name="login_connect_to">連線到 %1$s</string>
-    <string name="login_connect_to_modular">連線到 Element Matrix Services</string>
     <string name="login_connect_to_a_custom_server">連線到自訂伺服器</string>
     <string name="login_signin_to">登入到 %1$s</string>
     <string name="login_signup">註冊</string>
     <string name="login_signin">登入</string>
     <string name="login_signin_sso">使用 SSO 繼續</string>
-    <string name="login_server_url_form_modular_hint">Element Matrix Services 位址</string>
     <string name="login_server_url_form_other_hint">位址</string>
-    <string name="login_server_url_form_modular_text">組織用的收費代管服務</string>
-    <string name="login_server_url_form_modular_notice">輸入 Modular Element 或您想要使用的伺服器位址</string>
     <string name="login_sso_error_message">載入頁面時發生錯誤：%1$s（%2$d）</string>
     <string name="login_mode_not_supported">應用程式無法登入此家伺服器。家伺服器支援以下登入類型：%1$s。
 \n

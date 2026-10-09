@@ -1404,8 +1404,6 @@
     <string name="login_server_title">सर्वर चुनें</string>
     <string name="login_server_text">ईमेल की तरह, खातों का एक घर होता है, हालांकि आप किसी से भी बात कर सकते हैं</string>
     <string name="login_server_matrix_org_text">सबसे बड़े सार्वजनिक सर्वर पर लाखों लोगों से मुफ़्त में जुड़ें</string>
-    <string name="login_server_modular_text">संगठनों के लिए प्रीमियम होस्टिंग</string>
-    <string name="login_server_modular_learn_more">और जानें</string>
     <string name="login_server_other_title">अन्य</string>
     <string name="login_server_other_text">कस्टम और उन्नत सेटिंग</string>
     <string name="login_social_continue">या</string>
@@ -1415,17 +1413,13 @@
     <string name="login_social_sso">सिंगल साइन-ऑन</string>
     <string name="login_continue">जारी रखें</string>
     <string name="login_connect_to">%1$s से कनेक्ट करें</string>
-    <string name="login_connect_to_modular">Element Matrix Services से कनेक्ट करें</string>
     <string name="login_connect_to_a_custom_server">कस्टम सर्वर से कनेक्ट करें</string>
     <string name="login_signin_to">%1$s में साइन इन करें</string>
     <string name="login_signup">साइन अप करें</string>
     <string name="login_signin">साइन इन करें</string>
     <string name="login_signin_sso">SSO के साथ जारी रखें</string>
     <string name="login_clear_homeserver_history">इतिहास साफ़ करें</string>
-    <string name="login_server_url_form_modular_hint">Element Matrix Services पता</string>
     <string name="login_server_url_form_other_hint">पता</string>
-    <string name="login_server_url_form_modular_text">संगठनों के लिए प्रीमियम होस्टिंग</string>
-    <string name="login_server_url_form_modular_notice">उस Modular Element या सर्वर का पता डालें जिसका आप उपयोग करना चाहते हैं</string>
     <string name="login_server_url_form_common_notice">उस सर्वर का पता डालें जिसका आप उपयोग करना चाहते हैं</string>
     <string name="login_sso_error_message">पेज लोड करते समय एक त्रुटि हुई: %1$s (%2$d)</string>
     <string name="login_mode_not_supported">ऐप इस होमसर्वर में साइन इन नहीं कर सकता। होमसर्वर इन साइन इन प्रकारों का समर्थन करता है: %1$s।\n\nक्या आप वेब क्लाइंट से साइन इन करना चाहते हैं?</string>

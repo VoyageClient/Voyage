@@ -190,12 +190,6 @@ class FtueAuthLoginFragment :
                     views.loginTitle.text = getString(resId, state.selectedHomeserver.userFacingUrl.toReducedUrl())
                     views.loginNotice.text = getString(CommonStrings.login_server_matrix_org_text)
                 }
-                ServerType.EMS -> {
-                    views.loginServerIcon.isVisible = true
-                    views.loginServerIcon.setImageResource(R.drawable.ic_logo_element_matrix_services)
-                    views.loginTitle.text = getString(resId, "Element Matrix Services")
-                    views.loginNotice.text = getString(CommonStrings.login_server_modular_text)
-                }
                 ServerType.Other -> {
                     views.loginServerIcon.isVisible = false
                     views.loginTitle.text = getString(resId, state.selectedHomeserver.userFacingUrl.toReducedUrl())

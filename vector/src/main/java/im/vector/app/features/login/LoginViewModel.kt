@@ -440,7 +440,6 @@ class LoginViewModel @AssistedInject constructor(
             ServerType.MatrixOrg ->
                 // Request login flow here
                 handle(LoginAction.UpdateHomeServer(matrixOrgUrl))
-            ServerType.EMS,
             ServerType.Other -> _viewEvents.post(LoginViewEvents.OnServerSelectionDone(action.serverType))
         }
     }

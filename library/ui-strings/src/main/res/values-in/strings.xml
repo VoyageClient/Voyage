@@ -916,17 +916,13 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
 \nApakah Anda ingin masuk menggunakan klien web\?</string>
     <string name="login_sso_error_message">Ada kesalahan terjadi saat memuat halaman: %1$s (%2$d)</string>
     <string name="login_server_url_form_common_notice">Masukkan alamat server yang ingin Anda gunakan</string>
-    <string name="login_server_url_form_modular_notice">Masukkan alamat Modular Element atau Server yang ingin Anda gunakan</string>
-    <string name="login_server_url_form_modular_text">Hosting premium untuk organisasi</string>
     <string name="login_server_url_form_other_hint">Alamat</string>
-    <string name="login_server_url_form_modular_hint">Alamat Element Matrix Services</string>
     <string name="login_clear_homeserver_history">Hapus riwayat</string>
     <string name="login_signin_sso">Lanjutkan dengan login masuk-tunggal</string>
     <string name="login_signin">Masuk</string>
     <string name="login_signup">Daftar</string>
     <string name="login_signin_to">Masuk ke %1$s</string>
     <string name="login_connect_to_a_custom_server">Hubungkan ke server kustom</string>
-    <string name="login_connect_to_modular">Hubungkan ke Element Matrix Services</string>
     <string name="login_connect_to">Hubungkan ke %1$s</string>
     <string name="login_continue">Lanjutkan</string>
     <string name="login_social_sso">login masuk-tunggal</string>
@@ -936,8 +932,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="login_social_continue">Atau</string>
     <string name="login_server_other_text">Pengaturan kustom &amp; lanjutan</string>
     <string name="login_server_other_title">Lainnya</string>
-    <string name="login_server_modular_learn_more">Pelajari lebih lanjut</string>
-    <string name="login_server_modular_text">Hosting premium untuk organisasi</string>
     <string name="login_server_matrix_org_text">Bergabung dengan jutaan orang secara gratis di server publik terbesar</string>
     <string name="login_server_text">Sama seperti email, akun memiliki satu tempat, tetapi Anda dapat berkomunikasi dengan siapa saja</string>
     <string name="login_server_title">Pilih server</string>

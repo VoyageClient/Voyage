@@ -1416,8 +1416,6 @@
     <string name="login_server_title">سرور منتخب کریں</string>
     <string name="login_server_text">ای میل کی طرح کھاتوں کا ایک گھر ہوتا ہے، اگرچہ آپ کسی سے بھی بات کر سکتے ہیں</string>
     <string name="login_server_matrix_org_text">سب سے بڑے عوامی سرور پر لاکھوں لوگوں کے ساتھ مفت شامل ہوں</string>
-    <string name="login_server_modular_text">تنظیموں کے لیے پریمیم ہوسٹنگ</string>
-    <string name="login_server_modular_learn_more">مزید جانیں</string>
     <string name="login_server_other_title">دیگر</string>
     <string name="login_server_other_text">حسبِ ضرورت اور اعلیٰ ترتیبات</string>
     <string name="login_social_continue">یا</string>
@@ -1427,17 +1425,13 @@
     <string name="login_social_sso">یکباری دخول</string>
     <string name="login_continue">جاری رکھیں</string>
     <string name="login_connect_to">%1$s سے جڑیں</string>
-    <string name="login_connect_to_modular">Element Matrix Services سے جڑیں</string>
     <string name="login_connect_to_a_custom_server">حسبِ ضرورت سرور سے جڑیں</string>
     <string name="login_signin_to">%1$s میں داخل ہوں</string>
     <string name="login_signup">رجسٹر ہوں</string>
     <string name="login_signin">داخل ہوں</string>
     <string name="login_signin_sso">SSO کے ساتھ جاری رکھیں</string>
     <string name="login_clear_homeserver_history">سرگزشت صاف کریں</string>
-    <string name="login_server_url_form_modular_hint">Element Matrix Services کا پتہ</string>
     <string name="login_server_url_form_other_hint">پتہ</string>
-    <string name="login_server_url_form_modular_text">تنظیموں کے لیے پریمیم ہوسٹنگ</string>
-    <string name="login_server_url_form_modular_notice">جس Modular Element یا سرور کو آپ استعمال کرنا چاہتے ہیں اس کا پتہ درج کریں</string>
     <string name="login_server_url_form_common_notice">جس سرور کو آپ استعمال کرنا چاہتے ہیں اس کا پتہ درج کریں</string>
     <string name="login_sso_error_message">صفحہ لوڈ کرتے وقت خرابی پیش آئی: %1$s (%2$d)</string>
     <string name="login_mode_not_supported">ایپ اس منزلی خادم میں داخل نہیں ہو سکتی۔ منزلی خادم داخلے کی درج ذیل اقسام کی سہولت دیتا ہے: %1$s۔\n\nکیا آپ ویب کلائنٹ کے ذریعے داخل ہونا چاہتے ہیں؟</string>

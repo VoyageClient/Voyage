@@ -63,11 +63,6 @@ class FtueAuthSignUpSignInSelectionFragment :
                     title = getString(CommonStrings.login_connect_to, state.selectedHomeserver.userFacingUrl.toReducedUrl()),
                     subtitle = getString(CommonStrings.login_server_matrix_org_text)
             )
-            ServerType.EMS -> renderServerInformation(
-                    icon = R.drawable.ic_logo_element_matrix_services,
-                    title = getString(CommonStrings.login_connect_to_modular),
-                    subtitle = state.selectedHomeserver.userFacingUrl.toReducedUrl()
-            )
             ServerType.Other -> renderServerInformation(
                     icon = null,
                     title = getString(CommonStrings.login_server_other_title),

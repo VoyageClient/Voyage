@@ -482,7 +482,6 @@ class OnboardingViewModel @AssistedInject constructor(
             ServerType.MatrixOrg ->
                 // Request login flow here
                 handle(OnboardingAction.HomeServerChange.SelectHomeServer(matrixOrgUrl))
-            ServerType.EMS,
             ServerType.Other -> _viewEvents.post(OnboardingViewEvents.OnServerSelectionDone(action.serverType))
         }
     }
@@ -835,10 +834,11 @@ class OnboardingViewModel @AssistedInject constructor(
      * It is also useful to set the value again in the case of a certificate error on matrix.org.
      **/
     private fun OnboardingViewState.alignServerTypeAfterSubmission(config: HomeServerConnectionConfig, serverTypeOverride: ServerType?): ServerType {
-        return if (config.homeServerUri == matrixOrgUrl) {
-            ServerType.MatrixOrg
-        } else {
-            serverTypeOverride ?: serverType
+        return when {
+            config.homeServerUri == matrixOrgUrl -> ServerType.MatrixOrg
+            serverTypeOverride != null -> serverTypeOverride
+            serverType == ServerType.MatrixOrg -> ServerType.Other
+            else -> serverType
         }
     }
 

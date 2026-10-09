@@ -485,6 +485,26 @@ class OnboardingViewModelTest {
     }
 
     @Test
+    fun `given matrix org server type, when editing to another homeserver, then server type becomes other`() = runTest {
+        val matrixOrgState = initialState.copy(onboardingFlow = OnboardingFlow.SignIn, serverType = ServerType.MatrixOrg)
+        viewModelWith(matrixOrgState)
+        givenCanSuccessfullyUpdateHomeserver(A_HOMESERVER_URL, SELECTED_HOMESERVER_STATE)
+        val test = viewModel.test()
+
+        viewModel.handle(OnboardingAction.HomeServerChange.EditHomeServer(A_HOMESERVER_URL))
+
+        test
+                .assertStatesChanges(
+                        matrixOrgState,
+                        { copy(isLoading = true) },
+                        { copy(serverType = ServerType.Other, selectedHomeserver = SELECTED_HOMESERVER_STATE) },
+                        { copy(isLoading = false) }
+                )
+                .assertEvents(OnboardingViewEvents.OnHomeserverEdited)
+                .finish()
+    }
+
+    @Test
     fun `given a full matrix id, when a login username is entered, then updates selected homeserver state and emits edited event`() = runTest {
         viewModelWith(initialState.copy(onboardingFlow = OnboardingFlow.SignIn))
         givenCanSuccessfullyUpdateHomeserver(A_HOMESERVER_URL, SELECTED_HOMESERVER_STATE)
@@ -974,7 +994,7 @@ class OnboardingViewModelTest {
 
     @Test
     fun `given server type, when resetting homeserver type, then resets state`() = runTest {
-        viewModelWith(initialState.copy(serverType = ServerType.EMS))
+        viewModelWith(initialState.copy(serverType = ServerType.Other))
         val test = viewModel.test()
 
         viewModel.handle(OnboardingAction.ResetHomeServerType)
