@@ -803,7 +803,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         // The caption belongs to the whole gallery, but a tile is where most long presses land.
         addTranslateAction(timelineEvent.eventId, timelineEvent, messageContent)
         val itemContent = item.toAttachmentContentDict() ?: return
-        val origin = if (session.isDirectRoom(timelineEvent.roomId)) emptyMap() else timelineEvent.root.forwardOrigin()
+        val origin = timelineEvent.root.forwardOrigin(includeSourceLink = !session.isDirectRoom(timelineEvent.roomId))
         add(EventSharedAction.Forward(timelineEvent.eventId, EventType.MESSAGE, messageForwardPayload(itemContent, origin)))
     }
 
@@ -965,10 +965,11 @@ class MessageActionsViewModel @AssistedInject constructor(
     }
 
     private fun TimelineEvent.forwardPayload(): Map<String, Any?> =
-            root.toForwardPayload(getLastEditNewContent(), includeOrigin = !session.isDirectRoom(roomId))
+            root.toForwardPayload(getLastEditNewContent(), includeSourceLink = !session.isDirectRoom(roomId))
 
     private fun canForward(event: TimelineEvent, msgType: String?): Boolean {
         if (event.root.getClearType() == EventType.STICKER) return true
+        if (event.root.getClearType() != EventType.MESSAGE) return false
         return when (msgType) {
             MessageType.MSGTYPE_TEXT,
             MessageType.MSGTYPE_NOTICE,

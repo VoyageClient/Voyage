@@ -150,6 +150,17 @@ class ForwardContentBuilderTest {
     }
 
     @Test
+    fun `a forward without a source link retains sender and timestamp`() {
+        val content = mapOf("msgtype" to "m.text", "body" to "hi")
+        val forwarded = (origin("\$original:example.org") - "room_id" - "event_id") + ("content" to content)
+        val result = build(forwarded)
+
+        assertEquals(forwarded, result[ForwardedInfo.UNSTABLE_KEY])
+        assertEquals("Forwarded from @alice:example.org\nhi", result["body"])
+        assertFalse(result.containsKey(ForwardedInfo.LEGACY_KEY))
+    }
+
+    @Test
     fun `a silent forward says nothing about the origin`() {
         val content = mapOf("msgtype" to "m.text", "body" to "hi")
         val result = build(origin("\$original:example.org") + ("content" to content), silent = true)
@@ -173,22 +184,47 @@ class ForwardContentBuilderTest {
     }
 
     @Test
-    fun `a sticker carries its origin without content`() {
+    fun `a sticker carries its original content without a fallback`() {
+        val sticker = mapOf(
+                "body" to "cat",
+                "url" to "mxc://x/y",
+                "info" to emptyMap<String, Any>(),
+                "m.relates_to" to mapOf("m.in_reply_to" to mapOf("event_id" to "\$original")),
+                "m.mentions" to mapOf("user_ids" to listOf("@alice:example.org")),
+        )
+        val forwarded = origin("\$s:example.org") + ("content" to sticker)
         val result = ForwardContentBuilder.build(
                 eventType = EventType.STICKER,
-                payload = mapOf("body" to "cat", "url" to "mxc://x/y", ForwardedInfo.STABLE_KEY to origin("\$s:example.org")),
+                payload = mapOf(ForwardedInfo.STABLE_KEY to forwarded),
         )
 
-        assertEquals(
-                mapOf(
-                        "body" to "cat",
-                        "url" to "mxc://x/y",
-                        ForwardedInfo.STABLE_KEY to origin("\$s:example.org"),
-                        ForwardedInfo.UNSTABLE_KEY to origin("\$s:example.org"),
-                        "m.mentions" to emptyMap<String, Any>(),
-                ),
-                result
+        assertEquals(sticker - "m.relates_to" - "m.mentions" + keys(forwarded), result)
+    }
+
+    @Test
+    fun `a silent sticker keeps content without origin metadata`() {
+        val sticker = mapOf("body" to "cat", "url" to "mxc://x/y", "info" to emptyMap<String, Any>())
+        val result = ForwardContentBuilder.build(
+                eventType = EventType.STICKER,
+                payload = mapOf(ForwardedInfo.STABLE_KEY to (origin("\$s:example.org") + ("content" to sticker))),
+                silent = true,
         )
+
+        assertEquals(sticker + keys(mapOf("content" to sticker)), result)
+    }
+
+    @Test
+    fun `an oversized sticker drops the redundant stable copy`() {
+        val sticker = mapOf("body" to "x".repeat(16_000), "url" to "mxc://x/y", "info" to emptyMap<String, Any>())
+        val forwarded = mapOf("content" to sticker)
+        val result = ForwardContentBuilder.build(
+                eventType = EventType.STICKER,
+                payload = mapOf(ForwardedInfo.STABLE_KEY to forwarded),
+        )
+
+        assertFalse(result.containsKey(ForwardedInfo.STABLE_KEY))
+        assertEquals(forwarded, result[ForwardedInfo.UNSTABLE_KEY])
+        assertEquals(sticker["body"], result["body"])
     }
 
     @Test

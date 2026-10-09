@@ -147,7 +147,8 @@ fun TimelineEvent.getEditedEventId(): String? {
  */
 fun TimelineEvent.getLastMessageContent(): MessageContent? {
     return when (root.getClearType()) {
-        EventType.STICKER -> (getLastStickerEditNewContent() ?: root.getClearContent()).toModel<MessageStickerContent>()
+        EventType.STICKER -> (root.getClearContent().forwardedDisplayContent(EventType.STICKER)
+                ?: getLastStickerEditNewContent() ?: root.getClearContent()).toModel<MessageStickerContent>()
         // XXX
         // Polls/Beacon are not message contents like others as there is no msgtype subtype to discriminate moshi parsing
         // so toModel<MessageContent> won't parse them correctly
@@ -156,7 +157,7 @@ fun TimelineEvent.getLastMessageContent(): MessageContent? {
         in EventType.POLL_END.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
         in EventType.STATE_ROOM_BEACON_INFO.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconInfoContent>()
         in EventType.BEACON_LOCATION_DATA.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
-        else -> (root.getClearContent().forwardedDisplayContent() ?: getLastEditNewContent() ?: root.getClearContent()).toModel()
+        else -> (root.getClearContent().forwardedDisplayContent(root.getClearType()) ?: getLastEditNewContent() ?: root.getClearContent()).toModel()
     }
 }
 
@@ -165,6 +166,7 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
     if (root.isRedacted()) return null
     // MSC4553: a forward can't be edited.
     if (root.getClearContent().isForward()) return null
+    if (root.getClearType() == EventType.STICKER) return getLastStickerEditNewContent()
     val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
             ?.takeUnless { it.isMediaStillUploading() }
     return when {

@@ -31,29 +31,23 @@ object ForwardContentBuilder {
             senderDisplayName: String? = null,
             viaServers: List<String> = emptyList(),
     ): Content {
+        require(eventType == EventType.MESSAGE || eventType == EventType.STICKER)
         val raw = payload.rawForwarded().orEmpty()
         val origin = if (silent) emptyMap() else raw.filterKeys { it in ForwardedInfo.ORIGIN_FIELDS }
         @Suppress("UNCHECKED_CAST")
-        val original = (raw["content"] as? Content)?.takeIf { eventType == EventType.MESSAGE }
-        if (original == null) {
-            val metadata = if (origin.isEmpty()) {
-                emptyMap()
-            } else {
-                mapOf(ForwardedInfo.STABLE_KEY to origin, ForwardedInfo.UNSTABLE_KEY to origin)
-            }
-            return coerceWholeDoublesToLongs(payload - ForwardedInfo.KEYS + metadata + (MENTIONS to emptyMap<String, Any>()))
-        }
+        val original = requireNotNull(raw["content"] as? Content)
         val forwarded = if (silent) mapOf("content" to original) else raw
         val links = FallbackLinks(
                 sender = origin["sender"] as? String,
                 senderDisplayName = senderDisplayName,
                 eventPermalink = eventPermalink(origin["room_id"] as? String, origin["event_id"] as? String, viaServers),
         )
-        val withQuote = original.toTopLevel(links, quote = true)
+        val withQuote = if (eventType == EventType.STICKER) original.withoutSourceRelations() else original.toTopLevel(links, quote = true)
         val candidates = listOf(
                 withQuote + forwardedKeys(forwarded, includeStable = true),
                 withQuote + forwardedKeys(forwarded, includeStable = false),
-                original.toTopLevel(links, quote = false) + forwardedKeys(forwarded, includeStable = false),
+                (if (eventType == EventType.STICKER) withQuote else original.toTopLevel(links, quote = false)) +
+                        forwardedKeys(forwarded, includeStable = false),
         )
         // The message is carried more than once, so shed the redundant copies until it fits.
         val fitting = candidates.firstOrNull { it.jsonSize() <= MAX_CONTENT_BYTES } ?: candidates.last()
@@ -69,8 +63,10 @@ object ForwardContentBuilder {
 
     private class FallbackLinks(val sender: String?, val senderDisplayName: String?, val eventPermalink: String?)
 
+    private fun Content.withoutSourceRelations() = this - ForwardedInfo.KEYS - "m.relates_to" - MENTIONS - "m.new_content"
+
     private fun Content.toTopLevel(links: FallbackLinks, quote: Boolean): Map<String, Any?> {
-        val base = this - ForwardedInfo.KEYS - "m.relates_to" - MENTIONS - "m.new_content"
+        val base = withoutSourceRelations()
         val msgType = this["msgtype"] as? String
         val body = this["body"] as? String ?: ""
         val html = (this["formatted_body"] as? String)?.takeIf { this["format"] == MessageFormat.FORMAT_MATRIX_HTML }

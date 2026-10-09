@@ -16,10 +16,7 @@ import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.util.ContentUtils
 
-/**
- * The `m.forwarded` object of a forwarded message (MSC4553). Every field is optional; without a valid
- * [content], the forward's top-level content is what renders.
- */
+/** MSC4553 metadata; missing or invalid [content] falls back to the enclosing event's content. */
 @JsonClass(generateAdapter = true)
 data class ForwardedInfo(
         @Json(name = "event_id") val eventId: String? = null,
@@ -31,14 +28,20 @@ data class ForwardedInfo(
     companion object {
         const val STABLE_KEY = "m.forwarded"
         const val UNSTABLE_KEY = "org.matrix.msc4553.forwarded"
+        const val LEGACY_KEY = "com.famedly.app.forwarded"
 
-        val KEYS = listOf(STABLE_KEY, UNSTABLE_KEY)
+        val KEYS = listOf(STABLE_KEY, UNSTABLE_KEY, LEGACY_KEY)
 
         internal val ORIGIN_FIELDS = listOf("event_id", "room_id", "sender", "origin_server_ts")
     }
 }
 
-private fun Map<*, *>.isValidForwardedContent() = this["msgtype"] is String && this["body"] is String
+private fun Map<*, *>.isValidForwardedContent(eventType: String): Boolean = when (eventType) {
+    EventType.MESSAGE -> this["msgtype"] is String && this["body"] is String
+    EventType.STICKER -> this["body"] is String && this["info"] is Map<*, *> &&
+            (this["url"] is String || (this["file"] as? Map<*, *>)?.get("url") is String)
+    else -> false
+}
 
 @Suppress("UNCHECKED_CAST")
 internal fun Map<String, Any?>?.rawForwarded(): Map<String, Any?>? =
@@ -54,8 +57,8 @@ fun Content?.getForwardedInfo(): ForwardedInfo? = (rawForwarded() as? Map<String
  * carrying the forward's own relation and mentions rather than the ones it had where it was sent.
  */
 @Suppress("UNCHECKED_CAST")
-fun Content?.forwardedDisplayContent(): Content? {
-    val inner = (rawForwarded()?.get("content") as? Content)?.takeIf { it.isValidForwardedContent() } ?: return null
+fun Content?.forwardedDisplayContent(eventType: String = EventType.MESSAGE): Content? {
+    val inner = (rawForwarded()?.get("content") as? Content)?.takeIf { it.isValidForwardedContent(eventType) } ?: return null
     val outer = this ?: return null
     return inner - OWN_RELATION_KEYS - ForwardedInfo.KEYS +
             OWN_RELATION_KEYS.mapNotNull { key -> outer[key]?.let { key to it } }
@@ -65,21 +68,17 @@ private val OWN_RELATION_KEYS = listOf("m.relates_to", "m.mentions", "m.new_cont
 
 /**
  * What the room picker needs to forward this event, with [editedContent] standing in for an edited message.
- * A message becomes an `m.forwarded` object holding its content; other event types keep their content.
- * Without [includeOrigin], nothing says where the message came from, unless it was already a forward.
+ * [includeSourceLink] controls room and event IDs for a new forward; existing forwards keep their origin.
  */
-fun Event.toForwardPayload(editedContent: Content? = null, includeOrigin: Boolean = true): Content {
+fun Event.toForwardPayload(editedContent: Content? = null, includeSourceLink: Boolean = true): Content {
+    val eventType = getClearType()
+    require(eventType == EventType.MESSAGE || eventType == EventType.STICKER)
     val clear = getClearContent().orEmpty()
     val existing = clear.rawForwarded()
-    val origin = if (includeOrigin) forwardOrigin() else emptyMap()
-    if (getClearType() != EventType.MESSAGE) {
-        val metadata = existing?.filterKeys { it in ForwardedInfo.ORIGIN_FIELDS } ?: origin
-        return (editedContent ?: clear) - ForwardedInfo.KEYS - "m.relates_to" +
-                (if (metadata.isEmpty()) emptyMap() else mapOf(ForwardedInfo.STABLE_KEY to metadata))
-    }
+    val origin = forwardOrigin(includeSourceLink)
     if (existing != null) {
         // A forward of a forward points at the original message, not at the copy in between.
-        val forwarded = if ((existing["content"] as? Map<*, *>)?.isValidForwardedContent() == true) {
+        val forwarded = if ((existing["content"] as? Map<*, *>)?.isValidForwardedContent(eventType) == true) {
             existing
         } else {
             existing + ("content" to (editedContent ?: clear).toForwardedContent())
@@ -94,9 +93,9 @@ fun messageForwardPayload(content: Content, origin: Map<String, Any>): Content =
         mapOf(ForwardedInfo.STABLE_KEY to (origin + ("content" to content)))
 
 /** Event, room and sender ids of this event, for an `m.forwarded` object; a local echo has no event id yet. */
-fun Event.forwardOrigin(): Map<String, Any> = listOfNotNull(
-        eventId?.takeUnless { LocalEcho.isLocalEchoId(it) }?.let { "event_id" to it },
-        roomId?.let { "room_id" to it },
+fun Event.forwardOrigin(includeSourceLink: Boolean = true): Map<String, Any> = listOfNotNull(
+        eventId?.takeIf { includeSourceLink && !LocalEcho.isLocalEchoId(it) }?.let { "event_id" to it },
+        roomId?.takeIf { includeSourceLink }?.let { "room_id" to it },
         senderId?.let { "sender" to it },
         originServerTs?.let { "origin_server_ts" to it },
 ).toMap()

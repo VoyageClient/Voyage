@@ -54,10 +54,10 @@ class ForwardedInfoTest {
     }
 
     @Test
-    fun `without origin only the content is carried`() {
-        val payload = event().toForwardPayload(includeOrigin = false)
+    fun `without a source link the sender and timestamp are carried`() {
+        val payload = event().toForwardPayload(includeSourceLink = false)
 
-        assertEquals(mapOf("content" to mapOf("msgtype" to "m.text", "body" to "hello")), payload.forwarded())
+        assertEquals((origin - "room_id" - "event_id") + ("content" to mapOf("msgtype" to "m.text", "body" to "hello")), payload.forwarded())
     }
 
     @Test
@@ -77,7 +77,7 @@ class ForwardedInfoTest {
                 "content" to mapOf("msgtype" to "m.text", "body" to "original")
         )
         val payload = event(content = mapOf("msgtype" to "m.text", "body" to "fallback", ForwardedInfo.UNSTABLE_KEY to original))
-                .toForwardPayload(includeOrigin = false)
+                .toForwardPayload(includeSourceLink = false)
 
         assertEquals(original, payload.forwarded())
     }
@@ -107,10 +107,10 @@ class ForwardedInfoTest {
     }
 
     @Test
-    fun `a sticker keeps its content with origin metadata alone`() {
+    fun `a sticker carries its origin and content`() {
         val payload = event(type = EventType.STICKER, content = mapOf("body" to "cat", "url" to "mxc://x/y")).toForwardPayload()
 
-        assertEquals(mapOf("body" to "cat", "url" to "mxc://x/y", ForwardedInfo.STABLE_KEY to origin), payload)
+        assertEquals(origin + ("content" to mapOf("body" to "cat", "url" to "mxc://x/y")), payload.forwarded())
     }
 
     @Test
@@ -124,8 +124,8 @@ class ForwardedInfoTest {
     }
 
     @Test
-    fun `MSC2723's prefix is not a forward`() {
-        assertNull(mapOf("com.famedly.app.forwarded" to mapOf("sender" to "@legacy:example.org")).getForwardedInfo())
+    fun `MSC2723 forwards are read`() {
+        assertEquals("@legacy:example.org", mapOf(ForwardedInfo.LEGACY_KEY to mapOf("sender" to "@legacy:example.org")).getForwardedInfo()?.sender)
     }
 
     @Test
@@ -146,6 +146,43 @@ class ForwardedInfoTest {
         )
 
         assertEquals(mapOf("msgtype" to "m.emote", "body" to "waves", "m.relates_to" to ownRelation), content.forwardedDisplayContent())
+    }
+
+    @Test
+    fun `sticker display uses the original content and its own mentions`() {
+        val sticker = mapOf("body" to "cat", "url" to "mxc://x/y", "info" to emptyMap<String, Any>())
+        val content = mapOf(
+                "body" to "fallback",
+                "m.mentions" to emptyMap<String, Any>(),
+                ForwardedInfo.UNSTABLE_KEY to mapOf("content" to sticker),
+        )
+
+        assertEquals(sticker + ("m.mentions" to emptyMap<String, Any>()), content.forwardedDisplayContent(EventType.STICKER))
+        assertNull(content.forwardedDisplayContent(EventType.MESSAGE))
+        assertNull((content + (ForwardedInfo.UNSTABLE_KEY to mapOf("content" to (sticker - "info"))))
+                .forwardedDisplayContent(EventType.STICKER))
+    }
+
+    @Test
+    fun `forwarding a sticker forward preserves its original object`() {
+        val sticker = mapOf("body" to "cat", "url" to "mxc://x/y", "info" to emptyMap<String, Any>())
+        val forwarded = mapOf("sender" to "@bob:example.org", "custom" to "kept", "content" to sticker)
+        val payload = event(type = EventType.STICKER, content = sticker + (ForwardedInfo.UNSTABLE_KEY to forwarded)).toForwardPayload()
+
+        assertEquals(forwarded, payload.forwarded())
+    }
+
+    @Test
+    fun `legacy forwards are sent using MSC4553 keys`() {
+        val payload = event(content = mapOf("msgtype" to "m.text", "body" to "hi", ForwardedInfo.LEGACY_KEY to origin)).toForwardPayload()
+
+        assertEquals(origin + ("content" to mapOf("msgtype" to "m.text", "body" to "hi")), payload.forwarded())
+        assertFalse(payload.containsKey(ForwardedInfo.LEGACY_KEY))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `other event types cannot be forwarded`() {
+        event(type = EventType.REACTION).toForwardPayload()
     }
 
     @Test

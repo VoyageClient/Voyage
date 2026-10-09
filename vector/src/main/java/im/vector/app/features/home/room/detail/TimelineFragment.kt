@@ -199,6 +199,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.share.ForwardPayloadHolder
 import im.vector.app.features.share.IncomingShareActivity
+import im.vector.app.features.share.isDirectRoom
 import im.vector.app.features.spaces.share.ShareSpaceBottomSheet
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.widgets.WidgetActivity
@@ -244,10 +245,12 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageVerification
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
+import org.matrix.android.sdk.api.session.room.model.message.toForwardPayload
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
@@ -2518,7 +2521,13 @@ class TimelineFragment :
             PendingEventAction.QUOTE -> EventSharedAction.Quote(eventId)
             PendingEventAction.EDIT -> EventSharedAction.Edit(eventId, event.root.getClearType())
             PendingEventAction.REACT -> EventSharedAction.AddReaction(eventId)
-            PendingEventAction.FORWARD -> EventSharedAction.Forward(eventId, event.root.getClearType(), event.root.getClearContent().orEmpty())
+            PendingEventAction.FORWARD -> event.takeIf { it.root.getClearType() in setOf(EventType.MESSAGE, EventType.STICKER) }?.let {
+                EventSharedAction.Forward(
+                        eventId,
+                        it.root.getClearType(),
+                        it.root.toForwardPayload(it.getLastEditNewContent(), includeSourceLink = !session.isDirectRoom(it.roomId)),
+                )
+            }
             PendingEventAction.SHARE -> messageContent?.let { EventSharedAction.Share(eventId, it) }
             PendingEventAction.SAVE -> (messageContent as? MessageWithAttachmentContent)?.let { EventSharedAction.Save(eventId, it) }
             PendingEventAction.REDACT -> redactAction(eventId, event)

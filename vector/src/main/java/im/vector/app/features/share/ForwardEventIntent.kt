@@ -17,10 +17,9 @@ import org.matrix.android.sdk.api.session.room.model.message.toForwardPayload
 
 /** Opens the room picker to forward [event], or its [editedContent] when it was edited. */
 fun forwardEventIntent(context: Context, session: Session?, event: Event, editedContent: Content? = null): Intent {
-    val payload = event.toForwardPayload(editedContent, includeOrigin = !session.isDirectRoom(event.roomId))
+    val payload = event.toForwardPayload(editedContent, includeSourceLink = !session.isDirectRoom(event.roomId))
     val payloadId = ForwardPayloadHolder.put(payload)
     return IncomingShareActivity.forwardIntent(context, event.getClearType(), payloadId)
 }
 
-// A DM's room id and sender are private to its members; a forwarded copy must not carry them.
 fun Session?.isDirectRoom(roomId: String?): Boolean = roomId?.let { this?.getRoomSummary(it)?.isDirect } == true
