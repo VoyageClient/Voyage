@@ -12,6 +12,8 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.translation.MessageTranslationStore
+import im.vector.lib.core.utils.text.bidiIsolate
+import im.vector.lib.core.utils.text.withUiDirection
 import im.vector.lib.strings.CommonStrings
 import io.mockk.every
 import io.mockk.mockk
@@ -104,7 +106,7 @@ class TranslatedPreviewTest {
                 MessageEmoteContent(msgType = MessageType.MSGTYPE_EMOTE, body = "waves"),
                 MessageTranslationStore.Translation("saluda", "en", "es"),
         )
-        assertEquals("Alice saluda", preview.toString())
+        assertEquals("${"Alice".bidiIsolate()} ${"saluda".bidiIsolate()}".withUiDirection(), preview.toString())
     }
 
     @Test

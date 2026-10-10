@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.format
 import im.vector.app.ActiveSessionDataSource
 import im.vector.app.core.profile.PronounHelper
 import im.vector.app.core.profile.forViewerLanguage
+import im.vector.app.core.resources.BidiSafeStringProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.autocomplete.command.toMsc4391AutocompleteCommand
@@ -78,8 +79,10 @@ class NoticeEventFormatter @Inject constructor(
         private val vectorPreferences: VectorPreferences,
         private val colorProvider: ColorProvider,
         private val reactionFormatter: ReactionFormatter,
-        private val sp: StringProvider
+        stringProvider: StringProvider
 ) {
+
+    private val sp = BidiSafeStringProvider(stringProvider)
 
     private val currentUserId: String?
         get() = activeSessionDataSource.currentValue?.orNull()?.myUserId

@@ -28,7 +28,9 @@ import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.text.bidiIsolate
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import im.vector.lib.core.utils.text.withUiDirection
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -90,11 +92,12 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                 resources.getString(CommonStrings.room_created_summary_item_by_you)
             }
         } else {
+            val name = data?.memberName.orEmpty().neutralizeDirectionOverrides().bidiIsolate()
             if (isDirectRoom) {
-                resources.getString(CommonStrings.direct_room_created_summary_item, data?.memberName.orEmpty().neutralizeDirectionOverrides())
+                resources.getString(CommonStrings.direct_room_created_summary_item, name)
             } else {
-                resources.getString(CommonStrings.room_created_summary_item, data?.memberName.orEmpty().neutralizeDirectionOverrides())
-            }
+                resources.getString(CommonStrings.room_created_summary_item, name)
+            }.withUiDirection()
         }
         holder.summaryView.text = summary
     }

@@ -14,6 +14,8 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.helper.ForwardedMessagePresenter
 import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
+import im.vector.lib.core.utils.text.bidiIsolate
+import im.vector.lib.core.utils.text.withUiDirection
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -82,7 +84,7 @@ class EmoteFormattingTest {
 
     @Test
     fun `the room list preview names the sender without the asterisk`() {
-        assertEquals("Alice waves", previewOf("waves").toString())
+        assertEquals("${"Alice".bidiIsolate()} ${"waves".bidiIsolate()}".withUiDirection(), previewOf("waves").toString())
     }
 
     @Test

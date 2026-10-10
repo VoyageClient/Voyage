@@ -8,6 +8,8 @@
 package im.vector.app.features.home.room.detail.timeline.format
 
 import im.vector.app.core.resources.StringProvider
+import im.vector.lib.core.utils.text.bidiIsolate
+import im.vector.lib.core.utils.text.withUiDirection
 import im.vector.lib.strings.CommonStrings
 import io.mockk.every
 import io.mockk.mockk
@@ -35,7 +37,7 @@ class RedactedEventFormattingTest {
             vectorPreferences = mockk(relaxed = true),
             colorProvider = mockk(relaxed = true),
             reactionFormatter = mockk(relaxed = true),
-            sp = sp,
+            stringProvider = sp,
     )
 
     private fun redactedEvent(redaction: Event?) = Event(
@@ -79,7 +81,7 @@ class RedactedEventFormattingTest {
     @Test
     fun `admin redaction keeps the reason`() {
         assertEquals(
-                "string:${CommonStrings.event_redacted_by_admin_with_reason}:spam",
+                "string:${CommonStrings.event_redacted_by_admin_with_reason}:${"spam".bidiIsolate()}".withUiDirection(),
                 formatter.formatRedactedEvent(redactedEvent(redaction("@bob:example.org", reason = "spam")))
         )
     }
@@ -87,7 +89,7 @@ class RedactedEventFormattingTest {
     @Test
     fun `self redaction keeps the reason`() {
         assertEquals(
-                "string:${CommonStrings.event_redacted_with_reason}:oops",
+                "string:${CommonStrings.event_redacted_with_reason}:${"oops".bidiIsolate()}".withUiDirection(),
                 formatter.formatRedactedEvent(redactedEvent(redaction("@alice:example.org", reason = "oops")))
         )
     }

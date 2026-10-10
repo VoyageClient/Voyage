@@ -7,12 +7,15 @@
 
 package im.vector.app.features.home.room.typing
 
+import im.vector.app.core.resources.BidiSafeStringProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import javax.inject.Inject
 
-class TypingHelper @Inject constructor(private val stringProvider: StringProvider) {
+class TypingHelper @Inject constructor(stringProvider: StringProvider) {
+
+    private val stringProvider = BidiSafeStringProvider(stringProvider)
 
     /**
      * Returns a human readable String of currently typing users in the room (excluding yourself).

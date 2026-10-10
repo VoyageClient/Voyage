@@ -32,7 +32,9 @@ import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.text.bidiIsolate
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
+import im.vector.lib.core.utils.text.withUiDirection
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -461,19 +463,17 @@ class DisplayableEventFormatter @Inject constructor(
         val emojiBody = body.prepareForDisplay()
         if (!appendAuthor && !isEmote) return emojiBody
         // SpannableStringBuilder (not the gujun span DSL) so [body]'s emote ReplacementSpans are preserved.
-        return android.text.SpannableStringBuilder().apply {
-            val start = length
-            // Isolate the sender name so an RTL name doesn't flip the whole "Name: message" line to RTL.
-            // Neutralize BEFORE wrapping and emoji-spanify only afterwards: unicodeWrap's own embedding
-            // chars (U+202A..U+202C) fall in the neutralized range and must survive.
-            val wrappedName = androidx.core.text.BidiFormatter.getInstance().unicodeWrap(senderName.neutralizeDirectionOverrides())
-            append(messageEmojiSpanify?.spanify(wrappedName) ?: wrappedName)
+        val line = android.text.SpannableStringBuilder().apply {
+            val name = senderName.neutralizeDirectionOverrides()
+            append((messageEmojiSpanify?.spanify(name) ?: name).bidiIsolate())
             setSpan(
                     android.text.style.ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)),
-                    start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    0, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             append(if (isEmote) " " else ": ")
-            append(emojiBody)
+            append(emojiBody.bidiIsolate())
+        }.withUiDirection()
+        return android.text.SpannableStringBuilder(line).apply {
             if (isEmote) {
                 setSpan(
                         android.text.style.StyleSpan(android.graphics.Typeface.ITALIC),

@@ -18,6 +18,7 @@ import im.vector.app.databinding.ViewReadReceiptsBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.toMatrixItem
+import im.vector.lib.core.utils.text.bidiIsolate
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 
@@ -57,6 +58,7 @@ class ReadReceiptsView @JvmOverloads constructor(
                 .mapNotNull { it.displayName }
                 .filter { it.isNotBlank() }
                 .take(MAX_RECEIPT_DISPLAYED)
+                .map { it.bidiIsolate() }
 
         if (readReceipts.size > MAX_RECEIPT_DISPLAYED) {
             views.receiptMore.visibility = View.VISIBLE

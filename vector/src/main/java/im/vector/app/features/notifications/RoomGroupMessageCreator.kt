@@ -10,10 +10,12 @@ package im.vector.app.features.notifications
 import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
+import im.vector.app.core.resources.BidiSafeStringProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.lib.core.utils.text.bidiIsolate
+import im.vector.lib.core.utils.text.withUiDirection
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
-import me.gujun.android.span.Span
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.util.MatrixItem
 import timber.log.Timber
@@ -21,9 +23,11 @@ import javax.inject.Inject
 
 class RoomGroupMessageCreator @Inject constructor(
         private val bitmapLoader: NotificationBitmapLoader,
-        private val stringProvider: StringProvider,
+        stringProvider: StringProvider,
         private val notificationUtils: NotificationUtils
 ) {
+
+    private val stringProvider = BidiSafeStringProvider(stringProvider)
 
     fun createRoomMessage(events: List<NotifiableMessageEvent>, roomId: String, userDisplayName: String, userAvatarUrl: String?): RoomNotification.Message {
         val lastKnownRoomEvent = events.last()
@@ -123,24 +127,25 @@ class RoomGroupMessageCreator @Inject constructor(
         }
     }
 
-    private fun createFirstMessageSummaryLine(event: NotifiableMessageEvent, roomName: String, roomIsDirect: Boolean): Span {
+    private fun createFirstMessageSummaryLine(event: NotifiableMessageEvent, roomName: String, roomIsDirect: Boolean): CharSequence {
+        val senderName = event.senderName.orEmpty().bidiIsolate()
         return if (roomIsDirect) {
             span {
                 span {
                     textStyle = "bold"
-                    +String.format("%s: ", event.senderName)
+                    +"$senderName: "
                 }
-                +(event.description)
+                +event.description.bidiIsolate()
             }
         } else {
             span {
                 span {
                     textStyle = "bold"
-                    +String.format("%s: %s ", roomName, event.senderName)
+                    +"${roomName.bidiIsolate()}: $senderName "
                 }
-                +(event.description)
+                +event.description.bidiIsolate()
             }
-        }
+        }.withUiDirection()
     }
 
     private fun getRoomBitmap(events: List<NotifiableMessageEvent>): Bitmap? {
