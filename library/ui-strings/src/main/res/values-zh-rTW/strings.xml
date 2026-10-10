@@ -3468,4 +3468,6 @@
     <string name="settings_show_join_leave_messages_summary">包括加入、離開、邀請、踢出、封鎖、申請加入和沒有變更的事件。</string>
     <string name="settings_show_room_settings_events">顯示聊天室設定事件</string>
     <string name="settings_show_room_settings_events_summary">包括權限、名稱、主題、大頭照、橫幅、歷史紀錄可見性、釘選訊息、圖片包和其他聊天室設定。</string>
+    <string name="video_editor_extract_audio">擷取音訊</string>
+    <string name="video_editor_extracting_audio">正在擷取音訊…</string>
 </resources>

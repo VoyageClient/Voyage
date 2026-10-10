@@ -3466,4 +3466,6 @@
     <string name="settings_show_join_leave_messages_summary">包括加入、离开、邀请、踢出、封禁、申请加入和没有变更的事件。</string>
     <string name="settings_show_room_settings_events">显示房间设置事件</string>
     <string name="settings_show_room_settings_events_summary">包括权限、名称、话题、头像、横幅、历史记录可见性、置顶消息、图片包和其他房间设置。</string>
+    <string name="video_editor_extract_audio">提取音频</string>
+    <string name="video_editor_extracting_audio">正在提取音频…</string>
 </resources>

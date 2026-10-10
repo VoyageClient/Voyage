@@ -3464,4 +3464,6 @@
     <string name="settings_show_join_leave_messages_summary">参加、退出、招待、退出処分、アクセス禁止、参加リクエスト、変更のないイベントを含みます。</string>
     <string name="settings_show_room_settings_events">ルーム設定のイベントを表示</string>
     <string name="settings_show_room_settings_events_summary">権限、名前、トピック、アバター、バナー、履歴の公開範囲、ピン留め、画像パック、その他のルーム設定を含みます。</string>
+    <string name="video_editor_extract_audio">音声を抽出</string>
+    <string name="video_editor_extracting_audio">音声を抽出しています…</string>
 </resources>

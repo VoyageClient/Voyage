@@ -3623,4 +3623,6 @@
     <string name="settings_show_join_leave_messages_summary">כולל הצטרפות, עזיבה, הזמנות, הרחקות, חסימות, בקשות הצטרפות ואירועים ללא שינויים.</string>
     <string name="settings_show_room_settings_events">הצג אירועי הגדרות החדר</string>
     <string name="settings_show_room_settings_events_summary">כולל הרשאות, שם, נושא, תמונת פרופיל, באנר, נראות ההיסטוריה, הודעות נעוצות, חבילות תמונות והגדרות חדר אחרות.</string>
+    <string name="video_editor_extract_audio">חלץ שמע</string>
+    <string name="video_editor_extracting_audio">מחלץ שמע…</string>
 </resources>

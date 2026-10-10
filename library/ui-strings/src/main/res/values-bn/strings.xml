@@ -3484,4 +3484,6 @@
     <string name="settings_show_join_leave_messages_summary">যোগদান, প্রস্থান, আমন্ত্রণ, বহিষ্কার, নিষেধাজ্ঞা, যোগদানের অনুরোধ এবং কোনো পরিবর্তন না করা ইভেন্ট অন্তর্ভুক্ত।</string>
     <string name="settings_show_room_settings_events">রুমের সেটিংসের ইভেন্ট দেখান</string>
     <string name="settings_show_room_settings_events_summary">অনুমতি, নাম, বিষয়, অবতার, ব্যানার, ইতিহাসের দৃশ্যমানতা, পিন করা বার্তা, ছবির প্যাক এবং রুমের অন্যান্য সেটিংস অন্তর্ভুক্ত।</string>
+    <string name="video_editor_extract_audio">অডিও বের করুন</string>
+    <string name="video_editor_extracting_audio">অডিও বের করা হচ্ছে…</string>
 </resources>

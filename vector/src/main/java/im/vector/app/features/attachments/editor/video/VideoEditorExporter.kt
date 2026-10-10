@@ -12,6 +12,8 @@ import android.net.Uri
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import im.vector.app.core.glide.MediaCache
+import im.vector.lib.mediatranscode.AudioEditExporter
+import im.vector.lib.mediatranscode.AudioEditSpec
 import im.vector.lib.mediatranscode.VideoEditExporter
 import im.vector.lib.mediatranscode.VideoEditProgressListener
 import im.vector.lib.mediatranscode.VideoEditSpec
@@ -80,10 +82,48 @@ object VideoEditorExporter {
         )
     }
 
-    /** Always .mp4: a remuxed .3gp mislabelled by its source extension confuses the recipient. */
-    private fun createOutputFile(context: Context, displayName: String?): File {
+    @RequiresApi(18)
+    suspend fun extractAudio(
+            context: Context,
+            source: Uri,
+            displayName: String?,
+            edits: VideoEditorEdits,
+            progressListener: VideoEditProgressListener?,
+    ): Result {
+        val destination = createOutputFile(context, displayName, "m4a")
+        return try {
+            val output = AudioEditExporter.export(
+                    context,
+                    AudioEditSpec(
+                            sourceUri = source,
+                            startUs = edits.startUs,
+                            endUs = edits.endUs,
+                            outputFile = destination,
+                            speed = edits.speed.speed,
+                            changePitch = edits.speed.changePitch,
+                            volume = edits.volume.effectiveGain,
+                            reversed = edits.reversed
+                    ),
+                    progressListener
+            )
+            Result(
+                    uri = FileProvider.getUriForFile(context, context.packageName + FILE_PROVIDER_SUFFIX, output.file),
+                    width = 0,
+                    height = 0,
+                    size = output.file.length(),
+                    mimeType = AudioEditExporter.OUTPUT_MIME_TYPE,
+                    durationMs = output.durationMs,
+                    audioDropped = false
+            )
+        } catch (throwable: Throwable) {
+            destination.parentFile?.deleteRecursively()
+            throw throwable
+        }
+    }
+
+    private fun createOutputFile(context: Context, displayName: String?, extension: String = "mp4"): File {
         val directory = File(MediaCache.editedMediaDirectory(context), UUID.randomUUID().toString()).also { it.mkdirs() }
         val baseName = displayName?.substringBeforeLast('.')?.takeIf { it.isNotBlank() } ?: "video"
-        return File(directory, "$baseName.mp4")
+        return File(directory, "$baseName.$extension")
     }
 }

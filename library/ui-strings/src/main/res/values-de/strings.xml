@@ -3529,4 +3529,6 @@
     <string name="settings_show_join_leave_messages_summary">Umfasst Beitritte, Austritte, Einladungen, Rauswürfe, Sperren, Beitrittsanfragen und Ereignisse ohne Änderungen.</string>
     <string name="settings_show_room_settings_events">Raumeinstellungsereignisse anzeigen</string>
     <string name="settings_show_room_settings_events_summary">Umfasst Berechtigungen, Name, Thema, Profilbild, Banner, Verlaufssichtbarkeit, angeheftete Nachrichten, Bildpakete und andere Raumeinstellungen.</string>
+    <string name="video_editor_extract_audio">Audio extrahieren</string>
+    <string name="video_editor_extracting_audio">Audio wird extrahiert…</string>
 </resources>

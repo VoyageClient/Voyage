@@ -3412,4 +3412,6 @@
     <string name="settings_show_join_leave_messages_summary">इसमें शामिल होना, छोड़ना, आमंत्रण, निकालना, प्रतिबंध, शामिल होने के अनुरोध और बिना बदलाव वाले इवेंट शामिल हैं।</string>
     <string name="settings_show_room_settings_events">कमरे की सेटिंग के इवेंट दिखाएं</string>
     <string name="settings_show_room_settings_events_summary">इसमें अनुमतियाँ, नाम, विषय, अवतार, बैनर, इतिहास की दृश्यता, पिन किए गए संदेश, चित्र पैक और कमरे की अन्य सेटिंग शामिल हैं।</string>
+    <string name="video_editor_extract_audio">ऑडियो निकालें</string>
+    <string name="video_editor_extracting_audio">ऑडियो निकाला जा रहा है…</string>
 </resources>

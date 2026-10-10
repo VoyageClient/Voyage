@@ -3466,4 +3466,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_show_join_leave_messages_summary">Mencakup bergabung, keluar, undangan, pengeluaran, pemblokiran, permintaan bergabung, dan kejadian tanpa perubahan.</string>
     <string name="settings_show_room_settings_events">Tampilkan kejadian pengaturan ruang</string>
     <string name="settings_show_room_settings_events_summary">Mencakup izin, nama, topik, avatar, banner, visibilitas riwayat, pesan yang disematkan, paket gambar, dan pengaturan ruang lainnya.</string>
+    <string name="video_editor_extract_audio">Ekstrak audio</string>
+    <string name="video_editor_extracting_audio">Mengekstrak audio…</string>
 </resources>

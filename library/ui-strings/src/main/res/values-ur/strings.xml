@@ -3424,4 +3424,6 @@
     <string name="settings_show_join_leave_messages_summary">اس میں شمولیت، چھوڑنا، دعوتیں، اخراج، پابندیاں، شمولیت کی درخواستیں اور بغیر تبدیلی کے واقعات شامل ہیں۔</string>
     <string name="settings_show_room_settings_events">کمرے کی ترتیبات کے واقعات دکھائیں</string>
     <string name="settings_show_room_settings_events_summary">اس میں اجازتیں، نام، موضوع، پروفائل تصویر، بینر، تاریخچہ دیکھنے کی اجازت، پن کردہ پیغامات، تصویری پیک اور کمرے کی دیگر ترتیبات شامل ہیں۔</string>
+    <string name="video_editor_extract_audio">آڈیو نکالیں</string>
+    <string name="video_editor_extracting_audio">آڈیو نکالا جا رہا ہے…</string>
 </resources>

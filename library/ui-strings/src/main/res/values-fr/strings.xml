@@ -3530,4 +3530,6 @@
     <string name="settings_show_join_leave_messages_summary">Inclut les arrivées, départs, invitations, expulsions, bannissements, demandes d\'accès et événements sans changement.</string>
     <string name="settings_show_room_settings_events">Afficher les événements de paramètres du salon</string>
     <string name="settings_show_room_settings_events_summary">Inclut les permissions, le nom, le sujet, l\'avatar, la bannière, la visibilité de l\'historique, les messages épinglés, les packs d\'images et les autres paramètres du salon.</string>
+    <string name="video_editor_extract_audio">Extraire l’audio</string>
+    <string name="video_editor_extracting_audio">Extraction de l’audio…</string>
 </resources>

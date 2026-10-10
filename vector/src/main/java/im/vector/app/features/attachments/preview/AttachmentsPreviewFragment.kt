@@ -293,11 +293,14 @@ class AttachmentsPreviewFragment :
                                 mimeType = output.mimeType,
                                 // An animated image comes back through the same editor, and a
                                 // duration on an image attachment means nothing.
-                                duration = output.durationMs.takeIf { output.mimeType.isMimeTypeVideo() },
-                                // A captured still is a new image, not an edit the video editor can
-                                // replay; editing it again starts from the still.
-                                editRecord = pendingEditOriginal?.takeUnless { output.isCapturedFrame }?.let { EditRecord(it, output.edits) },
-                                replacementType = ContentAttachmentData.Type.IMAGE.takeIf { output.isCapturedFrame },
+                                duration = output.durationMs.takeIf { output.mimeType.isMimeTypeVideo() || output.isExtractedAudio },
+                                editRecord = pendingEditOriginal?.takeUnless { output.isCapturedFrame || output.isExtractedAudio }
+                                        ?.let { EditRecord(it, output.edits) },
+                                replacementType = when {
+                                    output.isCapturedFrame -> ContentAttachmentData.Type.IMAGE
+                                    output.isExtractedAudio -> ContentAttachmentData.Type.AUDIO
+                                    else -> null
+                                },
                         )
                 )
                 invalidate()

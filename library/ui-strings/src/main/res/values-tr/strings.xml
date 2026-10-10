@@ -3488,4 +3488,6 @@
     <string name="settings_show_join_leave_messages_summary">Katılmaları, ayrılmaları, davetleri, atılmaları, yasaklamaları, katılma isteklerini ve değişiklik içermeyen olayları kapsar.</string>
     <string name="settings_show_room_settings_events">Oda ayarı olaylarını göster</string>
     <string name="settings_show_room_settings_events_summary">İzinleri, adı, konuyu, avatarı, kapağı, geçmiş görünürlüğünü, sabitlenmiş mesajları, görsel paketlerini ve diğer oda ayarlarını kapsar.</string>
+    <string name="video_editor_extract_audio">Sesi çıkar</string>
+    <string name="video_editor_extracting_audio">Ses çıkarılıyor…</string>
 </resources>

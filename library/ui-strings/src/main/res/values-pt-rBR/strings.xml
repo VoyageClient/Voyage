@@ -3530,4 +3530,6 @@
     <string name="settings_show_join_leave_messages_summary">Inclui entradas, saídas, convites, expulsões, banimentos, solicitações de entrada e eventos sem alterações.</string>
     <string name="settings_show_room_settings_events">Mostrar eventos de configurações da sala</string>
     <string name="settings_show_room_settings_events_summary">Inclui permissões, nome, assunto, avatar, banner, visibilidade do histórico, mensagens fixadas, pacotes de imagens e outras configurações da sala.</string>
+    <string name="video_editor_extract_audio">Extrair áudio</string>
+    <string name="video_editor_extracting_audio">Extraindo áudio…</string>
 </resources>

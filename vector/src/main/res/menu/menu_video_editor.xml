@@ -40,6 +40,13 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/videoEditorExtractAudioAction"
+        android:icon="@drawable/ic_volume_up"
+        android:title="@string/video_editor_extract_audio"
+        app:iconTint="?vctr_content_primary"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/videoEditorSnapAction"
         android:checkable="true"
         android:title="@string/image_editor_snap"

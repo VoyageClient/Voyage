@@ -3882,6 +3882,8 @@
     <string name="video_editor_title">Edit video</string>
     <string name="video_editor_reset">Reset</string>
     <string name="video_editor_rotate">Rotate</string>
+    <string name="video_editor_extract_audio">Extract audio</string>
+    <string name="video_editor_extracting_audio">Extracting audio…</string>
     <string name="video_editor_capture_frame">Extract frame</string>
     <string name="video_editor_capture_frame_failed">Couldn\'t capture this frame</string>
     <string name="video_editor_extracting_frame">Extracting frame…</string>

@@ -299,6 +299,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         return if (id > 0) resources.getDimensionPixelSize(id) else 0
     }
 
+    private val canExtractAudio: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && !isAnimated && sourceInfo?.audioMime != null
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_video_editor, menu)
         return true
@@ -310,6 +313,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             isVisible = !isAnimated
             setIcon(volumeIcon())
         }
+        menu.findItem(R.id.videoEditorExtractAudioAction)?.isVisible = canExtractAudio
         menu.findItem(R.id.videoEditorReverseAction)?.isChecked = reversed
         menu.findItem(R.id.videoEditorSnapAction)?.isChecked = views.videoEditorCropOverlay.snapToCenter
         menu.findItem(R.id.videoEditorRotateAction)?.let {
@@ -345,6 +349,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             R.id.videoEditorCaptureFrameAction -> {
                 captureFrame()
+                true
+            }
+            R.id.videoEditorExtractAudioAction -> {
+                if (canExtractAudio) {
+                    save(extractAudio = true)
+                }
                 true
             }
             R.id.videoEditorVolumeAction -> {
@@ -657,6 +667,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             updateScrubberRange()
             updateDurationLabel()
             sourceInfo = info
+            invalidateOptionsMenu()
             startHistory()
             extractThumbnails()
         }
@@ -1317,7 +1328,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    private fun save() {
+    private fun save(extractAudio: Boolean = false) {
+        if (exporting || exportJob?.isActive == true) return
         val edits = VideoEditorEdits(
                 startUs = startUs,
                 endUs = endUs,
@@ -1330,21 +1342,28 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 speed = playbackSpeed
         )
         // Left exactly as it was opened: the attachment already is this export.
-        if (edits == initialEdits) {
+        if (!extractAudio && edits == initialEdits) {
             keepHistory(initialEdits)
             finish()
             return
         }
-        if (!edits.hasChanges) {
+        if (!extractAudio && !edits.hasChanges) {
             keepHistory(edits)
             finishWithPreview(restoreOriginalResult())
             return
         }
         pausePlayback()
         showExportOverlay(true)
+        views.videoEditorExportLabel.setText(
+                when {
+                    extractAudio -> CommonStrings.video_editor_extracting_audio
+                    isAnimated -> CommonStrings.animated_image_editor_exporting
+                    else -> CommonStrings.video_editor_exporting
+                }
+        )
         exportJob = lifecycleScope.launch {
             val result = try {
-                runCatching { runExport(edits) }
+                runCatching { runExport(edits, extractAudio) }
             } finally {
                 showExportOverlay(false)
             }
@@ -1365,13 +1384,14 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                             putExtra(EXTRA_RESULT_DURATION, output.durationMs)
                             putExtra(EXTRA_RESULT_MIME_TYPE, output.mimeType)
                             putExtra(EXTRA_RESULT_EDITS, edits)
+                            putExtra(EXTRA_RESULT_EXTRACTED_AUDIO, extractAudio)
                         }
-                        keepHistory(edits)
+                        if (!extractAudio) keepHistory(edits)
                         finishWithPreview(editorResult)
                     },
                     onFailure = { error ->
                         Timber.w(error, "VideoEditor: export failed")
-                        Toast.makeText(this@VideoEditorActivity, messageFor(error), Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@VideoEditorActivity, messageFor(error, extractAudio), Toast.LENGTH_LONG).show()
                     }
             )
         }
@@ -1379,12 +1399,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     /** The video branch needs API 18, and is only reached when there is no animated source. */
     @SuppressLint("NewApi")
-    private suspend fun runExport(edits: VideoEditorEdits): VideoEditorExporter.Result {
+    private suspend fun runExport(edits: VideoEditorEdits, extractAudio: Boolean): VideoEditorExporter.Result {
         val progress = VideoEditProgressListener { percent ->
             handler.post { views.videoEditorExportProgress.progress = percent }
         }
         val animatedSource = animatedSource
-        return if (animatedSource != null) {
+        return if (extractAudio) {
+            check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+            VideoEditorExporter.extractAudio(this, sourceUri, displayName, edits, progress)
+        } else if (animatedSource != null) {
             val targetWidth = intent.getIntExtra(EXTRA_TARGET_WIDTH, 0)
             val targetHeight = intent.getIntExtra(EXTRA_TARGET_HEIGHT, 0)
             AnimatedImageExporter.export(
@@ -1401,12 +1424,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    private fun messageFor(error: Throwable): String = when (error) {
+    private fun messageFor(error: Throwable, extractAudio: Boolean): String = when (error) {
         is VideoEditException.NotEnoughSpace -> getString(CommonStrings.video_editor_no_space)
         is VideoEditException.UnsupportedCodec -> getString(CommonStrings.video_editor_unsupported)
         is AnimatedImageExporter.TransparencyUnsupportedException -> getString(CommonStrings.animated_image_editor_no_transparency)
         is AnimatedImageExporter.AnimatedImageException -> getString(CommonStrings.animated_image_editor_export_failed)
-        else -> getString(CommonStrings.video_editor_export_failed)
+        else -> getString(if (extractAudio) CommonStrings.audio_editor_export_failed else CommonStrings.video_editor_export_failed)
     }
 
     private fun showExportOverlay(visible: Boolean) {
@@ -1495,6 +1518,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             val edits: VideoEditorEdits,
             /** A still of one frame, which replaces the clip rather than being an edit of it. */
             val isCapturedFrame: Boolean = false,
+            val isExtractedAudio: Boolean = false,
     )
 
     companion object {
@@ -1543,6 +1567,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         private const val EXTRA_RESULT_DURATION = "EXTRA_RESULT_DURATION"
         private const val EXTRA_RESULT_MIME_TYPE = "EXTRA_RESULT_MIME_TYPE"
         private const val EXTRA_RESULT_EDITS = "EXTRA_RESULT_EDITS"
+        private const val EXTRA_RESULT_EXTRACTED_AUDIO = "EXTRA_RESULT_EXTRACTED_AUDIO"
         private const val EXTRA_RESULT_CAPTURED_FRAME = "EXTRA_RESULT_CAPTURED_FRAME"
 
         fun newIntent(
@@ -1575,7 +1600,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                     durationMs = intent.getLongExtra(EXTRA_RESULT_DURATION, 0),
                     mimeType = intent.getStringExtra(EXTRA_RESULT_MIME_TYPE).orEmpty(),
                     edits = intent.getParcelableExtraCompat(EXTRA_RESULT_EDITS) ?: VideoEditorEdits(),
-                    isCapturedFrame = intent.getBooleanExtra(EXTRA_RESULT_CAPTURED_FRAME, false)
+                    isCapturedFrame = intent.getBooleanExtra(EXTRA_RESULT_CAPTURED_FRAME, false),
+                    isExtractedAudio = intent.getBooleanExtra(EXTRA_RESULT_EXTRACTED_AUDIO, false)
             )
         }
     }

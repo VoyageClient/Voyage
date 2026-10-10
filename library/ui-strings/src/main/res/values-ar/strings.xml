@@ -3679,4 +3679,6 @@
     <string name="settings_show_join_leave_messages_summary">تشمل الانضمام والمغادرة والدعوات والطرد والحظر وطلبات الانضمام والأحداث التي لم تغيّر شيئًا.</string>
     <string name="settings_show_room_settings_events">اعرض أحداث إعدادات الغرفة</string>
     <string name="settings_show_room_settings_events_summary">تشمل الأذونات والاسم والموضوع والصورة الشخصية واللافتة وإمكانية رؤية السجل والتثبيت وحزم الصور وإعدادات الغرفة الأخرى.</string>
+    <string name="video_editor_extract_audio">استخراج الصوت</string>
+    <string name="video_editor_extracting_audio">جارٍ استخراج الصوت…</string>
 </resources>

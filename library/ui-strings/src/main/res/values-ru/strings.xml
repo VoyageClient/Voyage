@@ -3654,4 +3654,6 @@
     <string name="settings_show_join_leave_messages_summary">Включает входы, выходы, приглашения, исключения, блокировки, запросы на вступление и события без изменений.</string>
     <string name="settings_show_room_settings_events">Показывать события настроек комнаты</string>
     <string name="settings_show_room_settings_events_summary">Включает разрешения, имя, тему, аватар, баннер, видимость истории, закреплённые сообщения, наборы изображений и другие настройки комнаты.</string>
+    <string name="video_editor_extract_audio">Извлечь аудио</string>
+    <string name="video_editor_extracting_audio">Извлечение аудио…</string>
 </resources>
