@@ -10,11 +10,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import im.vector.app.core.utils.LiveEvent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class EmojiChooserViewModel @Inject constructor(
         private val sectionFactory: EmojiPickerSectionFactory,
+        private val reactionText: ReactionText,
 ) : ViewModel() {
 
     val sections: MutableLiveData<List<EmojiPickerSection>> = MutableLiveData()
@@ -31,6 +34,13 @@ class EmojiChooserViewModel @Inject constructor(
     }
 
     suspend fun filterSections(sections: List<EmojiPickerSection>, query: String) = sectionFactory.filterSections(sections, query)
+
+    fun onFreeformReactionSelected(reaction: String) {
+        viewModelScope.launch {
+            val resolved = withContext(Dispatchers.IO) { reactionText.resolveShortcodes(roomId, reaction) }
+            onReactionSelected(resolved)
+        }
+    }
 
     fun onReactionSelected(reaction: String) {
         selectedReaction = reaction

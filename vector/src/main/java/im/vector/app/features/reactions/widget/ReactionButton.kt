@@ -37,9 +37,10 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.databinding.ReactionButtonBinding
+import im.vector.app.features.html.bindEmoteImageSpans
+import im.vector.app.features.reactions.ReactionText
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
-import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -128,13 +129,16 @@ class ReactionButton @JvmOverloads constructor(
         views.reactionText.animate().cancel()
         views.reactionText.scaleX = 1f
         views.reactionText.scaleY = 1f
-        if (!value.isMxcUrl()) {
-            // Plain emoji / unicode reaction.
+        if (ReactionText.singleImageUrl(value) == null) {
             GlideApp.with(views.reactionImage).clear(views.reactionImage)
             views.reactionImage.isVisible = false
             views.reactionText.setReactionTextLayoutForEmoji()
             views.reactionText.isVisible = true
-            views.reactionText.text = emojiSpanify.spanify(value.neutralizeDirectionOverrides())
+            val rendered = ReactionText.renderImages(value.neutralizeDirectionOverrides(), blockImages) {
+                activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()?.resolveFullSize(it)
+            }
+            views.reactionText.text = emojiSpanify.spanify(rendered)
+            views.reactionText.bindEmoteImageSpans()
             return
         }
         // Image reaction. Show a ❓ placeholder at the exact size the loaded image will occupy

@@ -8,18 +8,14 @@
 package im.vector.app.features.home.room.detail.timeline.format
 
 import android.text.SpannableStringBuilder
-import android.text.Spanned
 import androidx.annotation.StringRes
 import dagger.Lazy
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.html.EmoteImageSpan
-import im.vector.app.features.html.EventHtmlRenderer
-import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.media.isMediaHiddenInRoom
+import im.vector.app.features.reactions.ReactionText
 import im.vector.app.features.settings.VectorPreferences
-import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import javax.inject.Inject
 
 /**
@@ -28,31 +24,16 @@ import javax.inject.Inject
  */
 class ReactionFormatter @Inject constructor(
         private val stringProvider: StringProvider,
-        private val htmlRenderer: Lazy<EventHtmlRenderer>,
-        private val imagePackProvider: Lazy<ImagePackProvider>,
         private val activeSessionHolder: Lazy<ActiveSessionHolder>,
         private val vectorPreferences: VectorPreferences,
 ) {
 
-    /**
-     * A unicode key renders as the emoji; a custom emote renders as its inline image (resolved by mxc
-     * whether or not it's in a known pack), falling back to ❓ when the image can't be resolved or —
-     * matching the timeline — when media is hidden for the room and the reaction wasn't sent by us.
-     */
     fun renderKey(roomId: String?, key: String, reactionSenderId: String?): CharSequence {
-        if (!key.isMxcUrl()) return key.prepareForDisplay()
+        if (!ReactionText.containsImages(key)) return key.prepareForDisplay()
         val session = activeSessionHolder.get().getSafeActiveSession()
         val addedByMe = reactionSenderId != null && reactionSenderId == session?.myUserId
         val blockMedia = session == null || (!addedByMe && isMediaHiddenInRoom(roomId, session, vectorPreferences))
-        if (blockMedia) return QUESTION_MARK_EMOJI.prepareForDisplay()
-        // Cached packs only: this runs on the timeline's model-build thread, where the synchronous
-        // pack/space-hierarchy walk of getEmoticons() costs over a second. The shortcode is only the
-        // image's alt/title text, so a cold cache degrades to an empty one rather than a stall.
-        val shortcode = roomId?.let { id -> imagePackProvider.get().cachedEmoticons(id).firstOrNull { it.mxcUrl == key } }?.shortcode.orEmpty()
-        val html = "<img data-mx-emoticon src=\"$key\" alt=\":$shortcode:\" title=\"$shortcode\" height=\"32\"/>"
-        val rendered = htmlRenderer.get().render(html)
-                .takeIf { (it as? Spanned)?.getSpans(0, it.length, EmoteImageSpan::class.java)?.isNotEmpty() == true }
-        return rendered ?: QUESTION_MARK_EMOJI.prepareForDisplay()
+        return ReactionText.renderImages(key, blockMedia) { session?.contentUrlResolver()?.resolveFullSize(it) }.prepareForDisplay()
     }
 
     /** Insert a rendered key (which may carry emote image spans) into a single-placeholder template. */
@@ -69,8 +50,4 @@ class ReactionFormatter @Inject constructor(
 
     fun format(@StringRes templateRes: Int, roomId: String?, key: String, reactionSenderId: String?): CharSequence =
             applyTemplate(templateRes, renderKey(roomId, key, reactionSenderId))
-
-    companion object {
-        private const val QUESTION_MARK_EMOJI = "❓"
-    }
 }

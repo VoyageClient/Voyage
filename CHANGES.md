@@ -160,7 +160,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Emoji font options**: render emoji with bundled Twemoji, the system emoji font, or a custom emoji font you supply. Emoji autocomplete can be turned off.
 
-- **Configurable reactions**: quick reactions that sync across your devices, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions by typing any text.
+- **Configurable reactions**: quick reactions that sync across your devices, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions with text, `:shortcode:` emoji and inline `mxc://` images.
 
 - **Configurable avatars**: configurable avatar shapes, avatar-hiding options in the timeline and on invites, avatar removal, an empty-display-name fallback, and full-screen avatar zoom through the media viewer.
 
