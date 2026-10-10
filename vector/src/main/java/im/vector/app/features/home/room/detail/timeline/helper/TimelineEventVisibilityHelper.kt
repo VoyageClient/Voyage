@@ -72,15 +72,16 @@ class TimelineEventVisibilityHelper @Inject constructor(
             rootThreadEventId: String?,
             isFromThreadTimeline: Boolean
     ): Boolean {
+        if (timelineEvent.isHiddenByVisibilityRules()) return false
         if (timelineEvent.root.getClearType() == EventType.REACTION ||
                 timelineEvent.root.getClearType() == EventType.STATE_ROOM_SERVER_ACL) {
             return false
         }
-        if (isFromThreadTimeline || !userPreferencesProvider.shouldShowHiddenEvents()) {
+        if (isFromThreadTimeline || !userPreferencesProvider.shouldShowHiddenEvents(timelineEvent.roomId)) {
             return false
         }
         val threadRootId = timelineEvent.threadRootId(rootThreadEventId, isFromThreadTimeline)
-        if (threadRootId != null && !userPreferencesProvider.shouldShowHiddenThreadEvents()) return false
+        if (threadRootId != null && !userPreferencesProvider.shouldShowHiddenThreadEvents(timelineEvent.roomId)) return false
         return !timelineEvent.isDisplayable() || timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline, threadRootId)
     }
 
@@ -99,22 +100,23 @@ class TimelineEventVisibilityHelper @Inject constructor(
             forcedVisibleEventIds: Set<String> = emptySet()
     ): Boolean {
         if (isFromThreadTimeline && timelineEvent.isNonThreadRelationToRoot(rootThreadEventId)) return false
-        if (timelineEvent.root.getClearType() == EventType.REACTION && !userPreferencesProvider.shouldShowReactions()) {
-            return false
-        }
-        if (timelineEvent.root.getClearType() == EventType.STATE_ROOM_SERVER_ACL && !userPreferencesProvider.shouldShowAclEvents()) {
-            return false
+        if (timelineEvent.isHiddenByVisibilityRules()) {
+            val type = timelineEvent.root.getClearType()
+            if (type == EventType.REACTION || type == EventType.STATE_ROOM_SERVER_ACL ||
+                    (timelineEvent.eventId != highlightedEventId && timelineEvent.eventId !in forcedVisibleEventIds)) {
+                return false
+            }
         }
         val threadRootId = timelineEvent.threadRootId(rootThreadEventId, isFromThreadTimeline)
         if (isFromThreadTimeline && threadRootId != null && threadRootId != rootThreadEventId) return false
-        if (!isFromThreadTimeline && threadRootId != null && !userPreferencesProvider.shouldShowHiddenThreadEvents()) return false
+        if (!isFromThreadTimeline && threadRootId != null && !userPreferencesProvider.shouldShowHiddenThreadEvents(timelineEvent.roomId)) return false
         // A media "edit" that changed the media itself is rejected as an edit and shown as its own
         // message, so it must not be hidden by the replace-relation rule below.
         if (timelineEvent.eventId in forcedVisibleEventIds) {
             return true
         }
         // If show hidden events is true we should always display something
-        if (userPreferencesProvider.shouldShowHiddenEvents() &&
+        if (userPreferencesProvider.shouldShowHiddenEvents(timelineEvent.roomId) &&
                 (!isFromThreadTimeline || timelineEvent.ownedByThreadChunk)) {
             return true
         }
@@ -126,12 +128,11 @@ class TimelineEventVisibilityHelper @Inject constructor(
             return false
         }
 
-        // Check for special case where we should hide the event, like redacted, relation, memberships... according to user preferences.
         return !timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline, threadRootId)
     }
 
     private fun TimelineEvent.isDisplayable(): Boolean {
-        return (root.getClearType() == EventType.REACTION && userPreferencesProvider.shouldShowReactions()) ||
+        return (root.getClearType() == EventType.REACTION && userPreferencesProvider.shouldShowReactions(roomId)) ||
                 TimelineDisplayableEvents.DISPLAYABLE_TYPES.contains(root.getClearType())
     }
 
@@ -144,10 +145,6 @@ class TimelineEventVisibilityHelper @Inject constructor(
             return redactedContentRestorer.isRevealedHiddenEvent(this)
         }
 
-        if (root.isRedacted() && !userPreferencesProvider.shouldShowRedactedMessages() && root.threadDetails?.isRootThread == false) {
-            return true
-        }
-
         // We should not display deleted thread messages within the normal timeline
         if (root.isRedacted() &&
                 userPreferencesProvider.areThreadMessagesEnabled() &&
@@ -156,7 +153,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
             return true
         }
         if (root.isRedacted() &&
-                !userPreferencesProvider.shouldShowRedactedMessages() &&
+                !userPreferencesProvider.shouldShowRedactedMessages(roomId) &&
                 userPreferencesProvider.areThreadMessagesEnabled() &&
                 isFromThreadTimeline &&
                 root.isThread()) {
@@ -165,14 +162,6 @@ class TimelineEventVisibilityHelper @Inject constructor(
 
         if (root.getRelationContent()?.type == RelationType.REPLACE) {
             return true
-        }
-        if (root.getClearType() == EventType.STATE_ROOM_MEMBER) {
-            val diff = computeMembershipDiff()
-            if ((diff.isJoin || diff.isPart) && !userPreferencesProvider.shouldShowJoinLeaves()) return true
-            if ((diff.isAvatarChange || diff.isDisplaynameChange) && !userPreferencesProvider.shouldShowAvatarDisplayNameChanges()) return true
-            // A repeated knock (re-request to join, no membership change) is a debug event: hidden by
-            // default, only the first knock is a real membership transition that gets displayed.
-            if (diff.isRepeatedKnock) return true
         }
 
         if (userPreferencesProvider.areThreadMessagesEnabled() && !isFromThreadTimeline && threadRootId != null) {
@@ -201,34 +190,33 @@ class TimelineEventVisibilityHelper @Inject constructor(
         return false
     }
 
-    private fun TimelineEvent.computeMembershipDiff(): MembershipDiff {
-        val content = root.getClearContent().toModel<RoomMemberContent>()
-        val prevContent = root.resolvedPrevContent().toModel<RoomMemberContent>()
-
-        val isMembershipChanged = content?.membership != prevContent?.membership
-        val isJoin = isMembershipChanged && content?.membership == Membership.JOIN
-        val isPart = isMembershipChanged && content?.membership == Membership.LEAVE && root.stateKey == root.senderId
-
-        val isProfileChanged = !isMembershipChanged && content?.membership == Membership.JOIN
-        val isDisplaynameChange = isProfileChanged && content?.displayName != prevContent?.displayName
-        val isAvatarChange = isProfileChanged && content?.avatarUrl !== prevContent?.avatarUrl
-
-        val isRepeatedKnock = !isMembershipChanged && content?.membership == Membership.KNOCK
-
-        return MembershipDiff(
-                isJoin = isJoin,
-                isPart = isPart,
-                isDisplaynameChange = isDisplaynameChange,
-                isAvatarChange = isAvatarChange,
-                isRepeatedKnock = isRepeatedKnock
-        )
+    private fun TimelineEvent.isHiddenByVisibilityRules(): Boolean {
+        if (root.isRedacted() && !redactedContentRestorer.isShowingRestoredContent(this) &&
+                !userPreferencesProvider.shouldShowRedactedMessages(roomId) && root.threadDetails?.isRootThread == false) {
+            return true
+        }
+        return when (root.getClearType()) {
+            EventType.REACTION -> !userPreferencesProvider.shouldShowReactions(roomId)
+            EventType.STATE_ROOM_SERVER_ACL -> !userPreferencesProvider.shouldShowAclEvents(roomId)
+            EventType.STATE_ROOM_THIRD_PARTY_INVITE -> !userPreferencesProvider.shouldShowMembershipEvents(roomId)
+            EventType.STATE_ROOM_MEMBER -> {
+                if (isProfileChange()) {
+                    !userPreferencesProvider.shouldShowAvatarDisplayNameChanges(roomId)
+                } else {
+                    !userPreferencesProvider.shouldShowMembershipEvents(roomId)
+                }
+            }
+            in TimelineDisplayableEvents.ROOM_SETTINGS_TYPES -> !userPreferencesProvider.shouldShowRoomSettingsEvents(roomId)
+            else -> false
+        }
     }
 
-    private data class MembershipDiff(
-            val isJoin: Boolean,
-            val isPart: Boolean,
-            val isDisplaynameChange: Boolean,
-            val isAvatarChange: Boolean,
-            val isRepeatedKnock: Boolean
-    )
+    private fun TimelineEvent.isProfileChange(): Boolean {
+        val content = root.getClearContent().toModel<RoomMemberContent>()
+        val previous = root.resolvedPrevContent().toModel<RoomMemberContent>()
+        return content != null && previous != null && content.membership == previous.membership &&
+                content.membership != Membership.LEAVE &&
+                (content.displayName != previous.displayName || content.avatarUrl != previous.avatarUrl ||
+                        content.effectiveColorPreference() != previous.effectiveColorPreference())
+    }
 }

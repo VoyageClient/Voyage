@@ -574,9 +574,7 @@
     <string name="settings_send_markdown_summary">Форматировать сообщения, используя markdown. Например, позволяет использовать звёздочки для выделения текста курсивом.</string>
     <string name="settings_show_read_receipts">Уведомления о прочтении</string>
     <string name="settings_show_read_receipts_summary">Нажмите на уведомление о прочтении для подробного списка.</string>
-    <string name="settings_show_join_leave_messages">События о вступлении/выходе</string>
     <string name="settings_show_avatar_display_name_changes_messages">События учётной записи</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">Включает изменения аватара и отображаемого имени.</string>
     <string name="settings_labs_native_camera_summary">Использовать системную камеру вместо камеры Element.</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="x_plus">+%d</string>
@@ -2773,7 +2771,6 @@
     <string name="notice_room_kick_with_reason">%1$s исключил(а) %2$s. Причина: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">Вы исключили %1$s. Причина: %2$s</string>
     <string name="has_been_kicked">%2$s исключил(а) вас из %1$s</string>
-    <string name="settings_show_join_leave_messages_summary">Приглашения, исключения и блокировки отображаются всегда.</string>
     <string name="settings_show_acl_events">Показывать события ACL</string>
     <string name="settings_show_acl_events_summary">Показывать изменения списков ACL в ленте.</string>
     <string name="settings_show_reactions">Показывать реакции</string>
@@ -3652,4 +3649,9 @@
     <string name="attachment_rasterize">Растрировать</string>
     <string name="attachment_rasterization_title">Растрирование</string>
     <string name="attachment_rasterization_recommended">Рекомендуется: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">Показывать события членства</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Включает изменения аватара, отображаемого имени и цвета имени.</string>
+    <string name="settings_show_join_leave_messages_summary">Включает входы, выходы, приглашения, исключения, блокировки, запросы на вступление и события без изменений.</string>
+    <string name="settings_show_room_settings_events">Показывать события настроек комнаты</string>
+    <string name="settings_show_room_settings_events_summary">Включает разрешения, имя, тему, аватар, баннер, видимость истории, закреплённые сообщения, наборы изображений и другие настройки комнаты.</string>
 </resources>

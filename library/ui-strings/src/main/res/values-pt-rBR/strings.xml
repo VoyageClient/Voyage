@@ -591,9 +591,7 @@
     <string name="settings_send_typing_notifs_summary">Deixar outros usuários saberem que você está digitando.</string>
     <string name="settings_show_read_receipts">Mostrar recibos de leitura</string>
     <string name="settings_show_read_receipts_summary">Clique nos recibos de leitura para uma lista detalhada.</string>
-    <string name="settings_show_join_leave_messages">Mostrar eventos de entrada e saída</string>
     <string name="settings_show_avatar_display_name_changes_messages">Mostrar eventos de conta</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">Inclui mudanças de avatar e de nome de exibição.</string>
     <string name="settings_troubleshoot_test_bg_restricted_success">Restrições de background estão desabilitadas para ${app_name}. Este teste devia ser rodado usando dados móveis (sem Wi-Fi).
 \n%1$s</string>
     <string name="settings_troubleshoot_test_bg_restricted_failed">Restrições de background estão habilitadas para ${app_name}.
@@ -2805,7 +2803,6 @@
     <string name="notice_room_kick_with_reason">%1$s expulsou %2$s. Razão: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">Você expulsou %1$s. Razão: %2$s</string>
     <string name="has_been_kicked">Você foi expulso de %1$s por %2$s</string>
-    <string name="settings_show_join_leave_messages_summary">Convites, expulsões e banimentos não são afetados.</string>
     <string name="settings_show_acl_events">Mostrar eventos de ACL</string>
     <string name="settings_show_acl_events_summary">Mostrar mudanças na lista de ACL na linha do tempo.</string>
     <string name="settings_show_reactions">Mostrar reações</string>
@@ -3528,4 +3525,9 @@
     <string name="attachment_rasterize">Rasterizar</string>
     <string name="attachment_rasterization_title">Rasterização</string>
     <string name="attachment_rasterization_recommended">Recomendado: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">Mostrar eventos de participação</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Inclui alterações de avatar, nome de exibição e cor do nome.</string>
+    <string name="settings_show_join_leave_messages_summary">Inclui entradas, saídas, convites, expulsões, banimentos, solicitações de entrada e eventos sem alterações.</string>
+    <string name="settings_show_room_settings_events">Mostrar eventos de configurações da sala</string>
+    <string name="settings_show_room_settings_events_summary">Inclui permissões, nome, assunto, avatar, banner, visibilidade do histórico, mensagens fixadas, pacotes de imagens e outras configurações da sala.</string>
 </resources>

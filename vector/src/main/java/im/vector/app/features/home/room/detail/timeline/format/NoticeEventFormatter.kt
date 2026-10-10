@@ -950,12 +950,6 @@ class NoticeEventFormatter @Inject constructor(
             )
         }
         if (displayText.isEmpty()) {
-            // A repeated knock (re-request to join) makes no real change. Only the first knock is a
-            // membership transition shown as a notice; hide the rest as debug events instead of
-            // spamming "made no changes".
-            if (eventContent?.membership == Membership.KNOCK) {
-                return null
-            }
             displayText.append(
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_member_no_changes_by_you)

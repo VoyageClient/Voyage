@@ -589,9 +589,7 @@
     <string name="settings_send_message_with_enter">שלח הודעה עם Enter</string>
     <string name="settings_preview_media_before_sending">הצג תצוגה מקדימה של מדיה לפני השליחה</string>
     <string name="settings_vibrate_on_mention">רטוט בעת אזכור משתמש</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">כולל שינויים באווטאר ושמות תצוגה.</string>
     <string name="settings_show_avatar_display_name_changes_messages">הצג אירועי חשבון</string>
-    <string name="settings_show_join_leave_messages">הראה אירועי הצטרפות ועזיבה</string>
     <string name="settings_show_read_receipts_summary">לחץ על אישורי הקריאה לרשימה מפורטת.</string>
     <string name="settings_show_read_receipts">הצג קבלות הצג קבלות קריאה</string>
     <string name="settings_12_24_timestamps">הצג חותמות זמן בפורמט של 12 שעות</string>
@@ -2869,7 +2867,6 @@
     <string name="notice_room_kick_with_reason">%1$s הרחיק את %2$s. סיבה: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">הרחקת את %1$s. סיבה: %2$s</string>
     <string name="has_been_kicked">הורחקת מ-%1$s על ידי %2$s</string>
-    <string name="settings_show_join_leave_messages_summary">הזמנות, הרחקות וחסימות אינן מושפעות.</string>
     <string name="settings_show_acl_events">הצג אירועי ACL</string>
     <string name="settings_show_acl_events_summary">הצג שינויים ברשימת ה-ACL בציר הזמן.</string>
     <string name="settings_show_reactions">הצג תגובות</string>
@@ -3621,4 +3618,9 @@
     <string name="attachment_rasterize">המרה לרסטר</string>
     <string name="attachment_rasterization_title">רסטריזציה</string>
     <string name="attachment_rasterization_recommended">מומלץ: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">הצג אירועי חברות</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">כולל שינויים בתמונת הפרופיל, בשם התצוגה ובצבע השם.</string>
+    <string name="settings_show_join_leave_messages_summary">כולל הצטרפות, עזיבה, הזמנות, הרחקות, חסימות, בקשות הצטרפות ואירועים ללא שינויים.</string>
+    <string name="settings_show_room_settings_events">הצג אירועי הגדרות החדר</string>
+    <string name="settings_show_room_settings_events_summary">כולל הרשאות, שם, נושא, תמונת פרופיל, באנר, נראות ההיסטוריה, הודעות נעוצות, חבילות תמונות והגדרות חדר אחרות.</string>
 </resources>

@@ -58,12 +58,12 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
     fun getLatestUnreadEvent(stores: SessionStores, roomId: String): TimelineEventEntity? {
         val excludedSenders = stores.user.getIgnoredUserIds().ifEmpty { listOf(EMPTY_SENDER) }
         // A reaction is only something to read when the timeline actually shows it.
-        val types = if (lightweightSettingsStorage.areReactionsShownInTimeline()) UNREAD_TYPES + EventType.REACTION else UNREAD_TYPES
+        val types = if (lightweightSettingsStorage.areReactionsShownInTimeline(roomId)) UNREAD_TYPES + EventType.REACTION else UNREAD_TYPES
         return stores.timelineEvent.getLatestUnreadEvent(roomId, types, excludedSenders)
     }
 
     fun isHiddenThreadReaction(stores: SessionStores, event: TimelineEventEntity): Boolean {
-        if (lightweightSettingsStorage.shouldShowHiddenThreadEvents() || event.root?.type != EventType.REACTION) return false
+        if (lightweightSettingsStorage.shouldShowHiddenThreadEvents(event.roomId) || event.root?.type != EventType.REACTION) return false
         val targetId = event.root?.asDomain()?.getRelationContent()?.eventId ?: return false
         return stores.event.getByEventIdInRoom(event.roomId, targetId)?.rootThreadEventId != null
     }

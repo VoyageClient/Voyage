@@ -705,9 +705,7 @@
     <string name="settings_autoplay_animated_images_summary">ٹائم لائن میں متحرک تصاویر نظر آتے ہی چلائیں</string>
     <string name="settings_enable_direct_share_title">براہِ راست اشتراک فعال کریں</string>
     <string name="settings_enable_direct_share_summary">نظام کے اشتراک مینو میں حالیہ گفتگوئیں دکھائیں</string>
-    <string name="settings_show_join_leave_messages">شامل ہونے اور چھوڑنے کے واقعات دکھائیں</string>
     <string name="settings_show_avatar_display_name_changes_messages">کھاتے کے واقعات دکھائیں</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">اوتار اور نمائشی نام کی تبدیلیاں شامل ہیں۔</string>
     <string name="settings_vibrate_on_mention">کسی صارف کا تذکرہ کرتے وقت ارتعاش</string>
     <string name="settings_preview_media_before_sending">بھیجنے سے پہلے میڈیا کا پیش منظر دیکھیں</string>
     <string name="settings_send_message_with_enter">Enter سے پیغام بھیجیں</string>
@@ -2708,7 +2706,6 @@
     <string name="notice_room_kick_with_reason">%1$s نے %2$s کو نکال دیا۔ وجہ: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">آپ نے %1$s کو نکال دیا۔ وجہ: %2$s</string>
     <string name="has_been_kicked">آپ کو %2$s نے %1$s سے نکال دیا ہے</string>
-    <string name="settings_show_join_leave_messages_summary">دعوتیں، نکالے جانا اور پابندیاں متاثر نہیں ہوتیں۔</string>
     <string name="settings_show_acl_events">ACL واقعات دکھائیں</string>
     <string name="settings_show_acl_events_summary">ٹائم لائن میں ACL فہرست کی تبدیلیاں دکھائیں۔</string>
     <string name="settings_show_reactions">ردعمل دکھائیں</string>
@@ -3422,4 +3419,9 @@
     <string name="attachment_rasterize">راسٹرائز کریں</string>
     <string name="attachment_rasterization_title">راسٹرائزیشن</string>
     <string name="attachment_rasterization_recommended">تجویز کردہ: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">رکنیت کے واقعات دکھائیں</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">اس میں پروفائل تصویر، نمائشی نام اور نام کے رنگ کی تبدیلیاں شامل ہیں۔</string>
+    <string name="settings_show_join_leave_messages_summary">اس میں شمولیت، چھوڑنا، دعوتیں، اخراج، پابندیاں، شمولیت کی درخواستیں اور بغیر تبدیلی کے واقعات شامل ہیں۔</string>
+    <string name="settings_show_room_settings_events">کمرے کی ترتیبات کے واقعات دکھائیں</string>
+    <string name="settings_show_room_settings_events_summary">اس میں اجازتیں، نام، موضوع، پروفائل تصویر، بینر، تاریخچہ دیکھنے کی اجازت، پن کردہ پیغامات، تصویری پیک اور کمرے کی دیگر ترتیبات شامل ہیں۔</string>
 </resources>

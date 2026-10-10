@@ -409,7 +409,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_send_markdown_summary">Format pesan menggunakan sintaks markdown sebelum dikirim. Ini mengizinkan format lanjutan seperti menggunakan tanda bintang untuk menunjukkan teks miring.</string>
     <string name="settings_show_read_receipts">Tunjukkan tanda telah dibaca</string>
     <string name="settings_show_read_receipts_summary">Klik tanda telah dibaca untuk daftar yang lebih rinci.</string>
-    <string name="settings_show_join_leave_messages">Tunjukkan kejadian bergabung dan meninggalkan</string>
     <string name="settings_show_avatar_display_name_changes_messages">Tunjukkan kejadian akun</string>
     <string name="notice_room_server_acl_set_allowed">• Server yang cocok dengan %s diizinkan.</string>
     <string name="notice_room_server_acl_set_banned">• Server yang cocok dengan %s dilarangkan.</string>
@@ -864,7 +863,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_show_emoji_keyboard">Tampilkan keyboard emoji</string>
     <string name="settings_send_message_with_enter_summary">Tombol Enter pada keyboard akan mengirim pesan daripada menambahkan jeda baris</string>
     <string name="settings_send_message_with_enter">Kirim pesan dengan enter</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">Termasuk avatar dan perubahan nama tampilan.</string>
     <string name="settings_integrations_summary">Gunakan pengelola integrasi untuk mengelola bot, jembatan, widget, dan paket stiker.
 \nPengelola integrasi menerima data konfigurasi, dan dapat memodifikasi widget, mengirim undangan ruang, dan mengatur tingkat daya dengan pengetahuan Anda.</string>
     <string name="settings_integrations">Integrasi</string>
@@ -2748,7 +2746,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="notice_room_kick_with_reason">%1$s mengeluarkan %2$s. Alasan: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">Anda mengeluarkan %1$s. Alasan: %2$s</string>
     <string name="has_been_kicked">Anda telah dikeluarkan dari %1$s oleh %2$s</string>
-    <string name="settings_show_join_leave_messages_summary">Undangan, pengeluaran, dan pencekalan tidak terpengaruh.</string>
     <string name="settings_show_acl_events">Tampilkan peristiwa ACL</string>
     <string name="settings_show_acl_events_summary">Tampilkan perubahan daftar ACL di lini masa.</string>
     <string name="settings_show_reactions">Tampilkan reaksi</string>
@@ -3464,4 +3461,9 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="attachment_rasterize">Rasterisasi</string>
     <string name="attachment_rasterization_title">Rasterisasi</string>
     <string name="attachment_rasterization_recommended">Disarankan: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">Tampilkan kejadian keanggotaan</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Mencakup perubahan avatar, nama tampilan, dan warna nama.</string>
+    <string name="settings_show_join_leave_messages_summary">Mencakup bergabung, keluar, undangan, pengeluaran, pemblokiran, permintaan bergabung, dan kejadian tanpa perubahan.</string>
+    <string name="settings_show_room_settings_events">Tampilkan kejadian pengaturan ruang</string>
+    <string name="settings_show_room_settings_events_summary">Mencakup izin, nama, topik, avatar, banner, visibilitas riwayat, pesan yang disematkan, paket gambar, dan pengaturan ruang lainnya.</string>
 </resources>

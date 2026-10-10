@@ -682,9 +682,7 @@
     <string name="settings_autoplay_animated_images_summary">टाइमलाइन में एनिमेटेड इमेज दिखते ही चलाएं</string>
     <string name="settings_enable_direct_share_title">डायरेक्ट शेयर चालू करें</string>
     <string name="settings_enable_direct_share_summary">सिस्टम शेयर मेनू में हाल की चैट दिखाएं</string>
-    <string name="settings_show_join_leave_messages">शामिल होने और छोड़ने के इवेंट दिखाएं</string>
     <string name="settings_show_avatar_display_name_changes_messages">खाता इवेंट दिखाएं</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">इसमें अवतार और डिस्प्ले नाम के बदलाव शामिल हैं।</string>
     <string name="settings_vibrate_on_mention">किसी उपयोगकर्ता का उल्लेख करते समय वाइब्रेट करें</string>
     <string name="settings_preview_media_before_sending">भेजने से पहले मीडिया का प्रीव्यू देखें</string>
     <string name="settings_send_message_with_enter">एंटर से मैसेज भेजें</string>
@@ -2696,7 +2694,6 @@
     <string name="notice_room_kick_with_reason">%1$s ने %2$s को निकाला। कारण: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">आपने %1$s को निकाला। कारण: %2$s</string>
     <string name="has_been_kicked">%2$s ने आपको %1$s से निकाल दिया है</string>
-    <string name="settings_show_join_leave_messages_summary">आमंत्रण, निकालना और प्रतिबंध इससे प्रभावित नहीं होते।</string>
     <string name="settings_show_acl_events">ACL इवेंट दिखाएं</string>
     <string name="settings_show_acl_events_summary">टाइमलाइन में ACL सूची के बदलाव दिखाएं।</string>
     <string name="settings_show_reactions">प्रतिक्रियाएं दिखाएं</string>
@@ -3410,4 +3407,9 @@
     <string name="attachment_rasterize">रास्टराइज़ करें</string>
     <string name="attachment_rasterization_title">रास्टराइज़ेशन</string>
     <string name="attachment_rasterization_recommended">अनुशंसित: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">सदस्यता इवेंट दिखाएं</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">इसमें अवतार, प्रदर्शन नाम और नाम के रंग में बदलाव शामिल हैं।</string>
+    <string name="settings_show_join_leave_messages_summary">इसमें शामिल होना, छोड़ना, आमंत्रण, निकालना, प्रतिबंध, शामिल होने के अनुरोध और बिना बदलाव वाले इवेंट शामिल हैं।</string>
+    <string name="settings_show_room_settings_events">कमरे की सेटिंग के इवेंट दिखाएं</string>
+    <string name="settings_show_room_settings_events_summary">इसमें अनुमतियाँ, नाम, विषय, अवतार, बैनर, इतिहास की दृश्यता, पिन किए गए संदेश, चित्र पैक और कमरे की अन्य सेटिंग शामिल हैं।</string>
 </resources>

@@ -55,6 +55,76 @@
     </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_ROOM_TIMELINE_CATEGORY_KEY"
+        android:title="@string/settings_category_timeline">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_REDACTED_KEY"
+            android:persistent="false"
+            android:title="@string/settings_show_redacted"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_MEMBERSHIP_KEY"
+            android:persistent="false"
+            android:title="@string/settings_show_join_leave_messages"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_PROFILE_CHANGES_KEY"
+            android:persistent="false"
+            android:title="@string/settings_show_avatar_display_name_changes_messages"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_ROOM_SETTINGS_KEY"
+            android:persistent="false"
+            android:title="@string/settings_show_room_settings_events"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_ACL_KEY"
+            android:persistent="false"
+            android:title="@string/settings_show_acl_events"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_REACTIONS_KEY"
+            android:persistent="false"
+            android:title="@string/settings_show_reactions"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_HIDDEN_EVENTS_KEY"
+            android:persistent="false"
+            android:title="@string/settings_labs_show_hidden_events_in_timeline"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_TIMELINE_HIDDEN_THREAD_EVENTS_KEY"
+            android:persistent="false"
+            android:title="@string/settings_labs_show_hidden_thread_events_in_timeline"
+            app:useSimpleSummaryProvider="true" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
         android:title="@string/room_personalization_media_category">
 

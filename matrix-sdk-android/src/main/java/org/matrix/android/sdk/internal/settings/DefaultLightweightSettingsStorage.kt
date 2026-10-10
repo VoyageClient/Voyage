@@ -45,14 +45,23 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
     }
 
     // Backed by the app's "Show reactions" toggle (shared default prefs); defaults to off.
-    override fun areReactionsShownInTimeline(): Boolean {
-        return sdkDefaultPrefs.getBoolean(SETTINGS_SHOW_REACTIONS, false)
+    override fun areReactionsShownInTimeline(roomId: String?): Boolean {
+        return roomBoolean(SETTINGS_SHOW_REACTIONS, roomId)
     }
 
-    override fun shouldShowHiddenThreadEvents(): Boolean {
+    override fun shouldShowHiddenThreadEvents(roomId: String?): Boolean {
         return sdkDefaultPrefs.getBoolean(SETTINGS_DEVELOPER_MODE, false) &&
-                sdkDefaultPrefs.getBoolean(SETTINGS_SHOW_HIDDEN_EVENTS, false) &&
-                sdkDefaultPrefs.getBoolean(SETTINGS_SHOW_HIDDEN_THREAD_EVENTS, false)
+                roomBoolean(SETTINGS_SHOW_HIDDEN_EVENTS, roomId) &&
+                roomBoolean(SETTINGS_SHOW_HIDDEN_THREAD_EVENTS, roomId)
+    }
+
+    private fun roomBoolean(key: String, roomId: String?): Boolean {
+        val roomKey = roomId?.let { "${key}_$it" }
+        return if (roomKey != null && sdkDefaultPrefs.contains(roomKey)) {
+            sdkDefaultPrefs.getBoolean(roomKey, false)
+        } else {
+            sdkDefaultPrefs.getBoolean(key, false)
+        }
     }
 
     // Backed by the app's "Media and avatars" toggle (shared default prefs); defaults to on.

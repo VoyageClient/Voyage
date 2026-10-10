@@ -141,7 +141,7 @@ class VerificationItemFactory @Inject constructor(
     }
 
     private fun ignoredConclusion(params: TimelineItemFactoryParams): VectorEpoxyModel<*>? {
-        if (userPreferencesProvider.shouldShowHiddenEvents()) return noticeItemFactory.create(params)
+        if (userPreferencesProvider.shouldShowHiddenEvents(params.event.roomId)) return noticeItemFactory.create(params)
         return null
     }
 }

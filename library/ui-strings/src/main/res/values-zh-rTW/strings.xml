@@ -534,9 +534,7 @@
     <string name="settings_send_markdown_summary">在您傳送之前使用 Markdown 格式化訊息。此功能讓您可以對訊息使用進階的格式，例如用星號來顯示斜體文字。</string>
     <string name="settings_show_read_receipts">顯示讀取回條</string>
     <string name="settings_show_read_receipts_summary">點擊讀取回條以顯示詳細資料。</string>
-    <string name="settings_show_join_leave_messages">顯示人員加入與離開的事件</string>
     <string name="settings_show_avatar_display_name_changes_messages">顯示帳號事件</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">包含大頭照與顯示名稱變動。</string>
     <string name="settings_password">密碼</string>
     <string name="settings_labs_native_camera_summary">使用系統相機而非自訂的相機畫面。</string>
     <string name="command_problem_with_parameters">指令「%s」需要更多參數，或是有一些參數不正確。</string>
@@ -2751,7 +2749,6 @@
     <string name="notice_room_kick_with_reason">%1$s 已將 %2$s 踢出。理由：%3$s</string>
     <string name="notice_room_kick_with_reason_by_you">您已將 %1$s 踢出。理由：%2$s</string>
     <string name="has_been_kicked">您已被 %2$s 踢出 %1$s</string>
-    <string name="settings_show_join_leave_messages_summary">邀請、踢出與封鎖不受影響。</string>
     <string name="settings_show_acl_events">顯示 ACL 事件</string>
     <string name="settings_show_acl_events_summary">在時間軸中顯示 ACL 清單變更。</string>
     <string name="settings_show_reactions">顯示反應</string>
@@ -3466,4 +3463,9 @@
     <string name="attachment_rasterize">點陣化</string>
     <string name="attachment_rasterization_title">點陣化</string>
     <string name="attachment_rasterization_recommended">建議：%1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">顯示成員變動事件</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">包括大頭照、顯示名稱和名稱色彩的變更。</string>
+    <string name="settings_show_join_leave_messages_summary">包括加入、離開、邀請、踢出、封鎖、申請加入和沒有變更的事件。</string>
+    <string name="settings_show_room_settings_events">顯示聊天室設定事件</string>
+    <string name="settings_show_room_settings_events_summary">包括權限、名稱、主題、大頭照、橫幅、歷史紀錄可見性、釘選訊息、圖片包和其他聊天室設定。</string>
 </resources>

@@ -47,6 +47,37 @@ internal class DefaultLightweightSettingsStorageTest {
     }
 
     @Test
+    fun `reaction visibility overrides stay in their own room and can return to inheritance`() {
+        appPreferences.putBoolean("SETTINGS_SHOW_REACTIONS_KEY", true)
+        appPreferences.putBoolean("SETTINGS_SHOW_REACTIONS_KEY_$A_ROOM_ID", false)
+
+        storage.areReactionsShownInTimeline(A_ROOM_ID) shouldBeEqualTo false
+        storage.areReactionsShownInTimeline(ANOTHER_ROOM_ID) shouldBeEqualTo true
+
+        appPreferences.remove("SETTINGS_SHOW_REACTIONS_KEY_$A_ROOM_ID")
+        storage.areReactionsShownInTimeline(A_ROOM_ID) shouldBeEqualTo true
+    }
+
+    @Test
+    fun `room hidden thread events need hidden events and developer mode`() {
+        val hiddenEvents = "SETTINGS_LABS_SHOW_HIDDEN_EVENTS_PREFERENCE_KEY"
+        appPreferences.putBoolean("${hiddenEvents}_$A_ROOM_ID", true)
+        appPreferences.putBoolean("SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY_$A_ROOM_ID", true)
+        storage.shouldShowHiddenThreadEvents(A_ROOM_ID) shouldBeEqualTo false
+
+        appPreferences.putBoolean("SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY", true)
+        storage.shouldShowHiddenThreadEvents(A_ROOM_ID) shouldBeEqualTo true
+        storage.shouldShowHiddenThreadEvents(ANOTHER_ROOM_ID) shouldBeEqualTo false
+
+        appPreferences.remove("${hiddenEvents}_$A_ROOM_ID")
+        storage.shouldShowHiddenThreadEvents(A_ROOM_ID) shouldBeEqualTo false
+        appPreferences.putBoolean(hiddenEvents, true)
+        storage.shouldShowHiddenThreadEvents(A_ROOM_ID) shouldBeEqualTo true
+        appPreferences.putBoolean("${hiddenEvents}_$A_ROOM_ID", false)
+        storage.shouldShowHiddenThreadEvents(A_ROOM_ID) shouldBeEqualTo false
+    }
+
+    @Test
     fun `out of the box, encrypted rooms preview on the device and the others on the homeserver`() {
         storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = true) shouldBeEqualTo LinkPreviewSource.DEVICE
         storage.getLinkPreviewSource(A_USER_ID, A_ROOM_ID, isEncrypted = false) shouldBeEqualTo LinkPreviewSource.SERVER

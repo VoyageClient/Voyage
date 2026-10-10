@@ -812,9 +812,7 @@
     <string name="settings_secure_backup_section_info">サーバー上の暗号鍵をバックアップして、暗号化されたメッセージとデータへのアクセスが失われるのを防ぎましょう。</string>
     <string name="settings_show_emoji_keyboard_summary">メッセージ入力欄に絵文字キーボードを開くためのボタンを追加</string>
     <string name="settings_show_emoji_keyboard">絵文字キーボードを表示</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">アバターと表示名の変更を含む。</string>
     <string name="settings_show_avatar_display_name_changes_messages">アカウントのイベントを表示</string>
-    <string name="settings_show_join_leave_messages">参加・退出イベントを表示</string>
     <string name="settings_inline_url_preview_summary">ホームサーバーがこの機能をサポートしている場合は、チャット内のリンクをプレビューします。</string>
     <string name="settings_integrations_summary">インテグレーションマネージャーを使用すると、ボット、ブリッジ、ウィジェット、ステッカーパックを管理できます。
 \n設定データを受信し、ユーザーに代わってウィジェットの変更、ルームへの招待の送信、権限レベルの設定を行うことができます。</string>
@@ -2748,7 +2746,6 @@
     <string name="notice_room_kick_with_reason">%1$sが%2$sを追放しました。理由：%3$s</string>
     <string name="notice_room_kick_with_reason_by_you">%1$sを追放しました。理由：%2$s</string>
     <string name="has_been_kicked">%2$sによって%1$sから追放されました</string>
-    <string name="settings_show_join_leave_messages_summary">招待、追放、ブロックには影響しません。</string>
     <string name="settings_show_acl_events">ACLイベントを表示</string>
     <string name="settings_show_acl_events_summary">タイムラインにACLリストの変更を表示します。</string>
     <string name="settings_show_reactions">リアクションを表示</string>
@@ -3462,4 +3459,9 @@
     <string name="attachment_rasterize">ラスタライズ</string>
     <string name="attachment_rasterization_title">ラスタライズ</string>
     <string name="attachment_rasterization_recommended">推奨：%1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">メンバーシップのイベントを表示</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">アバター、表示名、名前の色の変更を含みます。</string>
+    <string name="settings_show_join_leave_messages_summary">参加、退出、招待、退出処分、アクセス禁止、参加リクエスト、変更のないイベントを含みます。</string>
+    <string name="settings_show_room_settings_events">ルーム設定のイベントを表示</string>
+    <string name="settings_show_room_settings_events_summary">権限、名前、トピック、アバター、バナー、履歴の公開範囲、ピン留め、画像パック、その他のルーム設定を含みます。</string>
 </resources>

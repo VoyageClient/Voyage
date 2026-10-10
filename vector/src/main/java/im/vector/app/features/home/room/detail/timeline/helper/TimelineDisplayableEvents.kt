@@ -15,6 +15,28 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 object TimelineDisplayableEvents {
 
+    val ROOM_SETTINGS_TYPES: Set<String> = setOf(
+            EventType.STATE_ROOM_NAME,
+            EventType.STATE_ROOM_TOPIC,
+            EventType.STATE_ROOM_AVATAR,
+            EventType.STATE_ROOM_ALIASES,
+            EventType.STATE_ROOM_CANONICAL_ALIAS,
+            EventType.STATE_ROOM_HISTORY_VISIBILITY,
+            EventType.STATE_ROOM_POWER_LEVELS,
+            EventType.STATE_ROOM_JOIN_RULES,
+            EventType.STATE_ROOM_GUEST_ACCESS,
+            EventType.STATE_ROOM_ENCRYPTION,
+            EventType.STATE_ROOM_WIDGET,
+            EventType.STATE_ROOM_WIDGET_LEGACY,
+            EventType.STATE_ROOM_PINNED_EVENT,
+            EventType.STATE_ROOM_IMAGE_PACK,
+            EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
+            EventType.STATE_SPACE_CHILD,
+            EventType.STATE_SPACE_PARENT,
+            EventType.STATE_ROOM_RELATED_GROUPS,
+            MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE,
+    ) + EventType.STATE_ROOM_BANNER.values + EventType.STATE_ROOM_POLICY.values
+
     /**
      * All types we have an item to build with. Every type not defined here will be shown as DefaultItem if forced to be shown, otherwise will be hidden.
      */
@@ -32,6 +54,9 @@ object TimelineDisplayableEvents {
             EventType.STATE_ROOM_SERVER_ACL,
             EventType.STATE_ROOM_POWER_LEVELS,
             MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE,
+            EventType.STATE_ROOM_PINNED_EVENT,
+            EventType.STATE_SPACE_CHILD,
+            EventType.STATE_SPACE_PARENT,
             EventType.STATE_ROOM_IMAGE_PACK,
             EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
             EventType.CALL_INVITE,

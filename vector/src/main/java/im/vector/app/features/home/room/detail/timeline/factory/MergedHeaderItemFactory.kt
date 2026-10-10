@@ -167,15 +167,16 @@ class MergedHeaderItemFactory @Inject constructor(
             shown: BooleanArray,
     ): List<MergedRun> {
         val runs = ArrayList<MergedRun>()
-        // Room creation is a special, contiguous block anchored on the (immutable) create event; compute it
-        // first and exclude its members from the generic walk so no event lands in two runs.
-        val creationRun = computeRoomCreationRun(snapshot)
-        creationRun?.let { runs.add(it) }
-        val creationMemberIds = creationRun?.members?.mapTo(HashSet()) { it.localId } ?: emptySet<Long>()
-
         val highlightId = partialState.highlightedEventId
         val isThread = partialState.isFromThreadTimeline()
         val rootThreadId = partialState.rootThreadEventId
+        snapshot.forEachIndexed { index, event ->
+            shown[index] = timelineEventVisibilityHelper.shouldShowEvent(event, highlightId, isThread, rootThreadId, forcedVisibleEventIds)
+        }
+        // Creation summaries must obey the same filters as their rows.
+        val creationRun = computeRoomCreationRun(snapshot, shown)
+        creationRun?.let { runs.add(it) }
+        val creationMemberIds = creationRun?.members?.mapTo(HashSet()) { it.localId } ?: emptySet<Long>()
 
         var members: ArrayList<TimelineEvent>? = null
         var kind: RunKind? = null
@@ -193,8 +194,7 @@ class MergedHeaderItemFactory @Inject constructor(
         // collected list is [newest … oldest]; runs are stored oldest→newest to match the legacy avatar order.
         for (i in snapshot.indices) {
             val event = snapshot[i]
-            val isShown = timelineEventVisibilityHelper.shouldShowEvent(event, highlightId, isThread, rootThreadId, forcedVisibleEventIds)
-            shown[i] = isShown
+            val isShown = shown[i]
             if (event.localId in creationMemberIds) { flush(); continue }
             when (val cls = classify(event, isShown, isThread, rootThreadId)) {
                 Classification.Skip -> Unit // transparent: neither joins nor breaks a run
@@ -279,26 +279,26 @@ class MergedHeaderItemFactory @Inject constructor(
         else -> null
     }
 
-    private fun computeRoomCreationRun(snapshot: List<TimelineEvent>): MergedRun? {
+    private fun computeRoomCreationRun(snapshot: List<TimelineEvent>, shown: BooleanArray): MergedRun? {
         val createIndex = snapshot.indexOfFirst { it.root.getClearType() == EventType.STATE_ROOM_CREATE }
         if (createIndex <= 0) return null
         val createEvent = snapshot[createIndex]
         // Room version 11 uses the create event sender instead of content.creator.
         val creator = createEvent.root.getClearContent().toModel<RoomCreateContent>()?.creator
                 ?: createEvent.root.senderId
-        // The anchor is the config event directly newer than create; it may be the creator's own join, so it
-        // is matched against the creator. The rest of the block is pure (non-member) configuration.
-        val anchor = snapshot[createIndex - 1]
-        if (!anchor.isRoomConfiguration(creator)) return null
+        // The first configuration may be the creator's own join; later joins end the creation block.
+        val firstConfiguration = snapshot[createIndex - 1]
+        if (!firstConfiguration.isRoomConfiguration(creator)) return null
         val members = ArrayList<TimelineEvent>()
-        members.add(anchor)
+        if (shown[createIndex - 1]) members.add(firstConfiguration)
         var pos = createIndex - 2
         while (pos >= 0) {
             val candidate = snapshot[pos]
             if (!candidate.isRoomConfiguration(null)) break
-            members.add(candidate)
+            if (shown[pos]) members.add(candidate)
             pos--
         }
+        val anchor = members.firstOrNull() ?: return null
         var hasEncryption = false
         var encryptionAlgorithm: String? = null
         members.forEach { member ->

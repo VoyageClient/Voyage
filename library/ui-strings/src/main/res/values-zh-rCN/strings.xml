@@ -532,9 +532,7 @@
     <string name="settings_send_markdown_summary">在消息发出之前使用 Markdown 语法格式化消息。这允许你使用高级的文字格式，例如使用星号显示斜体文字。</string>
     <string name="settings_show_read_receipts">显示已读回执</string>
     <string name="settings_show_read_receipts_summary">单击已读回执以获取详细列表。</string>
-    <string name="settings_show_join_leave_messages">显示加入与离开事件</string>
     <string name="settings_show_avatar_display_name_changes_messages">显示账户变动事件</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">包括头像与显示名称的变动。</string>
     <string name="settings_password">密码</string>
     <string name="x_plus">+%d</string>
     <string name="generic_label_and_value">%1$s：%2$s</string>
@@ -2749,7 +2747,6 @@
     <string name="notice_room_kick_with_reason">%1$s 踢出了 %2$s。理由：%3$s</string>
     <string name="notice_room_kick_with_reason_by_you">你踢出了 %1$s。理由：%2$s</string>
     <string name="has_been_kicked">你已被 %2$s 踢出 %1$s</string>
-    <string name="settings_show_join_leave_messages_summary">邀请、踢出和封禁不受影响。</string>
     <string name="settings_show_acl_events">显示 ACL 事件</string>
     <string name="settings_show_acl_events_summary">在时间线中显示 ACL 列表变更。</string>
     <string name="settings_show_reactions">显示回应</string>
@@ -3464,4 +3461,9 @@
     <string name="attachment_rasterize">栅格化</string>
     <string name="attachment_rasterization_title">栅格化</string>
     <string name="attachment_rasterization_recommended">推荐：%1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">显示成员变动事件</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">包括头像、显示名称和名称颜色的变更。</string>
+    <string name="settings_show_join_leave_messages_summary">包括加入、离开、邀请、踢出、封禁、申请加入和没有变更的事件。</string>
+    <string name="settings_show_room_settings_events">显示房间设置事件</string>
+    <string name="settings_show_room_settings_events_summary">包括权限、名称、话题、头像、横幅、历史记录可见性、置顶消息、图片包和其他房间设置。</string>
 </resources>

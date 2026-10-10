@@ -1506,7 +1506,7 @@ private fun handleSelectStickerAttachment() {
                         val receiptToNewest = bufferedMostRecentDisplayedEvent.indexOfEvent() == 0 &&
                                 timeline?.isLive == true &&
                                 initialState.rootThreadEventId == null &&
-                                vectorPreferences.showReactions()
+                                vectorPreferences.showReactions(room.roomId)
                         session.coroutineScope.launch {
                             val threadId = initialState.rootThreadEventId ?: ReadService.THREAD_ID_MAIN
                             tryOrNull {

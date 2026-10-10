@@ -28,6 +28,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Room knocking**: request access to rooms that require it, including rooms that combine both rules (MSC3787), where members of a chosen space join directly and everyone else asks to join. Room settings offer it and the room preview shows the right action. Join-rule changes also read correctly in the timeline for knock and restricted rooms, which previously showed nothing at all.
 
+- **Room timeline personalization**: override global visibility rules for reactions, membership events, profile changes, room settings changes, deleted messages and server ACL changes in each room. Explicit visibility filters also apply when hidden events are shown. Developer mode also offers per-room hidden-event and hidden-thread visibility.
+
 - **Room creation**: an overhauled room-creation wizard, with a per-room Personalization page alongside it.
 
 - **Room server ACLs**: view and edit the room's server ACL list from the room settings.

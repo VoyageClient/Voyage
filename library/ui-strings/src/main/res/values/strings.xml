@@ -908,9 +908,9 @@
     <string name="settings_autoplay_animated_images_summary">Play animated images in the timeline as soon as they are visible</string>
     <string name="settings_enable_direct_share_title">Enable direct share</string>
     <string name="settings_enable_direct_share_summary">Show recent chats in the system share menu</string>
-    <string name="settings_show_join_leave_messages">Show join and leave events</string>
+    <string name="settings_show_join_leave_messages">Show membership events</string>
     <string name="settings_show_avatar_display_name_changes_messages">Show account events</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">Includes avatar and display name changes.</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Includes avatar, display name and name color changes.</string>
     <string name="settings_vibrate_on_mention">Vibrate when mentioning a user</string>
     <string name="settings_preview_media_before_sending">Preview media before sending</string>
     <string name="settings_send_message_with_enter">Send message with enter</string>
@@ -3516,7 +3516,9 @@
     <string name="notice_room_kick_with_reason">%1$s kicked %2$s. Reason: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">You kicked %1$s. Reason: %2$s</string>
     <string name="has_been_kicked">You have been kicked from %1$s by %2$s</string>
-    <string name="settings_show_join_leave_messages_summary">Invites, kicks, and bans are unaffected.</string>
+    <string name="settings_show_join_leave_messages_summary">Includes joins, leaves, invites, kicks, bans, knocks and events with no changes.</string>
+    <string name="settings_show_room_settings_events">Show room settings events</string>
+    <string name="settings_show_room_settings_events_summary">Includes permissions, name, topic, avatar, banner, history visibility, pins, image packs and other room settings.</string>
     <string name="settings_show_acl_events">Show ACL events</string>
     <string name="settings_show_acl_events_summary">Show ACL list changes in the timeline.</string>
     <string name="settings_show_reactions">Show reactions</string>

@@ -219,6 +219,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY = "SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY"
         private const val SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY = "SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY"
         private const val SETTINGS_SHOW_ACL_EVENTS_KEY = "SETTINGS_SHOW_ACL_EVENTS_KEY"
+        private const val SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY = "SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY"
         private const val SETTINGS_SHOW_REACTIONS_KEY = "SETTINGS_SHOW_REACTIONS_KEY"
         private const val SETTINGS_VIBRATE_ON_MENTION_KEY = "SETTINGS_VIBRATE_ON_MENTION_KEY"
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
@@ -410,6 +411,7 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY,
                 SETTINGS_SHOW_ACL_EVENTS_KEY,
                 SETTINGS_SHOW_REACTIONS_KEY,
+                SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY,
                 SETTINGS_MEDIA_SAVING_PERIOD_KEY,
                 SETTINGS_MEDIA_SAVING_PERIOD_SELECTED_KEY,
                 SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY,
@@ -543,12 +545,12 @@ class VectorPreferences @Inject constructor(
         return developerMode() && defaultPrefs.getBoolean(SETTINGS_DEVELOPER_MODE_SHOW_INFO_ON_SCREEN_KEY, false)
     }
 
-    fun shouldShowHiddenEvents(): Boolean {
-        return developerMode() && defaultPrefs.getBoolean(SETTINGS_LABS_SHOW_HIDDEN_EVENTS_PREFERENCE_KEY, false)
+    fun shouldShowHiddenEvents(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.HIDDEN_EVENTS, roomId)
     }
 
-    fun shouldShowHiddenThreadEvents(): Boolean {
-        return shouldShowHiddenEvents() && defaultPrefs.getBoolean(SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY, false)
+    fun shouldShowHiddenThreadEvents(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.HIDDEN_THREAD_EVENTS, roomId)
     }
 
     fun swipeToReplyIsEnabled(): Boolean {
@@ -768,30 +770,59 @@ class VectorPreferences @Inject constructor(
         return defaultPrefs.getBoolean(SETTINGS_12_24_TIMESTAMPS_KEY, false)
     }
 
-    /**
-     * Tells if the join and leave membership events should be shown in the messages list.
-     *
-     * @return true if the join and leave membership events should be shown in the messages list
-     */
-    fun showJoinLeaveMessages(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY, true)
+    enum class TimelineVisibilityRule(val preferenceKey: String, val defaultValue: Boolean) {
+        REDACTED(SETTINGS_SHOW_REDACTED_KEY, true),
+        MEMBERSHIP(SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY, true),
+        ROOM_SETTINGS(SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY, true),
+        PROFILE_CHANGES(SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY, true),
+        ACL(SETTINGS_SHOW_ACL_EVENTS_KEY, false),
+        REACTIONS(SETTINGS_SHOW_REACTIONS_KEY, false),
+        HIDDEN_EVENTS(SETTINGS_LABS_SHOW_HIDDEN_EVENTS_PREFERENCE_KEY, false),
+        HIDDEN_THREAD_EVENTS(SETTINGS_LABS_SHOW_HIDDEN_THREAD_EVENTS_PREFERENCE_KEY, false);
+
+        val roomPreferenceKey: String get() = "SETTINGS_ROOM_TIMELINE_${name}_KEY"
     }
 
-    /**
-     * Tells if the avatar and display name events should be shown in the messages list.
-     *
-     * @return true true if the avatar and display name events should be shown in the messages list.
-     */
-    fun showAvatarDisplayNameChangeMessages(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY, true)
+    fun getRoomTimelineVisibilityOverride(roomId: String, rule: TimelineVisibilityRule): Boolean? {
+        val key = "${rule.preferenceKey}_$roomId"
+        return if (defaultPrefs.contains(key)) defaultPrefs.getBoolean(key, rule.defaultValue) else null
     }
 
-    fun showAclEvents(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SHOW_ACL_EVENTS_KEY, false)
+    fun setRoomTimelineVisibilityOverride(roomId: String, rule: TimelineVisibilityRule, value: Boolean?) {
+        val key = "${rule.preferenceKey}_$roomId"
+        defaultPrefs.edit {
+            if (value == null) remove(key) else putBoolean(key, value)
+        }
     }
 
-    fun showReactions(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SHOW_REACTIONS_KEY, false)
+    fun timelineVisibility(rule: TimelineVisibilityRule, roomId: String? = null): Boolean {
+        val enabled = roomId?.let { getRoomTimelineVisibilityOverride(it, rule) }
+                ?: defaultPrefs.getBoolean(rule.preferenceKey, rule.defaultValue)
+        return when (rule) {
+            TimelineVisibilityRule.HIDDEN_EVENTS -> developerMode() && enabled
+            TimelineVisibilityRule.HIDDEN_THREAD_EVENTS -> shouldShowHiddenEvents(roomId) && enabled
+            else -> enabled
+        }
+    }
+
+    fun showMembershipEvents(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.MEMBERSHIP, roomId)
+    }
+
+    fun showAvatarDisplayNameChangeMessages(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.PROFILE_CHANGES, roomId)
+    }
+
+    fun showRoomSettingsEvents(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.ROOM_SETTINGS, roomId)
+    }
+
+    fun showAclEvents(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.ACL, roomId)
+    }
+
+    fun showReactions(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.REACTIONS, roomId)
     }
 
     /**
@@ -1103,8 +1134,8 @@ class VectorPreferences @Inject constructor(
      *
      * @return true if the redacted should be shown
      */
-    fun showRedactedMessages(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SHOW_REDACTED_KEY, true)
+    fun showRedactedMessages(roomId: String? = null): Boolean {
+        return timelineVisibility(TimelineVisibilityRule.REDACTED, roomId)
     }
 
     fun skipRedactionConfirmation(): Boolean {

@@ -747,7 +747,6 @@
     <string name="room_settings_room_access_public_title">علنيّة</string>
     <string name="room_settings_room_access_private_invite_only_title">خاصة (عبر الدعوة فقط)</string>
     <string name="room_settings_room_access_private_title">خاصة</string>
-    <string name="settings_show_join_leave_messages">أظهر حدثيْ الانضمام والمغادرة</string>
     <string name="settings_send_typing_notifs_summary">أعلم المستخدمين أنك تكتب.</string>
     <string name="settings_send_typing_notifs">أرسل إخطارات عند الكتابة</string>
     <string name="settings_cryptography_manage_keys">إدارة مفاتيح التعميّة</string>
@@ -1185,7 +1184,6 @@
     <string name="settings_enable_direct_share_title">فعّل المشاركة المباشرة</string>
     <string name="settings_enable_direct_share_summary">اعرض المحادثات الأخيرة في قائمة المشاركة في النظام</string>
     <string name="settings_show_avatar_display_name_changes_messages">اعرض أحداث الحساب</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">تشمل تغييرات الصورة الرمزية واسم العرض.</string>
     <string name="settings_send_message_with_enter">أرسِل الرسالة بزر الإدخال</string>
     <string name="settings_send_message_with_enter_summary">سيرسل زر الإدخال في لوحة المفاتيح الرسالة بدلًا من إضافة سطر جديد</string>
     <string name="settings_show_emoji_keyboard">اعرض لوحة الإيموجي</string>
@@ -2906,7 +2904,6 @@
     <string name="notice_room_kick_with_reason">طرد %1$s %2$s. السبب: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">طردتَ %1$s. السبب: %2$s</string>
     <string name="has_been_kicked">طردك %2$s من %1$s</string>
-    <string name="settings_show_join_leave_messages_summary">لا يؤثر ذلك على الدعوات والطرد والحظر.</string>
     <string name="settings_show_acl_events">اعرض أحداث ACL</string>
     <string name="settings_show_acl_events_summary">اعرض تغييرات قائمة ACL في الخط الزمني.</string>
     <string name="settings_show_reactions">اعرض الانفعالات</string>
@@ -3677,4 +3674,9 @@
     <string name="attachment_rasterize">تحويل إلى نقطية</string>
     <string name="attachment_rasterization_title">التحويل إلى نقطية</string>
     <string name="attachment_rasterization_recommended">المُوصى به: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">اعرض أحداث العضوية</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">تشمل تغييرات الصورة الشخصية والاسم العلني ولون الاسم.</string>
+    <string name="settings_show_join_leave_messages_summary">تشمل الانضمام والمغادرة والدعوات والطرد والحظر وطلبات الانضمام والأحداث التي لم تغيّر شيئًا.</string>
+    <string name="settings_show_room_settings_events">اعرض أحداث إعدادات الغرفة</string>
+    <string name="settings_show_room_settings_events_summary">تشمل الأذونات والاسم والموضوع والصورة الشخصية واللافتة وإمكانية رؤية السجل والتثبيت وحزم الصور وإعدادات الغرفة الأخرى.</string>
 </resources>

@@ -167,7 +167,7 @@ class SqlRoomSummaryEventsHelperTest {
     /** With the setting off a reaction is invisible, so it must not bold the room. */
     @Test
     fun `given reactions are hidden, then the unread anchor ignores them`() {
-        every { settingsStorage.areReactionsShownInTimeline() } returns false
+        every { settingsStorage.areReactionsShownInTimeline(A_ROOM_ID) } returns false
         every { stores.user.getIgnoredUserIds() } returns emptyList()
         val types = slot<Collection<String>>()
         every { stores.timelineEvent.getLatestUnreadEvent(A_ROOM_ID, capture(types), any()) } returns null
@@ -179,7 +179,7 @@ class SqlRoomSummaryEventsHelperTest {
 
     @Test
     fun `given reactions are shown, then the unread anchor counts them`() {
-        every { settingsStorage.areReactionsShownInTimeline() } returns true
+        every { settingsStorage.areReactionsShownInTimeline(A_ROOM_ID) } returns true
         every { stores.user.getIgnoredUserIds() } returns emptyList()
         val types = slot<Collection<String>>()
         every { stores.timelineEvent.getLatestUnreadEvent(A_ROOM_ID, capture(types), any()) } returns null

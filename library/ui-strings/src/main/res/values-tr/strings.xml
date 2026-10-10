@@ -273,9 +273,7 @@
     <string name="settings_12_24_timestamps">Zaman damgasını 12-saat biçiminde göster</string>
     <string name="settings_show_read_receipts">Okundu ibaresini göster</string>
     <string name="settings_show_read_receipts_summary">Detaylı liste için okundu ibaresine tıkla.</string>
-    <string name="settings_show_join_leave_messages">Katılma ve ayrılma durumlarını göster</string>
     <string name="settings_show_avatar_display_name_changes_messages">Hesap olaylarını göster</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">Avatar ve görünür adı değişimlerde içer.</string>
     <string name="settings_vibrate_on_mention">Bir kullanıcıdan söz ederken titreşim ver</string>
     <string name="settings_preview_media_before_sending">Medyayı göndermeden önce önizleme göster</string>
     <string name="settings_deactivate_account_section">Hesabı devre dışı bırak</string>
@@ -2762,7 +2760,6 @@
     <string name="notice_room_kick_with_reason">%1$s, %2$s kullanıcısını attı. Sebep: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">%1$s kullanıcısını attınız. Sebep: %2$s</string>
     <string name="has_been_kicked">%2$s tarafından %1$s odasından atıldınız</string>
-    <string name="settings_show_join_leave_messages_summary">Davetler, atmalar ve yasaklamalar etkilenmez.</string>
     <string name="settings_show_acl_events">ACL olaylarını göster</string>
     <string name="settings_show_acl_events_summary">ACL listesi değişikliklerini zaman akışında göster.</string>
     <string name="settings_show_reactions">Tepkileri göster</string>
@@ -3486,4 +3483,9 @@
     <string name="attachment_rasterize">Rasterleştir</string>
     <string name="attachment_rasterization_title">Rasterleştirme</string>
     <string name="attachment_rasterization_recommended">Önerilen: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">Üyelik olaylarını göster</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Avatar, görünen ad ve ad rengi değişikliklerini kapsar.</string>
+    <string name="settings_show_join_leave_messages_summary">Katılmaları, ayrılmaları, davetleri, atılmaları, yasaklamaları, katılma isteklerini ve değişiklik içermeyen olayları kapsar.</string>
+    <string name="settings_show_room_settings_events">Oda ayarı olaylarını göster</string>
+    <string name="settings_show_room_settings_events_summary">İzinleri, adı, konuyu, avatarı, kapağı, geçmiş görünürlüğünü, sabitlenmiş mesajları, görsel paketlerini ve diğer oda ayarlarını kapsar.</string>
 </resources>

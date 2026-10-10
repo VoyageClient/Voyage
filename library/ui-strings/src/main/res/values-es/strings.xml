@@ -638,9 +638,7 @@
     <string name="settings_send_markdown_summary">Editar mensajes usando Markdown antes de enviarlos. Esto permite formatos de escritura avanzados como por ejemplo usar asteriscos para cambiar el texto a Itálica.</string>
     <string name="settings_show_read_receipts">Mostrar recibos de lectura</string>
     <string name="settings_show_read_receipts_summary">Hacer click en los recibos de lectura para mostrar una lista detallada.</string>
-    <string name="settings_show_join_leave_messages">Mostrar notificaciones de entrada y salida</string>
     <string name="settings_show_avatar_display_name_changes_messages">Mostrar notificaciones de la cuenta</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">Incluye cambios en el avatar y en el nombre.</string>
     <string name="settings_send_message_with_enter">Enviar mensaje con intro</string>
     <string name="settings_send_message_with_enter_summary">La tecla Intro enviará el mensaje en vez de añadir un salto de línea</string>
     <string name="settings_password">Contraseña</string>
@@ -2793,7 +2791,6 @@
     <string name="notice_room_kick_with_reason">%1$s expulsó a %2$s. Motivo: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">Expulsaste a %1$s. Motivo: %2$s</string>
     <string name="has_been_kicked">%2$s te expulsó de %1$s</string>
-    <string name="settings_show_join_leave_messages_summary">Las invitaciones, expulsiones y vetos no se ven afectados.</string>
     <string name="settings_show_acl_events">Mostrar eventos de ACL</string>
     <string name="settings_show_acl_events_summary">Mostrar los cambios en la lista ACL en la cronología.</string>
     <string name="settings_show_reactions">Mostrar reacciones</string>
@@ -3516,4 +3513,9 @@
     <string name="attachment_rasterize">Rasterizar</string>
     <string name="attachment_rasterization_title">Rasterización</string>
     <string name="attachment_rasterization_recommended">Recomendado: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">Mostrar eventos de membresía</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Incluye cambios de avatar, nombre público y color del nombre.</string>
+    <string name="settings_show_join_leave_messages_summary">Incluye entradas, salidas, invitaciones, expulsiones, vetos, solicitudes de entrada y eventos sin cambios.</string>
+    <string name="settings_show_room_settings_events">Mostrar eventos de ajustes de la sala</string>
+    <string name="settings_show_room_settings_events_summary">Incluye permisos, nombre, tema, avatar, banner, visibilidad del historial, mensajes fijados, paquetes de imágenes y otros ajustes de la sala.</string>
 </resources>

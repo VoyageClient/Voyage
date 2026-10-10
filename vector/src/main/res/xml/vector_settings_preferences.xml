@@ -301,6 +301,12 @@
             android:title="@string/settings_show_avatar_display_name_changes_messages" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY"
+            android:summary="@string/settings_show_room_settings_events_summary"
+            android:title="@string/settings_show_room_settings_events" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
             android:key="SETTINGS_SHOW_ACL_EVENTS_KEY"
             android:summary="@string/settings_show_acl_events_summary"

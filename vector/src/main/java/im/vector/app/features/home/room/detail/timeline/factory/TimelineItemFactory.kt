@@ -190,7 +190,7 @@ class TimelineItemFactory @Inject constructor(
         // appear and carry the selection highlight, so fall back to a default item showing the
         // event type instead of a zero-height empty item that would swallow the highlight. The
         // same fallback surfaces these events as debug items when "show hidden events" is on.
-        val showHidden = userPreferencesProvider.shouldShowHiddenEvents() &&
+        val showHidden = userPreferencesProvider.shouldShowHiddenEvents(event.roomId) &&
                 (!params.isFromThreadTimeline() || event.ownedByThreadChunk)
         return if (params.isHighlighted || showHidden) {
             defaultItemFactory.create(params)

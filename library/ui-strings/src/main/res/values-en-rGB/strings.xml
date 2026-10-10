@@ -70,4 +70,5 @@
     <string name="image_editor_color_custom">Custom colour</string>
     <string name="attachment_rasterize">Rasterise</string>
     <string name="attachment_rasterization_title">Rasterisation</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Includes avatar, display name and name colour changes.</string>
 </resources>

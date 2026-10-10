@@ -21,9 +21,9 @@ interface LightweightSettingsStorage {
     fun areThreadMessagesEnabled(): Boolean
 
     /** Whether reactions are rendered in the timeline, and so are something to read. */
-    fun areReactionsShownInTimeline(): Boolean
+    fun areReactionsShownInTimeline(roomId: String? = null): Boolean
 
-    fun shouldShowHiddenThreadEvents(): Boolean
+    fun shouldShowHiddenThreadEvents(roomId: String? = null): Boolean
 
     /** Whether EXIF/location metadata should be stripped from images and videos before upload. */
     fun shouldStripMediaMetadata(): Boolean

@@ -80,6 +80,8 @@ The app version lives in TWO places that must both be bumped in sync:
 
 # Building
 
+During development, run `./gradlew :vector-app:installDebug` whenever a change is ready for manual testing. Save test-suite and lint runs for when committing.
+
 Two install variants:
 - `./gradlew :vector-app:installDebug` — fast, unshrunk, debuggable build (package `im.voyage.app.debug`). Runs on KitKat+ and modern devices; prefer it for normal iteration. It does NOT run on ICS (API 14/15): the unshrunk class set overflows Dalvik's 8MB LinearAlloc there.
 - `./gradlew :vector-app:install` (alias for `installRelease`) — the R8-shrunk RELEASE build (package `im.voyage.app`, debug-signed). R8/optimize cuts the class/method count enough to fit ICS's LinearAlloc, so use this for the ICS device. After a layout edit, run with `--no-build-cache` after `rm -rf vector-app/build vector/build` (stale databinding otherwise).

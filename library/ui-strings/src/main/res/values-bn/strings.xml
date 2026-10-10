@@ -457,9 +457,7 @@
     <string name="settings_send_message_with_enter">এন্টার বোতাম টিপে বার্তা পাঠান</string>
     <string name="settings_preview_media_before_sending">পাঠানোর আগে মিডিয়া প্রিভিউ কর</string>
     <string name="settings_vibrate_on_mention">একটি ব্যবহারকারী উল্লেখ এর সময় কম্পন করুন</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">অবতার এবং প্রদর্শন নাম পরিবর্তন অন্তর্ভুক্ত।</string>
     <string name="settings_show_avatar_display_name_changes_messages">অ্যাকাউন্ট ইভেন্ট দেখান</string>
-    <string name="settings_show_join_leave_messages">যোগ এবং ছাড়া তথ্য দেখান</string>
     <string name="settings_show_read_receipts_summary">একটি বিস্তারিত তালিকা জন্য পঠন প্রাপ্তি ক্লিক করুন।</string>
     <string name="settings_show_read_receipts">পাঠানো প্রাপ্তি দেখান</string>
     <string name="settings_12_24_timestamps">১২-ঘন্টা ফরম্যাটে টাইমস্ট্যাম্প দেখান</string>
@@ -2755,7 +2753,6 @@
     <string name="notice_room_kick_with_reason">%1$s %2$s-কে বের করে দিয়েছেন। কারণ: %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">আপনি %1$s-কে বের করে দিয়েছেন। কারণ: %2$s</string>
     <string name="has_been_kicked">%2$s আপনাকে %1$s থেকে বের করে দিয়েছেন</string>
-    <string name="settings_show_join_leave_messages_summary">আমন্ত্রণ, বের করে দেওয়া ও নিষেধাজ্ঞা এতে প্রভাবিত হয় না।</string>
     <string name="settings_show_acl_events">ACL ইভেন্ট দেখান</string>
     <string name="settings_show_acl_events_summary">টাইমলাইনে ACL তালিকার পরিবর্তন দেখান।</string>
     <string name="settings_show_reactions">প্রতিক্রিয়া দেখান</string>
@@ -3482,4 +3479,9 @@
     <string name="attachment_rasterize">রাস্টারাইজ করুন</string>
     <string name="attachment_rasterization_title">রাস্টারাইজেশন</string>
     <string name="attachment_rasterization_recommended">প্রস্তাবিত: %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">সদস্যপদের ইভেন্ট দেখান</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">অবতার, প্রদর্শিত নাম এবং নামের রঙের পরিবর্তন অন্তর্ভুক্ত।</string>
+    <string name="settings_show_join_leave_messages_summary">যোগদান, প্রস্থান, আমন্ত্রণ, বহিষ্কার, নিষেধাজ্ঞা, যোগদানের অনুরোধ এবং কোনো পরিবর্তন না করা ইভেন্ট অন্তর্ভুক্ত।</string>
+    <string name="settings_show_room_settings_events">রুমের সেটিংসের ইভেন্ট দেখান</string>
+    <string name="settings_show_room_settings_events_summary">অনুমতি, নাম, বিষয়, অবতার, ব্যানার, ইতিহাসের দৃশ্যমানতা, পিন করা বার্তা, ছবির প্যাক এবং রুমের অন্যান্য সেটিংস অন্তর্ভুক্ত।</string>
 </resources>

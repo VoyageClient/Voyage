@@ -361,6 +361,7 @@ class TimelineFragment :
 
     // Effective media-preview mode at the last resume, to detect an edit made in the room profile.
     private var lastMediaPreviewMode: MediaPreviewMode? = null
+    private var lastTimelineVisibility: List<Boolean>? = null
     private var pinnedBannerJumpApplied = false
 
     private lateinit var keyboardStateUtils: KeyboardStateUtils
@@ -1367,6 +1368,7 @@ class TimelineFragment :
         roomDetailPendingActionStore.data?.let { handlePendingAction(it) }
         roomDetailPendingActionStore.data = null
         refreshOnMediaVisibilityChange()
+        refreshOnTimelineVisibilityChange()
     }
 
     private fun flushPendingProfileChanges() {
@@ -1399,6 +1401,16 @@ class TimelineFragment :
             timelineEventController.invalidateAllCache()
         }
         lastMediaPreviewMode = mode
+    }
+
+    private fun refreshOnTimelineVisibilityChange() {
+        val visibility = VectorPreferences.TimelineVisibilityRule.values().map {
+            vectorPreferences.timelineVisibility(it, timelineArgs.roomId)
+        }
+        if (lastTimelineVisibility != null && lastTimelineVisibility != visibility) {
+            timelineEventController.invalidateAllCache()
+        }
+        lastTimelineVisibility = visibility
     }
 
     private fun handlePendingAction(roomDetailPendingAction: RoomDetailPendingAction) {

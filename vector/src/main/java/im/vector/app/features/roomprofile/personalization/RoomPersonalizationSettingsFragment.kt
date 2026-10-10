@@ -143,6 +143,7 @@ class RoomPersonalizationSettingsFragment :
         setUpProfileReset()
         setUpRoomOverrideReset()
         setUpMediaOverrides()
+        setUpTimelineOverrides()
         setUpRedactionOverrides()
         setUpRoomRedactionCacheClear()
     }
@@ -278,6 +279,32 @@ class RoomPersonalizationSettingsFragment :
             vectorPreferences.setRoomStripMetadataOverride(roomId, (newValue as? String).toOverride())
             true
         }
+    }
+
+    private fun setUpTimelineOverrides() {
+        VectorPreferences.TimelineVisibilityRule.values().forEach { rule ->
+            bindTriState(rule.roomPreferenceKey, vectorPreferences.getRoomTimelineVisibilityOverride(roomId, rule)) {
+                vectorPreferences.setRoomTimelineVisibilityOverride(roomId, rule, it)
+                if (rule == VectorPreferences.TimelineVisibilityRule.HIDDEN_EVENTS) {
+                    updateTimelineDebugPreferences()
+                }
+            }
+        }
+        updateTimelineDebugPreferences()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateTimelineDebugPreferences()
+    }
+
+    private fun updateTimelineDebugPreferences() {
+        listOf(VectorPreferences.TimelineVisibilityRule.HIDDEN_EVENTS, VectorPreferences.TimelineVisibilityRule.HIDDEN_THREAD_EVENTS)
+                .forEach { rule ->
+                    findPreference<VectorListPreference>(rule.roomPreferenceKey)?.isVisible = vectorPreferences.developerMode()
+                }
+        findPreference<VectorListPreference>(VectorPreferences.TimelineVisibilityRule.HIDDEN_THREAD_EVENTS.roomPreferenceKey)
+                ?.isEnabled = vectorPreferences.shouldShowHiddenEvents(roomId)
     }
 
     private fun Boolean?.toValue() = when (this) {

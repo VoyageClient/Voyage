@@ -530,9 +530,7 @@
     <string name="settings_send_markdown_summary">Rédiger les messages en utilisant la syntaxe Markdown. Cela permet d’utiliser des styles avancés comme les astérisques pour afficher du texte en italique.</string>
     <string name="settings_show_read_receipts">Afficher les accusés de réception</string>
     <string name="settings_show_read_receipts_summary">Cliquer sur les accusés de réception pour une liste détaillée.</string>
-    <string name="settings_show_join_leave_messages">Afficher les notifications d’arrivée et de départ</string>
     <string name="settings_show_avatar_display_name_changes_messages">Afficher les événements liés au compte</string>
-    <string name="settings_show_avatar_display_name_changes_messages_summary">Cela inclut les changements d’avatar et de nom d’affichage.</string>
     <string name="settings_password">Mot de passe</string>
     <string name="settings_labs_native_camera_summary">Lancer l’appareil photo du système plutôt que l’écran d’appareil photo personnalisé.</string>
     <string name="command_problem_with_parameters">La commande « %s » nécessite plus de paramètres, ou certains paramètres ne sont pas corrects.</string>
@@ -2805,7 +2803,6 @@
     <string name="notice_room_kick_with_reason">%1$s a expulsé %2$s. Raison : %3$s</string>
     <string name="notice_room_kick_with_reason_by_you">Vous avez expulsé %1$s. Raison : %2$s</string>
     <string name="has_been_kicked">Vous avez été expulsé de %1$s par %2$s</string>
-    <string name="settings_show_join_leave_messages_summary">Les invitations, expulsions et exclusions ne sont pas concernées.</string>
     <string name="settings_show_acl_events">Afficher les événements ACL</string>
     <string name="settings_show_acl_events_summary">Afficher les changements de liste ACL dans la chronologie.</string>
     <string name="settings_show_reactions">Afficher les réactions</string>
@@ -3528,4 +3525,9 @@
     <string name="attachment_rasterize">Pixelliser</string>
     <string name="attachment_rasterization_title">Pixellisation</string>
     <string name="attachment_rasterization_recommended">Recommandé : %1$d × %2$d</string>
+    <string name="settings_show_join_leave_messages">Afficher les événements liés aux membres</string>
+    <string name="settings_show_avatar_display_name_changes_messages_summary">Inclut les modifications de l\'avatar, du nom d\'affichage et de la couleur du nom.</string>
+    <string name="settings_show_join_leave_messages_summary">Inclut les arrivées, départs, invitations, expulsions, bannissements, demandes d\'accès et événements sans changement.</string>
+    <string name="settings_show_room_settings_events">Afficher les événements de paramètres du salon</string>
+    <string name="settings_show_room_settings_events_summary">Inclut les permissions, le nom, le sujet, l\'avatar, la bannière, la visibilité de l\'historique, les messages épinglés, les packs d\'images et les autres paramètres du salon.</string>
 </resources>

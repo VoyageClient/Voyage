@@ -12,20 +12,20 @@ import javax.inject.Inject
 
 class UserPreferencesProvider @Inject constructor(private val vectorPreferences: VectorPreferences) {
 
-    fun shouldShowHiddenEvents(): Boolean {
-        return vectorPreferences.shouldShowHiddenEvents()
+    fun shouldShowHiddenEvents(roomId: String? = null): Boolean {
+        return vectorPreferences.shouldShowHiddenEvents(roomId)
     }
 
-    fun shouldShowHiddenThreadEvents(): Boolean {
-        return vectorPreferences.shouldShowHiddenThreadEvents()
+    fun shouldShowHiddenThreadEvents(roomId: String? = null): Boolean {
+        return vectorPreferences.shouldShowHiddenThreadEvents(roomId)
     }
 
     fun shouldShowReadReceipts(): Boolean {
         return vectorPreferences.showReadReceipts()
     }
 
-    fun shouldShowRedactedMessages(): Boolean {
-        return vectorPreferences.showRedactedMessages()
+    fun shouldShowRedactedMessages(roomId: String? = null): Boolean {
+        return vectorPreferences.showRedactedMessages(roomId)
     }
 
     fun shouldShowLongClickOnRoomHelp(): Boolean {
@@ -36,20 +36,24 @@ class UserPreferencesProvider @Inject constructor(private val vectorPreferences:
         vectorPreferences.neverShowLongClickOnRoomHelpAgain()
     }
 
-    fun shouldShowJoinLeaves(): Boolean {
-        return vectorPreferences.showJoinLeaveMessages()
+    fun shouldShowMembershipEvents(roomId: String? = null): Boolean {
+        return vectorPreferences.showMembershipEvents(roomId)
     }
 
-    fun shouldShowAvatarDisplayNameChanges(): Boolean {
-        return vectorPreferences.showAvatarDisplayNameChangeMessages()
+    fun shouldShowAvatarDisplayNameChanges(roomId: String? = null): Boolean {
+        return vectorPreferences.showAvatarDisplayNameChangeMessages(roomId)
     }
 
-    fun shouldShowAclEvents(): Boolean {
-        return vectorPreferences.showAclEvents()
+    fun shouldShowRoomSettingsEvents(roomId: String? = null): Boolean {
+        return vectorPreferences.showRoomSettingsEvents(roomId)
     }
 
-    fun shouldShowReactions(): Boolean {
-        return vectorPreferences.showReactions()
+    fun shouldShowAclEvents(roomId: String? = null): Boolean {
+        return vectorPreferences.showAclEvents(roomId)
+    }
+
+    fun shouldShowReactions(roomId: String? = null): Boolean {
+        return vectorPreferences.showReactions(roomId)
     }
 
     fun areThreadMessagesEnabled(): Boolean {
