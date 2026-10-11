@@ -7,6 +7,7 @@
 
 package im.vector.app.features.html
 
+import im.vector.app.features.html.highlight.CodeBlockHighlighter
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities
@@ -19,7 +20,16 @@ sealed class BodySegment {
     // These leave the spannable for views of their own, so a spoiler over one is drawn as a cover
     // and an enclosing blockquote as a stripe, rather than carried by spans.
     data class Table(val rows: List<TableRowData>, val spoiler: Boolean = false, val quoteDepth: Int = 0) : BodySegment()
-    data class Code(val code: String, val spoiler: Boolean = false, val quoteDepth: Int = 0) : BodySegment()
+    data class Code(
+            // The block's text as highlighted (Element Web's `textContent`); [code] is what's shown.
+            val source: String,
+            val spoiler: Boolean = false,
+            val quoteDepth: Int = 0,
+            val languageClasses: List<String> = emptyList(),
+    ) : BodySegment() {
+        // Markdown ends the block with a newline that isn't part of the code.
+        val code: String get() = source.removeSuffix("\n")
+    }
 }
 
 data class TableRowData(val isHeader: Boolean, val cells: List<TableCellData>)
@@ -60,7 +70,12 @@ object HtmlBodySegmenter {
                 }
                 node is Element && node.tagName().equals("pre", ignoreCase = true) -> {
                     flushHtml(segments, currentHtml, wrappers)
-                    segments += BodySegment.Code(parsePre(node), spoiler = spoiler, quoteDepth = quoteDepth)
+                    segments += BodySegment.Code(
+                            parsePre(node),
+                            spoiler = spoiler,
+                            quoteDepth = quoteDepth,
+                            languageClasses = CodeBlockHighlighter.languageClasses(node.selectFirst("code")?.classNames().orEmpty()),
+                    )
                 }
                 // Only descend for a wrapper that actually contains a block; anything else stays inline so
                 // the spannable keeps the structure Markwon gives it.
@@ -81,10 +96,10 @@ object HtmlBodySegmenter {
 
     // wholeText() keeps the original whitespace/newlines (unlike text(), which collapses them), so a
     // code block's indentation survives. Markdown wraps the code in <pre><code>…</code></pre>; fall
-    // back to the <pre> text if there's no inner <code>. Drop a single trailing newline markdown adds.
+    // back to the <pre> text if there's no inner <code>.
     private fun parsePre(pre: Element): String {
         val codeEl = pre.selectFirst("code") ?: pre
-        return codeEl.wholeText().removeSuffix("\n")
+        return codeEl.wholeText()
     }
 
     private fun flushHtml(out: MutableList<BodySegment>, buf: StringBuilder, wrappers: List<Element>) {

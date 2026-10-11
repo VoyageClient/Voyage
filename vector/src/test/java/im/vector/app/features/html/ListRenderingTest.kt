@@ -42,6 +42,7 @@ class ListRenderingTest {
             context,
             fakeSessionHolder,
             mockk(relaxed = true),
+            noCodePalette(),
     )
 
     private val compressor = VectorHtmlCompressor()

@@ -87,6 +87,7 @@ class VectorApplication :
     @Inject lateinit var emojiCompatWrapper: EmojiCompatWrapper
     @Inject lateinit var roomTopicRenderer: im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
     @Inject lateinit var twemojiProvider: im.vector.app.features.emoji.TwemojiProvider
+    @Inject lateinit var codeBlockHighlighter: im.vector.app.features.html.highlight.CodeBlockHighlighter
     @Inject lateinit var vectorUncaughtExceptionHandler: VectorUncaughtExceptionHandler
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var ensureSessionSyncingUseCase: EnsureSessionSyncingUseCase
@@ -216,6 +217,8 @@ class VectorApplication :
         }
 
         notificationUtils.createNotificationChannels()
+        // Several seconds of background parsing; low-end devices take the first-use cost per block instead.
+        if (!vectorPreferences.isPerformanceModeEnabled()) codeBlockHighlighter.warmUp()
 
         vpnGate.start()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {

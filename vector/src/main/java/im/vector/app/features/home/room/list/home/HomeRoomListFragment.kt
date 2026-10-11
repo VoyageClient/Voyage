@@ -62,6 +62,7 @@ class HomeRoomListFragment :
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+    @Inject lateinit var codeBlockHighlighter: im.vector.app.features.html.highlight.CodeBlockHighlighter
 
     private val roomListViewModel: HomeRoomListViewModel by fragmentViewModel()
     private lateinit var sharedQuickActionsViewModel: RoomListQuickActionsSharedActionViewModel
@@ -130,6 +131,12 @@ class HomeRoomListFragment :
         matrixItemColorProvider.changes
                 .drop(1)
                 .onEach { roomsController.requestForcedModelBuild() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Recolor the code in previews right away, while settings is still in front, so it never shows the swap.
+        codeBlockHighlighter.paletteChanges
+                .drop(1)
+                .onEach { roomsController.refreshPreviews() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         roomListViewModel.observeViewEvents {

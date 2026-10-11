@@ -38,6 +38,7 @@ import com.bumptech.glide.request.target.Target
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.html.highlight.CodeBlockHighlighter
 import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
@@ -90,6 +91,7 @@ class EventHtmlRenderer @Inject constructor(
         private val context: Context,
         private val activeSessionHolder: ActiveSessionHolder,
         private val vectorPreferences: VectorPreferences,
+        private val codeBlockHighlighter: CodeBlockHighlighter,
 ) {
 
     interface PostProcessor {
@@ -191,15 +193,25 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
-    private fun resolveCodeBlockBackground() = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.code_block_bg_color)
-    private var codeBlockBackground: Int = resolveCodeBlockBackground()
+    private data class CodeColors(val background: Int, val text: Int?)
 
-    // SchildiChat colors code blocks/inline code from code_block_bg_color rather than Markwon's auto value.
+    // The code block palette's colors where it has its own, else the theme's code background.
+    private fun resolveCodeColors(): CodeColors {
+        val theme = codeBlockHighlighter.theme(vectorPreferences.codeBlockPalette(), ThemeUtils.isLightTheme(context))
+        return CodeColors(
+                background = theme?.background ?: ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.code_block_bg_color),
+                text = theme?.textColor,
+        )
+    }
+
+    private var codeColors: CodeColors = resolveCodeColors()
+
     private val codeThemePlugin = object : AbstractMarkwonPlugin() {
         override fun configureTheme(builder: MarkwonTheme.Builder) {
             super.configureTheme(builder)
-            builder.codeBlockBackgroundColor(codeBlockBackground)
-                    .codeBackgroundColor(codeBlockBackground)
+            codeColors.text?.let { builder.codeTextColor(it).codeBlockTextColor(it) }
+            builder.codeBlockBackgroundColor(codeColors.background)
+                    .codeBackgroundColor(codeColors.background)
                     // Links are coloured (textColorLink) but never underlined, to match the autolink path.
                     .isLinkUnderlined(false)
                     // Markwon rules a line under h1/h2; headings are styled by size alone here.
@@ -353,12 +365,12 @@ class EventHtmlRenderer @Inject constructor(
 
     private inline fun <T> locked(block: () -> T): T = renderLock.withLock(block)
 
-    // Rebuild when the active theme changed the code-block colour (singleton survives Activity recreate).
+    // Rebuild when the theme or code palette changed the code colors (singleton survives Activity recreate).
     private val markwon: Markwon
         get() = locked {
-            val newCodeBlockBackground = resolveCodeBlockBackground()
-            if (newCodeBlockBackground != codeBlockBackground) {
-                codeBlockBackground = newCodeBlockBackground
+            val newCodeColors = resolveCodeColors()
+            if (newCodeColors != codeColors) {
+                codeColors = newCodeColors
                 markwonBackingField = buildMarkwon()
             }
             markwonBackingField

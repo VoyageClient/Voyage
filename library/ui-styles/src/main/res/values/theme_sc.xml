@@ -99,7 +99,6 @@
         <item name="riotx_unread_unimportant_room_badge">@color/background_floating_sc</item>
         <item name="colorAccentPale">@color/accent_sc_pale</item>
         <item name="message_highlight_bg_color">@color/accent_sc_alpha25</item>
-        <item name="code_block_bg_color">@color/code_background_sc</item>
         <item name="quote_bar_color">?vctr_content_quaternary</item>
         <item name="vctr_jump_to_bottom_bg_tint">?vctr_accent_fill</item>
         <item name="vctr_jump_to_bottom_icon_tint">?vctr_content_on_accent</item>

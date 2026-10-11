@@ -3656,4 +3656,7 @@
     <string name="settings_show_room_settings_events_summary">Включает разрешения, имя, тему, аватар, баннер, видимость истории, закреплённые сообщения, наборы изображений и другие настройки комнаты.</string>
     <string name="video_editor_extract_audio">Извлечь аудио</string>
     <string name="video_editor_extracting_audio">Извлечение аудио…</string>
+    <string name="settings_code_palette">Цветовая палитра блоков кода</string>
+    <string name="settings_code_palette_summary">Цвета блоков кода и встроенного кода, а также подсветки синтаксиса кода, в котором указан язык.</string>
+    <string name="code_block_room_list_preview">Блок кода.</string>
 </resources>

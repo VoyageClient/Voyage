@@ -3520,4 +3520,7 @@
     <string name="settings_show_room_settings_events_summary">Incluye permisos, nombre, tema, avatar, banner, visibilidad del historial, mensajes fijados, paquetes de imágenes y otros ajustes de la sala.</string>
     <string name="video_editor_extract_audio">Extraer audio</string>
     <string name="video_editor_extracting_audio">Extrayendo audio…</string>
+    <string name="settings_code_palette">Paleta de colores de bloques de código</string>
+    <string name="settings_code_palette_summary">Colores para los bloques de código y el código en línea, y para el resaltado de sintaxis del código que indica su lenguaje.</string>
+    <string name="code_block_room_list_preview">Bloque de código.</string>
 </resources>

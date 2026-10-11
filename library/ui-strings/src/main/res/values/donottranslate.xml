@@ -112,4 +112,23 @@
     <string name="image_editor_plus_quarter_turn" translatable="false">+90</string>
     <string name="image_pack_telegram_link_hint" translatable="false">t.me/addstickers/…</string>
     <string name="image_pack_telegram_token_hint" translatable="false">123456789:AAE…</string>
+
+    <string name="code_palette_element" translatable="false">Element (2021)</string>
+    <string name="code_palette_element_2015" translatable="false">Element (2015)</string>
+    <string name="code_palette_schildichat" translatable="false">SchildiChat</string>
+    <string name="code_palette_github" translatable="false">GitHub</string>
+    <string name="code_palette_visual_studio" translatable="false">Visual Studio</string>
+    <string name="code_palette_intellij" translatable="false">IntelliJ</string>
+    <string name="code_palette_stack_overflow" translatable="false">Stack Overflow</string>
+    <string name="code_palette_tokyo_night" translatable="false">Tokyo Night</string>
+    <string name="code_palette_rose_pine" translatable="false">Rosé Pine</string>
+    <string name="code_palette_solarized" translatable="false">Solarized</string>
+    <string name="code_palette_gruvbox" translatable="false">Gruvbox</string>
+    <string name="code_palette_catppuccin" translatable="false">Catppuccin</string>
+    <string name="code_palette_nord" translatable="false">Nord</string>
+    <string name="code_palette_night_owl" translatable="false">Night Owl</string>
+    <string name="code_palette_monokai" translatable="false">Monokai</string>
+    <string name="code_palette_dracula" translatable="false">Dracula</string>
+    <string name="code_palette_xterm" translatable="false">xterm</string>
+    <string name="code_palette_telegram" translatable="false">Telegram</string>
 </resources>

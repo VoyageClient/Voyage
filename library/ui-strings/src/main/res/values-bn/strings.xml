@@ -3486,4 +3486,7 @@
     <string name="settings_show_room_settings_events_summary">অনুমতি, নাম, বিষয়, অবতার, ব্যানার, ইতিহাসের দৃশ্যমানতা, পিন করা বার্তা, ছবির প্যাক এবং রুমের অন্যান্য সেটিংস অন্তর্ভুক্ত।</string>
     <string name="video_editor_extract_audio">অডিও বের করুন</string>
     <string name="video_editor_extracting_audio">অডিও বের করা হচ্ছে…</string>
+    <string name="settings_code_palette">কোড ব্লকের রঙের প্যালেট</string>
+    <string name="settings_code_palette_summary">কোড ব্লক ও ইনলাইন কোডের রং, এবং যে কোডে তার ভাষার নাম দেওয়া আছে তার সিনট্যাক্স হাইলাইটিং।</string>
+    <string name="code_block_room_list_preview">কোড ব্লক।</string>
 </resources>

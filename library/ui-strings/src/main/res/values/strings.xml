@@ -3232,6 +3232,8 @@
     <string name="location_map_view_copyright">© MapTiler © OpenStreetMap contributors</string>
     <string name="settings_timeline_line_wrap">Line wrapping</string>
     <string name="settings_timeline_line_wrap_summary">Wrap long lines in tables and code blocks. When off, they scroll horizontally instead.</string>
+    <string name="settings_code_palette">Code block color palette</string>
+    <string name="settings_code_palette_summary">Colors for code blocks and inline code, and for the syntax highlighting of code that names its language.</string>
     <string name="action_copy_event_id">Copy Event ID</string>
     <string name="pin_action">Pin</string>
     <string name="unpin_action">Unpin</string>
@@ -3462,6 +3464,7 @@
     <string name="notice_location_sent_no_sender">Sent a location.</string>
     <!-- Room-list preview labels; the base strings are shared with other UI where a full stop doesn't fit. -->
     <string name="location_room_list_preview">Location.</string>
+    <string name="code_block_room_list_preview">Code Block.</string>
     <string name="live_location_room_list_preview">Live location.</string>
     <string name="verification_request_room_list_preview">Verification Request.</string>
     <string name="encrypted_message_room_list_preview">Encrypted message.</string>

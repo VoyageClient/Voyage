@@ -26,6 +26,7 @@ import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.core.ui.colorpicker.AvatarShapePickerDialogFragment
+import im.vector.app.core.ui.colorpicker.CodePalettePickerDialogFragment
 import im.vector.app.core.ui.colorpicker.ColorPalette
 import im.vector.app.core.ui.colorpicker.DefaultAvatarPickerDialogFragment
 import im.vector.app.core.ui.colorpicker.PalettePickerDialogFragment
@@ -37,6 +38,8 @@ import im.vector.app.features.emoji.CustomEmojiFontStore
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.home.avatar.DefaultAvatarStyle
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.html.highlight.CodeBlockHighlighter
+import im.vector.app.features.html.highlight.CodePalette
 import im.vector.app.features.settings.font.FontScaleSettingActivity
 import im.vector.app.features.settings.reactions.QuickReactionsSettingsActivity
 import im.vector.app.features.themes.ThemeUtils
@@ -57,6 +60,7 @@ class VectorSettingsPreferencesFragment :
     @Inject lateinit var customEmojiFontStore: CustomEmojiFontStore
     @Inject lateinit var appLogoManager: AppLogoManager
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
+    @Inject lateinit var codeBlockHighlighter: CodeBlockHighlighter
 
     private val emojiFontPickerLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode != Activity.RESULT_OK) return@registerStartForActivityResult
@@ -189,6 +193,7 @@ class VectorSettingsPreferencesFragment :
         }
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY)?.onPreferenceChangeListener = invalidateColors
         bindPalettePreferences()
+        bindCodePalettePreference()
         bindDefaultAvatarPreferences()
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
@@ -465,6 +470,26 @@ class VectorSettingsPreferencesFragment :
         }
     }
 
+    private fun bindCodePalettePreference() {
+        val pref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_CODE_PALETTE_KEY) ?: return
+        // Ready the picker's previews while this screen is up, so it opens with them already colored.
+        codeBlockHighlighter.prefetch(CodePalettePickerDialogFragment.PREVIEW_REQUEST)
+        childFragmentManager.setFragmentResultListener(CODE_PALETTE_REQUEST_KEY, this) { _, bundle ->
+            vectorPreferences.setCodeBlockPalette(CodePalette.of(bundle.getString(CodePalettePickerDialogFragment.RESULT_PALETTE)))
+            codeBlockHighlighter.notifyPaletteChanged()
+        }
+        pref.setOnPreferenceClickListener {
+            if (childFragmentManager.findFragmentByTag(CODE_PALETTE_REQUEST_KEY) == null) {
+                CodePalettePickerDialogFragment.newInstance(
+                        CODE_PALETTE_REQUEST_KEY,
+                        getString(CommonStrings.settings_code_palette),
+                        vectorPreferences.codeBlockPalette().name,
+                ).show(childFragmentManager, CODE_PALETTE_REQUEST_KEY)
+            }
+            true
+        }
+    }
+
     private fun bindAvatarShapePreference() {
         val pref = findPreference<VectorPreference>(VectorPreferences.SETTINGS_AVATAR_SHAPE_KEY) ?: return
         pref.summary = getString(vectorPreferences.avatarShape().titleRes)
@@ -548,6 +573,7 @@ class VectorSettingsPreferencesFragment :
         private const val COLOR_MATRIX_DIALOG_TAG = "ColorMatrixListPreferenceDialog"
         private const val PEOPLE_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.peoplePalette"
         private const val ROOM_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.roomPalette"
+        private const val CODE_PALETTE_REQUEST_KEY = "VectorSettingsPreferencesFragment.codePalette"
         private const val PEOPLE_AVATAR_STYLE_REQUEST_KEY = "VectorSettingsPreferencesFragment.peopleAvatarStyle"
         private const val ROOM_AVATAR_STYLE_REQUEST_KEY = "VectorSettingsPreferencesFragment.roomAvatarStyle"
         private const val AVATAR_SHAPE_REQUEST_KEY = "VectorSettingsPreferencesFragment.avatarShape"

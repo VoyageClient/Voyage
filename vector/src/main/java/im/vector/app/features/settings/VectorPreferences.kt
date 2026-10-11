@@ -26,6 +26,7 @@ import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.home.avatar.DefaultAvatarStyle
 import im.vector.app.features.home.avatar.effect.AvatarEffect
 import im.vector.app.features.homeserver.ServerUrlsRepository
+import im.vector.app.features.html.highlight.CodePalette
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.settings.useragent.UserAgentSettings
 import im.vector.app.features.themes.ThemeUtils
@@ -149,6 +150,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_LABS_ENABLE_PER_MESSAGE_PROFILES = "SETTINGS_LABS_ENABLE_PER_MESSAGE_PROFILES"
         const val SETTINGS_LABS_DEFERRED_DM_KEY = "SETTINGS_LABS_DEFERRED_DM_KEY"
         const val SETTINGS_TIMELINE_LINE_WRAP_KEY = "SETTINGS_TIMELINE_LINE_WRAP_KEY"
+        const val SETTINGS_CODE_PALETTE_KEY = "SETTINGS_CODE_PALETTE_KEY"
         const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
         const val SETTINGS_QUICK_REACTIONS_KEY = "SETTINGS_QUICK_REACTIONS_KEY"
         const val SETTINGS_COMPACT_QUICK_REACTIONS_KEY = "SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
@@ -1857,6 +1859,12 @@ class VectorPreferences @Inject constructor(
 
     fun isLineWrappingEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_TIMELINE_LINE_WRAP_KEY, true)
+    }
+
+    fun codeBlockPalette(): CodePalette = CodePalette.of(defaultPrefs.getString(SETTINGS_CODE_PALETTE_KEY, null))
+
+    fun setCodeBlockPalette(palette: CodePalette) {
+        defaultPrefs.edit { putString(SETTINGS_CODE_PALETTE_KEY, palette.name) }
     }
 
     fun showPinnedMessagesBanner(): Boolean {

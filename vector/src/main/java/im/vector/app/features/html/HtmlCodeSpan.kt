@@ -14,9 +14,18 @@ import android.text.Layout
 import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
 import android.text.style.MetricAffectingSpan
+import im.vector.lib.core.utils.epoxy.charsequence.ContentHashedSpan
 import io.noties.markwon.core.MarkwonTheme
 
-class HtmlCodeSpan(private val theme: MarkwonTheme, var isBlock: Boolean) : MetricAffectingSpan(), LeadingMarginSpan {
+class HtmlCodeSpan(private val theme: MarkwonTheme, var isBlock: Boolean) : MetricAffectingSpan(), LeadingMarginSpan, ContentHashedSpan {
+
+    // The colors it paints, so a list row showing it is rebound when the code palette changes.
+    override fun contentHash(): Int {
+        val paint = TextPaint()
+        applyTextStyle(paint)
+        val background = if (isBlock) theme.getCodeBlockBackgroundColor(paint) else theme.getCodeBackgroundColor(paint)
+        return (31 * paint.color + background) * 31 + isBlock.hashCode()
+    }
 
     private val rect = Rect()
     private val paint = Paint()

@@ -91,6 +91,7 @@ class RoomListFragment :
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var matrixItemColorProvider: im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+    @Inject lateinit var codeBlockHighlighter: im.vector.app.features.html.highlight.CodeBlockHighlighter
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var footerController: RoomListFooterController
     @Inject lateinit var userPreferencesProvider: UserPreferencesProvider
@@ -200,6 +201,12 @@ class RoomListFragment :
         matrixItemColorProvider.changes
                 .drop(1)
                 .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Recolor the code in previews right away, while settings is still in front, so it never shows the swap.
+        codeBlockHighlighter.paletteChanges
+                .drop(1)
+                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.refreshPreviews() } }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         roomListViewModel.onEach(RoomListViewState::roomMembershipChanges) { ms ->

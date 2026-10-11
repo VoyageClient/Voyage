@@ -3466,4 +3466,7 @@
     <string name="settings_show_room_settings_events_summary">権限、名前、トピック、アバター、バナー、履歴の公開範囲、ピン留め、画像パック、その他のルーム設定を含みます。</string>
     <string name="video_editor_extract_audio">音声を抽出</string>
     <string name="video_editor_extracting_audio">音声を抽出しています…</string>
+    <string name="settings_code_palette">コードブロックのカラーパレット</string>
+    <string name="settings_code_palette_summary">コードブロックとインラインコードの色、および言語が指定されたコードのシンタックスハイライトの色。</string>
+    <string name="code_block_room_list_preview">コードブロック。</string>
 </resources>

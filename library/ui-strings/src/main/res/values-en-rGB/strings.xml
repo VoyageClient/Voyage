@@ -71,4 +71,6 @@
     <string name="attachment_rasterize">Rasterise</string>
     <string name="attachment_rasterization_title">Rasterisation</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Includes avatar, display name and name colour changes.</string>
+    <string name="settings_code_palette">Code block colour palette</string>
+    <string name="settings_code_palette_summary">Colours for code blocks and inline code, and for the syntax highlighting of code that names its language.</string>
 </resources>

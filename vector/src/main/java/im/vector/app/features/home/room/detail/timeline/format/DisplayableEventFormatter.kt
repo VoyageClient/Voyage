@@ -29,6 +29,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
+import im.vector.app.features.html.highlight.CodeBlockHighlighter
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
@@ -65,15 +66,18 @@ class DisplayableEventFormatter @Inject constructor(
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
         private val textRendererFactory: EventTextRenderer.Factory,
         val forwardedMessages: ForwardedMessagePresenter,
+        private val codeBlockHighlighter: CodeBlockHighlighter,
 ) {
 
     // Rendered previews, keyed by room + source HTML. The room list re-renders every visible summary
     // on each update, and parsing the same HTML again cost hundreds of ms on the main thread.
     private val previewCache = android.util.LruCache<String, CharSequence>(256)
 
-    // textColorLink is stamped into the spans at render time, and a pill bakes in the avatar it was
-    // built with, so a theme, palette or avatar-style change invalidates the cache.
-    private var previewCacheGeneration = ThemeUtils.themeGeneration to matrixItemColorProvider.changes.value
+    // textColorLink and the code colors are stamped into the spans at render time, and a pill bakes in the
+    // avatar it was built with, so a theme, palette, code palette or avatar-style change invalidates the cache.
+    private fun currentPreviewGeneration() = Triple(ThemeUtils.themeGeneration, matrixItemColorProvider.changes.value, vectorPreferences.codeBlockPalette())
+
+    private var previewCacheGeneration = currentPreviewGeneration()
 
     fun invalidatePreviewCache() {
         previewCache.evictAll()
@@ -345,7 +349,7 @@ class DisplayableEventFormatter @Inject constructor(
     // Render a formatted preview the way the timeline does: mentions/rooms become pills (pillsPostProcessor),
     // matrix.to message links become "Message in Room" pills (EventTextRenderer), then bare links get coloured.
     private fun renderFormattedPreview(roomId: String?, formattedBody: String, source: RoomMentionSource): CharSequence {
-        val generation = ThemeUtils.themeGeneration to matrixItemColorProvider.changes.value
+        val generation = currentPreviewGeneration()
         if (generation != previewCacheGeneration) {
             previewCacheGeneration = generation
             previewCache.evictAll()
@@ -354,6 +358,8 @@ class DisplayableEventFormatter @Inject constructor(
         // Copy on the way out: callers run the result through EmojiCompat.process(), which spans a
         // Spannable in place, so handing out the cached instance would mutate it from several threads.
         previewCache.get(key)?.let { return SpannableStringBuilder(it) }
+        // Highlight the message's code now, so it's already colored when the room is opened.
+        codeBlockHighlighter.prepareHtml(formattedBody)
         // colorLinks must run before sanitizeForPreview, which strips block-level code spans it relies
         // on to leave URLs inside a code block un-coloured.
         val rendered = if (roomId == null) {
@@ -385,7 +391,17 @@ class DisplayableEventFormatter @Inject constructor(
         if (blocks.isEmpty() && codeBlocks.isEmpty()) return this
         val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
         blocks.forEach { builder.removeSpan(it) }
-        builder.inlineCodeBlocks(codeBlocks)
+        val (multiLine, singleLine) = codeBlocks.partition { span ->
+            builder.subSequence(builder.getSpanStart(span), builder.getSpanEnd(span)).trim().contains('\n')
+        }
+        // A multi-line block run together on one line reads as garbage, so it's named instead.
+        multiLine.sortedByDescending { builder.getSpanStart(it) }.forEach { span ->
+            val start = builder.getSpanStart(span)
+            val end = builder.getSpanEnd(span)
+            builder.removeSpan(span)
+            builder.replace(start, end, " ${stringProvider.getString(CommonStrings.code_block_room_list_preview)} ")
+        }
+        builder.inlineCodeBlocks(singleLine)
         return builder
     }
 

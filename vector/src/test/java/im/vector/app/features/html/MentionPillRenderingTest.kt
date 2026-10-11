@@ -69,6 +69,7 @@ class MentionPillRenderingTest {
             context,
             sessionHolder,
             mockk<VectorPreferences>(relaxed = true),
+            noCodePalette(),
     )
     private val avatarRenderer = mockk<AvatarRenderer>(relaxed = true)
 

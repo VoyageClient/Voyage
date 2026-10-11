@@ -47,6 +47,7 @@ class SpoilerContentTest {
             context,
             sessionHolder,
             vectorPreferences,
+            noCodePalette(),
     )
 
     private fun spoilerRangeOf(html: String): Pair<Int, Int>? {

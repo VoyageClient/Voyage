@@ -3681,4 +3681,7 @@
     <string name="settings_show_room_settings_events_summary">تشمل الأذونات والاسم والموضوع والصورة الشخصية واللافتة وإمكانية رؤية السجل والتثبيت وحزم الصور وإعدادات الغرفة الأخرى.</string>
     <string name="video_editor_extract_audio">استخراج الصوت</string>
     <string name="video_editor_extracting_audio">جارٍ استخراج الصوت…</string>
+    <string name="settings_code_palette">لوحة ألوان كتل الشفرة</string>
+    <string name="settings_code_palette_summary">ألوان كتل الشفرة والشفرة المضمّنة، وتلوين بناء الجملة للشفرة التي تحدد لغتها.</string>
+    <string name="code_block_room_list_preview">كتلة شفرة.</string>
 </resources>

@@ -216,6 +216,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -296,6 +297,7 @@ class TimelineFragment :
     @Inject lateinit var userPreferencesProvider: UserPreferencesProvider
     @Inject lateinit var notificationUtils: NotificationUtils
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
+    @Inject lateinit var codeBlockHighlighter: im.vector.app.features.html.highlight.CodeBlockHighlighter
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
@@ -496,6 +498,12 @@ class TimelineFragment :
                     pendingProfileOverrideUsers.addAll(changedUsers)
                     flushPendingProfileChanges()
                 }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Code is colored into the models, so a palette change rebuilds them, while settings is still in front.
+        codeBlockHighlighter.paletteChanges
+                .drop(1)
+                .onEach { timelineEventController.invalidateAllCache() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Cached Epoxy models need invalidation to rebind sender colors without replacing their holders.

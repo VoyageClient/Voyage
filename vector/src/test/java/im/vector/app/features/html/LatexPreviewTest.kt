@@ -71,6 +71,7 @@ class LatexPreviewTest {
             context,
             sessionHolder,
             vectorPreferences,
+            noCodePalette(),
     )
 
     private val formatter = DisplayableEventFormatter(
@@ -93,6 +94,7 @@ class LatexPreviewTest {
             pillsPostProcessorFactory = mockk(relaxed = true),
             textRendererFactory = mockk(relaxed = true),
             forwardedMessages = ForwardedMessagePresenter(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true)),
+            codeBlockHighlighter = mockk(relaxed = true),
     )
 
     // No room id, so the preview skips the per-room pill processors and renders the HTML as is.

@@ -13,6 +13,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.toTestSpan
+import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
@@ -31,6 +32,7 @@ class EventHtmlRendererTest {
             context,
             fakeSessionHolder,
             mockk(relaxed = true),
+            mockk { every { theme(any(), any()) } returns null },
     )
 
     private val textView: TextView = TextView(context)

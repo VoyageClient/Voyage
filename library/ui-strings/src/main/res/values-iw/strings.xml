@@ -3625,4 +3625,7 @@
     <string name="settings_show_room_settings_events_summary">כולל הרשאות, שם, נושא, תמונת פרופיל, באנר, נראות ההיסטוריה, הודעות נעוצות, חבילות תמונות והגדרות חדר אחרות.</string>
     <string name="video_editor_extract_audio">חלץ שמע</string>
     <string name="video_editor_extracting_audio">מחלץ שמע…</string>
+    <string name="settings_code_palette">ערכת צבעים לבלוקי קוד</string>
+    <string name="settings_code_palette_summary">צבעים לבלוקי קוד ולקוד בתוך השורה, ולהדגשת התחביר של קוד שמציין את השפה שלו.</string>
+    <string name="code_block_room_list_preview">בלוק קוד.</string>
 </resources>

@@ -3531,4 +3531,7 @@
     <string name="settings_show_room_settings_events_summary">Umfasst Berechtigungen, Name, Thema, Profilbild, Banner, Verlaufssichtbarkeit, angeheftete Nachrichten, Bildpakete und andere Raumeinstellungen.</string>
     <string name="video_editor_extract_audio">Audio extrahieren</string>
     <string name="video_editor_extracting_audio">Audio wird extrahiert…</string>
+    <string name="settings_code_palette">Farbpalette für Codeblöcke</string>
+    <string name="settings_code_palette_summary">Farben für Codeblöcke und Inline-Code sowie für die Syntaxhervorhebung von Code, der seine Sprache angibt.</string>
+    <string name="code_block_room_list_preview">Codeblock.</string>
 </resources>

@@ -3470,4 +3470,7 @@
     <string name="settings_show_room_settings_events_summary">包括權限、名稱、主題、大頭照、橫幅、歷史紀錄可見性、釘選訊息、圖片包和其他聊天室設定。</string>
     <string name="video_editor_extract_audio">擷取音訊</string>
     <string name="video_editor_extracting_audio">正在擷取音訊…</string>
+    <string name="settings_code_palette">程式碼區塊色彩配置</string>
+    <string name="settings_code_palette_summary">程式碼區塊與行內程式碼的色彩，以及標明語言之程式碼的語法醒目提示。</string>
+    <string name="code_block_room_list_preview">程式碼區塊。</string>
 </resources>

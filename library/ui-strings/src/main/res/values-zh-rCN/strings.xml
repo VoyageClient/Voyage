@@ -3468,4 +3468,7 @@
     <string name="settings_show_room_settings_events_summary">包括权限、名称、话题、头像、横幅、历史记录可见性、置顶消息、图片包和其他房间设置。</string>
     <string name="video_editor_extract_audio">提取音频</string>
     <string name="video_editor_extracting_audio">正在提取音频…</string>
+    <string name="settings_code_palette">代码块配色方案</string>
+    <string name="settings_code_palette_summary">代码块和行内代码的颜色，以及注明语言的代码的语法高亮。</string>
+    <string name="code_block_room_list_preview">代码块。</string>
 </resources>

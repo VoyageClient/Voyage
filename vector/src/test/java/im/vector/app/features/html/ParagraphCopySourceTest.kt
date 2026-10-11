@@ -38,6 +38,7 @@ class ParagraphCopySourceTest {
             context,
             fakeSessionHolder,
             mockk(relaxed = true),
+            noCodePalette(),
     )
 
     private val compressor = VectorHtmlCompressor()

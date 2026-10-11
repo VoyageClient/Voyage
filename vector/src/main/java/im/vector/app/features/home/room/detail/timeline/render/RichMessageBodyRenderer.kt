@@ -20,6 +20,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TableRow
+import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
@@ -37,7 +38,10 @@ import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.QuoteMarginSpan
 import im.vector.app.features.html.TableCellData
 import im.vector.app.features.html.TableRowData
+import im.vector.app.features.html.highlight.CodeBlockHighlighter
+import im.vector.app.features.html.highlight.CodePalette
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.themes.ThemeUtils
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -54,6 +58,7 @@ class RichMessageBodyRenderer @Inject constructor(
         private val htmlRenderer: dagger.Lazy<EventHtmlRenderer>,
         private val dim: DimensionConverter,
         private val vectorPreferences: VectorPreferences,
+        private val codeHighlighter: CodeBlockHighlighter,
 ) {
 
     fun setTextWithPlugins(textView: android.widget.TextView, text: CharSequence?) {
@@ -90,7 +95,9 @@ class RichMessageBodyRenderer @Inject constructor(
                 ?: RichBodyBinding().also { container.setTag(R.id.rich_body_binding, it) }
         binding.onClick = onClick
         binding.onLongClick = onLongClick
+        val codePalette = vectorPreferences.codeBlockPalette()
         if (container.childCount > 0 &&
+                binding.codePalette == codePalette &&
                 binding.segments == segments &&
                 binding.interactive == interactive &&
                 binding.fullBleed == fullBleed &&
@@ -105,6 +112,7 @@ class RichMessageBodyRenderer @Inject constructor(
             return
         }
         binding.segments = segments
+        binding.codePalette = codePalette
         binding.interactive = interactive
         binding.fullBleed = fullBleed
         binding.noticeStyle = noticeStyle
@@ -130,7 +138,7 @@ class RichMessageBodyRenderer @Inject constructor(
                     )
                 is BodySegment.Code ->
                     container.addView(
-                            buildCodeBlock(ctx, segment.code, interactive, fullBleed, binding)
+                            buildCodeBlock(ctx, segment, codePalette, interactive, fullBleed, binding)
                                     .coveredIfSpoiler(segment.spoiler, interactive, binding)
                                     .quoted(segment.quoteDepth, defaultColorAttr)
                     )
@@ -166,6 +174,7 @@ class RichMessageBodyRenderer @Inject constructor(
         var onClick: (View) -> Unit = {}
         var onLongClick: (View) -> Boolean = { false }
         var segments: List<BodySegment>? = null
+        var codePalette: CodePalette? = null
         var interactive = false
         var fullBleed = false
         var noticeStyle = false
@@ -227,13 +236,22 @@ class RichMessageBodyRenderer @Inject constructor(
     // scroll view / scrollbar) so the gesture stays with the surrounding long-press / list.
     private fun buildCodeBlock(
             ctx: Context,
-            code: String,
+            segment: BodySegment.Code,
+            palette: CodePalette,
             interactive: Boolean,
             fullBleed: Boolean,
             binding: RichBodyBinding,
+            // Opaque color to flatten a translucent fill onto, so it reads as it would over that surface.
+            backdrop: Int? = null,
     ): View {
-        val codeColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
-        val gutterColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
+        val code = segment.code
+        val light = ThemeUtils.isLightTheme(ctx)
+        val codeTheme = codeHighlighter.theme(palette, light)
+        val fill = (codeTheme?.background ?: themeColor(ctx, im.vector.lib.ui.styles.R.attr.code_block_bg_color))
+                .let { if (backdrop != null) ColorUtils.compositeColors(it, backdrop) else it }
+        val codeColor = codeTheme?.textColor ?: themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+        val gutterColor = codeTheme?.textColor?.let { ColorUtils.setAlphaComponent(it, GUTTER_ALPHA) }
+                ?: themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
         val lineCount = code.count { it == '\n' } + 1
         val wrap = vectorPreferences.isLineWrappingEnabled()
 
@@ -247,8 +265,8 @@ class RichMessageBodyRenderer @Inject constructor(
             ViewCompat.setBackground(this, GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dim.dpToPx(6).toFloat()
-                setColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.code_block_bg_color))
-                setStroke(dim.dpToPx(1), codeOutlineColor(ctx))
+                setColor(fill)
+                setStroke(dim.dpToPx(1), codeTheme?.border ?: codeOutlineColor(codeColor))
             })
             val padH = dim.dpToPx(if (lineCount == 1) 12 else 8)
             val padV = dim.dpToPx(if (lineCount == 1) 10 else 6)
@@ -272,7 +290,6 @@ class RichMessageBodyRenderer @Inject constructor(
             setTextSize(TypedValue.COMPLEX_UNIT_SP, CODE_TEXT_SIZE_SP)
             setTextColor(codeColor)
             setHorizontallyScrolling(!wrap)
-            text = code
             setOnClickListener { binding.onClick(it) }
             if (!interactive) {
                 // When selectable, a long-click listener would consume the press that starts selection;
@@ -280,6 +297,7 @@ class RichMessageBodyRenderer @Inject constructor(
                 setOnLongClickListener { binding.onLongClick(it) }
             }
         }
+        applyHighlighting(codeView, segment, palette, light)
 
         outer.addView(gutter)
         when {
@@ -306,6 +324,32 @@ class RichMessageBodyRenderer @Inject constructor(
             }
         }
         return outer
+    }
+
+    // Normally already highlighted while the models were built; otherwise it shows plain until parsed.
+    private fun applyHighlighting(codeView: TextView, segment: BodySegment.Code, palette: CodePalette, light: Boolean) {
+        val code = segment.code
+        codeView.text = code
+        val request = codeHighlighter.requestFor(segment) ?: return
+        codeHighlighter.highlight(request) { result ->
+            if (result.tokens.isNotEmpty()) codeView.text = codeHighlighter.styled(code, result, palette, light)
+        }
+    }
+
+    /** A non-interactive code block styled with [palette], colored as it shows on the timeline's background. */
+    fun buildCodeBlockPreview(ctx: Context, source: String, languageClasses: List<String>, palette: CodePalette, onClick: (View) -> Unit): View {
+        return buildCodeBlock(
+                ctx,
+                BodySegment.Code(source, languageClasses = languageClasses),
+                palette,
+                interactive = false,
+                fullBleed = false,
+                binding = RichBodyBinding().apply {
+                    this.onClick = onClick
+                    onLongClick = { false }
+                },
+                backdrop = themeColor(ctx, android.R.attr.colorBackground),
+        )
     }
 
     private fun buildTable(
@@ -464,5 +508,6 @@ class RichMessageBodyRenderer @Inject constructor(
         /** Light enough to sit on any bubble colour, dark enough to separate the header row. */
         private const val HEADER_WASH_ALPHA = 22
         private const val CODE_TEXT_SIZE_SP = 14f
+        private const val GUTTER_ALPHA = 0x80
     }
 }

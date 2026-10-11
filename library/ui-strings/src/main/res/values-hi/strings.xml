@@ -3414,4 +3414,7 @@
     <string name="settings_show_room_settings_events_summary">इसमें अनुमतियाँ, नाम, विषय, अवतार, बैनर, इतिहास की दृश्यता, पिन किए गए संदेश, चित्र पैक और कमरे की अन्य सेटिंग शामिल हैं।</string>
     <string name="video_editor_extract_audio">ऑडियो निकालें</string>
     <string name="video_editor_extracting_audio">ऑडियो निकाला जा रहा है…</string>
+    <string name="settings_code_palette">कोड ब्लॉक का रंग पैलेट</string>
+    <string name="settings_code_palette_summary">कोड ब्लॉक और इनलाइन कोड के रंग, और जिस कोड में उसकी भाषा बताई गई हो उसकी सिंटैक्स हाइलाइटिंग के रंग।</string>
+    <string name="code_block_room_list_preview">कोड ब्लॉक।</string>
 </resources>

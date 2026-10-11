@@ -7,7 +7,6 @@
 
 package im.vector.app.core.utils
 
-import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
@@ -35,7 +34,6 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.withTranslation
 import im.vector.app.core.ui.views.SelectionAwareRelativeLayout
 import im.vector.app.features.html.HtmlCodeSpan
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import timber.log.Timber
 import kotlin.math.ceil
@@ -182,9 +180,8 @@ fun TextView.clampSelectionToCodeSpans(active: IntRange?): IntRange? {
     return bounds
 }
 
-internal fun codeOutlineColor(context: Context): Int = ColorUtils.setAlphaComponent(
-        ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary), 0x30
-)
+/** The outline around code drawn in [codeTextColor]: the code palette's text color, else the theme's. */
+internal fun codeOutlineColor(codeTextColor: Int): Int = ColorUtils.setAlphaComponent(codeTextColor, 0x30)
 
 internal class InlineCodePadding(private val textView: TextView, private val includeVertical: Boolean = true) {
     private val left = textView.paddingLeft
@@ -229,7 +226,6 @@ internal fun TextView.drawInlineCodeBackgrounds(canvas: Canvas, drawText: () -> 
     val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = density
-        color = codeOutlineColor(context)
     }
     val codePaint = TextPaint(paint)
     canvas.withTranslation(totalPaddingLeft.toFloat(), (baseline - textLayout.getLineBaseline(0)).toFloat()) {
@@ -241,6 +237,7 @@ internal fun TextView.drawInlineCodeBackgrounds(canvas: Canvas, drawText: () -> 
             span.updateMeasureState(codePaint)
             val metrics = codePaint.fontMetrics
             backgroundPaint.color = span.inlineBackgroundColor(codePaint)
+            outlinePaint.color = codeOutlineColor(codePaint.color)
             for (line in textLayout.getLineForOffset(start)..textLayout.getLineForOffset(end - 1)) {
                 val lineStart = maxOf(start, textLayout.getLineStart(line))
                 var lineEnd = minOf(end, textLayout.getLineVisibleEnd(line))

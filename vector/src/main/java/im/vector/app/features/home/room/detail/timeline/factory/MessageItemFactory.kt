@@ -179,6 +179,7 @@ class MessageItemFactory @Inject constructor(
         private val messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore,
         private val displayableEventFormatter: im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter,
         private val messageSuffixFormatter: MessageSuffixFormatter,
+        private val codeBlockHighlighter: im.vector.app.features.html.highlight.CodeBlockHighlighter,
 ) {
 
     // MapLibre (and the whole location UI) is unavailable pre-Lollipop; never touch the location
@@ -1059,6 +1060,7 @@ class MessageItemFactory @Inject constructor(
         } else {
             null
         }
+        segments?.let { codeBlockHighlighter.prepare(it) }
         // When the room hides media, inline <img>/emoticons are blocked behind grey placeholders
         // until the message is tapped to reveal (handled in MessageTextItem via mediaRevealManager).
         val blockedBody = if (segments == null && shouldHideMedia(informationData) && compressed.contains("<img", ignoreCase = true)) {

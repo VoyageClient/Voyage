@@ -24,6 +24,23 @@ class HtmlBodySegmenterTest {
     }
 
     @Test
+    fun `a code block carries its language classes the way Element Web reads them`() {
+        val tagged = HtmlBodySegmenter.segment("""<pre><code class="hljs language-objective-c language-c">int x;</code></pre>""").single() as BodySegment.Code
+        val onPre = HtmlBodySegmenter.segment("""<pre class="language-rust"><code>fn x()</code></pre>""").single() as BodySegment.Code
+
+        assertEquals(listOf("objective", "c"), tagged.languageClasses)
+        assertEquals(emptyList<String>(), onPre.languageClasses)
+    }
+
+    @Test
+    fun `the highlighted source keeps the trailing newline the shown code drops`() {
+        val code = HtmlBodySegmenter.segment("<pre><code>a\nb\n</code></pre>").single() as BodySegment.Code
+
+        assertEquals("a\nb\n", code.source)
+        assertEquals("a\nb", code.code)
+    }
+
+    @Test
     fun `a table inside a spoiler is still a table`() {
         val segments = HtmlBodySegmenter.segment("<span data-mx-spoiler><table><tr><td>cell</td></tr></table></span>")
 

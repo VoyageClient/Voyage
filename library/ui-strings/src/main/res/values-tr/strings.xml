@@ -3490,4 +3490,7 @@
     <string name="settings_show_room_settings_events_summary">İzinleri, adı, konuyu, avatarı, kapağı, geçmiş görünürlüğünü, sabitlenmiş mesajları, görsel paketlerini ve diğer oda ayarlarını kapsar.</string>
     <string name="video_editor_extract_audio">Sesi çıkar</string>
     <string name="video_editor_extracting_audio">Ses çıkarılıyor…</string>
+    <string name="settings_code_palette">Kod bloğu renk paleti</string>
+    <string name="settings_code_palette_summary">Kod blokları ve satır içi kod için renkler, ayrıca dilini belirten kodun söz dizimi vurgulaması.</string>
+    <string name="code_block_room_list_preview">Kod bloğu.</string>
 </resources>

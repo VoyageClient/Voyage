@@ -3468,4 +3468,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_show_room_settings_events_summary">Mencakup izin, nama, topik, avatar, banner, visibilitas riwayat, pesan yang disematkan, paket gambar, dan pengaturan ruang lainnya.</string>
     <string name="video_editor_extract_audio">Ekstrak audio</string>
     <string name="video_editor_extracting_audio">Mengekstrak audio…</string>
+    <string name="settings_code_palette">Palet warna blok kode</string>
+    <string name="settings_code_palette_summary">Warna untuk blok kode dan kode sebaris, serta untuk penyorotan sintaks pada kode yang menyebutkan bahasanya.</string>
+    <string name="code_block_room_list_preview">Blok kode.</string>
 </resources>

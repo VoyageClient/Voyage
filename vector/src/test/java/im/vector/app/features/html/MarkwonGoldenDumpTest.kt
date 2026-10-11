@@ -80,6 +80,7 @@ class MarkwonGoldenDumpTest {
             context,
             sessionHolder,
             vectorPreferences,
+            noCodePalette(),
     )
     private val compressor = VectorHtmlCompressor()
     private val avatarRenderer = mockk<AvatarRenderer>(relaxed = true)

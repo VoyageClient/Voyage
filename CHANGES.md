@@ -86,6 +86,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Improved code blocks**: improved code block appearance and added the ability to tap inline code blocks to copy their contents.
 
+- **Syntax highlighting**: code blocks that name their language are colored, across 192 languages. A choice of 18 code block color palettes, from Element's and SchildiChat's to Gruvbox, Catppuccin, Dracula and Solarized, styles code blocks and inline code alike.
+
 - **Selectable message & topic text**: select text directly from timeline messages. Double-tap starts a selection anywhere, long-press on a code block or inline code starts one locked to that code (Select all expands it to the whole message), links and plain text keep their long-press actions, and the selection menu is trimmed to Copy, Share and Select all. The room profile topic is selectable the same way, replacing long-press-to-copy.
 
 - **Rich room topics (MSC3765)**: room and space topics support formatted content. Their HTML body renders like timeline messages, falling back to markdown when a topic is plain text only, and editing a topic publishes the HTML rendering alongside the plain text so other clients can show it too. Room IDs, aliases and user IDs in a topic show as tappable pills, where previously only the homeserver part of an alias was a link, and in the room profile a matrix link opens the room or user in-app while other links open in the browser.
