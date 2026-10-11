@@ -65,7 +65,7 @@ class ThreadListController @Inject constructor(
                         avatarRenderer(host.avatarRenderer)
                         matrixItemColorProvider(host.matrixItemColorProvider)
                         matrixItem(timelineEvent.senderInfo.toMatrixItem())
-                        title(timelineEvent.senderInfo.displayName.orEmpty())
+                        title(timelineEvent.senderInfo.disambiguatedDisplayName)
                         date(date)
                         rootMessageDeleted(timelineEvent.root.isRedacted())
                         threadNotificationState(timelineEvent.root.threadDetails?.threadNotificationState ?: ThreadNotificationState.NO_NEW_MESSAGE)

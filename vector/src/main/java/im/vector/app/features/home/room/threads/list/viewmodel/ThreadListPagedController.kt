@@ -57,7 +57,7 @@ class ThreadListPagedController @Inject constructor(
                 .avatarRenderer(host.avatarRenderer)
                 .matrixItemColorProvider(host.matrixItemColorProvider)
                 .matrixItem(item.rootThreadSenderInfo.toMatrixItem())
-                .title(item.rootThreadSenderInfo.displayName.orEmpty())
+                .title(item.rootThreadSenderInfo.disambiguatedDisplayName)
                 .date(date)
                 .rootMessageDeleted(item.rootEvent?.isRedacted() ?: false)
                 // TODO refactor notifications that with the new thread summary
