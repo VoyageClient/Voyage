@@ -2065,7 +2065,8 @@ class TimelineFragment :
                     title.isValidUrl() && url.isValidUrl() && URL(title).host != URL(url).host -> {
                         displayUrlConfirmationDialog(title, url)
                     }
-                    !title.isValidUrl() && url.isValidUrl() && !url.isExpectedMscLink(title) -> {
+                    !title.isValidUrl() && url.isValidUrl() && !url.isExpectedMscLink(title) &&
+                            url != "http://$title" && url != "https://$title" -> {
                         displayLinkDestinationDialog(url)
                     }
                     else -> {
