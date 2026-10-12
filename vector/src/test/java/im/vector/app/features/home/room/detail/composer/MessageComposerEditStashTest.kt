@@ -62,6 +62,7 @@ class MessageComposerEditStashTest {
             commandParser = mockk(relaxed = true),
             rainbowGenerator = mockk(relaxed = true),
             audioMessageHelper = mockk(relaxed = true),
+            audioPlaybackController = mockk(relaxed = true),
             clock = mockk(relaxed = true),
             pgpKeyStore = mockk(relaxed = true),
             pgpRoomEncryptor = mockk(relaxed = true),

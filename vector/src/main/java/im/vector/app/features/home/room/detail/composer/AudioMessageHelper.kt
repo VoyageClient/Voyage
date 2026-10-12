@@ -9,14 +9,13 @@ package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import androidx.core.content.FileProvider
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.MediaPlayerCompat
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
-import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voice.VoiceRecorder
 import im.vector.app.features.voice.VoiceRecorderProvider
@@ -42,13 +41,12 @@ private const val AMPLITUDE_INTERVAL_MS = 50
 class AudioMessageHelper @Inject constructor(
         private val context: Context,
         private val playbackTracker: AudioMessagePlaybackTracker,
+        private val audioPlaybackController: AudioPlaybackController,
         private val buildMeta: BuildMeta,
-        private val vectorPreferences: VectorPreferences,
         voiceRecorderProvider: VoiceRecorderProvider
 ) {
     private var mediaPlayer: MediaPlayer? = null
     private var currentPlayingId: String? = null
-    private var currentPlayingIsVoiceMessage = false
 
     // Held as the Lazy itself so the stop paths can tell "no recorder was ever needed" from "stop it":
     // building one enumerates the platform codec list, which class-initialises MediaCodec and loads a
@@ -148,12 +146,13 @@ class AudioMessageHelper @Inject constructor(
     }
 
     fun startOrPauseRecordingPlayback() {
+        audioPlaybackController.stop()
         voiceRecorder.getVoiceMessageFile()?.let {
-            startOrPausePlayback(AudioMessagePlaybackTracker.RECORDING_ID, it, isVoiceMessage = true)
+            startOrPausePlayback(AudioMessagePlaybackTracker.RECORDING_ID, it)
         }
     }
 
-    fun startOrPausePlayback(id: String, file: File, isVoiceMessage: Boolean) {
+    private fun startOrPausePlayback(id: String, file: File) {
         val playbackState = playbackTracker.getPlaybackState(id)
         releasePlayer()
         stopPlaybackTicker()
@@ -162,12 +161,12 @@ class AudioMessageHelper @Inject constructor(
         if (playbackState is AudioMessagePlaybackTracker.Listener.State.Playing) {
             playbackTracker.pausePlayback(id)
         } else {
-            startPlayback(id, file, isVoiceMessage)
+            startPlayback(id, file)
             playbackTracker.startPlayback(id)
         }
     }
 
-    private fun startPlayback(id: String, file: File, isVoiceMessage: Boolean) {
+    private fun startPlayback(id: String, file: File) {
         val currentPlaybackTime = playbackTracker.getPlaybackTime(id) ?: 0
         val playableFile = resolvePlayableFile(file)
         lastCompletionAtMs = 0L
@@ -195,7 +194,6 @@ class AudioMessageHelper @Inject constructor(
                 }
             }
             currentPlayingId = id
-            currentPlayingIsVoiceMessage = isVoiceMessage
             playbackTracker.activePlayerStopper = stopper
         } catch (failure: Throwable) {
             Timber.e(failure, "Unable to start playback")
@@ -204,11 +202,7 @@ class AudioMessageHelper @Inject constructor(
         startPlaybackTicker(id)
     }
 
-    /**
-     * MediaPlayer only supports Opus-in-Ogg from API 24, so below that we transcode the file to a
-     * (cached) PCM WAV that MediaPlayer can always play, keeping the rest of the playback machinery
-     * unchanged. Non-Opus audio and API 24+ are passed through untouched.
-     */
+    // MediaPlayer cannot decode Opus before API 24.
     private fun resolvePlayableFile(file: File): File {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N || !isOggOpus(file)) return file
 
@@ -244,7 +238,8 @@ class AudioMessageHelper @Inject constructor(
         }.orFalse()
     }
 
-    fun stopPlayback() {
+    fun stopPlayback(includeMessagePlayback: Boolean = true) {
+        if (includeMessagePlayback) audioPlaybackController.stop()
         playbackTracker.pausePlayback(AudioMessagePlaybackTracker.RECORDING_ID)
         releasePlayer()
         stopPlaybackTicker()
@@ -267,33 +262,22 @@ class AudioMessageHelper @Inject constructor(
         tryOrNull { player.release() }
     }
 
-    /**
-     * Reached the end of the file. Left to the ticker to notice, a player whose last reported position
-     * falls short of its stated duration reads as paused a moment before the end, and every later tap
-     * on play replays that last moment.
-     */
     private fun onPlaybackCompleted(id: String) {
         // The ticker can see the end a moment before the player reports it, and both go through here.
         val now = SystemClock.uptimeMillis()
         if (now - lastCompletionAtMs < COMPLETION_DEBOUNCE_MS) return
         lastCompletionAtMs = now
         stopPlaybackTicker()
-        val player = mediaPlayer
-        // The same setting media loops under, applied to sound, but never to speech.
-        if (player != null && !currentPlayingIsVoiceMessage && vectorPreferences.loopVideos() &&
-                runCatching { player.seekToPrecise(0); player.start() }.isSuccess) {
-            playbackTracker.updatePlayingAtPlaybackTime(id, 0, 0f)
-            startPlaybackTicker(id)
-            return
-        }
-        // Nothing is playing any more: leave no player behind for a scrub to be aimed at, and no
-        // position for the next tap on play to resume from — it starts the message again.
         releasePlayer()
         currentPlayingId = null
         playbackTracker.stopPlaybackOrRecorder(id)
     }
 
     fun movePlaybackTo(id: String, percentage: Float, totalDuration: Int) {
+        audioPlaybackController.state.value?.takeIf { audioPlaybackController.isCurrentTrack(id) }?.let {
+            audioPlaybackController.seek((it.duration * percentage).toInt())
+            return
+        }
         // Only this message's own player: scrubbing one message leaves whatever else plays alone.
         val player = mediaPlayer?.takeIf { currentPlayingId == id }
         val playing = player?.takeIf { tryOrNull { it.isPlaying }.orFalse() }
@@ -389,29 +373,11 @@ class AudioMessageHelper @Inject constructor(
         playbackTicker = null
     }
 
-    fun resetPlaybackStates() {
-        playbackTracker.resetAllPlaybackStates()
-    }
-
     fun getCurrentVoiceFile(): File? = voiceRecorderLazy.takeIf { it.isInitialized() }?.value?.getVoiceMessageFile()
 
-    // Lets the in-flight local-echo of an audio/voice message be played before its mxc:// URL
-    // arrives — by streaming the picker's content:// (or local file://) URI into a cache file.
-    fun resolveLocalFile(url: String?): File? {
-        val safeUrl = url?.takeIf { it.startsWith("content://") || it.startsWith("file://") } ?: return null
-        return tryOrNull {
-            val uri = Uri.parse(safeUrl)
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                File.createTempFile("local_audio_", null, context.cacheDir).also { tmp ->
-                    tmp.outputStream().use { input.copyTo(it) }
-                }
-            }
-        }
-    }
-
-    fun stopAllVoiceActions(deleteRecord: Boolean = true): MultiPickerAudioType? {
+    fun stopAllVoiceActions(deleteRecord: Boolean = true, preserveMessagePlayback: Boolean = false): MultiPickerAudioType? {
         val audioType = stopRecording()
-        stopPlayback()
+        stopPlayback(includeMessagePlayback = !preserveMessagePlayback)
         if (deleteRecord) {
             deleteRecording()
         }

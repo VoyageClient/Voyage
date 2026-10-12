@@ -29,6 +29,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.containsOnlyEmojisAndEmotes
 import im.vector.app.features.attachments.preview.AudioDetails
+import im.vector.app.features.audio.AudioGalleryData
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -243,7 +244,7 @@ class MessageItemFactory @Inject constructor(
         val messageItem = im.vector.app.core.utils.PerfTrace.time("create.build.${messageContent.msgType}") { when (messageContent) {
             is MessageEmoteContent -> buildEmoteMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageTextContent -> buildItemForTextContent(messageContent, informationData, highlight, callback, attributes)
-            is MessageGalleryContent -> buildGalleryMessageItem(messageContent, informationData, highlight, callback, attributes)
+            is MessageGalleryContent -> buildGalleryMessageItem(params.event.roomId, messageContent, informationData, highlight, callback, attributes)
             is MessageImageInfoContent -> buildImageMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageNoticeContent -> buildNoticeMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageVideoContent -> buildVideoMessageItem(messageContent, informationData, highlight, callback, attributes)
@@ -471,7 +472,7 @@ class MessageItemFactory @Inject constructor(
             params: TimelineItemFactoryParams,
     ) = object : ClickListener {
         override fun invoke(view: View) {
-            params.callback?.onVoiceControlButtonClicked(informationData.stableId, messageContent)
+            params.callback?.onVoiceControlButtonClicked(informationData.stableId, informationData.eventId, messageContent)
         }
     }
 
@@ -845,6 +846,7 @@ class MessageItemFactory @Inject constructor(
     }
 
     private fun buildGalleryMessageItem(
+            roomId: String,
             messageContent: MessageGalleryContent,
             informationData: MessageInformationData,
             highlight: Boolean,
@@ -961,6 +963,9 @@ class MessageItemFactory @Inject constructor(
                                         else -> callback?.onImageMessageClicked(item, data, view, inMemory)
                                     }
                                 }
+                                is MessageAudioContent -> callback?.onAudioMessageClicked(
+                                        AudioGalleryData(roomId, informationData.eventId,
+                                                item, informationData.stableId, index))
                                 is MessageWithAttachmentContent ->
                                     callback?.onTimelineItemAction(RoomDetailAction.DownloadOrOpen(informationData.eventId, informationData.senderId, item))
                                 else -> Unit

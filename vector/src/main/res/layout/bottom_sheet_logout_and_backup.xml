@@ -120,7 +120,7 @@
         android:visibility="gone"
         app:actionTitle="@string/keys_backup_setup_step1_manual_export"
         app:iconTint="?vctr_content_primary"
-        app:leftIcon="@drawable/ic_download"
+        app:leftIcon="@drawable/ic_material_save"
         app:textColor="?vctr_content_secondary"
         tools:visibility="visible" />
 

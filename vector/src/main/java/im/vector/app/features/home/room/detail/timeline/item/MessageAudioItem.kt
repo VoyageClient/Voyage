@@ -30,6 +30,7 @@ import android.view.animation.LinearInterpolator
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -181,7 +182,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
     private fun bindUploadState(holder: Holder) {
         if (attributes.informationData.sendState.hasFailed()) {
-            holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_cross)
+            holder.audioPlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_cross))
             holder.audioPlaybackControlButton.contentDescription =
                     holder.view.context.getString(CommonStrings.error_audio_message_unable_to_play, filename)
             holder.progressLayout.isVisible = false
@@ -470,7 +471,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderIdleState(holder: Holder) {
-        holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+        holder.audioPlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_play_pause_play))
         holder.audioPlaybackControlButton.contentDescription =
                 holder.view.context.getString(CommonStrings.a11y_play_audio_message, filename)
         // How long the file is already reads above the bar; this one counts through it.
@@ -480,7 +481,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderPlayingState(holder: Holder, state: AudioMessagePlaybackTracker.Listener.State.Playing) {
-        holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_play_pause_pause)
+        holder.audioPlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_play_pause_pause))
         holder.audioPlaybackControlButton.contentDescription =
                 holder.view.context.getString(CommonStrings.a11y_pause_audio_message, filename)
 
@@ -489,7 +490,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderPausedState(holder: Holder, state: AudioMessagePlaybackTracker.Listener.State.Paused) {
-        holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+        holder.audioPlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_play_pause_play))
         holder.audioPlaybackControlButton.contentDescription =
                 holder.view.context.getString(CommonStrings.a11y_play_audio_message, filename)
         holder.audioPlaybackTime.text = formatPlaybackTime(state.playbackTime)

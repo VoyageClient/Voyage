@@ -2775,7 +2775,7 @@
     <string name="mass_redaction_confirmation_message">Isto vai remover todos os eventos de %1$s. Pode levar muito tempo e não pode ser desfeito.</string>
     <string name="mass_redaction_already_running">Uma remoção em massa já está em andamento. Espere ela terminar ou cancele-a primeiro.</string>
     <string name="mass_redaction_redacting_from">Removendo mensagens de %1$s…</string>
-    <string name="mass_redaction_pause">Pausar</string>
+    <string name="action_pause">Pausar</string>
     <string name="mass_redaction_resume">Retomar</string>
     <string name="mass_redaction_cancel">Cancelar</string>
     <string name="mass_redaction_cancel_confirmation_title">Parar a remoção?</string>
@@ -3535,4 +3535,21 @@
     <string name="settings_code_palette">Paleta de cores de blocos de código</string>
     <string name="settings_code_palette_summary">Cores para blocos de código e código embutido, e para o realce de sintaxe do código que indica sua linguagem.</string>
     <string name="code_block_room_list_preview">Bloco de código.</string>
+    <string name="audio_player_channel">Reprodução de áudio</string>
+    <string name="audio_player_voice_message">Mensagem de voz</string>
+    <string name="audio_player_previous">Mensagem de áudio anterior</string>
+    <string name="audio_player_next">Próxima mensagem de áudio</string>
+    <string name="audio_player_stop">Parar reprodução</string>
+    <string name="audio_player_seek">Posição da reprodução</string>
+    <string name="audio_player_controls">Controles de áudio</string>
+    <string name="audio_player_loop">Repetir áudio</string>
+    <string name="audio_player_loop_off">Repetição desativada</string>
+    <string name="audio_player_loop_all">Repetir playlist</string>
+    <string name="audio_player_loop_one">Repetir uma</string>
+    <string name="audio_player_rewind">Voltar 5 segundos</string>
+    <string name="audio_player_fast_forward">Avançar 5 segundos</string>
+    <string name="audio_player_rewind_label">−5 s</string>
+    <string name="audio_player_fast_forward_label">+5 s</string>
+    <string name="audio_player_parameters">Velocidade e tom</string>
+    <string name="audio_player_parameters_legacy">Nesta versão do Android, a velocidade e o tom só podem ser ajustados em mensagens de voz Opus e arquivos WAV PCM. Os demais áudios tocam com a velocidade e o tom originais.</string>
 </resources>

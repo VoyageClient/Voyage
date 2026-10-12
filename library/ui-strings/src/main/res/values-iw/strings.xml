@@ -2827,7 +2827,7 @@
     <string name="mass_redaction_confirmation_message">פעולה זו תמחק כל אירוע של %1$s. הדבר עשוי להימשך זמן רב ולא ניתן לבטל אותו.</string>
     <string name="mass_redaction_already_running">מחיקה המונית כבר מתבצעת. המתן לסיומה או בטל אותה קודם.</string>
     <string name="mass_redaction_redacting_from">מוחק הודעות של %1$s…</string>
-    <string name="mass_redaction_pause">השהה</string>
+    <string name="action_pause">השהה</string>
     <string name="mass_redaction_resume">המשך</string>
     <string name="mass_redaction_cancel">ביטול</string>
     <string name="mass_redaction_cancel_confirmation_title">להפסיק את המחיקה?</string>
@@ -3628,4 +3628,21 @@
     <string name="settings_code_palette">ערכת צבעים לבלוקי קוד</string>
     <string name="settings_code_palette_summary">צבעים לבלוקי קוד ולקוד בתוך השורה, ולהדגשת התחביר של קוד שמציין את השפה שלו.</string>
     <string name="code_block_room_list_preview">בלוק קוד.</string>
+    <string name="audio_player_channel">השמעת שמע</string>
+    <string name="audio_player_voice_message">הודעה קולית</string>
+    <string name="audio_player_previous">הודעת השמע הקודמת</string>
+    <string name="audio_player_next">הודעת השמע הבאה</string>
+    <string name="audio_player_stop">עצור השמעה</string>
+    <string name="audio_player_seek">מיקום ההשמעה</string>
+    <string name="audio_player_controls">פקדי שמע</string>
+    <string name="audio_player_loop">השמעה בלולאה</string>
+    <string name="audio_player_loop_off">חזרה כבויה</string>
+    <string name="audio_player_loop_all">חזור על הרשימה</string>
+    <string name="audio_player_loop_one">חזור על אחד</string>
+    <string name="audio_player_rewind">5 שניות אחורה</string>
+    <string name="audio_player_fast_forward">5 שניות קדימה</string>
+    <string name="audio_player_rewind_label">−5 ש׳</string>
+    <string name="audio_player_fast_forward_label">+5 ש׳</string>
+    <string name="audio_player_parameters">מהירות וגובה צליל</string>
+    <string name="audio_player_parameters_legacy">בגרסת Android זו ניתן לכוון מהירות וגובה צליל רק בהודעות קוליות בפורמט Opus ובקובצי PCM WAV. שמע אחר מושמע במהירות ובגובה הצליל המקוריים שלו.</string>
 </resources>

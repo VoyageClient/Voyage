@@ -2876,7 +2876,7 @@
     <string name="mass_redaction_confirmation_message">سيحذف هذا كل حدث من %1$s. قد يستغرق ذلك وقتًا طويلًا ولا يمكن التراجع عنه.</string>
     <string name="mass_redaction_already_running">هناك حذف جماعي جارٍ بالفعل، انتظر انتهاءه أو ألغِه أولًا.</string>
     <string name="mass_redaction_redacting_from">يحذف الرسائل من %1$s…</string>
-    <string name="mass_redaction_pause">ألبِث</string>
+    <string name="action_pause">ألبِث</string>
     <string name="mass_redaction_resume">استأنف</string>
     <string name="mass_redaction_cancel">ألغِ</string>
     <string name="mass_redaction_cancel_confirmation_title">أتريد إيقاف الحذف؟</string>
@@ -3684,4 +3684,21 @@
     <string name="settings_code_palette">لوحة ألوان كتل الشفرة</string>
     <string name="settings_code_palette_summary">ألوان كتل الشفرة والشفرة المضمّنة، وتلوين بناء الجملة للشفرة التي تحدد لغتها.</string>
     <string name="code_block_room_list_preview">كتلة شفرة.</string>
+    <string name="audio_player_channel">تشغيل الصوت</string>
+    <string name="audio_player_voice_message">رسالة صوتية</string>
+    <string name="audio_player_previous">الرسالة الصوتية السابقة</string>
+    <string name="audio_player_next">الرسالة الصوتية التالية</string>
+    <string name="audio_player_stop">أوقف التشغيل</string>
+    <string name="audio_player_seek">موضع التشغيل</string>
+    <string name="audio_player_controls">عناصر التحكم بالصوت</string>
+    <string name="audio_player_loop">كرّر الصوت</string>
+    <string name="audio_player_loop_off">التكرار متوقف</string>
+    <string name="audio_player_loop_all">كرّر القائمة</string>
+    <string name="audio_player_loop_one">كرّر واحدًا</string>
+    <string name="audio_player_rewind">ارجع 5 ثوانٍ</string>
+    <string name="audio_player_fast_forward">تقدّم 5 ثوانٍ</string>
+    <string name="audio_player_rewind_label">−5 ث</string>
+    <string name="audio_player_fast_forward_label">+5 ث</string>
+    <string name="audio_player_parameters">السرعة وطبقة الصوت</string>
+    <string name="audio_player_parameters_legacy">في إصدار Android هذا، لا يمكن ضبط السرعة وطبقة الصوت إلا للرسائل الصوتية بصيغة Opus وملفات PCM WAV. يُشغَّل الصوت الآخر بسرعته وطبقته الأصليتين.</string>
 </resources>

@@ -7,11 +7,13 @@
 
 package im.vector.app.features.attachments.editor.video
 
+import android.app.Dialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.SeekBar
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.core.extensions.setExpandedContentView
 import im.vector.app.databinding.BottomSheetVideoSpeedBinding
 import im.vector.lib.core.utils.math.QuadraticSlider
@@ -25,6 +27,7 @@ class PlaybackSpeedDialog(
         private val allowPitchChoice: Boolean,
         private val onChanged: (PlaybackSpeed) -> Unit,
         private val onDismiss: (() -> Unit)? = null,
+        private val asPopup: Boolean = false,
 ) {
 
     private val views = BottomSheetVideoSpeedBinding.inflate(LayoutInflater.from(context))
@@ -60,10 +63,12 @@ class PlaybackSpeedDialog(
         }
         views.speedReset.setOnClickListener { update(PlaybackSpeed()) }
 
-        val dialog = BottomSheetDialog(context).apply {
-            setExpandedContentView(views.root)
-            setOnDismissListener { onDismiss?.invoke() }
+        val dialog: Dialog = if (asPopup) {
+            MaterialAlertDialogBuilder(context).setView(views.root).create()
+        } else {
+            BottomSheetDialog(context).apply { setExpandedContentView(views.root) }
         }
+        dialog.setOnDismissListener { onDismiss?.invoke() }
         views.speedDone.setOnClickListener { dialog.dismiss() }
         // Changes apply as they are made, so leaving has to be able to put them back.
         views.speedCancel.setOnClickListener {

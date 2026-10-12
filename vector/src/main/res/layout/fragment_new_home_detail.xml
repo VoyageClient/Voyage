@@ -26,6 +26,16 @@
         app:layout_constraintTop_toBottomOf="@id/homeKeysBackupBanner"
         tools:visibility="gone" />
 
+    <im.vector.app.features.audio.AudioPlaybackBannerView
+        android:id="@+id/audioPlaybackBanner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?android:colorBackground"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/syncStateView" />
+
     <im.vector.app.core.ui.views.MassRedactionBannerView
         android:id="@+id/massRedactionBanner"
         android:layout_width="0dp"
@@ -35,7 +45,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/syncStateView"
+        app:layout_constraintTop_toBottomOf="@id/audioPlaybackBanner"
         tools:visibility="visible" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout

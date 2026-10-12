@@ -17,6 +17,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.Rect
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -194,7 +195,13 @@ class AttachmentsPreviewFragment :
         // progressTintList is API 21+, and this fork runs from 14.
         @Suppress("DEPRECATION")
         views.attachmentPreviewerVideoSeekBar.apply {
-            progressDrawable?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
+            progressDrawable?.mutate()?.apply {
+                setColorFilter(accent, PorterDuff.Mode.SRC_IN)
+                (this as? LayerDrawable)?.let { layers ->
+                    layers.findDrawableByLayerId(android.R.id.background)?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
+                    layers.findDrawableByLayerId(android.R.id.secondaryProgress)?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
+                }
+            }
             thumbCompat?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
         }
         views.attachmentPreviewerVideoSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

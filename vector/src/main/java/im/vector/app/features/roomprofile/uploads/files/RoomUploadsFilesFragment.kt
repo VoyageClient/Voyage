@@ -28,10 +28,13 @@ import im.vector.app.core.extensions.trackItemsVisibilityChange
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentGenericStateViewRecyclerBinding
+import im.vector.app.features.audio.AudioGalleryData
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.roomprofile.uploads.RoomUploadsAction
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewModel
 import im.vector.app.features.share.forwardEventIntent
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 import javax.inject.Inject
 
@@ -41,6 +44,7 @@ class RoomUploadsFilesFragment :
         UploadsFileController.Listener,
         StateView.EventCallback {
 
+    @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var controller: UploadsFileController
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
 
@@ -69,8 +73,16 @@ class RoomUploadsFilesFragment :
     }
 
     override fun onOpenClicked(uploadEvent: UploadEvent) {
-        // Same action than Share
-        uploadsViewModel.handle(RoomUploadsAction.Share(uploadEvent))
+        val content = uploadEvent.contentWithAttachmentContent as? MessageAudioContent
+        if (content == null) {
+            uploadsViewModel.handle(RoomUploadsAction.Share(uploadEvent))
+        } else {
+            withState(uploadsViewModel) { state ->
+                val tapped = AudioGalleryData(state.roomId, uploadEvent.eventId, content,
+                        stableId = uploadEvent.root.unsignedData?.transactionId ?: uploadEvent.eventId, galleryIndex = uploadEvent.galleryItemIndex)
+                audioPlaybackController.playAudio(tapped)
+            }
+        }
     }
 
     override fun onRetryClicked() {

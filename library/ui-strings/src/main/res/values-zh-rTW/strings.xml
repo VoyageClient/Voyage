@@ -2721,7 +2721,7 @@
     <string name="mass_redaction_confirmation_message">這將會刪除 %1$s 的每個事件。這可能需要很長的時間，且無法復原。</string>
     <string name="mass_redaction_already_running">已有大量刪除作業正在進行中，請等待其完成或先將其取消。</string>
     <string name="mass_redaction_redacting_from">正在刪除 %1$s 的訊息…</string>
-    <string name="mass_redaction_pause">暫停</string>
+    <string name="action_pause">暫停</string>
     <string name="mass_redaction_resume">繼續</string>
     <string name="mass_redaction_cancel">取消</string>
     <string name="mass_redaction_cancel_confirmation_title">要停止刪除嗎？</string>
@@ -3473,4 +3473,21 @@
     <string name="settings_code_palette">程式碼區塊色彩配置</string>
     <string name="settings_code_palette_summary">程式碼區塊與行內程式碼的色彩，以及標明語言之程式碼的語法醒目提示。</string>
     <string name="code_block_room_list_preview">程式碼區塊。</string>
+    <string name="audio_player_channel">音訊播放</string>
+    <string name="audio_player_voice_message">語音訊息</string>
+    <string name="audio_player_previous">上一則音訊訊息</string>
+    <string name="audio_player_next">下一則音訊訊息</string>
+    <string name="audio_player_stop">停止播放</string>
+    <string name="audio_player_seek">播放位置</string>
+    <string name="audio_player_controls">音訊控制</string>
+    <string name="audio_player_loop">循環播放音訊</string>
+    <string name="audio_player_loop_off">關閉重複</string>
+    <string name="audio_player_loop_all">重複播放清單</string>
+    <string name="audio_player_loop_one">單曲重複</string>
+    <string name="audio_player_rewind">倒轉 5 秒</string>
+    <string name="audio_player_fast_forward">快轉 5 秒</string>
+    <string name="audio_player_rewind_label">−5秒</string>
+    <string name="audio_player_fast_forward_label">+5秒</string>
+    <string name="audio_player_parameters">速度和音調</string>
+    <string name="audio_player_parameters_legacy">在此 Android 版本上，只有 Opus 語音訊息和 PCM WAV 檔案可以調整速度和音調。其他音訊會以原始速度和音調播放。</string>
 </resources>

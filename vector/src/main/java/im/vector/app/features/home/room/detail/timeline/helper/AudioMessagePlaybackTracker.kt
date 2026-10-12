@@ -34,9 +34,8 @@ class AudioMessagePlaybackTracker @Inject constructor() {
     fun track(id: String, listener: Listener) {
         listeners.getOrPut(id) { linkedSetOf() }.add(listener)
 
-        val currentState = states[id] ?: Listener.State.Idle
         mainHandler.post {
-            listener.onUpdate(currentState)
+            if (listeners[id]?.contains(listener) == true) listener.onUpdate(states[id] ?: Listener.State.Idle)
         }
     }
 

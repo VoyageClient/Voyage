@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
@@ -103,7 +104,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(attributes.informationData.stableId, izLocalFile, holder.progressLayout)
         } else {
-            holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_cross)
+            holder.voicePlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_cross))
             holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.error_voice_message_unable_to_play)
             holder.progressLayout.isVisible = false
         }
@@ -180,21 +181,21 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     private fun getTouchedPositionPercentage(motionEvent: MotionEvent, view: View) = (motionEvent.x / view.width).coerceIn(0f, 1f)
 
     private fun renderIdleState(holder: Holder, idleColor: Int, playedColor: Int) {
-        holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+        holder.voicePlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_play_pause_play))
         holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.a11y_play_voice_message)
         holder.voicePlaybackTime.text = formatPlaybackTime(duration)
         holder.voicePlaybackWaveform.updateColors(0f, playedColor, idleColor)
     }
 
     private fun renderPlayingState(holder: Holder, state: AudioMessagePlaybackTracker.Listener.State.Playing, idleColor: Int, playedColor: Int) {
-        holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_pause)
+        holder.voicePlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_play_pause_pause))
         holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.a11y_pause_voice_message)
         holder.voicePlaybackTime.text = formatPlaybackTime(state.playbackTime)
         holder.voicePlaybackWaveform.updateColors(state.percentage, playedColor, idleColor)
     }
 
     private fun renderPausedState(holder: Holder, state: AudioMessagePlaybackTracker.Listener.State.Paused, idleColor: Int, playedColor: Int) {
-        holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+        holder.voicePlaybackControlButton.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_play_pause_play))
         holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.a11y_play_voice_message)
         holder.voicePlaybackTime.text = formatPlaybackTime(state.playbackTime)
         holder.voicePlaybackWaveform.updateColors(state.percentage, playedColor, idleColor)

@@ -2774,7 +2774,7 @@
     <string name="mass_redaction_confirmation_message">Dadurch wird jedes Ereignis von %1$s gelöscht. Das kann lange dauern und lässt sich nicht rückgängig machen.</string>
     <string name="mass_redaction_already_running">Es läuft bereits eine Massenlöschung. Warte, bis sie abgeschlossen ist, oder brich sie zuerst ab.</string>
     <string name="mass_redaction_redacting_from">Nachrichten von %1$s werden gelöscht…</string>
-    <string name="mass_redaction_pause">Pausieren</string>
+    <string name="action_pause">Pausieren</string>
     <string name="mass_redaction_resume">Fortsetzen</string>
     <string name="mass_redaction_cancel">Abbrechen</string>
     <string name="mass_redaction_cancel_confirmation_title">Löschen beenden?</string>
@@ -3534,4 +3534,21 @@
     <string name="settings_code_palette">Farbpalette für Codeblöcke</string>
     <string name="settings_code_palette_summary">Farben für Codeblöcke und Inline-Code sowie für die Syntaxhervorhebung von Code, der seine Sprache angibt.</string>
     <string name="code_block_room_list_preview">Codeblock.</string>
+    <string name="audio_player_channel">Audiowiedergabe</string>
+    <string name="audio_player_voice_message">Sprachnachricht</string>
+    <string name="audio_player_previous">Vorherige Audionachricht</string>
+    <string name="audio_player_next">Nächste Audionachricht</string>
+    <string name="audio_player_stop">Wiedergabe beenden</string>
+    <string name="audio_player_seek">Wiedergabeposition</string>
+    <string name="audio_player_controls">Audiosteuerung</string>
+    <string name="audio_player_loop">Audio wiederholen</string>
+    <string name="audio_player_loop_off">Wiederholung aus</string>
+    <string name="audio_player_loop_all">Playlist wiederholen</string>
+    <string name="audio_player_loop_one">Titel wiederholen</string>
+    <string name="audio_player_rewind">5 Sekunden zurück</string>
+    <string name="audio_player_fast_forward">5 Sekunden vor</string>
+    <string name="audio_player_rewind_label">−5 s</string>
+    <string name="audio_player_fast_forward_label">+5 s</string>
+    <string name="audio_player_parameters">Geschwindigkeit und Tonhöhe</string>
+    <string name="audio_player_parameters_legacy">Auf dieser Android-Version sind Geschwindigkeit und Tonhöhe nur für Opus-Sprachnachrichten und PCM-WAV-Dateien einstellbar. Andere Audiodateien werden mit ihrer ursprünglichen Geschwindigkeit und Tonhöhe abgespielt.</string>
 </resources>

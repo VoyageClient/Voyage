@@ -22,6 +22,7 @@ import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.attachments.toContentAttachmentData
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.autocomplete.command.MSC4391_COMMAND_DESCRIPTION_EVENT_TYPE
 import im.vector.app.features.autocomplete.command.msc4391CommandContent
 import im.vector.app.features.command.Command
@@ -126,6 +127,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val commandParser: CommandParser,
         private val rainbowGenerator: RainbowGenerator,
         private val audioMessageHelper: AudioMessageHelper,
+        private val audioPlaybackController: AudioPlaybackController,
         private val clock: Clock,
         private val pgpKeyStore: PgpKeyStore,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
@@ -2659,35 +2661,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private val pendingPlaybackLoads = mutableMapOf<String, Job>()
-
     private fun handlePlayOrPauseVoicePlayback(action: MessageComposerAction.PlayOrPauseVoicePlayback) {
-        synchronized(pendingPlaybackLoads) {
-            // A second tap while the file is still being fetched cancels the pending load
-            // rather than spawning a parallel download+MediaPlayer that the next tap can't reach.
-            pendingPlaybackLoads.remove(action.eventId)?.let {
-                it.cancel()
-                return
-            }
-            val job = viewModelScope.launch(Dispatchers.IO) {
-                try {
-                    val audioFile = audioMessageHelper.resolveLocalFile(action.messageAudioContent.url)
-                            ?: session.fileService().downloadFile(action.messageAudioContent)
-                    audioMessageHelper.startOrPausePlayback(
-                            action.eventId,
-                            audioFile,
-                            isVoiceMessage = action.messageAudioContent.voiceMessageIndicator != null,
-                    )
-                } catch (failure: CancellationException) {
-                    throw failure
-                } catch (failure: Throwable) {
-                    _viewEvents.post(MessageComposerViewEvents.VoicePlaybackOrRecordingFailure(failure))
-                } finally {
-                    synchronized(pendingPlaybackLoads) { pendingPlaybackLoads.remove(action.eventId) }
-                }
-            }
-            pendingPlaybackLoads[action.eventId] = job
-        }
+        audioMessageHelper.stopPlayback(includeMessagePlayback = false)
+        audioPlaybackController.playOrPause(room?.roomId ?: return, action.stableId, action.messageAudioContent, action.eventId)
     }
 
     private fun handlePlayOrPauseRecordingPlayback() {
@@ -2699,8 +2675,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     fun endAllVoiceActions(deleteRecord: Boolean = true) {
-        audioMessageHelper.resetPlaybackStates()
-        audioMessageHelper.stopAllVoiceActions(deleteRecord)
+        audioMessageHelper.stopAllVoiceActions(deleteRecord, preserveMessagePlayback = true)
     }
 
     private fun handleInitializeVoiceRecorder(room: Room, attachmentData: ContentAttachmentData) {
@@ -2730,8 +2705,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleEntersBackground(room: Room, composerText: String) {
-        // Always stop all voice actions. It may be playing in timeline or active recording
-        val playingAudioContent = audioMessageHelper.stopAllVoiceActions(deleteRecord = false)
+        val playingAudioContent = audioMessageHelper.stopAllVoiceActions(deleteRecord = false, preserveMessagePlayback = true)
 
         val isVoiceRecording = com.airbnb.mvrx.withState(this) { it.isVoiceRecording }
         if (isVoiceRecording) {

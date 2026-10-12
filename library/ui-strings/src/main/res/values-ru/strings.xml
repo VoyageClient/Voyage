@@ -2743,7 +2743,7 @@
     <string name="mass_redaction_confirmation_message">Будут удалены все события от %1$s. Это может занять много времени и не может быть отменено.</string>
     <string name="mass_redaction_already_running">Массовое удаление уже выполняется. Дождитесь его завершения или сначала отмените его.</string>
     <string name="mass_redaction_redacting_from">Удаление сообщений от %1$s…</string>
-    <string name="mass_redaction_pause">Пауза</string>
+    <string name="action_pause">Пауза</string>
     <string name="mass_redaction_resume">Продолжить</string>
     <string name="mass_redaction_cancel">Отмена</string>
     <string name="mass_redaction_cancel_confirmation_title">Остановить удаление?</string>
@@ -3659,4 +3659,21 @@
     <string name="settings_code_palette">Цветовая палитра блоков кода</string>
     <string name="settings_code_palette_summary">Цвета блоков кода и встроенного кода, а также подсветки синтаксиса кода, в котором указан язык.</string>
     <string name="code_block_room_list_preview">Блок кода.</string>
+    <string name="audio_player_channel">Воспроизведение аудио</string>
+    <string name="audio_player_voice_message">Голосовое сообщение</string>
+    <string name="audio_player_previous">Предыдущее аудиосообщение</string>
+    <string name="audio_player_next">Следующее аудиосообщение</string>
+    <string name="audio_player_stop">Остановить воспроизведение</string>
+    <string name="audio_player_seek">Позиция воспроизведения</string>
+    <string name="audio_player_controls">Управление аудио</string>
+    <string name="audio_player_loop">Повтор аудио</string>
+    <string name="audio_player_loop_off">Повтор выключен</string>
+    <string name="audio_player_loop_all">Повторять плейлист</string>
+    <string name="audio_player_loop_one">Повторять один</string>
+    <string name="audio_player_rewind">Назад на 5 секунд</string>
+    <string name="audio_player_fast_forward">Вперёд на 5 секунд</string>
+    <string name="audio_player_rewind_label">−5 с</string>
+    <string name="audio_player_fast_forward_label">+5 с</string>
+    <string name="audio_player_parameters">Скорость и высота тона</string>
+    <string name="audio_player_parameters_legacy">В этой версии Android скорость и высоту тона можно менять только для голосовых сообщений Opus и файлов PCM WAV. Остальное аудио воспроизводится с исходной скоростью и высотой тона.</string>
 </resources>

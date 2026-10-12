@@ -222,7 +222,7 @@ object MediaPillPreviewBinder {
         filename.paintFlags = filename.paintFlags or Paint.UNDERLINE_TEXT_FLAG
         pill.findViewById<ProgressBar>(R.id.messageFileProgressbar).progress = 0
         pill.findViewById<ImageView>(R.id.messageFileIconView).setImageDrawable(
-                AppCompatResources.getDrawable(pill.context, if (preview.downloaded) R.drawable.ic_paperclip else R.drawable.ic_download)
+                AppCompatResources.getDrawable(pill.context, if (preview.downloaded) R.drawable.ic_paperclip else R.drawable.ic_material_save)
         )
     }
 

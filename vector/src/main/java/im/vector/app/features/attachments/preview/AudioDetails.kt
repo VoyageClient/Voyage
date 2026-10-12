@@ -37,6 +37,19 @@ object AudioDetails {
                 cornerRadius = minOf(art.width, art.height) * AvatarRenderer.ROUNDED_CORNER_PERCENT
             }
 
+    fun roundedSquareArt(context: Context, art: Bitmap): RoundedBitmapDrawable {
+        val side = minOf(art.width, art.height)
+        return roundedArt(context, Bitmap.createBitmap(art, (art.width - side) / 2, (art.height - side) / 2, side, side))
+    }
+
+    private val coverArt = object : LruCache<String, Bitmap>(8 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: Bitmap) = value.rowBytes * value.height
+    }
+
+    fun cachedCoverArt(url: String): Bitmap? = coverArt.get(url)
+
+    fun keepCoverArt(url: String, art: Bitmap) { coverArt.put(url, art) }
+
     class Details(
             val title: String?,
             val artist: String?,
@@ -46,15 +59,16 @@ object AudioDetails {
     ) {
         val isEmpty get() = title == null && artist == null && album == null && art == null
 
-        /**
-         * Who made it and what it is from, as a player shows them: "Artist / Album". A single by
-         * its own name says nothing twice.
-         */
-        val credits: String?
-            get() = listOfNotNull(artist, album?.takeIf { !it.equals(artist, ignoreCase = true) })
-                    .takeIf { it.isNotEmpty() }
-                    ?.joinToString(" / ")
+        val credits: String? get() = credits(title, artist, album)
     }
+
+    /** "Artist • Album", leaving out an album that only repeats the artist or the title. */
+    fun credits(title: String?, artist: String?, album: String?): String? =
+            listOfNotNull(artist?.takeIf { it.isNotBlank() }, album?.takeIf {
+                it.isNotBlank() && !it.trim().equals(artist?.trim(), ignoreCase = true) && !it.trim().equals(title?.trim(), ignoreCase = true)
+            })
+                    .takeIf { it.isNotEmpty() }
+                    ?.joinToString(" • ")
 
     /** Enough for a screenful of messages and then some, so scrolling back shows art at once. */
     private val cache = LruCache<String, Details>(32)
@@ -304,7 +318,11 @@ object AudioDetails {
                     }
                 }.onFailure { Timber.w(it, "AudioDetails: cannot fetch cover art") }.getOrNull()
                 ?: return null
-        return image.takeIf { it.length() in 1..MAX_COVER_ART_BYTES }?.let { AudioCoverArt.encode(it.readBytes()) }.orEmpty()
+        return image.takeIf { it.length() in 1..MAX_COVER_ART_BYTES }?.let {
+            val bytes = it.readBytes()
+            decodeScaled(bytes)?.let { art -> keepCoverArt(url, art) }
+            AudioCoverArt.encode(bytes)
+        }.orEmpty()
     }
 
     private fun readCoverArtHash(context: Context, url: String): String? = runCatching {

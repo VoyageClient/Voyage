@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright 2026 Voyage Client
+
+ SPDX-License-Identifier: AGPL-3.0-only
+ Please see LICENSE files in the repository root for full details.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/audioTrackSave" android:icon="@drawable/ic_material_save" android:title="@string/action_save" />
+    <item android:id="@+id/audioTrackForward" android:icon="@drawable/ic_forward" android:title="@string/action_forward" />
+    <item android:id="@+id/audioTrackShare" android:icon="@drawable/ic_share" android:title="@string/action_share" />
+    <item android:id="@+id/audioTrackShowInChat" android:icon="@drawable/ic_reveal_redacted" android:title="@string/attachment_viewer_show_in_chat" />
+</menu>

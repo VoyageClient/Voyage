@@ -38,6 +38,8 @@ import im.vector.app.core.utils.isTappableLink
 import im.vector.app.core.utils.openUrlInExternalBrowser
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentSearchBinding
+import im.vector.app.features.audio.AudioGalleryData
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.home.room.detail.arguments.PendingEventAction
 import im.vector.app.features.home.room.detail.composer.AudioMessageHelper
@@ -45,7 +47,6 @@ import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageActionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHistoryBottomSheet
-import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsBottomSheet
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
@@ -55,11 +56,8 @@ import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.media.hasPoster
 import im.vector.app.features.permalink.openPermalinkInApp
 import im.vector.lib.strings.CommonStrings
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.matrix.android.sdk.api.session.Session
@@ -70,7 +68,6 @@ import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
-import timber.log.Timber
 import javax.inject.Inject
 
 @Parcelize
@@ -89,12 +86,11 @@ class SearchFragment :
     @Inject lateinit var controller: SearchResultController
     @Inject lateinit var session: Session
     @Inject lateinit var audioMessageHelper: AudioMessageHelper
-    @Inject lateinit var playbackTracker: AudioMessagePlaybackTracker
+    @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var messageTranslationStore: im.vector.app.features.translation.MessageTranslationStore
     private val fragmentArgs: SearchArgs by args()
     private val searchViewModel: SearchViewModel by fragmentViewModel()
-    private val playedEventIds = mutableSetOf<String>()
     private lateinit var sharedActionViewModel: MessageSharedActionViewModel
 
     // The message the action sheet was opened on, for the actions that don't carry an event id.
@@ -144,24 +140,10 @@ class SearchFragment :
         }
     }
 
-    override fun onPause() {
-        // Leaving the screen (e.g. jumping to a result) must not keep audio playing.
-        stopAudioPlayback()
-        super.onPause()
-    }
-
     override fun onDestroyView() {
-        stopAudioPlayback()
         views.searchResultRecycler.cleanup()
         controller.listener = null
         super.onDestroyView()
-    }
-
-    private fun stopAudioPlayback() {
-        audioMessageHelper.stopPlayback()
-        // stopPlayback() only halts the player; reset the played items' progress UI too.
-        playedEventIds.forEach { playbackTracker.stopPlaybackOrRecorder(it) }
-        playedEventIds.clear()
     }
 
     override fun invalidate() = withState(searchViewModel) { state ->
@@ -280,23 +262,13 @@ class SearchFragment :
         ) { }
     }
 
-    override fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent) {
-        playedEventIds.add(eventId)
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val audioFile = withContext(Dispatchers.IO) {
-                    audioMessageHelper.resolveLocalFile(messageAudioContent.url)
-                            ?: session.fileService().downloadFile(messageAudioContent)
-                }
-                audioMessageHelper.startOrPausePlayback(
-                        eventId,
-                        audioFile,
-                        isVoiceMessage = messageAudioContent.voiceMessageIndicator != null,
-                )
-            } catch (failure: Throwable) {
-                Timber.w(failure, "Unable to play audio message from search")
-            }
-        }
+    override fun onAudioMessageClicked(data: AudioGalleryData) {
+        audioPlaybackController.playAudio(data)
+    }
+
+    override fun onVoiceControlButtonClicked(stableId: String, eventId: String, messageAudioContent: MessageAudioContent) {
+        audioMessageHelper.stopPlayback(includeMessagePlayback = false)
+        audioPlaybackController.playOrPause(fragmentArgs.roomId, stableId, messageAudioContent, eventId)
     }
 
     override fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float) {

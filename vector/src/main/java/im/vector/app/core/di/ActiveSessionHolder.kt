@@ -14,10 +14,10 @@ import im.vector.app.core.services.GuardServiceStarter
 import im.vector.app.core.session.ConfigureAndStartSessionUseCase
 import im.vector.app.core.session.LastActiveSessionStore
 import im.vector.app.core.vpn.VpnGateState
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.crypto.keysrequest.KeyRequestHandler
 import im.vector.app.features.crypto.verification.IncomingVerificationRequestHandler
 import im.vector.app.features.home.ShortcutsHandler
-import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.notifications.NotificationDrawerManager
@@ -52,7 +52,7 @@ class ActiveSessionHolder @Inject constructor(
         private val notificationDrawerManager: Provider<NotificationDrawerManager>,
         private val shortcutsHandler: Provider<ShortcutsHandler>,
         private val popupAlertManager: PopupAlertManager,
-        private val audioMessagePlaybackTracker: Provider<AudioMessagePlaybackTracker>,
+        private val audioPlaybackController: Provider<AudioPlaybackController>,
         private val mediaContentRevealManager: Provider<MediaContentRevealManager>,
         private val sendingMediaGate: Provider<SendingMediaGate>,
         private val pgpServiceManager: Provider<PgpServiceManager>,
@@ -95,6 +95,7 @@ class ActiveSessionHolder @Inject constructor(
     }
 
     suspend fun clearActiveSession() {
+        audioPlaybackController.get().stop(clearTracker = true)
         // Do some cleanup first
         getSafeActiveSession()?.let {
             Timber.w("clearActiveSession of ${it.myUserId}")
@@ -177,7 +178,7 @@ class ActiveSessionHolder @Inject constructor(
         notificationDrawerManager.get().resetForAccountSwitch()
         shortcutsHandler.get().clearShortcuts()
         popupAlertManager.cancelAll()
-        audioMessagePlaybackTracker.get().clearAllStates()
+        audioPlaybackController.get().stop(clearTracker = true)
         mediaContentRevealManager.get().clearAll()
         sendingMediaGate.get().clearAll()
         pgpServiceManager.get().clearDecryptionCache()

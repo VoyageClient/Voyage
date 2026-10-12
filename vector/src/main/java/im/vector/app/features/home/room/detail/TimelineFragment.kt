@@ -123,6 +123,9 @@ import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentTimelineBinding
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.attachments.ShareIntentHandler
+import im.vector.app.features.audio.AudioGalleryData
+import im.vector.app.features.audio.AudioPlaybackBannerBinder
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.home.AvatarRenderer
@@ -276,6 +279,7 @@ class TimelineFragment :
         GalleryOrCameraDialogHelper.Listener,
         VectorMenuProvider {
 
+    @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var avatarSizeProvider: im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -407,6 +411,7 @@ class TimelineFragment :
         setupJumpToBottomView()
         setupPinnedMessagesBanner()
         setupMassRedactionBanner()
+        AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController)
         setupUserIdentityWarning()
         setupLiveLocationIndicator()
         setupBackPressHandling()
@@ -2365,6 +2370,17 @@ class TimelineFragment :
         return timelineViewModel.replyPreviewRetriever
     }
 
+    fun showEventInChat(roomId: String, eventId: String): Boolean {
+        if (!isVisible || timelineArgs.roomId != roomId) return false
+        if (isThreadTimeLine()) {
+            val target = session.getRoom(roomId)?.getTimelineEvent(eventId)?.root
+                    ?: session.eventService().getEventFromCache(roomId, eventId)
+            if (eventId != getRootThreadEventId() && target?.getRootThreadEventId() != getRootThreadEventId()) return false
+        }
+        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
+        return true
+    }
+
     override fun onRepliedToEventClicked(sourceEventId: String?, targetEventId: String) {
         captureReplyJumpSource(sourceEventId)
         timelineViewModel.handle(RoomDetailAction.NavigateToEvent(targetEventId, highlight = true))
@@ -2410,8 +2426,12 @@ class TimelineFragment :
         }
     }
 
-    override fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent) {
-        messageComposerViewModel.handle(MessageComposerAction.PlayOrPauseVoicePlayback(eventId, messageAudioContent))
+    override fun onAudioMessageClicked(data: AudioGalleryData) {
+        audioPlaybackController.playAudio(data)
+    }
+
+    override fun onVoiceControlButtonClicked(stableId: String, eventId: String, messageAudioContent: MessageAudioContent) {
+        messageComposerViewModel.handle(MessageComposerAction.PlayOrPauseVoicePlayback(stableId, eventId, messageAudioContent))
     }
 
     override fun onVoiceWaveformTouchedUp(eventId: String, duration: Int, percentage: Float) {

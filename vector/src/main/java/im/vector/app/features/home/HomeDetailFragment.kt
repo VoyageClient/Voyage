@@ -31,6 +31,8 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.views.KeysBackupBanner
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.databinding.FragmentHomeDetailBinding
+import im.vector.app.features.audio.AudioPlaybackBannerBinder
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.list.RoomListFragment
 import im.vector.app.features.home.room.list.RoomListParams
@@ -58,6 +60,7 @@ class HomeDetailFragment :
         OnBackPressed,
         VectorMenuProvider {
 
+    @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var alertManager: PopupAlertManager
@@ -110,6 +113,7 @@ class HomeDetailFragment :
         setupToolbar()
         setupKeysBackupBanner()
         MassRedactionBannerBinder.bind(views.massRedactionBanner, this, massRedactionManager)
+        AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController)
 
         withState(viewModel) {
             // Update the navigation view if needed (for when we restore the tabs)

@@ -2718,7 +2718,7 @@
     <string name="mass_redaction_confirmation_message">%1$sからの全てのイベントを削除します。時間がかかる場合があり、元に戻せません。</string>
     <string name="mass_redaction_already_running">一括削除がすでに進行中です。完了するまで待つか、先にキャンセルしてください。</string>
     <string name="mass_redaction_redacting_from">%1$sからのメッセージを削除しています…</string>
-    <string name="mass_redaction_pause">一時停止</string>
+    <string name="action_pause">一時停止</string>
     <string name="mass_redaction_resume">再開</string>
     <string name="mass_redaction_cancel">キャンセル</string>
     <string name="mass_redaction_cancel_confirmation_title">削除を中止しますか？</string>
@@ -3469,4 +3469,21 @@
     <string name="settings_code_palette">コードブロックのカラーパレット</string>
     <string name="settings_code_palette_summary">コードブロックとインラインコードの色、および言語が指定されたコードのシンタックスハイライトの色。</string>
     <string name="code_block_room_list_preview">コードブロック。</string>
+    <string name="audio_player_channel">オーディオ再生</string>
+    <string name="audio_player_voice_message">音声メッセージ</string>
+    <string name="audio_player_previous">前の音声メッセージ</string>
+    <string name="audio_player_next">次の音声メッセージ</string>
+    <string name="audio_player_stop">再生を停止</string>
+    <string name="audio_player_seek">再生位置</string>
+    <string name="audio_player_controls">オーディオコントロール</string>
+    <string name="audio_player_loop">オーディオをループ</string>
+    <string name="audio_player_loop_off">リピートオフ</string>
+    <string name="audio_player_loop_all">プレイリストをリピート</string>
+    <string name="audio_player_loop_one">1曲リピート</string>
+    <string name="audio_player_rewind">5秒戻る</string>
+    <string name="audio_player_fast_forward">5秒進む</string>
+    <string name="audio_player_rewind_label">−5秒</string>
+    <string name="audio_player_fast_forward_label">+5秒</string>
+    <string name="audio_player_parameters">速度とピッチ</string>
+    <string name="audio_player_parameters_legacy">このバージョンのAndroidでは、速度とピッチはOpus音声メッセージとPCM WAVファイルでのみ調整できます。その他のオーディオは元の速度とピッチで再生されます。</string>
 </resources>

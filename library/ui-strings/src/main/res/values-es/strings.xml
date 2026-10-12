@@ -2763,7 +2763,7 @@
     <string name="mass_redaction_confirmation_message">Se borrarán todos los eventos de %1$s. Puede tardar mucho tiempo y no se puede deshacer.</string>
     <string name="mass_redaction_already_running">Ya hay un borrado masivo en curso; espera a que termine o cancélalo primero.</string>
     <string name="mass_redaction_redacting_from">Borrando mensajes de %1$s…</string>
-    <string name="mass_redaction_pause">Pausar</string>
+    <string name="action_pause">Pausar</string>
     <string name="mass_redaction_resume">Reanudar</string>
     <string name="mass_redaction_cancel">Cancelar</string>
     <string name="mass_redaction_cancel_confirmation_title">¿Detener el borrado?</string>
@@ -3523,4 +3523,21 @@
     <string name="settings_code_palette">Paleta de colores de bloques de código</string>
     <string name="settings_code_palette_summary">Colores para los bloques de código y el código en línea, y para el resaltado de sintaxis del código que indica su lenguaje.</string>
     <string name="code_block_room_list_preview">Bloque de código.</string>
+    <string name="audio_player_channel">Reproducción de audio</string>
+    <string name="audio_player_voice_message">Mensaje de voz</string>
+    <string name="audio_player_previous">Mensaje de audio anterior</string>
+    <string name="audio_player_next">Siguiente mensaje de audio</string>
+    <string name="audio_player_stop">Detener reproducción</string>
+    <string name="audio_player_seek">Posición de reproducción</string>
+    <string name="audio_player_controls">Controles de audio</string>
+    <string name="audio_player_loop">Repetir audio</string>
+    <string name="audio_player_loop_off">Repetición desactivada</string>
+    <string name="audio_player_loop_all">Repetir lista</string>
+    <string name="audio_player_loop_one">Repetir uno</string>
+    <string name="audio_player_rewind">Retroceder 5 segundos</string>
+    <string name="audio_player_fast_forward">Avanzar 5 segundos</string>
+    <string name="audio_player_rewind_label">−5 s</string>
+    <string name="audio_player_fast_forward_label">+5 s</string>
+    <string name="audio_player_parameters">Velocidad y tono</string>
+    <string name="audio_player_parameters_legacy">En esta versión de Android, la velocidad y el tono solo se pueden ajustar en mensajes de voz Opus y archivos WAV PCM. El resto del audio se reproduce con su velocidad y tono originales.</string>
 </resources>

@@ -9,6 +9,10 @@ package im.vector.lib.mediatranscode.audio
 
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
+import java.io.DataOutputStream
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -85,6 +89,87 @@ class PcmSpeedProcessorTest {
         output += processor.endOfStream().toList()
 
         (output.size.toDouble() / sampleRate) shouldBeApproximately 0.625
+    }
+
+    @Test
+    fun `WAV playback preparation changes duration while preserving or changing pitch`() {
+        for (speed in listOf(0.5f, 1.1f, 3f)) {
+            for (changePitch in listOf(false, true)) {
+                val source = File.createTempFile("playback-source-", ".wav")
+                val destination = File.createTempFile("playback-result-", ".wav")
+                try {
+                    writeWave(source, channels = 1)
+                    PlaybackPcmFile.supports(source) shouldBeEqualTo true
+                    PlaybackPcmFile.transform(source, destination, speed, if (changePitch) speed else 1f) { true }
+                    PlaybackPcmFile.supports(destination) shouldBeEqualTo true
+                    val output = readWave(destination)
+                    output.durationSeconds() shouldBeApproximately 1.0 / speed
+                    output.frequency() shouldBeApproximately toneHz * if (changePitch) speed else 1f
+                } finally {
+                    source.delete()
+                    destination.delete()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `WAV preparation preserves stereo frame alignment across its last short buffer`() {
+        val source = File.createTempFile("playback-source-", ".wav")
+        val destination = File.createTempFile("playback-result-", ".wav")
+        try {
+            writeWave(source, channels = 2)
+            PlaybackPcmFile.transform(source, destination, 1.1f, 1.1f) { true }
+            PlaybackPcmFile.supports(destination) shouldBeEqualTo true
+            val output = readWave(destination)
+            (output.size % 2) shouldBeEqualTo 0
+            (1 until output.size step 2).all { output[it] == 0.toShort() } shouldBeEqualTo true
+            (output.size.toDouble() / (sampleRate * 2)) shouldBeApproximately 1.0 / 1.1
+        } finally {
+            source.delete()
+            destination.delete()
+        }
+    }
+
+    @Test(expected = InterruptedException::class)
+    fun `WAV preparation stops when playback is cancelled`() {
+        val source = File.createTempFile("playback-source-", ".wav")
+        val destination = File.createTempFile("playback-result-", ".wav")
+        try {
+            writeWave(source, channels = 1)
+            PlaybackPcmFile.transform(source, destination, 0.5f, 1f) { false }
+        } finally {
+            source.delete()
+            destination.delete()
+        }
+    }
+
+    private fun writeWave(file: File, channels: Int) {
+        val dataSize = sampleRate * channels * 2
+        DataOutputStream(file.outputStream()).use { output ->
+            output.writeBytes("RIFF")
+            output.writeInt(Integer.reverseBytes(dataSize + 36))
+            output.writeBytes("WAVEfmt ")
+            output.writeInt(Integer.reverseBytes(16))
+            output.writeShort(java.lang.Short.reverseBytes(1).toInt())
+            output.writeShort(java.lang.Short.reverseBytes(channels.toShort()).toInt())
+            output.writeInt(Integer.reverseBytes(sampleRate))
+            output.writeInt(Integer.reverseBytes(sampleRate * channels * 2))
+            output.writeShort(java.lang.Short.reverseBytes((channels * 2).toShort()).toInt())
+            output.writeShort(java.lang.Short.reverseBytes(16).toInt())
+            output.writeBytes("data")
+            output.writeInt(Integer.reverseBytes(dataSize))
+            for (frame in 0 until sampleRate) {
+                output.writeShort(java.lang.Short.reverseBytes(tone(frame)).toInt())
+                if (channels == 2) output.writeShort(0)
+            }
+        }
+    }
+
+    private fun readWave(file: File): ShortArray {
+        val bytes = file.readBytes()
+        val samples = ByteBuffer.wrap(bytes, 44, bytes.size - 44).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+        return ShortArray(samples.remaining()).also { samples.get(it) }
     }
 
     private fun run(changePitch: Boolean, speed: Float, seconds: Double): ShortArray {

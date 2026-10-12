@@ -25,6 +25,7 @@ import im.vector.app.core.extensions.nextOrNull
 import im.vector.app.core.extensions.prevOrNull
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.PerfTrace
+import im.vector.app.features.audio.AudioGalleryData
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.RoomDetailViewState
@@ -202,7 +203,9 @@ class TimelineEventController @Inject constructor(
 
         fun getReplyPreviewRetriever(): ReplyPreviewRetriever
 
-        fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent)
+        fun onAudioMessageClicked(data: AudioGalleryData) = Unit
+
+        fun onVoiceControlButtonClicked(stableId: String, eventId: String, messageAudioContent: MessageAudioContent)
         fun onVoiceWaveformTouchedUp(eventId: String, duration: Int, percentage: Float)
         fun onVoiceWaveformMovedTo(eventId: String, duration: Int, percentage: Float)
 

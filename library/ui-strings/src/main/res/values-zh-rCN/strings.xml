@@ -2719,7 +2719,7 @@
     <string name="mass_redaction_confirmation_message">这将删除来自 %1$s 的每个事件。这可能需要很长时间，且无法撤销。</string>
     <string name="mass_redaction_already_running">已有批量删除正在进行，请等待其完成或先取消。</string>
     <string name="mass_redaction_redacting_from">正在删除来自 %1$s 的消息…</string>
-    <string name="mass_redaction_pause">暂停</string>
+    <string name="action_pause">暂停</string>
     <string name="mass_redaction_resume">继续</string>
     <string name="mass_redaction_cancel">取消</string>
     <string name="mass_redaction_cancel_confirmation_title">停止删除？</string>
@@ -3471,4 +3471,21 @@
     <string name="settings_code_palette">代码块配色方案</string>
     <string name="settings_code_palette_summary">代码块和行内代码的颜色，以及注明语言的代码的语法高亮。</string>
     <string name="code_block_room_list_preview">代码块。</string>
+    <string name="audio_player_channel">音频播放</string>
+    <string name="audio_player_voice_message">语音消息</string>
+    <string name="audio_player_previous">上一条音频消息</string>
+    <string name="audio_player_next">下一条音频消息</string>
+    <string name="audio_player_stop">停止播放</string>
+    <string name="audio_player_seek">播放位置</string>
+    <string name="audio_player_controls">音频控制</string>
+    <string name="audio_player_loop">循环播放音频</string>
+    <string name="audio_player_loop_off">关闭重复</string>
+    <string name="audio_player_loop_all">列表循环</string>
+    <string name="audio_player_loop_one">单曲循环</string>
+    <string name="audio_player_rewind">后退 5 秒</string>
+    <string name="audio_player_fast_forward">前进 5 秒</string>
+    <string name="audio_player_rewind_label">−5秒</string>
+    <string name="audio_player_fast_forward_label">+5秒</string>
+    <string name="audio_player_parameters">速度和音调</string>
+    <string name="audio_player_parameters_legacy">在此 Android 版本上，只有 Opus 语音消息和 PCM WAV 文件可以调整速度和音调。其他音频将以原始速度和音调播放。</string>
 </resources>

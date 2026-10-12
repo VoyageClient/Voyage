@@ -59,7 +59,7 @@ class MassRedactionBannerView @JvmOverloads constructor(
                 if (state.paused) R.drawable.ic_play_arrow else R.drawable.ic_pause
         )
         views.massRedactionPauseButton.contentDescription = resources.getString(
-                if (state.paused) CommonStrings.mass_redaction_resume else CommonStrings.mass_redaction_pause
+                if (state.paused) CommonStrings.mass_redaction_resume else CommonStrings.action_pause
         )
     }
 

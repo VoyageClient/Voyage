@@ -88,7 +88,7 @@ class EmojiPanelHostLayout @JvmOverloads constructor(
         super.onFinishInflate()
         stripView = findViewById(R.id.emojiPanelContainer)
         stationaryViews = listOf(
-                R.id.appBarLayout, R.id.massRedactionBanner, R.id.pinnedMessagesBanner,
+                R.id.appBarLayout, R.id.audioPlaybackBanner, R.id.massRedactionBanner, R.id.pinnedMessagesBanner,
                 R.id.tombstoneBanner, R.id.userIdentityWarningView, R.id.syncStateView, R.id.liveLocationStatusIndicator,
         ).mapNotNull { findViewById<View>(it) }
         clippedViews = listOf(R.id.rootConstraintLayout, R.id.timelineRecyclerView).mapNotNull { findViewById<View>(it) }

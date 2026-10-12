@@ -11,6 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
@@ -38,6 +39,22 @@ class ForwardedInfoTest {
     )
 
     private fun Map<String, Any?>.forwarded(): Map<*, *> = this[ForwardedInfo.STABLE_KEY] as Map<*, *>
+
+    @Test
+    fun `adding a room id preserves decrypted audio for forwarding`() {
+        val audio = mapOf("msgtype" to "m.audio", "body" to "Song", "url" to "mxc://example.org/song")
+        val encrypted = Event(
+                type = EventType.ENCRYPTED,
+                eventId = "\$event",
+                senderId = "@alice:example.org",
+                originServerTs = 1234L,
+        ).apply {
+            mxDecryptionResult = OlmDecryptionResult(payload = mapOf("type" to EventType.MESSAGE, "content" to audio))
+        }
+        val payload = encrypted.copyAll(roomId = "!room:example.org").toForwardPayload(editedContent = audio)
+
+        assertEquals(origin + ("content" to audio), payload.forwarded())
+    }
 
     @Test
     fun `a message is forwarded with its origin and content`() {

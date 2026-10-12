@@ -40,6 +40,7 @@ import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.shareMedia
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.navigation.Navigator
@@ -50,6 +51,7 @@ import im.vector.app.features.share.forwardEventIntent
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentCommands
+import im.vector.lib.attachmentviewer.AttachmentEvents
 import im.vector.lib.attachmentviewer.AttachmentInfo
 import im.vector.lib.attachmentviewer.AttachmentViewerActivity
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
@@ -91,6 +93,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     ) : Parcelable
 
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var dataSourceFactory: AttachmentProviderFactory
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var preservedAttachmentResolver: PreservedAttachmentResolver
@@ -107,6 +110,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private val viewModel: VectorAttachmentViewerViewModel by viewModel()
     private val errorFormatter by lazy(LazyThreadSafetyMode.NONE) { singletonEntryPoint().errorFormatter() }
     private var initialIndex = 0
+    private var videoWasPlaying = false
 
     // Restored from saved state (e.g. after process death) so we reopen on the page the user was viewing, not the first one.
     private var restoredPosition = -1
@@ -294,6 +298,15 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             handoffPending = false
             handOffToPager()
         }
+    }
+
+    override fun onEvent(event: AttachmentEvents) {
+        if (event is AttachmentEvents.VideoEvent) {
+            // Only on the change, so audio resumed while a video plays isn't paused again on the next tick.
+            if (event.isPlaying && !videoWasPlaying) audioPlaybackController.pause()
+            videoWasPlaying = event.isPlaying
+        }
+        super.onEvent(event)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -547,7 +560,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             if (event == null) {
                 rootView.showOptimizedSnackbar(getString(CommonStrings.unknown_error))
             } else {
-                forward(event.copy(roomId = event.roomId ?: roomId), null)
+                forward(event.copyAll(roomId = event.roomId ?: roomId), null)
             }
         }
     }

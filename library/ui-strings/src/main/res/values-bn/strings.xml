@@ -2725,7 +2725,7 @@
     <string name="mass_redaction_confirmation_message">এটি %1$s-এর প্রতিটি ইভেন্ট রিড্যাক্ট করবে। এতে অনেক সময় লাগতে পারে এবং এটি ফেরানো যাবে না।</string>
     <string name="mass_redaction_already_running">একটি গণ রিড্যাকশন ইতিমধ্যে চলছে, এটি শেষ হওয়া পর্যন্ত অপেক্ষা করুন অথবা আগে এটি বাতিল করুন।</string>
     <string name="mass_redaction_redacting_from">%1$s-এর বার্তা রিড্যাক্ট করা হচ্ছে…</string>
-    <string name="mass_redaction_pause">বিরতি দিন</string>
+    <string name="action_pause">বিরতি দিন</string>
     <string name="mass_redaction_resume">আবার শুরু করুন</string>
     <string name="mass_redaction_cancel">বাতিল করুন</string>
     <string name="mass_redaction_cancel_confirmation_title">রিড্যাক্ট করা বন্ধ করবেন?</string>
@@ -3489,4 +3489,21 @@
     <string name="settings_code_palette">কোড ব্লকের রঙের প্যালেট</string>
     <string name="settings_code_palette_summary">কোড ব্লক ও ইনলাইন কোডের রং, এবং যে কোডে তার ভাষার নাম দেওয়া আছে তার সিনট্যাক্স হাইলাইটিং।</string>
     <string name="code_block_room_list_preview">কোড ব্লক।</string>
+    <string name="audio_player_channel">অডিও প্লেব্যাক</string>
+    <string name="audio_player_voice_message">ভয়েস বার্তা</string>
+    <string name="audio_player_previous">আগের অডিও বার্তা</string>
+    <string name="audio_player_next">পরের অডিও বার্তা</string>
+    <string name="audio_player_stop">প্লেব্যাক থামান</string>
+    <string name="audio_player_seek">প্লেব্যাকের অবস্থান</string>
+    <string name="audio_player_controls">অডিও নিয়ন্ত্রণ</string>
+    <string name="audio_player_loop">অডিও লুপ করুন</string>
+    <string name="audio_player_loop_off">পুনরাবৃত্তি বন্ধ</string>
+    <string name="audio_player_loop_all">প্লেলিস্ট পুনরাবৃত্তি</string>
+    <string name="audio_player_loop_one">একটি পুনরাবৃত্তি</string>
+    <string name="audio_player_rewind">৫ সেকেন্ড পিছনে</string>
+    <string name="audio_player_fast_forward">৫ সেকেন্ড সামনে</string>
+    <string name="audio_player_rewind_label">−৫ সে.</string>
+    <string name="audio_player_fast_forward_label">+৫ সে.</string>
+    <string name="audio_player_parameters">গতি ও পিচ</string>
+    <string name="audio_player_parameters_legacy">এই Android সংস্করণে গতি ও পিচ শুধু Opus ভয়েস বার্তা এবং PCM WAV ফাইলের জন্য পরিবর্তন করা যায়। অন্যান্য অডিও তার মূল গতি ও পিচে চলে।</string>
 </resources>

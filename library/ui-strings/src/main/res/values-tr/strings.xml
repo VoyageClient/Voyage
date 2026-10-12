@@ -2732,7 +2732,7 @@
     <string name="mass_redaction_confirmation_message">Bu işlem %1$s kullanıcısına ait her olayı silecek. Uzun sürebilir ve geri alınamaz.</string>
     <string name="mass_redaction_already_running">Zaten devam eden bir toplu silme var; bitmesini bekleyin veya önce iptal edin.</string>
     <string name="mass_redaction_redacting_from">%1$s kullanıcısının mesajları siliniyor…</string>
-    <string name="mass_redaction_pause">Duraklat</string>
+    <string name="action_pause">Duraklat</string>
     <string name="mass_redaction_resume">Devam et</string>
     <string name="mass_redaction_cancel">İptal</string>
     <string name="mass_redaction_cancel_confirmation_title">Silme durdurulsun mu?</string>
@@ -3493,4 +3493,21 @@
     <string name="settings_code_palette">Kod bloğu renk paleti</string>
     <string name="settings_code_palette_summary">Kod blokları ve satır içi kod için renkler, ayrıca dilini belirten kodun söz dizimi vurgulaması.</string>
     <string name="code_block_room_list_preview">Kod bloğu.</string>
+    <string name="audio_player_channel">Ses oynatma</string>
+    <string name="audio_player_voice_message">Sesli mesaj</string>
+    <string name="audio_player_previous">Önceki sesli mesaj</string>
+    <string name="audio_player_next">Sonraki sesli mesaj</string>
+    <string name="audio_player_stop">Oynatmayı durdur</string>
+    <string name="audio_player_seek">Oynatma konumu</string>
+    <string name="audio_player_controls">Ses kontrolleri</string>
+    <string name="audio_player_loop">Sesi döngüye al</string>
+    <string name="audio_player_loop_off">Tekrar kapalı</string>
+    <string name="audio_player_loop_all">Listeyi tekrarla</string>
+    <string name="audio_player_loop_one">Birini tekrarla</string>
+    <string name="audio_player_rewind">5 saniye geri</string>
+    <string name="audio_player_fast_forward">5 saniye ileri</string>
+    <string name="audio_player_rewind_label">−5 sn</string>
+    <string name="audio_player_fast_forward_label">+5 sn</string>
+    <string name="audio_player_parameters">Hız ve perde</string>
+    <string name="audio_player_parameters_legacy">Bu Android sürümünde hız ve perde yalnızca Opus sesli mesajları ve PCM WAV dosyaları için ayarlanabilir. Diğer sesler özgün hız ve perdesiyle çalınır.</string>
 </resources>

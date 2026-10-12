@@ -17,4 +17,5 @@
     <item name="scroll_animation_running" type="id" />
     <item name="media_pill_preview_layout" type="id" />
     <item name="media_pill_preview_backdrop" type="id" />
+    <item name="audio_gallery_artwork_binding" type="id" />
 </resources>

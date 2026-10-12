@@ -20,6 +20,7 @@ import im.vector.app.core.epoxy.LoadingItem_
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.noResultItem
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.audio.AudioGalleryData
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactory
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
@@ -93,7 +94,8 @@ class SearchResultController @Inject constructor(
                 view: View,
                 inMemory: List<AttachmentData>
         )
-        fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent)
+        fun onAudioMessageClicked(data: AudioGalleryData)
+        fun onVoiceControlButtonClicked(stableId: String, eventId: String, messageAudioContent: MessageAudioContent)
         fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float)
         fun onAvatarClicked(userId: String)
         fun onEventLongClicked(informationData: MessageInformationData): Boolean
@@ -248,8 +250,12 @@ class SearchResultController @Inject constructor(
         listener?.onVideoMessageClicked(messageVideoContent, mediaData, view, inMemory)
     }
 
-    override fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent) {
-        listener?.onVoiceControlButtonClicked(eventId, messageAudioContent)
+    override fun onAudioMessageClicked(data: AudioGalleryData) {
+        listener?.onAudioMessageClicked(data)
+    }
+
+    override fun onVoiceControlButtonClicked(stableId: String, eventId: String, messageAudioContent: MessageAudioContent) {
+        listener?.onVoiceControlButtonClicked(stableId, eventId, messageAudioContent)
     }
 
     override fun onVoiceWaveformTouchedUp(eventId: String, duration: Int, percentage: Float) {

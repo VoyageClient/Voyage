@@ -62,6 +62,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Mentions list**: a searchable, filterable list of everything that has mentioned you across your rooms, newest first.
 
+- **Audio playback**: control voice messages and music from a persistent bar and a popup with a track picker, looping, seeking, and speed and pitch controls. Playback continues outside the room and in the background, with artwork and controls in the system player. Audio gallery tiles show blurred artwork and start playback directly.
+
 - **Mass redactions**: bulk redaction via `/massredact`, with an optional delay and `after:`/`before:` time range, redacting only messages unless you ask for everything. Redacting a message also redacts its edits and reactions and applies live to open timelines, "remove" is renamed to "redact", and the confirmation dialog can be skipped.
 
 - **Redact on kick/ban**: kicking or banning someone offers to redact everything they sent in the room, from the member's profile or as `/kick @user:server redact`.

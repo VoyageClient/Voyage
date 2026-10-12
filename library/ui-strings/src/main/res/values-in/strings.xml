@@ -2718,7 +2718,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="mass_redaction_confirmation_message">Ini akan menghapus setiap peristiwa dari %1$s. Proses ini dapat memakan waktu lama dan tidak dapat dibatalkan.</string>
     <string name="mass_redaction_already_running">Penghapusan massal sedang berlangsung, tunggu hingga selesai atau batalkan terlebih dahulu.</string>
     <string name="mass_redaction_redacting_from">Menghapus pesan dari %1$s…</string>
-    <string name="mass_redaction_pause">Jeda</string>
+    <string name="action_pause">Jeda</string>
     <string name="mass_redaction_resume">Lanjutkan</string>
     <string name="mass_redaction_cancel">Batal</string>
     <string name="mass_redaction_cancel_confirmation_title">Hentikan penghapusan?</string>
@@ -3471,4 +3471,21 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_code_palette">Palet warna blok kode</string>
     <string name="settings_code_palette_summary">Warna untuk blok kode dan kode sebaris, serta untuk penyorotan sintaks pada kode yang menyebutkan bahasanya.</string>
     <string name="code_block_room_list_preview">Blok kode.</string>
+    <string name="audio_player_channel">Pemutaran audio</string>
+    <string name="audio_player_voice_message">Pesan suara</string>
+    <string name="audio_player_previous">Pesan audio sebelumnya</string>
+    <string name="audio_player_next">Pesan audio berikutnya</string>
+    <string name="audio_player_stop">Hentikan pemutaran</string>
+    <string name="audio_player_seek">Posisi pemutaran</string>
+    <string name="audio_player_controls">Kontrol audio</string>
+    <string name="audio_player_loop">Ulangi audio</string>
+    <string name="audio_player_loop_off">Pengulangan mati</string>
+    <string name="audio_player_loop_all">Ulangi daftar putar</string>
+    <string name="audio_player_loop_one">Ulangi satu</string>
+    <string name="audio_player_rewind">Mundur 5 detik</string>
+    <string name="audio_player_fast_forward">Maju 5 detik</string>
+    <string name="audio_player_rewind_label">−5 dtk</string>
+    <string name="audio_player_fast_forward_label">+5 dtk</string>
+    <string name="audio_player_parameters">Kecepatan dan nada</string>
+    <string name="audio_player_parameters_legacy">Di versi Android ini, kecepatan dan nada hanya dapat diatur untuk pesan suara Opus dan file WAV PCM. Audio lain diputar dengan kecepatan dan nada aslinya.</string>
 </resources>

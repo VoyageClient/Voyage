@@ -19,6 +19,7 @@ import im.vector.app.features.attachments.SendMediaMaterializer
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.home.room.list.BreadcrumbsRoomComparator
 import im.vector.app.features.media.MSC4193_SPOILER_KEY
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -33,6 +34,7 @@ import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.flow.flow
+import timber.log.Timber
 
 class IncomingShareViewModel @AssistedInject constructor(
         @Assisted initialState: IncomingShareViewState,
@@ -146,13 +148,20 @@ class IncomingShareViewModel @AssistedInject constructor(
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val content = session.buildForwardContent(forward.eventType, payload, silent)
-            roomIds.forEach { roomId ->
-                session.getRoom(roomId)?.sendService()?.sendEvent(forward.eventType, content)
+            try {
+                val content = session.buildForwardContent(forward.eventType, payload, silent)
+                roomIds.forEach { roomId ->
+                    requireNotNull(session.getRoom(roomId)).sendService().sendEvent(forward.eventType, content)
+                }
+                // Opening a room only makes sense when there is exactly one to open.
+                _viewEvents.post(IncomingShareViewEvents.ForwardDone(roomIds.singleOrNull()))
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                Timber.w(failure, "Cannot forward event")
+                _viewEvents.post(IncomingShareViewEvents.ForwardFailed)
             }
         }
-        // Opening a room only makes sense when there is exactly one to open.
-        _viewEvents.post(IncomingShareViewEvents.ForwardDone(roomIds.singleOrNull()))
     }
 
     private fun handleShareToRoom(action: IncomingShareAction.ShareToRoom) = withState { state ->

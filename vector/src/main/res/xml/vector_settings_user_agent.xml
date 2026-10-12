@@ -5,7 +5,7 @@
     <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
         android:key="SETTINGS_UA_CATEGORY"
         android:title="@string/settings_ua_category"
-        app:actionIcon="@drawable/ic_download"
+        app:actionIcon="@drawable/ic_material_save"
         app:actionContentDescription="@string/settings_ua_update_action">
 
         <im.vector.app.core.preference.VectorListPreference

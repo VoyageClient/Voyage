@@ -15,6 +15,7 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -90,21 +91,21 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(attributes.informationData.stableId, izLocalFile, holder.progressLayout)
         } else {
-            holder.fileImageView.setImageResource(R.drawable.ic_cross)
+            holder.fileImageView.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_cross))
             holder.progressLayout.isVisible = false
         }
 
         holder.filenameView.text = filename.prepareForDisplay()
 
         if (attributes.informationData.sendState.isSending()) {
-            holder.fileImageView.setImageResource(iconRes)
+            holder.fileImageView.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, iconRes))
         } else {
             if (izDownloaded) {
-                holder.fileImageView.setImageResource(iconRes)
+                holder.fileImageView.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, iconRes))
                 holder.fileDownloadProgress.progress = 0
             } else {
                 contentDownloadStateTrackerBinder.bind(mxcUrl, holder)
-                holder.fileImageView.setImageResource(R.drawable.ic_download)
+                holder.fileImageView.setImageDrawable(AppCompatResources.getDrawable(holder.view.context, R.drawable.ic_material_save))
             }
         }
 

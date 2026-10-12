@@ -268,7 +268,7 @@ class NotificationUtils @Inject constructor(
     fun buildDownloadFileNotification(uri: Uri, fileName: String, mimeType: String): Notification {
         return NotificationCompat.Builder(context, SILENT_NOTIFICATION_CHANNEL_ID)
                 .setGroup(buildMeta.applicationName)
-                .setSmallIcon(R.drawable.ic_download)
+                .setSmallIcon(R.drawable.ic_material_save)
                 .setContentText(stringProvider.getString(CommonStrings.downloaded_file, fileName))
                 .setAutoCancel(true)
                 .apply {

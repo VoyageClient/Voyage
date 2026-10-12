@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.content.res.ColorStateList
 import android.graphics.Outline
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
@@ -14,8 +15,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.ImageView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.ui.views.GalleryGridLayout
@@ -65,7 +68,7 @@ fun MessageGalleryContent.toGalleryTiles(
                         item.getFileName(),
                 )
             }
-            is MessageAudioContent -> MessageGalleryItem.TileData(MessageGalleryItem.TileType.AUDIO, null, 1f, item.getFileName())
+            is MessageAudioContent -> MessageGalleryItem.TileData(MessageGalleryItem.TileType.AUDIO, null, 1f, item.getFileName(), item.audioInfo?.metadata)
             else -> MessageGalleryItem.TileData(MessageGalleryItem.TileType.FILE, null, 1f, item.getFileName())
         }
     }
@@ -136,6 +139,11 @@ object GalleryGridBinder {
             grid.addView(inflater.inflate(R.layout.item_timeline_gallery_tile, grid, false))
         }
         if (grid.childCount > tiles.size) {
+            for (index in tiles.size until grid.childCount) {
+                val image = grid.getChildAt(index).findViewById<RoundedCornerImageView>(R.id.galleryTileImage)
+                AudioGalleryArtworkBinder.clear(image)
+                imageContentRenderer.clear(image)
+            }
             grid.removeViews(tiles.size, grid.childCount - tiles.size)
         }
         grid.setLayoutSpec(layout.tiles, layout.totalHeight)
@@ -146,6 +154,9 @@ object GalleryGridBinder {
             val imageView = tileView.findViewById<RoundedCornerImageView>(R.id.galleryTileImage)
             val placeholderIcon = tileView.findViewById<ImageView>(R.id.galleryTilePlaceholderIcon)
             val playIcon = tileView.findViewById<ImageView>(R.id.galleryTilePlayIcon)
+            AudioGalleryArtworkBinder.clear(imageView)
+            ImageViewCompat.setImageTintList(placeholderIcon, ColorStateList.valueOf(
+                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)))
             val spec = layout.tiles.getOrNull(index)
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
@@ -178,9 +189,11 @@ object GalleryGridBinder {
                     // tile recycled file -> image keeps this placeholder.
                     imageContentRenderer.clear(imageView)
                     imageView.setImageDrawable(ColorDrawable(placeholderColor))
-                    placeholderIcon.setImageResource(
-                            if (tile.type == MessageGalleryItem.TileType.FILE) R.drawable.ic_paperclip else R.drawable.ic_music_note
-                    )
+                    placeholderIcon.setImageDrawable(AppCompatResources.getDrawable(context,
+                            if (tile.type == MessageGalleryItem.TileType.FILE) R.drawable.ic_paperclip else R.drawable.ic_music_note))
+                    if (tile.type == MessageGalleryItem.TileType.AUDIO && !(hideMedia && hideMediaSolidColor)) {
+                        AudioGalleryArtworkBinder.bind(imageView, placeholderIcon, tile.audioMetadata, allowFetch = !hideMedia)
+                    }
                     // The note's artwork sits inside its viewport; the paperclip fills it.
                     val iconDp = if (tile.type == MessageGalleryItem.TileType.AUDIO) 48 else 40
                     val iconPx = (iconDp * context.resources.displayMetrics.density).roundToInt()
@@ -215,6 +228,7 @@ object GalleryGridBinder {
         for (i in 0 until grid.childCount) {
             val tileView = grid.getChildAt(i)
             val imageView = tileView.findViewById<RoundedCornerImageView>(R.id.galleryTileImage)
+            AudioGalleryArtworkBinder.clear(imageView)
             imageContentRenderer.clear(imageView)
             tileView.setOnClickListener(null)
             tileView.setOnLongClickListener(null)

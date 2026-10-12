@@ -31,11 +31,11 @@ import java.util.WeakHashMap
 // fallback) so the same call sites keep working on ICS. Property forms let call sites be swapped
 // mechanically (e.g. `view.background = d` -> `view.backgroundCompat = d`).
 
-// RelativeLayout.LayoutParams.removeRule is API 17+; pre-17 the same effect is addRule(verb, 0).
+// Pre-17 has no logical start/end rules; only physical rules can be cleared with addRule(verb, 0).
 fun RelativeLayout.LayoutParams.removeRuleCompat(verb: Int) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
         removeRule(verb)
-    } else {
+    } else if (verb in 0..RelativeLayout.CENTER_VERTICAL) {
         @Suppress("DEPRECATION")
         addRule(verb, 0)
     }

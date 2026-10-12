@@ -2666,7 +2666,7 @@
     <string name="mass_redaction_confirmation_message">इससे %1$s का हर इवेंट हटा दिया जाएगा। इसमें काफ़ी समय लग सकता है और इसे पूर्ववत नहीं किया जा सकता।</string>
     <string name="mass_redaction_already_running">एक साथ कई मैसेज हटाने की प्रक्रिया पहले से चल रही है, उसके पूरा होने की प्रतीक्षा करें या पहले उसे रद्द करें।</string>
     <string name="mass_redaction_redacting_from">%1$s के मैसेज हटाए जा रहे हैं…</string>
-    <string name="mass_redaction_pause">रोकें</string>
+    <string name="action_pause">रोकें</string>
     <string name="mass_redaction_resume">फिर से शुरू करें</string>
     <string name="mass_redaction_cancel">रद्द करें</string>
     <string name="mass_redaction_cancel_confirmation_title">हटाना बंद करें?</string>
@@ -3417,4 +3417,21 @@
     <string name="settings_code_palette">कोड ब्लॉक का रंग पैलेट</string>
     <string name="settings_code_palette_summary">कोड ब्लॉक और इनलाइन कोड के रंग, और जिस कोड में उसकी भाषा बताई गई हो उसकी सिंटैक्स हाइलाइटिंग के रंग।</string>
     <string name="code_block_room_list_preview">कोड ब्लॉक।</string>
+    <string name="audio_player_channel">ऑडियो प्लेबैक</string>
+    <string name="audio_player_voice_message">वॉइस मैसेज</string>
+    <string name="audio_player_previous">पिछला ऑडियो मैसेज</string>
+    <string name="audio_player_next">अगला ऑडियो मैसेज</string>
+    <string name="audio_player_stop">प्लेबैक रोकें</string>
+    <string name="audio_player_seek">प्लेबैक की स्थिति</string>
+    <string name="audio_player_controls">ऑडियो कंट्रोल</string>
+    <string name="audio_player_loop">ऑडियो लूप करें</string>
+    <string name="audio_player_loop_off">रिपीट बंद</string>
+    <string name="audio_player_loop_all">प्लेलिस्ट रिपीट करें</string>
+    <string name="audio_player_loop_one">एक रिपीट करें</string>
+    <string name="audio_player_rewind">5 सेकंड पीछे</string>
+    <string name="audio_player_fast_forward">5 सेकंड आगे</string>
+    <string name="audio_player_rewind_label">−5 से.</string>
+    <string name="audio_player_fast_forward_label">+5 से.</string>
+    <string name="audio_player_parameters">स्पीड और पिच</string>
+    <string name="audio_player_parameters_legacy">इस Android वर्शन पर स्पीड और पिच सिर्फ़ Opus वॉइस मैसेज और PCM WAV फ़ाइलों के लिए बदली जा सकती है। बाकी ऑडियो अपनी मूल स्पीड और पिच पर चलता है।</string>
 </resources>

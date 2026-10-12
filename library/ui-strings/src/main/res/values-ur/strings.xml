@@ -2678,7 +2678,7 @@
     <string name="mass_redaction_confirmation_message">اس سے %1$s کا ہر واقعہ مٹا دیا جائے گا۔ اس میں کافی وقت لگ سکتا ہے اور اسے واپس نہیں کیا جا سکتا۔</string>
     <string name="mass_redaction_already_running">اجتماعی مٹانے کا عمل پہلے سے جاری ہے، اس کے مکمل ہونے کا انتظار کریں یا پہلے اسے منسوخ کریں۔</string>
     <string name="mass_redaction_redacting_from">%1$s کے پیغامات مٹائے جا رہے ہیں…</string>
-    <string name="mass_redaction_pause">توقف</string>
+    <string name="action_pause">توقف</string>
     <string name="mass_redaction_resume">دوبارہ شروع کریں</string>
     <string name="mass_redaction_cancel">منسوخ کریں</string>
     <string name="mass_redaction_cancel_confirmation_title">مٹانا بند کریں؟</string>
@@ -3429,4 +3429,21 @@
     <string name="settings_code_palette">کوڈ بلاک کی رنگ پٹی</string>
     <string name="settings_code_palette_summary">کوڈ بلاکس اور ان لائن کوڈ کے رنگ، اور اس کوڈ کی سنٹیکس ہائی لائٹنگ جو اپنی زبان بتاتا ہے۔</string>
     <string name="code_block_room_list_preview">کوڈ بلاک۔</string>
+    <string name="audio_player_channel">آڈیو پلے بیک</string>
+    <string name="audio_player_voice_message">صوتی پیغام</string>
+    <string name="audio_player_previous">پچھلا آڈیو پیغام</string>
+    <string name="audio_player_next">اگلا آڈیو پیغام</string>
+    <string name="audio_player_stop">پلے بیک روکیں</string>
+    <string name="audio_player_seek">پلے بیک کی جگہ</string>
+    <string name="audio_player_controls">آڈیو کنٹرولز</string>
+    <string name="audio_player_loop">آڈیو لوپ کریں</string>
+    <string name="audio_player_loop_off">دہرانا بند</string>
+    <string name="audio_player_loop_all">پلے لسٹ دہرائیں</string>
+    <string name="audio_player_loop_one">ایک دہرائیں</string>
+    <string name="audio_player_rewind">5 سیکنڈ پیچھے</string>
+    <string name="audio_player_fast_forward">5 سیکنڈ آگے</string>
+    <string name="audio_player_rewind_label">−5 سیکنڈ</string>
+    <string name="audio_player_fast_forward_label">+5 سیکنڈ</string>
+    <string name="audio_player_parameters">رفتار اور سُر</string>
+    <string name="audio_player_parameters_legacy">اس Android ورژن پر رفتار اور سُر صرف Opus صوتی پیغامات اور PCM WAV فائلوں کے لیے بدلے جا سکتے ہیں۔ باقی آڈیو اپنی اصل رفتار اور سُر پر چلتا ہے۔</string>
 </resources>

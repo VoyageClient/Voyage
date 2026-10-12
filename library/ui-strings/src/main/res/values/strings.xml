@@ -373,6 +373,7 @@
     <string name="action_revoke">Revoke</string>
     <string name="action_disconnect">Disconnect</string>
     <string name="action_play">Play</string>
+    <string name="action_pause">Pause</string>
     <string name="action_dismiss">Dismiss</string>
     <!-- TODO TO BE REMOVED -->
     <string tools:ignore="UnusedResources" name="action_reset">Reset</string>
@@ -3475,7 +3476,6 @@
     <string name="mass_redaction_confirmation_message">This will redact every event from %1$s. It can take a long time and cannot be reversed.</string>
     <string name="mass_redaction_already_running">A mass redaction is already in progress, wait for it to finish or cancel it first.</string>
     <string name="mass_redaction_redacting_from">Redacting messages from %1$s…</string>
-    <string name="mass_redaction_pause">Pause</string>
     <string name="mass_redaction_resume">Resume</string>
     <string name="mass_redaction_cancel">Cancel</string>
     <string name="mass_redaction_cancel_confirmation_title">Stop redacting?</string>
@@ -4216,4 +4216,21 @@
     <string name="notice_image_pack_changed">%1$s changed an image pack</string>
     <string name="notice_image_pack_changed_by_you">You changed an image pack</string>
 
+    <string name="audio_player_channel">Audio playback</string>
+    <string name="audio_player_voice_message">Voice message</string>
+    <string name="audio_player_previous">Previous audio message</string>
+    <string name="audio_player_next">Next audio message</string>
+    <string name="audio_player_stop">Stop playback</string>
+    <string name="audio_player_seek">Playback position</string>
+    <string name="audio_player_controls">Audio controls</string>
+    <string name="audio_player_loop">Loop audio</string>
+    <string name="audio_player_loop_off">Repeat off</string>
+    <string name="audio_player_loop_all">Repeat playlist</string>
+    <string name="audio_player_loop_one">Repeat one</string>
+    <string name="audio_player_rewind">Back 5 seconds</string>
+    <string name="audio_player_fast_forward">Forward 5 seconds</string>
+    <string name="audio_player_rewind_label">−5s</string>
+    <string name="audio_player_fast_forward_label">+5s</string>
+    <string name="audio_player_parameters">Speed and pitch</string>
+    <string name="audio_player_parameters_legacy">On this Android version, speed and pitch controls are available for Opus voice messages and PCM WAV files. Other audio plays at its original speed and pitch.</string>
 </resources>

@@ -32,6 +32,8 @@ import im.vector.app.core.ui.views.KeysBackupBanner
 import im.vector.app.core.ui.views.VerifyDeviceBanner
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.FragmentNewHomeDetailBinding
+import im.vector.app.features.audio.AudioPlaybackBannerBinder
+import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.list.home.HomeRoomListFragment
@@ -61,6 +63,7 @@ class NewHomeDetailFragment :
         VectorMenuProvider,
         VerifyDeviceBanner.Delegate {
 
+    @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var alertManager: PopupAlertManager
@@ -118,6 +121,7 @@ class NewHomeDetailFragment :
         setupDebugButton()
         setupFabs()
         MassRedactionBannerBinder.bind(views.massRedactionBanner, this, massRedactionManager)
+        AudioPlaybackBannerBinder.bind(views.audioPlaybackBanner, this, audioPlaybackController)
 
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)

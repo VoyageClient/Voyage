@@ -2775,7 +2775,7 @@
     <string name="mass_redaction_confirmation_message">Tous les événements de %1$s seront supprimés. Cela peut prendre longtemps et est irréversible.</string>
     <string name="mass_redaction_already_running">Une suppression en masse est déjà en cours, attendez qu’elle se termine ou annulez-la d’abord.</string>
     <string name="mass_redaction_redacting_from">Suppression des messages de %1$s…</string>
-    <string name="mass_redaction_pause">Pause</string>
+    <string name="action_pause">Pause</string>
     <string name="mass_redaction_resume">Reprendre</string>
     <string name="mass_redaction_cancel">Annuler</string>
     <string name="mass_redaction_cancel_confirmation_title">Arrêter la suppression ?</string>
@@ -3535,4 +3535,21 @@
     <string name="settings_code_palette">Palette de couleurs des blocs de code</string>
     <string name="settings_code_palette_summary">Couleurs des blocs de code et du code en ligne, et de la coloration syntaxique du code qui indique son langage.</string>
     <string name="code_block_room_list_preview">Bloc de code.</string>
+    <string name="audio_player_channel">Lecture audio</string>
+    <string name="audio_player_voice_message">Message vocal</string>
+    <string name="audio_player_previous">Message audio précédent</string>
+    <string name="audio_player_next">Message audio suivant</string>
+    <string name="audio_player_stop">Arrêter la lecture</string>
+    <string name="audio_player_seek">Position de lecture</string>
+    <string name="audio_player_controls">Commandes audio</string>
+    <string name="audio_player_loop">Lire en boucle</string>
+    <string name="audio_player_loop_off">Répétition désactivée</string>
+    <string name="audio_player_loop_all">Répéter la liste</string>
+    <string name="audio_player_loop_one">Répéter le titre</string>
+    <string name="audio_player_rewind">Reculer de 5 secondes</string>
+    <string name="audio_player_fast_forward">Avancer de 5 secondes</string>
+    <string name="audio_player_rewind_label">−5 s</string>
+    <string name="audio_player_fast_forward_label">+5 s</string>
+    <string name="audio_player_parameters">Vitesse et hauteur</string>
+    <string name="audio_player_parameters_legacy">Sur cette version d\'Android, la vitesse et la hauteur ne sont réglables que pour les messages vocaux Opus et les fichiers WAV PCM. Les autres fichiers audio sont lus à leur vitesse et hauteur d\'origine.</string>
 </resources>

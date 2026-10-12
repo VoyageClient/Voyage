@@ -27,6 +27,7 @@ import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrap
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.noties.markwon.MarkwonPlugin
+import org.matrix.android.sdk.api.session.room.model.message.AudioMetadata
 
 @EpoxyModelClass
 abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() {
@@ -39,6 +40,7 @@ abstract class MessageGalleryItem : AbsMessageItem<MessageGalleryItem.Holder>() 
             val mediaData: ImageContentRenderer.Data?,
             val aspect: Float,
             val filename: String?,
+            val audioMetadata: AudioMetadata? = null,
     )
 
     @EpoxyAttribute
