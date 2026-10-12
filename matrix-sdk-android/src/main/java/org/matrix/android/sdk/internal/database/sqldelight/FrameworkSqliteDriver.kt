@@ -70,6 +70,12 @@ internal class FrameworkSqliteDriver private constructor(
         if (closed) throw SessionDatabaseClosedException()
     }
 
+    private fun rethrowDatabaseFailure(failure: IllegalStateException): Nothing {
+        // close() can race a cursor fill or statement execution after checkOpen() succeeds.
+        if (closed) throw SessionDatabaseClosedException().apply { initCause(failure) }
+        throw failure
+    }
+
     private val transactions = ThreadLocal<Transaction?>()
 
     // Shared per database file so outgoing and incoming session drivers cannot race beginTransaction.
@@ -109,6 +115,8 @@ internal class FrameworkSqliteDriver private constructor(
             statement.clearBindings()
             if (binders != null) FrameworkProgramBinder(statement).binders()
             return QueryResult.Value(statement.executeUpdateDelete().toLong())
+        } catch (failure: IllegalStateException) {
+            rethrowDatabaseFailure(failure)
         } finally {
             MatrixPerf.end(perfStart) { "db.write${mainThreadFlag()} [${sql.perfSnippet()}]" }
         }
@@ -132,6 +140,8 @@ internal class FrameworkSqliteDriver private constructor(
                 database.rawQueryWithFactory(BindingCursorFactory(binders), sql, null, "")
             }
             return cursor.use { mapper(FrameworkCursor(it)) }
+        } catch (failure: IllegalStateException) {
+            rethrowDatabaseFailure(failure)
         } finally {
             MatrixPerf.end(perfStart) { "db.query${mainThreadFlag()} [${sql.perfSnippet()}]" }
         }
@@ -171,6 +181,7 @@ internal class FrameworkSqliteDriver private constructor(
         val deadline = System.currentTimeMillis() + BEGIN_BUSY_TIMEOUT_MS
         var backoff = 2L
         while (true) {
+            checkOpen()
             try {
                 database.beginTransaction()
                 return
@@ -178,6 +189,8 @@ internal class FrameworkSqliteDriver private constructor(
                 if (System.currentTimeMillis() >= deadline) throw locked
                 Thread.sleep(backoff)
                 backoff = (backoff * 2).coerceAtMost(BEGIN_BUSY_MAX_BACKOFF_MS)
+            } catch (failure: IllegalStateException) {
+                rethrowDatabaseFailure(failure)
             }
         }
     }
@@ -202,6 +215,8 @@ internal class FrameworkSqliteDriver private constructor(
                     }
                     database.endTransaction()
                     if (perfHoldStart != 0L) MatrixPerf.end(perfHoldStart) { "db.txn.hold${mainThreadFlag()}" }
+                } catch (failure: IllegalStateException) {
+                    rethrowDatabaseFailure(failure)
                 } finally {
                     transactions.set(enclosingTransaction as Transaction?)
                     transactionLock.unlock()

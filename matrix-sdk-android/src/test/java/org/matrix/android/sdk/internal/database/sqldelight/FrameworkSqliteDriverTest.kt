@@ -16,6 +16,7 @@ import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBe
 import org.junit.After
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -102,5 +103,54 @@ class FrameworkSqliteDriverTest {
 
             rows.size shouldBeEqualTo 1
         }
+    }
+
+    @Test
+    fun `closing during cursor mapping cancels the query`() {
+        database.rawCacheQueries.upsert("https://a", "first", 1L)
+
+        val failure = assertThrows(SessionDatabaseClosedException::class.java) {
+            driver.executeQuery(
+                    identifier = null,
+                    sql = "SELECT url FROM raw_cache_entity",
+                    mapper = { cursor ->
+                        driver.close()
+                        cursor.next()
+                    },
+                    parameters = 0,
+                    binders = null,
+            )
+        }
+
+        (failure.cause is IllegalStateException) shouldBe true
+    }
+
+    @Test
+    fun `closing during statement binding cancels the write`() {
+        val failure = assertThrows(SessionDatabaseClosedException::class.java) {
+            driver.execute(null, "DELETE FROM raw_cache_entity WHERE url = ?", 1) {
+                bindString(0, "https://a")
+                driver.close()
+            }
+        }
+
+        (failure.cause is IllegalStateException) shouldBe true
+    }
+
+    @Test
+    fun `query failures on an open database are preserved`() {
+        val original = IllegalStateException("mapping failed")
+
+        val failure = assertThrows(IllegalStateException::class.java) {
+            driver.executeQuery<Boolean>(
+                    identifier = null,
+                    sql = "SELECT url FROM raw_cache_entity",
+                    mapper = { throw original },
+                    parameters = 0,
+                    binders = null,
+            )
+        }
+
+        failure shouldBe original
     }
 }
