@@ -276,6 +276,12 @@ fun createLinkMovementMethod(urlClickCallback: TimelineEventController.UrlClickC
             // permalink still belongs in the app rather than in the system's URI handler.
             return openPermalinkInApp(textView.context, url)
         }
+
+        override fun onLinkLongClicked(textView: TextView, url: String, actualText: String): Boolean {
+            if (url != "http://$actualText" && url != "https://$actualText") return false
+            copyToClipboard(textView.context, actualText, true, CommonStrings.link_copied_to_clipboard)
+            return true
+        }
     })
             .apply {
                 // We need also to fix the case when long click on link will trigger long click on cell

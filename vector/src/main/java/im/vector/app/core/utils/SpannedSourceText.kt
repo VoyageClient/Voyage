@@ -93,7 +93,8 @@ fun Spanned.toMarkdownSource(selStart: Int, selEnd: Int): String {
                 // A pill already replaces its matrix.to link; bare autolinked URLs are their own source
                 if (replacements.none { it.start <= s && e <= it.end }) {
                     val url = span.url.orEmpty()
-                    if (url.isNotEmpty() && subSequence(s, e).toString() != url) {
+                    val label = subSequence(s, e).toString()
+                    if (url.isNotEmpty() && label != url && url != "http://$label" && url != "https://$label") {
                         addInline(s, e, "[", "]($url)")
                     }
                 }

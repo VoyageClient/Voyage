@@ -31,6 +31,8 @@ class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickL
          * @return true if this click was handled, false to let Android handle the URL.
          */
         fun onLinkClicked(textView: TextView, span: ClickableSpan, url: String, actualText: String): Boolean
+
+        fun onLinkLongClicked(textView: TextView, url: String, actualText: String): Boolean = false
     }
 
     // Set once a long press has been handled by the app. The library keeps re-highlighting the url on
@@ -106,8 +108,22 @@ class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickL
 
     // Same rebind race on the long-press timer: the library would crash on subSequence(-1, -1).
     override fun dispatchUrlLongClick(textView: TextView, clickableSpan: ClickableSpan) {
-        val spanned = textView.text as? Spanned
-        if (spanned == null || spanned.getSpanStart(clickableSpan) < 0) return
+        val spanned = textView.text as? Spanned ?: return
+        val start = spanned.getSpanStart(clickableSpan)
+        val end = spanned.getSpanEnd(clickableSpan)
+        if (start < 0 || end < 0) return
+        val actualText = spanned.subSequence(start, end).toString()
+        val url = (clickableSpan as? URLSpan)?.url ?: actualText
+        if (onLinkClickListener?.onLinkLongClicked(textView, url, actualText) == true) {
+            val cancelEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_CANCEL, 0f, 0f, 0)
+            try {
+                textView.dispatchTouchEvent(cancelEvent)
+            } finally {
+                cancelEvent.recycle()
+            }
+            clearUrlHighlight(textView)
+            return
+        }
         super.dispatchUrlLongClick(textView, clickableSpan)
     }
 }
