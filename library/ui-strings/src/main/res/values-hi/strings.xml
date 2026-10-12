@@ -3180,8 +3180,6 @@
     <string name="labs_enable_sliding_sync_summary">होमसर्वर समर्थन करे तो पेजिनेटेड सिंक या सरलीकृत स्लाइडिंग सिंक से सिंक करें, वरना सामान्य सिंक इस्तेमाल करें</string>
     <string name="settings_messages_mentioning_me">मैसेज जिनमें मेरा उल्लेख हो</string>
     <string name="settings_mentions_at_room_advanced">मैसेज जिनमें @room का उल्लेख हो</string>
-    <string name="labs_enable_media_galleries_title">मीडिया गैलरी भेजें</string>
-    <string name="labs_enable_media_galleries_summary">कई अटैचमेंट को एक ही गैलरी मैसेज के रूप में भेजें (MSC4274)। गैलरी का समर्थन न करने वाले क्लाइंट इन्हें ठीक से नहीं दिखाएंगे।</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: हर मैसेज की प्रोफ़ाइल दिखाएं</string>
     <string name="labs_enable_per_message_profiles_summary">अलग-अलग मैसेज से जुड़े नाम और अवतार दिखाएं।</string>
     <string name="sent_a_gallery">मीडिया गैलरी।</string>
@@ -3434,4 +3432,6 @@
     <string name="audio_player_fast_forward_label">+5 से.</string>
     <string name="audio_player_parameters">स्पीड और पिच</string>
     <string name="audio_player_parameters_legacy">इस Android वर्शन पर स्पीड और पिच सिर्फ़ Opus वॉइस मैसेज और PCM WAV फ़ाइलों के लिए बदली जा सकती है। बाकी ऑडियो अपनी मूल स्पीड और पिच पर चलता है।</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: मीडिया गैलरी भेजें</string>
+    <string name="labs_enable_media_galleries_summary">कई अटैचमेंट को एक ही गैलरी मैसेज के रूप में भेजें। गैलरी का समर्थन न करने वाले क्लाइंट इन्हें ठीक से नहीं दिखाएंगे।</string>
 </resources>

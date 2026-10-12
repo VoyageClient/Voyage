@@ -3261,8 +3261,6 @@
     <string name="labs_enable_sliding_sync_summary">Использовать постраничную или упрощённую скользящую синхронизацию, если их поддерживает домашний сервер, а иначе — обычную синхронизацию</string>
     <string name="settings_messages_mentioning_me">Сообщения с упоминанием меня</string>
     <string name="settings_mentions_at_room_advanced">Сообщения с упоминанием @room</string>
-    <string name="labs_enable_media_galleries_title">Отправка медиагалерей</string>
-    <string name="labs_enable_media_galleries_summary">Отправлять несколько вложений одним сообщением-галереей (MSC4274). Клиенты без поддержки галерей будут отображать их неправильно.</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: профили в отдельных сообщениях</string>
     <string name="labs_enable_per_message_profiles_summary">Показывать имена и аватары, прикреплённые к отдельным сообщениям.</string>
     <string name="sent_a_gallery">Медиагалерея.</string>
@@ -3676,4 +3674,6 @@
     <string name="audio_player_fast_forward_label">+5 с</string>
     <string name="audio_player_parameters">Скорость и высота тона</string>
     <string name="audio_player_parameters_legacy">В этой версии Android скорость и высоту тона можно менять только для голосовых сообщений Opus и файлов PCM WAV. Остальное аудио воспроизводится с исходной скоростью и высотой тона.</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: Отправка медиагалерей</string>
+    <string name="labs_enable_media_galleries_summary">Отправлять несколько вложений одним сообщением-галереей. Клиенты без поддержки галерей будут отображать их неправильно.</string>
 </resources>

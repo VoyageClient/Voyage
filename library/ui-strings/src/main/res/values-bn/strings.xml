@@ -3239,8 +3239,6 @@
     <string name="labs_enable_sliding_sync_summary">আপনার হোমসার্ভার সমর্থন করলে পেজিনেটেড সিঙ্ক বা সরলীকৃত স্লাইডিং সিঙ্কের মাধ্যমে সিঙ্ক করুন, অন্যথায় সাধারণ সিঙ্ক ব্যবহার করুন</string>
     <string name="settings_messages_mentioning_me">যেসব বার্তায় আমাকে উল্লেখ করা হয়</string>
     <string name="settings_mentions_at_room_advanced">যেসব বার্তায় @room উল্লেখ করা হয়</string>
-    <string name="labs_enable_media_galleries_title">মিডিয়া গ্যালারি পাঠান</string>
-    <string name="labs_enable_media_galleries_summary">একাধিক সংযুক্তি একটি একক গ্যালারি বার্তা হিসেবে পাঠান (MSC4274)। গ্যালারি সমর্থন নেই এমন ক্লায়েন্ট এগুলি ঠিকমতো দেখাবে না।</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: বার্তা-ভিত্তিক প্রোফাইল দেখান</string>
     <string name="labs_enable_per_message_profiles_summary">আলাদা আলাদা বার্তার সাথে যুক্ত নাম ও অবতার দেখান।</string>
     <string name="sent_a_gallery">মিডিয়া গ্যালারি।</string>
@@ -3506,4 +3504,6 @@
     <string name="audio_player_fast_forward_label">+৫ সে.</string>
     <string name="audio_player_parameters">গতি ও পিচ</string>
     <string name="audio_player_parameters_legacy">এই Android সংস্করণে গতি ও পিচ শুধু Opus ভয়েস বার্তা এবং PCM WAV ফাইলের জন্য পরিবর্তন করা যায়। অন্যান্য অডিও তার মূল গতি ও পিচে চলে।</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: মিডিয়া গ্যালারি পাঠান</string>
+    <string name="labs_enable_media_galleries_summary">একাধিক সংযুক্তি একটি একক গ্যালারি বার্তা হিসেবে পাঠান। গ্যালারি সমর্থন নেই এমন ক্লায়েন্ট এগুলি ঠিকমতো দেখাবে না।</string>
 </resources>

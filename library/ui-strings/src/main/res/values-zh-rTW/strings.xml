@@ -3233,8 +3233,6 @@
     <string name="labs_enable_sliding_sync_summary">當您的家伺服器支援時，透過分頁同步或簡化滑動同步進行同步，否則改用標準同步</string>
     <string name="settings_messages_mentioning_me">提及我的訊息</string>
     <string name="settings_mentions_at_room_advanced">提及 @room 的訊息</string>
-    <string name="labs_enable_media_galleries_title">傳送媒體相簿</string>
-    <string name="labs_enable_media_galleries_summary">將多個附件以單一相簿訊息傳送（MSC4274）。不支援相簿的客戶端將無法正確顯示這些訊息。</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144：呈現個別訊息的個人資料</string>
     <string name="labs_enable_per_message_profiles_summary">顯示附加在個別訊息上的名稱與大頭貼。</string>
     <string name="sent_a_gallery">媒體相簿。</string>
@@ -3490,4 +3488,6 @@
     <string name="audio_player_fast_forward_label">+5秒</string>
     <string name="audio_player_parameters">速度和音調</string>
     <string name="audio_player_parameters_legacy">在此 Android 版本上，只有 Opus 語音訊息和 PCM WAV 檔案可以調整速度和音調。其他音訊會以原始速度和音調播放。</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: 傳送媒體相簿</string>
+    <string name="labs_enable_media_galleries_summary">將多個附件以單一相簿訊息傳送。不支援相簿的客戶端將無法正確顯示這些訊息。</string>
 </resources>

@@ -3363,8 +3363,6 @@
     <string name="labs_enable_sliding_sync_summary">סנכרן באמצעות סנכרון מדופדף או סנכרון מחליק מפושט כאשר שרת הבית שלך תומך בהם, ובחזרה לסנכרון הרגיל אחרת</string>
     <string name="settings_messages_mentioning_me">הודעות שמזכירות אותי</string>
     <string name="settings_mentions_at_room_advanced">הודעות שמזכירות את @room</string>
-    <string name="labs_enable_media_galleries_title">שלח גלריות מדיה</string>
-    <string name="labs_enable_media_galleries_summary">שלח כמה קבצים מצורפים כהודעת גלריה אחת (MSC4274). לקוחות ללא תמיכה בגלריות לא יציגו אותן כראוי.</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: הצג פרופילים לכל הודעה</string>
     <string name="labs_enable_per_message_profiles_summary">הצג שמות ואווטארים המצורפים להודעות בודדות.</string>
     <string name="sent_a_gallery">גלריית מדיה.</string>
@@ -3645,4 +3643,6 @@
     <string name="audio_player_fast_forward_label">+5 ש׳</string>
     <string name="audio_player_parameters">מהירות וגובה צליל</string>
     <string name="audio_player_parameters_legacy">בגרסת Android זו ניתן לכוון מהירות וגובה צליל רק בהודעות קוליות בפורמט Opus ובקובצי PCM WAV. שמע אחר מושמע במהירות ובגובה הצליל המקוריים שלו.</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: שלח גלריות מדיה</string>
+    <string name="labs_enable_media_galleries_summary">שלח כמה קבצים מצורפים כהודעת גלריה אחת. לקוחות ללא תמיכה בגלריות לא יציגו אותן כראוי.</string>
 </resources>

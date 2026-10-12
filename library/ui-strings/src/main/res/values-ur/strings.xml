@@ -3192,8 +3192,6 @@
     <string name="labs_enable_sliding_sync_summary">جب آپ کا منزلی خادم معاونت کرے تو صفحہ بند ہم وقت سازی یا سادہ sliding sync کے ذریعے ہم وقت سازی کریں، ورنہ معیاری ہم وقت سازی پر واپس جائیں</string>
     <string name="settings_messages_mentioning_me">وہ پیغامات جن میں میرا ذکر ہو</string>
     <string name="settings_mentions_at_room_advanced">وہ پیغامات جن میں @room کا ذکر ہو</string>
-    <string name="labs_enable_media_galleries_title">میڈیا گیلریاں بھیجیں</string>
-    <string name="labs_enable_media_galleries_summary">متعدد منسلکات کو ایک ہی گیلری پیغام کے طور پر بھیجیں (MSC4274)۔ گیلری کی معاونت کے بغیر کلائنٹ انہیں درست طریقے سے نہیں دکھائیں گے۔</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: فی پیغام پروفائلز دکھائیں</string>
     <string name="labs_enable_per_message_profiles_summary">انفرادی پیغامات کے ساتھ منسلک نام اور اوتار دکھائیں۔</string>
     <string name="sent_a_gallery">میڈیا گیلری۔</string>
@@ -3446,4 +3444,6 @@
     <string name="audio_player_fast_forward_label">+5 سیکنڈ</string>
     <string name="audio_player_parameters">رفتار اور سُر</string>
     <string name="audio_player_parameters_legacy">اس Android ورژن پر رفتار اور سُر صرف Opus صوتی پیغامات اور PCM WAV فائلوں کے لیے بدلے جا سکتے ہیں۔ باقی آڈیو اپنی اصل رفتار اور سُر پر چلتا ہے۔</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: میڈیا گیلریاں بھیجیں</string>
+    <string name="labs_enable_media_galleries_summary">متعدد منسلکات کو ایک ہی گیلری پیغام کے طور پر بھیجیں۔ گیلری کی معاونت کے بغیر کلائنٹ انہیں درست طریقے سے نہیں دکھائیں گے۔</string>
 </resources>

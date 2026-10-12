@@ -3254,8 +3254,6 @@
     <string name="labs_enable_sliding_sync_title">Yeni nesil eşitlemeyi kullan</string>
     <string name="labs_enable_sliding_sync_summary">Ana sunucunuz destekliyorsa sayfalanmış eşitleme veya basitleştirilmiş kayan eşitleme ile eşitle, aksi halde standart eşitlemeye geri dön</string>
     <string name="settings_messages_mentioning_me">Benden bahseden mesajlar</string>
-    <string name="labs_enable_media_galleries_title">Medya galerileri gönder</string>
-    <string name="labs_enable_media_galleries_summary">Birden fazla eki tek bir galeri mesajı olarak gönder (MSC4274). Galeri desteği olmayan istemciler bunları düzgün görüntülemez.</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: Mesaja özel profilleri göster</string>
     <string name="labs_enable_per_message_profiles_summary">Tek tek mesajlara eklenmiş adları ve avatarları göster.</string>
     <string name="sent_a_gallery">Medya Galerisi.</string>
@@ -3510,4 +3508,6 @@
     <string name="audio_player_fast_forward_label">+5 sn</string>
     <string name="audio_player_parameters">Hız ve perde</string>
     <string name="audio_player_parameters_legacy">Bu Android sürümünde hız ve perde yalnızca Opus sesli mesajları ve PCM WAV dosyaları için ayarlanabilir. Diğer sesler özgün hız ve perdesiyle çalınır.</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: Medya galerileri gönder</string>
+    <string name="labs_enable_media_galleries_summary">Birden fazla eki tek bir galeri mesajı olarak gönder. Galeri desteği olmayan istemciler bunları düzgün görüntülemez.</string>
 </resources>

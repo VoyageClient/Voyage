@@ -3398,8 +3398,6 @@
     <string name="labs_enable_sliding_sync_summary">زامن عبر المزامنة المقسّمة إلى صفحات أو المزامنة المنزلقة المبسّطة حين يدعمها خادوم المنزل، مع الرجوع إلى المزامنة القياسية خلاف ذلك</string>
     <string name="settings_messages_mentioning_me">الرسائل التي تشير إليّ</string>
     <string name="settings_mentions_at_room_advanced">الرسائل التي تشير إلى ‎@room</string>
-    <string name="labs_enable_media_galleries_title">أرسل معارض الوسائط</string>
-    <string name="labs_enable_media_galleries_summary">أرسل عدة مرفقات كرسالة معرض واحدة (MSC4274). لن تعرضها العملاء التي لا تدعم المعارض بشكل صحيح.</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: اعرض الملفات الشخصية لكل رسالة</string>
     <string name="labs_enable_per_message_profiles_summary">اعرض الأسماء والصور الرمزية المرفقة برسائل منفردة.</string>
     <string name="sent_a_gallery">معرض وسائط.</string>
@@ -3701,4 +3699,6 @@
     <string name="audio_player_fast_forward_label">+5 ث</string>
     <string name="audio_player_parameters">السرعة وطبقة الصوت</string>
     <string name="audio_player_parameters_legacy">في إصدار Android هذا، لا يمكن ضبط السرعة وطبقة الصوت إلا للرسائل الصوتية بصيغة Opus وملفات PCM WAV. يُشغَّل الصوت الآخر بسرعته وطبقته الأصليتين.</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: أرسل معارض الوسائط</string>
+    <string name="labs_enable_media_galleries_summary">أرسل عدة مرفقات كرسالة معرض واحدة. لن تعرضها العملاء التي لا تدعم المعارض بشكل صحيح.</string>
 </resources>

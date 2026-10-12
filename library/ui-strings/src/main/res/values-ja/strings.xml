@@ -3229,8 +3229,6 @@
     <string name="labs_enable_sliding_sync_title">次世代の同期を使用</string>
     <string name="labs_enable_sliding_sync_summary">ホームサーバーが対応している場合はページ分割同期または簡易スライディング同期で同期し、対応していない場合は標準の同期を使用します</string>
     <string name="settings_messages_mentioning_me">自分へのメンションを含むメッセージ</string>
-    <string name="labs_enable_media_galleries_title">メディアギャラリーを送信</string>
-    <string name="labs_enable_media_galleries_summary">複数の添付ファイルを1つのギャラリーメッセージとして送信します（MSC4274）。ギャラリーに対応していないクライアントでは正しく表示されません。</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144：メッセージごとのプロフィールを表示</string>
     <string name="labs_enable_per_message_profiles_summary">個々のメッセージに付けられた名前とアバターを表示します。</string>
     <string name="sent_a_gallery">メディアギャラリー。</string>
@@ -3486,4 +3484,6 @@
     <string name="audio_player_fast_forward_label">+5秒</string>
     <string name="audio_player_parameters">速度とピッチ</string>
     <string name="audio_player_parameters_legacy">このバージョンのAndroidでは、速度とピッチはOpus音声メッセージとPCM WAVファイルでのみ調整できます。その他のオーディオは元の速度とピッチで再生されます。</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: メディアギャラリーを送信</string>
+    <string name="labs_enable_media_galleries_summary">複数の添付ファイルを1つのギャラリーメッセージとして送信します。ギャラリーに対応していないクライアントでは正しく表示されません。</string>
 </resources>

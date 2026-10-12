@@ -3289,8 +3289,6 @@
     <string name="labs_enable_sliding_sync_summary">Sincronizar via sincronização paginada ou sliding sync simplificada quando o seu servidorcasa oferecer suporte, voltando à sincronização padrão caso contrário</string>
     <string name="settings_messages_mentioning_me">Mensagens que me mencionam</string>
     <string name="settings_mentions_at_room_advanced">Mensagens que mencionam @room</string>
-    <string name="labs_enable_media_galleries_title">Enviar galerias de mídia</string>
-    <string name="labs_enable_media_galleries_summary">Enviar vários anexos como uma única mensagem de galeria (MSC4274). Clientes sem suporte a galerias não vão exibi-las corretamente.</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: Exibir perfis por mensagem</string>
     <string name="labs_enable_per_message_profiles_summary">Mostrar nomes e avatares anexados a mensagens individuais.</string>
     <string name="sent_a_gallery">Galeria de mídia.</string>
@@ -3552,4 +3550,6 @@
     <string name="audio_player_fast_forward_label">+5 s</string>
     <string name="audio_player_parameters">Velocidade e tom</string>
     <string name="audio_player_parameters_legacy">Nesta versão do Android, a velocidade e o tom só podem ser ajustados em mensagens de voz Opus e arquivos WAV PCM. Os demais áudios tocam com a velocidade e o tom originais.</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: Enviar galerias de mídia</string>
+    <string name="labs_enable_media_galleries_summary">Enviar vários anexos como uma única mensagem de galeria. Clientes sem suporte a galerias não vão exibi-las corretamente.</string>
 </resources>

@@ -3289,8 +3289,6 @@
     <string name="labs_enable_sliding_sync_summary">Synchroniser via la synchronisation paginée ou la synchronisation glissante simplifiée lorsque votre serveur d’accueil les prend en charge, sinon revenir à la synchronisation standard</string>
     <string name="settings_messages_mentioning_me">Messages qui me mentionnent</string>
     <string name="settings_mentions_at_room_advanced">Messages qui mentionnent @room</string>
-    <string name="labs_enable_media_galleries_title">Envoyer des galeries de médias</string>
-    <string name="labs_enable_media_galleries_summary">Envoyer plusieurs pièces jointes sous forme d’un seul message galerie (MSC4274). Les clients qui ne prennent pas en charge les galeries ne les afficheront pas correctement.</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144 : afficher les profils par message</string>
     <string name="labs_enable_per_message_profiles_summary">Afficher les noms et avatars associés à des messages individuels.</string>
     <string name="sent_a_gallery">Galerie de médias.</string>
@@ -3552,4 +3550,6 @@
     <string name="audio_player_fast_forward_label">+5 s</string>
     <string name="audio_player_parameters">Vitesse et hauteur</string>
     <string name="audio_player_parameters_legacy">Sur cette version d\'Android, la vitesse et la hauteur ne sont réglables que pour les messages vocaux Opus et les fichiers WAV PCM. Les autres fichiers audio sont lus à leur vitesse et hauteur d\'origine.</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: Envoyer des galeries de médias</string>
+    <string name="labs_enable_media_galleries_summary">Envoyer plusieurs pièces jointes sous forme d’un seul message galerie. Les clients qui ne prennent pas en charge les galeries ne les afficheront pas correctement.</string>
 </resources>

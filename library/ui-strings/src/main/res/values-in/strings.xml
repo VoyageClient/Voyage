@@ -3230,8 +3230,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="labs_enable_sliding_sync_summary">Sinkronkan melalui paginated sync atau simplified sliding sync jika homeserver Anda mendukungnya, dan kembali ke sinkronisasi standar jika tidak</string>
     <string name="settings_messages_mentioning_me">Pesan yang menyebut saya</string>
     <string name="settings_mentions_at_room_advanced">Pesan yang menyebut @room</string>
-    <string name="labs_enable_media_galleries_title">Kirim galeri media</string>
-    <string name="labs_enable_media_galleries_summary">Kirim beberapa lampiran sebagai satu pesan galeri (MSC4274). Klien tanpa dukungan galeri tidak akan menampilkannya dengan benar.</string>
     <string name="labs_enable_per_message_profiles_title">MSC4144: Tampilkan profil per pesan</string>
     <string name="labs_enable_per_message_profiles_summary">Tampilkan nama dan avatar yang dilampirkan pada masing-masing pesan.</string>
     <string name="sent_a_gallery">Galeri Media.</string>
@@ -3488,4 +3486,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="audio_player_fast_forward_label">+5 dtk</string>
     <string name="audio_player_parameters">Kecepatan dan nada</string>
     <string name="audio_player_parameters_legacy">Di versi Android ini, kecepatan dan nada hanya dapat diatur untuk pesan suara Opus dan file WAV PCM. Audio lain diputar dengan kecepatan dan nada aslinya.</string>
+    <string name="labs_enable_media_galleries_title">MSC4274: Kirim galeri media</string>
+    <string name="labs_enable_media_galleries_summary">Kirim beberapa lampiran sebagai satu pesan galeri. Klien tanpa dukungan galeri tidak akan menampilkannya dengan benar.</string>
 </resources>
