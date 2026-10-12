@@ -1,20 +1,15 @@
-name: Nightly APKs
+name: Release APKs
 
 on:
-  schedule:
-    - cron: '0 4 * * *'
-  workflow_dispatch:
-    inputs:
-      force:
-        description: 'Build even when no code changed'
-        type: boolean
-        default: false
+  push:
+    tags:
+      - '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
 
 permissions:
   contents: write
 
 concurrency:
-  group: nightly
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -24,61 +19,7 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 jobs:
-  # The most recent dated nightly tag marks what has already shipped.
-  check:
-    runs-on: ubuntu-latest
-    outputs:
-      build: ${{ steps.decide.outputs.build }}
-    steps:
-      - name: Checkout with tags
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Decide whether anything worth building changed
-        id: decide
-        run: |
-          set -euo pipefail
-          if [ "${{ inputs.force }}" = 'true' ]; then
-            echo 'Forced from workflow_dispatch.'
-            echo 'build=true' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          last_tag=$(git tag --list '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' --sort=-version:refname | head -n 1)
-          # Keep the previous moving tag as the baseline during the migration to dated releases.
-          last=${last_tag:+$(git rev-parse -q --verify "refs/tags/$last_tag^{commit}")}
-          last=${last:-$(git rev-parse -q --verify 'refs/tags/nightly^{commit}' || true)}
-          if [ -z "$last" ]; then
-            echo 'No nightly tag yet, so nothing has been built.'
-            echo 'build=true' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # Exclude-only pathspecs match everything else, so whatever is not listed counts as code.
-          # glob magic stops * crossing /, keeping these at the root — without it *.md would also
-          # swallow a module's own files, e.g. an asset under src/main/assets.
-          changed=$(git diff --name-only "$last" HEAD -- \
-            ':(exclude,glob)*.md' \
-            ':(exclude)docs' \
-            ':(exclude,glob)*/docs/**' \
-            ':(exclude)resources' \
-            ':(exclude)fastlane' \
-            ':(exclude)changelog.d' \
-            ':(exclude,glob)LICENSE*' \
-            ':(exclude).idea' \
-            ':(exclude).claude')
-          if [ -z "$changed" ]; then
-            echo "No code changes since $last; skipping the build."
-            echo 'build=false' >> "$GITHUB_OUTPUT"
-          else
-            echo "Code changed since $last:"
-            echo "$changed"
-            echo 'build=true' >> "$GITHUB_OUTPUT"
-          fi
-
-  nightly:
-    needs: check
-    if: needs.check.outputs.build == 'true'
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -86,73 +27,30 @@ jobs:
         uses: actions/checkout@v7
         with:
           submodules: recursive
-          fetch-tags: false
+          fetch-tags: true
           fetch-depth: 0
 
-      - name: Set the nightly release date
-        run: echo "VOYAGE_RELEASE_DATE=$(date --utc +%Y%m%d)" >> "$GITHUB_ENV"
-
-      - name: Find the previous nightly
+      - name: Set the release date from the tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          previous_tag=$(git ls-remote --tags --refs origin | grep -E 'refs/tags/[0-9]{8}$' | sed 's#.*refs/tags/##' | sort -r | head -n 1 || true)
+          [[ "$RELEASE_TAG" =~ ^[0-9]{8}$ ]]
+          formatted="${RELEASE_TAG:0:4}-${RELEASE_TAG:4:2}-${RELEASE_TAG:6:2}"
+          [ "$(date --utc --date="$formatted" +%Y%m%d)" = "$RELEASE_TAG" ]
+          echo "VOYAGE_RELEASE_DATE=$RELEASE_TAG" >> "$GITHUB_ENV"
+
+      - name: Find the previous release
+        run: |
+          set -euo pipefail
+          previous_tag=$(git tag --merged HEAD --list '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' | \
+            awk -v current="$VOYAGE_RELEASE_DATE" '$0 < current' | sort -r | sed -n '1p')
           previous_commit=
           if [ -n "$previous_tag" ]; then
-            previous_commit=$(git ls-remote --tags origin "refs/tags/$previous_tag^{}" | awk 'NR == 1 { print $1 }')
-            previous_commit=${previous_commit:-$(git ls-remote --tags --refs origin "refs/tags/$previous_tag" | awk 'NR == 1 { print $1 }')}
+            previous_commit=$(git rev-parse "refs/tags/$previous_tag^{commit}")
           fi
           echo "PREVIOUS_TAG=$previous_tag" >> "$GITHUB_ENV"
           echo "PREVIOUS_COMMIT=$previous_commit" >> "$GITHUB_ENV"
-
-      # F-Droid reads changelogs/<versionCode>.txt from the tagged source, so they are committed before the build.
-      - name: Commit the F-Droid changelogs
-        if: github.ref_type == 'branch'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if gh release view "$VOYAGE_RELEASE_DATE" > /dev/null 2>&1; then
-            echo "The nightly release $VOYAGE_RELEASE_DATE already exists; leaving its changelogs alone."
-            exit 0
-          fi
-
-          # F-Droid and Play cap a changelog at 500 characters.
-          limit=500
-          changelog=
-          if [ -n "$PREVIOUS_COMMIT" ]; then
-            mapfile -t subjects < <(git log --no-merges --format='• %s' --invert-grep --grep='^Add F-Droid changelogs for ' "$PREVIOUS_COMMIT..HEAD")
-            for i in "${!subjects[@]}"; do
-              candidate="${changelog:+$changelog$'\n'}${subjects[$i]}"
-              remaining=$(( ${#subjects[@]} - i - 1 ))
-              more=
-              if [ "$remaining" -gt 0 ]; then
-                more=$'\n'"…and $remaining more"
-              fi
-              if [ $(( ${#candidate} + ${#more} )) -gt "$limit" ]; then
-                changelog="${changelog:+$changelog$'\n'}…and $(( remaining + 1 )) more"
-                break
-              fi
-              changelog=$candidate
-            done
-          fi
-          changelog=${changelog:-Initial release.}
-
-          dir=fastlane/metadata/android/en-US/changelogs
-          mkdir -p "$dir"
-          base=$(( (VOYAGE_RELEASE_DATE + 20000000) * 10 ))
-          for abi in 1 2 3 4; do
-            printf '%s\n' "$changelog" > "$dir/$(( base + abi )).txt"
-          done
-          cat "$dir/$(( base + 1 )).txt"
-
-          git add "$dir"
-          if git diff --cached --quiet; then
-            echo 'The changelogs are already committed.'
-            exit 0
-          fi
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m "Add F-Droid changelogs for $VOYAGE_RELEASE_DATE"
-          git push origin "HEAD:refs/heads/${{ github.ref_name }}"
 
       - name: Free up disk space and add swap
         run: |
@@ -209,23 +107,25 @@ jobs:
           find . -type d -name build -prune -exec rm -rf {} +
           df -h /
 
-      - name: Create the dated nightly release
+      - name: Create the tagged release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           release_tag="$VOYAGE_RELEASE_DATE"
-          if gh release view "$release_tag" > /dev/null 2>&1; then
-            echo "The nightly release $release_tag already exists; keeping it unchanged."
+          existing_draft=$(gh release view "$release_tag" --json isDraft --jq .isDraft 2>/dev/null || true)
+          if [ "$existing_draft" = 'false' ]; then
+            echo "Release $release_tag is already published; keeping it unchanged."
             exit 0
           fi
 
           release_sha=$(git rev-parse HEAD)
+          [ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$release_tag" --jq .sha)" = "$release_sha" ]
           {
-            echo "Nightly build of Voyage at [$(git rev-parse --short HEAD)](${{ github.server_url }}/${{ github.repository }}/commit/$release_sha)."
+            echo "Release of Voyage at [$(git rev-parse --short HEAD)](${{ github.server_url }}/${{ github.repository }}/commit/$release_sha)."
             echo
             if [ -n "$PREVIOUS_COMMIT" ]; then
-              echo "Changes since nightly $PREVIOUS_TAG:"
+              echo "Changes since release $PREVIOUS_TAG:"
               git log "$PREVIOUS_COMMIT..HEAD" --invert-grep --grep='^Add F-Droid changelogs for ' \
                 --pretty="- [%h](${{ github.server_url }}/${{ github.repository }}/commit/%H) %s"
             else
@@ -233,12 +133,15 @@ jobs:
             fi
           } > release-notes.md
 
-          gh release create "$release_tag" \
-            --title "Nightly $release_tag" \
-            --notes-file release-notes.md \
-            --target "$release_sha"
+          if [ "$existing_draft" != 'true' ]; then
+            gh release create "$release_tag" \
+              --title "Voyage $release_tag" \
+              --notes-file release-notes.md \
+              --verify-tag --draft
+          fi
 
           gh release upload "$release_tag" artifacts/*.apk --clobber
+          gh release edit "$release_tag" --draft=false
 
           gh release view "$release_tag" --json isDraft,isPrerelease,tagName,assets --jq '{isDraft, isPrerelease, tagName, assets: [.assets[].name]}'
           [ "$(gh release view "$release_tag" --json isPrerelease --jq .isPrerelease)" = 'false' ]

@@ -21,13 +21,17 @@ adds on top of Element Classic.
 
 # Installing
 
-Grab a nightly APK from the [releases](../../releases) tab.
+Grab an APK from the [releases](../../releases) tab.
 
 Alternatively, build and install it yourself:
 
-Debug: `./gradlew installDebug`
+Build release APKs: `make`. Outputs are in `vector-app/build/outputs/apk/release/`.
 
-Release: `./gradlew install`
+Debug install: `make installDebug`
+
+Release install: `make install`
+
+Run linting with `make lint` and the unit test suite with `make test`.
 
 # Running on Android 4.0–4.3 (Ice Cream Sandwich / Jelly Bean)
 
