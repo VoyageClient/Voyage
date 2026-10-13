@@ -27,7 +27,7 @@ private const val AN_EVENT_ID = "\$event"
 @Config(sdk = [28])
 class ReactionsSummaryFactoryTest {
 
-    private val factory = ReactionsSummaryFactory()
+    private val factory = ReactionsSummaryFactory().apply { canAddReaction = true }
 
     @Test
     fun `given an unreact tap, when the summary still has my reaction, then the pill stays off`() {
@@ -63,6 +63,26 @@ class ReactionsSummaryFactoryTest {
 
         factory.create(anEvent(reaction("👍", count = 1, addedByMe = true))).reactions shouldBeEqualTo
                 listOf(ReactionInfoData("👍", 1, true))
+    }
+
+    @Test
+    fun `given reactions are forbidden, taps do not change the summary`() {
+        factory.canAddReaction = false
+        factory.onReactionToggled(AN_EVENT_ID, "👍", addedByMe = true)
+
+        val summary = factory.create(anEvent(reaction("👍", count = 1, addedByMe = false)))
+        summary.canAddReaction shouldBeEqualTo false
+        summary.reactions shouldBeEqualTo listOf(ReactionInfoData("👍", 1, false))
+    }
+
+    @Test
+    fun `given a pending tap, clearing it restores the server reaction`() {
+        factory.onReactionToggled(AN_EVENT_ID, "👍", addedByMe = true)
+        factory.clearPendingToggles()
+
+        factory.create(anEvent(reaction("👍", count = 1, addedByMe = false))).reactions shouldBeEqualTo
+                listOf(ReactionInfoData("👍", 1, false))
+        factory.needsRebuild(anEvent()) shouldBeEqualTo true
     }
 
     private fun reaction(key: String, count: Int, addedByMe: Boolean) =

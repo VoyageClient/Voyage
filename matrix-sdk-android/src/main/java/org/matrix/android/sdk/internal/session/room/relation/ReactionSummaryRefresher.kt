@@ -38,6 +38,35 @@ internal class ReactionSummaryRefresher @Inject constructor(
         sum.addedByMe = sum.sourceLocalEcho.isNotEmpty() || senders.any { it == userId }
     }
 
+    fun removeLocalEcho(stores: SessionStores, eventId: String) {
+        cleanLocalEchoes(stores) { it == eventId }
+    }
+
+    fun clearOrphanedLocalEchoes(stores: SessionStores) {
+        cleanLocalEchoes(stores) { id ->
+            val event = stores.event.getByEventId(id)
+            event == null || event.sendState.hasFailed()
+        }
+    }
+
+    private fun cleanLocalEchoes(stores: SessionStores, shouldRemove: (String) -> Boolean) {
+        stores.annotations.getEventIdsWithLocalReactions().forEach { eventId ->
+            val summary = stores.annotations.get(eventId) ?: return@forEach
+            var changed = false
+            summary.reactionsSummary.forEach { reaction ->
+                if (reaction.sourceLocalEcho.removeAll(shouldRemove)) {
+                    refresh(stores, reaction)
+                    changed = true
+                }
+            }
+            if (changed) {
+                summary.reactionsSummary.removeAll { it.sourceEvents.isEmpty() && it.sourceLocalEcho.isEmpty() }
+                stores.annotations.upsertSummary(eventId, summary.roomId)
+                stores.annotations.replaceReactions(eventId, summary.reactionsSummary)
+            }
+        }
+    }
+
     /** Re-counts every reaction the given users left, after the ignore list changed. */
     fun refreshFromSenders(stores: SessionStores, senderIds: Collection<String>) {
         // ENCRYPTED too: a reaction sent into an encrypted room is stored under that type, and its

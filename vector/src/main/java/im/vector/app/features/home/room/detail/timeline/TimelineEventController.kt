@@ -150,6 +150,7 @@ class TimelineEventController @Inject constructor(
             val highlightNonce: Long = 0,
             val roomSummary: RoomSummary? = null,
             val rootThreadEventId: String? = null,
+            val canSendReaction: Boolean = false,
     ) {
 
         constructor(state: RoomDetailViewState) : this(
@@ -157,6 +158,7 @@ class TimelineEventController @Inject constructor(
                 highlightedEventId = state.highlightedEventId,
                 highlightNonce = state.highlightNonce,
                 roomSummary = state.asyncRoomSummary(),
+                canSendReaction = state.canSendReaction,
                 rootThreadEventId = state.rootThreadEventId,
         )
 
@@ -541,7 +543,12 @@ class TimelineEventController @Inject constructor(
 
     fun update(viewState: RoomDetailViewState) = PerfTrace.time("timeline.controller.update") {
         val newPartialState = PartialState(viewState)
-        reactionListFactory.canAddReaction = newPartialState.roomSummary?.membership == Membership.JOIN
+        val canAddReaction = newPartialState.canSendReaction && newPartialState.roomSummary?.membership == Membership.JOIN
+        if (reactionListFactory.canAddReaction != canAddReaction) {
+            reactionListFactory.canAddReaction = canAddReaction
+            if (!canAddReaction) reactionListFactory.clearPendingToggles()
+            invalidateAllCache()
+        }
         if (newPartialState != partialState) {
             partialState = newPartialState
             requestModelBuild()

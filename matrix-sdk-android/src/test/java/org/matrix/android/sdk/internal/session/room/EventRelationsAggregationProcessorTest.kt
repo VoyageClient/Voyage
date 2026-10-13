@@ -180,6 +180,56 @@ internal class EventRelationsAggregationProcessorTest {
         db.stores.annotations.get(A_TARGET_ID)?.reactionsSummary.orEmpty().shouldBeEmpty()
     }
 
+    @Test
+    fun `removing a failed reaction echo clears its count and selection`() {
+        givenPendingReactionEcho()
+
+        db.database.transaction {
+            ReactionSummaryRefresher("userId").removeLocalEcho(db.stores, AN_ECHO_ID)
+        }
+
+        db.stores.annotations.get(A_TARGET_ID)?.reactionsSummary.orEmpty().shouldBeEmpty()
+    }
+
+    @Test
+    fun `orphan cleanup preserves synced reactions from other users`() {
+        givenPendingReactionEcho()
+        val remote = Event(
+                type = EventType.REACTION,
+                eventId = "\$otherReaction",
+                roomId = A_ROOM_ID,
+                senderId = "otherUser",
+                content = ReactionContent(ReactionInfo(RelationType.ANNOTATION, A_TARGET_ID, "👍")).toContent(),
+        )
+        db.stores.event.insert(remote.toEntity(A_ROOM_ID, SendState.SYNCED, 0L))
+        processReal(remote)
+        db.stores.event.deleteByEventIdInRoom(A_ROOM_ID, AN_ECHO_ID)
+
+        db.database.transaction {
+            ReactionSummaryRefresher("userId").clearOrphanedLocalEchoes(db.stores)
+        }
+
+        val reaction = db.stores.annotations.get(A_TARGET_ID)!!.reactionsSummary.single()
+        reaction.count shouldBeEqualTo 1
+        reaction.addedByMe shouldBeEqualTo false
+        reaction.sourceEvents shouldBeEqualTo listOf("\$otherReaction")
+        reaction.sourceLocalEcho.shouldBeEmpty()
+    }
+
+    @Test
+    fun `orphan cleanup preserves reactions awaiting sync`() {
+        givenPendingReactionEcho()
+
+        db.database.transaction {
+            ReactionSummaryRefresher("userId").clearOrphanedLocalEchoes(db.stores)
+        }
+
+        val reaction = db.stores.annotations.get(A_TARGET_ID)!!.reactionsSummary.single()
+        reaction.count shouldBeEqualTo 1
+        reaction.addedByMe shouldBeEqualTo true
+        reaction.sourceLocalEcho shouldBeEqualTo listOf(AN_ECHO_ID)
+    }
+
     private fun givenPendingReactionEcho() {
         val echo = Event(
                 type = EventType.REACTION,

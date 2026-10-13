@@ -87,9 +87,7 @@ internal class SendEventQueuedTask(
         when (event.getClearType()) {
             EventType.REDACTION,
             EventType.REACTION -> {
-                // we just delete? it will not be present on timeline and no ux to retry
                 localEchoRepository.deleteFailedEchoAsync(eventId = event.eventId, roomId = event.roomId ?: "")
-                // TODO update aggregation :/ or it will stay locally
             }
             else -> {
                 localEchoRepository.updateSendState(

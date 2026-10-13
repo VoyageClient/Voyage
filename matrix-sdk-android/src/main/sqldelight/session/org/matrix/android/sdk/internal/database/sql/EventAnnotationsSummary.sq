@@ -98,6 +98,9 @@ SELECT * FROM reaction_aggregated_summary WHERE annotation_event_id = ? ORDER BY
 selectReactionsIn:
 SELECT * FROM reaction_aggregated_summary WHERE annotation_event_id IN ? ORDER BY annotation_event_id, reaction_order;
 
+selectEventsWithLocalReactions:
+SELECT DISTINCT annotation_event_id FROM reaction_aggregated_summary WHERE source_local_echo != '';
+
 insertReaction:
 INSERT INTO reaction_aggregated_summary(annotation_event_id, reaction_order, reaction_key, reaction_count, added_by_me, first_timestamp, source_events, source_local_echo)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);

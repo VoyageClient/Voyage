@@ -46,6 +46,7 @@ import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollResponseSummaryRefresher
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
+import org.matrix.android.sdk.internal.session.room.relation.ReactionSummaryRefresher
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
 import org.matrix.android.sdk.internal.util.time.Clock
@@ -68,6 +69,7 @@ internal class LocalEchoRepository @Inject constructor(
         private val sendOutcomeTracker: SendOutcomeTracker,
         private val clock: Clock,
         private val pollResponseSummaryRefresher: PollResponseSummaryRefresher,
+        private val reactionSummaryRefresher: ReactionSummaryRefresher,
 ) {
 
     private val sentEchoesByRemoteId = java.util.Collections.synchronizedMap(HashMap<String, String>())
@@ -316,6 +318,7 @@ internal class LocalEchoRepository @Inject constructor(
         sendOutcomeTracker.onEchoDeleted(eventId)
         database.awaitDbTransaction(dispatcher) {
             stores.event.getByEventIdInRoom(roomId, eventId)?.asDomain()?.let { pollResponseSummaryRefresher.remove(stores, it) }
+            reactionSummaryRefresher.removeLocalEcho(stores, eventId)
             stores.timelineEvent.deleteSending(roomId, eventId)
             stores.event.deleteByEventIdInRoom(roomId, eventId)
             roomSummaryUpdater.updateSendingInformation(stores, roomId)
@@ -332,11 +335,18 @@ internal class LocalEchoRepository @Inject constructor(
         enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {
                 stores.event.getByEventIdInRoom(roomId, eventId)?.asDomain()?.let { pollResponseSummaryRefresher.remove(stores, it) }
+                reactionSummaryRefresher.removeLocalEcho(stores, eventId)
                 stores.timelineEvent.deleteSending(roomId, eventId)
                 stores.event.deleteByEventIdInRoom(roomId, eventId)
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
             }
             timelineInput.onLocalEchoDeleted(roomId, eventId)
+        }
+    }
+
+    suspend fun clearOrphanedReactionEchoes() {
+        database.awaitDbTransaction(dispatcher) {
+            reactionSummaryRefresher.clearOrphanedLocalEchoes(stores)
         }
     }
 

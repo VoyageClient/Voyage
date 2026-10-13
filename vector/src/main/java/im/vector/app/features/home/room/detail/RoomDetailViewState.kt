@@ -68,6 +68,7 @@ data class RoomDetailViewState(
         val canShowJumpToReadMarker: Boolean = true,
         val changeMembershipState: ChangeMembershipState = ChangeMembershipState.Unknown,
         val canInvite: Boolean = true,
+        val canSendReaction: Boolean = false,
         val isAllowedToManageWidgets: Boolean = false,
         val isAllowedToSetupEncryption: Boolean = true,
         val hasFailedSending: Boolean = false,

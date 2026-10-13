@@ -60,6 +60,8 @@ internal class EventAnnotationsSqlStore(
 
     fun upsertSummary(eventId: String, roomId: String?) = queries.upsertSummary(eventId, roomId)
 
+    fun getEventIdsWithLocalReactions(): List<String> = queries.selectEventsWithLocalReactions().executeAsList()
+
     fun replaceReactions(eventId: String, reactions: List<ReactionAggregatedSummaryEntity>) {
         queries.deleteReactions(eventId)
         reactions.forEachIndexed { index, r ->

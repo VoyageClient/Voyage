@@ -7,6 +7,8 @@
 
 package im.vector.app.features.home.room.detail.timeline.helper
 
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import dagger.hilt.android.scopes.ActivityScoped
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
@@ -19,17 +21,17 @@ import javax.inject.Inject
 @ActivityScoped
 class ReactionsSummaryFactory @Inject constructor() {
 
-    /** Fed by the timeline controller from its partial state; false hides the add-reaction button. */
-    @Volatile var canAddReaction: Boolean = true
+    @Volatile var canAddReaction: Boolean = false
+
+    private val handler = Handler(Looper.getMainLooper())
 
     var onRequestBuild: (() -> Unit)? = null
     private val showAllReactionsByEvent = HashSet<String>()
-    private val eventsRequestingBuild = HashSet<String>()
+    private val eventsRequestingBuild = java.util.Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     private class PendingToggle(val addedByMe: Boolean, val expiresAt: Long)
 
-    // The aggregation confirming a tap can land seconds later when the DB is busy; a rebind in between would
-    // flip the pill back. Hold the tapped state until the summary agrees, or until a failed send lets it lapse.
+    // Hold taps across rebinds while the database catches up; expire unconfirmed changes after a failed send.
     private val pendingToggles = ConcurrentHashMap<Pair<String, String>, PendingToggle>()
 
     fun needsRebuild(event: TimelineEvent): Boolean {
@@ -37,8 +39,19 @@ class ReactionsSummaryFactory @Inject constructor() {
     }
 
     fun onReactionToggled(eventId: String, key: String, addedByMe: Boolean) {
-        pendingToggles[eventId to key] = PendingToggle(addedByMe, SystemClock.elapsedRealtime() + PENDING_TOGGLE_TTL_MS)
+        if (!canAddReaction) return
+        val pending = PendingToggle(addedByMe, SystemClock.elapsedRealtime() + PENDING_TOGGLE_TTL_MS)
+        pendingToggles[eventId to key] = pending
+        handler.postDelayed({
+            if (pendingToggles.remove(eventId to key, pending)) onRequestBuild(eventId)
+        }, PENDING_TOGGLE_TTL_MS)
         onRequestBuild(eventId)
+    }
+
+    fun clearPendingToggles() {
+        val eventIds = pendingToggles.keys.map { it.first }
+        pendingToggles.clear()
+        eventIds.forEach { onRequestBuild(it) }
     }
 
     fun create(event: TimelineEvent): ReactionsSummaryData {

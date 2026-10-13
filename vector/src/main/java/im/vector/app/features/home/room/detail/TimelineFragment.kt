@@ -2335,12 +2335,15 @@ class TimelineFragment :
     }
 
     override fun onClickOnReactionPill(informationData: MessageInformationData, reaction: String, on: Boolean) {
+        if (!timelineViewModel.canSendReaction()) {
+            reactionsSummaryFactory.clearPendingToggles()
+            timelineEventController.invalidateAllCache()
+            return
+        }
         reactionsSummaryFactory.onReactionToggled(informationData.eventId, reaction, on)
         if (on) {
-            // we should test the current real state of reaction on this event
             timelineViewModel.handle(RoomDetailAction.SendReaction(informationData.eventId, reaction))
         } else {
-            // I need to redact a reaction
             timelineViewModel.handle(RoomDetailAction.UndoReaction(informationData.eventId, reaction))
         }
     }
@@ -2778,6 +2781,7 @@ class TimelineFragment :
     }
 
     private fun openEmojiReactionPicker(eventId: String) {
+        if (!timelineViewModel.canSendReaction()) return
         emojiActivityResultLauncher.launch(EmojiReactionPickerActivity.intent(requireContext(), eventId, timelineArgs.roomId))
     }
 

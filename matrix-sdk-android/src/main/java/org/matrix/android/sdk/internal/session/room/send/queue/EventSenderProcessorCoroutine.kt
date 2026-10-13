@@ -86,7 +86,7 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
         taskExecutor.executorScope.launch {
             Timber.d("## Send relaunched pending events on restart")
             try {
-                // Purge stuck bulk-redaction echoes before restoring anything, so a cold launch clears them.
+                localEchoRepository.clearOrphanedReactionEchoes()
                 localEchoRepository.clearAllSendingRedactions()
                 memento.restoreTasks(this@EventSenderProcessorCoroutine)
             } catch (failure: Throwable) {

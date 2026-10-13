@@ -368,7 +368,7 @@ class TimelineViewModel @AssistedInject constructor(
         if (room == null) return
         room.flow().liveRoomPowerLevels()
                 .map { powerLevels ->
-                    Triple(
+                    powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REACTION) to Triple(
                             powerLevels.isUserAbleToInvite(session.myUserId),
                             // Re-reads the room's whole state from the DB: 200ms+ per emission, never on the main thread.
                             session.widgetService().hasPermissionsToHandleWidgets(room.roomId),
@@ -376,10 +376,12 @@ class TimelineViewModel @AssistedInject constructor(
                     )
                 }
                 .flowOn(Dispatchers.Default)
-                .onEach { (canInvite, isAllowedToManageWidgets, isAllowedToSetupEncryption) ->
+                .onEach { (canSendReaction, permissions) ->
+                    val (canInvite, isAllowedToManageWidgets, isAllowedToSetupEncryption) = permissions
                     setState {
                         copy(
                                 canInvite = canInvite,
+                                canSendReaction = canSendReaction,
                                 isAllowedToManageWidgets = isAllowedToManageWidgets,
                                 isAllowedToSetupEncryption = isAllowedToSetupEncryption
                         )
@@ -1007,8 +1009,13 @@ private fun handleSelectStickerAttachment() {
 
     // PRIVATE METHODS *****************************************************************************
 
+    fun canSendReaction(): Boolean = room?.let {
+        it.roomSummary()?.membership == Membership.JOIN &&
+                it.stateService().getRoomPowerLevels().isUserAllowedToSend(session.myUserId, false, EventType.REACTION)
+    } ?: false
+
     private fun handleSendReaction(action: RoomDetailAction.SendReaction) {
-        if (room == null) return
+        if (room == null || !canSendReaction()) return
         room.relationService().sendReaction(action.targetEventId, action.reaction)
         recentEmojiDataSource.recordEmojiUse(listOf(action.reaction))
     }
@@ -1120,6 +1127,7 @@ private fun handleSelectStickerAttachment() {
     private fun handleUpdateQuickReaction(action: RoomDetailAction.UpdateQuickReactAction) {
         if (room == null) return
         if (action.add) {
+            if (!canSendReaction()) return
             room.relationService().sendReaction(action.targetEventId, action.selectedReaction)
             recentEmojiDataSource.recordEmojiUse(listOf(action.selectedReaction))
         } else {
