@@ -124,6 +124,7 @@ class RoomListFragment :
     private val itemCountJobs = mutableListOf<Job>()
     private var adapterSwapPending = false
     private var sectionReorderInProgress = false
+    private var forcedRebuildPending = false
     private var sectionReorderAdapter: SectionReorderAdapter? = null
     private var fingerDown = false
     private val sectionItemTouchHelper by lazy { ItemTouchHelper(SectionReorderCallback()) }
@@ -182,31 +183,31 @@ class RoomListFragment :
         // preview would stay as the raw armored ciphertext.
         pgpDecryptor.updates
                 .sample(300)
-                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Same forced rebuild when a last message gets translated / untranslated.
         messageTranslationStore.updates
                 .sample(300)
-                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Flip the room-list PGP lock the moment the global/per-room toggle changes.
         pgpKeyStore.changes
-                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // A preview's pills are built when the model is, so a recolor needs the models rebuilt and
         // not merely re-bound like the rest of the list.
         matrixItemColorProvider.changes
                 .drop(1)
-                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Recolor the code in previews right away, while settings is still in front, so it never shows the swap.
         codeBlockHighlighter.paletteChanges
                 .drop(1)
-                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.refreshPreviews() } }
+                .onEach { requestForcedRebuild() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         roomListViewModel.onEach(RoomListViewState::roomMembershipChanges) { ms ->
@@ -228,7 +229,23 @@ class RoomListFragment :
     override fun onResume() {
         super.onResume()
         // Linked rooms can gain metadata while this list is paused without changing the source room summaries.
-        adapterInfosList.forEach { (it.contentEpoxyController as? RoomSummaryPagedController)?.refreshPreviews() }
+        val pillsInvalidated = pagedControllerFactory.invalidatePillPreviews()
+        if (pillsInvalidated || forcedRebuildPending) requestForcedRebuild()
+    }
+
+    // A forced rebuild re-renders every loaded room on the main thread (seconds on a large account),
+    // so a list hidden behind another screen defers it to onResume instead of freezing that screen.
+    private fun requestForcedRebuildWhenVisible() {
+        if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            requestForcedRebuild()
+        } else {
+            forcedRebuildPending = true
+        }
+    }
+
+    private fun requestForcedRebuild() {
+        forcedRebuildPending = false
+        adapterInfosList.forEach { (it.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() }
     }
 
     private fun refreshCollapseStates() {

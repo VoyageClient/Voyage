@@ -16,6 +16,8 @@ class RoomSummaryPagedControllerFactory @Inject constructor(
         private val fontScalePreferences: FontScalePreferences
 ) {
 
+    fun invalidatePillPreviews(): Boolean = roomSummaryItemFactory.invalidatePillPreviews()
+
     fun createRoomSummaryPagedController(displayMode: RoomListDisplayMode): RoomSummaryPagedController {
         return RoomSummaryPagedController(roomSummaryItemFactory, displayMode, fontScalePreferences)
     }

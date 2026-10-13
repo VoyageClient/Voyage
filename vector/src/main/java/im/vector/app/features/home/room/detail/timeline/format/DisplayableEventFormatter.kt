@@ -71,16 +71,27 @@ class DisplayableEventFormatter @Inject constructor(
 
     // Rendered previews, keyed by room + source HTML. The room list re-renders every visible summary
     // on each update, and parsing the same HTML again cost hundreds of ms on the main thread.
-    private val previewCache = android.util.LruCache<String, CharSequence>(256)
+    // Must exceed the room count: a full list rebuild walks every room in order, so a smaller LRU evicts
+    // each entry before it is reused and every rebuild misses.
+    private val previewCache = android.util.LruCache<String, CharSequence>(2048)
 
-    // textColorLink and the code colors are stamped into the spans at render time, and a pill bakes in the
-    // avatar it was built with, so a theme, palette, code palette or avatar-style change invalidates the cache.
-    private fun currentPreviewGeneration() = Triple(ThemeUtils.themeGeneration, matrixItemColorProvider.changes.value, vectorPreferences.codeBlockPalette())
+    // Only pills depend on other rooms' and users' metadata and colors, so only these need re-rendering
+    // when that metadata or a name color changes.
+    private val pillPreviewKeys: MutableSet<String> = java.util.Collections.newSetFromMap(java.util.concurrent.ConcurrentHashMap())
+
+    // textColorLink and the code colors are stamped into the spans at render time.
+    private fun currentPreviewGeneration() = ThemeUtils.themeGeneration to vectorPreferences.codeBlockPalette()
 
     private var previewCacheGeneration = currentPreviewGeneration()
+    private var pillColorGeneration = matrixItemColorProvider.changes.value
 
-    fun invalidatePreviewCache() {
-        previewCache.evictAll()
+    /** Drops cached previews containing pills; returns whether there were any. */
+    fun invalidatePillPreviews(): Boolean {
+        if (pillPreviewKeys.isEmpty()) return false
+        val keys = pillPreviewKeys.toList()
+        pillPreviewKeys.removeAll(keys)
+        keys.forEach { previewCache.remove(it) }
+        return true
     }
 
     // Per-room pill processors, cached so the room list doesn't rebuild them on every summary render.
@@ -353,6 +364,12 @@ class DisplayableEventFormatter @Inject constructor(
         if (generation != previewCacheGeneration) {
             previewCacheGeneration = generation
             previewCache.evictAll()
+            pillPreviewKeys.clear()
+        }
+        val colorGeneration = matrixItemColorProvider.changes.value
+        if (colorGeneration != pillColorGeneration) {
+            pillColorGeneration = colorGeneration
+            invalidatePillPreviews()
         }
         val key = "${roomId.orEmpty()}\u0000${source.senderId}\u0000${source.mentionsRoom}\u0000$formattedBody"
         // Copy on the way out: callers run the result through EmojiCompat.process(), which spans a
@@ -369,6 +386,7 @@ class DisplayableEventFormatter @Inject constructor(
             textRenderer.render(htmlRenderer.get().render(formattedBody, pills), source).colorLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
         }
         previewCache.put(key, SpannableStringBuilder(rendered))
+        if (rendered is Spanned && rendered.getSpans(0, rendered.length, PillImageSpan::class.java).isNotEmpty()) pillPreviewKeys.add(key)
         return rendered
     }
 

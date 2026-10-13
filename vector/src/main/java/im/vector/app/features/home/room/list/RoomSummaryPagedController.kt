@@ -53,11 +53,6 @@ class RoomSummaryPagedController(
         requestForcedModelBuild()
     }
 
-    fun refreshPreviews() {
-        roomSummaryItemFactory.invalidatePreviewCache()
-        requestForcedModelBuild()
-    }
-
     override fun addModels(models: List<EpoxyModel<*>>) {
         if (collapsed) {
             super.addModels(emptyList())

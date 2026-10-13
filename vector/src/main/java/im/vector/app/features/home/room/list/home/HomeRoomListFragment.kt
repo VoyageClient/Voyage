@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.ConcatAdapter.Config.StableIdMode
@@ -76,6 +77,7 @@ class HomeRoomListFragment :
     private var modelBuildListener: OnModelBuildFinishedListener? = null
 
     private lateinit var stateRestorer: LayoutManagerStateRestorer
+    private var forcedRebuildPending = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentRoomListBinding {
         return FragmentRoomListBinding.inflate(inflater, container, false)
@@ -99,7 +101,23 @@ class HomeRoomListFragment :
     override fun onResume() {
         super.onResume()
         // Linked rooms can gain metadata while this list is paused without changing the source room summaries.
-        roomsController.refreshPreviews()
+        val pillsInvalidated = roomsController.invalidatePillPreviews()
+        if (pillsInvalidated || forcedRebuildPending) requestForcedRebuild()
+    }
+
+    // A forced rebuild re-renders every loaded room on the main thread (seconds on a large account),
+    // so a list hidden behind another screen defers it to onResume instead of freezing that screen.
+    private fun requestForcedRebuildWhenVisible() {
+        if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            requestForcedRebuild()
+        } else {
+            forcedRebuildPending = true
+        }
+    }
+
+    private fun requestForcedRebuild() {
+        forcedRebuildPending = false
+        roomsController.requestForcedModelBuild()
     }
 
     private fun setupObservers() {
@@ -112,31 +130,31 @@ class HomeRoomListFragment :
         // Re-render last-message previews once a PGP body finishes decrypting.
         pgpDecryptor.updates
                 .sample(300)
-                .onEach { roomsController.requestForcedModelBuild() }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Same when a last message gets translated / untranslated.
         messageTranslationStore.updates
                 .sample(300)
-                .onEach { roomsController.requestForcedModelBuild() }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Flip the room-list PGP lock the moment the global/per-room toggle changes.
         pgpKeyStore.changes
-                .onEach { roomsController.requestForcedModelBuild() }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // A preview's pills are built when the model is, so a recolor needs the models rebuilt and
         // not merely re-bound like the rest of the list.
         matrixItemColorProvider.changes
                 .drop(1)
-                .onEach { roomsController.requestForcedModelBuild() }
+                .onEach { requestForcedRebuildWhenVisible() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         // Recolor the code in previews right away, while settings is still in front, so it never shows the swap.
         codeBlockHighlighter.paletteChanges
                 .drop(1)
-                .onEach { roomsController.refreshPreviews() }
+                .onEach { requestForcedRebuild() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         roomListViewModel.observeViewEvents {
