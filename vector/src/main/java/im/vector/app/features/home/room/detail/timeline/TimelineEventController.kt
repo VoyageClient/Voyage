@@ -133,6 +133,10 @@ class TimelineEventController @Inject constructor(
         // Budget for the pass that paints a room's first frame: about a screenful, not the whole window.
         private const val FIRST_PAINT_BUILD_NANOS = 150_000_000L
 
+        // Built before FIRST_PAINT_BUILD_NANOS applies: the first (cold) build alone can exceed it, which
+        // painted a single message under the backward spinner.
+        private const val FIRST_PAINT_MIN_BUILDS = 10
+
         // Builds faster than this are "cheap" (hidden/redacted/notice items) and don't count against the
         // per-pass count cap — the time budget bounds them instead.
         private const val EXPENSIVE_BUILD_NANOS = 4_000_000L
@@ -529,13 +533,15 @@ class TimelineEventController @Inject constructor(
                 (content as? MessageContentWithFormattedBody)?.formattedBody?.contains(needle).orFalse()
     }
 
-    /** Drop every cached model and rebuild. Used after a PGP OpenKeychain interaction so all
-     * visible PGP items re-request decryption. Heavy, so reserved for rare one-shot events. */
+    /** Rebuild every cached model, keeping the built ones on screen meanwhile. Used after a PGP OpenKeychain
+     * interaction so all visible PGP items re-request decryption. Heavy, so reserved for rare one-shot events. */
     fun invalidateAllCache() = backgroundHandler.post {
         synchronized(modelCache) {
             processedSnapshot = null
+            // Stale rather than null: an emptied cache renders like a fresh room open, a few rows under the
+            // backward spinner, until the budgeted passes catch up.
             for (i in modelCache.indices) {
-                modelCache[i] = null
+                invalidateAt(i)
             }
         }
         requestModelBuild()
@@ -902,9 +908,11 @@ class TimelineEventController @Inject constructor(
         val nothingOnScreenYet = modelCache.none { it?.eventModel != null }
         val maxBuildsThisPass = when {
             jumpIdx != null -> MAX_MODEL_BUILDS_PER_PASS * 6
-            nothingOnScreenYet -> MAX_MODEL_BUILDS_PER_PASS / 4
+            nothingOnScreenYet -> FIRST_PAINT_MIN_BUILDS
             else -> MAX_MODEL_BUILDS_PER_PASS
         }
+        val minBuildsThisPass = if (jumpIdx == null && nothingOnScreenYet) FIRST_PAINT_MIN_BUILDS else 0
+        var buildsThisPass = 0
         val maxNanosThisPass = when {
             jumpIdx != null -> maxBuildNanosPerPass * 6
             nothingOnScreenYet -> FIRST_PAINT_BUILD_NANOS
@@ -945,7 +953,7 @@ class TimelineEventController @Inject constructor(
             // neighbour is a normal event) must never be deferred — its build is what collapses the whole run
             // into one item. Deferring it leaves the run's events showing individually until a later pass,
             // which is the compacted<->expanded flicker when more redactions load in.
-            if (needsBuild && !isMergedRunStart(event) &&
+            if (needsBuild && !isMergedRunStart(event) && buildsThisPass >= minBuildsThisPass &&
                     (numberOfEventsToBuild >= maxBuildsThisPass || buildNanos >= maxNanosThisPass)) {
                 buildBudgetExhausted = true
                 return@forEach
@@ -977,6 +985,7 @@ class TimelineEventController @Inject constructor(
                 modelCache[position] = buildCacheItem(params)
                 val buildDelta = System.nanoTime() - t0
                 buildNanos += buildDelta
+                buildsThisPass++
                 // Only expensive (formatted-message) builds count toward the per-pass count cap; cheap ones
                 // (hidden, redacted, notices) are bounded by the time budget alone. Otherwise a big run of
                 // cheap events (e.g. thousands of redactions) forces hundreds of passes before the real
