@@ -306,7 +306,11 @@ class ReplyPreviewRetriever(
     }
 
     private fun currentReplySenderName(userId: String, fallback: String): String {
-        val currentName = roomForColors?.membershipService()?.getRoomMember(userId)?.displayName ?: fallback
+        val membershipService = roomForColors?.membershipService()
+        val currentName = membershipService?.getRoomMember(userId)?.displayName
+                ?.takeUnless { it.isBlank() }
+                ?.let { membershipService.disambiguateDisplayName(userId, it) }
+                ?: fallback
         return ProfileOverrides.displayNameOr(userId, currentName) ?: userId
     }
 

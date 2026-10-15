@@ -1968,7 +1968,10 @@ private fun handleSelectStickerAttachment() {
             if (summary.isRemovedFromRoom && !summary.membership.isActive()) {
                 val memberEvent = room.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(session.myUserId))
                 val senderId = memberEvent?.senderId?.takeIf { it != session.myUserId }
-                val senderName = senderId?.let { room.membershipService().getRoomMember(it)?.displayName ?: it }
+                val senderName = senderId?.let {
+                    val membershipService = room.membershipService()
+                    membershipService.disambiguateDisplayName(it, membershipService.getRoomMember(it)?.displayName)
+                }
                 val reason = memberEvent?.content?.toModel<RoomMemberContent>()?.safeReason
                 setState { copy(removedFromRoomBy = senderName, removedFromRoomReason = reason) }
             }

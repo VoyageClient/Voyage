@@ -37,9 +37,18 @@ class SenderProfileResolver @Inject constructor(
     inner class Batch {
 
         private val members = HashMap<Pair<String, String>, RoomMemberSummary?>()
+        private val names = HashMap<Triple<String, String, String>, String>()
 
         fun resolve(roomId: String, senderInfo: SenderInfo, isRedacted: Boolean = false): SenderInfo =
-                resolveWith(senderInfo, isRedacted) { userId ->
+                resolveWith(
+                        senderInfo,
+                        isRedacted,
+                        disambiguate = { userId, name ->
+                            names.getOrPut(Triple(roomId, userId, name)) {
+                                session.getRoom(roomId)?.membershipService()?.disambiguateDisplayName(userId, name) ?: name
+                            }
+                        },
+                ) { userId ->
                     members.getOrPut(roomId to userId) {
                         session.getRoom(roomId)?.membershipService()?.getRoomMember(userId)
                                 // The room's members may never have been loaded (lazy loading), or the
@@ -60,6 +69,7 @@ class SenderProfileResolver @Inject constructor(
     private inline fun resolveWith(
             senderInfo: SenderInfo,
             isRedacted: Boolean,
+            disambiguate: (userId: String, name: String) -> String,
             liveMemberOf: (String) -> RoomMemberSummary?,
     ): SenderInfo {
         val useLive = vectorPreferences.showLiveSenderInfo()
@@ -73,9 +83,10 @@ class SenderProfileResolver @Inject constructor(
         } else {
             null
         }
+        val liveName = liveMember?.displayName?.takeUnless { it.isBlank() }?.let { disambiguate(senderInfo.userId, it) }
         val name = when {
-            useLive && liveMember != null -> liveMember.displayName?.takeUnless { it.isBlank() } ?: senderInfo.userId
-            storedName == null -> liveMember?.displayName?.takeUnless { it.isBlank() } ?: senderInfo.disambiguatedDisplayName
+            useLive && liveMember != null -> liveName ?: senderInfo.userId
+            storedName == null -> liveName ?: senderInfo.disambiguatedDisplayName
             else -> senderInfo.disambiguatedDisplayName
         }
         val avatar = when {

@@ -17,9 +17,11 @@
 package org.matrix.android.sdk.api.session.room.members
 
 import kotlinx.coroutines.flow.Flow
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 
 /**
  * This interface defines methods to handling membership. It's implemented at the room level.
@@ -64,6 +66,23 @@ interface MembershipService {
      * unlike [getRoomMember]. Snapshots of it (e.g. on a cached TimelineEvent's senderInfo) go stale.
      */
     fun getRoomMemberColorPreference(userId: String): ColorPreference? = getRoomMember(userId)?.colorPreference
+
+    /**
+     * Whether more than one member of the room wears [displayName], so it needs the user id beside it.
+     * Null when the room's members are not loaded yet.
+     */
+    fun isDisplayNameAmbiguous(displayName: String?): Boolean? {
+        if (displayName.isNullOrEmpty()) return false
+        return getRoomMembers(roomMemberQueryParams { this.displayName = QueryStringValue.Equals(displayName) }).size > 1
+    }
+
+    /** [displayName] with the user id appended when another member of the room shares it. */
+    fun disambiguateDisplayName(userId: String, displayName: String?): String = SenderInfo(
+            userId = userId,
+            displayName = displayName,
+            isUniqueDisplayName = isDisplayNameAmbiguous(displayName) != true,
+            avatarUrl = null,
+    ).disambiguatedDisplayName
 
     /**
      * Return all the roomMembers of the room with params.

@@ -58,6 +58,7 @@ internal class DefaultMembershipService @AssistedInject constructor(
         private val roomDataSource: RoomDataSource,
         private val cryptoService: CryptoService,
         private val roomMemberColorCache: RoomMemberColorCache,
+        private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
         @UserId
         private val userId: String,
 ) : MembershipService {
@@ -91,6 +92,8 @@ internal class DefaultMembershipService @AssistedInject constructor(
     }
 
     override fun getRoomMemberColorPreference(userId: String) = roomMemberColorCache.get(roomId, userId)
+
+    override fun isDisplayNameAmbiguous(displayName: String?) = ambiguousDisplayNameCache.isAmbiguous(roomId, displayName)
 
     override fun getRoomMembers(queryParams: RoomMemberQueryParams): List<RoomMemberSummary> {
         return roomMembersFiltered(queryParams).map { it.asDomain() }

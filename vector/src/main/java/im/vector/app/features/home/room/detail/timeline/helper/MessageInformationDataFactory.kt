@@ -113,15 +113,17 @@ class MessageInformationDataFactory @Inject constructor(
         val storedAvatar = event.senderInfo.avatarUrl
         // A redaction strips a membership event's own name and avatar: null there means the content is
         // gone, not unknown, so it falls back to the user id rather than the sender's profile today.
-        val liveMember = if (!params.preserveSenderInfo &&
+        val membershipService = if (!params.preserveSenderInfo &&
                 (useLiveSenderInfo || ((storedName == null || storedAvatar == null) && !event.root.isRedacted()))) {
-            event.root.roomId?.let { session.roomService().getRoom(it)?.membershipService()?.getRoomMember(senderId) }
+            event.root.roomId?.let { session.roomService().getRoom(it)?.membershipService() }
         } else {
             null
         }
+        val liveMember = membershipService?.getRoomMember(senderId)
+        val liveName = liveMember?.displayName?.takeUnless { it.isBlank() }?.let { membershipService.disambiguateDisplayName(senderId, it) }
         val senderName = when {
-            useLiveSenderInfo && liveMember != null -> liveMember.displayName?.takeUnless { it.isBlank() } ?: senderId
-            storedName == null -> liveMember?.displayName?.takeUnless { it.isBlank() } ?: event.senderInfo.disambiguatedDisplayName
+            useLiveSenderInfo && liveMember != null -> liveName ?: senderId
+            storedName == null -> liveName ?: event.senderInfo.disambiguatedDisplayName
             else -> event.senderInfo.disambiguatedDisplayName
         }
         val senderAvatarDecryption = when {

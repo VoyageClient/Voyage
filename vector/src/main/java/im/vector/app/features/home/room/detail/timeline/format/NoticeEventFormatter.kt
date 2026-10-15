@@ -110,9 +110,9 @@ class NoticeEventFormatter @Inject constructor(
         val storedName = event.senderInfo.displayName
         if (storedName != null) return event.senderInfo.disambiguatedDisplayName
         val session = activeSessionDataSource.currentValue?.orNull()
-        val liveName = event.root.roomId?.let {
-            session?.roomService()?.getRoom(it)?.membershipService()?.getRoomMember(senderId)
-        }?.displayName?.takeUnless { it.isBlank() }
+        val membershipService = event.root.roomId?.let { session?.roomService()?.getRoom(it)?.membershipService() }
+        val liveName = membershipService?.getRoomMember(senderId)?.displayName?.takeUnless { it.isBlank() }
+                ?.let { membershipService.disambiguateDisplayName(senderId, it) }
         return liveName ?: event.senderInfo.disambiguatedDisplayName
     }
 
@@ -201,7 +201,8 @@ class NoticeEventFormatter @Inject constructor(
             if (from != to) {
                 val fromStr = roleFormatter.format(from)
                 val toStr = roleFormatter.format(to)
-                val displayName = event.roomId?.let { roomService?.getRoomMember(userId, it)?.displayName } ?: userId
+                val membershipService = event.roomId?.let { roomService?.getRoom(it)?.membershipService() }
+                val displayName = membershipService?.disambiguateDisplayName(userId, membershipService.getRoomMember(userId)?.displayName) ?: userId
                 val diff = sp.getString(CommonStrings.notice_power_level_diff, displayName, fromStr, toStr)
                 diffs.add(diff)
             }

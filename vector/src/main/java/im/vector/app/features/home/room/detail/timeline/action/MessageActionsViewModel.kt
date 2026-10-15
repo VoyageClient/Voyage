@@ -189,8 +189,10 @@ class MessageActionsViewModel @AssistedInject constructor(
 
             initialState.informationData.sharedByUserId?.let { sharedBy ->
                 viewModelScope.launch(Dispatchers.Default) {
-                    val displayName = room?.membershipService()?.getRoomMember(sharedBy)?.displayName
-                    setState { copy(sharedByDisplayName = displayName?.takeIf { it.isNotBlank() } ?: sharedBy) }
+                    val membershipService = room?.membershipService()
+                    val displayName = membershipService?.getRoomMember(sharedBy)?.displayName?.takeIf { it.isNotBlank() }
+                            ?.let { membershipService.disambiguateDisplayName(sharedBy, it) }
+                    setState { copy(sharedByDisplayName = displayName ?: sharedBy) }
                 }
             }
 
