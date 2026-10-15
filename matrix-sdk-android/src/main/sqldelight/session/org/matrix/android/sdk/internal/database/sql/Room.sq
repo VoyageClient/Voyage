@@ -18,6 +18,14 @@ SELECT room_id FROM room WHERE room_id = ? AND members_load_status_str = ?;
 selectByMembership:
 SELECT * FROM room WHERE membership_str IN ?;
 
+-- Joined rooms whose stored own member event may say we were removed. A coarse text match: callers parse
+-- the event to confirm.
+selectJoinedWithPossibleRemoval:
+SELECT r.room_id FROM room r
+JOIN current_state_event c ON c.room_id = r.room_id AND c.type = 'm.room.member' AND c.state_key = :userId
+JOIN event e ON e.room_id = c.room_id AND e.event_id = c.event_id
+WHERE r.membership_str = 'JOIN' AND (e.content LIKE '%"ban"%' OR e.content LIKE '%"leave"%');
+
 upsert:
 INSERT OR REPLACE INTO room(room_id, membership_str, members_load_status_str) VALUES (?, ?, ?);
 

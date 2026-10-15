@@ -13,6 +13,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.sync.model.RoomSync
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
+import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
@@ -56,6 +57,7 @@ internal class DefaultSyncRemovedRoomsTask @Inject constructor(
     private val inFlight = AtomicBoolean(false)
 
     override suspend fun execute(params: SyncRemovedRoomsTask.Params) {
+        healRemovalsFiledAsJoined()
         // Removed rooms count as read in full, including any left unread by the sync that removed them.
         database.awaitDbTransaction(sessionDbDispatcher) { stores.roomSummary.clearUnreadForRemovedRooms() }
         // The persisted marker lives in the session store, so recovery re-runs exactly when the
@@ -85,13 +87,38 @@ internal class DefaultSyncRemovedRoomsTask @Inject constructor(
         }
     }
 
+    /**
+     * A kick/ban that sliding sync filed under the joined section (no own membership in required_state) was
+     * stored as plain state while the room stayed JOIN, and the server never mentions the room again. Replay
+     * such rooms through the left-room path, which reads the removal from the stored state.
+     */
+    private suspend fun healRemovalsFiledAsJoined() {
+        val stale = database.awaitDbTransaction(sessionDbDispatcher) {
+            stores.room.getJoinedWithPossibleRemoval(userId).filter { roomId ->
+                val memberEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.root?.asDomain()
+                memberEvent != null && isRemoval(memberEvent)
+            }
+        }
+        if (stale.isEmpty()) return
+        Timber.w("SyncRemovedRooms: moving ${stale.size} room(s) still marked joined after a kick/ban: $stale")
+        val aggregator = SyncResponsePostTreatmentAggregator()
+        database.awaitDbTransaction(sessionDbDispatcher) {
+            roomSyncHandler.handle(stores, RoomsSyncResponse(leave = stale.associateWith { RoomSync() }), isInitialSync = false, aggregator = aggregator)
+        }
+        aggregatorHandler.handle(aggregator)
+    }
+
+    private fun isRemoval(memberEvent: Event): Boolean {
+        val membership = memberEvent.getFixedRoomMemberContent()?.membership
+        return membership == Membership.BAN || (membership == Membership.LEAVE && memberEvent.senderId != userId)
+    }
+
     private fun isImportable(roomId: String, roomSync: RoomSync): Boolean {
         // Never touch a room with live local state; this task only backfills unknown removals.
         val localMembership = stores.room.get(roomId)?.membership
         if (localMembership != null && localMembership.isActive()) return false
         val memberEvent = myMemberEvent(roomSync) ?: return false
-        val membership = memberEvent.getFixedRoomMemberContent()?.membership
-        return membership == Membership.BAN || (membership == Membership.LEAVE && memberEvent.senderId != userId)
+        return isRemoval(memberEvent)
     }
 
     private fun myMemberEvent(roomSync: RoomSync): Event? {

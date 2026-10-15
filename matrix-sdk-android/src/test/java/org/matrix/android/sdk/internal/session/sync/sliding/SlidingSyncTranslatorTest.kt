@@ -308,6 +308,57 @@ class SlidingSyncTranslatorTest {
     }
 
     @Test
+    fun `a removal in the timeline outranks the stored join and an older required_state join`() {
+        val translator = SlidingSyncTranslator(
+                userId = "@me:example.org",
+                stores = mockk {
+                    every { roomMember.getByRoomAndUser(any(), any()) } returns null
+                    every { room.get(any()) } returns RoomEntity(roomId = "!room:example.org").apply {
+                        membership = Membership.JOIN
+                    }
+                },
+        )
+
+        val response = translator.toSyncResponse(
+                adapter.fromJson(
+                        """
+                        {
+                          "pos": "s1",
+                          "rooms": {
+                            "!timelineOnly:example.org": {
+                              "timeline": [
+                                {
+                                  "type": "m.room.member", "state_key": "@me:example.org", "event_id": "${'$'}b1",
+                                  "sender": "@mod:example.org", "content": { "membership": "ban" }
+                                }
+                              ]
+                            },
+                            "!staleRequiredState:example.org": {
+                              "required_state": [
+                                {
+                                  "type": "m.room.member", "state_key": "@me:example.org", "event_id": "${'$'}j1",
+                                  "sender": "@me:example.org", "content": { "membership": "join" }
+                                }
+                              ],
+                              "timeline": [
+                                {
+                                  "type": "m.room.member", "state_key": "@me:example.org", "event_id": "${'$'}k1",
+                                  "sender": "@mod:example.org", "content": { "membership": "leave" }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                        """.trimIndent()
+                )!!
+        )
+
+        response.rooms?.leave?.keys?.shouldContain("!timelineOnly:example.org")
+        response.rooms?.leave?.keys?.shouldContain("!staleRequiredState:example.org")
+        response.rooms?.join?.size shouldBeEqualTo 0
+    }
+
+    @Test
     fun `left and knocked rooms are routed away from the join bucket`() {
         val response = translate(
                 """

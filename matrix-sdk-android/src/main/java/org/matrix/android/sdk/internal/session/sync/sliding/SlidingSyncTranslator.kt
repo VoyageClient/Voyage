@@ -119,15 +119,18 @@ internal class SlidingSyncTranslator @Inject constructor(
         }
         // Synapse does not send the MSC's optional membership field at all, so our own member event — which
         // the $ME sentinel always asks for — is what says whether we are still in the room. Without this a
-        // room we were kicked from reads as joined, and gets marked as participating again.
-        requiredState.orEmpty()
-                .lastOrNull { it.type == EventType.STATE_ROOM_MEMBER && it.stateKey == userId }
+        // room we were kicked from reads as joined, and gets marked as participating again. The timeline goes
+        // first: Synapse can deliver a removal there alone, and timeline state applies after required_state
+        // (as in matrix-js-sdk).
+        (timeline.orEmpty().lastOrNull(::isOwnMemberEvent) ?: requiredState.orEmpty().lastOrNull(::isOwnMemberEvent))
                 ?.getFixedRoomMemberContent()
                 ?.membership
                 ?.let { return it }
         if (strippedStateEvents != null) return Membership.INVITE
         return null
     }
+
+    private fun isOwnMemberEvent(event: Event): Boolean = event.type == EventType.STATE_ROOM_MEMBER && event.stateKey == userId
 
     /**
      * What the store says about a room the response carries nothing about. Synapse keeps delivering a room

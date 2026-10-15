@@ -26,6 +26,9 @@ internal class RoomSqlStore(private val database: SessionSqlDatabase) {
     fun getByMemberships(memberships: List<Membership>): List<RoomEntity> =
             queries.selectByMembership(memberships.map { it.name }).executeAsList().map { it.toEntity() }
 
+    fun getJoinedWithPossibleRemoval(userId: String): List<String> =
+            queries.selectJoinedWithPossibleRemoval(userId).executeAsList()
+
     fun upsert(entity: RoomEntity) = queries.upsert(entity.roomId, entity.membership.name, entity.membersLoadStatus.name)
 
     fun updateMembership(roomId: String, membership: Membership) = queries.updateMembership(membership.name, roomId)
