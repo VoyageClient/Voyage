@@ -23,6 +23,16 @@ class MarkwonGoldenTest {
     private val resolver = TestPillResolver()
 
     @Test
+    fun `empty list items keep their markers`() {
+        val renderer = RichTextRenderer()
+        val body = MessageBodyRenderer(resolver, TestMatrixPatterns).render("<ol start=\"12\">\n<li></li>\n</ol>\n")
+        assertEquals("12.", body.text.text)
+        assertEquals("12.\n13.\u00a0next", renderer.render("<ol start=\"12\"><li></li><li>next</li></ol>").text)
+        assertEquals("●\n●\u00a0x", renderer.render("<ul><li></li><li>x</li></ul>").text)
+        assertEquals(listOf(RichStyle.ListMarker("12.")), body.text.spans.map { it.style }.filterIsInstance<RichStyle.ListMarker>())
+    }
+
+    @Test
     fun `renders description lists`() {
         val rendered = RichTextRenderer().render("<dl><dt>Term</dt><dd>Definition</dd></dl>")
 

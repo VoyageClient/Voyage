@@ -10,6 +10,7 @@ package im.vector.app.features.html
 import android.text.Spanned
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
+import im.vector.app.core.utils.toMarkdownSource
 import io.mockk.mockk
 import me.gujun.android.span.style.VerticalPaddingSpan
 import org.junit.Assert.assertEquals
@@ -48,6 +49,26 @@ class ListRenderingTest {
     private val compressor = VectorHtmlCompressor()
 
     private fun render(html: String) = renderer.render(compressor.compress(html))
+
+    @Test
+    fun `empty numbered items render and copy without trailing spaces`() {
+        listOf(1, 12).forEach { number ->
+            val rendered = render("<ol start=\"$number\">\n<li></li>\n</ol>\n") as Spanned
+            assertEquals("$number.", rendered.toString())
+            assertEquals("$number.", rendered.toMarkdownSource(0, rendered.length))
+            assertEquals("$number.", rendered.toMarkdownSource(rendered.length - 1, rendered.length))
+        }
+    }
+
+    @Test
+    fun `empty items keep sibling markers and copied text separate`() {
+        val ordered = render("<ol start=\"12\"><li></li><li>next</li><li></li></ol>") as Spanned
+        assertEquals("12.\n13.\u00a0next\n14.", ordered.toString())
+        assertEquals("12.\n13. next\n14.", ordered.toMarkdownSource(0, ordered.length))
+        val bullets = render("<ul><li></li><li>x</li><li></li></ul>") as Spanned
+        assertEquals("●\n●\u00a0x\n●", bullets.toString())
+        assertEquals("-\n- x\n-", bullets.toMarkdownSource(0, bullets.length))
+    }
 
     @Test
     fun `numbered list does not start with a phantom blank line`() {

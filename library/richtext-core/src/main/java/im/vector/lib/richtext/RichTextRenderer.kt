@@ -210,11 +210,14 @@ class RichTextRenderer(private val latexEnabled: Boolean = true) {
         }.sortedWith(compareByDescending<Triple<SpanBuffer.Span, Int, Int>> { it.second }.thenByDescending { it.third })
         for ((span, start, depth) in markers) {
             if (start < 0) continue
+            val empty = span.end == start + 1 && text[start] == '\u00a0'
             text.removeSpan(span)
             val number = (span.style as RichStyle.ListItem).number
-            val (display, source) = if (number != null) "$number.\u00a0" to "$number. " else "●\u00a0" to "- "
+            val marker = if (number != null) "$number." else "●"
+            val display = marker + if (empty) "" else "\u00a0"
+            val source = (if (number != null) marker else "-") + if (empty) "" else " "
             val indent = "   ".repeat(depth)
-            text.insert(start, indent + display)
+            text.replace(start, if (empty) start + 1 else start, indent + display)
             if (number == null) {
                 // The small • glyph reads undersized next to the old drawn bullet; a scaled ● matches it.
                 text.setSpan(RichStyle.RelativeSize(0.8f), start + indent.length, start + indent.length + 1)

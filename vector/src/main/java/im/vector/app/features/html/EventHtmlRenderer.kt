@@ -495,14 +495,13 @@ class EventHtmlRenderer @Inject constructor(
         }.sortedWith(compareByDescending<Triple<Any, Int, Int>> { it.second }.thenByDescending { it.third })
         for ((span, start, depth) in markers) {
             if (start < 0) continue
+            val empty = text.getSpanEnd(span) == start + 1 && text[start] == '\u00a0'
             text.removeSpan(span)
-            val (display, source) = if (span is SourceOrderedListItemSpan) {
-                "${span.number}. " to "${span.number}. "
-            } else {
-                "● " to "- "
-            }
+            val marker = if (span is SourceOrderedListItemSpan) "${span.number}." else "●"
+            val display = marker + if (empty) "" else "\u00a0"
+            val source = (if (span is SourceOrderedListItemSpan) marker else "-") + if (empty) "" else " "
             val indent = "   ".repeat(depth)
-            text.insert(start, indent + display)
+            text.replace(start, if (empty) start + 1 else start, indent + display)
             if (span !is SourceOrderedListItemSpan) {
                 // The small • glyph reads undersized next to the old drawn bullet; a scaled ● matches it
                 text.setSpan(RelativeSizeSpan(0.8f), start + indent.length, start + indent.length + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

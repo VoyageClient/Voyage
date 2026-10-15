@@ -48,6 +48,9 @@ public class HtmlEmptyTagReplacement {
         } else if ("iframe".equals(name)) {
             // @since 4.4.0 make iframe non-empty
             replacement = IFRAME_REPLACEMENT;
+        } else if ("li".equals(name)) {
+            // List marker spans need a non-empty range, even when the item has no text.
+            replacement = "\u00a0";
         } else {
             replacement = null;
         }
