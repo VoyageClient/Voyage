@@ -13,6 +13,7 @@ import org.json.JSONObject
 
 internal open class JSonViewerModel(var key: String?, var index: Int?, val jObject: Any) {
     var depth = 0
+    @Volatile
     var isExpanded = false
 }
 

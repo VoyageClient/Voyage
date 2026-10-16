@@ -29,8 +29,8 @@ internal abstract class ValueItem : EpoxyModelWithHolder<ValueItem.Holder>() {
     @EpoxyAttribute
     var depth: Int = 0
 
-    @EpoxyAttribute
-    var copyValue: String? = null
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var copyValue: (() -> String?)? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var itemClickListener: View.OnClickListener? = null
@@ -55,7 +55,7 @@ internal abstract class ValueItem : EpoxyModelWithHolder<ValueItem.Holder>() {
 
         lateinit var textView: TextView
         lateinit var baseView: LinearLayout
-        var copyValue: String? = null
+        var copyValue: (() -> String?)? = null
 
         override fun bindView(itemView: View) {
             baseView = itemView.findViewById(R.id.jvBaseLayout)
@@ -68,11 +68,13 @@ internal abstract class ValueItem : EpoxyModelWithHolder<ValueItem.Holder>() {
                 v: View?,
                 menuInfo: ContextMenu.ContextMenuInfo?
         ) {
+            val copyValue = copyValue
             if (copyValue != null) {
                 val menuItem = menu?.add(R.string.copy_value)
                 val clipService = v?.context?.getSystemService<ClipboardManager>()
                 menuItem?.setOnMenuItemClickListener {
-                    clipService?.setPrimaryClip(ClipData.newPlainText("", copyValue))
+                    val value = copyValue() ?: return@setOnMenuItemClickListener true
+                    clipService?.setPrimaryClip(ClipData.newPlainText("", value))
                     true
                 }
             }

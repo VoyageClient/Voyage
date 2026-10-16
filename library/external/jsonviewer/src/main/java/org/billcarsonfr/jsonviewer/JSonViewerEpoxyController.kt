@@ -9,8 +9,10 @@ package org.billcarsonfr.jsonviewer
 
 import android.content.Context
 import android.view.View
+import com.airbnb.epoxy.EpoxyAsyncUtil
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Fail
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import me.gujun.android.span.Span
@@ -18,6 +20,7 @@ import me.gujun.android.span.span
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.util.IdentityHashMap
 
 // Set at app start so keys/values render emoji like the app's other text surfaces; this vendored
 // module can't depend on the app's EmojiSpanify.
@@ -28,9 +31,19 @@ private fun CharSequence.toDisplayEpoxyCharSequence() =
         (jsonViewerEmojiSpanify?.invoke(this) ?: this).toEpoxyCharSequence()
 
 internal class JSonViewerEpoxyController(private val context: Context) :
-        TypedEpoxyController<JSonViewerState>() {
+        TypedEpoxyController<JSonViewerState>(
+                EpoxyAsyncUtil.getAsyncBackgroundHandler(),
+                EpoxyAsyncUtil.getAsyncBackgroundHandler()
+        ) {
 
+    @Volatile
     private var styleProvider: JSonViewerStyleProvider = JSonViewerStyleProvider.default(context)
+
+    // So a toggle doesn't re-span and re-emojify every row. Model-building thread only.
+    private val openTexts = IdentityHashMap<JSonViewerModel, EpoxyCharSequence>()
+    private val rowTexts = IdentityHashMap<JSonViewerModel, EpoxyCharSequence>()
+    private var cachedRoot: JSonViewerObject? = null
+    private var cachedStyle: JSonViewerStyleProvider? = null
 
     fun setStyle(styleProvider: JSonViewerStyleProvider?) {
         this.styleProvider = styleProvider ?: JSonViewerStyleProvider.default(context)
@@ -49,6 +62,12 @@ internal class JSonViewerEpoxyController(private val context: Context) :
             }
             else -> {
                 async.invoke()?.let { root ->
+                    if (root !== cachedRoot || styleProvider !== cachedStyle) {
+                        openTexts.clear()
+                        rowTexts.clear()
+                        cachedRoot = root
+                        cachedStyle = styleProvider
+                    }
                     val query = data.searchQuery.trim()
                     if (query.isEmpty()) {
                         buildRec(root, 0, "")
@@ -73,7 +92,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
             buildRec(model, depth, idBase)
             return true
         }
-        val id = "$idBase/${model.key ?: model.index}_${model.isExpanded}}"
+        val id = "$idBase/${model.key ?: model.index}"
         val children = when (model) {
             is JSonViewerObject -> model.keys.values.toList()
             is JSonViewerArray -> model.items.toList()
@@ -81,7 +100,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
         }
         if (children.none { it.subtreeMatches(query) }) return false
         val isObject = model is JSonViewerObject
-        open(id, model.key, model.index, depth, isObject, model)
+        open(id, depth, isObject, model)
         children.forEach { buildFiltered(it, depth + 1, id, query) }
         close(id, depth, isObject)
         return true
@@ -109,84 +128,24 @@ internal class JSonViewerEpoxyController(private val context: Context) :
             idBase: String
     ) {
         val host = this
-        val id = "$idBase/${model.key ?: model.index}_${model.isExpanded}}"
+        val id = "$idBase/${model.key ?: model.index}"
         when (model) {
-            is JSonViewerObject -> {
+            is JSonViewerObject, is JSonViewerArray -> {
+                val isObject = model is JSonViewerObject
                 if (model.isExpanded) {
-                    open(id, model.key, model.index, depth, true, model)
-                    model.keys.forEach {
-                        buildRec(it.value, depth + 1, id)
+                    open(id, depth, isObject, model)
+                    if (model is JSonViewerObject) {
+                        model.keys.values.forEach { buildRec(it, depth + 1, id) }
+                    } else if (model is JSonViewerArray) {
+                        model.items.forEach { buildRec(it, depth + 1, id) }
                     }
-                    close(id, depth, true)
+                    close(id, depth, isObject)
                 } else {
                     valueItem {
                         id(id + "_sum")
                         depth(depth)
-                        text(
-                                span {
-                                    if (model.key != null) {
-                                        span("\"${model.key?.neutralizeDirectionOverrides()}\"") {
-                                            textColor = host.styleProvider.keyColor
-                                        }
-                                        span(" : ") {
-                                            textColor = host.styleProvider.baseColor
-                                        }
-                                    }
-                                    if (model.index != null) {
-                                        span("${model.index}") {
-                                            textColor = host.styleProvider.secondaryColor
-                                        }
-                                        span(" : ") {
-                                            textColor = host.styleProvider.baseColor
-                                        }
-                                    }
-                                    span {
-                                        +"{+${model.keys.size}}"
-                                        textColor = host.styleProvider.baseColor
-                                    }
-                                }.toDisplayEpoxyCharSequence()
-                        )
-                        copyValue(host.serializedValue(model))
-                        itemClickListener(View.OnClickListener { host.itemClicked(model) })
-                    }
-                }
-            }
-            is JSonViewerArray -> {
-                if (model.isExpanded) {
-                    open(id, model.key, model.index, depth, false, model)
-                    model.items.forEach {
-                        buildRec(it, depth + 1, id)
-                    }
-                    close(id, depth, false)
-                } else {
-                    valueItem {
-                        id(id + "_sum")
-                        depth(depth)
-                        text(
-                                span {
-                                    if (model.key != null) {
-                                        span("\"${model.key?.neutralizeDirectionOverrides()}\"") {
-                                            textColor = host.styleProvider.keyColor
-                                        }
-                                        span(" : ") {
-                                            textColor = host.styleProvider.baseColor
-                                        }
-                                    }
-                                    if (model.index != null) {
-                                        span("${model.index}") {
-                                            textColor = host.styleProvider.secondaryColor
-                                        }
-                                        span(" : ") {
-                                            textColor = host.styleProvider.baseColor
-                                        }
-                                    }
-                                    span {
-                                        +"[+${model.items.size}]"
-                                        textColor = host.styleProvider.baseColor
-                                    }
-                                }.toDisplayEpoxyCharSequence()
-                        )
-                        copyValue(host.serializedValue(model))
+                        text(host.rowTexts.getOrPut(model) { host.summaryText(model) })
+                        copyValue { host.serializedValue(model) }
                         itemClickListener(View.OnClickListener { host.itemClicked(model) })
                     }
                 }
@@ -195,32 +154,68 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                 valueItem {
                     id(id)
                     depth(depth)
-                    text(
-                            span {
-                                if (model.key != null) {
-                                    span("\"${model.key}\"") {
-                                        textColor = host.styleProvider.keyColor
-                                    }
-                                    span(" : ") {
-                                        textColor = host.styleProvider.baseColor
-                                    }
-                                }
-
-                                if (model.index != null) {
-                                    span("${model.index}") {
-                                        textColor = host.styleProvider.secondaryColor
-                                    }
-                                    span(" : ") {
-                                        textColor = host.styleProvider.baseColor
-                                    }
-                                }
-                                append(host.valueToSpan(model))
-                            }.toDisplayEpoxyCharSequence()
-                    )
-                    copyValue(model.stringRes)
+                    text(host.rowTexts.getOrPut(model) { host.leafText(model) })
+                    copyValue { model.stringRes }
                 }
             }
         }
+    }
+
+    private fun Span.keyPrefix(model: JSonViewerModel, neutralizeKey: Boolean) {
+        val key = model.key
+        if (key != null) {
+            span("\"${if (neutralizeKey) key.neutralizeDirectionOverrides() else key}\"") {
+                textColor = styleProvider.keyColor
+            }
+            span(" : ") {
+                textColor = styleProvider.baseColor
+            }
+        }
+        if (model.index != null) {
+            span("${model.index}") {
+                textColor = styleProvider.secondaryColor
+            }
+            span(" : ") {
+                textColor = styleProvider.baseColor
+            }
+        }
+    }
+
+    private fun summaryText(model: JSonViewerModel): EpoxyCharSequence {
+        val host = this
+        val summary = when (model) {
+            is JSonViewerObject -> "{+${model.keys.size}}"
+            is JSonViewerArray -> "[+${model.items.size}]"
+            else -> ""
+        }
+        return span {
+            keyPrefix(model, neutralizeKey = true)
+            span {
+                +summary
+                textColor = host.styleProvider.baseColor
+            }
+        }.toDisplayEpoxyCharSequence()
+    }
+
+    private fun leafText(model: JSonViewerLeaf): EpoxyCharSequence {
+        val host = this
+        return span {
+            keyPrefix(model, neutralizeKey = false)
+            append(host.valueToSpan(model))
+        }.toDisplayEpoxyCharSequence()
+    }
+
+    private fun openText(model: JSonViewerModel, isObject: Boolean): EpoxyCharSequence {
+        val host = this
+        return span {
+            keyPrefix(model, neutralizeKey = true)
+            span("- ") {
+                textColor = host.styleProvider.secondaryColor
+            }
+            span("{".takeIf { isObject } ?: "[") {
+                textColor = host.styleProvider.baseColor
+            }
+        }.toDisplayEpoxyCharSequence()
     }
 
     private fun valueToSpan(leaf: JSonViewerLeaf): Span {
@@ -251,49 +246,23 @@ internal class JSonViewerEpoxyController(private val context: Context) :
 
     private fun open(
             id: String,
-            key: String?,
-            index: Int?,
             depth: Int,
-            isObject: Boolean = true,
+            isObject: Boolean,
             composed: JSonViewerModel
     ) {
         val host = this
         valueItem {
             id("${id}_Open")
             depth(depth)
-            text(
-                    span {
-                        if (key != null) {
-                            span("\"${key.neutralizeDirectionOverrides()}\"") {
-                                textColor = host.styleProvider.keyColor
-                            }
-                            span(" : ") {
-                                textColor = host.styleProvider.baseColor
-                            }
-                        }
-                        if (index != null) {
-                            span("$index") {
-                                textColor = host.styleProvider.secondaryColor
-                            }
-                            span(" : ") {
-                                textColor = host.styleProvider.baseColor
-                            }
-                        }
-                        span("- ") {
-                            textColor = host.styleProvider.secondaryColor
-                        }
-                        span("{".takeIf { isObject } ?: "[") {
-                            textColor = host.styleProvider.baseColor
-                        }
-                    }.toDisplayEpoxyCharSequence()
-            )
-            copyValue(host.serializedValue(composed))
+            text(host.openTexts.getOrPut(composed) { host.openText(composed, isObject) })
+            copyValue { host.serializedValue(composed) }
             itemClickListener(View.OnClickListener { host.itemClicked(composed) })
         }
     }
 
     // The node's value serialized as pretty-printed JSON, excluding its key — so long-pressing
-    // "content" copies `{ ... }`, and the root copies the whole event.
+    // "content" copies `{ ... }`, and the root copies the whole event. Lazy: eagerly it serializes each
+    // subtree once per ancestor on every rebuild, which hangs and OOMs on large documents.
     private fun serializedValue(model: JSonViewerModel): String? = try {
         // org.json escapes every '/' as '\/'; undo it so the copied JSON matches the source exactly.
         when (val o = model.jObject) {

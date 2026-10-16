@@ -16,7 +16,9 @@ import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
 import com.airbnb.mvrx.Uninitialized
 import com.airbnb.mvrx.ViewModelContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 internal data class JSonViewerState(
         val root: Async<JSonViewerObject> = Uninitialized,
@@ -36,7 +38,7 @@ internal class JSonViewerViewModel(initialState: JSonViewerState) :
         }
         viewModelScope.launch {
             try {
-                ModelParser.fromJsonString(json, initialOpenDepth).let {
+                withContext(Dispatchers.Default) { ModelParser.fromJsonString(json, initialOpenDepth) }.let {
                     setState {
                         copy(
                                 root = Success(it)
