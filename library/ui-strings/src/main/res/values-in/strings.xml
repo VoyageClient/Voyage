@@ -3513,4 +3513,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="scheduled_messages_title">Pesan terjadwal</string>
     <string name="scheduled_messages_empty">Tidak ada pesan terjadwal di ruangan ini.</string>
     <string name="scheduled_message_send_now">Kirim sekarang</string>
+    <string name="attachment_viewer_picture_in_picture">Gambar dalam gambar</string>
 </resources>

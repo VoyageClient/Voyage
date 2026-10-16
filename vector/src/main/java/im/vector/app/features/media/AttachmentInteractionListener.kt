@@ -13,6 +13,7 @@ interface AttachmentInteractionListener {
     fun onDownload()
     fun onForward()
     fun onShowInChat()
+    fun onPictureInPicture()
     fun onShowInfo()
     fun onPlayPause(play: Boolean)
     fun videoSeekTo(percent: Int)

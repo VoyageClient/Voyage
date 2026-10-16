@@ -11,6 +11,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -350,6 +351,10 @@ class AttachmentOverlayView @JvmOverloads constructor(
         val speedItem = popup.menu.findItem(R.id.attachmentViewerPlaybackSpeed)
         // MediaPlayer only takes a speed from API 23, and nothing below it can stand in.
         speedItem.isVisible = isVideo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+        // Older devices keep the full-screen viewer because system PiP requires Android 8.
+        popup.menu.findItem(R.id.attachmentViewerPictureInPicture).isVisible =
+                isVideo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                context.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
         moreMenuOpen = true
         // The dismissing tap lands in the popup's own window, so the viewer never sees a touch
         // to restart its auto-hide countdown from — it has to be told.
@@ -362,6 +367,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
                 R.id.attachmentViewerShare -> interactionListener?.onShare()
                 R.id.attachmentViewerForward -> interactionListener?.onForward()
                 R.id.attachmentViewerShowInChat -> interactionListener?.onShowInChat()
+                R.id.attachmentViewerPictureInPicture -> interactionListener?.onPictureInPicture()
                 R.id.attachmentViewerInfo -> interactionListener?.onShowInfo()
                 R.id.attachmentViewerPlaybackSpeed -> showSpeedDialog()
                 R.id.attachmentViewerVolume -> showVolumeDialog()

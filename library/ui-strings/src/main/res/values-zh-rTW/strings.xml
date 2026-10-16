@@ -3515,4 +3515,5 @@
     <string name="scheduled_messages_title">排程訊息</string>
     <string name="scheduled_messages_empty">此聊天室沒有排程訊息。</string>
     <string name="scheduled_message_send_now">立即傳送</string>
+    <string name="attachment_viewer_picture_in_picture">子母畫面</string>
 </resources>

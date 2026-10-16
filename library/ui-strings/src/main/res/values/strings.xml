@@ -4258,4 +4258,5 @@
     <string name="audio_player_fast_forward_label">+5s</string>
     <string name="audio_player_parameters">Speed and pitch</string>
     <string name="audio_player_parameters_legacy">On this Android version, speed and pitch controls are available for Opus voice messages and PCM WAV files. Other audio plays at its original speed and pitch.</string>
+    <string name="attachment_viewer_picture_in_picture">Picture-in-picture</string>
 </resources>

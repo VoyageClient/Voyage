@@ -3459,4 +3459,5 @@
     <string name="scheduled_messages_title">शेड्यूल किए गए संदेश</string>
     <string name="scheduled_messages_empty">इस रूम में कोई संदेश शेड्यूल नहीं है।</string>
     <string name="scheduled_message_send_now">अभी भेजें</string>
+    <string name="attachment_viewer_picture_in_picture">पिक्चर-इन-पिक्चर</string>
 </resources>

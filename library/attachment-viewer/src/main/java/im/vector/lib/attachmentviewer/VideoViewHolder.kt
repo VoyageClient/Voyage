@@ -334,6 +334,18 @@ class VideoViewHolder constructor(itemView: View) :
         }
     }
 
+    internal val videoAspectRatio: Float
+        get() = if (videoWidth > 0 && videoHeight > 0) {
+            if (videoRotation % 180 == 90) videoHeight / videoWidth else videoWidth / videoHeight
+        } else {
+            16f / 9f
+        }
+
+    internal fun prepareForPictureInPicture() {
+        resetZoom()
+        handleCommand(AttachmentCommands.StartVideo)
+    }
+
     internal fun isScaled(): Boolean = userScale() > 1.0008f || pinchActive
 
     override fun onRecycled() {
@@ -381,6 +393,7 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     override fun onSelected(selected: Boolean) {
+        if (selected) AttachmentViewerActivity.dismissPictureInPictureForVideo(this)
         if (!selected) {
             progress = player?.takeIf { it.isPlaying }?.positionMs ?: 0
             releasePlayer()
@@ -627,8 +640,8 @@ class VideoViewHolder constructor(itemView: View) :
                 applyPlaybackSpeed()
             }
             AttachmentCommands.StartVideo -> {
-                val active = player ?: return
                 wasPaused = false
+                val active = player ?: return
                 if (isPrepared) {
                     // Play from the end means play again: without the rewind it runs for a
                     // frame, completes and pauses right back.
@@ -643,11 +656,13 @@ class VideoViewHolder constructor(itemView: View) :
                 } else {
                     endedNaturally = false
                 }
+                publishState()
             }
             AttachmentCommands.PauseVideo -> {
-                val active = player ?: return
                 wasPaused = true
+                val active = player ?: return
                 if (isPrepared) active.pause()
+                publishState()
             }
             is AttachmentCommands.SeekTo -> {
                 val active = player ?: return

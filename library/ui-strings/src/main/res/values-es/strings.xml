@@ -3565,4 +3565,5 @@
     <string name="scheduled_messages_title">Mensajes programados</string>
     <string name="scheduled_messages_empty">No hay mensajes programados en esta sala.</string>
     <string name="scheduled_message_send_now">Enviar ahora</string>
+    <string name="attachment_viewer_picture_in_picture">Imagen en imagen</string>
 </resources>

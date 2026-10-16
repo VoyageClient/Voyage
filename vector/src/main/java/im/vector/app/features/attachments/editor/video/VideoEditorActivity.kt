@@ -67,6 +67,7 @@ import im.vector.app.features.attachments.preview.VIDEO_PROGRESS_INTERVAL_MS
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.animatedimage.AnimatedImageFormat
+import im.vector.lib.attachmentviewer.AttachmentViewerActivity
 import im.vector.lib.core.utils.audio.LoudnessBoost
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.mediatranscode.MediaSourceInfo
@@ -854,6 +855,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private fun preparePlayer() {
         releasePlayer()
         val surface = surface ?: return
+        if (!isAnimated) AttachmentViewerActivity.dismissPictureInPicture()
         player = EditorPreviewPlayer.create().also { preview ->
             preview.open(
                     context = this,

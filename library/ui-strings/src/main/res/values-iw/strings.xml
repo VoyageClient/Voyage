@@ -3670,4 +3670,5 @@
     <string name="scheduled_messages_title">הודעות מתוזמנות</string>
     <string name="scheduled_messages_empty">אין הודעות מתוזמנות בחדר הזה.</string>
     <string name="scheduled_message_send_now">שלח עכשיו</string>
+    <string name="attachment_viewer_picture_in_picture">תמונה בתוך תמונה</string>
 </resources>

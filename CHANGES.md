@@ -130,6 +130,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Video playback controls**: Telegram-style playback in the full-screen viewer and the attachment preview, with an on-video play/pause button, controls that hide themselves during playback, double-tap on either side to jump 10 seconds, a frame preview while scrubbing, and a millisecond seekbar with elapsed and total time. Videos loop unless the new "Loop videos" setting is off, and a video's length shows on its timeline thumbnail. The overflow menu sets playback from 0.1x to 3x with the pitch either following or holding, and the volume from silent to 500%, boosting the sound above its own loudness rather than scaling it. Speed and volume belong to that video and reset when you swipe away.
 
+- **Video picture-in-picture**: watch videos in a floating window with play/pause controls on supported Android 8+ devices.
+
 - **Media viewer with pinch-to-zoom**: a reworked image and video viewer with pinch-to-zoom on still images, animated images and videos, an overhauled compression pipeline that compresses by the shorter side so long media isn't squished, and correct thumbnail stubs during upload.
 
 - **Full Uploads history in encrypted rooms**: a room's Uploads screen keeps loading older media and files in encrypted rooms instead of stopping at what the device had already decrypted. The Media tab can be filtered to photos or videos, and file rows can be forwarded or shown in the chat.

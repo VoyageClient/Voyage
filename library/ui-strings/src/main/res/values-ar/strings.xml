@@ -3726,4 +3726,5 @@
     <string name="scheduled_messages_title">الرسائل المجدولة</string>
     <string name="scheduled_messages_empty">لا توجد رسائل مجدولة في هذه الغرفة.</string>
     <string name="scheduled_message_send_now">أرسِل الآن</string>
+    <string name="attachment_viewer_picture_in_picture">صورة داخل صورة</string>
 </resources>

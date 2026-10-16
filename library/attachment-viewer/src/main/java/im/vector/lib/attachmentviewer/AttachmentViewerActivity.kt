@@ -10,9 +10,19 @@ package im.vector.lib.attachmentviewer
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -23,23 +33,47 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.viewpager2.widget.ViewPager2
 import im.vector.lib.attachmentviewer.databinding.ActivityAttachmentViewerBinding
+import im.vector.lib.strings.CommonStrings
 import java.lang.ref.WeakReference
+import java.util.UUID
 import kotlin.math.abs
 
 abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventListener {
 
-    private companion object {
-        const val OVERLAY_FADE_MS = 150L
+    companion object {
+        private var pictureInPictureActivity: WeakReference<AttachmentViewerActivity>? = null
+
+        fun dismissPictureInPicture() {
+            val activity = pictureInPictureActivity?.get() ?: return
+            pictureInPictureActivity = null
+            activity.pausePlayback()
+            activity.finish()
+        }
+
+        fun pausePictureInPicture() {
+            val activity = pictureInPictureActivity?.get() ?: return
+            activity.handle(AttachmentCommands.PauseVideo)
+        }
+
+        internal fun dismissPictureInPictureForVideo(holder: VideoViewHolder) {
+            if (pictureInPictureActivity?.get()?.currentViewHolder() !== holder) {
+                dismissPictureInPicture()
+            }
+        }
+
+        private const val OVERLAY_FADE_MS = 150L
 
         /** Telegram's PhotoViewer hides its chrome after the same three seconds. */
-        const val AUTO_HIDE_DELAY_MS = 3000L
+        private const val AUTO_HIDE_DELAY_MS = 3000L
     }
 
     /** Whether videos restart from the top when they finish, read as each page is selected. */
@@ -47,6 +81,15 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     /** True while the chrome is being held open by the user — a scrub in progress, an open menu. */
     protected open fun isOverlayInteractionInProgress(): Boolean = false
+
+    private var pictureInPicture = false
+    private var pictureInPictureAspectRatio = 0f
+    private val pictureInPictureControlId = UUID.randomUUID().toString()
+    private val pictureInPicturePlayAction get() = "$packageName.pip.$pictureInPictureControlId.play"
+    private val pictureInPicturePauseAction get() = "$packageName.pip.$pictureInPictureControlId.pause"
+    private var pictureInPictureReceiver: BroadcastReceiver? = null
+    private var pictureInPicturePlayIntent: PendingIntent? = null
+    private var pictureInPicturePauseIntent: PendingIntent? = null
 
     private var videoIsPlaying = false
 
@@ -58,7 +101,7 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     private fun scheduleAutoHide() {
         views.rootContainer.removeCallbacks(autoHideRunnable)
-        if (videoIsPlaying && systemUiVisibility && !isTouchExplorationEnabled()) {
+        if (videoIsPlaying && systemUiVisibility && !pictureInPicture && !isTouchExplorationEnabled()) {
             views.rootContainer.postDelayed(autoHideRunnable, AUTO_HIDE_DELAY_MS)
         }
     }
@@ -135,6 +178,9 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
         views = ActivityAttachmentViewerBinding.inflate(layoutInflater)
         setContentView(views.root)
+        addOnPictureInPictureModeChangedListener { info ->
+            setPictureInPicture(info.isInPictureInPictureMode)
+        }
         views.attachmentPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         views.attachmentPager.adapter = attachmentsAdapter
         directionDetector = createSwipeDirectionDetector()
@@ -246,8 +292,114 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     override fun onPause() {
-        attachmentsAdapter.onPause(currentPosition)
+        // PiP pauses the activity while its video remains visible and must keep playing.
+        if (!pictureInPicture) attachmentsAdapter.onPause(currentPosition)
         super.onPause()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (pictureInPicture) attachmentsAdapter.onResume(currentPosition)
+    }
+
+    override fun onStop() {
+        pausePlayback()
+        super.onStop()
+    }
+
+    protected fun enterVideoPictureInPicture(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                !packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) return false
+        val holder = currentViewHolder() as? VideoViewHolder ?: return false
+        setPictureInPicture(true)
+        val params = createPictureInPictureParams(holder)
+        val entered = try {
+            enterPictureInPictureMode(params)
+        } catch (failure: IllegalStateException) {
+            false
+        } catch (failure: IllegalArgumentException) {
+            false
+        }
+        if (entered) holder.prepareForPictureInPicture() else setPictureInPicture(false)
+        return entered
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createPictureInPictureParams(holder: VideoViewHolder): PictureInPictureParams {
+        // PiP accepts ratios from 1:2.39 to 2.39:1; round the lower bound inward.
+        pictureInPictureAspectRatio = holder.videoAspectRatio
+        val ratio = (pictureInPictureAspectRatio * 10000).toInt().coerceIn(4185, 23900)
+        val label = getString(if (videoIsPlaying) CommonStrings.action_pause else CommonStrings.action_play)
+        val icon = if (videoIsPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+        val intent = if (videoIsPlaying) pictureInPicturePauseIntent else pictureInPicturePlayIntent
+        return PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(ratio, 10000))
+                // Explicit actions prevent Android from using another player's media session.
+                .setActions(listOf(RemoteAction(Icon.createWithResource(this, icon), label, label, requireNotNull(intent))))
+                .build()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun registerPictureInPictureControls() {
+        if (pictureInPictureReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (!pictureInPicture) return
+                val command = when (intent?.action) {
+                    pictureInPicturePlayAction -> AttachmentCommands.StartVideo
+                    pictureInPicturePauseAction -> AttachmentCommands.PauseVideo
+                    else -> return
+                }
+                handle(command)
+            }
+        }
+        ContextCompat.registerReceiver(this, receiver, IntentFilter().apply {
+            addAction(pictureInPicturePlayAction)
+            addAction(pictureInPicturePauseAction)
+        }, ContextCompat.RECEIVER_NOT_EXPORTED)
+        pictureInPictureReceiver = receiver
+        pictureInPicturePlayIntent = PendingIntent.getBroadcast(
+                this, 0, Intent(pictureInPicturePlayAction).setPackage(packageName),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        pictureInPicturePauseIntent = PendingIntent.getBroadcast(
+                this, 0, Intent(pictureInPicturePauseAction).setPackage(packageName),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    private fun unregisterPictureInPictureControls() {
+        pictureInPictureReceiver?.let { unregisterReceiver(it) }
+        pictureInPictureReceiver = null
+        pictureInPicturePlayIntent?.cancel()
+        pictureInPicturePlayIntent = null
+        pictureInPicturePauseIntent?.cancel()
+        pictureInPicturePauseIntent = null
+    }
+
+    private fun setPictureInPicture(enabled: Boolean) {
+        pictureInPicture = enabled
+        if (enabled) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) registerPictureInPictureControls()
+            pictureInPictureActivity = WeakReference(this)
+        } else if (pictureInPictureActivity?.get() === this) {
+            pictureInPictureActivity = null
+        }
+        if (!enabled) unregisterPictureInPictureControls()
+        overlayView?.animate()?.cancel()
+        overlayView?.alpha = 1f
+        overlayView?.isVisible = !enabled && systemUiVisibility
+        pager2.isUserInputEnabled = !enabled
+        if (enabled) cancelAutoHide() else scheduleAutoHide()
+        if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode) {
+            (currentViewHolder() as? VideoViewHolder)?.let { setPictureInPictureParams(createPictureInPictureParams(it)) }
+        }
+    }
+
+    override fun onDestroy() {
+        unregisterPictureInPictureControls()
+        if (pictureInPictureActivity?.get() === this) pictureInPictureActivity = null
+        super.onDestroy()
     }
 
     override fun onResume() {
@@ -329,6 +481,7 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     private val deferredBarsHide = Runnable { if (!systemUiVisibility) hideSystemUI() }
 
     private fun toggleOverlayViewVisibility() {
+        if (pictureInPicture) return
         // The quick fade rather than a TransitionManager pass: the 300ms auto-transition reads
         // as lag when the chrome pops up in reaction to playback ending.
         if (systemUiVisibility) {
@@ -476,15 +629,23 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     override fun onEvent(event: AttachmentEvents) {
-        if (event is AttachmentEvents.VideoEvent && event.isPlaying != videoIsPlaying) {
+        if (event is AttachmentEvents.VideoEvent) {
+            val playingChanged = event.isPlaying != videoIsPlaying
             videoIsPlaying = event.isPlaying
-            // A paused video keeps its chrome; playback starting arms the countdown.
-            if (videoIsPlaying) {
-                scheduleAutoHide()
-            } else {
-                cancelAutoHide()
-                // Whatever paused it — the end of the clip included — the controls come back.
-                if (!systemUiVisibility) toggleOverlayViewVisibility()
+            if (pictureInPicture && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode) {
+                (currentViewHolder() as? VideoViewHolder)?.let { holder ->
+                    if (playingChanged || holder.videoAspectRatio != pictureInPictureAspectRatio) {
+                        setPictureInPictureParams(createPictureInPictureParams(holder))
+                    }
+                }
+            }
+            if (playingChanged) {
+                if (videoIsPlaying) {
+                    scheduleAutoHide()
+                } else {
+                    cancelAutoHide()
+                    if (!systemUiVisibility) toggleOverlayViewVisibility()
+                }
             }
         }
         if (overlayView is AttachmentEventListener) {

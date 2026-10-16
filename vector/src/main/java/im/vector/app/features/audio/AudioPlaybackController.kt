@@ -24,6 +24,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlayb
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.media.galleryPageId
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.lib.attachmentviewer.AttachmentViewerActivity
 import im.vector.lib.mediatranscode.audio.PlaybackPcmFile
 import im.vector.lib.strings.CommonStrings
 import io.element.android.opusencoder.OggOpusDecoder
@@ -513,6 +514,7 @@ class AudioPlaybackController @Inject constructor(
         }
         pendingAutoplay = false
         if (!requestFocus()) return
+        AttachmentViewerActivity.pausePictureInPicture()
         runCatching {
             player?.play()
             mutableState.value = current.copy(playing = true)

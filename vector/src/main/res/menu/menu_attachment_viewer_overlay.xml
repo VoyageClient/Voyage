@@ -31,4 +31,9 @@
         android:icon="@drawable/ic_timer"
         android:title="@string/video_editor_speed_title" />
 
+    <item
+        android:id="@+id/attachmentViewerPictureInPicture"
+        android:icon="@drawable/ic_picture_in_picture"
+        android:title="@string/attachment_viewer_picture_in_picture" />
+
 </menu>

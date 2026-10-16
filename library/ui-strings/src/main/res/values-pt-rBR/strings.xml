@@ -3577,4 +3577,5 @@
     <string name="scheduled_messages_title">Mensagens agendadas</string>
     <string name="scheduled_messages_empty">Nenhuma mensagem agendada nesta sala.</string>
     <string name="scheduled_message_send_now">Enviar agora</string>
+    <string name="attachment_viewer_picture_in_picture">Imagem em imagem</string>
 </resources>

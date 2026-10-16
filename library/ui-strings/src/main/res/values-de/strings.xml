@@ -3576,4 +3576,5 @@
     <string name="scheduled_messages_title">Geplante Nachrichten</string>
     <string name="scheduled_messages_empty">In diesem Raum sind keine Nachrichten geplant.</string>
     <string name="scheduled_message_send_now">Jetzt senden</string>
+    <string name="attachment_viewer_picture_in_picture">Bild-in-Bild</string>
 </resources>

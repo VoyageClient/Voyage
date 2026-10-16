@@ -3535,4 +3535,5 @@
     <string name="scheduled_messages_title">Zamanlanmış mesajlar</string>
     <string name="scheduled_messages_empty">Bu odada zamanlanmış mesaj yok.</string>
     <string name="scheduled_message_send_now">Şimdi gönder</string>
+    <string name="attachment_viewer_picture_in_picture">Resim içinde resim</string>
 </resources>

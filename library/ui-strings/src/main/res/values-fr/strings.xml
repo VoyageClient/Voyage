@@ -3577,4 +3577,5 @@
     <string name="scheduled_messages_title">Messages programmés</string>
     <string name="scheduled_messages_empty">Aucun message n’est programmé dans ce salon.</string>
     <string name="scheduled_message_send_now">Envoyer maintenant</string>
+    <string name="attachment_viewer_picture_in_picture">Image dans l’image</string>
 </resources>

@@ -3531,4 +3531,5 @@
     <string name="scheduled_messages_title">নির্ধারিত বার্তা</string>
     <string name="scheduled_messages_empty">এই রুমে কোনো নির্ধারিত বার্তা নেই।</string>
     <string name="scheduled_message_send_now">এখনই পাঠান</string>
+    <string name="attachment_viewer_picture_in_picture">পিকচার-ইন-পিকচার</string>
 </resources>

@@ -3701,4 +3701,5 @@
     <string name="scheduled_messages_title">Запланированные сообщения</string>
     <string name="scheduled_messages_empty">В этой комнате нет запланированных сообщений.</string>
     <string name="scheduled_message_send_now">Отправить сейчас</string>
+    <string name="attachment_viewer_picture_in_picture">Картинка в картинке</string>
 </resources>

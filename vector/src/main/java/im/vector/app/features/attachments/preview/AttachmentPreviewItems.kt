@@ -43,6 +43,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.platform.CheckableImageView
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.attachmentviewer.AttachmentViewerActivity
 import im.vector.lib.attachmentviewer.VideoForwardDrawable
 import im.vector.lib.attachmentviewer.VideoLastFrame
 import im.vector.lib.mediatranscode.AudioEditExporter
@@ -826,6 +827,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             val uri = videoUri ?: audioUri ?: return
             val activeSurface = surface
             if (videoUri != null && activeSurface == null) return
+            if (videoUri != null) AttachmentViewerActivity.dismissPictureInPicture()
             releasePlayer()
             // A rebind lays the poster back over the video and only surface-destroyed re-arms the
             // reveal — a quick trip through another activity can keep the surface alive, so arm here.

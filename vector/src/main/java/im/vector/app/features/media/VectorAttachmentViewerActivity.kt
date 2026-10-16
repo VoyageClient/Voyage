@@ -506,6 +506,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         animateClose()
     }
 
+    override fun onPictureInPicture() {
+        if (!enterVideoPictureInPicture()) {
+            rootView.showOptimizedSnackbar(getString(CommonStrings.unknown_error))
+        }
+    }
+
     override fun onPlayPause(play: Boolean) {
         handle(if (play) AttachmentCommands.StartVideo else AttachmentCommands.PauseVideo)
     }

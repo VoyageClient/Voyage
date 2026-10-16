@@ -3471,4 +3471,5 @@
     <string name="scheduled_messages_title">شیڈول شدہ پیغامات</string>
     <string name="scheduled_messages_empty">اس کمرے میں کوئی پیغام شیڈول نہیں ہے۔</string>
     <string name="scheduled_message_send_now">ابھی بھیجیں</string>
+    <string name="attachment_viewer_picture_in_picture">تصویر میں تصویر</string>
 </resources>
