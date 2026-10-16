@@ -71,6 +71,13 @@ There are TWO room-list layouts, gated by `SETTINGS_LABS_NEW_APP_LAYOUT_KEY` (`i
 
 Any change to room-list behavior (display, sorting, refresh, item rendering) MUST be implemented for BOTH paths, or it will silently do nothing on whichever layout the user runs. Don't assume one layout.
 
+# Message text rendering
+
+A message body is shown by more than one view: the timeline (`MessageTextItem`, plus `RichMessageBodyRenderer` for messages with tables/code/reply headers) and the shared `MessagePreviewView`, which renders reply headers, the composer's reply/edit preview and the message-actions bottom sheet. A rendering change made in only one of them shows up as "works in the timeline, broken in replies/actions".
+
+- Emote line spacing lives in one shared helper, `TextView.applyEmoteLineSpacing()` in `features/html/EmoteImageSpan.kt`. Any TextView that shows message HTML with the `Widget.Vector.TextView.Body` style (fixed 20sp `lineHeight`) must call it with the text it displays, before changing the text size, or multi-line emote pictures get gaps between rows.
+- Put new per-message rendering behavior in a shared helper like this one and call it from every view above, rather than patching one call site.
+
 # Versioning
 
 The app version lives in TWO places that must both be bumped in sync:

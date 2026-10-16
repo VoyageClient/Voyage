@@ -23,6 +23,7 @@ import android.widget.TextView
 import androidx.core.graphics.drawable.toDrawable
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import im.vector.app.R
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.imagepack.EmoteFrameCache
@@ -112,9 +113,9 @@ class EmoteImageSpan(
         }
     }
 
-    // Box the emote to the line height so it matches an emoji glyph (which fills ~the line) at any text size.
-    private fun boxSize(paint: Paint): Int {
-        return (paint.descent() - paint.ascent()).roundToInt().coerceAtLeast(1)
+    // Exactly the line's integer metrics, so emotes on consecutive lines tile with no seam.
+    private fun boxSize(paintFm: Paint.FontMetricsInt): Int {
+        return (paintFm.descent - paintFm.ascent).coerceAtLeast(1)
     }
 
     private val placeholderDst = RectF()
@@ -126,24 +127,22 @@ class EmoteImageSpan(
             canvas.drawText(PLACEHOLDER, 0, PLACEHOLDER.length, x, y.toFloat(), paint)
             return
         }
-        val box = boxSize(paint)
         val paintFm = paint.fontMetricsInt
-        val centerY = y + (paintFm.ascent + paintFm.descent) / 2
-        placeholderDst.set(x, (centerY - box / 2).toFloat(), x + box, (centerY + box / 2).toFloat())
+        val box = boxSize(paintFm)
+        val boxTop = (y + paintFm.ascent).toFloat()
+        placeholderDst.set(x, boxTop, x + box, boxTop + box)
         canvas.drawBitmap(sprite, null, placeholderDst, paint)
     }
 
     override fun getSize(paint: Paint, text: CharSequence, start: Int, end: Int, fm: Paint.FontMetricsInt?): Int {
-        val box = boxSize(paint)
+        val paintFm = paint.fontMetricsInt
         if (fm != null) {
-            val paintFm = paint.fontMetricsInt
-            val centerY = (paintFm.ascent + paintFm.descent) / 2
-            fm.ascent = centerY - box / 2
+            fm.ascent = paintFm.ascent
             fm.top = fm.ascent
-            fm.descent = centerY + box / 2
+            fm.descent = paintFm.descent
             fm.bottom = fm.descent
         }
-        return box
+        return boxSize(paintFm)
     }
 
     override fun draw(canvas: Canvas, text: CharSequence, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint) {
@@ -156,7 +155,8 @@ class EmoteImageSpan(
             frameCached = true
             EmoteFrameCache.snapshot(dr)?.let { EmoteFrameCache.put(mxcUrl, it) }
         }
-        val box = boxSize(paint)
+        val paintFm = paint.fontMetricsInt
+        val box = boxSize(paintFm)
         // Fit-centre within the reserved square, preserving aspect ratio.
         val intrinsicW = dr.intrinsicWidth.takeIf { it > 0 } ?: box
         val intrinsicH = dr.intrinsicHeight.takeIf { it > 0 } ?: box
@@ -164,10 +164,8 @@ class EmoteImageSpan(
         val w = (intrinsicW * scale).roundToInt().coerceAtLeast(1)
         val h = (intrinsicH * scale).roundToInt().coerceAtLeast(1)
         dr.setBounds(0, 0, w, h)
-        val paintFm = paint.fontMetricsInt
-        val centerY = y + (paintFm.ascent + paintFm.descent) / 2
         canvas.save()
-        canvas.translate(x + (box - w) / 2f, (centerY - h / 2).toFloat())
+        canvas.translate(x + (box - w) / 2f, y + paintFm.ascent + (box - h) / 2f)
         dr.draw(canvas)
         canvas.restore()
     }
@@ -180,4 +178,15 @@ class EmoteImageSpan(
 fun TextView.bindEmoteImageSpans() {
     val spanned = text as? Spanned ?: return
     spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).forEach { it.bind(this) }
+}
+
+/**
+ * Drops the style's extra line spacing while [text] holds emotes, so a picture drawn with several lines of
+ * emotes stacks flush. Call before changing the text size: on API < 16 the default is derived from it.
+ */
+fun TextView.applyEmoteLineSpacing(text: CharSequence?) {
+    val default = getTag(R.id.emote_default_line_spacing) as? Float
+            ?: (lineHeight - paint.getFontMetricsInt(null)).toFloat().also { setTag(R.id.emote_default_line_spacing, it) }
+    val hasEmotes = (text as? Spanned)?.let { it.getSpans(0, it.length, EmoteImageSpan::class.java).isNotEmpty() } == true
+    setLineSpacing(if (hasEmotes) 0f else default, 1f)
 }

@@ -18,4 +18,5 @@
     <item name="media_pill_preview_layout" type="id" />
     <item name="media_pill_preview_backdrop" type="id" />
     <item name="audio_gallery_artwork_binding" type="id" />
+    <item name="emote_default_line_spacing" type="id" />
 </resources>

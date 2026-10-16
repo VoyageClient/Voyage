@@ -35,6 +35,7 @@ import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlViewUpdate
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.applyEmoteLineSpacing
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -153,16 +154,17 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.isVisible = true
         (messageView as? AbstractFooteredTextView)?.fullWidthBlockCode =
                 attributes.informationData.messageLayout is TimelineMessageLayout.Default
-        if (useBigFont) {
-            messageView.textSize = 44F
-        } else {
-            messageView.textSize = 15.5F
-        }
         val showBlocked = blockedMessage != null &&
                 mediaRevealManager?.isRevealed(attributes.informationData.stableId) != true
         val activeBody = if (showBlocked) blockedMessage else message
         val activeMessage = activeBody?.charSequence
         val activeOptions = if (showBlocked) blockedBindingOptions else bindingOptions
+        messageView.applyEmoteLineSpacing(activeMessage)
+        if (useBigFont) {
+            messageView.textSize = 44F
+        } else {
+            messageView.textSize = 15.5F
+        }
         if (searchForPills) {
             val stableId = attributes.informationData.stableId
             activeMessage?.findPillsAndProcess(coroutineScope) {
