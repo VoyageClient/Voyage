@@ -145,6 +145,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageActionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
+import im.vector.app.features.home.room.detail.timeline.action.canBeEditedBy
 import im.vector.app.features.home.room.detail.timeline.action.jumpToRelationAction
 import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHistoryBottomSheet
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
@@ -1620,10 +1621,26 @@ class TimelineFragment :
 
         if (vectorPreferences.swipeToReplyIsEnabled()) {
             val quickReplyHandler = object : RoomMessageTouchHelperCallback.QuickReplayHandler {
+                private fun eventIdOf(model: EpoxyModel<*>): String? =
+                        (model as? AbsMessageItem)?.attributes?.informationData?.eventId
+                                ?: (model as? ItemWithEvents)?.getEventIds()?.firstOrNull()
+
+                private fun timelineEventOf(model: EpoxyModel<*>): TimelineEvent? {
+                    val eventId = eventIdOf(model) ?: return null
+                    return timelineViewModel.timeline?.getSnapshot()?.firstOrNull { it.eventId == eventId }
+                }
+
                 override fun performQuickReplyOnHolder(model: EpoxyModel<*>) {
-                    val eventId = (model as? AbsMessageItem)?.attributes?.informationData?.eventId
-                            ?: (model as? ItemWithEvents)?.getEventIds()?.firstOrNull()
-                    eventId?.let { messageComposerViewModel.handle(MessageComposerAction.EnterReplyMode(it)) }
+                    eventIdOf(model)?.let { messageComposerViewModel.handle(MessageComposerAction.EnterReplyMode(it)) }
+                }
+
+                override fun performQuickEditOnHolder(model: EpoxyModel<*>) {
+                    timelineEventOf(model)?.let { handleActions(EventSharedAction.Edit(it.eventId, it.root.getClearType())) }
+                }
+
+                override fun canEditModel(model: EpoxyModel<*>): Boolean {
+                    if (model !is AbsMessageItem<*> || model.attributes.informationData.sendState != SendState.SYNCED) return false
+                    return timelineEventOf(model)?.canBeEditedBy(session.myUserId, canSendMessage = true) == true
                 }
 
                 override fun canSwipeModel(model: EpoxyModel<*>): Boolean {
@@ -1660,7 +1677,7 @@ class TimelineFragment :
                     }
                 }
             }
-            val swipeCallback = RoomMessageTouchHelperCallback(requireContext(), R.drawable.ic_reply, quickReplyHandler, clock)
+            val swipeCallback = RoomMessageTouchHelperCallback(requireContext(), R.drawable.ic_reply, R.drawable.ic_edit, quickReplyHandler, clock)
             val touchHelper = ItemTouchHelper(swipeCallback)
             touchHelper.attachToRecyclerView(views.timelineRecyclerView)
         }

@@ -804,30 +804,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         return event.annotations?.reactionsSummary?.isNotEmpty() ?: false
     }
 
-    private fun canEdit(event: TimelineEvent, myUserId: String, actionPermissions: ActionPermissions): Boolean {
-        if (!actionPermissions.canSendMessage) return false
-        // TODO if user is admin or moderator
-        if (event.root.senderId != myUserId) return false
-        // MSC4553: readers ignore edits to a forward.
-        if (event.root.getClearContent().isForward()) return false
-        // Stickers: edit/add a caption.
-        if (event.root.getClearType() == EventType.STICKER) return true
-        // Only event of type EventType.MESSAGE and EventType.POLL_START are supported for the moment
-        if (event.root.getClearType() !in listOf(EventType.MESSAGE) + EventType.POLL_START.values) return false
-        val messageContent = event.root.getClearContent().toModel<MessageContent>()
-        return when (messageContent?.msgType) {
-            MessageType.MSGTYPE_TEXT,
-            MessageType.MSGTYPE_EMOTE,
-            // Media: edit/add a caption.
-            MessageType.MSGTYPE_IMAGE,
-            MessageType.MSGTYPE_VIDEO,
-            MessageType.MSGTYPE_FILE,
-            MessageType.MSGTYPE_AUDIO -> true
-            // A gallery captions itself the same way.
-            in setOf(MessageType.MSGTYPE_GALLERY, MessageType.MSGTYPE_GALLERY_STABLE) -> true
-            else -> canEditPoll(event)
-        }
-    }
+    private fun canEdit(event: TimelineEvent, myUserId: String, actionPermissions: ActionPermissions): Boolean =
+            event.canBeEditedBy(myUserId, actionPermissions.canSendMessage)
 
     private fun canTranslate(msgType: String?, messageContent: MessageContent?): Boolean =
             (translationSettings.engine != null || translationSettings.backupEngine != null) &&
@@ -928,12 +906,37 @@ class MessageActionsViewModel @AssistedInject constructor(
                 canRedact(event, actionPermissions) &&
                 event.annotations?.pollResponseSummary?.closedTime == null
     }
+}
 
-    private fun canEditPoll(event: TimelineEvent): Boolean {
-        return event.root.getClearType() in EventType.POLL_START.values &&
-                event.annotations?.pollResponseSummary?.closedTime == null &&
-                (event.annotations?.pollResponseSummary?.aggregatedContent?.totalVotes ?: 0) == 0
+internal fun TimelineEvent.canBeEditedBy(myUserId: String, canSendMessage: Boolean): Boolean {
+    if (!canSendMessage) return false
+    // TODO if user is admin or moderator
+    if (root.senderId != myUserId) return false
+    // MSC4553: readers ignore edits to a forward.
+    if (root.getClearContent().isForward()) return false
+    // Stickers: edit/add a caption.
+    if (root.getClearType() == EventType.STICKER) return true
+    // Only event of type EventType.MESSAGE and EventType.POLL_START are supported for the moment
+    if (root.getClearType() !in listOf(EventType.MESSAGE) + EventType.POLL_START.values) return false
+    val messageContent = root.getClearContent().toModel<MessageContent>()
+    return when (messageContent?.msgType) {
+        MessageType.MSGTYPE_TEXT,
+        MessageType.MSGTYPE_EMOTE,
+        // Media: edit/add a caption.
+        MessageType.MSGTYPE_IMAGE,
+        MessageType.MSGTYPE_VIDEO,
+        MessageType.MSGTYPE_FILE,
+        MessageType.MSGTYPE_AUDIO -> true
+        // A gallery captions itself the same way.
+        in setOf(MessageType.MSGTYPE_GALLERY, MessageType.MSGTYPE_GALLERY_STABLE) -> true
+        else -> canEditPoll()
     }
+}
+
+private fun TimelineEvent.canEditPoll(): Boolean {
+    return root.getClearType() in EventType.POLL_START.values &&
+            annotations?.pollResponseSummary?.closedTime == null &&
+            (annotations?.pollResponseSummary?.aggregatedContent?.totalVotes ?: 0) == 0
 }
 
 internal fun TimelineEvent.jumpToRelationAction(developerMode: Boolean, isFromThreadTimeline: Boolean): EventSharedAction.JumpToRelation? {

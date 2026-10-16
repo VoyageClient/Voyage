@@ -15,7 +15,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.DrawableRes
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
@@ -31,42 +31,44 @@ import kotlin.math.min
 
 class RoomMessageTouchHelperCallback(
         private val context: Context,
-        @DrawableRes actionIcon: Int,
+        @DrawableRes replyIcon: Int,
+        @DrawableRes editIcon: Int,
         private val handler: QuickReplayHandler,
         private val clock: Clock,
 ) : EpoxyTouchHelperCallback() {
 
     interface QuickReplayHandler {
         fun performQuickReplyOnHolder(model: EpoxyModel<*>)
+        fun performQuickEditOnHolder(model: EpoxyModel<*>)
         fun canSwipeModel(model: EpoxyModel<*>): Boolean
+        fun canEditModel(model: EpoxyModel<*>): Boolean
     }
+
+    private enum class SwipeAction { NONE, REPLY, EDIT }
 
     private var activeDx = 0f
     private var startTracking = false
-    private var isVibrate = false
+    private var hapticAction = SwipeAction.NONE
 
     private var swipedModel: EpoxyModel<*>? = null
-    private var swipeTriggered = false
+    private var swipedModelEditable = false
+    private var swipeAction = SwipeAction.NONE
     private var touchListenerAttached = false
 
     private var replyButtonProgress: Float = 0F
     private var lastReplyButtonAnimationTime: Long = 0
+    private var drawnIcon: Drawable? = null
 
-    private val imageDrawable: Drawable = DrawableCompat.wrap(
-            ContextCompat.getDrawable(context, actionIcon)!!
-    )
-
-    init {
-        DrawableCompat.setTint(
-                imageDrawable,
-                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
-        )
-    }
+    private val replyDrawable = tintedIcon(replyIcon)
+    private val editDrawable = tintedIcon(editIcon)
 
     private val triggerDistance = convertToPx(100)
+    private val editTriggerDistance = convertToPx(180)
     private val minShowDistance = convertToPx(20)
     private val triggerDelta = convertToPx(20)
-    private val maxTranslation = triggerDistance + triggerDelta
+
+    private val maxTranslation: Float
+        get() = (if (swipedModelEditable) editTriggerDistance else triggerDistance) + triggerDelta
 
     override fun onSwiped(viewHolder: EpoxyViewHolder, direction: Int) {
     }
@@ -91,9 +93,11 @@ class RoomMessageTouchHelperCallback(
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
         endSwipe()
+        swipedModelEditable = false
         startTracking = false
-        isVibrate = false
+        hapticAction = SwipeAction.NONE
         replyButtonProgress = 0f
+        drawnIcon = null
     }
 
     override fun onChildDraw(
@@ -108,13 +112,17 @@ class RoomMessageTouchHelperCallback(
         if (actionState == ACTION_STATE_SWIPE) {
             attachTouchListener(recyclerView)
             if (isCurrentlyActive) {
-                swipedModel = try {
+                val model = try {
                     viewHolder.model
                 } catch (e: IllegalStateException) {
                     Timber.e(e)
                     null
                 }
-                swipeTriggered = abs(dX) >= triggerDistance
+                if (model !== swipedModel) {
+                    swipedModelEditable = model != null && handler.canEditModel(model)
+                }
+                swipedModel = model
+                swipeAction = actionForDistance(abs(dX))
             }
         }
         val drawDx = if (isCurrentlyActive) {
@@ -127,7 +135,13 @@ class RoomMessageTouchHelperCallback(
             if (overshoot > maxTranslation) dX * (maxTranslation / overshoot) else dX
         }
         super.onChildDraw(c, recyclerView, viewHolder, drawDx, dY, actionState, isCurrentlyActive)
-        drawReplyButton(c, viewHolder.itemView)
+        drawReplyButton(c, viewHolder.itemView, isCurrentlyActive)
+    }
+
+    private fun actionForDistance(distance: Float): SwipeAction = when {
+        swipedModelEditable && distance >= editTriggerDistance -> SwipeAction.EDIT
+        distance >= triggerDistance -> SwipeAction.REPLY
+        else -> SwipeAction.NONE
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -137,7 +151,13 @@ class RoomMessageTouchHelperCallback(
         recyclerView.setOnTouchListener { _, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_UP -> {
-                    swipedModel?.takeIf { swipeTriggered }?.let { handler.performQuickReplyOnHolder(it) }
+                    swipedModel?.let {
+                        when (swipeAction) {
+                            SwipeAction.REPLY -> handler.performQuickReplyOnHolder(it)
+                            SwipeAction.EDIT -> handler.performQuickEditOnHolder(it)
+                            SwipeAction.NONE -> Unit
+                        }
+                    }
                     endSwipe()
                 }
                 MotionEvent.ACTION_CANCEL -> endSwipe()
@@ -148,16 +168,26 @@ class RoomMessageTouchHelperCallback(
 
     private fun endSwipe() {
         swipedModel = null
-        swipeTriggered = false
+        swipeAction = SwipeAction.NONE
     }
 
-    private fun drawReplyButton(canvas: Canvas, itemView: View) {
-        // Timber.v("drawReplyButton")
+    private fun drawReplyButton(canvas: Canvas, itemView: View, isCurrentlyActive: Boolean) {
         val translationX = abs(itemView.translationX)
         val newTime = clock.epochMillis()
         val dt = min(17, newTime - lastReplyButtonAnimationTime)
         lastReplyButtonAnimationTime = newTime
         val showing = translationX >= minShowDistance
+        // Once released, keep the chosen action's icon while the item slides back past the thresholds.
+        val icon = when {
+            !isCurrentlyActive -> drawnIcon ?: replyDrawable
+            actionForDistance(translationX) == SwipeAction.EDIT -> editDrawable
+            else -> replyDrawable
+        }
+        if (showing && drawnIcon != null && icon !== drawnIcon) {
+            // Replay the pop-in so the switch to the other action is noticeable.
+            replyButtonProgress = 0f
+        }
+        drawnIcon = icon
         if (showing) {
             if (replyButtonProgress < 1.0f) {
                 replyButtonProgress += dt / 180.0f
@@ -170,7 +200,7 @@ class RoomMessageTouchHelperCallback(
         } else if (translationX <= 0.0f) {
             replyButtonProgress = 0f
             startTracking = false
-            isVibrate = false
+            hapticAction = SwipeAction.NONE
         } else {
             if (replyButtonProgress > 0.0f) {
                 replyButtonProgress -= dt / 180.0f
@@ -195,35 +225,36 @@ class RoomMessageTouchHelperCallback(
             alpha = min(255f, 255 * replyButtonProgress).toInt()
         }
 
-        imageDrawable.alpha = alpha
-        if (startTracking) {
-            if (!isVibrate && translationX >= triggerDistance) {
-                itemView.performHapticFeedback(
-                        HapticFeedbackConstants.LONG_PRESS
-//                        , HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
-                )
-                isVibrate = true
+        icon.alpha = alpha
+        if (startTracking && isCurrentlyActive) {
+            val action = actionForDistance(translationX)
+            if (action != hapticAction) {
+                if (action != SwipeAction.NONE) {
+                    itemView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                }
+                hapticAction = action
             }
         }
 
-        val x: Int = itemView.width - if (translationX > triggerDistance + triggerDelta) {
-            (convertToPx(130) / 2).toInt()
-        } else {
-            (translationX / 2).toInt()
-        }
-
+        val x: Int = itemView.width - (translationX / 2).toInt()
         val y = (itemView.top + itemView.measuredHeight / 2).toFloat()
-        val hw = imageDrawable.intrinsicWidth / 2f
-        val hh = imageDrawable.intrinsicHeight / 2f
-        imageDrawable.setBounds(
+        val hw = icon.intrinsicWidth / 2f
+        val hh = icon.intrinsicHeight / 2f
+        icon.setBounds(
                 (x - hw * scale).toInt(),
                 (y - hh * scale).toInt(),
                 (x + hw * scale).toInt(),
                 (y + hh * scale).toInt()
         )
-        imageDrawable.draw(canvas)
-        imageDrawable.alpha = 255
+        icon.draw(canvas)
+        icon.alpha = 255
     }
+
+    // AppCompatResources, not ContextCompat: both icons are <vector>, which the framework can't inflate before API 21.
+    private fun tintedIcon(@DrawableRes res: Int): Drawable =
+            DrawableCompat.wrap(AppCompatResources.getDrawable(context, res)!!.mutate()).also {
+                DrawableCompat.setTint(it, ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+            }
 
     private fun convertToPx(dp: Int): Float {
         return TypedValue.applyDimension(
