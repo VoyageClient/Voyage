@@ -7,6 +7,8 @@
 
         <!-- main text -->
         <item name="titleTextAppearance">@style/TextAppearance.Vector.Widget.ActionBarTitle</item>
+        <!-- Start the title where an expanded toolbar search starts its text (see SearchView.alignWithToolbarTitle) -->
+        <item name="titleMarginStart">0dp</item>
 
         <!-- sub text -->
         <item name="subtitleTextAppearance">@style/TextAppearance.Vector.Widget.ActionBarSubTitle</item>

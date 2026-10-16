@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:title="@string/spaces"
+        android:key="SETTINGS_PREF_SPACE_CATEGORY">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_PREF_SPACE_SHOW_ALL_ROOM_IN_HOME"
+            android:summary="@string/all_rooms_youre_in_will_be_shown_in_home"
+            android:title="@string/preference_show_all_rooms_in_home" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_rooms_spaces_category_room_list">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS"
+            android:summary="@string/settings_include_space_members_as_rooms_summary"
+            android:title="@string/settings_include_space_members_as_rooms" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SINGLE_OVERVIEW"
+            android:summary="@string/settings_single_overview_summary"
+            android:title="@string/settings_single_overview" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_category_room_directory">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS"
+            android:summary="@string/settings_room_directory_show_all_rooms_summary"
+            android:title="@string/settings_room_directory_show_all_rooms" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_rooms_spaces_category_system">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ENABLE_DIRECT_SHARE"
+            android:summary="@string/settings_enable_direct_share_summary"
+            android:title="@string/settings_enable_direct_share_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ENABLE_APP_SHORTCUTS"
+            android:summary="@string/settings_enable_app_shortcuts_summary"
+            android:title="@string/settings_enable_app_shortcuts_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_HOME_DISPLAY_KEY"
+        android:title="@string/settings_home_display"
+        app:isPreferenceVisible="@bool/false_not_implemented">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_PIN_MISSED_NOTIFICATIONS_PREFERENCE_KEY"
+            android:title="@string/settings_pin_missed_notifications" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_PIN_UNREAD_MESSAGES_PREFERENCE_KEY"
+            android:title="@string/settings_pin_unread_messages" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

@@ -15,10 +15,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Use Widget.Vector.Toolbar.Settings on this screen for better alignment with setting items -->
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/settingsToolbar"
-                style="@style/Widget.Vector.Toolbar.Settings"
+                style="@style/Widget.Vector.Toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:navigationIcon="@drawable/ic_back_24dp"
@@ -27,10 +26,22 @@
         </com.google.android.material.appbar.AppBarLayout>
 
         <FrameLayout
-            android:id="@+id/vector_settings_page"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?android:colorBackground" />
+            android:layout_height="match_parent">
+
+            <FrameLayout
+                android:id="@+id/vector_settings_page"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?android:colorBackground" />
+
+            <!-- Search results, shown over the current page while the toolbar search is expanded -->
+            <FrameLayout
+                android:id="@+id/vector_settings_search_results"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
 
     </LinearLayout>
 

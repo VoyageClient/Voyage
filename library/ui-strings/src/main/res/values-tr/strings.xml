@@ -286,8 +286,6 @@
     <string name="settings_logged_in">Olarak giriş yaptın</string>
     <string name="settings_home_server">Ana Sunucu</string>
     <string name="settings_identity_server">Kimlik Sunucusu</string>
-    <string name="settings_user_interface">Kullanıcı arayüzü</string>
-    <string name="settings_interface_language">Dil</string>
     <string name="settings_select_language">Dili seç</string>
     <string name="account_email_validation_message">Lütfen e-postanı kontrol et ve içerdiği bağlantıya tıkla. Bu tamamlandığında tamama tıkla.</string>
     <string name="account_email_already_used_error">Bu e-posta adresi zaten kullanımda.</string>
@@ -3536,4 +3534,23 @@
     <string name="scheduled_messages_empty">Bu odada zamanlanmış mesaj yok.</string>
     <string name="scheduled_message_send_now">Şimdi gönder</string>
     <string name="attachment_viewer_picture_in_picture">Resim içinde resim</string>
+    <string name="settings_interface_language">Uygulama dili</string>
+    <string name="settings_appearance_title">Görünüm</string>
+    <string name="settings_appearance_summary">Tema, renkler, yazı boyutu, baloncuklar ve avatarlar</string>
+    <string name="settings_appearance_category_avatars_colors">Avatarlar ve renkler</string>
+    <string name="settings_emoji_reactions_title">Emojiler ve tepkiler</string>
+    <string name="settings_emoji_reactions_summary">Emoji stili ve yazı tipi, hızlı tepkiler</string>
+    <string name="settings_composer_summary">Biçimlendirme, gönderme ve ekler</string>
+    <string name="settings_timeline_summary">Mesaj görünümü, oda olayları ve medya oynatma</string>
+    <string name="settings_timeline_category_messages">Mesajlar</string>
+    <string name="settings_timeline_category_events">Oda olayları</string>
+    <string name="settings_timeline_category_navigation">Gezinme</string>
+    <string name="settings_activity_presence_title">Etkinlik ve çevrimiçi durumu</string>
+    <string name="settings_activity_presence_summary">Okundu bilgisi, yazıyor bildirimleri ve çevrimiçi durumu</string>
+    <string name="settings_rooms_spaces_title">Odalar ve alanlar</string>
+    <string name="settings_rooms_spaces_summary">Oda listesi, alanlar, oda rehberi ve kısayollar</string>
+    <string name="settings_rooms_spaces_category_room_list">Oda listesi</string>
+    <string name="settings_rooms_spaces_category_system">Paylaşım ve kısayollar</string>
+    <string name="settings_search_hint">Ayarlarda ara</string>
+    <string name="settings_search_result_unavailable">Bu ayar şu anda kullanılamıyor</string>
 </resources>

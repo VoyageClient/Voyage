@@ -399,8 +399,6 @@
     <string name="settings_clear_media_cache">Limpar cache de mídia</string>
     <string name="settings_keep_media">Manter mídia</string>
     <string name="settings_always_show_timestamps">Mostrar timestamps para todas as mensagens</string>
-    <string name="settings_user_interface">Interface de usuário</string>
-    <string name="settings_interface_language">Língua</string>
     <string name="settings_select_language">Escolher língua</string>
     <string name="media_saving_period_3_days">3 dias</string>
     <string name="media_saving_period_1_week">1 semana</string>
@@ -3578,4 +3576,23 @@
     <string name="scheduled_messages_empty">Nenhuma mensagem agendada nesta sala.</string>
     <string name="scheduled_message_send_now">Enviar agora</string>
     <string name="attachment_viewer_picture_in_picture">Imagem em imagem</string>
+    <string name="settings_interface_language">Idioma do app</string>
+    <string name="settings_appearance_title">Aparência</string>
+    <string name="settings_appearance_summary">Tema, cores, tamanho da fonte, balões e avatares</string>
+    <string name="settings_appearance_category_avatars_colors">Avatares e cores</string>
+    <string name="settings_emoji_reactions_title">Emojis e reações</string>
+    <string name="settings_emoji_reactions_summary">Estilo e fonte dos emojis, reações rápidas</string>
+    <string name="settings_composer_summary">Formatação, envio e anexos</string>
+    <string name="settings_timeline_summary">Exibição de mensagens, eventos da sala e reprodução de mídia</string>
+    <string name="settings_timeline_category_messages">Mensagens</string>
+    <string name="settings_timeline_category_events">Eventos da sala</string>
+    <string name="settings_timeline_category_navigation">Navegação</string>
+    <string name="settings_activity_presence_title">Atividade e presença</string>
+    <string name="settings_activity_presence_summary">Recibos de leitura, notificações de digitação e status online</string>
+    <string name="settings_rooms_spaces_title">Salas e espaços</string>
+    <string name="settings_rooms_spaces_summary">Lista de salas, espaços, diretório de salas e atalhos</string>
+    <string name="settings_rooms_spaces_category_room_list">Lista de salas</string>
+    <string name="settings_rooms_spaces_category_system">Compartilhamento e atalhos</string>
+    <string name="settings_search_hint">Pesquisar configurações</string>
+    <string name="settings_search_result_unavailable">Esta configuração não está disponível agora</string>
 </resources>

@@ -601,12 +601,6 @@ class VectorSettingsNotificationFragment :
         activeSessionHolder.getSafeActiveSession()?.pushersService()?.refreshPushers()
         vectorPreferences.subscribeToChanges(pushGatewayListener)
 
-        interactionListener?.requestedKeyToHighlight()?.let { key ->
-            interactionListener?.requestHighlightPreferenceKeyOnResume(null)
-            val preference = findPreference<VectorSwitchPreference>(key)
-            preference?.isHighlighted = true
-        }
-
         refreshPref()
     }
 

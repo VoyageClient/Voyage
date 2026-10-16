@@ -13,6 +13,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaDialogInteractions.clickDialogNegativeButton
 import im.vector.app.R
+import im.vector.app.clickOnAndGoBack
 import im.vector.app.espresso.tools.waitUntilViewVisible
 import im.vector.lib.strings.CommonStrings
 
@@ -22,10 +23,12 @@ class SettingsPreferencesRobot {
         clickOn(CommonStrings.settings_interface_language)
         waitUntilViewVisible(withText("Dansk (Danmark)"))
         pressBack()
-        clickOn(CommonStrings.settings_theme)
-        clickDialogNegativeButton()
-        clickOn(CommonStrings.font_size)
-        waitUntilViewVisible(withId(R.id.fons_scale_recycler))
-        pressBack()
+        clickOnAndGoBack(CommonStrings.settings_appearance_title) {
+            clickOn(CommonStrings.settings_theme)
+            clickDialogNegativeButton()
+            clickOn(CommonStrings.font_size)
+            waitUntilViewVisible(withId(R.id.fons_scale_recycler))
+            pressBack()
+        }
     }
 }

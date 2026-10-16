@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Clickable only so touches don't fall through to the settings page under the results -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:colorBackground"
+    android:clickable="true"
+    android:focusable="false"
+    tools:ignore="KeyboardInaccessibleWidget">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/settingsSearchResults"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        tools:listitem="@layout/item_settings_search_result" />
+
+    <TextView
+        android:id="@+id/settingsSearchEmpty"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="48dp"
+        android:text="@string/search_no_results"
+        android:textColor="?vctr_content_secondary"
+        android:visibility="gone" />
+
+</FrameLayout>

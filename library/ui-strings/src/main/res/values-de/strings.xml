@@ -395,8 +395,6 @@
     <string name="directory_server_placeholder">Name des Servers</string>
     <string name="directory_server_all_rooms_on_server">Alle Räume auf %s</string>
     <string name="directory_server_native_rooms">Alle nativen %s-Räume</string>
-    <string name="settings_user_interface">Bedienoberfläche</string>
-    <string name="settings_interface_language">Sprache</string>
     <string name="settings_select_language">Wähle Sprache</string>
     <string name="settings_start_on_boot">Starte beim Systemstart</string>
     <string name="settings_clear_media_cache">Medien-Cache leeren</string>
@@ -3577,4 +3575,23 @@
     <string name="scheduled_messages_empty">In diesem Raum sind keine Nachrichten geplant.</string>
     <string name="scheduled_message_send_now">Jetzt senden</string>
     <string name="attachment_viewer_picture_in_picture">Bild-in-Bild</string>
+    <string name="settings_interface_language">App-Sprache</string>
+    <string name="settings_appearance_title">Darstellung</string>
+    <string name="settings_appearance_summary">Design, Farben, Schriftgröße, Blasen und Avatare</string>
+    <string name="settings_appearance_category_avatars_colors">Avatare &amp; Farben</string>
+    <string name="settings_emoji_reactions_title">Emojis &amp; Reaktionen</string>
+    <string name="settings_emoji_reactions_summary">Emoji-Stil und -Schriftart, Schnellreaktionen</string>
+    <string name="settings_composer_summary">Formatierung, Senden und Anhänge</string>
+    <string name="settings_timeline_summary">Nachrichtenanzeige, Raumereignisse und Medienwiedergabe</string>
+    <string name="settings_timeline_category_messages">Nachrichten</string>
+    <string name="settings_timeline_category_events">Raumereignisse</string>
+    <string name="settings_timeline_category_navigation">Navigation</string>
+    <string name="settings_activity_presence_title">Aktivität &amp; Präsenz</string>
+    <string name="settings_activity_presence_summary">Lesebestätigungen, Schreibbenachrichtigungen und Online-Status</string>
+    <string name="settings_rooms_spaces_title">Räume &amp; Spaces</string>
+    <string name="settings_rooms_spaces_summary">Raumliste, Spaces, Raumverzeichnis und Verknüpfungen</string>
+    <string name="settings_rooms_spaces_category_room_list">Raumliste</string>
+    <string name="settings_rooms_spaces_category_system">Teilen &amp; Verknüpfungen</string>
+    <string name="settings_search_hint">Einstellungen durchsuchen</string>
+    <string name="settings_search_result_unavailable">Diese Einstellung ist gerade nicht verfügbar</string>
 </resources>

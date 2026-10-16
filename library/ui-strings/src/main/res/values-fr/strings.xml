@@ -370,8 +370,6 @@
     <string name="encryption_never_send_to_unverified_devices_summary">Ne jamais envoyer de messages chiffrés aux sessions non vérifiées depuis cette session.</string>
     <string name="encryption_information_verify_device_warning">Confirmez en comparant les informations suivantes avec les paramètres utilisateur dans votre autre session :</string>
     <string name="encryption_information_verify_device_warning2">Si elles ne correspondent pas, la sécurité de votre communication est peut-être compromise.</string>
-    <string name="settings_user_interface">Interface utilisateur</string>
-    <string name="settings_interface_language">Langue</string>
     <string name="settings_select_language">Choisissez une langue</string>
     <string name="account_email_already_used_error">Cette adresse électronique est déjà utilisée.</string>
     <string name="account_phone_number_already_used_error">Ce numéro de téléphone est déjà utilisé.</string>
@@ -3578,4 +3576,23 @@
     <string name="scheduled_messages_empty">Aucun message n’est programmé dans ce salon.</string>
     <string name="scheduled_message_send_now">Envoyer maintenant</string>
     <string name="attachment_viewer_picture_in_picture">Image dans l’image</string>
+    <string name="settings_interface_language">Langue de l\'application</string>
+    <string name="settings_appearance_title">Apparence</string>
+    <string name="settings_appearance_summary">Thème, couleurs, taille du texte, bulles et avatars</string>
+    <string name="settings_appearance_category_avatars_colors">Avatars et couleurs</string>
+    <string name="settings_emoji_reactions_title">Émojis et réactions</string>
+    <string name="settings_emoji_reactions_summary">Style et police des émojis, réactions rapides</string>
+    <string name="settings_composer_summary">Mise en forme, envoi et pièces jointes</string>
+    <string name="settings_timeline_summary">Affichage des messages, événements du salon et lecture des médias</string>
+    <string name="settings_timeline_category_messages">Messages</string>
+    <string name="settings_timeline_category_events">Événements du salon</string>
+    <string name="settings_timeline_category_navigation">Navigation</string>
+    <string name="settings_activity_presence_title">Activité et présence</string>
+    <string name="settings_activity_presence_summary">Accusés de réception, notifications de saisie et statut en ligne</string>
+    <string name="settings_rooms_spaces_title">Salons et espaces</string>
+    <string name="settings_rooms_spaces_summary">Liste des salons, espaces, répertoire des salons et raccourcis</string>
+    <string name="settings_rooms_spaces_category_room_list">Liste des salons</string>
+    <string name="settings_rooms_spaces_category_system">Partage et raccourcis</string>
+    <string name="settings_search_hint">Rechercher dans les paramètres</string>
+    <string name="settings_search_result_unavailable">Ce paramètre n\'est pas disponible pour le moment</string>
 </resources>

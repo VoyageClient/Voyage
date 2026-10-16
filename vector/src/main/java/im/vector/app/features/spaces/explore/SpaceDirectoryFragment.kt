@@ -25,6 +25,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.alignWithToolbarTitle
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.registerStartForActivityResult
@@ -179,6 +180,7 @@ class SpaceDirectoryFragment :
 
             menu.findItem(R.id.spaceSearch)?.let { searchItem ->
                 val searchView = searchItem.actionView as SearchView
+                searchView.alignWithToolbarTitle()
                 searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                     override fun onQueryTextSubmit(query: String?): Boolean {
                         return true

@@ -59,6 +59,8 @@ class SettingsRobot {
     }
 
     fun legals(block: SettingsLegalsRobot.() -> Unit) {
-        clickOnAndGoBack(CommonStrings.preference_root_legals) { block(SettingsLegalsRobot()) }
+        clickOnAndGoBack(CommonStrings.preference_root_help_about) {
+            clickOnAndGoBack(CommonStrings.preference_root_legals) { block(SettingsLegalsRobot()) }
+        }
     }
 }

@@ -425,8 +425,6 @@
     <string name="account_email_already_used_error">এই ইমেইলটা ইতোমধ্যে ব্যবহৃত হচ্ছে।</string>
     <string name="account_email_validation_message">আপনার ইমেইল চেক করুন এবং লিঙ্কে ক্লিক করুন। একবার সম্পন্ন হলে, অবিরত ক্লিক করুন।</string>
     <string name="settings_select_language">ভাষা বেছে নিন</string>
-    <string name="settings_interface_language">ভাষা</string>
-    <string name="settings_user_interface">ব্যবহারকারী ইন্টারফেস</string>
     <string name="disabled_integration_dialog_content">এটি করতে সেটিংসে \'একীকরণের অনুমতি দিন\' সক্ষম করুন।</string>
     <string name="disabled_integration_dialog_title">সংহতকরণ অক্ষম করা হয়েছে</string>
     <string name="settings_integration_manager">ইন্টিগ্রেশন ম্যানেজার</string>
@@ -3532,4 +3530,23 @@
     <string name="scheduled_messages_empty">এই রুমে কোনো নির্ধারিত বার্তা নেই।</string>
     <string name="scheduled_message_send_now">এখনই পাঠান</string>
     <string name="attachment_viewer_picture_in_picture">পিকচার-ইন-পিকচার</string>
+    <string name="settings_interface_language">অ্যাপের ভাষা</string>
+    <string name="settings_appearance_title">চেহারা</string>
+    <string name="settings_appearance_summary">থিম, রং, ফন্টের আকার, বাবল এবং অবতার</string>
+    <string name="settings_appearance_category_avatars_colors">অবতার ও রং</string>
+    <string name="settings_emoji_reactions_title">ইমোজি ও প্রতিক্রিয়া</string>
+    <string name="settings_emoji_reactions_summary">ইমোজির স্টাইল ও ফন্ট, দ্রুত প্রতিক্রিয়া</string>
+    <string name="settings_composer_summary">ফরম্যাটিং, পাঠানো এবং সংযুক্তি</string>
+    <string name="settings_timeline_summary">বার্তা প্রদর্শন, রুমের ইভেন্ট এবং মিডিয়া প্লেব্যাক</string>
+    <string name="settings_timeline_category_messages">বার্তা</string>
+    <string name="settings_timeline_category_events">রুমের ইভেন্ট</string>
+    <string name="settings_timeline_category_navigation">নেভিগেশন</string>
+    <string name="settings_activity_presence_title">কার্যকলাপ ও উপস্থিতি</string>
+    <string name="settings_activity_presence_summary">পাঠানো প্রাপ্তি, টাইপিং বিজ্ঞপ্তি এবং অনলাইন স্থিতি</string>
+    <string name="settings_rooms_spaces_title">রুম ও স্পেস</string>
+    <string name="settings_rooms_spaces_summary">রুমের তালিকা, স্পেস, রুম ডিরেক্টরি এবং শর্টকাট</string>
+    <string name="settings_rooms_spaces_category_room_list">রুমের তালিকা</string>
+    <string name="settings_rooms_spaces_category_system">শেয়ারিং ও শর্টকাট</string>
+    <string name="settings_search_hint">সেটিংস খুঁজুন</string>
+    <string name="settings_search_result_unavailable">এই সেটিংটি এখন উপলব্ধ নেই</string>
 </resources>

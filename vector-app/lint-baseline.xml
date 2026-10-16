@@ -2526,8 +2526,8 @@
         errorLine1="        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/im/vector/app/features/settings/VectorSettingsPreferencesFragment.kt"
-            line="398"
+            file="src/main/java/im/vector/app/features/settings/VectorSettingsEmojiFragment.kt"
+            line="125"
             column="29"/>
     </issue>
 
@@ -2537,8 +2537,8 @@
         errorLine1="            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(&quot;font/ttf&quot;, &quot;application/x-font-ttf&quot;, &quot;application/octet-stream&quot;))"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/im/vector/app/features/settings/VectorSettingsPreferencesFragment.kt"
-            line="401"
+            file="src/main/java/im/vector/app/features/settings/VectorSettingsEmojiFragment.kt"
+            line="128"
             column="22"/>
     </issue>
 

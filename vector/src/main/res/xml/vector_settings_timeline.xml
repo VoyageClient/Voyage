@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_timeline_category_messages">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="@bool/settings_timeline_show_live_sender_info_default"
+            app:isPreferenceVisible="@bool/settings_timeline_show_live_sender_info_visible"
+            android:key="SETTINGS_TIMELINE_SHOW_LIVE_SENDER_INFO"
+            android:summary="@string/settings_show_latest_profile_description"
+            android:title="@string/settings_show_latest_profile" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_OVERRIDE_DM_DISPLAY_KEY"
+            android:summary="@string/settings_override_dm_display_summary"
+            android:title="@string/settings_override_dm_display_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_URL_PREVIEW_KEY"
+            android:summary="@string/settings_inline_url_preview_summary"
+            android:title="@string/settings_inline_url_preview" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"
+            android:title="@string/settings_always_show_timestamps" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_12_24_TIMESTAMPS_KEY"
+            android:title="@string/settings_12_24_timestamps"
+            app:isPreferenceVisible="@bool/false_not_implemented" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_TIMELINE_LINE_WRAP_KEY"
+            android:summary="@string/settings_timeline_line_wrap_summary"
+            android:title="@string/settings_timeline_line_wrap" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
+            android:summary="@string/settings_render_blockquotes_as_greentext_summary"
+            android:title="@string/settings_render_blockquotes_as_greentext_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_READ_RECEIPTS_KEY"
+            android:summary="@string/settings_show_read_receipts_summary"
+            android:title="@string/settings_show_read_receipts" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_VIBRATE_ON_MENTION_KEY"
+            android:title="@string/settings_vibrate_on_mention"
+            app:isPreferenceVisible="@bool/false_not_implemented" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_timeline_category_events">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_REDACTED_KEY"
+            android:summary="@string/settings_show_redacted_summary"
+            android:title="@string/settings_show_redacted" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY"
+            android:summary="@string/settings_skip_redaction_confirmation_summary"
+            android:title="@string/settings_skip_redaction_confirmation" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY"
+            android:summary="@string/settings_show_join_leave_messages_summary"
+            android:title="@string/settings_show_join_leave_messages" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY"
+            android:summary="@string/settings_show_avatar_display_name_changes_messages_summary"
+            android:title="@string/settings_show_avatar_display_name_changes_messages" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_ROOM_SETTINGS_EVENTS_KEY"
+            android:summary="@string/settings_show_room_settings_events_summary"
+            android:title="@string/settings_show_room_settings_events" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SHOW_ACL_EVENTS_KEY"
+            android:summary="@string/settings_show_acl_events_summary"
+            android:title="@string/settings_show_acl_events" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_media">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
+            android:summary="@string/settings_autoplay_animated_images_summary"
+            android:title="@string/settings_autoplay_animated_images_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_LOOP_VIDEOS_KEY"
+            android:summary="@string/settings_loop_videos_summary"
+            android:title="@string/settings_loop_videos_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_timeline_category_navigation">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
+            android:summary="@string/settings_show_pinned_messages_banner_summary"
+            android:title="@string/settings_show_pinned_messages_banner" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY"
+            android:summary="@string/settings_auto_dismiss_jump_to_unread_summary"
+            android:title="@string/settings_auto_dismiss_jump_to_unread" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_JUMP_BACK_TO_REPLY_SOURCE"
+            android:summary="@string/settings_jump_back_to_reply_source_summary"
+            android:title="@string/settings_jump_back_to_reply_source" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

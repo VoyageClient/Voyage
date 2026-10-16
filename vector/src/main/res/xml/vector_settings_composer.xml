@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_ENABLE_MARKDOWN_KEY"
+        android:summary="@string/settings_send_markdown_summary"
+        android:title="@string/settings_send_markdown" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_PREVENT_UNINTENDED_MARKDOWN_KEY"
+        android:summary="@string/settings_prevent_unintended_markdown_summary"
+        android:title="@string/settings_prevent_unintended_markdown" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
+        android:summary="@string/settings_linkify_msc_references_summary"
+        android:title="@string/settings_linkify_msc_references" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
+        android:summary="@string/settings_sed_replacement_summary"
+        android:title="@string/settings_sed_replacement_title" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="false"
+        android:key="SETTINGS_SEND_MESSAGE_WITH_ENTER"
+        android:summary="@string/settings_send_message_with_enter_summary"
+        android:title="@string/settings_send_message_with_enter" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_CLASSIC_COMPOSER"
+        android:summary="@string/settings_classic_composer_summary"
+        android:title="@string/settings_classic_composer" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="true"
+        android:key="SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON"
+        android:summary="@string/settings_enable_voice_message_button_summary"
+        android:title="@string/settings_enable_voice_message_button_title" />
+
+    <im.vector.app.core.preference.VectorPreference
+        android:key="SETTINGS_INTERFACE_TAKE_PHOTO_VIDEO"
+        android:persistent="false"
+        android:title="@string/option_take_photo_video"
+        tools:summary="@string/option_always_ask" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="false"
+        android:key="SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
+        android:summary="@string/settings_jump_to_bottom_on_send_summary"
+        android:title="@string/settings_jump_to_bottom_on_send" />
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:title="@string/settings_media"
+        app:isPreferenceVisible="@bool/false_not_implemented">
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_MEDIA_SAVING_PERIOD_KEY"
+            android:title="@string/settings_keep_media" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_USE_NATIVE_CAMERA_PREFERENCE_KEY"
+            android:summary="@string/settings_labs_native_camera_summary"
+            android:title="@string/settings_labs_native_camera" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_PLAY_SHUTTER_SOUND_KEY"
+            android:title="@string/settings_play_shutter_sound" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY"
+            android:title="@string/settings_preview_media_before_sending" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="0"
+            android:entries="@array/compression_levels"
+            android:entryValues="@array/compression_level_values"
+            android:key="SETTINGS_DEFAULT_MEDIA_COMPRESSION_KEY"
+            android:title="@string/settings_default_compression"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="0"
+            android:entries="@array/media_sources"
+            android:entryValues="@array/media_source_values"
+            android:key="SETTINGS_DEFAULT_MEDIA_SOURCE_KEY"
+            android:title="@string/settings_default_media_source"
+            app:useSimpleSummaryProvider="true" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

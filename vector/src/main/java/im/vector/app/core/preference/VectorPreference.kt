@@ -7,17 +7,12 @@
 
 package im.vector.app.core.preference
 
-import android.animation.Animator
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.animation.doOnEnd
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
@@ -68,23 +63,13 @@ open class VectorPreference : Preference {
         isIconSpaceReserved = false
     }
 
-    var isHighlighted = false
-        set(value) {
-            field = value
-            notifyChanged()
-        }
-
     var tintIcon = false
         set(value) {
             field = value
             notifyChanged()
         }
 
-    var currentHighlightAnimator: Animator? = null
-
-    // The themed ripple, not a flat transparent color: rows must keep their tap feedback when the
-    // deep-link highlight isn't running (the preference layout's own background gets overwritten by
-    // the highlight animation above).
+    // A recycled row may still carry the settings search highlight as its background.
     private fun restoreRippleBackground(itemView: android.view.View) {
         val ta = itemView.context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
         itemView.setBackgroundKeepingPadding(ta.getDrawable(0))
@@ -111,35 +96,7 @@ open class VectorPreference : Preference {
                 ellipsize = if (singleLineSummary) android.text.TextUtils.TruncateAt.END else null
             }
 
-            // cancel existing animation (find a way to resume if happens during anim?)
-            currentHighlightAnimator?.cancel()
-            if (isHighlighted) {
-                val colorFrom = Color.TRANSPARENT
-                val colorTo = ThemeUtils.getColor(itemView.context, com.google.android.material.R.attr.colorPrimary)
-                currentHighlightAnimator = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
-                    duration = 250 // milliseconds
-                    addUpdateListener { animator ->
-                        itemView.setBackgroundColor(animator.animatedValue as Int)
-                    }
-                    doOnEnd {
-                        currentHighlightAnimator = ValueAnimator.ofObject(ArgbEvaluator(), colorTo, colorFrom).apply {
-                            duration = 250 // milliseconds
-                            addUpdateListener { animator ->
-                                itemView.setBackgroundColor(animator.animatedValue as Int)
-                            }
-                            doOnEnd {
-                                isHighlighted = false
-                                restoreRippleBackground(itemView)
-                            }
-                            start()
-                        }
-                    }
-                    startDelay = 200
-                    start()
-                }
-            } else {
-                restoreRippleBackground(itemView)
-            }
+            restoreRippleBackground(itemView)
         } catch (e: Exception) {
             Timber.e(e, "onBindView")
         }

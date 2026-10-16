@@ -709,8 +709,6 @@
     <string name="legals_no_policy_provided">यह सर्वर कोई नीति नहीं देता।</string>
     <string name="disabled_integration_dialog_title">इंटीग्रेशन बंद हैं</string>
     <string name="disabled_integration_dialog_content">ऐसा करने के लिए सेटिंग में “इंटीग्रेशन की अनुमति दें” चालू करें।</string>
-    <string name="settings_user_interface">यूज़र इंटरफ़ेस</string>
-    <string name="settings_interface_language">भाषा</string>
     <string name="settings_select_language">भाषा चुनें</string>
     <string name="account_email_validation_message">कृपया अपना ईमेल देखें और उसमें दिए लिंक पर क्लिक करें। ऐसा करने के बाद, जारी रखें पर क्लिक करें।</string>
     <string name="account_email_already_used_error">यह ईमेल पता पहले से उपयोग में है।</string>
@@ -3460,4 +3458,23 @@
     <string name="scheduled_messages_empty">इस रूम में कोई संदेश शेड्यूल नहीं है।</string>
     <string name="scheduled_message_send_now">अभी भेजें</string>
     <string name="attachment_viewer_picture_in_picture">पिक्चर-इन-पिक्चर</string>
+    <string name="settings_interface_language">ऐप की भाषा</string>
+    <string name="settings_appearance_title">रूप-रंग</string>
+    <string name="settings_appearance_summary">थीम, रंग, फ़ॉन्ट साइज़, बबल और अवतार</string>
+    <string name="settings_appearance_category_avatars_colors">अवतार और रंग</string>
+    <string name="settings_emoji_reactions_title">इमोजी और प्रतिक्रियाएं</string>
+    <string name="settings_emoji_reactions_summary">इमोजी स्टाइल और फ़ॉन्ट, तुरंत प्रतिक्रियाएं</string>
+    <string name="settings_composer_summary">फ़ॉर्मैटिंग, भेजना और अटैचमेंट</string>
+    <string name="settings_timeline_summary">मैसेज का दिखना, रूम इवेंट और मीडिया प्लेबैक</string>
+    <string name="settings_timeline_category_messages">मैसेज</string>
+    <string name="settings_timeline_category_events">रूम इवेंट</string>
+    <string name="settings_timeline_category_navigation">नेविगेशन</string>
+    <string name="settings_activity_presence_title">गतिविधि और उपस्थिति</string>
+    <string name="settings_activity_presence_summary">रीड रसीदें, टाइपिंग सूचनाएं और ऑनलाइन स्थिति</string>
+    <string name="settings_rooms_spaces_title">रूम और स्पेस</string>
+    <string name="settings_rooms_spaces_summary">रूम लिस्ट, स्पेस, रूम डायरेक्टरी और शॉर्टकट</string>
+    <string name="settings_rooms_spaces_category_room_list">रूम लिस्ट</string>
+    <string name="settings_rooms_spaces_category_system">शेयरिंग और शॉर्टकट</string>
+    <string name="settings_search_hint">सेटिंग खोजें</string>
+    <string name="settings_search_result_unavailable">यह सेटिंग अभी उपलब्ध नहीं है</string>
 </resources>

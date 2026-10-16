@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:minHeight="56dp"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingLeft="16dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/settingsSearchResultBreadcrumb"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="?colorPrimary"
+        tools:text="Preferences › Timeline" />
+
+    <TextView
+        android:id="@+id/settingsSearchResultTitle"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?vctr_content_primary"
+        tools:text="Show inline URL previews" />
+
+    <TextView
+        android:id="@+id/settingsSearchResultSummary"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="?vctr_content_secondary"
+        tools:text="Previews will be shown for links in messages." />
+
+</LinearLayout>

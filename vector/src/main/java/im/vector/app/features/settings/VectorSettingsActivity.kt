@@ -13,19 +13,28 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
+import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.alignWithToolbarTitle
+import im.vector.app.core.extensions.hideKeyboard
+import im.vector.app.core.extensions.padActionsFromScreenEdge
 import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.core.platform.VectorMenuProvider
+import im.vector.app.core.utils.toast
 import im.vector.app.databinding.ActivityVectorSettingsBinding
 import im.vector.app.features.discovery.DiscoverySettingsFragment
 import im.vector.app.features.matrixto.MatrixToBottomSheet
@@ -33,6 +42,10 @@ import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.settings.devices.VectorSettingsDevicesFragment
 import im.vector.app.features.settings.notifications.VectorSettingsNotificationFragment
+import im.vector.app.features.settings.search.PreferenceHighlighter
+import im.vector.app.features.settings.search.SettingsScreenRegistry
+import im.vector.app.features.settings.search.SettingsSearchEntry
+import im.vector.app.features.settings.search.SettingsSearchFragment
 import im.vector.app.features.settings.threepids.ThreePidsSettingsFragment
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
@@ -51,7 +64,8 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
         PreferenceFragmentCompat.OnPreferenceStartFragmentCallback,
         FragmentManager.OnBackStackChangedListener,
         MatrixToBottomSheet.InteractionListener,
-        VectorSettingsFragmentInteractionListener {
+        VectorSettingsFragmentInteractionListener,
+        VectorMenuProvider {
 
     override fun getBinding() = ActivityVectorSettingsBinding.inflate(layoutInflater)
 
@@ -64,6 +78,12 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
 
     private var keyToHighlight: String? = null
 
+    private class PendingSearchHighlight(val screen: String, val highlight: SettingsSearchEntry.Highlight)
+
+    private var pendingSearchHighlight: PendingSearchHighlight? = null
+
+    private var searchMenuItem: MenuItem? = null
+
     var ignoreInvalidTokenError = false
 
     @Inject lateinit var session: Session
@@ -71,6 +91,7 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
     override fun initUiAndData() {
         setupToolbar(views.settingsToolbar)
                 .allowBack()
+        views.settingsToolbar.padActionsFromScreenEdge()
 
         if (isFirstCreation()) {
             showInitialFragment()
@@ -177,6 +198,98 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
         if (0 == count) {
             supportActionBar?.title = getString(getTitleRes())
         }
+    }
+
+    override fun getMenuRes() = R.menu.vector_settings_search
+
+    override fun handlePrepareMenu(menu: Menu) {
+        // A page with its own search (e.g. account data) keeps the toolbar to itself.
+        val pageHasSearch = menu.children.any { it.itemId != R.id.menu_settings_search && it.actionView is SearchView }
+        menu.findItem(R.id.menu_settings_search)?.isVisible = !pageHasSearch
+    }
+
+    override fun handlePostCreateMenu(menu: Menu) {
+        val searchItem = menu.findItem(R.id.menu_settings_search) ?: return
+        searchMenuItem = searchItem
+        val searchView = searchItem.actionView as? SearchView ?: return
+        searchView.alignWithToolbarTitle()
+        searchView.queryHint = getString(CommonStrings.settings_search_hint)
+        searchView.maxWidth = Int.MAX_VALUE
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                searchView.clearFocus()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                searchResultsFragment()?.setQuery(newText.orEmpty())
+                return true
+            }
+        })
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                if (searchResultsFragment() == null) {
+                    supportFragmentManager.beginTransaction()
+                            .add(views.vectorSettingsSearchResults.id, SettingsSearchFragment::class.java, null)
+                            .commitNow()
+                }
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                searchResultsFragment()?.let { supportFragmentManager.beginTransaction().remove(it).commitNow() }
+                return true
+            }
+        })
+        // The menu is re-created with the field collapsed (e.g. after a rotation): re-open it on the results still shown.
+        searchResultsFragment()?.let { results ->
+            val query = results.query
+            searchItem.expandActionView()
+            searchView.setQuery(query, false)
+        }
+    }
+
+    override fun handleMenuItemSelected(item: MenuItem) = false
+
+    private fun searchResultsFragment() =
+            supportFragmentManager.findFragmentById(views.vectorSettingsSearchResults.id) as? SettingsSearchFragment
+
+    fun closeSearch() {
+        searchMenuItem?.collapseActionView()
+    }
+
+    /** Closes the search and opens the screen [entry] lives on, rebuilding the back stack that leads to it. */
+    fun openSearchResult(entry: SettingsSearchEntry) {
+        hideKeyboard()
+        closeSearch()
+        val target = entry.screenPath.lastOrNull() ?: SettingsScreenRegistry.ROOT
+        pendingSearchHighlight = entry.highlight?.let { PendingSearchHighlight(target, it) }
+        val fragmentManager = supportFragmentManager
+        fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        // Opened straight onto a sub-screen (a deep link): keep it as the base when the path runs through it,
+        // otherwise go through the root on top of it.
+        val base = fragmentManager.findFragmentById(views.vectorSettingsPage.id)
+        val path = listOf(SettingsScreenRegistry.ROOT) + entry.screenPath
+        val toPush = path.drop(path.indexOf(base?.javaClass?.name) + 1)
+        toPush.forEachIndexed { index, className ->
+            @Suppress("UNCHECKED_CAST")
+            val fragmentClass = Class.forName(className) as Class<out Fragment>
+            val enterAnim = if (index == toPush.lastIndex) R.anim.right_in else 0
+            pushFragment(fragmentClass, null, enterAnim = enterAnim, exitAnim = 0)
+        }
+        // The row is on the base screen, which an empty back stack never re-resumes.
+        if (toPush.isEmpty()) (base as? PreferenceFragmentCompat)?.let { consumeSearchHighlight(it) }
+    }
+
+    /** Called by each settings screen on resume, to point at the row a search result asked for. */
+    fun consumeSearchHighlight(fragment: PreferenceFragmentCompat) {
+        val pending = pendingSearchHighlight?.takeIf { it.screen == fragment.javaClass.name } ?: return
+        pendingSearchHighlight = null
+        val highlight = pending.highlight
+        val found = PreferenceHighlighter.highlight(fragment) { preference ->
+            if (highlight.key != null) preference.key == highlight.key else preference.title?.toString() == highlight.title
+        }
+        if (!found) toast(CommonStrings.settings_search_result_unavailable)
     }
 
     override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {

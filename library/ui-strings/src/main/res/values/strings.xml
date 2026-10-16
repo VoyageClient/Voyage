@@ -962,8 +962,7 @@
     <string name="disabled_integration_dialog_title">Integrations are disabled</string>
     <string name="disabled_integration_dialog_content">"Enable 'Allow integrations' in Settings to do this."</string>
 
-    <string name="settings_user_interface">User interface</string>
-    <string name="settings_interface_language">Language</string>
+    <string name="settings_interface_language">App language</string>
     <string name="settings_select_language">Choose language</string>
 
     <string name="account_email_validation_message">Please check your email and click on the link it contains. Once this is done, click continue.</string>
@@ -1565,6 +1564,24 @@
     <!-- Settings -->
     <string name="settings_general_title">General</string>
     <string name="settings_preferences">Preferences</string>
+    <string name="settings_appearance_title">Appearance</string>
+    <string name="settings_appearance_summary">Theme, colors, font size, bubbles and avatars</string>
+    <string name="settings_appearance_category_avatars_colors">Avatars &amp; colors</string>
+    <string name="settings_emoji_reactions_title">Emoji &amp; reactions</string>
+    <string name="settings_emoji_reactions_summary">Emoji style and font, quick reactions</string>
+    <string name="settings_composer_summary">Formatting, sending and attachments</string>
+    <string name="settings_timeline_summary">Message display, room events and media playback</string>
+    <string name="settings_timeline_category_messages">Messages</string>
+    <string name="settings_timeline_category_events">Room events</string>
+    <string name="settings_timeline_category_navigation">Navigation</string>
+    <string name="settings_activity_presence_title">Activity &amp; presence</string>
+    <string name="settings_activity_presence_summary">Read receipts, typing notifications and online status</string>
+    <string name="settings_rooms_spaces_title">Rooms &amp; spaces</string>
+    <string name="settings_rooms_spaces_summary">Room list, spaces, room directory and shortcuts</string>
+    <string name="settings_rooms_spaces_category_room_list">Room list</string>
+    <string name="settings_rooms_spaces_category_system">Sharing &amp; shortcuts</string>
+    <string name="settings_search_hint">Search settings</string>
+    <string name="settings_search_result_unavailable">This setting isn\'t available right now</string>
     <string name="settings_security_and_privacy">Security &amp; Privacy</string>
     <string name="settings_push_rules">Push Rules</string>
     <string name="settings_push_rules_no_rules">No push rules defined</string>

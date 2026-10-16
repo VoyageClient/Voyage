@@ -732,8 +732,6 @@
     <string name="legals_no_policy_provided">یہ سرور کوئی پالیسی فراہم نہیں کرتا۔</string>
     <string name="disabled_integration_dialog_title">انضمامات غیر فعال ہیں</string>
     <string name="disabled_integration_dialog_content">ایسا کرنے کے لیے ترتیبات میں “انضمامات کی اجازت دیں” فعال کریں۔</string>
-    <string name="settings_user_interface">صارف انٹرفیس</string>
-    <string name="settings_interface_language">زبان</string>
     <string name="settings_select_language">زبان منتخب کریں</string>
     <string name="account_email_validation_message">براہ کرم اپنی ای میل چیک کریں اور اس میں موجود ربط پر کلک کریں۔ ایسا کرنے کے بعد جاری رکھیں پر کلک کریں۔</string>
     <string name="account_email_already_used_error">یہ ای میل پتہ پہلے سے زیرِ استعمال ہے۔</string>
@@ -3472,4 +3470,23 @@
     <string name="scheduled_messages_empty">اس کمرے میں کوئی پیغام شیڈول نہیں ہے۔</string>
     <string name="scheduled_message_send_now">ابھی بھیجیں</string>
     <string name="attachment_viewer_picture_in_picture">تصویر میں تصویر</string>
+    <string name="settings_interface_language">ایپ کی زبان</string>
+    <string name="settings_appearance_title">ظاہری شکل</string>
+    <string name="settings_appearance_summary">تھیم، رنگ، فونٹ کا سائز، ببلز اور اوتار</string>
+    <string name="settings_appearance_category_avatars_colors">اوتار اور رنگ</string>
+    <string name="settings_emoji_reactions_title">ایموجی اور ردعمل</string>
+    <string name="settings_emoji_reactions_summary">ایموجی کا انداز اور فونٹ، فوری ردعمل</string>
+    <string name="settings_composer_summary">فارمیٹنگ، بھیجنا اور منسلکات</string>
+    <string name="settings_timeline_summary">پیغامات کا ڈسپلے، کمرے کے واقعات اور میڈیا پلے بیک</string>
+    <string name="settings_timeline_category_messages">پیغامات</string>
+    <string name="settings_timeline_category_events">کمرے کے واقعات</string>
+    <string name="settings_timeline_category_navigation">نیویگیشن</string>
+    <string name="settings_activity_presence_title">سرگرمی اور موجودگی</string>
+    <string name="settings_activity_presence_summary">پڑھنے کی رسیدیں، لکھنے کی اطلاعات اور آن لائن حیثیت</string>
+    <string name="settings_rooms_spaces_title">کمرے اور جگہیں</string>
+    <string name="settings_rooms_spaces_summary">کمروں کی فہرست، جگہیں، کمروں کا راہنامچہ اور شارٹ کٹس</string>
+    <string name="settings_rooms_spaces_category_room_list">کمروں کی فہرست</string>
+    <string name="settings_rooms_spaces_category_system">شیئرنگ اور شارٹ کٹس</string>
+    <string name="settings_search_hint">ترتیبات میں تلاش کریں</string>
+    <string name="settings_search_result_unavailable">یہ ترتیب ابھی دستیاب نہیں ہے</string>
 </resources>

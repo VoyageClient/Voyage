@@ -72,7 +72,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Consistent deleted-message previews**: a deleted message reads as deleted everywhere it is previewed, not only in the timeline. Reply headers, the composer's reply preview, the room list, the pinned-messages banner and list, and the long-press menu all show it grayed out with a trash icon rather than as ordinary text, and thread summaries gray it out too. The wording is unified on "Message redacted".
 
-- **Classic composer**: the message composer goes back to the flat layout it had before 2020. No rounded input box, a divider above it, accent-colored glyphs, a bare `+` for the share options, the emoji toggle outside the text box, and a plain paper-plane send button. On by default; turn it off under Settings → Preferences for the boxed composer.
+- **Classic composer**: the message composer goes back to the flat layout it had before 2020. No rounded input box, a divider above it, accent-colored glyphs, a bare `+` for the share options, the emoji toggle outside the text box, and a plain paper-plane send button. On by default, and can be turned off for the boxed composer.
 
 - **Slash commands**: added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/view`, `/encrypt`, `/raw`, `/rawmsg` and `/rawstate` for sending an event from raw JSON, and `/trans`/`/transme` for trans-flag gradient messages, plus the ability to run slash commands on a reply or an edit. `/rainbow` paints nheko's vivid gradient instead of washed-out CIELAB colors.
 
@@ -155,6 +155,8 @@ New features, improvements, and notable removals in this fork.
 - **SchildiChat themes & message bubbles**: SchildiChat Light/Dark/Black themes and opt-in message bubbles (None / Both sides / Same side) with configurable corner roundness, an optional tail, and accent tinting of your own bubbles. Timestamps sit inline in the bubble and overlay images and videos.
 
 - **Scroll animations**: choose an animation for room lists, timelines, settings and other app lists.
+
+- **Reorganized settings with search**: settings are regrouped into smaller sections to make things easier to find, and a search on every settings screen jumps straight to any setting.
 
 - **SchildiChat layout & behavior options**: a combined people+rooms Overview list, mark chats as read/unread (MSC2867) synced with compatible clients, opening a room at its first unread message, jump-to-bottom when sending, remembered collapsed list sections, and showing or hiding space members as people.
 

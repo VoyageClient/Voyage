@@ -1129,8 +1129,6 @@
     <string name="account_email_already_used_error">כתובת דוא\"ל זו כבר נמצאת בשימוש.</string>
     <string name="account_email_validation_message">אנא בדוק את הדוא\"ל שלך ולחץ על הקישור שהוא מכיל. לאחר שתסיים, לחץ על המשך.</string>
     <string name="settings_select_language">בחר שפה</string>
-    <string name="settings_interface_language">שפה</string>
-    <string name="settings_user_interface">ממשק משתמש</string>
     <string name="disabled_integration_dialog_content">הפעל את \'אפשר שילובים\' בהגדרות כדי לעשות זאת.</string>
     <string name="disabled_integration_dialog_title">שילובים מושבתים</string>
     <string name="settings_integration_manager">מנהל האינטגרציה</string>
@@ -3671,4 +3669,23 @@
     <string name="scheduled_messages_empty">אין הודעות מתוזמנות בחדר הזה.</string>
     <string name="scheduled_message_send_now">שלח עכשיו</string>
     <string name="attachment_viewer_picture_in_picture">תמונה בתוך תמונה</string>
+    <string name="settings_interface_language">שפת האפליקציה</string>
+    <string name="settings_appearance_title">מראה</string>
+    <string name="settings_appearance_summary">ערכת נושא, צבעים, גודל גופן, בועות ותמונות פרופיל</string>
+    <string name="settings_appearance_category_avatars_colors">תמונות פרופיל וצבעים</string>
+    <string name="settings_emoji_reactions_title">אמוג\'י ותגובות</string>
+    <string name="settings_emoji_reactions_summary">סגנון וגופן אמוג\'י, תגובות מהירות</string>
+    <string name="settings_composer_summary">עיצוב, שליחה וקבצים מצורפים</string>
+    <string name="settings_timeline_summary">תצוגת הודעות, אירועי חדר והפעלת מדיה</string>
+    <string name="settings_timeline_category_messages">הודעות</string>
+    <string name="settings_timeline_category_events">אירועי חדר</string>
+    <string name="settings_timeline_category_navigation">ניווט</string>
+    <string name="settings_activity_presence_title">פעילות ונוכחות</string>
+    <string name="settings_activity_presence_summary">קבלות קריאה, הודעות הקלדה ומצב מקוון</string>
+    <string name="settings_rooms_spaces_title">חדרים ומרחבים</string>
+    <string name="settings_rooms_spaces_summary">רשימת חדרים, מרחבים, ספריית חדרים וקיצורי דרך</string>
+    <string name="settings_rooms_spaces_category_room_list">רשימת חדרים</string>
+    <string name="settings_rooms_spaces_category_system">שיתוף וקיצורי דרך</string>
+    <string name="settings_search_hint">חיפוש בהגדרות</string>
+    <string name="settings_search_result_unavailable">הגדרה זו אינה זמינה כרגע</string>
 </resources>

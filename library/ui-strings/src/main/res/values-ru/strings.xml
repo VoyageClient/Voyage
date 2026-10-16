@@ -389,8 +389,6 @@
     <string name="directory_server_placeholder">Название сервера</string>
     <string name="directory_server_all_rooms_on_server">Все комнаты на сервере %s</string>
     <string name="directory_server_native_rooms">Все местные комнаты %s</string>
-    <string name="settings_user_interface">Пользовательский интерфейс</string>
-    <string name="settings_interface_language">Язык</string>
     <string name="settings_select_language">Выберите язык</string>
     <string name="settings_start_on_boot">Запускать при загрузке</string>
     <string name="settings_always_show_timestamps">Метки времени для всех сообщений</string>
@@ -3702,4 +3700,23 @@
     <string name="scheduled_messages_empty">В этой комнате нет запланированных сообщений.</string>
     <string name="scheduled_message_send_now">Отправить сейчас</string>
     <string name="attachment_viewer_picture_in_picture">Картинка в картинке</string>
+    <string name="settings_interface_language">Язык приложения</string>
+    <string name="settings_appearance_title">Оформление</string>
+    <string name="settings_appearance_summary">Тема, цвета, размер шрифта, пузыри и аватары</string>
+    <string name="settings_appearance_category_avatars_colors">Аватары и цвета</string>
+    <string name="settings_emoji_reactions_title">Эмодзи и реакции</string>
+    <string name="settings_emoji_reactions_summary">Стиль и шрифт эмодзи, быстрые реакции</string>
+    <string name="settings_composer_summary">Форматирование, отправка и вложения</string>
+    <string name="settings_timeline_summary">Отображение сообщений, события комнаты и воспроизведение медиа</string>
+    <string name="settings_timeline_category_messages">Сообщения</string>
+    <string name="settings_timeline_category_events">События комнаты</string>
+    <string name="settings_timeline_category_navigation">Навигация</string>
+    <string name="settings_activity_presence_title">Активность и присутствие</string>
+    <string name="settings_activity_presence_summary">Уведомления о прочтении, о наборе текста и статус в сети</string>
+    <string name="settings_rooms_spaces_title">Комнаты и пространства</string>
+    <string name="settings_rooms_spaces_summary">Список комнат, пространства, каталог комнат и ярлыки</string>
+    <string name="settings_rooms_spaces_category_room_list">Список комнат</string>
+    <string name="settings_rooms_spaces_category_system">Отправка и ярлыки</string>
+    <string name="settings_search_hint">Поиск по настройкам</string>
+    <string name="settings_search_result_unavailable">Эта настройка сейчас недоступна</string>
 </resources>

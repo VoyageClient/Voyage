@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="false"
+        android:key="SETTINGS_SEND_READ_RECEIPT_KEY"
+        android:summary="@string/settings_send_read_receipts_summary"
+        android:title="@string/settings_send_read_receipts" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="false"
+        android:key="SETTINGS_SEND_TYPING_NOTIF_KEY"
+        android:summary="@string/settings_send_typing_notifs_summary"
+        android:title="@string/settings_send_typing_notifs" />
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:title="@string/settings_presence"
+        app:isPreferenceVisible="@bool/settings_presence_visible">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:title="@string/settings_presence_user_always_appears_offline"
+            android:summary="@string/settings_presence_user_always_appears_offline_summary"
+            android:key="SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
+            android:defaultValue="@bool/settings_presence_user_always_appears_offline_default" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

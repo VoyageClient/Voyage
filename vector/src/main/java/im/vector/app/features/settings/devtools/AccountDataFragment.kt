@@ -22,6 +22,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.alignWithToolbarTitle
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.padActionsFromScreenEdge
@@ -80,6 +81,7 @@ class AccountDataFragment :
         val searchItem = menu.findItem(R.id.menuItemSearch) ?: return
         searchMenuItem = searchItem
         (searchItem.actionView as? SearchView)?.let { searchView ->
+            searchView.alignWithToolbarTitle()
             searchView.queryHint = getString(CommonStrings.dev_tools_search_hint)
             searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?) = true
@@ -118,7 +120,7 @@ class AccountDataFragment :
         searchMenuItem = null
         val activeFragment = parentFragmentManager.findFragmentById(R.id.vector_settings_page)
         if (activeFragment !is AccountDataFragment && activeFragment !is AccountDataDetailFragment) {
-            settingsToolbar()?.padActionsFromScreenEdge(false)
+            settingsToolbar()?.padActionsFromScreenEdge()
         }
         super.onDestroyView()
     }

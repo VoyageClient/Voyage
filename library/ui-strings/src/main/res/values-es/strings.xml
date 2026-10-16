@@ -394,8 +394,6 @@
     <string name="directory_server_placeholder">Nombre del servidor</string>
     <string name="directory_server_all_rooms_on_server">Todas las salas en el servidor %s</string>
     <string name="directory_server_native_rooms">Todas las salas nativas de %s</string>
-    <string name="settings_user_interface">Interfaz de usuario</string>
-    <string name="settings_interface_language">Idioma</string>
     <string name="settings_select_language">Elige idioma</string>
     <string name="settings_start_on_boot">Iniciar en el arranque</string>
     <string name="settings_clear_media_cache">Borrar caché de medios</string>
@@ -3566,4 +3564,23 @@
     <string name="scheduled_messages_empty">No hay mensajes programados en esta sala.</string>
     <string name="scheduled_message_send_now">Enviar ahora</string>
     <string name="attachment_viewer_picture_in_picture">Imagen en imagen</string>
+    <string name="settings_interface_language">Idioma de la app</string>
+    <string name="settings_appearance_title">Apariencia</string>
+    <string name="settings_appearance_summary">Tema, colores, tamaño de letra, burbujas y avatares</string>
+    <string name="settings_appearance_category_avatars_colors">Avatares y colores</string>
+    <string name="settings_emoji_reactions_title">Emojis y reacciones</string>
+    <string name="settings_emoji_reactions_summary">Estilo y fuente de emojis, reacciones rápidas</string>
+    <string name="settings_composer_summary">Formato, envío y adjuntos</string>
+    <string name="settings_timeline_summary">Visualización de mensajes, eventos de la sala y reproducción multimedia</string>
+    <string name="settings_timeline_category_messages">Mensajes</string>
+    <string name="settings_timeline_category_events">Eventos de la sala</string>
+    <string name="settings_timeline_category_navigation">Navegación</string>
+    <string name="settings_activity_presence_title">Actividad y presencia</string>
+    <string name="settings_activity_presence_summary">Recibos de lectura, notificaciones de escritura y estado en línea</string>
+    <string name="settings_rooms_spaces_title">Salas y espacios</string>
+    <string name="settings_rooms_spaces_summary">Lista de salas, espacios, directorio de salas y accesos directos</string>
+    <string name="settings_rooms_spaces_category_room_list">Lista de salas</string>
+    <string name="settings_rooms_spaces_category_system">Compartir y accesos directos</string>
+    <string name="settings_search_hint">Buscar en ajustes</string>
+    <string name="settings_search_result_unavailable">Este ajuste no está disponible ahora mismo</string>
 </resources>

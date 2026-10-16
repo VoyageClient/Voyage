@@ -24,6 +24,7 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.utils.toast
+import im.vector.app.features.settings.search.PreferenceHighlighter
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -100,6 +101,12 @@ abstract class VectorSettingsBaseFragment : PreferenceFragmentCompat(), Maverick
         vectorActivity.supportActionBar?.setTitle(titleRes)
         // find the view from parent activity
         mLoadingView = vectorActivity.findViewById(R.id.vector_settings_spinner_views)
+
+        (activity as? VectorSettingsFragmentInteractionListener)?.let { listener ->
+            val key = listener.requestedKeyToHighlight() ?: return@let
+            if (PreferenceHighlighter.highlight(this) { it.key == key }) listener.requestHighlightPreferenceKeyOnResume(null)
+        }
+        (activity as? VectorSettingsActivity)?.consumeSearchHighlight(this)
     }
 
     abstract fun bindPref()

@@ -246,8 +246,6 @@
     <string name="devices_details_name_title">الاسم</string>
     <string name="devices_details_device_name">اسم الجهاز</string>
     <string name="devices_details_last_seen_title">آخر ظهور</string>
-    <string name="settings_user_interface">واجهة المستخدم</string>
-    <string name="settings_interface_language">لغة الواجهة</string>
     <string name="settings_select_language">اختر لغة</string>
     <string name="settings_change_password">غيّر كلمة السر</string>
     <string name="settings_old_password">كلمة السر القديمة</string>
@@ -3727,4 +3725,23 @@
     <string name="scheduled_messages_empty">لا توجد رسائل مجدولة في هذه الغرفة.</string>
     <string name="scheduled_message_send_now">أرسِل الآن</string>
     <string name="attachment_viewer_picture_in_picture">صورة داخل صورة</string>
+    <string name="settings_interface_language">لغة التطبيق</string>
+    <string name="settings_appearance_title">المظهر</string>
+    <string name="settings_appearance_summary">السمة والألوان وحجم الخط والفقاعات والصور الرمزية</string>
+    <string name="settings_appearance_category_avatars_colors">الصور الرمزية والألوان</string>
+    <string name="settings_emoji_reactions_title">الرموز التعبيرية والانفعالات</string>
+    <string name="settings_emoji_reactions_summary">نمط الرموز التعبيرية وخطها، الانفعالات السريعة</string>
+    <string name="settings_composer_summary">التنسيق والإرسال والمرفقات</string>
+    <string name="settings_timeline_summary">عرض الرسائل وأحداث الغرفة وتشغيل الوسائط</string>
+    <string name="settings_timeline_category_messages">الرسائل</string>
+    <string name="settings_timeline_category_events">أحداث الغرفة</string>
+    <string name="settings_timeline_category_navigation">التنقل</string>
+    <string name="settings_activity_presence_title">النشاط والحضور</string>
+    <string name="settings_activity_presence_summary">إيصالات القراءة وإخطارات الكتابة وحالة الاتصال</string>
+    <string name="settings_rooms_spaces_title">الغرف والفضاءات</string>
+    <string name="settings_rooms_spaces_summary">قائمة الغرف والفضاءات ودليل الغرف والاختصارات</string>
+    <string name="settings_rooms_spaces_category_room_list">قائمة الغرف</string>
+    <string name="settings_rooms_spaces_category_system">المشاركة والاختصارات</string>
+    <string name="settings_search_hint">ابحث في الإعدادات</string>
+    <string name="settings_search_result_unavailable">هذا الإعداد غير متاح حاليًا</string>
 </resources>

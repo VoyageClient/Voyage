@@ -7,18 +7,12 @@
 
 package im.vector.app.core.preference
 
-import android.animation.Animator
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Color
 import android.util.AttributeSet
 import android.widget.TextView
-import androidx.core.animation.doOnEnd
 import androidx.preference.PreferenceViewHolder
 import androidx.preference.SwitchPreference
 import im.vector.app.core.extensions.setBackgroundKeepingPadding
-import im.vector.app.features.themes.ThemeUtils
 
 /**
  * Switch preference with title on multiline (only used in XML).
@@ -38,17 +32,7 @@ open class VectorSwitchPreference : SwitchPreference {
         isIconSpaceReserved = false
     }
 
-    var isHighlighted = false
-        set(value) {
-            field = value
-            notifyChanged()
-        }
-
-    var currentHighlightAnimator: Animator? = null
-
-    // The themed ripple, not a flat transparent color: rows must keep their material tap feedback
-    // when the deep-link highlight isn't running (the highlight animation above overwrites the
-    // preference layout's own selectableItemBackground).
+    // A recycled row may still carry the settings search highlight as its background.
     private fun restoreRippleBackground(itemView: android.view.View) {
         val ta = itemView.context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
         itemView.setBackgroundKeepingPadding(ta.getDrawable(0))
@@ -59,37 +43,7 @@ open class VectorSwitchPreference : SwitchPreference {
         // display the title in multi-line to avoid ellipsis.
         (holder.findViewById(android.R.id.title) as? TextView)?.isSingleLine = false
 
-        // cancel existing animation (find a way to resume if happens during anim?)
-        currentHighlightAnimator?.cancel()
-
-        val itemView = holder.itemView
-        if (isHighlighted) {
-            val colorFrom = Color.TRANSPARENT
-            val colorTo = ThemeUtils.getColor(itemView.context, com.google.android.material.R.attr.colorControlHighlight)
-            currentHighlightAnimator = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
-                duration = 250 // milliseconds
-                addUpdateListener { animator ->
-                    itemView.setBackgroundColor(animator.animatedValue as Int)
-                }
-                doOnEnd {
-                    currentHighlightAnimator = ValueAnimator.ofObject(ArgbEvaluator(), colorTo, colorFrom).apply {
-                        duration = 250 // milliseconds
-                        addUpdateListener { animator ->
-                            itemView.setBackgroundColor(animator.animatedValue as Int)
-                        }
-                        doOnEnd {
-                            isHighlighted = false
-                            restoreRippleBackground(itemView)
-                        }
-                        start()
-                    }
-                }
-                startDelay = 200
-                start()
-            }
-        } else {
-            restoreRippleBackground(itemView)
-        }
+        restoreRippleBackground(holder.itemView)
 
         super.onBindViewHolder(holder)
     }

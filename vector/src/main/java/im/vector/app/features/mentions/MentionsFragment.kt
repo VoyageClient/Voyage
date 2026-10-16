@@ -30,6 +30,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.alignWithToolbarTitle
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.glide.GlideApp
@@ -111,6 +112,7 @@ class MentionsFragment :
         val searchItem = menu.findItem(R.id.menu_mentions_search) ?: return
         searchMenuItem = searchItem
         (searchItem.actionView as? SearchView)?.let { searchView ->
+            searchView.alignWithToolbarTitle()
             searchView.queryHint = getString(CommonStrings.mentions_search_hint)
             searchView.setupLiveEmojiInput()
             searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {

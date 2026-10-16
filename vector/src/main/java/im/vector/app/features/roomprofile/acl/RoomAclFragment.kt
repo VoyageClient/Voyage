@@ -25,6 +25,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.alignWithToolbarTitle
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.OnBackPressed
@@ -96,6 +97,7 @@ class RoomAclFragment : VectorBaseFragment<FragmentRoomSettingGenericBinding>(),
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.room_acl, menu)
         (menu.findItem(R.id.roomAclSearchAction)?.actionView as? SearchView)?.apply {
+            alignWithToolbarTitle()
             queryHint = getString(CommonStrings.room_acl_search_hint)
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String?) = false

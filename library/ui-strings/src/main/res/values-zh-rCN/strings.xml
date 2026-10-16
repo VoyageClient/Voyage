@@ -346,8 +346,6 @@
     <string name="settings_home_display">主页显示</string>
     <string name="settings_pin_missed_notifications">固定含错过通知的房间</string>
     <string name="settings_pin_unread_messages">置顶含有未读消息的房间</string>
-    <string name="settings_user_interface">用户界面</string>
-    <string name="settings_interface_language">语言</string>
     <string name="settings_select_language">请选择语言</string>
     <string name="settings_start_on_boot">开机时自动启动</string>
     <string name="settings_clear_media_cache">清空缓存的媒体文件</string>
@@ -3514,4 +3512,23 @@
     <string name="scheduled_messages_empty">此房间没有定时消息。</string>
     <string name="scheduled_message_send_now">立即发送</string>
     <string name="attachment_viewer_picture_in_picture">画中画</string>
+    <string name="settings_interface_language">应用语言</string>
+    <string name="settings_appearance_title">外观</string>
+    <string name="settings_appearance_summary">主题、颜色、字体大小、气泡和头像</string>
+    <string name="settings_appearance_category_avatars_colors">头像和颜色</string>
+    <string name="settings_emoji_reactions_title">表情和回应</string>
+    <string name="settings_emoji_reactions_summary">表情样式和字体、快速回应</string>
+    <string name="settings_composer_summary">格式、发送和附件</string>
+    <string name="settings_timeline_summary">消息显示、房间事件和媒体播放</string>
+    <string name="settings_timeline_category_messages">消息</string>
+    <string name="settings_timeline_category_events">房间事件</string>
+    <string name="settings_timeline_category_navigation">导航</string>
+    <string name="settings_activity_presence_title">活动和在场状态</string>
+    <string name="settings_activity_presence_summary">已读回执、正在输入通知和在线状态</string>
+    <string name="settings_rooms_spaces_title">房间和空间</string>
+    <string name="settings_rooms_spaces_summary">房间列表、空间、房间目录和快捷方式</string>
+    <string name="settings_rooms_spaces_category_room_list">房间列表</string>
+    <string name="settings_rooms_spaces_category_system">分享和快捷方式</string>
+    <string name="settings_search_hint">搜索设置</string>
+    <string name="settings_search_result_unavailable">此设置当前不可用</string>
 </resources>

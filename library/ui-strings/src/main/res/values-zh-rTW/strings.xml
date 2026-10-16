@@ -379,8 +379,6 @@
     <string name="settings_logged_in">登入爲</string>
     <string name="settings_home_server">家伺服器</string>
     <string name="settings_identity_server">身分伺服器</string>
-    <string name="settings_user_interface">使用者介面</string>
-    <string name="settings_interface_language">語言</string>
     <string name="settings_select_language">選擇語言</string>
     <string name="account_email_validation_message">請收信並點擊信中的連結。完成後，再點擊「繼續」。</string>
     <string name="account_email_already_used_error">此電子郵件地址已經被使用。</string>
@@ -3516,4 +3514,23 @@
     <string name="scheduled_messages_empty">此聊天室沒有排程訊息。</string>
     <string name="scheduled_message_send_now">立即傳送</string>
     <string name="attachment_viewer_picture_in_picture">子母畫面</string>
+    <string name="settings_interface_language">應用程式語言</string>
+    <string name="settings_appearance_title">外觀</string>
+    <string name="settings_appearance_summary">主題、顏色、字型大小、對話泡泡和大頭貼</string>
+    <string name="settings_appearance_category_avatars_colors">大頭貼和顏色</string>
+    <string name="settings_emoji_reactions_title">表情符號和反應</string>
+    <string name="settings_emoji_reactions_summary">表情符號樣式和字型、快速反應</string>
+    <string name="settings_composer_summary">格式、傳送和附件</string>
+    <string name="settings_timeline_summary">訊息顯示、聊天室事件和媒體播放</string>
+    <string name="settings_timeline_category_messages">訊息</string>
+    <string name="settings_timeline_category_events">聊天室事件</string>
+    <string name="settings_timeline_category_navigation">導覽</string>
+    <string name="settings_activity_presence_title">活動和出席狀態</string>
+    <string name="settings_activity_presence_summary">讀取回條、「輸入中」通知和上線狀態</string>
+    <string name="settings_rooms_spaces_title">聊天室和聊天空間</string>
+    <string name="settings_rooms_spaces_summary">聊天室清單、聊天空間、聊天室目錄和捷徑</string>
+    <string name="settings_rooms_spaces_category_room_list">聊天室清單</string>
+    <string name="settings_rooms_spaces_category_system">分享和捷徑</string>
+    <string name="settings_search_hint">搜尋設定</string>
+    <string name="settings_search_result_unavailable">此設定目前無法使用</string>
 </resources>

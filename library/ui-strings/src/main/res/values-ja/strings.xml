@@ -152,8 +152,6 @@
     <string name="devices_delete_dialog_title">認証</string>
     <string name="settings_logged_in">ログイン中のアカウント</string>
     <string name="settings_select_language">言語を選択</string>
-    <string name="settings_interface_language">言語</string>
-    <string name="settings_user_interface">インターフェース</string>
     <string name="account_email_validation_message">電子メールを確認して、本文中のURLをクリックしてください。完了したら「続行」をクリックしてください。</string>
     <string name="account_email_already_used_error">このメールアドレスは既に使用されています。</string>
     <string name="settings_password_updated">パスワードを更新しました</string>
@@ -3512,4 +3510,23 @@
     <string name="scheduled_messages_empty">このルームに予約済みのメッセージはありません。</string>
     <string name="scheduled_message_send_now">今すぐ送信</string>
     <string name="attachment_viewer_picture_in_picture">ピクチャー イン ピクチャー</string>
+    <string name="settings_interface_language">アプリの言語</string>
+    <string name="settings_appearance_title">外観</string>
+    <string name="settings_appearance_summary">テーマ、色、文字サイズ、吹き出し、アバター</string>
+    <string name="settings_appearance_category_avatars_colors">アバターと色</string>
+    <string name="settings_emoji_reactions_title">絵文字とリアクション</string>
+    <string name="settings_emoji_reactions_summary">絵文字のスタイルとフォント、クイックリアクション</string>
+    <string name="settings_composer_summary">書式、送信、添付ファイル</string>
+    <string name="settings_timeline_summary">メッセージの表示、ルームのイベント、メディアの再生</string>
+    <string name="settings_timeline_category_messages">メッセージ</string>
+    <string name="settings_timeline_category_events">ルームのイベント</string>
+    <string name="settings_timeline_category_navigation">ナビゲーション</string>
+    <string name="settings_activity_presence_title">アクティビティとプレゼンス</string>
+    <string name="settings_activity_presence_summary">開封確認、入力中通知、オンライン状態</string>
+    <string name="settings_rooms_spaces_title">ルームとスペース</string>
+    <string name="settings_rooms_spaces_summary">ルーム一覧、スペース、ルームディレクトリー、ショートカット</string>
+    <string name="settings_rooms_spaces_category_room_list">ルーム一覧</string>
+    <string name="settings_rooms_spaces_category_system">共有とショートカット</string>
+    <string name="settings_search_hint">設定を検索</string>
+    <string name="settings_search_result_unavailable">この設定は現在利用できません</string>
 </resources>

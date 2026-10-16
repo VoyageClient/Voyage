@@ -26,6 +26,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.alignWithToolbarTitle
 import im.vector.app.core.extensions.padActionsFromScreenEdge
 import im.vector.app.core.platform.SimpleFragmentActivity
 import im.vector.app.core.platform.VectorMenuProvider
@@ -215,6 +216,7 @@ class RoomDevToolActivity :
     override fun handlePostCreateMenu(menu: Menu) {
         val searchItem = menu.findItem(R.id.menuItemSearch) ?: return
         searchMenuItem = searchItem
+        (searchItem.actionView as? SearchView)?.alignWithToolbarTitle()
         (searchItem.actionView as? SearchView)?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = true
 

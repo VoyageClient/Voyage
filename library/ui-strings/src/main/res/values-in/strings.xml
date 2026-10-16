@@ -299,8 +299,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_logged_in">Masuk sebagai</string>
     <string name="settings_home_server">Homeserver</string>
     <string name="settings_identity_server">Server identitas</string>
-    <string name="settings_user_interface">Antarmuka pengguna</string>
-    <string name="settings_interface_language">Bahasa</string>
     <string name="settings_select_language">Pilih bahasa</string>
     <string name="account_email_validation_message">Mohon cek email Anda dan klik tautan yang termuat di sana. Setelah itu, klik lanjutkan.</string>
     <string name="account_email_already_used_error">Alamat email ini telah digunakan.</string>
@@ -3514,4 +3512,23 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="scheduled_messages_empty">Tidak ada pesan terjadwal di ruangan ini.</string>
     <string name="scheduled_message_send_now">Kirim sekarang</string>
     <string name="attachment_viewer_picture_in_picture">Gambar dalam gambar</string>
+    <string name="settings_interface_language">Bahasa aplikasi</string>
+    <string name="settings_appearance_title">Tampilan</string>
+    <string name="settings_appearance_summary">Tema, warna, ukuran huruf, gelembung, dan avatar</string>
+    <string name="settings_appearance_category_avatars_colors">Avatar &amp; warna</string>
+    <string name="settings_emoji_reactions_title">Emoji &amp; reaksi</string>
+    <string name="settings_emoji_reactions_summary">Gaya dan fon emoji, reaksi cepat</string>
+    <string name="settings_composer_summary">Pemformatan, pengiriman, dan lampiran</string>
+    <string name="settings_timeline_summary">Tampilan pesan, peristiwa ruangan, dan pemutaran media</string>
+    <string name="settings_timeline_category_messages">Pesan</string>
+    <string name="settings_timeline_category_events">Peristiwa ruangan</string>
+    <string name="settings_timeline_category_navigation">Navigasi</string>
+    <string name="settings_activity_presence_title">Aktivitas &amp; presensi</string>
+    <string name="settings_activity_presence_summary">Tanda telah dibaca, pemberitahuan mengetik, dan status daring</string>
+    <string name="settings_rooms_spaces_title">Ruangan &amp; space</string>
+    <string name="settings_rooms_spaces_summary">Daftar ruangan, space, direktori ruangan, dan pintasan</string>
+    <string name="settings_rooms_spaces_category_room_list">Daftar ruangan</string>
+    <string name="settings_rooms_spaces_category_system">Berbagi &amp; pintasan</string>
+    <string name="settings_search_hint">Cari pengaturan</string>
+    <string name="settings_search_result_unavailable">Pengaturan ini sedang tidak tersedia</string>
 </resources>

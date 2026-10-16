@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_theme">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="dark"
+            android:entries="@array/sc_theme_entries"
+            android:entryValues="@array/sc_theme_values"
+            android:key="APPLICATION_THEME_KEY"
+            android:title="@string/settings_theme"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.ColorMatrixListPreference
+            android:defaultValue="cyan"
+            android:entries="@array/sc_accent_color_light_entries"
+            android:entryValues="@array/sc_accent_color_light_values"
+            android:key="SETTINGS_SC_ACCENT_LIGHT"
+            android:title="@string/settings_accent"
+            app:entryPreviews="@array/sc_accent_color_previews"
+            app:trailingRowCount="3"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="burst"
+            android:entries="@array/app_logo_entries"
+            android:entryValues="@array/app_logo_values"
+            android:key="SETTINGS_APP_LOGO_KEY"
+            android:title="@string/settings_app_logo_title"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.ColorMatrixListPreference
+            android:defaultValue="black"
+            android:entries="@array/sc_accent_color_light_entries"
+            android:entryValues="@array/sc_accent_color_light_values"
+            android:key="SETTINGS_APP_ICON_COLOR_KEY"
+            android:title="@string/settings_app_icon_color_title"
+            app:entryPreviews="@array/sc_accent_color_previews"
+            app:trailingRowCount="3"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:dialogTitle="@string/font_size"
+            android:key="SETTINGS_INTERFACE_TEXT_SIZE_KEY"
+            android:persistent="false"
+            android:title="@string/font_size" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="none"
+            android:entries="@array/scroll_animation_entries"
+            android:entryValues="@array/scroll_animation_values"
+            android:key="SETTINGS_SCROLL_ANIMATION_KEY"
+            android:title="@string/settings_scroll_animation_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_PERFORMANCE_MODE_KEY"
+            android:summary="@string/settings_performance_mode_summary"
+            android:title="@string/settings_performance_mode_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_sc_bubble_style_title">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="none"
+            android:entries="@array/sc_bubble_style_entries"
+            android:entryValues="@array/sc_bubble_style_values"
+            android:key="BUBBLE_STYLE_KEY"
+            android:title="@string/settings_sc_bubble_style_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="BUBBLE_APPEARANCE_KEY"
+            android:title="@string/settings_sc_bubble_appearance"
+            app:fragment="im.vector.app.features.settings.VectorSettingsBubbleAppearanceFragment" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_appearance_category_avatars_colors">
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_AVATAR_SHAPE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_avatar_shape_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PEOPLE_AVATAR_STYLE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_people_avatar_style_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ROOM_AVATAR_STYLE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_room_avatar_style_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PEOPLE_COLOR_PALETTE_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_people_color_palette_summary"
+            android:title="@string/settings_people_color_palette_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ROOM_COLOR_PALETTE_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_room_color_palette_summary"
+            android:title="@string/settings_room_color_palette_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_OTHERS_PROFILE_COLORS_KEY"
+            android:summary="@string/settings_show_others_profile_colors_summary"
+            android:title="@string/settings_show_others_profile_colors_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_CODE_PALETTE_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_code_palette_summary"
+            android:title="@string/settings_code_palette" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>
