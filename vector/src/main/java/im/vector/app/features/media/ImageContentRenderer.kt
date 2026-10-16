@@ -995,7 +995,7 @@ class ImageContentRenderer @Inject constructor(
                                 context = context,
                                 blurHash = data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height, pulse = false) },
                                 showGlyph = showGlyph && (data.url != null || data.preservedFile != null),
-                                settlesIntoBackground = data.url == null && data.preservedFile == null,
+                                hasNoSource = data.url == null && data.preservedFile == null,
                         ),
                 ).also { imageView.setTag(R.id.image_renderer_placeholder, it) }
         return placeholder.drawable.also {

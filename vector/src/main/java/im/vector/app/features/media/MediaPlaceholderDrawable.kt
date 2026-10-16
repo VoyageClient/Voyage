@@ -37,11 +37,7 @@ class MediaPlaceholderDrawable(
         context: Context,
         val blurHash: BlurHashDrawable? = null,
         private val showGlyph: Boolean = true,
-        /**
-         * For media with no picture coming — a video the sender gave no thumbnail for. Settles into
-         * the timeline's own background rather than the lighter waiting fill: nothing is on its way.
-         */
-        private val settlesIntoBackground: Boolean = false,
+        private val hasNoSource: Boolean = false,
 ) : Drawable(), Drawable.Callback, Runnable {
 
     init {
@@ -51,8 +47,6 @@ class MediaPlaceholderDrawable(
     }
 
     private val fillColor = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
-
-    private val settledColor = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
 
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = fillColor
@@ -97,7 +91,7 @@ class MediaPlaceholderDrawable(
         }
 
     /** Where the failure fade currently sits, 0 waiting .. 1 failed. Eased from wherever it was. */
-    private var failProgress = 0f
+    private var failProgress = if (hasNoSource) 1f else 0f
     private var progressAtChange = 0f
     private var changedAtMs = 0L
     private var waitingSinceMs = SystemClock.uptimeMillis()
@@ -119,7 +113,7 @@ class MediaPlaceholderDrawable(
 
     override fun draw(canvas: Canvas) {
         val rect = RectF(bounds)
-        val target = if (failed) 1f else 0f
+        val target = if (failed || hasNoSource) 1f else 0f
         failProgress = if (changedAtMs == 0L) {
             target
         } else {
@@ -148,12 +142,7 @@ class MediaPlaceholderDrawable(
         } else {
             // Scale the source alpha rather than replacing it: the SC themes give these attributes a
             // translucent white overlay, which setAlphaComponent alone would pulse up to solid white.
-            val waiting = fillColor.scaleAlpha(alpha)
-            fillPaint.color = if (settlesIntoBackground) {
-                ColorUtils.blendARGB(waiting, settledColor.scaleAlpha(externalAlpha), failProgress)
-            } else {
-                waiting
-            }
+            fillPaint.color = fillColor.scaleAlpha(alpha)
             val r = cappedMediaCornerRadius(cornerRadius, rect.width(), rect.height())
             canvas.drawRoundRect(rect, r, r, fillPaint)
         }
@@ -193,7 +182,7 @@ class MediaPlaceholderDrawable(
     }
 
     private fun start() {
-        if (running) return
+        if (running || hasNoSource) return
         running = true
         handler.post(this)
     }
