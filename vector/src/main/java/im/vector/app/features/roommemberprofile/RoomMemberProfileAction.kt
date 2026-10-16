@@ -15,9 +15,20 @@ import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 sealed class RoomMemberProfileAction : VectorViewModelAction {
     object RetryFetchingInfo : RoomMemberProfileAction()
     object IgnoreUser : RoomMemberProfileAction()
-    data class BanOrUnbanUser(val reason: String?, val redactEvents: Boolean = false) : RoomMemberProfileAction()
+
+    /** [untilTs] makes a ban temporary, and [reinvite] invites them back once it ends. */
+    data class BanOrUnbanUser(
+            val reason: String?,
+            val redactEvents: Boolean = false,
+            val untilTs: Long? = null,
+            val reinvite: Boolean = false,
+    ) : RoomMemberProfileAction()
     data class KickUser(val reason: String?, val redactEvents: Boolean = false) : RoomMemberProfileAction()
     object RedactAllMessages : RoomMemberProfileAction()
+
+    /** [untilTs] null mutes until someone unmutes by hand. */
+    data class MuteUser(val untilTs: Long?) : RoomMemberProfileAction()
+    object UnmuteUser : RoomMemberProfileAction()
     object InviteUser : RoomMemberProfileAction()
     object VerifyUser : RoomMemberProfileAction()
     data class SetPowerLevel(val previousValue: UserPowerLevel, val newValue: UserPowerLevel.Value, val askForValidation: Boolean) : RoomMemberProfileAction()

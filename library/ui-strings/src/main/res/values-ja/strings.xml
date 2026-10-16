@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$sがルームに参加しました</string>
     <string name="notice_room_leave">%1$sがルームから退出しました</string>
     <string name="notice_room_reject">%1$sが招待を拒否しました</string>
-    <string name="notice_room_unban">%1$sが%2$sのブロックを解除しました</string>
     <string name="notice_room_ban">%1$sが%2$sをブロックしました</string>
     <string name="notice_room_withdraw">%1$sが%2$sの招待を取り下げました</string>
     <string name="notice_avatar_url_changed">%1$sがアバターを変更しました</string>
@@ -47,7 +46,6 @@
     <string name="notice_avatar_url_changed_by_you">アバターを変更しました</string>
     <string name="notice_room_withdraw_by_you">%1$sの招待を取り下げました</string>
     <string name="notice_room_ban_by_you">%1$sをブロックしました</string>
-    <string name="notice_room_unban_by_you">%1$sのブロックを解除しました</string>
     <string name="notice_room_reject_by_you">招待を拒否しました</string>
     <string name="notice_direct_room_leave_by_you">ルームから退出しました</string>
     <string name="notice_direct_room_leave">%1$sがルームから退出しました</string>
@@ -204,7 +202,6 @@
     <string name="action_reject">拒否</string>
     <string name="room_participants_header_direct_chats">ダイレクトメッセージ</string>
     <string name="room_participants_action_ban">ブロック</string>
-    <string name="room_participants_action_unban">ブロックを解除</string>
     <string name="room_participants_action_ignore">無視</string>
     <string name="room_participants_action_unignore">無視を解除</string>
     <string name="room_participants_action_mention">メンション</string>
@@ -347,7 +344,6 @@
     <string name="widget_integration_missing_parameter">必要な変数が見つかりません。</string>
     <string name="command_description_emote">アクションを表示</string>
     <string name="command_description_ban_user">指定したIDのユーザーをブロック</string>
-    <string name="command_description_unban_user">指定したIDのユーザーのブロックを解除</string>
     <string name="command_description_op_user">ユーザーの権限レベルを規定</string>
     <string name="command_description_deop_user">指定したIDのユーザーの権限をリセット</string>
     <string name="command_description_invite_user">指定したIDのユーザーを現在のルームに招待</string>
@@ -643,10 +639,8 @@
     <string name="room_settings_permissions_title">ルームの権限</string>
     <string name="room_permissions_title">権限</string>
     <string name="room_settings_permissions_subtitle">ルームに関する変更を行うために必要な役割を表示し更新。</string>
-    <string name="room_participants_unban_prompt_msg">ブロックを解除すると、ユーザーはルームに再び参加できるようになります。</string>
     <string name="room_participants_ban_title">ユーザーをブロック</string>
     <string name="room_participants_ban_reason">ブロックする理由</string>
-    <string name="room_participants_unban_title">ユーザーのブロックを解除</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">このユーザーの招待をキャンセルしてよろしいですか？</string>
     <string name="room_participants_action_cancel_invite_title">招待をキャンセル</string>
     <string name="room_participants_action_unignore_prompt_msg">このユーザーの無視を解除すると、そのユーザーからの全てのメッセージが再び表示されます。</string>
@@ -739,8 +733,6 @@
     <string name="notice_placed_video_call_by_you">ビデオ通話を発信しました。</string>
     <string name="notice_room_ban_with_reason_by_you">%1$sをブロックしました。理由：%2$s</string>
     <string name="notice_room_ban_with_reason">%1$sが%2$sをブロックしました。理由：%3$s</string>
-    <string name="notice_room_unban_with_reason_by_you">%1$sのブロックを解除しました。理由：%2$s</string>
-    <string name="notice_room_unban_with_reason">%1$sが%2$sのブロックを解除しました。理由：%3$s</string>
     <string name="notice_room_reject_with_reason_by_you">招待を拒否しました。理由：%1$s</string>
     <string name="notice_room_reject_with_reason">%1$sが招待を拒否しました。理由：%2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">退出しました。理由：%1$s</string>
@@ -1269,7 +1261,6 @@
     <string name="thread_list_modal_my_threads_title">自分のスレッド</string>
     <string name="thread_list_modal_all_threads_title">全てのスレッド</string>
     <string name="upgrade_room_auto_invite">ユーザーを自動的に招待</string>
-    <string name="space_participants_unban_prompt_msg">ブロックを解除すると、ユーザーはスペースに再び参加できるようになります。</string>
     <string name="room_join_rules_invite_by_you">このルームを「招待者のみ参加可能」に設定しました。</string>
     <string name="room_list_quick_actions_low_priority_remove">低優先度から削除</string>
     <string name="room_list_quick_actions_low_priority_add">低優先度に追加</string>
@@ -1722,7 +1713,6 @@
     <string name="universal_link_malformed">このリンクは不正な形式です</string>
     <string name="qr_code_not_scanned">QRコードがスキャンされていません！</string>
     <string name="settings_security_pin_code_notifications_title">内容を通知に表示</string>
-    <string name="failed_to_unban">ユーザーのブロックの解除に失敗しました</string>
     <string name="three_pid_revoke_invite_dialog_content">%1$sへの招待を取り消しますか？</string>
     <string name="loading_contact_book">連絡先を取得しています…</string>
     <string name="disclaimer_title">RiotはElementになりました！</string>
@@ -3488,4 +3478,37 @@
     <string name="labs_enable_media_galleries_summary">複数の添付ファイルを1つのギャラリーメッセージとして送信します。ギャラリーに対応していないクライアントでは正しく表示されません。</string>
     <string name="dev_tools_state_history">変更履歴</string>
     <string name="dev_tools_state_history_current">現在</string>
+    <string name="notice_room_unban">%1$sが%2$sを赦免しました</string>
+    <string name="notice_room_unban_by_you">%1$sを赦免しました</string>
+    <string name="notice_room_unban_with_reason">%1$sが%2$sを赦免しました。理由：%3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">%1$sを赦免しました。理由：%2$s</string>
+    <string name="room_participants_action_unban">赦免</string>
+    <string name="room_participants_unban_title">ユーザーを赦免</string>
+    <string name="room_participants_unban_prompt_msg">ユーザーを赦免すると、ユーザーはこのルームに再び参加できるようになります。</string>
+    <string name="space_participants_unban_prompt_msg">ユーザーを赦免すると、ユーザーはこのスペースに再び参加できるようになります。</string>
+    <string name="command_description_unban_user">指定したIDのユーザーを赦免</string>
+    <string name="failed_to_unban">ユーザーを赦免できませんでした</string>
+    <string name="room_participants_action_mute">ミュート</string>
+    <string name="room_participants_action_unmute">ミュートを解除</string>
+    <string name="room_participants_muted_until">%1$sまでミュート</string>
+    <string name="room_participants_mute_duration_title">ミュートする期間</string>
+    <string name="room_participants_banned_until">%1$sまでブロック</string>
+    <string name="duration_permanently">無期限</string>
+    <string name="ban_reinvite_when_lifted">赦免後に再招待</string>
+    <string name="duration_for_1_hour">1時間</string>
+    <string name="duration_for_1_day">1日</string>
+    <string name="duration_for_1_week">1週間</string>
+    <string name="schedule_message_title">メッセージを予約</string>
+    <string name="schedule_preset_in_1_hour">1時間後</string>
+    <string name="schedule_preset_in_3_hours">3時間後</string>
+    <string name="schedule_preset_in_12_hours">12時間後</string>
+    <string name="schedule_preset_in_24_hours">24時間後</string>
+    <string name="schedule_pick_custom_time">日時を選択…</string>
+    <string name="schedule_time_in_past">未来の日時を選択してください。</string>
+    <string name="schedule_time_too_far">ホームサーバーはそれほど先の予約を許可していません。</string>
+    <string name="schedule_message_success">メッセージを%1$sに予約しました</string>
+    <string name="schedule_message_unavailable">コマンド、PGPメッセージ、翻訳されたメッセージは予約できません。</string>
+    <string name="scheduled_messages_title">予約済みメッセージ</string>
+    <string name="scheduled_messages_empty">このルームに予約済みのメッセージはありません。</string>
+    <string name="scheduled_message_send_now">今すぐ送信</string>
 </resources>

@@ -6,7 +6,6 @@
     <string name="notice_room_join">انضمّ ⁨%1$s⁩ إلى الغرفة</string>
     <string name="notice_room_leave">غادرَ ⁨%1$s⁩ الغرفة</string>
     <string name="notice_room_reject">رفضَ ⁨%1$s⁩ الدعوة</string>
-    <string name="notice_room_unban">رفعَ ⁨%1$s⁩ الحظر عن ⁨%2$s⁩</string>
     <string name="notice_room_ban">حظرَ ⁨%1$s⁩ ⁨%2$s⁩</string>
     <string name="notice_avatar_url_changed">غيّر ⁨%1$s⁩ صورته الشخصية</string>
     <string name="notice_display_name_changed_from">غيّر %1$s اسمه العلنيّ من %2$s إلى %3$s</string>
@@ -44,7 +43,6 @@
     <string name="notice_room_join_by_you">انضممتَ إلى الغرفة</string>
     <string name="notice_room_leave_by_you">غادرتَ الغرفة</string>
     <string name="notice_room_reject_by_you">رفضتَ الدعوة</string>
-    <string name="notice_room_unban_by_you">رفعتَ الحظر عن ⁨%1$s⁩</string>
     <string name="notice_room_ban_by_you">حظرتَ ⁨%1$s⁩</string>
     <string name="notice_room_withdraw_by_you">سحبتَ الدعوة الموجّهة إلى ⁨%1$s⁩</string>
     <string name="notice_avatar_url_changed_by_you">غيّرتَ صورتك الشخصية</string>
@@ -113,8 +111,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason">قبلَ %1$s دعوة %2$s. السبب: %3$s</string>
     <string name="notice_room_ban_with_reason_by_you">حظرتَ %1$s. السبب: %2$s</string>
     <string name="notice_room_ban_with_reason">حظر %1$s %2$s. السبب: %3$s</string>
-    <string name="notice_room_unban_with_reason_by_you">رفعتَ الحظر عن %1$s. السبب: %2$s</string>
-    <string name="notice_room_unban_with_reason">رفع %1$s الحظر عن %2$s. السبب: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">رفضتَ الدعوة. السبب: %1$s</string>
     <string name="notice_room_reject_with_reason">رفض %1$s الدعوة. السبب: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">غادرتَ. السبب: %1$s</string>
@@ -217,7 +213,6 @@
     <string name="room_participants_leave_prompt_title">ترك الغرفة</string>
     <string name="room_participants_leave_prompt_msg">أمتأكّد من ترك الغرفة؟</string>
     <string name="room_participants_action_ban">امنع</string>
-    <string name="room_participants_action_unban">ارفع المنع</string>
     <string name="room_participants_action_ignore">أخفِ كل رسائل هذا المستخدم</string>
     <string name="room_participants_action_unignore">اعرض كل رسائل هذا المستخدم</string>
     <string name="room_one_user_is_typing">‏⁨%1$s⁩ يكتب…</string>
@@ -480,7 +475,6 @@
         <item quantity="other">%d رسالة إخطار غير مقروءة</item>
     </plurals>
     <string name="command_description_ban_user">يمنع المستخدم حسب المعرّف المعطى</string>
-    <string name="command_description_unban_user">يُلغي المنع عن المستخدم حسب المعرّف المعطى</string>
     <string name="command_description_op_user">يُحدّد مستوى قدرة المستخدم</string>
     <string name="command_description_invite_user">يدعو المستخدم حسب المعرّف المعطى إلى الغرفة الحالية</string>
     <string name="command_description_markdown">شغّل/عطّل مارك‌داون</string>
@@ -885,10 +879,7 @@
     <string name="room_settings_permissions_title">أذونات الغرفة</string>
     <string name="room_notification_more_than_two_users_are_typing">%1$s و%2$s وآخرون</string>
     <string name="room_notification_two_users_are_typing">%1$s و%2$s</string>
-    <string name="space_participants_unban_prompt_msg">فك الحظر عن مستخدم سيمح له الانضمام لهذا الفضاء.</string>
-    <string name="room_participants_unban_prompt_msg">فك الحظر عن مستخدم سيمح له الانضمام لهذه الغرفة.</string>
     <string name="space_participants_ban_prompt_msg">حظر مستخدم عن هذه الفضاء سيمنعه من الانضمام إليه ثانية.</string>
-    <string name="room_participants_unban_title">فك حظر مستخدم</string>
     <string name="room_participants_ban_reason">سبب الحظر</string>
     <string name="room_participants_ban_title">احظر مستخدمًا</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">أمتأكد من سحب دعوة هذا المستخدم؟</string>
@@ -2085,7 +2076,6 @@
     <string name="three_pid_revoke_invite_dialog_title">اسحب الدعوة</string>
     <string name="three_pid_revoke_invite_dialog_content">أتريد سحب الدعوة إلى %1$s؟</string>
     <string name="member_banned_by">منعه %1$s</string>
-    <string name="failed_to_unban">فشل رفع المنع عن المستخدم</string>
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="zero">رمز خاطئ، لم تتبقَّ محاولات</item>
         <item quantity="one">رمز خاطئ، تتبقّى محاولة واحدة</item>
@@ -3703,4 +3693,37 @@
     <string name="labs_enable_media_galleries_summary">أرسل عدة مرفقات كرسالة معرض واحدة. لن تعرضها العملاء التي لا تدعم المعارض بشكل صحيح.</string>
     <string name="dev_tools_state_history">سجل المراجعات</string>
     <string name="dev_tools_state_history_current">الحالية</string>
+    <string name="notice_room_unban">عفا %1$s عن %2$s</string>
+    <string name="notice_room_unban_by_you">عفوت عن %1$s</string>
+    <string name="notice_room_unban_with_reason">عفا %1$s عن %2$s. السبب: %3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">عفوت عن %1$s. السبب: %2$s</string>
+    <string name="room_participants_action_unban">اعفُ</string>
+    <string name="room_participants_unban_title">العفو عن المستخدم</string>
+    <string name="room_participants_unban_prompt_msg">العفو عن المستخدم سيسمح له بالانضمام إلى الغرفة مجددًا.</string>
+    <string name="space_participants_unban_prompt_msg">العفو عن المستخدم سيسمح له بالانضمام إلى الفضاء مجددًا.</string>
+    <string name="command_description_unban_user">يعفو عن المستخدم صاحب المعرّف المحدد</string>
+    <string name="failed_to_unban">تعذّر العفو عن المستخدم</string>
+    <string name="room_participants_action_mute">اكتم</string>
+    <string name="room_participants_action_unmute">ألغِ الكتم</string>
+    <string name="room_participants_muted_until">مكتوم حتى %1$s</string>
+    <string name="room_participants_mute_duration_title">الكتم لأي مدة؟</string>
+    <string name="room_participants_banned_until">محظور حتى %1$s</string>
+    <string name="duration_permanently">نهائيًا</string>
+    <string name="ban_reinvite_when_lifted">أعد الدعوة بعد العفو</string>
+    <string name="duration_for_1_hour">لمدة ساعة</string>
+    <string name="duration_for_1_day">لمدة يوم</string>
+    <string name="duration_for_1_week">لمدة أسبوع</string>
+    <string name="schedule_message_title">جدولة الرسالة</string>
+    <string name="schedule_preset_in_1_hour">بعد ساعة</string>
+    <string name="schedule_preset_in_3_hours">بعد 3 ساعات</string>
+    <string name="schedule_preset_in_12_hours">بعد 12 ساعة</string>
+    <string name="schedule_preset_in_24_hours">بعد 24 ساعة</string>
+    <string name="schedule_pick_custom_time">اختر التاريخ والوقت…</string>
+    <string name="schedule_time_in_past">اختر وقتًا في المستقبل.</string>
+    <string name="schedule_time_too_far">لا يسمح خادوم المنزل الخاص بك بالجدولة لهذا الوقت البعيد.</string>
+    <string name="schedule_message_success">جُدولت الرسالة في %1$s</string>
+    <string name="schedule_message_unavailable">لا يمكن جدولة الأوامر ورسائل PGP والرسائل المترجمة.</string>
+    <string name="scheduled_messages_title">الرسائل المجدولة</string>
+    <string name="scheduled_messages_empty">لا توجد رسائل مجدولة في هذه الغرفة.</string>
+    <string name="scheduled_message_send_now">أرسِل الآن</string>
 </resources>

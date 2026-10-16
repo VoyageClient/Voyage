@@ -35,6 +35,7 @@ import org.matrix.android.sdk.internal.session.content.ContentModule
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
 import org.matrix.android.sdk.internal.session.content.UploadMediaBytesWorker
 import org.matrix.android.sdk.internal.session.contentscanner.ContentScannerModule
+import org.matrix.android.sdk.internal.session.delayedevents.DelayedEventsModule
 import org.matrix.android.sdk.internal.session.filter.FilterModule
 import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesModule
 import org.matrix.android.sdk.internal.session.identity.IdentityModule
@@ -96,6 +97,7 @@ import org.matrix.android.sdk.internal.util.system.SystemModule
             AccountModule::class,
             FederationModule::class,
             AdminModule::class,
+            DelayedEventsModule::class,
             RedactedContentModule::class,
             CallModule::class,
             ContentScannerModule::class,

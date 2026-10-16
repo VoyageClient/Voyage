@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s 已加入聊天室</string>
     <string name="notice_room_leave">%1$s 已離開聊天室</string>
     <string name="notice_room_reject">%1$s 已拒絕邀請</string>
-    <string name="notice_room_unban">%1$s 取消封鎖 %2$s</string>
     <string name="notice_room_ban">%1$s 已封鎖 %2$s</string>
     <string name="notice_room_withdraw">%1$s 已撤回 %2$s 的邀請</string>
     <string name="notice_avatar_url_changed">%1$s 已變更他們的大頭照</string>
@@ -61,7 +60,6 @@
     <string name="notice_room_join_with_reason">%1$s 已加入聊天室。理由：%2$s</string>
     <string name="notice_room_leave_with_reason">%1$s 已離開聊天室。理由：%2$s</string>
     <string name="notice_room_reject_with_reason">%1$s 已拒絕邀請。理由：%2$s</string>
-    <string name="notice_room_unban_with_reason">%1$s 已取消封鎖 %2$s。理由：%3$s</string>
     <string name="notice_room_ban_with_reason">%1$s 已封鎖 %2$s。理由：%3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s 已接受 %2$s 的邀請。理由：%3$s</string>
     <string name="notice_room_withdraw_with_reason">%1$s 已撤回 %2$s 的邀請。理由：%3$s</string>
@@ -85,7 +83,6 @@
     <string name="notice_room_join_by_you">您已加入聊天室</string>
     <string name="notice_room_leave_by_you">您已離開聊天室</string>
     <string name="notice_room_reject_by_you">您已拒絕邀請</string>
-    <string name="notice_room_unban_by_you">您已取消封鎖 %1$s</string>
     <string name="notice_room_ban_by_you">您已封鎖 %1$s</string>
     <string name="notice_room_withdraw_by_you">您已撤回 %1$s 的邀請</string>
     <string name="notice_avatar_url_changed_by_you">您已變更您的大頭照</string>
@@ -127,7 +124,6 @@
     <string name="notice_room_join_with_reason_by_you">您已加入聊天室。理由：%1$s</string>
     <string name="notice_room_leave_with_reason_by_you">您離開了聊天室。理由：%1$s</string>
     <string name="notice_room_reject_with_reason_by_you">您已拒絕邀請。理由：%1$s</string>
-    <string name="notice_room_unban_with_reason_by_you">您已取消封鎖 %1$s。理由：%2$s</string>
     <string name="notice_room_ban_with_reason_by_you">您已封鎖 %1$s。理由：%2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">您已接受 %1$s 的邀請。理由：%2$s</string>
     <string name="notice_room_withdraw_with_reason_by_you">您已撤回 %1$s 的邀請。理由：%2$s</string>
@@ -287,7 +283,6 @@
     <string name="room_participants_header_direct_chats">私人訊息</string>
     <string name="room_participants_action_invite">邀請</string>
     <string name="room_participants_action_ban">封鎖</string>
-    <string name="room_participants_action_unban">解除封鎖</string>
     <string name="room_participants_action_ignore">忽略</string>
     <string name="room_participants_action_unignore">取消忽略</string>
     <string name="room_participants_action_mention">提及</string>
@@ -497,7 +492,6 @@
     <string name="settings_preview_media_before_sending">在傳送前預覽媒體</string>
     <string name="command_description_emote">顯示動作</string>
     <string name="command_description_ban_user">封鎖特定 ID 的使用者</string>
-    <string name="command_description_unban_user">取消封鎖特定 ID 的使用者</string>
     <string name="command_description_op_user">定義使用者的權限等級</string>
     <string name="command_description_deop_user">取消指定 ID 的使用者的管理權</string>
     <string name="command_description_invite_user">邀請指定 ID 的使用者到目前的聊天室</string>
@@ -1334,8 +1328,6 @@
     <string name="room_participants_action_cancel_invite_prompt_msg">您確定要取消對此使用者的邀請嗎？</string>
     <string name="room_participants_ban_title">封鎖使用者</string>
     <string name="room_participants_ban_reason">封鎖的理由</string>
-    <string name="room_participants_unban_title">取消封鎖使用者</string>
-    <string name="room_participants_unban_prompt_msg">取消封鎖使用者將會再次允許他們加入聊天室。</string>
     <string name="settings_secure_backup_enter_to_setup">在此裝置上設定</string>
     <string name="settings_secure_backup_section_info">透過備份您伺服器上的加密金鑰，來防止失去對您已加密的訊息與資料的存取權。</string>
     <string name="reset_secure_backup_title">為您現有的備份產生新的安全金鑰或設定新的安全密語。</string>
@@ -1401,7 +1393,6 @@
     <string name="three_pid_revoke_invite_dialog_title">撤銷邀請</string>
     <string name="three_pid_revoke_invite_dialog_content">撤銷對 %1$s 的邀請？</string>
     <string name="member_banned_by">被 %1$s 封鎖</string>
-    <string name="failed_to_unban">無法取消封鎖使用者</string>
     <string name="create_pin_title">選擇 PIN 碼以確保安全</string>
     <string name="create_pin_confirm_title">確認 PIN 碼</string>
     <string name="create_pin_confirm_failure">無法驗證 PIN 碼，請點擊新的。</string>
@@ -1860,7 +1851,6 @@
     <string name="space_permissions_notice">選取變更此聊天空間各部份所需的角色</string>
     <string name="space_settings_permissions_subtitle">檢視並更新變更聊天空間各部份所需的角色。</string>
     <string name="space_settings_permissions_title">聊天空間權限</string>
-    <string name="space_participants_unban_prompt_msg">取消封鎖使用者將讓他們可以再次加入聊天空間。</string>
     <string name="space_participants_ban_prompt_msg">封鎖使用者將會把他們從此聊天空間中移除，並避免他們再次加入。</string>
     <string name="a11y_stop_voice_message">停止錄製</string>
     <string name="command_description_lenny">在文字訊息前加入 ( ͡° ͜ʖ ͡°)</string>
@@ -3492,4 +3482,37 @@
     <string name="labs_enable_media_galleries_summary">將多個附件以單一相簿訊息傳送。不支援相簿的客戶端將無法正確顯示這些訊息。</string>
     <string name="dev_tools_state_history">修訂歷史</string>
     <string name="dev_tools_state_history_current">目前</string>
+    <string name="notice_room_unban">%1$s 已赦免 %2$s</string>
+    <string name="notice_room_unban_by_you">您已赦免 %1$s</string>
+    <string name="notice_room_unban_with_reason">%1$s 已赦免 %2$s。理由：%3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">您已赦免 %1$s。理由：%2$s</string>
+    <string name="room_participants_action_unban">赦免</string>
+    <string name="room_participants_unban_title">赦免使用者</string>
+    <string name="room_participants_unban_prompt_msg">赦免使用者後，他們可以再次加入此聊天室。</string>
+    <string name="space_participants_unban_prompt_msg">赦免使用者後，他們可以再次加入此聊天空間。</string>
+    <string name="command_description_unban_user">赦免指定 ID 的使用者</string>
+    <string name="failed_to_unban">無法赦免使用者</string>
+    <string name="room_participants_action_mute">禁言</string>
+    <string name="room_participants_action_unmute">解除禁言</string>
+    <string name="room_participants_muted_until">禁言至 %1$s</string>
+    <string name="room_participants_mute_duration_title">要禁言多久？</string>
+    <string name="room_participants_banned_until">封鎖至 %1$s</string>
+    <string name="duration_permanently">永久</string>
+    <string name="ban_reinvite_when_lifted">赦免後重新邀請</string>
+    <string name="duration_for_1_hour">1 小時</string>
+    <string name="duration_for_1_day">1 天</string>
+    <string name="duration_for_1_week">1 週</string>
+    <string name="schedule_message_title">排程訊息</string>
+    <string name="schedule_preset_in_1_hour">1 小時後</string>
+    <string name="schedule_preset_in_3_hours">3 小時後</string>
+    <string name="schedule_preset_in_12_hours">12 小時後</string>
+    <string name="schedule_preset_in_24_hours">24 小時後</string>
+    <string name="schedule_pick_custom_time">選擇日期與時間…</string>
+    <string name="schedule_time_in_past">請選擇未來的時間。</string>
+    <string name="schedule_time_too_far">您的家伺服器不允許排程到這麼久以後。</string>
+    <string name="schedule_message_success">訊息已排程於 %1$s</string>
+    <string name="schedule_message_unavailable">指令、PGP 訊息與翻譯後的訊息無法排程。</string>
+    <string name="scheduled_messages_title">排程訊息</string>
+    <string name="scheduled_messages_empty">此聊天室沒有排程訊息。</string>
+    <string name="scheduled_message_send_now">立即傳送</string>
 </resources>

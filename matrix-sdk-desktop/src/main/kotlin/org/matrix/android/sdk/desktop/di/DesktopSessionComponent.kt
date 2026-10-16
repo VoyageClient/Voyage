@@ -22,6 +22,7 @@ import org.matrix.android.sdk.internal.session.cache.CacheModule
 import org.matrix.android.sdk.internal.session.call.CallModule
 import org.matrix.android.sdk.internal.session.content.ContentModule
 import org.matrix.android.sdk.internal.session.contentscanner.ContentScannerModule
+import org.matrix.android.sdk.internal.session.delayedevents.DelayedEventsModule
 import org.matrix.android.sdk.internal.session.filter.FilterModule
 import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesModule
 import org.matrix.android.sdk.internal.session.identity.IdentityModule
@@ -73,6 +74,7 @@ import org.matrix.android.sdk.internal.worker.BackgroundTaskBodiesModule
             AccountModule::class,
             FederationModule::class,
             AdminModule::class,
+            DelayedEventsModule::class,
             RedactedContentModule::class,
             CallModule::class,
             ContentScannerModule::class,

@@ -235,9 +235,7 @@
     <string name="room_many_users_are_typing">%1$s &amp;%2$s ואחרים מקלידים …</string>
     <string name="room_two_users_are_typing">%1$s &amp;%2$s מקלידים …</string>
     <string name="room_one_user_is_typing">%s מקליד …</string>
-    <string name="room_participants_unban_prompt_msg">הסרת נידוי ממשתמש יאפשר לו להצטרף שוב לחדר.</string>
     <string name="room_participants_ban_prompt_msg">חסימת משתמש תסיר אותם מהחדר הזה ותמנע ממנו להצטרף שוב.</string>
-    <string name="room_participants_unban_title">הסר נידוי ממשתמש</string>
     <string name="room_participants_ban_reason">סיבות לנידוי</string>
     <string name="room_participants_ban_title">נדה משתמש</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">האם אתה בטוח שברצונך לבטל את ההזמנה עבור משתמש זה\?</string>
@@ -256,7 +254,6 @@
     <string name="room_participants_power_level_prompt">לא תוכל לבטל את השינוי הזה מכיוון שאתה מקדם את המשתמש לאותה רמת כוח כמוך.
 \nהאם אתה בטוח\?</string>
     <string name="room_participants_action_mention">אזכר</string>
-    <string name="room_participants_action_unban">הסרת התעלמות</string>
     <string name="room_participants_action_ban">התעלם</string>
     <string name="room_participants_action_cancel_invite">בטל הזמנה</string>
     <string name="room_participants_action_invite">הזמן</string>
@@ -576,7 +573,6 @@
     <string name="command_description_invite_user">מזמין משתמש עם זיהוי נתון לחדר הנוכחי</string>
     <string name="command_description_deop_user">משתמש מבוטל עם מזהה נתון</string>
     <string name="command_description_op_user">הגדר את רמת ההרשאה של המשתמש</string>
-    <string name="command_description_unban_user">הסר חסימה למשתמש עם מזהה נתון</string>
     <string name="command_description_ban_user">חסום משתמש עם מזהה נתון</string>
     <string name="command_description_emote">הצג פעולה</string>
     <string name="command_problem_with_parameters">הפקודה \"%s\" זקוקה ליותר פרמטרים, או שחלק מהפרמטרים שגויים.</string>
@@ -1356,7 +1352,6 @@
         <item quantity="many">קוד שגוי,%d ניסיונות נוספים</item>
         <item quantity="other">קוד שגוי,%d ניסיונות נוספים</item>
     </plurals>
-    <string name="failed_to_unban">נכשל המשתמש לבטל את הסילוק</string>
     <string name="member_banned_by">נחסם על ידי%1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">לבטל את ההזמנה ל-%1$s\?</string>
     <string name="three_pid_revoke_invite_dialog_title">בטל הזמנה</string>
@@ -1459,8 +1454,6 @@
     <string name="notice_room_withdraw">%1$s ביטל/ה את ההזמנה של %2$s\'s</string>
     <string name="notice_room_ban_by_you">חסמת את %1$s</string>
     <string name="notice_room_ban">%1$s חסם/ה את %2$s</string>
-    <string name="notice_room_unban_by_you">הסרת את החסימה של %1$s</string>
-    <string name="notice_room_unban">%1$s הסיר/ה מחסימה את %2$s</string>
     <string name="notice_room_reject_by_you">דחית את ההזמנה</string>
     <string name="notice_room_reject">%1$s דחה את ההזמנה</string>
     <string name="notice_direct_room_leave_by_you">עזבת את החדר</string>
@@ -1485,8 +1478,6 @@
     <string name="notice_made_future_direct_room_visibility">%1$s הפך הודעות עתידיות לגלויות בפני %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">חסמת את %1$s. סיבה: %2$s</string>
     <string name="notice_room_ban_with_reason">%1$s חסם את %2$s. סיבה: %3$s</string>
-    <string name="notice_room_unban_with_reason_by_you">ביטלת את החסימה של %1$s. סיבה: %2$s</string>
-    <string name="notice_room_unban_with_reason">%1$s ביטל החסימה של %2$s. סיבה: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">דחית את ההזמנה. סיבה: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s דחה את ההזמנה. סיבה: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">עזבת. סיבה: %1$s</string>
@@ -1647,7 +1638,6 @@
     <string name="space_settings_permissions_subtitle">הצג ועדכן את התפקידים הנדרשים לשינוי חלקים שונים של האזור.</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">ההצפנה הוגדרה בצורה שגויה כך שאינך יכול לשלוח הודעות. לחץ כדי לפתוח את ההגדרות.</string>
     <string name="room_unsupported_e2e_algorithm">ההצפנה הוגדרה בצורה שגויה כך שאינך יכול לשלוח הודעות. אנא צור קשר עם מנהל מערכת כדי לשחזר את ההצפנה למצב חוקי.</string>
-    <string name="space_participants_unban_prompt_msg">ביטול החסימה של המשתמש יאפשר לו להצטרף שוב למרחב.</string>
     <string name="space_participants_ban_prompt_msg">חסימת משתמש תסיר אותם מהמרחב הזה ותמנע ממנו להצטרף שוב.</string>
     <string name="error_unauthorized">לא מורשה, חסרים אישורי אימות חוקיים</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">בחר שרת בית</string>
@@ -3647,4 +3637,37 @@
     <string name="labs_enable_media_galleries_summary">שלח כמה קבצים מצורפים כהודעת גלריה אחת. לקוחות ללא תמיכה בגלריות לא יציגו אותן כראוי.</string>
     <string name="dev_tools_state_history">היסטוריית גרסאות</string>
     <string name="dev_tools_state_history_current">נוכחית</string>
+    <string name="notice_room_unban">%1$s חנן את %2$s</string>
+    <string name="notice_room_unban_by_you">חננת את %1$s</string>
+    <string name="notice_room_unban_with_reason">%1$s חנן את %2$s. סיבה: %3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">חננת את %1$s. סיבה: %2$s</string>
+    <string name="room_participants_action_unban">חנינה</string>
+    <string name="room_participants_unban_title">חנינה למשתמש</string>
+    <string name="room_participants_unban_prompt_msg">חנינה תאפשר למשתמש להצטרף שוב לחדר.</string>
+    <string name="space_participants_unban_prompt_msg">חנינה תאפשר למשתמש להצטרף שוב למרחב.</string>
+    <string name="command_description_unban_user">מעניק חנינה למשתמש עם המזהה הנתון</string>
+    <string name="failed_to_unban">החנינה למשתמש נכשלה</string>
+    <string name="room_participants_action_mute">השתק</string>
+    <string name="room_participants_action_unmute">בטל השתקה</string>
+    <string name="room_participants_muted_until">מושתק עד %1$s</string>
+    <string name="room_participants_mute_duration_title">להשתיק לכמה זמן?</string>
+    <string name="room_participants_banned_until">חסום עד %1$s</string>
+    <string name="duration_permanently">לצמיתות</string>
+    <string name="ban_reinvite_when_lifted">הזמן מחדש אחרי החנינה</string>
+    <string name="duration_for_1_hour">לשעה אחת</string>
+    <string name="duration_for_1_day">ליום אחד</string>
+    <string name="duration_for_1_week">לשבוע אחד</string>
+    <string name="schedule_message_title">תזמון הודעה</string>
+    <string name="schedule_preset_in_1_hour">בעוד שעה</string>
+    <string name="schedule_preset_in_3_hours">בעוד 3 שעות</string>
+    <string name="schedule_preset_in_12_hours">בעוד 12 שעות</string>
+    <string name="schedule_preset_in_24_hours">בעוד 24 שעות</string>
+    <string name="schedule_pick_custom_time">בחר תאריך ושעה…</string>
+    <string name="schedule_time_in_past">בחר זמן בעתיד.</string>
+    <string name="schedule_time_too_far">שרת הבית שלך לא מאפשר לתזמן כל כך רחוק מראש.</string>
+    <string name="schedule_message_success">ההודעה תוזמנה ל־%1$s</string>
+    <string name="schedule_message_unavailable">לא ניתן לתזמן פקודות, הודעות PGP והודעות מתורגמות.</string>
+    <string name="scheduled_messages_title">הודעות מתוזמנות</string>
+    <string name="scheduled_messages_empty">אין הודעות מתוזמנות בחדר הזה.</string>
+    <string name="scheduled_message_send_now">שלח עכשיו</string>
 </resources>

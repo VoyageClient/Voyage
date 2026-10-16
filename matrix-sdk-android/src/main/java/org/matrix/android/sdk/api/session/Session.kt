@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.contentscanner.ContentScannerService
 import org.matrix.android.sdk.api.session.crypto.CryptoService
+import org.matrix.android.sdk.api.session.delayedevents.DelayedEventService
 import org.matrix.android.sdk.api.session.eventindex.EventIndexService
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
@@ -270,6 +271,11 @@ interface Session {
      * Returns the homeserver-administration service associated with the session.
      */
     fun adminService(): AdminService
+
+    /**
+     * Returns the MSC4140 delayed (scheduled) events service associated with the session.
+     */
+    fun delayedEventService(): DelayedEventService
 
     /**
      * Returns the store of content preserved from redaction.

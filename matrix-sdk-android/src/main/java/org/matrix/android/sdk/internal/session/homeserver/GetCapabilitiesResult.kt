@@ -89,6 +89,21 @@ internal data class Capabilities(
 
         @Json(name = "org.matrix.msc4267.forget_forced_upon_leave")
         val forgetForcedUponLeaveUnstable: BooleanCapability? = null,
+
+        /**
+         * MSC4140. Limits on scheduling delayed events.
+         */
+        @Json(name = "m.delayed_events")
+        val delayedEvents: DelayedEventsCapability? = null,
+
+        @Json(name = "org.matrix.msc4140.delayed_events")
+        val delayedEventsUnstable: DelayedEventsCapability? = null,
+)
+
+@JsonClass(generateAdapter = true)
+internal data class DelayedEventsCapability(
+        @Json(name = "max_delay_ms")
+        val maxDelayMs: Long? = null,
 )
 
 @JsonClass(generateAdapter = true)

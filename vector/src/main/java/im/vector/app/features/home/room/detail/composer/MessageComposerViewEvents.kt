@@ -19,6 +19,9 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
 
     data class ShowMessage(val message: String) : MessageComposerViewEvents()
 
+    data class MessageScheduled(val sendTs: Long) : MessageComposerViewEvents()
+    data class ScheduleFailed(val throwable: Throwable) : MessageComposerViewEvents()
+
     abstract class SendMessageResult : MessageComposerViewEvents()
 
     object MessageSent : SendMessageResult()

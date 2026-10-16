@@ -33,6 +33,8 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
@@ -77,8 +79,11 @@ import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
+import timber.log.Timber
 
 private const val PROFILE_FETCH_TIMEOUT_MS = 5_000L
+private const val DELAYED_EVENTS_REFRESH_DEBOUNCE_MS = 300L
+private const val DELAYED_EVENT_EXPIRY_GRACE_MS = 2_000L
 
 class RoomMemberProfileViewModel @AssistedInject constructor(
         @Assisted private val initialState: RoomMemberProfileViewState,
@@ -140,6 +145,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         } else {
             ActionPermissions()
         }
+        val capabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
         setState {
             copy(
                     isMine = session.myUserId == this.userId,
@@ -156,6 +162,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     isAlgorithmSupported = initialRoomSummary?.roomEncryptionAlgorithm is RoomEncryptionAlgorithm.SupportedAlgorithm,
                     roomPowerLevels = initialRoomPowerLevels,
                     actionPermissions = initialPermissions,
+                    canUseDelayedEvents = capabilities.canUseDelayedEvents,
+                    maxEventDelayMs = capabilities.maxEventDelayMs,
                     userPowerLevelString = initialUserPowerLevelString?.let { Success(it) } ?: Uninitialized,
                     asyncMembership = initialRoomMember?.membership?.let { Success(it) } ?: Uninitialized,
                     // Seeded synchronously so the banner doesn't pop in a frame late
@@ -170,6 +178,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         // concurrent fetch splits the reveal into staggered partial updates.
         observeIgnoredState()
         observeAccountData()
+        onEach(RoomMemberProfileViewState::roomPowerLevels, RoomMemberProfileViewState::asyncMembership) { _, _ -> refreshDelayedEvents() }
         // Keeps the room-less emote cache warm, so a saved note resolves :shortcodes: without the multi-second pack walk
         imagePackProvider.getEmoticonsLive(roomId = null).launchIn(viewModelScope)
         viewModelScope.launch(Dispatchers.Main) {
@@ -343,6 +352,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             is RoomMemberProfileAction.BanOrUnbanUser -> handleBanOrUnbanAction(action)
             is RoomMemberProfileAction.KickUser -> handleKickAction(action)
             RoomMemberProfileAction.RedactAllMessages -> handleRedactAllMessages()
+            is RoomMemberProfileAction.MuteUser -> handleMuteAction(action)
+            RoomMemberProfileAction.UnmuteUser -> handleUnmuteAction()
             RoomMemberProfileAction.InviteUser -> handleInviteAction()
             is RoomMemberProfileAction.SetProfileOverrideColor -> handleSetProfileOverrideColor(action)
             is RoomMemberProfileAction.SetProfileColorSameForThemes -> setState { copy(profileColorSameForThemes = action.same) }
@@ -797,6 +808,85 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
     }
 
+    private fun handleMuteAction(action: RoomMemberProfileAction.MuteUser) = withState { state ->
+        val content = state.roomPowerLevels?.powerLevelsContent ?: return@withState
+        if (room == null) return@withState
+        val userId = initialState.userId
+        val restoreLevel = MuteLevels.levelToRestore(content, userId, state.muteRestore)
+        val mutedContent = content.setUserPowerLevel(userId, MuteLevels.mutedLevel(content)).toContent()
+        viewModelScope.launch {
+            _viewEvents.post(RoomMemberProfileViewEvents.Loading())
+            try {
+                if (MuteLevels.userLevel(content, userId) != MuteLevels.mutedLevel(content)) {
+                    room.stateService().sendStateEvent(EventType.STATE_ROOM_POWER_LEVELS, stateKey = "", mutedContent)
+                }
+                val delayedEvents = session.delayedEventService()
+                when {
+                    action.untilTs != null -> delayedEvents.schedulePowerLevelRestore(
+                            room.roomId, mutedContent, userId, restoreLevel, (action.untilTs - System.currentTimeMillis()).coerceAtLeast(1)
+                    )
+                    state.muteRestore != null -> delayedEvents.cancelPowerLevelRestore(room.roomId, mutedContent, userId)
+                }
+                _viewEvents.post(RoomMemberProfileViewEvents.OnSetPowerLevelSuccess)
+            } catch (failure: Throwable) {
+                _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+            }
+            refreshDelayedEvents()
+        }
+    }
+
+    private fun handleUnmuteAction() = withState { state ->
+        val content = state.roomPowerLevels?.powerLevelsContent ?: return@withState
+        if (room == null) return@withState
+        val newContent = content.setUserPowerLevel(initialState.userId, MuteLevels.unmuteLevel(content, state.muteRestore)).toContent()
+        viewModelScope.launch {
+            _viewEvents.post(RoomMemberProfileViewEvents.Loading())
+            try {
+                // Changing the level also drops this user's pending restore.
+                room.stateService().sendStateEvent(EventType.STATE_ROOM_POWER_LEVELS, stateKey = "", newContent)
+                _viewEvents.post(RoomMemberProfileViewEvents.OnSetPowerLevelSuccess)
+            } catch (failure: Throwable) {
+                _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
+            }
+            refreshDelayedEvents()
+        }
+    }
+
+    private var delayedEventsRefresh: Job? = null
+
+    /** Coalesced, as the homeserver rate-limits listing delayed events to about one call a second. */
+    private fun refreshDelayedEvents() {
+        delayedEventsRefresh?.cancel()
+        delayedEventsRefresh = viewModelScope.launch {
+            delay(DELAYED_EVENTS_REFRESH_DEBOUNCE_MS)
+            val state = awaitState()
+            val roomId = state.roomId ?: return@launch
+            val content = state.roomPowerLevels?.powerLevelsContent
+            val userId = initialState.userId
+            val muted = content != null && state.actionPermissions.canEditPowerLevel && MuteLevels.isMuted(content, userId)
+            val banned = state.actionPermissions.canBan && state.asyncMembership() == Membership.BAN
+            if (!state.canUseDelayedEvents || !muted && !banned) {
+                setState { copy(muteRestore = null, pendingUnban = null) }
+                return@launch
+            }
+            val service = session.delayedEventService()
+            val delayedEvents = try {
+                service.getDelayedEvents()
+            } catch (failure: Throwable) {
+                Timber.w(failure, "Could not load pending delayed events")
+                return@launch
+            }
+            val restore = content?.takeIf { muted }?.let { service.getPowerLevelRestores(roomId, it.toContent(), delayedEvents).lastOrNull { r -> r.userId == userId } }
+            val unban = if (banned) service.getPendingUnban(roomId, userId, delayedEvents) else null
+            setState { copy(muteRestore = restore, pendingUnban = unban) }
+            // The fired event normally arrives by sync and triggers a refresh; this covers a sync that lags.
+            val untilExpiry = (listOfNotNull(restore?.sendTs, unban?.sendTs).minOrNull() ?: return@launch) - System.currentTimeMillis()
+            if (untilExpiry < 0) return@launch
+            delay(untilExpiry + DELAYED_EVENT_EXPIRY_GRACE_MS)
+            refreshDelayedEvents()
+        }
+    }
+
     private fun handleRedactAllMessages() = withState { state ->
         val roomId = state.roomId ?: return@withState
         val displayName = state.userMatrixItem()?.getBestName() ?: state.userId
@@ -825,11 +915,16 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 } else {
                     room.membershipService().ban(initialState.userId, action.reason, MassRedactionManager.askServerToRedact(action.redactEvents))
                     if (action.redactEvents) redactAfterModeration(state)
+                    if (action.untilTs != null) {
+                        val delayMs = (action.untilTs - System.currentTimeMillis()).coerceAtLeast(1)
+                        session.delayedEventService().scheduleUnban(room.roomId, initialState.userId, delayMs, action.reinvite)
+                    }
                 }
                 _viewEvents.post(RoomMemberProfileViewEvents.OnBanActionSuccess)
             } catch (failure: Throwable) {
                 _viewEvents.post(RoomMemberProfileViewEvents.Failure(failure))
             }
+            refreshDelayedEvents()
         }
     }
 

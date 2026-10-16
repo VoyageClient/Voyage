@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s hat den Raum betreten</string>
     <string name="notice_room_leave">%1$s hat den Raum verlassen</string>
     <string name="notice_room_reject">%1$s hat die Einladung abgelehnt</string>
-    <string name="notice_room_unban">%1$s hat den Bann von %2$s aufgehoben</string>
     <string name="notice_room_ban">%1$s hat %2$s gebannt</string>
     <string name="notice_room_withdraw">%1$s hat die Einladung für %2$s zurückgezogen</string>
     <string name="notice_avatar_url_changed">%1$s hat das Profilbild geändert</string>
@@ -61,7 +60,6 @@
     <string name="notice_room_join_with_reason">%1$s ist dem Raum beigetreten. Grund: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s hat den Raum verlassen. Grund: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s hat die Einladung abgelehnt. Grund: %2$s</string>
-    <string name="notice_room_unban_with_reason">%1$s hat Sperre von %2$s aufgehoben. Grund: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s hat %2$s verbannt. Grund: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s hat die Einladung für %2$s angenommen. Grund: %3$s</string>
     <string name="notice_room_withdraw_with_reason">%1$s hat die Einladung für %2$s zurückgezogen. Grund: %3$s</string>
@@ -87,7 +85,6 @@
     <string name="notice_room_join_by_you">Du bist dem Raum beigetreten</string>
     <string name="notice_room_leave_by_you">Du hast den Raum verlassen</string>
     <string name="notice_room_reject_by_you">Du hast die Einladung abgelehnt</string>
-    <string name="notice_room_unban_by_you">Du hast den Bann von %1$s aufgehoben</string>
     <string name="notice_room_ban_by_you">Du hast %1$s gebannt</string>
     <string name="notice_room_withdraw_by_you">Du hast die Einladung von %1$s zurückgenommen</string>
     <string name="notice_avatar_url_changed_by_you">Du hast dein Profilbild geändert</string>
@@ -127,7 +124,6 @@
     <string name="notice_room_join_with_reason_by_you">Du bist dem Raum beigetreten. Grund: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">Du hast den Raum verlassen. Grund: %1$s</string>
     <string name="notice_room_reject_with_reason_by_you">Du hast die Einladung abgelehnt. Grund: %1$s</string>
-    <string name="notice_room_unban_with_reason_by_you">Du hast den Bann von %1$s aufgehoben. Grund: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Du hast %1$s gebannt. Grund: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Du hast die Einladung von %1$s angenommen. Grund: %2$s</string>
     <string name="notice_room_withdraw_with_reason_by_you">Du hast die Einladung von %1$s abgelehnt. Grund: %2$s</string>
@@ -283,7 +279,6 @@
     <string name="room_participants_header_direct_chats">Direktnachrichten</string>
     <string name="room_participants_action_invite">Einladen</string>
     <string name="room_participants_action_ban">Verbannen</string>
-    <string name="room_participants_action_unban">Verbannung aufheben</string>
     <string name="room_participants_action_ignore">Blockieren</string>
     <string name="room_participants_action_unignore">Alle Nachrichten dieses Nutzers anzeigen</string>
     <string name="room_participants_action_mention">Erwähnen</string>
@@ -513,7 +508,6 @@
     <string name="settings_preview_media_before_sending">Medienvorschau vor dem Senden</string>
     <string name="command_description_emote">Zeigt Aktionen</string>
     <string name="command_description_ban_user">Bannt Benutzer mit angegebener ID</string>
-    <string name="command_description_unban_user">Hebt die Verbannung des Benutzers mit angegebener ID auf</string>
     <string name="command_description_op_user">Bestimmt das Berechtigungslevel des Benutzers</string>
     <string name="command_description_deop_user">Setzt Berechtigungen des Benutzers zurück</string>
     <string name="command_description_invite_user">Lädt Benutzer mit angegebener Kennung in den aktuellen Raum ein</string>
@@ -1335,8 +1329,6 @@
     <string name="room_participants_action_cancel_invite_prompt_msg">Bist du dir sicher, dass du die Einladung für diesen Benutzer zurückziehen möchtest\?</string>
     <string name="room_participants_ban_title">Benutzer bannen</string>
     <string name="room_participants_ban_reason">Grund für den Bann</string>
-    <string name="room_participants_unban_title">Bann des Benutzers aufheben</string>
-    <string name="room_participants_unban_prompt_msg">Wenn du die Person entbannst, kann sie den Raum wieder betreten.</string>
     <string name="settings_secure_backup_enter_to_setup">Auf diesem Gerät einrichten</string>
     <string name="settings_secure_backup_section_info">Verhindere, den Zugriff auf verschlüsselte Nachrichten und Daten zu verlieren, indem du die Verschlüsselungs-Schlüssel auf deinem Server sicherst.</string>
     <string name="reset_secure_backup_title">Generiere einen neuen Sicherheitsschlüssel oder setze eine neue Sicherheitspassphrase für dein existierendes Backup.</string>
@@ -1429,7 +1421,6 @@
     <string name="three_pid_revoke_invite_dialog_title">Einladung zurücknehmen</string>
     <string name="three_pid_revoke_invite_dialog_content">Einladung zu %1$s zurücknehmen\?</string>
     <string name="member_banned_by">Gebannt von %1$s</string>
-    <string name="failed_to_unban">Aufhebung der Verbannung fehlgeschlagen</string>
     <string name="create_pin_title">Nutze eine PIN für mehr Sicherheit</string>
     <string name="create_pin_confirm_title">Bestätige PIN</string>
     <string name="create_pin_confirm_failure">Validierung der PIN fehlgeschlagen. Bitte probiere es noch einmal.</string>
@@ -1885,7 +1876,6 @@
     <string name="room_permissions_change_space_avatar">Space-Icon ändern</string>
     <string name="space_permissions_notice_read_only">Du hast nicht die Berechtigung, Rollenrechte zu bearbeiten</string>
     <string name="space_settings_permissions_title">Space-Berechtigungen</string>
-    <string name="space_participants_unban_prompt_msg">Wenn du die Person entbannst, kann sie den Space wieder betreten.</string>
     <string name="space_participants_ban_prompt_msg">Die Verbannung einer Person entfernt sie aus diesem Space und hindert sie am erneuten Beitritt.</string>
     <string name="a11y_stop_voice_message">Aufnahme beenden</string>
     <string name="finish_setup">Einrichtung beenden</string>
@@ -3553,4 +3543,37 @@
     <string name="labs_enable_media_galleries_summary">Mehrere Anhänge als eine einzige Galerie-Nachricht senden. Clients ohne Galerie-Unterstützung zeigen diese nicht richtig an.</string>
     <string name="dev_tools_state_history">Versionsverlauf</string>
     <string name="dev_tools_state_history_current">Aktuell</string>
+    <string name="notice_room_unban">%1$s hat %2$s begnadigt</string>
+    <string name="notice_room_unban_by_you">Du hast %1$s begnadigt</string>
+    <string name="notice_room_unban_with_reason">%1$s hat %2$s begnadigt. Grund: %3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">Du hast %1$s begnadigt. Grund: %2$s</string>
+    <string name="room_participants_action_unban">Begnadigen</string>
+    <string name="room_participants_unban_title">Person begnadigen</string>
+    <string name="room_participants_unban_prompt_msg">Eine Begnadigung erlaubt der Person, dem Raum wieder beizutreten.</string>
+    <string name="space_participants_unban_prompt_msg">Eine Begnadigung erlaubt der Person, dem Space wieder beizutreten.</string>
+    <string name="command_description_unban_user">Begnadigt die Person mit der angegebenen ID</string>
+    <string name="failed_to_unban">Begnadigung fehlgeschlagen</string>
+    <string name="room_participants_action_mute">Stummschalten</string>
+    <string name="room_participants_action_unmute">Stummschaltung aufheben</string>
+    <string name="room_participants_muted_until">Stummgeschaltet bis %1$s</string>
+    <string name="room_participants_mute_duration_title">Wie lange stummschalten?</string>
+    <string name="room_participants_banned_until">Verbannt bis %1$s</string>
+    <string name="duration_permanently">Dauerhaft</string>
+    <string name="ban_reinvite_when_lifted">Nach Begnadigung erneut einladen</string>
+    <string name="duration_for_1_hour">Für 1 Stunde</string>
+    <string name="duration_for_1_day">Für 1 Tag</string>
+    <string name="duration_for_1_week">Für 1 Woche</string>
+    <string name="schedule_message_title">Nachricht planen</string>
+    <string name="schedule_preset_in_1_hour">In 1 Stunde</string>
+    <string name="schedule_preset_in_3_hours">In 3 Stunden</string>
+    <string name="schedule_preset_in_12_hours">In 12 Stunden</string>
+    <string name="schedule_preset_in_24_hours">In 24 Stunden</string>
+    <string name="schedule_pick_custom_time">Datum und Uhrzeit wählen…</string>
+    <string name="schedule_time_in_past">Wähle einen Zeitpunkt in der Zukunft.</string>
+    <string name="schedule_time_too_far">Dein Heim-Server erlaubt keine so weit im Voraus geplanten Nachrichten.</string>
+    <string name="schedule_message_success">Nachricht geplant für %1$s</string>
+    <string name="schedule_message_unavailable">Befehle, PGP-Nachrichten und übersetzte Nachrichten können nicht geplant werden.</string>
+    <string name="scheduled_messages_title">Geplante Nachrichten</string>
+    <string name="scheduled_messages_empty">In diesem Raum sind keine Nachrichten geplant.</string>
+    <string name="scheduled_message_send_now">Jetzt senden</string>
 </resources>

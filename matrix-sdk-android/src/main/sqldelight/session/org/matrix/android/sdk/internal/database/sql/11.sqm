@@ -1,0 +1,11 @@
+/*
+ * Copyright 2026 Voyage Client
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * Please see LICENSE files in the repository root for full details.
+ */
+
+-- Bumps the schema version so FrameworkSqliteDriver drops and recreates the session store (it does
+-- not run migrations); the store is a cache and rebuilds itself from sync.
+ALTER TABLE home_server_capabilities ADD COLUMN can_use_delayed_events INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE home_server_capabilities ADD COLUMN max_event_delay_ms INTEGER NOT NULL DEFAULT -1;

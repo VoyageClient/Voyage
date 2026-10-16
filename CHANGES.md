@@ -68,6 +68,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Redact on kick/ban**: kicking or banning someone offers to redact everything they sent in the room, from the member's profile or as `/kick @user:server redact`.
 
+- **Scheduled messages and temporary mutes and bans**: with MSC4140 delayed events, long-pressing Send schedules a message in unencrypted rooms, and mutes and bans can expire on their own (optionally re-inviting).
+
 - **Consistent deleted-message previews**: a deleted message reads as deleted everywhere it is previewed, not only in the timeline. Reply headers, the composer's reply preview, the room list, the pinned-messages banner and list, and the long-press menu all show it grayed out with a trash icon rather than as ordinary text, and thread summaries gray it out too. The wording is unified on "Message redacted".
 
 - **Classic composer**: the message composer goes back to the flat layout it had before 2020. No rounded input box, a divider above it, accent-colored glyphs, a bare `+` for the share options, the emoji toggle outside the text box, and a plain paper-plane send button. On by default; turn it off under Settings → Preferences for the boxed composer.

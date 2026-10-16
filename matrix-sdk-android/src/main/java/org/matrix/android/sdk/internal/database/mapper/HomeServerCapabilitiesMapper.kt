@@ -60,6 +60,8 @@ internal object HomeServerCapabilitiesMapper {
                 canUsePaginatedSync = entity.canUsePaginatedSync,
                 syncProfileFieldsSupport = entity.syncProfileFieldsSupport,
                 canUseSlidingSyncProfiles = entity.canUseSlidingSyncProfiles,
+                canUseDelayedEvents = entity.canUseDelayedEvents,
+                maxEventDelayMs = entity.maxEventDelayMs,
         )
     }
 

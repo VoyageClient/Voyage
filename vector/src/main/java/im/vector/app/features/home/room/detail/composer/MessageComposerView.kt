@@ -49,6 +49,9 @@ interface MessageComposerView {
 interface Callback : ComposerEditText.Callback {
     fun onCloseRelatedMessage()
     fun onSendMessage(text: CharSequence)
+
+    /** @return true when the long press was consumed, e.g. to schedule the message */
+    fun onSendLongPressed(text: CharSequence): Boolean
     fun onAddAttachment()
     fun onExpandOrCompactChange()
     fun onFullScreenModeChanged()

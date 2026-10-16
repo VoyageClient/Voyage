@@ -122,7 +122,6 @@
     <string name="room_participants_header_direct_chats">DİREKT SOHBETLER</string>
     <string name="room_participants_action_invite">Davet et</string>
     <string name="room_participants_action_ban">Engelle</string>
-    <string name="room_participants_action_unban">Engeli kaldır</string>
     <string name="room_participants_action_ignore">Bu kullanıcının tüm mesajlarını gizle</string>
     <string name="room_participants_action_unignore">Bu kullanıcının tüm mesajlarını göster</string>
     <string name="room_participants_action_mention">Bahset</string>
@@ -390,7 +389,6 @@
     <string name="command_problem_with_parameters">%s adlı komutun daha fazla değişkene ihtiyacı var ya da bazı değişkenler yanlış.</string>
     <string name="command_description_emote">Eylemi gösteriyor</string>
     <string name="command_description_ban_user">Verilen id ile kullanıcıları engeller</string>
-    <string name="command_description_unban_user">Verilen id ile kullanıcıların engelini kaldırır</string>
     <string name="command_description_op_user">Kullanıcının erişim seviyesini belirle</string>
     <string name="command_description_deop_user">Verilen id ile kullanıcıları operatörlükten çıkarır</string>
     <string name="command_description_invite_user">Verilen id ile kullanıcıları şuanki odaya davet eder</string>
@@ -663,8 +661,6 @@
     <string name="room_participants_action_cancel_invite_prompt_msg">Bu kullanıcıdan gelen daveti geri çevirmek istediğinizden emin misiniz\?</string>
     <string name="room_participants_ban_title">Kullanıcıyı yasakla</string>
     <string name="room_participants_ban_reason">Yasaklama sebebi</string>
-    <string name="room_participants_unban_title">Kullanıcının yasağını kaldır</string>
-    <string name="room_participants_unban_prompt_msg">Kullanıcının yasağını kaldırırsanız odaya tekrar girebilir.</string>
     <string name="settings_secure_backup_enter_to_setup">Bu cihazda ayarla</string>
     <string name="settings_secure_backup_section_info">Şifreli mesajlarınıza ve verilerinize erişiminizin kesilmesine karşı şifreleme anahtarlarını sunucunuzda saklayan bir teminat.</string>
     <string name="reset_secure_backup_title">Mevcut yedeğin için yeni bir Güvenlik Anahtarı oluştur veya bir Güvenlik Sözcük Grubu belirle.</string>
@@ -1016,8 +1012,6 @@
     <string name="notice_room_avatar_changed">%1$s oda avatarını değiştirdi</string>
     <string name="notice_room_topic_changed_by_you">Konuyu şuna değiştirdiniz: %1$s</string>
     <string name="notice_room_topic_changed">%1$s konuyu şuna değiştirdi: %2$s</string>
-    <string name="notice_room_unban_by_you">%1$s adlı kişinin banını kaldırdı</string>
-    <string name="notice_room_unban">%1$s, %2$s adlı kişinin banını kaldırdı</string>
     <string name="room_list_quick_actions_room_settings">Oda ayarları</string>
     <string name="room_settings_room_version_title">Oda sürümü</string>
     <string name="event_status_sending_message">Mesaj gönderiliyor…</string>
@@ -1073,7 +1067,6 @@
     <string name="space_settings_permissions_title">Alan izinleri</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">Şifreleme yanlış yapılandırıldı, böylece mesaj gönderemezsiniz. Ayarlar\'ı açmak için tıklatın.</string>
     <string name="room_unsupported_e2e_algorithm">Şifreleme yanlış yapılandırıldı, böylece mesaj gönderemezsiniz. Şifrelemeyi geçerli bir duruma geri yüklemek için lütfen bir yöneticiyle iletişime geçin.</string>
-    <string name="space_participants_unban_prompt_msg">Yasağı kaldırmak, kullanıcının alana tekrar katılmasına izin verir.</string>
     <string name="space_participants_ban_prompt_msg">Kullanıcıyı yasaklamak onları bu alandan kaldıracak ve tekrar katılmalarını engelleyecektir.</string>
     <string name="error_unauthorized">Yetkisiz, eksik geçerli kimlik doğrulama kimlik bilgileri</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Ana sunucuyu seçin</string>
@@ -1155,8 +1148,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s, %2$s davetini kabul etti. Neden: %3$s</string>
     <string name="notice_room_ban_with_reason_by_you">%1$s\'i yasakladınız. Neden: %2$s</string>
     <string name="notice_room_ban_with_reason">%1$s, %2$s\'yi yasakladı. Neden: %3$s</string>
-    <string name="notice_room_unban_with_reason_by_you">%1$s yasağını kaldırdınız. Neden: %2$s</string>
-    <string name="notice_room_unban_with_reason">%1$s planlanmamış %2$s. Nedeni: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">Daveti reddettiniz. Sebep: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s daveti reddetti. Neden: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Gittin. Sebep: %1$s</string>
@@ -1978,7 +1969,6 @@
     <string name="three_pid_revoke_invite_dialog_title">Daveti geri al</string>
     <string name="three_pid_revoke_invite_dialog_content">%1$s için davet geri alınsın mı?</string>
     <string name="member_banned_by">%1$s tarafından yasaklandı</string>
-    <string name="failed_to_unban">Kullanıcının yasağı kaldırılamadı</string>
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="one">Yanlış kod, %d deneme hakkı kaldı</item>
         <item quantity="other">Yanlış kod, %d deneme hakkı kaldı</item>
@@ -3512,4 +3502,37 @@
     <string name="labs_enable_media_galleries_summary">Birden fazla eki tek bir galeri mesajı olarak gönder. Galeri desteği olmayan istemciler bunları düzgün görüntülemez.</string>
     <string name="dev_tools_state_history">Revizyon geçmişi</string>
     <string name="dev_tools_state_history_current">Güncel</string>
+    <string name="notice_room_unban">%1$s, %2$s kullanıcısını affetti</string>
+    <string name="notice_room_unban_by_you">%1$s kullanıcısını affettiniz</string>
+    <string name="notice_room_unban_with_reason">%1$s, %2$s kullanıcısını affetti. Neden: %3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">%1$s kullanıcısını affettiniz. Neden: %2$s</string>
+    <string name="room_participants_action_unban">Affet</string>
+    <string name="room_participants_unban_title">Kullanıcıyı affet</string>
+    <string name="room_participants_unban_prompt_msg">Kullanıcıyı affetmek odaya tekrar katılmasına izin verir.</string>
+    <string name="space_participants_unban_prompt_msg">Kullanıcıyı affetmek alana tekrar katılmasına izin verir.</string>
+    <string name="command_description_unban_user">Belirtilen kimliğe sahip kullanıcıyı affeder</string>
+    <string name="failed_to_unban">Kullanıcı affedilemedi</string>
+    <string name="room_participants_action_mute">Sustur</string>
+    <string name="room_participants_action_unmute">Susturmayı kaldır</string>
+    <string name="room_participants_muted_until">%1$s tarihine kadar susturuldu</string>
+    <string name="room_participants_mute_duration_title">Ne kadar süreyle susturulsun?</string>
+    <string name="room_participants_banned_until">%1$s tarihine kadar yasaklı</string>
+    <string name="duration_permanently">Kalıcı olarak</string>
+    <string name="ban_reinvite_when_lifted">Aftan sonra tekrar davet et</string>
+    <string name="duration_for_1_hour">1 saat boyunca</string>
+    <string name="duration_for_1_day">1 gün boyunca</string>
+    <string name="duration_for_1_week">1 hafta boyunca</string>
+    <string name="schedule_message_title">Mesajı zamanla</string>
+    <string name="schedule_preset_in_1_hour">1 saat sonra</string>
+    <string name="schedule_preset_in_3_hours">3 saat sonra</string>
+    <string name="schedule_preset_in_12_hours">12 saat sonra</string>
+    <string name="schedule_preset_in_24_hours">24 saat sonra</string>
+    <string name="schedule_pick_custom_time">Tarih ve saat seç…</string>
+    <string name="schedule_time_in_past">Gelecekte bir zaman seçin.</string>
+    <string name="schedule_time_too_far">Ev sunucunuz bu kadar ileri bir tarihe zamanlamaya izin vermiyor.</string>
+    <string name="schedule_message_success">Mesaj %1$s için zamanlandı</string>
+    <string name="schedule_message_unavailable">Komutlar, PGP mesajları ve çevrilmiş mesajlar zamanlanamaz.</string>
+    <string name="scheduled_messages_title">Zamanlanmış mesajlar</string>
+    <string name="scheduled_messages_empty">Bu odada zamanlanmış mesaj yok.</string>
+    <string name="scheduled_message_send_now">Şimdi gönder</string>
 </resources>

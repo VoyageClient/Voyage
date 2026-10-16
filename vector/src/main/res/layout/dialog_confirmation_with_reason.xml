@@ -31,6 +31,26 @@
         app:layout_constraintTop_toBottomOf="@id/dialogConfirmationText"
         tools:visibility="visible" />
 
+    <Spinner
+        android:id="@+id/dialogDurationSpinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dialogRedactEventsCheck"
+        tools:visibility="visible" />
+
+    <CheckBox
+        android:id="@+id/dialogDurationFollowUpCheck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dialogDurationSpinner"
+        tools:text="@string/ban_reinvite_when_lifted"
+        tools:visibility="visible" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/dialogReasonTextInputLayout"
         android:layout_width="0dp"
@@ -39,7 +59,7 @@
         app:counterMaxLength="240"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dialogRedactEventsCheck"
+        app:layout_constraintTop_toBottomOf="@id/dialogDurationFollowUpCheck"
         app:layout_goneMarginTop="8dp"
         tools:hint="@string/redact_event_dialog_reason_hint">
 

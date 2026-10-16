@@ -138,6 +138,14 @@ data class HomeServerCapabilities(
          * extension name is defined so far.
          */
         val canUseSlidingSyncProfiles: Boolean = false,
+        /**
+         * MSC4140. True when the server accepts delayed (scheduled) events.
+         */
+        val canUseDelayedEvents: Boolean = false,
+        /**
+         * MSC4140. Longest delay the server accepts, or [MAX_EVENT_DELAY_UNKNOWN].
+         */
+        val maxEventDelayMs: Long = MAX_EVENT_DELAY_UNKNOWN,
 ) {
 
     enum class SyncProfileFieldsSupport {
@@ -206,6 +214,7 @@ data class HomeServerCapabilities(
 
     companion object {
         const val MAX_UPLOAD_FILE_SIZE_UNKNOWN = -1L
+        const val MAX_EVENT_DELAY_UNKNOWN = -1L
         const val ROOM_CAP_KNOCK = "knock"
         const val ROOM_CAP_RESTRICTED = "restricted"
         const val ROOM_CAP_KNOCK_RESTRICTED = "knock_restricted"

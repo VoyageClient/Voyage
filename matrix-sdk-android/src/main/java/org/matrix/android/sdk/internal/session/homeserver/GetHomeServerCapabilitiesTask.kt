@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.internal.auth.version.Versions
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportAuthenticatedMedia
+import org.matrix.android.sdk.internal.auth.version.doesServerSupportDelayedEvents
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportInviteBlocking
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportLogoutDevices
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportPaginatedSync
@@ -161,6 +162,10 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                 // MSC4267 says to assume no auto-forget when the capability is absent.
                 homeServerCapabilitiesEntity.forgetForcedUponLeave =
                         (capabilities?.forgetForcedUponLeave ?: capabilities?.forgetForcedUponLeaveUnstable)?.enabled.orFalse()
+
+                homeServerCapabilitiesEntity.maxEventDelayMs =
+                        (capabilities?.delayedEvents ?: capabilities?.delayedEventsUnstable)?.maxDelayMs
+                                ?: HomeServerCapabilities.MAX_EVENT_DELAY_UNKNOWN
             }
 
             if (getMediaConfigResult != null) {
@@ -195,6 +200,8 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                         getVersionResult.syncProfileFieldsSupport()
                 homeServerCapabilitiesEntity.canUseSlidingSyncProfiles =
                         getVersionResult.doesServerSupportSlidingSyncProfiles()
+                homeServerCapabilitiesEntity.canUseDelayedEvents =
+                        getVersionResult.doesServerSupportDelayedEvents()
             }
 
             if (getWellknownResult != null && getWellknownResult is WellknownResult.Prompt) {

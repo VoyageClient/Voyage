@@ -39,6 +39,8 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.date.DateFormatKind
+import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.error.fatalError
 import im.vector.app.core.extensions.bodyName
 import im.vector.app.core.extensions.getVectorLastMessageContent
@@ -71,6 +73,8 @@ import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
+import im.vector.app.features.delayedevents.ScheduleTimePicker
+import im.vector.app.features.delayedevents.ScheduleTimePicker.HOUR_MS
 import im.vector.app.features.devtools.RoomDevToolViewState
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.AutoCompleter
@@ -162,6 +166,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var vectorFeatures: VectorFeatures
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var session: Session
+    @Inject lateinit var dateFormatter: VectorDateFormatter
     @Inject lateinit var emoteShortcodeProcessor: im.vector.app.features.imagepack.EmoteShortcodeProcessor
     @Inject lateinit var emojiPickerSectionFactory: im.vector.app.features.reactions.EmojiPickerSectionFactory
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
@@ -281,6 +286,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 }
                 is MessageComposerViewEvents.SendMessageResult -> renderSendMessageResult(it)
                 is MessageComposerViewEvents.ShowMessage -> showSnackWithMessage(it.message)
+                is MessageComposerViewEvents.MessageScheduled -> {
+                    composer.renderComposerMode(MessageComposerMode.Normal(""))
+                    showSnackWithMessage(getString(CommonStrings.schedule_message_success, dateFormatter.format(it.sendTs, DateFormatKind.DEFAULT_DATE_AND_TIME)))
+                }
+                is MessageComposerViewEvents.ScheduleFailed -> showErrorInSnackbar(it.throwable)
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
                 is MessageComposerViewEvents.AnimateSendButtonVisibility -> handleSendButtonVisibilityChanged(it)
                 is MessageComposerViewEvents.OpenRoomMemberProfile -> openRoomMemberProfile(it.userId)
@@ -549,6 +559,34 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         messageComposerViewModel.handle(MessageComposerAction.SetFullScreen(false))
                     }
                 }
+            }
+
+            override fun onSendLongPressed(text: CharSequence): Boolean = withState(messageComposerViewModel) { state ->
+                if (!state.canScheduleMessages || state.sendMode !is SendMode.Regular || state.isInThreadTimeline() ||
+                        state.isVoiceRecording || text.isBlank()) {
+                    return@withState false
+                }
+                val formattedText = composer.formattedText
+                (parentFragment as TimelineFragment).openAfterKeyboardDismissal {
+                    if (!isAdded || view == null) return@openAfterKeyboardDismissal
+                    ScheduleTimePicker.show(
+                            context = requireContext(),
+                            title = getString(CommonStrings.schedule_message_title),
+                            presets = listOf(
+                                    ScheduleTimePicker.Preset(getString(CommonStrings.schedule_preset_in_1_hour), ScheduleTimePicker.inMillis(HOUR_MS)),
+                                    ScheduleTimePicker.Preset(getString(CommonStrings.schedule_preset_in_3_hours), ScheduleTimePicker.inMillis(3 * HOUR_MS)),
+                                    ScheduleTimePicker.Preset(getString(CommonStrings.schedule_preset_in_12_hours), ScheduleTimePicker.inMillis(12 * HOUR_MS)),
+                                    ScheduleTimePicker.Preset(getString(CommonStrings.schedule_preset_in_24_hours), ScheduleTimePicker.inMillis(24 * HOUR_MS)),
+                            ),
+                            maxDelayMs = state.maxEventDelayMs,
+                    ) { sendTs ->
+                        sendTs ?: return@show
+                        val pilled = text.pillifyRemainingMentions { session.roomService().getRoomSummary(it)?.toRoomAliasMatrixItem() }
+                        val autoMarkdown = formattedText == null && vectorPreferences.isMarkdownEnabled()
+                        messageComposerViewModel.handle(MessageComposerAction.ScheduleMessage(pilled, formattedText, autoMarkdown, sendTs))
+                    }
+                }
+                true
             }
 
             override fun onCloseRelatedMessage() {

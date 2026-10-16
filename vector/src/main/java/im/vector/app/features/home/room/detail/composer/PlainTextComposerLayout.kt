@@ -188,6 +188,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             val textMessage = text?.toSpannable()?.expandPillSpans() ?: ""
             callback?.onSendMessage(textMessage)
         }
+        views.sendButton.setOnLongClickListener {
+            val textMessage = text?.toSpannable()?.expandPillSpans() ?: ""
+            callback?.onSendLongPressed(textMessage) ?: false
+        }
 
         views.attachmentButton.setOnClickListener {
             callback?.onAddAttachment()

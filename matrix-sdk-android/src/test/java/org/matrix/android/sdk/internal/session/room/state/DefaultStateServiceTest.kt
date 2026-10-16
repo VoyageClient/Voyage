@@ -40,6 +40,8 @@ class DefaultStateServiceTest {
             fileUploader = fileUploader,
             uploadedMediaCache = uploadedMediaCache,
             coroutineDispatchers = mockk<MatrixCoroutineDispatchers> { every { io } returns Dispatchers.Unconfined },
+            homeServerCapabilitiesDataSource = mockk(),
+            delayedEventService = mockk(),
     )
 
     @Test

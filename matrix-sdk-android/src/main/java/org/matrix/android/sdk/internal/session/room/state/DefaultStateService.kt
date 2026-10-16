@@ -48,6 +48,9 @@ import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.content.UploadedMediaCache
+import org.matrix.android.sdk.internal.session.delayedevents.DefaultDelayedEventService
+import org.matrix.android.sdk.internal.session.delayedevents.powerLevelUsers
+import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevelsFlow
 import org.matrix.android.sdk.internal.util.unescapeHtml
@@ -61,6 +64,8 @@ internal class DefaultStateService @AssistedInject constructor(
         private val fileUploader: FileUploader,
         private val uploadedMediaCache: UploadedMediaCache,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
+        private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
+        private val delayedEventService: DefaultDelayedEventService,
 ) : StateService {
 
     @AssistedFactory
@@ -105,7 +110,26 @@ internal class DefaultStateService @AssistedInject constructor(
                 body = body.toSafeJson(eventType),
                 encrypt = encrypt
         )
-        return sendStateTask.executeRetry(params, 3)
+        val oldUsers = if (eventType == EventType.STATE_ROOM_POWER_LEVELS && stateKey.isEmpty()) {
+            withContext(coroutineDispatchers.io) {
+                if (homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseDelayedEvents == true) {
+                    getStateEvent(EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty)?.content.orEmpty().powerLevelUsers()
+                } else {
+                    null
+                }
+            }
+        } else {
+            null
+        }
+        return sendStateTask.executeRetry(params, 3).also {
+            if (oldUsers != null) {
+                try {
+                    delayedEventService.onPowerLevelsChanged(roomId, oldUsers, params.body)
+                } catch (failure: Throwable) {
+                    Timber.w(failure, "Could not re-base pending power-level restores in $roomId")
+                }
+            }
+        }
     }
 
     private fun JsonDict.toSafeJson(eventType: String): JsonDict {

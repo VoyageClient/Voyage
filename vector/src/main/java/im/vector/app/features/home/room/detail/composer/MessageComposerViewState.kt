@@ -11,6 +11,7 @@ import com.airbnb.mvrx.MavericksState
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import kotlin.random.Random
 
@@ -61,6 +62,8 @@ data class MessageComposerViewState(
         val voiceRecordingUiState: VoiceMessageRecorderView.RecordingUiState = VoiceMessageRecorderView.RecordingUiState.Idle,
         val text: CharSequence? = null,
         val isFullScreen: Boolean = false,
+        val canScheduleMessages: Boolean = false,
+        val maxEventDelayMs: Long = HomeServerCapabilities.MAX_EVENT_DELAY_UNKNOWN,
 ) : MavericksState {
 
     val isVoiceRecording = when (voiceRecordingUiState) {

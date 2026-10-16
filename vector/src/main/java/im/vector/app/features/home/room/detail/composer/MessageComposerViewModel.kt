@@ -56,6 +56,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
@@ -165,6 +166,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         if (room != null) {
             loadDraftIfAny(room)
             observePowerLevelAndEncryption(room)
+            observeScheduling(room)
             subscribeToStateInternal(room)
             observeTypedLinks(room)
             // Shortcode resolution on send needs the emoji names; parse them before the first send does.
@@ -196,6 +198,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             is MessageComposerAction.EnterRegularMode -> handleEnterRegularMode(action)
             is MessageComposerAction.EnterReplyMode -> handleEnterReplyMode(room, action)
             is MessageComposerAction.SendMessage -> handleSendMessage(room, action)
+            is MessageComposerAction.ScheduleMessage -> handleScheduleMessage(room, action)
             is MessageComposerAction.UserIsTyping -> handleUserIsTyping(room, action)
             is MessageComposerAction.OnTextChanged -> handleOnTextChanged(action)
             is MessageComposerAction.OnVoiceRecordingUiStateChanged -> handleOnVoiceRecordingUiStateChanged(action)
@@ -639,6 +642,52 @@ class MessageComposerViewModel @AssistedInject constructor(
             sendingStatus(pl, sum, session.myUserId)
         }.setOnEach {
             copy(canSendMessage = it)
+        }
+    }
+
+    // A scheduled message leaves the device as is, so in an encrypted room it would go out in the clear.
+    private fun observeScheduling(room: Room) {
+        room.flow().liveRoomSummary().unwrap()
+                .map { it.isEncrypted }
+                .distinctUntilChanged()
+                .map { isEncrypted ->
+                    val capabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
+                    (capabilities.canUseDelayedEvents && !isEncrypted) to capabilities.maxEventDelayMs
+                }
+                .setOnEach { (canSchedule, maxDelayMs) -> copy(canScheduleMessages = canSchedule, maxEventDelayMs = maxDelayMs) }
+    }
+
+    private fun handleScheduleMessage(room: Room, action: MessageComposerAction.ScheduleMessage) = withState { state ->
+        if (!state.canScheduleMessages || state.sendMode !is SendMode.Regular || state.isInThreadTimeline()) return@withState
+        viewModelScope.launch(sendPreparationLane) {
+            val text = if (action.formattedText == null) emoteShortcodeProcessor.process(room.roomId, action.text) else action.text
+            val isCommand = commandParser.parseSlashCommand(
+                    textMessage = resolveComposerMentions(text),
+                    formattedMessage = action.formattedText,
+                    isInThreadTimeline = false,
+            ) !is ParsedCommand.ErrorNotACommand
+            val needsClientSideRewrite = pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(room.roomId) ||
+                    TranslationLanguages.sendPrefix(text) != null ||
+                    translationSettings.roomAutoTranslateTarget(room.roomId) != null
+            if (isCommand || needsClientSideRewrite) {
+                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.schedule_message_unavailable)))
+                return@launch
+            }
+            val greentext = maybeBuildGreentextRuns(text, action.formattedText)
+            try {
+                session.delayedEventService().scheduleTextMessage(
+                        roomId = room.roomId,
+                        text = greentext?.first ?: text,
+                        formattedText = greentext?.second ?: action.formattedText,
+                        autoMarkdown = greentext == null && action.autoMarkdown,
+                        delayMs = (action.sendTs - clock.epochMillis()).coerceAtLeast(1),
+                )
+                recordEmojiUses(text)
+                popDraft(room, state.sendMode)
+                _viewEvents.post(MessageComposerViewEvents.MessageScheduled(action.sendTs))
+            } catch (failure: Throwable) {
+                _viewEvents.post(MessageComposerViewEvents.ScheduleFailed(failure))
+            }
         }
     }
 

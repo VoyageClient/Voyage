@@ -31,7 +31,7 @@ enum class Command(
     EMOTE("/me", null, "<message>", CommonStrings.command_description_emote, false, true),
     NOTICE("/notice", null, "<message>", CommonStrings.command_description_notice, false, true),
     BAN_USER("/ban", null, "<user-id> [reason] [massredact]", CommonStrings.command_description_ban_user, false, false),
-    UNBAN_USER("/unban", arrayOf("/pardon"), "<user-id> [reason]", CommonStrings.command_description_unban_user, false, false),
+    UNBAN_USER("/pardon", arrayOf("/unban"), "<user-id> [reason]", CommonStrings.command_description_unban_user, false, false),
     IGNORE_USER("/ignore", null, "<user-id> [reason]", CommonStrings.command_description_ignore_user, false, true),
     UNIGNORE_USER("/unignore", null, "<user-id>", CommonStrings.command_description_unignore_user, false, true),
     SET_USER_POWER_LEVEL("/op", null, "<user-id> [power-level]", CommonStrings.command_description_op_user, false, false),

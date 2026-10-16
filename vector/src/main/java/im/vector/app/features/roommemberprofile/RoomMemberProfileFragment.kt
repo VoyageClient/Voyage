@@ -63,6 +63,7 @@ import im.vector.app.databinding.ViewStubRoomMemberProfileHeaderBinding
 import im.vector.app.features.crypto.quads.AdkFlows
 import im.vector.app.features.crypto.quads.SharedSecureStorageActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
+import im.vector.app.features.delayedevents.ScheduleTimePicker
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.BannerRenderer
@@ -697,6 +698,25 @@ class RoomMemberProfileFragment :
                 }
     }
 
+    override fun onMuteClicked() = withState(viewModel) { state ->
+        if (!state.canUseDelayedEvents) {
+            viewModel.handle(RoomMemberProfileAction.MuteUser(untilTs = null))
+            return@withState
+        }
+        ScheduleTimePicker.show(
+                context = requireActivity(),
+                title = getString(CommonStrings.room_participants_mute_duration_title),
+                presets = ScheduleTimePicker.durationPresets(requireActivity()),
+                maxDelayMs = state.maxEventDelayMs,
+        ) { untilTs ->
+            viewModel.handle(RoomMemberProfileAction.MuteUser(untilTs))
+        }
+    }
+
+    override fun onUnmuteClicked() {
+        viewModel.handle(RoomMemberProfileAction.UnmuteUser)
+    }
+
     override fun onRedactAllClicked() {
         withState(viewModel) { state ->
             val bestName = state.userMatrixItem()?.getBestName()
@@ -738,9 +758,13 @@ class RoomMemberProfileFragment :
                         positiveRes = positiveButtonRes,
                         reasonHintRes = CommonStrings.room_participants_ban_reason,
                         titleRes = titleRes,
-                        offerRedactEvents = !isUserBanned && state.actionPermissions.canRedact
-                ) { reason, redactEvents ->
-                    viewModel.handle(RoomMemberProfileAction.BanOrUnbanUser(reason, redactEvents))
+                        offerRedactEvents = !isUserBanned && state.actionPermissions.canRedact,
+                        duration = ConfirmationDialogBuilder.DurationOption(
+                                maxDelayMs = state.maxEventDelayMs,
+                                followUpRes = if (state.actionPermissions.canInvite) CommonStrings.ban_reinvite_when_lifted else 0,
+                        ).takeIf { !isUserBanned && state.canUseDelayedEvents },
+                ) { reason, redactEvents, untilTs, reinvite ->
+                    viewModel.handle(RoomMemberProfileAction.BanOrUnbanUser(reason, redactEvents, untilTs, reinvite))
                 }
     }
 

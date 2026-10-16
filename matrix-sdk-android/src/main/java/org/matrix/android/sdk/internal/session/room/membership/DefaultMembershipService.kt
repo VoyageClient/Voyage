@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.crypto.CryptoService
@@ -41,10 +42,13 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.query.matches
+import org.matrix.android.sdk.internal.session.delayedevents.DefaultDelayedEventService
+import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
 import org.matrix.android.sdk.internal.session.room.RoomDataSource
 import org.matrix.android.sdk.internal.session.room.membership.admin.MembershipAdminTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.InviteThreePidTask
+import timber.log.Timber
 
 internal class DefaultMembershipService @AssistedInject constructor(
         @Assisted private val roomId: String,
@@ -59,6 +63,8 @@ internal class DefaultMembershipService @AssistedInject constructor(
         private val cryptoService: CryptoService,
         private val roomMemberColorCache: RoomMemberColorCache,
         private val ambiguousDisplayNameCache: AmbiguousDisplayNameCache,
+        private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
+        private val delayedEventService: DefaultDelayedEventService,
         @UserId
         private val userId: String,
 ) : MembershipService {
@@ -125,16 +131,29 @@ internal class DefaultMembershipService @AssistedInject constructor(
     override suspend fun ban(userId: String, reason: String?, redactEvents: Boolean) {
         val params = MembershipAdminTask.Params(MembershipAdminTask.Type.BAN, roomId, userId, reason, redactEvents)
         membershipAdminTask.execute(params)
+        dropScheduledMembershipChanges(userId)
     }
 
     override suspend fun unban(userId: String, reason: String?) {
         val params = MembershipAdminTask.Params(MembershipAdminTask.Type.UNBAN, roomId, userId, reason)
         membershipAdminTask.execute(params)
+        dropScheduledMembershipChanges(userId)
     }
 
     override suspend fun kick(userId: String, reason: String?, redactEvents: Boolean) {
         val params = MembershipAdminTask.Params(MembershipAdminTask.Type.KICK, roomId, userId, reason, redactEvents)
         membershipAdminTask.execute(params)
+        dropScheduledMembershipChanges(userId)
+    }
+
+    private suspend fun dropScheduledMembershipChanges(userId: String) {
+        val canUseDelayedEvents = withContext(dispatcher) { homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseDelayedEvents == true }
+        if (!canUseDelayedEvents) return
+        try {
+            delayedEventService.onMembershipChanged(roomId, userId)
+        } catch (failure: Throwable) {
+            Timber.w(failure, "Could not drop scheduled membership changes of $userId in $roomId")
+        }
     }
 
     override suspend fun invite(userId: String, reason: String?) {
@@ -145,6 +164,7 @@ internal class DefaultMembershipService @AssistedInject constructor(
         }
         val params = InviteTask.Params(roomId, userId, reason)
         inviteTask.execute(params)
+        dropScheduledMembershipChanges(userId)
     }
 
     override suspend fun invite3pid(threePid: ThreePid) {

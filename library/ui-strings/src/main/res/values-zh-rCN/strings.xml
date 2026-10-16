@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s 加入了房间</string>
     <string name="notice_room_leave">%1$s 离开了房间</string>
     <string name="notice_room_reject">%1$s 拒绝了邀请</string>
-    <string name="notice_room_unban">%1$s 解封了 %2$s</string>
     <string name="notice_room_ban">%1$s 封禁了 %2$s</string>
     <string name="notice_avatar_url_changed">%1$s 更换了其头像</string>
     <string name="notice_display_name_set">%1$s 将他们的显示名称设置为 %2$s</string>
@@ -61,7 +60,6 @@
     <string name="notice_room_join_with_reason">%1$s 加入了房间。理由：%2$s</string>
     <string name="notice_room_leave_with_reason">%1$s 离开了房间。理由：%2$s</string>
     <string name="notice_room_reject_with_reason">%1$s 已拒绝邀请。理由：%2$s</string>
-    <string name="notice_room_unban_with_reason">%1$s 解封了 %2$s。理由：%3$s</string>
     <string name="notice_room_ban_with_reason">%1$s 封禁了 %2$s。理由：%3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s 接受 %2$s 的邀請。理由：%3$s</string>
     <string name="notice_room_withdraw_with_reason">%1$s 撤回了对 %2$s 的邀请。理由：%3$s</string>
@@ -85,7 +83,6 @@
     <string name="notice_room_join_by_you">你加入了房间</string>
     <string name="notice_room_leave_by_you">你离开了房间</string>
     <string name="notice_room_reject_by_you">你拒绝了邀请</string>
-    <string name="notice_room_unban_by_you">你解封了 %1$s</string>
     <string name="notice_room_ban_by_you">你封禁了 %1$s</string>
     <string name="notice_room_withdraw_by_you">你撤回了%1$s的邀请</string>
     <string name="notice_avatar_url_changed_by_you">你更换了你的头像</string>
@@ -127,7 +124,6 @@
     <string name="notice_room_join_with_reason_by_you">你加入了房间。理由：%1$s</string>
     <string name="notice_room_leave_with_reason_by_you">你离开了房间。理由：%1$s</string>
     <string name="notice_room_reject_with_reason_by_you">你拒绝了邀请。理由：%1$s</string>
-    <string name="notice_room_unban_with_reason_by_you">你解封了 %1$s。理由：%2$s</string>
     <string name="notice_room_ban_with_reason_by_you">你封禁了 %1$s。理由：%2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">你接受了 %1$s 的邀请。理由：%2$s</string>
     <string name="notice_room_withdraw_with_reason_by_you">你撤回了 %1$s 的邀请。理由：%2$s</string>
@@ -238,7 +234,6 @@
     <string name="room_participants_header_direct_chats">私聊</string>
     <string name="room_participants_action_invite">邀请</string>
     <string name="room_participants_action_ban">封禁</string>
-    <string name="room_participants_action_unban">解除封禁</string>
     <string name="room_participants_action_ignore">忽略</string>
     <string name="room_participants_action_unignore">取消忽略</string>
     <string name="room_participants_action_mention">提及</string>
@@ -458,7 +453,6 @@
     <string name="settings_preview_media_before_sending">发送前预览媒体文件</string>
     <string name="command_description_emote">显示动作</string>
     <string name="command_description_ban_user">按照 ID 封禁用户</string>
-    <string name="command_description_unban_user">按照 ID 解禁用户</string>
     <string name="command_description_op_user">定义用户的权限等级</string>
     <string name="command_description_deop_user">按照 ID 取消用户管理员权限</string>
     <string name="command_description_invite_user">按照 ID 邀请用户进入当前房间</string>
@@ -775,8 +769,6 @@
     <string name="room_participants_action_cancel_invite_prompt_msg">你确定想要取消邀请此用户吗？</string>
     <string name="room_participants_ban_title">封禁用户</string>
     <string name="room_participants_ban_reason">封禁理由</string>
-    <string name="room_participants_unban_title">取消封禁用户</string>
-    <string name="room_participants_unban_prompt_msg">取消封禁用户将允许他们再次加入房间。</string>
     <string name="settings_background_fdroid_sync_mode">后台同步模式</string>
     <string name="settings_background_fdroid_sync_mode_battery">电池优化</string>
     <string name="settings_background_fdroid_sync_mode_battery_description">${app_name} 将在后台以保留设备有限资源（电池）的方式同步。
@@ -1359,7 +1351,6 @@
     <string name="three_pid_revoke_invite_dialog_title">撤销邀请</string>
     <string name="three_pid_revoke_invite_dialog_content">是否撤销对 %1$s 的邀请？</string>
     <string name="member_banned_by">被 %1$s 封禁</string>
-    <string name="failed_to_unban">解封用户失败</string>
     <string name="create_pin_title">选择 PIN 以确保安全</string>
     <string name="create_pin_confirm_title">确认 PIN</string>
     <string name="create_pin_confirm_failure">验证 PIN 失败，请输入新的。</string>
@@ -1858,7 +1849,6 @@
     <string name="space_permissions_notice">选择更改该空间的各个部分所需的角色</string>
     <string name="space_settings_permissions_subtitle">查看和更新更改空间的各个部分所需的角色。</string>
     <string name="space_settings_permissions_title">空间权限</string>
-    <string name="space_participants_unban_prompt_msg">解除禁令将允许被封禁的用户再次加入空间。</string>
     <string name="space_participants_ban_prompt_msg">封禁用户会把他们移出此空间并阻止他们再次加入。</string>
     <string name="a11y_stop_voice_message">停止录制</string>
     <string name="command_description_lenny">预置 ( ͡° ͜ʖ ͡°) 到纯文本消息</string>
@@ -3490,4 +3480,37 @@
     <string name="labs_enable_media_galleries_summary">将多个附件作为一条相册消息发送。不支持相册的客户端将无法正确显示这些消息。</string>
     <string name="dev_tools_state_history">修订历史</string>
     <string name="dev_tools_state_history_current">当前</string>
+    <string name="notice_room_unban">%1$s 赦免了 %2$s</string>
+    <string name="notice_room_unban_by_you">你赦免了 %1$s</string>
+    <string name="notice_room_unban_with_reason">%1$s 赦免了 %2$s。理由：%3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">你赦免了 %1$s。理由：%2$s</string>
+    <string name="room_participants_action_unban">赦免</string>
+    <string name="room_participants_unban_title">赦免用户</string>
+    <string name="room_participants_unban_prompt_msg">赦免用户后，他们可以再次加入此房间。</string>
+    <string name="space_participants_unban_prompt_msg">赦免用户后，他们可以再次加入此空间。</string>
+    <string name="command_description_unban_user">赦免指定 ID 的用户</string>
+    <string name="failed_to_unban">赦免用户失败</string>
+    <string name="room_participants_action_mute">禁言</string>
+    <string name="room_participants_action_unmute">解除禁言</string>
+    <string name="room_participants_muted_until">禁言至 %1$s</string>
+    <string name="room_participants_mute_duration_title">禁言多久？</string>
+    <string name="room_participants_banned_until">封禁至 %1$s</string>
+    <string name="duration_permanently">永久</string>
+    <string name="ban_reinvite_when_lifted">赦免后重新邀请</string>
+    <string name="duration_for_1_hour">1 小时</string>
+    <string name="duration_for_1_day">1 天</string>
+    <string name="duration_for_1_week">1 周</string>
+    <string name="schedule_message_title">定时发送消息</string>
+    <string name="schedule_preset_in_1_hour">1 小时后</string>
+    <string name="schedule_preset_in_3_hours">3 小时后</string>
+    <string name="schedule_preset_in_12_hours">12 小时后</string>
+    <string name="schedule_preset_in_24_hours">24 小时后</string>
+    <string name="schedule_pick_custom_time">选择日期和时间…</string>
+    <string name="schedule_time_in_past">请选择未来的时间。</string>
+    <string name="schedule_time_too_far">你的家服务器不允许提前这么久定时发送。</string>
+    <string name="schedule_message_success">消息将于 %1$s 发送</string>
+    <string name="schedule_message_unavailable">命令、PGP 消息和翻译后的消息无法定时发送。</string>
+    <string name="scheduled_messages_title">定时消息</string>
+    <string name="scheduled_messages_empty">此房间没有定时消息。</string>
+    <string name="scheduled_message_send_now">立即发送</string>
 </resources>

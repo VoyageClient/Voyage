@@ -140,6 +140,10 @@ data class MatrixError(
         /** MSC4380 kept MSC4155's unstable code for compatibility. */
         const val M_INVITE_BLOCKED_UNSTABLE = "ORG.MATRIX.MSC4155.INVITE_BLOCKED"
 
+        /** MSC4140. The requested delay is longer than the server allows. */
+        const val M_DELAY_TOO_LARGE = "M_DELAY_TOO_LARGE"
+        const val M_DELAY_TOO_LARGE_UNSTABLE = "ORG.MATRIX.MSC4140_DELAY_TOO_LARGE"
+
         /** MSC2246. The bytes of this reserved content URI have already been uploaded. */
         const val M_CANNOT_OVERWRITE_MEDIA = "M_CANNOT_OVERWRITE_MEDIA"
 

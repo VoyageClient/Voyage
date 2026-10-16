@@ -72,6 +72,7 @@ private const val FEATURE_PAGINATED_SYNC_MSC4525 = "org.matrix.msc4525"
 private const val FEATURE_SYNC_PROFILE_FIELDS_MSC4429 = "org.matrix.msc4429"
 private const val FEATURE_SYNC_PROFILE_FIELDS_MSC4429_STABLE = "org.matrix.msc4429.stable"
 private const val FEATURE_SLIDING_SYNC_PROFILES_MSC4262 = "org.matrix.msc4262"
+private const val FEATURE_DELAYED_EVENTS_MSC4140 = "org.matrix.msc4140"
 
 /**
  * Return true if the SDK supports this homeserver version.
@@ -229,6 +230,13 @@ internal fun Versions.syncProfileFieldsSupport(): HomeServerCapabilities.SyncPro
  */
 internal fun Versions.doesServerSupportSlidingSyncProfiles(): Boolean {
     return unstableFeatures?.get(FEATURE_SLIDING_SYNC_PROFILES_MSC4262).orFalse()
+}
+
+/**
+ * Indicate if the server supports MSC4140 delayed events: https://github.com/matrix-org/matrix-spec-proposals/pull/4140.
+ */
+internal fun Versions.doesServerSupportDelayedEvents(): Boolean {
+    return unstableFeatures?.get(FEATURE_DELAYED_EVENTS_MSC4140).orFalse()
 }
 
 /**

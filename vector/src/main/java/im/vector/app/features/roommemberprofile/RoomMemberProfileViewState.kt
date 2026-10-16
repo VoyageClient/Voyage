@@ -11,6 +11,9 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
+import org.matrix.android.sdk.api.session.delayedevents.DelayedEvent
+import org.matrix.android.sdk.api.session.delayedevents.PowerLevelRestore
+import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.profile.ColorPreference
 import org.matrix.android.sdk.api.session.profile.ProfileOverrides.ProfileMedia
 import org.matrix.android.sdk.api.session.profile.UserBio
@@ -63,7 +66,12 @@ data class RoomMemberProfileViewState(
         val personalNoteGeneration: Long = 0,
         // Raw MSC4133 profile dict, for the developer-mode source viewer
         val profileJson: JsonDict? = null,
-        val actionPermissions: ActionPermissions = ActionPermissions()
+        val actionPermissions: ActionPermissions = ActionPermissions(),
+        // MSC4140: lets a mute or ban be temporary
+        val canUseDelayedEvents: Boolean = false,
+        val maxEventDelayMs: Long = HomeServerCapabilities.MAX_EVENT_DELAY_UNKNOWN,
+        val muteRestore: PowerLevelRestore? = null,
+        val pendingUnban: DelayedEvent? = null,
 ) : MavericksState {
 
     constructor(args: RoomMemberProfileArgs) : this(userId = args.userId, roomId = args.roomId)

@@ -12,6 +12,8 @@ import android.graphics.Color
 import androidx.annotation.StringRes
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.R
+import im.vector.app.core.date.DateFormatKind
+import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.expandableTextItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.epoxy.profiles.buildProfileSection
@@ -19,6 +21,7 @@ import im.vector.app.core.epoxy.profiles.profileSectionActionItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.colorpicker.ProfileColorPickerDialogFragment
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.delayedevents.ScheduleTimePicker
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.home.AvatarRenderer
@@ -47,6 +50,7 @@ class RoomMemberProfileController @Inject constructor(
         private val themeProvider: ThemeProvider,
         private val context: Context,
         private val roomTopicRenderer: RoomTopicRenderer,
+        private val dateFormatter: VectorDateFormatter,
 ) : TypedEpoxyController<RoomMemberProfileViewState>() {
 
     var callback: Callback? = null
@@ -99,6 +103,8 @@ class RoomMemberProfileController @Inject constructor(
         fun onMentionClicked()
         fun onEditPowerLevel(userPowerLevel: UserPowerLevel.Value)
         fun onKickClicked(isSpace: Boolean)
+        fun onMuteClicked()
+        fun onUnmuteClicked()
         fun onRedactAllClicked()
         fun onBanClicked(isSpace: Boolean, isUserBanned: Boolean)
         fun onCancelInviteClicked()
@@ -522,6 +528,7 @@ class RoomMemberProfileController @Inject constructor(
         val canBan = hasPowerOverTarget && !state.isMine && state.actionPermissions.canBan
         val canEditPowerLevel = hasPowerOverTarget && state.actionPermissions.canEditPowerLevel
         val canRedactAll = !state.isMine && state.actionPermissions.canRedact
+        val canMute = canEditPowerLevel && !state.isMine && (membership == Membership.JOIN || membership == Membership.INVITE)
         if (canKick || canBan || canEditPowerLevel || canRedactAll) {
             buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_admin))
         }
@@ -531,7 +538,7 @@ class RoomMemberProfileController @Inject constructor(
                     editable = true,
                     title = stringProvider.getString(CommonStrings.power_level_title),
                     subtitle = powerLevelsStr,
-                    divider = canRedactAll || canKick || canBan,
+                    divider = canRedactAll || canMute || canKick || canBan,
                     editableRes = R.drawable.ic_edit,
                     action = { callback?.onEditPowerLevel(userPowerLevel) }
             )
@@ -541,10 +548,35 @@ class RoomMemberProfileController @Inject constructor(
                     id = "redact_all",
                     editable = false,
                     destructive = true,
-                    divider = canKick || canBan,
+                    divider = canMute || canKick || canBan,
                     title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
                     action = { callback?.onRedactAllClicked() }
             )
+        }
+        if (canMute) {
+            val content = roomPowerLevels.powerLevelsContent
+            if (MuteLevels.isMuted(content, state.userId)) {
+                buildProfileAction(
+                        id = "unmute",
+                        editable = false,
+                        destructive = true,
+                        divider = canKick || canBan,
+                        title = stringProvider.getString(CommonStrings.room_participants_action_unmute),
+                        subtitle = state.muteRestore?.let {
+                            stringProvider.getString(CommonStrings.room_participants_muted_until, dateFormatter.format(ScheduleTimePicker.forDisplay(it.sendTs), DateFormatKind.DEFAULT_DATE_AND_TIME))
+                        },
+                        action = { callback?.onUnmuteClicked() }
+                )
+            } else {
+                buildProfileAction(
+                        id = "mute",
+                        editable = false,
+                        destructive = true,
+                        divider = canKick || canBan,
+                        title = stringProvider.getString(CommonStrings.room_participants_action_mute),
+                        action = { callback?.onMuteClicked() }
+                )
+            }
         }
 
         if (canKick) {
@@ -583,6 +615,9 @@ class RoomMemberProfileController @Inject constructor(
                     editable = false,
                     destructive = true,
                     title = banActionTitle,
+                    subtitle = state.pendingUnban?.takeIf { membership == Membership.BAN }?.let {
+                        stringProvider.getString(CommonStrings.room_participants_banned_until, dateFormatter.format(ScheduleTimePicker.forDisplay(it.sendTs), DateFormatKind.DEFAULT_DATE_AND_TIME))
+                    },
                     action = { callback?.onBanClicked(state.isSpace, membership == Membership.BAN) }
             )
         }

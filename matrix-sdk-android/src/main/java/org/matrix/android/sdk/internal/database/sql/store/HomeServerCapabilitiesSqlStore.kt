@@ -47,6 +47,8 @@ internal class HomeServerCapabilitiesSqlStore(private val database: SessionSqlDa
             can_use_paginated_sync = entity.canUsePaginatedSync.toLong(),
             sync_profile_fields_support = entity.syncProfileFieldsSupport.ordinal.toLong(),
             can_use_sliding_sync_profiles = entity.canUseSlidingSyncProfiles.toLong(),
+            can_use_delayed_events = entity.canUseDelayedEvents.toLong(),
+            max_event_delay_ms = entity.maxEventDelayMs,
     )
 
     private fun Boolean.toLong(): Long = if (this) 1L else 0L
@@ -81,4 +83,6 @@ internal fun HomeServerCapabilitiesRow.toHomeServerCapabilitiesEntity(): HomeSer
             syncProfileFieldsSupport = HomeServerCapabilities.SyncProfileFieldsSupport.entries
                     .getOrElse(sync_profile_fields_support.toInt()) { HomeServerCapabilities.SyncProfileFieldsSupport.UNSUPPORTED },
             canUseSlidingSyncProfiles = can_use_sliding_sync_profiles != 0L,
+            canUseDelayedEvents = can_use_delayed_events != 0L,
+            maxEventDelayMs = max_event_delay_ms,
     )

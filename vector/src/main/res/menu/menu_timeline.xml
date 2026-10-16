@@ -16,6 +16,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/scheduled_messages"
+        android:title="@string/scheduled_messages_title"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/invite"
         android:title="@string/action_invite"
         app:showAsAction="never" />

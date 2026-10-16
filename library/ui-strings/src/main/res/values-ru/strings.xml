@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s вошёл(шла) в комнату</string>
     <string name="notice_room_leave">%1$s покинул(а) комнату</string>
     <string name="notice_room_reject">%1$s отклонил(а) приглашение</string>
-    <string name="notice_room_unban">%1$s разблокировал(а) %2$s</string>
     <string name="notice_room_ban">%1$s заблокировал(а) %2$s</string>
     <string name="notice_room_withdraw">%1$s отозвал(а) приглашение %2$s</string>
     <string name="notice_avatar_url_changed">%1$s изменил(а) свой аватар</string>
@@ -61,7 +60,6 @@
     <string name="notice_room_join_with_reason">%1$s присоединился(лась) к комнате. Причина: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s покинул(а) комнату. Причина: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s отклонил приглашение. Причина: %2$s</string>
-    <string name="notice_room_unban_with_reason">%1$s разблокировано %2$s. Причина: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s забанил %2$s. Причина: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s принял приглашение для %2$s. Причина: %3$s</string>
     <string name="notice_room_withdraw_with_reason">%1$s отозвал приглашение %2$s. Причина: %3$s</string>
@@ -79,7 +77,6 @@
     <string name="notice_room_join_by_you">Вы вошли в комнату</string>
     <string name="notice_room_leave_by_you">Вы покинули комнату</string>
     <string name="notice_room_reject_by_you">Вы отклонили приглашение</string>
-    <string name="notice_room_unban_by_you">Вы разбанили %1$s</string>
     <string name="notice_room_ban_by_you">Вы забанили %1$s</string>
     <string name="notice_room_withdraw_by_you">Вы отозвали приглашение %1$s</string>
     <string name="notice_avatar_url_changed_by_you">Вы сменили свой аватар</string>
@@ -115,7 +112,6 @@
     <string name="notice_room_join_with_reason_by_you">Вы вошли в комнату. Причина: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">Вы покинули комнату. Причина: %1$s</string>
     <string name="notice_room_reject_with_reason_by_you">Вы отклонили приглашение. Причина: %1$s</string>
-    <string name="notice_room_unban_with_reason_by_you">Вы разбанили %1$s. Причина: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Вы забанили %1$s. Причина: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Вы приняли приглашение для %1$s. Причина: %2$s</string>
     <string name="notice_room_withdraw_with_reason_by_you">Вы отозвали приглашение %1$s. Причина: %2$s</string>
@@ -277,7 +273,6 @@
     <string name="room_participants_header_direct_chats">Личные сообщения</string>
     <string name="room_participants_action_invite">Пригласить</string>
     <string name="room_participants_action_ban">Забанить</string>
-    <string name="room_participants_action_unban">Разбанить</string>
     <string name="room_participants_action_ignore">Скрыть все сообщения этого пользователя</string>
     <string name="room_participants_action_unignore">Отобразить все сообщения этого пользователя</string>
     <string name="room_participants_action_mention">Упомянуть</string>
@@ -483,7 +478,6 @@
     <string name="settings_preview_media_before_sending">Предварительный просмотр медиа перед отправкой</string>
     <string name="command_description_emote">Отображает действие</string>
     <string name="command_description_ban_user">Блокирует пользователя с данным ID</string>
-    <string name="command_description_unban_user">Разблокирует пользователя с данным ID</string>
     <string name="command_description_op_user">Определение уровня доступа пользователя</string>
     <string name="command_description_deop_user">Сбросить уровень доступа для пользователя с данным ID</string>
     <string name="command_description_invite_user">Пригласить пользователя с данным ID в текущую комнату</string>
@@ -1083,8 +1077,6 @@
     <string name="room_participants_action_cancel_invite_prompt_msg">Вы уверены, что хотите отменить приглашение для этого пользователя\?</string>
     <string name="room_participants_ban_title">Заблокировать пользователя</string>
     <string name="room_participants_ban_reason">Причина блокировки</string>
-    <string name="room_participants_unban_title">Разблокировать пользователя</string>
-    <string name="room_participants_unban_prompt_msg">Разблокирование пользователя позволит ему присоединиться к комнате опять.</string>
     <string name="settings_secure_backup_enter_to_setup">Настроить на этом устройстве</string>
     <string name="settings_secure_backup_section_info">Защитите себя от потери доступа к зашифрованным сообщениям и данным, создав резервные копии ключей шифрования на вашем сервере.</string>
     <string name="reset_secure_backup_title">Создайте новый бумажный ключ или задайте новую мнемоническую фразу для существующей резервной копии.</string>
@@ -1366,7 +1358,6 @@
     <string name="three_pid_revoke_invite_dialog_title">Отозвать приглашение</string>
     <string name="three_pid_revoke_invite_dialog_content">Отозвать приглашение для %1$s\?</string>
     <string name="member_banned_by">Забанен %1$s</string>
-    <string name="failed_to_unban">Не удалось разбанить пользователя</string>
     <string name="create_pin_title">Выберите PIN-код для обеспечения безопасности</string>
     <string name="create_pin_confirm_title">Подтвердите PIN-код</string>
     <string name="create_pin_confirm_failure">Не удалось установить PIN-код, Пожалуйста, введите новый.</string>
@@ -1834,7 +1825,6 @@
     <string name="space_permissions_notice">Выберите роли, необходимые для изменения различных параметров этого пространства</string>
     <string name="space_settings_permissions_subtitle">Просмотр и обновление ролей, необходимых для изменения различных частей пространства.</string>
     <string name="space_settings_permissions_title">Разрешения пространства</string>
-    <string name="space_participants_unban_prompt_msg">Разблокирование пользователя позволит ему присоединиться к пространству опять.</string>
     <string name="space_participants_ban_prompt_msg">Блокировка пользователя удалит его из этого пространства и не позволит ему присоединиться вновь.</string>
     <string name="a11y_stop_voice_message">Остановить запись</string>
     <string name="command_description_lenny">Добавляет ( ͡° ͜ʖ ͡°) в начало сообщения</string>
@@ -3678,4 +3668,37 @@
     <string name="labs_enable_media_galleries_summary">Отправлять несколько вложений одним сообщением-галереей. Клиенты без поддержки галерей будут отображать их неправильно.</string>
     <string name="dev_tools_state_history">История изменений</string>
     <string name="dev_tools_state_history_current">Текущая</string>
+    <string name="notice_room_unban">%1$s помиловал(а) %2$s</string>
+    <string name="notice_room_unban_by_you">Вы помиловали %1$s</string>
+    <string name="notice_room_unban_with_reason">%1$s помиловал(а) %2$s. Причина: %3$s</string>
+    <string name="notice_room_unban_with_reason_by_you">Вы помиловали %1$s. Причина: %2$s</string>
+    <string name="room_participants_action_unban">Помиловать</string>
+    <string name="room_participants_unban_title">Помиловать пользователя</string>
+    <string name="room_participants_unban_prompt_msg">Помилование позволит пользователю снова присоединиться к комнате.</string>
+    <string name="space_participants_unban_prompt_msg">Помилование позволит пользователю снова присоединиться к пространству.</string>
+    <string name="command_description_unban_user">Милует пользователя с указанным ID</string>
+    <string name="failed_to_unban">Не удалось помиловать пользователя</string>
+    <string name="room_participants_action_mute">Заглушить</string>
+    <string name="room_participants_action_unmute">Снять заглушение</string>
+    <string name="room_participants_muted_until">Заглушён до %1$s</string>
+    <string name="room_participants_mute_duration_title">На сколько заглушить?</string>
+    <string name="room_participants_banned_until">Забанен до %1$s</string>
+    <string name="duration_permanently">Навсегда</string>
+    <string name="ban_reinvite_when_lifted">Пригласить снова после помилования</string>
+    <string name="duration_for_1_hour">На 1 час</string>
+    <string name="duration_for_1_day">На 1 день</string>
+    <string name="duration_for_1_week">На 1 неделю</string>
+    <string name="schedule_message_title">Запланировать сообщение</string>
+    <string name="schedule_preset_in_1_hour">Через 1 час</string>
+    <string name="schedule_preset_in_3_hours">Через 3 часа</string>
+    <string name="schedule_preset_in_12_hours">Через 12 часов</string>
+    <string name="schedule_preset_in_24_hours">Через 24 часа</string>
+    <string name="schedule_pick_custom_time">Выбрать дату и время…</string>
+    <string name="schedule_time_in_past">Выберите время в будущем.</string>
+    <string name="schedule_time_too_far">Ваш домашний сервер не позволяет планировать так далеко вперёд.</string>
+    <string name="schedule_message_success">Сообщение запланировано на %1$s</string>
+    <string name="schedule_message_unavailable">Команды, PGP-сообщения и переведённые сообщения нельзя запланировать.</string>
+    <string name="scheduled_messages_title">Запланированные сообщения</string>
+    <string name="scheduled_messages_empty">В этой комнате нет запланированных сообщений.</string>
+    <string name="scheduled_message_send_now">Отправить сейчас</string>
 </resources>

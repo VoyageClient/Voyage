@@ -16,6 +16,7 @@ import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.failure.MatrixIdFailure
+import org.matrix.android.sdk.api.failure.isDelayTooLarge
 import org.matrix.android.sdk.api.failure.isInvalidPassword
 import org.matrix.android.sdk.api.failure.isInviteBlocked
 import org.matrix.android.sdk.api.failure.isLimitExceededError
@@ -85,6 +86,9 @@ class DefaultErrorFormatter @Inject constructor(
                     }
                     throwable.isInviteBlocked() -> {
                         stringProvider.getString(CommonStrings.error_invite_blocked)
+                    }
+                    throwable.isDelayTooLarge() -> {
+                        stringProvider.getString(CommonStrings.schedule_time_too_far)
                     }
                     throwable.error.code == MatrixError.M_THREEPID_NOT_FOUND -> {
                         stringProvider.getString(CommonStrings.login_reset_password_error_not_found)

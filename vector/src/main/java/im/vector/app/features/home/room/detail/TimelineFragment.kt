@@ -63,6 +63,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.dialogs.ConfirmationDialogBuilder
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
@@ -128,6 +129,7 @@ import im.vector.app.features.audio.AudioPlaybackBannerBinder
 import im.vector.app.features.audio.AudioPlaybackController
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
+import im.vector.app.features.delayedevents.ScheduledMessagesDialog
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.arguments.PendingEventAction
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
@@ -315,6 +317,7 @@ class TimelineFragment :
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
     @Inject lateinit var permalinkFactory: PermalinkFactory
     @Inject lateinit var displayableEventFormatter: DisplayableEventFormatter
+    @Inject lateinit var dateFormatter: VectorDateFormatter
 
     companion object {
         const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
@@ -1266,6 +1269,13 @@ class TimelineFragment :
             }
             R.id.search -> {
                 handleSearchAction()
+                true
+            }
+            R.id.scheduled_messages -> {
+                ScheduledMessagesDialog(this, session, dateFormatter, errorFormatter, timelineArgs.roomId) { body ->
+                    messageComposerViewModel.handle(MessageComposerAction.OnTextChanged(body))
+                    messageComposerViewModel.handle(MessageComposerAction.EnterRegularMode(fromSharing = true))
+                }.show()
                 true
             }
             R.id.dev_tools -> {

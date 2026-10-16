@@ -176,6 +176,7 @@ class TimelineViewModel @AssistedInject constructor(
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
     private val room = session.getRoom(initialState.roomId)
+    private val canUseDelayedEvents = session.homeServerCapabilitiesService().getHomeServerCapabilities().canUseDelayedEvents
 
     // Declared before the init block that reads it (initializers run in declaration order). Only a
     // registered peek counts as a preview — a DB room row with membership NONE is not one.
@@ -999,6 +1000,7 @@ private fun handleSelectStickerAttachment() {
                     R.id.invite -> state.canInvite
                     R.id.open_matrix_apps -> true
                     R.id.search -> state.isSearchAvailable(vectorPreferences.searchEncryptedRoomsEnabled())
+                    R.id.scheduled_messages -> canUseDelayedEvents
                     R.id.menu_timeline_thread_list -> vectorPreferences.areThreadMessagesEnabled()
                     R.id.dev_tools -> vectorPreferences.developerMode()
                     else -> false
