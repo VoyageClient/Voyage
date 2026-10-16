@@ -77,6 +77,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.home.room.detail.timeline.tools.withoutTrailingLineBreak
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.EventHtmlRenderer
@@ -1153,7 +1154,7 @@ class MessageItemFactory @Inject constructor(
             val raw = htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned
             raw?.trimUncoveredWhitespace() ?: effectiveBody
         } else {
-            effectiveBody
+            effectiveBody.withoutTrailingLineBreak()
         }
         val rendered = textRenderer.render(initialBody, informationData.roomMentionSource())
         val bindingOptions = spanUtils.getBindingOptions(rendered)
@@ -1180,7 +1181,7 @@ class MessageItemFactory @Inject constructor(
             blockedBody: CharSequence? = null,
             translation: im.vector.app.features.translation.MessageTranslationStore.Translation? = null,
     ): MessageTextItem? {
-        val renderedBody = textRenderer.render(body, informationData.roomMentionSource())
+        val renderedBody = textRenderer.render(if (isFormatted) body else body.withoutTrailingLineBreak(), informationData.roomMentionSource())
         val bindingOptions = im.vector.app.core.utils.PerfTrace.time("build.text.bindingOptions") { spanUtils.getBindingOptions(renderedBody) }
         val linkifiedBody = im.vector.app.core.utils.PerfTrace.time("build.text.linkify") { renderedBody.linkify(callback) }
 
@@ -1358,6 +1359,7 @@ class MessageItemFactory @Inject constructor(
                 ?.let { htmlRenderer.get().render(it, pillsPostProcessor) }
                 ?: body.withoutPerMessageProfileFallback(informationData)
                         .let { if (relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(it) else it }
+                        .withoutTrailingLineBreak()
     }
 
     private fun buildRedactedItem(

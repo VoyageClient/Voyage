@@ -7,6 +7,10 @@
 
 package im.vector.app.features.home.room.detail.timeline.preview
 
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.StyleSpan
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
@@ -21,6 +25,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MediaPillPreview
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent.Media
 import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewContent.TextStyle
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withoutTrailingLineBreak
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.translation.MessageTranslationStore
@@ -161,6 +166,53 @@ class MessagePreviewContentBuilderTest {
         preview.textStyle shouldBeEqualTo TextStyle.NORMAL
         preview.linkifiable shouldBe true
         preview.media shouldBe null
+    }
+
+    @Test
+    fun `plain text omits only the final line break like CSS pre-wrap`() {
+        listOf(
+                "hello\n" to "hello",
+                "hello\r\n" to "hello",
+                "hello\r" to "hello",
+                "hello\n\n" to "hello\n",
+                "  hello\n\nworld\n" to "  hello\n\nworld",
+                "hello  " to "hello  ",
+                "\n" to "",
+                "" to "",
+        ).forEach { (body, expected) ->
+            build(mapOf("msgtype" to "m.text", "body" to body)).text?.charSequence.toString() shouldBeEqualTo expected
+        }
+    }
+
+    @Test
+    fun `removing the final break preserves spans and the original body`() {
+        val original = SpannableStringBuilder("hello\n")
+        val span = StyleSpan(Typeface.ITALIC)
+        original.setSpan(span, 0, original.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        val rendered = original.withoutTrailingLineBreak() as Spanned
+        rendered.toString() shouldBeEqualTo "hello"
+        rendered.getSpanStart(span) shouldBeEqualTo 0
+        rendered.getSpanEnd(span) shouldBeEqualTo 5
+        original.toString() shouldBeEqualTo "hello\n"
+        original.getSpanEnd(span) shouldBeEqualTo 6
+    }
+
+    @Test
+    fun `plain bodies normalize before reply emote and edited decorations`() {
+        build(mapOf("msgtype" to "m.notice", "body" to "hello\n")).text?.charSequence.toString() shouldBeEqualTo "hello"
+        build(mapOf("msgtype" to "m.emote", "body" to "waves\n")).text?.charSequence.toString() shouldBeEqualTo "Alice waves"
+        build(mapOf("msgtype" to "m.text", "body" to "hello\n"), edited = true)
+                .text?.charSequence.toString() shouldBeEqualTo "hello (edited)"
+        build(mapOf("msgtype" to "m.text", "body" to "> <@bob:x> original\n\nhello\n", "m.relates_to" to replyRelation))
+                .text?.charSequence.toString() shouldBeEqualTo "hello"
+    }
+
+    @Test
+    fun `plain captions normalize while HTML captions preserve their renderer output`() {
+        build(image + mapOf("body" to "caption\n", "filename" to "cat.png"))
+                .text?.charSequence.toString() shouldBeEqualTo "caption"
+        build(image + mapOf("body" to "caption\n", "filename" to "cat.png", "format" to "org.matrix.custom.html", "formatted_body" to "<pre>code\n</pre>"))
+                .text?.charSequence.toString() shouldBeEqualTo "html:<pre>code\n</pre>"
     }
 
     @Test

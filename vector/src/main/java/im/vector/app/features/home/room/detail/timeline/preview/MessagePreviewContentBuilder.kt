@@ -31,6 +31,7 @@ import im.vector.app.features.home.room.detail.timeline.preview.MessagePreviewCo
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.roomMentionSource
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import im.vector.app.features.home.room.detail.timeline.tools.withoutTrailingLineBreak
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.HtmlBodySegmenter
@@ -172,9 +173,9 @@ class MessagePreviewContentBuilder @Inject constructor(
             translation != null -> {
                 val html = translation.formatted?.let { htmlCompressor.compress(it.withoutMxReply()) }
                 richSegments = html?.let { richSegmentsOf(it) }
-                textRenderer.render(html?.let { htmlRenderer.get().render(it, pills) } ?: translation.text, event.roomMentionSource())
+                textRenderer.render(html?.let { htmlRenderer.get().render(it, pills) } ?: translation.text.withoutTrailingLineBreak(), event.roomMentionSource())
             }
-            pgpPlaintext != null -> textRenderer.render(pgpPlaintext, event.roomMentionSource())
+            pgpPlaintext != null -> textRenderer.render(pgpPlaintext.withoutTrailingLineBreak(), event.roomMentionSource())
             // Only reached when the poll itself couldn't be found.
             content is MessagePollContent -> stringProvider.getString(CommonStrings.message_reply_to_poll_preview)
             content is MessageEndPollContent -> stringProvider.getString(CommonStrings.message_reply_to_ended_poll_preview)
@@ -210,10 +211,10 @@ class MessagePreviewContentBuilder @Inject constructor(
                     richSegments = richSegmentsOf(html)
                     textRenderer.render(htmlRenderer.get().render(html, pills), event.roomMentionSource())
                 } else {
-                    plainBody(content, profile.fallbackDisplayName, isReply).let { textRenderer.render(it, event.roomMentionSource()) }
+                    plainBody(content, profile.fallbackDisplayName, isReply).let { textRenderer.render(it.withoutTrailingLineBreak(), event.roomMentionSource()) }
                 }
             }
-            else -> textRenderer.render(plainBody(content, profile.fallbackDisplayName, isReply), event.roomMentionSource())
+            else -> textRenderer.render(plainBody(content, profile.fallbackDisplayName, isReply).withoutTrailingLineBreak(), event.roomMentionSource())
         }
         val linked = if (options.linkify) text.linkify(null) else text
         val emote = if (content.msgType == MessageType.MSGTYPE_EMOTE) {
@@ -312,7 +313,7 @@ class MessagePreviewContentBuilder @Inject constructor(
     ): CharSequence {
         val caption = formatted?.takeIf { it.isNotBlank() }
                 ?.let { htmlRenderer.get().render(htmlCompressor.compress(it.withoutMxReply()), pills) }
-                ?: plain
+                ?: plain?.withoutTrailingLineBreak()
                 ?: return ""
         return textRenderer.render(caption, event.roomMentionSource())
     }

@@ -115,6 +115,14 @@ fun CharSequence.formatProfileBio(formattedBio: String? = null, callback: Timeli
     }
 }
 
+// CSS pre-wrap (Element Web) does not create an empty line after the final line break;
+// TextView does. Only remove that break, preserving deliberate blank lines and indentation.
+fun CharSequence.withoutTrailingLineBreak(): CharSequence = when {
+    endsWith("\r\n") -> subSequence(0, length - 2)
+    endsWith("\n") || endsWith("\r") -> subSequence(0, length - 1)
+    else -> this
+}
+
 /** Prepare user-provided text for display: neutralize Unicode direction-override characters (shown as an
  *  unsupported-glyph box, see [neutralizeDirectionOverrides]) and apply the app's emoji rendering
  *  (Twemoji sprites / emoji2 / system font). */
