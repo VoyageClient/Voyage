@@ -3645,4 +3645,6 @@
     <string name="audio_player_parameters_legacy">בגרסת Android זו ניתן לכוון מהירות וגובה צליל רק בהודעות קוליות בפורמט Opus ובקובצי PCM WAV. שמע אחר מושמע במהירות ובגובה הצליל המקוריים שלו.</string>
     <string name="labs_enable_media_galleries_title">MSC4274: שלח גלריות מדיה</string>
     <string name="labs_enable_media_galleries_summary">שלח כמה קבצים מצורפים כהודעת גלריה אחת. לקוחות ללא תמיכה בגלריות לא יציגו אותן כראוי.</string>
+    <string name="dev_tools_state_history">היסטוריית גרסאות</string>
+    <string name="dev_tools_state_history_current">נוכחית</string>
 </resources>

@@ -3552,4 +3552,6 @@
     <string name="audio_player_parameters_legacy">Sur cette version d\'Android, la vitesse et la hauteur ne sont réglables que pour les messages vocaux Opus et les fichiers WAV PCM. Les autres fichiers audio sont lus à leur vitesse et hauteur d\'origine.</string>
     <string name="labs_enable_media_galleries_title">MSC4274: Envoyer des galeries de médias</string>
     <string name="labs_enable_media_galleries_summary">Envoyer plusieurs pièces jointes sous forme d’un seul message galerie. Les clients qui ne prennent pas en charge les galeries ne les afficheront pas correctement.</string>
+    <string name="dev_tools_state_history">Historique des révisions</string>
+    <string name="dev_tools_state_history_current">Actuelle</string>
 </resources>

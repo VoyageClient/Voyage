@@ -3434,4 +3434,6 @@
     <string name="audio_player_parameters_legacy">इस Android वर्शन पर स्पीड और पिच सिर्फ़ Opus वॉइस मैसेज और PCM WAV फ़ाइलों के लिए बदली जा सकती है। बाकी ऑडियो अपनी मूल स्पीड और पिच पर चलता है।</string>
     <string name="labs_enable_media_galleries_title">MSC4274: मीडिया गैलरी भेजें</string>
     <string name="labs_enable_media_galleries_summary">कई अटैचमेंट को एक ही गैलरी मैसेज के रूप में भेजें। गैलरी का समर्थन न करने वाले क्लाइंट इन्हें ठीक से नहीं दिखाएंगे।</string>
+    <string name="dev_tools_state_history">संशोधन इतिहास</string>
+    <string name="dev_tools_state_history_current">वर्तमान</string>
 </resources>

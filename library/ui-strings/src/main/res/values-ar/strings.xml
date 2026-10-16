@@ -3701,4 +3701,6 @@
     <string name="audio_player_parameters_legacy">في إصدار Android هذا، لا يمكن ضبط السرعة وطبقة الصوت إلا للرسائل الصوتية بصيغة Opus وملفات PCM WAV. يُشغَّل الصوت الآخر بسرعته وطبقته الأصليتين.</string>
     <string name="labs_enable_media_galleries_title">MSC4274: أرسل معارض الوسائط</string>
     <string name="labs_enable_media_galleries_summary">أرسل عدة مرفقات كرسالة معرض واحدة. لن تعرضها العملاء التي لا تدعم المعارض بشكل صحيح.</string>
+    <string name="dev_tools_state_history">سجل المراجعات</string>
+    <string name="dev_tools_state_history_current">الحالية</string>
 </resources>

@@ -3847,6 +3847,8 @@
     <string name="dev_tools_error_no_type">Missing type</string>
     <string name="dev_tools_search_hint">Search type, key or content</string>
     <string name="dev_tools_search_hint_json">Search keys and values</string>
+    <string name="dev_tools_state_history">Revision history</string>
+    <string name="dev_tools_state_history_current">Current</string>
     <string name="dev_tools_account_data_overwrite_warning">Account data of type %1$s already exists. Saving will overwrite its content.</string>
     <string name="action_copy_table">Copy table</string>
     <string name="room_member_profile_mutual_rooms">Mutual Rooms</string>

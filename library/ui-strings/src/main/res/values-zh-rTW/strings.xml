@@ -3490,4 +3490,6 @@
     <string name="audio_player_parameters_legacy">在此 Android 版本上，只有 Opus 語音訊息和 PCM WAV 檔案可以調整速度和音調。其他音訊會以原始速度和音調播放。</string>
     <string name="labs_enable_media_galleries_title">MSC4274: 傳送媒體相簿</string>
     <string name="labs_enable_media_galleries_summary">將多個附件以單一相簿訊息傳送。不支援相簿的客戶端將無法正確顯示這些訊息。</string>
+    <string name="dev_tools_state_history">修訂歷史</string>
+    <string name="dev_tools_state_history_current">目前</string>
 </resources>

@@ -3510,4 +3510,6 @@
     <string name="audio_player_parameters_legacy">Bu Android sürümünde hız ve perde yalnızca Opus sesli mesajları ve PCM WAV dosyaları için ayarlanabilir. Diğer sesler özgün hız ve perdesiyle çalınır.</string>
     <string name="labs_enable_media_galleries_title">MSC4274: Medya galerileri gönder</string>
     <string name="labs_enable_media_galleries_summary">Birden fazla eki tek bir galeri mesajı olarak gönder. Galeri desteği olmayan istemciler bunları düzgün görüntülemez.</string>
+    <string name="dev_tools_state_history">Revizyon geçmişi</string>
+    <string name="dev_tools_state_history_current">Güncel</string>
 </resources>

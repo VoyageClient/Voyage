@@ -3446,4 +3446,6 @@
     <string name="audio_player_parameters_legacy">اس Android ورژن پر رفتار اور سُر صرف Opus صوتی پیغامات اور PCM WAV فائلوں کے لیے بدلے جا سکتے ہیں۔ باقی آڈیو اپنی اصل رفتار اور سُر پر چلتا ہے۔</string>
     <string name="labs_enable_media_galleries_title">MSC4274: میڈیا گیلریاں بھیجیں</string>
     <string name="labs_enable_media_galleries_summary">متعدد منسلکات کو ایک ہی گیلری پیغام کے طور پر بھیجیں۔ گیلری کی معاونت کے بغیر کلائنٹ انہیں درست طریقے سے نہیں دکھائیں گے۔</string>
+    <string name="dev_tools_state_history">ترمیم کی تاریخ</string>
+    <string name="dev_tools_state_history_current">موجودہ</string>
 </resources>

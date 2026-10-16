@@ -13,6 +13,7 @@ import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
+import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 
 data class RoomDevToolViewState(
         val roomId: String = "",
@@ -25,7 +26,12 @@ data class RoomDevToolViewState(
         val detailSearchQuery: String = "",
         /** True when the open detail was reached from search results, so back returns to them. */
         val detailFromSearch: Boolean = false,
-        val selectedEvent: Event? = null,
+        /** The state event whose replaces_state chain [stateHistory] walks; [stateHistory] starts with it, newest first. */
+        val historyOf: Event? = null,
+        val stateHistory: List<Event> = emptyList(),
+        val stateHistoryLoad: Async<Unit> = Uninitialized,
+        /** True when the open detail was picked from [stateHistory], so back returns to it. */
+        val detailFromHistory: Boolean = false,        val selectedEvent: Event? = null,
         val selectedAccountData: RoomAccountDataEvent? = null,
         val selectedEventJson: String? = null,
         val showRawStateEvent: Boolean = false,
@@ -33,6 +39,8 @@ data class RoomDevToolViewState(
         /** False while previewing an un-joined room: state browsing works, sending/editing cannot.
          * Defaults false so preview mode never flashes the edit affordances before the VM decides. */
         val canEditState: Boolean = false,
+        val myUserId: String = "",
+        val roomPowerLevels: RoomPowerLevels? = null,
         val modalLoading: Async<Unit> = Uninitialized,
         val sendEventDraft: SendEventDraft? = null,
         /** MSC4362: only then is the encrypt choice offered on the send-state form. */
@@ -48,11 +56,28 @@ data class RoomDevToolViewState(
             sendFormIsRoot = args.sendTarget != null
     )
 
+    fun canEditSelectedStateEvent(): Boolean {
+        val event = selectedEvent ?: return false
+        val powerLevels = roomPowerLevels ?: return false
+        if (!canEditState) return false
+        if (stateEvents.invoke()?.any { it.eventId == event.eventId } != true) return false
+        val type = event.getClearType()
+        val stateKey = event.getClearStateKey().orEmpty()
+        // Auth rules reject a state key naming another user unless it is a membership change, which
+        // then needs kick or ban rights on top of the m.room.member level.
+        if (stateKey.startsWith("@") && stateKey != myUserId) {
+            if (type != EventType.STATE_ROOM_MEMBER) return false
+            if (!powerLevels.isUserAbleToKick(myUserId) && !powerLevels.isUserAbleToBan(myUserId)) return false
+        }
+        return powerLevels.isUserAllowedToSend(myUserId, isState = true, eventType = type)
+    }
+
     sealed class Mode {
         object Root : Mode()
         object StateEventList : Mode()
         object StateEventListByType : Mode()
         object StateEventDetail : Mode()
+        object StateEventHistory : Mode()
         object AccountDataList : Mode()
         object AccountDataDetail : Mode()
         object EditEventContent : Mode()

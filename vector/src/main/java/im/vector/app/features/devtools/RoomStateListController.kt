@@ -8,8 +8,15 @@
 package im.vector.app.features.devtools
 
 import com.airbnb.epoxy.TypedEpoxyController
+import com.airbnb.mvrx.Fail
+import com.airbnb.mvrx.Loading
 import im.vector.app.R
+import im.vector.app.core.date.DateFormatKind
+import im.vector.app.core.date.VectorDateFormatter
+import im.vector.app.core.epoxy.errorWithRetryItem
+import im.vector.app.core.epoxy.loadingItem
 import im.vector.app.core.epoxy.noResultItem
+import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericItem
@@ -24,7 +31,9 @@ import javax.inject.Inject
 
 class RoomStateListController @Inject constructor(
         private val stringProvider: StringProvider,
-        private val colorProvider: ColorProvider
+        private val colorProvider: ColorProvider,
+        private val dateFormatter: VectorDateFormatter,
+        private val errorFormatter: ErrorFormatter
 ) : TypedEpoxyController<RoomDevToolViewState>() {
 
     var interactionListener: DevToolsInteractionListener? = null
@@ -105,10 +114,60 @@ class RoomStateListController @Inject constructor(
                     }
                 }
             }
+            RoomDevToolViewState.Mode.StateEventHistory -> buildStateHistory(data)
             else -> {
                 // nop
             }
         }
+    }
+
+    private fun buildStateHistory(data: RoomDevToolViewState) {
+        val host = this
+        data.stateHistory.forEachIndexed { index, revision ->
+            genericItem {
+                id("revision-${revision.eventId ?: index}")
+                title(span {
+                    if (index == 0) {
+                        +"${host.stringProvider.getString(CommonStrings.dev_tools_state_history_current)}\n"
+                    }
+                    +"Sender: "
+                    span {
+                        textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                        text = revision.senderId.orEmpty().neutralizeDirectionOverrides()
+                        textStyle = "normal"
+                    }
+                    +"\nDate: "
+                    span {
+                        textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                        text = host.dateFormatter.format(revision.originServerTs, DateFormatKind.MESSAGE_DETAIL)
+                        textStyle = "normal"
+                    }
+                }.toEpoxyCharSequence())
+                description(host.contentPreview(revision.content).neutralizeDirectionOverrides().toEpoxyCharSequence())
+                if (revision.isStateEncrypted()) {
+                    endIconResourceId(R.drawable.ic_shield_black)
+                }
+                itemClickAction {
+                    host.interactionListener?.processAction(RoomDevToolAction.ShowStateRevision(revision))
+                }
+            }
+        }
+        when (val load = data.stateHistoryLoad) {
+            is Loading -> loadingItem {
+                id("history-loading")
+            }
+            is Fail -> errorWithRetryItem {
+                id("history-error")
+                text(host.errorFormatter.toHumanReadable(load.error))
+                listener { host.interactionListener?.processAction(RoomDevToolAction.RetryStateHistory) }
+            }
+            else -> Unit
+        }
+    }
+
+    private fun contentPreview(content: Map<String, Any>?): String {
+        val json = JSONObject(content.orEmpty()).toString()
+        return if (json.length > 140) json.take(140) + Typography.ellipsis else json
     }
 
     private fun buildStateEvents(stateEvents: List<Event>, fromSearch: Boolean) {
@@ -121,13 +180,7 @@ class RoomStateListController @Inject constructor(
             return
         }
         stateEvents.forEach { stateEvent ->
-            val contentJson = JSONObject(stateEvent.content.orEmpty()).toString().let {
-                if (it.length > 140) {
-                    it.take(140) + Typography.ellipsis
-                } else {
-                    it.take(140)
-                }
-            }
+            val contentJson = contentPreview(stateEvent.content)
             genericItem {
                 id(stateEvent.eventId ?: "${stateEvent.getClearType()}-${stateEvent.getClearStateKey()}")
                 title(span {

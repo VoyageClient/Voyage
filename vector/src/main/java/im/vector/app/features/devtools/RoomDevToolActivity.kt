@@ -33,6 +33,7 @@ import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.billcarsonfr.jsonviewer.JSonViewerFragment
+import org.matrix.android.sdk.api.MatrixPatterns
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -76,6 +77,9 @@ class RoomDevToolActivity :
         viewModel.onEach {
             renderState(it)
         }
+        viewModel.onEach(RoomDevToolViewState::roomPowerLevels, RoomDevToolViewState::stateEvents) { _, _ ->
+            invalidateOptionsMenu()
+        }
 
         viewModel.observeViewEvents {
             when (it) {
@@ -87,8 +91,7 @@ class RoomDevToolActivity :
                             .show()
                     Unit
                 }
-                is DevToolsViewEvents.ShowSnackMessage -> showSnackbar(it.message)
-            }
+                is DevToolsViewEvents.ShowSnackMessage -> showSnackbar(it.message)            }
         }
     }
 
@@ -103,6 +106,7 @@ class RoomDevToolActivity :
                 RoomDevToolViewState.Mode.AccountDataDetail -> jsonFragment(it.selectedEventJson)
                 RoomDevToolViewState.Mode.StateEventList,
                 RoomDevToolViewState.Mode.StateEventListByType,
+                RoomDevToolViewState.Mode.StateEventHistory,
                 RoomDevToolViewState.Mode.AccountDataList -> RoomDevToolStateEventListFragment()
                 RoomDevToolViewState.Mode.EditEventContent -> RoomDevToolEditFragment()
                 is RoomDevToolViewState.Mode.SendEventForm -> RoomDevToolSendFormFragment()
@@ -161,6 +165,10 @@ class RoomDevToolActivity :
                 viewModel.handle(RoomDevToolAction.MenuItemSend)
                 true
             }
+            R.id.menuItemHistory -> {
+                viewModel.handle(RoomDevToolAction.ShowStateHistory)
+                true
+            }
             R.id.menuItemRaw -> {
                 viewModel.handle(RoomDevToolAction.ToggleRawStateEvent)
                 true
@@ -217,9 +225,14 @@ class RoomDevToolActivity :
                     (searchItem.actionView as? SearchView)?.setQuery(activeQuery, false)
                 }
             }
-            menu.findItem(R.id.menuItemEdit).isVisible = state.canEditState &&
-                    (state.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
-                            state.displayMode == RoomDevToolViewState.Mode.AccountDataDetail)
+            menu.findItem(R.id.menuItemHistory).isVisible = state.displayMode == RoomDevToolViewState.Mode.StateEventDetail &&
+                    !state.detailFromHistory &&
+                    state.selectedEvent?.eventId?.let { MatrixPatterns.isEventId(it) } == true
+            menu.findItem(R.id.menuItemEdit).isVisible = when (state.displayMode) {
+                RoomDevToolViewState.Mode.StateEventDetail -> state.canEditSelectedStateEvent()
+                RoomDevToolViewState.Mode.AccountDataDetail -> state.canEditState
+                else -> false
+            }
             menu.findItem(R.id.menuItemSend).isVisible = state.displayMode == RoomDevToolViewState.Mode.EditEventContent ||
                     state.displayMode is RoomDevToolViewState.Mode.SendEventForm
             menu.findItem(R.id.menuItemRaw).apply {
@@ -258,6 +271,9 @@ class RoomDevToolActivity :
             }
             RoomDevToolViewState.Mode.EditEventContent -> {
                 getString(CommonStrings.dev_tools_edit_content)
+            }
+            RoomDevToolViewState.Mode.StateEventHistory -> {
+                getString(CommonStrings.dev_tools_state_history)
             }
             RoomDevToolViewState.Mode.StateEventListByType -> {
                 state.currentStateType ?: ""

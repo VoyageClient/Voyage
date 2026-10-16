@@ -3551,4 +3551,6 @@
     <string name="audio_player_parameters_legacy">Auf dieser Android-Version sind Geschwindigkeit und Tonhöhe nur für Opus-Sprachnachrichten und PCM-WAV-Dateien einstellbar. Andere Audiodateien werden mit ihrer ursprünglichen Geschwindigkeit und Tonhöhe abgespielt.</string>
     <string name="labs_enable_media_galleries_title">MSC4274: Mediengalerien senden</string>
     <string name="labs_enable_media_galleries_summary">Mehrere Anhänge als eine einzige Galerie-Nachricht senden. Clients ohne Galerie-Unterstützung zeigen diese nicht richtig an.</string>
+    <string name="dev_tools_state_history">Versionsverlauf</string>
+    <string name="dev_tools_state_history_current">Aktuell</string>
 </resources>

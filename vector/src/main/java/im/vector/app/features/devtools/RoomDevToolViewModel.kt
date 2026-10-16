@@ -11,6 +11,7 @@ import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
+import com.airbnb.mvrx.Uninitialized
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -20,6 +21,8 @@ import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -47,6 +50,8 @@ class RoomDevToolViewModel @AssistedInject constructor(
 
     private val contentAdapter = DevToolsJson.contentAdapter
 
+    private var historyJob: Job? = null
+
     private fun parseJsonLeniently(text: String): JsonDict? = DevToolsJson.parseLeniently(text)
 
     private fun coerceContent(content: JsonDict?): JsonDict? = DevToolsJson.coerceContent(content)
@@ -55,6 +60,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
         setState {
             copy(
                     canEditState = session.getRoom(initialState.roomId)?.roomSummary()?.membership == Membership.JOIN,
+                    myUserId = session.myUserId,
                     stateEncryptionEnabled = session.cryptoService().isStateEncryptionEnabled(initialState.roomId)
             )
         }
@@ -70,6 +76,10 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 ?.execute { async ->
                     copy(roomAccountData = async)
                 }
+        session.getRoom(initialState.roomId)
+                ?.flow()
+                ?.liveRoomPowerLevels()
+                ?.setOnEach { copy(roomPowerLevels = it) }
     }
 
     override fun handle(action: RoomDevToolAction) {
@@ -170,6 +180,28 @@ class RoomDevToolViewModel @AssistedInject constructor(
                             selectedEventJson = stateEventJson(event, showRaw)
                     )
                 }
+            }
+            RoomDevToolAction.ShowStateHistory -> withState { state ->
+                val current = state.selectedEvent?.takeIf { state.displayMode == RoomDevToolViewState.Mode.StateEventDetail }
+                        ?: return@withState
+                setState {
+                    copy(
+                            displayMode = RoomDevToolViewState.Mode.StateEventHistory,
+                            detailSearchQuery = "",
+                            historyOf = current,
+                            stateHistory = listOf(current),
+                            stateHistoryLoad = Loading()
+                    )
+                }
+                loadStateHistory(current)
+            }
+            RoomDevToolAction.RetryStateHistory -> withState { state ->
+                val current = state.historyOf ?: return@withState
+                setState { copy(stateHistoryLoad = Loading()) }
+                loadStateHistory(current, state.stateHistory)
+            }
+            is RoomDevToolAction.ShowStateRevision -> withState { state ->
+                showStateEventDetail(action.event, state.detailFromSearch, fromHistory = true)
             }
             is RoomDevToolAction.UpdateContentText -> {
                 setState {
@@ -279,6 +311,10 @@ class RoomDevToolViewModel @AssistedInject constructor(
                             modalLoading = Success(Unit),
                             selectedEventJson = null,
                             editedContent = null,
+                            historyOf = null,
+                            stateHistory = emptyList(),
+                            stateHistoryLoad = Uninitialized,
+                            detailFromHistory = false,
                             displayMode = if (detailFromSearch) {
                                 RoomDevToolViewState.Mode.StateEventList
                             } else {
@@ -354,7 +390,36 @@ class RoomDevToolViewModel @AssistedInject constructor(
         }
     }
 
-    private fun showStateEventDetail(event: Event, fromSearch: Boolean = false) {
+    private fun loadStateHistory(current: Event, loaded: List<Event> = listOf(current)) {
+        historyJob?.cancel()
+        // Reducers queued just before a cancel still run, so each one checks it belongs to this walk.
+        fun updateHistory(reducer: RoomDevToolViewState.() -> RoomDevToolViewState) = setState {
+            if (historyOf === current) reducer() else this
+        }
+        historyJob = viewModelScope.launch {
+            try {
+                val roomId = initialState.roomId
+                val last = loaded.last()
+                // The locally stored current state may lack unsigned.replaces_state; the server's copy has it.
+                var prevId = last.unsignedData?.replacesState
+                        ?: last.eventId?.takeIf { last === current }
+                                ?.let { session.eventService().getEvent(roomId, it).unsignedData?.replacesState }
+                val visited = loaded.mapNotNullTo(HashSet()) { it.eventId }
+                while (prevId != null && visited.add(prevId)) {
+                    val revision = session.eventService().getEvent(roomId, prevId)
+                    updateHistory { copy(stateHistory = stateHistory + revision) }
+                    prevId = revision.unsignedData?.replacesState
+                }
+                updateHistory { copy(stateHistoryLoad = Success(Unit)) }
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Throwable) {
+                updateHistory { copy(stateHistoryLoad = Fail(failure)) }
+            }
+        }
+    }
+
+    private fun showStateEventDetail(event: Event, fromSearch: Boolean = false, fromHistory: Boolean = false) {
         // Coerce up front so the source we show (and copy to clipboard) is already correct JSON —
         // integers, not "size":15394.0 floats from Moshi's Any adapter.
         val sanitizedEvent = event.copyAll(
@@ -365,6 +430,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
             copy(
                     displayMode = RoomDevToolViewState.Mode.StateEventDetail,
                     detailFromSearch = fromSearch,
+                    detailFromHistory = fromHistory,
                     detailSearchQuery = "",
                     selectedEvent = sanitizedEvent,
                     selectedAccountData = null,
@@ -433,7 +499,24 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     )
                 }
             }
-            RoomDevToolViewState.Mode.StateEventDetail -> {
+            RoomDevToolViewState.Mode.StateEventHistory -> {
+                historyJob?.cancel()
+                val current = it.historyOf
+                setState { copy(historyOf = null, stateHistory = emptyList(), stateHistoryLoad = Uninitialized) }
+                if (current != null) {
+                    showStateEventDetail(current, it.detailFromSearch)
+                }
+            }
+            RoomDevToolViewState.Mode.StateEventDetail -> if (it.detailFromHistory) {
+                setState {
+                    copy(
+                            selectedEvent = null,
+                            selectedEventJson = null,
+                            detailFromHistory = false,
+                            displayMode = RoomDevToolViewState.Mode.StateEventHistory
+                    )
+                }
+            } else {
                 // Mirror the forward skip: if we jumped straight here (search result, or a single
                 // empty-key event), skip the intermediate list on the way back too.
                 val skipList = it.detailFromSearch || singleEmptyKeyEvent(it, it.currentStateType) != null

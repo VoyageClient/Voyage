@@ -3488,4 +3488,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="audio_player_parameters_legacy">Di versi Android ini, kecepatan dan nada hanya dapat diatur untuk pesan suara Opus dan file WAV PCM. Audio lain diputar dengan kecepatan dan nada aslinya.</string>
     <string name="labs_enable_media_galleries_title">MSC4274: Kirim galeri media</string>
     <string name="labs_enable_media_galleries_summary">Kirim beberapa lampiran sebagai satu pesan galeri. Klien tanpa dukungan galeri tidak akan menampilkannya dengan benar.</string>
+    <string name="dev_tools_state_history">Riwayat revisi</string>
+    <string name="dev_tools_state_history_current">Saat ini</string>
 </resources>

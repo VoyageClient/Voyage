@@ -3486,4 +3486,6 @@
     <string name="audio_player_parameters_legacy">このバージョンのAndroidでは、速度とピッチはOpus音声メッセージとPCM WAVファイルでのみ調整できます。その他のオーディオは元の速度とピッチで再生されます。</string>
     <string name="labs_enable_media_galleries_title">MSC4274: メディアギャラリーを送信</string>
     <string name="labs_enable_media_galleries_summary">複数の添付ファイルを1つのギャラリーメッセージとして送信します。ギャラリーに対応していないクライアントでは正しく表示されません。</string>
+    <string name="dev_tools_state_history">変更履歴</string>
+    <string name="dev_tools_state_history_current">現在</string>
 </resources>

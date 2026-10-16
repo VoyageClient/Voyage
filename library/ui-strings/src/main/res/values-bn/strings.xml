@@ -3506,4 +3506,6 @@
     <string name="audio_player_parameters_legacy">এই Android সংস্করণে গতি ও পিচ শুধু Opus ভয়েস বার্তা এবং PCM WAV ফাইলের জন্য পরিবর্তন করা যায়। অন্যান্য অডিও তার মূল গতি ও পিচে চলে।</string>
     <string name="labs_enable_media_galleries_title">MSC4274: মিডিয়া গ্যালারি পাঠান</string>
     <string name="labs_enable_media_galleries_summary">একাধিক সংযুক্তি একটি একক গ্যালারি বার্তা হিসেবে পাঠান। গ্যালারি সমর্থন নেই এমন ক্লায়েন্ট এগুলি ঠিকমতো দেখাবে না।</string>
+    <string name="dev_tools_state_history">সংশোধনের ইতিহাস</string>
+    <string name="dev_tools_state_history_current">বর্তমান</string>
 </resources>

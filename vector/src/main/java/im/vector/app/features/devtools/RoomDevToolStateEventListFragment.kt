@@ -14,7 +14,10 @@ import android.view.ViewGroup
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.R
+import im.vector.app.core.epoxy.ErrorWithRetryItem_
+import im.vector.app.core.epoxy.ListDividerDecoration
+import im.vector.app.core.epoxy.LoadingItem_
+import im.vector.app.core.epoxy.NoResultItem_
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
@@ -36,7 +39,12 @@ class RoomDevToolStateEventListFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        views.genericRecyclerView.configureWith(epoxyController, dividerDrawable = R.drawable.divider_horizontal)
+        views.genericRecyclerView.configureWith(epoxyController)
+        views.genericRecyclerView.addItemDecoration(
+                ListDividerDecoration(requireContext(), drawUnder = { model ->
+                    model !is LoadingItem_ && model !is NoResultItem_ && model !is ErrorWithRetryItem_
+                })
+        )
         epoxyController.interactionListener = this
     }
 

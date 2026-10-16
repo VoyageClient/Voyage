@@ -3552,4 +3552,6 @@
     <string name="audio_player_parameters_legacy">Nesta versão do Android, a velocidade e o tom só podem ser ajustados em mensagens de voz Opus e arquivos WAV PCM. Os demais áudios tocam com a velocidade e o tom originais.</string>
     <string name="labs_enable_media_galleries_title">MSC4274: Enviar galerias de mídia</string>
     <string name="labs_enable_media_galleries_summary">Enviar vários anexos como uma única mensagem de galeria. Clientes sem suporte a galerias não vão exibi-las corretamente.</string>
+    <string name="dev_tools_state_history">Histórico de revisões</string>
+    <string name="dev_tools_state_history_current">Atual</string>
 </resources>

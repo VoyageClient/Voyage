@@ -3488,4 +3488,6 @@
     <string name="audio_player_parameters_legacy">在此 Android 版本上，只有 Opus 语音消息和 PCM WAV 文件可以调整速度和音调。其他音频将以原始速度和音调播放。</string>
     <string name="labs_enable_media_galleries_title">MSC4274: 发送媒体相册</string>
     <string name="labs_enable_media_galleries_summary">将多个附件作为一条相册消息发送。不支持相册的客户端将无法正确显示这些消息。</string>
+    <string name="dev_tools_state_history">修订历史</string>
+    <string name="dev_tools_state_history_current">当前</string>
 </resources>

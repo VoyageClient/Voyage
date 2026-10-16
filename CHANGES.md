@@ -206,6 +206,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Encrypted account data (MSC4483)**: the developer account-data browser shows encrypted entries decrypted, edits them in decrypted form, and creates new ones encrypted, with a Raw toggle for the ciphertext.
 
+- **State event history**: browse every earlier revision of a room state event in developer tools.
+
 - **Block all room invites (MSC4380)**: one switch has your homeserver reject every invite sent to you, on all your devices at once. Requires server support.
 
 - **Hideable message shields**: toggles to hide the gray key-backup shield, on messages decrypted with a key restored from key backup, and the red encryption-warning shield, on unencrypted messages in encrypted rooms or messages from unverified, unknown or deleted sessions. Reactions and redactions, which are always sent unencrypted, no longer get a red shield in encrypted rooms.
