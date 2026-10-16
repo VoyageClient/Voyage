@@ -524,13 +524,15 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
+    private fun MessageComposerViewState.computeIsSendButtonVisible(): Boolean = isComposerVisible && (
+            isVoiceRecording ||
+                    currentComposerText.isNotBlank() ||
+                    sendMode is SendMode.Edit ||
+                    sendMode is SendMode.Quote
+            )
+
     private fun updateIsSendButtonVisibility(triggerAnimation: Boolean) = setState {
-        val isSendButtonVisible = isComposerVisible && (
-                isVoiceRecording ||
-                        currentComposerText.isNotBlank() ||
-                        sendMode is SendMode.Edit ||
-                        sendMode is SendMode.Quote
-                )
+        val isSendButtonVisible = computeIsSendButtonVisible()
         if (this.isSendButtonVisible != isSendButtonVisible && triggerAnimation) {
             _viewEvents.post(MessageComposerViewEvents.AnimateSendButtonVisibility(isSendButtonVisible))
         }
@@ -539,7 +541,13 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleEnterRegularMode(action: MessageComposerAction.EnterRegularMode) {
         val text = textAfterEditing()
-        setState { copy(sendMode = SendMode.Regular(text, action.fromSharing)) }
+        // The composer is about to show `text`; waiting for its OnTextChanged would leave a state where the mode
+        // is Regular but the send button still reflects the edit's text.
+        currentComposerText = text
+        setState {
+            val regular = copy(sendMode = SendMode.Regular(text, action.fromSharing))
+            regular.copy(isSendButtonVisible = regular.computeIsSendButtonVisible())
+        }
     }
 
     private fun handleEnterEditMode(room: Room, action: MessageComposerAction.EnterEditMode) {

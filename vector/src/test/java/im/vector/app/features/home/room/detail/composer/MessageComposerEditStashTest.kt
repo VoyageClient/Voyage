@@ -195,6 +195,34 @@ class MessageComposerEditStashTest {
     }
 
     @Test
+    fun `cancelling an edit of an empty composer hides the send button with the mode change`() {
+        every { session.myUserId } returns "@writer:example.org"
+        every { room.stateService().getRoomPowerLevels() } returns RoomPowerLevels(null, null)
+        val viewModel = createViewModel()
+
+        viewModel.handle(MessageComposerAction.EnterEditMode(AN_EVENT_ID))
+        viewModel.type("the edited message")
+        viewModel.handle(MessageComposerAction.EnterRegularMode(fromSharing = false))
+
+        // No OnTextChanged for the cleared composer yet: the state must not already be Regular with the button up.
+        com.airbnb.mvrx.withState(viewModel) { it.isSendButtonVisible shouldBeEqualTo false }
+    }
+
+    @Test
+    fun `cancelling an edit that gives text back keeps the send button`() {
+        every { session.myUserId } returns "@writer:example.org"
+        every { room.stateService().getRoomPowerLevels() } returns RoomPowerLevels(null, null)
+        val viewModel = createViewModel()
+        viewModel.type(TYPED)
+
+        viewModel.handle(MessageComposerAction.EnterEditMode(AN_EVENT_ID))
+        viewModel.type("the edited message")
+        viewModel.handle(MessageComposerAction.EnterRegularMode(fromSharing = false))
+
+        com.airbnb.mvrx.withState(viewModel) { it.isSendButtonVisible shouldBeEqualTo true }
+    }
+
+    @Test
     fun `text typed after an edit ended is not stashed again`() {
         val viewModel = createViewModel()
         viewModel.type(TYPED)

@@ -314,6 +314,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             if (!canSend.boolean()) {
                 return@onEach
             }
+            // invalidate() is posted and lands frames after this, so the send button's visibility is applied here,
+            // around the mode render that swaps its icon: hide before the swap, show after it.
+            val state = withState(messageComposerViewModel) { it }
+            if (!state.isSendButtonVisible) renderSendButtonVisibility(state)
             when (mode) {
                 is SendMode.Regular -> renderRegularMode(mode.text)
                 is SendMode.Edit -> renderSpecialMode(MessageComposerMode.Edit(mode.timelineEvent, mode.text))
@@ -321,6 +325,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is SendMode.Reply -> renderSpecialMode(MessageComposerMode.Reply(mode.timelineEvent, mode.text))
                 is SendMode.Voice -> renderVoiceMessageMode(mode.text)
             }
+            if (state.isSendButtonVisible) renderSendButtonVisibility(state)
         }
 
         // Re-render the reply preview's media when the user reveals hidden media elsewhere (e.g. in
@@ -419,11 +424,15 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     isPgp = pgpKeyStore.isEnabled && !summary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(summary.roomId),
             )
         }
-        renderMicrophoneVisibility(messageComposerState)
+        renderSendButtonVisibility(messageComposerState)
+    }
+
+    private fun renderSendButtonVisibility(state: MessageComposerViewState) {
+        renderMicrophoneVisibility(state)
         val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() &&
-                messageComposerState.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Recording
+                state.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Recording
         composer.sendButton.visibility = when {
-            messageComposerState.isSendButtonVisible -> View.VISIBLE
+            state.isSendButtonVisible -> View.VISIBLE
             recorderClaimsSlot -> View.INVISIBLE
             else -> View.GONE
         }
