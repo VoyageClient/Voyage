@@ -15,6 +15,7 @@ import android.view.MenuItem
 import androidx.activity.addCallback
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.Mavericks
@@ -30,16 +31,23 @@ import im.vector.app.core.platform.SimpleFragmentActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.createJSonViewerStyleProvider
+import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.billcarsonfr.jsonviewer.JSonViewerFragment
+import org.billcarsonfr.jsonviewer.JSonViewerValueKind
+import org.billcarsonfr.jsonviewer.JSonViewerValueListener
 import org.matrix.android.sdk.api.MatrixPatterns
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class RoomDevToolActivity :
         SimpleFragmentActivity(),
-        VectorMenuProvider {
+        VectorMenuProvider,
+        JSonViewerValueListener {
+
+    @Inject lateinit var permalinkHandler: PermalinkHandler
 
     @Inject lateinit var colorProvider: ColorProvider
 
@@ -91,7 +99,9 @@ class RoomDevToolActivity :
                             .show()
                     Unit
                 }
-                is DevToolsViewEvents.ShowSnackMessage -> showSnackbar(it.message)            }
+                is DevToolsViewEvents.ShowSnackMessage -> showSnackbar(it.message)
+                is DevToolsViewEvents.OpenPermalink -> openPermalink(it.permalink)
+            }
         }
     }
 
@@ -174,6 +184,24 @@ class RoomDevToolActivity :
                 true
             }
             else -> false
+        }
+    }
+
+    override fun onJsonValueDoubleTapped(kind: JSonViewerValueKind, value: String) {
+        val roomId = withState(viewModel) { it.roomId }
+        when (kind) {
+            JSonViewerValueKind.EVENT_ID -> viewModel.handle(RoomDevToolAction.OpenEventId(value))
+            JSonViewerValueKind.ROOM_ID -> if (value != roomId) activeSessionHolder.getSafeActiveSession()?.permalinkService()
+                    ?.createRoomPermalink(value, forceMatrixTo = true)
+                    ?.let { openPermalink(it) }
+            JSonViewerValueKind.USER_ID -> navigator.openRoomMemberProfile(userId = value, roomId = roomId, context = this)
+            JSonViewerValueKind.TIMESTAMP -> Unit
+        }
+    }
+
+    private fun openPermalink(permalink: String) {
+        lifecycleScope.launch {
+            permalinkHandler.launch(this@RoomDevToolActivity, permalink)
         }
     }
 

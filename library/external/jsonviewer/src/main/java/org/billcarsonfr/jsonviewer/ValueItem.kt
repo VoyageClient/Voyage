@@ -7,9 +7,12 @@
 
 package org.billcarsonfr.jsonviewer
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.view.ContextMenu
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -35,6 +38,13 @@ internal abstract class ValueItem : EpoxyModelWithHolder<ValueItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var itemClickListener: View.OnClickListener? = null
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var onDoubleTap: (() -> Unit)? = null
+
+    /** Only fires once the double-tap window has passed, so it never precedes [onDoubleTap]. */
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var onSingleTap: (() -> Unit)? = null
+
     override fun getDefaultLayout() = R.layout.item_jv_base_value
 
     override fun bind(holder: Holder) {
@@ -43,12 +53,16 @@ internal abstract class ValueItem : EpoxyModelWithHolder<ValueItem.Holder>() {
         holder.baseView.setPadding(Utils.dpToPx(16 * depth, holder.baseView.context), 0, 0, 0)
         itemClickListener?.let { holder.baseView.setOnClickListener(it) }
         holder.copyValue = copyValue
+        holder.onDoubleTap = onDoubleTap
+        holder.onSingleTap = onSingleTap
     }
 
     override fun unbind(holder: Holder) {
         super.unbind(holder)
         holder.baseView.setOnClickListener(null)
         holder.copyValue = null
+        holder.onDoubleTap = null
+        holder.onSingleTap = null
     }
 
     class Holder : EpoxyHolder(), View.OnCreateContextMenuListener {
@@ -56,11 +70,33 @@ internal abstract class ValueItem : EpoxyModelWithHolder<ValueItem.Holder>() {
         lateinit var textView: TextView
         lateinit var baseView: LinearLayout
         var copyValue: (() -> String?)? = null
+        var onDoubleTap: (() -> Unit)? = null
+        var onSingleTap: (() -> Unit)? = null
 
+        // The touch listener only observes (returns false), so the view still performs its own clicks.
+        @SuppressLint("ClickableViewAccessibility")
         override fun bindView(itemView: View) {
             baseView = itemView.findViewById(R.id.jvBaseLayout)
             textView = itemView.findViewById(R.id.jvValueText)
             itemView.setOnCreateContextMenuListener(this)
+            val gestureDetector = GestureDetector(itemView.context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    val action = onDoubleTap ?: return false
+                    action()
+                    return true
+                }
+
+                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                    val action = onSingleTap ?: return false
+                    action()
+                    return true
+                }
+            })
+            // The long-clickable row keeps consuming the stream, so the context menu still works.
+            itemView.setOnTouchListener { _, event ->
+                gestureDetector.onTouchEvent(event)
+                false
+            }
         }
 
         override fun onCreateContextMenu(

@@ -42,7 +42,12 @@ internal class JSonViewerArray(key: String?, index: Int?, jObject: JSONArray) :
 }
 
 internal class JSonViewerLeaf(key: String?, index: Int?, val stringRes: String, val type: JSONType) :
-        JSonViewerModel(key, index, stringRes)
+        JSonViewerModel(key, index, stringRes) {
+    val valueKind: JSonViewerValueKind? by lazy { JSonViewerValueDetector.detect(type, stringRes) }
+
+    @Volatile
+    var showHumanTime = false
+}
 
 internal enum class JSONType {
     STRING,

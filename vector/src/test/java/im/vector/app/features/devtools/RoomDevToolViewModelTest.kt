@@ -13,6 +13,7 @@ import com.airbnb.mvrx.test.MavericksTestRule
 import com.airbnb.mvrx.withState
 import im.vector.app.test.fakes.FakeErrorFormatter
 import im.vector.app.test.fakes.FakeStringProvider
+import im.vector.app.test.test
 import im.vector.app.test.testDispatcher
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -126,6 +127,41 @@ class RoomDevToolViewModelTest {
 
         viewModel.history() shouldBeEqualTo listOf("\$c", "\$b", "\$a")
         coVerify(exactly = 1) { eventService.getEvent(A_ROOM_ID, "\$b") }
+    }
+
+    @Test
+    fun `an event ID of another state event opens on top of the detail, and back returns`() {
+        val current = stateEvent("\$c", replaces = "\$b")
+        givenServerEvents(stateEvent("\$b", replaces = null))
+        val viewModel = createViewModel(current)
+
+        viewModel.handle(RoomDevToolAction.OpenEventId("\$b"))
+        withState(viewModel) {
+            it.selectedEvent?.eventId shouldBeEqualTo "\$b"
+            it.detailBackStack.map { entry -> entry.event.eventId } shouldBeEqualTo listOf("\$c")
+        }
+
+        viewModel.handle(RoomDevToolAction.OnBackPressed)
+        withState(viewModel) {
+            it.displayMode shouldBe RoomDevToolViewState.Mode.StateEventDetail
+            it.selectedEvent?.eventId shouldBeEqualTo "\$c"
+            it.detailBackStack shouldBeEqualTo emptyList()
+        }
+    }
+
+    @Test
+    fun `the open event's own ID and non-state events open in the timeline`() {
+        val current = stateEvent("\$c", replaces = null)
+        coEvery { eventService.getEvent(A_ROOM_ID, "\$m") } returns Event(type = "m.room.message", eventId = "\$m", roomId = A_ROOM_ID)
+        every { session.permalinkService().createPermalink(A_ROOM_ID, any(), true) } answers { "link:${secondArg<String>()}" }
+        val viewModel = createViewModel(current)
+        val test = viewModel.test()
+
+        viewModel.handle(RoomDevToolAction.OpenEventId("\$c"))
+        viewModel.handle(RoomDevToolAction.OpenEventId("\$m"))
+
+        test.assertEvents(DevToolsViewEvents.OpenPermalink("link:\$c"), DevToolsViewEvents.OpenPermalink("link:\$m"))
+        withState(viewModel) { it.selectedEvent?.eventId shouldBeEqualTo "\$c" }
     }
 
     @Test

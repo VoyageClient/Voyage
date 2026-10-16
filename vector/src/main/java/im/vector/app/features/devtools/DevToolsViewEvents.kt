@@ -15,4 +15,5 @@ sealed class DevToolsViewEvents : VectorViewEvents {
     //    object ShowStateList : DevToolsViewEvents()
     data class ShowAlertMessage(val message: String) : DevToolsViewEvents()
     data class ShowSnackMessage(val message: String) : DevToolsViewEvents()
+    data class OpenPermalink(val permalink: String) : DevToolsViewEvents()
 }

@@ -20,6 +20,8 @@ import me.gujun.android.span.span
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.text.DateFormat
+import java.util.Date
 import java.util.IdentityHashMap
 
 // Set at app start so keys/values render emoji like the app's other text surfaces; this vendored
@@ -44,6 +46,9 @@ internal class JSonViewerEpoxyController(private val context: Context) :
     private val rowTexts = IdentityHashMap<JSonViewerModel, EpoxyCharSequence>()
     private var cachedRoot: JSonViewerObject? = null
     private var cachedStyle: JSonViewerStyleProvider? = null
+
+    @Volatile
+    var valueListener: JSonViewerValueListener? = null
 
     fun setStyle(styleProvider: JSonViewerStyleProvider?) {
         this.styleProvider = styleProvider ?: JSonViewerStyleProvider.default(context)
@@ -151,11 +156,26 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                 }
             }
             is JSonViewerLeaf -> {
+                val kind = model.valueKind
+                val listener = valueListener
                 valueItem {
                     id(id)
                     depth(depth)
-                    text(host.rowTexts.getOrPut(model) { host.leafText(model) })
+                    text(
+                            if (model.showHumanTime) {
+                                host.humanTimeText(model)
+                            } else {
+                                host.rowTexts.getOrPut(model) { host.leafText(model) }
+                            }
+                    )
                     copyValue { model.stringRes }
+                    when {
+                        kind == JSonViewerValueKind.TIMESTAMP -> {
+                            onDoubleTap { host.setHumanTime(model, true) }
+                            if (model.showHumanTime) onSingleTap { host.setHumanTime(model, false) }
+                        }
+                        kind != null && listener != null -> onDoubleTap { listener.onJsonValueDoubleTapped(kind, model.stringRes) }
+                    }
                 }
             }
         }
@@ -203,6 +223,24 @@ internal class JSonViewerEpoxyController(private val context: Context) :
             keyPrefix(model, neutralizeKey = false)
             append(host.valueToSpan(model))
         }.toDisplayEpoxyCharSequence()
+    }
+
+    private fun humanTimeText(model: JSonViewerLeaf): EpoxyCharSequence {
+        val host = this
+        val ms = JSonViewerValueDetector.timestampMs(model.stringRes) ?: return leafText(model)
+        val formatted = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(Date(ms))
+        return span {
+            keyPrefix(model, neutralizeKey = false)
+            span(formatted) {
+                textColor = host.styleProvider.numberColor
+            }
+        }.toDisplayEpoxyCharSequence()
+    }
+
+    private fun setHumanTime(model: JSonViewerLeaf, show: Boolean) {
+        if (model.showHumanTime == show) return
+        model.showHumanTime = show
+        setData(currentData)
     }
 
     private fun openText(model: JSonViewerModel, isObject: Boolean): EpoxyCharSequence {

@@ -230,6 +230,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
+import org.billcarsonfr.jsonviewer.JSonViewerValueKind
+import org.billcarsonfr.jsonviewer.JSonViewerValueListener
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -277,7 +279,8 @@ class TimelineFragment :
         TimelineEventController.Callback,
         VectorInviteView.Callback,
         GalleryOrCameraDialogHelper.Listener,
-        VectorMenuProvider {
+        VectorMenuProvider,
+        JSonViewerValueListener {
 
     @Inject lateinit var audioPlaybackController: AudioPlaybackController
     @Inject lateinit var session: Session
@@ -315,6 +318,7 @@ class TimelineFragment :
 
     companion object {
         const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
+        private const val JSON_VIEWER_TAG = "JSON_VIEWER"
 
         // How long an action carried in from another screen waits for its event to be paginated in.
         private const val PENDING_ACTION_EVENT_TIMEOUT_MS = 10_000L
@@ -2330,6 +2334,22 @@ class TimelineFragment :
         navigator.openRoomMemberProfile(userId = userId, roomId = timelineArgs.roomId, context = requireActivity())
     }
 
+    // Double taps in the view-source dialog.
+    override fun onJsonValueDoubleTapped(kind: JSonViewerValueKind, value: String) {
+        val permalink = when (kind) {
+            JSonViewerValueKind.EVENT_ID -> session.permalinkService().createPermalink(timelineArgs.roomId, value, forceMatrixTo = true)
+            JSonViewerValueKind.ROOM_ID -> session.permalinkService().createRoomPermalink(value, forceMatrixTo = true)
+                    .takeIf { value != timelineArgs.roomId }
+            JSonViewerValueKind.USER_ID -> {
+                openRoomMemberProfile(value)
+                return
+            }
+            JSonViewerValueKind.TIMESTAMP -> return
+        } ?: return
+        (childFragmentManager.findFragmentByTag(JSON_VIEWER_TAG) as? JSonViewerDialog)?.dismiss()
+        onUrlClicked(permalink, permalink)
+    }
+
     override fun onMemberNameClicked(informationData: MessageInformationData) {
         messageComposerViewModel.handle(MessageComposerAction.InsertUserDisplayName(informationData.senderId))
     }
@@ -2673,14 +2693,14 @@ class TimelineFragment :
                         action.content,
                         -1,
                         createJSonViewerStyleProvider(colorProvider)
-                ).show(childFragmentManager, "JSON_VIEWER")
+                ).show(childFragmentManager, JSON_VIEWER_TAG)
             }
             is EventSharedAction.ViewDecryptedSource -> {
                 JSonViewerDialog.newInstance(
                         action.content,
                         -1,
                         createJSonViewerStyleProvider(colorProvider)
-                ).show(childFragmentManager, "JSON_VIEWER")
+                ).show(childFragmentManager, JSON_VIEWER_TAG)
             }
             is EventSharedAction.QuickReact -> {
                 // eventId,ClickedOn,Add

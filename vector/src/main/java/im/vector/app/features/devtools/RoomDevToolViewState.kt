@@ -31,7 +31,10 @@ data class RoomDevToolViewState(
         val stateHistory: List<Event> = emptyList(),
         val stateHistoryLoad: Async<Unit> = Uninitialized,
         /** True when the open detail was picked from [stateHistory], so back returns to it. */
-        val detailFromHistory: Boolean = false,        val selectedEvent: Event? = null,
+        val detailFromHistory: Boolean = false,
+        /** State event details left by following an event ID out of them; back reopens the last. */
+        val detailBackStack: List<PreviousDetail> = emptyList(),
+        val selectedEvent: Event? = null,
         val selectedAccountData: RoomAccountDataEvent? = null,
         val selectedEventJson: String? = null,
         val showRawStateEvent: Boolean = false,
@@ -55,6 +58,8 @@ data class RoomDevToolViewState(
             sendEventDraft = args.sendTarget?.let { SendEventDraft(defaultTypeFor(it), null, "{\n}") },
             sendFormIsRoot = args.sendTarget != null
     )
+
+    data class PreviousDetail(val event: Event, val fromHistory: Boolean)
 
     fun canEditSelectedStateEvent(): Boolean {
         val event = selectedEvent ?: return false

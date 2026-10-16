@@ -181,6 +181,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     )
                 }
             }
+            is RoomDevToolAction.OpenEventId -> openEventId(action.eventId)
             RoomDevToolAction.ShowStateHistory -> withState { state ->
                 val current = state.selectedEvent?.takeIf { state.displayMode == RoomDevToolViewState.Mode.StateEventDetail }
                         ?: return@withState
@@ -315,6 +316,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                             stateHistory = emptyList(),
                             stateHistoryLoad = Uninitialized,
                             detailFromHistory = false,
+                            detailBackStack = emptyList(),
                             displayMode = if (detailFromSearch) {
                                 RoomDevToolViewState.Mode.StateEventList
                             } else {
@@ -388,6 +390,53 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 setState { copy(modalLoading = Fail(failure)) }
             }
         }
+    }
+
+    // Another state event (e.g. replaces_state) opens here on top of the current detail; anything else,
+    // including the open event's own ID, is shown in the timeline.
+    private fun openEventId(eventId: String) = withState { state ->
+        val current = state.selectedEvent
+        if (state.displayMode != RoomDevToolViewState.Mode.StateEventDetail || current == null || current.eventId == eventId) {
+            openInTimeline(eventId)
+            return@withState
+        }
+        val known = state.stateEvents.invoke()?.firstOrNull { it.eventId == eventId }
+        if (known != null) {
+            pushStateEventDetail(state, current, known)
+            return@withState
+        }
+        setState { copy(modalLoading = Loading()) }
+        viewModelScope.launch {
+            val event = try {
+                session.eventService().getEvent(initialState.roomId, eventId)
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Throwable) {
+                setState { copy(modalLoading = Fail(failure)) }
+                _viewEvents.post(DevToolsViewEvents.ShowAlertMessage(errorFormatter.toHumanReadable(failure)))
+                return@launch
+            }
+            setState { copy(modalLoading = Success(Unit)) }
+            if (event.stateKey != null) {
+                withState { latest ->
+                    if (latest.displayMode == RoomDevToolViewState.Mode.StateEventDetail && latest.selectedEvent === current) {
+                        pushStateEventDetail(latest, current, event)
+                    }
+                }
+            } else {
+                openInTimeline(eventId)
+            }
+        }
+    }
+
+    private fun pushStateEventDetail(state: RoomDevToolViewState, current: Event, target: Event) {
+        setState { copy(detailBackStack = detailBackStack + RoomDevToolViewState.PreviousDetail(current, state.detailFromHistory)) }
+        showStateEventDetail(target, state.detailFromSearch)
+    }
+
+    private fun openInTimeline(eventId: String) {
+        val permalink = session.permalinkService().createPermalink(initialState.roomId, eventId, forceMatrixTo = true)
+        _viewEvents.post(DevToolsViewEvents.OpenPermalink(permalink))
     }
 
     private fun loadStateHistory(current: Event, loaded: List<Event> = listOf(current)) {
@@ -507,7 +556,11 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     showStateEventDetail(current, it.detailFromSearch)
                 }
             }
-            RoomDevToolViewState.Mode.StateEventDetail -> if (it.detailFromHistory) {
+            RoomDevToolViewState.Mode.StateEventDetail -> if (it.detailBackStack.isNotEmpty()) {
+                val previous = it.detailBackStack.last()
+                setState { copy(detailBackStack = detailBackStack.dropLast(1)) }
+                showStateEventDetail(previous.event, it.detailFromSearch, previous.fromHistory)
+            } else if (it.detailFromHistory) {
                 setState {
                     copy(
                             selectedEvent = null,

@@ -57,8 +57,20 @@ class JSonViewerFragment : Fragment(), MavericksView {
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         recyclerView.setController(epoxyController)
         epoxyController.setStyle(args?.styleProvider)
+        epoxyController.valueListener = findValueListener()
         registerForContextMenu(recyclerView)
         return inflate
+    }
+
+    override fun onDestroyView() {
+        epoxyController.valueListener = null
+        super.onDestroyView()
+    }
+
+    private fun findValueListener(): JSonViewerValueListener? {
+        return generateSequence(parentFragment) { it.parentFragment }
+                .firstNotNullOfOrNull { it as? JSonViewerValueListener }
+                ?: activity as? JSonViewerValueListener
     }
 
     /** Filters the tree down to the nodes matching [query] (and their ancestors); empty shows everything. */
