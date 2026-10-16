@@ -137,6 +137,9 @@ data class MatrixError(
         /** MSC4380. The invited user does not accept invites. */
         const val M_INVITE_BLOCKED = "M_INVITE_BLOCKED"
 
+        /** MSC4380 kept MSC4155's unstable code for compatibility. */
+        const val M_INVITE_BLOCKED_UNSTABLE = "ORG.MATRIX.MSC4155.INVITE_BLOCKED"
+
         /** MSC2246. The bytes of this reserved content URI have already been uploaded. */
         const val M_CANNOT_OVERWRITE_MEDIA = "M_CANNOT_OVERWRITE_MEDIA"
 

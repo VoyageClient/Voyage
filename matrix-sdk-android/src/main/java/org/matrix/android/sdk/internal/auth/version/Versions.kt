@@ -63,7 +63,8 @@ private const val FEATURE_THREADS_MSC3773 = "org.matrix.msc3773"
 private const val FEATURE_REMOTE_TOGGLE_PUSH_NOTIFICATIONS_MSC3881 = "org.matrix.msc3881"
 private const val FEATURE_REDACTION_OF_RELATED_EVENT = "org.matrix.msc3912"
 private const val FEATURE_VIEW_UNREDACTED_CONTENT_MSC2815 = "fi.mau.msc2815"
-private const val FEATURE_INVITE_BLOCKING_MSC4380 = "org.matrix.msc4380.stable"
+private const val FEATURE_INVITE_BLOCKING_MSC4380 = "org.matrix.msc4380"
+private const val FEATURE_INVITE_BLOCKING_MSC4380_STABLE = "org.matrix.msc4380.stable"
 
 // MSC4186 kept MSC3575's flag name for its "simplified" successor.
 private const val FEATURE_SIMPLIFIED_SLIDING_SYNC_MSC4186 = "org.matrix.simplified_msc3575"
@@ -235,5 +236,6 @@ internal fun Versions.doesServerSupportSlidingSyncProfiles(): Boolean {
  */
 internal fun Versions.doesServerSupportInviteBlocking(): Boolean {
     return getMaxVersion() >= HomeServerVersion.v1_18_0 ||
+            unstableFeatures?.get(FEATURE_INVITE_BLOCKING_MSC4380_STABLE).orFalse() ||
             unstableFeatures?.get(FEATURE_INVITE_BLOCKING_MSC4380).orFalse()
 }

@@ -17,6 +17,7 @@ import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.failure.MatrixIdFailure
 import org.matrix.android.sdk.api.failure.isInvalidPassword
+import org.matrix.android.sdk.api.failure.isInviteBlocked
 import org.matrix.android.sdk.api.failure.isLimitExceededError
 import org.matrix.android.sdk.api.failure.isMissingEmailVerification
 import org.matrix.android.sdk.api.failure.isPolicyServerRejection
@@ -82,7 +83,7 @@ class DefaultErrorFormatter @Inject constructor(
                     throwable.error.code == MatrixError.M_TOO_LARGE -> {
                         stringProvider.getString(CommonStrings.error_file_too_big_simple)
                     }
-                    throwable.error.code == MatrixError.M_INVITE_BLOCKED -> {
+                    throwable.isInviteBlocked() -> {
                         stringProvider.getString(CommonStrings.error_invite_blocked)
                     }
                     throwable.error.code == MatrixError.M_THREEPID_NOT_FOUND -> {

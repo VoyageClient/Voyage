@@ -75,6 +75,7 @@ import im.vector.app.features.settings.vpn.VectorSettingsVpnExclusionsFragment
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -85,10 +86,10 @@ import org.matrix.android.sdk.api.extensions.getFingerprintHumanReadable
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.raw.RawService
-import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -572,19 +573,23 @@ class VectorSettingsSecurityPrivacyFragment :
             pref.summary = getString(CommonStrings.settings_block_invites_unsupported)
             return
         }
-        pref.isChecked = session.accountDataService()
-                .getUserAccountDataEvent(UserAccountDataTypes.TYPE_INVITE_PERMISSION_CONFIG)
-                ?.content
-                ?.get("default_action") == BLOCK_ACTION
+        val accountData = session.accountDataService()
+        val readAccountData = { type: String -> accountData.getUserAccountDataEvent(type)?.content }
+        pref.isChecked = InvitePermissionConfig.areInvitesBlocked(readAccountData)
 
         pref.setOnPreferenceChangeListener { _, newValue ->
             val block = newValue as? Boolean ?: return@setOnPreferenceChangeListener false
             lifecycleScope.launch {
                 try {
-                    // Clearing means writing an empty object; there is no delete for this type.
-                    val content = if (block) mapOf("default_action" to BLOCK_ACTION) else emptyMap()
-                    session.accountDataService()
-                            .updateUserAccountData(UserAccountDataTypes.TYPE_INVITE_PERMISSION_CONFIG, content)
+                    val changes = InvitePermissionConfig.changesFor(block, readAccountData)
+                    val failures = changes.mapNotNull { (type, content) ->
+                        runCatching { accountData.updateUserAccountData(type, content) }
+                                .onFailure { if (it is CancellationException) throw it else Timber.w(it, "Unable to update $type") }
+                                .exceptionOrNull()
+                    }
+                    if (failures.isNotEmpty() && failures.size == changes.size) throw failures.first()
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
                 } catch (failure: Throwable) {
                     pref.isChecked = !block
                     activity?.let { displayErrorDialog(failure) }
@@ -971,9 +976,5 @@ class VectorSettingsSecurityPrivacyFragment :
                 refreshCryptographyPreference(it)
             }
         }
-    }
-
-    companion object {
-        private const val BLOCK_ACTION = "block"
     }
 }

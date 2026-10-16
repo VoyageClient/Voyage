@@ -86,6 +86,9 @@ fun Throwable.isInvalidPassword() = this is Failure.ServerError &&
         error.code == MatrixError.M_FORBIDDEN &&
         error.message == "Invalid password"
 
+fun Throwable.isInviteBlocked() = this is Failure.ServerError &&
+        (error.code == MatrixError.M_INVITE_BLOCKED || error.code == MatrixError.M_INVITE_BLOCKED_UNSTABLE)
+
 // MSC4284: the sending server has a policy server vet each event and relays a refusal as a plain
 // M_FORBIDDEN, so the message text is all that tells it apart from any other rejection.
 fun Throwable.isPolicyServerRejection() = this is Failure.ServerError &&

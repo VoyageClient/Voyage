@@ -47,6 +47,7 @@ object UserAccountDataTypes {
 
     // MSC4380 invite blocking.
     const val TYPE_INVITE_PERMISSION_CONFIG = "m.invite_permission_config"
+    const val TYPE_INVITE_PERMISSION_CONFIG_UNSTABLE = "org.matrix.msc4380.invite_permission_config"
 
     // MSC4278 media preview controls. Element Web still writes only the unstable type.
     const val TYPE_MEDIA_PREVIEW_CONFIG = "m.media_preview_config"
