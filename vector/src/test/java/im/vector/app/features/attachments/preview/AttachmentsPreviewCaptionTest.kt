@@ -90,6 +90,42 @@ class AttachmentsPreviewCaptionTest {
         withState(viewModel) { state -> state.rasterize shouldBeEqualTo emptySet<String>() }
     }
 
+    @Test
+    fun `moving the selected attachment preserves its caption and send settings`() {
+        val viewModel = viewModel("hello")
+        viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(2))
+        viewModel.handle(AttachmentsPreviewAction.SetSendAsSpoiler(true))
+        viewModel.handle(AttachmentsPreviewAction.SetKeepOriginalSize(true))
+
+        viewModel.handle(AttachmentsPreviewAction.MoveAttachment(2, 0))
+
+        withState(viewModel) { state ->
+            state.attachments shouldBeEqualTo listOf(attachments[2], attachments[0], attachments[1])
+            state.currentAttachmentIndex shouldBeEqualTo 0
+            state.attachments.map { state.captionOf(it) } shouldBeEqualTo listOf("hello", "", "")
+            state.sendAsSpoiler shouldBeEqualTo setOf(state.stableIdOf(attachments[2]))
+            state.keepOriginalSize shouldBeEqualTo setOf(state.stableIdOf(attachments[2]))
+        }
+    }
+
+    @Test
+    fun `moving across the selection keeps the same attachment selected in both directions`() {
+        val viewModel = viewModel(null)
+        viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(1))
+
+        viewModel.handle(AttachmentsPreviewAction.MoveAttachment(0, 2))
+        withState(viewModel) { state ->
+            state.currentAttachmentIndex shouldBeEqualTo 0
+            state.attachments[state.currentAttachmentIndex] shouldBeEqualTo attachments[1]
+        }
+
+        viewModel.handle(AttachmentsPreviewAction.MoveAttachment(2, 0))
+        withState(viewModel) { state ->
+            state.currentAttachmentIndex shouldBeEqualTo 1
+            state.attachments shouldBeEqualTo attachments
+        }
+    }
+
     private fun viewModel(caption: String?) =
             AttachmentsPreviewViewModel(AttachmentsPreviewViewState(AttachmentsPreviewArgs(attachments, caption)))
 }

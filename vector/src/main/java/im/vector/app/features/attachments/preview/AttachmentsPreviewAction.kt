@@ -20,6 +20,7 @@ sealed class AttachmentsPreviewAction : VectorViewModelAction {
     data class SetSendAsSpoiler(val sendAsSpoiler: Boolean) : AttachmentsPreviewAction()
     data class SetCaption(val caption: String) : AttachmentsPreviewAction()
     data class SetSharesOneCaption(val shared: Boolean) : AttachmentsPreviewAction()
+    data class MoveAttachment(val fromIndex: Int, val toIndex: Int) : AttachmentsPreviewAction()
     data class SetCurrentAttachment(val index: Int) : AttachmentsPreviewAction()
     data class UpdateCurrentAttachment(
             val newUri: Uri,

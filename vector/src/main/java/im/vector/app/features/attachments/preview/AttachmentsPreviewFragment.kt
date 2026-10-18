@@ -43,8 +43,11 @@ import androidx.core.widget.CompoundButtonCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
+import com.airbnb.epoxy.EpoxyModelTouchCallback
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
@@ -116,6 +119,8 @@ class AttachmentsPreviewFragment :
     private val viewModel: AttachmentsPreviewViewModel by fragmentViewModel()
 
     private var lastScrolledIndex = -1
+    private var reorderingAttachments = false
+    private var attachmentReorderHelper: ItemTouchHelper? = null
     private var backdropUri: Uri? = null
 
     /** True while the checkbox is being set from state, so its listener knows it was not a tap. */
@@ -601,6 +606,9 @@ class AttachmentsPreviewFragment :
             }
         }
         keyboardLayoutListener = null
+        attachmentReorderHelper?.attachToRecyclerView(null)
+        attachmentReorderHelper = null
+        reorderingAttachments = false
         views.attachmentPreviewerMiniatureList.cleanup()
         views.attachmentPreviewerBigList.cleanup()
         attachmentMiniaturePreviewController.callback = null
@@ -617,7 +625,7 @@ class AttachmentsPreviewFragment :
             requireActivity().setResult(RESULT_CANCELED)
             requireActivity().finish()
         } else {
-            attachmentMiniaturePreviewController.setData(state)
+            if (!reorderingAttachments) attachmentMiniaturePreviewController.setData(state)
             attachmentBigPreviewController.setData(state)
             // Scrolling on every state emission would yank the pager out from under an in-progress
             // swipe, now that playback changes also re-emit state.
@@ -625,7 +633,7 @@ class AttachmentsPreviewFragment :
                 lastScrolledIndex = state.currentAttachmentIndex
                 views.attachmentPreviewerBigList.scrollToPosition(state.currentAttachmentIndex)
                 bigListSnapListener?.onScrolledProgrammatically(state.currentAttachmentIndex)
-                views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
+                if (!reorderingAttachments) views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
             }
             renderKeepOriginalSize(state)
             renderCaption(state)
@@ -958,15 +966,43 @@ class AttachmentsPreviewFragment :
         }
     }
 
+    private fun setupAttachmentReordering() {
+        val controller = attachmentMiniaturePreviewController
+        attachmentReorderHelper = ItemTouchHelper(object : EpoxyModelTouchCallback<AttachmentMiniaturePreviewItem_>(
+                controller, AttachmentMiniaturePreviewItem_::class.java
+        ) {
+            override fun getMovementFlagsForModel(model: AttachmentMiniaturePreviewItem_, adapterPosition: Int): Int =
+                    ItemTouchHelper.Callback.makeMovementFlags(ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT, 0)
+
+            override fun onDragStarted(model: AttachmentMiniaturePreviewItem_?, itemView: View?, adapterPosition: Int) {
+                reorderingAttachments = true
+                controller.cancelPendingModelBuild()
+                itemView?.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+            }
+
+            override fun onModelMoved(fromPosition: Int, toPosition: Int, modelBeingMoved: AttachmentMiniaturePreviewItem_?, itemView: View?) {
+                // Epoxy schedules a rebuild with the pre-move data after moving a model.
+                controller.cancelPendingModelBuild()
+                viewModel.handle(AttachmentsPreviewAction.MoveAttachment(fromPosition, toPosition))
+            }
+
+            override fun onDragReleased(model: AttachmentMiniaturePreviewItem_?, itemView: View?) {
+                reorderingAttachments = false
+                if (view != null) invalidate()
+            }
+        }).also { it.attachToRecyclerView(views.attachmentPreviewerMiniatureList) }
+    }
+
     private fun setupRecyclerViews() {
         attachmentMiniaturePreviewController.callback = this
 
         views.attachmentPreviewerMiniatureList.let {
-            it.itemAnimator = null
+            it.itemAnimator = DefaultItemAnimator().apply { supportsChangeAnimations = false }
             it.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             it.setHasFixedSize(true)
             it.adapter = attachmentMiniaturePreviewController.adapter
         }
+        setupAttachmentReordering()
 
         views.attachmentPreviewerBigList.let {
             it.itemAnimator = null
@@ -976,7 +1012,7 @@ class AttachmentsPreviewFragment :
                     SnapOnScrollListener.Behavior.NOTIFY_ON_SCROLL_STATE_IDLE,
                     object : OnSnapPositionChangeListener {
                         override fun onSnapPositionChange(position: Int) {
-                            viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(position))
+                            if (!reorderingAttachments) viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(position))
                         }
                     })
             it.setHasFixedSize(true)

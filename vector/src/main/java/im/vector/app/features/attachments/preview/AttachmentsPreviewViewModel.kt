@@ -16,6 +16,7 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
 
     override fun handle(action: AttachmentsPreviewAction) {
         when (action) {
+            is AttachmentsPreviewAction.MoveAttachment -> handleMoveAttachment(action)
             is AttachmentsPreviewAction.SetCurrentAttachment -> handleSetCurrentAttachment(action)
             is AttachmentsPreviewAction.UpdateCurrentAttachment -> handleUpdateCurrentAttachment(action)
             AttachmentsPreviewAction.RemoveCurrentAttachment -> handleRemoveCurrentAttachment()
@@ -27,6 +28,15 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             is AttachmentsPreviewAction.SetCaption -> handleSetCaption(action)
             is AttachmentsPreviewAction.SetSharesOneCaption -> handleSetSharesOneCaption(action)
         }
+    }
+
+    private fun handleMoveAttachment(action: AttachmentsPreviewAction.MoveAttachment) = setState {
+        if (action.fromIndex !in attachments.indices || action.toIndex !in attachments.indices || action.fromIndex == action.toIndex) {
+            return@setState this
+        }
+        val current = attachments.getOrNull(currentAttachmentIndex)
+        val reordered = attachments.toMutableList().apply { add(action.toIndex, removeAt(action.fromIndex)) }
+        copy(attachments = reordered, currentAttachmentIndex = reordered.indexOf(current).coerceAtLeast(0))
     }
 
     private fun handleSetSharesOneCaption(action: AttachmentsPreviewAction.SetSharesOneCaption) = setState {
