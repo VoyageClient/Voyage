@@ -7,7 +7,7 @@
 
 package im.vector.app.features.settings.useragent
 
-import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.ActiveSessionDataSource
 import im.vector.app.features.settings.useragent.data.UaDataRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -15,29 +15,23 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEqualTo
 import org.amshove.kluent.shouldNotBeNullOrBlank
 import org.junit.Test
-import javax.inject.Provider
+import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.util.Optional
+import org.matrix.android.sdk.api.util.toOption
 
-/**
- * Validates the pre-login → account hand-off for the User-Agent spoof: a spoof configured before
- * signing in must apply DURING sign-in (no session yet) and remain applied AFTER, with byte-identical
- * output across the migration (no window where the real UA leaks), and without touching a current
- * account during "add account".
- */
 class UserAgentPreLoginContinuityTest {
 
     private val prefs = FakeSharedPreferences()
-    private var activeUserId: String? = null
-    private val settings = UserAgentSettings(prefs, Provider { activeSessionHolder() })
+    private val activeSessionDataSource = ActiveSessionDataSource()
+    private val settings = UserAgentSettings(prefs, activeSessionDataSource)
     private val repository = mockk<UaDataRepository>(relaxed = true)
     private val builder = UserAgentSpoofBuilder(settings, repository)
 
-    private fun activeSessionHolder(): ActiveSessionHolder = mockk {
-        every { getSafeActiveSession() } answers {
-            activeUserId?.let { id -> mockk(relaxed = true) { every { myUserId } returns id } }
-        }
+    private fun setActiveUser(userId: String?) {
+        val session = userId?.let { id -> mockk<Session> { every { myUserId } returns id } }
+        activeSessionDataSource.post(session?.toOption() ?: Optional.empty())
     }
 
-    /** Configure a deterministic Chrome spoof (no cache needed) into whatever scope [block] targets. */
     private fun configureChrome() {
         settings.selectedClient = UaSpoofClient.CHROME
         settings.setValue(UaSpoofClient.CHROME, UaField.OS, "windows")
@@ -52,7 +46,7 @@ class UserAgentPreLoginContinuityTest {
         // Pre-login screen: edits target PENDING; no account is active.
         settings.editScopeOverride = UserAgentSettings.PENDING
         configureChrome()
-        activeUserId = null
+        setActiveUser(null)
 
         // The interceptor path reads the session scope, which with no session is PENDING.
         builder.buildFor(UaSurface.API_MEDIA) shouldBeEqualTo chromeUa
@@ -62,13 +56,13 @@ class UserAgentPreLoginContinuityTest {
     fun `spoof is byte-identical before and after sign-in with no gap`() {
         settings.editScopeOverride = UserAgentSettings.PENDING
         configureChrome()
-        activeUserId = null
+        setActiveUser(null)
         val duringSignIn = builder.buildFor(UaSurface.API_MEDIA)
 
         // Sign-in completes: migrate PENDING into the new account, then the account becomes active.
         settings.migratePendingInto("@alice:hs")
         settings.editScopeOverride = null
-        activeUserId = "@alice:hs"
+        setActiveUser("@alice:hs")
         val afterSignIn = builder.buildFor(UaSurface.API_MEDIA)
 
         duringSignIn.shouldNotBeNullOrBlank()
@@ -89,7 +83,7 @@ class UserAgentPreLoginContinuityTest {
 
         settings.migratePendingInto("@alice:hs")
         settings.editScopeOverride = null
-        activeUserId = "@alice:hs"
+        setActiveUser("@alice:hs")
 
         settings.selectedClient shouldBeEqualTo UaSpoofClient.ELEMENT_X_ANDROID
         settings.storedValue(UaSpoofClient.ELEMENT_X_ANDROID, UaField.APP_VERSION) shouldBeEqualTo "26.08.1"
@@ -101,7 +95,7 @@ class UserAgentPreLoginContinuityTest {
     @Test
     fun `add-account never touches the current account`() {
         // Current account @bob has its own spoof (Firefox).
-        activeUserId = "@bob:hs"
+        setActiveUser("@bob:hs")
         settings.selectedClient = UaSpoofClient.FIREFOX
         settings.setValue(UaSpoofClient.FIREFOX, UaField.OS, "windows")
         settings.setValue(UaSpoofClient.FIREFOX, UaField.BROWSER_VERSION, "131.0")
@@ -123,11 +117,28 @@ class UserAgentPreLoginContinuityTest {
 
     @Test
     fun `interceptor ignores the edit override while a session is active`() {
-        activeUserId = "@bob:hs"
+        setActiveUser("@bob:hs")
         // Nothing configured for @bob → no spoof; the override must not make the interceptor read PENDING.
         settings.editScopeOverride = UserAgentSettings.PENDING
         configureChrome() // writes to PENDING
         builder.buildFor(UaSurface.API_MEDIA) shouldBeEqualTo null
+    }
+
+    @Test
+    fun `interceptor follows published sessions across the account switch gap`() {
+        setActiveUser("@alice:hs")
+        configureChrome()
+        builder.buildFor(UaSurface.API_MEDIA) shouldBeEqualTo chromeUa
+
+        setActiveUser(null)
+        settings.sessionScope() shouldBeEqualTo UserAgentSettings.PENDING
+        builder.buildFor(UaSurface.API_MEDIA) shouldBeEqualTo null
+
+        setActiveUser("@bob:hs")
+        builder.buildFor(UaSurface.API_MEDIA) shouldBeEqualTo null
+
+        setActiveUser("@alice:hs")
+        builder.buildFor(UaSurface.API_MEDIA) shouldBeEqualTo chromeUa
     }
 
     @Test

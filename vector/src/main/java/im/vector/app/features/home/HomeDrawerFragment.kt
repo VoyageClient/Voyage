@@ -48,6 +48,7 @@ import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.spaces.SpaceListFragment
 import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.getRoomSummariesLive
@@ -79,6 +80,7 @@ class HomeDrawerFragment :
     private lateinit var accountAdapter: AccountSwitcherAdapter
     private var hasPendingJoinRequests = false
     private var headerUser: User? = null
+    private var isSwitchingAccount = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentHomeDrawerBinding {
         return FragmentHomeDrawerBinding.inflate(inflater, container, false)
@@ -245,6 +247,7 @@ class HomeDrawerFragment :
     }
 
     private fun onAccountClicked(entry: AccountSwitcherEntry) {
+        if (isSwitchingAccount) return
         if (entry.isActive) {
             setSwitcherExpanded(false)
             return
@@ -268,16 +271,26 @@ class HomeDrawerFragment :
     }
 
     private fun performSwitch(entry: AccountSwitcherEntry) {
-        // Activity scope, not the view-lifecycle scope — restartApp() finishes the activity
-        // and a fragment-view-scoped coroutine would be cancelled mid-flight.
-        requireActivity().lifecycleScope.launch {
-            runCatching { switchAccountUseCase.execute(entry.sessionId) }
-                    .onSuccess {
-                        // Re-resolve the activity at restart time. A config change between
-                        // launch and now would otherwise leave us with a stale reference.
-                        if (isAdded) MainActivity.restartApp(requireActivity(), MainActivityArgs())
-                    }
-                    .onFailure { Timber.e(it, "Account switch to ${entry.sessionId} failed") }
+        if (isSwitchingAccount) return
+        isSwitchingAccount = true
+        showLoadingDialog()
+        // Keep switching if the drawer view is destroyed before the activity restarts.
+        val activity = requireActivity()
+        activity.lifecycleScope.launch {
+            try {
+                switchAccountUseCase.execute(entry.sessionId)
+                MainActivity.restartApp(activity, MainActivityArgs())
+            } catch (failure: CancellationException) {
+                isSwitchingAccount = false
+                throw failure
+            } catch (failure: Exception) {
+                isSwitchingAccount = false
+                Timber.e(failure, "Account switch to ${entry.sessionId} failed")
+                if (isAdded) {
+                    dismissLoadingDialog()
+                    showFailure(failure)
+                }
+            }
         }
     }
 

@@ -9,10 +9,9 @@ package im.vector.app.features.settings.useragent
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.ActiveSessionDataSource
 import im.vector.app.core.di.DefaultPreferences
 import javax.inject.Inject
-import javax.inject.Provider
 import javax.inject.Singleton
 
 /**
@@ -24,9 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class UserAgentSettings @Inject constructor(
         @DefaultPreferences private val preferences: SharedPreferences,
-        // Provider, not direct: ActiveSessionHolder reaches Matrix-provided types, and this store feeds
-        // the interceptor that builds Matrix — direct injection would cycle.
-        private val activeSessionHolder: Provider<ActiveSessionHolder>,
+        private val activeSessionDataSource: ActiveSessionDataSource,
 ) {
 
     /**
@@ -36,8 +33,8 @@ class UserAgentSettings @Inject constructor(
      */
     @Volatile var editScopeOverride: String? = null
 
-    /** The account the interceptor reads for: the active session, or PENDING when signed out. */
-    fun sessionScope(): String = activeSessionHolder.get().getSafeActiveSession()?.myUserId ?: PENDING
+    // Interceptor reads must not initialize sessions while an account switch is tearing one down.
+    fun sessionScope(): String = activeSessionDataSource.currentValue?.orNull()?.myUserId ?: PENDING
 
     /** The scope the settings UI reads/writes: the pre-login override if set, else the session scope. */
     fun editScope(): String = editScopeOverride ?: sessionScope()
