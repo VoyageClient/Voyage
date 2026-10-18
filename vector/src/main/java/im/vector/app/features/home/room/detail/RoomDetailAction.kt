@@ -27,7 +27,7 @@ sealed class RoomDetailAction : VectorViewModelAction {
             // When set, the first attachment replaces this event's media instead of being sent as its own message.
             val editedEventId: String? = null,
             // A caption per attachment, in the same order; [captionText] is the one a gallery sends.
-            val captions: List<CharSequence?>? = null,
+            val captions: List<MediaCaption>? = null,
             val spoilers: List<Boolean>? = null,
     ) : RoomDetailAction()
     data class TimelineEventTurnsVisible(val event: TimelineEvent) : RoomDetailAction()
@@ -112,3 +112,9 @@ sealed class RoomDetailAction : VectorViewModelAction {
 
     data class DismissUserIdentityChange(val userId: String) : RoomDetailAction()
 }
+
+data class MediaCaption(
+        val text: CharSequence?,
+        val formatted: String? = null,
+        val autoMarkdown: Boolean = false,
+)

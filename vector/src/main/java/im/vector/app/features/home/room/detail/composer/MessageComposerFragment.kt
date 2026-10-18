@@ -78,6 +78,7 @@ import im.vector.app.features.delayedevents.ScheduleTimePicker.HOUR_MS
 import im.vector.app.features.devtools.RoomDevToolViewState
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.AutoCompleter
+import im.vector.app.features.home.room.detail.MediaCaption
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.TimelineFragment
 import im.vector.app.features.home.room.detail.TimelineViewModel
@@ -1278,26 +1279,26 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val replyToEvent = (state.sendMode as? SendMode.Reply)?.timelineEvent
         // Picking media while editing puts it in place of what the message held, caption and all.
         val editedEvent = (state.sendMode as? SendMode.Edit)?.timelineEvent
-        // Keep the caption as a spanned CharSequence (and tag literal :shortcode: emotes) so custom
-        // emotes survive into the formatted caption body, instead of stringifying it here.
         val rawCaption = composer.text ?: ""
-        // A caption typed in the previewer stands for what the composer held, which is where it started.
-        val perAttachment = previewCaptions?.map { caption ->
-            caption.takeIf { it.isNotBlank() }?.let { SpannableString(emoteShortcodeProcessor.process(roomId, it)) }
+        fun resolve(text: CharSequence?): MediaCaption {
+            val caption = text?.takeIf { it.isNotBlank() }?.let { SpannableString(emoteShortcodeProcessor.process(roomId, it)) }
+            val formatted = composer.formattedText?.takeIf { caption != null && text.toString() == rawCaption.toString() }
+            val outcome = resolveCaptionCommand(
+                    state,
+                    caption,
+                    formatted,
+                    caption != null && formatted == null && vectorPreferences.isMarkdownEnabled(),
+            )
+            return MediaCaption(outcome.text, outcome.formatted, outcome.autoMarkdown)
         }
-        // The batch's caption is the last one written, so it reads below every attachment it was sent with.
-        val captionText: CharSequence? = if (perAttachment != null) {
-            perAttachment.lastOrNull { it != null }
+        // A gallery repeats its shared caption in the preview, so resolve it only once.
+        val resolvedByText = mutableMapOf<String, MediaCaption>()
+        val perAttachment = previewCaptions?.map { text -> resolvedByText.getOrPut(text) { resolve(text) } }
+        val resolved = if (perAttachment != null) {
+            perAttachment.lastOrNull { !it.text.isNullOrBlank() } ?: MediaCaption(null)
         } else {
-            rawCaption.toString().takeIf { it.isNotBlank() }?.let { SpannableString(emoteShortcodeProcessor.process(roomId, rawCaption)) }
+            resolve(rawCaption)
         }
-        // The rich body only still describes the caption while the previewer left it as the composer wrote it.
-        val richHtml = composer.formattedText?.takeIf {
-            previewCaptions == null || previewCaptions.lastOrNull { caption -> caption.isNotBlank() } == rawCaption.toString()
-        }
-        val captionFormattedText = richHtml?.takeIf { captionText != null }
-        val autoMarkdown = captionText != null && captionFormattedText == null && vectorPreferences.isMarkdownEnabled()
-        val resolved = resolveCaptionCommand(state, captionText, captionFormattedText, autoMarkdown)
         timelineViewModel.handle(
                 RoomDetailAction.SendMedia(
                         attachments = attachments,
@@ -1311,7 +1312,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         spoilers = previewSpoilers,
                 )
         )
-        if (editedEvent != null || replyToEvent != null || captionText != null || rawCaption.isNotBlank()) {
+        if (editedEvent != null || replyToEvent != null || previewCaptions?.any { it.isNotBlank() } == true || rawCaption.isNotBlank()) {
             suppressStaleComposerRender = true
             composer.setTextIfDifferent("")
             composer.renderComposerMode(MessageComposerMode.Normal(""))

@@ -1143,14 +1143,15 @@ private fun handleSelectStickerAttachment() {
 
     private fun handleSendMedia(action: RoomDetailAction.SendMedia) {
         val room = this.room ?: return
-        val captions = action.captions.orEmpty() + listOfNotNull(action.captionText)
+        val caption = MediaCaption(action.captionText, action.captionFormattedText, action.autoMarkdown)
+        val hasCaption = !caption.text.isNullOrBlank() || action.captions.orEmpty().any { !it.text.isNullOrBlank() }
         viewModelScope.launch(Dispatchers.IO) {
             // In PGP mode, only the caption (body/formatted_body) is encrypted — the media itself
             // can't be (it's a plain mxc upload). Untriggered when there's no caption.
-            if (captions.any { it?.isNotBlank() == true } && pgpRoomEncryptor.isRoomPgpActive(room)) {
+            if (hasCaption && pgpRoomEncryptor.isRoomPgpActive(room)) {
                 sendPgpMediasWithCaption(room, action)
             } else {
-                sendMediasWithCaption(room, action, action.captionText, action.captionFormattedText, action.captions)
+                sendMediasWithCaption(room, action, caption, action.captions)
             }
         }
     }
@@ -1158,20 +1159,24 @@ private fun handleSelectStickerAttachment() {
     /** Each caption is encrypted on its own; the media it describes is a plain upload either way. */
     private suspend fun sendPgpMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia) {
         var failure: PgpRoomEncryptor.Outcome? = null
-        suspend fun encrypt(text: CharSequence?, formatted: String?): Pair<CharSequence?, String?> {
-            if (text.isNullOrBlank()) return null to null
-            return when (val outcome = pgpRoomEncryptor.encryptForRoom(room, text, formatted)) {
-                is PgpRoomEncryptor.Outcome.Encrypted -> outcome.armoredBody to outcome.armoredFormatted
-                // Couldn't encrypt: the media goes without its caption rather than leaking it as plaintext.
+        suspend fun encrypt(caption: MediaCaption): MediaCaption {
+            if (caption.text.isNullOrBlank()) return MediaCaption(null)
+            return when (val outcome = pgpRoomEncryptor.encryptForRoom(room, caption.text, caption.formatted)) {
+                is PgpRoomEncryptor.Outcome.Encrypted -> MediaCaption(outcome.armoredBody, outcome.armoredFormatted)
+                // Failed encryption must never send the caption as plaintext.
                 else -> {
                     failure = outcome
-                    null to null
+                    MediaCaption(null)
                 }
             }
         }
 
-        val (mainCaption, mainFormatted) = encrypt(action.captionText, action.captionFormattedText)
-        val perAttachment = action.captions?.map { encrypt(it, null).first }
+        val perAttachment = action.captions?.map { encrypt(it) }
+        val mainCaption = if (perAttachment != null) {
+            perAttachment.getOrNull(action.captions.indexOfLast { !it.text.isNullOrBlank() }) ?: MediaCaption(null)
+        } else {
+            encrypt(MediaCaption(action.captionText, action.captionFormattedText, action.autoMarkdown))
+        }
         failure?.let { outcome ->
             val reason = when (outcome) {
                 PgpRoomEncryptor.Outcome.NoRecipients -> stringProvider.getString(CommonStrings.pgp_no_recipient_keys)
@@ -1180,7 +1185,7 @@ private fun handleSelectStickerAttachment() {
             }
             _viewEvents.post(RoomDetailViewEvents.ShowMessage(reason))
         }
-        sendMediasWithCaption(room, action, mainCaption, mainFormatted, perAttachment)
+        sendMediasWithCaption(room, action, mainCaption, perAttachment)
     }
 
     /** The room's own answer where it has one, and the account's otherwise. */
@@ -1202,9 +1207,8 @@ private fun handleSelectStickerAttachment() {
     private suspend fun sendMediasWithCaption(
             room: Room,
             action: RoomDetailAction.SendMedia,
-            captionText: CharSequence?,
-            captionFormattedText: String?,
-            perAttachmentCaptions: List<CharSequence?>?,
+            caption: MediaCaption,
+            perAttachmentCaptions: List<MediaCaption>?,
     ) {
         val randomize = shouldRandomizeFilenames(room)
         val stripMetadata = shouldStripMetadata(room)
@@ -1212,45 +1216,49 @@ private fun handleSelectStickerAttachment() {
                 .map { if (randomize) it.withRandomizedFilename() else it }
                 .map { it.copy(stripMetadata = stripMetadata) }
                 .let { sendMediaMaterializer.materialize(it) }
-        val autoMarkdown = if (captionText === action.captionText) action.autoMarkdown else false
-        // Which attachment [captionFormattedText] describes: the last one written for.
-        val mainCaptionIndex = perAttachmentCaptions?.indexOfLast { !it.isNullOrBlank() } ?: -1
         // Re-resolve the edited event: it may have finished sending since the picker was opened.
         val editedEvent = action.editedEventId?.let { room.getTimelineEvent(it) }
         if (editedEvent != null) {
             allAttachments.firstOrNull()?.let { replacement ->
+                val editCaption = perAttachmentCaptions?.firstOrNull() ?: caption
                 room.sendService().sendMediaEdit(
                         targetEvent = editedEvent,
                         attachment = replacement,
                         compressBeforeSending = action.compressBeforeSending,
-                        // The edited message keeps the caption written against it, not the batch's.
-                        captionText = perAttachmentCaptions?.firstOrNull() ?: captionText,
-                        captionFormattedText = captionFormattedText.takeIf { perAttachmentCaptions == null || mainCaptionIndex == 0 },
-                        autoMarkdown = autoMarkdown,
+                        captionText = editCaption.text,
+                        captionFormattedText = editCaption.formatted,
+                        autoMarkdown = editCaption.autoMarkdown,
                 )
             }
         }
-        // Whatever else was picked in the same go is a message of its own; the caption went to the edit.
         val attachments = if (editedEvent == null) allAttachments else allAttachments.drop(1)
         if (attachments.isEmpty()) return
-        val remainingCaption = captionText.takeIf { editedEvent == null }
-        val remainingFormattedCaption = captionFormattedText.takeIf { editedEvent == null }
+        val remainingCaption = if (editedEvent == null) {
+            caption
+        } else {
+            val lastCaptionIndex = action.captions?.indexOfLast { !it.text.isNullOrBlank() } ?: -1
+            if (lastCaptionIndex > 0) perAttachmentCaptions?.getOrNull(lastCaptionIndex) ?: MediaCaption(null) else MediaCaption(null)
+        }
         if (vectorPreferences.sendMediaGalleries() && attachments.size >= 2 && action.spoilers?.any { it } != true) {
             room.sendService().sendGallery(
                     attachments = attachments,
                     compressBeforeSending = action.compressBeforeSending,
                     rootThreadEventId = initialState.rootThreadEventId,
                     replyToEvent = action.replyToEvent,
-                    captionText = remainingCaption,
-                    captionFormattedText = remainingFormattedCaption,
-                    autoMarkdown = autoMarkdown,
+                    captionText = remainingCaption.text,
+                    captionFormattedText = remainingCaption.formatted,
+                    autoMarkdown = remainingCaption.autoMarkdown,
             )
             return
         }
         if (perAttachmentCaptions != null || action.spoilers?.any { it } == true) {
-            // Going out as messages of their own, so each carries the caption written for it.
             val captionOffset = if (editedEvent == null) 0 else 1
             attachments.forEachIndexed { index, attachment ->
+                val itemCaption = if (perAttachmentCaptions != null) {
+                    perAttachmentCaptions.getOrNull(index + captionOffset) ?: MediaCaption(null)
+                } else {
+                    remainingCaption.takeIf { index == attachments.lastIndex } ?: MediaCaption(null)
+                }
                 room.sendService().sendMedia(
                         attachment = attachment,
                         compressBeforeSending = action.compressBeforeSending,
@@ -1258,9 +1266,9 @@ private fun handleSelectStickerAttachment() {
                         rootThreadEventId = initialState.rootThreadEventId,
                         // The reply target belongs to the first event only, as sendMedias does.
                         replyToEvent = action.replyToEvent.takeIf { index == 0 },
-                        captionText = perAttachmentCaptions?.getOrNull(index + captionOffset),
-                        captionFormattedText = remainingFormattedCaption?.takeIf { index + captionOffset == mainCaptionIndex },
-                        autoMarkdown = autoMarkdown,
+                        captionText = itemCaption.text,
+                        captionFormattedText = itemCaption.formatted,
+                        autoMarkdown = itemCaption.autoMarkdown,
                         additionalContent = action.spoilers?.getOrNull(index + captionOffset)
                                 ?.takeIf { it }
                                 ?.let { mapOf(MSC4193_SPOILER_KEY to true) },
@@ -1274,9 +1282,9 @@ private fun handleSelectStickerAttachment() {
                 roomIds = emptySet(),
                 rootThreadEventId = initialState.rootThreadEventId,
                 replyToEvent = action.replyToEvent,
-                captionText = remainingCaption,
-                captionFormattedText = remainingFormattedCaption,
-                autoMarkdown = autoMarkdown,
+                captionText = remainingCaption.text,
+                captionFormattedText = remainingCaption.formatted,
+                autoMarkdown = remainingCaption.autoMarkdown,
         )
     }
 
