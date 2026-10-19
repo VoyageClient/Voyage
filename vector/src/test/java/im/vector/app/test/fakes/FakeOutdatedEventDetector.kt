@@ -16,10 +16,10 @@ class FakeOutdatedEventDetector {
     val instance = mockk<OutdatedEventDetector>()
 
     fun givenEventIsOutOfDate(notifiableEvent: NotifiableEvent) {
-        every { instance.isMessageOutdated(notifiableEvent) } returns true
+        every { instance.isMessageOutdated(notifiableEvent, any()) } returns true
     }
 
     fun givenEventIsInDate(notifiableEvent: NotifiableEvent) {
-        every { instance.isMessageOutdated(notifiableEvent) } returns false
+        every { instance.isMessageOutdated(notifiableEvent, any()) } returns false
     }
 }

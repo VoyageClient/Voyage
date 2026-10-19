@@ -109,6 +109,19 @@ class NotificationEventQueueTest {
     }
 
     @Test
+    fun `given events when removing instances then keeps equal events that were replaced since`() {
+        val processed = aNotifiableMessageEvent(eventId = "processed-id")
+        val replacement = aNotifiableMessageEvent(eventId = "processed-id")
+        val removed = aSimpleNotifiableEvent(eventId = "removed-id")
+        val kept = aSimpleNotifiableEvent(eventId = "kept-id")
+        val queue = givenQueue(listOf(removed, replacement, kept))
+
+        queue.removeInstances(listOf(processed, removed))
+
+        queue.rawEvents() shouldBeEqualTo listOf(replacement, kept)
+    }
+
+    @Test
     fun `when clearing then is empty`() {
         val queue = givenQueue(listOf(aSimpleNotifiableEvent()))
 

@@ -205,10 +205,14 @@ class NotificationDrawerManager @Inject constructor(
     @WorkerThread
     private fun refreshNotificationDrawerBg() = PerfTrace.time("notif.drawer.refresh") {
         Timber.v("refreshNotificationDrawerBg()")
-        val eventsToRender = notificationState.updateQueuedEvents(this) { queuedEvents, renderedEvents ->
-            notifiableEventProcessor.process(queuedEvents.rawEvents(), currentRoomId, currentThreadId, renderedEvents).also {
-                queuedEvents.clearAndAdd(it.onlyKeptEvents())
-            }
+        val (snapshot, rendered) = notificationState.updateQueuedEvents(this) { queuedEvents, renderedEvents ->
+            queuedEvents.rawEvents().toList() to renderedEvents.toList()
+        }
+        // Processed outside the lock: it hits the database per event, and the main thread takes this lock in updateEvents().
+        val eventsToRender = notifiableEventProcessor.process(snapshot, currentRoomId, currentThreadId, rendered)
+        val removed = eventsToRender.filter { it.type == ProcessedEvent.Type.REMOVE }.map { it.event }
+        if (removed.isNotEmpty()) {
+            notificationState.updateQueuedEvents(this) { queuedEvents, _ -> queuedEvents.removeInstances(removed) }
         }
 
         if (notificationState.hasAlreadyRendered(eventsToRender)) {

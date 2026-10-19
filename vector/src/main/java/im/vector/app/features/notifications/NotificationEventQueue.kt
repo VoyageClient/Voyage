@@ -8,6 +8,8 @@
 package im.vector.app.features.notifications
 
 import timber.log.Timber
+import java.util.Collections
+import java.util.IdentityHashMap
 
 data class NotificationEventQueue(
         private val queue: MutableList<NotifiableEvent>,
@@ -49,6 +51,12 @@ data class NotificationEventQueue(
     fun clearAndAdd(events: List<NotifiableEvent>) {
         queue.clear()
         queue.addAll(events)
+    }
+
+    /** Removes by identity, so an event replaced or re-added since [events] were read is kept. */
+    fun removeInstances(events: Collection<NotifiableEvent>) {
+        val toRemove = Collections.newSetFromMap(IdentityHashMap<NotifiableEvent, Boolean>()).apply { addAll(events) }
+        queue.removeAll { it in toRemove }
     }
 
     fun clear() {

@@ -12,6 +12,7 @@ import im.vector.app.features.notifications.ProcessedEvent.Type.KEEP
 import im.vector.app.features.notifications.ProcessedEvent.Type.REMOVE
 import org.matrix.android.sdk.api.debug.DebugLog
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.room.Room
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -23,13 +24,14 @@ class NotifiableEventProcessor @Inject constructor(
 ) {
 
     fun process(queuedEvents: List<NotifiableEvent>, currentRoomId: String?, currentThreadId: String?, renderedEvents: ProcessedEvents): ProcessedEvents {
+        val roomCache = mutableMapOf<String, Room?>()
         val processedEvents = queuedEvents.map { event ->
             val type = when (event) {
                 is InviteNotifiableEvent -> if (autoAcceptInvites.hideInvites) REMOVE else KEEP
                 is NotifiableMessageEvent -> when {
                     event.shouldIgnoreMessageEventInRoom(currentRoomId, currentThreadId) -> REMOVE
                             .also { Timber.d("notification message removed due to currently viewing the same room or thread") }
-                    outdatedDetector.isMessageOutdated(event) -> REMOVE
+                    outdatedDetector.isMessageOutdated(event, roomCache) -> REMOVE
                             .also {
                                 DebugLog.i {
                                     "NOTIFDBG Removing read notification event=${event.eventId} " +
