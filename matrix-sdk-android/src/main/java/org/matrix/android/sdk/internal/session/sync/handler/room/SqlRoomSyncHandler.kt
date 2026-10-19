@@ -40,6 +40,7 @@ import org.matrix.android.sdk.internal.database.mapper.overriddenSenderInfo
 import org.matrix.android.sdk.internal.database.mapper.toEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomEntity
+import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.ThreadSummarySqlHelper
 import org.matrix.android.sdk.internal.di.UserId
@@ -135,6 +136,9 @@ internal class SqlRoomSyncHandler @Inject constructor(
             aggregator.newlyJoinedRooms.add(roomId)
         }
         roomEntity.membership = Membership.JOIN
+        // The member list was refused while invited or removed and marked loaded anyway, which would keep
+        // the stripped/stale member rows (and the DM avatar/name derived from them) after joining.
+        if (previousMembership != Membership.JOIN) roomEntity.membersLoadStatus = RoomMembersLoadStatusType.NONE
         stores.room.upsert(roomEntity)
 
         // MSC4222: `state_after` is the state at the END of the timeline, so it has to be applied

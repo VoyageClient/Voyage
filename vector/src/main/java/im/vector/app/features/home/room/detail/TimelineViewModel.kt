@@ -107,6 +107,8 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
+import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
@@ -135,6 +137,7 @@ import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.settings.LinkPreviewSource
+import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.RoomOpenTrace
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.flow.flow
@@ -1948,6 +1951,33 @@ private fun handleSelectStickerAttachment() {
     }
 
     private var lastKnownMembership: Membership? = null
+    private var inviterProfile: JsonDict? = null
+    private var inviterProfileRequested = false
+
+    // The invite's stripped state is a snapshot from when the invite was sent, and an invitee gets no
+    // later member events, so a profile change since then only shows up in the inviter's live profile.
+    private fun fetchInviterProfile(inviterId: String) {
+        if (inviterProfileRequested) return
+        inviterProfileRequested = true
+        viewModelScope.launch {
+            val profile = tryOrNull { session.profileService().getProfile(inviterId) } ?: return@launch
+            inviterProfile = profile
+            setState {
+                val inviter = asyncInviter() ?: return@setState this
+                copy(asyncInviter = Success(inviter.withProfile(profile)))
+            }
+        }
+    }
+
+    private fun RoomMemberSummary.withProfile(profile: JsonDict?): RoomMemberSummary {
+        profile ?: return this
+        val avatarUrl = profile[ProfileService.AVATAR_URL_KEY] as? String
+        return copy(
+                displayName = profile[ProfileService.DISPLAY_NAME_KEY] as? String ?: displayName,
+                avatarUrl = avatarUrl,
+                avatarDecryption = ProfileOverrides.avatarDecryptionForUrl(avatarUrl),
+        )
+    }
 
     private fun observeSummaryState() {
         if (room == null) return
@@ -1959,6 +1989,8 @@ private fun handleSelectStickerAttachment() {
                 // sync rebuilt/extended the chunks under this timeline — re-anchor at the live
                 // chunk so the previously invisible span (e.g. between kick and join) backfills.
                 timeline?.restartWithEventId(null)
+                // The init-time load was refused before joining, so the member rows still hold the invite snapshot.
+                viewModelScope.launch { tryOrNull { room.membershipService().loadFullRoomStateIfNeeded() } }
             }
             setState {
                 val typingMessage = typingHelper.getTypingMessage(summary.typingUsers)
@@ -1972,7 +2004,8 @@ private fun handleSelectStickerAttachment() {
                 summary.inviterId?.let { inviterId ->
                     session.roomService().getRoomMember(inviterId, summary.roomId)
                 }?.also {
-                    setState { copy(asyncInviter = Success(it)) }
+                    setState { copy(asyncInviter = Success(it.withProfile(inviterProfile))) }
+                    fetchInviterProfile(it.userId)
                 }
             }
             if (summary.isRemovedFromRoom && !summary.membership.isActive()) {
