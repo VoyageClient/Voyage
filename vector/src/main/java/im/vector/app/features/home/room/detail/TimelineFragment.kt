@@ -3004,6 +3004,14 @@ class TimelineFragment :
         vectorBaseActivity.finish()
     }
 
+    override fun onInviterAvatarClicked(matrixItem: MatrixItem) {
+        navigator.openBigImageViewer(requireActivity(), matrixItem)
+    }
+
+    override fun onInviterNameClicked(userId: String) {
+        openRoomMemberProfile(userId)
+    }
+
     private fun onJumpToReadMarkerClicked() = withState(timelineViewModel) {
         if (it.unreadState is UnreadState.HasUnread) {
             timelineViewModel.handle(RoomDetailAction.NavigateToEvent(it.unreadState.firstUnreadEventId, highlight = false, isFirstUnreadEvent = true))

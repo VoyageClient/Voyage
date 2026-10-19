@@ -14,6 +14,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.databinding.VectorInviteViewBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -22,6 +23,7 @@ import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
+import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
 
@@ -33,6 +35,8 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
         fun onAcceptInvite()
         fun onRejectInvite()
         fun onIgnoreSender()
+        fun onInviterAvatarClicked(matrixItem: MatrixItem)
+        fun onInviterNameClicked(userId: String)
     }
 
     enum class Mode {
@@ -61,8 +65,19 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             views.inviteScroll.updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
             val senderItem = sender.toMatrixItem().let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }
             avatarRenderer.render(senderItem, views.inviteAvatarView)
+            if (senderItem.avatarUrl.isNullOrBlank()) {
+                views.inviteAvatarView.setOnClickListener(null)
+                views.inviteAvatarView.isClickable = false
+            } else {
+                views.inviteAvatarView.setOnClickListener { callback?.onInviterAvatarClicked(senderItem) }
+            }
             views.inviteIdentifierView.text = sender.userId.neutralizeDirectionOverrides()
+            views.inviteIdentifierView.setOnLongClickListener {
+                copyToClipboard(context, sender.userId)
+                true
+            }
             views.inviteNameView.text = sender.displayName?.prepareForDisplay()
+            views.inviteNameView.setOnClickListener { callback?.onInviterNameClicked(sender.userId) }
             views.inviteLabelView.text = context.getString(CommonStrings.send_you_invite)
             views.inviteIgnoreView.visibility = View.VISIBLE
         } else {
