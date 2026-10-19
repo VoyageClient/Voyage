@@ -47,6 +47,7 @@ import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -154,6 +155,8 @@ internal class SqlTimeline(
     }
 
     @Volatile private var builtEvents: List<TimelineEvent> = emptyList()
+    private val uiEchoRevision = AtomicLong()
+    private var paginationNotificationPending = false
 
     // Live timelines render a grow-only window (newest down to [oldestShownEventId]) instead of the whole
     // loaded chunk at once — building the whole chunk is catastrophic room-open on a single-core device.
@@ -205,8 +208,7 @@ internal class SqlTimeline(
     override fun addListener(listener: Timeline.Listener): Boolean {
         listeners.add(listener)
         timelineScope.launch {
-            val snapshot = builtEvents
-            withContext(coroutineDispatchers.main) { tryOrNull { listener.onTimelineUpdated(snapshot) } }
+            withContext(coroutineDispatchers.main) { tryOrNull { listener.onTimelineUpdated(builtEvents) } }
         }
         return true
     }
@@ -1044,6 +1046,7 @@ internal class SqlTimeline(
             return
         }
         val perfStart = MatrixPerf.now()
+        val echoRevision = uiEchoRevision.get()
         val nowAtLiveEdge = isLiveEdgeLoaded()
         // A forced new live chunk (sliding-sync initial redelivery, rejoin) demotes the chunk we were
         // watching without deleting it; new events land in the new chunk, so follow it. Only an edge
@@ -1086,12 +1089,6 @@ internal class SqlTimeline(
         val all = computeLoadedEvents(reuseLiveChunk)
         MatrixPerf.end(perfStart) { "timeline.computeLoadedEvents reuse=$reuseLiveChunk chunks=${loadedChunkIds.size} events=${all.size}" }
         val events = applyWindow(all)
-        // The memoized mappers return the same instances for unchanged events, so a reference sweep
-        // detects a no-op rebuild. Skipping the notify matters: each snapshot posted wakes the epoxy
-        // controller for a full model pass (~0.5s on device), and redundant posts were queueing behind
-        // each other and delaying real updates (like a just-sent message) by seconds.
-        val unchanged = sameByReference(events, builtEvents)
-        builtEvents = events
         requestDecryptionForUtd(events)
         windowHasMoreOlder = isWindowed && events.isNotEmpty() &&
                 (events.last().eventId != all.last().eventId || !liveChunkFullyMapped)
@@ -1104,10 +1101,20 @@ internal class SqlTimeline(
         val forwardBefore = forwardState.get().hasMoreToLoad
         refreshPaginationStates()
         val paginationChanged = backwardBefore != backwardState.get().hasMoreToLoad || forwardBefore != forwardState.get().hasMoreToLoad
-        Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events (unchanged=$unchanged)")
-        MatrixPerf.end(perfStart) { "timeline.rebuildSnapshot reuse=$reuseLiveChunk shown=${events.size}/${all.size} unchanged=$unchanged" }
-        if (!unchanged || paginationChanged) {
-            withContext(coroutineDispatchers.main) {
+        withContext(coroutineDispatchers.main) {
+            paginationNotificationPending = paginationNotificationPending || paginationChanged
+            // An echo can change while the read dispatcher builds this snapshot. Publish on main
+            // only if it still includes those changes, otherwise keep the visible echo and retry.
+            if (echoRevision != uiEchoRevision.get()) {
+                timelineScope.launch { rebuildSnapshot() }
+                return@withContext
+            }
+            val unchanged = sameByReference(events, builtEvents)
+            builtEvents = events
+            Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events (unchanged=$unchanged)")
+            MatrixPerf.end(perfStart) { "timeline.rebuildSnapshot reuse=$reuseLiveChunk shown=${events.size}/${all.size} unchanged=$unchanged" }
+            if (!unchanged || paginationNotificationPending) {
+                paginationNotificationPending = false
                 listeners.forEach { tryOrNull { it.onTimelineUpdated(events) } }
             }
         }
@@ -1221,13 +1228,8 @@ internal class SqlTimeline(
         updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = moreForward) }
     }
 
-    // TimelineInput callbacks: the send pipeline's in-memory signal, so a sent message and its
-    // send-state transitions show instantly instead of waiting for the DB flow (echo insert) or a sync
-    // round-trip (send-state lives in the event table, which the timeline_event flows don't observe).
-    // These run on the MAIN dispatcher, not the session dispatcher: the DB thread can be hundreds of ms
-    // behind (sync handling, chunk mapping) and the whole point is showing the echo instantly. A
-    // concurrent DB-thread rebuild can overwrite the optimistic prepend, but it merges the same echo
-    // back in from uiEchoManager's in-memory list, so the loss is at most one frame.
+    // Keep instant echoes on main so they don't wait behind database reads or writes.
+    // Their revisions invalidate background snapshots built before these changes.
     override fun onLocalEchoCreated(roomId: String, timelineEvent: TimelineEvent) {
         if (roomId != this.roomId || !isStarted.get()) return
         timelineScope.launch(coroutineDispatchers.main) {
@@ -1236,6 +1238,7 @@ internal class SqlTimeline(
             // it next to old history. Sending triggers a jump-to-bottom restart which shows it.
             if (!isThreadTimeline && (!liveEdgeLoaded || newestShownEventId != null)) return@launch
             uiEchoManager.onLocalEchoCreated(timelineEvent)
+            uiEchoRevision.incrementAndGet()
             // A DB-flow rebuild may already have picked the echo up from the sending table.
             if (builtEvents.none { it.eventId == timelineEvent.eventId }) {
                 builtEvents = listOf(timelineEvent) + builtEvents
@@ -1248,6 +1251,7 @@ internal class SqlTimeline(
         if (roomId != this.roomId || !isStarted.get()) return
         timelineScope.launch(coroutineDispatchers.main) {
             if (!uiEchoManager.onSendStateUpdated(eventId, sendState)) return@launch
+            uiEchoRevision.incrementAndGet()
             val current = builtEvents
             val idx = current.indexOfFirst { it.eventId == eventId }
             if (idx < 0) return@launch
@@ -1261,6 +1265,7 @@ internal class SqlTimeline(
         timelineScope.launch(coroutineDispatchers.main) {
             // Also drops any stranded in-memory copy, its send-state override and its reaction echo.
             uiEchoManager.onSyncedEvent(eventId, dropReactionEcho = true)
+            uiEchoRevision.incrementAndGet()
             val current = builtEvents
             val idx = current.indexOfFirst { it.eventId == eventId }
             if (idx < 0) return@launch
@@ -1334,8 +1339,8 @@ internal class SqlTimeline(
     }
 
     private suspend fun notifySnapshot() {
-        val snapshot = builtEvents
         withContext(coroutineDispatchers.main) {
+            val snapshot = builtEvents
             listeners.forEach { tryOrNull { it.onTimelineUpdated(snapshot) } }
         }
     }
