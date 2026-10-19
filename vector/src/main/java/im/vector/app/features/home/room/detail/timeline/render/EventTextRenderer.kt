@@ -25,6 +25,7 @@ import im.vector.app.features.html.PILL_PLACEHOLDER
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.overlapsExplicitLink
 import im.vector.app.features.html.setPillSpan
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -47,6 +48,7 @@ class EventTextRenderer @AssistedInject constructor(
         private val avatarRenderer: AvatarRenderer,
         private val sessionHolder: ActiveSessionHolder,
         private val permalinkEventResolver: PermalinkEventResolver,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     @AssistedFactory
@@ -68,7 +70,7 @@ class EventTextRenderer @AssistedInject constructor(
      * @param source the event [text] comes from; its `@room` only pills where it could notify the room.
      */
     fun render(text: CharSequence, source: RoomMentionSource? = null): CharSequence = PerfTrace.time("text.render") {
-        val formattedText = renderPermalinks(text)
+        val formattedText = renderPermalinks(text, source?.originServerTs?.takeUnless { vectorPreferences.showLiveSenderInfo() })
         renderNotifyEveryone(formattedText, source)
     }
 
@@ -82,10 +84,10 @@ class EventTextRenderer @AssistedInject constructor(
         }
     }
 
-    private fun renderPermalinks(text: CharSequence): CharSequence {
+    private fun renderPermalinks(text: CharSequence, mentionedAt: Long?): CharSequence {
         return if (roomId != null) {
             SpannableStringBuilder(text).apply {
-                addPermalinksSpans(this)
+                addPermalinksSpans(this, mentionedAt)
             }
         } else {
             text
@@ -133,7 +135,7 @@ class EventTextRenderer @AssistedInject constructor(
 
     private data class PillPlacement(val item: MatrixItem, val start: Int, val end: Int, val url: String)
 
-    private fun addPermalinksSpans(text: Spannable) {
+    private fun addPermalinksSpans(text: Spannable, mentionedAt: Long?) {
         val placements = mutableListOf<PillPlacement>()
         // A permalink inside inline code, a code block or an MSC4550 explicit link should stay verbatim, not become a pill.
         val codeSpans = text.getSpans(0, text.length, HtmlCodeSpan::class.java)
@@ -150,7 +152,7 @@ class EventTextRenderer @AssistedInject constructor(
             if (start < 0 || end < 0) continue
             if (keepVerbatim(start, end)) continue
             if (existingPills.any { text.getSpanStart(it) < end && start < text.getSpanEnd(it) }) continue
-            val item = permalinkToMatrixItem(span.url) ?: continue
+            val item = permalinkToMatrixItem(span.url, mentionedAt) ?: continue
             placements.add(PillPlacement(item, start, end, span.url))
         }
         // Bare permalink URLs that appear as plain visible text (no <a> wrapper), skipping ranges
@@ -163,7 +165,7 @@ class EventTextRenderer @AssistedInject constructor(
             if (keepVerbatim(start, end)) continue
             if (placements.any { it.start < end && start < it.end }) continue
             val url = text.substring(start, end)
-            val item = permalinkToMatrixItem(url) ?: continue
+            val item = permalinkToMatrixItem(url, mentionedAt) ?: continue
             placements.add(PillPlacement(item, start, end, url))
         }
         // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier ranges.
@@ -176,11 +178,11 @@ class EventTextRenderer @AssistedInject constructor(
         }
     }
 
-    private fun permalinkToMatrixItem(url: String): MatrixItem? {
+    private fun permalinkToMatrixItem(url: String, mentionedAt: Long?): MatrixItem? {
         val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedPermalinkHosts, url).orFalse()
         if (!isPermalinkSupported) return null
         return when (val permalinkData = PermalinkParser.parse(url)) {
-            is PermalinkData.UserLink -> permalinkData.toMatrixItem()
+            is PermalinkData.UserLink -> permalinkData.toMatrixItem(mentionedAt)
             is PermalinkData.RoomLink -> permalinkData.toMatrixItem()
             else -> null
         }
@@ -204,9 +206,13 @@ class EventTextRenderer @AssistedInject constructor(
         renderedText.setPillSpan(pillSpan, startSpan, endSpan)
     }
 
-    private fun PermalinkData.UserLink.toMatrixItem(): MatrixItem? =
-            roomId?.let { sessionHolder.getSafeActiveSession()?.roomService()?.getRoomMember(userId, it)?.toMatrixItem() }
-                    ?: sessionHolder.getSafeActiveSession()?.getUserOrDefault(userId)?.toMatrixItem()
+    private fun PermalinkData.UserLink.toMatrixItem(mentionedAt: Long?): MatrixItem? {
+        val session = sessionHolder.getSafeActiveSession() ?: return null
+        return roomId?.let { roomId ->
+            (mentionedAt?.let { session.roomService().getRoomMemberAt(userId, roomId, it) } ?: session.roomService().getRoomMember(userId, roomId))
+                    ?.toMatrixItem()
+        } ?: session.getUserOrDefault(userId).toMatrixItem()
+    }
 
     private fun PermalinkData.RoomLink.toMatrixItem(): MatrixItem {
         val room: RoomSummary? = sessionHolder.getSafeActiveSession()?.getRoomSummary(roomIdOrAlias)
@@ -259,13 +265,13 @@ class EventTextRenderer @AssistedInject constructor(
 }
 
 /** Who sent a text and whether it sets `m.mentions.room`; its `@room` pills only when it does and the sender may notify the room. */
-data class RoomMentionSource(val senderId: String?, val mentionsRoom: Boolean)
+data class RoomMentionSource(val senderId: String?, val mentionsRoom: Boolean, val originServerTs: Long? = null)
 
-fun TimelineEvent.roomMentionSource() = RoomMentionSource(root.senderId, mentionsRoom())
+fun TimelineEvent.roomMentionSource() = RoomMentionSource(root.senderId, mentionsRoom(), root.originServerTs)
 
-fun MessageInformationData.roomMentionSource() = RoomMentionSource(senderId, mentionsRoom)
+fun MessageInformationData.roomMentionSource() = RoomMentionSource(senderId, mentionsRoom, originServerTs)
 
-fun Event.roomMentionSource() = RoomMentionSource(senderId, getClearContent().mentionsRoom())
+fun Event.roomMentionSource() = RoomMentionSource(senderId, getClearContent().mentionsRoom(), originServerTs)
 
 /** Whether the shown content (an edit's, when edited) sets `m.mentions.room`. */
 fun TimelineEvent.mentionsRoom(): Boolean =

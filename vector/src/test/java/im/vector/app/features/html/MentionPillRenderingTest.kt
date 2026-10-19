@@ -25,6 +25,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.user.model.User
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -161,19 +163,36 @@ class MentionPillRenderingTest {
         render("""<a href="https://example.org" data-mx-link>ask @room</a> @room""", roomId).pillNames().size shouldBeEqualTo 1
     }
 
+    @Test
+    fun `given a mention in an old message, when rendering in a room, then the pill shows the profile from then`() {
+        val mentionedAt = 1_000L
+        every { session.roomService().getRoomMember(knownUser, roomId) } returns
+                RoomMemberSummary(Membership.JOIN, knownUser, displayName = "Alice Now", avatarUrl = "mxc://example.org/now")
+        every { session.roomService().getRoomMemberAt(knownUser, roomId, mentionedAt) } returns
+                RoomMemberSummary(Membership.JOIN, knownUser, displayName = "Alice Then", avatarUrl = "mxc://example.org/then")
+        val html = """<a href="https://matrix.to/#/$knownUser">Alice</a>"""
+
+        render(html, roomId, mentionedAt).pills().map { it.getBestName() to it.avatarUrl } shouldBeEqualTo
+                listOf("Alice Then" to "mxc://example.org/then")
+        render(html, roomId, mentionedAt, showLatestProfile = true).pills().map { it.getBestName() to it.avatarUrl } shouldBeEqualTo
+                listOf("Alice Now" to "mxc://example.org/now")
+    }
+
     private fun renderAsBio(html: String): Spanned = render(html, null)
 
-    private fun render(html: String, roomId: String?): Spanned {
-        val pills = PillsPostProcessor(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true))
-        val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true))
-        val rendered = renderer.render(html, pills) as Spanned
+    private fun render(html: String, roomId: String?, mentionedAt: Long? = null, showLatestProfile: Boolean = false): Spanned {
+        val preferences = mockk<VectorPreferences>(relaxed = true).also { every { it.showLiveSenderInfo() } returns showLatestProfile }
+        val pills = PillsPostProcessor(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), preferences)
+        val textRenderer = EventTextRenderer(roomId, context, avatarRenderer, sessionHolder, mockk(relaxed = true), preferences)
+        val rendered = renderer.render(html, pills.forEvent(mentionedAt)) as Spanned
         val textView = TextView(context)
         renderer.setTextWithPlugins(textView, textRenderer.render(rendered).linkify(null))
         return textView.text as Spanned
     }
 
-    private fun Spanned.pillNames() = getSpans(0, length, PillImageSpan::class.java)
-            .map { it.matrixItem.getBestName() }
+    private fun Spanned.pills() = getSpans(0, length, PillImageSpan::class.java).map { it.matrixItem }
+
+    private fun Spanned.pillNames() = pills().map { it.getBestName() }
 
     private fun String.linkText() = substringAfter("\">").substringBefore("</a>")
 }

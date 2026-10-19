@@ -198,6 +198,7 @@ class MessageInformationDataFactory @Inject constructor(
                 sendState = event.root.sendState,
                 time = time,
                 ageLocalTS = event.root.ageLocalTs,
+                originServerTs = event.root.originServerTs,
                 avatarUrl = renderedSenderAvatar,
                 avatarDecryption = renderedAvatarDecryption,
                 perMessageProfileFallback = renderedProfile.fallbackDisplayName,

@@ -26,6 +26,7 @@ data class MessageInformationData(
         val sendState: SendState,
         val time: CharSequence? = null,
         val ageLocalTS: Long?,
+        val originServerTs: Long? = null,
         val avatarUrl: String?,
         val memberName: CharSequence? = null,
         val messageLayout: TimelineMessageLayout,

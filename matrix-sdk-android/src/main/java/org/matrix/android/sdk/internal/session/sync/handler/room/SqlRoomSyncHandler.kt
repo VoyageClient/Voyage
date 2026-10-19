@@ -140,6 +140,9 @@ internal class SqlRoomSyncHandler @Inject constructor(
         // MSC4222: `state_after` is the state at the END of the timeline, so it has to be applied
         // after the timeline events rather than before them, or the timeline would overwrite it.
         val stateAfter = roomSync.stateAfter
+        // Captured before state_after's members land below, which would otherwise attribute a sender's
+        // messages from before a profile change in this batch to the profile they changed to.
+        val preBatchMembers = if (stateAfter != null) preBatchMemberState(stores, roomId, roomSync.timeline?.events.orEmpty()) else emptyMap()
         if (stateAfter == null) {
             applyStateEvents(stores, roomId, roomSync.state?.events, insertType, syncTs, isInitialSync, aggregator)
         } else {
@@ -212,6 +215,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                         // A rejoin window is visibility-filtered server-side (see ReanchorRejoinedRoomTask),
                         // so overlap with the retained chunk does not imply contiguity there.
                         absorbOnOverlap = !rejoinAfterRemoval,
+                        initialMembers = preBatchMembers,
                 )
             }
         }
@@ -230,6 +234,25 @@ internal class SqlRoomSyncHandler @Inject constructor(
             )
         }
         handleRoomAccountData(stores, roomId, roomSync.accountData)
+    }
+
+    /** The member content and event id each user with a member event in [timelineEvents] had before it. */
+    private fun preBatchMemberState(
+            stores: SessionStores, roomId: String, timelineEvents: List<Event>,
+    ): Map<String, Pair<RoomMemberContent, String?>> {
+        val result = HashMap<String, Pair<RoomMemberContent, String?>>()
+        val firstMemberEvents = timelineEvents.filter { it.type == EventType.STATE_ROOM_MEMBER && it.stateKey != null }.distinctBy { it.stateKey }
+        for (event in firstMemberEvents) {
+            val memberId = event.stateKey ?: continue
+            val prevContent = event.resolvedPrevContent().toModel<RoomMemberContent>()
+            if (prevContent != null) {
+                result[memberId] = prevContent to event.unsignedData?.replacesState
+            } else {
+                val stored = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, memberId)?.root?.asDomain()
+                stored?.getFixedRoomMemberContent()?.let { result[memberId] = it to stored.eventId }
+            }
+        }
+        return result
     }
 
     /**
@@ -447,6 +470,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
             aggregator: SyncResponsePostTreatmentAggregator,
             forceNewChunk: Boolean = false,
             absorbOnOverlap: Boolean = true,
+            initialMembers: Map<String, Pair<RoomMemberContent, String?>> = emptyMap(),
     ) {
         val lastChunkId = MatrixPerf.time("tl.lastForward") { stores.chunk.lastForward(roomId)?.id }
         val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
@@ -480,6 +504,10 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val eventIds = ArrayList<String>(eventList.size)
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
         val roomMemberEventIdsByUser = HashMap<String, String?>()
+        initialMembers.forEach { (memberId, member) ->
+            roomMemberContentsByUser[memberId] = member.first
+            roomMemberEventIdsByUser[memberId] = member.second
+        }
         val rootThreadEventIds = LinkedHashSet<String>()
         val unresolvedRelatedEventIds = ArrayList<String>()
 

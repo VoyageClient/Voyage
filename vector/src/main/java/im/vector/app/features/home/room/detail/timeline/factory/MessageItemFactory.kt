@@ -1057,7 +1057,8 @@ class MessageItemFactory @Inject constructor(
         val compressed = htmlCompressor.compress(bareBody)
         val containsTable = compressed.contains("<table", ignoreCase = true)
         val containsCodeBlock = compressed.contains("<pre", ignoreCase = true)
-        val renderedBody = (htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned).trimUncoveredWhitespace()
+        val pills = pillsPostProcessor.forEvent(informationData.originServerTs)
+        val renderedBody = (htmlRenderer.get().render(compressed, pills) as Spanned).trimUncoveredWhitespace()
 
         val segments = if (containsTable || containsCodeBlock) {
             // Only take the rich path when a top-level table/code block was actually extracted; a nested
@@ -1070,7 +1071,7 @@ class MessageItemFactory @Inject constructor(
         // When the room hides media, inline <img>/emoticons are blocked behind grey placeholders
         // until the message is tapped to reveal (handled in MessageTextItem via mediaRevealManager).
         val blockedBody = if (segments == null && shouldHideMedia(informationData) && compressed.contains("<img", ignoreCase = true)) {
-            buildBlockedInlineImagesBody(compressed)
+            buildBlockedInlineImagesBody(compressed, pills)
         } else {
             null
         }
@@ -1089,9 +1090,9 @@ class MessageItemFactory @Inject constructor(
         )
     }
 
-    private fun buildBlockedInlineImagesBody(compressedHtml: String): CharSequence {
+    private fun buildBlockedInlineImagesBody(compressedHtml: String, pills: EventHtmlRenderer.PostProcessor): CharSequence {
         val blockedHtml = compressedHtml.replace(IMG_TAG_REGEX, OBJECT_REPLACEMENT_STRING)
-        val rendered = (htmlRenderer.get().render(blockedHtml, pillsPostProcessor) as? Spanned) ?: return ""
+        val rendered = (htmlRenderer.get().render(blockedHtml, pills) as? Spanned) ?: return ""
         val ssb = SpannableStringBuilder(rendered)
         val gray = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
         var idx = ssb.indexOf(OBJECT_REPLACEMENT_CHAR)
@@ -1151,7 +1152,7 @@ class MessageItemFactory @Inject constructor(
         }
         val initialBody: CharSequence = if (effectiveFormatted != null) {
             val compressed = htmlCompressor.compress(effectiveFormatted)
-            val raw = htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned
+            val raw = htmlRenderer.get().render(compressed, pillsPostProcessor.forEvent(informationData.originServerTs)) as? Spanned
             raw?.trimUncoveredWhitespace() ?: effectiveBody
         } else {
             effectiveBody.withoutTrailingLineBreak()
@@ -1216,7 +1217,7 @@ class MessageItemFactory @Inject constructor(
                     if (bodySegments != null) {
                         bodySegments(bodySegments)
                         richBodyRenderer(richMessageBodyRenderer)
-                        htmlPostProcessors(arrayOf<EventHtmlRenderer.PostProcessor>(pillsPostProcessor))
+                        htmlPostProcessors(arrayOf(pillsPostProcessor.forEvent(informationData.originServerTs)))
                         richReplyHeader(richReplyHeader)
                         messageSuffixFormatter.footer(informationData.hasBeenEdited, translation) {
                             callback?.onEditedDecorationClicked(informationData)
@@ -1243,7 +1244,7 @@ class MessageItemFactory @Inject constructor(
             return buildFormattedTextItem(formatted, informationData, highlight, callback, attributes, noticeStyle = noticeStyle, translation = translation)
         }
         val body: CharSequence = formatted
-                ?.let { htmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor) }
+                ?.let { htmlRenderer.get().render(htmlCompressor.compress(it), pillsPostProcessor.forEvent(informationData.originServerTs)) }
                 ?: translation.text
         return buildMessageTextItem(
                 if (emoteSender != null) {
@@ -1356,7 +1357,7 @@ class MessageItemFactory @Inject constructor(
                 ?.withoutPerMessageProfileFallback(informationData)
                 ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
                 ?.let { htmlCompressor.compress(it) }
-                ?.let { htmlRenderer.get().render(it, pillsPostProcessor) }
+                ?.let { htmlRenderer.get().render(it, pillsPostProcessor.forEvent(informationData.originServerTs)) }
                 ?: body.withoutPerMessageProfileFallback(informationData)
                         .let { if (relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(it) else it }
                         .withoutTrailingLineBreak()

@@ -17,12 +17,14 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.settings.VectorPreferences
 import io.noties.markwon.core.spans.LinkSpan
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.getUser
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -34,11 +36,16 @@ class PillsPostProcessor @AssistedInject constructor(
         private val avatarRenderer: AvatarRenderer,
         private val sessionHolder: ActiveSessionHolder,
         private val itemResolver: PillItemResolver,
+        private val vectorPreferences: VectorPreferences,
 ) :
         EventHtmlRenderer.PostProcessor {
 
     private val knownSenders = object : LinkedHashMap<String, SenderInfo>(128, 0.75f, true) {
         override fun removeEldestEntry(eldest: Map.Entry<String, SenderInfo>): Boolean = size > 128
+    }
+
+    private val membersAt = object : LinkedHashMap<Pair<String, Long>, RoomMemberSummary?>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<Pair<String, Long>, RoomMemberSummary?>): Boolean = size > 256
     }
 
     /* ==========================================================================================
@@ -55,7 +62,18 @@ class PillsPostProcessor @AssistedInject constructor(
      * ========================================================================================== */
 
     override fun afterRender(renderedText: Spannable) {
-        addPillSpans(renderedText)
+        addLinkSpans(renderedText, null)
+    }
+
+    /**
+     * For the body of a message sent at [originServerTs]: user pills show the profile the mentioned user had
+     * then, as the message's own sender does, unless the latest profile is wanted.
+     */
+    fun forEvent(originServerTs: Long?): EventHtmlRenderer.PostProcessor {
+        if (originServerTs == null || roomId == null || vectorPreferences.showLiveSenderInfo()) return this
+        return object : EventHtmlRenderer.PostProcessor {
+            override fun afterRender(renderedText: Spannable) = addLinkSpans(renderedText, originServerTs)
+        }
     }
 
     fun rememberSenders(senders: Iterable<SenderInfo>) {
@@ -70,10 +88,6 @@ class PillsPostProcessor @AssistedInject constructor(
      * Helper methods
      * ========================================================================================== */
 
-    private fun addPillSpans(renderedText: Spannable) {
-        addLinkSpans(renderedText)
-    }
-
     private fun addPillSpan(
             renderedText: Spannable,
             pillSpan: PillImageSpan,
@@ -83,7 +97,7 @@ class PillsPostProcessor @AssistedInject constructor(
         renderedText.setPillSpan(pillSpan, startSpan, endSpan)
     }
 
-    private fun addLinkSpans(renderedText: Spannable) {
+    private fun addLinkSpans(renderedText: Spannable, originServerTs: Long?) {
         // We let markdown handle links and then we add PillImageSpan if needed.
         val codeSpans = renderedText.getSpans(0, renderedText.length, HtmlCodeSpan::class.java)
         val linkSpans = renderedText.getSpans(0, renderedText.length, LinkSpan::class.java)
@@ -93,7 +107,7 @@ class PillsPostProcessor @AssistedInject constructor(
             // A mention/permalink inside inline code or a code block should stay verbatim, not become a pill.
             if (codeSpans.any { renderedText.getSpanStart(it) < endSpan && startSpan < renderedText.getSpanEnd(it) }) return@forEach
             if (renderedText.overlapsExplicitLink(startSpan, endSpan)) return@forEach
-            val pillSpan = linkSpan.createPillSpan(renderedText.subSequence(startSpan, endSpan).toString()) ?: return@forEach
+            val pillSpan = linkSpan.createPillSpan(renderedText.subSequence(startSpan, endSpan).toString(), originServerTs) ?: return@forEach
             // GlideImagesPlugin causes duplicated pills if we have a nested spans in the pill span,
             // such as images. Accordingly, it's better to remove all spans that are contained in this span
             // before rendering, except bold/italic styling, which the pill draws its label with.
@@ -124,7 +138,7 @@ class PillsPostProcessor @AssistedInject constructor(
                     itemResolver = itemResolver.takeIf { roomId == null },
             )
 
-    private fun LinkSpan.createPillSpan(linkText: String): PillImageSpan? {
+    private fun LinkSpan.createPillSpan(linkText: String, originServerTs: Long?): PillImageSpan? {
         val supportedHosts = context.resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
         val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedHosts, url).orFalse()
         if (isPermalinkSupported) {
@@ -132,7 +146,7 @@ class PillsPostProcessor @AssistedInject constructor(
             // don't know the user or room ourselves; a link whose text is just its target says nothing.
             val label = linkText.trim().takeUnless { it.isBlank() || it == url }
             val matrixItem = when (val permalinkData = PermalinkParser.parse(url)) {
-                is PermalinkData.UserLink -> permalinkData.toMatrixItem(label)
+                is PermalinkData.UserLink -> permalinkData.toMatrixItem(label, originServerTs)
                 is PermalinkData.RoomLink -> permalinkData.toMatrixItem(label)
                 else -> null
             } ?: return null
@@ -142,9 +156,16 @@ class PillsPostProcessor @AssistedInject constructor(
         }
     }
 
-    private fun PermalinkData.UserLink.toMatrixItem(label: String?): MatrixItem? {
+    private fun PermalinkData.UserLink.toMatrixItem(label: String?, originServerTs: Long?): MatrixItem? {
         val session = sessionHolder.getSafeActiveSession() ?: return null
-        val member = roomId?.let { session.roomService().getRoomMember(userId, it) }
+        val memberThen = if (roomId != null && originServerTs != null) {
+            synchronized(membersAt) {
+                membersAt.getOrPut(userId to originServerTs) { session.roomService().getRoomMemberAt(userId, roomId, originServerTs) }
+            }
+        } else {
+            null
+        }
+        val member = memberThen ?: roomId?.let { session.roomService().getRoomMember(userId, it) }
         val known = synchronized(knownSenders) { knownSenders[userId] }
         if (member != null || known != null) {
             return MatrixItem.UserItem(

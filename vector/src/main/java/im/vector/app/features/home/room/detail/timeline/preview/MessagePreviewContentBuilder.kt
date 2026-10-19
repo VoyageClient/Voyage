@@ -158,7 +158,7 @@ class MessagePreviewContentBuilder @Inject constructor(
         // The poll speaks for itself, so it drops the details line naming its kind.
         buildPoll(event, content)?.let { return withMedia.copy(poll = it, details = null) }
         val textRenderer = textRendererFactory.create(event.roomId)
-        val pills = pillsPostProcessorFactory.create(event.roomId)
+        val pills = pillsPostProcessorFactory.create(event.roomId).forEvent(event.root.originServerTs)
         val translation = messageTranslationStore.get(event)?.takeIf { options.galleryItemIndex == null }
         val pgpPlaintext = if (translation == null) {
             options.pgpPlaintext ?: (content as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
@@ -309,7 +309,7 @@ class MessagePreviewContentBuilder @Inject constructor(
             formatted: String?,
             plain: String?,
             textRenderer: EventTextRenderer,
-            pills: PillsPostProcessor,
+            pills: EventHtmlRenderer.PostProcessor,
     ): CharSequence {
         val caption = formatted?.takeIf { it.isNotBlank() }
                 ?.let { htmlRenderer.get().render(htmlCompressor.compress(it.withoutMxReply()), pills) }

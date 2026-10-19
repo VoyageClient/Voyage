@@ -44,6 +44,7 @@ import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRe
 import im.vector.app.features.home.room.detail.timeline.style.mediaPreviewCornerRadiusPx
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.applyEmoteLineSpacing
 import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.html.bindPillImageSpans
@@ -179,7 +180,9 @@ class MessagePreviewView @JvmOverloads constructor(
             renderers.richBodyRenderer.render(
                     container = rich,
                     segments = segments,
-                    postProcessors = renderers.htmlPostProcessors,
+                    postProcessors = renderers.htmlPostProcessors.map {
+                        (it as? PillsPostProcessor)?.forEvent(content.event.root.originServerTs) ?: it
+                    }.toTypedArray(),
                     movementMethod = style.movementMethod,
                     onClick = { onRichClick?.invoke(it) },
                     onLongClick = { onRichLongClick?.invoke(it) ?: false },

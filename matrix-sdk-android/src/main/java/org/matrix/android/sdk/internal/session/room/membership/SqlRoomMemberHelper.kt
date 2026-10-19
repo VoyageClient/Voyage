@@ -8,10 +8,16 @@
 package org.matrix.android.sdk.internal.session.room.membership
 
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.profile.ProfileOverrides
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
+import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 
 /** SQLDelight counterpart of [RoomMemberHelper] (read helper around STATE_ROOM_MEMBER membership). */
 internal class SqlRoomMemberHelper(
@@ -30,6 +36,23 @@ internal class SqlRoomMemberHelper(
             stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.root
 
     fun getLastRoomMember(userId: String): RoomMemberSummaryEntity? = stores.roomMember.getByRoomAndUser(roomId, userId)
+
+    fun getRoomMemberAt(userId: String, originServerTs: Long): RoomMemberSummary? {
+        val content = stores.event.getStateOfKeyAtOrBefore(roomId, EventType.STATE_ROOM_MEMBER, userId, originServerTs)
+                ?.asDomain()?.getFixedRoomMemberContent()
+                // Older than any member event we hold: the next one's prev_content is what preceded it.
+                ?: stores.event.getStateOfKeyAfter(roomId, EventType.STATE_ROOM_MEMBER, userId, originServerTs)
+                        ?.asDomain()?.resolvedPrevContent().toModel<RoomMemberContent>()
+                ?: return null
+        return RoomMemberSummary(
+                membership = content.membership,
+                userId = userId,
+                displayName = ProfileOverrides.displayNameOr(userId, content.displayName),
+                avatarUrl = ProfileOverrides.avatarUrlOr(userId, content.avatarUrl),
+                avatarDecryption = ProfileOverrides.avatarDecryptionFor(userId),
+                originalDisplayName = content.displayName,
+        )
+    }
 
     fun isUniqueDisplayName(displayName: String?): Boolean {
         if (displayName.isNullOrEmpty()) return true

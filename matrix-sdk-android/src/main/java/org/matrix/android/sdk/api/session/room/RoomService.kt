@@ -251,6 +251,12 @@ interface RoomService {
     fun getRoomMember(userId: String, roomId: String): RoomMemberSummary?
 
     /**
+     * The member as of [originServerTs], from the member events stored locally; null when none of them
+     * says what the profile was then. Hits the database.
+     */
+    fun getRoomMemberAt(userId: String, roomId: String, originServerTs: Long): RoomMemberSummary? = null
+
+    /**
      * Return the ids of the rooms we're in (join/invite) that have [userId] as an active member.
      * Backed by a single indexed lookup, unlike iterating [getRoomMember] over every room.
      */

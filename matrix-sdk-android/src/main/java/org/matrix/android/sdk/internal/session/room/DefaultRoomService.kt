@@ -280,6 +280,9 @@ internal class DefaultRoomService @Inject constructor(
                 .getLastRoomMember(userId)?.asDomain()
     }
 
+    override fun getRoomMemberAt(userId: String, roomId: String, originServerTs: Long): RoomMemberSummary? =
+            org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, roomId).getRoomMemberAt(userId, originServerTs)
+
     override fun getRoomIdsWithUserActiveMembership(userId: String): List<String> {
         return stores.roomSummary.roomIdsWithActiveMembers(listOf(userId))
     }

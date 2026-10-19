@@ -98,6 +98,12 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun getRecentStateOfKey(roomId: String, type: String, stateKey: String, limit: Long): List<EventEntity> =
             queries.selectRecentStateOfKey(roomId, type, stateKey, limit).executeAsList().map { it.toResolvedEntity() }
 
+    fun getStateOfKeyAtOrBefore(roomId: String, type: String, stateKey: String, ts: Long): EventEntity? =
+            queries.selectStateOfKeyAtOrBefore(roomId, type, stateKey, ts).executeAsOneOrNull()?.toResolvedEntity()
+
+    fun getStateOfKeyAfter(roomId: String, type: String, stateKey: String, ts: Long): EventEntity? =
+            queries.selectStateOfKeyAfter(roomId, type, stateKey, ts).executeAsOneOrNull()?.toResolvedEntity()
+
     // Distinct event ids a user contributed to a room, for mass redaction. Skips redaction events
     // themselves and events already redacted — either marked "redacted_because" in unsigned_data, or
     // targeted by a stored redaction event (older DBs / non-pruned types lack the unsigned marker).
