@@ -225,10 +225,11 @@ abstract class VectorBaseFragment<VB : ViewBinding> : Fragment(), MavericksView 
         vectorBaseActivity.getCoordinatorLayout()?.showOptimizedSnackbar(errorFormatter.toHumanReadable(throwable))
     }
 
-    protected fun showLoadingDialog(message: CharSequence? = null) {
+    protected fun showLoadingDialog(message: CharSequence? = null): AlertDialog {
         progress?.dismiss()
-        progress = MaterialProgressDialog(requireContext())
+        return MaterialProgressDialog(requireContext())
                 .show(message ?: getString(CommonStrings.please_wait))
+                .also { progress = it }
     }
 
     protected fun dismissLoadingDialog() {

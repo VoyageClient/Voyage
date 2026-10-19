@@ -273,12 +273,15 @@ class HomeDrawerFragment :
     private fun performSwitch(entry: AccountSwitcherEntry) {
         if (isSwitchingAccount) return
         isSwitchingAccount = true
-        showLoadingDialog()
+        val dialog = showLoadingDialog()
         // Keep switching if the drawer view is destroyed before the activity restarts.
         val activity = requireActivity()
         activity.lifecycleScope.launch {
             try {
                 switchAccountUseCase.execute(entry.sessionId)
+                // Remove the dialog before the task transition can animate its outgoing window.
+                dialog.window?.setWindowAnimations(0)
+                dismissLoadingDialog()
                 MainActivity.restartApp(activity, MainActivityArgs())
             } catch (failure: CancellationException) {
                 isSwitchingAccount = false
