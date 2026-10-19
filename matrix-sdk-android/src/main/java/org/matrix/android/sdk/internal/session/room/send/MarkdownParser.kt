@@ -336,7 +336,7 @@ internal class MarkdownParser @Inject constructor(
     }
 
     private fun isFormattedTextPertinent(text: String, htmlText: String?) =
-            text != htmlText && htmlText != "<p>${text.trim()}</p>\n"
+            text.trim() != htmlText?.trim()
 
     /**
      * The parser makes some mistakes, so deal with it here.

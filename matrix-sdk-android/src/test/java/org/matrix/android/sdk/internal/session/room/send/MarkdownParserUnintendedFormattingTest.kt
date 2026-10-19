@@ -50,6 +50,13 @@ class MarkdownParserUnintendedFormattingTest {
     }
 
     @Test
+    fun `trailing whitespace alone does not make a formatted body`() {
+        val result = parser.parse("#coreboot:matrix.org ")
+        assertEquals("#coreboot:matrix.org ", result.text)
+        assertEquals(null, result.formattedText)
+    }
+
+    @Test
     fun `quote attribution is plain text after quote with or without a blank line`() {
         listOf("> Words words\n- Aristotle", "> Words words\n\n- Aristotle").forEach { source ->
             val html = parser.parse(source).formattedText.orEmpty()

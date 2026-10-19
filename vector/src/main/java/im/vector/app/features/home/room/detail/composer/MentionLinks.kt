@@ -163,15 +163,15 @@ fun findMentions(text: CharSequence, caret: Int = -1, requireTerminator: Boolean
 /**
  * Tags the mentions [findMentions] finds with a [MatrixItemSpan], so they send as mentions. The
  * composer pills them as they are written; this catches the one typed at the very end of a message,
- * which nothing has finished off yet. An alias only counts where [resolveAlias] knows the room, and
+ * which nothing has finished off yet. An alias only counts where [resolveRoom] knows the room, and
  * `@room` needs no span at all — it notifies from the plain text the body already carries.
  */
-fun CharSequence.pillifyRemainingMentions(resolveAlias: (String) -> MatrixItem?): CharSequence {
+fun CharSequence.pillifyRemainingMentions(resolveRoom: (String) -> MatrixItem?): CharSequence {
     val mentions = findMentions(this).mapNotNull { range ->
         val mention = substring(range.first, range.last + 1)
         val item = when {
             MatrixPatterns.isUserId(mention) -> MatrixItem.UserItem(mention)
-            MatrixPatterns.isRoomAlias(mention) -> resolveAlias(mention)
+            MatrixPatterns.isRoomAlias(mention) -> resolveRoom(mention)
             else -> null
         }
         item?.let { Triple(range, it, mention) }
@@ -185,10 +185,31 @@ fun CharSequence.pillifyRemainingMentions(resolveAlias: (String) -> MatrixItem?)
     // Last first, so the earlier positions still hold.
     escapes.asReversed().forEach { at ->
         out.delete(at, at + 1)
+        val pill = pillStartingAt(out, at)
+        val length = if (pill != null) {
+            val end = out.getSpanEnd(pill)
+            val plain = pill.matrixItem.plainId(resolveRoom)
+            out.removeSpan(pill)
+            out.replace(at, end, plain)
+            plain.length
+        } else {
+            mentionLengthAt(out, at)
+        }
         // The body text alone would read as a mention to the server, so tell the SDK this one isn't.
-        mentionLengthAt(out, at)?.let { out.setSpan(LiteralMentionSpan(), at, at + it, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) }
+        length?.let { out.setSpan(LiteralMentionSpan(), at, at + it, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) }
     }
     return out
+}
+
+private fun pillStartingAt(text: CharSequence, at: Int): MatrixItemSpan? {
+    val spanned = text as? Spanned ?: return null
+    return spanned.getSpans(at, at, MatrixItemSpan::class.java).firstOrNull { spanned.getSpanStart(it) == at }
+}
+
+private fun MatrixItem.plainId(resolveRoom: (String) -> MatrixItem?): String = when (this) {
+    is MatrixItem.EveryoneInRoomItem -> MatrixItem.NOTIFY_EVERYONE
+    is MatrixItem.RoomItem -> resolveRoom(id)?.id ?: id
+    else -> id
 }
 
 /**
@@ -209,7 +230,7 @@ private fun escapedMentionBackslashes(text: CharSequence): List<Int> {
             i += 2
             continue
         }
-        if (isMentionStart(text.getOrNull(i - 1)) && mentionLengthAt(text, i + 1) != null) found += i
+        if (isMentionStart(text.getOrNull(i - 1)) && (pillStartingAt(text, i + 1) != null || mentionLengthAt(text, i + 1) != null)) found += i
         i++
     }
     return found

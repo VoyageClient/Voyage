@@ -7,11 +7,15 @@
 
 package im.vector.app.features.home.room.detail.composer
 
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.room.send.LiteralMentionSpan
+import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
+import org.matrix.android.sdk.api.util.MatrixItem
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -32,6 +36,33 @@ class LiteralMentionsTest {
 
         sent.toString() shouldBeEqualTo "hi @room and @alice:example.org, #room:example.org"
         literalRanges(sent) shouldBeEqualTo listOf("@room", "@alice:example.org", "#room:example.org")
+    }
+
+    @Test
+    fun `an escaped pill sends as its plain id`() {
+        val text = SpannableStringBuilder("see \\#coreboot and \\Bob ").apply {
+            setSpan(pill(MatrixItem.RoomAliasItem("#coreboot:matrix.org", "#coreboot")), 5, 14, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(pill(MatrixItem.RoomItem("!abc:example.org", "Room")), 20, 23, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+        val sent = text.pillifyRemainingMentions { null } as Spanned
+
+        sent.toString() shouldBeEqualTo "see #coreboot:matrix.org and !abc:example.org "
+        sent.getSpans(0, sent.length, MatrixItemSpan::class.java).size shouldBeEqualTo 0
+        literalRanges(sent) shouldBeEqualTo listOf("#coreboot:matrix.org", "!abc:example.org")
+    }
+
+    @Test
+    fun `an escaped room-id pill prefers the canonical alias`() {
+        val text = SpannableStringBuilder("\\Room").apply {
+            setSpan(pill(MatrixItem.RoomItem("!abc:example.org", "Room")), 1, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+        text.pillifyRemainingMentions { MatrixItem.RoomAliasItem("#room:example.org") }.toString() shouldBeEqualTo "#room:example.org"
+    }
+
+    private fun pill(item: MatrixItem) = object : MatrixItemSpan {
+        override val matrixItem = item
     }
 
     @Test
