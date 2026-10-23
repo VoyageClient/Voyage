@@ -22,7 +22,7 @@ import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.session.SessionState
 import org.matrix.android.sdk.internal.session.sync.job.BackgroundSyncScheduling
 import org.matrix.android.sdk.internal.session.sync.job.SyncThread
-import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncRequiredState
+import org.matrix.android.sdk.internal.session.sync.sliding.SlidingSyncTask
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -107,7 +107,7 @@ internal class DefaultSyncService @Inject constructor(
         // account re-fetched, so claiming to have synced would send the app to an empty room list instead
         // of the progress screen.
         val slidingSynced = syncTokenStore.getSlidingSyncPos() != null &&
-                syncTokenStore.getSlidingSyncStateVersion() == SlidingSyncRequiredState.VERSION
+                syncTokenStore.getSlidingSyncStateVersion() == SlidingSyncTask.STATE_VERSION
         return syncTokenStore.getLastToken() != null || slidingSynced
     }
 

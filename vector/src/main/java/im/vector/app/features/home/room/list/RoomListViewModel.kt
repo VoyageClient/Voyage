@@ -38,7 +38,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -188,8 +187,9 @@ class RoomListViewModel @AssistedInject constructor(
     // the empty state mid-initial-sync while the others still show the spinner.
     private fun observeInitialSync() {
         setState { copy(isInitialSyncInProgress = !session.syncService().hasAlreadySynced()) }
+        // Not only the initial-sync states: the flow keeps one value, so a busy collector can miss the
+        // closing Idle, and the incremental state that replaces it is just as final.
         session.syncService().getSyncRequestStateFlow()
-                .filterIsInstance<SyncRequestState.InitialSyncRequestState>()
                 .setOnEach {
                     copy(isInitialSyncInProgress = it is SyncRequestState.InitialSyncProgressing)
                 }

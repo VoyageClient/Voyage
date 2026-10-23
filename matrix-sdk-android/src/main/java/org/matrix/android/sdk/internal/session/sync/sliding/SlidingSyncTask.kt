@@ -92,12 +92,11 @@ internal class SlidingSyncTask @Inject constructor(
         // required_state to be identical for its whole life. So when this build asks for something
         // different from the one that opened the connection, the connection has to start over — otherwise
         // rooms keep whatever state the old list happened to cover.
-        val stateVersion = "${SlidingSyncRequiredState.VERSION}:$CONNECTION_CONFIG_VERSION"
-        if (syncTokenStore.getSlidingSyncStateVersion() != stateVersion) {
+        if (syncTokenStore.getSlidingSyncStateVersion() != STATE_VERSION) {
             Timber.tag(loggerTag.value).i("required_state changed, restarting the sliding sync connection")
             syncTokenStore.setSlidingSyncPos(null)
             syncTokenStore.setSlidingSyncToDeviceSince(null)
-            syncTokenStore.setSlidingSyncStateVersion(stateVersion)
+            syncTokenStore.setSlidingSyncStateVersion(STATE_VERSION)
         }
 
         val pos = syncTokenStore.getSlidingSyncPos()
@@ -416,6 +415,9 @@ internal class SlidingSyncTask @Inject constructor(
         // The room the user is reading: enough to open on without a /messages round trip.
         private const val OPEN_ROOM_TIMELINE_LIMIT = 50
         private const val CONNECTION_CONFIG_VERSION = 3
+
+        /** Stored with the pos; a pos saved under any other version belongs to a connection that gets discarded. */
+        val STATE_VERSION = "${SlidingSyncRequiredState.VERSION}:$CONNECTION_CONFIG_VERSION"
 
         private const val TIMEOUT_MARGIN: Long = 10_000
     }
