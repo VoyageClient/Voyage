@@ -1101,6 +1101,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/delete/DeleteLocalRoomTask.kt',
         'org/matrix/android/sdk/internal/session/room/peeking/ResolveRoomStateTask.kt',
         'org/matrix/android/sdk/internal/session/room/peeking/PeekRoomTask.kt',
+        'org/matrix/android/sdk/internal/session/room/peeking/GetRoomStrippedStateTask.kt',
         'org/matrix/android/sdk/internal/session/room/peeking/PeekLiveModels.kt',
         'org/matrix/android/sdk/internal/session/room/peeking/PeekLiveTasks.kt',
         'org/matrix/android/sdk/internal/session/room/peeking/PeekRoomSearchTask.kt',

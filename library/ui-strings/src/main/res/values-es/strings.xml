@@ -3583,4 +3583,5 @@
     <string name="settings_rooms_spaces_category_system">Compartir y accesos directos</string>
     <string name="settings_search_hint">Buscar en ajustes</string>
     <string name="settings_search_result_unavailable">Este ajuste no está disponible ahora mismo</string>
+    <string name="room_preview_provided_by">Vista previa proporcionada por %1$s. Puede ser incorrecta o estar desactualizada.</string>
 </resources>

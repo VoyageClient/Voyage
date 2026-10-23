@@ -3529,4 +3529,5 @@
     <string name="settings_rooms_spaces_category_system">共有とショートカット</string>
     <string name="settings_search_hint">設定を検索</string>
     <string name="settings_search_result_unavailable">この設定は現在利用できません</string>
+    <string name="room_preview_provided_by">プレビューの提供元: %1$s。内容が不正確または古い可能性があります。</string>
 </resources>

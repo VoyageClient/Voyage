@@ -34,6 +34,11 @@ sealed class PeekResult {
             val joinRule: RoomJoinRules? = null,
             /** Whether the room's history visibility allows previewing without joining. Null when unknown. */
             val worldReadable: Boolean? = null,
+            /**
+             * MSC4560: the remote server that generated this preview, which it cannot prove without us joining.
+             * Null when our own homeserver generated it, or when the source is unknown.
+             */
+            val providedByServer: String? = null,
     ) : PeekResult()
 
     data class PeekingNotAllowed(

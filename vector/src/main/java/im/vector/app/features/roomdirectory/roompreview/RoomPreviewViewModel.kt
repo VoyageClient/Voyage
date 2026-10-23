@@ -96,7 +96,7 @@ class RoomPreviewViewModel @AssistedInject constructor(
         }
         viewModelScope.launch(Dispatchers.IO) {
             val peekResult = tryOrNull {
-                session.roomService().peekRoom(initialState.roomAlias ?: initialState.roomId)
+                session.roomService().peekRoom(initialState.roomAlias ?: initialState.roomId, initialState.homeServers)
             }
 
             when (peekResult) {
@@ -113,9 +113,12 @@ class RoomPreviewViewModel @AssistedInject constructor(
                                 avatarUrl = peekResult.avatarUrl,
                                 roomAlias = peekResult.alias ?: initialState.roomAlias,
                                 roomTopic = peekResult.topic,
+                                roomName = roomName ?: peekResult.name,
+                                roomType = roomType ?: peekResult.roomType,
                                 homeServers = newHomeServers,
                                 joinRule = peekResult.joinRule,
                                 worldReadable = peekResult.worldReadable == true,
+                                previewProvidedBy = peekResult.providedByServer,
                                 peekingState = Success(PeekingState.FOUND)
                         )
                     }

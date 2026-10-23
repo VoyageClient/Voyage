@@ -3549,4 +3549,5 @@
     <string name="settings_rooms_spaces_category_system">শেয়ারিং ও শর্টকাট</string>
     <string name="settings_search_hint">সেটিংস খুঁজুন</string>
     <string name="settings_search_result_unavailable">এই সেটিংটি এখন উপলব্ধ নেই</string>
+    <string name="room_preview_provided_by">প্রিভিউ দিয়েছে %1$s। এটি ভুল বা পুরোনো হতে পারে।</string>
 </resources>

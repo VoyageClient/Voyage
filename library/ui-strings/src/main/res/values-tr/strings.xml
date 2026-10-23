@@ -3553,4 +3553,5 @@
     <string name="settings_rooms_spaces_category_system">Paylaşım ve kısayollar</string>
     <string name="settings_search_hint">Ayarlarda ara</string>
     <string name="settings_search_result_unavailable">Bu ayar şu anda kullanılamıyor</string>
+    <string name="room_preview_provided_by">Ön izleme %1$s tarafından sağlandı. Yanlış veya güncel olmayabilir.</string>
 </resources>

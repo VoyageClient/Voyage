@@ -92,6 +92,7 @@ import org.matrix.android.sdk.internal.session.room.membership.leaving.ForgetRoo
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.DefaultInviteThreePidTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.InviteThreePidTask
+import org.matrix.android.sdk.internal.session.room.peeking.DefaultGetRoomStrippedStateTask
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekLiveEventsTask
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomInitialSyncTask
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomMembersTask
@@ -99,6 +100,7 @@ import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomMessa
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomUploadsTask
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultResolveRoomStateTask
+import org.matrix.android.sdk.internal.session.room.peeking.GetRoomStrippedStateTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekLiveEventsTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomInitialSyncTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomMembersTask
@@ -399,6 +401,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindGetRoomSummaryTask(task: DefaultGetRoomSummaryTask): GetRoomSummaryTask
+
+    @Binds
+    abstract fun bindGetRoomStrippedStateTask(task: DefaultGetRoomStrippedStateTask): GetRoomStrippedStateTask
 
     @Binds
     abstract fun bindFetchThreadTimelineTask(task: DefaultFetchThreadTimelineTask): FetchThreadTimelineTask

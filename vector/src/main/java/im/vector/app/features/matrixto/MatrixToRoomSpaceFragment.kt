@@ -66,6 +66,7 @@ class MatrixToRoomSpaceFragment :
             is Success -> {
                 views.matrixToCardContentVisibility.isVisible = true
                 views.matrixToCardKnockMessage.isVisible = false
+                views.matrixToCardProvidedByText.isVisible = false
                 when (val peek = item.invoke()) {
                     is RoomInfoResult.FullInfo -> {
                         val matrixItem = peek.roomItem
@@ -84,6 +85,9 @@ class MatrixToRoomSpaceFragment :
                         views.matrixToCardAliasText.setTextOrHide(peek.alias)
                         views.matrixToCardDescText.setTextOrHide(peek.topic.formatTopicPreview(peek.roomItem.id))
                         views.matrixToCardDescText.movementMethod = createLinkMovementMethod(null)
+                        views.matrixToCardProvidedByText.setTextOrHide(
+                                peek.providedByServer?.let { getString(CommonStrings.room_preview_provided_by, it) }
+                        )
                         val memberCount = peek.memberCount
                         if (memberCount != null) {
                             views.matrixToMemberPills.isVisible = true

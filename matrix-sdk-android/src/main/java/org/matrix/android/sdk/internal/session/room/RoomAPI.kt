@@ -36,6 +36,8 @@ import org.matrix.android.sdk.internal.session.room.membership.joining.InviteBod
 import org.matrix.android.sdk.internal.session.room.membership.threepid.ThreePidInviteBody
 import org.matrix.android.sdk.internal.session.room.peeking.PeekEventsResponse
 import org.matrix.android.sdk.internal.session.room.peeking.RoomInitialSyncResponse
+import org.matrix.android.sdk.internal.session.room.peeking.StrippedStateBody
+import org.matrix.android.sdk.internal.session.room.peeking.StrippedStateResponse
 import org.matrix.android.sdk.internal.session.room.read.ReadBody
 import org.matrix.android.sdk.internal.session.room.relation.RelationsResponse
 import org.matrix.android.sdk.internal.session.room.relation.threads.ThreadSummariesResponse
@@ -562,6 +564,23 @@ internal interface RoomAPI {
             @Path("roomIdOrAlias") roomidOrAlias: String,
             @Query("via") viaServers: List<String>?,
     ): RoomStrippedState
+
+    /**
+     * MSC4560: stripped state of a room we may not be in, fetched over federation from [viaServers] if needed.
+     */
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V1 + "stripped_state/{roomIdOrAlias}")
+    suspend fun getStrippedState(
+            @Path("roomIdOrAlias") roomIdOrAlias: String,
+            @Query("via") viaServers: List<String>?,
+            @Body body: StrippedStateBody,
+    ): StrippedStateResponse
+
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "org.continuwuity.msc4560.stripped_state/{roomIdOrAlias}")
+    suspend fun getStrippedStateUnstable(
+            @Path("roomIdOrAlias") roomIdOrAlias: String,
+            @Query("via") viaServers: List<String>?,
+            @Body body: StrippedStateBody,
+    ): StrippedStateResponse
 
     @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "rooms/{roomId}/threads")
     suspend fun getThreadsList(

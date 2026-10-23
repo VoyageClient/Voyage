@@ -110,7 +110,8 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                                     roomType = peekResult.roomType,
                                     viaServers = peekResult.viaServers.takeIf { it.isNotEmpty() } ?: permalinkData.viaParameters,
                                     isPublic = peekResult.isPublic,
-                                    joinRule = peekResult.joinRule
+                                    joinRule = peekResult.joinRule,
+                                    providedByServer = peekResult.providedByServer,
                             ).also {
                                 peekResult.someMembers?.let { checkForKnownMembers(it) }
                             }
@@ -181,7 +182,7 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
 //            }
 //        } catch (failure: Throwable) {
 //            if (failure is Failure.OtherServerError && failure.httpCode == HttpsURLConnection.HTTP_NOT_FOUND) {
-        return resolveRoom(permalinkData.roomIdOrAlias)
+        return resolveRoom(permalinkData.roomIdOrAlias, permalinkData.viaParameters)
 //            } else {
 //                throw failure
 //            }
@@ -192,8 +193,8 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
      * Let's try to get some information about that room,
      * main thing is trying to see if it's a space or a room.
      */
-    private suspend fun resolveRoom(roomIdOrAlias: String): PeekResult {
-        return session.roomService().peekRoom(roomIdOrAlias)
+    private suspend fun resolveRoom(roomIdOrAlias: String, viaServers: List<String>): PeekResult {
+        return session.roomService().peekRoom(roomIdOrAlias, viaServers)
     }
 
     override fun handle(action: MatrixToAction) {

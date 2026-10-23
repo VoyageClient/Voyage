@@ -122,6 +122,18 @@
                     android:visibility="gone" />
 
                 <TextView
+                    android:id="@+id/roomPreviewNoPreviewProvidedBy"
+                    style="@style/Widget.Vector.TextView.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_vertical_margin"
+                    android:gravity="center"
+                    android:textColor="?vctr_content_tertiary"
+                    android:visibility="gone"
+                    tools:text="@string/room_preview_provided_by"
+                    tools:visibility="visible" />
+
+                <TextView
                     android:id="@+id/roomPreviewNoPreviewLabel"
                     style="@style/Widget.Vector.TextView.Body"
                     android:layout_width="wrap_content"

@@ -338,8 +338,8 @@ internal class DefaultRoomService @Inject constructor(
         syncWatchedRoomSummariesTask.execute(SyncWatchedRoomSummariesTask.Params(rooms))
     }
 
-    override suspend fun peekRoom(roomIdOrAlias: String): PeekResult {
-        return peekRoomTask.execute(PeekRoomTask.Params(roomIdOrAlias))
+    override suspend fun peekRoom(roomIdOrAlias: String, viaServers: List<String>): PeekResult {
+        return peekRoomTask.execute(PeekRoomTask.Params(roomIdOrAlias, viaServers))
     }
 
     override fun getFlattenRoomSummaryChildrenOf(spaceId: String?, memberships: List<Membership>): List<RoomSummary> {

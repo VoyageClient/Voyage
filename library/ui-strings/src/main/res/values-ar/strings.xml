@@ -3744,4 +3744,5 @@
     <string name="settings_rooms_spaces_category_system">المشاركة والاختصارات</string>
     <string name="settings_search_hint">ابحث في الإعدادات</string>
     <string name="settings_search_result_unavailable">هذا الإعداد غير متاح حاليًا</string>
+    <string name="room_preview_provided_by">معاينة مقدمة من %1$s. قد تكون غير صحيحة أو قديمة.</string>
 </resources>

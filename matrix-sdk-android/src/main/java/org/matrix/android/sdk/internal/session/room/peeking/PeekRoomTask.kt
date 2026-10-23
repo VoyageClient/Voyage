@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.room.peeking
 
 import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -35,6 +36,7 @@ import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsFi
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsParams
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.util.MatrixItem
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.room.GetRoomSummaryTask
 import org.matrix.android.sdk.internal.session.room.alias.GetRoomIdByAliasTask
 import org.matrix.android.sdk.internal.session.room.directory.GetPublicRoomTask
@@ -44,7 +46,8 @@ import javax.inject.Inject
 
 internal interface PeekRoomTask : Task<PeekRoomTask.Params, PeekResult> {
     data class Params(
-            val roomIdOrAlias: String
+            val roomIdOrAlias: String,
+            val viaServers: List<String> = emptyList(),
     )
 }
 
@@ -53,7 +56,9 @@ internal class DefaultPeekRoomTask @Inject constructor(
         private val getRoomDirectoryVisibilityTask: GetRoomDirectoryVisibilityTask,
         private val getPublicRoomTask: GetPublicRoomTask,
         private val getRoomSummaryTask: GetRoomSummaryTask,
-        private val resolveRoomStateTask: ResolveRoomStateTask
+        private val getRoomStrippedStateTask: GetRoomStrippedStateTask,
+        private val resolveRoomStateTask: ResolveRoomStateTask,
+        @UserId private val userId: String,
 ) : PeekRoomTask {
 
     override suspend fun execute(params: PeekRoomTask.Params): PeekResult {
@@ -68,10 +73,24 @@ internal class DefaultPeekRoomTask @Inject constructor(
                     ?: return PeekResult.UnknownAlias
 
             roomId = aliasDescription.roomId
-            serverList = aliasDescription.servers
+            serverList = (aliasDescription.servers + params.viaServers).distinct()
         } else {
             roomId = params.roomIdOrAlias
-            serverList = emptyList()
+            serverList = params.viaServers.distinct()
+        }
+
+        val msc4560State = tryOrNull("Failed to get MSC4560 stripped state roomId:$roomId") {
+            getRoomStrippedStateTask.execute(
+                    GetRoomStrippedStateTask.Params(roomId, serverList, PREVIEW_STATE_TYPES, numJoinedMembers = true)
+            )
+        }
+        if (msc4560State != null) {
+            return msc4560State.toPeekResult(
+                    roomId = roomId,
+                    requestedAlias = params.roomIdOrAlias.takeIf { isAlias },
+                    viaServers = serverList,
+                    ownServerName = userId.getServerName(),
+            )
         }
 
         // If the room summary API is available on the Home Server we should try it first
@@ -213,4 +232,47 @@ internal class DefaultPeekRoomTask @Inject constructor(
             )
         }
     }
+
+    companion object {
+        val PREVIEW_STATE_TYPES = listOf(
+                EventType.STATE_ROOM_CREATE,
+                EventType.STATE_ROOM_NAME,
+                EventType.STATE_ROOM_AVATAR,
+                EventType.STATE_ROOM_TOPIC,
+                EventType.STATE_ROOM_JOIN_RULES,
+                EventType.STATE_ROOM_CANONICAL_ALIAS,
+                EventType.STATE_ROOM_HISTORY_VISIBILITY,
+        )
+    }
+}
+
+internal fun StrippedStateResponse.toPeekResult(
+        roomId: String,
+        requestedAlias: String?,
+        viaServers: List<String>,
+        ownServerName: String,
+): PeekResult.Success {
+    fun stateOf(type: String) = state.lastOrNull { it.type == type && it.stateKey == "" }?.content
+
+    val aliasContent = stateOf(EventType.STATE_ROOM_CANONICAL_ALIAS).toModel<RoomCanonicalAliasContent>()
+    val joinRule = stateOf(EventType.STATE_ROOM_JOIN_RULES).toModel<RoomJoinRulesContent>()?.joinRules
+    val worldReadable = stateOf(EventType.STATE_ROOM_HISTORY_VISIBILITY)
+            .toModel<RoomHistoryVisibilityContent>()?.historyVisibility == RoomHistoryVisibility.WORLD_READABLE
+    val remoteVia = via?.takeIf { it.isNotEmpty() && it != ownServerName }
+    return PeekResult.Success(
+            roomId = roomId,
+            alias = aliasContent?.canonicalAlias ?: aliasContent?.alternativeAliases?.firstOrNull() ?: requestedAlias,
+            name = stateOf(EventType.STATE_ROOM_NAME).toModel<RoomNameContent>()?.name,
+            topic = stateOf(EventType.STATE_ROOM_TOPIC).toModel<RoomTopicContent>()?.getBestTopic(),
+            avatarUrl = stateOf(EventType.STATE_ROOM_AVATAR).toModel<RoomAvatarContent>()?.avatarUrl,
+            numJoinedMembers = numJoinedMembers,
+            roomType = stateOf(EventType.STATE_ROOM_CREATE).toModel<RoomCreateContent>()?.type,
+            // The responding server is resident in the room, so it is the best server to join through.
+            viaServers = (listOfNotNull(remoteVia) + viaServers).distinct(),
+            someMembers = null,
+            isPublic = joinRule == RoomJoinRules.PUBLIC,
+            joinRule = joinRule,
+            worldReadable = worldReadable,
+            providedByServer = remoteVia,
+    )
 }

@@ -43,7 +43,8 @@ sealed class RoomInfoResult {
             val roomType: String?,
             val viaServers: List<String>?,
             val isPublic: Boolean,
-            val joinRule: RoomJoinRules? = null
+            val joinRule: RoomJoinRules? = null,
+            val providedByServer: String? = null,
     ) : RoomInfoResult()
 
     data class PartialInfo(

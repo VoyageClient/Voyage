@@ -3719,4 +3719,5 @@
     <string name="settings_rooms_spaces_category_system">Отправка и ярлыки</string>
     <string name="settings_search_hint">Поиск по настройкам</string>
     <string name="settings_search_result_unavailable">Эта настройка сейчас недоступна</string>
+    <string name="room_preview_provided_by">Предварительный просмотр предоставлен сервером %1$s. Он может быть неточным или устаревшим.</string>
 </resources>

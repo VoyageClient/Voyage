@@ -51,6 +51,7 @@ import org.matrix.android.sdk.internal.session.media.AuthenticatedMediaAPI
 import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
 import org.matrix.android.sdk.internal.session.media.GetMediaConfigResult
 import org.matrix.android.sdk.internal.session.media.UnauthenticatedMediaAPI
+import org.matrix.android.sdk.internal.session.room.peeking.StrippedStateSupport
 import org.matrix.android.sdk.internal.task.Task
 import org.matrix.android.sdk.internal.wellknown.GetWellknownTask
 import timber.log.Timber
@@ -78,6 +79,7 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
         private val userId: String,
         private val authMetadataAPI: AuthMetadataAPI,
         private val isAuthenticatedMediaSupported: DefaultIsAuthenticatedMediaSupported,
+        private val strippedStateSupport: StrippedStateSupport,
 ) : GetHomeServerCapabilitiesTask {
 
     override suspend fun execute(params: GetHomeServerCapabilitiesTask.Params) {
@@ -102,6 +104,7 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                 capabilitiesAPI.getVersions()
             }
         }.getOrNull()
+        versions?.let { strippedStateSupport.update(it) }
 
         val mediaConfig = runCatching {
             executeRequest(globalErrorReceiver) {

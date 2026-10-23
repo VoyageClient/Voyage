@@ -3688,4 +3688,5 @@
     <string name="settings_rooms_spaces_category_system">שיתוף וקיצורי דרך</string>
     <string name="settings_search_hint">חיפוש בהגדרות</string>
     <string name="settings_search_result_unavailable">הגדרה זו אינה זמינה כרגע</string>
+    <string name="room_preview_provided_by">התצוגה המקדימה סופקה על ידי %1$s. ייתכן שהיא שגויה או לא עדכנית.</string>
 </resources>

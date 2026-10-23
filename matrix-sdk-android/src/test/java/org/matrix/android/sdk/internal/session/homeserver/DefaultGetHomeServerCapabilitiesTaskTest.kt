@@ -26,6 +26,7 @@ import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationMan
 import org.matrix.android.sdk.internal.session.media.AuthenticatedMediaAPI
 import org.matrix.android.sdk.internal.session.media.DefaultIsAuthenticatedMediaSupported
 import org.matrix.android.sdk.internal.session.media.UnauthenticatedMediaAPI
+import org.matrix.android.sdk.internal.session.room.peeking.StrippedStateSupport
 import org.matrix.android.sdk.internal.wellknown.GetWellknownTask
 import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.robolectric.RobolectricTestRunner
@@ -57,7 +58,8 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
             homeServerConnectionConfig,
             "userId",
             authMetadataAPI,
-            isAuthenticatedMediaSupported
+            isAuthenticatedMediaSupported,
+            StrippedStateSupport(capabilitiesAPI),
     )
 
     private fun persisted(): HomeServerCapabilitiesEntity = db.stores.homeServerCapabilities.get()!!

@@ -3531,4 +3531,5 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_rooms_spaces_category_system">Berbagi &amp; pintasan</string>
     <string name="settings_search_hint">Cari pengaturan</string>
     <string name="settings_search_result_unavailable">Pengaturan ini sedang tidak tersedia</string>
+    <string name="room_preview_provided_by">Pratinjau disediakan oleh %1$s. Mungkin tidak akurat atau sudah usang.</string>
 </resources>

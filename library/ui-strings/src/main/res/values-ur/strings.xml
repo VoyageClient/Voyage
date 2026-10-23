@@ -3489,4 +3489,5 @@
     <string name="settings_rooms_spaces_category_system">شیئرنگ اور شارٹ کٹس</string>
     <string name="settings_search_hint">ترتیبات میں تلاش کریں</string>
     <string name="settings_search_result_unavailable">یہ ترتیب ابھی دستیاب نہیں ہے</string>
+    <string name="room_preview_provided_by">پیش منظر %1$s نے فراہم کیا۔ یہ غلط یا پرانا ہو سکتا ہے۔</string>
 </resources>

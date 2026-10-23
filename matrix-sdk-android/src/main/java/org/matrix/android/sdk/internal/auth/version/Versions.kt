@@ -73,6 +73,7 @@ private const val FEATURE_SYNC_PROFILE_FIELDS_MSC4429 = "org.matrix.msc4429"
 private const val FEATURE_SYNC_PROFILE_FIELDS_MSC4429_STABLE = "org.matrix.msc4429.stable"
 private const val FEATURE_SLIDING_SYNC_PROFILES_MSC4262 = "org.matrix.msc4262"
 private const val FEATURE_DELAYED_EVENTS_MSC4140 = "org.matrix.msc4140"
+private const val FEATURE_STRIPPED_STATE_MSC4560 = "org.continuwuity.msc4560"
 
 /**
  * Return true if the SDK supports this homeserver version.
@@ -237,6 +238,13 @@ internal fun Versions.doesServerSupportSlidingSyncProfiles(): Boolean {
  */
 internal fun Versions.doesServerSupportDelayedEvents(): Boolean {
     return unstableFeatures?.get(FEATURE_DELAYED_EVENTS_MSC4140).orFalse()
+}
+
+/**
+ * Indicate if the server supports MSC4560 stripped state requests: https://github.com/matrix-org/matrix-spec-proposals/pull/4560.
+ */
+internal fun Versions.doesServerSupportStrippedState(): Boolean {
+    return unstableFeatures?.get(FEATURE_STRIPPED_STATE_MSC4560).orFalse()
 }
 
 /**

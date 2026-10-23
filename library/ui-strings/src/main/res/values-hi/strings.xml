@@ -3477,4 +3477,5 @@
     <string name="settings_rooms_spaces_category_system">शेयरिंग और शॉर्टकट</string>
     <string name="settings_search_hint">सेटिंग खोजें</string>
     <string name="settings_search_result_unavailable">यह सेटिंग अभी उपलब्ध नहीं है</string>
+    <string name="room_preview_provided_by">प्रीव्यू %1$s द्वारा दिया गया। यह गलत या पुराना हो सकता है।</string>
 </resources>

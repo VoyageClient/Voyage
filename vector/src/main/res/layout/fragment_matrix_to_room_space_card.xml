@@ -155,6 +155,20 @@
             app:layout_constraintTop_toBottomOf="@id/matrixToMemberPills"
             tools:text="@sample/rooms.json/data/topic" />
 
+        <TextView
+            android:id="@+id/matrixToCardProvidedByText"
+            style="@style/Widget.Vector.TextView.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="start"
+            android:textAlignment="textStart"
+            android:textColor="?vctr_content_tertiary"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/matrixToCardDescText"
+            tools:text="@string/room_preview_provided_by"
+            tools:visibility="visible" />
+
         <ImageView
             android:id="@+id/knownMember5"
             android:layout_width="30dp"
@@ -208,7 +222,7 @@
             android:layout_marginTop="8dp"
             android:contentDescription="@string/avatar"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/matrixToCardDescText"
+            app:layout_constraintTop_toBottomOf="@id/matrixToCardProvidedByText"
             tools:src="@sample/user_round_avatars" />
 
         <!-- layout_goneMarginStart: add half the width of the avatar: 15dp -->

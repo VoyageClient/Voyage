@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.space.peeking
 
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -28,6 +29,7 @@ import org.matrix.android.sdk.api.session.space.peeking.SpaceChildPeekResult
 import org.matrix.android.sdk.api.session.space.peeking.SpacePeekResult
 import org.matrix.android.sdk.api.session.space.peeking.SpacePeekSummary
 import org.matrix.android.sdk.api.session.space.peeking.SpaceSubChildPeekResult
+import org.matrix.android.sdk.internal.session.room.peeking.GetRoomStrippedStateTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.task.Task
@@ -44,7 +46,8 @@ internal interface PeekSpaceTask : Task<PeekSpaceTask.Params, SpacePeekResult> {
 
 internal class DefaultPeekSpaceTask @Inject constructor(
         private val peekRoomTask: PeekRoomTask,
-        private val resolveRoomStateTask: ResolveRoomStateTask
+        private val resolveRoomStateTask: ResolveRoomStateTask,
+        private val getRoomStrippedStateTask: GetRoomStrippedStateTask,
 ) : PeekSpaceTask {
 
     override suspend fun execute(params: PeekSpaceTask.Params): SpacePeekResult {
@@ -54,7 +57,7 @@ internal class DefaultPeekSpaceTask @Inject constructor(
         // check the room type
         // kind of duplicate cause we already did it in Peek? could we pass on the result??
         val stateEvents = try {
-            resolveRoomStateTask.execute(ResolveRoomStateTask.Params(roomResult.roomId))
+            spaceState(roomResult.roomId, roomResult.viaServers)
         } catch (failure: Throwable) {
             return SpacePeekResult.FailedToResolve(params.roomIdOrAlias, peekResult)
         }
@@ -96,9 +99,10 @@ internal class DefaultPeekSpaceTask @Inject constructor(
             // peek each child
             val childId = entry.first ?: return@forEach
             try {
-                val childPeek = peekRoomTask.execute(PeekRoomTask.Params(childId))
+                val childVia = entry.second?.via.orEmpty()
+                val childPeek = peekRoomTask.execute(PeekRoomTask.Params(childId, childVia))
 
-                val childStateEvents = resolveRoomStateTask.execute(ResolveRoomStateTask.Params(childId))
+                val childStateEvents = spaceState(childId, (childPeek as? PeekResult.Success)?.viaServers ?: childVia)
                 val createContent = childStateEvents
                         .lastOrNull { it.type == EventType.STATE_ROOM_CREATE && it.stateKey == "" }
                         ?.let { it.content?.toModel<RoomCreateContent>() }
@@ -144,5 +148,19 @@ internal class DefaultPeekSpaceTask @Inject constructor(
             }
         }
         return spaceChildResults
+    }
+
+    /** MSC4560 stripped state reaches spaces we cannot read /state of (anything not world-readable). */
+    private suspend fun spaceState(roomId: String, viaServers: List<String>): List<Event> {
+        val stripped = tryOrNull("Failed to get MSC4560 space state roomId:$roomId") {
+            getRoomStrippedStateTask.execute(
+                    GetRoomStrippedStateTask.Params(roomId, viaServers, SPACE_STATE_TYPES, numJoinedMembers = false)
+            )
+        }
+        return stripped?.state ?: resolveRoomStateTask.execute(ResolveRoomStateTask.Params(roomId))
+    }
+
+    companion object {
+        private val SPACE_STATE_TYPES = listOf(EventType.STATE_ROOM_CREATE, EventType.STATE_SPACE_CHILD)
     }
 }

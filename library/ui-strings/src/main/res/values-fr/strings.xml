@@ -3595,4 +3595,5 @@
     <string name="settings_rooms_spaces_category_system">Partage et raccourcis</string>
     <string name="settings_search_hint">Rechercher dans les paramètres</string>
     <string name="settings_search_result_unavailable">Ce paramètre n\'est pas disponible pour le moment</string>
+    <string name="room_preview_provided_by">Aperçu fourni par %1$s. Il peut être inexact ou obsolète.</string>
 </resources>

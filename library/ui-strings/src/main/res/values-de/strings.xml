@@ -3594,4 +3594,5 @@
     <string name="settings_rooms_spaces_category_system">Teilen &amp; Verknüpfungen</string>
     <string name="settings_search_hint">Einstellungen durchsuchen</string>
     <string name="settings_search_result_unavailable">Diese Einstellung ist gerade nicht verfügbar</string>
+    <string name="room_preview_provided_by">Vorschau bereitgestellt von %1$s. Sie kann falsch oder veraltet sein.</string>
 </resources>

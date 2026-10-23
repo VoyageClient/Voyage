@@ -227,6 +227,10 @@ class RoomPreviewNoPreviewFragment :
             }
         }
 
+        views.roomPreviewNoPreviewProvidedBy.setTextOrHide(
+                state.previewProvidedBy?.let { getString(CommonStrings.room_preview_provided_by, it) }
+        )
+
         renderKnockControls(state)
     }
 

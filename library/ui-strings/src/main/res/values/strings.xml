@@ -1536,6 +1536,7 @@
     <string name="room_preview_no_preview">"This room can't be previewed"</string>
     <string name="room_preview_not_found">This room is not accessible at this time.\nTry again later, or ask a room admin to check if you have access.</string>
     <string name="room_preview_no_preview_join">"This room can't be previewed. Do you want to join it?"</string>
+    <string name="room_preview_provided_by">Preview provided by %1$s. It may be incorrect or outdated.</string>
     <string name="fab_menu_create_room">"Rooms"</string>
     <string name="fab_menu_create_chat">"Direct Messages"</string>
 

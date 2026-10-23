@@ -279,8 +279,9 @@ interface RoomService {
      * Use this if you want to get information from a room that you are not yet in (or invited).
      * It might be possible to get some information on this room if it is public or if guest access is allowed.
      * This call will try to gather some information on this room, but it could fail and get nothing more.
+     * [viaServers] are servers that may know the room, e.g. a permalink's `via` parameters.
      */
-    suspend fun peekRoom(roomIdOrAlias: String): PeekResult
+    suspend fun peekRoom(roomIdOrAlias: String, viaServers: List<String> = emptyList()): PeekResult
 
     /**
      * Register a live peek on a world-readable room and expose it as a read-only [Room], so the
