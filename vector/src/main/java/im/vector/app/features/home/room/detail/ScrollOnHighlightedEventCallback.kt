@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail
 
+import android.os.Looper
 import android.os.SystemClock
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,8 +23,8 @@ import kotlin.math.abs
  *
  * The timeline keeps changing shape for seconds after a jump (budgeted model builds, decryption,
  * previews, media), and RecyclerView re-anchors each layout on whichever row is nearest the layout
- * start — never on the one the reader asked for. So the target is re-applied as the anchor, at its
- * measured offset, until the shape stops changing.
+ * start — never on the one the reader asked for. So the target's top edge is held where it first
+ * showed until the reader scrolls, another jump starts, or [ANCHOR_MAX_MS] passes.
  */
 class ScrollOnHighlightedEventCallback(
         private val recyclerView: RecyclerView,
@@ -34,6 +35,8 @@ class ScrollOnHighlightedEventCallback(
 
     private class Anchor(
             val alignment: ScrollAnchorAlignment,
+            // Null when the row isn't one event (the read marker, or a nearest-row fallback).
+            val eventId: String?,
             val resolvePosition: () -> Int?,
     )
 
@@ -50,13 +53,11 @@ class ScrollOnHighlightedEventCallback(
     private var anchor: Anchor? = null
     private var anchorOffset = 0
     private var anchorDeadlineMs = 0L
-    @Volatile private var lastAnchorActivityMs = 0L
 
-    // Where the row is held once the layout proves it cannot give it the offset we ask for (it is
-    // against the end of the list), instead of asking for the same impossible place every frame.
-    private var settledOffset: Int? = null
-    private var lastRequestedOffset: Int? = null
-    private var lastObservedOffset: Int? = null
+    // The target's top edge as first shown, held there until the reader takes over. Its top rather than
+    // its center: the reader is reading it, and its own media growing must not slide it either.
+    private var lockedTop: Int? = null
+    private var lockedHeight = 0
 
     // Invalidates a landing posted before the jump was cancelled, which would otherwise pull the
     // reader back a frame after they took over.
@@ -76,18 +77,13 @@ class ScrollOnHighlightedEventCallback(
         recyclerView.viewTreeObserver.addOnPreDrawListener { holdAnchor() }
     }
 
-    override fun onInserted(position: Int, count: Int) = onListChanged()
+    override fun onInserted(position: Int, count: Int) = scrollIfNeeded()
 
-    override fun onRemoved(position: Int, count: Int) = onListChanged()
+    override fun onRemoved(position: Int, count: Int) = scrollIfNeeded()
 
-    override fun onMoved(position: Int, count: Int) = onListChanged()
+    override fun onMoved(position: Int, count: Int) = scrollIfNeeded()
 
-    override fun onChanged(position: Int, count: Int, tag: Any?) = onListChanged()
-
-    private fun onListChanged() {
-        lastAnchorActivityMs = SystemClock.uptimeMillis()
-        scrollIfNeeded()
-    }
+    override fun onChanged(position: Int, count: Int, tag: Any?) = scrollIfNeeded()
 
     private fun scrollIfNeeded() {
         val eventId = scheduledEventId.get() ?: return
@@ -103,7 +99,7 @@ class ScrollOnHighlightedEventCallback(
                 scheduledEventId.set(null)
                 val nearest = timelineEventController.searchPositionOfEventOrNearest(eventId)
                 if (nearest != null) {
-                    land(nearest, ScrollAnchorAlignment.CENTER) {
+                    land(nearest, ScrollAnchorAlignment.CENTER, eventId = null) {
                         timelineEventController.searchPositionOfEventOrNearest(eventId)
                     }
                 }
@@ -118,80 +114,74 @@ class ScrollOnHighlightedEventCallback(
             return
         }
         scheduledEventId.set(null)
-        land(position, ScrollAnchorAlignment.CENTER) { timelineEventController.searchPositionOfEvent(eventId) }
+        land(position, ScrollAnchorAlignment.CENTER, eventId) { timelineEventController.searchPositionOfEvent(eventId) }
     }
 
-    private fun land(position: Int, alignment: ScrollAnchorAlignment, resolvePosition: () -> Int?) {
-        // Epoxy dispatches model-build-finished on a background handler, so scrolling here directly would
-        // call scrollToPosition()/requestLayout() off the main thread — which doesn't reliably schedule a
-        // layout pass, leaving a jump-to-event blank until something else forces one. Post it onto the
-        // RecyclerView's (main) thread so the scroll, and the layout it triggers, actually happen.
+    private fun land(position: Int, alignment: ScrollAnchorAlignment, eventId: String?, resolvePosition: () -> Int?) {
+        // Off the main thread (Epoxy can dispatch model-build-finished on a background handler), scrolling
+        // directly doesn't reliably schedule a layout pass, leaving the jump blank until something else forces
+        // one, so it is posted there. On main it applies now: the diff that gave the target its row is laid
+        // out next frame, and a post can wait behind that whole bind pass, drawing the new rows at the bottom.
         val landGeneration = generation.get()
-        recyclerView.post {
-            if (generation.get() != landGeneration) return@post
+        val apply = apply@{
+            if (generation.get() != landGeneration) return@apply
             releaseAnchor()
             recyclerView.stopScroll()
-            // The row has not been measured yet, so this is only a first guess; the next frame's
-            // holdAnchor() places it properly from its real height, before it is drawn.
+            // The row has not been measured yet, so this is only a first guess; holdAnchor() corrects it
+            // from its real height in the pre-draw of the frame that lays it out, before it is drawn.
             anchorOffset = ScrollAnchorMath.desiredOffset(alignment, usableHeight(), usableHeight() / 3)
             layoutManager.scrollToPositionWithOffset(position, anchorOffset)
-            val now = SystemClock.uptimeMillis()
-            anchor = Anchor(alignment, resolvePosition)
-            anchorDeadlineMs = now + ANCHOR_MAX_MS
-            lastAnchorActivityMs = now
+            anchor = Anchor(alignment, eventId, resolvePosition)
+            anchorDeadlineMs = SystemClock.uptimeMillis() + ANCHOR_MAX_MS
             onLanded()
         }
+        if (Looper.myLooper() == Looper.getMainLooper()) apply() else recyclerView.post(apply)
     }
 
     // The reader can already see the target, so it only flashes; it is still held so a neighbor
     // decrypting or loading media doesn't push it away mid-flash.
-    private fun holdInPlace(view: View, resolvePosition: () -> Int?) {
+    private fun holdInPlace(view: View, eventId: String, resolvePosition: () -> Int?) {
         recyclerView.stopScroll()
-        val now = SystemClock.uptimeMillis()
         anchorOffset = ScrollAnchorMath.currentOffset(endAfterPadding(), layoutManager.getDecoratedBottom(view))
-        settledOffset = anchorOffset
-        anchor = Anchor(ScrollAnchorAlignment.CENTER, resolvePosition)
-        anchorDeadlineMs = now + ANCHOR_MAX_MS
-        lastAnchorActivityMs = now
+        lockedTop = layoutManager.getDecoratedTop(view)
+        anchor = Anchor(ScrollAnchorAlignment.CENTER, eventId, resolvePosition)
+        anchorDeadlineMs = SystemClock.uptimeMillis() + ANCHOR_MAX_MS
         onLanded()
     }
 
     private fun holdAnchor(): Boolean {
         val safeAnchor = anchor ?: return true
-        val now = SystemClock.uptimeMillis()
-        if (now > anchorDeadlineMs || now - lastAnchorActivityMs > ANCHOR_QUIET_MS) {
+        if (SystemClock.uptimeMillis() > anchorDeadlineMs) {
             releaseAnchor()
             return true
         }
         val position = safeAnchor.resolvePosition() ?: return true
+        // The mapping can run ahead of the adapter; acting on it would move some other row. The diff it
+        // belongs to lands within a frame or two.
+        if (safeAnchor.eventId != null && !timelineEventController.isAdapterPositionOf(safeAnchor.eventId, position)) return true
         val view = layoutManager.findViewByPosition(position)
         if (view == null) {
-            // A diff moved the row out of the laid-out range entirely; put it back at its last offset.
+            // A diff moved the row out of the laid-out range entirely; put it back where it was held.
+            lockedTop?.let { anchorOffset = endAfterPadding() - it - lockedHeight }
             layoutManager.scrollToPositionWithOffset(position, anchorOffset)
-            lastAnchorActivityMs = now
+            // Cancelling pre-draw here blanks the whole list while RecyclerView waits for its next layout.
             return true
         }
-        val desired = settledOffset ?: ScrollAnchorMath.desiredOffset(
-                safeAnchor.alignment, usableHeight(), layoutManager.getDecoratedMeasuredHeight(view)
-        )
-        val current = ScrollAnchorMath.currentOffset(endAfterPadding(), layoutManager.getDecoratedBottom(view))
-        if (abs(desired - current) <= DRIFT_TOLERANCE_PX) {
-            lastRequestedOffset = null
-            return true
+        val height = layoutManager.getDecoratedMeasuredHeight(view)
+        val wantedTop = lockedTop
+                ?: (endAfterPadding() - ScrollAnchorMath.desiredOffset(safeAnchor.alignment, usableHeight(), height) - height)
+        val drift = layoutManager.getDecoratedTop(view) - wantedTop
+        if (abs(drift) > DRIFT_TOLERANCE_PX) {
+            // scrollBy moves the laid-out rows right away, so this frame already draws the corrected
+            // position; scrollToPositionWithOffset only applies on the next layout, drawing this one stale.
+            recyclerView.scrollBy(0, drift)
         }
-        if (lastRequestedOffset == desired && lastObservedOffset == current) {
-            // Asking again changed nothing: the list has no more to scroll on that side. Hold the row
-            // where it did land, which still keeps it still while its neighbors grow.
-            settledOffset = current
-            lastRequestedOffset = null
-            return true
+        if (lockedTop == null) {
+            // Where it actually shows: against the end of a short list that can be short of the wanted spot,
+            // and moving it once more content arrives would be exactly the shift this avoids.
+            lockedTop = layoutManager.getDecoratedTop(view)
         }
-        lastRequestedOffset = desired
-        lastObservedOffset = current
-        anchorOffset = desired
-        layoutManager.scrollToPositionWithOffset(position, desired)
-        lastAnchorActivityMs = now
-        // Cancelling pre-draw here blanks the whole list while RecyclerView waits for its next layout.
+        lockedHeight = height
         return true
     }
 
@@ -201,9 +191,7 @@ class ScrollOnHighlightedEventCallback(
 
     private fun releaseAnchor() {
         anchor = null
-        settledOffset = null
-        lastRequestedOffset = null
-        lastObservedOffset = null
+        lockedTop = null
     }
 
     /** True while a jump is in flight or its target is still held (the timeline around it still moving). */
@@ -229,9 +217,9 @@ class ScrollOnHighlightedEventCallback(
                             recyclerView.paddingTop, endAfterPadding(),
                             layoutManager.getDecoratedTop(view), layoutManager.getDecoratedBottom(view)
                     )) {
-                holdInPlace(view, resolvePosition)
+                holdInPlace(view, eventId, resolvePosition)
             } else {
-                land(position, ScrollAnchorAlignment.CENTER, resolvePosition)
+                land(position, ScrollAnchorAlignment.CENTER, eventId, resolvePosition)
             }
             return
         }
@@ -244,7 +232,7 @@ class ScrollOnHighlightedEventCallback(
     fun scrollToResolvedPosition(alignment: ScrollAnchorAlignment, resolvePosition: () -> Int?): Boolean {
         cancel()
         val position = resolvePosition() ?: return false
-        land(position, alignment, resolvePosition)
+        land(position, alignment, eventId = null, resolvePosition)
         return true
     }
 
@@ -260,12 +248,9 @@ class ScrollOnHighlightedEventCallback(
         // Events either side of the target that must have been built before landing: roughly a screenful.
         private const val NEIGHBORHOOD_RADIUS = 8
 
-        // Ceiling on holding the target, for a room that never stops changing shape.
+        // How long the target is held unless the reader scrolls first: long enough for late media, link
+        // previews and the pages loading around it to arrive, which take seconds on a slow link.
         private const val ANCHOR_MAX_MS = 15_000L
-
-        // Released once nothing has moved for this long, rather than on a fixed timer: what the target
-        // has to survive is decryption and media, whose timing has nothing to do with when it landed.
-        private const val ANCHOR_QUIET_MS = 400L
 
         private const val DRIFT_TOLERANCE_PX = 1
     }

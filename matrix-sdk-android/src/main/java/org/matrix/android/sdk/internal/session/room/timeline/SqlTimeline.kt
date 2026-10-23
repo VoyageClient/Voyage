@@ -439,6 +439,8 @@ internal class SqlTimeline(
     // A reseed is asynchronous and the rebuilds that trigger it keep coming; without this they pile up
     // and cancel one another (see rebuildSnapshot).
     private val reseeding = java.util.concurrent.atomic.AtomicBoolean(false)
+    private val recoveringSeed = java.util.concurrent.atomic.AtomicBoolean(false)
+    private var forwardServerPaged = false
 
     @Volatile private var rebuildsPaused = false
     @Volatile private var rebuildPendingWhilePaused = false
@@ -538,6 +540,7 @@ internal class SqlTimeline(
         receiptsJob?.cancel()
         loadedChunkIds.clear()
         chunkSnapshotCache.clear()
+        forwardServerPaged = false
         liveChunkRowCap = liveChunkRowStep
         liveChunkFullyMapped = false
         liveEdgeLoaded = false
@@ -738,7 +741,11 @@ internal class SqlTimeline(
                 when {
                     newest.is_last_forward != 0L -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
                     newestNextToken != null -> {
-                        paginateThroughHidden(newestNextToken, Timeline.Direction.FORWARDS, count, newest.id)
+                        // Catch-up pages are large, but the first one after a jump is what fills the screen
+                        // below the target, so it gets the same size as a backward page.
+                        val pageCount = if (forwardServerPaged) count else minOf(count, FIRST_FORWARD_PAGE_COUNT)
+                        forwardServerPaged = true
+                        paginateThroughHidden(newestNextToken, Timeline.Direction.FORWARDS, pageCount, newest.id)
                         rebuildSnapshot()
                     }
                     else -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
@@ -1082,6 +1089,28 @@ internal class SqlTimeline(
             }
         }
         if (loadedChunkIds.isEmpty() && !isThreadTimeline) {
+            if (builtEvents.isNotEmpty()) {
+                // The shown rows were folded into another range. Keep them on screen until recovery publishes
+                // that range: an empty interim snapshot blanks the timeline for the whole remap.
+                if (recoveringSeed.compareAndSet(false, true)) {
+                    // Not inline: seedFrom cancels the observer job this rebuild usually runs in.
+                    timelineScope.launch {
+                        try {
+                            if (recoverLostSeed()) {
+                                rebuildSnapshot()
+                            } else if (loadedChunkIds.isEmpty()) {
+                                withContext(coroutineDispatchers.main) {
+                                    builtEvents = emptyList()
+                                    listeners.forEach { tryOrNull { it.onTimelineUpdated(builtEvents) } }
+                                }
+                            }
+                        } finally {
+                            recoveringSeed.set(false)
+                        }
+                    }
+                }
+                return
+            }
             // Not inline: seedFrom cancels the observer job this rebuild usually runs in. This pass still
             // posts its (empty) snapshot — a room that genuinely has no chunk yet must keep doing that.
             timelineScope.launch { if (recoverLostSeed()) rebuildSnapshot() }
@@ -1312,9 +1341,16 @@ internal class SqlTimeline(
                 ?: stores.chunk.lastForward(roomId)?.id
                 ?: return false
         Timber.w("SqlTimeline $roomId lost its seed chunk, re-seeding on $chunkId at $anchor")
-        pendingShowEventId = anchor
-        oldestShownEventId = null
-        newestShownEventId = null
+        // A fold moves the shown rows intact, so when both window edges landed in the same range keep the
+        // window as is; re-centering on the anchor would slide newer rows in under the reader.
+        val bounds = listOfNotNull(newestShownEventId, oldestShownEventId)
+        val keepWindow = pendingShowEventId == null && bounds.isNotEmpty() &&
+                bounds.all { stores.chunk.findMainChunkIdIncludingEvent(roomId, it) == chunkId }
+        if (!keepWindow) {
+            pendingShowEventId = anchor
+            oldestShownEventId = null
+            newestShownEventId = null
+        }
         seedFrom(chunkId)
         return true
     }
@@ -1367,6 +1403,7 @@ internal class SqlTimeline(
         // Bounds the immediate follow-ups after token-progress-only pages; the UI's loading item
         // re-triggers for anything longer.
         private const val MAX_PAGINATION_ROUNDS = 10
+        private const val FIRST_FORWARD_PAGE_COUNT = 50
 
         private const val MAX_EMPTY_HISTORY_PAGES = 10
 

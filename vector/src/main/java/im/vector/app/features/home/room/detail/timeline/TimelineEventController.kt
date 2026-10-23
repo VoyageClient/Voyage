@@ -67,9 +67,9 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -112,7 +112,6 @@ class TimelineEventController @Inject constructor(
         private val readReceiptsItemFactory: ReadReceiptsItemFactory,
         private val reactionListFactory: ReactionsSummaryFactory,
         private val sendingMediaGate: SendingMediaGate,
-        private val clock: Clock,
         private val avatarRenderer: AvatarRenderer,
         private val permalinkEventResolver: PermalinkEventResolver,
         private val matrixItemColorProvider: MatrixItemColorProvider,
@@ -386,8 +385,16 @@ class TimelineEventController @Inject constructor(
             adapterPositionMapping,
     )
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    // A loader keeps its id across builds that add nothing beside it, so its visibility callback doesn't
+    // re-fire then: a build that leaves a loader on screen asks for the next page here instead.
+    private val loaderVisible = BooleanArray(Timeline.Direction.values().size)
+    private val loaderRequestsMore = BooleanArray(Timeline.Direction.values().size)
+
     init {
         addInterceptor(this)
+        addModelBuildListener { requestMoreFromVisibleLoaders() }
         requestModelBuild()
     }
 
@@ -597,22 +604,23 @@ class TimelineEventController @Inject constructor(
                 membership != Membership.INVITE) {
             return
         }
-        val timestamp = clock.epochMillis()
-
+        val timelineModels = getModels()
+        if (!firstNonEmptyModelsTraced && timelineModels.isNotEmpty()) {
+            firstNonEmptyModelsTraced = true
+            RoomOpenTrace.stage("models.firstNonEmpty", "n=${timelineModels.size} snapshot=${currentSnapshot.size} unbuilt=$hasUnbuiltEvents")
+        }
+        // Each loader's id follows the row next to it. RecyclerView anchors layout on the child nearest the
+        // bottom, so a loader that outlives rows being inserted beside it drags the viewport along with it;
+        // a fresh id hands the anchor to a message instead. Builds that add nothing there keep the loader
+        // bound, so its spinner isn't restarted on every pass.
         val showingForwardLoader = LoadingItem_()
-                .id("forward_loading_item_$timestamp")
+                .id("forward_loading_item_${timelineModels.firstOrNull()?.id()}")
                 .setVisibilityStateChangedListener(Timeline.Direction.FORWARDS)
                 .addWhenLoading(Timeline.Direction.FORWARDS)
         if (!showingForwardLoader) {
             val typingUsers = partialState.roomSummary?.typingUsers.orEmpty()
             val typingItem = TypingItem_().id("typing_view").avatarRenderer(avatarRenderer).users(typingUsers)
             add(typingItem)
-        }
-
-        val timelineModels = getModels()
-        if (!firstNonEmptyModelsTraced && timelineModels.isNotEmpty()) {
-            firstNonEmptyModelsTraced = true
-            RoomOpenTrace.stage("models.firstNonEmpty", "n=${timelineModels.size} snapshot=${currentSnapshot.size} unbuilt=$hasUnbuiltEvents")
         }
         add(timelineModels)
         if (hasReachedInvite && hasUTD) {
@@ -624,7 +632,7 @@ class TimelineEventController @Inject constructor(
         // history the timeline hasn't rendered yet — but it still has to be ADDED, or the list just ends at
         // the oldest built message and a scroll to the top stops there with no spinner and nothing above it.
         val showingBackwardLoader = LoadingItem_()
-                .id("backward_loading_item_$timestamp")
+                .id("backward_loading_item_${timelineModels.lastOrNull()?.id()}")
                 .setVisibilityStateChangedListener(Timeline.Direction.BACKWARDS, requestsMore = !hasUnbuiltEvents)
                 .showLoader(showBackwardsLoader)
                 .addWhenLoading(Timeline.Direction.BACKWARDS)
@@ -1236,9 +1244,22 @@ class TimelineEventController @Inject constructor(
 
     private fun LoadingItem_.setVisibilityStateChangedListener(direction: Timeline.Direction, requestsMore: Boolean = true): LoadingItem_ {
         val host = this@TimelineEventController
+        host.loaderRequestsMore[direction.ordinal] = requestsMore
         return onVisibilityStateChanged { _, _, visibilityState ->
-            if (requestsMore && visibilityState == VisibilityState.VISIBLE) {
-                host.callback?.onLoadMore(direction)
+            when (visibilityState) {
+                VisibilityState.VISIBLE -> {
+                    host.loaderVisible[direction.ordinal] = true
+                    if (host.loaderRequestsMore[direction.ordinal]) host.callback?.onLoadMore(direction)
+                }
+                VisibilityState.INVISIBLE -> host.loaderVisible[direction.ordinal] = false
+            }
+        }
+    }
+
+    private fun requestMoreFromVisibleLoaders() {
+        Timeline.Direction.values().forEach { direction ->
+            if (loaderVisible[direction.ordinal] && loaderRequestsMore[direction.ordinal]) {
+                mainHandler.post { callback?.onLoadMore(direction) }
             }
         }
     }
@@ -1282,6 +1303,8 @@ class TimelineEventController @Inject constructor(
         val host = this@TimelineEventController
         val shouldAdd = host.timeline?.hasMoreToLoad(direction) ?: false
         addIf(shouldAdd, host)
+        // A removed loader's view detaches without reporting INVISIBLE.
+        if (!shouldAdd) host.loaderVisible[direction.ordinal] = false
         return shouldAdd
     }
 
@@ -1320,6 +1343,14 @@ class TimelineEventController @Inject constructor(
         }
         return null
     }
+
+    /**
+     * Whether the adapter currently shows [eventId] at [position]. The position mapping is rebuilt with each
+     * model build, before the adapter has applied that build's diff, so for a moment it can name a row of
+     * the next list that the adapter still holds something else at.
+     */
+    fun isAdapterPositionOf(eventId: String, position: Int): Boolean =
+            tryOrNull { (adapter.getModelAtPosition(position) as? ItemWithEvents)?.getEventIds()?.contains(eventId) } == true
 
     /**
      * Return the newest timeline event still visible at or below the given adapter position.

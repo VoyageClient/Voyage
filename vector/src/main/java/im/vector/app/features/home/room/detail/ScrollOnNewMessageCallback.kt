@@ -24,6 +24,8 @@ class ScrollOnNewMessageCallback(
         // is bounded on the newer side, so the reader can sit at position 0 and be nowhere near the newest
         // event — and a message arriving there used to scroll them to it.
         private val isTimelineLive: () -> Boolean = { true },
+        // Called before following a new message to the bottom, so a jump target held there lets go.
+        private val onScrollToLatest: () -> Unit = {},
 ) : DefaultListUpdateCallback {
 
     private val newTimelineEventIds = CopyOnWriteArrayList<String>()
@@ -57,6 +59,7 @@ class ScrollOnNewMessageCallback(
             return
         }
         if (SystemClock.uptimeMillis() < forceScrollUntilMs) {
+            onScrollToLatest()
             layoutManager.scrollToPosition(0)
             return
         }
@@ -72,6 +75,7 @@ class ScrollOnNewMessageCallback(
             while (newTimelineEventIds.lastOrNull() != firstNewItemIds) {
                 newTimelineEventIds.removeLastOrNull()
             }
+            onScrollToLatest()
             layoutManager.scrollToPosition(0)
         }
     }

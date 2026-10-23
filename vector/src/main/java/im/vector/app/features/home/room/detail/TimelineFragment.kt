@@ -1523,6 +1523,7 @@ class TimelineFragment :
                 layoutManager,
                 timelineEventController,
                 isTimelineLive = { !timelineHasContent || timelineViewModel.timeline?.isLive != false },
+                onScrollToLatest = { scrollOnHighlightedEventCallback.cancel() },
         )
         scrollOnHighlightedEventCallback = ScrollOnHighlightedEventCallback(
                 views.timelineRecyclerView,
