@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.extensions.acceptPlainSingleLineOnly
 import im.vector.app.core.extensions.clearErrorOnChange
 import im.vector.app.core.extensions.content
 import im.vector.app.core.extensions.editText
@@ -67,6 +68,8 @@ class FtueAuthCombinedRegisterFragment :
         super.onViewCreated(view, savedInstanceState)
         setupSubmitButton()
         views.createAccountRoot.realignPercentagesToParent()
+        views.createAccountEditText.acceptPlainSingleLineOnly()
+        views.createAccountPassword.acceptPlainSingleLineOnly()
         views.editServerButton.debouncedClicks { viewModel.handle(OnboardingAction.PostViewEvent(OnboardingViewEvents.EditServerSelection)) }
         views.createAccountPasswordInput.setOnImeDoneListener {
             if (canSubmit(views.createAccountInput.content(), views.createAccountPasswordInput.content())) {

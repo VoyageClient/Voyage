@@ -21,6 +21,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.acceptPlainSingleLineOnly
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.hidePassword
 import im.vector.app.core.extensions.toReducedUrl
@@ -75,6 +76,8 @@ class FtueAuthLoginFragment :
 
         setupSubmitButton()
         setupForgottenPasswordButton()
+        views.loginField.acceptPlainSingleLineOnly()
+        views.passwordField.acceptPlainSingleLineOnly()
 
         views.passwordField.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {

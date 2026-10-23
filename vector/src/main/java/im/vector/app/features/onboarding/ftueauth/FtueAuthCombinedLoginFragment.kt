@@ -17,6 +17,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.extensions.acceptPlainSingleLineOnly
 import im.vector.app.core.extensions.clearErrorOnChange
 import im.vector.app.core.extensions.content
 import im.vector.app.core.extensions.editText
@@ -57,6 +58,8 @@ class FtueAuthCombinedLoginFragment :
         super.onViewCreated(view, savedInstanceState)
         setupSubmitButton()
         views.loginRoot.realignPercentagesToParent()
+        views.loginEditText.acceptPlainSingleLineOnly()
+        views.loginPasswordEditText.acceptPlainSingleLineOnly()
         views.editServerButton.debouncedClicks { viewModel.handle(OnboardingAction.PostViewEvent(OnboardingViewEvents.EditServerSelection)) }
         views.loginPasswordInput.setOnImeDoneListener { submit() }
         views.loginInput.setOnFocusLostListener(viewLifecycleOwner) {

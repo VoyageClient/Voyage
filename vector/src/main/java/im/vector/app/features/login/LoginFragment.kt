@@ -21,6 +21,7 @@ import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.acceptPlainSingleLineOnly
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.hidePassword
 import im.vector.app.core.extensions.toReducedUrl
@@ -63,6 +64,8 @@ class LoginFragment :
 
         setupSubmitButton()
         setupForgottenPasswordButton()
+        views.loginField.acceptPlainSingleLineOnly()
+        views.passwordField.acceptPlainSingleLineOnly()
 
         views.passwordField.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
