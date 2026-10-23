@@ -107,6 +107,7 @@ import im.vector.app.features.poll.PollMode
 import im.vector.app.features.reactions.EmojiKeyboardController
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
+import im.vector.app.features.roommemberprofile.HomeserverInfoCollector
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.SharedData
 import im.vector.app.features.themes.ThemeUtils
@@ -121,6 +122,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -176,6 +178,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var permalinkHandler: PermalinkHandler
+    @Inject lateinit var homeserverInfoCollector: HomeserverInfoCollector
 
     private val roomId: String get() = withState(timelineViewModel) { it.roomId }
 
@@ -1028,6 +1031,16 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         when (parsedCommand) {
             is ParsedCommand.DevTools -> {
                 navigator.openDevTools(requireContext(), roomId)
+            }
+            is ParsedCommand.ServerInfo -> {
+                showCommandPopup {
+                    homeserverInfoCollector.showDialog(
+                            requireContext(),
+                            viewLifecycleOwner,
+                            parsedCommand.serverName ?: session.myUserId.getServerName(),
+                            onDismiss = { composer.editText.showKeyboard(andRequestFocus = true) }
+                    )
+                }
             }
             is ParsedCommand.SendCustomEvent -> {
                 navigator.openDevTools(requireContext(), roomId, RoomDevToolViewState.SendTarget.MESSAGE)

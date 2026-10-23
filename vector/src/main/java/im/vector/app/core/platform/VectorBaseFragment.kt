@@ -162,7 +162,7 @@ abstract class VectorBaseFragment<VB : ViewBinding> : Fragment(), MavericksView 
                     }
                 },
                 viewLifecycleOwner,
-                Lifecycle.State.RESUMED
+                menuLifecycleState()
         )
     }
 

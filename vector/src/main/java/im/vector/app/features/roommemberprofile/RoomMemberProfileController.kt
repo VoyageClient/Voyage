@@ -29,7 +29,6 @@ import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorPr
 import im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
-import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeProvider
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
@@ -44,7 +43,6 @@ import javax.inject.Inject
 class RoomMemberProfileController @Inject constructor(
         private val stringProvider: StringProvider,
         private val session: Session,
-        private val vectorPreferences: VectorPreferences,
         private val avatarRenderer: AvatarRenderer,
         private val matrixItemColorProvider: MatrixItemColorProvider,
         private val themeProvider: ThemeProvider,
@@ -109,8 +107,6 @@ class RoomMemberProfileController @Inject constructor(
         fun onBanClicked(isSpace: Boolean, isUserBanned: Boolean)
         fun onCancelInviteClicked()
         fun onInviteClicked()
-        fun onViewSourceClicked()
-        fun onViewProfileSourceClicked()
     }
 
     override fun buildModels(data: RoomMemberProfileViewState?) {
@@ -124,20 +120,6 @@ class RoomMemberProfileController @Inject constructor(
         } else {
             buildUserActions(data)
         }
-    }
-
-    // The profile dict is fetched for any user, member of this room or not (e.g. reached via /whois).
-    private fun canViewProfileSource(state: RoomMemberProfileViewState) = vectorPreferences.developerMode() && state.profileJson != null
-
-    private fun buildProfileSourceAction(state: RoomMemberProfileViewState) {
-        if (!canViewProfileSource(state)) return
-        buildProfileAction(
-                id = "view_profile_source",
-                editable = false,
-                divider = true,
-                title = stringProvider.getString(CommonStrings.room_member_view_profile_source),
-                action = { callback?.onViewProfileSourceClicked() }
-        )
     }
 
     private fun buildBiography(state: RoomMemberProfileViewState) {
@@ -226,7 +208,7 @@ class RoomMemberProfileController @Inject constructor(
 
     private fun buildUserActions(state: RoomMemberProfileViewState) {
         val ignoreActionTitle = state.buildIgnoreActionTitle()
-        if (ignoreActionTitle == null && state.isMine && !canViewProfileSource(state)) return
+        if (ignoreActionTitle == null && state.isMine) return
         // More
         buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_more))
         if (!state.isMine) {
@@ -238,7 +220,6 @@ class RoomMemberProfileController @Inject constructor(
             )
         }
         buildMutualRoomsAction(state)
-        buildProfileSourceAction(state)
         if (ignoreActionTitle != null) {
             buildProfileAction(
                     id = "ignore",
@@ -438,17 +419,6 @@ class RoomMemberProfileController @Inject constructor(
                     editable = false,
                     title = stringProvider.getString(CommonStrings.room_member_open_or_create_dm),
                     action = { callback?.onOpenDmClicked() }
-            )
-        }
-
-        if (vectorPreferences.developerMode()) {
-            buildProfileSourceAction(state)
-            buildProfileAction(
-                    id = "view_membership_source",
-                    editable = false,
-                    divider = true,
-                    title = stringProvider.getString(CommonStrings.room_member_view_membership_source),
-                    action = { callback?.onViewSourceClicked() }
             )
         }
 

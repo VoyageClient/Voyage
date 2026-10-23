@@ -1023,6 +1023,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             handleSetUserPowerLevel(room, parsedCommand)
                         }
                         is ParsedCommand.DevTools,
+                        is ParsedCommand.ServerInfo,
                         is ParsedCommand.SendCustomEvent,
                         is ParsedCommand.SendCustomStateEvent -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
@@ -2491,6 +2492,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             Command.INVITE,
             Command.CREATE_SPACE,
             Command.WHOIS,
+            Command.SERVER_INFO,
             Command.JOIN_ROOM,
             Command.PART,
             Command.LEAVE_ROOM,

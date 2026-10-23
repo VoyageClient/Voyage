@@ -61,6 +61,7 @@ enum class Command(
     TRANS("/trans", null, "<message>", CommonStrings.command_description_trans, false, true),
     TRANS_EMOTE("/transme", null, "<message>", CommonStrings.command_description_trans_emote, false, true),
     DEVTOOLS("/devtools", null, "", CommonStrings.command_description_devtools, true, false),
+    SERVER_INFO("/serverinfo", null, "[server-name|user-id]", CommonStrings.command_description_serverinfo, true, true),
     SEND_EVENT("/sendevent", null, "", CommonStrings.command_description_send_event, true, false),
     SEND_STATE("/sendstate", null, "", CommonStrings.command_description_send_state, true, false),
     RAW_MESSAGE("/rawmsg", null, "<json>", CommonStrings.command_description_rawmsg, true, true),

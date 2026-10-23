@@ -37,6 +37,14 @@ class CommandParserTest {
     }
 
     @Test
+    fun parseServerInfoCommand() {
+        test("/serverinfo", ParsedCommand.ServerInfo(null))
+        test("/serverinfo example.org:8448", ParsedCommand.ServerInfo("example.org:8448"))
+        test("/serverinfo $A_USER_ID", ParsedCommand.ServerInfo("matrix.org"))
+        test("/serverinfo a b", ParsedCommand.ErrorSyntax(Command.SERVER_INFO))
+    }
+
+    @Test
     fun parseTelegramPackDownloadCommand() {
         test("/tgexport https://t.me/addstickers/AniColle", ParsedCommand.ExportTelegramPack(listOf("AniColle")))
         test("/tgexport AniColle", ParsedCommand.ExportTelegramPack(listOf("AniColle")))

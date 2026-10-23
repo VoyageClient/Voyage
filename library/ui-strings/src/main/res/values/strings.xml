@@ -1288,6 +1288,7 @@
     <string name="command_description_markdown">On/Off markdown</string>
     <string name="command_description_clear_scalar_token">To fix Matrix Apps management</string>
     <string name="command_description_devtools">Open the developer tools screen</string>
+    <string name="command_description_serverinfo">Show info about a homeserver</string>
     <string name="command_description_whois">Displays information about a user</string>
 
     <string name="markdown_has_been_enabled">Markdown has been enabled.</string>
@@ -4010,6 +4011,34 @@
     <string name="media_info_focal_length">Focal length</string>
     <string name="media_info_focal_length_value">%1$s mm</string>
     <string name="media_info_location">Location</string>
+
+    <string name="homeserver_info_title">Homeserver Info</string>
+    <string name="homeserver_info_copy_domain">Copy Homeserver Domain</string>
+    <string name="homeserver_info_copy_url">Copy Homeserver URL</string>
+    <string name="homeserver_info_server_name">Server name</string>
+    <string name="homeserver_info_client_api">Client API URL</string>
+    <string name="homeserver_info_discovery">Discovered via</string>
+    <string name="homeserver_info_discovery_well_known">.well-known</string>
+    <string name="homeserver_info_discovery_session">Your session</string>
+    <string name="homeserver_info_discovery_assumed">Nothing (assumed from server name)</string>
+    <string name="homeserver_info_identity_server">Identity server</string>
+    <string name="homeserver_info_federation_api">Federation API URL</string>
+    <string name="homeserver_info_software">Server software</string>
+    <string name="homeserver_info_version">Server version</string>
+    <string name="homeserver_info_spec_versions">Spec versions</string>
+    <string name="homeserver_info_unstable_features">Unstable features (%1$d)</string>
+    <string name="homeserver_info_response_time">Response time</string>
+    <string name="homeserver_info_response_time_value">%1$d ms</string>
+    <string name="homeserver_info_login_methods">Login methods</string>
+    <string name="homeserver_info_auth_issuer">Authentication issuer</string>
+    <string name="homeserver_info_account_management">Account management</string>
+    <string name="homeserver_info_support">Support page</string>
+    <string name="homeserver_info_contacts">Contacts</string>
+    <string name="homeserver_info_signing_keys">Signing keys</string>
+    <string name="homeserver_info_keys_valid_until">Keys valid until</string>
+    <string name="homeserver_info_default_room_version">Default room version</string>
+    <string name="homeserver_info_max_upload_size">Max upload size</string>
+    <string name="homeserver_info_unavailable">Unavailable</string>
     <string name="room_personalization_redaction_clear_now_confirmation">Delete the media kept for redacted messages in this room? Anything the server no longer holds can\'t be downloaded again.</string>
     <string name="redaction_media_no_limit">No limit</string>
     <string name="redaction_media_size_1mb">1 MB</string>

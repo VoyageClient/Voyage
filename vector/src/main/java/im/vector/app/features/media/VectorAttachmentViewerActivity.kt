@@ -31,6 +31,7 @@ import com.airbnb.mvrx.viewModel
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.dialogs.InfoFieldsDialog
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.intent.getMimeTypeFromUri
@@ -116,7 +117,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private var restoredPosition = -1
     private var isAnimatingOut = false
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
-    private var infoDialog: MediaInfoDialog? = null
+    private var infoDialog: InfoFieldsDialog? = null
     private var providerInstalled = false
     private var handoffPending = false
 
@@ -629,9 +630,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         val position = currentPosition
         val data = attachmentDataAt(position) ?: return
 
-        val dialog = MediaInfoDialog(
+        val dialog = InfoFieldsDialog(
                 // The viewer's own theme is a bare fullscreen one, so the sheet takes the app's.
                 context = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+                title = CommonStrings.media_info_title,
                 onDismiss = {
                     infoDialog = null
                     restartAutoHideCountdown()

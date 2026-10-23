@@ -3,13 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
     android:baselineAligned="false"
     android:orientation="horizontal"
+    android:paddingLeft="24dp"
     android:paddingTop="6dp"
+    android:paddingRight="24dp"
     android:paddingBottom="6dp">
 
     <TextView
-        android:id="@+id/mediaInfoFieldLabel"
+        android:id="@+id/infoFieldLabel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="0.4"
@@ -18,9 +21,10 @@
         tools:text="Resolution" />
 
     <TextView
-        android:id="@+id/mediaInfoFieldValue"
+        android:id="@+id/infoFieldValue"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:layout_marginLeft="12dp"
         android:layout_weight="0.6"
         android:textColor="?vctr_content_primary"

@@ -21,12 +21,16 @@ import android.os.SystemClock
 import android.text.Editable
 import android.text.InputType
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.Success
@@ -47,15 +51,18 @@ import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
+import im.vector.app.core.extensions.iconPopupMenu
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.colorpicker.ProfileColorPickerDialogFragment
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
+import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.databinding.FragmentMatrixProfileBinding
@@ -79,9 +86,11 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.json.JSONObject
+import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
@@ -104,7 +113,8 @@ data class RoomMemberProfileArgs(
 class RoomMemberProfileFragment :
         VectorBaseFragment<FragmentMatrixProfileBinding>(),
         RoomMemberProfileController.Callback,
-        GalleryOrCameraDialogHelper.Listener {
+        GalleryOrCameraDialogHelper.Listener,
+        VectorMenuProvider {
 
     @Inject lateinit var roomMemberProfileController: RoomMemberProfileController
     @Inject lateinit var avatarRenderer: AvatarRenderer
@@ -115,6 +125,7 @@ class RoomMemberProfileFragment :
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
+    @Inject lateinit var homeserverInfoCollector: HomeserverInfoCollector
 
     private lateinit var headerViews: ViewStubRoomMemberProfileHeaderBinding
 
@@ -316,6 +327,41 @@ class RoomMemberProfileFragment :
         bannerUiHelper = null
         views.matrixProfileRecyclerView.cleanup()
         super.onDestroyView()
+    }
+
+    override fun getMenuRes() = R.menu.vector_room_member_profile
+
+    override fun menuLifecycleState() = Lifecycle.State.STARTED
+
+    override fun handlePrepareMenu(menu: Menu) {
+        // Its entries are all developer tools, so without developer mode the button would open nothing.
+        menu.findItem(R.id.roomMemberProfileMoreAction).isVisible = vectorPreferences.developerMode()
+    }
+
+    override fun handleMenuItemSelected(item: MenuItem): Boolean {
+        if (item.itemId != R.id.roomMemberProfileMoreAction) return false
+        val anchor = views.matrixProfileToolbar.findViewById<View>(R.id.roomMemberProfileMoreAction) ?: views.matrixProfileToolbar
+        val popup = iconPopupMenu(requireContext(), anchor, R.menu.menu_room_member_profile_more)
+        val serverName = fragmentArgs.userId.getServerName()
+        // The profile dict is fetched for any user, member of this room or not (e.g. reached via /whois).
+        val profileJson = withState(viewModel) { it.profileJson }
+        popup.menu.findItem(R.id.roomMemberProfileViewProfileSource).isVisible = profileJson != null
+        popup.menu.findItem(R.id.roomMemberProfileViewMembershipSource).isVisible = memberStateEvent() != null
+        popup.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.roomMemberProfileViewProfileSource -> profileJson?.let { showProfileSource(it) }
+                R.id.roomMemberProfileViewMembershipSource -> showMembershipSource()
+                R.id.roomMemberProfileHomeserverInfo -> homeserverInfoCollector.showDialog(requireContext(), viewLifecycleOwner, serverName)
+                R.id.roomMemberProfileCopyHomeserverDomain -> copyToClipboard(requireContext(), serverName)
+                R.id.roomMemberProfileCopyHomeserverUrl -> viewLifecycleOwner.lifecycleScope.launch {
+                    val url = homeserverInfoCollector.discoverClientApi(serverName).url
+                    context?.let { copyToClipboard(it, url) }
+                }
+            }
+            true
+        }
+        popup.show()
+        return true
     }
 
     override fun invalidate() = withState(viewModel) { state ->
@@ -968,8 +1014,7 @@ class RoomMemberProfileFragment :
         viewModel.handle(RoomMemberProfileAction.SetProfileOverrideAvatar(null))
     }
 
-    override fun onViewProfileSourceClicked() = withState(viewModel) { state ->
-        val profile = state.profileJson ?: return@withState
+    private fun showProfileSource(profile: Map<String, Any>) {
         JSonViewerDialog.newInstance(
                 JSONObject(profile).toString(4),
                 -1,
@@ -977,12 +1022,12 @@ class RoomMemberProfileFragment :
         ).show(childFragmentManager, "JSON_VIEWER")
     }
 
-    override fun onViewSourceClicked() {
-        val memberEvent = fragmentArgs.roomId?.let { roomId ->
-            session.getRoom(roomId)
-                    ?.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(fragmentArgs.userId))
-        }
-        if (memberEvent == null) return
+    private fun memberStateEvent() = fragmentArgs.roomId?.let { roomId ->
+        session.getRoom(roomId)?.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(fragmentArgs.userId))
+    }
+
+    private fun showMembershipSource() {
+        val memberEvent = memberStateEvent() ?: return
         JSonViewerDialog.newInstance(
                 memberEvent.toContentStringWithIndent(),
                 -1,

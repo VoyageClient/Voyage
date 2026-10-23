@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/roomMemberProfileHomeserverInfo"
+        android:icon="@drawable/ic_info_24"
+        android:title="@string/homeserver_info_title" />
+
+    <item
+        android:id="@+id/roomMemberProfileCopyHomeserverDomain"
+        android:icon="@drawable/ic_copy"
+        android:title="@string/homeserver_info_copy_domain" />
+
+    <item
+        android:id="@+id/roomMemberProfileCopyHomeserverUrl"
+        android:icon="@drawable/ic_permalink"
+        android:title="@string/homeserver_info_copy_url" />
+
+    <item
+        android:id="@+id/roomMemberProfileViewProfileSource"
+        android:icon="@drawable/ic_view_source"
+        android:title="@string/room_member_view_profile_source" />
+
+    <item
+        android:id="@+id/roomMemberProfileViewMembershipSource"
+        android:icon="@drawable/ic_view_source"
+        android:title="@string/room_member_view_membership_source" />
+
+</menu>

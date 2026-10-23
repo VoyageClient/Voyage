@@ -62,6 +62,7 @@ sealed interface ParsedCommand {
     data class SetMarkdown(val enable: Boolean) : ParsedCommand
     object ClearScalarToken : ParsedCommand
     object DevTools : ParsedCommand
+    data class ServerInfo(val serverName: String?) : ParsedCommand
     object SendCustomEvent : ParsedCommand
     object SendCustomStateEvent : ParsedCommand
     data class SendRawEvent(val eventType: String?, val json: String) : ParsedCommand

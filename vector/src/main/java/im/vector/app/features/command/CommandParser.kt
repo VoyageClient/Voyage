@@ -384,6 +384,17 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.DEVTOOLS)
                     }
                 }
+                Command.SERVER_INFO.matches(slashCommand) -> {
+                    when (messageParts.size) {
+                        1 -> ParsedCommand.ServerInfo(null)
+                        2 -> {
+                            val target = messageParts[1]
+                            val serverName = if (target.startsWith("@")) MatrixPatterns.extractServerNameFromId(target) else target
+                            serverName?.let { ParsedCommand.ServerInfo(it) } ?: ParsedCommand.ErrorSyntax(Command.SERVER_INFO)
+                        }
+                        else -> ParsedCommand.ErrorSyntax(Command.SERVER_INFO)
+                    }
+                }
                 Command.SEND_EVENT.matches(slashCommand) -> {
                     if (messageParts.size == 1) {
                         ParsedCommand.SendCustomEvent

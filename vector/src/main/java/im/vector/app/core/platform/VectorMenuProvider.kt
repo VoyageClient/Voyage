@@ -10,6 +10,7 @@ package im.vector.app.core.platform
 import android.view.Menu
 import android.view.MenuItem
 import androidx.annotation.MenuRes
+import androidx.lifecycle.Lifecycle
 
 /**
  * Let your Activity of Fragment implement this interface if they provide a Menu.
@@ -17,6 +18,9 @@ import androidx.annotation.MenuRes
 interface VectorMenuProvider {
     @MenuRes
     fun getMenuRes(): Int
+
+    // A fragment alone in its activity can use STARTED so its items survive the exit animation instead of vanishing on pause.
+    fun menuLifecycleState(): Lifecycle.State = Lifecycle.State.RESUMED
 
     // No op by default
     fun handlePostCreateMenu(menu: Menu) {}
