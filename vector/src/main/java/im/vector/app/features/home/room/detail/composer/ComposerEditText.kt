@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.text.Editable
 import android.text.Selection
+import android.text.Spanned
 import android.util.AttributeSet
 import android.view.ActionMode
 import android.view.inputmethod.EditorInfo
@@ -218,15 +219,18 @@ class ComposerEditText @JvmOverloads constructor(
         val text = span.copyText
         val start = editable.getSpanStart(span)
         val end = editable.getSpanEnd(span)
-        editable.removeSpan(span)
         // The pill survived the deletion (its terminator went instead), so its own char is replaced;
         // otherwise the deletion took it and the text goes back where it stood.
-        val at = if (start >= 0 && end > start) {
-            editable.replace(start, end, text)
-            start
-        } else {
-            (pillRestorePosition.takeIf { it in 0..editable.length } ?: return false).also { editable.insert(it, text) }
-        }
+        val survived = start >= 0 && end > start
+        val at = if (survived) start else pillRestorePosition.takeIf { it in 0..editable.length } ?: return false
+        val runsOn = mentionRunsInto(text, editable.subSequence(if (survived) end else at, editable.length))
+        editable.removeSpan(span)
+        if (survived) editable.replace(start, end, text) else editable.insert(at, text)
+        editable.getSpans(at, at + text.length, RestoredMentionSpan::class.java)
+                .filter { editable.getSpanStart(it) >= at }
+                .forEach { editable.removeSpan(it) }
+        // Inclusive end, so a correction typed onto the end stays part of the mention.
+        if (runsOn) editable.setSpan(RestoredMentionSpan(), at, at + text.length, Spanned.SPAN_EXCLUSIVE_INCLUSIVE)
         Selection.setSelection(editable, at + text.length)
         return true
     }

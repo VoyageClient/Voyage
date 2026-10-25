@@ -122,6 +122,7 @@ fun findMentions(text: CharSequence, caret: Int = -1, requireTerminator: Boolean
     if (sendsLiteralText(text)) return emptyList()
     val spanned = text as? Spanned
     val existing = spanned?.getSpans(0, text.length, MatrixItemSpan::class.java).orEmpty()
+    val restored = spanned?.getSpans(0, text.length, RestoredMentionSpan::class.java).orEmpty()
     val code = codeRegions(text)
     val linkLabels = MARKDOWN_LINK_LABEL.findAll(text).mapNotNull { it.groups[1]?.range }.toList()
     val found = mutableListOf<IntRange>()
@@ -138,6 +139,7 @@ fun findMentions(text: CharSequence, caret: Int = -1, requireTerminator: Boolean
         if (matchEnd < text.length && !isMentionEnd(text[matchEnd])) return
         if (requireTerminator && (matchEnd == text.length || caret == matchEnd)) return
         if (existing.any { spanned!!.getSpanStart(it) < end && spanned.getSpanEnd(it) > start }) return
+        if (restored.any { spanned!!.getSpanStart(it) < end && spanned.getSpanEnd(it) in start + 1 until end }) return
         if (found.any { it.first < end && it.last + 1 > start }) return
         if (code.any { it.first < end && it.last + 1 > start }) return
         // A markdown link's target or text is link syntax; pilling it would break the link.
@@ -199,6 +201,19 @@ fun CharSequence.pillifyRemainingMentions(resolveRoom: (String) -> MatrixItem?):
         length?.let { out.setSpan(LiteralMentionSpan(), at, at + it, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) }
     }
     return out
+}
+
+/** Marks where a pill put back as text against the next word ends; [findMentions] won't pill across it. */
+class RestoredMentionSpan
+
+/** Whether [mention] written straight before [following] would read as part of a longer id or word. */
+fun mentionRunsInto(mention: String, following: CharSequence): Boolean {
+    val next = following.firstOrNull() ?: return false
+    if (!isMentionEnd(next)) return true
+    val joined = mention + following
+    var end = mentionLengthAt(joined, 0) ?: return false
+    while (end > mention.length && joined[end - 1] in TRAILING_PUNCTUATION) end--
+    return end > mention.length
 }
 
 private fun pillStartingAt(text: CharSequence, at: Int): MatrixItemSpan? {

@@ -69,4 +69,14 @@ class LiteralMentionsTest {
     fun `an unescaped mention is not marked literal`() {
         literalRanges("hi @room".pillifyRemainingMentions { null }) shouldBeEqualTo emptyList()
     }
+
+    @Test
+    fun `a restored mention against the next word is only pilled once separated from it`() {
+        fun scan(text: String, restoredLength: Int) = SpannableStringBuilder(text).let {
+            it.setSpan(RestoredMentionSpan(), 0, restoredLength, Spanned.SPAN_EXCLUSIVE_INCLUSIVE)
+            findMentions(it, requireTerminator = true).map { range -> text.substring(range.first, range.last + 1) }
+        }
+        scan("@alice:example.orword ", "@alice:example.or".length) shouldBeEqualTo emptyList()
+        scan("@alice:example.org word ", "@alice:example.org ".length) shouldBeEqualTo listOf("@alice:example.org")
+    }
 }

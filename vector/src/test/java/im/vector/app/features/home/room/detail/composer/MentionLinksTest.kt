@@ -251,4 +251,19 @@ class MentionLinksTest {
         guarded shouldBeEqualTo "[DM me](\u2060$alice) and [site](https://example.org)"
         spliceMentionLinks(guarded, """<a href="$alice" data-mx-link>DM me</a>""") shouldBeEqualTo guarded
     }
+
+    @Test
+    fun `given the text after a mention, when checking whether it runs into it, then only text that would extend it does`() {
+        val id = "@alice:example.org"
+        mentionRunsInto(id, "") shouldBeEqualTo false
+        mentionRunsInto(id, " word") shouldBeEqualTo false
+        mentionRunsInto(id, ", hi") shouldBeEqualTo false
+        mentionRunsInto(id, ". Next") shouldBeEqualTo false
+        mentionRunsInto(id, "-") shouldBeEqualTo false
+        mentionRunsInto(id, "word") shouldBeEqualTo true
+        mentionRunsInto(id, ".uk hi") shouldBeEqualTo true
+        mentionRunsInto(id, ":8448") shouldBeEqualTo true
+        mentionRunsInto("@room", "word") shouldBeEqualTo true
+        mentionRunsInto("@room", "!") shouldBeEqualTo false
+    }
 }
