@@ -399,7 +399,6 @@
     <string name="settings_start_on_boot">Starte beim Systemstart</string>
     <string name="settings_clear_media_cache">Medien-Cache leeren</string>
     <string name="settings_keep_media">Medien behalten</string>
-    <string name="settings_always_show_timestamps">Zeitstempel für alle Nachrichten</string>
     <string name="media_saving_period_3_days">3 Tage</string>
     <string name="media_saving_period_1_week">1 Woche</string>
     <string name="media_saving_period_1_month">1 Monat</string>
@@ -3623,4 +3622,6 @@
     <string name="homeserver_info_max_upload_size">Maximale Uploadgröße</string>
     <string name="homeserver_info_unavailable">Nicht verfügbar</string>
     <string name="homeserver_info_identity_server">Identitäts-Server</string>
+    <string name="settings_show_message_timestamps">Nachrichtenzeitstempel anzeigen</string>
+    <string name="settings_show_message_timestamps_summary">Zeigt in der Zeitleiste an, wann Nachrichten gesendet wurden.</string>
 </resources>

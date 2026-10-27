@@ -135,7 +135,7 @@ class MessageBubbleView @JvmOverloads constructor(
         ConstraintSet().apply {
             clone(views.bubbleView)
             clear(R.id.viewStubContainer, ConstraintSet.END)
-            if (timestampInsideMessage) {
+            if (timestampInsideMessage || !showTimestamp) {
                 connect(R.id.viewStubContainer, ConstraintSet.END, com.google.android.material.R.id.parent, ConstraintSet.END, 0)
             } else {
                 connect(R.id.viewStubContainer, ConstraintSet.END, R.id.messageTimeView, ConstraintSet.START, 0)
@@ -145,7 +145,7 @@ class MessageBubbleView @JvmOverloads constructor(
     }
 
     private fun TimelineMessageLayout.Bubble.toggleMessageOverlay() = apply {
-        if (addMessageOverlay) {
+        if (addMessageOverlay && showTimestamp) {
             val timeColor = ContextCompat.getColor(context, im.vector.lib.ui.styles.R.color.palette_white)
             views.messageTimeView.setTextColor(timeColor)
             views.messageOverlayView.isVisible = true

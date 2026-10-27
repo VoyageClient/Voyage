@@ -376,7 +376,6 @@
     <string name="settings_start_on_boot">Lancer au démarrage</string>
     <string name="settings_clear_media_cache">Vider le cache des médias</string>
     <string name="settings_keep_media">Conserver les médias</string>
-    <string name="settings_always_show_timestamps">Afficher l’horodatage pour tous les messages</string>
     <string name="media_saving_period_3_days">3 jours</string>
     <string name="media_saving_period_1_week">1 semaine</string>
     <string name="media_saving_period_1_month">1 mois</string>
@@ -3624,4 +3623,6 @@
     <string name="homeserver_info_default_room_version">Version de salon par défaut</string>
     <string name="homeserver_info_max_upload_size">Taille d’envoi maximale</string>
     <string name="homeserver_info_unavailable">Indisponible</string>
+    <string name="settings_show_message_timestamps">Afficher l\'heure des messages</string>
+    <string name="settings_show_message_timestamps_summary">Afficher l\'heure d\'envoi des messages dans la chronologie.</string>
 </resources>

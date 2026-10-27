@@ -689,7 +689,6 @@
     <string name="settings_send_typing_notifs_summary">دوسرے صارفین کو بتائیں کہ آپ لکھ رہے ہیں۔</string>
     <string name="settings_send_markdown">Markdown فارمیٹنگ</string>
     <string name="settings_send_markdown_summary">پیغامات بھیجنے سے پہلے انہیں markdown نحو سے فارمیٹ کریں۔ اس سے اعلیٰ فارمیٹنگ ممکن ہوتی ہے، جیسے ترچھا متن دکھانے کے لیے ستارے استعمال کرنا۔</string>
-    <string name="settings_always_show_timestamps">تمام پیغامات کے اوقات دکھائیں</string>
     <string name="settings_12_24_timestamps">اوقات 12 گھنٹے کی شکل میں دکھائیں</string>
     <string name="settings_show_read_receipts">پڑھنے کی رسیدیں دکھائیں</string>
     <string name="settings_show_read_receipts_summary">تفصیلی فہرست کے لیے پڑھنے کی رسیدوں پر کلک کریں۔</string>
@@ -3518,4 +3517,6 @@
     <string name="homeserver_info_default_room_version">طے شدہ کمرے کا ورژن</string>
     <string name="homeserver_info_max_upload_size">زیادہ سے زیادہ اپ لوڈ سائز</string>
     <string name="homeserver_info_unavailable">دستیاب نہیں</string>
+    <string name="settings_show_message_timestamps">پیغامات کا وقت دکھائیں</string>
+    <string name="settings_show_message_timestamps_summary">ٹائم لائن میں پیغامات بھیجنے کا وقت دکھائیں۔</string>
 </resources>

@@ -589,7 +589,6 @@
     <string name="settings_show_read_receipts_summary">לחץ על אישורי הקריאה לרשימה מפורטת.</string>
     <string name="settings_show_read_receipts">הצג קבלות הצג קבלות קריאה</string>
     <string name="settings_12_24_timestamps">הצג חותמות זמן בפורמט של 12 שעות</string>
-    <string name="settings_always_show_timestamps">הצג חותמות זמן לכל ההודעות</string>
     <string name="settings_send_markdown_summary">עצב הודעות באמצעות תחביר הסימון לפני שהן נשלחות. זה מאפשר עיצוב מתקדם כגון שימוש בכוכביות להצגת טקסט נטוי.</string>
     <string name="settings_send_markdown">עיצוב Markdown</string>
     <string name="settings_send_typing_notifs_summary">הודע למשתמשים אחרים שאתה מקליד.</string>
@@ -3717,4 +3716,6 @@
     <string name="homeserver_info_default_room_version">גרסת חדר ברירת מחדל</string>
     <string name="homeserver_info_max_upload_size">גודל העלאה מרבי</string>
     <string name="homeserver_info_unavailable">לא זמין</string>
+    <string name="settings_show_message_timestamps">הצג את זמן שליחת ההודעות</string>
+    <string name="settings_show_message_timestamps_summary">הצג בציר הזמן מתי ההודעות נשלחו.</string>
 </resources>

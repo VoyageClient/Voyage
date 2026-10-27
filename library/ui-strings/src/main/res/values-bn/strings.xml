@@ -456,7 +456,6 @@
     <string name="settings_show_read_receipts_summary">একটি বিস্তারিত তালিকা জন্য পঠন প্রাপ্তি ক্লিক করুন।</string>
     <string name="settings_show_read_receipts">পাঠানো প্রাপ্তি দেখান</string>
     <string name="settings_12_24_timestamps">১২-ঘন্টা ফরম্যাটে টাইমস্ট্যাম্প দেখান</string>
-    <string name="settings_always_show_timestamps">সব বার্তা জন্য টাইমস্ট্যাম্প প্রদর্শন করুন</string>
     <string name="settings_send_markdown_summary">প্রেরিত হওয়ার আগে মার্কডাউন সিনট্যাক্স ব্যবহার করে বার্তাগুলি ফরম্যাট করুন। এটি ইটালিক পাঠ্য প্রদর্শনের জন্য তারকাচিহ্নগুলি ব্যবহার করার মতো উন্নত ফর্ম্যাটিংয়ের জন্য অনুমতি দেয়।</string>
     <string name="settings_send_markdown">মার্কডাউন বিন্যাস</string>
     <string name="settings_send_typing_notifs_summary">অন্যান্য ব্যবহারকারীদের কে আপনি টাইপ করছেন সেটা জানান।</string>
@@ -3578,4 +3577,6 @@
     <string name="homeserver_info_default_room_version">ডিফল্ট রুম সংস্করণ</string>
     <string name="homeserver_info_max_upload_size">সর্বোচ্চ আপলোড আকার</string>
     <string name="homeserver_info_unavailable">অনুপলব্ধ</string>
+    <string name="settings_show_message_timestamps">বার্তার সময় দেখান</string>
+    <string name="settings_show_message_timestamps_summary">টাইমলাইনে বার্তাগুলি পাঠানোর সময় দেখান।</string>
 </resources>

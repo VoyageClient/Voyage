@@ -208,7 +208,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY = "SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY"
         private const val SETTINGS_ENABLE_SED_REPLACEMENT_KEY = "SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
         private const val SETTINGS_LINKIFY_MSC_REFERENCES_KEY = "SETTINGS_LINKIFY_MSC_REFERENCES_KEY"
-        private const val SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY = "SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"
+        private const val SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY = "SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY"
         private const val SETTINGS_12_24_TIMESTAMPS_KEY = "SETTINGS_12_24_TIMESTAMPS_KEY"
         private const val SETTINGS_SHOW_READ_RECEIPTS_KEY = "SETTINGS_SHOW_READ_RECEIPTS_KEY"
         private const val SETTINGS_SHOW_REDACTED_KEY = "SETTINGS_SHOW_REDACTED_KEY"
@@ -405,7 +405,7 @@ class VectorPreferences @Inject constructor(
 
                 SETTINGS_SEND_READ_RECEIPT_KEY,
                 SETTINGS_SEND_TYPING_NOTIF_KEY,
-                SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY,
+                SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY,
                 SETTINGS_12_24_TIMESTAMPS_KEY,
                 SETTINGS_SHOW_READ_RECEIPTS_KEY,
                 SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY,
@@ -1178,13 +1178,8 @@ class VectorPreferences @Inject constructor(
         }
     }
 
-    /**
-     * Tells if the message timestamps must be always shown.
-     *
-     * @return true if the message timestamps must be always shown
-     */
-    fun alwaysShowTimeStamps(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY, false)
+    fun showMessageTimestamps(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY, true)
     }
 
     /**

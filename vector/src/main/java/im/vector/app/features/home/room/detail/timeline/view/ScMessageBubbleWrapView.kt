@@ -26,6 +26,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.children
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -97,13 +98,14 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             attributes: AbsMessageItem.Attributes,
             avatarClickListener: ClickListener,
     ): Boolean {
-        if (attributes.informationData.messageLayout !is TimelineMessageLayout.ScBubble) {
-            Timber.v("Can't render messageLayout ${attributes.informationData.messageLayout}")
+        val messageLayout = attributes.informationData.messageLayout
+        if (messageLayout !is TimelineMessageLayout.ScBubble) {
+            Timber.v("Can't render messageLayout $messageLayout")
             return false
         }
 
-        val contentInBubble = infoInBubbles(attributes.informationData.messageLayout)
-        val senderInBubble = senderNameInBubble(attributes.informationData.messageLayout)
+        val contentInBubble = infoInBubbles(messageLayout)
+        val senderInBubble = senderNameInBubble(messageLayout)
 
         val avatarImageView: ImageView?
         var memberNameView: TextView?
@@ -114,8 +116,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         val canHideAvatar = canHideAvatars(attributes)
         val canHideSender = canHideSender(attributes)
 
-        // Select which views are visible, based on bubble style and other criteria
-        if (attributes.informationData.messageLayout.showDisplayName) {
+        if (messageLayout.showDisplayName) {
             if (senderInBubble) {
                 memberNameView = views.bubbleMessageMemberNameView
                 hiddenViews.add(views.messageMemberNameView)
@@ -123,62 +124,47 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                 memberNameView = views.messageMemberNameView
                 hiddenViews.add(views.bubbleMessageMemberNameView)
             }
-            if (contentInBubble) {
-                timeView = views.bubbleMessageTimeView
-                hiddenViews.add(views.messageTimeView)
-            } else {
-                timeView = views.messageTimeView
-                hiddenViews.add(views.bubbleMessageTimeView)
-            }
-        } else if (attributes.informationData.messageLayout.showTimestamp) {
-            memberNameView = null
-            hiddenViews.add(views.bubbleMessageMemberNameView)
-            if (contentInBubble) {
-                timeView = views.bubbleMessageTimeView
-                hiddenViews.add(views.messageTimeView)
-
-                hiddenViews.add(views.messageMemberNameView)
-            } else {
-                timeView = views.messageTimeView
-                hiddenViews.add(views.bubbleMessageTimeView)
-
-                invisibleViews.add(views.messageMemberNameView)
-            }
         } else {
             memberNameView = null
-            hiddenViews.add(views.messageMemberNameView)
             hiddenViews.add(views.bubbleMessageMemberNameView)
+            if (messageLayout.showTimestamp && !contentInBubble) {
+                invisibleViews.add(views.messageMemberNameView)
+            } else {
+                hiddenViews.add(views.messageMemberNameView)
+            }
+        }
+
+        if (!messageLayout.showTimestamp) {
             timeView = null
             hiddenViews.add(views.messageTimeView)
             hiddenViews.add(views.bubbleMessageTimeView)
+        } else if (contentInBubble) {
+            timeView = views.bubbleMessageTimeView
+            hiddenViews.add(views.messageTimeView)
+        } else {
+            timeView = views.messageTimeView
+            hiddenViews.add(views.bubbleMessageTimeView)
         }
 
-        if (timeView === views.bubbleMessageTimeView) {
-            // We have two possible bubble time view locations
-            if (getBubbleTimeLocation(attributes.informationData.messageLayout) == BubbleThemeUtils.BUBBLE_TIME_BOTTOM) {
-                timeView = views.bubbleFooterMessageTimeView
-                if (attributes.informationData.messageLayout.showDisplayName) {
-                    if (canHideSender) {
-                        // In the case of footer time, we can also hide the names without making it look awkward
-                        if (memberNameView != null) {
-                            hiddenViews.add(memberNameView)
-                            memberNameView = null
-                        }
-                        hiddenViews.add(views.bubbleMessageTimeView)
-                    } else if (!senderInBubble) {
-                        // We don't need to reserve space here
-                        hiddenViews.add(views.bubbleMessageTimeView)
-                    } else {
-                        // Don't completely remove, just hide, so our relative layout rules still work
-                        invisibleViews.add(views.bubbleMessageTimeView)
-                    }
-                } else {
-                    // Do hide, or we accidentally reserve space
-                    hiddenViews.add(views.bubbleMessageTimeView)
-                }
-            } else {
-                hiddenViews.add(views.bubbleFooterMessageTimeView)
+        if (contentInBubble && getBubbleTimeLocation(messageLayout) == BubbleThemeUtils.BUBBLE_TIME_BOTTOM) {
+            if (timeView != null) timeView = views.bubbleFooterMessageTimeView
+            if (messageLayout.showDisplayName && canHideSender) {
+                memberNameView?.let { hiddenViews.add(it) }
+                memberNameView = null
             }
+            if (messageLayout.showTimestamp && messageLayout.showDisplayName && !canHideSender && senderInBubble) {
+                // The sender's relative layout rules still need the timestamp anchor.
+                invisibleViews.add(views.bubbleMessageTimeView)
+            } else {
+                hiddenViews.add(views.bubbleMessageTimeView)
+            }
+        }
+        if (timeView !== views.bubbleFooterMessageTimeView) {
+            hiddenViews.add(views.bubbleFooterMessageTimeView)
+        }
+        // A gone timestamp cannot keep the body below the sender's name.
+        views.messageForwardedNoticeView.updateLayoutParams<LayoutParams> {
+            addRule(BELOW, if (messageLayout.showTimestamp) R.id.bubbleMessageTimeView else R.id.bubbleMessageMemberNameView)
         }
 
         // While media is still uploading, hide the overlaid timestamp: it can't anchor to the
@@ -193,7 +179,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         }
 
         // Dual-side bubbles: hide own avatar, and all in direct chats
-        if ((!attributes.informationData.messageLayout.showAvatar) ||
+        if ((!messageLayout.showAvatar) ||
                 (contentInBubble && canHideAvatar)) {
             avatarImageView = null
             hiddenViews.add(views.messageAvatarImageView)
@@ -260,7 +246,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             views.eventSendingIndicator.isVisible = attributes.informationData.sendStateDecoration == SendStateDecoration.SENDING_MEDIA
         }
 
-        if (attributes.informationData.messageLayout.showsE2eDecorationInFooter()) {
+        if (messageLayout.showsE2eDecorationInFooter()) {
             if (attributes.informationData.isPgp) {
                 views.bubbleFooterMessageE2EDecoration.renderPgpLock()
             } else {
@@ -595,6 +581,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         val timeWidth: Int
         val timeHeight: Int
         if (informationData?.messageLayout is TimelineMessageLayout.ScBubble &&
+                informationData.messageLayout.showTimestamp &&
                 getBubbleTimeLocation(informationData.messageLayout as TimelineMessageLayout.ScBubble) == BubbleThemeUtils.BUBBLE_TIME_BOTTOM) {
             // Guess text width for name and time
             timeWidth = ceil(guessTextWidth(views.bubbleFooterMessageTimeView, informationData.time.toString())).toInt()

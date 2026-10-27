@@ -49,6 +49,19 @@ class TimelineVisibilityPreferencesTest {
     )
 
     @Test
+    fun `timestamps default to visible regardless of the removed all-messages setting`() {
+        listOf(false, true).forEach { oldValue ->
+            storage.edit().putBoolean("SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY", oldValue).apply()
+            preferences.showMessageTimestamps() shouldBeEqualTo true
+        }
+
+        storage.edit().putBoolean("SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY", false).apply()
+        preferences.showMessageTimestamps() shouldBeEqualTo false
+        storage.edit().putBoolean("SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY", true).apply()
+        preferences.showMessageTimestamps() shouldBeEqualTo true
+    }
+
+    @Test
     fun `room overrides are isolated and clearing them restores inheritance`() {
         storage.edit().putBoolean("SETTINGS_DEVELOPER_MODE_PREFERENCE_KEY", true).apply()
         TimelineVisibilityRule.values().forEach { rule ->

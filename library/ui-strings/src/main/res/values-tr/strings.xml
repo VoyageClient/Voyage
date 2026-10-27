@@ -268,7 +268,6 @@
     <string name="settings_send_typing_notifs_summary">Diğer kullanıcıların senin ne yazdığını bilmelerine izin ver.</string>
     <string name="settings_send_markdown">Markdown biçimlendirmesi</string>
     <string name="settings_send_markdown_summary">Mesajları gönderilmeden önce markdown ile biçimlendir. Bu gelişmiş biçimlendirmeye izin verir örneğin asteriks ile italik yazı yazmak gibi.</string>
-    <string name="settings_always_show_timestamps">Tüm mesajların zaman damgasını göster</string>
     <string name="settings_12_24_timestamps">Zaman damgasını 12-saat biçiminde göster</string>
     <string name="settings_show_read_receipts">Okundu ibaresini göster</string>
     <string name="settings_show_read_receipts_summary">Detaylı liste için okundu ibaresine tıkla.</string>
@@ -3582,4 +3581,6 @@
     <string name="homeserver_info_default_room_version">Varsayılan oda sürümü</string>
     <string name="homeserver_info_max_upload_size">Azami yükleme boyutu</string>
     <string name="homeserver_info_unavailable">Kullanılamıyor</string>
+    <string name="settings_show_message_timestamps">Mesaj zamanlarını göster</string>
+    <string name="settings_show_message_timestamps_summary">Zaman çizelgesinde mesajların gönderildiği saati göster.</string>
 </resources>

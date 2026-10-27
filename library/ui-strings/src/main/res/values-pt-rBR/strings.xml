@@ -398,7 +398,6 @@
     <string name="settings_start_on_boot">Começar em boot</string>
     <string name="settings_clear_media_cache">Limpar cache de mídia</string>
     <string name="settings_keep_media">Manter mídia</string>
-    <string name="settings_always_show_timestamps">Mostrar timestamps para todas as mensagens</string>
     <string name="settings_select_language">Escolher língua</string>
     <string name="media_saving_period_3_days">3 dias</string>
     <string name="media_saving_period_1_week">1 semana</string>
@@ -3624,4 +3623,6 @@
     <string name="homeserver_info_default_room_version">Versão de sala padrão</string>
     <string name="homeserver_info_max_upload_size">Tamanho máximo de upload</string>
     <string name="homeserver_info_unavailable">Indisponível</string>
+    <string name="settings_show_message_timestamps">Mostrar horário das mensagens</string>
+    <string name="settings_show_message_timestamps_summary">Exibir na linha do tempo o horário em que as mensagens foram enviadas.</string>
 </resources>

@@ -118,11 +118,10 @@ class TimelineMessageLayoutFactory @Inject constructor(
                     val isBubble = event.shouldBuildScBubbleLayout()
                     val singleSidedLayout = bubbleThemeUtils.getBubbleStyle() == BubbleThemeUtils.BUBBLE_STYLE_START
                     val pseudoBubble = messageContent.isScPseudoBubble(event)
-                    val showTimestamp = showInformation || !singleSidedLayout || vectorPreferences.alwaysShowTimeStamps()
                     TimelineMessageLayout.ScBubble(
                             showAvatar = showInformation,
-                            showDisplayName = showInformation && ((singleSidedLayout && showTimestamp) || !messageContent.redundantDisplayName()),
-                            showTimestamp = showTimestamp,
+                            showDisplayName = showInformation && (singleSidedLayout || !messageContent.redundantDisplayName()),
+                            showTimestamp = vectorPreferences.showMessageTimestamps() && (showInformation || !singleSidedLayout),
                             bubbleAppearance = bubbleThemeUtils.getBubbleAppearance(),
                             isIncoming = !isSentByMe,
                             isNotice = messageContent is MessageNoticeContent,
@@ -160,6 +159,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
                     TimelineMessageLayout.Bubble(
                             showAvatar = showInformation && !isSentByMe,
                             showDisplayName = showInformation && !isSentByMe,
+                            showTimestamp = vectorPreferences.showMessageTimestamps(),
                             addTopMargin = isFirstFromThisSender && isSentByMe,
                             isIncoming = !isSentByMe,
                             cornersRadius = cornersRadius,
@@ -198,7 +198,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 TimelineMessageLayout.ScBubble(
                         showAvatar = false,
                         showDisplayName = false,
-                        showTimestamp = true,
+                        showTimestamp = vectorPreferences.showMessageTimestamps(),
                         bubbleAppearance = bubbleThemeUtils.getBubbleAppearance(),
                         isIncoming = false,
                         isNotice = false,
@@ -213,7 +213,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
             else -> TimelineMessageLayout.Default(
                     showAvatar = false,
                     showDisplayName = false,
-                    showTimestamp = vectorPreferences.alwaysShowTimeStamps()
+                    showTimestamp = false
             )
         }
     }
@@ -285,7 +285,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
         return TimelineMessageLayout.Default(
                 showAvatar = showInformation,
                 showDisplayName = showInformation,
-                showTimestamp = showInformation || vectorPreferences.alwaysShowTimeStamps()
+                showTimestamp = showInformation && vectorPreferences.showMessageTimestamps()
         )
     }
 

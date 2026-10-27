@@ -240,7 +240,6 @@
     <string name="settings_contact">المتراسلون المحليون</string>
     <string name="settings_contacts_app_permission">تصاريح المتراسلون</string>
     <string name="settings_contacts_phonebook_country">دولة دفتر العناوين</string>
-    <string name="settings_always_show_timestamps">اعرض أختام الرسائل الزمنية دائما</string>
     <string name="settings_12_24_timestamps">اعرض الأختام الزمنية بنسق ١٢ ساعة (مثلا ٢:٣٠م)</string>
     <string name="devices_details_id_title">المعرّف</string>
     <string name="devices_details_name_title">الاسم</string>
@@ -3773,4 +3772,6 @@
     <string name="homeserver_info_default_room_version">إصدارة الغرفة المبدئية</string>
     <string name="homeserver_info_max_upload_size">أقصى حجم للرفع</string>
     <string name="homeserver_info_unavailable">غير متاح</string>
+    <string name="settings_show_message_timestamps">اعرض أوقات الرسائل</string>
+    <string name="settings_show_message_timestamps_summary">اعرض وقت إرسال الرسائل في التسلسل الزمني.</string>
 </resources>

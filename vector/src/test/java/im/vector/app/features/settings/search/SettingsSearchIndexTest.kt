@@ -59,6 +59,7 @@ class SettingsSearchIndexTest {
         keys shouldNotContain "SETTINGS_MEDIA_SAVING_PERIOD_KEY"
         keys shouldNotContain "SETTINGS_12_24_TIMESTAMPS_KEY"
         keys shouldNotContain "SETTINGS_PIN_UNREAD_MESSAGES_PREFERENCE_KEY"
+        keys shouldNotContain "SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"
     }
 
     @Test
@@ -145,7 +146,7 @@ class SettingsSearchIndexTest {
                 "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY",
                 "SETTINGS_OVERRIDE_DM_DISPLAY_KEY",
                 "SETTINGS_COMPACT_QUICK_REACTIONS_KEY",
-                "SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY",
+                "SETTINGS_SHOW_MESSAGE_TIMESTAMPS_KEY",
                 "SETTINGS_TIMELINE_LINE_WRAP_KEY",
                 "SETTINGS_SHOW_READ_RECEIPTS_KEY",
                 "SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY",

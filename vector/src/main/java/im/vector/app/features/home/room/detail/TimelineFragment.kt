@@ -1428,7 +1428,7 @@ class TimelineFragment :
     private fun refreshOnTimelineVisibilityChange() {
         val visibility = VectorPreferences.TimelineVisibilityRule.values().map {
             vectorPreferences.timelineVisibility(it, timelineArgs.roomId)
-        }
+        } + vectorPreferences.showMessageTimestamps()
         if (lastTimelineVisibility != null && lastTimelineVisibility != visibility) {
             timelineEventController.invalidateAllCache()
         }

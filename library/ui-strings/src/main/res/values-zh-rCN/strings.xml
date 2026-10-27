@@ -350,7 +350,6 @@
     <string name="settings_start_on_boot">开机时自动启动</string>
     <string name="settings_clear_media_cache">清空缓存的媒体文件</string>
     <string name="settings_keep_media">保留媒体文件</string>
-    <string name="settings_always_show_timestamps">为所有消息显示时间戳</string>
     <string name="media_saving_period_3_days">3天</string>
     <string name="media_saving_period_1_week">1周</string>
     <string name="media_saving_period_1_month">1个月</string>
@@ -3560,4 +3559,6 @@
     <string name="homeserver_info_default_room_version">默认房间版本</string>
     <string name="homeserver_info_max_upload_size">最大上传大小</string>
     <string name="homeserver_info_unavailable">不可用</string>
+    <string name="settings_show_message_timestamps">显示消息时间</string>
+    <string name="settings_show_message_timestamps_summary">在时间线上显示消息的发送时间。</string>
 </resources>

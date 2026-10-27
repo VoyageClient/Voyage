@@ -284,7 +284,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_pin_missed_notifications">Semat ruangan yang pemberitahuannya terlewatkan</string>
     <string name="settings_pin_unread_messages">Pin ruangan dengan pesan yang belum dibaca</string>
     <string name="settings_inline_url_preview">Pratinjau URL dalam obrolan</string>
-    <string name="settings_always_show_timestamps">Tampilkan waktu kirim untuk seluruh pesan</string>
     <string name="settings_12_24_timestamps">Tampilkan waktu kirim dalam format 12 jam</string>
     <string name="settings_vibrate_on_mention">Bergetar ketika menyebut seorang pengguna</string>
     <string name="settings_preview_media_before_sending">Pratinjau media sebelum dikirim</string>
@@ -3560,4 +3559,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="homeserver_info_default_room_version">Versi ruangan bawaan</string>
     <string name="homeserver_info_max_upload_size">Ukuran unggahan maksimum</string>
     <string name="homeserver_info_unavailable">Tidak tersedia</string>
+    <string name="settings_show_message_timestamps">Tampilkan waktu pesan</string>
+    <string name="settings_show_message_timestamps_summary">Tampilkan waktu pesan dikirim di linimasa.</string>
 </resources>

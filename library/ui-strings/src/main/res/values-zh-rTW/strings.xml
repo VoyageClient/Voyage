@@ -365,7 +365,6 @@
     <string name="settings_pin_missed_notifications">釘選含有錯過的通知的聊天室</string>
     <string name="settings_pin_unread_messages">釘選含有未讀訊息的聊天室</string>
     <string name="settings_inline_url_preview">內嵌網址預覽</string>
-    <string name="settings_always_show_timestamps">對所有訊息顯示時間戳記</string>
     <string name="settings_12_24_timestamps">用 12 小時制顯示時間戳記</string>
     <string name="settings_vibrate_on_mention">提及使用者時震動</string>
     <string name="settings_deactivate_account_section">停用帳號</string>
@@ -3562,4 +3561,6 @@
     <string name="homeserver_info_default_room_version">預設聊天室版本</string>
     <string name="homeserver_info_max_upload_size">最大上傳大小</string>
     <string name="homeserver_info_unavailable">無法使用</string>
+    <string name="settings_show_message_timestamps">顯示訊息時間</string>
+    <string name="settings_show_message_timestamps_summary">在時間軸上顯示訊息的傳送時間。</string>
 </resources>

@@ -391,7 +391,6 @@
     <string name="directory_server_native_rooms">Все местные комнаты %s</string>
     <string name="settings_select_language">Выберите язык</string>
     <string name="settings_start_on_boot">Запускать при загрузке</string>
-    <string name="settings_always_show_timestamps">Метки времени для всех сообщений</string>
     <string name="media_saving_period_3_days">3 дня</string>
     <string name="media_saving_period_1_week">1 неделя</string>
     <string name="media_saving_period_1_month">1 месяц</string>
@@ -3748,4 +3747,6 @@
     <string name="homeserver_info_default_room_version">Версия комнаты по умолчанию</string>
     <string name="homeserver_info_max_upload_size">Макс. размер загрузки</string>
     <string name="homeserver_info_unavailable">Недоступно</string>
+    <string name="settings_show_message_timestamps">Показывать время сообщений</string>
+    <string name="settings_show_message_timestamps_summary">Показывать время отправки сообщений в ленте.</string>
 </resources>

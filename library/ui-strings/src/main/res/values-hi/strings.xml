@@ -666,7 +666,6 @@
     <string name="settings_send_typing_notifs_summary">दूसरे उपयोगकर्ताओं को बताएं कि आप टाइप कर रहे हैं।</string>
     <string name="settings_send_markdown">Markdown फ़ॉर्मेटिंग</string>
     <string name="settings_send_markdown_summary">मैसेज भेजने से पहले उन्हें Markdown सिंटैक्स से फ़ॉर्मेट करें। इससे उन्नत फ़ॉर्मेटिंग हो पाती है, जैसे तारांकन चिह्न से इटैलिक टेक्स्ट दिखाना।</string>
-    <string name="settings_always_show_timestamps">सभी मैसेज के टाइमस्टैम्प दिखाएं</string>
     <string name="settings_12_24_timestamps">टाइमस्टैम्प 12-घंटे के फ़ॉर्मेट में दिखाएं</string>
     <string name="settings_show_read_receipts">रीड रसीदें दिखाएं</string>
     <string name="settings_show_read_receipts_summary">विस्तृत सूची के लिए रीड रसीदों पर क्लिक करें।</string>
@@ -3506,4 +3505,6 @@
     <string name="homeserver_info_default_room_version">डिफ़ॉल्ट रूम संस्करण</string>
     <string name="homeserver_info_max_upload_size">अधिकतम अपलोड आकार</string>
     <string name="homeserver_info_unavailable">उपलब्ध नहीं</string>
+    <string name="settings_show_message_timestamps">संदेशों का समय दिखाएं</string>
+    <string name="settings_show_message_timestamps_summary">टाइमलाइन में संदेश भेजे जाने का समय दिखाएं।</string>
 </resources>

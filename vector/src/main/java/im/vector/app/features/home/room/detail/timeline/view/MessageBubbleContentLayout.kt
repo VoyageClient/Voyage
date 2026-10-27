@@ -53,7 +53,7 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         val messageTextView = this.messageTextView
         // Then if we have a text message layout, we can resize ourself so we can position the timeView without losing space.
-        if (messageTextView != null) {
+        if (messageTextView != null && timeView.visibility != View.GONE) {
             val width: Int
             val height: Int
             val textLineCount = messageTextView.lineCount
