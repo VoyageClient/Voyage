@@ -108,6 +108,30 @@ internal class SqlTimelineEchoTest {
             assertTrue(snapshots.isNotEmpty())
             snapshots.forEach { assertTrue("Echo disappeared from $it", echo.eventId in it) }
             assertEquals(listOf(echo.eventId, incoming.eventId, previous.eventId), timeline.getSnapshot().map { it.eventId })
+
+            snapshots.clear()
+            val remote = message(roomId, "\$remote", 4L)
+            timeline.onLocalEchoReplaced(roomId, echo.eventId, remote.eventId)
+            runCurrent()
+            assertEquals(echo.eventId, timeline.getSnapshot().first().eventId)
+
+            var delivered = false
+            every { loader.chunkEventCountFrom(chunkId, any(), any()) } returns 3L
+            every { loader.chunkSnapshotAfter(chunkId, any(), any()) } answers {
+                if (delivered) emptyList() else listOf(remote).also { delivered = true }
+            }
+            chunkChanges.emit(Unit)
+            runCurrent()
+
+            snapshots.forEach { snapshot ->
+                assertEquals("Echo handoff lost or duplicated the message in $snapshot", 1,
+                        snapshot.count { it == echo.eventId || it == remote.eventId })
+            }
+            assertEquals(remote.eventId, timeline.getSnapshot().first().eventId)
+            assertEquals(echo.eventId, timeline.getSnapshot().first().root.unsignedData?.transactionId)
+            chunkChanges.emit(Unit)
+            runCurrent()
+            assertEquals(echo.eventId, timeline.getSnapshot().first().root.unsignedData?.transactionId)
         } finally {
             timeline.dispose()
             runCurrent()

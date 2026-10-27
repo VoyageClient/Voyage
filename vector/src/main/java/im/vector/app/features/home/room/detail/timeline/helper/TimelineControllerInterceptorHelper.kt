@@ -18,7 +18,6 @@ import im.vector.app.features.home.room.detail.timeline.item.TimelineReadMarkerI
 import im.vector.app.features.home.room.detail.timeline.item.TimelineReadMarkerItem_
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
-import kotlin.random.Random
 import kotlin.reflect.KMutableProperty0
 
 private const val DEFAULT_PREFETCH_THRESHOLD = 30
@@ -36,14 +35,17 @@ class TimelineControllerInterceptorHelper(
             models: MutableList<EpoxyModel<*>>,
             unreadState: UnreadState,
             timeline: Timeline?,
-            callback: TimelineEventController.Callback?
+            callback: TimelineEventController.Callback?,
+            hasUnbuiltEvents: Boolean,
     ) {
         positionOfReadMarker.set(null)
         adapterPositionMapping.clear()
 
         // Add some prefetch loader if needed
-        models.addBackwardPrefetchIfNeeded(timeline, callback)
-        models.addForwardPrefetchIfNeeded(timeline, callback)
+        if (!hasUnbuiltEvents) {
+            models.addBackwardPrefetchIfNeeded(timeline, callback)
+            models.addForwardPrefetchIfNeeded(timeline, callback)
+        }
 
         val modelsIterator = models.listIterator()
         var index = 0
@@ -107,7 +109,7 @@ class TimelineControllerInterceptorHelper(
                     .coerceAtLeast(0)
 
             val loadingItem = LoadingItem_()
-                    .id("prefetch_backward_loading${Random.nextLong()}")
+                    .id("prefetch_backward_loading_${getOrNull(indexOfPrefetchBackward)?.id()}")
                     .showLoader(false)
                     .setVisibilityStateChangedListener(Timeline.Direction.BACKWARDS, callback)
 
@@ -116,14 +118,14 @@ class TimelineControllerInterceptorHelper(
     }
 
     private fun MutableList<EpoxyModel<*>>.addForwardPrefetchIfNeeded(timeline: Timeline?, callback: TimelineEventController.Callback?) {
-        val shouldAddForwardPrefetch = timeline?.hasMoreToLoad(Timeline.Direction.FORWARDS) ?: false
+        val shouldAddForwardPrefetch = timeline?.hasMoreToLoad(Timeline.Direction.FORWARDS).orFalse() && size > DEFAULT_PREFETCH_THRESHOLD
         if (shouldAddForwardPrefetch) {
             val indexOfPrefetchForward = DEFAULT_PREFETCH_THRESHOLD
                     .coerceAtMost(size - 1)
                     .coerceAtLeast(0)
 
             val loadingItem = LoadingItem_()
-                    .id("prefetch_forward_loading${Random.nextLong()}")
+                    .id("prefetch_forward_loading_${getOrNull(indexOfPrefetchForward)?.id()}")
                     .showLoader(false)
                     .setVisibilityStateChangedListener(Timeline.Direction.FORWARDS, callback)
             add(indexOfPrefetchForward, loadingItem)

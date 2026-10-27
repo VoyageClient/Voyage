@@ -35,7 +35,7 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
     /** A world-readable preview failed to load; reopen the classic no-preview screen. */
     data class OpenRoomPreviewFallback(val roomPreviewData: RoomPreviewData) : RoomDetailViewEvents()
 
-    data class NavigateToEvent(val eventId: String, val isFirstUnreadEvent: Boolean) : RoomDetailViewEvents()
+    data class NavigateToEvent(val eventId: String, val isFirstUnreadEvent: Boolean, val highlightNonce: Long? = null) : RoomDetailViewEvents()
     data class NavigateToThreadEvent(val rootThreadEventId: String, val eventId: String) : RoomDetailViewEvents()
 
     object OpenInvitePeople : RoomDetailViewEvents()

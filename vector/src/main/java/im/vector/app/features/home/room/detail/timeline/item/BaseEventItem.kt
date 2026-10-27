@@ -113,68 +113,57 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
         }
         applyRowTint(holder)
         val eventId = getEventIds().firstOrNull()
-        val flashKey = if (highlighted) "$eventId:$highlightNonce" else null
-        if (highlighted) {
-            if (flashKey == holder.lastFlashKey) {
-                // The same flash session rebinding (live rooms rebind often): leave it be, whether
-                // still fading or already finished — cancelling would cut it to a single frame.
-                return
-            }
-            holder.lastFlashKey = flashKey
-            // A new flash supersedes a fading one from full strength; drop the old animation's
-            // listeners first so its cleanup can't clear the new flash's background.
-            holder.highlightAnimator?.removeAllListeners()
-            holder.highlightAnimator?.cancel()
-            holder.highlightAnimator = null
-            holder.checkableBackground.alpha = 1f
-            val drawable = buildHighlightDrawable(holder.checkableBackground.context)
-            holder.checkableBackground.backgroundCompat = drawable
-            // Start the fade only once the row is actually drawn: after a jump the model is often
-            // bound during the landing churn (or off-screen prefetch), so a fade started at bind
-            // time can finish before the user ever sees the row.
-            holder.checkableBackground.doOnPreDraw {
-                if (holder.lastFlashKey != flashKey || holder.checkableBackground.background !== drawable) return@doOnPreDraw
-                if (holder.highlightAnimator != null) return@doOnPreDraw
-                // Fade the dedicated background view, not the drawable: LayerDrawable alpha applies to
-                // every layer, so mid-fade the full-width accent layer under the cover layer would
-                // bleed through and paint the whole row accent.
-                holder.highlightAnimator = ObjectAnimator.ofFloat(holder.checkableBackground, View.ALPHA, 1f, 0f).apply {
-                    duration = HIGHLIGHT_FADE_MS
-                    startDelay = HIGHLIGHT_HOLD_MS
-                    addListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            if (holder.checkableBackground.background === drawable) {
-                                holder.checkableBackground.backgroundCompat = null
-                                holder.checkableBackground.alpha = 1f
-                            }
+        if (holder.boundEventId != eventId) {
+            clearHighlight(holder)
+            holder.boundEventId = eventId
+            holder.lastFlashNonce = -1L
+        }
+        // An older model may bind after the direct flash; only a newer jump may restart it.
+        if (highlighted) showHighlight(holder, highlightNonce)
+    }
+
+    fun showHighlight(holder: BaseHolder, nonce: Long): Boolean {
+        val eventId = getEventIds().firstOrNull() ?: return false
+        if (holder.boundEventId != eventId || nonce <= holder.lastFlashNonce) return false
+        holder.lastFlashNonce = nonce
+        clearHighlight(holder)
+        val drawable = buildHighlightDrawable(holder.checkableBackground.context)
+        holder.checkableBackground.backgroundCompat = drawable
+        // Prefetched rows must not finish fading before their first draw.
+        holder.checkableBackground.doOnPreDraw {
+            if (holder.boundEventId != eventId || holder.lastFlashNonce != nonce ||
+                    holder.checkableBackground.background !== drawable) return@doOnPreDraw
+            if (holder.highlightAnimator != null) return@doOnPreDraw
+            // Drawable alpha would expose the accent layer beneath the full-width cover layer.
+            holder.highlightAnimator = ObjectAnimator.ofFloat(holder.checkableBackground, View.ALPHA, 1f, 0f).apply {
+                duration = HIGHLIGHT_FADE_MS
+                startDelay = HIGHLIGHT_HOLD_MS
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        if (holder.checkableBackground.background === drawable) {
+                            holder.checkableBackground.backgroundCompat = null
+                            holder.checkableBackground.alpha = 1f
                         }
-                    })
-                    start()
-                }
-            }
-        } else {
-            holder.lastFlashKey = null
-            if (holder.highlightAnimator?.isRunning == true) {
-                // Highlight state moved on (cleared, or another event's turn); let the fade play
-                // out — its end listener clears the background.
-            } else {
-                holder.highlightAnimator = null
-                holder.checkableBackground.backgroundCompat = null
-                holder.checkableBackground.alpha = 1f
+                    }
+                })
+                start()
             }
         }
+        return true
     }
 
     @CallSuper
     override fun unbind(holder: H) {
+        clearHighlight(holder)
+        super.unbind(holder)
+    }
+
+    private fun clearHighlight(holder: BaseHolder) {
         holder.highlightAnimator?.removeAllListeners()
         holder.highlightAnimator?.cancel()
         holder.highlightAnimator = null
-        // The recycled view must come back clean; lastFlashKey stays, so re-binding the same
-        // still-highlighted event doesn't replay a flash that already played.
         holder.checkableBackground.backgroundCompat = null
         holder.checkableBackground.alpha = 1f
-        super.unbind(holder)
     }
 
     // Built in code rather than as a drawable resource: the highlighted_message_background
@@ -217,7 +206,8 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
 
     abstract class BaseHolder(@IdRes val stubId: Int) : VectorEpoxyHolder() {
         var highlightAnimator: Animator? = null
-        var lastFlashKey: String? = null
+        var boundEventId: String? = null
+        var lastFlashNonce: Long = -1L
         val leftGuideline by bind<View>(R.id.messageStartGuideline)
         val contentContainer by bind<View>(R.id.viewStubContainer)
         val viewStubContainer by bind<FrameLayout>(R.id.viewStubContainer)

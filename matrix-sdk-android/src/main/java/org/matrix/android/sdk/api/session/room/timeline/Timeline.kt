@@ -51,10 +51,13 @@ interface Timeline {
     fun dispose()
 
     /**
-     * This method restarts the timeline, erases all built events and pagination states.
-     * It then loads events around the eventId. If eventId is null, it does restart the live timeline.
+     * Loads a window around [eventId], retaining the current window if it already contains the target.
+     * If [eventId] is null, restarts at the live edge. Supersedes any unfinished navigation.
      */
     fun restartWithEventId(eventId: String?)
+
+    /** Cancel an unfinished navigation while keeping the currently displayed window. */
+    fun cancelPendingNavigation() = Unit
 
     /**
      * Restarts the timeline for "jump to start", asking the server for the beginning of the room's

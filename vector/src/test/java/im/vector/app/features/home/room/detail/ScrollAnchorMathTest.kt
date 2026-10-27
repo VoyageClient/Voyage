@@ -71,6 +71,23 @@ class ScrollAnchorMathTest {
         ScrollAnchorMath.isFullyVisible(startAfterPadding = 100, endAfterPadding = 1000, decoratedTop = 0, decoratedBottom = 1200) shouldBeEqualTo false
     }
 
+    @Test
+    fun `keyboard resize keeps the target visible instead of restoring it below the viewport`() {
+        val top = ScrollAnchorMath.rebaseTop(1426, 145, 0, 1782, 0, 1003, ScrollAnchorAlignment.CENTER)
+        top shouldBeEqualTo 647
+        ScrollAnchorMath.rebaseTop(top, 145, 0, 1003, 0, 1782, ScrollAnchorAlignment.CENTER) shouldBeEqualTo 1426
+    }
+
+    @Test
+    fun `shrinking below the target height keeps the beginning of the message visible`() {
+        ScrollAnchorMath.rebaseTop(300, 1154, 0, 1782, 0, 700, ScrollAnchorAlignment.CENTER) shouldBeEqualTo 0
+    }
+
+    @Test
+    fun `a top aligned read marker follows the top padding when the keyboard opens`() {
+        ScrollAnchorMath.rebaseTop(20, 40, 20, 1782, 32, 1003, ScrollAnchorAlignment.TOP) shouldBeEqualTo 32
+    }
+
     private fun bottomOf(offset: Int, usableHeight: Int) = usableHeight - offset
 
     private fun topOf(offset: Int, usableHeight: Int, itemHeight: Int) = bottomOf(offset, usableHeight) - itemHeight

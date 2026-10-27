@@ -1397,63 +1397,74 @@ private fun handleSelectStickerAttachment() {
         }
     }
 
-    // A jump can take seconds to land (context fetch + model builds); counting the clear from the
-    // click meant the highlight was gone before the target's model ever built, so no flash showed.
-    // The navigate schedules only a long safety clear; the real countdown starts here.
-    fun onJumpToEventLanded() = withState { state ->
-        state.highlightedEventId?.let { scheduleHighlightClear(it, HIGHLIGHT_TTL_MS) }
+    // Start the highlight timeout after landing; a context fetch can outlast the flash.
+    fun onJumpToEventLanded(eventId: String?) = withState { state ->
+        state.highlightedEventId?.takeIf { it == eventId }?.let { scheduleHighlightClear(it, HIGHLIGHT_TTL_MS) }
+    }
+
+    private var navigationJob: kotlinx.coroutines.Job? = null
+    private var navigationGeneration = 0L
+    private var highlightSequence = initialState.highlightNonce
+
+    fun cancelPendingNavigation() {
+        navigationGeneration++
+        navigationJob?.cancel()
+        navigationJob = null
+        timeline?.cancelPendingNavigation()
     }
 
     private fun handleNavigateToEvent(action: RoomDetailAction.NavigateToEvent) {
+        cancelPendingNavigation()
+        val request = navigationGeneration
         val timeline = timeline ?: return
         if (action.toRoomStart) {
-            viewModelScope.launch {
+            navigationJob = viewModelScope.launch {
                 val landedEventId = timeline.restartAtRoomStart(action.eventId)
+                if (request != navigationGeneration) return@launch
                 if (landedEventId == null) {
                     _viewEvents.post(RoomDetailViewEvents.ShowMessage(stringProvider.getString(CommonStrings.command_jump_to_start_unavailable)))
                     return@launch
                 }
-                navigateToLandedEvent(landedEventId, action, restart = false)
+                navigateToLandedEvent(landedEventId, action)
             }
             return
         }
         val targetEventId: String = action.eventId ?: return
         if (initialState.rootThreadEventId == null && vectorPreferences.areThreadMessagesEnabled()) {
-            val cachedTarget = room?.getTimelineEvent(targetEventId)?.root
+            val loadedTarget = timeline.getSnapshot().firstOrNull { it.eventId == targetEventId }
+            val cachedTarget = loadedTarget?.root ?: room?.getTimelineEvent(targetEventId)?.root
                     ?: session.eventService().getEventFromCache(initialState.roomId, targetEventId)
             cachedTarget?.getRootThreadEventId()?.let { rootId ->
                 _viewEvents.post(RoomDetailViewEvents.NavigateToThreadEvent(rootId, targetEventId))
                 return
             }
-            if (timeline.getIndexOfEvent(targetEventId) != null) {
-                navigateToLandedEvent(targetEventId, action, restart = false)
+            if (loadedTarget != null) {
+                navigateToLandedEvent(targetEventId, action)
                 return
             }
-            viewModelScope.launch {
+            navigationJob = viewModelScope.launch {
                 val target = cachedTarget ?: session.eventService().ensureEventCached(initialState.roomId, targetEventId)
+                if (request != navigationGeneration) return@launch
                 val threadRootId = target?.getRootThreadEventId()
                 if (threadRootId != null) {
                     _viewEvents.post(RoomDetailViewEvents.NavigateToThreadEvent(threadRootId, targetEventId))
                 } else {
-                    navigateToLandedEvent(targetEventId, action, restart = timeline.getIndexOfEvent(targetEventId) == null)
+                    navigateToLandedEvent(targetEventId, action)
                 }
             }
             return
         }
-        val indexOfEvent = timeline.getIndexOfEvent(targetEventId)
-        navigateToLandedEvent(targetEventId, action, restart = indexOfEvent == null)
+        navigateToLandedEvent(targetEventId, action)
     }
 
-    private fun navigateToLandedEvent(eventId: String, action: RoomDetailAction.NavigateToEvent, restart: Boolean) {
-        if (restart) {
-            // Event is not already in RAM
-            timeline?.restartWithEventId(eventId)
-        }
-        if (action.highlight) {
-            setState { copy(highlightedEventId = eventId, highlightNonce = highlightNonce + 1) }
+    private fun navigateToLandedEvent(eventId: String, action: RoomDetailAction.NavigateToEvent) {
+        timeline?.restartWithEventId(eventId)
+        val nonce = if (action.highlight) ++highlightSequence else null
+        if (nonce != null) {
+            setState { copy(highlightedEventId = eventId, highlightNonce = nonce) }
             scheduleHighlightClear(eventId)
         }
-        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(eventId, action.isFirstUnreadEvent))
+        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(eventId, action.isFirstUnreadEvent, nonce))
     }
 
     private fun handleResendEvent(action: RoomDetailAction.ResendMessage) {

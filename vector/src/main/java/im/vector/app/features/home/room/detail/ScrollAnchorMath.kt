@@ -37,6 +37,20 @@ object ScrollAnchorMath {
         }
     }
 
+    fun rebaseTop(
+            top: Int,
+            itemHeight: Int,
+            previousStart: Int,
+            previousEnd: Int,
+            start: Int,
+            end: Int,
+            alignment: ScrollAnchorAlignment,
+    ): Int {
+        val shift = if (alignment == ScrollAnchorAlignment.TOP) start - previousStart else end - previousEnd
+        val visibleHeight = itemHeight.coerceIn(0, (end - start).coerceAtLeast(0))
+        return (top + shift).coerceIn(start, (end - visibleHeight).coerceAtLeast(start))
+    }
+
     fun currentOffset(endAfterPadding: Int, decoratedBottom: Int): Int = endAfterPadding - decoratedBottom
 
     fun isFullyVisible(startAfterPadding: Int, endAfterPadding: Int, decoratedTop: Int, decoratedBottom: Int): Boolean =

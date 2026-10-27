@@ -171,6 +171,7 @@ internal class LocalEchoRepository @Inject constructor(
         // send enqueues later (its send-state writes, the sender reading the echo back).
         enqueueDbTask {
             val (eventEntity, timelineEventEntity) = announced.await()
+            var replacementEventId: String? = null
             database.awaitDbTransaction(dispatcher) {
                 // This write is queued behind sync handling, so a fast send + sync round-trip can
                 // deliver the remote copy BEFORE the echo row exists — its reconciliation
@@ -179,8 +180,7 @@ internal class LocalEchoRepository @Inject constructor(
                 val remoteId = remoteIdsByLocalEcho[event.eventId]
                 if (remoteId != null && stores.timelineEvent.getByRoomAndEventId(roomId, remoteId) != null) {
                     Timber.i("## Send: skip local echo insert of ${event.eventId}, remote copy $remoteId already synced")
-                    // Without unsigned.transaction_id the open timeline can't match its in-memory copy itself.
-                    timelineInput.onLocalEchoDeleted(roomId, eventId)
+                    replacementEventId = remoteId
                 } else {
                     val dbId = stores.event.insert(eventEntity)
                     stores.eventInsert.insert(eventId, eventType, canBeProcessed = true, insertType = EventInsertType.LOCAL_ECHO)
@@ -188,6 +188,7 @@ internal class LocalEchoRepository @Inject constructor(
                 }
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
             }
+            replacementEventId?.let { timelineInput.onLocalEchoReplaced(roomId, eventId, it) }
             pendingEchoes.remove(event.eventId)
         }
     }

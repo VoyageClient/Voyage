@@ -905,6 +905,7 @@ class TimelineFragment :
     }
 
     override fun onDestroyView() {
+        if (::scrollOnHighlightedEventCallback.isInitialized) scrollOnHighlightedEventCallback.dispose()
         mediaContentRevealManager.clearAll()
         voiceRecorderStackLayoutListener?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -1049,9 +1050,8 @@ class TimelineFragment :
     }
 
     private fun jumpToBottom() {
+        timelineViewModel.cancelPendingNavigation()
         clearReplyJumpSource()
-        // A previous jump-to-event may still be pinning its target on screen (released only by a drag),
-        // which would pull the viewport straight back out of the live edge.
         scrollOnHighlightedEventCallback.cancel()
         timelineEventController.setBuildFocusEventId(null)
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
@@ -1117,19 +1117,11 @@ class TimelineFragment :
     }
 
     private fun navigateToEvent(action: RoomDetailViewEvents.NavigateToEvent) {
-        // Seed the build focus immediately: the highlight reaches the controller's partial state
-        // asynchronously, and until then the budgeted build spends its expensive-model budget at the
-        // live edge — leaving the jump-target region with only cheap (debug-notice) models built.
+        // Highlight state arrives asynchronously; prioritize building the target's models now.
         timelineEventController.setBuildFocusEventId(action.eventId)
-        // Jumping to the first unread lands on the marker row itself, and what is being read is what
-        // follows it, so that one is held against the top edge instead of centered.
-        val landedOnReadMarker = action.isFirstUnreadEvent &&
-                scrollOnHighlightedEventCallback.scrollToResolvedPosition(ScrollAnchorAlignment.TOP) {
-                    timelineEventController.getPositionOfReadMarker()
-                }
-        if (!landedOnReadMarker) {
-            scrollOnHighlightedEventCallback.scheduleScrollTo(action.eventId)
-        }
+        scrollOnNewMessageCallback.cancelPendingScroll()
+        scrollOnHighlightedEventCallback.scheduleScrollTo(action.eventId, preferReadMarker = action.isFirstUnreadEvent)
+        action.highlightNonce?.let { timelineEventController.highlightVisibleEvent(views.timelineRecyclerView, action.eventId, it) }
         jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibility()
         session.userService().getUser(session.myUserId)?.toMatrixItem()?.let {
             avatarRenderer.preloadAvatarAtSize(it, views.timelineRecyclerView, avatarSizeProvider.avatarSize)
@@ -1374,9 +1366,11 @@ class TimelineFragment :
         if (!views.timelineRecyclerView.isComputingLayout) views.timelineRecyclerView.suppressLayout(false)
         timelineEventController.setPaused(false)
         timelineViewModel.timeline?.setPaused(false)
+        scrollOnHighlightedEventCallback.setPaused(false)
     }
 
     override fun onStop() {
+        scrollOnHighlightedEventCallback.setPaused(true)
         // Backstacked/hidden rooms must not keep burning the shared epoxy thread on every new event —
         // nor the SDK's single DB thread on snapshot rebuilds (two stacked copies of a room halve
         // the visible one's throughput).
@@ -1522,17 +1516,17 @@ class TimelineFragment :
                 views.timelineRecyclerView,
                 layoutManager,
                 timelineEventController,
-                isTimelineLive = { !timelineHasContent || timelineViewModel.timeline?.isLive != false },
+                isTimelineLive = { timelineViewModel.timeline?.isLive == true },
+                isJumping = { ::scrollOnHighlightedEventCallback.isInitialized && scrollOnHighlightedEventCallback.isSettling() },
                 onScrollToLatest = { scrollOnHighlightedEventCallback.cancel() },
         )
         scrollOnHighlightedEventCallback = ScrollOnHighlightedEventCallback(
                 views.timelineRecyclerView,
                 layoutManager,
                 timelineEventController,
-                onLanded = {
-                    // The landing itself produces no scroll events, so re-evaluate the FAB explicitly.
+                onLanded = { eventId ->
                     jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibilityWithDelay()
-                    timelineViewModel.onJumpToEventLanded()
+                    timelineViewModel.onJumpToEventLanded(eventId)
                 },
         )
         views.timelineRecyclerView.layoutManager = layoutManager

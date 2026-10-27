@@ -26,6 +26,7 @@ class ScrollOnNewMessageCallback(
         private val isTimelineLive: () -> Boolean = { true },
         // Called before following a new message to the bottom, so a jump target held there lets go.
         private val onScrollToLatest: () -> Unit = {},
+        private val isJumping: () -> Boolean = { false },
 ) : DefaultListUpdateCallback {
 
     private val newTimelineEventIds = CopyOnWriteArrayList<String>()
@@ -46,6 +47,11 @@ class ScrollOnNewMessageCallback(
         newTimelineEventIds.addAll(0, eventIds)
     }
 
+    fun cancelPendingScroll() {
+        forceScrollUntilMs = 0L
+        newTimelineEventIds.clear()
+    }
+
     fun forceScrollOnNextUpdate() {
         // A window rather than a one-shot: a jump-to-bottom restarts the timeline, and between the
         // press and the live-edge list replacement several unrelated small diffs can land — a
@@ -55,10 +61,9 @@ class ScrollOnNewMessageCallback(
     }
 
     override fun onInserted(position: Int, count: Int) {
-        if (position != 0) {
-            return
-        }
-        if (SystemClock.uptimeMillis() < forceScrollUntilMs) {
+        if (isJumping()) return
+        if (position != 0) return
+        if (SystemClock.uptimeMillis() < forceScrollUntilMs && isTimelineLive()) {
             onScrollToLatest()
             layoutManager.scrollToPosition(0)
             return

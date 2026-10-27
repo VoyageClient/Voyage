@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyController
 import com.airbnb.epoxy.EpoxyModel
+import com.airbnb.epoxy.EpoxyViewHolder
 import com.airbnb.epoxy.VisibilityState
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
@@ -56,6 +57,7 @@ import im.vector.app.features.home.room.detail.timeline.item.ReactionsSummaryEve
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
 import im.vector.app.features.home.room.detail.timeline.item.TimelineHistoryStartItem_
+import im.vector.app.features.home.room.detail.timeline.item.TimelineReadMarkerItem
 import im.vector.app.features.home.room.detail.timeline.item.TypingItem_
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.readreceipts.ReadReceiptsCache
@@ -282,6 +284,52 @@ class TimelineEventController @Inject constructor(
 
     // A pass hit its budget with events left to build; see addWhenLoading.
     @Volatile private var hasUnbuiltEvents = false
+    @Volatile private var builtEventIds: Set<String> = emptySet()
+
+    private data class AppliedPositions(
+            val events: Map<String, Int>,
+            val models: Map<Long, Int>,
+            val readMarker: Int?,
+    )
+
+    private var appliedPositions: AppliedPositions? = null
+
+    private fun appliedPositions(): AppliedPositions {
+        appliedPositions?.let { return it }
+        val events = HashMap<String, Int>()
+        val models = HashMap<Long, Int>()
+        var readMarker: Int? = null
+        for (position in 0 until adapter.itemCount) {
+            val model = adapter.getModelAtPosition(position)
+            models[model.id()] = position
+            if (model is TimelineReadMarkerItem) readMarker = position
+            if (model is ItemWithEvents && model.isVisible()) {
+                model.getEventIds().forEach { events[it] = position }
+            }
+        }
+        return AppliedPositions(events, models, readMarker).also { appliedPositions = it }
+    }
+
+    fun findEventPositionInAdapter(eventId: String): Int? = appliedPositions().events[eventId]
+
+    fun highlightVisibleEvent(recyclerView: RecyclerView, eventId: String, nonce: Long) {
+        val position = findEventPositionInAdapter(eventId) ?: return
+        val holder = recyclerView.findViewHolderForAdapterPosition(position) as? EpoxyViewHolder ?: return
+        val layout = recyclerView.layoutManager ?: return
+        val view = holder.itemView
+        if (layout.getDecoratedTop(view) >= recyclerView.height - recyclerView.paddingBottom ||
+                layout.getDecoratedBottom(view) <= recyclerView.paddingTop) return
+        val model = holder.model as? BaseEventItem<*> ?: return
+        if (eventId !in model.getEventIds()) return
+        val eventHolder = holder.holder as? BaseEventItem.BaseHolder ?: return
+        model.showHighlight(eventHolder, nonce)
+    }
+
+    fun findModelPositionInAdapter(modelId: Long): Int? = appliedPositions().models[modelId]
+
+    fun findReadMarkerPositionInAdapter(eventId: String): Int? = appliedPositions().readMarker?.takeIf { position ->
+        (adapter.getModelAtPosition(position) as? TimelineReadMarkerItem)?.fadeKey == eventId
+    }
 
     // Per-snapshot O(n) work (reverse preprocess, displayable-neighbour arrays, receipts) is identical across
     // the multiple budget-limited build passes over one snapshot; recomputing it each pass was the bulk of the
@@ -393,6 +441,13 @@ class TimelineEventController @Inject constructor(
     private val loaderRequestsMore = BooleanArray(Timeline.Direction.values().size)
 
     init {
+        adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() { appliedPositions = null }
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) { appliedPositions = null }
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) { appliedPositions = null }
+            override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) { appliedPositions = null }
+            override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) { appliedPositions = null }
+        })
         addInterceptor(this)
         addModelBuildListener { requestMoreFromVisibleLoaders() }
         requestModelBuild()
@@ -402,7 +457,7 @@ class TimelineEventController @Inject constructor(
         // positionsLock only around the (fast) mapping rebuild, so main-thread position lookups
         // wait at most this long — never a whole model-build pass.
         synchronized(positionsLock) {
-            interceptorHelper.intercept(models, partialState.unreadState, timeline, callback)
+            interceptorHelper.intercept(models, partialState.unreadState, timeline, callback, hasUnbuiltEvents)
         }
     }
 
@@ -592,6 +647,9 @@ class TimelineEventController @Inject constructor(
 
     override fun buildModels() {
         PerfTrace.time("timeline.buildModels") { buildModelsInner() }
+        synchronized(modelCache) {
+            builtEventIds = modelCache.mapNotNullTo(HashSet()) { it?.eventId }
+        }
     }
 
     private fun buildModelsInner() {
@@ -1259,7 +1317,9 @@ class TimelineEventController @Inject constructor(
     private fun requestMoreFromVisibleLoaders() {
         Timeline.Direction.values().forEach { direction ->
             if (loaderVisible[direction.ordinal] && loaderRequestsMore[direction.ordinal]) {
-                mainHandler.post { callback?.onLoadMore(direction) }
+                mainHandler.post {
+                    if (loaderVisible[direction.ordinal] && loaderRequestsMore[direction.ordinal]) callback?.onLoadMore(direction)
+                }
             }
         }
     }
@@ -1312,34 +1372,23 @@ class TimelineEventController @Inject constructor(
         return adapterPositionMapping[eventId]
     }
 
-    /**
-     * Whether [eventId] and the [radius] snapshot entries either side of it have all been through a build
-     * pass. A jump waits for this: models are built a budgeted batch at a time, so landing earlier drops
-     * the reader into a span whose rows are still appearing one pass at a time around them.
-     */
-    fun isNeighborhoodBuilt(eventId: String, radius: Int): Boolean = synchronized(modelCache) {
-        val index = currentSnapshot.indexOfFirst { it.eventId == eventId }.takeIf { it >= 0 } ?: return false
-        // The snapshot can be ahead of the cache for a moment after it is swapped in.
-        if (index >= modelCache.size) return false
+    fun isNeighborhoodBuilt(eventId: String, radius: Int): Boolean {
+        val snapshot = currentSnapshot
+        val built = builtEventIds
+        val index = snapshot.indexOfFirst { it.eventId == eventId }.takeIf { it >= 0 } ?: return false
         val from = (index - radius).coerceAtLeast(0)
-        val to = (index + radius).coerceAtMost(modelCache.size - 1)
-        for (position in from..to) {
-            if (modelCache[position] == null) return false
-        }
-        return true
+        val to = (index + radius).coerceAtMost(snapshot.lastIndex)
+        return (from..to).all { snapshot[it].eventId in built }
     }
 
-    /**
-     * Like [searchPositionOfEvent], but when the target event has no rendered item (e.g. a hidden state
-     * event, or one merged/aggregated away), fall back to the nearest event that does — so jumping to it
-     * still lands in the right place instead of leaving the timeline blank.
-     */
-    fun searchPositionOfEventOrNearest(eventId: String?): Int? = synchronized(positionsLock) {
-        adapterPositionMapping[eventId]?.let { return it }
-        val targetIndex = currentSnapshot.indexOfFirst { it.eventId == eventId }.takeIf { it >= 0 } ?: return null
-        for (distance in 1 until currentSnapshot.size) {
-            currentSnapshot.getOrNull(targetIndex - distance)?.eventId?.let { adapterPositionMapping[it] }?.let { return it }
-            currentSnapshot.getOrNull(targetIndex + distance)?.eventId?.let { adapterPositionMapping[it] }?.let { return it }
+    fun searchPositionOfEventOrNearest(eventId: String): Int? {
+        val positions = appliedPositions().events
+        positions[eventId]?.let { return it }
+        val snapshot = currentSnapshot
+        val targetIndex = snapshot.indexOfFirst { it.eventId == eventId }.takeIf { it >= 0 } ?: return null
+        for (distance in 1 until snapshot.size) {
+            snapshot.getOrNull(targetIndex - distance)?.eventId?.let { positions[it] }?.let { return it }
+            snapshot.getOrNull(targetIndex + distance)?.eventId?.let { positions[it] }?.let { return it }
         }
         return null
     }
