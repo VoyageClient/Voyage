@@ -174,8 +174,18 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
             queries.selectForIndexAfterId(afterId, limit.toLong()).executeAsList()
                     .map { it.id to it.toEntity().asDomain() }
 
-    /** [toEntity] plus the thread-root preview (latest in-thread message). */
     private fun EventRow.toResolvedEntity(): EventEntity = toEntity().also { entity ->
+        if (type == EventType.STATE_ROOM_MEMBER && state_key != null && entity.prevContent == null) {
+            val unsigned = unsigned_data.toUnsignedData()
+            if (unsigned?.prevContent == null) {
+                val previous = unsigned?.replacesState
+                        ?.takeIf { it != event_id }
+                        ?.let { queries.selectByEventIdInRoom(room_id, it).executeAsOneOrNull() }
+                        ?.takeIf { it.type == type && it.state_key == state_key }
+                // Resolve on read so an invite loaded later can correct an already stored leave.
+                entity.prevContent = previous?.content
+            }
+        }
         // Chunk merges/dedup and thread-chunk teardown delete timeline rows without re-pointing the root.
         entity.threadSummaryLatestMessage = thread_summary_latest_timeline_id?.let { resolveTimelineEvent(it) }
                 ?: if (is_root_thread != 0L) resolveLatestThreadReply(room_id, event_id) else null

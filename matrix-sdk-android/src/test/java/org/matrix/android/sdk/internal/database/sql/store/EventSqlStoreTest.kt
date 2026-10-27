@@ -19,6 +19,7 @@ import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
@@ -72,6 +73,66 @@ class EventSqlStoreTest {
         read.type shouldBeEqualTo EventType.MESSAGE
         read.sender shouldBeEqualTo "@alice:hs"
         read.originServerTs shouldBeEqualTo 1_000L
+    }
+
+    @Test
+    fun `membership previous content resolves when the referenced invite arrives later`() {
+        val leave = event("leave", type = EventType.STATE_ROOM_MEMBER).also {
+            it.stateKey = "@alice:hs"
+            it.content = """{"membership":"leave"}"""
+            it.unsignedData = """{"replaces_state":"invite"}"""
+        }
+        val id = store.insert(leave)
+        store.getByIdsForTimeline(listOf(id))[id]!!.prevContent.shouldBeNull()
+
+        val inviteContent = """{"membership":"invite"}"""
+        store.insert(event("invite", type = EventType.STATE_ROOM_MEMBER).also {
+            it.stateKey = leave.stateKey
+            it.content = inviteContent
+        })
+
+        store.getByIdsForTimeline(listOf(id))[id]!!.prevContent shouldBeEqualTo inviteContent
+        store.getByEventIdInRoom(leave.roomId, leave.eventId)!!.prevContent shouldBeEqualTo inviteContent
+        database.eventQueries.selectById(id).executeAsOne().prev_content.shouldBeNull()
+    }
+
+    @Test
+    fun `membership reference must match the room type and state key and not itself`() {
+        val candidates = listOf(
+                event("otherRoom", roomId = "!other:hs", type = EventType.STATE_ROOM_MEMBER).also { it.stateKey = "@alice:hs" },
+                event("otherType", type = EventType.STATE_ROOM_NAME).also { it.stateKey = "@alice:hs" },
+                event("otherMember", type = EventType.STATE_ROOM_MEMBER).also { it.stateKey = "@bob:hs" },
+        )
+        candidates.forEach { store.insert(it) }
+        (candidates.map { it.eventId } + "self").forEach { previousId ->
+            val id = store.insert(event(if (previousId == "self") "self" else "leave-$previousId", type = EventType.STATE_ROOM_MEMBER).also {
+                it.stateKey = "@alice:hs"
+                it.content = """{"membership":"leave"}"""
+                it.unsignedData = """{"replaces_state":"$previousId"}"""
+            })
+            store.getByIdsForTimeline(listOf(id))[id]!!.prevContent.shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `embedded previous membership takes precedence over the reference`() {
+        store.insert(event("invite", type = EventType.STATE_ROOM_MEMBER).also {
+            it.stateKey = "@alice:hs"
+            it.content = """{"membership":"invite"}"""
+        })
+        listOf(false, true).forEach { inUnsigned ->
+            val id = store.insert(event("leave-$inUnsigned", type = EventType.STATE_ROOM_MEMBER).also {
+                it.stateKey = "@alice:hs"
+                it.content = """{"membership":"leave"}"""
+                if (inUnsigned) {
+                    it.unsignedData = """{"replaces_state":"invite","prev_content":{"membership":"join"}}"""
+                } else {
+                    it.unsignedData = """{"replaces_state":"invite"}"""
+                    it.prevContent = """{"membership":"join"}"""
+                }
+            })
+            store.getByIdsForTimeline(listOf(id))[id]!!.asDomain().resolvedPrevContent()?.get("membership") shouldBeEqualTo "join"
+        }
     }
 
     @Test

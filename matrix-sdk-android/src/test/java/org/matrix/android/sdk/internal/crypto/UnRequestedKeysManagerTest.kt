@@ -20,7 +20,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.fail
-import org.amshove.kluent.shouldBe
+import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustLevel
@@ -136,7 +136,7 @@ class UnRequestedKeysManagerTest {
         unrequestedForwardManager.onInviteReceived(roomId, aBobDevice.userId, inviteTime)
         runBlocking {
             unrequestedForwardManager.postSyncProcessParkedKeysIfNeeded(inviteTime) {
-                it.size shouldBe 2
+                it.size shouldBeEqualTo 2
             }
         }
     }
@@ -167,7 +167,7 @@ class UnRequestedKeysManagerTest {
 
         runBlocking {
             unrequestedForwardManager.postSyncProcessParkedKeysIfNeeded(1000) {
-                it.size shouldBe 1
+                it.size shouldBeEqualTo 1
             }
         }
     }
