@@ -33,6 +33,7 @@ import androidx.appcompat.view.menu.MenuBuilder
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.core.text.toSpannable
 import androidx.core.util.Pair
@@ -60,6 +61,7 @@ import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -1381,6 +1383,7 @@ class TimelineFragment :
 
     override fun onResume() {
         super.onResume()
+        restoreToolbarBackground()
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.withResumed { flushPendingProfileChanges() }
         }
@@ -1391,6 +1394,13 @@ class TimelineFragment :
         roomDetailPendingActionStore.data = null
         refreshOnMediaVisibilityChange()
         refreshOnTimelineVisibilityChange()
+    }
+
+    private fun restoreToolbarBackground() {
+        val color = MaterialColors.getColor(views.roomToolbar, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+        // Keep the toolbar fill independent of Material's stateful surface drawable.
+        views.appBarLayout.backgroundCompat = color.toDrawable()
+        views.roomToolbar.backgroundCompat = color.toDrawable()
     }
 
     private fun flushPendingProfileChanges() {

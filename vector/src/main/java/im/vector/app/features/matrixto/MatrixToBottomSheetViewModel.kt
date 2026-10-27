@@ -18,13 +18,18 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.platform.VectorViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.room.failure.JoinRoomFailure
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.space.JoinSpaceResult
@@ -259,7 +264,18 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                 )
 
                 val roomId = getRoomIdFromRoomIdOrAlias(action.roomIdOrAlias)
+                try {
+                    withTimeout(60_000L) {
+                        session.roomService().getRoomSummaryFlow(roomId).first {
+                            it.getOrNull()?.membership == Membership.JOIN && session.getRoom(roomId) != null
+                        }
+                    }
+                } catch (failure: TimeoutCancellationException) {
+                    throw JoinRoomFailure.JoinedWithTimeout
+                }
                 _viewEvents.post(MatrixToViewEvents.NavigateToRoom(roomId))
+            } catch (failure: CancellationException) {
+                throw failure
             } catch (failure: Throwable) {
                 _viewEvents.post(MatrixToViewEvents.ShowModalError(errorFormatter.toHumanReadable(failure)))
             } finally {

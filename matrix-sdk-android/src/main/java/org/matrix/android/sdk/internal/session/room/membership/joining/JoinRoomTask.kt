@@ -70,10 +70,12 @@ internal class DefaultJoinRoomTask @Inject constructor(
 ) : JoinRoomTask {
 
     override suspend fun execute(params: JoinRoomTask.Params) {
-        val currentState = roomChangeMembershipStateDataSource.getState(params.roomIdOrAlias)
-        if (currentState.isInProgress() || currentState == ChangeMembershipState.Joined) {
-            return
+        // Sync publishes membership changes before committing the room; only persisted data is safe to open.
+        val alreadyJoined = withContext(sessionDbDispatcher) {
+            stores.room.get(params.roomIdOrAlias)?.membership == Membership.JOIN &&
+                    stores.roomSummary.get(params.roomIdOrAlias)?.membership == Membership.JOIN
         }
+        if (alreadyJoined) return
         roomChangeMembershipStateDataSource.updateState(params.roomIdOrAlias, ChangeMembershipState.Joining)
         // Read before joining: once we are a member the summary no longer carries who invited us.
         val inviter = withContext(sessionDbDispatcher) {
