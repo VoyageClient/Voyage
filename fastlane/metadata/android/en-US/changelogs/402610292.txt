@@ -1,0 +1,10 @@
+• Fix detekt line length in DefaultSendService
+• Add <<< >>> multi-line quote blocks
+• Resolve missing previous membership from referenced events
+• Wait for joined rooms before navigation
+• Make timeline message timestamps optional
+• Keep message jumps stable while the timeline updates
+• Load pinned messages as their events become available
+• Keep a restored mention from pilling together with the next word
+• Keep a jumped-to message steady while its timeline loads
+…and 80 more
