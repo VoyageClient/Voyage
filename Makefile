@@ -81,7 +81,7 @@ release:
 		git commit -m "Add F-Droid changelogs for $$tag"
 	fi
 	git -c push.followTags=false push "$$remote" "HEAD:$$upstream"
-	git tag -a "$$tag" -m "Voyage $$tag"
+	git tag "$$tag"
 	git push "$$remote" "refs/tags/$$tag"
 
 help:
