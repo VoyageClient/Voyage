@@ -22,7 +22,10 @@ import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.session.room.send.MarkdownParser
 
 class FakeMarkdownParser {
-    internal val instance = mockk<MarkdownParser>()
+    internal val instance = mockk<MarkdownParser> {
+        every { expandQuoteFences(any()) } answers { firstArg() }
+    }
+
     fun givenBoldMarkdown() {
         every { instance.parse(any(), any(), any()) } answers {
             val text = arg<String>(0)

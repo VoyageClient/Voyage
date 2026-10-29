@@ -61,6 +61,8 @@ internal class MarkdownParser @Inject constructor(
         val emoticonMarkdownCharacters = Regex("""[\^~_*><]""")
         val quoteLine = Regex("""^ {0,3}>(?:[ \t]|$)""")
         val attributionLine = Regex("""^( {0,3})-([ \t]+\S.*)$""")
+        val quoteFenceOpen = Regex("""^ {0,3}<<<[ \t]*(.*)$""")
+        val quoteFenceClose = Regex("""^ {0,3}>>>[ \t]*$""")
     }
 
     /**
@@ -71,7 +73,7 @@ internal class MarkdownParser @Inject constructor(
      * @return TextContent containing the plain text and the formatted html if generated.
      */
     fun parse(text: CharSequence, force: Boolean = false, advanced: Boolean = true): TextContent {
-        val source = textPillsUtils.processSpecialSpansToMarkdown(text) ?: text.toString()
+        val source = expandQuoteFences(textPillsUtils.processSpecialSpansToMarkdown(text) ?: text.toString())
 
         // If no special char are detected, just return plain text
         if (!force && source.contains(mdSpecialChars).not()) {
@@ -107,7 +109,8 @@ internal class MarkdownParser @Inject constructor(
             // The plain text version of the HTML should be provided in the body.
             // But it caused too many problems so it has been removed in #2002
             // See #739
-            val body = if (document.containsSpoiler()) stripSpoilerDelimiters(text.toString()) else text.toString()
+            val plain = expandQuoteFences(text.toString())
+            val body = if (document.containsSpoiler()) stripSpoilerDelimiters(plain) else plain
             TextContent(body, cleanHtmlText.postTreatment())
         } else {
             TextContent(source)
@@ -149,6 +152,42 @@ internal class MarkdownParser @Inject constructor(
         }
         appendSegment(source.length)
         return result.toString()
+    }
+
+    // `<<<` … lone `>>>` (or end of message) becomes `> ` lines, so other clients see an ordinary blockquote.
+    fun expandQuoteFences(source: String): String {
+        if (!source.contains("<<<")) return source
+        val lines = source.split("\n")
+        val out = ArrayList<String>(lines.size)
+        var inCode = false
+        var inQuote = false
+        for ((index, line) in lines.withIndex()) {
+            if (inQuote) {
+                if (!inCode && quoteFenceClose.matches(line)) {
+                    inQuote = false
+                    val next = lines.getOrNull(index + 1)
+                    // Otherwise commonmark's lazy continuation pulls the next line into the quote.
+                    if (next != null && next.isNotBlank() && !listItemMarker.containsMatchIn(next)) out.add("")
+                    continue
+                }
+                if (fenceLine.containsMatchIn(line)) inCode = !inCode
+                out.add(if (line.isBlank()) ">" else "> $line")
+                continue
+            }
+            val open = if (inCode) null else quoteFenceOpen.matchEntire(line)
+            if (open != null) {
+                inQuote = true
+                val first = open.groupValues[1]
+                if (first.isNotBlank()) {
+                    if (fenceLine.containsMatchIn(first)) inCode = true
+                    out.add("> $first")
+                }
+                continue
+            }
+            if (fenceLine.containsMatchIn(line)) inCode = !inCode
+            out.add(line)
+        }
+        return out.joinToString("\n")
     }
 
     private fun protectUnintendedMarkdown(source: String): String {

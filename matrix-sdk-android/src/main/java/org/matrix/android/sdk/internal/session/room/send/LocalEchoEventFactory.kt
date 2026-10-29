@@ -136,6 +136,9 @@ internal class LocalEchoEventFactory @Inject constructor(
     fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? =
             createTextContent(text, autoMarkdown).formattedText
 
+    private fun markdownBody(text: String, parsedAsMarkdown: Boolean): String =
+            if (parsedAsMarkdown && !isPgpArmoredBody(text)) markdownParser.expandQuoteFences(text) else text
+
     fun createFormattedTextEvent(
             roomId: String,
             textContent: TextContent,
@@ -518,7 +521,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         newContent = MessageTextContent(
                                 msgType = msgType,
                                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
-                                body = plainBody,
+                                body = markdownBody(plainBody, replyTextFormatted == null && autoMarkdown),
                                 formattedBody = if (isFormatted) htmlBody else null,
                         )
                                 .toContent()
@@ -596,7 +599,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         }
         val isFormatted = html != null && html != plain
         return MediaBodyParts(
-                body = plain,
+                body = markdownBody(plain, captionFormattedText == null),
                 filename = name,
                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
                 formattedBody = if (isFormatted) html else null,
@@ -880,7 +883,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         val isFormatted = html != null && html != caption
         val content = MessageGalleryContent(
                 msgType = MessageType.MSGTYPE_GALLERY,
-                body = caption ?: galleryFallbackBody(itemContents),
+                body = caption?.let { markdownBody(it, captionFormattedText == null) } ?: galleryFallbackBody(itemContents),
                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
                 formattedBody = if (isFormatted) html else null,
                 itemtypes = itemContents.mapNotNull { it.toGalleryItem() },
@@ -1004,7 +1007,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         return MessageTextContent(
                 msgType = msgType,
                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
-                body = plainBody,
+                body = markdownBody(plainBody, replyTextFormatted == null && autoMarkdown),
                 formattedBody = if (isFormatted) htmlBody else null,
                 relatesTo = generateReplyRelationContent(
                         eventId = eventId,
@@ -1252,7 +1255,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                 }
             }
             append("\n\n")
-            append(text)
+            append(markdownBody(text, formattedText == null && autoMarkdown))
         }
         val formattedTextBody = buildString {
             if (!processedFormattedQuotedText.isNullOrBlank()) {

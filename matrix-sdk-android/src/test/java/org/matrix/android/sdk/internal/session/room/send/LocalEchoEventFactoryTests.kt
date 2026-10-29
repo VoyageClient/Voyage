@@ -305,6 +305,37 @@ class LocalEchoEventFactoryTests {
     }
 
     @Test
+    fun `a markdown reply and its edit send quote blocks expanded in the plain body`() {
+        every { fakeMarkdownParser.instance.expandQuoteFences("<<< hi") } returns "> hi"
+        val replied = createTimelineEvent("Text", null)
+
+        val reply = localEchoEventFactory.createReplyTextContent(replied, "<<< hi", null, autoMarkdown = true, showInThread = false)
+        assertEquals("> hi", reply?.body)
+
+        val edit = localEchoEventFactory.createReplaceTextOfReply(
+                roomId = A_ROOM_ID,
+                eventReplaced = replied,
+                originalEvent = replied,
+                replyText = "<<< hi",
+                replyTextFormatted = null,
+                autoMarkdown = true,
+                msgType = MessageType.MSGTYPE_TEXT,
+                compatibilityText = "* <<< hi",
+        )
+        assertEquals("> hi", edit.newContent()?.get("body"))
+    }
+
+    @Test
+    fun `a reply keeps its plain body verbatim when markdown is off`() {
+        every { fakeMarkdownParser.instance.expandQuoteFences("<<< hi") } returns "> hi"
+        every { fakeTextPillsUtils.instance.processSpecialSpansToHtml(any()) } returns null
+        val reply = localEchoEventFactory.createReplyTextContent(
+                createTimelineEvent("Text", null), "<<< hi", null, autoMarkdown = false, showInThread = false
+        )
+        assertEquals("<<< hi", reply?.body)
+    }
+
+    @Test
     fun `a media edit replaces the message with the new media, and says which message it replaces`() {
         val edit = localEchoEventFactory.createMediaReplaceEvent(
                 roomId = A_ROOM_ID,
