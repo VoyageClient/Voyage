@@ -12,6 +12,7 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.LayerDrawable
@@ -41,6 +42,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.FragmentManager
@@ -401,6 +403,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             }
         }
         super.onCreate(savedInstanceState)
+        configScreenWidthDp = resources.configuration.screenWidthDp
         addOnMultiWindowModeChangedListener(onMultiWindowModeChangedListener)
         setupMenu()
         observeColorChanges()
@@ -719,7 +722,12 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     private var imeAnimationStartBottom = 0
     private var imeAnimationBaseBottom = 0
     private var imeAnimationTargetBottom = 0
+    private var imeAnimationStartWidth = 0
+    private var lastImePaddingWidth = 0
     private var measuredComposerImeBottom = 0
+    private var measuredComposerImeWidth = 0
+    private var configScreenWidthDp = 0
+    private var rotationPendingWidth = -1
     var isRestoringComposerKeyboard = false
         set(value) {
             if (field == value) return
@@ -730,6 +738,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     fun updateMeasuredComposerImeHeight(height: Int) {
         if (measuredComposerImeBottom == height) return
         measuredComposerImeBottom = height
+        measuredComposerImeWidth = rootView.width
         ViewCompat.requestApplyInsets(rootView)
     }
 
@@ -775,6 +784,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                         imeAnimationStartBottom = rootView.paddingBottom
                         imeAnimationBaseBottom = imeAnimationStartBottom
                         imeAnimationTargetBottom = imeAnimationStartBottom
+                        imeAnimationStartWidth = rootView.width
                         imeAnimationRooms = findImeRooms(rootView).filter { it.isShown }
                         imeAnimationRooms.forEach { it.releaseSettledHeightHold() }
                         translateImeRooms = hasWindowFocus() && !isRestoringComposerKeyboard &&
@@ -787,6 +797,14 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 override fun onProgress(insets: WindowInsetsCompat, runningAnimations: MutableList<WindowInsetsAnimationCompat>): WindowInsetsCompat {
                     if (isImeAnimating) {
                         lastAnimationInsets = insets
+                        // Rotated mid-animation: offsets measured against the old height would misplace the room.
+                        if (translateImeRooms && rootView.width != imeAnimationStartWidth) {
+                            translateImeRooms = false
+                            imeAnimationRooms.forEach {
+                                it.setKeyboardTranslation(0f)
+                                it.finishKeyboardAnimation()
+                            }
+                        }
                         val predictiveBack = imeAnimations.any { it.durationMillis < 0 }
                         if (translateImeRooms) {
                             val nativeBottom = insets.getInsets(WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.navigationBars()).bottom
@@ -830,16 +848,31 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     }
 
     private fun applyRootInsets(v: View, insets: WindowInsetsCompat, holdImeSpace: Boolean = false): WindowInsetsCompat {
+        val heldInsets = if (drawUnderSystemBars) insets else WindowInsetsCompat.CONSUMED
+        // Mid-rotation the system already reports the next orientation's insets while the view still
+        // has this one's size; hold the current padding until the view is laid out at the new width.
+        if (rotationPendingWidth >= 0) {
+            if (v.width == rotationPendingWidth) return heldInsets
+            rotationPendingWidth = -1
+        }
         val holdForSystemWindow = !hasWindowFocus() && shouldHoldImeSpaceOnFocusLoss
         val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
         // Selecting message text transfers focus without dismissing the IME.
         val reserveImeSpace = (hasWindowFocus() || holdForSystemWindow) && imeVisible
         val systemBars = insets.getInsets(WindowInsetTypes.rootPaddingTypes(reserveImeSpace))
-        val desiredBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && reserveImeSpace && measuredComposerImeBottom > minimumComposerImeHeight) {
-            maxOf(insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom, measuredComposerImeBottom)
+        // The same mismatch can land before onConfigurationChanged, as a keyboard taller than most of the
+        // window. A small multi-window pane can legitimately be mostly covered, so it is exempt.
+        val inMultiWindow = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode
+        if (!inMultiWindow && v.height > 0 && systemBars.bottom > v.height * 3 / 4) return heldInsets
+        val navBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        // The measured height is from one orientation, and only applies while the system agrees a keyboard is up.
+        val desiredBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && reserveImeSpace &&
+                measuredComposerImeBottom > minimumComposerImeHeight && v.width == measuredComposerImeWidth &&
+                systemBars.bottom > navBottom + minimumComposerImeHeight) {
+            maxOf(navBottom, measuredComposerImeBottom)
         } else systemBars.bottom
         val bottom = when {
-            isImeAnimating && translateImeRooms -> {
+            isImeAnimating && translateImeRooms && v.width == imeAnimationStartWidth -> {
                 imeAnimationTargetBottom = desiredBottom
                 val previousBase = imeAnimationBaseBottom
                 imeAnimationBaseBottom = minOf(imeAnimationBaseBottom, desiredBottom)
@@ -849,11 +882,14 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 }
                 imeAnimationBaseBottom
             }
-            isRestoringComposerKeyboard || holdImeSpace || (holdForSystemWindow && v.paddingBottom > desiredBottom) -> v.paddingBottom
+            // A held keyboard padding is only right at the width it was taken at.
+            (isRestoringComposerKeyboard || holdImeSpace || (holdForSystemWindow && v.paddingBottom > desiredBottom)) &&
+                    v.width == lastImePaddingWidth -> v.paddingBottom
             else -> desiredBottom
         }
+        if (bottom > navBottom) lastImePaddingWidth = v.width
         systemBarsTopInset = systemBars.top
-        navigationBarBottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        navigationBarBottomInset = navBottom
         return if (drawUnderSystemBars) {
             v.updatePadding(0, 0, 0, 0)
             insets
@@ -969,6 +1005,26 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
         debugReceiver.unregister(this)
         mdmService.unregisterListener(this)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig.screenWidthDp == configScreenWidthDp) return
+        configScreenWidthDp = newConfig.screenWidthDp
+        // The window is resized in place (configChanges), and the first layout at the new size would
+        // otherwise keep the old orientation's padding: the keyboard's leaves a sliver of room, and a
+        // landscape cutout's narrows the portrait timeline, which resizes all its media twice.
+        rotationPendingWidth = rootView.width
+        isRestoringComposerKeyboard = false
+        rootView.updatePadding(left = 0, right = 0, bottom = minOf(rootView.paddingBottom, navigationBarBottomInset))
+        // Insets dispatched before that layout are skipped; a resize that keeps the pixel width
+        // (multi-window) would otherwise skip them for good.
+        rootView.doOnNextLayout {
+            if (rotationPendingWidth >= 0) {
+                rotationPendingWidth = -1
+                ViewCompat.requestApplyInsets(rootView)
+            }
+        }
     }
 
     private val onMultiWindowModeChangedListener = Consumer<MultiWindowModeChangedInfo> {

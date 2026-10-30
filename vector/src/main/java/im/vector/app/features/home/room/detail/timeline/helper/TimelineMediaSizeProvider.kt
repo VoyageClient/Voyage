@@ -7,9 +7,14 @@
 
 package im.vector.app.features.home.room.detail.timeline.helper
 
+import android.content.Context
 import android.content.res.Resources
+import android.graphics.Point
+import android.os.Build
 import android.view.View
+import android.view.WindowManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ActivityScoped
 import im.vector.app.features.location.STATIC_MAP_PIN_HEIGHT_DP
 import im.vector.app.features.settings.VectorPreferences
@@ -18,6 +23,7 @@ import kotlin.math.roundToInt
 
 @ActivityScoped
 class TimelineMediaSizeProvider @Inject constructor(
+        @ApplicationContext private val context: Context,
         private val resources: Resources,
         private val vectorPreferences: VectorPreferences
 ) {
@@ -27,18 +33,16 @@ class TimelineMediaSizeProvider @Inject constructor(
             field?.removeOnLayoutChangeListener(layoutListener)
             field = value
             viewportWidth = 0
-            viewportHeight = 0
             cachedSize = null
             value?.addOnLayoutChangeListener(layoutListener)
             // addOnLayoutChangeListener only reports future passes; if the view is re-attached already
             // laid out, seed from its current bounds so we don't fall back to display metrics forever.
-            value?.takeIf { it.width > 0 && it.height > 0 }?.let { adoptBounds(it.width, it.height) }
+            value?.takeIf { it.width > 0 }?.let { adoptWidth(it.width) }
         }
 
-    // The viewport the caps are derived from. Written only on the main thread (layout listener /
-    // setter); read on the background model-build thread via cachedSize, hence @Volatile.
+    // Written only on the main thread (layout listener / setter); read on the background model-build
+    // thread via cachedSize, hence @Volatile.
     private var viewportWidth = 0
-    private var viewportHeight = 0
 
     @Volatile
     private var cachedSize: Pair<Int, Int>? = null
@@ -46,32 +50,18 @@ class TimelineMediaSizeProvider @Inject constructor(
     /** Called on the main thread when the cap changes after it was first established. */
     var onMaxSizeChanged: (() -> Unit)? = null
 
-    // Models are built on a background thread, so getMaxSize() must not read the live RecyclerView
-    // bounds there: with adjustResize the list height shrinks while the keyboard is up (e.g. when
-    // sending), and a transient/shrunk read would get baked into the size and stick. Instead the
-    // cap is recomputed here, on the main thread, from each committed layout pass.
-    private val layoutListener = View.OnLayoutChangeListener { _, left, top, right, bottom, _, _, _, _ ->
-        adoptBounds(right - left, bottom - top)
+    private val layoutListener = View.OnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
+        adoptWidth(right - left)
     }
 
-    private fun adoptBounds(width: Int, height: Int) {
-        if (width <= 0 || height <= 0) return
-        if (width != viewportWidth) {
-            // First layout, or a width change (rotation / split-screen resize → new configuration):
-            // take the new bounds wholesale.
-            viewportWidth = width
-            viewportHeight = height
-        } else if (height > viewportHeight) {
-            // Same width, taller pass (e.g. keyboard dismissed): grow the cap. We keep the tallest
-            // height seen for this width so the keyboard shrinking the list never shrinks media.
-            viewportHeight = height
-        } else {
-            return
-        }
+    private fun adoptWidth(width: Int) {
+        if (width <= 0 || width == viewportWidth) return
+        viewportWidth = width
         val previous = cachedSize
-        val size = computeMaxSize(viewportWidth, viewportHeight)
+        val size = computeMaxSize(width)
         cachedSize = size
-        // Built models carry the cap they were made with, so a rotation would leave them at the old one.
+        // Built models carry the cap they were made with. Rotating leaves it alone, so this is a real
+        // window resize (split screen).
         if (previous != null && previous != size) onMaxSizeChanged?.invoke()
     }
 
@@ -86,17 +76,35 @@ class TimelineMediaSizeProvider @Inject constructor(
         cachedSize?.let { return it }
         // Not laid out yet: fall back to the display size so media built during the initial pass gets
         // a sensible cap instead of 0. Don't cache it — the layout listener installs the real size.
-        return computeMaxSize(resources.displayMetrics.widthPixels, resources.displayMetrics.heightPixels)
+        return computeMaxSize(resources.displayMetrics.widthPixels)
     }
 
-    private fun computeMaxSize(width: Int, height: Int): Pair<Int, Int> {
+    /**
+     * Taken from the display rather than the list, as Telegram does: the list's height follows the
+     * keyboard and changes on every pass of a rotation, and each change of cap resizes and reloads all
+     * media. The width comes from the short side and the height from the long one, so rotating keeps it.
+     */
+    private fun computeMaxSize(viewportWidth: Int): Pair<Int, Int> {
+        val shortSide = (resources.configuration.smallestScreenWidthDp * resources.displayMetrics.density).roundToInt()
+        val width = if (shortSide > 0) minOf(viewportWidth, shortSide) else viewportWidth
         val maxImageWidth = (width * 0.7f).roundToInt()
-        val maxImageHeight = (height * 0.5f).roundToInt()
+        // Roughly half the portrait timeline.
+        val maxImageHeight = (displayLongSide() * 0.4f).roundToInt()
         return if (vectorPreferences.useMessageBubblesLayout()) {
             Pair(maxImageWidth.coerceAtMost(bubbleContentMaxWidth(resources, width)), maxImageHeight)
         } else {
             Pair(maxImageWidth, maxImageHeight)
         }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun displayLongSide(): Int {
+        val display = (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+        val size = Point()
+        // Below 17 only the size minus the system bars is available, which can differ by orientation on
+        // tablets; a rotation there then rebuilds once.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) display.getRealSize(size) else display.getSize(size)
+        return maxOf(size.x, size.y)
     }
 }
 

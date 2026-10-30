@@ -35,6 +35,7 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
     private val popupView = View(activity)
     private val parentView: View = activity.findViewById(android.R.id.content)
     private var lastHeight = -1
+    private var lastScreenHeight = screenHeight()
     val currentKeyboardHeight: Int get() = lastHeight
 
     init {
@@ -79,7 +80,13 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
     private fun handleOnGlobalLayout() {
         val rect = Rect()
         popupView.getWindowVisibleDisplayFrame(rect)
-        val keyboardHeight = screenHeight() - rect.bottom
+        // Rotating, the real metrics turn before the visible frame does; the pass after agrees again.
+        val screenHeight = screenHeight()
+        if (screenHeight != lastScreenHeight) {
+            lastScreenHeight = screenHeight
+            return
+        }
+        val keyboardHeight = screenHeight - rect.bottom
         // Keyboard closed: what's left below the visible frame is just the bottom system bar.
         if (keyboardHeight in 0 until KEYBOARD_OPEN_THRESHOLD) {
             navigationBarHeight = keyboardHeight
