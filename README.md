@@ -5,6 +5,8 @@
 
 Voyage is a [Matrix](https://matrix.org/) client for Android, based on [Element Classic](https://github.com/element-hq/element-android). The app can be run on every Android device with Android 4.0 Ice Cream Sandwich and later (API 14).
 
+[<img src="resources/img/f-droid-badge.png" alt="Get it on F-Droid" height="60">](https://f-droid.org/app/im.voyage.app)
+
 <p align="center">
   <img src="resources/img/screenshots/01-room-list.png" width="45%" alt="Room list">
   <img src="resources/img/screenshots/02-timeline.png" width="45%" alt="Timeline">
@@ -21,7 +23,7 @@ adds on top of Element Classic.
 
 # Installing
 
-Grab an APK from the [releases](../../releases) tab.
+Install Voyage from [F-Droid](https://f-droid.org/app/im.voyage.app), or grab an APK from the [releases](../../releases) tab.
 
 Alternatively, build and install it yourself:
 
